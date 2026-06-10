@@ -1,0 +1,45 @@
+.DS_Store
+node_modules/
+dist/
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Databases
+*.db
+*.sqlite
+backend/data/*.db
+backend/data/*.sqlite
+data/*.db
+data/*.sqlite
+
+# Environment files
+.env
+.env.*
+!.env.example
+backend/.env
+frontend/.env
+mcp-server/.env
+
+# Logs and temp files
+*.log
+$.txt
+*.bak
+backups/*
+!backups/.gitkeep
+
+# IDE / editor
+.vscode/
+.idea/
+
+# AI agent instructions
+AGENT.MD
+CLAUDE.md
+
+# OS specific
+Thumbs.db
+Desktop.ini
+backend/venv

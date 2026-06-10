@@ -1,0 +1,45 @@
+services:
+  backend:
+    build:
+      context: ../backend
+    container_name: suivi-budget-backend
+    environment:
+      - APP_ENV=dev
+      - DATABASE_URL=sqlite:////app/data/suivi_budget.db
+      - SECRET_KEY=${SECRET_KEY}
+      - ADMIN_USERNAME=${ADMIN_USERNAME:-admin}
+      - ADMIN_PASSWORD_HASH=${ADMIN_PASSWORD_HASH}
+    volumes:
+      - ../backend:/app
+      - ../backend/data:/app/data
+    ports:
+      - "8001:8001"
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8001 --reload
+
+  backup:
+    build:
+      context: ../backend
+    container_name: suivi-budget-backup
+    environment:
+      - DB_PATH=/app/data/suivi_budget.db
+      - BACKUP_DIR=/app/backups
+      - BACKUP_KEY=${BACKUP_KEY}
+      - BACKUP_INTERVAL_SECONDS=86400 # 24h
+    volumes:
+      - ../backend/data:/app/data
+      - ../backups:/app/backups
+    command: python scripts/backup_scheduler.py
+    restart: always
+
+  frontend:
+    build:
+      context: ../frontend
+    container_name: suivi-budget-frontend
+    volumes:
+      - ../frontend:/app
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0 --port 5173"
