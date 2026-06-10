@@ -1,6 +1,6 @@
 <div align="center">
 
-# 💰 Suivi Budget
+# 💰 Numera
 
 **Application web self-hosted de finance personnelle**
 
@@ -106,14 +106,14 @@ Frontend                Backend                 Infra
 ### Installation rapide (une seule commande)
 
 ```bash
-sudo /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Hugo-Galley/budget-tracker/main/install.sh)"
+sudo /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Hugo-Galley/numera/main/install.sh)"
 ```
 
 ### Installation manuelle
 
 ```bash
 # 1. Cloner le dépôt
-git clone https://github.com/Hugo-Galley/budget-tracker.git
+git clone https://github.com/Hugo-Galley/numera.git
 cd suivi-budget
 
 # 2. Configurer l'environnement
@@ -183,7 +183,7 @@ cd frontend && npm run build # Build de production du frontend
 ## 📁 Structure du projet
 
 ```
-suivi-budget/
+numera/
 ├── backend/
 │   ├── alembic/             # Migrations de base de données
 │   ├── app/
