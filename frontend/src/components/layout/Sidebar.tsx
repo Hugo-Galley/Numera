@@ -44,8 +44,10 @@ const navigation = [
 
 export function Sidebar({ className, onItemClick }: { className?: string, onItemClick?: () => void }) {
   const { isPrivacyMode, togglePrivacyMode, setSearchOpen } = useUI()
-  const { logout } = useAuth()
+  const { logout, username } = useAuth()
   
+  const initials = username ? username.slice(0, 2).toUpperCase() : "?"
+
   return (
     <div className={cn("flex flex-col bg-white", className)}>
       <div className="flex h-16 items-center border-b px-6">
@@ -113,10 +115,10 @@ export function Sidebar({ className, onItemClick }: { className?: string, onItem
           <DropdownMenuTrigger asChild>
             <button className="flex w-full items-center gap-3 px-2 py-1.5 rounded-md hover:bg-slate-100 transition-colors text-left outline-none">
               <div className="h-8 w-8 rounded-full bg-slate-900 flex items-center justify-center text-white text-xs font-bold">
-                HG
+                {initials}
               </div>
               <div className="flex flex-col flex-1 min-w-0">
-                <span className="text-sm font-medium text-slate-900 truncate">Hugo Galley</span>
+                <span className="text-sm font-medium text-slate-900 truncate">{username || "Utilisateur"}</span>
                 <span className="text-xs text-slate-500 truncate">Administrateur</span>
               </div>
             </button>

@@ -65,17 +65,19 @@ cp .env.example .env
 mkdir -p backend/data backups
 
 # Use Python for safe replacement in .env
-export ADMIN_USERNAME ADMIN_PASSWORD ADMIN_PASSWORD_HASH SECRET_KEY BACKUP_KEY
-python3 <<'EOF'
-import os
+# Pass values as arguments to avoid shell interpolation of $ in bcrypt hash
+python3 - "$ADMIN_USERNAME" "$ADMIN_PASSWORD_HASH" "$ADMIN_PASSWORD" "$SECRET_KEY" "$BACKUP_KEY" <<'EOF'
+import sys
 
 env_path = '.env'
+admin_username, admin_hash, admin_password, secret_key, backup_key = sys.argv[1:6]
+
 updates = {
-    'ADMIN_USERNAME': os.environ.get('ADMIN_USERNAME'),
-    'ADMIN_PASSWORD_HASH': os.environ.get('ADMIN_PASSWORD_HASH'),
-    'MCP_API_PASSWORD': os.environ.get('ADMIN_PASSWORD'),
-    'SECRET_KEY': os.environ.get('SECRET_KEY'),
-    'BACKUP_KEY': os.environ.get('BACKUP_KEY')
+    'ADMIN_USERNAME': admin_username,
+    'ADMIN_PASSWORD_HASH': admin_hash,
+    'MCP_API_PASSWORD': admin_password,
+    'SECRET_KEY': secret_key,
+    'BACKUP_KEY': backup_key
 }
 
 with open(env_path, 'r') as f:
@@ -91,6 +93,7 @@ with open(env_path, 'w') as f:
                 break
         if not updated:
             f.write(line)
+
 EOF
 
 # 4. Launching Production
@@ -100,6 +103,6 @@ make prod
 echo -e "\n${GREEN}========================================${NC}"
 echo -e "${GREEN}== Installation terminée avec succès ! ==${NC}"
 echo -e "${GREEN}========================================${NC}"
-echo -e "Utilisateur: ${BLUE}$ADMIN_USERNAME${NC}"
+echo -e "Utilisateur: ${BLUE}${ADMIN_USERNAME}${NC}"
 echo -e "Application: ${BLUE}http://localhost:8081${NC}"
 echo -e "========================================\n"

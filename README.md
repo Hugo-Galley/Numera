@@ -256,6 +256,6 @@ Ce projet est sous licence MIT. Voir le fichier [`LICENSE`](LICENSE) pour plus d
 
 <div align="center">
 
-Fait avec ❤️ par [Hugo Galley](https://github.com/Hugo-Galley)
+Fait avec ❤️ par [@Hugo-Galley](https://github.com/Hugo-Galley)
 
 </div>
