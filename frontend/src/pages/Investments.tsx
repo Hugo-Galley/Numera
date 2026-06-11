@@ -40,6 +40,7 @@ import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
 import WorldMap from "@/components/ui/WorldMap"
 import { WealthSimulator } from "@/components/analytics/WealthSimulator"
+import { AllocationTreemap } from "@/components/analytics/AllocationTreemap"
 
 const COLORS = ["#000000", "#4b5563", "#9ca3af", "#d1d5db", "#e5e7eb"]
 
@@ -57,6 +58,7 @@ export default function Investments() {
           api.get("/analytics/investments-allocation"),
           api.get("/analytics/investments-allocation-advanced")
         ])
+        console.log("Investments data:", { basic, advanced });
         setAllocation(basic)
         setAdvancedAllocation(advanced)
       } catch (error) {
@@ -138,7 +140,50 @@ export default function Investments() {
         </Card>
       </div>
 
-      <div className="grid gap-4 grid-cols-1 lg:grid-cols-7">
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <div>
+            <CardTitle className="text-xl font-bold">Allocation</CardTitle>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center bg-slate-100 p-1 rounded-lg">
+              <div className="p-1.5 bg-white rounded-md shadow-sm cursor-pointer">
+                <BarChart3 className="h-4 w-4 text-slate-900" />
+              </div>
+              <div className="p-1.5 text-slate-500 cursor-pointer hover:text-slate-900" onClick={() => {
+                const pieSection = document.getElementById('pie-allocation-section');
+                if (pieSection) pieSection.scrollIntoView({ behavior: 'smooth' });
+              }}>
+                <PieChartIcon className="h-4 w-4" />
+              </div>
+            </div>
+            <div className="p-2 text-slate-500 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer" onClick={() => navigate("/dashboard")}>
+              <ArrowUpRight className="h-4 w-4" />
+            </div>
+            <Badge 
+              variant="secondary" 
+              className="bg-slate-100 text-slate-900 hover:bg-slate-200 cursor-pointer px-3 py-1 text-xs font-medium border-none shadow-none"
+              onClick={() => navigate("/dashboard")}
+            >
+              Voir plus
+            </Badge>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {advancedAllocation ? (
+            <AllocationTreemap 
+              data={advancedAllocation.by_asset_class} 
+              onItemClick={(node) => setDrillDown({ title: `Classe d'actif : ${node.name}`, items: node.items })}
+            />
+          ) : (
+            <div className="h-[400px] flex items-center justify-center">
+              <div className="h-8 w-8 rounded-full border-4 border-slate-200 border-t-slate-900 animate-spin" />
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <div id="pie-allocation-section" className="grid gap-4 grid-cols-1 lg:grid-cols-7">
         <Card className="lg:col-span-4">
           <CardHeader>
             <CardTitle>Répartition par compte</CardTitle>
