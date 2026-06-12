@@ -15,7 +15,8 @@ import {
   CalendarDays,
   Repeat,
   Sparkles,
-  Zap
+  ShieldCheck,
+  User
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useUI } from "@/providers/UIProvider"
@@ -39,14 +40,16 @@ const navigation = [
   { name: "Comparaison", href: "/comparison", icon: ArrowLeftRight },
   { name: "Calendrier", href: "/calendar", icon: CalendarDays },
   { name: "Récurrences & Abonnements", href: "/recurring", icon: Repeat },
+  { name: "Audit des données", href: "/audit", icon: ShieldCheck },
   { name: "Paramètres", href: "/settings", icon: Settings },
 ]
 
 export function Sidebar({ className, onItemClick }: { className?: string, onItemClick?: () => void }) {
   const { isPrivacyMode, togglePrivacyMode, setSearchOpen } = useUI()
-  const { logout, username } = useAuth()
+  const { logout, username, profile } = useAuth()
   
   const initials = username ? username.slice(0, 2).toUpperCase() : "?"
+  const profilePicture = profile?.profile_picture_url
 
   return (
     <div className={cn("flex flex-col bg-white", className)}>
@@ -114,8 +117,12 @@ export function Sidebar({ className, onItemClick }: { className?: string, onItem
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className="flex w-full items-center gap-3 px-2 py-1.5 rounded-md hover:bg-slate-100 transition-colors text-left outline-none">
-              <div className="h-8 w-8 rounded-full bg-slate-900 flex items-center justify-center text-white text-xs font-bold">
-                {initials}
+              <div className="h-8 w-8 rounded-full bg-slate-900 flex items-center justify-center text-white text-xs font-bold overflow-hidden">
+                {profilePicture ? (
+                  <img src={profilePicture} alt={username || ""} className="h-full w-full object-cover" />
+                ) : (
+                  initials
+                )}
               </div>
               <div className="flex flex-col flex-1 min-w-0">
                 <span className="text-sm font-medium text-slate-900 truncate">{username || "Utilisateur"}</span>
@@ -125,6 +132,13 @@ export function Sidebar({ className, onItemClick }: { className?: string, onItem
           </DropdownMenuTrigger>
           <DropdownMenuContent side="right" align="end" className="w-56">
             <DropdownMenuLabel>Mon Compte</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <NavLink to="/settings?tab=account">
+              <DropdownMenuItem className="cursor-pointer">
+                <User className="mr-2 h-4 w-4" />
+                <span>Paramètres du compte</span>
+              </DropdownMenuItem>
+            </NavLink>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={logout} className="text-red-600 focus:text-red-600 cursor-pointer">
               <LogOut className="mr-2 h-4 w-4" />

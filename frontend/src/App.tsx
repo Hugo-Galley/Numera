@@ -11,6 +11,7 @@ import IntelligentReport from "@/pages/MonthlyReport"
 import Calendar from "@/pages/Calendar"
 import RecurringTransactions from "@/pages/RecurringTransactions"
 import Login from "@/pages/Login"
+import Audit from "@/pages/Audit"
 import { UIProvider } from "@/providers/UIProvider"
 import { AuthProvider } from "@/providers/AuthProvider"
 import { ProtectedRoute } from "@/components/layout/ProtectedRoute"
@@ -38,6 +39,7 @@ export function App() {
               <Route path="/report" element={<IntelligentReport />} />
               <Route path="/calendar" element={<Calendar />} />
               <Route path="/recurring" element={<RecurringTransactions />} />
+              <Route path="/audit" element={<Audit />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Route>

@@ -9,6 +9,9 @@ from app.core.config import settings
 from app.core import security
 from app.db.session import SessionLocal
 
+from sqlalchemy.orm import Session
+from app.db.system_settings import get_setting
+
 reusable_oauth2 = OAuth2PasswordBearer(
     tokenUrl="/auth/token"
 )
@@ -22,6 +25,7 @@ def get_db() -> Generator:
 
 
 def get_current_user(
+    db: Session = Depends(get_db),
     token: str = Depends(reusable_oauth2)
 ) -> str:
     try:
@@ -40,8 +44,9 @@ def get_current_user(
             detail="Could not validate credentials",
         )
     
-    # In single user mode, we just check if it's the admin
-    if token_data != settings.ADMIN_USERNAME:
+    # In single user mode, we check if it's the current admin username
+    current_admin = get_setting(db, "admin_username", settings.ADMIN_USERNAME)
+    if token_data != current_admin:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="User not authorized",

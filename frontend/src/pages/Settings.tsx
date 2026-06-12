@@ -153,6 +153,7 @@ import { api, API_BASE } from "@/lib/api"
 import { RulesTab } from "@/components/settings/RulesTab"
 import { TransfersTab } from "@/components/settings/TransfersTab"
 import { TagsTab } from "@/components/settings/TagsTab"
+import { AccountTab } from "@/components/settings/AccountTab"
 import { Button } from "@/components/ui/button"
 import { 
   Card, 
@@ -551,6 +552,9 @@ export default function Settings() {
       <Tabs defaultValue={defaultTab} className="w-full">
         <div className="overflow-x-auto pb-2 [ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <TabsList className="bg-slate-100 p-1 rounded-xl mb-2 sm:mb-8 inline-flex w-full sm:w-auto">
+            <TabsTrigger value="account" className="rounded-lg px-6 flex-1 sm:flex-none">
+              <User className="h-4 w-4 mr-2" /> Compte
+            </TabsTrigger>
             <TabsTrigger value="categories" className="rounded-lg px-6 flex-1 sm:flex-none">
               <Tag className="h-4 w-4 mr-2" /> Catégories
             </TabsTrigger>
@@ -571,6 +575,10 @@ export default function Settings() {
             </TabsTrigger>
           </TabsList>
         </div>
+
+        <TabsContent value="account">
+          <AccountTab />
+        </TabsContent>
 
         <TabsContent value="categories" className="space-y-8">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">

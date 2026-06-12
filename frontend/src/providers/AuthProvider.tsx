@@ -1,12 +1,21 @@
 import React, { createContext, useContext, useState, useEffect } from "react"
 import { isTokenExpired } from "@/lib/utils"
+import { API_BASE } from "@/lib/api"
+
+interface UserProfile {
+  username: string
+  profile_picture_url: string | null
+  mcp_enabled: boolean
+}
 
 interface AuthContextType {
   token: string | null
   username: string | null
+  profile: UserProfile | null
   login: (token: string) => void
   logout: () => void
   isAuthenticated: boolean
+  refreshProfile: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -32,7 +41,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     return savedToken
   })
-  const username = getUsernameFromToken(token)
+  const [profile, setProfile] = useState<UserProfile | null>(null)
+  const username = profile?.username || getUsernameFromToken(token)
+
+  const refreshProfile = async () => {
+    if (!token) return
+    try {
+      const response = await fetch(`${API_BASE}/admin/profile`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      if (response.ok) {
+        const data = await response.json()
+        setProfile(data)
+      } else if (response.status === 401 || response.status === 403) {
+        logout()
+      }
+    } catch (error) {
+      console.error("Failed to fetch profile:", error)
+    }
+  }
+
+  useEffect(() => {
+    if (token) {
+      refreshProfile()
+    } else {
+      setProfile(null)
+    }
+  }, [token])
 
   useEffect(() => {
     // Vérifier l'expiration périodiquement (optionnel mais utile si l'onglet reste ouvert)
@@ -53,12 +90,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = () => {
     localStorage.removeItem("token")
     setToken(null)
+    setProfile(null)
   }
 
   const isAuthenticated = !!token
 
   return (
-    <AuthContext.Provider value={{ token, username, login, logout, isAuthenticated }}>
+    <AuthContext.Provider value={{ token, username, profile, login, logout, isAuthenticated, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   )

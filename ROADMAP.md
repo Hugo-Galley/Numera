@@ -68,6 +68,77 @@ Application locale de finance personnelle qui remplace un tableur Numbers et ajo
 - Frontend tests: aucun runner de test frontend configuré, seulement le build Vite en vérification.
 - Lint/format: pas de scripts dédiés dans `package.json` ou `Makefile`.
 
+## Plan De Dev Priorise
+
+Objectif: developper les ameliorations produit une par une, en gardant les calculs sensibles cote backend et des actions explicites cote UI.
+
+### Priorite 1 - Mode Audit Des Donnees
+
+Statut: en cours.
+
+Objectif: renforcer la confiance dans les chiffres avant d'ajouter de nouveaux automatismes.
+
+Livrable v1:
+
+- Endpoint `/analytics/audit`.
+- Page dediee "Audit des donnees".
+- Detection des transactions sans categorie.
+- Detection des doublons suspects.
+- Detection des marchands manquants.
+- Detection des comptes actifs sans solde initial.
+- Detection des comptes investissement sans snapshot recent.
+- Detection des categories inutilisees.
+- Detection des transferts internes possibles.
+- Actions de navigation vers les ecrans de correction existants.
+
+Extensions futures:
+
+- Corrections en un clic quand les APIs existantes le permettent.
+- Filtres par severite et type d'alerte.
+- Ignorer une alerte connue sans modifier les donnees sources.
+- Historique du score de proprete.
+
+### Priorite 2 - Centre D'Actions
+
+Objectif: transformer les insights en file d'actions concrete.
+
+- Categoriser les transactions restantes.
+- Creer une regle depuis un marchand recurrent.
+- Confirmer des abonnements detectes.
+- Mettre a jour les snapshots d'investissement.
+- Rapprocher les transferts internes.
+- Signaler les budgets depasses ou a risque.
+
+### Priorite 3 - Normalisation Des Marchands
+
+Objectif: regrouper les variantes de libelles bancaires sous un marchand canonique.
+
+- Table de marchands canoniques ou synonymes.
+- Conservation du libelle original.
+- Suggestions automatiques sur libelles proches.
+- Correction et dissociation manuelles.
+- Utilisation dans graphiques, filtres, imports et regles.
+
+### Priorite 4 - Budget Previsionnel De Fin De Mois
+
+Objectif: estimer le reste a vivre et les risques avant la fin du mois.
+
+- Projection depuis le rythme courant.
+- Ajout des recurrentes restantes.
+- Estimation du solde de fin de mois.
+- Risque de depassement par categorie.
+- Affichage sur dashboard et calendrier.
+
+### Priorite 5 - Drill-Down Depuis Les Graphiques
+
+Objectif: rendre chaque graphe actionnable.
+
+- Clic categorie -> transactions filtrees.
+- Clic marchand -> transactions filtrees.
+- Clic mois -> rapport ou liste filtree.
+- Clic compte -> detail compte.
+- Conservation des filtres dans l'URL.
+
 ## Backlog Priorise
 
 ### P0 - Fiabilite

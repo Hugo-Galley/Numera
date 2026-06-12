@@ -10,7 +10,8 @@ import {
   Upload, 
   Settings,
   Receipt,
-  ArrowRight
+  ArrowRight,
+  ShieldCheck
 } from "lucide-react"
 import {
   Dialog,
@@ -30,6 +31,7 @@ const NAVIGATION = [
   { name: "Épargne", href: "/savings", icon: PiggyBank },
   { name: "Investissements", href: "/investments", icon: TrendingUp },
   { name: "Comparaison", href: "/comparison", icon: ArrowLeftRight },
+  { name: "Audit des données", href: "/audit", icon: ShieldCheck },
   { name: "Importation", href: "/settings?tab=import", icon: Upload },
   { name: "Paramètres", href: "/settings", icon: Settings },
 ]

@@ -66,6 +66,21 @@ def get_db(readonly: bool = True):
 
     conn = sqlite3.connect(uri, uri=True)
     conn.row_factory = sqlite3.Row
+    
+    # Vérifier si le serveur MCP est activé dans les paramètres système
+    try:
+        cursor = conn.cursor()
+        cursor.execute("SELECT value FROM system_settings WHERE key = 'mcp_enabled'")
+        row = cursor.fetchone()
+        # Par défaut c'est activé si le paramètre n'existe pas encore
+        mcp_enabled = row["value"].lower() == "true" if row else True
+        if not mcp_enabled:
+            conn.close()
+            raise PermissionError("Le serveur MCP est actuellement désactivé dans les paramètres de Suivi Budget.")
+    except sqlite3.OperationalError:
+        # Si la table n'existe pas encore (ex: première install), on laisse passer
+        pass
+
     if not readonly:
         conn.execute("PRAGMA journal_mode=WAL")
     try:

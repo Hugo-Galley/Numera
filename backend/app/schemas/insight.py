@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import List, Optional
 
 
@@ -150,3 +150,31 @@ class MoneyFlowReport(BaseModel):
     top_variable: List[MoneyFlowItem]
     top_savings: List[MoneyFlowItem]
     top_investments: List[MoneyFlowItem]
+
+
+class DataAuditIssue(BaseModel):
+    id: str
+    type: str
+    severity: str  # "low", "medium", "high"
+    title: str
+    description: str
+    count: int = 1
+    amount: Optional[float] = None
+    action_label: Optional[str] = None
+    action_url: Optional[str] = None
+    samples: List[dict] = Field(default_factory=list)
+
+
+class DataAuditSummary(BaseModel):
+    total_issues: int
+    high_count: int
+    medium_count: int
+    low_count: int
+    total_transactions: int
+    active_accounts: int
+    checked_at: str
+
+
+class DataAuditResponse(BaseModel):
+    summary: DataAuditSummary
+    issues: List[DataAuditIssue]

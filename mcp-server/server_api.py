@@ -95,8 +95,19 @@ class APIClient:
 
     def _request(self, method: str, path: str, **kwargs) -> httpx.Response:
         """Effectue une requête avec retry automatique si le token a expiré."""
-        url = f"{self.base_url}{path}"
+        # Ne pas vérifier mcp_enabled si on est déjà en train de le vérifier pour éviter la boucle infinie
+        if path != "/admin/profile":
+            try:
+                profile_resp = self._client.get(f"{self.base_url}/admin/profile", headers=self.headers)
+                if profile_resp.status_code == 200:
+                    if not profile_resp.json().get("mcp_enabled", True):
+                        raise PermissionError("Le serveur MCP est actuellement désactivé dans les paramètres de Suivi Budget.")
+            except Exception as e:
+                if isinstance(e, PermissionError):
+                    raise e
+                logger.error(f"Erreur lors de la vérification du statut MCP: {e}")
 
+        url = f"{self.base_url}{path}"
         # Premier essai
         resp = self._client.request(method, url, headers=self.headers, **kwargs)
 
