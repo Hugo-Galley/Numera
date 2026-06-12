@@ -241,6 +241,17 @@ def ignore_transfer(transaction_id: int, db: Session = Depends(get_db)):
     return
 
 
+@router.post("/{transaction_id}/ignore-duplicate", status_code=204)
+def ignore_duplicate(transaction_id: int, db: Session = Depends(get_db)):
+    tx = db.query(Transaction).filter(Transaction.id == transaction_id).first()
+    if not tx:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+    
+    tx.is_duplicate_ignored = True
+    db.commit()
+    return
+
+
 @router.post("/{transaction_id}/unlink", response_model=TransactionRead)
 def unlink_transaction(transaction_id: int, db: Session = Depends(get_db)):
     from app.models.investment_transaction import InvestmentTransaction

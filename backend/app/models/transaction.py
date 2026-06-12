@@ -29,6 +29,7 @@ class Transaction(Base):
     custom_color: Mapped[str | None] = mapped_column(String(7), nullable=True)
     is_transfer: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     is_transfer_ignored: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    is_duplicate_ignored: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     linked_transaction_id: Mapped[int | None] = mapped_column(ForeignKey("transactions.id"), nullable=True, index=True)
     linked_investment_transaction_id: Mapped[int | None] = mapped_column(ForeignKey("investment_transactions.id"), nullable=True, index=True)
 

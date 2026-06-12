@@ -40,6 +40,7 @@ from app.models.transaction import Transaction
 from app.models.recurring_transaction import RecurringTransaction
 from app.core.finance import get_recurring_occurrences
 from app.core.logging import get_logger
+from app.schemas.transaction import TransactionRead
 
 logger = get_logger(__name__)
 
@@ -56,6 +57,10 @@ def _tx_sample(tx: Transaction) -> dict:
         "amount": round(float(tx.amount), 2),
         "currency": tx.currency,
     }
+
+
+def _tx_read(tx: Transaction) -> dict:
+    return TransactionRead.model_validate(tx).model_dump(mode="json")
 
 
 def _savings_account_ids(db: Session) -> list[int]:
@@ -160,6 +165,7 @@ def data_audit(db: Session = Depends(get_db)):
             Transaction.currency,
             func.count(Transaction.id).label("count"),
         )
+        .filter(Transaction.is_duplicate_ignored == False)
         .group_by(
             Transaction.account_id,
             Transaction.date,
@@ -347,6 +353,130 @@ def data_audit(db: Session = Depends(get_db)):
         ),
         issues=issues,
     )
+
+
+@router.get("/audit/{issue_id}")
+def data_audit_issue_details(issue_id: str, db: Session = Depends(get_db)):
+    if issue_id == "uncategorized-expenses":
+        transactions = (
+            db.query(Transaction)
+            .filter(
+                Transaction.category_id.is_(None),
+                Transaction.type == "Sortie",
+                Transaction.is_transfer.is_(False),
+            )
+            .order_by(Transaction.date.desc(), Transaction.id.desc())
+            .limit(500)
+            .all()
+        )
+        return {"issue_id": issue_id, "transactions": [_tx_read(tx) for tx in transactions]}
+
+    if issue_id == "missing-merchants":
+        transactions = (
+            db.query(Transaction)
+            .filter(or_(Transaction.merchant.is_(None), func.trim(Transaction.merchant) == ""))
+            .order_by(Transaction.date.desc(), Transaction.id.desc())
+            .limit(500)
+            .all()
+        )
+        return {"issue_id": issue_id, "transactions": [_tx_read(tx) for tx in transactions]}
+
+    if issue_id == "duplicate-transactions":
+        duplicate_groups = (
+            db.query(
+                Transaction.account_id,
+                Transaction.date,
+                Transaction.type,
+                Transaction.merchant,
+                Transaction.amount,
+                Transaction.currency,
+                func.count(Transaction.id).label("count"),
+            )
+            .filter(Transaction.is_duplicate_ignored == False)
+            .group_by(
+                Transaction.account_id,
+                Transaction.date,
+                Transaction.type,
+                Transaction.merchant,
+                Transaction.amount,
+                Transaction.currency,
+            )
+            .having(func.count(Transaction.id) > 1)
+            .order_by(func.count(Transaction.id).desc())
+            .limit(100)
+            .all()
+        )
+        groups = []
+        for row in duplicate_groups:
+            transactions = (
+                db.query(Transaction)
+                .filter(
+                    Transaction.account_id == row.account_id,
+                    Transaction.date == row.date,
+                    Transaction.type == row.type,
+                    Transaction.merchant == row.merchant,
+                    Transaction.amount == row.amount,
+                    Transaction.currency == row.currency,
+                )
+                .order_by(Transaction.id.asc())
+                .all()
+            )
+            groups.append({
+                "key": f"{row.account_id}-{row.date.isoformat()}-{row.type}-{row.merchant}-{row.amount}-{row.currency}",
+                "count": int(row.count),
+                "transactions": [_tx_read(tx) for tx in transactions],
+            })
+        return {"issue_id": issue_id, "duplicate_groups": groups}
+
+    if issue_id == "unmatched-transfers":
+        now = datetime.now()
+        recent_start = now - timedelta(days=180)
+        pairs = []
+        candidate_sorties = (
+            db.query(Transaction)
+            .filter(
+                Transaction.type == "Sortie",
+                Transaction.is_transfer.is_(False),
+                Transaction.is_transfer_ignored.is_(False),
+                Transaction.linked_transaction_id.is_(None),
+                Transaction.linked_investment_transaction_id.is_(None),
+                Transaction.date >= recent_start,
+            )
+            .order_by(Transaction.date.desc())
+            .limit(250)
+            .all()
+        )
+        seen: set[tuple[int, int]] = set()
+        for sortie in candidate_sorties:
+            matches = (
+                db.query(Transaction)
+                .filter(
+                    Transaction.id != sortie.id,
+                    Transaction.account_id != sortie.account_id,
+                    Transaction.type == "Entree",
+                    Transaction.currency == sortie.currency,
+                    Transaction.amount == sortie.amount,
+                    Transaction.is_transfer.is_(False),
+                    Transaction.is_transfer_ignored.is_(False),
+                    Transaction.linked_transaction_id.is_(None),
+                    Transaction.date >= sortie.date - timedelta(days=3),
+                    Transaction.date <= sortie.date + timedelta(days=3),
+                )
+                .order_by(Transaction.date.asc(), Transaction.id.asc())
+                .limit(5)
+                .all()
+            )
+            for match in matches:
+                key = (sortie.id, match.id)
+                if key in seen:
+                    continue
+                seen.add(key)
+                pairs.append({"sortie": _tx_read(sortie), "entree": _tx_read(match)})
+                if len(pairs) >= 100:
+                    return {"issue_id": issue_id, "transfer_pairs": pairs}
+        return {"issue_id": issue_id, "transfer_pairs": pairs}
+
+    raise HTTPException(status_code=404, detail="Audit issue not found or not editable")
 
 
 @router.get("/budget")
