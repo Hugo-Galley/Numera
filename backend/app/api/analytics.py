@@ -830,40 +830,66 @@ async def budget_analytics(
         # Re-calculate revenus and depenses in account currency if account_id is provided
         if account_id:
             acc_obj = db.query(Account).filter(Account.id == account_id).first()
+            if not acc_obj:
+                raise HTTPException(status_code=404, detail="Account not found")
+
             # We need to re-query without currency conversion
             revenus_query = (
                 db.query(func.coalesce(func.sum(Transaction.amount), 0.0))
-                .filter(Transaction.account_id == account_id, Transaction.type.in_(["Entree", "Solde Initial"]), Transaction.is_transfer == False, Transaction.date >= start, Transaction.date < end)
+                .filter(Transaction.account_id == account_id, Transaction.type.in_(["Entree", "Solde Initial"]), Transaction.is_transfer == False)
             )
+            if start:
+                revenus_query = revenus_query.filter(Transaction.date >= start)
+            revenus_query = revenus_query.filter(Transaction.date < end)
             revenus = float(revenus_query.scalar() or 0.0)
             
             # Add investment transactions (versement is positive flow into account)
             itx_revenus_query = (
                 db.query(func.coalesce(func.sum(InvestmentTransaction.amount), 0.0))
-                .filter(InvestmentTransaction.account_id == account_id, InvestmentTransaction.type == "versement", InvestmentTransaction.date >= start, InvestmentTransaction.date < end)
+                .filter(InvestmentTransaction.account_id == account_id, InvestmentTransaction.type == "versement")
             )
+            if start:
+                itx_revenus_query = itx_revenus_query.filter(InvestmentTransaction.date >= start)
+            itx_revenus_query = itx_revenus_query.filter(InvestmentTransaction.date < end)
             revenus += float(itx_revenus_query.scalar() or 0.0)
             
             depenses_query = (
                 db.query(func.coalesce(func.sum(Transaction.amount), 0.0))
-                .filter(Transaction.account_id == account_id, Transaction.type == "Sortie", Transaction.is_transfer == False, Transaction.date >= start, Transaction.date < end)
+                .filter(Transaction.account_id == account_id, Transaction.type == "Sortie", Transaction.is_transfer == False)
             )
+            if start:
+                depenses_query = depenses_query.filter(Transaction.date >= start)
+            depenses_query = depenses_query.filter(Transaction.date < end)
             depenses = float(depenses_query.scalar() or 0.0)
             
             itx_retrait_query = (
                 db.query(func.coalesce(func.sum(InvestmentTransaction.amount), 0.0))
-                .filter(InvestmentTransaction.account_id == account_id, InvestmentTransaction.type == "retrait", InvestmentTransaction.date >= start, InvestmentTransaction.date < end)
+                .filter(InvestmentTransaction.account_id == account_id, InvestmentTransaction.type == "retrait")
             )
+            if start:
+                itx_retrait_query = itx_retrait_query.filter(InvestmentTransaction.date >= start)
+            itx_retrait_query = itx_retrait_query.filter(InvestmentTransaction.date < end)
             depenses += float(itx_retrait_query.scalar() or 0.0)
             
             remaining = revenus - depenses
             savings_rate = (remaining / revenus * 100.0) if revenus > 0 else 0.0
             
-            days_in_month = (end - start).days
-            burn_rate = depenses / days_in_month if days_in_month > 0 else 0.0
+            # Robust calculation of days for burn_rate
+            if start:
+                days_count = (end - start).days
+            else:
+                earliest = db.query(func.min(Transaction.date)).filter(Transaction.account_id == account_id).scalar()
+                if earliest:
+                    days_count = max((end - earliest).days, 1)
+                else:
+                    days_count = 1
+            
+            burn_rate = depenses / days_count if days_count > 0 else 0.0
             
             interets = 0.0 # Simplified for single account view on dashboard
             investments = 0.0
+            real_depenses = depenses
+
 
 
         return {
@@ -3188,7 +3214,7 @@ async def sankey_analytics(
     rates = await get_exchange_rates("EUR")
     budget_data = await budget_analytics(month=month, year=year, account_id=account_id, db=db)
     
-    # 2. Fetch all expenses by category (with grouping info)
+    # 2. Fetch all expenses by category (excluding internal transfers/savings/investments)
     exp_query = (
         db.query(
             Category,
@@ -3201,13 +3227,16 @@ async def sankey_analytics(
             Transaction.date >= start,
             Transaction.date < end,
             Transaction.type == "Sortie",
+            Transaction.is_transfer == False,
+            # We filter out Investment/Savings categories because they have their own logic below
+            ~Category.name.in_(["Investissement", "Epargne"])
         )
     )
     if account_id:
         exp_query = exp_query.filter(Transaction.account_id == account_id)
-    
+
     exp_rows = exp_query.group_by(Category.id, Account.currency).all()
-    
+
     # Aggregate expenses by category
     cat_expenses = {} # cat_id -> {obj, total}
     for row in exp_rows:
@@ -3228,21 +3257,24 @@ async def sankey_analytics(
         .filter(
             Transaction.date >= start,
             Transaction.date < end,
-            Transaction.type.in_(["Entree", "Interets"]),
+            Transaction.type.in_(["Entree", "Interets", "Solde Initial"]), # Include Solde Initial for better flow visualization
+            Transaction.is_transfer == False
         )
     )
     if account_id:
         inc_query = inc_query.filter(Transaction.account_id == account_id)
-    
+
     inc_rows = inc_query.group_by(Category.id, Account.currency).all()
-    
+
     income_sources = [] # list of {name, total, color}
+    total_income = 0.0
     for row in inc_rows:
         name = row.Category.name if row.Category else "Autres Revenus"
         color = row.Category.color if row.Category else "#10b981"
         val = row.total / rates.get(row.currency, 1.0)
         if val > 0:
             income_sources.append({"name": name, "total": val, "color": color})
+            total_income += val
 
     # Add investment dividends to income
     itx_div_query = db.query(Account.currency, func.sum(InvestmentTransaction.amount)).join(Account, InvestmentTransaction.account_id == Account.id).filter(
@@ -3252,18 +3284,19 @@ async def sankey_analytics(
     )
     if account_id:
         itx_div_query = itx_div_query.filter(InvestmentTransaction.account_id == account_id)
-    
+
     div_total = 0.0
     for curr, amt in itx_div_query.group_by(Account.currency).all():
         div_total += amt / rates.get(curr, 1.0)
-    
+
     if div_total > 0:
         income_sources.append({"name": "Dividendes", "total": div_total, "color": "#10b981"})
+        total_income += div_total
 
     # 4. Build Nodes and Links
     nodes = []
     links = []
-    
+
     def add_node(name, color=None):
         idx = len(nodes)
         nodes.append({"name": name, "color": color})
@@ -3271,33 +3304,42 @@ async def sankey_analytics(
 
     # Aggregator Node
     total_revenus_idx = add_node("Budget", "#94a3b8")
-    
+
     # STAGE 1: Income -> Budget
     for src in income_sources:
         src_idx = add_node(src["name"], src["color"])
         links.append({"source": src_idx, "target": total_revenus_idx, "value": round(src["total"], 2), "color": src["color"]})
-        
+
     # STAGE 2 & 3: Budget -> Groups -> Categories
     groups = {} # group_name -> {idx, total, color}
-    
+
     # Investment "Group"
     invest_total = budget_data["investissements_du_mois"]
     if invest_total > 0:
         inv_idx = add_node("Investissements", "#6366f1")
         links.append({"source": total_revenus_idx, "target": inv_idx, "value": round(invest_total, 2), "color": "#6366f1"})
-        
+
     # Savings "Group"
     savings_total = budget_data["revenus_apres_depenses"]
     if savings_total > 0:
         sav_idx = add_node("Épargne", "#10b981")
         links.append({"source": total_revenus_idx, "target": sav_idx, "value": round(savings_total, 2), "color": "#10b981"})
+    elif savings_total < 0:
+        # Spending more than income: add a 'Deficit' node as an incoming flow to Budget
+        def_idx = add_node("Déficit / Trésorerie", "#f43f5e")
+        links.append({"source": def_idx, "target": total_revenus_idx, "value": round(abs(savings_total), 2), "color": "#fecdd3"})
+        total_income += abs(savings_total)
+
+    # Expenses logic: we need to ensure Budget node doesn't leak
+    # If income is higher than total shown outflows, the difference is "Epargne"
+    # (already handled via savings_total which is remaining = income - total_expenses)
 
     # Expense Groups and Categories
     for cid, data in cat_expenses.items():
         cat = data["obj"]
         total = data["total"]
         if total <= 0: continue
-        
+
         if cat.group:
             group_name = cat.group
             if group_name not in groups:
@@ -3305,9 +3347,9 @@ async def sankey_analytics(
                 g_idx = add_node(group_name, "#64748b") 
                 groups[group_name] = {"idx": g_idx, "total": 0.0}
                 links.append({"source": total_revenus_idx, "target": g_idx, "value": 0.0, "color": "#cbd5e1"})
-                
+
             groups[group_name]["total"] += total
-            
+
             # Link Group -> Category
             cat_idx = add_node(cat.name, cat.color)
             links.append({"source": groups[group_name]["idx"], "target": cat_idx, "value": round(total, 2), "color": cat.color})
@@ -3321,5 +3363,13 @@ async def sankey_analytics(
         for link in links:
             if link["source"] == total_revenus_idx and link["target"] == g_data["idx"]:
                 link["value"] = round(g_data["total"], 2)
+
+    # Final check: if the Budget node is still unbalanced (more income than total links out),
+    # it might be due to rounding or untracked flows. We balance it with a small "Ajustement" if needed.
+    total_out = sum(l["value"] for l in links if l["source"] == total_revenus_idx)
+    diff = total_income - total_out
+    if diff > 1.0: # Only if significant (> 1 EUR)
+        adj_idx = add_node("Reliquat / Ajustement", "#94a3b8")
+        links.append({"source": total_revenus_idx, "target": adj_idx, "value": round(diff, 2), "color": "#cbd5e1"})
 
     return {"nodes": nodes, "links": links}

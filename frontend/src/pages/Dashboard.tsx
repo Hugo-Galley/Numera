@@ -288,41 +288,40 @@ export default function Dashboard() {
 
   useEffect(() => {
     async function loadData() {
-      try {
-        const accId = selectedAccountId === "all" ? null : selectedAccountId
-        const accParam = accId ? `&account_id=${accId}` : ""
-        const [budget, split, history, top, subs, timeseries, inv, alloc, alerts, intel, sankey, proj, tags] = await Promise.all([
-          api.get<any>(`/analytics/budget?month=${month}&year=${year}${accParam}`),
-          api.get<{ items: any[] }>(`/analytics/expenses-by-category?month=${month}&year=${year}${accParam}`),
-          api.get<any[]>(`/analytics/kpi-history?months_count=6${accParam}`),
-          api.get<{ items: any[] }>(`/analytics/top-merchants?month=${month}&year=${year}${accParam}`),
-          api.get<any>(`/analytics/subscriptions?month=${month}&year=${year}${accParam}`),
-          api.get<any>(`/analytics/timeseries?year=${year}${accParam}`),
-          api.get<any>(`/analytics/investments?month=${month}&year=${year}${accParam}`),
-          api.get<any>(`/analytics/investments-allocation${accId ? `?account_id=${accId}` : ""}`),
-          api.get<any[]>(`/analytics/budget-alerts?month=${month}&year=${year}${accParam}`),
-          api.get<any>(`/analytics/insights?month=${month}&year=${year}${accParam}`),
-          api.get<any>(`/analytics/sankey?month=${month}&year=${year}${accParam}`),
-          api.get<any>(`/analytics/cashflow-projection?days=60${accId ? `&account_id=${accId}` : ""}`),
-          api.get<any[]>(`/analytics/tags?month=${month}&year=${year}${accParam}`),
-        ])
-        setAnalytics(budget)
-        setExpensesByCategory(split.items || [])
-        setKpiHistory(history)
-        setTopMerchants(top.items || [])
-        setSubscriptions(subs)
-        setSalarySeries(timeseries.salary_series || [])
-        setBurnRateSeries(timeseries.monthly_flows || [])
-        setInvestments(inv)
-        setAllocation(alloc)
-        setBudgetAlerts(alerts || [])
-        setInsights(intel)
-        setSankeyData(sankey)
-        setProjection(proj)
-        setTagTotals(tags || [])
-      } catch (error) {
-        console.error("Failed to load dashboard data", error)
+      const accId = selectedAccountId === "all" ? null : selectedAccountId
+      const accParam = accId ? `&account_id=${accId}` : ""
+
+      // Individual loaders with error handling to avoid breaking the whole dashboard
+      const safeLoad = async (url: string, setter: (data: any) => void) => {
+        try {
+          // console.log(`Fetching ${url}...`)
+          const data = await api.get<any>(url)
+          setter(data)
+        } catch (e: any) {
+          console.error(`Error loading ${url}:`, e)
+          // Specifically show if it's the "An error occurred" generic one
+          if (e.message === "An error occurred") {
+             console.warn(`Endpoint ${url} returned a generic 500 error. Check backend logs.`)
+          }
+        }
       }
+
+      safeLoad(`/analytics/budget?month=${month}&year=${year}${accParam}`, setAnalytics)
+      safeLoad(`/analytics/expenses-by-category?month=${month}&year=${year}${accParam}`, (d) => setExpensesByCategory(d?.items || []))
+      safeLoad(`/analytics/kpi-history?months_count=6${accParam}`, setKpiHistory)
+      safeLoad(`/analytics/top-merchants?month=${month}&year=${year}${accParam}`, (d) => setTopMerchants(d?.items || []))
+      safeLoad(`/analytics/subscriptions?month=${month}&year=${year}${accParam}`, setSubscriptions)
+      safeLoad(`/analytics/timeseries?year=${year}${accParam}`, (d) => {
+        setSalarySeries(d?.salary_series || [])
+        setBurnRateSeries(d?.monthly_flows || [])
+      })
+      safeLoad(`/analytics/investments?month=${month}&year=${year}${accParam}`, setInvestments)
+      safeLoad(`/analytics/investments-allocation${accId ? `?account_id=${accId}` : ""}`, setAllocation)
+      safeLoad(`/analytics/budget-alerts?month=${month}&year=${year}${accParam}`, setBudgetAlerts)
+      safeLoad(`/analytics/insights?month=${month}&year=${year}${accParam}`, setInsights)
+      safeLoad(`/analytics/sankey?month=${month}&year=${year}${accParam}`, setSankeyData)
+      safeLoad(`/analytics/cashflow-projection?days=60${accId ? `&account_id=${accId}` : ""}`, setProjection)
+      safeLoad(`/analytics/tags?month=${month}&year=${year}${accParam}`, setTagTotals)
     }
     loadData()
   }, [month, year, selectedAccountId])
