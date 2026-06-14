@@ -5,6 +5,9 @@ from alembic.config import Config
 from sqlalchemy import create_engine, inspect
 
 from app.core.config import settings
+from app.core.logging import get_logger
+
+logger = get_logger(__name__)
 
 
 def run_migrations() -> None:
@@ -18,41 +21,48 @@ def run_migrations() -> None:
         settings.database_url,
         connect_args={"check_same_thread": False} if settings.database_url.startswith("sqlite") else {},
     )
+    
+    # Try to enable WAL mode for SQLite to prevent locking issues
+    if settings.database_url.startswith("sqlite"):
+        try:
+            with engine.connect() as conn:
+                conn.exec_driver_sql("PRAGMA journal_mode=WAL")
+        except Exception as e:
+            logger.warning(f"Could not enable WAL mode: {e}")
+    
+    tables_exist = False
+    alembic_ready = False
+    
     try:
         with engine.connect() as connection:
             inspector = inspect(connection)
             tables = set(inspector.get_table_names())
-            alembic_rows = []
+            tables_exist = len(tables) > 0
             if "alembic_version" in tables:
                 try:
                     result = connection.exec_driver_sql("SELECT version_num FROM alembic_version")
-                    alembic_rows = result.fetchall()
-                except Exception:
-                    alembic_rows = []
-
-        if not tables:
-            command.upgrade(cfg, "head")
-            return
-
-        if "alembic_version" not in tables or not alembic_rows:
-            command.stamp(cfg, "head")
-            return
-
-        try:
-            command.upgrade(cfg, "head")
-        except Exception as e:
-            error_str = str(e)
-            if "Can't locate revision identified by" in error_str:
-                print(f"CRITICAL: Database is at an unknown revision ({error_str}). Stamping to current head to attempt recovery.")
-                command.stamp(cfg, "head")
-                # Try upgrade again in case there were real pending migrations
-                try:
-                    command.upgrade(cfg, "head")
+                    row = result.fetchone()
+                    if row:
+                        alembic_ready = True
                 except Exception:
                     pass
-            else:
-                print(f"Migration error: {e}. Attempting to proceed as tables exist.")
-    except Exception as e:
-        print(f"Error during migration check: {e}")
     finally:
         engine.dispose()
+
+    try:
+        if not tables_exist:
+            logger.info("Database is empty, running upgrade head")
+            command.upgrade(cfg, "head")
+        elif not alembic_ready:
+            logger.info("Tables exist but no alembic version found, stamping head")
+            command.stamp(cfg, "head")
+        else:
+            logger.info("Database is ready, checking for pending migrations")
+            command.upgrade(cfg, "head")
+    except Exception as e:
+        error_str = str(e)
+        if "Can't locate revision identified by" in error_str:
+            logger.warning(f"Database at unknown revision: {error_str}. Stamping head.")
+            command.stamp(cfg, "head")
+        else:
+            logger.error(f"Migration error: {e}. Continuing anyway.")
