@@ -1,8 +1,7 @@
+import subprocess
+import sys
+import os
 from pathlib import Path
-
-from alembic import command
-from alembic.config import Config
-from sqlalchemy import create_engine, inspect
 
 from app.core.config import settings
 from app.core.logging import get_logger
@@ -11,61 +10,53 @@ logger = get_logger(__name__)
 
 
 def run_migrations() -> None:
+    logger.info("Starting database migrations...")
     backend_root = Path(__file__).resolve().parents[2]
-    alembic_ini = backend_root / "alembic.ini"
-    cfg = Config(str(alembic_ini))
-    cfg.set_main_option("script_location", str(backend_root / "alembic"))
-    cfg.set_main_option("sqlalchemy.url", settings.database_url)
-
-    engine = create_engine(
-        settings.database_url,
-        connect_args={"check_same_thread": False, "timeout": 30} if settings.database_url.startswith("sqlite") else {},
-    )
     
-    # Try to enable WAL mode for SQLite to prevent locking issues
-    if settings.database_url.startswith("sqlite"):
-        try:
-            with engine.connect() as conn:
-                conn.exec_driver_sql("PRAGMA journal_mode=WAL")
-        except Exception as e:
-            logger.warning(f"Could not enable WAL mode: {e}")
-    
-    tables_exist = False
-    alembic_ready = False
-    
+    # We use subprocess to run alembic to avoid any in-process locking or logging conflicts
     try:
-        with engine.connect() as connection:
-            inspector = inspect(connection)
-            tables = set(inspector.get_table_names())
-            tables_exist = len(tables) > 0
-            if "alembic_version" in tables:
-                try:
-                    result = connection.exec_driver_sql("SELECT version_num FROM alembic_version")
-                    row = result.fetchone()
-                    if row:
-                        alembic_ready = True
-                except Exception:
-                    pass
-    finally:
-        engine.dispose()
+        # 1. Ensure WAL mode is enabled first
+        import sqlite3
+        if settings.database_url.startswith("sqlite"):
+            db_path = settings.database_url.replace("sqlite:///", "")
+            # Handle absolute path (sqlite:////app/...)
+            if db_path.startswith("/"):
+                pass
+            else:
+                db_path = str(backend_root / db_path)
+            
+            logger.info(f"Target DB path for WAL: {db_path}")
+            try:
+                conn = sqlite3.connect(db_path, timeout=30)
+                conn.execute("PRAGMA journal_mode=WAL")
+                conn.close()
+                logger.info("SQLite WAL mode enabled.")
+            except Exception as e:
+                logger.warning(f"Could not enable WAL mode via sqlite3: {e}")
 
-    try:
-        if not tables_exist:
-            logger.info("Database is empty, running 'command.upgrade(cfg, head)'...")
-            command.upgrade(cfg, "head")
-            logger.info("Upgrade head successful.")
-        elif not alembic_ready:
-            logger.info("Tables exist but no alembic version found, running 'command.stamp(cfg, head)'...")
-            command.stamp(cfg, "head")
-            logger.info("Stamp head successful.")
+        # 2. Run alembic upgrade head
+        env = {**os.environ, "PYTHONPATH": str(backend_root)}
+        logger.info(f"Executing: alembic upgrade head in {backend_root}")
+        result = subprocess.run(
+            ["alembic", "upgrade", "head"],
+            cwd=str(backend_root),
+            capture_output=True,
+            text=True,
+            env=env
+        )
+        
+        if result.returncode == 0:
+            logger.info("Migrations successful:\n" + result.stdout)
         else:
-            logger.info("Database is ready, checking for pending migrations with 'command.upgrade(cfg, head)'...")
-            command.upgrade(cfg, "head")
-            logger.info("Check/Upgrade head successful.")
+            logger.error(f"Migrations failed (exit {result.returncode}):\n" + result.stderr)
+            
+            # Fallback: if it's a revision error, try stamping
+            if "Can't locate revision identified by" in result.stderr:
+                logger.warning("Unknown revision detected. Attempting 'alembic stamp head'...")
+                subprocess.run(["alembic", "stamp", "head"], cwd=str(backend_root), env=env)
+                subprocess.run(["alembic", "upgrade", "head"], cwd=str(backend_root), env=env)
+                
     except Exception as e:
-        error_str = str(e)
-        if "Can't locate revision identified by" in error_str:
-            logger.warning(f"Database at unknown revision: {error_str}. Stamping head.")
-            command.stamp(cfg, "head")
-        else:
-            logger.error(f"Migration error: {e}. Continuing anyway.")
+        logger.error(f"Unexpected error during migration subprocess: {e}", exc_info=True)
+
+

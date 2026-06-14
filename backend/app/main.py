@@ -55,6 +55,7 @@ async def recurring_transactions_task():
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
+    logger.info("DEBUG: Lifespan starting...")
     if settings.app_env != "test":
         logger.info("DEBUG: Starting migrations phase...")
         try:
