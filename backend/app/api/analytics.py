@@ -1235,11 +1235,7 @@ async def investments_analytics(
         total_net_invested_eur += net_invested_eur
         total_current_value_eur += current_value_eur
         
-        # If monthly view and no NEW versements this month, we use net_invested 
-        # to show the capital already there, otherwise the chart is empty and sad.
         display_verse = flows["total_verse_target"]
-        if start_date and display_verse == 0:
-            display_verse = net_invested_eur
 
         items.append(
             {
