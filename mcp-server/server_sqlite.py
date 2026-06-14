@@ -64,7 +64,7 @@ def get_db(readonly: bool = True):
     if readonly:
         uri += "?mode=ro"
 
-    conn = sqlite3.connect(uri, uri=True)
+    conn = sqlite3.connect(uri, uri=True, timeout=30)
     conn.row_factory = sqlite3.Row
     
     # Vérifier si le serveur MCP est activé dans les paramètres système
@@ -1245,6 +1245,6 @@ if __name__ == "__main__":
     if TRANSPORT == "sse" or TRANSPORT == "streamable-http":
         import uvicorn
         logger.info(f"Écoute sur {HOST}:{PORT}")
-        uvicorn.run(mcp.app, host=HOST, port=PORT)
+        uvicorn.run(mcp.sse_app(), host=HOST, port=PORT)
     else:
         mcp.run(transport="stdio")

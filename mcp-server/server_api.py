@@ -1187,6 +1187,6 @@ if __name__ == "__main__":
     if TRANSPORT == "sse" or TRANSPORT == "streamable-http":
         import uvicorn
         logger.info(f"Écoute sur {HOST}:{PORT}")
-        uvicorn.run(mcp.app, host=HOST, port=PORT)
+        uvicorn.run(mcp.sse_app(), host=HOST, port=PORT)
     else:
         mcp.run(transport="stdio")
