@@ -56,18 +56,25 @@ async def recurring_transactions_task():
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     if settings.app_env != "test":
-        logger.info("Running migrations...")
-        run_migrations()
+        logger.info("DEBUG: Starting migrations phase...")
+        try:
+            run_migrations()
+            logger.info("DEBUG: Migrations phase completed.")
+        except Exception as e:
+            logger.error(f"DEBUG: Migrations failed: {e}", exc_info=True)
     
+    logger.info("DEBUG: Opening database session for seeding...")
     db = SessionLocal()
     try:
         if settings.app_env != "test":
-            logger.info("Seeding default categories...")
+            logger.info("DEBUG: Seeding default categories...")
             seed_default_categories(db)
-            # Start background task
+            logger.info("DEBUG: Seeding completed. Starting background task...")
             asyncio.create_task(recurring_transactions_task())
+        logger.info("DEBUG: Lifespan setup complete. Yielding...")
         yield
     finally:
+        logger.info("DEBUG: Closing database session...")
         db.close()
 
 

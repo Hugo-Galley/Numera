@@ -51,14 +51,17 @@ def run_migrations() -> None:
 
     try:
         if not tables_exist:
-            logger.info("Database is empty, running upgrade head")
+            logger.info("Database is empty, running 'command.upgrade(cfg, head)'...")
             command.upgrade(cfg, "head")
+            logger.info("Upgrade head successful.")
         elif not alembic_ready:
-            logger.info("Tables exist but no alembic version found, stamping head")
+            logger.info("Tables exist but no alembic version found, running 'command.stamp(cfg, head)'...")
             command.stamp(cfg, "head")
+            logger.info("Stamp head successful.")
         else:
-            logger.info("Database is ready, checking for pending migrations")
+            logger.info("Database is ready, checking for pending migrations with 'command.upgrade(cfg, head)'...")
             command.upgrade(cfg, "head")
+            logger.info("Check/Upgrade head successful.")
     except Exception as e:
         error_str = str(e)
         if "Can't locate revision identified by" in error_str:

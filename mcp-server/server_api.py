@@ -1186,6 +1186,9 @@ if __name__ == "__main__":
 
     if TRANSPORT == "sse" or TRANSPORT == "streamable-http":
         import uvicorn
+        import time
+        # Small delay to let the backend finish migrations first
+        time.sleep(5)
         logger.info(f"Écoute sur {HOST}:{PORT}")
         uvicorn.run(mcp.sse_app(), host=HOST, port=PORT)
     else:
