@@ -1,14 +1,17 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import NullPool
 
 from app.core.config import settings
 
 
 engine = create_engine(
     settings.database_url, 
-    connect_args={"check_same_thread": False, "timeout": 30} if settings.database_url.startswith("sqlite") else {}
+    connect_args={"check_same_thread": False, "timeout": 30} if settings.database_url.startswith("sqlite") else {},
+    poolclass=NullPool if settings.database_url.startswith("sqlite") else None
 )
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
 
 
 def get_db():

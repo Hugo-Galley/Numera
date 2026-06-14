@@ -64,19 +64,22 @@ async def lifespan(_: FastAPI):
         except Exception as e:
             logger.error(f"DEBUG: Migrations failed: {e}", exc_info=True)
     
-    logger.info("DEBUG: Opening database session for seeding...")
-    db = SessionLocal()
-    try:
-        if settings.app_env != "test":
+    if settings.app_env != "test":
+        logger.info("DEBUG: Opening database session for seeding...")
+        db = SessionLocal()
+        try:
             logger.info("DEBUG: Seeding default categories...")
             seed_default_categories(db)
-            logger.info("DEBUG: Seeding completed. Starting background task...")
-            asyncio.create_task(recurring_transactions_task())
-        logger.info("DEBUG: Lifespan setup complete. Yielding...")
-        yield
-    finally:
-        logger.info("DEBUG: Closing database session...")
-        db.close()
+            logger.info("DEBUG: Seeding completed.")
+        finally:
+            db.close()
+        
+        logger.info("DEBUG: Starting background task...")
+        asyncio.create_task(recurring_transactions_task())
+    
+    logger.info("DEBUG: Lifespan setup complete. Yielding...")
+    yield
+
 
 
 app = FastAPI(title=settings.app_name, lifespan=lifespan)
