@@ -871,8 +871,35 @@ async def budget_analytics(
             itx_retrait_query = itx_retrait_query.filter(InvestmentTransaction.date < end)
             depenses += float(itx_retrait_query.scalar() or 0.0)
             
+            # Calculate investments for specific account
+            inv_q = (
+                db.query(func.coalesce(func.sum(Transaction.amount), 0.0))
+                .join(Category, Transaction.category_id == Category.id)
+                .filter(
+                    Transaction.account_id == account_id, 
+                    Transaction.type == "Sortie", 
+                    Category.name.in_(["Investissement", "Epargne"]),
+                    Transaction.is_transfer == False
+                )
+            )
+            if start:
+                inv_q = inv_q.filter(Transaction.date >= start)
+            inv_q = inv_q.filter(Transaction.date < end)
+            investments = float(inv_q.scalar() or 0.0)
+            
+            # Add investment transactions (versement)
+            itx_inv_q = (
+                db.query(func.coalesce(func.sum(InvestmentTransaction.amount), 0.0))
+                .filter(InvestmentTransaction.account_id == account_id, InvestmentTransaction.type == "versement")
+            )
+            if start:
+                itx_inv_q = itx_inv_q.filter(InvestmentTransaction.date >= start)
+            itx_inv_q = itx_inv_q.filter(InvestmentTransaction.date < end)
+            investments += float(itx_inv_q.scalar() or 0.0)
+
             remaining = revenus - depenses
             savings_rate = (remaining / revenus * 100.0) if revenus > 0 else 0.0
+            real_depenses = depenses - investments
             
             # Robust calculation of days for burn_rate
             if start:
@@ -884,11 +911,9 @@ async def budget_analytics(
                 else:
                     days_count = 1
             
-            burn_rate = depenses / days_count if days_count > 0 else 0.0
-            
-            interets = 0.0 # Simplified for single account view on dashboard
-            investments = 0.0
-            real_depenses = depenses
+            burn_rate = real_depenses / days_count if days_count > 0 else 0.0
+            interets = 0.0 # Simplified for single account view
+
 
 
 
