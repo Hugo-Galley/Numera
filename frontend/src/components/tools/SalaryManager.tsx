@@ -70,8 +70,8 @@ export function SalaryManager() {
   async function loadInitialData() {
     try {
       const [accRes, catRes] = await Promise.all([
-        api.get("/accounts/"),
-        api.get("/categories/")
+        api.get("/accounts"),
+        api.get("/categories")
       ])
       setAccounts(accRes)
       setCategories(catRes)
