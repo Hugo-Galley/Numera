@@ -15,6 +15,7 @@ import {
   Zap,
   LayoutList,
   Target,
+  X,
 } from "lucide-react"
 import { toast } from "sonner"
 import { api } from "@/lib/api"
@@ -558,6 +559,20 @@ export default function ActionCenter() {
     }
   }
 
+  async function dismissAction(e: React.MouseEvent, actionId: string) {
+    e.stopPropagation()
+    try {
+      await api.post('/analytics/actions/dismiss', { id: actionId })
+      setData(prev => prev ? {
+        ...prev,
+        actions: prev.actions.filter(a => a.id !== actionId)
+      } : null)
+      toast.success("Action masquée")
+    } catch(err) {
+      toast.error("Impossible de masquer l'action")
+    }
+  }
+
   async function handleAction(action: ActionItem) {
     if (action.action_type === "link" && action.action_url) {
       navigate(action.action_url)
@@ -929,6 +944,15 @@ export default function ActionCenter() {
                     >
                       {action.action_label || "Traiter"}
                       <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                      onClick={(e) => dismissAction(e, action.id)}
+                      title="Masquer cette action définitivement"
+                    >
+                      <X className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>

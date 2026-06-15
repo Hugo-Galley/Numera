@@ -1,7 +1,6 @@
 import { 
   ArrowUpRight,
   ArrowDownRight,
-  Activity,
   Wallet
 } from "lucide-react"
 import { 
@@ -11,7 +10,6 @@ import {
   CardTitle,
   CardDescription
 } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { formatCurrency } from "@/lib/utils"
 import { AreaChart, Area, ResponsiveContainer } from "recharts"
 
@@ -46,7 +44,7 @@ export function DashboardKPIs({
   kpiHistory
 }: DashboardKPIsProps) {
   return (
-    <div className="grid gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-3">
       <Card className="shadow-sm border-slate-100 hover:border-emerald-200 transition-colors cursor-pointer group">
         <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
           <CardDescription className="font-medium group-hover:text-emerald-600 transition-colors">
@@ -102,24 +100,7 @@ export function DashboardKPIs({
           <p className="text-[10px] text-slate-400 mt-2 uppercase tracking-wider font-bold">Tendance 6 mois</p>
         </CardContent>
       </Card>
-
-      <Card className="shadow-sm border-slate-100 hover:border-slate-300 transition-colors cursor-pointer group">
-        <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
-          <CardDescription className="font-medium group-hover:text-slate-900 transition-colors">Patrimoine Net</CardDescription>
-          <div className="h-8 w-8 bg-slate-50 rounded-full flex items-center justify-center group-hover:bg-slate-200 transition-colors">
-            <Activity className="h-4 w-4 text-slate-600" />
-          </div>
-        </CardHeader>
-        <CardContent>
-          <CardTitle className="text-2xl font-bold">
-            <span className="amount-blur">{formatCurrency(analytics?.patrimoine_net_total || 0, "EUR")}</span>
-          </CardTitle>
-          <div className="flex items-center gap-2 mt-2">
-            <Badge variant="outline" className="text-[10px] font-bold py-0 h-4 border-slate-200 text-slate-500">Global</Badge>
-            <span className="text-[10px] text-slate-400">Tous les comptes</span>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   )
 }
+

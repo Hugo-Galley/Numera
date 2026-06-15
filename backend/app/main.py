@@ -21,6 +21,7 @@ from app.api.savings_goals import router as savings_goals_router
 from app.api.categorization_rules import router as categorization_rules_router
 from app.api.merchants import router as merchants_router
 from app.api.tags import router as tags_router
+from app.api.salary import router as salary_router
 from app.api.deps import get_current_user
 from app.core.config import settings
 from app.core.migrations import run_migrations
@@ -28,6 +29,7 @@ from app.core.seeds import seed_default_categories
 from app.db.session import SessionLocal
 from app.core.logging import setup_logging, get_logger
 from app.core.recurring import generate_recurring_transactions
+from app.core.salary import check_and_generate_pending_salaries
 from app import models  # noqa: F401
 
 # Initialize logging
@@ -45,6 +47,7 @@ async def recurring_transactions_task():
             db = SessionLocal()
             try:
                 await generate_recurring_transactions(db)
+                check_and_generate_pending_salaries(db)
             finally:
                 db.close()
         except Exception as e:
@@ -137,6 +140,7 @@ protected_routers = [
     tags_router,
     exports_router,
     admin_router,
+    salary_router,
 ]
 
 for router in protected_routers:

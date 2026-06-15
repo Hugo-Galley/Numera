@@ -1,4 +1,5 @@
-import { HeartPulse, Sparkles, AlertTriangle } from "lucide-react"
+import { useState } from "react"
+import { HeartPulse, Sparkles, AlertTriangle, X } from "lucide-react"
 import { 
   Card, 
   CardContent, 
@@ -7,13 +8,33 @@ import {
   CardDescription
 } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { formatCurrency } from "@/lib/utils"
+import { apiFetch } from "@/lib/api"
 
 interface InsightsTabProps {
   insights: any
 }
 
 export function InsightsTab({ insights }: InsightsTabProps) {
+  const [dismissedTitles, setDismissedTitles] = useState<string[]>([])
+
+  const handleDismiss = async (title: string) => {
+    setDismissedTitles(prev => [...prev, title])
+    try {
+      await apiFetch('/analytics/insights/dismiss', {
+        method: 'POST',
+        body: JSON.stringify({ title })
+      })
+    } catch (err) {
+      console.error('Failed to dismiss insight permanently', err)
+    }
+  }
+
+  const visibleInsights = insights?.insights?.filter(
+    (insight: any) => !dismissedTitles.includes(insight.title)
+  ) || []
+
   return (
     <div className="grid gap-8 lg:grid-cols-12">
       <Card className="lg:col-span-4 shadow-sm border-slate-100 overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 text-white">
@@ -77,10 +98,10 @@ export function InsightsTab({ insights }: InsightsTabProps) {
           Analyse & Conseils
         </h3>
         <div className="grid gap-4">
-          {insights?.insights.map((insight: any, i: number) => (
+          {visibleInsights.map((insight: any, i: number) => (
             <Card key={i} className={`shadow-sm border-l-4 ${
               insight.type === 'anomaly' ? 'border-l-amber-500' : 'border-l-emerald-500'
-            } hover:bg-slate-50 transition-colors`}>
+            } hover:bg-slate-50 transition-colors group relative`}>
               <CardHeader className="p-5">
                 <div className="flex items-start justify-between">
                   <div className="flex gap-4">
@@ -94,18 +115,29 @@ export function InsightsTab({ insights }: InsightsTabProps) {
                       <CardDescription className="text-slate-600 mt-1">{insight.description}</CardDescription>
                     </div>
                   </div>
-                  {insight.value && (
-                    <Badge variant="outline" className={insight.type === 'anomaly' ? 'text-amber-700 bg-amber-50' : 'text-emerald-700 bg-emerald-50'}>
-                      {insight.type === 'anomaly' ? `+${formatCurrency(insight.value)}` : insight.unit === '%' ? `${insight.value}%` : formatCurrency(insight.value)}
-                    </Badge>
-                  )}
+                  <div className="flex items-center gap-3">
+                    {insight.value && (
+                      <Badge variant="outline" className={insight.type === 'anomaly' ? 'text-amber-700 bg-amber-50' : 'text-emerald-700 bg-emerald-50'}>
+                        {insight.type === 'anomaly' ? `+${formatCurrency(insight.value)}` : insight.unit === '%' ? `${insight.value}%` : formatCurrency(insight.value)}
+                      </Badge>
+                    )}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                      onClick={() => handleDismiss(insight.title)}
+                      title="Ne pas prendre en compte de façon permanente"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               </CardHeader>
             </Card>
           ))}
-          {(!insights?.insights || insights?.insights.length === 0) && (
+          {visibleInsights.length === 0 && (
             <div className="py-20 text-center bg-slate-50 rounded-3xl border border-dashed">
-              <p className="text-slate-400 font-medium">Tout semble sous contrôle ! Aucun insight particulier ce mois-ci.</p>
+              <p className="text-slate-400 font-medium">Tout semble sous contrôle ! Aucun conseil particulier ce mois-ci.</p>
             </div>
           )}
         </div>

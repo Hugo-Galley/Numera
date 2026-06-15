@@ -1,8 +1,9 @@
 import calendar
 import traceback
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
+from pydantic import BaseModel
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import case, func, or_
 from sqlalchemy.orm import Session
@@ -736,6 +737,13 @@ async def get_action_center(db: Session = Depends(get_db)):
         # Safe sort: defaults to 3 (lowest) if severity is unexpected
         actions.sort(key=lambda x: {"high": 0, "medium": 1, "low": 2}.get(x.severity, 3))
         
+        # Filter dismissed actions
+        from app.models.dismissed_insight import DismissedInsight
+        dismissed = db.query(DismissedInsight.title).all()
+        dismissed_ids = {d.title for d in dismissed}
+        
+        actions = [a for a in actions if a.id not in dismissed_ids]
+
         high_count = sum(1 for a in actions if a.severity == "high")
         medium_count = sum(1 for a in actions if a.severity == "medium")
         low_count = sum(1 for a in actions if a.severity == "low")
@@ -754,6 +762,19 @@ async def get_action_center(db: Session = Depends(get_db)):
         logger.error(f"Error in get_action_center: {e}", exc_info=True)
         # Raise as HTTPException to ensure it's handled by FastAPI and CORS headers are added
         raise HTTPException(status_code=500, detail=str(e))
+
+class DismissActionRequest(BaseModel):
+    id: str
+
+@router.post("/actions/dismiss")
+async def dismiss_action(request: DismissActionRequest, db: Session = Depends(get_db)):
+    from app.models.dismissed_insight import DismissedInsight
+    existing = db.query(DismissedInsight).filter(DismissedInsight.title == request.id).first()
+    if not existing:
+        new_dismissed = DismissedInsight(title=request.id)
+        db.add(new_dismissed)
+        db.commit()
+    return {"status": "success"}
 
 
 
@@ -2992,7 +3013,27 @@ async def get_intelligent_insights(
             value=runway_months
         ))
 
-    return IntelligentInsights(health_score=health_score, insights=insights)
+    from app.models.dismissed_insight import DismissedInsight
+    dismissed = db.query(DismissedInsight.title).all()
+    dismissed_titles = {d.title for d in dismissed}
+    
+    final_insights = [i for i in insights if i.title not in dismissed_titles]
+
+    return IntelligentInsights(health_score=health_score, insights=final_insights)
+
+from pydantic import BaseModel
+class DismissInsightRequest(BaseModel):
+    title: str
+
+@router.post("/insights/dismiss")
+async def dismiss_insight(request: DismissInsightRequest, db: Session = Depends(get_db)):
+    from app.models.dismissed_insight import DismissedInsight
+    existing = db.query(DismissedInsight).filter(DismissedInsight.title == request.title).first()
+    if not existing:
+        new_dismissed = DismissedInsight(title=request.title)
+        db.add(new_dismissed)
+        db.commit()
+    return {"status": "success"}
 
 @router.get("/calendar")
 async def calendar_analytics(

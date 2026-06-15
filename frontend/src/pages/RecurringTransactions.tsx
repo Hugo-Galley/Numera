@@ -58,6 +58,7 @@ import { toast } from "sonner"
 import { format } from "date-fns"
 import { fr } from "date-fns/locale"
 import { COUNTRIES } from "@/lib/countries"
+import { SalaryManager } from "@/components/tools/SalaryManager"
 
 type Category = {
   id: number
@@ -372,6 +373,10 @@ export default function RecurringTransactions() {
           <TabsTrigger value="subscriptions" className="rounded-lg gap-2">
             <CreditCard className="h-4 w-4" />
             Analyse Abonnements
+          </TabsTrigger>
+          <TabsTrigger value="salary" className="rounded-lg gap-2">
+            <CreditCard className="h-4 w-4" />
+            Salaire & Avantages
           </TabsTrigger>
         </TabsList>
 
@@ -693,6 +698,10 @@ export default function RecurringTransactions() {
                 </Card>
              </div>
            </div>
+        </TabsContent>
+        
+        <TabsContent value="salary" className="space-y-6">
+          <SalaryManager />
         </TabsContent>
       </Tabs>
 
