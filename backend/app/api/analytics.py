@@ -2903,8 +2903,8 @@ async def get_intelligent_insights(
             type="anomaly",
             title="Hausse des abonnements",
             description=f"Vos abonnements ont augmenté de {round(diff, 2)}€ par rapport au mois dernier.",
-            value=diff,
-            unit="€"
+            severity="medium",
+            value=diff
         ))
 
     # 2. Large isolated transactions
