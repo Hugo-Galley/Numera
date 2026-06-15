@@ -8,7 +8,8 @@ import {
   ArrowRight,
   ArrowUp,
   ArrowDown,
-  Trash2
+  Trash2,
+  Star
 } from "lucide-react"
 import { api } from "@/lib/api"
 import { Button } from "@/components/ui/button"
@@ -57,6 +58,7 @@ type Account = {
   asset_class?: string
   sector?: string
   geographic_zone?: string
+  is_main?: boolean
 }
 
 export default function Accounts() {
@@ -192,6 +194,16 @@ export default function Accounts() {
       loadAccounts()
     } catch (error) {
       toast.error("Erreur lors de la suppression du compte")
+    }
+  }
+
+  const handleToggleMain = async (accountId: number, currentIsMain: boolean) => {
+    try {
+      await api.patch(`/accounts/${accountId}`, { is_main: !currentIsMain })
+      toast.success(currentIsMain ? "Compte retiré des favoris" : "Compte défini comme principal")
+      loadAccounts()
+    } catch (error) {
+      toast.error("Erreur lors de la modification")
     }
   }
 
@@ -466,7 +478,19 @@ export default function Accounts() {
                 ) : (
                   sortedAccounts.map((account) => (
                     <TableRow key={account.id}>
-                      <TableCell className="font-medium">{account.name}</TableCell>
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-2">
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className={`h-6 w-6 ${account.is_main ? 'text-amber-500 hover:text-amber-600' : 'text-slate-300 hover:text-amber-500'}`}
+                            onClick={() => handleToggleMain(account.id, !!account.is_main)}
+                          >
+                            <Star className={`h-4 w-4 ${account.is_main ? 'fill-current' : ''}`} />
+                          </Button>
+                          {account.name}
+                        </div>
+                      </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
                           {getTypeIcon(account.type)}

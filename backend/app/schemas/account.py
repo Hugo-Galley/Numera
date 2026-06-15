@@ -10,6 +10,7 @@ class AccountBase(BaseModel):
     asset_class: str | None = None
     sector: str | None = None
     geographic_zone: str | None = None
+    is_main: bool = False
 
 
 class AccountCreate(AccountBase):
@@ -25,6 +26,7 @@ class AccountUpdate(BaseModel):
     asset_class: str | None = None
     sector: str | None = None
     geographic_zone: str | None = None
+    is_main: bool | None = None
 
 
 class AccountRead(AccountBase):

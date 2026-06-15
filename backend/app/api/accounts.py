@@ -43,8 +43,13 @@ def update_account(account_id: int, payload: AccountUpdate, db: Session = Depend
         raise api_error(404, "account_not_found", "Account not found", {"account_id": account_id})
 
     data = payload.model_dump(exclude_unset=True)
+    
+    if data.get("is_main") is True:
+        db.query(Account).filter(Account.id != account_id).update({"is_main": False})
+
     for key, value in data.items():
         setattr(account, key, value)
+
 
     db.commit()
     db.refresh(account)
