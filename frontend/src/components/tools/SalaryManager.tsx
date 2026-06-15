@@ -207,6 +207,11 @@ export function SalaryManager() {
   const handleTicketDateChange = async (date: Date) => {
     if (!config.id || isGenerated) return
     
+    if (!salaryDate) {
+      toast.error("Veuillez d'abord définir la date du salaire")
+      return
+    }
+    
     setTicketDate(date)
     const year = currentDate.getFullYear()
     const month = currentDate.getMonth() + 1
@@ -335,11 +340,14 @@ export function SalaryManager() {
           </div>
           
           <div className="lg:col-span-1">
-            <Card className="h-full flex flex-col">
-              <CardHeader className="bg-muted/30 border-b pb-4">
-                <CardTitle className="text-lg flex justify-between items-center">
-                  <span>Résumé du mois</span>
-                  <span className="text-sm font-normal text-muted-foreground">
+            <Card className="h-full flex flex-col border-none shadow-md overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 text-white">
+              <CardHeader className="bg-white/5 border-b border-white/10 pb-4">
+                <CardTitle className="text-lg flex justify-between items-center text-white">
+                  <span className="flex items-center gap-2">
+                    <Wallet className="h-5 w-5 text-emerald-400" />
+                    Résumé du mois
+                  </span>
+                  <span className="text-sm font-medium text-slate-400">
                     {format(currentDate, "MMMM yyyy", { locale: fr })}
                   </span>
                 </CardTitle>
@@ -349,51 +357,49 @@ export function SalaryManager() {
                   
                   {/* Banque */}
                   <div className="space-y-3">
-                    <h3 className="font-semibold flex items-center gap-2 text-slate-700">
-                      <Wallet className="h-4 w-4 text-primary" /> 
+                    <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400">
                       Reçu en Banque
                     </h3>
-                    <div className="border border-slate-100 dark:border-slate-800 rounded-xl p-4 space-y-3 text-sm shadow-sm bg-white dark:bg-slate-950">
+                    <div className="bg-white/5 border border-white/10 rounded-xl p-4 space-y-3 text-sm shadow-inner">
                       <div className="flex justify-between items-center">
-                        <span className="text-slate-500">Salaire net primes</span>
-                        <span className="font-medium text-slate-900 dark:text-slate-100">{config.net_salary.toFixed(2)} €</span>
+                        <span className="text-slate-400">Salaire net primes</span>
+                        <span className="font-medium text-white">{config.net_salary.toFixed(2)} €</span>
                       </div>
                       <div className="flex justify-between items-center">
-                        <span className="text-slate-500">Déduction TR ({nbTickets} × {config.ticket_employee_share.toFixed(2)}€)</span>
-                        <span className="font-medium text-rose-500 dark:text-rose-400">- {deduction.toFixed(2)} €</span>
+                        <span className="text-slate-400">Déduction TR ({nbTickets} × {config.ticket_employee_share.toFixed(2)}€)</span>
+                        <span className="font-medium text-rose-400">- {deduction.toFixed(2)} €</span>
                       </div>
-                      <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center">
-                        <span className="font-bold text-slate-900 dark:text-slate-100">Total versé</span>
-                        <span className="font-black text-lg text-primary">{realSalary.toFixed(2)} €</span>
+                      <div className="pt-3 border-t border-white/10 flex justify-between items-center">
+                        <span className="font-bold text-white">Total versé</span>
+                        <span className="font-black text-xl text-emerald-400">{realSalary.toFixed(2)} €</span>
                       </div>
                     </div>
                   </div>
 
                   {/* TR */}
                   <div className="space-y-3">
-                    <h3 className="font-semibold flex items-center gap-2 text-slate-700">
-                      <Utensils className="h-4 w-4 text-amber-500" /> 
+                    <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400">
                       Carte Titres-Restaurant
                     </h3>
-                    <div className="border border-slate-100 dark:border-slate-800 rounded-xl p-4 text-sm shadow-sm bg-white dark:bg-slate-950">
+                    <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-sm shadow-inner">
                       <div className="flex justify-between items-center">
-                        <span className="text-slate-500">Tickets crédités ({nbTickets} × {config.ticket_value.toFixed(2)}€)</span>
-                        <span className="font-black text-lg text-amber-600 dark:text-amber-500">+ {creditTR.toFixed(2)} €</span>
+                        <span className="text-slate-400">Tickets crédités ({nbTickets} × {config.ticket_value.toFixed(2)}€)</span>
+                        <span className="font-black text-xl text-amber-400">+ {creditTR.toFixed(2)} €</span>
                       </div>
                     </div>
                   </div>
                   
                 </div>
 
-                <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-800">
+                <div className="mt-8 pt-6 border-t border-white/10">
                   {isGenerated ? (
-                    <div className="bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 text-slate-600 dark:text-slate-300 p-4 rounded-xl flex items-center justify-center gap-2 font-medium shadow-sm">
-                      <CheckCircle2 className="h-5 w-5 text-emerald-500" />
+                    <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 p-4 rounded-xl flex items-center justify-center gap-2 font-medium shadow-sm">
+                      <CheckCircle2 className="h-5 w-5" />
                       Transactions générées
                     </div>
                   ) : (
                     <Button 
-                      className="w-full h-12 text-base" 
+                      className="w-full h-12 text-base font-bold bg-white text-slate-900 hover:bg-slate-100 shadow-lg transition-transform hover:scale-[1.02]" 
                       onClick={handleGenerate}
                       disabled={generating || !salaryDate}
                     >
@@ -401,7 +407,7 @@ export function SalaryManager() {
                     </Button>
                   )}
                   {!salaryDate && !isGenerated && (
-                    <p className="text-xs text-center text-muted-foreground mt-2">
+                    <p className="text-xs text-center text-slate-400 mt-3 font-medium">
                       Veuillez définir une date de versement dans le calendrier
                     </p>
                   )}
