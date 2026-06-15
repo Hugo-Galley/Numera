@@ -54,11 +54,11 @@ const navigationGroups = [
   {
     title: "Analyse & Outils",
     items: [
-      { name: "Comparaison", href: "/comparison", icon: ArrowLeftRight },
-      { name: "Outils de simulation", href: "/tools", icon: Calculator },
       { name: "Calendrier", href: "/calendar", icon: CalendarDays },
       { name: "Récurrences", href: "/recurring", icon: Repeat },
       { name: "Centre d'actions", href: "/audit", icon: ShieldCheck },
+      { name: "Outils de simulation", href: "/tools", icon: Calculator },
+      { name: "Comparaison", href: "/comparison", icon: ArrowLeftRight },
     ]
   }
 ]
