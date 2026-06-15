@@ -188,7 +188,7 @@ class ActionItem(BaseModel):
     description: str
     action_label: Optional[str] = None
     action_url: Optional[str] = None
-    action_type: str  # "link", "modal_categorize", "modal_rule", "modal_snapshot"
+    action_type: str  # "link", "modal_categorize", "modal_rule", "modal_snapshot", "modal_merchant"
     metadata: Optional[dict] = Field(default_factory=dict)
     samples: List[dict] = Field(default_factory=list)
 

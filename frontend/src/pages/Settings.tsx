@@ -153,6 +153,7 @@ import { api, API_BASE } from "@/lib/api"
 import { RulesTab } from "@/components/settings/RulesTab"
 import { TransfersTab } from "@/components/settings/TransfersTab"
 import { TagsTab } from "@/components/settings/TagsTab"
+import { MerchantsTab } from "@/components/settings/MerchantsTab"
 import { AccountTab } from "@/components/settings/AccountTab"
 import { Button } from "@/components/ui/button"
 import { 
@@ -561,6 +562,9 @@ export default function Settings() {
             <TabsTrigger value="tags" className="rounded-lg px-6 flex-1 sm:flex-none">
               <Tag className="h-4 w-4 mr-2" /> Tags
             </TabsTrigger>
+            <TabsTrigger value="merchants" className="rounded-lg px-6 flex-1 sm:flex-none">
+              <ShoppingBag className="h-4 w-4 mr-2" /> Marchands
+            </TabsTrigger>
             <TabsTrigger value="rules" className="rounded-lg px-6 flex-1 sm:flex-none">
               <Filter className="h-4 w-4 mr-2" /> Règles
             </TabsTrigger>
@@ -890,6 +894,10 @@ export default function Settings() {
 
         <TabsContent value="tags" className="space-y-6">
           <TagsTab />
+        </TabsContent>
+
+        <TabsContent value="merchants" className="space-y-6">
+          <MerchantsTab />
         </TabsContent>
 
         <TabsContent value="rules" className="space-y-6">

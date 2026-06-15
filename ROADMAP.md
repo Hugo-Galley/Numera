@@ -111,13 +111,15 @@ Objectif: transformer les insights en file d'actions concrete.
 
 ### Priorite 3 - Normalisation Des Marchands
 
+Statut: terminé.
+
 Objectif: regrouper les variantes de libelles bancaires sous un marchand canonique.
 
-- Table de marchands canoniques ou synonymes.
-- Conservation du libelle original.
-- Suggestions automatiques sur libelles proches.
-- Correction et dissociation manuelles.
-- Utilisation dans graphiques, filtres, imports et regles.
+- Table de marchands canoniques ou synonymes. [OK]
+- Conservation du libelle original. [OK]
+- Suggestions automatiques sur libelles proches. [OK]
+- Correction et dissociation manuelles. [OK]
+- Utilisation dans graphiques, filtres, imports et regles. [OK]
 
 ### Priorite 4 - Budget Previsionnel De Fin De Mois
 

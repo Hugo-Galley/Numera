@@ -19,6 +19,7 @@ from app.api.transactions import router as transactions_router
 from app.api.recurring_transactions import router as recurring_transactions_router
 from app.api.savings_goals import router as savings_goals_router
 from app.api.categorization_rules import router as categorization_rules_router
+from app.api.merchants import router as merchants_router
 from app.api.tags import router as tags_router
 from app.api.deps import get_current_user
 from app.core.config import settings
@@ -132,6 +133,7 @@ protected_routers = [
     balance_snapshots_router,
     savings_goals_router,
     categorization_rules_router,
+    merchants_router,
     tags_router,
     exports_router,
     admin_router,

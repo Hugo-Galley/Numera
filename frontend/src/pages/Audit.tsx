@@ -9,6 +9,7 @@ import {
   RefreshCw,
   Save,
   ShieldCheck,
+  ShoppingBag,
   Trash2,
   Wrench,
   Zap,
@@ -58,7 +59,7 @@ interface ActionItem {
   description: string
   action_label?: string | null
   action_url?: string | null
-  action_type: "link" | "modal_categorize" | "modal_rule" | "modal_snapshot"
+  action_type: "link" | "modal_categorize" | "modal_rule" | "modal_snapshot" | "modal_merchant"
   metadata?: Record<string, any>
   samples: Array<Record<string, any>>
 }
@@ -88,15 +89,15 @@ const severityLabel = {
 }
 
 const severityClass = {
-  high: "border-rose-200 bg-rose-50 text-rose-700",
-  medium: "border-amber-200 bg-amber-50 text-amber-700",
-  low: "border-slate-200 bg-slate-50 text-slate-600",
+  high: "border-rose-200 text-rose-600",
+  medium: "border-amber-200 text-amber-600",
+  low: "border-slate-200 text-slate-500",
 }
 
 const actionIconClass = {
-  high: "bg-rose-100 text-rose-700",
-  medium: "bg-amber-100 text-amber-700",
-  low: "bg-slate-100 text-slate-600",
+  high: "text-rose-500",
+  medium: "text-amber-500",
+  low: "text-slate-400",
 }
 
 const actionTypeIcon = {
@@ -104,6 +105,7 @@ const actionTypeIcon = {
   budget: Target,
   rule: Zap,
   subscription: RefreshCw,
+  merchant: ShoppingBag,
 }
 
 function toDateTimeLocal(value: string) {
@@ -447,6 +449,83 @@ function RuleCreatorModal({
   )
 }
 
+function MerchantCreatorModal({
+  merchant,
+  categories,
+  onCreated,
+  onClose,
+}: {
+  merchant: string
+  categories: Category[]
+  onCreated: () => void
+  onClose: () => void
+}) {
+  const [draft, setDraft] = useState({
+    name: merchant,
+    category_id: "none",
+  })
+  const [saving, setSaving] = useState(false)
+
+  async function create() {
+    setSaving(true)
+    try {
+      await api.post("/merchants", {
+        name: draft.name.trim(),
+        category_id: draft.category_id === "none" ? null : Number(draft.category_id),
+        aliases: [merchant]
+      })
+      toast.success("Marchand créé et normalisé")
+      await api.post("/merchants/auto-normalize", {})
+      onCreated()
+      onClose()
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Création impossible")
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <Dialog open onOpenChange={onClose}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Normaliser le marchand</DialogTitle>
+          <DialogDescription>
+            Créez un marchand canonique pour "{merchant}".
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4 py-4">
+          <div className="space-y-2">
+            <p className="text-sm font-medium">Nom canonique</p>
+            <Input value={draft.name} onChange={(e) => setDraft({...draft, name: e.target.value})} />
+          </div>
+          <div className="space-y-2">
+            <p className="text-sm font-medium">Catégorie par défaut</p>
+            <Select value={draft.category_id} onValueChange={(v) => setDraft({...draft, category_id: v})}>
+              <SelectTrigger>
+                <SelectValue placeholder="Choisir une catégorie" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Aucune</SelectItem>
+                {categories.map((c) => (
+                  <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>Annuler</Button>
+          <Button onClick={create} disabled={saving}>
+            {saving ? <RefreshCw className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
+            Créer et normaliser
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
 export default function ActionCenter() {
   const navigate = useNavigate()
   const [data, setData] = useState<ActionCenterData | null>(null)
@@ -455,6 +534,7 @@ export default function ActionCenter() {
   const [details, setDetails] = useState<Record<string, IssueDetails>>({})
   const [activeActionId, setActiveActionId] = useState<string | null>(null)
   const [ruleMerchant, setRuleMerchant] = useState<{merchant: string, catId?: number} | null>(null)
+  const [normMerchant, setNormMerchant] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [loadingIssueId, setLoadingIssueId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -486,6 +566,11 @@ export default function ActionCenter() {
 
     if (action.action_type === "modal_rule") {
       setRuleMerchant({ merchant: action.metadata?.merchant, catId: action.metadata?.suggested_category_id })
+      return
+    }
+
+    if (action.action_type === "modal_merchant") {
+      setNormMerchant(action.metadata?.merchant)
       return
     }
 
@@ -607,18 +692,14 @@ export default function ActionCenter() {
 
   if (error) {
     return (
-      <Card className="border-rose-200 bg-rose-50">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-rose-800">
-            <AlertTriangle className="h-5 w-5" />
-            Centre d'actions indisponible
-          </CardTitle>
-          <CardDescription className="text-rose-700">{error}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button onClick={loadActions} variant="outline">Relancer l'analyse</Button>
-        </CardContent>
-      </Card>
+      <div className="rounded-md border border-rose-200 bg-white p-6">
+        <div className="mb-2 flex items-center gap-2 text-rose-600">
+          <AlertTriangle className="h-5 w-5" />
+          <h2 className="text-sm font-semibold">Centre d'actions indisponible</h2>
+        </div>
+        <p className="mb-4 text-sm text-slate-600">{error}</p>
+        <Button onClick={loadActions} variant="outline" size="sm">Relancer l'analyse</Button>
+      </div>
     )
   }
 
@@ -634,22 +715,22 @@ export default function ActionCenter() {
           </Button>
         </div>
 
-        <div className="flex gap-4">
-          <div className={cn("mt-1 flex h-12 w-12 shrink-0 items-center justify-center rounded-lg", actionIconClass[activeAction.severity])}>
-            <Wrench className="h-6 w-6" />
+        <div className="flex gap-3">
+          <div className={cn("mt-0.5 shrink-0", actionIconClass[activeAction.severity])}>
+            <Wrench className="h-5 w-5" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-black text-slate-900">{activeAction.title}</h1>
-              <Badge variant="outline" className={severityClass[activeAction.severity]}>
+              <h1 className="text-lg font-semibold text-slate-900">{activeAction.title}</h1>
+              <Badge variant="outline" className={cn("text-[10px] font-medium uppercase tracking-wider", severityClass[activeAction.severity])}>
                 {severityLabel[activeAction.severity]}
               </Badge>
             </div>
-            <p className="mt-1 max-w-2xl text-slate-600">{activeAction.description}</p>
+            <p className="mt-1 max-w-2xl text-sm text-slate-500">{activeAction.description}</p>
           </div>
         </div>
 
-        <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 md:p-6">
+        <div className="rounded-lg border border-slate-200 bg-white p-4 md:p-6">
           {loadingIssueId === activeActionId && (
             <div className="flex h-40 items-center justify-center gap-3 text-slate-500">
               <RefreshCw className="h-5 w-5 animate-spin" />
@@ -768,9 +849,9 @@ export default function ActionCenter() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
-          <div className="mb-2 flex items-center gap-2">
-            <LayoutList className="h-6 w-6 text-slate-900" />
-            <h1 className="text-3xl font-black tracking-tight text-slate-900">Centre d'actions</h1>
+          <div className="mb-1 flex items-center gap-2">
+            <LayoutList className="h-5 w-5 text-slate-700" />
+            <h1 className="text-xl font-semibold text-slate-900">Centre d'actions</h1>
           </div>
           <p className="text-sm text-slate-500">
             Une liste centralisée des tâches pour maintenir vos finances propres et sous contrôle.
@@ -782,90 +863,78 @@ export default function ActionCenter() {
         </Button>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card className="shadow-sm border-rose-100 bg-rose-50/30">
-          <CardHeader className="pb-2">
-            <CardDescription className="text-rose-600 font-medium">Priorité haute</CardDescription>
-            <CardTitle className="text-3xl font-black text-rose-600">{data.summary.high_priority}</CardTitle>
-          </CardHeader>
-        </Card>
-        <Card className="shadow-sm border-amber-100 bg-amber-50/30">
-          <CardHeader className="pb-2">
-            <CardDescription className="text-amber-600 font-medium">Priorité moyenne</CardDescription>
-            <CardTitle className="text-3xl font-black text-amber-600">{data.summary.medium_priority}</CardTitle>
-          </CardHeader>
-        </Card>
-        <Card className="shadow-sm border-slate-100 bg-slate-50/30">
-          <CardHeader className="pb-2">
-            <CardDescription className="text-slate-500 font-medium">Suggestions</CardDescription>
-            <CardTitle className="text-3xl font-black text-slate-900">{data.summary.low_priority}</CardTitle>
-          </CardHeader>
-        </Card>
+      <div className="flex flex-wrap gap-4">
+        <div className="flex min-w-[140px] flex-col gap-1 rounded-md border border-slate-200 bg-white p-3">
+          <p className="text-xs font-medium text-slate-500">Priorité haute</p>
+          <p className="text-xl font-semibold text-rose-600">{data.summary.high_priority}</p>
+        </div>
+        <div className="flex min-w-[140px] flex-col gap-1 rounded-md border border-slate-200 bg-white p-3">
+          <p className="text-xs font-medium text-slate-500">Priorité moyenne</p>
+          <p className="text-xl font-semibold text-amber-600">{data.summary.medium_priority}</p>
+        </div>
+        <div className="flex min-w-[140px] flex-col gap-1 rounded-md border border-slate-200 bg-white p-3">
+          <p className="text-xs font-medium text-slate-500">Suggestions</p>
+          <p className="text-xl font-semibold text-slate-700">{data.summary.low_priority}</p>
+        </div>
       </div>
 
       {data.actions.length === 0 ? (
-        <Card className="border-emerald-200 bg-emerald-50 shadow-none">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-emerald-800">
-              <CheckCircle2 className="h-5 w-5" />
-              Tout est à jour
-            </CardTitle>
-            <CardDescription className="text-emerald-700">
-              Félicitations ! Aucune action requise pour le moment. Votre comptabilité est impeccable.
-            </CardDescription>
-          </CardHeader>
-        </Card>
+        <div className="rounded-md border border-slate-200 bg-white p-6 text-center">
+          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-50">
+            <CheckCircle2 className="h-6 w-6 text-emerald-500" />
+          </div>
+          <h2 className="text-sm font-semibold text-slate-900">Tout est à jour</h2>
+          <p className="mt-1 text-sm text-slate-500">
+            Félicitations ! Aucune action requise pour le moment. Votre comptabilité est impeccable.
+          </p>
+        </div>
       ) : (
-        <div className="grid gap-4">
-          {data.actions.map((action) => {
-            const Icon = actionTypeIcon[action.type] || Wrench
+        <div className="overflow-hidden rounded-md border border-slate-200 bg-white">
+          <div className="divide-y divide-slate-100">
+            {data.actions.map((action) => {
+              const Icon = actionTypeIcon[action.type] || Wrench
 
-            return (
-              <Card 
-                key={action.id} 
-                className="overflow-hidden transition-all hover:shadow-md cursor-pointer hover:border-slate-400"
-                onClick={() => handleAction(action)}
-              >
-                <CardContent className="p-0">
-                  <div className="flex flex-col gap-4 p-5 md:flex-row md:items-center md:justify-between">
-                    <div className="flex min-w-0 gap-4">
-                      <div className={cn("mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-md", actionIconClass[action.severity])}>
-                        <Icon className="h-5 w-5" />
+              return (
+                <div 
+                  key={action.id} 
+                  className="group flex cursor-pointer flex-col gap-4 p-4 transition-colors hover:bg-slate-50 sm:flex-row sm:items-center sm:justify-between"
+                  onClick={() => handleAction(action)}
+                >
+                  <div className="flex min-w-0 items-start gap-3">
+                    <Icon className={cn("mt-0.5 h-4 w-4 shrink-0", actionIconClass[action.severity])} />
+                    <div className="min-w-0 space-y-1">
+                      <div className="flex items-center gap-2">
+                        <h2 className="text-sm font-semibold text-slate-900">{action.title}</h2>
+                        <Badge variant="outline" className={cn("h-5 px-1.5 text-[9px] font-medium uppercase tracking-wider", severityClass[action.severity])}>
+                          {severityLabel[action.severity]}
+                        </Badge>
                       </div>
-                      <div className="min-w-0 space-y-1">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <h2 className="text-lg font-black text-slate-900">{action.title}</h2>
-                          <Badge variant="outline" className={cn("text-[10px] uppercase tracking-wider font-bold", severityClass[action.severity])}>
-                            {severityLabel[action.severity]}
-                          </Badge>
-                        </div>
-                        <p className="max-w-3xl text-sm text-slate-600">{action.description}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3 shrink-0">
-                      {action.samples.length > 0 && (
-                        <div className="hidden flex-wrap gap-2 md:flex">
-                          {action.samples.slice(0, 2).map((sample, index) => (
-                            <span key={index} className="max-w-[180px] truncate rounded border border-slate-100 bg-slate-50/50 px-2 py-0.5 text-[10px] font-medium text-slate-400">
-                              {sampleLabel(sample)}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                      <Button
-                        variant={action.severity === "high" ? "default" : "outline"}
-                        className="gap-2"
-                        size="sm"
-                      >
-                        {action.action_label || "Traiter"}
-                        <ArrowRight className="h-4 w-4" />
-                      </Button>
+                      <p className="text-xs text-slate-500 line-clamp-1">{action.description}</p>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            )
-          })}
+                  <div className="flex shrink-0 items-center gap-3">
+                    {action.samples.length > 0 && (
+                      <div className="hidden gap-2 sm:flex">
+                        {action.samples.slice(0, 1).map((sample, index) => (
+                          <span key={index} className="max-w-[150px] truncate text-xs text-slate-400">
+                            Ex: {sampleLabel(sample)}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 text-xs font-medium group-hover:bg-slate-200/50"
+                    >
+                      {action.action_label || "Traiter"}
+                      <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
         </div>
       )}
 
@@ -876,6 +945,15 @@ export default function ActionCenter() {
           categories={categories}
           onCreated={loadActions}
           onClose={() => setRuleMerchant(null)}
+        />
+      )}
+
+      {normMerchant && (
+        <MerchantCreatorModal 
+          merchant={normMerchant}
+          categories={categories}
+          onCreated={loadActions}
+          onClose={() => setNormMerchant(null)}
         />
       )}
 

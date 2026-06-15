@@ -2,6 +2,7 @@ from datetime import datetime
 from pydantic import BaseModel, Field
 from app.schemas.category import CategoryRead
 from app.schemas.tag import TagRead
+from app.schemas.merchant import MerchantRead
 
 
 class TransactionBase(BaseModel):
@@ -9,6 +10,7 @@ class TransactionBase(BaseModel):
     date: datetime
     type: str
     merchant: str = Field(min_length=1, max_length=120)
+    merchant_id: int | None = None
     category_id: int | None = None
     amount: float = Field(gt=0)
     currency: str = "EUR"
@@ -32,6 +34,7 @@ class TransactionUpdate(BaseModel):
     date: datetime | None = None
     type: str | None = None
     merchant: str | None = None
+    merchant_id: int | None = None
     category_id: int | None = None
     amount: float | None = None
     currency: str | None = None
@@ -50,6 +53,7 @@ class TransactionUpdate(BaseModel):
 class TransactionBulkUpdate(BaseModel):
     ids: list[int]
     category_id: int | None = None
+    merchant_id: int | None = None
     is_recurring: bool | None = None
     type: str | None = None
     merchant: str | None = None
@@ -66,6 +70,7 @@ class TransactionRead(TransactionBase):
     linked_transaction_id: int | None = None
     linked_investment_transaction_id: int | None = None
     category: CategoryRead | None = None
+    merchant_obj: MerchantRead | None = Field(None, alias="merchant_obj")
     tags: list[TagRead] = []
 
-    model_config = {"from_attributes": True}
+    model_config = {"from_attributes": True, "populate_by_name": True}

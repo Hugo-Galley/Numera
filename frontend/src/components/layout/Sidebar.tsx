@@ -1,3 +1,4 @@
+import { useState } from "react"
 import { NavLink } from "react-router-dom"
 import { 
   LayoutDashboard, 
@@ -16,7 +17,9 @@ import {
   Repeat,
   Sparkles,
   ShieldCheck,
-  User
+  User,
+  ChevronDown,
+  ChevronRight
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useUI } from "@/providers/UIProvider"
@@ -31,23 +34,47 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
-const navigation = [
-  { name: "Tableau de bord", href: "/", icon: LayoutDashboard },
-  { name: "Bilan Mensuel", href: "/report", icon: Sparkles },
-  { name: "Comptes", href: "/accounts", icon: Wallet },
-  { name: "Épargne", href: "/savings", icon: PiggyBank },
-  { name: "Investissements", href: "/investments", icon: TrendingUp },
-  { name: "Comparaison", href: "/comparison", icon: ArrowLeftRight },
-  { name: "Calendrier", href: "/calendar", icon: CalendarDays },
-  { name: "Récurrences & Abonnements", href: "/recurring", icon: Repeat },
-  { name: "Centre d'actions", href: "/audit", icon: ShieldCheck },
-  { name: "Paramètres", href: "/settings", icon: Settings },
+const navigationGroups = [
+  {
+    title: "Vue d'ensemble",
+    items: [
+      { name: "Tableau de bord", href: "/", icon: LayoutDashboard },
+      { name: "Bilan Mensuel", href: "/report", icon: Sparkles },
+    ]
+  },
+  {
+    title: "Patrimoine",
+    items: [
+      { name: "Comptes", href: "/accounts", icon: Wallet },
+      { name: "Épargne", href: "/savings", icon: PiggyBank },
+      { name: "Investissements", href: "/investments", icon: TrendingUp },
+    ]
+  },
+  {
+    title: "Analyse & Outils",
+    items: [
+      { name: "Comparaison", href: "/comparison", icon: ArrowLeftRight },
+      { name: "Calendrier", href: "/calendar", icon: CalendarDays },
+      { name: "Récurrences", href: "/recurring", icon: Repeat },
+      { name: "Centre d'actions", href: "/audit", icon: ShieldCheck },
+    ]
+  }
 ]
 
 export function Sidebar({ className, onItemClick }: { className?: string, onItemClick?: () => void }) {
   const { isPrivacyMode, togglePrivacyMode, setSearchOpen } = useUI()
   const { logout, username, profile } = useAuth()
   
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
+    "Vue d'ensemble": true,
+    "Patrimoine": true,
+    "Analyse & Outils": false,
+  })
+
+  const toggleGroup = (title: string) => {
+    setOpenGroups(prev => ({ ...prev, [title]: !prev[title] }))
+  }
+
   const initials = username ? username.slice(0, 2).toUpperCase() : "?"
   const profilePicture = profile?.profile_picture_url
 
@@ -58,30 +85,51 @@ export function Sidebar({ className, onItemClick }: { className?: string, onItem
         <span className="text-lg font-bold tracking-tight">Suivi Budget</span>
       </div>
       <div className="flex-1 overflow-y-auto py-4">
-        <nav className="space-y-1 px-3">
-          {navigation.map((item) => (
-            <NavLink
-              key={item.name}
-              to={item.href}
-              onClick={onItemClick}
-              className={({ isActive }) =>
-                cn(
-                  "group flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                  isActive
-                    ? "bg-slate-100 text-slate-900"
-                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-                )
-              }
-            >
-              <item.icon
-                className={cn(
-                  "mr-3 h-5 w-5 flex-shrink-0 transition-colors",
-                  "group-hover:text-slate-900"
+        <nav className="space-y-4 px-3">
+          {navigationGroups.map((group, i) => (
+            <div key={i} className="space-y-1">
+              <button
+                onClick={() => toggleGroup(group.title)}
+                className="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold text-slate-500 uppercase tracking-wider hover:bg-slate-50 rounded-md transition-colors"
+              >
+                <span>{group.title}</span>
+                {openGroups[group.title] ? (
+                  <ChevronDown className="h-4 w-4" />
+                ) : (
+                  <ChevronRight className="h-4 w-4" />
                 )}
-                aria-hidden="true"
-              />
-              {item.name}
-            </NavLink>
+              </button>
+              
+              <div className={cn(
+                "space-y-1 overflow-hidden transition-all duration-200 ease-in-out",
+                openGroups[group.title] ? "max-h-96 opacity-100 pt-1" : "max-h-0 opacity-0"
+              )}>
+                {group.items.map((item) => (
+                  <NavLink
+                    key={item.name}
+                    to={item.href}
+                    onClick={onItemClick}
+                    className={({ isActive }) =>
+                      cn(
+                        "group flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                        isActive
+                          ? "bg-slate-100 text-slate-900"
+                          : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                      )
+                    }
+                  >
+                    <item.icon
+                      className={cn(
+                        "mr-3 h-5 w-5 flex-shrink-0 transition-colors",
+                        "group-hover:text-slate-900"
+                      )}
+                      aria-hidden="true"
+                    />
+                    {item.name}
+                  </NavLink>
+                ))}
+              </div>
+            </div>
           ))}
         </nav>
       </div>
@@ -133,10 +181,16 @@ export function Sidebar({ className, onItemClick }: { className?: string, onItem
           <DropdownMenuContent side="right" align="end" className="w-56">
             <DropdownMenuLabel>Mon Compte</DropdownMenuLabel>
             <DropdownMenuSeparator />
+            <NavLink to="/settings">
+              <DropdownMenuItem className="cursor-pointer">
+                <Settings className="mr-2 h-4 w-4" />
+                <span>Paramètres généraux</span>
+              </DropdownMenuItem>
+            </NavLink>
             <NavLink to="/settings?tab=account">
               <DropdownMenuItem className="cursor-pointer">
                 <User className="mr-2 h-4 w-4" />
-                <span>Paramètres du compte</span>
+                <span>Profil & Compte</span>
               </DropdownMenuItem>
             </NavLink>
             <DropdownMenuSeparator />

@@ -252,6 +252,12 @@ type Transaction = {
   date: string
   type: string
   merchant: string
+  merchant_id: number | null
+  merchant_obj?: {
+    id: number
+    name: string
+    color: string | null
+  } | null
   amount: number
   currency: string
   original_amount: number
@@ -1688,13 +1694,19 @@ export default function AccountDetail() {
                       />
                     </TableCell>
                     <TableCell className="text-xs">{format(new Date(tx.date), "dd/MM/yyyy")}</TableCell>
-                    <TableCell>
+                    <TableCell title={tx.merchant}>
                       <div className="flex flex-col">
                         <div className="flex items-center gap-1.5">
-                          <span className="font-bold text-slate-900">{tx.merchant}</span>
+                          {tx.merchant_obj && (
+                            <div className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: tx.merchant_obj.color || "#64748b" }} />
+                          )}
+                          <span className="font-bold text-slate-900">{tx.merchant_obj?.name || tx.merchant}</span>
                           {tx.is_recurring && <Repeat className="h-3 w-3 text-indigo-500" />}
                         </div>
                         {tx.note && <span className="text-[10px] text-slate-400 truncate max-w-[200px]">{tx.note}</span>}
+                        {tx.merchant_obj && tx.merchant_obj.name !== tx.merchant && (
+                           <span className="text-[9px] text-slate-400 italic truncate max-w-[180px]">{tx.merchant}</span>
+                        )}
                         {tx.tags && tx.tags.length > 0 && (
                           <div className="flex flex-wrap gap-1 mt-1">
                             {tx.tags.map(tag => (

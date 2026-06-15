@@ -267,10 +267,11 @@ export function Omnibox() {
                         </div>
                         <div className="flex flex-col">
                           <span className="font-medium text-slate-900 truncate max-w-[200px] sm:max-w-[300px]">
-                            {tx.merchant}
+                            {tx.merchant_obj?.name || tx.merchant}
                           </span>
                           <span className="text-[10px] text-slate-400 flex items-center gap-1.5">
                             {new Date(tx.date).toLocaleDateString("fr-FR")}
+                            {tx.merchant_obj && tx.merchant_obj.name !== tx.merchant && <span className="italic">• {tx.merchant}</span>}
                             {tx.note && <span className="italic">• {tx.note}</span>}
                           </span>
                         </div>
