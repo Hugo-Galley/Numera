@@ -11,6 +11,9 @@ import {
   ShieldCheck,
   Trash2,
   Wrench,
+  Zap,
+  LayoutList,
+  Target,
 } from "lucide-react"
 import { toast } from "sonner"
 import { api } from "@/lib/api"
@@ -21,6 +24,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Progress } from "@/components/ui/progress"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 
 interface Category {
   id: number
@@ -46,29 +50,28 @@ interface Account {
   currency: string
 }
 
-interface AuditIssue {
+interface ActionItem {
   id: string
-  type: string
+  type: "audit" | "budget" | "rule" | "subscription"
   severity: "low" | "medium" | "high"
   title: string
   description: string
-  count: number
   action_label?: string | null
   action_url?: string | null
+  action_type: "link" | "modal_categorize" | "modal_rule" | "modal_snapshot"
+  metadata?: Record<string, any>
   samples: Array<Record<string, any>>
 }
 
-interface AuditData {
+interface ActionCenterData {
   summary: {
-    total_issues: number
-    high_count: number
-    medium_count: number
-    low_count: number
-    total_transactions: number
-    active_accounts: number
+    total_actions: number
+    high_priority: number
+    medium_priority: number
+    low_priority: number
     checked_at: string
   }
-  issues: AuditIssue[]
+  actions: ActionItem[]
 }
 
 interface IssueDetails {
@@ -80,8 +83,8 @@ interface IssueDetails {
 
 const severityLabel = {
   high: "Critique",
-  medium: "A surveiller",
-  low: "Nettoyage",
+  medium: "Important",
+  low: "Suggestion",
 }
 
 const severityClass = {
@@ -90,18 +93,18 @@ const severityClass = {
   low: "border-slate-200 bg-slate-50 text-slate-600",
 }
 
-const issueIconClass = {
+const actionIconClass = {
   high: "bg-rose-100 text-rose-700",
   medium: "bg-amber-100 text-amber-700",
   low: "bg-slate-100 text-slate-600",
 }
 
-const editableIssueIds = new Set([
-  "uncategorized-expenses",
-  "missing-merchants",
-  "duplicate-transactions",
-  "unmatched-transfers",
-])
+const actionTypeIcon = {
+  audit: ShieldCheck,
+  budget: Target,
+  rule: Zap,
+  subscription: RefreshCw,
+}
 
 function toDateTimeLocal(value: string) {
   const date = new Date(value)
@@ -157,7 +160,7 @@ function TransactionEditor({
         note: draft.note.trim() || null,
       })
       onSaved(saved)
-      toast.success("Transaction enregistree")
+      toast.success("Transaction enregistrée")
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Sauvegarde impossible")
     } finally {
@@ -171,7 +174,7 @@ function TransactionEditor({
     try {
       await api.delete(`/transactions/${tx.id}`)
       onDeleted?.(tx.id)
-      toast.success("Transaction supprimee")
+      toast.success("Transaction supprimée")
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Suppression impossible")
     } finally {
@@ -181,7 +184,6 @@ function TransactionEditor({
 
   return (
     <div className="rounded-md border border-slate-200 bg-white shadow-sm overflow-hidden">
-      {/* Mobile view: stack of fields */}
       <div className="flex flex-col p-3 gap-3 lg:hidden">
         <div className="flex items-center justify-between border-b pb-2">
           <div className="min-w-0">
@@ -209,8 +211,8 @@ function TransactionEditor({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="Sortie">Sortie</SelectItem>
-                <SelectItem value="Entree">Entree</SelectItem>
-                <SelectItem value="Interets">Interets</SelectItem>
+                <SelectItem value="Entree">Entrée</SelectItem>
+                <SelectItem value="Interets">Intérêts</SelectItem>
                 <SelectItem value="Solde Initial">Solde Initial</SelectItem>
               </SelectContent>
             </Select>
@@ -232,10 +234,10 @@ function TransactionEditor({
             <p className="mb-1 text-[10px] font-medium text-slate-400">Catégorie</p>
             <Select value={draft.category_id} onValueChange={(value) => setDraft({ ...draft, category_id: value })}>
               <SelectTrigger className="h-9 text-xs">
-                <SelectValue placeholder="Categorie" />
+                <SelectValue placeholder="Catégorie" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="none">Sans categorie</SelectItem>
+                <SelectItem value="none">Sans catégorie</SelectItem>
                 {categories.map((category) => (
                   <SelectItem key={category.id} value={String(category.id)}>
                     {category.name}
@@ -270,7 +272,6 @@ function TransactionEditor({
         </div>
       </div>
 
-      {/* Desktop view: horizontal scrollable grid */}
       <div className="hidden lg:block overflow-x-auto">
         <div className="flex items-center gap-4 p-3 min-w-[1000px]">
           <div className="w-[140px] shrink-0">
@@ -294,8 +295,8 @@ function TransactionEditor({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="Sortie">Sortie</SelectItem>
-                <SelectItem value="Entree">Entree</SelectItem>
-                <SelectItem value="Interets">Interets</SelectItem>
+                <SelectItem value="Entree">Entrée</SelectItem>
+                <SelectItem value="Interets">Intérêts</SelectItem>
                 <SelectItem value="Solde Initial">Solde Initial</SelectItem>
               </SelectContent>
             </Select>
@@ -313,10 +314,10 @@ function TransactionEditor({
           <div className="w-[160px] shrink-0">
             <Select value={draft.category_id} onValueChange={(value) => setDraft({ ...draft, category_id: value })}>
               <SelectTrigger className="h-9 text-xs">
-                <SelectValue placeholder="Categorie" />
+                <SelectValue placeholder="Catégorie" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="none">Sans categorie</SelectItem>
+                <SelectItem value="none">Sans catégorie</SelectItem>
                 {categories.map((category) => (
                   <SelectItem key={category.id} value={String(category.id)}>
                     {category.name}
@@ -368,23 +369,102 @@ function TransactionEditor({
   )
 }
 
-export default function Audit() {
+function RuleCreatorModal({
+  merchant,
+  suggestedCategoryId,
+  categories,
+  onCreated,
+  onClose,
+}: {
+  merchant: string
+  suggestedCategoryId?: number
+  categories: Category[]
+  onCreated: () => void
+  onClose: () => void
+}) {
+  const [draft, setDraft] = useState({
+    pattern: merchant,
+    category_id: suggestedCategoryId ? String(suggestedCategoryId) : "none",
+  })
+  const [saving, setSaving] = useState(false)
+
+  async function create() {
+    setSaving(true)
+    try {
+      await api.post("/categorization-rules", {
+        pattern: draft.pattern.trim(),
+        category_id: draft.category_id === "none" ? null : Number(draft.category_id),
+        priority: 0,
+      })
+      toast.success("Règle créée")
+      onCreated()
+      onClose()
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Création impossible")
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <Dialog open onOpenChange={onClose}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Créer une règle d'auto-catégorisation</DialogTitle>
+          <DialogDescription>
+            Automatisez la catégorisation pour les futures transactions de "{merchant}".
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4 py-4">
+          <div className="space-y-2">
+            <p className="text-sm font-medium">Mot-clé (Pattern)</p>
+            <Input value={draft.pattern} onChange={(e) => setDraft({...draft, pattern: e.target.value})} />
+          </div>
+          <div className="space-y-2">
+            <p className="text-sm font-medium">Catégorie cible</p>
+            <Select value={draft.category_id} onValueChange={(v) => setDraft({...draft, category_id: v})}>
+              <SelectTrigger>
+                <SelectValue placeholder="Choisir une catégorie" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Aucune</SelectItem>
+                {categories.map((c) => (
+                  <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>Annuler</Button>
+          <Button onClick={create} disabled={saving}>
+            {saving ? <RefreshCw className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
+            Créer la règle
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+export default function ActionCenter() {
   const navigate = useNavigate()
-  const [data, setData] = useState<AuditData | null>(null)
+  const [data, setData] = useState<ActionCenterData | null>(null)
   const [categories, setCategories] = useState<Category[]>([])
   const [accounts, setAccounts] = useState<Account[]>([])
   const [details, setDetails] = useState<Record<string, IssueDetails>>({})
-  const [activeIssueId, setActiveIssueId] = useState<string | null>(null)
+  const [activeActionId, setActiveActionId] = useState<string | null>(null)
+  const [ruleMerchant, setRuleMerchant] = useState<{merchant: string, catId?: number} | null>(null)
   const [loading, setLoading] = useState(true)
   const [loadingIssueId, setLoadingIssueId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  async function loadAudit() {
+  async function loadActions() {
     setLoading(true)
     setError(null)
     try {
       const [result, categoryRows, accountRows] = await Promise.all([
-        api.get<AuditData>("/analytics/audit"),
+        api.get<ActionCenterData>("/analytics/actions"),
         api.get<Category[]>("/categories"),
         api.get<Account[]>("/accounts"),
       ])
@@ -392,39 +472,50 @@ export default function Audit() {
       setCategories(categoryRows || [])
       setAccounts(accountRows || [])
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Audit indisponible")
+      setError(err instanceof Error ? err.message : "Données indisponibles")
     } finally {
       setLoading(false)
     }
   }
 
-  async function openIssue(issueId: string) {
-    const issue = data?.issues.find((i) => i.id === issueId)
-    if (!issue) return
-
-    if (!editableIssueIds.has(issue.id)) {
-      if (issue.action_url) navigate(issue.action_url)
+  async function handleAction(action: ActionItem) {
+    if (action.action_type === "link" && action.action_url) {
+      navigate(action.action_url)
       return
     }
 
-    setActiveIssueId(issue.id)
-    if (details[issue.id]) return
+    if (action.action_type === "modal_rule") {
+      setRuleMerchant({ merchant: action.metadata?.merchant, catId: action.metadata?.suggested_category_id })
+      return
+    }
 
-    setLoadingIssueId(issue.id)
-    try {
-      const result = await api.get<IssueDetails>(`/analytics/audit/${issue.id}`)
-      setDetails((prev) => ({ ...prev, [issue.id]: result }))
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Chargement impossible")
-    } finally {
-      setLoadingIssueId(null)
+    if (action.action_type === "modal_categorize") {
+      const issueId = action.metadata?.issue_id
+      if (!issueId) return
+      
+      setActiveActionId(action.id)
+      if (details[issueId]) return
+
+      setLoadingIssueId(action.id)
+      try {
+        const result = await api.get<IssueDetails>(`/analytics/audit/${issueId}`)
+        setDetails((prev) => ({ ...prev, [issueId]: result }))
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : "Chargement impossible")
+      } finally {
+        setLoadingIssueId(null)
+      }
     }
   }
+
+  const activeAction = data?.actions.find(a => a.id === activeActionId)
+  const activeIssueId = activeAction?.metadata?.issue_id
+  const detail = activeIssueId ? details[activeIssueId] : null
 
   async function refreshIssue(issueId: string) {
     const result = await api.get<IssueDetails>(`/analytics/audit/${issueId}`)
     setDetails((prev) => ({ ...prev, [issueId]: result }))
-    await loadAudit()
+    await loadActions()
   }
 
   function updateTransactionInDetails(issueId: string, saved: Transaction) {
@@ -447,7 +538,7 @@ export default function Audit() {
         },
       }
     })
-    loadAudit()
+    loadActions()
   }
 
   function removeTransactionFromDetails(issueId: string, id: number) {
@@ -466,14 +557,14 @@ export default function Audit() {
         },
       }
     })
-    loadAudit()
+    loadActions()
   }
 
   async function linkTransfer(sortieId: number, entreeId: number) {
     try {
       await api.post(`/transactions/${sortieId}/link/${entreeId}?type=regular`, {})
-      toast.success("Transfert rapproche")
-      await refreshIssue("unmatched-transfers")
+      toast.success("Transfert rapproché")
+      if (activeIssueId) await refreshIssue(activeIssueId)
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Rapprochement impossible")
     }
@@ -482,8 +573,8 @@ export default function Audit() {
   async function ignoreTransfer(sortieId: number) {
     try {
       await api.post(`/transactions/${sortieId}/ignore`, {})
-      toast.success("Suggestion ignoree")
-      await refreshIssue("unmatched-transfers")
+      toast.success("Suggestion ignorée")
+      if (activeIssueId) await refreshIssue(activeIssueId)
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Action impossible")
     }
@@ -492,34 +583,23 @@ export default function Audit() {
   async function ignoreDuplicate(transactions: Transaction[]) {
     try {
       await Promise.all(transactions.map((tx) => api.post(`/transactions/${tx.id}/ignore-duplicate`, {})))
-      toast.success("Doublons ignores")
-      await refreshIssue("duplicate-transactions")
+      toast.success("Doublons ignorés")
+      if (activeIssueId) await refreshIssue(activeIssueId)
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Action impossible")
     }
   }
 
   useEffect(() => {
-    loadAudit()
+    loadActions()
   }, [])
-
-  const score = useMemo(() => {
-    if (!data) return 0
-    const penalty = data.summary.high_count * 28 + data.summary.medium_count * 14 + data.summary.low_count * 5
-    return Math.max(0, Math.min(100, 100 - penalty))
-  }, [data])
-
-  const sortedIssues = useMemo(() => {
-    const priority = { high: 0, medium: 1, low: 2 }
-    return [...(data?.issues || [])].sort((a, b) => priority[a.severity] - priority[b.severity])
-  }, [data])
 
   if (loading) {
     return (
       <div className="flex h-[60vh] items-center justify-center">
         <div className="flex items-center gap-3 text-slate-500">
           <RefreshCw className="h-5 w-5 animate-spin" />
-          <span className="text-sm font-medium">Analyse des donnees...</span>
+          <span className="text-sm font-medium">Analyse des actions...</span>
         </div>
       </div>
     )
@@ -531,12 +611,12 @@ export default function Audit() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-rose-800">
             <AlertTriangle className="h-5 w-5" />
-            Audit indisponible
+            Centre d'actions indisponible
           </CardTitle>
           <CardDescription className="text-rose-700">{error}</CardDescription>
         </CardHeader>
         <CardContent>
-          <Button onClick={loadAudit} variant="outline">Relancer l'audit</Button>
+          <Button onClick={loadActions} variant="outline">Relancer l'analyse</Button>
         </CardContent>
       </Card>
     )
@@ -544,41 +624,36 @@ export default function Audit() {
 
   if (!data) return null
 
-  if (activeIssueId) {
-    const issue = data.issues.find((i) => i.id === activeIssueId)
-    const detail = details[activeIssueId]
-
+  if (activeActionId && activeAction) {
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" onClick={() => setActiveIssueId(null)} className="-ml-2 h-8 px-2 text-slate-500">
+          <Button variant="ghost" size="sm" onClick={() => setActiveActionId(null)} className="-ml-2 h-8 px-2 text-slate-500">
             <ArrowRight className="mr-2 h-4 w-4 rotate-180" />
-            Retour à l'audit
+            Retour au centre d'actions
           </Button>
         </div>
 
-        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-          <div className="flex gap-4">
-            <div className={cn("mt-1 flex h-12 w-12 shrink-0 items-center justify-center rounded-lg", issueIconClass[issue?.severity || "low"])}>
-              <Wrench className="h-6 w-6" />
+        <div className="flex gap-4">
+          <div className={cn("mt-1 flex h-12 w-12 shrink-0 items-center justify-center rounded-lg", actionIconClass[activeAction.severity])}>
+            <Wrench className="h-6 w-6" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl font-black text-slate-900">{activeAction.title}</h1>
+              <Badge variant="outline" className={severityClass[activeAction.severity]}>
+                {severityLabel[activeAction.severity]}
+              </Badge>
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-2xl font-black text-slate-900">{issue?.title}</h1>
-                <Badge variant="outline" className={severityClass[issue?.severity || "low"]}>
-                  {severityLabel[issue?.severity || "low"]}
-                </Badge>
-              </div>
-              <p className="mt-1 max-w-2xl text-slate-600">{issue?.description}</p>
-            </div>
+            <p className="mt-1 max-w-2xl text-slate-600">{activeAction.description}</p>
           </div>
         </div>
 
         <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 md:p-6">
-          {loadingIssueId === activeIssueId && (
+          {loadingIssueId === activeActionId && (
             <div className="flex h-40 items-center justify-center gap-3 text-slate-500">
               <RefreshCw className="h-5 w-5 animate-spin" />
-              <span>Chargement des transactions...</span>
+              <span>Chargement des détails...</span>
             </div>
           )}
 
@@ -590,7 +665,7 @@ export default function Audit() {
                   tx={tx}
                   categories={categories}
                   accounts={accounts}
-                  onSaved={(saved) => updateTransactionInDetails(activeIssueId, saved)}
+                  onSaved={(saved) => activeIssueId && updateTransactionInDetails(activeIssueId, saved)}
                 />
               ))}
             </div>
@@ -623,8 +698,8 @@ export default function Audit() {
                         tx={tx}
                         categories={categories}
                         accounts={accounts}
-                        onSaved={(saved) => updateTransactionInDetails(activeIssueId, saved)}
-                        onDeleted={(id) => removeTransactionFromDetails(activeIssueId, id)}
+                        onSaved={(saved) => activeIssueId && updateTransactionInDetails(activeIssueId, saved)}
+                        onDeleted={(id) => activeIssueId && removeTransactionFromDetails(activeIssueId, id)}
                       />
                     ))}
                   </div>
@@ -646,10 +721,10 @@ export default function Audit() {
                     <div className="flex gap-2">
                       <Button size="sm" onClick={() => linkTransfer(pair.sortie.id, pair.entree.id)}>
                         <Link2 className="h-4 w-4" />
-                        Rapprocher comme transfert
+                        Rapprocher
                       </Button>
                       <Button size="sm" variant="outline" onClick={() => ignoreTransfer(pair.sortie.id)}>
-                        Ignorer cette suggestion
+                        Ignorer
                       </Button>
                     </div>
                   </div>
@@ -658,13 +733,13 @@ export default function Audit() {
                       tx={pair.sortie}
                       categories={categories}
                       accounts={accounts}
-                      onSaved={(saved) => updateTransactionInDetails(activeIssueId, saved)}
+                      onSaved={(saved) => activeIssueId && updateTransactionInDetails(activeIssueId, saved)}
                     />
                     <TransactionEditor
                       tx={pair.entree}
                       categories={categories}
                       accounts={accounts}
-                      onSaved={(saved) => updateTransactionInDetails(activeIssueId, saved)}
+                      onSaved={(saved) => activeIssueId && updateTransactionInDetails(activeIssueId, saved)}
                     />
                   </div>
                 </div>
@@ -677,9 +752,9 @@ export default function Audit() {
               <CheckCircle2 className="h-10 w-10 text-emerald-500" />
               <div className="space-y-1">
                 <p className="font-bold text-slate-900">Tout est corrigé !</p>
-                <p className="text-sm text-slate-500">Il ne reste plus de transactions problématiques pour ce contrôle.</p>
+                <p className="text-sm text-slate-500">Il ne reste plus d'éléments à traiter pour cette action.</p>
               </div>
-              <Button variant="outline" onClick={() => setActiveIssueId(null)} className="mt-2">
+              <Button variant="outline" onClick={() => setActiveActionId(null)} className="mt-2">
                 Retourner à la liste
               </Button>
             </div>
@@ -694,105 +769,83 @@ export default function Audit() {
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
           <div className="mb-2 flex items-center gap-2">
-            <ShieldCheck className="h-6 w-6 text-slate-900" />
-            <h1 className="text-3xl font-black tracking-tight text-slate-900">Audit des donnees</h1>
+            <LayoutList className="h-6 w-6 text-slate-900" />
+            <h1 className="text-3xl font-black tracking-tight text-slate-900">Centre d'actions</h1>
           </div>
           <p className="text-sm text-slate-500">
-            Corrige les incoherences qui peuvent fausser les soldes, budgets et analyses.
+            Une liste centralisée des tâches pour maintenir vos finances propres et sous contrôle.
           </p>
         </div>
-        <Button onClick={loadAudit} variant="outline" className="gap-2">
+        <Button onClick={loadActions} variant="outline" className="gap-2">
           <RefreshCw className="h-4 w-4" />
-          Relancer l'analyse
+          Actualiser
         </Button>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card className="md:col-span-2 shadow-sm">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center justify-between">
-              <span>Score de santé des données</span>
-              <span className={cn(
-                "text-3xl font-black",
-                score >= 80 ? "text-emerald-600" : score >= 55 ? "text-amber-600" : "text-rose-600"
-              )}>
-                {score}%
-              </span>
-            </CardTitle>
-            <CardDescription>
-              {data.summary.total_transactions} transactions contrôlées sur {data.summary.active_accounts} comptes.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Progress
-              value={score}
-              className="h-3 bg-slate-100"
-              indicatorClassName={score >= 80 ? "bg-emerald-500" : score >= 55 ? "bg-amber-500" : "bg-rose-500"}
-            />
-          </CardContent>
-        </Card>
-
-        <Card className="shadow-sm">
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card className="shadow-sm border-rose-100 bg-rose-50/30">
           <CardHeader className="pb-2">
-            <CardDescription>Alertes critiques</CardDescription>
-            <CardTitle className="text-3xl font-black text-rose-600">{data.summary.high_count}</CardTitle>
+            <CardDescription className="text-rose-600 font-medium">Priorité haute</CardDescription>
+            <CardTitle className="text-3xl font-black text-rose-600">{data.summary.high_priority}</CardTitle>
           </CardHeader>
         </Card>
-        <Card className="shadow-sm">
+        <Card className="shadow-sm border-amber-100 bg-amber-50/30">
           <CardHeader className="pb-2">
-            <CardDescription>Actions en attente</CardDescription>
-            <CardTitle className="text-3xl font-black text-slate-900">{data.summary.total_issues}</CardTitle>
+            <CardDescription className="text-amber-600 font-medium">Priorité moyenne</CardDescription>
+            <CardTitle className="text-3xl font-black text-amber-600">{data.summary.medium_priority}</CardTitle>
+          </CardHeader>
+        </Card>
+        <Card className="shadow-sm border-slate-100 bg-slate-50/30">
+          <CardHeader className="pb-2">
+            <CardDescription className="text-slate-500 font-medium">Suggestions</CardDescription>
+            <CardTitle className="text-3xl font-black text-slate-900">{data.summary.low_priority}</CardTitle>
           </CardHeader>
         </Card>
       </div>
 
-      {sortedIssues.length === 0 ? (
+      {data.actions.length === 0 ? (
         <Card className="border-emerald-200 bg-emerald-50 shadow-none">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-emerald-800">
               <CheckCircle2 className="h-5 w-5" />
-              Donnees propres
+              Tout est à jour
             </CardTitle>
             <CardDescription className="text-emerald-700">
-              Aucun probleme detecte sur les controles actuels. Votre comptabilité est saine.
+              Félicitations ! Aucune action requise pour le moment. Votre comptabilité est impeccable.
             </CardDescription>
           </CardHeader>
         </Card>
       ) : (
         <div className="grid gap-4">
-          {sortedIssues.map((issue) => {
-            const isEditable = editableIssueIds.has(issue.id)
+          {data.actions.map((action) => {
+            const Icon = actionTypeIcon[action.type] || Wrench
 
             return (
               <Card 
-                key={issue.id} 
-                className={cn(
-                  "overflow-hidden transition-all hover:shadow-md cursor-pointer",
-                  isEditable ? "hover:border-slate-400" : ""
-                )}
-                onClick={() => openIssue(issue.id)}
+                key={action.id} 
+                className="overflow-hidden transition-all hover:shadow-md cursor-pointer hover:border-slate-400"
+                onClick={() => handleAction(action)}
               >
                 <CardContent className="p-0">
                   <div className="flex flex-col gap-4 p-5 md:flex-row md:items-center md:justify-between">
                     <div className="flex min-w-0 gap-4">
-                      <div className={cn("mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-md", issueIconClass[issue.severity])}>
-                        <Wrench className="h-5 w-5" />
+                      <div className={cn("mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-md", actionIconClass[action.severity])}>
+                        <Icon className="h-5 w-5" />
                       </div>
                       <div className="min-w-0 space-y-1">
                         <div className="flex flex-wrap items-center gap-2">
-                          <h2 className="text-lg font-black text-slate-900">{issue.title}</h2>
-                          <Badge variant="outline" className={cn("text-[10px] uppercase tracking-wider font-bold", severityClass[issue.severity])}>
-                            {severityLabel[issue.severity]}
+                          <h2 className="text-lg font-black text-slate-900">{action.title}</h2>
+                          <Badge variant="outline" className={cn("text-[10px] uppercase tracking-wider font-bold", severityClass[action.severity])}>
+                            {severityLabel[action.severity]}
                           </Badge>
-                          <Badge variant="secondary" className="bg-slate-100 text-slate-600">{issue.count}</Badge>
                         </div>
-                        <p className="max-w-3xl text-sm text-slate-600">{issue.description}</p>
+                        <p className="max-w-3xl text-sm text-slate-600">{action.description}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3 shrink-0">
-                      {issue.samples.length > 0 && (
+                      {action.samples.length > 0 && (
                         <div className="hidden flex-wrap gap-2 md:flex">
-                          {issue.samples.slice(0, 2).map((sample, index) => (
+                          {action.samples.slice(0, 2).map((sample, index) => (
                             <span key={index} className="max-w-[180px] truncate rounded border border-slate-100 bg-slate-50/50 px-2 py-0.5 text-[10px] font-medium text-slate-400">
                               {sampleLabel(sample)}
                             </span>
@@ -800,11 +853,11 @@ export default function Audit() {
                         </div>
                       )}
                       <Button
-                        variant={issue.severity === "high" && isEditable ? "default" : "outline"}
+                        variant={action.severity === "high" ? "default" : "outline"}
                         className="gap-2"
                         size="sm"
                       >
-                        {isEditable ? "Corriger" : (issue.action_label || "Voir")}
+                        {action.action_label || "Traiter"}
                         <ArrowRight className="h-4 w-4" />
                       </Button>
                     </div>
@@ -816,9 +869,19 @@ export default function Audit() {
         </div>
       )}
 
+      {ruleMerchant && (
+        <RuleCreatorModal 
+          merchant={ruleMerchant.merchant}
+          suggestedCategoryId={ruleMerchant.catId}
+          categories={categories}
+          onCreated={loadActions}
+          onClose={() => setRuleMerchant(null)}
+        />
+      )}
+
       <div className="flex items-center gap-2 text-xs text-slate-400">
         <Database className="h-3.5 w-3.5" />
-        Dernier contrôle automatique : {new Date(data.summary.checked_at).toLocaleString("fr-FR")}
+        Dernière analyse : {new Date(data.summary.checked_at).toLocaleString("fr-FR")}
       </div>
     </div>
   )

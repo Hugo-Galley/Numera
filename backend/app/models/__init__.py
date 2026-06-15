@@ -10,6 +10,7 @@ from app.models.savings_goal import SavingsGoal
 from app.models.recurring_transaction import RecurringTransaction
 from app.models.categorization_rule import CategorizationRule
 from app.models.system_setting import SystemSetting
+from app.models.merchant import Merchant, MerchantAlias
 
 __all__ = [
     "Account",
@@ -24,4 +25,6 @@ __all__ = [
     "RecurringTransaction",
     "CategorizationRule",
     "SystemSetting",
+    "Merchant",
+    "MerchantAlias",
 ]

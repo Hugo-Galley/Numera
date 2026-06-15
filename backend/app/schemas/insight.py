@@ -178,3 +178,29 @@ class DataAuditSummary(BaseModel):
 class DataAuditResponse(BaseModel):
     summary: DataAuditSummary
     issues: List[DataAuditIssue]
+
+
+class ActionItem(BaseModel):
+    id: str
+    type: str  # "audit", "budget", "rule", "subscription"
+    severity: str  # "low", "medium", "high"
+    title: str
+    description: str
+    action_label: Optional[str] = None
+    action_url: Optional[str] = None
+    action_type: str  # "link", "modal_categorize", "modal_rule", "modal_snapshot"
+    metadata: Optional[dict] = Field(default_factory=dict)
+    samples: List[dict] = Field(default_factory=list)
+
+
+class ActionCenterSummary(BaseModel):
+    total_actions: int
+    high_priority: int
+    medium_priority: int
+    low_priority: int
+    checked_at: str
+
+
+class ActionCenterResponse(BaseModel):
+    summary: ActionCenterSummary
+    actions: List[ActionItem]

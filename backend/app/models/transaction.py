@@ -32,9 +32,11 @@ class Transaction(Base):
     is_duplicate_ignored: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     linked_transaction_id: Mapped[int | None] = mapped_column(ForeignKey("transactions.id"), nullable=True, index=True)
     linked_investment_transaction_id: Mapped[int | None] = mapped_column(ForeignKey("investment_transactions.id"), nullable=True, index=True)
+    merchant_id: Mapped[int | None] = mapped_column(ForeignKey("merchants.id"), nullable=True, index=True)
 
     category: Mapped["Category"] = relationship("Category", lazy="selectin")
     recurring_transaction: Mapped["RecurringTransaction"] = relationship("RecurringTransaction", lazy="selectin")
     linked_transaction: Mapped["Transaction"] = relationship("Transaction", remote_side=[id], post_update=True, foreign_keys=[linked_transaction_id])
     linked_investment_transaction: Mapped["InvestmentTransaction"] = relationship("InvestmentTransaction", lazy="selectin", foreign_keys=[linked_investment_transaction_id])
+    merchant_obj: Mapped["Merchant"] = relationship("Merchant", lazy="selectin")
     tags: Mapped[list["Tag"]] = relationship("Tag", secondary=transaction_tags, back_populates="transactions", lazy="selectin")

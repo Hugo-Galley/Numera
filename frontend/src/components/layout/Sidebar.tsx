@@ -40,7 +40,7 @@ const navigation = [
   { name: "Comparaison", href: "/comparison", icon: ArrowLeftRight },
   { name: "Calendrier", href: "/calendar", icon: CalendarDays },
   { name: "Récurrences & Abonnements", href: "/recurring", icon: Repeat },
-  { name: "Audit des données", href: "/audit", icon: ShieldCheck },
+  { name: "Centre d'actions", href: "/audit", icon: ShieldCheck },
   { name: "Paramètres", href: "/settings", icon: Settings },
 ]
 

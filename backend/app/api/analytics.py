@@ -11,6 +11,7 @@ from app.core.currency import get_exchange_rates, convert_amount
 from app.db.session import get_db
 from app.models.account import Account
 from app.models.category import Category
+from app.models.categorization_rule import CategorizationRule
 from app.schemas.category import BudgetAlert
 from app.schemas.insight import (
     IntelligentInsights, 
@@ -33,6 +34,9 @@ from app.schemas.insight import (
     DataAuditResponse,
     DataAuditSummary,
     DataAuditIssue,
+    ActionCenterResponse,
+    ActionCenterSummary,
+    ActionItem,
 )
 from app.models.balance_snapshot import BalanceSnapshot
 from app.models.investment_transaction import InvestmentTransaction
@@ -477,6 +481,229 @@ def data_audit_issue_details(issue_id: str, db: Session = Depends(get_db)):
         return {"issue_id": issue_id, "transfer_pairs": pairs}
 
     raise HTTPException(status_code=404, detail="Audit issue not found or not editable")
+
+
+@router.get("/actions", response_model=ActionCenterResponse)
+async def get_action_center(db: Session = Depends(get_db)):
+    now = datetime.now()
+    actions: list[ActionItem] = []
+    
+    # --- 1. Audit Actions (Ported from data_audit) ---
+    
+    # 1.1 Uncategorized Expenses
+    uncategorized_query = (
+        db.query(Transaction)
+        .filter(
+            Transaction.category_id.is_(None),
+            Transaction.type == "Sortie",
+            Transaction.is_transfer.is_(False),
+        )
+        .order_by(Transaction.date.desc())
+    )
+    uncategorized_count = uncategorized_query.count()
+    if uncategorized_count:
+        actions.append(ActionItem(
+            id="uncategorized-expenses",
+            type="audit",
+            severity="high",
+            title="Transactions sans catégorie",
+            description=f"Vous avez {uncategorized_count} dépenses sans catégorie.",
+            action_label="Catégoriser",
+            action_url="/audit", # Pointing to the audit/actions page
+            action_type="modal_categorize",
+            samples=[_tx_sample(tx) for tx in uncategorized_query.limit(5).all()],
+            metadata={"issue_id": "uncategorized-expenses"}
+        ))
+
+    # 1.2 Duplicate Transactions
+    duplicate_groups = (
+        db.query(
+            Transaction.account_id,
+            Transaction.date,
+            Transaction.type,
+            Transaction.merchant,
+            Transaction.amount,
+            Transaction.currency,
+            func.count(Transaction.id).label("count"),
+        )
+        .filter(Transaction.is_duplicate_ignored == False)
+        .group_by(
+            Transaction.account_id,
+            Transaction.date,
+            Transaction.type,
+            Transaction.merchant,
+            Transaction.amount,
+            Transaction.currency,
+        )
+        .having(func.count(Transaction.id) > 1)
+        .all()
+    )
+    if duplicate_groups:
+        duplicate_count = sum(int(row.count) for row in duplicate_groups)
+        actions.append(ActionItem(
+            id="duplicate-transactions",
+            type="audit",
+            severity="high",
+            title="Doublons suspects",
+            description=f"{duplicate_count} transactions semblent être des doublons.",
+            action_label="Vérifier",
+            action_url="/audit",
+            action_type="modal_categorize", # Reusing the detail modal logic
+            metadata={"issue_id": "duplicate-transactions"}
+        ))
+
+    # 1.3 Missing Investment Snapshots
+    stale_snapshot_accounts = []
+    accounts = db.query(Account).filter(Account.active.is_(True)).all()
+    investment_accounts = [acc for acc in accounts if acc.type == "investissement"]
+    for account in investment_accounts:
+        latest_snapshot = (
+            db.query(BalanceSnapshot)
+            .filter(BalanceSnapshot.account_id == account.id)
+            .order_by(BalanceSnapshot.date.desc())
+            .first()
+        )
+        if not latest_snapshot or (now - latest_snapshot.date).days > 45:
+            stale_snapshot_accounts.append(account)
+    
+    if stale_snapshot_accounts:
+        actions.append(ActionItem(
+            id="stale-snapshots",
+            type="audit",
+            severity="medium",
+            title="Soldes investissement obsolètes",
+            description=f"{len(stale_snapshot_accounts)} comptes d'investissement n'ont pas de mise à jour récente.",
+            action_label="Mettre à jour",
+            action_url="/investments",
+            action_type="link",
+            metadata={"account_ids": [acc.id for acc in stale_snapshot_accounts]}
+        ))
+
+    # 1.4 Unmatched Transfers
+    # (Simplified check for the action list)
+    recent_start = now - timedelta(days=90)
+    possible_transfer_count = 0
+    candidate_sorties = (
+        db.query(Transaction)
+        .filter(
+            Transaction.type == "Sortie",
+            Transaction.is_transfer.is_(False),
+            Transaction.is_transfer_ignored.is_(False),
+            Transaction.linked_transaction_id.is_(None),
+            Transaction.date >= recent_start,
+        ).limit(100).all()
+    )
+    for sortie in candidate_sorties:
+        match = db.query(Transaction).filter(
+            Transaction.id != sortie.id,
+            Transaction.account_id != sortie.account_id,
+            Transaction.type == "Entree",
+            Transaction.amount == sortie.amount,
+            Transaction.is_transfer.is_(False),
+            Transaction.date >= sortie.date - timedelta(days=3),
+            Transaction.date <= sortie.date + timedelta(days=3),
+        ).first()
+        if match:
+            possible_transfer_count += 1
+    
+    if possible_transfer_count:
+        actions.append(ActionItem(
+            id="possible-transfers",
+            type="audit",
+            severity="medium",
+            title="Transferts non rapprochés",
+            description=f"{possible_transfer_count} virements internes potentiels ont été détectés.",
+            action_label="Rapprocher",
+            action_url="/settings?tab=transfers",
+            action_type="link",
+            metadata={"issue_id": "unmatched-transfers"}
+        ))
+
+    # --- 2. Budget Actions (New) ---
+    current_month = now.month
+    current_year = now.year
+    alerts = await budget_alerts(year=current_year, month=current_month, db=db)
+    
+    over_budget = [a for a in alerts if a.monthly_ratio and a.monthly_ratio >= 1.0]
+    near_budget = [a for a in alerts if a.monthly_ratio and a.monthly_ratio >= 0.85 and a.monthly_ratio < 1.0]
+    
+    for alert in over_budget:
+        actions.append(ActionItem(
+            id=f"budget-over-{alert.category_id}",
+            type="budget",
+            severity="high",
+            title=f"Budget dépassé : {alert.category_name}",
+            description=f"Vous avez dépensé {round(alert.monthly_spent, 2)}€ pour une limite de {alert.monthly_limit}€.",
+            action_label="Voir détails",
+            action_url=f"/accounts", # Could be a specific category view if it existed
+            action_type="link",
+            metadata={"category_id": alert.category_id, "spent": alert.monthly_spent, "limit": alert.monthly_limit}
+        ))
+        
+    for alert in near_budget:
+        actions.append(ActionItem(
+            id=f"budget-near-{alert.category_id}",
+            type="budget",
+            severity="medium",
+            title=f"Budget presque atteint : {alert.category_name}",
+            description=f"Vous êtes à {round(alert.monthly_ratio * 100)}% de votre limite pour {alert.category_name}.",
+            action_label="Surveiller",
+            action_url=f"/accounts",
+            action_type="link",
+            metadata={"category_id": alert.category_id, "spent": alert.monthly_spent, "limit": alert.monthly_limit}
+        ))
+
+    # --- 3. Rule Suggestions (New) ---
+    # Merchants with >= 5 transactions in the last 6 months that DON'T have a rule
+    six_months_ago = now - timedelta(days=180)
+    top_merchants_without_rules = (
+        db.query(Transaction.merchant, func.count(Transaction.id).label("tx_count"), func.max(Transaction.category_id).label("suggested_cat_id"))
+        .filter(Transaction.date >= six_months_ago)
+        .filter(Transaction.merchant.is_not(None), Transaction.merchant != "")
+        .group_by(Transaction.merchant)
+        .having(func.count(Transaction.id) >= 5)
+        .all()
+    )
+    
+    for merchant, count, suggested_cat_id in top_merchants_without_rules:
+        # Check if a rule already exists for this merchant
+        rule_exists = db.query(CategorizationRule).filter(
+            or_(
+                func.lower(CategorizationRule.merchant_name) == func.lower(merchant),
+                func.lower(CategorizationRule.pattern) == func.lower(merchant)
+            )
+        ).first() is not None
+        
+        if not rule_exists:
+            actions.append(ActionItem(
+                id=f"suggest-rule-{merchant}",
+                type="rule",
+                severity="low",
+                title=f"Nouvelle règle suggérée : {merchant}",
+                description=f"Vous avez {count} transactions chez '{merchant}'. Créer une règle d'auto-catégorisation ?",
+                action_label="Créer la règle",
+                action_url="/settings?tab=rules",
+                action_type="modal_rule",
+                metadata={"merchant": merchant, "suggested_category_id": suggested_cat_id}
+            ))
+
+    # --- 4. Summary & Sort ---
+    actions.sort(key=lambda x: {"high": 0, "medium": 1, "low": 2}[x.severity])
+    
+    high_count = sum(1 for a in actions if a.severity == "high")
+    medium_count = sum(1 for a in actions if a.severity == "medium")
+    low_count = sum(1 for a in actions if a.severity == "low")
+    
+    return ActionCenterResponse(
+        summary=ActionCenterSummary(
+            total_actions=len(actions),
+            high_priority=high_count,
+            medium_priority=medium_count,
+            low_priority=low_count,
+            checked_at=now.isoformat()
+        ),
+        actions=actions
+    )
 
 
 @router.get("/budget")
