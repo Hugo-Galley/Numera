@@ -142,7 +142,9 @@ export function SalaryManager() {
         ticket_category_id: config.ticket_category_id ? Number(config.ticket_category_id) : null,
       }
 
-      const res = await api.post("/salary/config", payload)
+      const res = config.id 
+        ? await api.put("/salary/config", payload)
+        : await api.post("/salary/config", payload)
       setConfig({
         ...res,
         salary_account_id: res.salary_account_id || "",
