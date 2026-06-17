@@ -28,6 +28,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 import { useUI } from "@/providers/UIProvider"
 import * as LucideIcons from "lucide-react"
@@ -254,15 +255,28 @@ export default function IntelligentReport() {
 
   return (
     <div className="space-y-8 pb-12">
-      {/* Header & Month Selector */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-black tracking-tight text-slate-900 flex items-center gap-3">
-            <Sparkles className="h-8 w-8 text-amber-500" />
-            Bilan Mensuel Intelligent & Analyse de flux
-          </h1>
-          <p className="text-slate-500 font-medium">Analyse et synthèse de votre activité financière.</p>
+      <div className="flex flex-col gap-4">
+        <div className="no-print self-end">
+          <Button 
+            variant="outline"
+            size="sm"
+            className="gap-2 rounded-lg font-medium text-slate-600 hover:text-slate-900 bg-white shadow-sm border-slate-200"
+            onClick={() => window.print()}
+          >
+            <Printer className="h-4 w-4" />
+            Exporter en PDF
+          </Button>
         </div>
+
+        {/* Header & Month Selector */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-black tracking-tight text-slate-900 flex items-center gap-3">
+              <Sparkles className="h-8 w-8 text-amber-500" />
+              Bilan Mensuel Intelligent & Analyse de flux
+            </h1>
+            <p className="text-slate-500 font-medium">Analyse et synthèse de votre activité financière.</p>
+          </div>
         
         <div className="flex items-center bg-white rounded-xl p-1 shadow-sm border border-slate-200">
           <Button variant="ghost" size="icon" onClick={() => changeMonth(-1)} className="rounded-lg h-9 w-9">
@@ -276,9 +290,25 @@ export default function IntelligentReport() {
           </Button>
         </div>
       </div>
+      </div>
 
-      {/* Main Score & Summary Card */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <Tabs defaultValue="synthesis" className="w-full space-y-8">
+        <div className="flex justify-center md:justify-start">
+          <TabsList className="bg-slate-50/50 border border-slate-100 p-1 rounded-xl inline-flex w-max mb-2">
+            <TabsTrigger value="synthesis" className="rounded-lg whitespace-nowrap gap-2">
+              <Sparkles className="h-3.5 w-3.5 text-amber-500" />
+              Vue d'Ensemble
+            </TabsTrigger>
+            <TabsTrigger value="flow" className="rounded-lg whitespace-nowrap gap-2">
+              <TrendingUp className="h-3.5 w-3.5 text-emerald-500" />
+              Flux de Trésorerie
+            </TabsTrigger>
+          </TabsList>
+        </div>
+
+        <TabsContent value="synthesis" className="space-y-8 focus-visible:outline-none mt-0">
+          {/* Main Score & Summary Card */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-2 border-none shadow-md overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 text-white">
           <CardContent className="p-8">
             <div className="flex flex-col md:flex-row gap-8 items-center">
@@ -527,13 +557,16 @@ export default function IntelligentReport() {
         </div>
       </div>
       
-      {/* Money Flow Analysis Section */}
-      {data.money_flow && (
-        <div className="space-y-6 pt-4 border-t border-slate-100">
-          <h2 className="text-xl font-black text-slate-900 flex items-center gap-2">
-            <TrendingUp className="h-6 w-6 text-emerald-500" />
-            Analyse des Flux Réels
-          </h2>
+        </TabsContent>
+
+        <TabsContent value="flow" className="focus-visible:outline-none mt-0">
+          {/* Money Flow Analysis Section */}
+          {data.money_flow ? (
+            <div className="space-y-6">
+              <h2 className="text-2xl font-black text-slate-900 flex items-center gap-2">
+                <TrendingUp className="h-7 w-7 text-emerald-500" />
+                Analyse des Flux Réels
+              </h2>
           
           <Card className="border-none shadow-md overflow-hidden bg-white">
             <CardContent className="p-8">
@@ -655,19 +688,14 @@ export default function IntelligentReport() {
               </div>
             </CardContent>
           </Card>
-        </div>
-      )}
-
-      {/* Bottom Actions */}
-      <div className="flex justify-center pt-8 no-print">
-        <Button 
-          className="gap-2 rounded-xl h-12 px-8 font-bold bg-slate-900 text-white hover:bg-slate-800 shadow-lg transition-all hover:scale-105"
-          onClick={() => window.print()}
-        >
-          <Printer className="h-5 w-5" />
-          Exporter en PDF / Imprimer
-        </Button>
-      </div>
+            </div>
+          ) : (
+            <div className="p-8 text-center bg-white rounded-xl border border-dashed border-slate-200">
+              <p className="text-slate-500 font-medium">Aucune donnée de flux disponible pour ce mois.</p>
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
 
       <style>{`
         @media print {

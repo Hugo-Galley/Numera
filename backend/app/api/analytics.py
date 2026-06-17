@@ -3146,7 +3146,8 @@ async def calendar_analytics(
                 "category_id": rd.category_id,
                 "is_projected": True,
                 "recurring_id": rd.id,
-                "currency": rd.currency
+                "currency": rd.currency,
+                "account_id": rd.account_id
             })
 
     # 3. Format real transactions
@@ -3160,7 +3161,9 @@ async def calendar_analytics(
             "type": tx.type,
             "category_id": tx.category_id,
             "is_projected": False,
-            "currency": tx.currency
+            "currency": tx.currency,
+            "account_id": tx.account_id,
+            "running_balance": getattr(tx, "running_balance", None)
         })
     
     for tx in real_inv_txs:
@@ -3172,35 +3175,34 @@ async def calendar_analytics(
             "type": tx.type,
             "category_id": None,
             "is_projected": False,
-            "currency": tx.currency
+            "currency": tx.currency,
+            "account_id": tx.account_id
         })
         
     # 4. Calculate daily balance projections
     daily_balances = []
     rates = await get_exchange_rates("EUR")
     
+    # Initialize balances per account
+    account_balances = {}
+    active_accounts = db.query(Account).all()
+    account_currencies = {acc.id: acc.currency for acc in active_accounts}
+    
     if account_id:
-        # Get balance at start of month for specific account
         last_tx_before = db.query(Transaction).filter(
             Transaction.account_id == account_id,
             Transaction.date < start_month
         ).order_by(Transaction.date.desc(), Transaction.id.desc()).first()
-        
-        current_bal = last_tx_before.running_balance if last_tx_before else 0.0
-        logger.info(f"Calendar balance init: account_id={account_id}, start_bal={current_bal}")
+        account_balances[account_id] = last_tx_before.running_balance if last_tx_before else 0.0
     else:
-        # Get global balance at start of month (sum of all active accounts in EUR)
-        current_bal = 0.0
-        active_accounts = db.query(Account).filter(Account.active == True).all()
-        for acc in active_accounts:
-            last_tx = db.query(Transaction).filter(
+        active_only = [a for a in active_accounts if a.active]
+        for acc in active_only:
+            last_tx_before = db.query(Transaction).filter(
                 Transaction.account_id == acc.id,
                 Transaction.date < start_month
             ).order_by(Transaction.date.desc(), Transaction.id.desc()).first()
-            if last_tx:
-                current_bal += last_tx.running_balance / rates.get(acc.currency, 1.0)
-        logger.info(f"Calendar balance init: global, start_bal={current_bal}")
-    
+            account_balances[acc.id] = last_tx_before.running_balance if last_tx_before else 0.0
+
     # We simulate day by day
     all_events = sorted(formatted_real + projected_events, key=lambda x: x["date"])
     event_idx = 0
@@ -3210,24 +3212,38 @@ async def calendar_analytics(
         # Apply events for this day
         while event_idx < len(all_events) and datetime.fromisoformat(all_events[event_idx]["date"]).date() == temp_date.date():
             ev = all_events[event_idx]
+            acc_id = ev.get("account_id")
             
-            # Convert amount to EUR if global view
-            amt_in_target = ev["amount"]
-            if not account_id:
-                amt_in_target = ev["amount"] / rates.get(ev["currency"], 1.0)
+            if acc_id is not None:
+                if acc_id not in account_balances:
+                    account_balances[acc_id] = 0.0
+
+                positive_types = ["Entree", "Interets", "Solde Initial", "versement", "dividende"]
+                negative_types = ["Sortie", "retrait"]
                 
-            # Handle all types of transactions for balance
-            positive_types = ["Entree", "Interets", "Solde Initial", "versement", "dividende"]
-            negative_types = ["Sortie", "retrait"]
-            
-            if ev["type"] == "Solde Initial":
-                current_bal = amt_in_target
-            elif ev["type"] in positive_types:
-                current_bal += amt_in_target
-            elif ev["type"] in negative_types:
-                current_bal -= amt_in_target
+                # If it's a real transaction with a running_balance, we sync it exactly
+                if not ev.get("is_projected") and ev.get("running_balance") is not None:
+                    account_balances[acc_id] = ev["running_balance"]
+                else:
+                    amt = ev["amount"]
+                    if ev["type"] == "Solde Initial":
+                        account_balances[acc_id] = amt
+                    elif ev["type"] in positive_types:
+                        account_balances[acc_id] += amt
+                    elif ev["type"] in negative_types:
+                        account_balances[acc_id] -= amt
+
             event_idx += 1
-        
+            
+        # Calculate daily total
+        if account_id:
+            current_bal = account_balances.get(account_id, 0.0)
+        else:
+            current_bal = 0.0
+            for a_id, bal in account_balances.items():
+                curr = account_currencies.get(a_id, "EUR")
+                current_bal += bal / rates.get(curr, 1.0)
+
         daily_balances.append({
             "date": temp_date.date().isoformat(),
             "balance": round(current_bal, 2)
