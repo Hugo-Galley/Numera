@@ -75,7 +75,14 @@ def sync_recurring_transactions(db: Session, config: SalaryConfig) -> None:
     # Handle Ticket Restaurant
     # Compute current month TT days count for the note
     today = date.today()
-    month_label = f"{today.year}-{today.month:02d}"
+    if today.day < 15:
+        if today.month == 1:
+            month_label = f"{today.year - 1}-12"
+        else:
+            month_label = f"{today.year}-{today.month - 1:02d}"
+    else:
+        month_label = f"{today.year}-{today.month:02d}"
+        
     tt_days_count = db.query(TelecommutingDay).filter(
         TelecommutingDay.salary_config_id == config.id,
         TelecommutingDay.month_label == month_label
@@ -91,7 +98,9 @@ def sync_recurring_transactions(db: Session, config: SalaryConfig) -> None:
         rt_ticket.account_id = config.ticket_account_id
         rt_ticket.category_id = config.ticket_category_id
     else:
-        start_date_ticket = now.replace(day=5, hour=0, minute=0, second=0, microsecond=0)
+        next_month = now.month + 1 if now.month < 12 else 1
+        next_year = now.year if now.month < 12 else now.year + 1
+        start_date_ticket = now.replace(year=next_year, month=next_month, day=5, hour=0, minute=0, second=0, microsecond=0)
         rt_ticket = RecurringTransaction(
             account_id=config.ticket_account_id,
             name="Tickets Restaurant",

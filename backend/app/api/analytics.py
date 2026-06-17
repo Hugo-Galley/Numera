@@ -3110,7 +3110,11 @@ async def calendar_analytics(
             
             if salary_config:
                 month_label = month_label_from_date(occ)
-                salary_month_label = f"{occ.year}-{occ.month:02d}"
+                if rd.id == salary_config.ticket_recurring_id and occ.day < 15:
+                    work_month_date = occ - timedelta(days=20)
+                    salary_month_label = f"{work_month_date.year}-{work_month_date.month:02d}"
+                else:
+                    salary_month_label = f"{occ.year}-{occ.month:02d}"
                 salary_month = db.query(SalaryMonth).filter(
                     SalaryMonth.salary_config_id == salary_config.id,
                     SalaryMonth.month_label == salary_month_label
@@ -3330,7 +3334,11 @@ async def get_cashflow_projection(
             ).first()
             
             if salary_config:
-                salary_month_label = f"{occ.year}-{occ.month:02d}"
+                if rd.id == salary_config.ticket_recurring_id and occ.day < 15:
+                    work_month_date = occ - timedelta(days=20)
+                    salary_month_label = f"{work_month_date.year}-{work_month_date.month:02d}"
+                else:
+                    salary_month_label = f"{occ.year}-{occ.month:02d}"
                 salary_month = db.query(SalaryMonth).filter(
                     SalaryMonth.salary_config_id == salary_config.id,
                     SalaryMonth.month_label == salary_month_label

@@ -44,22 +44,23 @@ def generate_salary_transactions(db: Session, config: SalaryConfig, month_record
     db.add(tx_salary)
     
     # 2. Tickets Restaurant Transaction
-    tx_tr = Transaction(
-        account_id=config.ticket_account_id,
-        date=month_record.ticket_date if month_record.ticket_date else month_record.salary_date,
-        month_label=month_label,
-        type="Entree",
-        merchant="Tickets Restaurant",
-        category_id=config.ticket_category_id,
-        amount=ticket_credit,
-        original_amount=ticket_credit,
-        currency="EUR",
-        running_balance=0.0,
-        note=f"{nb_tickets} tickets x {config.ticket_value:.2f}€",
-        is_recurring=True,
-        recurring_transaction_id=config.ticket_recurring_id
-    )
-    db.add(tx_tr)
+    if ticket_credit > 0:
+        tx_tr = Transaction(
+            account_id=config.ticket_account_id,
+            date=month_record.ticket_date if month_record.ticket_date else month_record.salary_date,
+            month_label=month_label,
+            type="Entree",
+            merchant="Tickets Restaurant",
+            category_id=config.ticket_category_id,
+            amount=ticket_credit,
+            original_amount=ticket_credit,
+            currency="EUR",
+            running_balance=0.0,
+            note=f"{nb_tickets} tickets x {config.ticket_value:.2f}€",
+            is_recurring=True,
+            recurring_transaction_id=config.ticket_recurring_id
+        )
+        db.add(tx_tr)
     
     # Update month record
     month_record.is_generated = True
