@@ -6,7 +6,7 @@ class RecurringTransactionBase(BaseModel):
     account_id: int
     name: str = Field(min_length=1, max_length=120)
     type: str  # Entree, Sortie, Interets
-    amount: float = Field(gt=0)
+    amount: float = Field(ge=0)
     currency: str = "EUR"
     category_id: int | None = None
     frequency: str  # monthly, weekly, quarterly, yearly

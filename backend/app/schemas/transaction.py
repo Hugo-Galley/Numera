@@ -12,7 +12,7 @@ class TransactionBase(BaseModel):
     merchant: str = Field(min_length=1, max_length=120)
     merchant_id: int | None = None
     category_id: int | None = None
-    amount: float = Field(gt=0)
+    amount: float = Field(ge=0)
     currency: str = "EUR"
     original_amount: float | None = None
     note: str | None = None
