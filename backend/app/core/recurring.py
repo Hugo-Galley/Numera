@@ -56,9 +56,49 @@ async def generate_recurring_transactions(db: Session) -> int:
                 logger.warning(f"Account {rd.account_id} not found for recurring tx {rd.id}")
                 continue
                 
+            # Check if this rd is tied to SalaryConfig
+            from app.models.salary_config import SalaryConfig
+            from app.models.salary_month import SalaryMonth
+            from app.models.telecommuting_day import TelecommutingDay
+            
+            salary_config = db.query(SalaryConfig).filter(
+                (SalaryConfig.salary_recurring_id == rd.id) | 
+                (SalaryConfig.ticket_recurring_id == rd.id)
+            ).first()
+            
             original_amount = rd.amount
             currency = rd.currency
+            note = rd.note or rd.name
             
+            if salary_config:
+                month_label = month_label_from_date(occ)
+                # Check if calendar was filled for this month
+                salary_month = db.query(SalaryMonth).filter(
+                    SalaryMonth.salary_config_id == salary_config.id,
+                    SalaryMonth.month_label == month_label
+                ).first()
+                
+                tt_days_count = 0
+                if salary_month:
+                    tt_days_count = db.query(TelecommutingDay).filter(
+                        TelecommutingDay.salary_config_id == salary_config.id,
+                        TelecommutingDay.month_label == month_label
+                    ).count()
+                    
+                    # Also use the precise date if defined!
+                    if rd.id == salary_config.salary_recurring_id and salary_month.salary_date:
+                        occ = datetime.combine(salary_month.salary_date, datetime.min.time())
+                    if rd.id == salary_config.ticket_recurring_id and salary_month.ticket_date:
+                        occ = datetime.combine(salary_month.ticket_date, datetime.min.time())
+                    
+                if rd.id == salary_config.salary_recurring_id:
+                    deduction = tt_days_count * salary_config.ticket_employee_share
+                    original_amount = salary_config.net_salary - deduction
+                    note = f"Net après primes: {salary_config.net_salary:.2f}€ - TR({tt_days_count}x{salary_config.ticket_employee_share:.2f}€): {original_amount:.2f}€"
+                elif rd.id == salary_config.ticket_recurring_id:
+                    original_amount = tt_days_count * salary_config.ticket_value
+                    note = f"{tt_days_count} tickets x {salary_config.ticket_value:.2f}€"
+                    
             if currency != account.currency:
                 converted_amount = await convert_amount(
                     amount=original_amount,
@@ -78,7 +118,7 @@ async def generate_recurring_transactions(db: Session) -> int:
                     amount=converted_amount,
                     currency=currency,
                     original_amount=original_amount,
-                    note=rd.note or rd.name,
+                    note=note,
                     asset_class=rd.asset_class,
                     sector=rd.sector,
                     geographic_zone=rd.geographic_zone,
@@ -96,7 +136,7 @@ async def generate_recurring_transactions(db: Session) -> int:
                     currency=currency,
                     original_amount=original_amount,
                     running_balance=0.0, # Will be recalculated
-                    note=rd.note,
+                    note=note,
                     is_recurring=True,
                     recurring_transaction_id=rd.id
                 )

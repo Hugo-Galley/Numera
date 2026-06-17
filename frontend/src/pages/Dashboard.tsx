@@ -13,6 +13,7 @@ import { MerchantsTab } from "@/components/dashboard/tabs/MerchantsTab"
 import { SubscriptionsTab } from "@/components/dashboard/tabs/SubscriptionsTab"
 import { InvestmentsTab } from "@/components/dashboard/tabs/InvestmentsTab"
 import { HistoryTab } from "@/components/dashboard/tabs/HistoryTab"
+import { AccountVerificationBanner } from "@/components/dashboard/AccountVerificationBanner"
 
 export default function Dashboard() {
   const navigate = useNavigate()
@@ -21,12 +22,12 @@ export default function Dashboard() {
   const [accounts, setAccounts] = useState<any[]>([])
   const [selectedAccountId, setSelectedAccountId] = useState<string>("all")
 
-  useEffect(() => {
-    async function init() {
-      try {
-        const accs = await api.get<any[]>("/accounts")
-        if (accs && Array.isArray(accs)) {
-          setAccounts(accs)
+  const fetchAccounts = useCallback(async () => {
+    try {
+      const accs = await api.get<any[]>("/accounts")
+      if (accs && Array.isArray(accs)) {
+        setAccounts(accs)
+        if (selectedAccountId === "all" || !selectedAccountId) {
           const mainAcc = accs.find(a => a.is_main && a.active)
           if (mainAcc) {
             setSelectedAccountId(String(mainAcc.id))
@@ -36,15 +37,18 @@ export default function Dashboard() {
               setSelectedAccountId(String(defaultAcc.id))
             }
           }
-        } else {
-          setAccounts([])
         }
-      } catch (error) {
-        console.error("Failed to load accounts", error)
+      } else {
+        setAccounts([])
       }
+    } catch (error) {
+      console.error("Failed to load accounts", error)
     }
-    init()
-  }, [])
+  }, [selectedAccountId])
+
+  useEffect(() => {
+    fetchAccounts()
+  }, [fetchAccounts])
 
   const {
     analytics,
@@ -89,6 +93,11 @@ export default function Dashboard() {
         setMonth={setMonth}
         year={year}
         setYear={setYear}
+      />
+
+      <AccountVerificationBanner 
+        accounts={accounts} 
+        onAccountVerified={fetchAccounts} 
       />
 
       <DashboardKPIs 

@@ -17,6 +17,8 @@ class SalaryConfig(Base):
     ticket_employee_share: Mapped[float] = mapped_column(Float, nullable=False, default=4.20)
     salary_category_id: Mapped[int | None] = mapped_column(ForeignKey("categories.id"), nullable=True)
     ticket_category_id: Mapped[int | None] = mapped_column(ForeignKey("categories.id"), nullable=True)
+    salary_recurring_id: Mapped[int | None] = mapped_column(ForeignKey("recurring_transactions.id"), nullable=True)
+    ticket_recurring_id: Mapped[int | None] = mapped_column(ForeignKey("recurring_transactions.id"), nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)

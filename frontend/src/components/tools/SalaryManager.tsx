@@ -12,24 +12,24 @@ import { toast } from "sonner"
 import { TelecommutingCalendar } from "./TelecommutingCalendar"
 
 interface SalaryConfig {
-  id?: int
-  salary_account_id: int | ""
-  ticket_account_id: int | ""
+  id?: number
+  salary_account_id: number | ""
+  ticket_account_id: number | ""
   net_salary: number
   ticket_value: number
   ticket_employee_share: number
-  salary_category_id: int | ""
-  ticket_category_id: int | ""
+  salary_category_id: number | ""
+  ticket_category_id: number | ""
 }
 
 interface Account {
-  id: int
+  id: number
   name: string
   type: string
 }
 
 interface Category {
-  id: int
+  id: number
   name: string
 }
 
@@ -48,7 +48,7 @@ export function SalaryManager() {
     ticket_value: 10.50,
     ticket_employee_share: 4.20,
     salary_category_id: "",
-    ticket_category_id: ""
+    ticket_category_id: "",
   })
   
   const [currentDate, setCurrentDate] = useState(new Date())
@@ -228,6 +228,18 @@ export function SalaryManager() {
     }
   }
 
+  const handleReset = async () => {
+    try {
+      const year = currentDate.getFullYear()
+      const month = currentDate.getMonth() + 1
+      await api.delete(`/salary/generate/${year}/${month}`)
+      toast.success("Mois réinitialisé !")
+      setIsGenerated(false)
+    } catch (error: any) {
+      toast.error(error.message || "Erreur de réinitialisation")
+    }
+  }
+
   const handleGenerate = async () => {
     if (!salaryDate) {
       toast.error("Veuillez définir une date de versement")
@@ -316,6 +328,26 @@ export function SalaryManager() {
                 </SelectContent>
               </Select>
             </div>
+            <div className="space-y-2">
+              <Label>Catégorie Salaire</Label>
+              <Select value={config.salary_category_id ? config.salary_category_id.toString() : "none"} onValueChange={v => setConfig({...config, salary_category_id: v === "none" ? "" : parseInt(v)})}>
+                <SelectTrigger><SelectValue placeholder="Aucune catégorie" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Aucune catégorie</SelectItem>
+                  {categories.map(c => <SelectItem key={c.id} value={c.id.toString()}>{c.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Catégorie Tickets Restaurant</Label>
+              <Select value={config.ticket_category_id ? config.ticket_category_id.toString() : "none"} onValueChange={v => setConfig({...config, ticket_category_id: v === "none" ? "" : parseInt(v)})}>
+                <SelectTrigger><SelectValue placeholder="Aucune catégorie" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Aucune catégorie</SelectItem>
+                  {categories.map(c => <SelectItem key={c.id} value={c.id.toString()}>{c.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
             
             <div className="flex items-end">
               <Button onClick={handleSaveConfig} disabled={saving} className="w-full">
@@ -342,14 +374,14 @@ export function SalaryManager() {
           </div>
           
           <div className="lg:col-span-1">
-            <Card className="h-full flex flex-col border-none shadow-md overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 text-white">
-              <CardHeader className="bg-white/5 border-b border-white/10 pb-4">
-                <CardTitle className="text-lg flex justify-between items-center text-white">
+            <Card className="h-full flex flex-col shadow-md">
+              <CardHeader className="border-b pb-4">
+                <CardTitle className="text-lg flex justify-between items-center">
                   <span className="flex items-center gap-2">
-                    <Wallet className="h-5 w-5 text-emerald-400" />
+                    <Wallet className="h-5 w-5 text-primary" />
                     Résumé du mois
                   </span>
-                  <span className="text-sm font-medium text-slate-400">
+                  <span className="text-sm font-medium text-muted-foreground">
                     {format(currentDate, "MMMM yyyy", { locale: fr })}
                   </span>
                 </CardTitle>
@@ -359,49 +391,54 @@ export function SalaryManager() {
                   
                   {/* Banque */}
                   <div className="space-y-3">
-                    <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400">
+                    <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
                       Reçu en Banque
                     </h3>
-                    <div className="bg-white/5 border border-white/10 rounded-xl p-4 space-y-3 text-sm shadow-inner">
-                      <div className="flex justify-between items-center">
-                        <span className="text-slate-400">Salaire net primes</span>
-                        <span className="font-medium text-white">{config.net_salary.toFixed(2)} €</span>
+                    <div className="bg-muted/50 border rounded-xl p-4 text-sm shadow-inner">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-muted-foreground">Salaire net après primes</span>
+                        <span className="font-medium">{config.net_salary.toFixed(2)} €</span>
                       </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-slate-400">Déduction TR ({nbTickets} × {config.ticket_employee_share.toFixed(2)}€)</span>
-                        <span className="font-medium text-rose-400">- {deduction.toFixed(2)} €</span>
+                      <div className="flex justify-between items-center mb-3">
+                        <span className="text-muted-foreground">Déduction TR ({nbTickets} × {config.ticket_employee_share.toFixed(2)}€)</span>
+                        <span className="text-destructive font-medium">- {deduction.toFixed(2)} €</span>
                       </div>
-                      <div className="pt-3 border-t border-white/10 flex justify-between items-center">
-                        <span className="font-bold text-white">Total versé</span>
-                        <span className="font-black text-xl text-emerald-400">{realSalary.toFixed(2)} €</span>
+                      <div className="border-t pt-3 flex justify-between items-center">
+                        <span className="font-bold">Total versé</span>
+                        <span className="font-black text-xl text-emerald-600 dark:text-emerald-400">{realSalary.toFixed(2)} €</span>
                       </div>
                     </div>
                   </div>
 
                   {/* TR */}
                   <div className="space-y-3">
-                    <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400">
+                    <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
                       Carte Titres-Restaurant
                     </h3>
-                    <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-sm shadow-inner">
+                    <div className="bg-muted/50 border rounded-xl p-4 text-sm shadow-inner">
                       <div className="flex justify-between items-center">
-                        <span className="text-slate-400">Tickets crédités ({nbTickets} × {config.ticket_value.toFixed(2)}€)</span>
-                        <span className="font-black text-xl text-amber-400">+ {creditTR.toFixed(2)} €</span>
+                        <span className="text-muted-foreground">Tickets crédités ({nbTickets} × {config.ticket_value.toFixed(2)}€)</span>
+                        <span className="font-black text-xl text-amber-500 dark:text-amber-400">+ {creditTR.toFixed(2)} €</span>
                       </div>
                     </div>
                   </div>
                   
                 </div>
 
-                <div className="mt-8 pt-6 border-t border-white/10">
+                <div className="mt-8 pt-6 border-t">
                   {isGenerated ? (
-                    <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 p-4 rounded-xl flex items-center justify-center gap-2 font-medium shadow-sm">
-                      <CheckCircle2 className="h-5 w-5" />
-                      Transactions générées
+                    <div className="flex flex-col gap-3">
+                      <div className="bg-emerald-100 border border-emerald-200 text-emerald-700 dark:bg-emerald-500/10 dark:border-emerald-500/20 dark:text-emerald-400 p-4 rounded-xl flex items-center justify-center gap-2 font-medium shadow-sm">
+                        <CheckCircle2 className="h-5 w-5" />
+                        Mois validé (Planifié)
+                      </div>
+                      <Button variant="outline" className="w-full" onClick={handleReset}>
+                        Réinitialiser ce mois
+                      </Button>
                     </div>
                   ) : (
                     <Button 
-                      className="w-full h-12 text-base font-bold bg-white text-slate-900 hover:bg-slate-100 shadow-lg transition-transform hover:scale-[1.02]" 
+                      className="w-full h-12 text-base font-bold shadow-lg transition-transform hover:scale-[1.02]" 
                       onClick={handleGenerate}
                       disabled={generating || !salaryDate}
                     >

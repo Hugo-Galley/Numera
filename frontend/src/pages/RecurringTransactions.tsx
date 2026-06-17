@@ -13,7 +13,8 @@ import {
   Clock,
   RefreshCw,
   Search,
-  Filter
+  Filter,
+  CalendarIcon
 } from "lucide-react"
 import { api } from "@/lib/api"
 import { Button } from "@/components/ui/button"
@@ -54,9 +55,12 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Progress } from "@/components/ui/progress"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Calendar } from "@/components/ui/calendar"
 import { toast } from "sonner"
 import { format } from "date-fns"
 import { fr } from "date-fns/locale"
+import { cn } from "@/lib/utils"
 import { COUNTRIES } from "@/lib/countries"
 import { SalaryManager } from "@/components/tools/SalaryManager"
 
@@ -886,13 +890,31 @@ export default function RecurringTransactions() {
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="start_date">Date de début</Label>
-              <Input
-                id="start_date"
-                type="date"
-                value={formData.start_date}
-                onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
-              />
+              <Label>Date de début</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !formData.start_date && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {formData.start_date 
+                      ? format(new Date(formData.start_date), "dd MMMM yyyy", { locale: fr })
+                      : <span>Choisir une date...</span>
+                    }
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar
+                    mode="single"
+                    selected={formData.start_date ? new Date(formData.start_date) : undefined}
+                    onSelect={(d) => d && setFormData({ ...formData, start_date: format(d, "yyyy-MM-dd") })}
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
 
             <div className="flex items-center justify-between p-3 border rounded-md bg-slate-50">

@@ -45,6 +45,10 @@ def create_balance_snapshot(payload: BalanceSnapshotCreate, db: Session = Depend
         is_zero_point=payload.is_zero_point,
     )
     db.add(snapshot)
+    
+    from app.core.time import utcnow_naive
+    account.last_verified_at = utcnow_naive()
+    
     db.commit()
     db.refresh(snapshot)
     return snapshot

@@ -345,6 +345,10 @@ async def create_transaction(payload: TransactionCreate, db: Session = Depends(g
         transaction.tags = tags
 
     db.add(transaction)
+    
+    from app.core.time import utcnow_naive
+    account.last_verified_at = utcnow_naive()
+    
     db.commit()
     
     recalculate_running_balances(db, payload.account_id)

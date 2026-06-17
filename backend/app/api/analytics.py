@@ -3090,15 +3090,58 @@ async def calendar_analytics(
         # Project for the whole month, but deduplicate
         occurrences = get_recurring_occurrences(rd, start_month, end_month)
         for occ in occurrences:
-            # Skip if already realized
-            if (rd.id, occ.date()) in realized_recurrences:
+            proj_date = occ
+            proj_amount = rd.amount
+            proj_note = rd.name
+            
+            # Check if it's a salary/TR recurrence
+            from app.models.salary_config import SalaryConfig
+            from app.models.salary_month import SalaryMonth
+            from app.models.telecommuting_day import TelecommutingDay
+            from app.core.finance import month_label_from_date
+            
+            salary_config = db.query(SalaryConfig).filter(
+                (SalaryConfig.salary_recurring_id == rd.id) | 
+                (SalaryConfig.ticket_recurring_id == rd.id)
+            ).first()
+            
+            if salary_config:
+                month_label = month_label_from_date(occ)
+                salary_month = db.query(SalaryMonth).filter(
+                    SalaryMonth.salary_config_id == salary_config.id,
+                    SalaryMonth.month_label == month_label
+                ).first()
+                
+                tt_days_count = 0
+                if salary_month:
+                    tt_days_count = db.query(TelecommutingDay).filter(
+                        TelecommutingDay.salary_config_id == salary_config.id,
+                        TelecommutingDay.month_label == month_label
+                    ).count()
+                    
+                    if rd.id == salary_config.salary_recurring_id and salary_month.salary_date:
+                        proj_date = datetime.combine(salary_month.salary_date, datetime.min.time())
+                    if rd.id == salary_config.ticket_recurring_id and salary_month.ticket_date:
+                        proj_date = datetime.combine(salary_month.ticket_date, datetime.min.time())
+                
+                if rd.id == salary_config.salary_recurring_id:
+                    deduction = tt_days_count * salary_config.ticket_employee_share
+                    proj_amount = salary_config.net_salary - deduction
+                    proj_note = f"Salaire ({month_label})"
+                elif rd.id == salary_config.ticket_recurring_id:
+                    proj_amount = tt_days_count * salary_config.ticket_value
+                    proj_note = f"Tickets Restaurant ({month_label})"
+                    
+            # Skip if already realized (we check month and recurring_id instead of exact date for salary to be safe)
+            # Or just check exact date with the overriden proj_date
+            if (rd.id, proj_date.date()) in realized_recurrences:
                 continue
                 
             projected_events.append({
-                "id": f"proj_{rd.id}_{occ.isoformat()}",
-                "date": occ.isoformat(),
-                "name": rd.name,
-                "amount": rd.amount,
+                "id": f"proj_{rd.id}_{proj_date.isoformat()}",
+                "date": proj_date.isoformat(),
+                "name": proj_note,
+                "amount": proj_amount,
                 "type": rd.type,
                 "category_id": rd.category_id,
                 "is_projected": True,

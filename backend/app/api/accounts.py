@@ -56,6 +56,18 @@ def update_account(account_id: int, payload: AccountUpdate, db: Session = Depend
     return account
 
 
+@router.post("/{account_id}/verify", response_model=AccountRead)
+def verify_account(account_id: int, db: Session = Depends(get_db)):
+    from app.core.time import utcnow_naive
+    account = db.query(Account).filter(Account.id == account_id).first()
+    if not account:
+        raise api_error(404, "account_not_found", "Account not found", {"account_id": account_id})
+    account.last_verified_at = utcnow_naive()
+    db.commit()
+    db.refresh(account)
+    return account
+
+
 @router.delete("/{account_id}", status_code=204)
 def archive_account(account_id: int, db: Session = Depends(get_db)):
     account = db.query(Account).filter(Account.id == account_id).first()

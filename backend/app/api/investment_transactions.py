@@ -76,6 +76,10 @@ async def create_investment_transaction(payload: InvestmentTransactionCreate, db
         geographic_zone=payload.geographic_zone,
     )
     db.add(tx)
+    
+    from app.core.time import utcnow_naive
+    account.last_verified_at = utcnow_naive()
+    
     db.commit()
     db.refresh(tx)
     return tx

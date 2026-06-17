@@ -38,7 +38,8 @@ def generate_salary_transactions(db: Session, config: SalaryConfig, month_record
         currency="EUR",
         running_balance=0.0,
         note=f"Net après primes: {config.net_salary:.2f}€ - TR({nb_tickets}x{config.ticket_employee_share:.2f}€): {real_salary:.2f}€",
-        is_recurring=True
+        is_recurring=True,
+        recurring_transaction_id=config.salary_recurring_id
     )
     db.add(tx_salary)
     
@@ -55,13 +56,25 @@ def generate_salary_transactions(db: Session, config: SalaryConfig, month_record
         currency="EUR",
         running_balance=0.0,
         note=f"{nb_tickets} tickets x {config.ticket_value:.2f}€",
-        is_recurring=True
+        is_recurring=True,
+        recurring_transaction_id=config.ticket_recurring_id
     )
     db.add(tx_tr)
     
     # Update month record
     month_record.is_generated = True
     month_record.generated_at = datetime.utcnow()
+    
+    # Update last_generated_date on recurring transactions to prevent duplicate generation
+    from app.models.recurring_transaction import RecurringTransaction
+    if config.salary_recurring_id:
+        db.query(RecurringTransaction).filter_by(id=config.salary_recurring_id).update(
+            {"last_generated_date": datetime.combine(month_record.salary_date, datetime.min.time())}
+        )
+    if config.ticket_recurring_id:
+        db.query(RecurringTransaction).filter_by(id=config.ticket_recurring_id).update(
+            {"last_generated_date": datetime.combine(month_record.ticket_date or month_record.salary_date, datetime.min.time())}
+        )
     
     db.commit()
     

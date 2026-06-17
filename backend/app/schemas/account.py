@@ -34,5 +34,6 @@ class AccountRead(AccountBase):
     currency: str
     active: bool
     created_at: datetime
+    last_verified_at: datetime
 
     model_config = {"from_attributes": True}

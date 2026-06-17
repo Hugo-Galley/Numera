@@ -25,6 +25,8 @@ class SalaryConfigUpdate(BaseModel):
 
 class SalaryConfigRead(SalaryConfigCreate):
     id: int
+    salary_recurring_id: int | None = None
+    ticket_recurring_id: int | None = None
     is_active: bool
     created_at: datetime
     updated_at: datetime
