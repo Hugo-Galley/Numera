@@ -3048,14 +3048,17 @@ async def calendar_analytics(
         end_month = datetime(year + 1, 1, 1)
     else:
         end_month = datetime(year, month + 1, 1)
+        
+    today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    sim_start = min(start_month, today)
     
     # 1. Fetch real transactions
     tx_query = db.query(Transaction).filter(
-        Transaction.date >= start_month,
+        Transaction.date >= sim_start,
         Transaction.date < end_month
     )
     inv_tx_query = db.query(InvestmentTransaction).filter(
-        InvestmentTransaction.date >= start_month,
+        InvestmentTransaction.date >= sim_start,
         InvestmentTransaction.date < end_month
     )
     
@@ -3088,7 +3091,7 @@ async def calendar_analytics(
     
     for rd in recurring_defs:
         # Project for the whole month, but deduplicate
-        occurrences = get_recurring_occurrences(rd, start_month, end_month)
+        occurrences = get_recurring_occurrences(rd, sim_start, end_month)
         for occ in occurrences:
             proj_date = occ
             proj_amount = rd.amount
@@ -3191,7 +3194,7 @@ async def calendar_analytics(
     if account_id:
         last_tx_before = db.query(Transaction).filter(
             Transaction.account_id == account_id,
-            Transaction.date < start_month
+            Transaction.date < sim_start
         ).order_by(Transaction.date.desc(), Transaction.id.desc()).first()
         account_balances[account_id] = last_tx_before.running_balance if last_tx_before else 0.0
     else:
@@ -3199,7 +3202,7 @@ async def calendar_analytics(
         for acc in active_only:
             last_tx_before = db.query(Transaction).filter(
                 Transaction.account_id == acc.id,
-                Transaction.date < start_month
+                Transaction.date < sim_start
             ).order_by(Transaction.date.desc(), Transaction.id.desc()).first()
             account_balances[acc.id] = last_tx_before.running_balance if last_tx_before else 0.0
 
@@ -3207,7 +3210,7 @@ async def calendar_analytics(
     all_events = sorted(formatted_real + projected_events, key=lambda x: x["date"])
     event_idx = 0
     
-    temp_date = start_month
+    temp_date = sim_start
     while temp_date < end_month:
         # Apply events for this day
         while event_idx < len(all_events) and datetime.fromisoformat(all_events[event_idx]["date"]).date() == temp_date.date():
@@ -3244,16 +3247,17 @@ async def calendar_analytics(
                 curr = account_currencies.get(a_id, "EUR")
                 current_bal += bal / rates.get(curr, 1.0)
 
-        daily_balances.append({
-            "date": temp_date.date().isoformat(),
-            "balance": round(current_bal, 2)
-        })
+        if temp_date >= start_month:
+            daily_balances.append({
+                "date": temp_date.date().isoformat(),
+                "balance": round(current_bal, 2)
+            })
         temp_date += timedelta(days=1)
 
     return {
         "month": month,
         "year": year,
-        "events": sorted(formatted_real + projected_events, key=lambda x: x["date"]),
+        "events": [ev for ev in sorted(formatted_real + projected_events, key=lambda x: x["date"]) if datetime.fromisoformat(ev["date"]) >= start_month],
         "daily_balances": daily_balances
     }
 
