@@ -72,17 +72,18 @@ async def generate_recurring_transactions(db: Session) -> int:
             
             if salary_config:
                 month_label = month_label_from_date(occ)
+                salary_month_label = f"{occ.year}-{occ.month:02d}"
                 # Check if calendar was filled for this month
                 salary_month = db.query(SalaryMonth).filter(
                     SalaryMonth.salary_config_id == salary_config.id,
-                    SalaryMonth.month_label == month_label
+                    SalaryMonth.month_label == salary_month_label
                 ).first()
                 
                 tt_days_count = 0
                 if salary_month:
                     tt_days_count = db.query(TelecommutingDay).filter(
                         TelecommutingDay.salary_config_id == salary_config.id,
-                        TelecommutingDay.month_label == month_label
+                        TelecommutingDay.month_label == salary_month_label
                     ).count()
                     
                     # Also use the precise date if defined!

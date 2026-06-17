@@ -3110,16 +3110,17 @@ async def calendar_analytics(
             
             if salary_config:
                 month_label = month_label_from_date(occ)
+                salary_month_label = f"{occ.year}-{occ.month:02d}"
                 salary_month = db.query(SalaryMonth).filter(
                     SalaryMonth.salary_config_id == salary_config.id,
-                    SalaryMonth.month_label == month_label
+                    SalaryMonth.month_label == salary_month_label
                 ).first()
                 
                 tt_days_count = 0
                 if salary_month:
                     tt_days_count = db.query(TelecommutingDay).filter(
                         TelecommutingDay.salary_config_id == salary_config.id,
-                        TelecommutingDay.month_label == month_label
+                        TelecommutingDay.month_label == salary_month_label
                     ).count()
                     
                     if rd.id == salary_config.salary_recurring_id and salary_month.salary_date:
@@ -3315,8 +3316,41 @@ async def get_cashflow_projection(
         for occ in occurrences:
             is_income = rd.type in ["Entree", "Interets", "versement", "dividende"]
             
+            proj_amount = rd.amount
+            
+            # Check if it's a salary/TR recurrence
+            from app.models.salary_config import SalaryConfig
+            from app.models.salary_month import SalaryMonth
+            from app.models.telecommuting_day import TelecommutingDay
+            from app.core.finance import month_label_from_date
+            
+            salary_config = db.query(SalaryConfig).filter(
+                (SalaryConfig.salary_recurring_id == rd.id) | 
+                (SalaryConfig.ticket_recurring_id == rd.id)
+            ).first()
+            
+            if salary_config:
+                salary_month_label = f"{occ.year}-{occ.month:02d}"
+                salary_month = db.query(SalaryMonth).filter(
+                    SalaryMonth.salary_config_id == salary_config.id,
+                    SalaryMonth.month_label == salary_month_label
+                ).first()
+                
+                tt_days_count = 0
+                if salary_month:
+                    tt_days_count = db.query(TelecommutingDay).filter(
+                        TelecommutingDay.salary_config_id == salary_config.id,
+                        TelecommutingDay.month_label == salary_month_label
+                    ).count()
+                
+                if rd.id == salary_config.salary_recurring_id:
+                    deduction = tt_days_count * salary_config.ticket_employee_share
+                    proj_amount = salary_config.net_salary - deduction
+                elif rd.id == salary_config.ticket_recurring_id:
+                    proj_amount = tt_days_count * salary_config.ticket_value
+
             # Convert amount to EUR if global view
-            amount_target = float(rd.amount)
+            amount_target = float(proj_amount)
             if not account_id and rd.currency != "EUR":
                 amount_target = amount_target / rates.get(rd.currency, 1.0)
                 

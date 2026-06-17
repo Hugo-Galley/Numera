@@ -234,7 +234,50 @@ def set_telecommuting_days(year: int, month: int, data: TelecommutingDaysUpdate,
         ) for d in data.dates
     ]
     db.add_all(new_days)
-    db.commit()
+    
+    # Update existing generated transactions if applicable
+    from app.models.salary_month import SalaryMonth
+    month_record = db.query(SalaryMonth).filter(
+        SalaryMonth.salary_config_id == config.id,
+        SalaryMonth.month_label == month_label
+    ).first()
+    
+    if month_record and month_record.is_generated:
+        nb_tickets = len(data.dates)
+        ticket_deduction = nb_tickets * config.ticket_employee_share
+        real_salary = config.net_salary - ticket_deduction
+        ticket_credit = nb_tickets * config.ticket_value
+
+        from app.models.transaction import Transaction
+        from app.api.transactions import recalculate_running_balances
+        
+        tx_salary = db.query(Transaction).filter(
+            Transaction.recurring_transaction_id == config.salary_recurring_id,
+            Transaction.month_label == month_label
+        ).first()
+        if tx_salary:
+            tx_salary.amount = real_salary
+            tx_salary.original_amount = real_salary
+            tx_salary.note = f"Net après primes: {config.net_salary:.2f}€ - TR({nb_tickets}x{config.ticket_employee_share:.2f}€): {real_salary:.2f}€"
+
+        tx_tr = db.query(Transaction).filter(
+            Transaction.recurring_transaction_id == config.ticket_recurring_id,
+            Transaction.month_label == month_label
+        ).first()
+        if tx_tr:
+            tx_tr.amount = ticket_credit
+            tx_tr.original_amount = ticket_credit
+            tx_tr.note = f"{nb_tickets} tickets x {config.ticket_value:.2f}€"
+            
+        db.commit()
+        
+        if tx_salary:
+            recalculate_running_balances(db, tx_salary.account_id)
+        if tx_tr and (not tx_salary or tx_tr.account_id != tx_salary.account_id):
+            recalculate_running_balances(db, tx_tr.account_id)
+    else:
+        db.commit()
+        
     return {"status": "ok"}
 
 @router.get("/summary/{year}/{month}", response_model=SalaryMonthSummary)

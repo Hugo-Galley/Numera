@@ -35,5 +35,6 @@ class AccountRead(AccountBase):
     active: bool
     created_at: datetime
     last_verified_at: datetime
+    balance: float = 0.0
 
     model_config = {"from_attributes": True}

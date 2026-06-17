@@ -711,7 +711,7 @@ export default function RecurringTransactions() {
 
       {/* Form Dialog */}
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingTx ? "Modifier" : "Nouvelle"} récurrence</DialogTitle>
             <DialogDescription>

@@ -997,7 +997,7 @@ export default function AccountDetail() {
                       <Plus className="h-4 w-4 mr-2" /> Nouvelle opération
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="sm:max-w-[425px] rounded-2xl border-none shadow-2xl">
+                  <DialogContent className="sm:max-w-[425px] rounded-2xl border-none shadow-2xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                       <DialogTitle className="text-2xl font-bold">{editTxId ? "Modifier l'opération" : "Nouvelle opération"}</DialogTitle>
                       <DialogDescription>
@@ -1134,7 +1134,7 @@ export default function AccountDetail() {
                         <Plus className="h-4 w-4 mr-2" /> Versement / Retrait
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="sm:max-w-[425px]">
+                    <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
                       <DialogHeader>
                         <DialogTitle className="text-2xl font-bold">{editInvTxId ? "Modifier le flux" : "Flux d'investissement"}</DialogTitle>
                         <DialogDescription>Enregistrez un mouvement de fonds sur ce compte.</DialogDescription>
