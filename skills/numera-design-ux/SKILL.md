@@ -30,13 +30,17 @@ This skill ensures visual consistency and high-quality user experience across th
 - **Formatting**: Always use `formatCurrency(amount, currency)` from `@/lib/utils`.
 - **Alignment**: Currency amounts should generally be right-aligned in tables but centered or left-aligned in KPI cards depending on the layout.
 - **Positive/Negative Signs**: Use color coding (Emerald/Rose) for amounts rather than just symbols when possible.
+- **Verification Banners**: Use the validation banner (`AccountVerificationBanner`) on accounts view to show verification state and let user update `last_verified_at`.
 
 ## 4. UX Patterns
 - **Responsive Design**: Mobile-first approach. Use hidden/block classes to adapt table views or complex layouts for smaller screens.
 - **Feedback**: 
     - Use `sonner` for toast notifications after every mutation (Create/Update/Delete).
     - Show `loading` states (Skeleton or Spinner) during data fetching.
-- **Navigation**: Keep the sidebar for main navigation and use tabs within pages to separate sub-sections (e.g., in Settings or Dashboard).
+- **Navigation**: Keep the sidebar for main navigation. 
+    - **Dashboard Page**: Segment using tabs (`OverviewTab`, `HistoryTab`, `BudgetsTab`, `InsightsTab`, `InvestmentsTab`, `MerchantsTab`, `ProjectionsTab`, `SubscriptionsTab`) for cleaner code and quicker rendering.
+    - **Tools Page (`/tools`)**: House the Salary manager configuration and Telecommuting calendar.
+    - **Settings Tab**: Include the Merchants mapping normalization panel.
 - **Omnibox**: Ensure new features are discoverable via the Omnibox (`Command+K`).
 
 ## 5. Layout Grid

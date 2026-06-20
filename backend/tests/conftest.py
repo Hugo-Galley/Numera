@@ -8,6 +8,10 @@ from sqlalchemy.orm import Session, sessionmaker
 
 os.environ["APP_ENV"] = "test"
 
+from app.core.config import settings
+from app.core import security
+settings.ADMIN_PASSWORD_HASH = security.get_password_hash("admin")
+
 from app.db.base import Base
 from app.db.session import get_db as get_db_session
 from app.api.deps import get_db as get_db_deps

@@ -21,9 +21,12 @@ This skill provides the comprehensive procedural knowledge required to develop, 
 - **API Calls**: Always use `apiFetch` from `@/lib/api`.
 - **Styling**: Tailwind CSS.
 
-### 3. Financial Logic
+### 3. Financial Logic & Features
 - **Currency**: Always use the conversion logic in `backend/app/core/currency.py`.
 - **Running Balance**: Must be updated whenever transactions are modified.
+- **Merchant Normalization**: Link transactions to canonical `Merchant` names via `merchant_id` using `MerchantAlias` patterns to simplify visualizations without altering original bank labels.
+- **Salary & TT Calendar**: Manage net salary configurations with `SalaryConfig`. Log telecommuting days (`TelecommutingDay`) to auto-compute and generate salary and ticket restaurant transactions.
+- **Account Verification**: Keep `last_verified_at` updated to audit balances periodically.
 
 ## Reference Documentation
 For detailed rules, refer to the following files in the repository:

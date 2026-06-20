@@ -74,7 +74,13 @@ class APIClient:
                 headers={"Content-Type": "application/x-www-form-urlencoded"},
             )
             resp.raise_for_status()
-            self._token = resp.json()["access_token"]
+            try:
+                self._token = resp.json()["access_token"]
+            except (ValueError, KeyError) as parse_err:
+                raise ConnectionError(
+                    f"❌ Réponse invalide reçue de {self.base_url}. Le format JSON attendu est manquant ou incorrect. "
+                    f"Assurez-vous que MCP_API_URL se termine bien par '/api' (par exemple: 'http://votre-vps:8082/api')."
+                ) from parse_err
             logger.info("✅ Authentification réussie auprès de l'API")
         except httpx.HTTPStatusError as e:
             raise ConnectionError(
@@ -232,15 +238,21 @@ def resource_recurring() -> str:
 # ═══════════════════════════════════════════════════════════════════════════════
 
 @mcp.tool()
-def list_accounts() -> str:
+def list_accounts(type: str | None = None) -> str:
     """Liste tous les comptes bancaires avec leur type, devise et statut.
-    Pour connaître les soldes, utilise get_budget_summary ou get_analytics_budget."""
+    Pour connaître les soldes, utilise get_budget_summary ou get_analytics_budget.
+    
+    Args:
+        type: Filtrer par type (ex: courant, epargne, investissement) (optionnel)
+    """
     try:
         resp = api.get("/accounts")
         error = handle_response(resp)
         if error:
             return error
         accounts = resp.json()
+        if type:
+            accounts = [a for a in accounts if a.get("type") == type]
         return f"🏦 {len(accounts)} compte(s) :\n\n" + format_table(accounts)
     except ConnectionError as e:
         return str(e)
@@ -550,6 +562,7 @@ def get_expenses_by_category(
 def get_top_merchants(
     month: int | None = None,
     year: int | None = None,
+    account_id: int | None = None,
     limit: int = 10,
 ) -> str:
     """Top marchands par montant dépensé.
@@ -557,6 +570,7 @@ def get_top_merchants(
     Args:
         month: Mois (1-12, optionnel)
         year: Année (optionnel)
+        account_id: Filtrer par compte (optionnel)
         limit: Nombre de marchands (défaut 10)
     """
     try:
@@ -565,6 +579,8 @@ def get_top_merchants(
             params["month"] = month
         if year is not None:
             params["year"] = year
+        if account_id is not None:
+            params["account_id"] = account_id
 
         resp = api.get("/analytics/top-merchants", params=params)
         error = handle_response(resp)
@@ -698,10 +714,28 @@ def get_cashflow_projection(months: int = 3) -> str:
 
 
 @mcp.tool()
-def get_investments_summary() -> str:
-    """Résumé global des investissements (tous comptes d'investissement)."""
+def get_investments_summary(
+    account_id: int | None = None,
+    month: int | None = None,
+    year: int | None = None,
+) -> str:
+    """Résumé des investissements (comptes d'investissement actifs).
+
+    Args:
+        account_id: Filtrer par compte spécifique (optionnel)
+        month: Mois (1-12, optionnel)
+        year: Année (optionnel)
+    """
     try:
-        resp = api.get("/analytics/investments")
+        params: dict[str, Any] = {}
+        if account_id is not None:
+            params["account_id"] = account_id
+        if month is not None:
+            params["month"] = month
+        if year is not None:
+            params["year"] = year
+
+        resp = api.get("/analytics/investments", params=params)
         error = handle_response(resp)
         if error:
             return error
@@ -712,12 +746,89 @@ def get_investments_summary() -> str:
 
 
 @mcp.tool()
-def get_money_flow(month: int | None = None, year: int | None = None) -> str:
+def get_investment_performance(account_id: int) -> str:
+    """Analyse de performance détaillée d'un compte d'investissement spécifique.
+
+    Args:
+        account_id: ID du compte d'investissement
+    """
+    try:
+        resp = api.get(f"/analytics/investments/{account_id}")
+        error = handle_response(resp)
+        if error:
+            return error
+        data = resp.json()
+        return f"📊 Performance de l'investissement #{account_id} :\n\n{serialize(data)}"
+    except Exception as e:
+        return f"❌ Erreur : {e}"
+
+
+@mcp.tool()
+def get_investment_performance_history(account_id: int, months: int = 12) -> str:
+    """Historique des performances mensuelles d'un compte d'investissement spécifique.
+
+    Args:
+        account_id: ID du compte d'investissement
+        months: Nombre de mois (défaut 12)
+    """
+    try:
+        resp = api.get(f"/analytics/investments/{account_id}/performance-history", params={"months": months})
+        error = handle_response(resp)
+        if error:
+            return error
+        data = resp.json()
+        return f"📈 Historique des performances de l'investissement #{account_id} :\n\n{serialize(data)}"
+    except Exception as e:
+        return f"❌ Erreur : {e}"
+
+
+@mcp.tool()
+def get_investments_allocation(account_id: int | None = None) -> str:
+    """Répartition de l'allocation d'actifs globale ou pour un compte spécifique.
+
+    Args:
+        account_id: Filtrer par compte spécifique (optionnel)
+    """
+    try:
+        params: dict[str, Any] = {}
+        if account_id is not None:
+            params["account_id"] = account_id
+        resp = api.get("/analytics/investments-allocation", params=params)
+        error = handle_response(resp)
+        if error:
+            return error
+        data = resp.json()
+        return f"🧩 Allocation des investissements :\n\n{serialize(data)}"
+    except Exception as e:
+        return f"❌ Erreur : {e}"
+
+
+@mcp.tool()
+def get_investments_allocation_advanced() -> str:
+    """Allocation d'actifs détaillée avancée par classe, secteur et zone géographique."""
+    try:
+        resp = api.get("/analytics/investments-allocation-advanced")
+        error = handle_response(resp)
+        if error:
+            return error
+        data = resp.json()
+        return f"🔬 Allocation avancée et suggestions de rééquilibrage :\n\n{serialize(data)}"
+    except Exception as e:
+        return f"❌ Erreur : {e}"
+
+
+@mcp.tool()
+def get_money_flow(
+    month: int | None = None,
+    year: int | None = None,
+    account_id: int | None = None,
+) -> str:
     """Flux d'argent détaillé : d'où vient l'argent et où il va.
 
     Args:
         month: Mois (1-12, optionnel)
         year: Année (optionnel)
+        account_id: Filtrer par compte (optionnel)
     """
     try:
         params: dict[str, Any] = {}
@@ -725,6 +836,8 @@ def get_money_flow(month: int | None = None, year: int | None = None) -> str:
             params["month"] = month
         if year is not None:
             params["year"] = year
+        if account_id is not None:
+            params["account_id"] = account_id
 
         resp = api.get("/analytics/money-flow", params=params)
         error = handle_response(resp)

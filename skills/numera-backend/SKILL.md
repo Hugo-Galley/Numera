@@ -42,6 +42,9 @@ This skill defines the rigorous standards for backend development in the Numera 
     - `Entree` / `Interets` are positive.
     - `Sortie` is negative.
     - `Solde Initial` is a reset point.
+- **Merchant & Alias Matching**: Link transactions via `merchant_id` using canonical `Merchant` tables and `MerchantAlias` mappings.
+- **Salary/TT Generation**: Calculate net salary and ticket restaurant credits according to telecommuting days logged in `TelecommutingDay` and generate linked transactions using the config in `SalaryConfig`.
+- **Account Verification**: Update `last_verified_at` for account balance auditing.
 
 ## 5. Error Handling
 - **HTTPException**: Always use `fastapi.HTTPException` with clear status codes.

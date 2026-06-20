@@ -14,9 +14,14 @@ Le depot actuel depasse le MVP decrit ici sur plusieurs points:
 - Objectifs d'epargne.
 - Comparaison mensuelle.
 - Omnibox et mode confidentialite.
-- Alertes budget, insights et detection d'anomalies.
+- Alertes budget, insights et detection d'anomalies (avec masquage des insights).
 - Allocation d'actifs avancee.
 - Sauvegardes chiffrees via sidecar Docker.
+- Centre d'Actions (Audit et intégrité de données).
+- Système de gestion de salaire et suivi du télétravail (TT) avec tickets restaurant (TR).
+- Normalisation des marchands canoniques avec alias/synonymes.
+- Vérification périodique des soldes de compte (`last_verified_at`).
+- Organisation du Dashboard par onglets (Overview, History, Budgets, Insights, Investments, Merchants, Projections, Subscriptions).
 
 Les regles fonctionnelles de ce document restent valables quand elles ne contredisent pas l'etat reel documente dans `AGENT.MD` et `ARCHITECTURE.md`.
 

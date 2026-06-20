@@ -71,6 +71,8 @@ infra/
 - `categorization_rules.py`: règles locales d'auto-catégorisation basées sur le commerçant.
 - `recurring_transactions.py`: abonnements et transactions récurrentes avec génération automatique.
 - `tags.py`: tags transversaux personnalisables.
+- `salary.py`: configuration de salaire, jours de télétravail (TT) et génération des transactions associées.
+- `merchants.py`: gestion des marchands canoniques et de leurs alias de normalisation.
 - `admin.py`: reset database.
 - `health.py`: healthcheck public.
 
@@ -79,16 +81,17 @@ infra/
 Routes dans `frontend/src/App.tsx`:
 
 - `/login`: authentification.
-- `/`: dashboard.
-- `/accounts`: liste des comptes.
+- `/`: dashboard (organisé avec des onglets : Overview, History, Budgets, Insights, Investments, Merchants, Projections, Subscriptions).
+- `/accounts`: liste des comptes (incluant la bannière de validation périodique).
 - `/accounts/:id`: détail compte courant/épargne/investissement.
 - `/savings`: objectifs d'épargne.
 - `/investments`: vue globale investissements.
 - `/comparison`: comparaison mensuelle.
 - `/calendar`: calendrier financier.
 - `/recurring-transactions`: abonnements et charges fixes.
-- `/monthly-report`: rapport mensuel intelligent avec export PDF.
-- `/settings`: configuration, import CSV, règles d'auto-catégorisation, tags et actions admin.
+- `/monthly-report`: rapport mensuel intelligent avec export PDF et onglets d'analyse des flux.
+- `/tools`: gestion du salaire et calendrier de télétravail (TT).
+- `/settings`: configuration, import CSV, règles d'auto-catégorisation, tags, gestion des marchands canoniques et actions admin.
 
 Principes:
 
@@ -102,7 +105,7 @@ Principes:
 
 ### `accounts`
 
-Champs principaux: `id`, `name`, `type`, `currency`, `created_at`, `active`, `color`, `asset_class`, `sector`, `geographic_zone`.
+Champs principaux: `id`, `name`, `type`, `currency`, `created_at`, `active`, `color`, `asset_class`, `sector`, `geographic_zone`, `is_main`, `last_verified_at`.
 
 Types connus: `courant`, `epargne`, `investissement`.
 
@@ -114,7 +117,7 @@ Champs: `id`, `name`, `icon`, `color`, `type`, `monthly_limit`, `annual_limit`.
 
 ### `transactions`
 
-Champs: `id`, `account_id`, `date`, `month_label`, `type`, `merchant`, `category_id`, `amount`, `currency`, `original_amount`, `running_balance`, `note`, `is_recurring`, `recurring_transaction_id`, `is_subscription_ignored`, `custom_icon`, `custom_color`, `is_transfer`, `is_transfer_ignored`, `linked_transaction_id`, `linked_investment_transaction_id`.
+Champs: `id`, `account_id`, `date`, `month_label`, `type`, `merchant`, `merchant_id`, `category_id`, `amount`, `currency`, `original_amount`, `running_balance`, `note`, `is_recurring`, `recurring_transaction_id`, `is_subscription_ignored`, `custom_icon`, `custom_color`, `is_transfer`, `is_transfer_ignored`, `linked_transaction_id`, `linked_investment_transaction_id`.
 
 `amount` est le montant converti dans la devise du compte. `original_amount` et `currency` gardent la saisie d'origine. Les champs de liaison permettent de connecter des virements internes ou de rattacher une transaction à sa règle récurrente génératrice.
 
@@ -139,6 +142,12 @@ Un point zéro sert de base de performance pour un compte.
 - `recurring_transactions`: définitions d'abonnements/charges fixes récurrentes (`id`, `account_id`, `name`, `type`, `amount`, `currency`, `category_id`, `frequency`, `day_of_month`, `start_date`, `end_date`, `last_generated_date`, `is_active`, `auto_generate`, `note`, `asset_class`, `sector`, `geographic_zone`).
 - `tags`: tags transversaux personnalisés (`id`, `name`, `color`).
 - `transaction_tags`: table d'association many-to-many (`transaction_id`, `tag_id`).
+- `merchants`: marchands canoniques (`id`, `name`, `category_id`, `icon`, `color`).
+- `merchant_aliases`: alias et libellés bancaires d'origine associés aux marchands canoniques (`id`, `merchant_id`, `label`).
+- `salary_configs`: configuration de salaire pour la génération TR/TT (`id`, `salary_account_id`, `ticket_account_id`, `net_salary`, `ticket_value`, `ticket_employee_share`, `salary_category_id`, `ticket_category_id`, `salary_recurring_id`, `ticket_recurring_id`, `is_active`).
+- `salary_months`: statut de génération des salaires par mois (`id`, `salary_config_id`, `month_label`, `salary_date`, `ticket_date`, `is_generated`, `generated_at`).
+- `telecommuting_days`: jours de télétravail déclarés par mois (`id`, `salary_config_id`, `date`, `month_label`).
+- `dismissed_insights`: insights/anomalies de dépenses masqués par l'utilisateur (`id`, `title`, `dismissed_at`).
 
 ## Routes Principales
 

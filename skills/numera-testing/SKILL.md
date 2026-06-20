@@ -25,13 +25,17 @@ cd backend && PYTHONPATH=. ./venv/bin/pytest tests/
 
 ### Running a Specific Test File
 ```bash
-cd backend && PYTHONPATH=. ./venv/bin/pytest tests/test_transfers.py
+cd backend && PYTHONPATH=. ./venv/bin/pytest tests/test_merchants.py
 ```
+Or `test_data_audit.py`.
 
 ### Critical Verification Points
 - **Running Balances**: After any transaction creation/update, verify that the `running_balance` in the database is consistent.
 - **Currency Conversion**: Verify that `original_amount` is preserved and `amount` is correctly converted to the account's currency.
 - **Audit Center**: After a fix, verify that the `/analytics/actions` endpoint no longer returns the resolved issue.
+- **Merchant Normalization**: Verify that transactions correctly bind to `merchant_id` and can be auto-normalized without altering original bank labels.
+- **Salary/TT Generation**: Verify that `generate_salary_transactions` computes correct amounts for net salary and ticket restaurants and marks the salary month as generated.
+- **Account Verification**: Verify that accounts save the correct `last_verified_at` timestamp.
 
 ## 3. Frontend Validation
 

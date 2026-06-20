@@ -30,8 +30,10 @@ Fichiers présents dans `backend/tests/` :
 - `test_calendar.py` : calendrier financier mensuel et projections associées.
 - `test_cashflow_projection.py` : projection de solde et de trésorerie sur 30/60/90 jours.
 - `test_categorization_rules.py` : création, import et application automatique de règles de catégorisation.
+- `test_data_audit.py` : détection des anomalies de données pour l'audit d'intégrité.
 - `test_filtering.py` : filtrage multicritères sur les transactions (catégories, montants, commerçants, tags, etc.).
 - `test_import_and_analytics.py` : import/export CSV, déduplication, point zéro, snapshots de valeur et KPIs.
+- `test_merchants.py` : gestion des marchands canoniques et normalisation avec des alias.
 - `test_money_flow.py` : calculs de flux de trésorerie (entrées, sorties, épargne, investissements, reste).
 - `test_p0_features.py` : mise à jour groupée (bulk update), alertes de budget (limites mensuelles/annuelles) et insights intelligents.
 - `test_savings_goals.py` : objectifs d'épargne (CRUD, progression, date cible, montant recommandé).

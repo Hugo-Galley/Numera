@@ -25,8 +25,11 @@ import logging
 from datetime import datetime, date
 from contextlib import contextmanager
 from typing import Any
+import urllib.request
+import urllib.error
 
 from mcp.server.fastmcp import FastMCP
+
 
 # ─── Configuration ───────────────────────────────────────────────────────────
 
@@ -92,6 +95,78 @@ def get_db(readonly: bool = True):
 def rows_to_dicts(rows: list[sqlite3.Row]) -> list[dict]:
     """Convertit des sqlite3.Row en liste de dictionnaires."""
     return [dict(row) for row in rows]
+
+
+# Simple cache for latest exchange rates
+_latest_rates: dict = {}
+
+def get_latest_rates(base="EUR") -> dict:
+    global _latest_rates
+    if base in _latest_rates:
+        return _latest_rates[base]
+    
+    try:
+        url = f"https://api.frankfurter.dev/v1/latest?base={base}"
+        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req, timeout=3) as response:
+            data = json.loads(response.read().decode())
+            rates = data.get("rates", {})
+            rates[base] = 1.0
+            _latest_rates[base] = rates
+            return rates
+    except Exception as e:
+        logger.warning(f"Error fetching latest exchange rates: {e}")
+        if base == "EUR":
+            return {"EUR": 1.0, "USD": 1.08, "GBP": 0.84, "CHF": 0.95}
+    return {base: 1.0}
+
+def get_historical_rate_db(conn, date_val, currency, base="EUR") -> float:
+    if currency == base:
+        return 1.0
+    
+    if isinstance(date_val, (datetime, date)):
+        date_str = date_val.strftime("%Y-%m-%d")
+    elif isinstance(date_val, str):
+        date_str = date_val[:10]
+    else:
+        date_str = str(date_val)[:10]
+        
+    try:
+        row = conn.execute(
+            "SELECT rate FROM historical_exchange_rates WHERE date = ? AND currency = ?",
+            (date_str, currency)
+        ).fetchone()
+        if row:
+            return row["rate"]
+    except Exception as e:
+        logger.warning(f"Error reading historical_exchange_rates from DB: {e}")
+        
+    try:
+        url = f"https://api.frankfurter.dev/v1/{date_str}?base={base}"
+        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req, timeout=3) as response:
+            data = json.loads(response.read().decode())
+            rate = data.get("rates", {}).get(currency)
+            if rate:
+                return rate
+    except Exception as e:
+        logger.warning(f"Error fetching historical rate for {date_str} {currency}: {e}")
+        
+    rates = get_latest_rates(base)
+    return rates.get(currency, 1.0)
+
+def convert_amount(conn, amount, from_currency, to_currency="EUR", date_val=None) -> float:
+    if from_currency == to_currency:
+        return amount
+    
+    if to_currency == "EUR" and date_val:
+        rate = get_historical_rate_db(conn, date_val, from_currency, base=to_currency)
+        return amount / rate
+        
+    rates = get_latest_rates(to_currency)
+    rate = rates.get(from_currency, 1.0)
+    return amount / rate
+
 
 
 def format_table(rows: list[dict], max_col_width: int = 40) -> str:
@@ -228,22 +303,30 @@ def resource_tags() -> str:
 # ═══════════════════════════════════════════════════════════════════════════════
 
 @mcp.tool()
-def list_accounts() -> str:
+def list_accounts(type: str | None = None) -> str:
     """Liste tous les comptes bancaires avec leur solde actuel, type et devise.
-    Inclut les comptes actifs et inactifs."""
+    Inclut les comptes actifs et inactifs.
+    
+    Args:
+        type: Filtrer par type (ex: courant, epargne, investissement) (optionnel)
+    """
     try:
         with get_db() as conn:
-            accounts = rows_to_dicts(conn.execute(
-                """SELECT a.id, a.name, a.type, a.currency, a.active, a.color,
-                          a.asset_class, a.sector, a.geographic_zone,
-                          COALESCE(
-                              (SELECT t.running_balance FROM transactions t
-                               WHERE t.account_id = a.id ORDER BY t.date DESC, t.id DESC LIMIT 1),
-                              0
-                          ) as solde_actuel,
-                          (SELECT COUNT(*) FROM transactions t WHERE t.account_id = a.id) as nb_transactions
-                   FROM accounts a ORDER BY a.active DESC, a.name"""
-            ).fetchall())
+            query = """SELECT a.id, a.name, a.type, a.currency, a.active, a.color,
+                              a.asset_class, a.sector, a.geographic_zone,
+                              COALESCE(
+                                  (SELECT t.running_balance FROM transactions t
+                                   WHERE t.account_id = a.id ORDER BY t.date DESC, t.id DESC LIMIT 1),
+                                  0
+                              ) as solde_actuel,
+                              (SELECT COUNT(*) FROM transactions t WHERE t.account_id = a.id) as nb_transactions
+                       FROM accounts a"""
+            params = []
+            if type:
+                query += " WHERE a.type = ?"
+                params.append(type)
+            query += " ORDER BY a.active DESC, a.name"
+            accounts = rows_to_dicts(conn.execute(query, params).fetchall())
             return format_table(accounts)
     except Exception as e:
         return f"❌ Erreur : {e}"
@@ -480,33 +563,52 @@ def list_tags() -> str:
 # ═══════════════════════════════════════════════════════════════════════════════
 
 @mcp.tool()
-def get_budget_summary(month: str | None = None) -> str:
+def get_budget_summary(
+    month: int | None = None,
+    year: int | None = None,
+    account_id: int | None = None,
+) -> str:
     """Résumé budget par catégorie pour un mois donné.
     Compare les dépenses aux limites définies dans les catégories.
 
     Args:
-        month: Mois au format YYYY-MM (ex: 2026-06). Si omis, utilise le mois en cours.
+        month: Mois (1-12, optionnel, défaut: mois en cours)
+        year: Année (optionnel, défaut: année en cours)
+        account_id: Filtrer par compte spécifique (optionnel)
     """
     try:
-        if not month:
-            month = datetime.now().strftime("%Y-%m")
+        if month is None:
+            month = datetime.now().month
+        if year is None:
+            year = datetime.now().year
+            
+        month_label = f"{year:04d}-{month:02d}"
 
         with get_db() as conn:
-            rows = rows_to_dicts(conn.execute(
-                """SELECT c.id, c.name, c.icon, c.color, c.type,
-                          c.monthly_limit, c.annual_limit,
-                          COALESCE(SUM(t.amount), 0) as depense_mois
-                   FROM categories c
-                   LEFT JOIN transactions t ON t.category_id = c.id
-                       AND t.month_label = ?
-                       AND t.type = 'Sortie'
-                   GROUP BY c.id
-                   HAVING depense_mois > 0 OR c.monthly_limit IS NOT NULL
-                   ORDER BY depense_mois DESC""",
-                (month,)
-            ).fetchall())
+            # Dépenses par catégorie
+            query_expenses = """
+                SELECT c.id, c.name, c.icon, c.color, c.type,
+                       c.monthly_limit, c.annual_limit,
+                       COALESCE(SUM(t.amount), 0) as depense_mois
+                FROM categories c
+                LEFT JOIN transactions t ON t.category_id = c.id
+                    AND t.month_label = ?
+                    AND t.type = 'Sortie'
+            """
+            params_expenses = [month_label]
+            if account_id is not None:
+                query_expenses += " AND t.account_id = ?"
+                params_expenses.append(account_id)
+            
+            query_expenses += """
+                GROUP BY c.id
+                HAVING depense_mois > 0 OR c.monthly_limit IS NOT NULL
+                ORDER BY depense_mois DESC
+            """
+            
+            rows = rows_to_dicts(conn.execute(query_expenses, params_expenses).fetchall())
 
-            # Ajouter le pourcentage d'utilisation
+            # Ajouter le pourcentage d'utilisation et le statut
             for row in rows:
                 if row.get("monthly_limit") and row["monthly_limit"] > 0:
                     ratio = (row["depense_mois"] / row["monthly_limit"]) * 100
@@ -521,14 +623,20 @@ def get_budget_summary(month: str | None = None) -> str:
                     row["utilisation_%"] = "—"
                     row["statut"] = "—"
 
-            # Totaux
+            # Calcul des Totaux (revenus / dépenses)
             total_depenses = sum(r["depense_mois"] for r in rows)
-            total_revenus = conn.execute(
-                "SELECT COALESCE(SUM(amount), 0) as total FROM transactions WHERE month_label = ? AND type = 'Entree'",
-                (month,)
-            ).fetchone()["total"]
+            
+            query_revenus = "SELECT COALESCE(SUM(amount), 0) as total FROM transactions WHERE month_label = ? AND type = 'Entree'"
+            params_revenus = [month_label]
+            if account_id is not None:
+                query_revenus += " AND account_id = ?"
+                params_revenus.append(account_id)
+            
+            total_revenus = conn.execute(query_revenus, params_revenus).fetchone()["total"]
 
-            header = f"📊 Budget {month}\n"
+            header = f"📊 Budget {month_label}\n"
+            if account_id is not None:
+                header += f"🏦 Filtre compte : #{account_id}\n"
             header += f"💰 Revenus : {total_revenus:,.2f} €\n"
             header += f"💸 Dépenses : {total_depenses:,.2f} €\n"
             header += f"📈 Solde : {total_revenus - total_depenses:,.2f} €\n\n"
@@ -539,36 +647,683 @@ def get_budget_summary(month: str | None = None) -> str:
 
 
 @mcp.tool()
-def get_expenses_by_category(start_date: str, end_date: str) -> str:
-    """Répartition des dépenses par catégorie sur une période.
+def get_expenses_by_category(
+    month: int | None = None,
+    year: int | None = None,
+    account_id: int | None = None,
+) -> str:
+    """Répartition des dépenses par catégorie pour un mois donné.
 
     Args:
-        start_date: Date de début (YYYY-MM-DD)
-        end_date: Date de fin (YYYY-MM-DD)
+        month: Mois (1-12, optionnel, défaut: mois en cours)
+        year: Année (optionnel, défaut: année en cours)
+        account_id: Filtrer par compte (optionnel)
+    """
+    try:
+        if month is None:
+            month = datetime.now().month
+        if year is None:
+            year = datetime.now().year
+            
+        month_label = f"{year:04d}-{month:02d}"
+
+        with get_db() as conn:
+            # Calcul du total global des dépenses pour le calcul du pourcentage
+            total_query = "SELECT SUM(amount) FROM transactions WHERE month_label = ? AND type = 'Sortie' AND is_transfer = 0"
+            total_params = [month_label]
+            if account_id is not None:
+                total_query += " AND account_id = ?"
+                total_params.append(account_id)
+            
+            total_val = conn.execute(total_query, total_params).fetchone()[0] or 0.0
+
+            # Requête de répartition
+            query = """
+                SELECT c.name as categorie, c.icon, c.color,
+                       COUNT(t.id) as nb_transactions,
+                       SUM(t.amount) as total,
+                       ROUND(AVG(t.amount), 2) as moyenne
+                FROM transactions t
+                LEFT JOIN categories c ON t.category_id = c.id
+                WHERE t.month_label = ? AND t.type = 'Sortie' AND t.is_transfer = 0
+            """
+            params = [month_label]
+            if account_id is not None:
+                query += " AND t.account_id = ?"
+                params.append(account_id)
+                
+            query += """
+                GROUP BY c.id
+                ORDER BY total DESC
+            """
+            
+            rows = rows_to_dicts(conn.execute(query, params).fetchall())
+            
+            for row in rows:
+                row["part_%"] = f"{(((row['total'] or 0) / total_val * 100.0) if total_val > 0 else 0.0):.1f}%"
+
+            header = f"💸 Dépenses par catégorie pour {month_label} : {total_val:,.2f} €\n"
+            if account_id is not None:
+                header += f"🏦 Filtre compte : #{account_id}\n"
+            header += "\n"
+            return header + format_table(rows)
+    except Exception as e:
+        return f"❌ Erreur : {e}"
+
+
+def _calculate_investment_flows_db(conn, account, end_date, start_date=None, target_currency="EUR") -> dict:
+    baseline_date = None
+    baseline_val_raw = 0.0
+    
+    if start_date:
+        last_snap = conn.execute(
+            """SELECT date, current_value FROM balance_snapshots 
+               WHERE account_id = ? AND date < ? 
+               ORDER BY date DESC, id DESC LIMIT 1""",
+            (account["id"], start_date)
+        ).fetchone()
+        if last_snap:
+            baseline_val_raw = float(last_snap["current_value"])
+            baseline_date = last_snap["date"]
+        else:
+            last_tx = conn.execute(
+                """SELECT date, running_balance FROM transactions 
+                   WHERE account_id = ? AND date < ? 
+                   ORDER BY date DESC, id DESC LIMIT 1""",
+                (account["id"], start_date)
+            ).fetchone()
+            if last_tx:
+                baseline_val_raw = float(last_tx["running_balance"])
+                baseline_date = last_tx["date"]
+    else:
+        zero_point = conn.execute(
+            """SELECT date, current_value FROM balance_snapshots 
+               WHERE account_id = ? AND is_zero_point = 1 AND date <= ? 
+               ORDER BY date DESC, id DESC LIMIT 1""",
+            (account["id"], end_date)
+        ).fetchone()
+        if zero_point:
+            baseline_val_raw = float(zero_point["current_value"])
+            baseline_date = zero_point["date"]
+            
+    baseline_val_target = 0.0
+    if baseline_val_raw != 0:
+        baseline_val_target = convert_amount(conn, baseline_val_raw, account["currency"], target_currency, baseline_date)
+        
+    total_verse_target = 0.0
+    total_retire_target = 0.0
+    
+    # 2. Fetch flows from investment_transactions
+    itx_query = "SELECT type, original_amount, currency, date FROM investment_transactions WHERE account_id = ? AND date <= ?"
+    itx_params = [account["id"], end_date]
+    if start_date:
+        itx_query += " AND date >= ?"
+        itx_params.append(start_date)
+    elif baseline_date:
+        itx_query += " AND date > ?"
+        itx_params.append(baseline_date)
+        
+    itxs = conn.execute(itx_query, itx_params).fetchall()
+    for tx in itxs:
+        amount_target = convert_amount(conn, tx["original_amount"], tx["currency"], target_currency, tx["date"])
+        if tx["type"] == "versement":
+            total_verse_target += amount_target
+        elif tx["type"] == "retrait":
+            total_retire_target += amount_target
+            
+    # 3. Regular Transactions
+    rtx_query = """
+        SELECT t.type, t.original_amount, t.currency, t.date, t.merchant, c.name as cat_name
+        FROM transactions t
+        LEFT JOIN categories c ON t.category_id = c.id
+        WHERE t.account_id = ? AND t.date <= ?
+    """
+    rtx_params = [account["id"], end_date]
+    if start_date:
+        rtx_query += " AND t.date >= ?"
+        rtx_params.append(start_date)
+    elif baseline_date:
+        rtx_query += " AND t.date > ?"
+        rtx_params.append(baseline_date)
+        
+    rtxs = conn.execute(rtx_query, rtx_params).fetchall()
+    for tx in rtxs:
+        merchant_lower = (tx["merchant"] or "").lower()
+        cat_name = tx["cat_name"] or ""
+        
+        if tx["type"] in ("Solde Initial", "Entree"):
+            if cat_name in ("Interets", "Intérêts", "Intérêt", "Interet", "Dividendes", "Dividende"):
+                continue
+            if "dividende" in merchant_lower:
+                continue
+            if "vente" in merchant_lower:
+                amount_target = convert_amount(conn, tx["original_amount"], tx["currency"], target_currency, tx["date"])
+                total_retire_target += amount_target
+                continue
+                
+            amount_target = convert_amount(conn, tx["original_amount"], tx["currency"], target_currency, tx["date"])
+            total_verse_target += amount_target
+        elif tx["type"] == "Sortie":
+            if any(k in merchant_lower for k in ("achat", "frais", "commission", "tax")):
+                continue
+            amount_target = convert_amount(conn, tx["original_amount"], tx["currency"], target_currency, tx["date"])
+            total_retire_target += amount_target
+            
+    net_invested_target = baseline_val_target + total_verse_target - total_retire_target
+    return {
+        "baseline_val_target": baseline_val_target,
+        "baseline_date": baseline_date,
+        "total_verse_target": total_verse_target,
+        "total_retire_target": total_retire_target,
+        "net_invested_target": net_invested_target
+    }
+
+
+@mcp.tool()
+def get_investments_summary(
+    account_id: int | None = None,
+    month: int | None = None,
+    year: int | None = None,
+) -> str:
+    """Résumé des investissements (comptes d'investissement actifs).
+
+    Args:
+        account_id: Filtrer par compte spécifique (optionnel)
+        month: Mois (1-12, optionnel)
+        year: Année (optionnel)
     """
     try:
         with get_db() as conn:
-            rows = rows_to_dicts(conn.execute(
-                """SELECT c.name as categorie, c.icon, c.color,
-                          COUNT(t.id) as nb_transactions,
-                          SUM(t.amount) as total,
-                          ROUND(AVG(t.amount), 2) as moyenne
-                   FROM transactions t
-                   LEFT JOIN categories c ON t.category_id = c.id
-                   WHERE t.type = 'Sortie'
-                     AND t.date >= ? AND t.date <= ?
-                     AND t.is_transfer = 0
-                   GROUP BY c.id
-                   ORDER BY total DESC""",
-                (start_date, end_date + "T23:59:59")
+            query_acc = "SELECT id, name, currency, active FROM accounts WHERE type = 'investissement' AND active = 1"
+            params_acc = []
+            if account_id:
+                query_acc += " AND id = ?"
+                params_acc.append(account_id)
+                
+            accounts = rows_to_dicts(conn.execute(query_acc, params_acc).fetchall())
+            if not accounts:
+                return "Aucun compte d'investissement actif trouvé."
+                
+            end_date = datetime.now()
+            start_date = None
+            if month and year:
+                start_date = datetime(year, month, 1)
+                end_date = datetime(year + (1 if month == 12 else 0), 1 if month == 12 else month + 1, 1)
+                
+            latest_snapshots = {}
+            for acc in accounts:
+                row = conn.execute(
+                    """SELECT current_value, date FROM balance_snapshots 
+                       WHERE account_id = ? AND date <= ? 
+                       ORDER BY date DESC, id DESC LIMIT 1""",
+                    (acc["id"], end_date)
+                ).fetchone()
+                if row:
+                    latest_snapshots[acc["id"]] = (float(row["current_value"]), row["date"])
+                else:
+                    last_tx = conn.execute(
+                        """SELECT running_balance, date FROM transactions 
+                           WHERE account_id = ? AND date <= ? 
+                           ORDER BY date DESC, id DESC LIMIT 1""",
+                        (acc["id"], end_date)
+                    ).fetchone()
+                    if last_tx:
+                        latest_snapshots[acc["id"]] = (float(last_tx["running_balance"]), last_tx["date"])
+                        
+            items = []
+            total_net_invested_eur = 0.0
+            total_current_value_eur = 0.0
+            
+            for acc in accounts:
+                flows = _calculate_investment_flows_db(conn, acc, end_date, start_date=start_date, target_currency="EUR")
+                net_invested_eur = flows["net_invested_target"]
+                
+                snap_info = latest_snapshots.get(acc["id"])
+                if snap_info:
+                    raw_val, snap_date = snap_info
+                    current_value_eur = convert_amount(conn, raw_val, acc["currency"], "EUR", snap_date)
+                else:
+                    current_value_eur = net_invested_eur
+                    
+                gain_eur = current_value_eur - net_invested_eur
+                performance_pct = (gain_eur / net_invested_eur * 100.0) if net_invested_eur > 0 else 0.0
+                
+                total_net_invested_eur += net_invested_eur
+                total_current_value_eur += current_value_eur
+                
+                items.append({
+                    "id": acc["id"],
+                    "compte": acc["name"],
+                    "versements": round(flows["total_verse_target"], 2),
+                    "retraits": round(flows["total_retire_target"], 2),
+                    "investi_net": round(net_invested_eur, 2),
+                    "valeur_actuelle": round(current_value_eur, 2),
+                    "gain_eur": round(gain_eur, 2),
+                    "performance": f"{performance_pct:.2f}%",
+                    "devise": acc["currency"]
+                })
+                
+            total_gain_eur = total_current_value_eur - total_net_invested_eur
+            total_perf_pct = (total_gain_eur / total_net_invested_eur * 100.0) if total_net_invested_eur > 0 else 0.0
+            
+            header = (
+                f"📈 Résumé des Investissements ({'Tous comptes' if not account_id else accounts[0]['name']})\n"
+                f"{'='*50}\n"
+                f"💰 Total Investi Net : {total_net_invested_eur:,.2f} €\n"
+                f"📊 Valeur Actuelle  : {total_current_value_eur:,.2f} €\n"
+                f"📈 Gain Latent Global: {total_gain_eur:,.2f} €\n"
+                f"📈 Performance Glob.: {total_perf_pct:.2f} %\n\n"
+            )
+            return header + format_table(items)
+    except Exception as e:
+        return f"❌ Erreur : {e}"
+
+
+@mcp.tool()
+def get_investment_performance(account_id: int) -> str:
+    """Analyse de performance détaillée d'un compte d'investissement spécifique.
+
+    Args:
+        account_id: ID du compte d'investissement
+    """
+    try:
+        with get_db() as conn:
+            account = conn.execute("SELECT * FROM accounts WHERE id = ?", (account_id,)).fetchone()
+            if not account:
+                return f"❌ Compte #{account_id} introuvable."
+            account = dict(account)
+            if account["type"] != "investissement":
+                return f"❌ Le compte #{account_id} n'est pas un compte d'investissement."
+                
+            zero_point = conn.execute(
+                """SELECT * FROM balance_snapshots 
+                   WHERE account_id = ? AND is_zero_point = 1
+                   ORDER BY date DESC, id DESC LIMIT 1""",
+                (account_id,)
+            ).fetchone()
+            
+            baseline_date = zero_point["date"] if zero_point else None
+            baseline_val = float(zero_point["current_value"]) if zero_point else 0.0
+            
+            flows = _calculate_investment_flows_db(conn, account, datetime.now(), target_currency=account["currency"])
+            net_invested = flows["net_invested_target"]
+            baseline_date = flows["baseline_date"]
+            
+            latest_snap = conn.execute(
+                """SELECT * FROM balance_snapshots 
+                   WHERE account_id = ? 
+                   ORDER BY date DESC, id DESC LIMIT 1""",
+                (account_id,)
+            ).fetchone()
+            if latest_snap:
+                current_value = float(latest_snap["current_value"])
+            else:
+                current_value = net_invested
+                last_tx = conn.execute(
+                    "SELECT running_balance FROM transactions WHERE account_id = ? ORDER BY date DESC, id DESC LIMIT 1",
+                    (account_id,)
+                ).fetchone()
+                if last_tx:
+                    current_value = float(last_tx["running_balance"])
+                    
+            gain = current_value - net_invested
+            performance_pct = (gain / net_invested * 100.0) if net_invested > 0 else 0.0
+            
+            snapshots = rows_to_dicts(conn.execute(
+                "SELECT date, current_value, is_zero_point, note FROM balance_snapshots WHERE account_id = ? ORDER BY date ASC",
+                (account_id,)
             ).fetchall())
+            
+            itxs = rows_to_dicts(conn.execute(
+                """SELECT 'investissement' as src, date, type, original_amount, currency, note,
+                           asset_class, sector, geographic_zone
+                   FROM investment_transactions
+                   WHERE account_id = ?
+                   ORDER BY date ASC""",
+                (account_id,)
+            ).fetchall())
+            
+            rtxs = rows_to_dicts(conn.execute(
+                """SELECT 'courant' as src, date, type, original_amount, currency, merchant as note
+                   FROM transactions
+                   WHERE account_id = ?
+                   ORDER BY date ASC""",
+                (account_id,)
+            ).fetchall())
+            
+            all_txs = []
+            for tx in itxs:
+                amount = convert_amount(conn, tx["original_amount"], tx["currency"], account["currency"], tx["date"])
+                all_txs.append({
+                    "date": tx["date"],
+                    "source": "Investissement",
+                    "type": tx["type"],
+                    "montant_devise": f"{tx['original_amount']:,.2f} {tx['currency']}",
+                    "montant_compte": f"{amount:,.2f} {account['currency']}",
+                    "note": tx["note"] or "",
+                    "allocation": f"{tx['asset_class'] or ''} / {tx['sector'] or ''} / {tx['geographic_zone'] or ''}"
+                })
+            for tx in rtxs:
+                merchant_lower = (tx["note"] or "").lower()
+                if tx["type"] in ("Solde Initial", "Entree"):
+                    if "dividende" in merchant_lower:
+                        continue
+                elif tx["type"] == "Sortie":
+                    if any(k in merchant_lower for k in ("achat", "frais", "commission", "tax")):
+                        continue
+                
+                amount = convert_amount(conn, tx["original_amount"], tx["currency"], account["currency"], tx["date"])
+                tx_type = "versement" if tx["type"] in ("Entree", "Solde Initial") else "retrait"
+                all_txs.append({
+                    "date": tx["date"],
+                    "source": "Courant (Liée)",
+                    "type": tx_type,
+                    "montant_devise": f"{tx['original_amount']:,.2f} {tx['currency']}",
+                    "montant_compte": f"{amount:,.2f} {account['currency']}",
+                    "note": tx["note"] or "",
+                    "allocation": "—"
+                })
+                
+            all_txs.sort(key=lambda x: x["date"], reverse=True)
+            
+            header = (
+                f"🏦 Performance du compte '{account['name']}' ({account['currency']})\n"
+                f"{'='*60}\n"
+                f"📉 Point zéro (baseline)  : {baseline_val:,.2f} {account['currency']} (le {baseline_date or 'N/A'})\n"
+                f"💵 Versements cumulés     : {flows['total_verse_target']:,.2f} {account['currency']}\n"
+                f"💸 Retraits cumulés       : {flows['total_retire_target']:,.2f} {account['currency']}\n"
+                f"💰 Capital net investi    : {net_invested:,.2f} {account['currency']}\n"
+                f"📈 Valeur actuelle        : {current_value:,.2f} {account['currency']}\n"
+                f"📊 Gain net               : {gain:,.2f} {account['currency']}\n"
+                f"📈 Performance            : {performance_pct:.2f} %\n\n"
+            )
+            
+            res = header
+            if snapshots:
+                res += "📋 Historique des Valeurs Liquidatives (Snapshots) :\n" + format_table(snapshots) + "\n\n"
+            if all_txs:
+                res += "📝 Transactions récentes :\n" + format_table(all_txs[:30])
+            return res
+    except Exception as e:
+        return f"❌ Erreur : {e}"
 
-            total = sum(r["total"] or 0 for r in rows)
-            for row in rows:
-                row["part_%"] = f"{((row['total'] or 0) / total * 100):.1f}%" if total > 0 else "0%"
 
-            header = f"💸 Dépenses du {start_date} au {end_date} : {total:,.2f} €\n\n"
-            return header + format_table(rows)
+@mcp.tool()
+def get_investment_performance_history(account_id: int, months: int = 12) -> str:
+    """Historique des performances mensuelles d'un compte d'investissement spécifique.
+
+    Args:
+        account_id: ID du compte d'investissement
+        months: Nombre de mois (défaut 12)
+    """
+    try:
+        with get_db() as conn:
+            account = conn.execute("SELECT * FROM accounts WHERE id = ?", (account_id,)).fetchone()
+            if not account:
+                return f"❌ Compte #{account_id} introuvable."
+            account = dict(account)
+            if account["type"] != "investissement":
+                return f"❌ Le compte #{account_id} n'est pas un compte d'investissement."
+                
+            zero_point = conn.execute(
+                """SELECT * FROM balance_snapshots 
+                   WHERE account_id = ? AND is_zero_point = 1
+                   ORDER BY date DESC, id DESC LIMIT 1""",
+                (account_id,)
+            ).fetchone()
+            
+            baseline_date = zero_point["date"] if zero_point else None
+            baseline_value = float(zero_point["current_value"]) if zero_point else 0.0
+            
+            tx_q = "SELECT type, original_amount, currency, date FROM investment_transactions WHERE account_id = ?"
+            rtx_q = """
+                SELECT t.type, t.original_amount, t.currency, t.date, t.merchant, c.name as cat_name
+                FROM transactions t
+                LEFT JOIN categories c ON t.category_id = c.id
+                WHERE t.account_id = ?
+            """
+            snap_q = "SELECT date, current_value, is_zero_point FROM balance_snapshots WHERE account_id = ?"
+            params = [account_id]
+            if baseline_date:
+                tx_q += " AND date >= ?"
+                rtx_q += " AND t.date >= ?"
+                snap_q += " AND date >= ?"
+                params.append(baseline_date)
+                
+            txs = conn.execute(tx_q, params).fetchall()
+            rtxs = conn.execute(rtx_q, params).fetchall()
+            snaps = conn.execute(snap_q, params).fetchall()
+            
+            tx_events_by_day = {}
+            for tx in txs:
+                if tx["type"] == "dividende":
+                    continue
+                day_str = tx["date"][:10]
+                if day_str not in tx_events_by_day:
+                    tx_events_by_day[day_str] = {"versement": 0.0, "retrait": 0.0}
+                amount = convert_amount(conn, tx["original_amount"], tx["currency"], account["currency"], tx["date"])
+                if tx["type"] == "versement":
+                    tx_events_by_day[day_str]["versement"] += amount
+                elif tx["type"] == "retrait":
+                    tx_events_by_day[day_str]["retrait"] += amount
+                    
+            for tx in rtxs:
+                merchant_lower = (tx["merchant"] or "").lower()
+                cat_name = tx["cat_name"] or ""
+                day_str = tx["date"][:10]
+                if day_str not in tx_events_by_day:
+                    tx_events_by_day[day_str] = {"versement": 0.0, "retrait": 0.0}
+                
+                if tx["type"] in ("Solde Initial", "Entree"):
+                    if cat_name in ("Interets", "Intérêts", "Intérêt", "Interet", "Dividendes", "Dividende"):
+                        continue
+                    if "dividende" in merchant_lower:
+                        continue
+                    if "vente" in merchant_lower:
+                        amount = convert_amount(conn, tx["original_amount"], tx["currency"], account["currency"], tx["date"])
+                        tx_events_by_day[day_str]["retrait"] += amount
+                        continue
+                    amount = convert_amount(conn, tx["original_amount"], tx["currency"], account["currency"], tx["date"])
+                    tx_events_by_day[day_str]["versement"] += amount
+                elif tx["type"] == "Sortie":
+                    if any(k in merchant_lower for k in ("achat", "frais", "commission", "tax")):
+                        continue
+                    amount = convert_amount(conn, tx["original_amount"], tx["currency"], account["currency"], tx["date"])
+                    tx_events_by_day[day_str]["retrait"] += amount
+                    
+            all_dates = sorted(set(tx_events_by_day.keys()) | {s["date"][:10] for s in snaps})
+            
+            running_verse = 0.0
+            running_retire = 0.0
+            series = []
+            
+            snaps_by_day = {s["date"][:10]: s for s in snaps}
+            
+            for day_str in all_dates:
+                event = tx_events_by_day.get(day_str, {"versement": 0.0, "retrait": 0.0})
+                running_verse += event["versement"]
+                running_retire += event["retrait"]
+                
+                snap = snaps_by_day.get(day_str)
+                if snap:
+                    net_invested = baseline_value + running_verse - running_retire
+                    current_value = float(snap["current_value"])
+                    gain = current_value - net_invested
+                    performance_pct = (gain / net_invested * 100.0) if net_invested > 0 else 0.0
+                    series.append({
+                        "date": day_str,
+                        "net_invested": round(net_invested, 2),
+                        "current_value": round(current_value, 2),
+                        "gain": round(gain, 2),
+                        "performance": f"{performance_pct:.2f}%",
+                        "baseline": "Oui" if snap["is_zero_point"] else "Non"
+                    })
+                    
+            series.sort(key=lambda x: x["date"], reverse=True)
+            limited_series = series[:months]
+            limited_series.reverse()
+            
+            header = f"📈 Historique des performances de '{account['name']}' ({account['currency']}) :\n\n"
+            return header + format_table(limited_series)
+    except Exception as e:
+        return f"❌ Erreur : {e}"
+
+
+@mcp.tool()
+def get_investments_allocation(account_id: int | None = None) -> str:
+    """Répartition de l'allocation d'actifs globale ou pour un compte spécifique.
+
+    Args:
+        account_id: Filtrer par compte spécifique (optionnel)
+    """
+    try:
+        with get_db() as conn:
+            query = "SELECT id, name, currency FROM accounts WHERE type = 'investissement' AND active = 1"
+            params = []
+            if account_id:
+                query += " AND id = ?"
+                params.append(account_id)
+                
+            accounts = rows_to_dicts(conn.execute(query, params).fetchall())
+            if not accounts:
+                return "Aucun compte d'investissement actif trouvé."
+                
+            total_current_value_eur = 0.0
+            items = []
+            
+            for acc in accounts:
+                flows = _calculate_investment_flows_db(conn, acc, datetime.now(), target_currency="EUR")
+                net_invested_eur = flows["net_invested_target"]
+                
+                snap = conn.execute(
+                    "SELECT current_value, date FROM balance_snapshots WHERE account_id = ? ORDER BY date DESC, id DESC LIMIT 1",
+                    (acc["id"],)
+                ).fetchone()
+                if snap:
+                    val_eur = convert_amount(conn, float(snap["current_value"]), acc["currency"], "EUR", snap["date"])
+                else:
+                    val_eur = net_invested_eur
+                    
+                total_current_value_eur += val_eur
+                items.append({
+                    "id": acc["id"],
+                    "compte": acc["name"],
+                    "valeur_eur": val_eur,
+                    "investi_net_eur": net_invested_eur,
+                    "gain_eur": val_eur - net_invested_eur,
+                    "devise": acc["currency"]
+                })
+                
+            for item in items:
+                pct = (item["valeur_eur"] / total_current_value_eur * 100.0) if total_current_value_eur > 0 else 0.0
+                item["pourcentage"] = f"{pct:.2f}%"
+                item["valeur_eur"] = f"{item['valeur_eur']:,.2f} €"
+                item["investi_net_eur"] = f"{item['investi_net_eur']:,.2f} €"
+                item["gain_eur"] = f"{item['gain_eur']:,.2f} €"
+                
+            items.sort(key=lambda x: float(x["pourcentage"].replace("%", "")), reverse=True)
+            
+            header = f"🧩 Allocation des investissements (Total : {total_current_value_eur:,.2f} €) :\n\n"
+            return header + format_table(items)
+    except Exception as e:
+        return f"❌ Erreur : {e}"
+
+
+@mcp.tool()
+def get_investments_allocation_advanced() -> str:
+    """Allocation d'actifs détaillée avancée par classe, secteur et zone géographique."""
+    try:
+        with get_db() as conn:
+            accounts = rows_to_dicts(conn.execute(
+                "SELECT id, name, currency, asset_class, sector, geographic_zone FROM accounts WHERE type = 'investissement' AND active = 1"
+            ).fetchall())
+            if not accounts:
+                return "Aucun compte d'investissement actif trouvé."
+                
+            total_value_eur = 0.0
+            current_by_account = {}
+            for acc in accounts:
+                flows = _calculate_investment_flows_db(conn, acc, datetime.now(), target_currency="EUR")
+                net_invested_eur = flows["net_invested_target"]
+                
+                snap = conn.execute(
+                    "SELECT current_value, date FROM balance_snapshots WHERE account_id = ? ORDER BY date DESC, id DESC LIMIT 1",
+                    (acc["id"],)
+                ).fetchone()
+                if snap:
+                    val_eur = convert_amount(conn, float(snap["current_value"]), acc["currency"], "EUR", snap["date"])
+                else:
+                    val_eur = net_invested_eur
+                current_by_account[acc["id"]] = val_eur
+                total_value_eur += val_eur
+                
+            by_asset_class = {}
+            by_sector = {}
+            by_zone = {}
+            
+            def _add_to_agg(agg_dict, cat_name, val, acc):
+                if not cat_name:
+                    cat_name = "Non classé"
+                if cat_name not in agg_dict:
+                    agg_dict[cat_name] = {"value": 0.0, "items": {}}
+                agg_dict[cat_name]["value"] += val
+                acc_id = acc["id"]
+                if acc_id not in agg_dict[cat_name]["items"]:
+                    agg_dict[cat_name]["items"][acc_id] = {"name": acc["name"], "value": 0.0}
+                agg_dict[cat_name]["items"][acc_id]["value"] += val
+                
+            for acc in accounts:
+                val_eur = current_by_account[acc["id"]]
+                if val_eur <= 0:
+                    continue
+                    
+                txs_with_allocation = rows_to_dicts(conn.execute(
+                    "SELECT amount, asset_class, sector, geographic_zone FROM investment_transactions WHERE account_id = ? AND asset_class IS NOT NULL",
+                    (acc["id"],)
+                ).fetchall())
+                
+                if txs_with_allocation:
+                    total_tx_amount = sum(abs(tx["amount"]) for tx in txs_with_allocation)
+                    if total_tx_amount > 0:
+                        for tx in txs_with_allocation:
+                            weight = abs(tx["amount"]) / total_tx_amount
+                            tx_val_eur = val_eur * weight
+                            _add_to_agg(by_asset_class, tx["asset_class"], tx_val_eur, acc)
+                            _add_to_agg(by_sector, tx["sector"], tx_val_eur, acc)
+                            _add_to_agg(by_zone, tx["geographic_zone"], tx_val_eur, acc)
+                    else:
+                        _add_to_agg(by_asset_class, acc["asset_class"], val_eur, acc)
+                        _add_to_agg(by_sector, acc["sector"], val_eur, acc)
+                        _add_to_agg(by_zone, acc["geographic_zone"], val_eur, acc)
+                else:
+                    _add_to_agg(by_asset_class, acc["asset_class"], val_eur, acc)
+                    _add_to_agg(by_sector, acc["sector"], val_eur, acc)
+                    _add_to_agg(by_zone, acc["geographic_zone"], val_eur, acc)
+                    
+            def _format_agg(agg_dict):
+                result = []
+                for name, data in agg_dict.items():
+                    val = data["value"]
+                    pct = (val / total_value_eur * 100.0) if total_value_eur > 0 else 0.0
+                    result.append({
+                        "Allocation": name,
+                        "Valeur (EUR)": f"{val:,.2f} €",
+                        "Part (%)": f"{pct:.2f}%"
+                    })
+                result.sort(key=lambda x: float(x["Part (%)"].replace("%", "")), reverse=True)
+                return format_table(result)
+                
+            res = (
+                f"🔬 Allocation d'Actifs Avancée (Total : {total_value_eur:,.2f} €)\n"
+                f"{'='*60}\n\n"
+                f"📁 Répartition par Classe d'Actifs :\n"
+                f"{_format_agg(by_asset_class)}\n\n"
+                f"🏭 Répartition par Secteur :\n"
+                f"{_format_agg(by_sector)}\n\n"
+                f"🌍 Répartition par Zone Géographique :\n"
+                f"{_format_agg(by_zone)}\n"
+            )
+            return res
     except Exception as e:
         return f"❌ Erreur : {e}"
 
@@ -617,28 +1372,34 @@ def get_income_vs_expenses(start_date: str, end_date: str) -> str:
 
 @mcp.tool()
 def get_top_merchants(
-    start_date: str | None = None,
-    end_date: str | None = None,
+    month: int | None = None,
+    year: int | None = None,
+    account_id: int | None = None,
     limit: int = 10,
 ) -> str:
     """Top marchands par montant total dépensé.
 
     Args:
-        start_date: Date de début (YYYY-MM-DD, optionnel)
-        end_date: Date de fin (YYYY-MM-DD, optionnel)
+        month: Mois (1-12, optionnel, défaut: mois en cours)
+        year: Année (optionnel, défaut: année en cours)
+        account_id: Filtrer par compte (optionnel)
         limit: Nombre de marchands à afficher (défaut 10)
     """
     try:
+        if month is None:
+            month = datetime.now().month
+        if year is None:
+            year = datetime.now().year
+            
+        month_label = f"{year:04d}-{month:02d}"
         limit = min(limit, 50)
+        
         with get_db() as conn:
-            conditions = ["t.type = 'Sortie'", "t.is_transfer = 0"]
-            params: list = []
-            if start_date:
-                conditions.append("t.date >= ?")
-                params.append(start_date)
-            if end_date:
-                conditions.append("t.date <= ?")
-                params.append(end_date + "T23:59:59")
+            conditions = ["t.month_label = ?", "t.type = 'Sortie'", "t.is_transfer = 0"]
+            params = [month_label]
+            if account_id is not None:
+                conditions.append("t.account_id = ?")
+                params.append(account_id)
 
             where = " AND ".join(conditions)
             rows = rows_to_dicts(conn.execute(
@@ -656,7 +1417,11 @@ def get_top_merchants(
                 params + [limit]
             ).fetchall())
 
-            return f"🏪 Top {limit} marchands :\n\n" + format_table(rows)
+            header = f"🏪 Top {limit} marchands pour {month_label} :\n"
+            if account_id is not None:
+                header += f"🏦 Filtre compte : #{account_id}\n"
+            header += "\n"
+            return header + format_table(rows)
     except Exception as e:
         return f"❌ Erreur : {e}"
 
@@ -1142,19 +1907,21 @@ def execute_read_query(sql: str) -> str:
 # ═══════════════════════════════════════════════════════════════════════════════
 
 @mcp.prompt()
-def analyze_month(month: str) -> str:
+def analyze_month(month: int, year: int) -> str:
     """Prompt pour analyser en détail un mois de budget.
 
     Args:
-        month: Mois à analyser au format YYYY-MM (ex: 2026-06)
+        month: Mois à analyser (1-12)
+        year: Année (ex: 2026)
     """
-    return f"""Analyse complète du budget pour le mois {month}.
+    month_label = f"{year:04d}-{month:02d}"
+    return f"""Analyse complète du budget pour le mois {month_label}.
 
 Étapes à suivre :
-1. Utilise `get_budget_summary` avec month="{month}" pour obtenir le résumé
-2. Utilise `get_expenses_by_category` pour la répartition des dépenses
-3. Utilise `get_top_merchants` pour voir les plus gros postes de dépenses
-4. Utilise `list_transactions` avec start_date et end_date pour voir le détail
+1. Utilise `get_budget_summary` avec month={month} et year={year} pour obtenir le résumé
+2. Utilise `get_expenses_by_category` avec month={month} et year={year} pour la répartition des dépenses
+3. Utilise `get_top_merchants` avec month={month} et year={year} pour voir les plus gros postes de dépenses
+4. Utilise `list_transactions` avec start_date="{month_label}-01" et end_date="{month_label}-31" pour voir le détail
 
 Fournis une analyse complète incluant :
 - Résumé revenus / dépenses / solde
