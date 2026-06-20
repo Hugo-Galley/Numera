@@ -3777,39 +3777,72 @@ async def sankey_analytics(
         links.append({"source": def_idx, "target": total_revenus_idx, "value": round(abs(savings_total), 2), "color": "#fecdd3"})
         total_income += abs(savings_total)
 
-    # Expenses logic: we need to ensure Budget node doesn't leak
-    # If income is higher than total shown outflows, the difference is "Epargne"
-    # (already handled via savings_total which is remaining = income - total_expenses)
-
     # Expense Groups and Categories
+    # Group categories by parent group to prevent link crossings in the Sankey diagram
+    grouped_expenses = {} # group_name -> list of {"name": name, "color": color, "total": total}
+    ungrouped_expenses = [] # list of {"name": name, "color": color, "total": total}
+
     for cid, data in cat_expenses.items():
         cat = data["obj"]
         total = data["total"]
         if total <= 0: continue
 
+        item = {"name": cat.name, "color": cat.color, "total": total}
         if cat.group:
-            group_name = cat.group
-            if group_name not in groups:
-                # Add a slightly different color for groups to distinguish from categories
-                g_idx = add_node(group_name, "#64748b") 
-                groups[group_name] = {"idx": g_idx, "total": 0.0}
-                links.append({"source": total_revenus_idx, "target": g_idx, "value": 0.0, "color": "#cbd5e1"})
-
-            groups[group_name]["total"] += total
-
-            # Link Group -> Category
-            cat_idx = add_node(cat.name, cat.color)
-            links.append({"source": groups[group_name]["idx"], "target": cat_idx, "value": round(total, 2), "color": cat.color})
+            if cat.group not in grouped_expenses:
+                grouped_expenses[cat.group] = []
+            grouped_expenses[cat.group].append(item)
         else:
-            # Direct link Budget -> Category (no intermediate group)
-            cat_idx = add_node(cat.name, cat.color)
-            links.append({"source": total_revenus_idx, "target": cat_idx, "value": round(total, 2), "color": cat.color})
+            ungrouped_expenses.append(item)
 
-    # Update Group link values (they were 0.0 placeholder)
-    for g_name, g_data in groups.items():
-        for link in links:
-            if link["source"] == total_revenus_idx and link["target"] == g_data["idx"]:
-                link["value"] = round(g_data["total"], 2)
+    # Calculate group totals and sort groups by total value descending
+    group_totals = {}
+    for g_name, items in grouped_expenses.items():
+        group_totals[g_name] = sum(item["total"] for item in items)
+    
+    sorted_groups = sorted(grouped_expenses.keys(), key=lambda g: group_totals[g], reverse=True)
+
+    # Sort categories within each group by total value descending
+    for g_name in grouped_expenses:
+        grouped_expenses[g_name] = sorted(grouped_expenses[g_name], key=lambda x: x["total"], reverse=True)
+    
+    # Sort ungrouped categories by total value descending
+    ungrouped_expenses = sorted(ungrouped_expenses, key=lambda x: x["total"], reverse=True)
+
+    # STAGE 2: Add Group Nodes
+    group_node_indices = {}
+    for g_name in sorted_groups:
+        g_idx = add_node(g_name, "#64748b")
+        group_node_indices[g_name] = g_idx
+        # Link Budget -> Group
+        links.append({
+            "source": total_revenus_idx,
+            "target": g_idx,
+            "value": round(group_totals[g_name], 2),
+            "color": "#cbd5e1"
+        })
+
+    # STAGE 3: Add Category Nodes grouped by parent group
+    for g_name in sorted_groups:
+        g_idx = group_node_indices[g_name]
+        for item in grouped_expenses[g_name]:
+            cat_idx = add_node(item["name"], item["color"])
+            links.append({
+                "source": g_idx,
+                "target": cat_idx,
+                "value": round(item["total"], 2),
+                "color": item["color"]
+            })
+
+    # Add ungrouped categories (connected directly to Budget)
+    for item in ungrouped_expenses:
+        cat_idx = add_node(item["name"], item["color"])
+        links.append({
+            "source": total_revenus_idx,
+            "target": cat_idx,
+            "value": round(item["total"], 2),
+            "color": item["color"]
+        })
 
     # Final check: if the Budget node is still unbalanced (more income than total links out),
     # it might be due to rounding or untracked flows. We balance it with a small "Ajustement" if needed.
