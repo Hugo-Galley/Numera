@@ -11,6 +11,8 @@ class AccountBase(BaseModel):
     sector: str | None = None
     geographic_zone: str | None = None
     is_main: bool = False
+    fonds_euros_pct: float | None = None
+    fonds_investis_pct: float | None = None
 
 
 class AccountCreate(AccountBase):
@@ -27,6 +29,8 @@ class AccountUpdate(BaseModel):
     sector: str | None = None
     geographic_zone: str | None = None
     is_main: bool | None = None
+    fonds_euros_pct: float | None = None
+    fonds_investis_pct: float | None = None
 
 
 class AccountRead(AccountBase):

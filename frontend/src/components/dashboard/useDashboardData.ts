@@ -10,6 +10,7 @@ export function useDashboardData(selectedAccountId: string, month: number, year:
   const [salarySeries, setSalarySeries] = useState<any[]>([])
   const [investments, setInvestments] = useState<any>(null)
   const [allocation, setAllocation] = useState<any>(null)
+  const [patrimoineAllocation, setPatrimoineAllocation] = useState<any>(null)
   const [burnRateSeries, setBurnRateSeries] = useState<any[]>([])
   const [budgetAlerts, setBudgetAlerts] = useState<any[]>([])
   const [insights, setInsights] = useState<any>(null)
@@ -45,6 +46,7 @@ export function useDashboardData(selectedAccountId: string, month: number, year:
       })
       safeLoad(`/analytics/investments?month=${month}&year=${year}${accParam}`, setInvestments)
       safeLoad(`/analytics/investments-allocation${accId ? `?account_id=${accId}` : ""}`, setAllocation)
+      safeLoad("/analytics/patrimoine-allocation", setPatrimoineAllocation)
       safeLoad(`/analytics/budget-alerts?month=${month}&year=${year}${accParam}`, setBudgetAlerts)
       safeLoad(`/analytics/insights?month=${month}&year=${year}${accParam}`, setInsights)
       safeLoad(`/analytics/sankey?month=${month}&year=${year}${accParam}`, setSankeyData)
@@ -63,6 +65,7 @@ export function useDashboardData(selectedAccountId: string, month: number, year:
     salarySeries,
     investments,
     allocation,
+    patrimoineAllocation,
     burnRateSeries,
     budgetAlerts,
     insights,

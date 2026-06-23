@@ -26,8 +26,8 @@ def create_balance_snapshot(payload: BalanceSnapshotCreate, db: Session = Depend
     account = db.query(Account).filter(Account.id == payload.account_id).first()
     if not account:
         raise HTTPException(status_code=404, detail="Account not found")
-    if account.type != "investissement":
-        raise HTTPException(status_code=422, detail="Account must be of type investissement")
+    if account.type not in ["investissement", "assurance_vie"]:
+        raise HTTPException(status_code=422, detail="Account must be of type investissement or assurance_vie")
 
     if payload.is_zero_point:
         existing_zero_points = db.query(BalanceSnapshot).filter(
@@ -92,8 +92,8 @@ def set_zero_point(payload: SetZeroPointRequest, db: Session = Depends(get_db)):
     account = db.query(Account).filter(Account.id == payload.account_id).first()
     if not account:
         raise HTTPException(status_code=404, detail="Account not found")
-    if account.type != "investissement":
-        raise HTTPException(status_code=422, detail="Account must be of type investissement")
+    if account.type not in ["investissement", "assurance_vie"]:
+        raise HTTPException(status_code=422, detail="Account must be of type investissement or assurance_vie")
 
     existing_zero_points = db.query(BalanceSnapshot).filter(
         BalanceSnapshot.account_id == payload.account_id,

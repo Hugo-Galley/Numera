@@ -1461,8 +1461,8 @@ async def investments_analytics(
     if account_id:
         target_account = db.query(Account).filter(Account.id == account_id).first()
     
-    query = db.query(Account).filter(Account.type == "investissement", Account.active.is_(True))
-    if target_account and target_account.type == "investissement":
+    query = db.query(Account).filter(Account.type.in_(["investissement", "assurance_vie"]), Account.active.is_(True))
+    if target_account and target_account.type in ["investissement", "assurance_vie"]:
         query = query.filter(Account.id == account_id)
     
     investment_accounts = query.all()
@@ -1683,8 +1683,8 @@ async def investment_account_analytics(account_id: int, db: Session = Depends(ge
     account = db.query(Account).filter(Account.id == account_id).first()
     if not account:
         raise HTTPException(status_code=404, detail="Account not found")
-    if account.type != "investissement":
-        raise HTTPException(status_code=422, detail="Account must be investissement")
+    if account.type not in ["investissement", "assurance_vie"]:
+        raise HTTPException(status_code=422, detail="Account must be investissement or assurance_vie")
     
     rates = await get_exchange_rates("EUR")
 
@@ -1820,8 +1820,8 @@ async def investment_performance_history(account_id: int, db: Session = Depends(
     account = db.query(Account).filter(Account.id == account_id).first()
     if not account:
         raise HTTPException(status_code=404, detail="Account not found")
-    if account.type != "investissement":
-        raise HTTPException(status_code=422, detail="Account must be investissement")
+    if account.type not in ["investissement", "assurance_vie"]:
+        raise HTTPException(status_code=422, detail="Account must be investissement or assurance_vie")
 
     zero_point = (
         db.query(BalanceSnapshot)
@@ -2181,7 +2181,7 @@ async def kpi_history(
 
 @router.get("/investments-allocation")
 async def investments_allocation(account_id: int | None = Query(default=None), db: Session = Depends(get_db)):
-    query = db.query(Account).filter(Account.type == "investissement", Account.active.is_(True))
+    query = db.query(Account).filter(Account.type.in_(["investissement", "assurance_vie"]), Account.active.is_(True))
     if account_id:
         query = query.filter(Account.id == account_id)
     
@@ -2282,7 +2282,7 @@ async def investments_allocation_advanced(db: Session = Depends(get_db)):
     """
     Returns advanced asset allocation: by asset class, sector and geographic zone.
     """
-    investment_accounts = db.query(Account).filter(Account.type == "investissement", Account.active.is_(True)).all()
+    investment_accounts = db.query(Account).filter(Account.type.in_(["investissement", "assurance_vie"]), Account.active.is_(True)).all()
     rates = await get_exchange_rates("EUR")
     now = datetime.now()
     
@@ -2405,6 +2405,133 @@ async def investments_allocation_advanced(db: Session = Depends(get_db)):
         "by_asset_class": _format_agg(by_asset_class),
         "by_sector": _format_agg(by_sector),
         "by_geographic_zone": _format_agg(by_zone)
+    }
+
+
+@router.get("/patrimoine-allocation")
+async def patrimoine_allocation(db: Session = Depends(get_db)):
+    """
+    Returns the distribution of active wealth (all accounts: courant, epargne, investissement).
+    """
+    accounts = db.query(Account).filter(Account.active.is_(True)).all()
+    rates = await get_exchange_rates("EUR")
+    now = datetime.now()
+    
+    # Pre-fetch latest snapshots for all accounts to optimize queries
+    latest_snapshots_subquery = (
+        db.query(
+            BalanceSnapshot.account_id.label("account_id"),
+            func.max(BalanceSnapshot.date).label("max_date"),
+        )
+        .filter(BalanceSnapshot.date <= now)
+        .group_by(BalanceSnapshot.account_id)
+        .subquery()
+    )
+
+    latest_snapshots_ids = (
+        db.query(func.max(BalanceSnapshot.id).label("max_id"))
+        .join(
+            latest_snapshots_subquery,
+            (BalanceSnapshot.account_id == latest_snapshots_subquery.c.account_id)
+            & (BalanceSnapshot.date == latest_snapshots_subquery.c.max_date),
+        )
+        .group_by(BalanceSnapshot.account_id)
+        .subquery()
+    )
+
+    latest_snapshots_rows = (
+        db.query(BalanceSnapshot.account_id, BalanceSnapshot.current_value)
+        .join(latest_snapshots_ids, BalanceSnapshot.id == latest_snapshots_ids.c.max_id)
+        .all()
+    )
+    current_by_snapshot = {row.account_id: float(row.current_value or 0.0) for row in latest_snapshots_rows}
+
+    # Pre-fetch latest transaction running balance for all accounts to optimize queries
+    account_last_tx = (
+        db.query(
+            Transaction.account_id.label("account_id"),
+            func.max(Transaction.date).label("max_date"),
+        )
+        .filter(Transaction.date <= now)
+        .group_by(Transaction.account_id)
+        .subquery()
+    )
+
+    latest_tx_ids = (
+        db.query(func.max(Transaction.id).label("max_id"))
+        .join(
+            account_last_tx,
+            (Transaction.account_id == account_last_tx.c.account_id) & (Transaction.date == account_last_tx.c.max_date),
+        )
+        .group_by(Transaction.account_id)
+        .subquery()
+    )
+
+    latest_tx_rows = (
+        db.query(Transaction.account_id, Transaction.running_balance)
+        .join(latest_tx_ids, Transaction.id == latest_tx_ids.c.max_id)
+        .all()
+    )
+    current_by_tx = {row.account_id: float(row.running_balance or 0.0) for row in latest_tx_rows}
+
+    total_patrimoine_eur = 0.0
+    items = []
+    
+    for acc in accounts:
+        val = 0.0
+        if acc.id in current_by_snapshot:
+            val = current_by_snapshot[acc.id]
+        elif acc.id in current_by_tx:
+            val = current_by_tx[acc.id]
+            
+        val_eur = val / rates.get(acc.currency, 1.0)
+        total_patrimoine_eur += val_eur
+        
+        if acc.type == "assurance_vie":
+            euros_pct = acc.fonds_euros_pct if acc.fonds_euros_pct is not None else 100.0
+            investis_pct = acc.fonds_investis_pct if acc.fonds_investis_pct is not None else 0.0
+            
+            val_euros = val * (euros_pct / 100.0)
+            val_euros_eur = val_eur * (euros_pct / 100.0)
+            
+            val_investis = val * (investis_pct / 100.0)
+            val_investis_eur = val_eur * (investis_pct / 100.0)
+            
+            items.append({
+                "account_id": acc.id,
+                "account_name": f"{acc.name} - Fonds Euro",
+                "type": "epargne",
+                "currency": acc.currency,
+                "balance": round(val_euros, 2),
+                "balance_eur": round(val_euros_eur, 2),
+            })
+            
+            items.append({
+                "account_id": acc.id,
+                "account_name": f"{acc.name} - Investi",
+                "type": "investissement",
+                "currency": acc.currency,
+                "balance": round(val_investis, 2),
+                "balance_eur": round(val_investis_eur, 2),
+            })
+        else:
+            items.append({
+                "account_id": acc.id,
+                "account_name": acc.name,
+                "type": acc.type,
+                "currency": acc.currency,
+                "balance": round(val, 2),
+                "balance_eur": round(val_eur, 2),
+            })
+            
+    for item in items:
+        item["percentage"] = round((item["balance_eur"] / total_patrimoine_eur * 100.0), 2) if total_patrimoine_eur > 0 else 0.0
+
+    items.sort(key=lambda i: i["balance_eur"], reverse=True)
+    
+    return {
+        "total_patrimoine": round(total_patrimoine_eur, 2),
+        "items": items
     }
 
 

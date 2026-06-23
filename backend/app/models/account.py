@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, String
+from sqlalchemy import Boolean, DateTime, Float, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.time import utcnow_naive
@@ -22,6 +22,10 @@ class Account(Base):
     asset_class: Mapped[str | None] = mapped_column(String(32), nullable=True)
     sector: Mapped[str | None] = mapped_column(String(64), nullable=True)
     geographic_zone: Mapped[str | None] = mapped_column(String(64), nullable=True)
+
+    # Assurance Vie split
+    fonds_euros_pct: Mapped[float | None] = mapped_column(Float, nullable=True)
+    fonds_investis_pct: Mapped[float | None] = mapped_column(Float, nullable=True)
 
     is_main: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0", nullable=False)
     

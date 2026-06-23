@@ -27,8 +27,8 @@ async def create_investment_transaction(payload: InvestmentTransactionCreate, db
     account = db.query(Account).filter(Account.id == payload.account_id).first()
     if not account:
         raise HTTPException(status_code=404, detail="Account not found")
-    if account.type != "investissement":
-        raise HTTPException(status_code=422, detail="Account must be of type investissement")
+    if account.type not in {"investissement", "assurance_vie"}:
+        raise HTTPException(status_code=422, detail="Account must be of type investissement or assurance_vie")
 
     tx_type = payload.type.strip().lower()
     if tx_type not in {"versement", "retrait", "dividende"}:

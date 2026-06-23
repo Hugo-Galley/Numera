@@ -9,7 +9,8 @@ import {
   ArrowUp,
   ArrowDown,
   Trash2,
-  Star
+  Star,
+  Shield
 } from "lucide-react"
 import { api } from "@/lib/api"
 import { Button } from "@/components/ui/button"
@@ -52,13 +53,15 @@ import { toast } from "sonner"
 type Account = {
   id: number
   name: string
-  type: "courant" | "epargne" | "investissement"
+  type: "courant" | "epargne" | "investissement" | "assurance_vie"
   currency: string
   active: boolean
   asset_class?: string
   sector?: string
   geographic_zone?: string
   is_main?: boolean
+  fonds_euros_pct?: number
+  fonds_investis_pct?: number
 }
 
 export default function Accounts() {
@@ -74,6 +77,8 @@ export default function Accounts() {
   const [newAssetClass, setNewAssetClass] = useState("")
   const [newSector, setNewSector] = useState("")
   const [newZone, setNewZone] = useState("")
+  const [newEurosPct, setNewEurosPct] = useState("")
+  const [newInvestisPct, setNewInvestisPct] = useState("")
   const [sortField, setSortField] = useState<"name" | "type" | "currency">("name")
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc")
   const [suggestions, setSuggestions] = useState<{
@@ -152,7 +157,9 @@ export default function Accounts() {
         currency: newCurrency,
         asset_class: newType === "investissement" ? newAssetClass : null,
         sector: newType === "investissement" ? newSector : null,
-        geographic_zone: newType === "investissement" ? newZone : null
+        geographic_zone: newType === "investissement" ? newZone : null,
+        fonds_euros_pct: newType === "assurance_vie" ? (newEurosPct ? parseFloat(newEurosPct) : 0) : null,
+        fonds_investis_pct: newType === "assurance_vie" ? (newInvestisPct ? parseFloat(newInvestisPct) : 0) : null
       })
       toast.success("Compte créé avec succès")
       setIsDialogOpen(false)
@@ -161,6 +168,8 @@ export default function Accounts() {
       setNewAssetClass("")
       setNewSector("")
       setNewZone("")
+      setNewEurosPct("")
+      setNewInvestisPct("")
       loadAccounts()
     } catch (error) {
       toast.error("Erreur lors de la création du compte")
@@ -176,7 +185,9 @@ export default function Accounts() {
         currency: editingAccount.currency,
         asset_class: editingAccount.type === "investissement" ? editingAccount.asset_class : null,
         sector: editingAccount.type === "investissement" ? editingAccount.sector : null,
-        geographic_zone: editingAccount.type === "investissement" ? editingAccount.geographic_zone : null
+        geographic_zone: editingAccount.type === "investissement" ? editingAccount.geographic_zone : null,
+        fonds_euros_pct: editingAccount.type === "assurance_vie" ? (editingAccount.fonds_euros_pct !== undefined && editingAccount.fonds_euros_pct !== null ? editingAccount.fonds_euros_pct : 0) : null,
+        fonds_investis_pct: editingAccount.type === "assurance_vie" ? (editingAccount.fonds_investis_pct !== undefined && editingAccount.fonds_investis_pct !== null ? editingAccount.fonds_investis_pct : 0) : null
       })
       toast.success("Compte mis à jour")
       setIsEditDialogOpen(false)
@@ -212,7 +223,18 @@ export default function Accounts() {
       case "courant": return <Wallet className="h-4 w-4" />
       case "epargne": return <PiggyBank className="h-4 w-4" />
       case "investissement": return <TrendingUp className="h-4 w-4" />
+      case "assurance_vie": return <Shield className="h-4 w-4" />
       default: return <Wallet className="h-4 w-4" />
+    }
+  }
+
+  const getTypeLabel = (type: string) => {
+    switch (type) {
+      case "courant": return "Compte Courant"
+      case "epargne": return "Épargne"
+      case "investissement": return "Investissement"
+      case "assurance_vie": return "Assurance-Vie"
+      default: return type
     }
   }
 
@@ -258,9 +280,53 @@ export default function Accounts() {
                     <SelectItem value="courant">Compte Courant</SelectItem>
                     <SelectItem value="epargne">Épargne</SelectItem>
                     <SelectItem value="investissement">Investissement</SelectItem>
+                    <SelectItem value="assurance_vie">Assurance-Vie</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
+
+              {newType === "assurance_vie" && (
+                <div className="grid grid-cols-2 gap-4 pt-2 border-t mt-2">
+                  <div className="grid gap-2">
+                    <Label htmlFor="fonds_euros_pct">Fonds Euros (%)</Label>
+                    <Input 
+                      id="fonds_euros_pct" 
+                      type="number"
+                      min="0"
+                      max="100"
+                      placeholder="Ex: 60" 
+                      value={newEurosPct} 
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setNewEurosPct(val);
+                        const num = parseFloat(val);
+                        if (!isNaN(num) && num >= 0 && num <= 100) {
+                          setNewInvestisPct(String(100 - num));
+                        }
+                      }} 
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="fonds_investis_pct">Fonds Investis (%)</Label>
+                    <Input 
+                      id="fonds_investis_pct" 
+                      type="number"
+                      min="0"
+                      max="100"
+                      placeholder="Ex: 40" 
+                      value={newInvestisPct} 
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setNewInvestisPct(val);
+                        const num = parseFloat(val);
+                        if (!isNaN(num) && num >= 0 && num <= 100) {
+                          setNewEurosPct(String(100 - num));
+                        }
+                      }} 
+                    />
+                  </div>
+                </div>
+              )}
               <div className="grid gap-2">
                 <Label htmlFor="currency">Devise</Label>
                 <Select value={newCurrency} onValueChange={setNewCurrency}>
@@ -360,9 +426,57 @@ export default function Accounts() {
                     <SelectItem value="courant">Compte Courant</SelectItem>
                     <SelectItem value="epargne">Épargne</SelectItem>
                     <SelectItem value="investissement">Investissement</SelectItem>
+                    <SelectItem value="assurance_vie">Assurance-Vie</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
+
+              {editingAccount.type === "assurance_vie" && (
+                <div className="grid grid-cols-2 gap-4 pt-2 border-t mt-2">
+                  <div className="grid gap-2">
+                    <Label htmlFor="edit-fonds_euros_pct">Fonds Euros (%)</Label>
+                    <Input 
+                      id="edit-fonds_euros_pct" 
+                      type="number"
+                      min="0"
+                      max="100"
+                      placeholder="Ex: 60" 
+                      value={editingAccount.fonds_euros_pct !== undefined && editingAccount.fonds_euros_pct !== null ? editingAccount.fonds_euros_pct : ""} 
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        const num = val === "" ? 0 : parseFloat(val);
+                        const otherNum = isNaN(num) ? 0 : Math.max(0, Math.min(100, 100 - num));
+                        setEditingAccount({
+                          ...editingAccount,
+                          fonds_euros_pct: isNaN(num) ? undefined : num,
+                          fonds_investis_pct: otherNum
+                        });
+                      }} 
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="edit-fonds_investis_pct">Fonds Investis (%)</Label>
+                    <Input 
+                      id="edit-fonds_investis_pct" 
+                      type="number"
+                      min="0"
+                      max="100"
+                      placeholder="Ex: 40" 
+                      value={editingAccount.fonds_investis_pct !== undefined && editingAccount.fonds_investis_pct !== null ? editingAccount.fonds_investis_pct : ""} 
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        const num = val === "" ? 0 : parseFloat(val);
+                        const otherNum = isNaN(num) ? 0 : Math.max(0, Math.min(100, 100 - num));
+                        setEditingAccount({
+                          ...editingAccount,
+                          fonds_investis_pct: isNaN(num) ? undefined : num,
+                          fonds_euros_pct: otherNum
+                        });
+                      }} 
+                    />
+                  </div>
+                </div>
+              )}
               <div className="grid gap-2">
                 <Label htmlFor="edit-currency">Devise</Label>
                 <Select 
@@ -494,7 +608,12 @@ export default function Accounts() {
                       <TableCell>
                         <div className="flex items-center gap-2">
                           {getTypeIcon(account.type)}
-                          <span className="capitalize">{account.type}</span>
+                          <span className="capitalize">{getTypeLabel(account.type)}</span>
+                          {account.type === "assurance_vie" && (account.fonds_euros_pct !== undefined && account.fonds_euros_pct !== null || account.fonds_investis_pct !== undefined && account.fonds_investis_pct !== null) && (
+                            <Badge variant="secondary" className="ml-2 font-medium bg-slate-100 text-slate-700">
+                              Euro : {account.fonds_euros_pct || 0}% / Investi : {account.fonds_investis_pct || 0}%
+                            </Badge>
+                          )}
                         </div>
                       </TableCell>
                       <TableCell>{account.currency}</TableCell>

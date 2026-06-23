@@ -53,6 +53,12 @@ def create_account(payload: AccountCreate, db: Session = Depends(get_db)):
         type=payload.type,
         currency=payload.currency,
         color=payload.color,
+        asset_class=payload.asset_class,
+        sector=payload.sector,
+        geographic_zone=payload.geographic_zone,
+        is_main=payload.is_main,
+        fonds_euros_pct=payload.fonds_euros_pct,
+        fonds_investis_pct=payload.fonds_investis_pct,
     )
     db.add(account)
     db.commit()

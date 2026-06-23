@@ -69,7 +69,7 @@ export function AccountVerificationBanner({
               </div>
               
               <div className="flex items-center gap-2">
-                {acc.type === "investissement" ? (
+                {(acc.type === "investissement" || acc.type === "assurance_vie") ? (
                   <Button 
                     size="sm" 
                     variant="outline" 

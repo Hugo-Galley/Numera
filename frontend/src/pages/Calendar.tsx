@@ -147,7 +147,7 @@ export default function Calendar() {
         return
       }
 
-      const isInvAccount = account.type === "investissement"
+      const isInvAccount = account.type === "investissement" || account.type === "assurance_vie"
       const isInvType = ["versement", "retrait", "dividende"].includes(ev.type.toLowerCase())
 
       if (isInvAccount && isInvType) {

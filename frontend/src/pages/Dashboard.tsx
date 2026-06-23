@@ -59,6 +59,7 @@ export default function Dashboard() {
     salarySeries,
     investments,
     allocation,
+    patrimoineAllocation,
     burnRateSeries,
     budgetAlerts,
     insights,
@@ -127,6 +128,7 @@ export default function Dashboard() {
             expensesByCategory={expensesByCategory}
             displayCurrency={displayCurrency}
             tagTotals={tagTotals}
+            patrimoineAllocation={patrimoineAllocation}
           />
         </TabsContent>
 

@@ -230,8 +230,10 @@ import { Input } from "@/components/ui/input"
 type Account = {
   id: number
   name: string
-  type: "courant" | "epargne" | "investissement"
+  type: "courant" | "epargne" | "investissement" | "assurance_vie"
   currency: string
+  fonds_euros_pct?: number
+  fonds_investis_pct?: number
 }
 
 type Category = {
@@ -514,7 +516,7 @@ export default function AccountDetail() {
       setTxCurrency(accData.currency)
       setInvTxCurrency(accData.currency)
 
-      if (accData.type === "investissement") {
+      if (accData.type === "investissement" || accData.type === "assurance_vie") {
         const [invData, perfData] = await Promise.all([
           api.get<any>(`/analytics/investments/${id}`),
           api.get<any>(`/analytics/investments/${id}/performance-history`)
@@ -959,7 +961,7 @@ export default function AccountDetail() {
   
   if (!account) return <div>Compte non trouvé</div>
 
-  const isInvestment = account.type === "investissement"
+  const isInvestment = account.type === "investissement" || account.type === "assurance_vie"
   const currentBalance = isInvestment 
     ? (investmentData?.totals?.current_value || 0)
     : (transactions.length > 0 ? transactions[0].running_balance : 0)
@@ -983,7 +985,9 @@ export default function AccountDetail() {
               <div>
                 <div className="flex flex-wrap items-center gap-2">
                   <h1 className="text-3xl font-bold tracking-tight text-slate-900">{account.name}</h1>
-                  <Badge className="bg-slate-100 text-slate-600 border-none capitalize">{account.type}</Badge>
+                  <Badge className="bg-slate-100 text-slate-600 border-none capitalize">
+                    {account.type === "assurance_vie" ? "Assurance-Vie" : account.type}
+                  </Badge>
                 </div>
                 <p className="text-slate-500">Flux financiers en {account.currency}</p>
               </div>
@@ -1373,7 +1377,46 @@ export default function AccountDetail() {
           </CardContent>
         </Card>
 
-        {isInvestment ? (
+        {account.type === "assurance_vie" ? (
+          <>
+            <Card className="shadow-sm border border-slate-100 hover:border-slate-200 transition-all">
+              <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
+                <CardDescription className="font-medium text-slate-500">Fonds Euro ({account.fonds_euros_pct || 0}%)</CardDescription>
+                <Shield className="h-4 w-4 text-emerald-500" />
+              </CardHeader>
+              <CardContent>
+                <CardTitle className="text-2xl font-bold text-slate-900 amount-blur">
+                  {formatCurrency((currentBalance || 0) * ((account.fonds_euros_pct || 0) / 100))}
+                </CardTitle>
+                <p className="text-xs text-slate-400 mt-2">Capital garanti</p>
+              </CardContent>
+            </Card>
+            <Card className="shadow-sm border border-slate-100 hover:border-slate-200 transition-all">
+              <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
+                <CardDescription className="font-medium text-slate-500">Unités de Compte ({account.fonds_investis_pct || 0}%)</CardDescription>
+                <TrendingUp className="h-4 w-4 text-amber-500" />
+              </CardHeader>
+              <CardContent>
+                <CardTitle className="text-2xl font-bold text-slate-900 amount-blur">
+                  {formatCurrency((currentBalance || 0) * ((account.fonds_investis_pct || 0) / 100))}
+                </CardTitle>
+                <p className="text-xs text-slate-400 mt-2">Fonds investis (UC)</p>
+              </CardContent>
+            </Card>
+            <Card className="shadow-sm border border-slate-100 hover:border-slate-200 transition-all">
+              <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
+                <CardDescription className="font-medium text-slate-500">Plus-value Latente</CardDescription>
+                <Activity className={`h-4 w-4 ${((investmentData?.totals?.gain_eur || 0) >= 0) ? "text-emerald-500" : "text-rose-500"}`} />
+              </CardHeader>
+              <CardContent>
+                <CardTitle className={`text-2xl font-bold ${((investmentData?.totals?.gain_eur || 0) >= 0) ? "text-emerald-600" : "text-rose-600"} amount-blur`}>
+                  {((investmentData?.totals?.gain_eur || 0) >= 0) ? "+" : ""}{formatCurrency(investmentData?.totals?.gain_eur || 0)}
+                </CardTitle>
+                <p className="text-xs text-slate-400 mt-2">Evolution du capital</p>
+              </CardContent>
+            </Card>
+          </>
+        ) : isInvestment ? (
           <>
             <Card className="shadow-sm">
               <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
