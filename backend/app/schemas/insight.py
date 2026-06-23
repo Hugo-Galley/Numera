@@ -113,6 +113,15 @@ class WealthSimulationPoint(BaseModel):
     total_contributions: float
     total_interest: float
     total_value: float
+    total_value_real: Optional[float] = None
+    total_value_p10: Optional[float] = None
+    total_value_p50: Optional[float] = None
+    total_value_p90: Optional[float] = None
+    total_value_p10_real: Optional[float] = None
+    total_value_p50_real: Optional[float] = None
+    total_value_p90_real: Optional[float] = None
+    total_tax_paid: Optional[float] = 0.0
+    event_applied: Optional[str] = None
 
 
 class WealthSimulationResponse(BaseModel):
@@ -120,6 +129,11 @@ class WealthSimulationResponse(BaseModel):
     total_final: float
     total_interest: float
     total_contributions: float
+    total_final_real: Optional[float] = None
+    total_tax_paid: Optional[float] = None
+    pessimistic_final: Optional[float] = None
+    median_final: Optional[float] = None
+    optimistic_final: Optional[float] = None
 
 
 class MoneyFlowItem(BaseModel):

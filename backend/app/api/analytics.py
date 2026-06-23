@@ -2447,53 +2447,222 @@ async def wealth_simulation(
     monthly_contribution: float = Query(ge=0),
     annual_return_pct: float = Query(ge=-100, le=1000),
     years: int = Query(ge=1, le=50, default=15),
+    volatility_pct: float = Query(ge=0, le=100, default=0.0),
+    inflation_rate_pct: float = Query(ge=-50, le=100, default=0.0),
+    contribution_indexation_pct: float = Query(ge=-50, le=100, default=0.0),
+    tax_rate_pct: float = Query(ge=0, le=100, default=0.0),
+    tax_deferred: bool = Query(default=True),
+    events: Optional[str] = Query(default=None),
 ):
     """
-    Simulates wealth growth over time with monthly contributions and compounded interest.
+    Simulates wealth growth over time with monthly contributions, compounded interest,
+    inflation adjustment, tax drag, contribution indexation, one-off events, and Monte Carlo volatility.
     """
-    items = []
-    current_total = initial_capital
-    cumulative_contributions = 0.0
-    cumulative_interest = 0.0
-    
-    # Monthly rate from annual rate: (1 + r_annual)^(1/12) - 1
+    import json
+    import random
+
+    parsed_events = []
+    if events:
+        try:
+            parsed_events = json.loads(events)
+            if not isinstance(parsed_events, list):
+                parsed_events = []
+        except Exception:
+            parsed_events = []
+
+    events_by_year = {}
+    for ev in parsed_events:
+        try:
+            y = int(ev.get("year", 0))
+            amt = float(ev.get("amount", 0.0))
+            lbl = str(ev.get("label", "Événement"))
+            if y not in events_by_year:
+                events_by_year[y] = []
+            events_by_year[y].append({"amount": amt, "label": lbl})
+        except (ValueError, TypeError):
+            continue
+
+    num_trials = 1000 if volatility_pct > 0 else 1
+
+    trials_value_by_year = {y: [] for y in range(years + 1)}
+    trials_real_value_by_year = {y: [] for y in range(years + 1)}
+    trials_interest_by_year = {y: [] for y in range(years + 1)}
+    trials_tax_by_year = {y: [] for y in range(years + 1)}
+    trials_contributions_by_year = {y: [] for y in range(years + 1)}
+
+    # Initialize year 0
+    for _ in range(num_trials):
+        trials_value_by_year[0].append(initial_capital)
+        trials_real_value_by_year[0].append(initial_capital)
+        trials_interest_by_year[0].append(0.0)
+        trials_tax_by_year[0].append(0.0)
+        trials_contributions_by_year[0].append(0.0)
+
+    # Convert rates
     annual_rate_decimal = annual_return_pct / 100.0
-    monthly_rate = (1 + annual_rate_decimal) ** (1/12) - 1 if annual_rate_decimal > -1 else -1.0
+    monthly_rate_det = (1 + annual_rate_decimal) ** (1/12) - 1 if annual_rate_decimal > -1 else -1.0
+    
+    volatility_decimal = volatility_pct / 100.0
+    monthly_mean = annual_rate_decimal / 12.0
+    monthly_std = volatility_decimal / (12.0 ** 0.5)
 
-    # Year 0 point
-    items.append(WealthSimulationPoint(
-        year=0,
-        initial_capital=round(initial_capital, 2),
-        total_contributions=0.0,
-        total_interest=0.0,
-        total_value=round(initial_capital, 2)
-    ))
+    for trial in range(num_trials):
+        current_total = initial_capital
+        cumulative_contributions = 0.0
+        cumulative_interest = 0.0
+        cumulative_tax_paid = 0.0
+        cumulative_events = 0.0
 
-    for y in range(1, years + 1):
-        for m in range(1, 13):
-            # 1. Add interest to current total
-            interest_this_month = current_total * monthly_rate
-            current_total += interest_this_month
-            cumulative_interest += interest_this_month
-            
-            # 2. Add monthly contribution
-            current_total += monthly_contribution
-            cumulative_contributions += monthly_contribution
+        for y in range(1, years + 1):
+            contrib_rate = (1 + contribution_indexation_pct / 100.0) ** (y - 1)
+            monthly_contrib = monthly_contribution * contrib_rate
 
-        # Add data point for the end of the year
-        items.append(WealthSimulationPoint(
-            year=y,
-            initial_capital=round(initial_capital, 2),
-            total_contributions=round(cumulative_contributions, 2),
-            total_interest=round(cumulative_interest, 2),
-            total_value=round(current_total, 2)
-        ))
+            interest_this_year = 0.0
+            contributions_this_year = 0.0
 
+            for m in range(1, 13):
+                if volatility_pct > 0:
+                    r_m = random.normalvariate(monthly_mean, monthly_std)
+                else:
+                    r_m = monthly_rate_det
+
+                interest_m = current_total * r_m
+                interest_this_year += interest_m
+                current_total += interest_m + monthly_contrib
+                contributions_this_year += monthly_contrib
+
+            cumulative_interest += interest_this_year
+            cumulative_contributions += contributions_this_year
+
+            # Apply annual tax if not deferred
+            if not tax_deferred and tax_rate_pct > 0:
+                if interest_this_year > 0:
+                    tax_y = interest_this_year * (tax_rate_pct / 100.0)
+                    current_total -= tax_y
+                    cumulative_tax_paid += tax_y
+                    cumulative_interest -= tax_y
+
+            # Apply events
+            if y in events_by_year:
+                for ev in events_by_year[y]:
+                    current_total += ev["amount"]
+                    cumulative_events += ev["amount"]
+                if current_total < 0:
+                    current_total = 0.0
+
+            inflation_factor = (1 + inflation_rate_pct / 100.0) ** y
+
+            if tax_deferred and tax_rate_pct > 0:
+                gain_y = current_total - initial_capital - cumulative_contributions - cumulative_events
+                tax_due_y = max(0.0, gain_y * (tax_rate_pct / 100.0))
+                
+                net_nominal = current_total - tax_due_y
+                net_real = net_nominal / inflation_factor
+                net_interest = cumulative_interest - tax_due_y
+                tax_val = tax_due_y
+            else:
+                net_nominal = current_total
+                net_real = current_total / inflation_factor
+                net_interest = cumulative_interest
+                tax_val = cumulative_tax_paid
+
+            trials_value_by_year[y].append(net_nominal)
+            trials_real_value_by_year[y].append(net_real)
+            trials_interest_by_year[y].append(net_interest)
+            trials_tax_by_year[y].append(tax_val)
+            trials_contributions_by_year[y].append(cumulative_contributions)
+
+    items = []
+    p10_idx = int(0.10 * num_trials)
+    p50_idx = int(0.50 * num_trials)
+    p90_idx = int(0.90 * num_trials)
+
+    if volatility_pct > 0:
+        for y in range(years + 1):
+            trials_value_by_year[y].sort()
+            trials_real_value_by_year[y].sort()
+            trials_interest_by_year[y].sort()
+            trials_tax_by_year[y].sort()
+
+            p10_val = trials_value_by_year[y][p10_idx]
+            p50_val = trials_value_by_year[y][p50_idx]
+            p90_val = trials_value_by_year[y][p90_idx]
+
+            p10_real = trials_real_value_by_year[y][p10_idx]
+            p50_real = trials_real_value_by_year[y][p50_idx]
+            p90_real = trials_real_value_by_year[y][p90_idx]
+
+            contrib_median = trials_contributions_by_year[y][p50_idx]
+            interest_median = trials_interest_by_year[y][p50_idx]
+            tax_median = trials_tax_by_year[y][p50_idx]
+
+            event_applied_str = None
+            if y in events_by_year:
+                event_applied_str = ", ".join([
+                    f"{ev['label']} ({'+' if ev['amount'] >= 0 else ''}{int(ev['amount'])}€)"
+                    for ev in events_by_year[y]
+                ])
+
+            items.append(WealthSimulationPoint(
+                year=y,
+                initial_capital=round(initial_capital, 2),
+                total_contributions=round(contrib_median, 2),
+                total_interest=round(interest_median, 2),
+                total_value=round(p50_val, 2),
+                total_value_real=round(p50_real, 2),
+                total_value_p10=round(p10_val, 2),
+                total_value_p50=round(p50_val, 2),
+                total_value_p90=round(p90_val, 2),
+                total_value_p10_real=round(p10_real, 2),
+                total_value_p50_real=round(p50_real, 2),
+                total_value_p90_real=round(p90_real, 2),
+                total_tax_paid=round(tax_median, 2),
+                event_applied=event_applied_str
+            ))
+    else:
+        for y in range(years + 1):
+            val = trials_value_by_year[y][0]
+            real_val = trials_real_value_by_year[y][0]
+            interest_val = trials_interest_by_year[y][0]
+            tax_val = trials_tax_by_year[y][0]
+            contrib_val = trials_contributions_by_year[y][0]
+
+            event_applied_str = None
+            if y in events_by_year:
+                event_applied_str = ", ".join([
+                    f"{ev['label']} ({'+' if ev['amount'] >= 0 else ''}{int(ev['amount'])}€)"
+                    for ev in events_by_year[y]
+                ])
+
+            items.append(WealthSimulationPoint(
+                year=y,
+                initial_capital=round(initial_capital, 2),
+                total_contributions=round(contrib_val, 2),
+                total_interest=round(interest_val, 2),
+                total_value=round(val, 2),
+                total_value_real=round(real_val, 2),
+                total_value_p10=round(val, 2),
+                total_value_p50=round(val, 2),
+                total_value_p90=round(val, 2),
+                total_value_p10_real=round(real_val, 2),
+                total_value_p50_real=round(real_val, 2),
+                total_value_p90_real=round(real_val, 2),
+                total_tax_paid=round(tax_val, 2),
+                event_applied=event_applied_str
+            ))
+
+    last_item = items[-1]
+    
     return WealthSimulationResponse(
         items=items,
-        total_final=round(current_total, 2),
-        total_interest=round(cumulative_interest, 2),
-        total_contributions=round(cumulative_contributions, 2)
+        total_final=last_item.total_value,
+        total_interest=last_item.total_interest,
+        total_contributions=last_item.total_contributions,
+        total_final_real=last_item.total_value_real,
+        total_tax_paid=last_item.total_tax_paid,
+        pessimistic_final=last_item.total_value_p10,
+        median_final=last_item.total_value_p50,
+        optimistic_final=last_item.total_value_p90
     )
 
 

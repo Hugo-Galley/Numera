@@ -20,7 +20,8 @@ import {
   ArrowRight,
   Info,
   Wallet,
-  Zap
+  Zap,
+  Loader2
 } from "lucide-react"
 import { api } from "@/lib/api"
 import { formatCurrency } from "@/lib/utils"
@@ -63,55 +64,101 @@ const IconComponent = ({ name, className }: { name?: string, className?: string 
   return <Icon className={className} />
 }
 
-const FlowSection = ({ title, block, icon: Icon, color, items, isNegative = true }: { 
+const DetailCard = ({ 
+  title, 
+  description,
+  block, 
+  icon: Icon, 
+  colorClass, 
+  barColor,
+  items, 
+  isOutflow = true
+}: { 
   title: string, 
+  description: string,
   block: MoneyFlowBlock, 
   icon: any, 
-  color: string,
+  colorClass: string,
+  barColor: string,
   items: MoneyFlowItem[],
-  isNegative?: boolean
-}) => (
-  <div className="group relative pl-8 pb-10 last:pb-0">
-    <div className="absolute left-[11px] top-2 bottom-0 w-[2px] bg-slate-100 group-last:hidden"></div>
-    <div className={`absolute left-0 top-0 w-6 h-6 rounded-full flex items-center justify-center border-2 border-white shadow-sm z-10 transition-transform group-hover:scale-110 ${color}`}>
-      <Icon className="h-3 w-3 text-white" />
-    </div>
+  isOutflow?: boolean
+}) => {
+  const isIncreaseGood = !isOutflow;
+  const isPositiveChange = block.diff_prev_month >= 0;
+  
+  const diffColor = isPositiveChange 
+    ? (isIncreaseGood ? 'text-emerald-600 bg-emerald-50 border-emerald-250' : 'text-rose-600 bg-rose-50 border-rose-250')
+    : (isIncreaseGood ? 'text-rose-600 bg-rose-50 border-rose-250' : 'text-emerald-600 bg-emerald-50 border-emerald-250');
 
-    <div className="space-y-4">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-2">
+  return (
+    <Card className="border border-slate-200/80 hover:border-slate-300 hover:shadow-md transition-all rounded-2xl overflow-hidden bg-white flex flex-col justify-between h-full">
+      <CardHeader className="p-5 pb-3">
+        <div className="flex items-center justify-between gap-3 mb-2">
+          <div className={`w-8 h-8 rounded-xl flex items-center justify-center shadow-sm ${colorClass}`}>
+            <Icon className="h-4.5 w-4.5" />
+          </div>
+          {block.diff_prev_month_pct !== 0 ? (
+            <Badge variant="outline" className={`font-bold text-[9px] py-0.5 px-1.5 rounded-lg flex items-center gap-0.5 border ${diffColor}`}>
+              {isPositiveChange ? <ArrowUpRight className="h-2.5 w-2.5" /> : <ArrowDownRight className="h-2.5 w-2.5" />}
+              {Math.abs(block.diff_prev_month_pct)}% vs mois dern.
+            </Badge>
+          ) : (
+            <Badge variant="outline" className="font-semibold text-[9px] text-slate-400 bg-slate-50 border-slate-200">
+              Stable
+            </Badge>
+          )}
+        </div>
         <div>
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-1 block">{title}</span>
-          <div className="flex items-baseline gap-3">
-            <span className={`text-xl font-black text-slate-900 amount-blur`}>
-              {isNegative && block.amount > 0 ? '-' : ''}{formatCurrency(block.amount)}
-            </span>
-            <span className="text-xs font-bold text-slate-400">
-              {block.percentage}%
-            </span>
-          </div>
+          <CardTitle className="text-sm font-black text-slate-900">{title}</CardTitle>
+          <CardDescription className="text-[11px] leading-snug mt-0.5">{description}</CardDescription>
+        </div>
+      </CardHeader>
+      
+      <CardContent className="p-5 pt-0 space-y-4 flex-1 flex flex-col justify-end">
+        <div className="flex items-baseline justify-between gap-2">
+          <span className="text-xl font-black text-slate-900 amount-blur">
+            {isOutflow && block.amount > 0 ? '-' : ''}{formatCurrency(block.amount)}
+          </span>
+          <span className="text-[11px] font-bold text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100">
+            {block.percentage}%
+          </span>
         </div>
 
-        <div className="text-right">
-          <div className={`text-xs font-bold flex items-center justify-end gap-1 ${
-            block.diff_prev_month >= 0 ? 'text-amber-600' : 'text-emerald-600'
-          }`}>
-            {block.diff_prev_month >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-            {block.diff_prev_month_pct}%
-          </div>
+        <div className="w-full bg-slate-100/80 h-1.5 rounded-full overflow-hidden">
+          <div className={`h-full rounded-full transition-all duration-500 ${barColor}`} style={{ width: `${block.percentage}%` }} />
         </div>
-      </div>
 
-      <div className="flex flex-wrap gap-2">
-        {items.slice(0, 4).map((item, i) => (
-          <div key={i} className="flex items-center gap-2 px-2.5 py-1 bg-white border border-slate-200 rounded-full shadow-sm">
-            <span className="text-[10px] font-bold text-slate-700 truncate max-w-[100px]">{item.name}</span>
-            <span className="text-[10px] font-black text-slate-900 amount-blur">{formatCurrency(item.amount)}</span>
+        {items.length > 0 ? (
+          <div className="space-y-2 pt-3 border-t border-slate-100">
+            {items.slice(0, 3).map((item, i) => {
+              const itemPercent = block.amount > 0 ? Math.round((item.amount / block.amount) * 105) : 0;
+              // Cap visual percentage at 100% just in case of formatting adjustments
+              const cappedPercent = Math.min(100, itemPercent);
+              return (
+                <div key={i} className="space-y-1">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-slate-500 truncate max-w-[120px] font-medium">{item.name}</span>
+                    <span className="text-slate-800 font-bold amount-blur">{formatCurrency(item.amount)}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 bg-slate-100 h-1 rounded-full overflow-hidden">
+                      <div className={`h-full rounded-full ${barColor}`} style={{ width: `${cappedPercent}%` }} />
+                    </div>
+                    <span className="text-[9px] text-slate-400 font-bold w-6 text-right">{itemPercent}%</span>
+                  </div>
+                </div>
+              )
+            })}
           </div>
-        ))}
-      </div>
-    </div>
-  </div>
-)
+        ) : (
+          <div className="text-[11px] text-slate-400 italic pt-2 border-t border-slate-100">
+            Aucune opération.
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
 
 interface Insight {
   type: 'anomaly' | 'positive' | 'advice'
@@ -203,6 +250,7 @@ export default function IntelligentReport() {
   const { isPrivacyMode } = useUI()
   const [data, setData] = useState<MonthlyReportData | null>(null)
   const [loading, setLoading] = useState(true)
+  const [activeTab, setActiveTab] = useState("synthesis")
   const [date, setDate] = useState(() => {
     const d = new Date()
     return { month: d.getMonth() + 1, year: d.getFullYear() }
@@ -238,7 +286,7 @@ export default function IntelligentReport() {
     })
   }
 
-  if (loading) {
+  if (loading && !data) {
     return (
       <div className="flex items-center justify-center h-full min-h-[400px]">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-900"></div>
@@ -254,7 +302,7 @@ export default function IntelligentReport() {
   )
 
   return (
-    <div className="space-y-8 pb-12">
+    <div className={`space-y-8 pb-12 transition-opacity duration-200 ${loading ? "opacity-60 pointer-events-none" : ""}`}>
       <div className="flex flex-col gap-4">
         <div className="no-print self-end">
           <Button 
@@ -278,21 +326,36 @@ export default function IntelligentReport() {
             <p className="text-slate-500 font-medium">Analyse et synthèse de votre activité financière.</p>
           </div>
         
-        <div className="flex items-center bg-white rounded-xl p-1 shadow-sm border border-slate-200">
-          <Button variant="ghost" size="icon" onClick={() => changeMonth(-1)} className="rounded-lg h-9 w-9">
+        <div className="flex items-center bg-white rounded-xl p-1 shadow-sm border border-slate-200 relative">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={() => changeMonth(-1)} 
+            disabled={loading}
+            className="rounded-lg h-9 w-9"
+          >
             <ChevronLeft className="h-5 w-5" />
           </Button>
-          <div className="px-4 font-bold text-slate-900 min-w-[140px] text-center">
-            {(data.month && data.month >= 1 && data.month <= 12) ? MONTHS[data.month - 1] : "Mois Inconnu"} {data.year}
+          <div className="px-4 font-bold text-slate-900 min-w-[140px] text-center flex items-center justify-center gap-2">
+            {loading && <Loader2 className="h-4 w-4 animate-spin text-slate-400" />}
+            <span>
+              {(data && data.month && data.month >= 1 && data.month <= 12) ? MONTHS[data.month - 1] : "Mois Inconnu"} {data?.year}
+            </span>
           </div>
-          <Button variant="ghost" size="icon" onClick={() => changeMonth(1)} className="rounded-lg h-9 w-9">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={() => changeMonth(1)} 
+            disabled={loading}
+            className="rounded-lg h-9 w-9"
+          >
             <ChevronRight className="h-5 w-5" />
           </Button>
         </div>
       </div>
       </div>
 
-      <Tabs defaultValue="synthesis" className="w-full space-y-8">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full space-y-8">
         <div className="flex justify-center md:justify-start">
           <TabsList className="bg-slate-50/50 border border-slate-100 p-1 rounded-xl inline-flex w-max mb-2">
             <TabsTrigger value="synthesis" className="rounded-lg whitespace-nowrap gap-2">
@@ -556,140 +619,265 @@ export default function IntelligentReport() {
           </Card>
         </div>
       </div>
+      </TabsContent>
       
-        </TabsContent>
-
-        <TabsContent value="flow" className="focus-visible:outline-none mt-0">
+      <TabsContent value="flow" className="focus-visible:outline-none mt-0">
           {/* Money Flow Analysis Section */}
-          {data.money_flow ? (
-            <div className="space-y-6">
-              <h2 className="text-2xl font-black text-slate-900 flex items-center gap-2">
-                <TrendingUp className="h-7 w-7 text-emerald-500" />
-                Analyse des Flux Réels
-              </h2>
-          
-          <Card className="border-none shadow-md overflow-hidden bg-white">
-            <CardContent className="p-8">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                {/* Left Column: Narrative Flow */}
-                <div className="space-y-10">
-                  {/* Entry Node */}
-                  <div className="relative">
-                    <div className="absolute left-[11px] top-6 bottom-0 w-[2px] bg-slate-100"></div>
-                    <div className="flex items-start gap-8">
-                      <div className="w-6 h-6 rounded-full bg-emerald-500 border-4 border-white shadow-md z-10 flex-shrink-0 flex items-center justify-center">
-                        <LucideIcons.Plus className="h-3 w-3 text-white" />
-                      </div>
-                      <div className="flex-1 -mt-1">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-1 block">Entrées Réelles</span>
-                        <div className="text-3xl font-black text-slate-900 amount-blur">
-                          {formatCurrency(data.money_flow.income)}
-                        </div>
+          {data.money_flow ? (() => {
+            const isPositive = data.money_flow.remainder.amount >= 0;
+            return (
+              <div className="space-y-6">
+                <h2 className="text-2xl font-black text-slate-900 flex items-center gap-2">
+                  <TrendingUp className="h-7 w-7 text-emerald-500" />
+                  Analyse des Flux Réels
+                </h2>
+            
+                {/* Horizontal Flow Pipeline */}
+                <Card className="border border-slate-200/80 shadow-sm overflow-hidden bg-white p-5 rounded-2xl">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-4">Pipeline des flux du mois</span>
+                  <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 md:gap-2">
+                    
+                    {/* Stage 1: Income */}
+                    <div className="flex-1 bg-emerald-50/20 border border-emerald-100 p-3 rounded-xl shadow-sm">
+                      <span className="text-[9px] font-extrabold text-emerald-600 uppercase tracking-wider block mb-0.5">Entrées</span>
+                      <div className="text-base font-black text-slate-900 amount-blur">
+                        +{formatCurrency(data.money_flow.income)}
                       </div>
                     </div>
-                  </div>
 
-                  {/* Flow Steps */}
-                  <div className="space-y-0">
-                    <FlowSection 
-                      title="Charges Fixes" 
-                      block={data.money_flow.fixed_charges} 
-                      icon={ShieldCheck} 
-                      color="bg-slate-900"
+                    <ChevronRight className="hidden md:block h-5 w-5 text-slate-300 flex-shrink-0" />
+
+                    {/* Stage 2: Fixed Charges */}
+                    <div className="flex-1 bg-slate-50 border border-slate-100 p-3 rounded-xl shadow-sm">
+                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-0.5">Fixe ({data.money_flow.fixed_charges.percentage}%)</span>
+                      <div className="text-base font-black text-slate-800 amount-blur">
+                        -{formatCurrency(data.money_flow.fixed_charges.amount)}
+                      </div>
+                    </div>
+
+                    <ChevronRight className="hidden md:block h-5 w-5 text-slate-300 flex-shrink-0" />
+
+                    {/* Stage 3: Variable Expenses */}
+                    <div className="flex-1 bg-slate-50 border border-slate-100 p-3 rounded-xl shadow-sm">
+                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-0.5">Variable ({data.money_flow.variable_expenses.percentage}%)</span>
+                      <div className="text-base font-black text-rose-600 amount-blur">
+                        -{formatCurrency(data.money_flow.variable_expenses.amount)}
+                      </div>
+                    </div>
+
+                    <ChevronRight className="hidden md:block h-5 w-5 text-slate-300 flex-shrink-0" />
+
+                    {/* Stage 4: Savings */}
+                    <div className="flex-1 bg-slate-50 border border-slate-100 p-3 rounded-xl shadow-sm">
+                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-0.5">Épargne ({data.money_flow.savings.percentage}%)</span>
+                      <div className="text-base font-black text-amber-600 amount-blur">
+                        -{formatCurrency(data.money_flow.savings.amount)}
+                      </div>
+                    </div>
+
+                    <ChevronRight className="hidden md:block h-5 w-5 text-slate-300 flex-shrink-0" />
+
+                    {/* Stage 5: Investments */}
+                    <div className="flex-1 bg-slate-50 border border-slate-100 p-3 rounded-xl shadow-sm">
+                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-0.5">Invest. ({data.money_flow.investments.percentage}%)</span>
+                      <div className="text-base font-black text-blue-600 amount-blur">
+                        -{formatCurrency(data.money_flow.investments.amount)}
+                      </div>
+                    </div>
+
+                    <ChevronRight className="hidden md:block h-5 w-5 text-slate-300 flex-shrink-0" />
+
+                    {/* Stage 6: Remainder */}
+                    <div className={`flex-1 p-3 rounded-xl border shadow-sm ${
+                      isPositive ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-rose-50 border-rose-200 text-rose-700'
+                    }`}>
+                      <span className="text-[9px] font-extrabold uppercase tracking-wider block mb-0.5">Reste disponible</span>
+                      <div className="text-base font-black amount-blur">
+                        {formatCurrency(data.money_flow.remainder.amount)}
+                      </div>
+                    </div>
+
+                  </div>
+                </Card>
+
+                {/* 2-Column Dashboard Details */}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+                  
+                  {/* Left Column: Grid of Category cards (7 cols on desktop) */}
+                  <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <DetailCard 
+                      title="Charges Fixes"
+                      description="Loyer, abonnements, factures et frais récurrents indispensables."
+                      block={data.money_flow.fixed_charges}
+                      icon={ShieldCheck}
+                      colorClass="bg-slate-900 text-white"
+                      barColor="bg-slate-900"
                       items={data.money_flow.top_fixed}
+                      isOutflow={true}
                     />
-                    <FlowSection 
-                      title="Dépenses Variables" 
-                      block={data.money_flow.variable_expenses} 
-                      icon={ShoppingBag} 
-                      color="bg-rose-500"
+                    <DetailCard 
+                      title="Dépenses Variables"
+                      description="Alimentation, shopping, loisirs et dépenses courantes quotidiennes."
+                      block={data.money_flow.variable_expenses}
+                      icon={ShoppingBag}
+                      colorClass="bg-rose-500 text-white"
+                      barColor="bg-rose-500"
                       items={data.money_flow.top_variable}
+                      isOutflow={true}
                     />
-                    <FlowSection 
-                      title="Épargne" 
-                      block={data.money_flow.savings} 
-                      icon={PiggyBank} 
-                      color="bg-amber-500"
+                    <DetailCard 
+                      title="Épargne"
+                      description="Virements d'épargne vers livrets ou comptes d'épargne de précaution."
+                      block={data.money_flow.savings}
+                      icon={PiggyBank}
+                      colorClass="bg-amber-500 text-white"
+                      barColor="bg-amber-500"
                       items={data.money_flow.top_savings}
+                      isOutflow={false}
                     />
-                    <FlowSection 
-                      title="Investissements" 
-                      block={data.money_flow.investments} 
-                      icon={Briefcase} 
-                      color="bg-blue-600"
+                    <DetailCard 
+                      title="Investissements"
+                      description="Placements en Bourse (PEA/CTO), cryptomonnaies ou placements immobiliers."
+                      block={data.money_flow.investments}
+                      icon={Briefcase}
+                      colorClass="bg-blue-600 text-white"
+                      barColor="bg-blue-600"
                       items={data.money_flow.top_investments}
+                      isOutflow={false}
                     />
                   </div>
 
-                  {/* Exit Node */}
-                  <div className="relative">
-                    <div className="flex items-start gap-8">
-                      <div className="w-6 h-6 rounded-full bg-slate-900 border-4 border-white shadow-lg z-10 flex-shrink-0 flex items-center justify-center">
-                        <ArrowRight className="h-3 w-3 text-white" />
-                      </div>
-                      <div className="flex-1 -mt-1 bg-slate-50 rounded-2xl p-4 border border-slate-100 shadow-sm">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] block">Solde Final</span>
-                        <div className={`text-2xl font-black text-slate-900 amount-blur ${data.money_flow.remainder.amount < 0 ? 'text-rose-600' : ''}`}>
-                          {formatCurrency(data.money_flow.remainder.amount)}
+                  {/* Right Column: Allocation & Summary Metrics (5 cols on desktop) */}
+                  <div className="lg:col-span-5 flex flex-col justify-between gap-6">
+                    
+                    {/* Key Metrics cards */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <Card className="border border-slate-200/80 rounded-2xl p-4 shadow-sm bg-white flex flex-col justify-between">
+                        <div>
+                          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Taux de Rétention</div>
+                          <div className="text-2xl font-black text-slate-900">{data.money_flow.remainder.percentage}%</div>
                         </div>
+                        <p className="text-[10px] text-slate-500 mt-2 leading-relaxed font-medium">Revenus nets restants après toutes dépenses et placements.</p>
+                      </Card>
+                      
+                      <Card className="border-none rounded-2xl p-4 shadow-md bg-gradient-to-br from-slate-900 to-slate-800 text-white flex flex-col justify-between">
+                        <div>
+                          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Épargne Réelle</div>
+                          <div className="text-2xl font-black text-emerald-400">
+                            {Math.round(((data.money_flow.savings.amount + data.money_flow.investments.amount + (data.money_flow.remainder.amount > 0 ? data.money_flow.remainder.amount : 0)) / data.money_flow.income) * 100)}%
+                          </div>
+                        </div>
+                        <p className="text-[10px] text-slate-355 mt-2 leading-relaxed font-medium">Épargne + Placements + Solde restant rapportés aux revenus.</p>
+                      </Card>
+                    </div>
+
+                    {/* Allocation breakdown card */}
+                    <Card className="border border-slate-200/80 rounded-2xl p-5 shadow-sm bg-white flex-1 flex flex-col justify-between">
+                      <CardHeader className="p-0 pb-3">
+                        <CardTitle className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                          <Zap className="h-3.5 w-3.5 text-amber-500" />
+                          Répartition de l'Allocation
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-0 space-y-4">
+                        {/* Segmented allocation bar */}
+                        <div className="flex h-3.5 rounded-full overflow-hidden bg-slate-100 border border-slate-200 shadow-inner">
+                          {data.money_flow.fixed_charges.percentage > 0 && (
+                            <div 
+                              className="bg-slate-900 transition-all hover:opacity-90 cursor-help" 
+                              style={{ width: `${data.money_flow.fixed_charges.percentage}%` }} 
+                              title={`Charges Fixes: ${data.money_flow.fixed_charges.percentage}%`}
+                            />
+                          )}
+                          {data.money_flow.variable_expenses.percentage > 0 && (
+                            <div 
+                              className="bg-rose-500 transition-all hover:opacity-90 cursor-help" 
+                              style={{ width: `${data.money_flow.variable_expenses.percentage}%` }} 
+                              title={`Dépenses Variables: ${data.money_flow.variable_expenses.percentage}%`}
+                            />
+                          )}
+                          {data.money_flow.savings.percentage > 0 && (
+                            <div 
+                              className="bg-amber-500 transition-all hover:opacity-90 cursor-help" 
+                              style={{ width: `${data.money_flow.savings.percentage}%` }} 
+                              title={`Épargne: ${data.money_flow.savings.percentage}%`}
+                            />
+                          )}
+                          {data.money_flow.investments.percentage > 0 && (
+                            <div 
+                              className="bg-blue-600 transition-all hover:opacity-90 cursor-help" 
+                              style={{ width: `${data.money_flow.investments.percentage}%` }} 
+                              title={`Investissements: ${data.money_flow.investments.percentage}%`}
+                            />
+                          )}
+                          {data.money_flow.remainder.percentage > 0 && (
+                            <div 
+                              className="bg-emerald-500 transition-all hover:opacity-90 cursor-help" 
+                              style={{ width: `${data.money_flow.remainder.percentage}%` }} 
+                              title={`Solde restant: ${data.money_flow.remainder.percentage}%`}
+                            />
+                          )}
+                        </div>
+
+                        {/* Detailed Legend Grid */}
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="flex items-center gap-2 p-1.5 bg-slate-50 border border-slate-100 rounded-lg">
+                            <div className="w-2 h-2 rounded-full bg-slate-900" />
+                            <div className="min-w-0">
+                              <span className="text-[9px] font-bold text-slate-400 uppercase block leading-none mb-0.5">Fixe</span>
+                              <span className="text-xs font-bold text-slate-800 amount-blur">{formatCurrency(data.money_flow.fixed_charges.amount)}</span>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 p-1.5 bg-slate-50 border border-slate-100 rounded-lg">
+                            <div className="w-2 h-2 rounded-full bg-rose-500" />
+                            <div className="min-w-0">
+                              <span className="text-[9px] font-bold text-slate-400 uppercase block leading-none mb-0.5">Variable</span>
+                              <span className="text-xs font-bold text-slate-800 amount-blur">{formatCurrency(data.money_flow.variable_expenses.amount)}</span>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 p-1.5 bg-slate-50 border border-slate-100 rounded-lg">
+                            <div className="w-2 h-2 rounded-full bg-amber-500" />
+                            <div className="min-w-0">
+                              <span className="text-[9px] font-bold text-slate-400 uppercase block leading-none mb-0.5">Épargne</span>
+                              <span className="text-xs font-bold text-slate-800 amount-blur">{formatCurrency(data.money_flow.savings.amount)}</span>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 p-1.5 bg-slate-50 border border-slate-100 rounded-lg">
+                            <div className="w-2 h-2 rounded-full bg-blue-600" />
+                            <div className="min-w-0">
+                              <span className="text-[9px] font-bold text-slate-400 uppercase block leading-none mb-0.5">Invest.</span>
+                              <span className="text-xs font-bold text-slate-800 amount-blur">{formatCurrency(data.money_flow.investments.amount)}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Summary Info Banner */}
+                    <Card className={`border border-l-4 rounded-2xl p-4 shadow-sm ${
+                      isPositive 
+                        ? 'bg-emerald-50/20 border-emerald-200 border-l-emerald-500' 
+                        : 'bg-rose-50/20 border-rose-200 border-l-rose-500'
+                    }`}>
+                      <div className="flex items-start gap-2.5">
+                        <Info className={`h-4.5 w-4.5 mt-0.5 flex-shrink-0 ${
+                          isPositive ? 'text-emerald-600' : 'text-rose-600'
+                        }`} />
+                        <p className="text-xs text-slate-650 leading-relaxed font-medium">
+                          {isPositive ? (
+                            <>Vous avez conservé <span className="font-bold text-slate-900 amount-blur">{formatCurrency(data.money_flow.remainder.amount)}</span> après vos dépenses et placements. Ce montant renforce votre trésorerie.</>
+                          ) : (
+                            <>Vos sorties ont dépassé vos entrées de <span className="font-bold text-rose-600 amount-blur">{formatCurrency(Math.abs(data.money_flow.remainder.amount))}</span>. Ce déficit a été couvert par vos réserves.</>
+                          )}
+                        </p>
                       </div>
-                    </div>
-                  </div>
-                </div>
+                    </Card>
 
-                {/* Right Column: Key Metrics & Chart */}
-                <div className="space-y-8 flex flex-col justify-center">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                      <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Rétention</div>
-                      <div className="text-2xl font-black text-slate-900">{data.money_flow.remainder.percentage}%</div>
-                      <p className="text-[10px] text-slate-500 mt-1">Revenus restants après flux.</p>
-                    </div>
-                    <div className="p-4 bg-slate-900 text-white rounded-2xl">
-                      <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Épargne Réelle</div>
-                      <div className="text-2xl font-black">
-                        {Math.round(((data.money_flow.savings.amount + data.money_flow.investments.amount + (data.money_flow.remainder.amount > 0 ? data.money_flow.remainder.amount : 0)) / data.money_flow.income) * 100)}%
-                      </div>
-                      <p className="text-[10px] text-slate-400 mt-1">Épargne + Invest + Reste.</p>
-                    </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                      <Zap className="h-3 w-3 text-amber-500" /> Répartition de l'Allocation
-                    </div>
-                    <div className="flex h-4 rounded-full overflow-hidden bg-slate-100 border border-slate-200">
-                      <div className="bg-slate-900" style={{ width: `${data.money_flow.fixed_charges.percentage}%` }} title="Fixe"></div>
-                      <div className="bg-rose-500" style={{ width: `${data.money_flow.variable_expenses.percentage}%` }} title="Variable"></div>
-                      <div className="bg-amber-500" style={{ width: `${data.money_flow.savings.percentage}%` }} title="Épargne"></div>
-                      <div className="bg-blue-600" style={{ width: `${data.money_flow.investments.percentage}%` }} title="Invest."></div>
-                    </div>
-                    <div className="flex flex-wrap gap-x-6 gap-y-2 pt-1">
-                      <div className="flex items-center gap-2 text-[10px] font-bold text-slate-600"><div className="w-2 h-2 rounded-full bg-slate-900"></div> Fixe</div>
-                      <div className="flex items-center gap-2 text-[10px] font-bold text-slate-600"><div className="w-2 h-2 rounded-full bg-rose-500"></div> Variable</div>
-                      <div className="flex items-center gap-2 text-[10px] font-bold text-slate-600"><div className="w-2 h-2 rounded-full bg-amber-500"></div> Épargne</div>
-                      <div className="flex items-center gap-2 text-[10px] font-bold text-slate-600"><div className="w-2 h-2 rounded-full bg-blue-600"></div> Invest.</div>
-                    </div>
-                  </div>
-
-                  <div className="p-6 bg-blue-50/50 rounded-2xl border border-blue-100">
-                    <div className="flex items-start gap-3">
-                      <Info className="h-5 w-5 text-blue-500 mt-0.5" />
-                      <p className="text-sm text-slate-600 leading-relaxed font-medium">
-                        {data.money_flow.remainder.amount > 0 ? (
-                          <>Vous avez conservé <span className="font-bold text-slate-900">{formatCurrency(data.money_flow.remainder.amount)}</span> après toutes vos dépenses et placements. Ce montant vient renforcer votre trésorerie disponible.</>
-                        ) : (
-                          <>Vos sorties ont dépassé vos entrées de <span className="font-bold text-rose-600">{formatCurrency(Math.abs(data.money_flow.remainder.amount))}</span>. Ce déficit a été couvert par vos réserves de cash existantes.</>
-                        )}
-                      </p>
-                    </div>
                   </div>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-            </div>
-          ) : (
+            );
+          })() : (
             <div className="p-8 text-center bg-white rounded-xl border border-dashed border-slate-200">
               <p className="text-slate-500 font-medium">Aucune donnée de flux disponible pour ce mois.</p>
             </div>
