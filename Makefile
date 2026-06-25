@@ -42,3 +42,9 @@ backup-now:
 backup-restore:
 	@echo "Usage: make backup-restore FILE=backups/suivi_budget_...db.enc"
 	PYTHONPATH=backend python3 backend/scripts/restore.py $(FILE)
+
+upgrade:
+	make prod-down
+	git pull origin main
+	make prod
+

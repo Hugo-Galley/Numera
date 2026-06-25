@@ -23,6 +23,9 @@ class Account(Base):
     sector: Mapped[str | None] = mapped_column(String(64), nullable=True)
     geographic_zone: Mapped[str | None] = mapped_column(String(64), nullable=True)
 
+    # Institution / Bank (e.g. BRED, SG, Boursorama...)
+    institution: Mapped[str | None] = mapped_column(String(64), nullable=True)
+
     # Assurance Vie split
     fonds_euros_pct: Mapped[float | None] = mapped_column(Float, nullable=True)
     fonds_investis_pct: Mapped[float | None] = mapped_column(Float, nullable=True)

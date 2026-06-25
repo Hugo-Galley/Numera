@@ -61,8 +61,8 @@ def test_patrimoine_allocation(client, db_session):
     from app.models.transaction import Transaction
     
     # Setup accounts of different types
-    acc1 = Account(name="Courant", type="courant", currency="EUR", active=True)
-    acc2 = Account(name="Livret A", type="epargne", currency="EUR", active=True)
+    acc1 = Account(name="Courant", type="courant", currency="EUR", active=True, institution="BRED")
+    acc2 = Account(name="Livret A", type="epargne", currency="EUR", active=True, institution="Societe Generale")
     acc3 = Account(name="PEA", type="investissement", currency="EUR", active=True)
     db_session.add_all([acc1, acc2, acc3])
     db_session.commit()
@@ -92,10 +92,38 @@ def test_patrimoine_allocation(client, db_session):
     
     assert items["Courant"]["balance_eur"] == 1500
     assert items["Courant"]["percentage"] == 15.0
+    assert items["Courant"]["institution"] == "BRED"
     
     assert items["Livret A"]["balance_eur"] == 5000
     assert items["Livret A"]["percentage"] == 50.0
+    assert items["Livret A"]["institution"] == "Societe Generale"
     
     assert items["PEA"]["balance_eur"] == 3500
     assert items["PEA"]["percentage"] == 35.0
+    assert items["PEA"]["institution"] is None
+
+
+def test_account_creation_and_update_with_institution(client, db_session):
+    # Test Create Account with institution
+    payload = {
+        "name": "Nouveau Compte SG",
+        "type": "courant",
+        "currency": "EUR",
+        "institution": "Societe Generale"
+    }
+    response = client.post("/accounts", json=payload)
+    assert response.status_code == 201
+    created = response.json()
+    assert created["institution"] == "Societe Generale"
+    account_id = created["id"]
+
+    # Test Update Account institution
+    update_payload = {
+        "institution": "Boursorama"
+    }
+    response = client.patch(f"/accounts/{account_id}", json=update_payload)
+    assert response.status_code == 200
+    updated = response.json()
+    assert updated["institution"] == "Boursorama"
+
 

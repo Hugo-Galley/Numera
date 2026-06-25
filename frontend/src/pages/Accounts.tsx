@@ -59,6 +59,7 @@ type Account = {
   asset_class?: string
   sector?: string
   geographic_zone?: string
+  institution?: string
   is_main?: boolean
   fonds_euros_pct?: number
   fonds_investis_pct?: number
@@ -74,12 +75,13 @@ export default function Accounts() {
   const [newName, setNewName] = useState("")
   const [newType, setNewType] = useState<string>("courant")
   const [newCurrency, setNewCurrency] = useState<string>("EUR")
+  const [newInstitution, setNewInstitution] = useState("")
   const [newAssetClass, setNewAssetClass] = useState("")
   const [newSector, setNewSector] = useState("")
   const [newZone, setNewZone] = useState("")
   const [newEurosPct, setNewEurosPct] = useState("")
   const [newInvestisPct, setNewInvestisPct] = useState("")
-  const [sortField, setSortField] = useState<"name" | "type" | "currency">("name")
+  const [sortField, setSortField] = useState<"name" | "type" | "currency" | "institution">("name")
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc")
   const [suggestions, setSuggestions] = useState<{
     asset_classes: string[],
@@ -138,6 +140,9 @@ export default function Accounts() {
         case "currency":
           comparison = (a.currency || "").localeCompare(b.currency || "")
           break
+        case "institution":
+          comparison = (a.institution || "").localeCompare(b.institution || "")
+          break
       }
       return sortOrder === "asc" ? comparison : -comparison
     })
@@ -155,6 +160,7 @@ export default function Accounts() {
         name: newName, 
         type: newType, 
         currency: newCurrency,
+        institution: newInstitution || null,
         asset_class: newType === "investissement" ? newAssetClass : null,
         sector: newType === "investissement" ? newSector : null,
         geographic_zone: newType === "investissement" ? newZone : null,
@@ -165,6 +171,7 @@ export default function Accounts() {
       setIsDialogOpen(false)
       setNewName("")
       setNewCurrency("EUR")
+      setNewInstitution("")
       setNewAssetClass("")
       setNewSector("")
       setNewZone("")
@@ -183,6 +190,7 @@ export default function Accounts() {
         name: editingAccount.name, 
         type: editingAccount.type, 
         currency: editingAccount.currency,
+        institution: editingAccount.institution || null,
         asset_class: editingAccount.type === "investissement" ? editingAccount.asset_class : null,
         sector: editingAccount.type === "investissement" ? editingAccount.sector : null,
         geographic_zone: editingAccount.type === "investissement" ? editingAccount.geographic_zone : null,
@@ -269,6 +277,28 @@ export default function Accounts() {
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
                 />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="institution">Établissement / Banque</Label>
+                <Input 
+                  id="institution" 
+                  placeholder="Ex: BRED, SG, Boursorama, Fortuneo..." 
+                  value={newInstitution}
+                  onChange={(e) => setNewInstitution(e.target.value)}
+                  list="institutions-list"
+                />
+                <datalist id="institutions-list">
+                  <option value="Boursorama" />
+                  <option value="Fortuneo" />
+                  <option value="Société Générale" />
+                  <option value="BRED" />
+                  <option value="CIC" />
+                  <option value="Crédit Agricole" />
+                  <option value="LCL" />
+                  <option value="La Banque Postale" />
+                  <option value="Revolut" />
+                  <option value="N26" />
+                </datalist>
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="type">Type de compte</Label>
@@ -412,6 +442,28 @@ export default function Accounts() {
                   value={editingAccount.name}
                   onChange={(e) => setEditingAccount({...editingAccount, name: e.target.value})}
                 />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="edit-institution">Établissement / Banque</Label>
+                <Input 
+                  id="edit-institution" 
+                  placeholder="Ex: BRED, SG, Boursorama, Fortuneo..." 
+                  value={editingAccount.institution || ""}
+                  onChange={(e) => setEditingAccount({...editingAccount, institution: e.target.value})}
+                  list="edit-institutions-list"
+                />
+                <datalist id="edit-institutions-list">
+                  <option value="Boursorama" />
+                  <option value="Fortuneo" />
+                  <option value="Société Générale" />
+                  <option value="BRED" />
+                  <option value="CIC" />
+                  <option value="Crédit Agricole" />
+                  <option value="LCL" />
+                  <option value="La Banque Postale" />
+                  <option value="Revolut" />
+                  <option value="N26" />
+                </datalist>
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="edit-type">Type de compte</Label>
@@ -560,6 +612,12 @@ export default function Accounts() {
                       {sortField === "name" && (sortOrder === "asc" ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />)}
                     </div>
                   </TableHead>
+                  <TableHead className="cursor-pointer hover:bg-slate-50 transition-colors" onClick={() => handleSort("institution")}>
+                    <div className="flex items-center gap-2">
+                      Établissement
+                      {sortField === "institution" && (sortOrder === "asc" ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />)}
+                    </div>
+                  </TableHead>
                   <TableHead className="cursor-pointer hover:bg-slate-50 transition-colors" onClick={() => handleSort("type")}>
                     <div className="flex items-center gap-2">
                       Type
@@ -579,13 +637,13 @@ export default function Accounts() {
               <TableBody>
                 {loading ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                       Chargement...
                     </TableCell>
                   </TableRow>
                 ) : sortedAccounts.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                       Aucun compte trouvé.
                     </TableCell>
                   </TableRow>
@@ -604,6 +662,15 @@ export default function Accounts() {
                           </Button>
                           {account.name}
                         </div>
+                      </TableCell>
+                      <TableCell>
+                        {account.institution ? (
+                          <Badge variant="secondary" className="font-semibold bg-slate-50 text-slate-700 border-slate-200">
+                            {account.institution}
+                          </Badge>
+                        ) : (
+                          <span className="text-slate-400 text-xs italic">—</span>
+                        )}
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">

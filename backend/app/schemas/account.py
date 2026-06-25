@@ -10,6 +10,7 @@ class AccountBase(BaseModel):
     asset_class: str | None = None
     sector: str | None = None
     geographic_zone: str | None = None
+    institution: str | None = None
     is_main: bool = False
     fonds_euros_pct: float | None = None
     fonds_investis_pct: float | None = None
@@ -28,6 +29,7 @@ class AccountUpdate(BaseModel):
     asset_class: str | None = None
     sector: str | None = None
     geographic_zone: str | None = None
+    institution: str | None = None
     is_main: bool | None = None
     fonds_euros_pct: float | None = None
     fonds_investis_pct: float | None = None

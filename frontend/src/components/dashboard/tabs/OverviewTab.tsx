@@ -42,7 +42,7 @@ export function OverviewTab({
   tagTotals,
   patrimoineAllocation
 }: OverviewTabProps) {
-  const [groupBy, setGroupBy] = useState<"account" | "category" | "mixed">("mixed")
+  const [groupBy, setGroupBy] = useState<"account" | "category" | "mixed" | "institution">("mixed")
 
   const flatItems = useMemo(() => {
     if (!patrimoineAllocation?.items) return []
@@ -178,8 +178,46 @@ export function OverviewTab({
     return result
   }, [patrimoineAllocation])
 
-  const chartData = groupBy === "category" ? categoryData : (groupBy === "account" ? flatItems : mixedItems)
-  const chartDataKey = groupBy === "category" ? "value" : "balance_eur"
+  const institutionData = useMemo(() => {
+    if (!patrimoineAllocation?.items) return []
+    const total = patrimoineAllocation.total_patrimoine || 1
+    
+    // Group accounts by institution name
+    const grouped: Record<string, { name: string; value: number; items: any[] }> = {}
+    
+    patrimoineAllocation.items.forEach((item: any) => {
+      const instName = item.institution ? item.institution.trim() : "Autre / Non spécifié"
+      if (!grouped[instName]) {
+        grouped[instName] = {
+          name: instName,
+          value: 0,
+          items: []
+        }
+      }
+      grouped[instName].value += item.balance_eur
+      grouped[instName].items.push(item)
+    })
+    
+    // Convert to array and calculate percentage & color
+    return Object.values(grouped)
+      .sort((a, b) => b.value - a.value)
+      .map((group, index) => ({
+        ...group,
+        percentage: Number(((group.value / total) * 100).toFixed(2)),
+        color: COLORS[index % COLORS.length]
+      }))
+  }, [patrimoineAllocation])
+
+  const chartData = 
+    groupBy === "category" 
+      ? categoryData 
+      : groupBy === "account" 
+      ? flatItems 
+      : groupBy === "institution" 
+      ? institutionData 
+      : mixedItems
+
+  const chartDataKey = groupBy === "category" || groupBy === "institution" ? "value" : "balance_eur"
 
   return (
     <div className="space-y-8">
@@ -208,6 +246,7 @@ export function OverviewTab({
                 <TabsTrigger value="category" className="rounded-lg text-xs font-semibold px-3 py-1">Par Catégorie</TabsTrigger>
                 <TabsTrigger value="mixed" className="rounded-lg text-xs font-semibold px-3 py-1">Mixte</TabsTrigger>
                 <TabsTrigger value="account" className="rounded-lg text-xs font-semibold px-3 py-1">Par Compte</TabsTrigger>
+                <TabsTrigger value="institution" className="rounded-lg text-xs font-semibold px-3 py-1">Par Établissement</TabsTrigger>
               </TabsList>
             </Tabs>
             <span className="text-sm font-semibold text-slate-500 bg-slate-100/80 px-3 py-1 rounded-lg">
@@ -291,6 +330,63 @@ export function OverviewTab({
                                 <div 
                                   className="h-2 w-2 rounded-full flex-shrink-0" 
                                   style={{ backgroundColor: catColor }} 
+                                />
+                                <div>
+                                  <span className="font-bold text-slate-800 text-sm group-hover/item:text-slate-900 transition-colors">
+                                    {item.account_name}
+                                  </span>
+                                  {item.currency !== "EUR" && (
+                                    <span className="text-[10px] text-slate-400 font-medium block">
+                                      Original: {formatCurrency(item.balance, item.currency)}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <span className="font-bold text-sm text-slate-900 block amount-blur">
+                                  {formatCurrency(item.balance_eur, "EUR")}
+                                </span>
+                                <span className="text-[10px] font-medium text-slate-400">
+                                  {((item.balance_eur / totalPatrimoine) * 100).toFixed(1)}%
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })
+                ) : groupBy === "institution" ? (
+                  institutionData.map((group: any) => {
+                    const totalPatrimoine = patrimoineAllocation.total_patrimoine || 1;
+                    return (
+                      <div key={group.name} className="space-y-2">
+                        {/* Group Header */}
+                        <div className="flex items-center justify-between border-b border-slate-100 pb-1.5 px-1 bg-slate-50/30">
+                          <span className="text-xs font-black tracking-wider text-slate-500 uppercase">
+                            {group.name}
+                          </span>
+                          <div className="text-right">
+                            <span className="text-xs font-extrabold text-slate-700 amount-blur">
+                              {formatCurrency(group.value, "EUR")}
+                            </span>
+                            <span className="text-[10px] text-slate-400 font-semibold ml-2">
+                              {group.percentage}%
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Accounts in Group */}
+                        <div className="space-y-1.5">
+                          {group.items.map((item: any) => (
+                            <div 
+                              key={`${item.account_id}-${item.account_name}`} 
+                              className="flex items-center justify-between p-2.5 rounded-xl border border-slate-100 hover:border-slate-200 hover:bg-slate-50/50 transition-all group/item"
+                            >
+                              <div className="flex items-center gap-2.5">
+                                <div 
+                                  className="h-2 w-2 rounded-full flex-shrink-0" 
+                                  style={{ backgroundColor: group.color }} 
                                 />
                                 <div>
                                   <span className="font-bold text-slate-800 text-sm group-hover/item:text-slate-900 transition-colors">

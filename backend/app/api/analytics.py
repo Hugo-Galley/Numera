@@ -2504,6 +2504,7 @@ async def patrimoine_allocation(db: Session = Depends(get_db)):
                 "currency": acc.currency,
                 "balance": round(val_euros, 2),
                 "balance_eur": round(val_euros_eur, 2),
+                "institution": acc.institution,
             })
             
             items.append({
@@ -2513,6 +2514,7 @@ async def patrimoine_allocation(db: Session = Depends(get_db)):
                 "currency": acc.currency,
                 "balance": round(val_investis, 2),
                 "balance_eur": round(val_investis_eur, 2),
+                "institution": acc.institution,
             })
         else:
             items.append({
@@ -2522,6 +2524,7 @@ async def patrimoine_allocation(db: Session = Depends(get_db)):
                 "currency": acc.currency,
                 "balance": round(val, 2),
                 "balance_eur": round(val_eur, 2),
+                "institution": acc.institution,
             })
             
     for item in items:
