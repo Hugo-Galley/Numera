@@ -36,7 +36,7 @@ def test_cashflow_projection(client: TestClient, db_session: Session):
         amount=2000,
         currency="EUR",
         frequency="monthly",
-        day_of_month=now.day,
+        day_of_month=(now + timedelta(days=2)).day,
         start_date=now - timedelta(days=32),
         is_active=True,
         auto_generate=False

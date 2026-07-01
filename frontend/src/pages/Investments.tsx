@@ -75,6 +75,20 @@ export default function Investments() {
     navigate(`/accounts/${accountId}`)
   }
 
+  const getDrilldownItems = (clickedData: any) => {
+    if (!clickedData) return []
+    if (Array.isArray(clickedData.items)) return clickedData.items
+    if (clickedData.payload && Array.isArray(clickedData.payload.items)) return clickedData.payload.items
+    if (clickedData.payload?.payload && Array.isArray(clickedData.payload.payload.items)) return clickedData.payload.payload.items
+    return []
+  }
+
+  const getDrilldownTitle = (prefix: string, clickedData: any) => {
+    if (!clickedData) return prefix
+    const name = clickedData.name || clickedData.payload?.name || clickedData.payload?.payload?.name || ""
+    return `${prefix} : ${name}`
+  }
+
   if (loading) return (
     <div className="flex items-center justify-center h-[60vh]">
       <div className="flex flex-col items-center gap-4">
@@ -120,7 +134,9 @@ export default function Investments() {
           </CardHeader>
           <CardContent>
             <div className={`text-3xl font-bold ${allocation?.total_gain_eur >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
-              {allocation?.total_gain_eur >= 0 ? "+" : ""}{formatCurrency(allocation?.total_gain_eur || 0)}
+              <span className="amount-blur">
+                {allocation?.total_gain_eur >= 0 ? "+" : ""}{formatCurrency(allocation?.total_gain_eur || 0)}
+              </span>
             </div>
             <p className="text-xs text-muted-foreground mt-1">
               {(allocation?.total_performance_pct || 0).toFixed(2)}% de rendement total
@@ -168,7 +184,7 @@ export default function Investments() {
                     ))}
                   </Pie>
                   <Tooltip 
-                    formatter={(value: number) => [formatCurrency(value), "Valeur"]}
+                    formatter={(value: number, name: string) => [formatCurrency(value), name]}
                     contentStyle={{ borderRadius: "8px", border: "1px solid #e2e8f0" }}
                   />
                 </PieChart>
@@ -200,8 +216,8 @@ export default function Investments() {
                       <span className="font-bold text-sm shrink-0">{item.percentage.toFixed(1)}%</span>
                     </div>
                     <div className="flex justify-between text-xs text-muted-foreground ml-5">
-                      <span>{formatCurrency(item.current_value)}</span>
-                      <span className={item.gain_eur >= 0 ? "text-emerald-600" : "text-rose-600"}>
+                      <span className="amount-blur">{formatCurrency(item.current_value)}</span>
+                      <span className={`amount-blur ${item.gain_eur >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
                         {item.gain_eur >= 0 ? "+" : ""}{formatCurrency(item.gain_eur)}
                       </span>
                     </div>
@@ -241,7 +257,7 @@ export default function Investments() {
                    tickFormatter={(v) => `${v}€`} 
                  />
                  <Tooltip 
-                    formatter={(value: number) => [formatCurrency(value), "Valeur"]}
+                    formatter={(value: number, name: string) => [formatCurrency(value), name]}
                     contentStyle={{ borderRadius: "8px", border: "1px solid #e2e8f0" }}
                  />
                  <Bar 
@@ -275,7 +291,7 @@ export default function Investments() {
             {advancedAllocation ? (
               <AllocationTreemap 
                 data={advancedAllocation.by_asset_class} 
-                onItemClick={(node) => setDrillDown({ title: `Classe d'actif : ${node.name}`, items: node.items })}
+                onItemClick={(node) => setDrillDown({ title: getDrilldownTitle("Classe d'actif", node), items: getDrilldownItems(node) })}
               />
             ) : (
               <div className="h-[400px] flex items-center justify-center">
@@ -305,7 +321,7 @@ export default function Investments() {
                     paddingAngle={5}
                     dataKey="value"
                     nameKey="name"
-                    onClick={(data) => setDrillDown({ title: `Classe d'actif : ${data.name}`, items: data.items })}
+                    onClick={(data) => setDrillDown({ title: getDrilldownTitle("Classe d'actif", data), items: getDrilldownItems(data) })}
                     className="cursor-pointer outline-none"
                   >
                     {(advancedAllocation?.by_asset_class || []).map((_: any, index: number) => (
@@ -320,7 +336,7 @@ export default function Investments() {
                   <div 
                     key={i} 
                     className="flex items-center justify-between text-xs cursor-pointer hover:text-slate-600 transition-colors"
-                    onClick={() => setDrillDown({ title: `Classe d'actif : ${item.name}`, items: item.items })}
+                    onClick={() => setDrillDown({ title: `Classe d'actif : ${item.name}`, items: item.items || [] })}
                   >
                     <div className="flex items-center gap-2">
                       <div className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
@@ -352,7 +368,7 @@ export default function Investments() {
                     paddingAngle={5}
                     dataKey="value"
                     nameKey="name"
-                    onClick={(data) => setDrillDown({ title: `Secteur : ${data.name}`, items: data.items })}
+                    onClick={(data) => setDrillDown({ title: getDrilldownTitle("Secteur", data), items: getDrilldownItems(data) })}
                     className="cursor-pointer outline-none"
                   >
                     {(advancedAllocation?.by_sector || []).map((_: any, index: number) => (
@@ -367,7 +383,7 @@ export default function Investments() {
                   <div 
                     key={i} 
                     className="flex items-center justify-between text-xs cursor-pointer hover:text-slate-600 transition-colors"
-                    onClick={() => setDrillDown({ title: `Secteur : ${item.name}`, items: item.items })}
+                    onClick={() => setDrillDown({ title: `Secteur : ${item.name}`, items: item.items || [] })}
                   >
                     <div className="flex items-center gap-2">
                       <div className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
@@ -419,11 +435,11 @@ export default function Investments() {
                 }}
               >
                 <div className="flex flex-col">
-                  <span className="font-medium text-sm group-hover:text-slate-600 transition-colors">{item.account_name}</span>
-                  <span className="text-xs text-muted-foreground">{item.percentage_of_group}% du groupe</span>
+                  <span className="font-medium text-sm group-hover:text-slate-600 transition-colors">{item.account_name || "Compte sans nom"}</span>
+                  <span className="text-xs text-muted-foreground">{typeof item.percentage_of_group === 'number' ? `${item.percentage_of_group.toFixed(1)}%` : `${item.percentage_of_group || 0}%`} du groupe</span>
                 </div>
                 <div className="text-right">
-                  <span className="font-bold text-sm">{formatCurrency(item.value)}</span>
+                  <span className="font-bold text-sm amount-blur">{formatCurrency(item.value)}</span>
                 </div>
               </div>
             ))}

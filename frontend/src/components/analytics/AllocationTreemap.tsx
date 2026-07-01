@@ -104,7 +104,7 @@ export const AllocationTreemap: React.FC<AllocationTreemapProps> = ({ data, onIt
           }}
         >
           <Tooltip 
-            formatter={(value: number) => [new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(value), "Valeur"]}
+            formatter={(value: number, name: string) => [new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(value), name]}
             contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }}
           />
         </Treemap>

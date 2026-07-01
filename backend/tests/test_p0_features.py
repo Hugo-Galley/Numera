@@ -71,7 +71,22 @@ def test_budget_alerts(client: TestClient, db_session: Session):
     # Setup category with limit
     cat = Category(name="Food", type="depense", monthly_limit=100.0)
     account = Account(name="Wallet", type="courant", currency="EUR", active=True)
-    db_session.add_all([cat, account])
+    
+    # Setup Ticket Restaurant account and active SalaryConfig
+    tr_account = Account(name="Ticket Restaurant", type="courant", currency="EUR", active=True)
+    db_session.add_all([cat, account, tr_account])
+    db_session.commit()
+    
+    from app.models.salary_config import SalaryConfig
+    salary_config = SalaryConfig(
+        salary_account_id=account.id,
+        ticket_account_id=tr_account.id,
+        net_salary=2000.0,
+        ticket_value=10.50,
+        ticket_employee_share=4.20,
+        is_active=True
+    )
+    db_session.add(salary_config)
     db_session.commit()
     
     # Add transaction exceeding limit
@@ -87,14 +102,29 @@ def test_budget_alerts(client: TestClient, db_session: Session):
         }
     )
     
+    # Add transaction in ticket restaurant account (should be ignored for budgets)
+    client.post(
+        "/transactions",
+        json={
+            "account_id": tr_account.id,
+            "date": datetime.now().isoformat(),
+            "type": "Sortie",
+            "merchant": "Midi Lunch",
+            "category_id": cat.id,
+            "amount": 15.0
+        }
+    )
+    
     response = client.get("/analytics/budget-alerts", params={"year": datetime.now().year, "month": datetime.now().month})
     assert response.status_code == 200
     alerts = response.json()
     assert len(alerts) > 0
     food_alert = next(a for a in alerts if a["category_name"] == "Food")
+    # Spent should only be the 120.0 from checking, ignoring the 15.0 from Ticket Restaurant
     assert food_alert["monthly_spent"] == 120.0
     assert food_alert["monthly_limit"] == 100.0
     assert food_alert["monthly_ratio"] > 1.0
+
 
 def test_intelligent_insights(client: TestClient, db_session: Session):
     # Insights usually compare months. Let's add data for current and last month.

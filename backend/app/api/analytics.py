@@ -109,6 +109,28 @@ def _savings_total_at(db: Session, account_ids: list[int], end_date: datetime) -
     return total
 
 
+def _get_ticket_restaurant_account_ids(db: Session) -> set[int]:
+    from app.models.salary_config import SalaryConfig
+    ticket_account_ids = set()
+    try:
+        salary_config = db.query(SalaryConfig).filter(SalaryConfig.is_active == True).first()
+        if salary_config and salary_config.ticket_account_id:
+            ticket_account_ids.add(salary_config.ticket_account_id)
+            
+        matching_accounts = db.query(Account.id).filter(
+            (Account.name.ilike("%ticket%restaurant%")) | 
+            (Account.name.ilike("%tickets%restaurant%")) |
+            (Account.type == "ticket_restaurant")
+        ).all()
+        for acc_id_tuple in matching_accounts:
+            ticket_account_ids.add(acc_id_tuple[0])
+    except Exception as e:
+        print(f"Error getting ticket restaurant accounts: {e}")
+        
+    return ticket_account_ids
+
+
+
 @router.get("/audit", response_model=DataAuditResponse)
 def data_audit(db: Session = Depends(get_db)):
     now = datetime.now()
@@ -795,6 +817,9 @@ async def budget_analytics(
             start = datetime(year, month, 1)
             end = datetime(year + (1 if month == 12 else 0), 1 if month == 12 else month + 1, 1)
 
+        # Get ticket restaurant accounts to exclude from global views
+        tr_accounts = _get_ticket_restaurant_account_ids(db)
+
         # Get income grouped by account currency
         revenus_query_filter = ["Entree", "Interets"]
         if not month or not year:
@@ -811,6 +836,8 @@ async def budget_analytics(
         if not account_id:
             # Global view: include both checking and savings accounts
             revenus_by_curr = revenus_by_curr.filter(Account.type.in_(["courant", "epargne"]))
+            if tr_accounts:
+                revenus_by_curr = revenus_by_curr.filter(Transaction.account_id.notin_(tr_accounts))
         else:
             revenus_by_curr = revenus_by_curr.filter(Transaction.account_id == account_id)
 
@@ -853,6 +880,8 @@ async def budget_analytics(
         )
         if not account_id:
             interets_by_curr = interets_by_curr.filter(Account.type.in_(["courant", "epargne"]))
+            if tr_accounts:
+                interets_by_curr = interets_by_curr.filter(Transaction.account_id.notin_(tr_accounts))
         else:
             interets_by_curr = interets_by_curr.filter(Transaction.account_id == account_id)
 
@@ -886,6 +915,8 @@ async def budget_analytics(
         if not account_id:
             # Global view: include both checking and savings accounts
             depenses_by_curr = depenses_by_curr.filter(Account.type.in_(["courant", "epargne"]))
+            if tr_accounts:
+                depenses_by_curr = depenses_by_curr.filter(Transaction.account_id.notin_(tr_accounts))
         else:
             depenses_by_curr = depenses_by_curr.filter(Transaction.account_id == account_id)
 
@@ -925,6 +956,9 @@ async def budget_analytics(
         investments_by_curr = investments_by_curr.filter(Transaction.date < end)
         if account_id:
             investments_by_curr = investments_by_curr.filter(Transaction.account_id == account_id)
+        else:
+            if tr_accounts:
+                investments_by_curr = investments_by_curr.filter(Transaction.account_id.notin_(tr_accounts))
 
         investments_rows = investments_by_curr.group_by(Account.currency).all()
         investments = sum(row.total / rates.get(row.currency, 1.0) for row in investments_rows)
@@ -1074,6 +1108,8 @@ async def budget_analytics(
             current_accounts_query = current_accounts_query.filter(Account.id == account_id)
         else:
             current_accounts_query = current_accounts_query.filter(Account.active == True)
+            if tr_accounts:
+                current_accounts_query = current_accounts_query.filter(Transaction.account_id.notin_(tr_accounts))
 
         current_accounts_rows = current_accounts_query.group_by(Account.id, Account.type, Account.currency).all()
 
@@ -1278,6 +1314,9 @@ async def tags_analytics(
             query = query.filter(Transaction.account_id == account_id)
         else:
             query = query.filter(Account.type.in_(["courant", "epargne"]))
+            tr_accounts = _get_ticket_restaurant_account_ids(db)
+            if tr_accounts:
+                query = query.filter(Transaction.account_id.notin_(tr_accounts))
 
         rows = query.group_by(Tag.id, Account.currency).all()
 
@@ -1332,6 +1371,10 @@ async def expenses_by_category(
     )
     if account_id:
         query = query.filter(Transaction.account_id == account_id)
+    else:
+        tr_accounts = _get_ticket_restaurant_account_ids(db)
+        if tr_accounts:
+            query = query.filter(Transaction.account_id.notin_(tr_accounts))
     
     rows = query.group_by(Category.id, Account.currency).all()
 
@@ -1432,6 +1475,10 @@ async def top_merchants(
     )
     if account_id:
         query = query.filter(Transaction.account_id == account_id)
+    else:
+        tr_accounts = _get_ticket_restaurant_account_ids(db)
+        if tr_accounts:
+            query = query.filter(Transaction.account_id.notin_(tr_accounts))
     
     rows = query.group_by(func.coalesce(Merchant.name, Transaction.merchant), Account.currency).all()
 
@@ -2059,6 +2106,7 @@ async def kpi_history(
     } if savings_account_ids else {}
     base_currency = "EUR"
     rates = await get_exchange_rates(base_currency)
+    tr_accounts = _get_ticket_restaurant_account_ids(db)
 
     # Find the earliest transaction date to avoid showing empty future or past months
     earliest_tx_query = db.query(func.min(Transaction.date))
@@ -2087,6 +2135,8 @@ async def kpi_history(
         )
         if not account_id:
             rev_query = rev_query.filter(Account.type.in_(["courant", "epargne"]))
+            if tr_accounts:
+                rev_query = rev_query.filter(Transaction.account_id.notin_(tr_accounts))
         else:
             rev_query = rev_query.filter(Transaction.account_id == account_id)
         
@@ -2110,6 +2160,8 @@ async def kpi_history(
         )
         if not account_id:
             inte_query = inte_query.filter(Account.type.in_(["courant", "epargne"]))
+            if tr_accounts:
+                inte_query = inte_query.filter(Transaction.account_id.notin_(tr_accounts))
         else:
             inte_query = inte_query.filter(Transaction.account_id == account_id)
             
@@ -2123,6 +2175,8 @@ async def kpi_history(
         )
         if not account_id:
             dep_query = dep_query.filter(Account.type.in_(["courant", "epargne"]))
+            if tr_accounts:
+                dep_query = dep_query.filter(Transaction.account_id.notin_(tr_accounts))
         else:
             dep_query = dep_query.filter(Transaction.account_id == account_id)
             
@@ -2134,6 +2188,9 @@ async def kpi_history(
         )
         if account_id:
             inv_query = inv_query.filter(Transaction.account_id == account_id)
+        else:
+            if tr_accounts:
+                inv_query = inv_query.filter(Transaction.account_id.notin_(tr_accounts))
             
         inv_rows = inv_query.group_by(Account.currency).all()
         inv = sum(row.total / rates.get(row.currency, 1.0) for row in inv_rows)
@@ -2835,6 +2892,7 @@ async def timeseries_analytics(
         }
 
     rates = await get_exchange_rates("EUR")
+    tr_accounts = _get_ticket_restaurant_account_ids(db)
 
     for month in range(1, 13):
         start = datetime(year, month, 1)
@@ -2869,6 +2927,9 @@ async def timeseries_analytics(
         else:
             income_by_curr = income_by_curr.filter(Account.type.in_(["courant", "epargne"]))
             expense_by_curr = expense_by_curr.filter(Account.type.in_(["courant", "epargne"]))
+            if tr_accounts:
+                income_by_curr = income_by_curr.filter(Transaction.account_id.notin_(tr_accounts))
+                expense_by_curr = expense_by_curr.filter(Transaction.account_id.notin_(tr_accounts))
 
         income_rows = income_by_curr.group_by(Account.currency).all()
         income = sum(row.total / rates.get(row.currency, 1.0) for row in income_rows)
@@ -2988,6 +3049,7 @@ async def budget_alerts(
         return []
 
     rates = await get_exchange_rates("EUR")
+    tr_accounts = _get_ticket_restaurant_account_ids(db)
     start_month = datetime(year, month, 1)
     end_month = datetime(year + (1 if month == 12 else 0), 1 if month == 12 else month + 1, 1)
     start_year = datetime(year, 1, 1)
@@ -3006,6 +3068,9 @@ async def budget_alerts(
     )
     if account_id:
         monthly_query = monthly_query.filter(Transaction.account_id == account_id)
+    else:
+        if tr_accounts:
+            monthly_query = monthly_query.filter(Transaction.account_id.notin_(tr_accounts))
 
     monthly_rows = monthly_query.group_by(Transaction.category_id, Account.currency).all()
 
@@ -3028,6 +3093,9 @@ async def budget_alerts(
     )
     if account_id:
         annual_query = annual_query.filter(Transaction.account_id == account_id)
+    else:
+        if tr_accounts:
+            annual_query = annual_query.filter(Transaction.account_id.notin_(tr_accounts))
 
     annual_rows = annual_query.group_by(Transaction.category_id, Account.currency).all()    
     annual_spent_map = {}
@@ -3104,7 +3172,8 @@ async def get_subscription_total_for_period(month: int, year: int, db: Session) 
     end = datetime(year + (1 if month == 12 else 0), 1 if month == 12 else month + 1, 1)
     rates = await get_exchange_rates("EUR")
 
-    rows = (
+    tr_accounts = _get_ticket_restaurant_account_ids(db)
+    query = (
         db.query(
             Account.currency,
             func.coalesce(func.sum(Transaction.amount), 0.0).label("total"),
@@ -3118,9 +3187,11 @@ async def get_subscription_total_for_period(month: int, year: int, db: Session) 
             Transaction.is_transfer == False,
             Category.name == "Abonnement",
         )
-        .group_by(Account.currency)
-        .all()
     )
+    if tr_accounts:
+        query = query.filter(Transaction.account_id.notin_(tr_accounts))
+
+    rows = query.group_by(Account.currency).all()
 
     total_eur = 0.0
     for row in rows:
@@ -3237,6 +3308,10 @@ async def get_intelligent_insights(
     )
     if account_id:
         large_tx_query = large_tx_query.filter(Transaction.account_id == account_id)
+    else:
+        tr_accounts = _get_ticket_restaurant_account_ids(db)
+        if tr_accounts:
+            large_tx_query = large_tx_query.filter(Transaction.account_id.notin_(tr_accounts))
     
     all_txs = large_tx_query.all()
     for tx, curr in all_txs:
@@ -3361,9 +3436,13 @@ async def calendar_analytics(
         InvestmentTransaction.date < end_month
     )
     
+    tr_accounts = _get_ticket_restaurant_account_ids(db)
     if account_id:
         tx_query = tx_query.filter(Transaction.account_id == account_id)
         inv_tx_query = inv_tx_query.filter(InvestmentTransaction.account_id == account_id)
+    else:
+        if tr_accounts:
+            tx_query = tx_query.filter(Transaction.account_id.notin_(tr_accounts))
     
     real_txs = tx_query.all()
     real_inv_txs = inv_tx_query.all()
@@ -3372,6 +3451,9 @@ async def calendar_analytics(
     recur_query = db.query(RecurringTransaction).filter(RecurringTransaction.is_active == True)
     if account_id:
         recur_query = recur_query.filter(RecurringTransaction.account_id == account_id)
+    else:
+        if tr_accounts:
+            recur_query = recur_query.filter(RecurringTransaction.account_id.notin_(tr_accounts))
     
     recurring_defs = recur_query.all()
     projected_events = []
@@ -3595,7 +3677,10 @@ async def get_cashflow_projection(
             current_bal = float(last_tx.running_balance)
     else:
         active_accounts = db.query(Account).filter(Account.active == True).all()
+        tr_accounts = _get_ticket_restaurant_account_ids(db)
         for acc in active_accounts:
+            if tr_accounts and acc.id in tr_accounts:
+                continue
             last_tx = (
                 db.query(Transaction)
                 .filter(Transaction.account_id == acc.id)
@@ -3611,6 +3696,10 @@ async def get_cashflow_projection(
     recur_query = db.query(RecurringTransaction).filter(RecurringTransaction.is_active == True)
     if account_id:
         recur_query = recur_query.filter(RecurringTransaction.account_id == account_id)
+    else:
+        tr_accounts = _get_ticket_restaurant_account_ids(db)
+        if tr_accounts:
+            recur_query = recur_query.filter(RecurringTransaction.account_id.notin_(tr_accounts))
     
     recurring_defs = recur_query.all()
     
@@ -3829,6 +3918,9 @@ async def _calculate_money_flow_data(month: int, year: int, db: Session, account
     else:
         # Focus on CHECKING accounts only
         income_query = income_query.filter(Account.type == "courant")
+        tr_accounts = _get_ticket_restaurant_account_ids(db)
+        if tr_accounts:
+            income_query = income_query.filter(Transaction.account_id.notin_(tr_accounts))
         
     income_rows = income_query.group_by(Account.currency).all()
     income = sum(row.total / rates.get(row.currency, 1.0) for row in income_rows)
@@ -3846,6 +3938,9 @@ async def _calculate_money_flow_data(month: int, year: int, db: Session, account
         tx_query = tx_query.filter(Transaction.account_id == account_id)
     else:
         tx_query = tx_query.filter(Account.type == "courant")
+        tr_accounts = _get_ticket_restaurant_account_ids(db)
+        if tr_accounts:
+            tx_query = tx_query.filter(Transaction.account_id.notin_(tr_accounts))
         
     transactions = tx_query.all()
     
