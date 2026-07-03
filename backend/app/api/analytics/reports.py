@@ -47,7 +47,8 @@ from app.core.finance import get_recurring_occurrences
 from app.core.logging import get_logger
 from app.schemas.transaction import TransactionRead
 from .budget import budget_analytics, budget_alerts
-
+from .insights import get_intelligent_insights
+from .metrics import expenses_by_category, top_merchants
 logger = get_logger(__name__)
 
 router = APIRouter()
