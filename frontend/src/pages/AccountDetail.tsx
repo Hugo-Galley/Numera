@@ -8,6 +8,7 @@ import {
   History,
   BarChart3,
   TrendingUp,
+  TrendingDown,
   ArrowUp,
   ArrowDown,
   ArrowUpRight,
@@ -939,12 +940,42 @@ export default function AccountDetail() {
   const stats = useMemo(() => {
     const source = (search || dateStart || dateEnd) ? filteredTransactions : transactions
     if (source.length === 0) return null
-    const incomes = source.filter(t => ["Entree", "Interets", "Solde Initial"].includes(t.type))
     const expenses = source.filter(t => t.type === "Sortie")
     
+    // Current month flow
+    const now = new Date()
+    const currentMonth = now.getMonth()
+    const currentYear = now.getFullYear()
+    const thisMonthTx = transactions.filter(t => {
+      const d = new Date(t.date)
+      return d.getMonth() === currentMonth && d.getFullYear() === currentYear
+    })
+    const thisMonthIn = thisMonthTx.filter(t => ["Entree", "Interets"].includes(t.type)).reduce((acc, t) => acc + t.amount, 0)
+    const thisMonthOut = thisMonthTx.filter(t => t.type === "Sortie").reduce((acc, t) => acc + t.amount, 0)
+    const monthlyNetFlow = thisMonthIn - thisMonthOut
+
+    // Previous month flow for variation
+    const prevDate = new Date(currentYear, currentMonth - 1, 1)
+    const prevMonth = prevDate.getMonth()
+    const prevYear = prevDate.getFullYear()
+    const prevMonthTx = transactions.filter(t => {
+      const d = new Date(t.date)
+      return d.getMonth() === prevMonth && d.getFullYear() === prevYear
+    })
+    const prevMonthIn = prevMonthTx.filter(t => ["Entree", "Interets"].includes(t.type)).reduce((acc, t) => acc + t.amount, 0)
+    const prevMonthOut = prevMonthTx.filter(t => t.type === "Sortie").reduce((acc, t) => acc + t.amount, 0)
+    const prevMonthlyNetFlow = prevMonthIn - prevMonthOut
+
+    // Variation % (month-over-month on net flow)
+    let monthlyVariation: number | null = null
+    if (prevMonthlyNetFlow !== 0) {
+      monthlyVariation = ((monthlyNetFlow - prevMonthlyNetFlow) / Math.abs(prevMonthlyNetFlow)) * 100
+    }
+
     return {
-      totalIn: incomes.reduce((acc, t) => acc + t.amount, 0),
-      totalOut: expenses.reduce((acc, t) => acc + t.amount, 0),
+      monthlyNetFlow,
+      monthlyVariation,
+      prevMonthlyNetFlow,
       count: source.length,
       avgTx: expenses.length > 0 ? expenses.reduce((acc, t) => acc + t.amount, 0) / expenses.length : 0
     }
@@ -1459,22 +1490,34 @@ export default function AccountDetail() {
           <>
             <Card className="shadow-sm">
               <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
-                <CardDescription className="font-medium">Total Entrées</CardDescription>
-                <ArrowUpRight className="h-4 w-4 text-emerald-500" />
+                <CardDescription className="font-medium">Flux Net du Mois</CardDescription>
+                {(stats?.monthlyNetFlow || 0) >= 0 
+                  ? <TrendingUp className="h-4 w-4 text-emerald-500" />
+                  : <TrendingDown className="h-4 w-4 text-rose-500" />}
               </CardHeader>
               <CardContent>
-                <CardTitle className="text-2xl font-bold text-emerald-600">+{formatCurrency(stats?.totalIn || 0)}</CardTitle>
-                <p className="text-xs text-slate-400 mt-2">{(search || dateStart || dateEnd) ? "Sur la sélection" : "Cumul historique"}</p>
+                <CardTitle className={`text-2xl font-bold ${(stats?.monthlyNetFlow || 0) >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
+                  {(stats?.monthlyNetFlow || 0) >= 0 ? "+" : ""}{formatCurrency(stats?.monthlyNetFlow || 0)}
+                </CardTitle>
+                <p className="text-xs text-slate-400 mt-2">Entrées − Sorties ce mois</p>
               </CardContent>
             </Card>
             <Card className="shadow-sm">
               <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
-                <CardDescription className="font-medium">Total Sorties</CardDescription>
-                <ArrowDownRight className="h-4 w-4 text-rose-500" />
+                <CardDescription className="font-medium">Variation Mensuelle</CardDescription>
+                {stats?.monthlyVariation !== null && stats?.monthlyVariation !== undefined
+                  ? (stats.monthlyVariation >= 0 
+                      ? <ArrowUpRight className="h-4 w-4 text-emerald-500" />
+                      : <ArrowDownRight className="h-4 w-4 text-rose-500" />)
+                  : <Activity className="h-4 w-4 text-slate-400" />}
               </CardHeader>
               <CardContent>
-                <CardTitle className="text-2xl font-bold text-rose-600">-{formatCurrency(stats?.totalOut || 0)}</CardTitle>
-                <p className="text-xs text-slate-400 mt-2">{(search || dateStart || dateEnd) ? "Sur la sélection" : "Cumul historique"}</p>
+                <CardTitle className={`text-2xl font-bold ${stats?.monthlyVariation === null || stats?.monthlyVariation === undefined ? "text-slate-500" : stats.monthlyVariation >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
+                  {stats?.monthlyVariation !== null && stats?.monthlyVariation !== undefined
+                    ? `${stats.monthlyVariation >= 0 ? "+" : ""}${stats.monthlyVariation.toFixed(1)}%`
+                    : "—"}
+                </CardTitle>
+                <p className="text-xs text-slate-400 mt-2">vs mois précédent</p>
               </CardContent>
             </Card>
             <Card className="shadow-sm">

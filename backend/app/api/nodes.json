@@ -1,0 +1,392 @@
+[
+  {
+    "type": "Import",
+    "name": null,
+    "lineno": 1,
+    "end_lineno": 1
+  },
+  {
+    "type": "Import",
+    "name": null,
+    "lineno": 2,
+    "end_lineno": 2
+  },
+  {
+    "type": "ImportFrom",
+    "name": null,
+    "lineno": 3,
+    "end_lineno": 3
+  },
+  {
+    "type": "ImportFrom",
+    "name": null,
+    "lineno": 5,
+    "end_lineno": 5
+  },
+  {
+    "type": "ImportFrom",
+    "name": null,
+    "lineno": 6,
+    "end_lineno": 6
+  },
+  {
+    "type": "ImportFrom",
+    "name": null,
+    "lineno": 7,
+    "end_lineno": 7
+  },
+  {
+    "type": "ImportFrom",
+    "name": null,
+    "lineno": 8,
+    "end_lineno": 8
+  },
+  {
+    "type": "ImportFrom",
+    "name": null,
+    "lineno": 9,
+    "end_lineno": 9
+  },
+  {
+    "type": "ImportFrom",
+    "name": null,
+    "lineno": 11,
+    "end_lineno": 11
+  },
+  {
+    "type": "ImportFrom",
+    "name": null,
+    "lineno": 12,
+    "end_lineno": 12
+  },
+  {
+    "type": "ImportFrom",
+    "name": null,
+    "lineno": 13,
+    "end_lineno": 13
+  },
+  {
+    "type": "ImportFrom",
+    "name": null,
+    "lineno": 14,
+    "end_lineno": 14
+  },
+  {
+    "type": "ImportFrom",
+    "name": null,
+    "lineno": 15,
+    "end_lineno": 15
+  },
+  {
+    "type": "ImportFrom",
+    "name": null,
+    "lineno": 16,
+    "end_lineno": 16
+  },
+  {
+    "type": "ImportFrom",
+    "name": null,
+    "lineno": 17,
+    "end_lineno": 41
+  },
+  {
+    "type": "ImportFrom",
+    "name": null,
+    "lineno": 42,
+    "end_lineno": 42
+  },
+  {
+    "type": "ImportFrom",
+    "name": null,
+    "lineno": 43,
+    "end_lineno": 43
+  },
+  {
+    "type": "ImportFrom",
+    "name": null,
+    "lineno": 44,
+    "end_lineno": 44
+  },
+  {
+    "type": "ImportFrom",
+    "name": null,
+    "lineno": 45,
+    "end_lineno": 45
+  },
+  {
+    "type": "ImportFrom",
+    "name": null,
+    "lineno": 46,
+    "end_lineno": 46
+  },
+  {
+    "type": "ImportFrom",
+    "name": null,
+    "lineno": 47,
+    "end_lineno": 47
+  },
+  {
+    "type": "ImportFrom",
+    "name": null,
+    "lineno": 48,
+    "end_lineno": 48
+  },
+  {
+    "type": "Assign",
+    "name": "logger",
+    "lineno": 50,
+    "end_lineno": 50
+  },
+  {
+    "type": "Assign",
+    "name": "router",
+    "lineno": 52,
+    "end_lineno": 52
+  },
+  {
+    "type": "FunctionDef",
+    "name": "_tx_sample",
+    "lineno": 55,
+    "end_lineno": 64
+  },
+  {
+    "type": "FunctionDef",
+    "name": "_tx_read",
+    "lineno": 67,
+    "end_lineno": 68
+  },
+  {
+    "type": "FunctionDef",
+    "name": "_savings_account_ids",
+    "lineno": 71,
+    "end_lineno": 72
+  },
+  {
+    "type": "FunctionDef",
+    "name": "_savings_events_by_account",
+    "lineno": 75,
+    "end_lineno": 101
+  },
+  {
+    "type": "FunctionDef",
+    "name": "_savings_total_at",
+    "lineno": 104,
+    "end_lineno": 109
+  },
+  {
+    "type": "FunctionDef",
+    "name": "_get_ticket_restaurant_account_ids",
+    "lineno": 112,
+    "end_lineno": 130
+  },
+  {
+    "type": "FunctionDef",
+    "name": "data_audit",
+    "lineno": 135,
+    "end_lineno": 403
+  },
+  {
+    "type": "FunctionDef",
+    "name": "data_audit_issue_details",
+    "lineno": 407,
+    "end_lineno": 527
+  },
+  {
+    "type": "AsyncFunctionDef",
+    "name": "get_action_center",
+    "lineno": 531,
+    "end_lineno": 786
+  },
+  {
+    "type": "ClassDef",
+    "name": "DismissActionRequest",
+    "lineno": 788,
+    "end_lineno": 789
+  },
+  {
+    "type": "AsyncFunctionDef",
+    "name": "dismiss_action",
+    "lineno": 792,
+    "end_lineno": 799
+  },
+  {
+    "type": "AsyncFunctionDef",
+    "name": "budget_analytics",
+    "lineno": 804,
+    "end_lineno": 1274
+  },
+  {
+    "type": "AsyncFunctionDef",
+    "name": "tags_analytics",
+    "lineno": 1278,
+    "end_lineno": 1343
+  },
+  {
+    "type": "AsyncFunctionDef",
+    "name": "expenses_by_category",
+    "lineno": 1347,
+    "end_lineno": 1443
+  },
+  {
+    "type": "AsyncFunctionDef",
+    "name": "top_merchants",
+    "lineno": 1447,
+    "end_lineno": 1495
+  },
+  {
+    "type": "AsyncFunctionDef",
+    "name": "investments_analytics",
+    "lineno": 1499,
+    "end_lineno": 1610
+  },
+  {
+    "type": "AsyncFunctionDef",
+    "name": "_calculate_investment_flows",
+    "lineno": 1614,
+    "end_lineno": 1724
+  },
+  {
+    "type": "AsyncFunctionDef",
+    "name": "investment_account_analytics",
+    "lineno": 1729,
+    "end_lineno": 1862
+  },
+  {
+    "type": "AsyncFunctionDef",
+    "name": "investment_performance_history",
+    "lineno": 1866,
+    "end_lineno": 1966
+  },
+  {
+    "type": "AsyncFunctionDef",
+    "name": "get_subscriptions_analytics",
+    "lineno": 1970,
+    "end_lineno": 2070
+  },
+  {
+    "type": "AsyncFunctionDef",
+    "name": "ignore_subscription_detection",
+    "lineno": 2074,
+    "end_lineno": 2088
+  },
+  {
+    "type": "AsyncFunctionDef",
+    "name": "kpi_history",
+    "lineno": 2092,
+    "end_lineno": 2236
+  },
+  {
+    "type": "AsyncFunctionDef",
+    "name": "investments_allocation",
+    "lineno": 2240,
+    "end_lineno": 2334
+  },
+  {
+    "type": "AsyncFunctionDef",
+    "name": "investments_allocation_advanced",
+    "lineno": 2338,
+    "end_lineno": 2465
+  },
+  {
+    "type": "AsyncFunctionDef",
+    "name": "patrimoine_allocation",
+    "lineno": 2469,
+    "end_lineno": 2595
+  },
+  {
+    "type": "FunctionDef",
+    "name": "get_asset_allocation_suggestions",
+    "lineno": 2599,
+    "end_lineno": 2628
+  },
+  {
+    "type": "AsyncFunctionDef",
+    "name": "wealth_simulation",
+    "lineno": 2632,
+    "end_lineno": 2853
+  },
+  {
+    "type": "FunctionDef",
+    "name": "_apply_account_level",
+    "lineno": 2856,
+    "end_lineno": 2867
+  },
+  {
+    "type": "AsyncFunctionDef",
+    "name": "timeseries_analytics",
+    "lineno": 2871,
+    "end_lineno": 3034
+  },
+  {
+    "type": "AsyncFunctionDef",
+    "name": "budget_alerts",
+    "lineno": 3038,
+    "end_lineno": 3167
+  },
+  {
+    "type": "AsyncFunctionDef",
+    "name": "get_subscription_total_for_period",
+    "lineno": 3170,
+    "end_lineno": 3200
+  },
+  {
+    "type": "AsyncFunctionDef",
+    "name": "get_intelligent_insights",
+    "lineno": 3204,
+    "end_lineno": 3396
+  },
+  {
+    "type": "ImportFrom",
+    "name": null,
+    "lineno": 3398,
+    "end_lineno": 3398
+  },
+  {
+    "type": "ClassDef",
+    "name": "DismissInsightRequest",
+    "lineno": 3399,
+    "end_lineno": 3400
+  },
+  {
+    "type": "AsyncFunctionDef",
+    "name": "dismiss_insight",
+    "lineno": 3403,
+    "end_lineno": 3410
+  },
+  {
+    "type": "AsyncFunctionDef",
+    "name": "calendar_analytics",
+    "lineno": 3413,
+    "end_lineno": 3648
+  },
+  {
+    "type": "AsyncFunctionDef",
+    "name": "get_cashflow_projection",
+    "lineno": 3652,
+    "end_lineno": 3815
+  },
+  {
+    "type": "AsyncFunctionDef",
+    "name": "get_monthly_report",
+    "lineno": 3819,
+    "end_lineno": 3896
+  },
+  {
+    "type": "AsyncFunctionDef",
+    "name": "_calculate_money_flow_data",
+    "lineno": 3899,
+    "end_lineno": 3997
+  },
+  {
+    "type": "AsyncFunctionDef",
+    "name": "get_money_flow",
+    "lineno": 4001,
+    "end_lineno": 4042
+  },
+  {
+    "type": "AsyncFunctionDef",
+    "name": "sankey_analytics",
+    "lineno": 4046,
+    "end_lineno": 4249
+  }
+]
