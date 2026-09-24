@@ -266,6 +266,8 @@ def resource_accounts() -> str:
         accounts = rows_to_dicts(conn.execute(
             """SELECT a.id, a.name, a.type, a.currency, a.active, a.color,
                       COALESCE(
+                          (SELECT bs.current_value FROM balance_snapshots bs
+                           WHERE bs.account_id = a.id ORDER BY bs.date DESC, bs.id DESC LIMIT 1),
                           (SELECT t.running_balance FROM transactions t
                            WHERE t.account_id = a.id ORDER BY t.date DESC, t.id DESC LIMIT 1),
                           0
@@ -303,18 +305,23 @@ def list_accounts(type: str | None = None) -> str:
     Inclut les comptes actifs et inactifs.
     
     Args:
-        type: Filtrer par type (ex: courant, epargne, investissement) (optionnel)
+        type: Filtrer par type (ex: courant, epargne, investissement, assurance_vie) (optionnel)
     """
     try:
         with get_db() as conn:
             query = """SELECT a.id, a.name, a.type, a.currency, a.active, a.color,
                               a.asset_class, a.sector, a.geographic_zone,
                               COALESCE(
+                                  (SELECT bs.current_value FROM balance_snapshots bs
+                                   WHERE bs.account_id = a.id ORDER BY bs.date DESC, bs.id DESC LIMIT 1),
                                   (SELECT t.running_balance FROM transactions t
                                    WHERE t.account_id = a.id ORDER BY t.date DESC, t.id DESC LIMIT 1),
                                   0
                               ) as solde_actuel,
-                              (SELECT COUNT(*) FROM transactions t WHERE t.account_id = a.id) as nb_transactions
+                              (
+                                  (SELECT COUNT(*) FROM transactions t WHERE t.account_id = a.id) +
+                                  (SELECT COUNT(*) FROM investment_transactions it WHERE it.account_id = a.id)
+                              ) as nb_transactions
                        FROM accounts a"""
             params = []
             if type:
@@ -418,6 +425,129 @@ def list_transactions(
             total = conn.execute(count_query, params[:-2]).fetchone()["total"]
 
             header = f"📊 {len(rows)} transaction(s) affichée(s) sur {total} au total\n\n"
+            if account_id:
+                acc_info = conn.execute(
+                    """SELECT a.name, a.type,
+                              (SELECT bs.current_value FROM balance_snapshots bs WHERE bs.account_id = a.id ORDER BY bs.date DESC, bs.id DESC LIMIT 1) as snap_val
+                       FROM accounts a WHERE a.id = ?""",
+                    (account_id,)
+                ).fetchone()
+                if acc_info and acc_info["snap_val"] is not None:
+                    header = (
+                        f"ℹ️ IMPORTANT pour le compte '{acc_info['name']}' :\n"
+                        f"Le solde réel actuel (valorisation) est de {acc_info['snap_val']:,.2f} € (visible via 'list_accounts' ou 'list_balance_snapshots').\n"
+                        f"La colonne 'running_balance' ci-dessous ne représente que les flux courants et PAS la valeur totale du compte.\n\n"
+                    ) + header
+                
+                inv_count = conn.execute(
+                    "SELECT COUNT(*) as c FROM investment_transactions WHERE account_id = ?", (account_id,)
+                ).fetchone()["c"]
+                if inv_count > 0:
+                    header += f"💡 Ce compte possède aussi {inv_count} opération(s) d'investissement (versements/retraits). Utilisez 'list_investment_transactions' pour les consulter.\n\n"
+
+            return header + format_table(rows)
+    except Exception as e:
+        return f"❌ Erreur : {e}"
+
+
+@mcp.tool()
+def list_investment_transactions(
+    account_id: int | None = None,
+    type: str | None = None,
+    start_date: str | None = None,
+    end_date: str | None = None,
+    limit: int = 50,
+    offset: int = 0,
+) -> str:
+    """Liste les transactions d'investissement (versement, retrait, dividende) pour les comptes d'investissement et d'assurance-vie (ex: Linxea, PEA).
+
+    Args:
+        account_id: Filtrer par compte (ID) (optionnel)
+        type: Filtrer par type (versement, retrait, dividende) (optionnel)
+        start_date: Date de début (YYYY-MM-DD) (optionnel)
+        end_date: Date de fin (YYYY-MM-DD) (optionnel)
+        limit: Nombre max de résultats (défaut 50, max 200)
+        offset: Décalage pour la pagination
+    """
+    try:
+        limit = min(limit, 200)
+        with get_db() as conn:
+            conditions = []
+            params: list = []
+
+            if account_id is not None:
+                conditions.append("it.account_id = ?")
+                params.append(account_id)
+            if type:
+                conditions.append("it.type = ?")
+                params.append(type)
+            if start_date:
+                conditions.append("it.date >= ?")
+                params.append(start_date)
+            if end_date:
+                conditions.append("it.date <= ?")
+                params.append(end_date + "T23:59:59")
+
+            where = " AND ".join(conditions) if conditions else "1=1"
+            query = f"""
+                SELECT it.id, it.date, it.type, it.amount, it.currency,
+                       it.note, it.asset_class, it.sector, it.geographic_zone,
+                       a.name as compte
+                FROM investment_transactions it
+                LEFT JOIN accounts a ON it.account_id = a.id
+                WHERE {where}
+                ORDER BY it.date DESC, it.id DESC
+                LIMIT ? OFFSET ?
+            """
+            params.extend([limit, offset])
+
+            rows = rows_to_dicts(conn.execute(query, params).fetchall())
+
+            count_query = f"SELECT COUNT(*) as total FROM investment_transactions it WHERE {where}"
+            total = conn.execute(count_query, params[:-2]).fetchone()["total"]
+
+            header = f"📊 {len(rows)} transaction(s) d'investissement affichée(s) sur {total} au total\n\n"
+            return header + format_table(rows)
+    except Exception as e:
+        return f"❌ Erreur : {e}"
+
+
+@mcp.tool()
+def list_balance_snapshots(
+    account_id: int | None = None,
+    limit: int = 50,
+) -> str:
+    """Liste les relevés de solde et valeurs liquidatives (balance_snapshots) pour les comptes d'investissement et d'assurance-vie (ex: Linxea, PEA).
+
+    Args:
+        account_id: Filtrer par compte (ID) (optionnel)
+        limit: Nombre max de résultats (défaut 50, max 200)
+    """
+    try:
+        limit = min(limit, 200)
+        with get_db() as conn:
+            conditions = []
+            params: list = []
+
+            if account_id is not None:
+                conditions.append("bs.account_id = ?")
+                params.append(account_id)
+
+            where = " AND ".join(conditions) if conditions else "1=1"
+            query = f"""
+                SELECT bs.id, bs.date, bs.current_value as solde, bs.note,
+                       CASE WHEN bs.is_zero_point = 1 THEN 'Oui' ELSE 'Non' END as point_zero,
+                       a.name as compte
+                FROM balance_snapshots bs
+                LEFT JOIN accounts a ON bs.account_id = a.id
+                WHERE {where}
+                ORDER BY bs.date DESC, bs.id DESC
+                LIMIT ?
+            """
+            params.append(limit)
+
+            rows = rows_to_dicts(conn.execute(query, params).fetchall())
+            header = f"📋 {len(rows)} snapshot(s) de valorisation affiché(s)\n\n"
             return header + format_table(rows)
     except Exception as e:
         return f"❌ Erreur : {e}"
@@ -829,7 +959,7 @@ def get_investments_summary(
     """
     try:
         with get_db() as conn:
-            query_acc = "SELECT id, name, currency, active FROM accounts WHERE type = 'investissement' AND active = 1"
+            query_acc = "SELECT id, name, currency, active FROM accounts WHERE type IN ('investissement', 'assurance_vie') AND active = 1"
             params_acc = []
             if account_id:
                 query_acc += " AND id = ?"
@@ -837,7 +967,7 @@ def get_investments_summary(
                 
             accounts = rows_to_dicts(conn.execute(query_acc, params_acc).fetchall())
             if not accounts:
-                return "Aucun compte d'investissement actif trouvé."
+                return "Aucun compte d'investissement ou d'assurance-vie actif trouvé."
                 
             end_date = datetime.now()
             start_date = None
@@ -927,8 +1057,8 @@ def get_investment_performance(account_id: int) -> str:
             if not account:
                 return f"❌ Compte #{account_id} introuvable."
             account = dict(account)
-            if account["type"] != "investissement":
-                return f"❌ Le compte #{account_id} n'est pas un compte d'investissement."
+            if account["type"] not in ("investissement", "assurance_vie"):
+                return f"❌ Le compte #{account_id} n'est pas un compte d'investissement ou d'assurance-vie."
                 
             zero_point = conn.execute(
                 """SELECT * FROM balance_snapshots 
@@ -1057,8 +1187,8 @@ def get_investment_performance_history(account_id: int, months: int = 12) -> str
             if not account:
                 return f"❌ Compte #{account_id} introuvable."
             account = dict(account)
-            if account["type"] != "investissement":
-                return f"❌ Le compte #{account_id} n'est pas un compte d'investissement."
+            if account["type"] not in ("investissement", "assurance_vie"):
+                return f"❌ Le compte #{account_id} n'est pas un compte d'investissement ou d'assurance-vie."
                 
             zero_point = conn.execute(
                 """SELECT * FROM balance_snapshots 
@@ -1173,7 +1303,7 @@ def get_investments_allocation(account_id: int | None = None) -> str:
     """
     try:
         with get_db() as conn:
-            query = "SELECT id, name, currency FROM accounts WHERE type = 'investissement' AND active = 1"
+            query = "SELECT id, name, currency FROM accounts WHERE type IN ('investissement', 'assurance_vie') AND active = 1"
             params = []
             if account_id:
                 query += " AND id = ?"
@@ -1181,7 +1311,7 @@ def get_investments_allocation(account_id: int | None = None) -> str:
                 
             accounts = rows_to_dicts(conn.execute(query, params).fetchall())
             if not accounts:
-                return "Aucun compte d'investissement actif trouvé."
+                return "Aucun compte d'investissement ou d'assurance-vie actif trouvé."
                 
             total_current_value_eur = 0.0
             items = []
@@ -1230,10 +1360,10 @@ def get_investments_allocation_advanced() -> str:
     try:
         with get_db() as conn:
             accounts = rows_to_dicts(conn.execute(
-                "SELECT id, name, currency, asset_class, sector, geographic_zone FROM accounts WHERE type = 'investissement' AND active = 1"
+                "SELECT id, name, currency, asset_class, sector, geographic_zone FROM accounts WHERE type IN ('investissement', 'assurance_vie') AND active = 1"
             ).fetchall())
             if not accounts:
-                return "Aucun compte d'investissement actif trouvé."
+                return "Aucun compte d'investissement ou d'assurance-vie actif trouvé."
                 
             total_value_eur = 0.0
             current_by_account = {}
@@ -1469,12 +1599,31 @@ def get_account_balance_history(account_id: int, months: int = 12) -> str:
         with get_db() as conn:
             # Vérifier que le compte existe
             account = conn.execute(
-                "SELECT name FROM accounts WHERE id = ?", (account_id,)
+                "SELECT id, name, type FROM accounts WHERE id = ?", (account_id,)
             ).fetchone()
             if not account:
                 return f"❌ Compte #{account_id} introuvable."
 
-            # Dernier solde connu par mois
+            # Si le compte a des snapshots de solde (ex: investissement, assurance-vie)
+            has_snapshots = conn.execute(
+                "SELECT 1 FROM balance_snapshots WHERE account_id = ? LIMIT 1", (account_id,)
+            ).fetchone()
+
+            if has_snapshots:
+                snaps = rows_to_dicts(conn.execute(
+                    """SELECT strftime('%Y-%m-%d', date) as date,
+                              current_value as solde,
+                              note,
+                              CASE WHEN is_zero_point = 1 THEN 'Oui' ELSE 'Non' END as point_zero
+                       FROM balance_snapshots
+                       WHERE account_id = ?
+                       ORDER BY date DESC, id DESC
+                       LIMIT ?""",
+                    (account_id, months)
+                ).fetchall())
+                return f"🏦 Historique des valorisations (Snapshots) du compte '{account['name']}' :\n\n" + format_table(snaps)
+
+            # Sinon, solde calculé via transactions classiques
             rows = rows_to_dicts(conn.execute(
                 """SELECT month_label as mois,
                           running_balance as solde_fin_mois,
