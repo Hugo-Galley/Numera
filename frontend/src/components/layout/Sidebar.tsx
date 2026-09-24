@@ -84,7 +84,7 @@ export function Sidebar({ className, onItemClick }: { className?: string, onItem
     <div className={cn("flex flex-col bg-white", className)}>
       <div className="flex h-16 items-center border-b px-6">
         <CreditCard className="h-6 w-6 mr-2" />
-        <span className="text-lg font-bold tracking-tight">Suivi Budget</span>
+        <span className="text-lg font-bold tracking-tight">Numera</span>
       </div>
       <div className="flex-1 overflow-y-auto py-4">
         <nav className="space-y-4 px-3">
