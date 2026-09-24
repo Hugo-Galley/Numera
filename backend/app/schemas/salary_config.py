@@ -5,7 +5,7 @@ from pydantic import BaseModel, Field
 
 class SalaryConfigCreate(BaseModel):
     salary_account_id: int
-    ticket_account_id: int
+    ticket_account_id: int | None = None
     net_salary: float = Field(..., gt=0)
     ticket_value: float = Field(10.50, gt=0)
     ticket_employee_share: float = Field(4.20, gt=0)

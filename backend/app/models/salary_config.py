@@ -11,7 +11,7 @@ class SalaryConfig(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     salary_account_id: Mapped[int] = mapped_column(ForeignKey("accounts.id"), nullable=False)
-    ticket_account_id: Mapped[int] = mapped_column(ForeignKey("accounts.id"), nullable=False)
+    ticket_account_id: Mapped[int | None] = mapped_column(ForeignKey("accounts.id"), nullable=True)
     net_salary: Mapped[float] = mapped_column(Float, nullable=False)
     ticket_value: Mapped[float] = mapped_column(Float, nullable=False, default=10.50)
     ticket_employee_share: Mapped[float] = mapped_column(Float, nullable=False, default=4.20)

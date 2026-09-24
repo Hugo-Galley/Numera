@@ -10,10 +10,13 @@ DB_PATH = os.getenv("DB_PATH", "/app/data/suivi_budget.db")
 BACKUP_DIR = os.getenv("BACKUP_DIR", "/app/backups")
 RETENTION_DAYS = int(os.getenv("RETENTION_DAYS", "7"))
 BACKUP_KEY = os.getenv("BACKUP_KEY")
+APP_ENV = os.getenv("APP_ENV", "dev")
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def create_backup():
+    if APP_ENV == "prod" and not BACKUP_KEY:
+        raise RuntimeError("BACKUP_KEY must be configured in production")
     if not os.path.exists(DB_PATH):
         logging.error(f"Database not found at {DB_PATH}")
         return

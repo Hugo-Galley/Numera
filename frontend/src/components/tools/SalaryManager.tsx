@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react"
 import { format, isSameDay } from "date-fns"
 import { fr } from "date-fns/locale"
-import { Save, Wallet, Download, CheckCircle2, Building, Utensils } from "lucide-react"
+import { Save, Wallet, Download, CheckCircle2, Building } from "lucide-react"
 import { api } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -14,12 +14,12 @@ import { TelecommutingCalendar } from "./TelecommutingCalendar"
 interface SalaryConfig {
   id?: number
   salary_account_id: number | ""
-  ticket_account_id: number | ""
+  ticket_account_id?: number | ""
   net_salary: number
   ticket_value: number
   ticket_employee_share: number
   salary_category_id: number | ""
-  ticket_category_id: number | ""
+  ticket_category_id?: number | ""
 }
 
 interface Account {
@@ -43,17 +43,14 @@ export function SalaryManager() {
   
   const [config, setConfig] = useState<SalaryConfig>({
     salary_account_id: "",
-    ticket_account_id: "",
     net_salary: 2000,
     ticket_value: 10.50,
     ticket_employee_share: 4.20,
     salary_category_id: "",
-    ticket_category_id: "",
   })
   
   const [currentDate, setCurrentDate] = useState(new Date())
   const [salaryDate, setSalaryDate] = useState<Date | null>(null)
-  const [ticketDate, setTicketDate] = useState<Date | null>(null)
   const [ttDays, setTtDays] = useState<Date[]>([])
   const [isGenerated, setIsGenerated] = useState(false)
 
@@ -108,11 +105,6 @@ export function SalaryManager() {
       } else {
         setSalaryDate(null)
       }
-      if (summary.ticket_date) {
-        setTicketDate(new Date(summary.ticket_date))
-      } else {
-        setTicketDate(null)
-      }
       setIsGenerated(summary.is_generated)
       
       const days = await api.get(`/salary/telecommuting/${year}/${month}`)
@@ -120,7 +112,6 @@ export function SalaryManager() {
     } catch (error) {
       console.error("Failed to load month data", error)
       setSalaryDate(null)
-      setTicketDate(null)
       setTtDays([])
       setIsGenerated(false)
     }
@@ -129,7 +120,7 @@ export function SalaryManager() {
   const handleSaveConfig = async () => {
     setSaving(true)
     try {
-      if (!config.salary_account_id || !config.ticket_account_id || !config.net_salary) {
+      if (!config.salary_account_id || !config.net_salary) {
         toast.error("Veuillez remplir les champs obligatoires")
         return
       }
@@ -137,9 +128,13 @@ export function SalaryManager() {
       const payload = {
         ...config,
         salary_account_id: Number(config.salary_account_id),
-        ticket_account_id: Number(config.ticket_account_id),
         salary_category_id: config.salary_category_id ? Number(config.salary_category_id) : null,
-        ticket_category_id: config.ticket_category_id ? Number(config.ticket_category_id) : null,
+      }
+      if (config.ticket_account_id) {
+        payload.ticket_account_id = Number(config.ticket_account_id)
+      }
+      if (config.ticket_category_id) {
+        payload.ticket_category_id = Number(config.ticket_category_id)
       }
 
       const res = config.id 
@@ -198,30 +193,7 @@ export function SalaryManager() {
     
     try {
       await api.put(`/salary/months/${year}/${month}`, {
-        salary_date: format(date, "yyyy-MM-dd"),
-        ticket_date: ticketDate ? format(ticketDate, "yyyy-MM-dd") : null
-      })
-    } catch (error) {
-      toast.error("Impossible de sauvegarder la date")
-    }
-  }
-
-  const handleTicketDateChange = async (date: Date) => {
-    if (!config.id || isGenerated) return
-    
-    if (!salaryDate) {
-      toast.error("Veuillez d'abord définir la date du salaire")
-      return
-    }
-    
-    setTicketDate(date)
-    const year = currentDate.getFullYear()
-    const month = currentDate.getMonth() + 1
-    
-    try {
-      await api.put(`/salary/months/${year}/${month}`, {
-        salary_date: salaryDate ? format(salaryDate, "yyyy-MM-dd") : null,
-        ticket_date: format(date, "yyyy-MM-dd")
+        salary_date: format(date, "yyyy-MM-dd")
       })
     } catch (error) {
       toast.error("Impossible de sauvegarder la date")
@@ -320,27 +292,8 @@ export function SalaryManager() {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Compte ou Carte TR *</Label>
-              <Select value={config.ticket_account_id.toString()} onValueChange={v => setConfig({...config, ticket_account_id: v})}>
-                <SelectTrigger><SelectValue placeholder="Sélectionner..." /></SelectTrigger>
-                <SelectContent>
-                  {accounts.map(a => <SelectItem key={a.id} value={a.id.toString()}>{a.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
               <Label>Catégorie Salaire</Label>
               <Select value={config.salary_category_id ? config.salary_category_id.toString() : "none"} onValueChange={v => setConfig({...config, salary_category_id: v === "none" ? "" : parseInt(v)})}>
-                <SelectTrigger><SelectValue placeholder="Aucune catégorie" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Aucune catégorie</SelectItem>
-                  {categories.map(c => <SelectItem key={c.id} value={c.id.toString()}>{c.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Catégorie Tickets Restaurant</Label>
-              <Select value={config.ticket_category_id ? config.ticket_category_id.toString() : "none"} onValueChange={v => setConfig({...config, ticket_category_id: v === "none" ? "" : parseInt(v)})}>
                 <SelectTrigger><SelectValue placeholder="Aucune catégorie" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">Aucune catégorie</SelectItem>
@@ -366,8 +319,6 @@ export function SalaryManager() {
               onDateChange={setCurrentDate}
               salaryDate={salaryDate}
               onSalaryDateChange={handleSalaryDateChange}
-              ticketDate={ticketDate}
-              onTicketDateChange={handleTicketDateChange}
               ttDays={ttDays}
               onToggleDay={handleToggleDay}
             />
@@ -413,9 +364,12 @@ export function SalaryManager() {
                   {/* TR */}
                   <div className="space-y-3">
                     <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                      Carte Titres-Restaurant
+                      Titres-Restaurant (indicatif)
                     </h3>
                     <div className="bg-muted/50 border rounded-xl p-4 text-sm shadow-inner">
+                      <p className="text-xs text-muted-foreground mb-2 italic">
+                        Ce montant n'est pas suivi comme transaction
+                      </p>
                       <div className="flex justify-between items-center">
                         <span className="text-muted-foreground">Tickets crédités ({nbTickets} × {config.ticket_value.toFixed(2)}€)</span>
                         <span className="font-black text-xl text-amber-500 dark:text-amber-400">+ {creditTR.toFixed(2)} €</span>

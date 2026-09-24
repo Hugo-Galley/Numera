@@ -66,16 +66,15 @@ mkdir -p backend/data backups
 
 # Use Python for safe replacement in .env
 # Pass values as arguments to avoid shell interpolation of $ in bcrypt hash
-python3 - "$ADMIN_USERNAME" "$ADMIN_PASSWORD_HASH" "$ADMIN_PASSWORD" "$SECRET_KEY" "$BACKUP_KEY" <<'EOF'
+python3 - "$ADMIN_USERNAME" "$ADMIN_PASSWORD_HASH" "$SECRET_KEY" "$BACKUP_KEY" <<'EOF'
 import sys
 
 env_path = '.env'
-admin_username, admin_hash, admin_password, secret_key, backup_key = sys.argv[1:6]
+admin_username, admin_hash, secret_key, backup_key = sys.argv[1:5]
 
 updates = {
     'ADMIN_USERNAME': admin_username,
     'ADMIN_PASSWORD_HASH': admin_hash,
-    'MCP_API_PASSWORD': admin_password,
     'SECRET_KEY': secret_key,
     'BACKUP_KEY': backup_key
 }

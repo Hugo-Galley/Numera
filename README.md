@@ -140,7 +140,10 @@ Copiez `.env.example` vers `.env` et configurez les variables suivantes :
 | `SECRET_KEY` | Clé secrète JWT | *Générée par `make setup`* |
 | `ADMIN_USERNAME` | Nom d'utilisateur admin | `admin` |
 | `ADMIN_PASSWORD_HASH` | Hash bcrypt du mot de passe | — |
-| `BACKUP_KEY` | Clé de chiffrement des sauvegardes | *Générée par `make setup`* |
+| `BACKUP_KEY` | Clé de chiffrement des sauvegardes | *Générée par `make setup`, obligatoire en production* |
+| `CORS_ORIGINS` | Origines navigateur autorisées, séparées par des virgules | `http://localhost:8082` |
+
+En production, le compose publie uniquement le frontend sur `127.0.0.1:8082`; l'API reste interne. Pour un accès distant, placez un reverse proxy TLS devant ce port et définissez son URL HTTPS dans `CORS_ORIGINS` si une application d'une autre origine doit appeler l'API.
 
 ---
 
@@ -191,6 +194,8 @@ Numera embarque un serveur [MCP (Model Context Protocol)](https://modelcontextpr
 Le serveur supporte deux modes de fonctionnement :
 1. **Mode direct SQLite** (`server_sqlite.py`) : Connexion directe en lecture seule sur le fichier de base de données SQLite.
 2. **Mode Proxy API** (`server_api.py`) : Requêtes HTTP vers l'API FastAPI (idéal pour un serveur distant ou sur VPS).
+
+Le service MCP n'est pas lancé par défaut en production et son port n'est jamais publié. Pour l'activer localement dans le réseau Docker, utilisez le profil `mcp` avec `MCP_API_PASSWORD` défini dans l'environnement. Ne publiez pas un transport MCP HTTP sans une couche d'authentification dédiée.
 
 ### 🚀 Utilisation et configuration
 

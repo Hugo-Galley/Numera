@@ -13,8 +13,6 @@ interface TelecommutingCalendarProps {
   onDateChange: (date: Date) => void
   salaryDate: Date | null
   onSalaryDateChange: (date: Date) => void
-  ticketDate: Date | null
-  onTicketDateChange: (date: Date) => void
   ttDays: Date[]
   onToggleDay: (date: Date) => void
 }
@@ -24,8 +22,6 @@ export function TelecommutingCalendar({
   onDateChange,
   salaryDate,
   onSalaryDateChange,
-  ticketDate,
-  onTicketDateChange,
   ttDays,
   onToggleDay
 }: TelecommutingCalendarProps) {
@@ -87,32 +83,6 @@ export function TelecommutingCalendar({
                     mode="single"
                     selected={salaryDate || undefined}
                     onSelect={(d) => d && onSalaryDateChange(d)}
-                    defaultMonth={currentDate}
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium">Versement TR:</span>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant={"outline"}
-                    className={cn(
-                      "w-[140px] justify-start text-left font-normal",
-                      !ticketDate && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {ticketDate ? format(ticketDate, "dd/MM/yyyy") : <span>Choisir...</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={ticketDate || undefined}
-                    onSelect={(d) => d && onTicketDateChange(d)}
                     defaultMonth={currentDate}
                   />
                 </PopoverContent>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { User, Lock, Camera, Save, Zap, ZapOff, AlertTriangle, Check, Copy, Terminal, Loader2 } from "lucide-react"
+import { User, Lock, Camera, Save, Zap, ZapOff, AlertTriangle, Check, Copy, Terminal } from "lucide-react"
 import { useAuth } from "@/providers/AuthProvider"
 import { api } from "@/lib/api"
 import { Button } from "@/components/ui/button"
@@ -28,7 +28,6 @@ export function AccountTab() {
   const [confirmPassword, setConfirmPassword] = useState("")
   const [mcpEnabled, setMcpEnabled] = useState(true)
   const [selectedClient, setSelectedClient] = useState<string>("")
-  const [installing, setInstalling] = useState(false)
   const [installResult, setInstallResult] = useState<{ success: boolean; message: string; config_content?: any } | null>(null)
   const [isRemoteInstance, setIsRemoteInstance] = useState(
     typeof window !== "undefined" && 
@@ -55,27 +54,26 @@ export function AccountTab() {
     }
   }
 
+  const getLocalMcpConfig = () => ({
+    "mcpServers": {
+      "numera-mcp": {
+        "command": "python3",
+        "args": ["/chemin/absolu/vers/numera/mcp-server/server.py"],
+        "env": {
+          "MCP_MODE": "sqlite",
+          "MCP_DB_PATH": "/chemin/absolu/vers/numera/backend/data/suivi_budget.db"
+        }
+      }
+    }
+  })
+
   const handleInstallMcp = async () => {
     if (!selectedClient) return
-    setInstalling(true)
-    setInstallResult(null)
-    try {
-      const res = await api.post<{ success: boolean; message: string; config_content?: any }>("/admin/mcp/install", { client: selectedClient })
-      setInstallResult(res)
-      if (res.success) {
-        toast.success("Configuration installée avec succès !")
-      } else {
-        toast.error("Échec de l'écriture automatique.")
-      }
-    } catch (err: any) {
-      toast.error(err.message || "Erreur lors de l'installation.")
-      setInstallResult({
-        success: false,
-        message: err.message || "Erreur inconnue."
-      })
-    } finally {
-      setInstalling(false)
-    }
+    setInstallResult({
+      success: true,
+      message: "Configuration générée. Copiez-la dans votre client MCP local.",
+      config_content: getLocalMcpConfig(),
+    })
   }
 
   useEffect(() => {
@@ -277,7 +275,7 @@ export function AccountTab() {
                   <p className="text-xs text-slate-500 leading-relaxed">
                     {isRemoteInstance
                       ? "Comme votre instance est hébergée sur un serveur distant, vous devez copier le dossier `mcp-server` localement sur votre Mac et configurer votre client IA pour pointer vers l'URL de votre VPS."
-                      : "Sélectionnez votre éditeur/application IA local(e) pour installer ou mettre à jour automatiquement le serveur MCP de Numera sur votre machine."
+                      : "Sélectionnez votre éditeur/application IA local(e) pour générer la configuration MCP à copier sur votre machine."
                     }
                   </p>
                   
@@ -313,11 +311,9 @@ export function AccountTab() {
                             type="button"
                             size="sm"
                             onClick={handleInstallMcp}
-                            disabled={installing}
                             className="bg-amber-600 hover:bg-amber-700 text-white text-xs gap-2"
                           >
-                            {installing && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-                            Installer sur {
+                            Générer la configuration pour {
                               selectedClient === "claude" ? "Claude Desktop" :
                               selectedClient === "cursor" ? "Cursor Global" :
                               selectedClient === "cursor_project" ? "Cursor Projet" :
