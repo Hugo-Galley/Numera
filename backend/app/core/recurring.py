@@ -55,12 +55,17 @@ async def generate_recurring_transactions(db: Session) -> int:
 
         occurrences = get_recurring_occurrences(rd, start_search, now)
 
+        from app.models.account import Account
+        account = db.query(Account).filter(Account.id == rd.account_id).first()
+        if not account:
+            logger.warning(f"Account {rd.account_id} not found for recurring tx {rd.id}. Disabling rule to prevent infinite retries.")
+            rd.is_active = False
+            if occurrences:
+                rd.last_generated_date = occurrences[-1]
+            db.commit()
+            continue
+
         for occ in occurrences:
-            from app.models.account import Account
-            account = db.query(Account).filter(Account.id == rd.account_id).first()
-            if not account:
-                logger.warning(f"Account {rd.account_id} not found for recurring tx {rd.id}")
-                continue
 
             original_amount = rd.amount
             currency = rd.currency

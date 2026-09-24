@@ -10,7 +10,7 @@ class SalaryMonth(Base):
     __tablename__ = "salary_months"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
-    salary_config_id: Mapped[int] = mapped_column(ForeignKey("salary_configs.id"), nullable=False)
+    salary_config_id: Mapped[int] = mapped_column(ForeignKey("salary_configs.id", ondelete="CASCADE"), nullable=False)
     month_label: Mapped[str] = mapped_column(String(7), nullable=False, index=True) # e.g. "2026-06"
     salary_date: Mapped[date] = mapped_column(Date, nullable=False)
     ticket_date: Mapped[date | None] = mapped_column(Date, nullable=True)

@@ -49,16 +49,13 @@ def login_access_token(
     db_username = get_setting(db, "admin_username", settings.ADMIN_USERNAME)
     db_password_hash = get_setting(db, "admin_password_hash", settings.ADMIN_PASSWORD_HASH)
 
-    if form_data.username != db_username:
-        login_rate_limiter.record_failure(key)
-        logger.warning("Failed login attempt: invalid credentials")
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    
-    if not security.verify_password(form_data.password, db_password_hash):
+    username_valid = (form_data.username == db_username)
+    # Dummy bcrypt hash to make verification time constant and prevent timing attacks
+    dummy_hash = "$2b$12$e8k8W8eD.2eC/W3W2c/UGeFm3XWzM8/8G6hWj.e4R2q3Z0r4c8h2W"
+    hash_to_verify = db_password_hash if username_valid else dummy_hash
+    password_valid = security.verify_password(form_data.password, hash_to_verify)
+
+    if not username_valid or not password_valid:
         login_rate_limiter.record_failure(key)
         logger.warning("Failed login attempt: invalid credentials")
         raise HTTPException(

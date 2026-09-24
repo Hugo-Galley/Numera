@@ -32,37 +32,7 @@ import { Progress } from "@/components/ui/progress"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 import { useUI } from "@/providers/UIProvider"
-import * as LucideIcons from "lucide-react"
-
-const ICON_MAP: Record<string, any> = {
-  ...LucideIcons
-}
-
-const IconComponent = ({ name, className }: { name?: string, className?: string }) => {
-  if (name && (name.startsWith("M") || name.startsWith("<svg") || name.includes("<path"))) {
-    return (
-      <svg 
-        viewBox="0 0 24 24" 
-        className={className} 
-        fill="none" 
-        stroke="currentColor" 
-        strokeWidth="2" 
-        strokeLinecap="round" 
-        strokeLinejoin="round"
-      >
-        {name.startsWith("<svg") ? (
-          <g dangerouslySetInnerHTML={{ __html: name.replace(/<svg[^>]*>|<\/svg>/g, '') }} />
-        ) : name.includes("<path") ? (
-          <g dangerouslySetInnerHTML={{ __html: name }} />
-        ) : (
-          <path d={name} />
-        )}
-      </svg>
-    )
-  }
-  const Icon = ICON_MAP[name || "Tag"] || LucideIcons.Tag
-  return <Icon className={className} />
-}
+import { IconComponent } from "@/components/dashboard/IconComponent"
 
 const DetailCard = ({ 
   title, 

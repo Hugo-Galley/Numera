@@ -55,6 +55,7 @@ def list_transactions(
     is_transfer: bool | None = Query(default=None),
     tag_ids: list[int] | None = Query(default=None),
     search: str | None = Query(default=None),
+    skip: int = Query(default=0, ge=0),
     limit: int = Query(default=100, ge=1, le=1000),
     db: Session = Depends(get_db),
 ):
@@ -97,7 +98,7 @@ def list_transactions(
         ))
     
     # Order by date desc for better UX in lists, unless searching for specific time range
-    return query.order_by(Transaction.date.desc(), Transaction.id.desc()).limit(limit).all()
+    return query.order_by(Transaction.date.desc(), Transaction.id.desc()).offset(skip).limit(limit).all()
 
 
 @router.get("/potential-transfers")

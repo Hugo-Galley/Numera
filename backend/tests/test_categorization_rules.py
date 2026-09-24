@@ -86,3 +86,48 @@ def test_apply_rules_to_existing(client: TestClient, db_session: Session):
     
     db_session.refresh(tx)
     assert tx.category_id == cat.id
+
+
+def test_apply_rules_recalculates_running_balance(client: TestClient, db_session: Session):
+    account = Account(name="RunningBalTest", type="courant", currency="EUR", active=True)
+    db_session.add(account)
+    db_session.commit()
+
+    t1 = Transaction(
+        account_id=account.id,
+        date=datetime(2026, 1, 1),
+        month_label="Janvier",
+        type="Solde Initial",
+        merchant="Banque",
+        amount=1000,
+        original_amount=1000,
+        currency="EUR",
+        running_balance=1000,
+    )
+    t2 = Transaction(
+        account_id=account.id,
+        date=datetime(2026, 1, 2),
+        month_label="Janvier",
+        type="Sortie",
+        merchant="RefundShop",
+        amount=100,
+        original_amount=100,
+        currency="EUR",
+        running_balance=900,
+    )
+    db_session.add_all([t1, t2])
+    db_session.commit()
+
+    # Rule that converts "RefundShop" to "Entree"
+    rule = CategorizationRule(pattern="RefundShop", transaction_type="Entree")
+    db_session.add(rule)
+    db_session.commit()
+
+    response = client.post("/categorization-rules/apply-all")
+    assert response.status_code == 200
+    assert response.json()["modified_count"] == 1
+
+    db_session.refresh(t2)
+    assert t2.type == "Entree"
+    # Since it is now an Entree, running_balance must be 1000 + 100 = 1100, not 900
+    assert t2.running_balance == 1100.0

@@ -72,3 +72,16 @@ def test_cors_allows_only_configured_origins(client: TestClient):
         },
     )
     assert "access-control-allow-origin" not in denied.headers
+
+
+def test_invalid_token_returns_401(client: TestClient):
+    from app.main import app
+    from app.api.deps import get_current_user
+    
+    app.dependency_overrides.pop(get_current_user, None)
+    try:
+        response = client.get("/accounts", headers={"Authorization": "Bearer invalid_or_expired_token"})
+        assert response.status_code == 401
+        assert response.headers.get("www-authenticate") == "Bearer" or response.headers.get("WWW-Authenticate") == "Bearer"
+    finally:
+        app.dependency_overrides[get_current_user] = lambda: "admin"

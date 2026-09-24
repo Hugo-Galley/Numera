@@ -2,29 +2,59 @@ export const API_BASE = typeof window !== 'undefined' && window.location.hostnam
   ? "/api"
   : "http://localhost:8001"
 
+export class ApiError extends Error {
+  status: number
+  detail: any
+
+  constructor(status: number, message: string, detail?: any) {
+    super(message)
+    this.name = "ApiError"
+    this.status = status
+    this.detail = detail
+  }
+}
+
 export async function apiFetch<T>(endpoint: string, options?: RequestInit): Promise<T> {
   const token = localStorage.getItem("token")
   
-  const response = await fetch(`${API_BASE}${endpoint}`, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...(token ? { "Authorization": `Bearer ${token}` } : {}),
-      ...options?.headers,
-    },
-  })
+  let response: Response
+  try {
+    response = await fetch(`${API_BASE}${endpoint}`, {
+      ...options,
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { "Authorization": `Bearer ${token}` } : {}),
+        ...options?.headers,
+      },
+    })
+  } catch (err) {
+    throw new ApiError(0, "Impossible de se connecter au serveur. Vérifiez votre connexion.", err)
+  }
 
-  if (response.status === 401) {
+  if (response.status === 401 || (response.status === 403 && endpoint !== "/auth/token")) {
     localStorage.removeItem("token")
-    if (window.location.pathname !== "/login") {
+    if (typeof window !== "undefined" && window.location.pathname !== "/login") {
       window.location.href = "/login"
     }
-    throw new Error("Session expirée")
+    throw new ApiError(response.status, "Session expirée")
   }
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({ detail: "An error occurred" }))
-    throw new Error(error.detail || response.statusText)
+    const errorData = await response.json().catch(() => ({ detail: response.statusText }))
+    let errorMessage = "Une erreur est survenue"
+    
+    if (typeof errorData?.detail === "string") {
+      errorMessage = errorData.detail
+    } else if (Array.isArray(errorData?.detail)) {
+      // Format FastAPI 422 validation errors cleanly
+      errorMessage = errorData.detail.map((d: any) => d.msg || JSON.stringify(d)).join(", ")
+    } else if (errorData?.message) {
+      errorMessage = errorData.message
+    } else if (response.statusText) {
+      errorMessage = response.statusText
+    }
+
+    throw new ApiError(response.status, errorMessage, errorData?.detail)
   }
 
   if (response.status === 204) {

@@ -14,12 +14,17 @@ router = APIRouter(prefix="/investment-transactions", tags=["investment-transact
 @router.get("", response_model=list[InvestmentTransactionRead])
 def list_investment_transactions(
     account_id: int | None = Query(default=None),
+    skip: int = Query(default=0, ge=0),
+    limit: int | None = Query(default=None, ge=1, le=1000),
     db: Session = Depends(get_db),
 ):
     query = db.query(InvestmentTransaction)
     if account_id is not None:
         query = query.filter(InvestmentTransaction.account_id == account_id)
-    return query.order_by(InvestmentTransaction.date.asc(), InvestmentTransaction.id.asc()).all()
+    query = query.order_by(InvestmentTransaction.date.asc(), InvestmentTransaction.id.asc()).offset(skip)
+    if limit is not None:
+        query = query.limit(limit)
+    return query.all()
 
 
 @router.post("", response_model=InvestmentTransactionRead, status_code=201)

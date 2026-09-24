@@ -387,3 +387,141 @@ def test_timeseries_empty_year_defaults(client):
     body = response.json()
     assert len(body["monthly_flows"]) == 0
     assert body["balance_points"] == []
+
+
+def test_calc_diff_with_negative_values():
+    from app.api.analytics.reports import calc_diff
+
+    # From negative (-500) to positive (+200): +700 improvement -> +140%
+    diff, pct = calc_diff(200.0, -500.0)
+    assert diff == 700.0
+    assert pct == 140.0
+
+    # Deficit decreased: from -200 to -100 (+100 improvement) -> +50%
+    diff, pct = calc_diff(-100.0, -200.0)
+    assert diff == 100.0
+    assert pct == 50.0
+
+    # Deficit increased: from -200 to -300 (-100 worsening) -> -50%
+    diff, pct = calc_diff(-300.0, -200.0)
+    assert diff == -100.0
+    assert pct == -50.0
+
+
+def test_kpi_history_endpoint(client, db_session):
+    account = Account(name="KPI Account", type="courant", currency="EUR", active=True)
+    db_session.add(account)
+    db_session.commit()
+
+    # Add transactions in two months
+    client.post(
+        "/transactions",
+        json={
+            "account_id": account.id,
+            "date": "2026-01-10T12:00:00",
+            "type": "Entree",
+            "merchant": "Salary",
+            "amount": 3000,
+        },
+    )
+    client.post(
+        "/transactions",
+        json={
+            "account_id": account.id,
+            "date": "2026-01-15T12:00:00",
+            "type": "Sortie",
+            "merchant": "Groceries",
+            "amount": 800,
+        },
+    )
+    client.post(
+        "/transactions",
+        json={
+            "account_id": account.id,
+            "date": "2026-02-10T12:00:00",
+            "type": "Entree",
+            "merchant": "Salary",
+            "amount": 3200,
+        },
+    )
+    client.post(
+        "/transactions",
+        json={
+            "account_id": account.id,
+            "date": "2026-02-20T12:00:00",
+            "type": "Sortie",
+            "merchant": "Rent",
+            "amount": 1000,
+        },
+    )
+
+    response = client.get("/analytics/kpi-history", params={"months_count": 12})
+    assert response.status_code == 200
+    items = response.json()
+    assert isinstance(items, list)
+    assert len(items) >= 2
+
+    # Check Jan 2026 and Feb 2026 items
+    jan_item = next((i for i in items if i["year"] == 2026 and i["month"] == 1), None)
+    assert jan_item is not None
+    assert jan_item["revenus"] == 3000.0
+    assert jan_item["depenses"] == 800.0
+    assert jan_item["cash_flow"] == 2200.0
+
+    feb_item = next((i for i in items if i["year"] == 2026 and i["month"] == 2), None)
+    assert feb_item is not None
+    assert feb_item["revenus"] == 3200.0
+    assert feb_item["depenses"] == 1000.0
+    assert feb_item["cash_flow"] == 2200.0
+
+
+def test_fk_set_null_on_delete_category_and_recurring(client, db_session):
+    from app.models.recurring_transaction import RecurringTransaction
+    from app.models.transaction import Transaction
+
+    account = Account(name="FK Account", type="courant", currency="EUR", active=True)
+    cat = Category(name="TempCat", type="depense")
+    db_session.add_all([account, cat])
+    db_session.commit()
+
+    rec = RecurringTransaction(
+        account_id=account.id,
+        category_id=cat.id,
+        name="Sub",
+        amount=50,
+        type="Sortie",
+        frequency="monthly",
+        day_of_month=1,
+        start_date=datetime(2026, 1, 1),
+    )
+    db_session.add(rec)
+    db_session.commit()
+
+    tx = Transaction(
+        account_id=account.id,
+        date=datetime(2026, 1, 1),
+        month_label="Janvier",
+        type="Sortie",
+        merchant="Sub",
+        amount=50,
+        original_amount=50,
+        currency="EUR",
+        category_id=cat.id,
+        recurring_transaction_id=rec.id,
+        running_balance=100,
+    )
+    db_session.add(tx)
+    db_session.commit()
+
+    # Delete category via API
+    del_cat = client.delete(f"/categories/{cat.id}")
+    assert del_cat.status_code == 204
+
+    # Delete recurring transaction via API
+    del_rec = client.delete(f"/recurring-transactions/{rec.id}")
+    assert del_rec.status_code == 200
+
+    # Verify transaction still exists and its foreign keys were set to NULL
+    db_session.refresh(tx)
+    assert tx.category_id is None
+    assert tx.recurring_transaction_id is None

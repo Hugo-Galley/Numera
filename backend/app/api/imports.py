@@ -210,6 +210,14 @@ async def commit_import(
     )
     running_balance = last.running_balance if last else 0.0
 
+    # Pre-fetch existing transactions for duplicate detection in O(1) to avoid N+1 queries
+    existing_transactions = {
+        (tx.date, round(float(tx.amount), 4), tx.merchant, tx.type)
+        for tx in db.query(Transaction.date, Transaction.amount, Transaction.merchant, Transaction.type)
+        .filter(Transaction.account_id == account_id)
+        .all()
+    }
+
     for row in rows:
         try:
             dt = _parse_date(row["Date"])
@@ -271,22 +279,11 @@ async def commit_import(
                         created_categories += 1
                     category_id = category.id if category else None
 
-            duplicate = (
-                db.query(Transaction)
-                .filter(
-                    and_(
-                        Transaction.account_id == account_id,
-                        Transaction.date == dt,
-                        Transaction.amount == amount,
-                        Transaction.merchant == merchant,
-                        Transaction.type == tx_type,
-                    )
-                )
-                .first()
-            )
-            if duplicate:
+            tx_key = (dt, round(float(amount), 4), merchant, tx_type)
+            if tx_key in existing_transactions:
                 skipped += 1
                 continue
+            existing_transactions.add(tx_key)
 
             running_balance = apply_transaction_to_balance(running_balance, tx_type, amount)
             tx = Transaction(

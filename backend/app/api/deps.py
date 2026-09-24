@@ -28,21 +28,20 @@ def get_current_user(
     db: Session = Depends(get_db),
     token: str = Depends(reusable_oauth2)
 ) -> str:
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
     try:
         payload = jwt.decode(
             token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
         )
         token_data = payload.get("sub")
         if token_data is None:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Could not validate credentials",
-            )
+            raise credentials_exception
     except (jwt.JWTError, ValidationError):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Could not validate credentials",
-        )
+        raise credentials_exception
     
     # In single user mode, we check if it's the current admin username
     current_admin = get_setting(db, "admin_username", settings.ADMIN_USERNAME)

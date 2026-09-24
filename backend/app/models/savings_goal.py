@@ -16,8 +16,8 @@ class SavingsGoal(Base):
     color: Mapped[str | None] = mapped_column(String(20), nullable=True)
     deadline: Mapped[date | None] = mapped_column(Date, nullable=True)
     
-    account_id: Mapped[int | None] = mapped_column(ForeignKey("accounts.id"), nullable=True)
-    category_id: Mapped[int | None] = mapped_column(ForeignKey("categories.id"), nullable=True)
+    account_id: Mapped[int | None] = mapped_column(ForeignKey("accounts.id", ondelete="SET NULL"), nullable=True)
+    category_id: Mapped[int | None] = mapped_column(ForeignKey("categories.id", ondelete="SET NULL"), nullable=True)
 
     account: Mapped["Account"] = relationship("Account", lazy="selectin")
     category: Mapped["Category"] = relationship("Category", lazy="selectin")

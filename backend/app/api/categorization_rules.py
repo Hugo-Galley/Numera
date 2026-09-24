@@ -48,23 +48,39 @@ def delete_rule(rule_id: int, db: Session = Depends(get_db)):
 def apply_rules_to_transactions(db: Session = Depends(get_db)):
     """Apply all rules to existing transactions that don't have a category or match patterns."""
     rules = db.query(CategorizationRule).order_by(CategorizationRule.priority.desc()).all()
+    if not rules:
+        return {"modified_count": 0}
+
     transactions = db.query(Transaction).all()
     
     modified_count = 0
+    affected_balance_account_ids = set()
+
     for tx in transactions:
-        matched = False
         for rule in rules:
             pattern = rule.pattern.lower()
             if pattern in (tx.merchant or "").lower() or pattern in (tx.note or "").lower():
-                if rule.category_id:
+                tx_changed = False
+                if rule.category_id and tx.category_id != rule.category_id:
                     tx.category_id = rule.category_id
-                if rule.transaction_type:
+                    tx_changed = True
+                if rule.transaction_type and tx.type != rule.transaction_type:
                     tx.type = rule.transaction_type
-                if rule.merchant_name:
+                    tx_changed = True
+                    affected_balance_account_ids.add(tx.account_id)
+                if rule.merchant_name and tx.merchant != rule.merchant_name:
                     tx.merchant = rule.merchant_name
-                matched = True
-                modified_count += 1
+                    tx_changed = True
+                
+                if tx_changed:
+                    modified_count += 1
                 break # Only apply first matching rule by priority
                 
     db.commit()
+
+    if affected_balance_account_ids:
+        from app.api.transactions import recalculate_running_balances
+        for acc_id in affected_balance_account_ids:
+            recalculate_running_balances(db, acc_id)
+
     return {"modified_count": modified_count}

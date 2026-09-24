@@ -67,6 +67,17 @@ def delete_recurring_transaction(
     if not recurring_tx:
         raise HTTPException(status_code=404, detail="Recurring transaction not found")
     
+    # Unlink existing transactions from this recurring rule
+    from app.models.transaction import Transaction
+    from app.models.investment_transaction import InvestmentTransaction
+    
+    db.query(Transaction).filter(Transaction.recurring_transaction_id == recurring_tx_id).update(
+        {Transaction.recurring_transaction_id: None}, synchronize_session=False
+    )
+    db.query(InvestmentTransaction).filter(InvestmentTransaction.recurring_transaction_id == recurring_tx_id).update(
+        {InvestmentTransaction.recurring_transaction_id: None}, synchronize_session=False
+    )
+
     db.delete(recurring_tx)
     db.commit()
     return {"message": "Recurring transaction deleted"}

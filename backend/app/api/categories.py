@@ -61,9 +61,29 @@ def delete_category(category_id: int, db: Session = Depends(get_db)):
     if not category:
         raise api_error(404, "category_not_found", "Category not found", {"category_id": category_id})
     
-    # Nullify references in transactions
+    # Nullify references in transactions and other linked entities
     db.query(Transaction).filter(Transaction.category_id == category_id).update(
         {Transaction.category_id: None}, 
+        synchronize_session=False
+    )
+    from app.models.savings_goal import SavingsGoal
+    db.query(SavingsGoal).filter(SavingsGoal.category_id == category_id).update(
+        {SavingsGoal.category_id: None},
+        synchronize_session=False
+    )
+    from app.models.categorization_rule import CategorizationRule
+    db.query(CategorizationRule).filter(CategorizationRule.category_id == category_id).update(
+        {CategorizationRule.category_id: None},
+        synchronize_session=False
+    )
+    from app.models.recurring_transaction import RecurringTransaction
+    db.query(RecurringTransaction).filter(RecurringTransaction.category_id == category_id).update(
+        {RecurringTransaction.category_id: None},
+        synchronize_session=False
+    )
+    from app.models.merchant import Merchant
+    db.query(Merchant).filter(Merchant.category_id == category_id).update(
+        {Merchant.category_id: None},
         synchronize_session=False
     )
     

@@ -62,11 +62,30 @@ export function Omnibox() {
       return
     }
 
-    const timer = setTimeout(() => {
-      searchTransactions(query)
+    let isCurrent = true
+    const timer = setTimeout(async () => {
+      try {
+        setLoading(true)
+        const data = await api.get<any[]>(`/transactions?search=${encodeURIComponent(query)}&limit=10`)
+        if (isCurrent) {
+          setTransactions(data || [])
+          setActiveIndex(0)
+        }
+      } catch (error) {
+        if (isCurrent) {
+          console.error("Failed to search transactions", error)
+        }
+      } finally {
+        if (isCurrent) {
+          setLoading(false)
+        }
+      }
     }, 300)
 
-    return () => clearTimeout(timer)
+    return () => {
+      isCurrent = false
+      clearTimeout(timer)
+    }
   }, [query])
 
   async function loadAccounts() {
@@ -75,19 +94,6 @@ export function Omnibox() {
       setAccounts(data || [])
     } catch (error) {
       console.error("Failed to load accounts for search", error)
-    }
-  }
-
-  async function searchTransactions(q: string) {
-    try {
-      setLoading(true)
-      const data = await api.get<any[]>(`/transactions?search=${encodeURIComponent(q)}&limit=10`)
-      setTransactions(data || [])
-      setActiveIndex(0)
-    } catch (error) {
-      console.error("Failed to search transactions", error)
-    } finally {
-      setLoading(false)
     }
   }
 

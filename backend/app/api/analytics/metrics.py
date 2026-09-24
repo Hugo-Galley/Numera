@@ -52,77 +52,14 @@ logger = get_logger(__name__)
 
 router = APIRouter()
 
-def _tx_sample(tx: Transaction) -> dict:
-    return {
-        "id": tx.id,
-        "account_id": tx.account_id,
-        "date": tx.date.date().isoformat(),
-        "merchant": tx.merchant,
-        "type": tx.type,
-        "amount": round(float(tx.amount), 2),
-        "currency": tx.currency,
-    }
-
-def _tx_read(tx: Transaction) -> dict:
-    return TransactionRead.model_validate(tx).model_dump(mode="json")
-
-def _savings_account_ids(db: Session) -> list[int]:
-    return [acc.id for acc in db.query(Account).filter(Account.type == "epargne", Account.active.is_(True)).all()]
-
-def _savings_events_by_account(db: Session, account_ids: list[int], end_date: datetime) -> dict[int, list[tuple[datetime, int, float]]]:
-    events: dict[int, list[tuple[datetime, int, float]]] = {acc_id: [] for acc_id in account_ids}
-    if not account_ids:
-        return events
-
-    snapshots = (
-        db.query(BalanceSnapshot)
-        .filter(BalanceSnapshot.account_id.in_(account_ids), BalanceSnapshot.date <= end_date)
-        .order_by(BalanceSnapshot.date.asc(), BalanceSnapshot.id.asc())
-        .all()
-    )
-    for snap in snapshots:
-        events[snap.account_id].append((snap.date, 1, float(snap.current_value)))
-
-    transactions = (
-        db.query(Transaction)
-        .filter(Transaction.account_id.in_(account_ids), Transaction.date <= end_date)
-        .order_by(Transaction.date.asc(), Transaction.id.asc())
-        .all()
-    )
-    for tx in transactions:
-        events[tx.account_id].append((tx.date, 0, float(tx.running_balance)))
-
-    for acc_id, items in events.items():
-        items.sort(key=lambda item: (item[0], item[1]))
-        events[acc_id] = items
-    return events
-
-def _savings_total_at(db: Session, account_ids: list[int], end_date: datetime) -> float:
-    events = _savings_events_by_account(db, account_ids, end_date)
-    total = 0.0
-    for items in events.values():
-        total += items[-1][2] if items else 0.0
-    return total
-
-def _get_ticket_restaurant_account_ids(db: Session) -> set[int]:
-    from app.models.salary_config import SalaryConfig
-    ticket_account_ids = set()
-    try:
-        salary_config = db.query(SalaryConfig).filter(SalaryConfig.is_active == True).first()
-        if salary_config and salary_config.ticket_account_id:
-            ticket_account_ids.add(salary_config.ticket_account_id)
-            
-        matching_accounts = db.query(Account.id).filter(
-            (Account.name.ilike("%ticket%restaurant%")) | 
-            (Account.name.ilike("%tickets%restaurant%")) |
-            (Account.type == "ticket_restaurant")
-        ).all()
-        for acc_id_tuple in matching_accounts:
-            ticket_account_ids.add(acc_id_tuple[0])
-    except Exception as e:
-        print(f"Error getting ticket restaurant accounts: {e}")
-        
-    return ticket_account_ids
+from .utils import (
+    _tx_sample,
+    _tx_read,
+    _savings_account_ids,
+    _savings_events_by_account,
+    _savings_total_at,
+    _get_ticket_restaurant_account_ids,
+)
 
 
 @router.get("/tags")
@@ -376,6 +313,117 @@ async def kpi_history(
         return []
 
     results = []
+    earliest_allowed_total = now.year * 12 + (now.month - 1) - (months_count - 1)
+    overall_start = datetime(earliest_allowed_total // 12, (earliest_allowed_total % 12) + 1, 1)
+    overall_end = datetime(now.year + (1 if now.month == 12 else 0), 1 if now.month == 12 else now.month + 1, 1)
+
+    # 1. Batch query regular transactions grouped by month, currency, and type
+    tx_month_label = func.strftime("%Y-%m", Transaction.date).label("m_label")
+    tx_query = db.query(
+        tx_month_label,
+        Account.currency,
+        Transaction.type,
+        func.coalesce(func.sum(Transaction.amount), 0.0).label("total")
+    ).select_from(Transaction).join(Account, Transaction.account_id == Account.id).filter(
+        Transaction.date >= overall_start, Transaction.date < overall_end
+    )
+    if not account_id:
+        tx_query = tx_query.filter(Account.type.in_(["courant", "epargne"]))
+        if tr_accounts:
+            tx_query = tx_query.filter(Transaction.account_id.notin_(tr_accounts))
+    else:
+        tx_query = tx_query.filter(Transaction.account_id == account_id)
+    
+    tx_rows = tx_query.group_by(tx_month_label, Account.currency, Transaction.type).all()
+
+    rev_map: dict[str, float] = {}
+    dep_map: dict[str, float] = {}
+    inte_map: dict[str, float] = {}
+    inv_map: dict[str, float] = {}
+
+    for row in tx_rows:
+        m_lbl = row.m_label
+        amount_eur = row.total / rates.get(row.currency, 1.0)
+        if row.type in ("Entree", "Interets"):
+            rev_map[m_lbl] = rev_map.get(m_lbl, 0.0) + amount_eur
+        if row.type == "Interets":
+            inte_map[m_lbl] = inte_map.get(m_lbl, 0.0) + amount_eur
+        if row.type == "Sortie":
+            dep_map[m_lbl] = dep_map.get(m_lbl, 0.0) + amount_eur
+
+    # 2. Batch query investment transactions (dividends and versements)
+    itx_month_label = func.strftime("%Y-%m", InvestmentTransaction.date).label("m_label")
+    itx_query = db.query(
+        itx_month_label,
+        Account.currency,
+        InvestmentTransaction.type,
+        func.coalesce(func.sum(InvestmentTransaction.amount), 0.0).label("total")
+    ).join(Account, InvestmentTransaction.account_id == Account.id).filter(
+        InvestmentTransaction.date >= overall_start, 
+        InvestmentTransaction.date < overall_end,
+        InvestmentTransaction.type.in_(["dividende", "versement"])
+    )
+    if account_id:
+        itx_query = itx_query.filter(InvestmentTransaction.account_id == account_id)
+    itx_rows = itx_query.group_by(itx_month_label, Account.currency, InvestmentTransaction.type).all()
+
+    for row in itx_rows:
+        m_lbl = row.m_label
+        amount_eur = row.total / rates.get(row.currency, 1.0)
+        if row.type == "dividende":
+            rev_map[m_lbl] = rev_map.get(m_lbl, 0.0) + amount_eur
+            inte_map[m_lbl] = inte_map.get(m_lbl, 0.0) + amount_eur
+        elif row.type == "versement":
+            inv_map[m_lbl] = inv_map.get(m_lbl, 0.0) + amount_eur
+
+    # 3. Batch query category exclusions for Sortie -> Investissement/Epargne
+    inv_cat_query = db.query(
+        tx_month_label,
+        Account.currency,
+        func.coalesce(func.sum(Transaction.amount), 0.0).label("total")
+    ).select_from(Transaction).join(Account, Transaction.account_id == Account.id).join(Category, Transaction.category_id == Category.id).filter(
+        Transaction.date >= overall_start, Transaction.date < overall_end,
+        Transaction.type == "Sortie",
+        Category.name.in_(["Investissement", "Epargne"])
+    )
+    if not account_id:
+        if tr_accounts:
+            inv_cat_query = inv_cat_query.filter(Transaction.account_id.notin_(tr_accounts))
+    else:
+        inv_cat_query = inv_cat_query.filter(Transaction.account_id == account_id)
+    inv_cat_rows = inv_cat_query.group_by(tx_month_label, Account.currency).all()
+
+    for row in inv_cat_rows:
+        m_lbl = row.m_label
+        amount_eur = row.total / rates.get(row.currency, 1.0)
+        inv_map[m_lbl] = inv_map.get(m_lbl, 0.0) + amount_eur
+
+    # 4. Batch query category-based interests (excluding type Interets to avoid double count)
+    inte_cat_query = db.query(
+        tx_month_label,
+        Account.currency,
+        func.coalesce(func.sum(Transaction.amount), 0.0).label("total")
+    ).select_from(Transaction).join(Account, Transaction.account_id == Account.id).join(Category, Transaction.category_id == Category.id).filter(
+        Transaction.date >= overall_start, Transaction.date < overall_end,
+        Transaction.type != "Interets",
+        Category.name.in_(["Interets", "Intérêts", "Intérêt", "Interet", "Dividendes", "Dividende"])
+    )
+    if not account_id:
+        inte_cat_query = inte_cat_query.filter(Account.type.in_(["courant", "epargne"]))
+        if tr_accounts:
+            inte_cat_query = inte_cat_query.filter(Transaction.account_id.notin_(tr_accounts))
+    else:
+        inte_cat_query = inte_cat_query.filter(Transaction.account_id == account_id)
+    inte_cat_rows = inte_cat_query.group_by(tx_month_label, Account.currency).all()
+
+    for row in inte_cat_rows:
+        m_lbl = row.m_label
+        amount_eur = row.total / rates.get(row.currency, 1.0)
+        inte_map[m_lbl] = inte_map.get(m_lbl, 0.0) + amount_eur
+
+    # 5. Preload savings events for all savings accounts up to overall_end
+    all_savings_events = _savings_events_by_account(db, savings_account_ids, overall_end) if savings_account_ids else {}
+
     for i in range(months_count - 1, -1, -1):
         total_months = now.year * 12 + (now.month - 1) - i
         y = total_months // 12
@@ -388,92 +436,23 @@ async def kpi_history(
         if start > now:
             continue
 
-        rev_query = db.query(Account.currency, func.coalesce(func.sum(Transaction.amount), 0.0).label("total")).select_from(Transaction).join(Account, Transaction.account_id == Account.id).filter(
-            Transaction.date >= start, Transaction.date < end, Transaction.type.in_(["Entree", "Interets"])
-        )
-        if not account_id:
-            rev_query = rev_query.filter(Account.type.in_(["courant", "epargne"]))
-            if tr_accounts:
-                rev_query = rev_query.filter(Transaction.account_id.notin_(tr_accounts))
-        else:
-            rev_query = rev_query.filter(Transaction.account_id == account_id)
-        
-        rev_rows = rev_query.group_by(Account.currency).all()
-        rev = sum(row.total / rates.get(row.currency, 1.0) for row in rev_rows)
-
-        # ADD: Investment dividends
-        itx_rev_query = db.query(Account.currency, func.coalesce(func.sum(InvestmentTransaction.amount), 0.0).label("total")).join(Account, InvestmentTransaction.account_id == Account.id).filter(
-            InvestmentTransaction.date >= start, InvestmentTransaction.date < end, InvestmentTransaction.type == "dividende"
-        )
-        if account_id:
-            itx_rev_query = itx_rev_query.filter(InvestmentTransaction.account_id == account_id)
-        
-        itx_rev_rows = itx_rev_query.group_by(Account.currency).all()
-        rev += sum(row.total / rates.get(row.currency, 1.0) for row in itx_rev_rows)
-
-        inte_query = db.query(Account.currency, func.coalesce(func.sum(Transaction.amount), 0.0).label("total")).select_from(Transaction).join(Account, Transaction.account_id == Account.id).outerjoin(Category, Transaction.category_id == Category.id).filter(
-            Transaction.date >= start, Transaction.date < end,
-            (Transaction.type == "Interets") |
-            (Category.name.in_(["Interets", "Intérêts", "Intérêt", "Interet", "Dividendes", "Dividende"]))
-        )
-        if not account_id:
-            inte_query = inte_query.filter(Account.type.in_(["courant", "epargne"]))
-            if tr_accounts:
-                inte_query = inte_query.filter(Transaction.account_id.notin_(tr_accounts))
-        else:
-            inte_query = inte_query.filter(Transaction.account_id == account_id)
-            
-        inte_rows = inte_query.group_by(Account.currency).all()
-        inte = sum(row.total / rates.get(row.currency, 1.0) for row in inte_rows)
-        # Add investment dividends to interests too
-        inte += sum(row.total / rates.get(row.currency, 1.0) for row in itx_rev_rows)
-
-        dep_query = db.query(Account.currency, func.coalesce(func.sum(Transaction.amount), 0.0).label("total")).select_from(Transaction).join(Account, Transaction.account_id == Account.id).filter(
-            Transaction.date >= start, Transaction.date < end, Transaction.type == "Sortie"
-        )
-        if not account_id:
-            dep_query = dep_query.filter(Account.type.in_(["courant", "epargne"]))
-            if tr_accounts:
-                dep_query = dep_query.filter(Transaction.account_id.notin_(tr_accounts))
-        else:
-            dep_query = dep_query.filter(Transaction.account_id == account_id)
-            
-        dep_rows = dep_query.group_by(Account.currency).all()
-        dep = sum(row.total / rates.get(row.currency, 1.0) for row in dep_rows)
-
-        inv_query = db.query(Account.currency, func.coalesce(func.sum(Transaction.amount), 0.0).label("total")).select_from(Transaction).join(Account, Transaction.account_id == Account.id).join(Category, Transaction.category_id == Category.id).filter(
-            Transaction.date >= start, Transaction.date < end, Transaction.type == "Sortie", Category.name.in_(["Investissement", "Epargne"])
-        )
-        if account_id:
-            inv_query = inv_query.filter(Transaction.account_id == account_id)
-        else:
-            if tr_accounts:
-                inv_query = inv_query.filter(Transaction.account_id.notin_(tr_accounts))
-            
-        inv_rows = inv_query.group_by(Account.currency).all()
-        inv = sum(row.total / rates.get(row.currency, 1.0) for row in inv_rows)
-
-        # ADD: Investment versements
-        itx_inv_query = db.query(Account.currency, func.coalesce(func.sum(InvestmentTransaction.amount), 0.0).label("total")).join(Account, InvestmentTransaction.account_id == Account.id).filter(
-            InvestmentTransaction.date >= start, InvestmentTransaction.date < end, InvestmentTransaction.type == "versement"
-        )
-        if account_id:
-            itx_inv_query = itx_inv_query.filter(InvestmentTransaction.account_id == account_id)
-            
-        itx_inv_rows = itx_inv_query.group_by(Account.currency).all()
-        inv += sum(row.total / rates.get(row.currency, 1.0) for row in itx_inv_rows)
+        m_key = f"{y:04d}-{m:02d}"
+        rev = rev_map.get(m_key, 0.0)
+        inte = inte_map.get(m_key, 0.0)
+        dep = dep_map.get(m_key, 0.0)
+        inv = inv_map.get(m_key, 0.0)
 
         # If no revenue and no expense, and it's not the current month, skip to keep chart tight
         if rev == 0 and dep == 0 and not (now.year == y and now.month == m):
             continue
 
-        # Epargne totale at end of month
-        events = _savings_events_by_account(db, savings_account_ids, end)
+        # Epargne totale at end of month (calculated from in-memory preloaded events)
         epargne_total = 0.0
-        for acc_id, items in events.items():
-            if items:
+        for acc_id, items in all_savings_events.items():
+            matching = [val for date_val, _, val in items if date_val <= end]
+            if matching:
+                val = matching[-1]
                 acc = savings_account_map.get(acc_id)
-                val = items[-1][2]
                 epargne_total += val / rates.get(acc.currency, 1.0) if acc else val
         
         real_dep = dep - inv

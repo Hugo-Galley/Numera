@@ -7,12 +7,12 @@ class RecurringTransaction(Base):
     __tablename__ = "recurring_transactions"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
-    account_id: Mapped[int] = mapped_column(ForeignKey("accounts.id"), index=True)
+    account_id: Mapped[int] = mapped_column(ForeignKey("accounts.id", ondelete="CASCADE"), index=True)
     name: Mapped[str] = mapped_column(String(120), index=True)
     type: Mapped[str] = mapped_column(String(32), nullable=False)  # Entree, Sortie, Interets
     amount: Mapped[float] = mapped_column(Float, nullable=False)
     currency: Mapped[str] = mapped_column(String(3), nullable=False, default="EUR")
-    category_id: Mapped[int | None] = mapped_column(ForeignKey("categories.id"), nullable=True, index=True)
+    category_id: Mapped[int | None] = mapped_column(ForeignKey("categories.id", ondelete="SET NULL"), nullable=True, index=True)
     frequency: Mapped[str] = mapped_column(String(20), nullable=False)  # monthly, weekly, quarterly, yearly
     day_of_month: Mapped[int | None] = mapped_column(nullable=True)
     start_date: Mapped[datetime] = mapped_column(DateTime, nullable=False)
