@@ -32,6 +32,8 @@ export const ICON_MAP: Record<string, any> = {
   Video, Voicemail, Volume2, Watch, Waves, Webcam, Weight, Wifi, Wind, Wine, Wrench
 }
 
+export const ICON_OPTIONS: string[] = Object.keys(ICON_MAP)
+
 const SVG_PATH_REGEX = /^[\s\dMmZzLlHhVvCcSsQqTtAa,.-]+$/
 
 export const IconComponent = ({ name, className }: { name?: string | null, className?: string }) => {

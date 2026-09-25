@@ -12,9 +12,11 @@ import {
   ArrowRight,
   ArrowRightLeft,
   Upload,
-  Filter
+  Filter,
+  User,
+  ShoppingBag
 } from "lucide-react"
-import { IconComponent } from "@/components/dashboard/IconComponent"
+import { IconComponent, ICON_OPTIONS } from "@/components/dashboard/IconComponent"
 import { api, API_BASE } from "@/lib/api"
 import { RulesTab } from "@/components/settings/RulesTab"
 import { TransfersTab } from "@/components/settings/TransfersTab"
@@ -53,144 +55,6 @@ import { Badge } from "@/components/ui/badge"
 
 import { Checkbox } from "@/components/ui/checkbox"
 import { ImportTab } from "@/components/settings/ImportTab"
-
-const ICON_OPTIONS = [
-  { name: "Coffee", icon: Coffee },
-  { name: "ShoppingBag", icon: ShoppingBag },
-  { name: "Utensils", icon: Utensils },
-  { name: "Car", icon: Car },
-  { name: "Home", icon: Home },
-  { name: "Heart", icon: Heart },
-  { name: "Zap", icon: Zap },
-  { name: "Music", icon: Music },
-  { name: "Smartphone", icon: Smartphone },
-  { name: "Plane", icon: Plane },
-  { name: "Gift", icon: Gift },
-  { name: "Briefcase", icon: Briefcase },
-  { name: "CreditCard", icon: CreditCard },
-  { name: "Wallet", icon: Wallet },
-  { name: "Banknote", icon: Banknote },
-  { name: "Trophy", icon: Trophy },
-  { name: "Activity", icon: Activity },
-  { name: "User", icon: User },
-  { name: "Film", icon: Film },
-  { name: "Dumbbell", icon: Dumbbell },
-  { name: "Airplay", icon: Airplay },
-  { name: "AlarmClock", icon: AlarmClock },
-  { name: "Archive", icon: Archive },
-  { name: "Award", icon: Award },
-  { name: "Backpack", icon: Backpack },
-  { name: "Bath", icon: Bath },
-  { name: "Beer", icon: Beer },
-  { name: "Bell", icon: Bell },
-  { name: "Bike", icon: Bike },
-  { name: "Book", icon: Book },
-  { name: "Box", icon: Box },
-  { name: "Camera", icon: Camera },
-  { name: "Clapperboard", icon: Clapperboard },
-  { name: "Cloud", icon: Cloud },
-  { name: "Compass", icon: Compass },
-  { name: "Cookie", icon: Cookie },
-  { name: "Cpu", icon: Cpu },
-  { name: "Dice5", icon: Dice5 },
-  { name: "Dog", icon: Dog },
-  { name: "Droplet", icon: Droplet },
-  { name: "Egg", icon: Egg },
-  { name: "Eye", icon: Eye },
-  { name: "Fan", icon: Fan },
-  { name: "Feather", icon: Feather },
-  { name: "Fish", icon: Fish },
-  { name: "Flag", icon: Flag },
-  { name: "Flashlight", icon: Flashlight },
-  { name: "FlaskConical", icon: FlaskConical },
-  { name: "Flower", icon: Flower },
-  { name: "Footprints", icon: Footprints },
-  { name: "Fuel", icon: Fuel },
-  { name: "Gamepad2", icon: Gamepad2 },
-  { name: "GlassWater", icon: GlassWater },
-  { name: "Globe", icon: Globe },
-  { name: "Grape", icon: Grape },
-  { name: "Hammer", icon: Hammer },
-  { name: "IceCream", icon: IceCream },
-  { name: "Key", icon: Key },
-  { name: "Laptop", icon: Laptop },
-  { name: "Library", icon: Library },
-  { name: "Lightbulb", icon: Lightbulb },
-  { name: "Locate", icon: Locate },
-  { name: "Lock", icon: Lock },
-  { name: "Map", icon: Map },
-  { name: "Mic", icon: Mic },
-  { name: "Monitor", icon: Monitor },
-  { name: "Moon", icon: Moon },
-  { name: "Mountain", icon: Mountain },
-  { name: "Mouse", icon: Mouse },
-  { name: "Network", icon: Network },
-  { name: "Newspaper", icon: Newspaper },
-  { name: "Nut", icon: Nut },
-  { name: "Package", icon: Package },
-  { name: "Paintbrush", icon: Paintbrush },
-  { name: "Palmtree", icon: Palmtree },
-  { name: "Paperclip", icon: Paperclip },
-  { name: "PawPrint", icon: PawPrint },
-  { name: "Phone", icon: Phone },
-  { name: "Pizza", icon: Pizza },
-  { name: "Plug", icon: Plug },
-  { name: "Printer", icon: Printer },
-  { name: "Puzzle", icon: Puzzle },
-  { name: "Radio", icon: Radio },
-  { name: "Receipt", icon: Receipt },
-  { name: "Recycle", icon: Recycle },
-  { name: "Rocket", icon: Rocket },
-  { name: "Route", icon: Route },
-  { name: "Rss", icon: Rss },
-  { name: "Sailboat", icon: Sailboat },
-  { name: "Scissors", icon: Scissors },
-  { name: "ScreenShare", icon: ScreenShare },
-  { name: "Search", icon: Search },
-  { name: "Settings", icon: SettingsIcon },
-  { name: "Shield", icon: Shield },
-  { name: "Ship", icon: Ship },
-  { name: "Shirt", icon: Shirt },
-  { name: "ShowerHead", icon: ShowerHead },
-  { name: "Skull", icon: Skull },
-  { name: "Smile", icon: Smile },
-  { name: "Snowflake", icon: Snowflake },
-  { name: "Speaker", icon: Speaker },
-  { name: "Sprout", icon: Sprout },
-  { name: "Stamp", icon: Stamp },
-  { name: "Star", icon: Star },
-  { name: "Stethoscope", icon: Stethoscope },
-  { name: "Sun", icon: Sun },
-  { name: "Sunrise", icon: Sunrise },
-  { name: "Sunset", icon: Sunset },
-  { name: "Tablet", icon: Tablet },
-  { name: "Target", icon: Target },
-  { name: "Tent", icon: Tent },
-  { name: "Terminal", icon: Terminal },
-  { name: "Thermometer", icon: Thermometer },
-  { name: "Ticket", icon: Ticket },
-  { name: "Timer", icon: Timer },
-  { name: "Train", icon: Train },
-  { name: "Trash", icon: Trash },
-  { name: "TreeDeciduous", icon: TreeDeciduous },
-  { name: "TreePine", icon: TreePine },
-  { name: "Trees", icon: Trees },
-  { name: "Tv", icon: Tv },
-  { name: "Umbrella", icon: Umbrella },
-  { name: "UtilityPole", icon: UtilityPole },
-  { name: "Variable", icon: Variable },
-  { name: "Video", icon: Video },
-  { name: "Voicemail", icon: Voicemail },
-  { name: "Volume2", icon: Volume2 },
-  { name: "Watch", icon: Watch },
-  { name: "Waves", icon: Waves },
-  { name: "Webcam", icon: Webcam },
-  { name: "Weight", icon: Weight },
-  { name: "Wifi", icon: Wifi },
-  { name: "Wind", icon: Wind },
-  { name: "Wine", icon: Wine },
-  { name: "Wrench", icon: Wrench },
-]
 
 const COLOR_OPTIONS = [
   { name: "Emerald", value: "#10b981" },
@@ -466,14 +330,14 @@ export default function Settings() {
                     <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">Icône</Label>
                     <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
                       <div className="grid grid-cols-5 sm:grid-cols-10 gap-2 max-h-[200px] overflow-y-auto pr-2 custom-scrollbar">
-                        {ICON_OPTIONS.map((opt) => (
+                        {ICON_OPTIONS.map((iconName) => (
                           <button
-                            key={opt.name}
+                            key={iconName}
                             type="button"
-                            onClick={() => setNewCatIcon(opt.name)}
-                            className={`p-2 rounded-lg flex items-center justify-center transition-all ${newCatIcon === opt.name ? 'bg-slate-900 text-white' : 'hover:bg-slate-200 text-slate-500'}`}
+                            onClick={() => setNewCatIcon(iconName)}
+                            className={`p-2 rounded-lg flex items-center justify-center transition-all ${newCatIcon === iconName ? 'bg-slate-900 text-white' : 'hover:bg-slate-200 text-slate-500'}`}
                           >
-                            <opt.icon className="h-4 w-4" />
+                            <IconComponent name={iconName} className="h-4 w-4" />
                           </button>
                         ))}
                       </div>
@@ -640,14 +504,14 @@ export default function Settings() {
 
                   <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
                     <div className="grid grid-cols-10 gap-2 max-h-[200px] overflow-y-auto pr-2 custom-scrollbar">
-                      {ICON_OPTIONS.map((opt) => (
+                      {ICON_OPTIONS.map((iconName) => (
                         <button
-                          key={opt.name}
+                          key={iconName}
                           type="button"
-                          onClick={() => setEditCatIcon(opt.name)}
-                          className={`p-2 rounded-lg flex items-center justify-center transition-all ${editCatIcon === opt.name ? 'bg-slate-900 text-white' : 'hover:bg-slate-200 text-slate-500'}`}
+                          onClick={() => setEditCatIcon(iconName)}
+                          className={`p-2 rounded-lg flex items-center justify-center transition-all ${editCatIcon === iconName ? 'bg-slate-900 text-white' : 'hover:bg-slate-200 text-slate-500'}`}
                         >
-                          <opt.icon className="h-4 w-4" />
+                          <IconComponent name={iconName} className="h-4 w-4" />
                         </button>
                       ))}
                     </div>
