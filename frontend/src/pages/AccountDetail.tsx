@@ -302,6 +302,7 @@ export default function AccountDetail() {
   const [tagTotals, setTagTotals] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState("")
+  const [debouncedSearch, setDebouncedSearch] = useState("")
   const [dateStart, setDateStart] = useState("")
   const [dateEnd, setDateEnd] = useState("")
   const [sortField, setSortField] = useState<"date" | "merchant" | "amount" | "category" | "type" | "running_balance">("date")
@@ -493,6 +494,10 @@ export default function AccountDetail() {
         if (filterTags.length > 0) {
           filterTags.forEach(tid => params.append("tag_ids", String(tid)))
         }
+        if (debouncedSearch) {
+          params.append("search", debouncedSearch)
+          params.append("limit", "1000")
+        }
 
         const [txData, timeData, catData, tagsData, tagTotalsData] = await Promise.all([
           api.get<Transaction[]>(`/transactions?${params.toString()}`),
@@ -515,8 +520,15 @@ export default function AccountDetail() {
   }
 
   useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search)
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [search])
+
+  useEffect(() => {
     loadData()
-  }, [id, filterType, filterCategory, filterMerchant, filterTags, dateStart, dateEnd])
+  }, [id, filterType, filterCategory, filterMerchant, filterTags, dateStart, dateEnd, debouncedSearch])
 
   // -- Handlers (Current Account) --
   const resetTxForm = () => {
@@ -832,15 +844,6 @@ export default function AccountDetail() {
     return transactions
       .filter(tx => {
         const txDate = new Date(tx.date)
-        const merchant = tx.merchant || ""
-        const type = tx.type || ""
-        const note = tx.note || ""
-        const categoryName = tx.category?.name || ""
-        
-        const matchesSearch = merchant.toLowerCase().includes(search.toLowerCase()) ||
-                             type.toLowerCase().includes(search.toLowerCase()) ||
-                             note.toLowerCase().includes(search.toLowerCase()) ||
-                             categoryName.toLowerCase().includes(search.toLowerCase())
 
         let matchesDate = true
         if (dateStart) {
@@ -854,7 +857,7 @@ export default function AccountDetail() {
           matchesDate = matchesDate && txDate <= end
         }
 
-        return matchesSearch && matchesDate
+        return matchesDate
       })
       .sort((a, b) => {
         let comparison = 0
@@ -891,10 +894,10 @@ export default function AccountDetail() {
         
         return sortOrder === "asc" ? comparison : -comparison
       })
-  }, [transactions, search, dateStart, dateEnd, sortField, sortOrder])
+  }, [transactions, dateStart, dateEnd, sortField, sortOrder])
 
   const stats = useMemo(() => {
-    const source = (search || dateStart || dateEnd) ? filteredTransactions : transactions
+    const source = (debouncedSearch || dateStart || dateEnd) ? filteredTransactions : transactions
     if (source.length === 0) return null
     const expenses = source.filter(t => t.type === "Sortie")
     

@@ -83,10 +83,13 @@ def list_transactions(
         query = query.join(Transaction.tags).filter(Tag.id.in_(tag_ids))
     if search:
         search_filter = f"%{search}%"
-        query = query.filter(
+        from app.models.category import Category
+        query = query.outerjoin(Category, Transaction.category_id == Category.id).filter(
             or_(
                 Transaction.merchant.ilike(search_filter),
-                Transaction.note.ilike(search_filter)
+                Transaction.note.ilike(search_filter),
+                Transaction.type.ilike(search_filter),
+                Category.name.ilike(search_filter),
             )
         )
     if month is not None and year is not None:
