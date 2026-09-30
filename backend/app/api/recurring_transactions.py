@@ -31,7 +31,11 @@ def create_recurring_transaction(
     db: Session = Depends(get_db),
     recurring_tx_in: RecurringTransactionCreate,
 ) -> Any:
-    recurring_tx = RecurringTransaction(**recurring_tx_in.model_dump())
+    data = recurring_tx_in.model_dump()
+    # Convert list[int] to CSV string for DB storage
+    if data.get("excluded_months") is not None:
+        data["excluded_months"] = ",".join(str(m) for m in data["excluded_months"])
+    recurring_tx = RecurringTransaction(**data)
     db.add(recurring_tx)
     db.commit()
     db.refresh(recurring_tx)
@@ -49,6 +53,12 @@ def update_recurring_transaction(
         raise HTTPException(status_code=404, detail="Recurring transaction not found")
     
     update_data = recurring_tx_in.model_dump(exclude_unset=True)
+    # Convert list[int] to CSV string for DB storage
+    if "excluded_months" in update_data:
+        if update_data["excluded_months"] is not None:
+            update_data["excluded_months"] = ",".join(str(m) for m in update_data["excluded_months"])
+        else:
+            update_data["excluded_months"] = None
     for field, value in update_data.items():
         setattr(recurring_tx, field, value)
     

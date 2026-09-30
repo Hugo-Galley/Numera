@@ -461,6 +461,35 @@ export default function AccountDetail() {
   const [zeroValue, setZeroValue] = useState("")
   const [zeroNote, setZeroNote] = useState("")
 
+  const buildTransactionParams = () => {
+    const params = new URLSearchParams()
+    params.append("account_id", id!)
+    if (filterType !== "all") params.append("type", filterType)
+    if (filterCategory !== "all") params.append("category_id", filterCategory)
+    if (filterMerchant !== "all") params.append("merchant", filterMerchant)
+    if (dateStart) params.append("start_date", new Date(dateStart).toISOString())
+    if (dateEnd) params.append("end_date", new Date(dateEnd).toISOString())
+    if (filterTags.length > 0) {
+      filterTags.forEach(tid => params.append("tag_ids", String(tid)))
+    }
+    if (debouncedSearch) {
+      params.append("search", debouncedSearch)
+      params.append("limit", "1000")
+    }
+    return params
+  }
+
+  const loadTransactions = async () => {
+    if (!id) return
+    try {
+      const params = buildTransactionParams()
+      const txData = await api.get<Transaction[]>(`/transactions?${params.toString()}`)
+      setTransactions(txData)
+    } catch (error) {
+      toast.error("Erreur lors de la recherche")
+    }
+  }
+
   const loadData = async () => {
     if (!id) return
     setLoading(true)
@@ -484,20 +513,7 @@ export default function AccountDetail() {
         setInvestmentData(invData)
         setPerfHistory(perfData.items || [])
       } else {
-        const params = new URLSearchParams()
-        params.append("account_id", id!)
-        if (filterType !== "all") params.append("type", filterType)
-        if (filterCategory !== "all") params.append("category_id", filterCategory)
-        if (filterMerchant !== "all") params.append("merchant", filterMerchant)
-        if (dateStart) params.append("start_date", new Date(dateStart).toISOString())
-        if (dateEnd) params.append("end_date", new Date(dateEnd).toISOString())
-        if (filterTags.length > 0) {
-          filterTags.forEach(tid => params.append("tag_ids", String(tid)))
-        }
-        if (debouncedSearch) {
-          params.append("search", debouncedSearch)
-          params.append("limit", "1000")
-        }
+        const params = buildTransactionParams()
 
         const [txData, timeData, catData, tagsData, tagTotalsData] = await Promise.all([
           api.get<Transaction[]>(`/transactions?${params.toString()}`),
@@ -528,7 +544,14 @@ export default function AccountDetail() {
 
   useEffect(() => {
     loadData()
-  }, [id, filterType, filterCategory, filterMerchant, filterTags, dateStart, dateEnd, debouncedSearch])
+  }, [id, filterType, filterCategory, filterMerchant, filterTags, dateStart, dateEnd])
+
+  // Reload only transactions when search changes (avoid full page reload)
+  useEffect(() => {
+    if (account && account.type !== "investissement" && account.type !== "assurance_vie") {
+      loadTransactions()
+    }
+  }, [debouncedSearch])
 
   // -- Handlers (Current Account) --
   const resetTxForm = () => {

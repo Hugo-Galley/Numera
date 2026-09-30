@@ -15,6 +15,7 @@ class RecurringTransaction(Base):
     category_id: Mapped[int | None] = mapped_column(ForeignKey("categories.id", ondelete="SET NULL"), nullable=True, index=True)
     frequency: Mapped[str] = mapped_column(String(20), nullable=False)  # monthly, weekly, quarterly, yearly
     day_of_month: Mapped[int | None] = mapped_column(nullable=True)
+    excluded_months: Mapped[str | None] = mapped_column(String(50), nullable=True)  # CSV of months (1-12) to skip
     start_date: Mapped[datetime] = mapped_column(DateTime, nullable=False)
     end_date: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     last_generated_date: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)

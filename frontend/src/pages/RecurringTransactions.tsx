@@ -14,8 +14,24 @@ import {
   RefreshCw,
   Search,
   Filter,
-  CalendarIcon
+  CalendarIcon,
+  ChevronDown
 } from "lucide-react"
+
+const MONTHS = [
+  { value: 1, label: "Jan" },
+  { value: 2, label: "Fév" },
+  { value: 3, label: "Mar" },
+  { value: 4, label: "Avr" },
+  { value: 5, label: "Mai" },
+  { value: 6, label: "Juin" },
+  { value: 7, label: "Juil" },
+  { value: 8, label: "Août" },
+  { value: 9, label: "Sep" },
+  { value: 10, label: "Oct" },
+  { value: 11, label: "Nov" },
+  { value: 12, label: "Déc" },
+]
 import { api } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 import {
@@ -87,6 +103,7 @@ type RecurringTransaction = {
   category_id: number | null
   frequency: string
   day_of_month: number | null
+  excluded_months?: number[] | null
   start_date: string
   end_date: string | null
   last_generated_date: string | null
@@ -116,6 +133,7 @@ export default function RecurringTransactions() {
   // Dialogs
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [editingTx, setEditingTx] = useState<RecurringTransaction | null>(null)
+  const [isIrregularSubmenuOpen, setIsIrregularSubmenuOpen] = useState(false)
   
   // Form State
   const [formData, setFormData] = useState({
@@ -127,6 +145,7 @@ export default function RecurringTransactions() {
     category_id: "none",
     frequency: "monthly",
     day_of_month: "1",
+    excluded_months: [] as number[],
     start_date: format(new Date(), "yyyy-MM-dd"),
     is_active: true,
     auto_generate: false,
@@ -181,6 +200,7 @@ export default function RecurringTransactions() {
 
   const handleOpenCreate = () => {
     setEditingTx(null)
+    setIsIrregularSubmenuOpen(false)
     const firstAccount = accounts[0]
     setFormData({
       account_id: firstAccount?.id.toString() || "",
@@ -191,6 +211,7 @@ export default function RecurringTransactions() {
       category_id: "none",
       frequency: "monthly",
       day_of_month: "1",
+      excluded_months: [],
       start_date: format(new Date(), "yyyy-MM-dd"),
       is_active: true,
       auto_generate: false,
@@ -204,6 +225,7 @@ export default function RecurringTransactions() {
 
   const handleOpenEdit = (tx: RecurringTransaction) => {
     setEditingTx(tx)
+    setIsIrregularSubmenuOpen(Boolean(tx.excluded_months && tx.excluded_months.length > 0))
     setFormData({
       account_id: tx.account_id.toString(),
       name: tx.name,
@@ -213,6 +235,7 @@ export default function RecurringTransactions() {
       category_id: tx.category_id?.toString() || "none",
       frequency: tx.frequency,
       day_of_month: tx.day_of_month?.toString() || "1",
+      excluded_months: tx.excluded_months || [],
       start_date: format(new Date(tx.start_date), "yyyy-MM-dd"),
       is_active: tx.is_active,
       auto_generate: tx.auto_generate,
@@ -236,6 +259,7 @@ export default function RecurringTransactions() {
       amount: parseFloat(formData.amount),
       category_id: formData.category_id === "none" ? null : parseInt(formData.category_id),
       day_of_month: parseInt(formData.day_of_month),
+      excluded_months: formData.frequency === "monthly" && formData.excluded_months.length > 0 ? formData.excluded_months : null,
       start_date: new Date(formData.start_date).toISOString(),
       asset_class: formData.asset_class || null,
       sector: formData.sector || null,
@@ -292,6 +316,7 @@ export default function RecurringTransactions() {
 
   const handleOpenValidate = (potential: any, isInvest: boolean = false) => {
     setEditingTx(null)
+    setIsIrregularSubmenuOpen(false)
     
     let acc = accounts[0]
     if (isInvest) {
@@ -308,6 +333,7 @@ export default function RecurringTransactions() {
       category_id: categories.find(c => c.name === potential.category_name)?.id.toString() || "none",
       frequency: "monthly",
       day_of_month: "1",
+      excluded_months: [],
       start_date: format(new Date(), "yyyy-MM-dd"),
       is_active: true,
       auto_generate: false,
@@ -440,6 +466,13 @@ export default function RecurringTransactions() {
                         <TableCell>
                           <div className="text-sm font-medium capitalize text-slate-700">{tx.frequency}</div>
                           <div className="text-[10px] text-slate-400 font-bold">JOUR {tx.day_of_month}</div>
+                          {tx.excluded_months && tx.excluded_months.length > 0 && (
+                            <div className="mt-1">
+                              <Badge variant="outline" className="text-[9px] h-4 px-1.5 text-amber-700 border-amber-200 bg-amber-50 font-medium whitespace-nowrap">
+                                {tx.excluded_months.length} mois exclu{tx.excluded_months.length > 1 ? "s" : ""}
+                              </Badge>
+                            </div>
+                          )}
                         </TableCell>
                         <TableCell>
                           <div className="text-sm text-slate-600">
@@ -888,6 +921,81 @@ export default function RecurringTransactions() {
                 />
               </div>
             </div>
+
+            {formData.frequency === "monthly" && (
+              <div className="border border-slate-200 rounded-lg p-3 bg-slate-50/50 space-y-3">
+                <button
+                  type="button"
+                  onClick={() => setIsIrregularSubmenuOpen(!isIrregularSubmenuOpen)}
+                  className="flex items-center justify-between w-full text-left text-xs font-semibold text-slate-700 hover:text-slate-900 transition-colors"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="p-1 rounded bg-slate-200/70 text-slate-600">
+                      <CalendarIcon className="h-3.5 w-3.5" />
+                    </span>
+                    <div>
+                      <span>Mois irréguliers (exclusions)</span>
+                      {formData.excluded_months.length > 0 ? (
+                        <span className="ml-2 text-[10px] font-bold text-amber-600 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded-full">
+                          {formData.excluded_months.length} exclu{formData.excluded_months.length > 1 ? "s" : ""} (
+                          {formData.excluded_months.map(m => MONTHS.find(mon => mon.value === m)?.label).join(", ")})
+                        </span>
+                      ) : (
+                        <span className="ml-2 text-[10px] text-slate-400 font-normal">Optionnel</span>
+                      )}
+                    </div>
+                  </div>
+                  <ChevronDown className={cn("h-4 w-4 text-slate-400 transition-transform duration-200", isIrregularSubmenuOpen && "rotate-180")} />
+                </button>
+
+                {isIrregularSubmenuOpen && (
+                  <div className="pt-2 border-t border-slate-200/60 space-y-2">
+                    <p className="text-[11px] text-slate-500">
+                      Sélectionnez les mois où ce montant ne sera <strong className="font-semibold text-slate-700">pas débité</strong> (ex: non prélevé en mai et octobre).
+                    </p>
+                    <div className="grid grid-cols-4 sm:grid-cols-6 gap-1.5 pt-1">
+                      {MONTHS.map((m) => {
+                        const isExcluded = formData.excluded_months.includes(m.value)
+                        return (
+                          <button
+                            key={m.value}
+                            type="button"
+                            onClick={() => {
+                              setFormData(prev => ({
+                                ...prev,
+                                excluded_months: isExcluded
+                                  ? prev.excluded_months.filter(val => val !== m.value)
+                                  : [...prev.excluded_months, m.value].sort((a, b) => a - b)
+                              }))
+                            }}
+                            className={cn(
+                              "py-1.5 px-2 text-xs font-medium rounded-md border text-center transition-all",
+                              isExcluded
+                                ? "bg-rose-50 border-rose-300 text-rose-700 font-bold shadow-xs line-through"
+                                : "bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50"
+                            )}
+                            title={isExcluded ? `Mois exclu (${m.label})` : `Mois actif (${m.label})`}
+                          >
+                            {m.label}
+                          </button>
+                        )
+                      })}
+                    </div>
+                    {formData.excluded_months.length > 0 && (
+                      <div className="flex justify-end pt-1">
+                        <button
+                          type="button"
+                          onClick={() => setFormData(prev => ({ ...prev, excluded_months: [] }))}
+                          className="text-[10px] text-slate-400 hover:text-slate-600 underline"
+                        >
+                          Réinitialiser les exclusions
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
 
             <div className="grid gap-2">
               <Label>Date de début</Label>

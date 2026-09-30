@@ -1,6 +1,7 @@
 from datetime import datetime
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from app.schemas.category import CategoryRead
+
 
 class RecurringTransactionBase(BaseModel):
     account_id: int
@@ -11,6 +12,7 @@ class RecurringTransactionBase(BaseModel):
     category_id: int | None = None
     frequency: str  # monthly, weekly, quarterly, yearly
     day_of_month: int | None = None
+    excluded_months: list[int] | None = None  # Months (1-12) to skip
     start_date: datetime
     end_date: datetime | None = None
     last_generated_date: datetime | None = None
@@ -33,6 +35,7 @@ class RecurringTransactionUpdate(BaseModel):
     category_id: int | None = None
     frequency: str | None = None
     day_of_month: int | None = None
+    excluded_months: list[int] | None = None
     start_date: datetime | None = None
     end_date: datetime | None = None
     last_generated_date: datetime | None = None
@@ -48,3 +51,15 @@ class RecurringTransactionRead(RecurringTransactionBase):
     category: CategoryRead | None = None
 
     model_config = {"from_attributes": True}
+
+    @field_validator("excluded_months", mode="before")
+    @classmethod
+    def parse_excluded_months(cls, v: str | list[int] | None) -> list[int] | None:
+        """Convert CSV string from DB to list[int] for API response."""
+        if v is None:
+            return None
+        if isinstance(v, str):
+            if not v.strip():
+                return None
+            return [int(m) for m in v.split(",") if m.strip()]
+        return v

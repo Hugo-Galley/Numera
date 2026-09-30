@@ -50,6 +50,7 @@ def get_recurring_occurrences(
 ) -> List[datetime]:
     """
     Returns a list of dates when a recurring transaction occurs within a period.
+    Respects excluded_months (CSV string or list of month numbers 1-12).
     """
     occurrences = []
     current_date = recurring_tx.start_date
@@ -57,13 +58,21 @@ def get_recurring_occurrences(
     # Ensure current_date is at the beginning of the day
     current_date = current_date.replace(hour=0, minute=0, second=0, microsecond=0)
     
+    # Parse excluded months (stored as CSV string "5,10" → {5, 10})
+    excluded_months: set[int] = set()
+    if hasattr(recurring_tx, 'excluded_months') and recurring_tx.excluded_months:
+        if isinstance(recurring_tx.excluded_months, str):
+            excluded_months = {int(m) for m in recurring_tx.excluded_months.split(",") if m.strip()}
+        elif isinstance(recurring_tx.excluded_months, list):
+            excluded_months = set(recurring_tx.excluded_months)
+
     # If end_date is set on the recurring tx, use the earliest of tx end_date or period end
     actual_end_period = end_period
     if recurring_tx.end_date and recurring_tx.end_date < end_period:
         actual_end_period = recurring_tx.end_date
 
     while current_date < actual_end_period:
-        if current_date >= start_period:
+        if current_date >= start_period and current_date.month not in excluded_months:
             occurrences.append(current_date)
         
         if recurring_tx.frequency == "daily":
