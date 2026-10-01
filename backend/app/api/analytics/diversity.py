@@ -243,6 +243,8 @@ async def diversity_scanner(
                         }
 
                     underlying_companies[key]["indirect_value_eur"] += h_val
+                    if h_ticker and not underlying_companies[key].get("ticker"):
+                        underlying_companies[key]["ticker"] = h_ticker
                     underlying_companies[key]["sources"].append({
                         "source": vh["ticker"],
                         "pct_in_source": round(h_weight, 2),
@@ -266,6 +268,8 @@ async def diversity_scanner(
                 }
 
             underlying_companies[key]["direct_value_eur"] += vh_val
+            if direct_ticker and not underlying_companies[key].get("ticker"):
+                underlying_companies[key]["ticker"] = direct_ticker
             underlying_companies[key]["sources"].append({
                 "source": "En direct",
                 "pct_in_source": 100.0,

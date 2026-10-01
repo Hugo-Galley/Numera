@@ -15,6 +15,7 @@ import { SlidersHorizontal, Trash2, Globe, Layers } from "lucide-react"
 import { PointZeroModal } from "./PointZeroModal"
 import { api } from "@/lib/api"
 import { toast } from "sonner"
+import { CompanyLogo } from "@/components/ui/CompanyLogo"
 
 interface HoldingsTableProps {
   accountId: number
@@ -144,9 +145,18 @@ export function HoldingsTable({
                     return (
                       <TableRow key={h.id} className="hover:bg-slate-50 transition-colors">
                         <TableCell>
-                          <div className="flex flex-col">
-                            <span className="font-bold text-slate-900 text-sm">{h.ticker}</span>
-                            <span className="text-xs text-slate-500 line-clamp-1">{h.asset_name}</span>
+                          <div className="flex items-center gap-3">
+                            <CompanyLogo
+                              ticker={h.ticker}
+                              name={h.asset_name}
+                              className="h-8 w-8 rounded-lg"
+                            />
+                            <div className="flex flex-col min-w-0">
+                              <span className="font-bold text-slate-900 text-sm">{h.ticker}</span>
+                              <span className="text-xs text-slate-500 truncate max-w-[220px]" title={h.asset_name}>
+                                {h.asset_name}
+                              </span>
+                            </div>
                           </div>
                         </TableCell>
 

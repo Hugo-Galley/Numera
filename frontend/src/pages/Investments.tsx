@@ -44,6 +44,7 @@ import { toast } from "sonner"
 import WorldMap from "@/components/ui/WorldMap"
 import { AllocationTreemap } from "@/components/analytics/AllocationTreemap"
 import { DiversityScannerResponse } from "@/types/diversity"
+import { CompanyLogo } from "@/components/ui/CompanyLogo"
 
 const COLORS = ["#000000", "#4b5563", "#9ca3af", "#d1d5db", "#e5e7eb", "#f3f4f6", "#f8fafc"]
 
@@ -500,6 +501,7 @@ export default function Investments() {
                   const total = c.total_value_eur || (c.direct_value_eur + c.indirect_value_eur)
                   return {
                     name: c.name,
+                    ticker: c.ticker,
                     direct: c.direct_value_eur,
                     indirect: c.indirect_value_eur,
                     total: total,
@@ -515,7 +517,7 @@ export default function Investments() {
                       <BarChart
                         data={topCompaniesData}
                         layout="vertical"
-                        margin={{ top: 5, right: 30, left: 80, bottom: 5 }}
+                        margin={{ top: 5, right: 30, left: 15, bottom: 5 }}
                       >
                         <XAxis
                           type="number"
@@ -527,10 +529,33 @@ export default function Investments() {
                         <YAxis
                           type="category"
                           dataKey="name"
-                          tick={{ fontSize: 11, fontWeight: 500 }}
+                          tick={(tickProps: any) => {
+                            const { x, y, payload } = tickProps
+                            const comp = topCompaniesData.find((c) => c.name === payload.value)
+                            return (
+                              <g transform={`translate(${x},${y})`}>
+                                <foreignObject x={-135} y={-10} width={130} height={20}>
+                                  <div
+                                    xmlns="http://www.w3.org/1999/xhtml"
+                                    className="flex items-center justify-end gap-1.5 h-full pr-1 overflow-hidden"
+                                    title={payload.value}
+                                  >
+                                    <CompanyLogo
+                                      ticker={comp?.ticker}
+                                      name={payload.value}
+                                      className="h-4 w-4 rounded-xs shrink-0"
+                                    />
+                                    <span className="text-[11px] font-medium text-slate-700 truncate max-w-[105px]">
+                                      {payload.value}
+                                    </span>
+                                  </div>
+                                </foreignObject>
+                              </g>
+                            )
+                          }}
                           axisLine={false}
                           tickLine={false}
-                          width={110}
+                          width={140}
                         />
                         <Tooltip
                           cursor={false}
@@ -538,11 +563,18 @@ export default function Investments() {
                             if (active && payload && payload.length) {
                               const d = payload[0].payload
                               return (
-                                <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-md text-xs space-y-1.5 min-w-[200px]">
-                                  <div className="flex items-center justify-between border-b pb-1">
-                                    <span className="font-semibold text-slate-900">Actif : {label || d.name}</span>
+                                <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-md text-xs space-y-1.5 min-w-[210px]">
+                                  <div className="flex items-center justify-between border-b pb-1.5 gap-2">
+                                    <div className="flex items-center gap-2 min-w-0">
+                                      <CompanyLogo
+                                        ticker={d.ticker}
+                                        name={label || d.name}
+                                        className="h-5 w-5 rounded-xs shrink-0"
+                                      />
+                                      <span className="font-semibold text-slate-900 truncate">{label || d.name}</span>
+                                    </div>
                                     {d.has_overlap && (
-                                      <Badge variant="outline" className="text-[9px] px-1 py-0 font-normal">
+                                      <Badge variant="outline" className="text-[9px] px-1 py-0 font-normal shrink-0">
                                         Doublon
                                       </Badge>
                                     )}
