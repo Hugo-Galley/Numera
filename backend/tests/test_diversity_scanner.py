@@ -156,3 +156,35 @@ def test_investment_transaction_auto_increments_holding(client: TestClient, db_s
     # Holding quantity should now be 6.0
     db_session.refresh(holding)
     assert holding.quantity == 6.0
+
+
+def test_market_search_and_validate(client: TestClient, db_session: Session):
+    seed_etf_profiles(db_session)
+
+    # 1. Search with 'q'
+    resp_q = client.get("/market/search?q=CW8")
+    assert resp_q.status_code == 200
+    results_q = resp_q.json()
+    assert isinstance(results_q, list)
+    assert len(results_q) > 0
+    assert any("CW8" in r.get("symbol", "").upper() for r in results_q)
+
+    # 2. Search with 'query'
+    resp_query = client.get("/market/search?query=FR0010315770")
+    assert resp_query.status_code == 200
+    results_query = resp_query.json()
+    assert isinstance(results_query, list)
+    assert len(results_query) > 0
+
+    # 3. Validate existing ticker
+    val_resp = client.get("/market/validate?symbol_or_isin=CW8.PA")
+    assert val_resp.status_code == 200
+    val_data = val_resp.json()
+    assert val_data["valid"] is True
+    assert val_data["symbol"] == "CW8.PA"
+
+    # 4. Validate empty / invalid
+    invalid_resp = client.get("/market/validate?symbol_or_isin=NONEXISTENT_XYZ_12345")
+    assert invalid_resp.status_code == 200
+    invalid_data = invalid_resp.json()
+    assert invalid_data["valid"] is False

@@ -34,6 +34,7 @@ const MONTHS = [
 ]
 import { api } from "@/lib/api"
 import { CompanyLogo } from "@/components/ui/CompanyLogo"
+import { SecuritySearchInput } from "@/components/investments/SecuritySearchInput"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -141,54 +142,6 @@ export default function RecurringTransactions() {
   const [editingTx, setEditingTx] = useState<RecurringTransaction | null>(null)
   const [isIrregularSubmenuOpen, setIsIrregularSubmenuOpen] = useState(false)
 
-  // Market search for ticker
-  const [tickerSearchQuery, setTickerSearchQuery] = useState("")
-  const [tickerSearchResults, setTickerSearchResults] = useState<any[]>([])
-  const [isSearchingTicker, setIsSearchingTicker] = useState(false)
-
-  useEffect(() => {
-    if (!tickerSearchQuery.trim() || tickerSearchQuery.length < 2) {
-      setTickerSearchResults([])
-      return
-    }
-    const timer = setTimeout(async () => {
-      setIsSearchingTicker(true)
-      try {
-        const res = await api.get<any[]>(`/market/search?query=${encodeURIComponent(tickerSearchQuery)}`)
-        setTickerSearchResults(res || [])
-      } catch (err) {
-        console.error("Error searching ticker:", err)
-      } finally {
-        setIsSearchingTicker(false)
-      }
-    }, 300)
-    return () => clearTimeout(timer)
-  }, [tickerSearchQuery])
-
-  const handleSelectAsset = (asset: any) => {
-    setFormData((prev) => {
-      const q = prev.quantity
-      const p = asset.price || prev.unit_price
-      let newAmount = prev.amount
-      if (q && p) {
-        newAmount = (Number(q) * Number(p)).toFixed(2)
-      }
-      return {
-        ...prev,
-        name: prev.name.trim() ? prev.name : asset.name,
-        ticker: asset.symbol,
-        isin: asset.isin || prev.isin,
-        currency: asset.currency || prev.currency,
-        unit_price: p ? p.toString() : prev.unit_price,
-        amount: newAmount,
-        asset_class: asset.type === "ETF" ? "ETF" : "Actions",
-        etf_profile_id: asset.etf_profile_id || null,
-      }
-    })
-    setTickerSearchQuery("")
-    setTickerSearchResults([])
-  }
-  
   // Form State
   const [formData, setFormData] = useState({
     account_id: "",
@@ -284,8 +237,6 @@ export default function RecurringTransactions() {
       unit_price: "",
       etf_profile_id: null,
     })
-    setTickerSearchQuery("")
-    setTickerSearchResults([])
     setIsFormOpen(true)
   }
 
@@ -315,8 +266,6 @@ export default function RecurringTransactions() {
       unit_price: tx.unit_price != null ? tx.unit_price.toString() : "",
       etf_profile_id: tx.etf_profile_id || null,
     })
-    setTickerSearchQuery("")
-    setTickerSearchResults([])
     setIsFormOpen(true)
   }
 
@@ -929,51 +878,39 @@ export default function RecurringTransactions() {
                 </Badge>
               </div>
 
-              {/* Ticker Search & Input */}
-              <div className="relative">
-                <Label htmlFor="ticker" className="text-xs text-slate-500 font-medium">Ticker / Code</Label>
-                <div className="relative mt-1">
-                  <Input
-                    id="ticker"
-                    placeholder="Ex: CW8.PA, AAPL, MC.PA, 0P0001HI7F.F..."
-                    value={formData.ticker}
-                    onChange={(e) => {
-                      const val = e.target.value
-                      setFormData({ ...formData, ticker: val.toUpperCase() })
-                      setTickerSearchQuery(val)
-                    }}
-                    className="bg-white uppercase font-mono text-xs pr-8"
-                  />
-                  {isSearchingTicker && (
-                    <RefreshCw className="h-3.5 w-3.5 text-slate-400 animate-spin absolute right-2.5 top-2.5" />
-                  )}
-                </div>
-
-                {/* Autocomplete Dropdown */}
-                {tickerSearchResults.length > 0 && (
-                  <div className="absolute z-50 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-48 overflow-y-auto divide-y">
-                    {tickerSearchResults.map((asset, idx) => (
-                      <div
-                        key={idx}
-                        className="p-2 hover:bg-slate-50 cursor-pointer flex items-center justify-between text-xs"
-                        onClick={() => handleSelectAsset(asset)}
-                      >
-                        <div className="flex items-center gap-2 min-w-0">
-                          <CompanyLogo ticker={asset.symbol} name={asset.name} className="h-5 w-5 rounded-xs shrink-0" />
-                          <div className="truncate">
-                            <span className="font-bold text-slate-900">{asset.symbol}</span>
-                            <span className="text-slate-500 ml-1.5 truncate text-[11px]">{asset.name}</span>
-                          </div>
-                        </div>
-                        <Badge variant="secondary" className="text-[9px] shrink-0">{asset.type || "Action"}</Badge>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+              <SecuritySearchInput
+                ticker={formData.ticker}
+                isin={formData.isin}
+                name={formData.name}
+                unitPrice={formData.unit_price}
+                onSelectAsset={(asset) => {
+                  setFormData((prev) => {
+                    const q = prev.quantity
+                    const p = asset.price_eur || asset.price || prev.unit_price
+                    let newAmount = prev.amount
+                    if (q && p) {
+                      newAmount = (Number(q) * Number(p)).toFixed(2)
+                    }
+                    return {
+                      ...prev,
+                      name: prev.name.trim() ? prev.name : asset.name,
+                      ticker: asset.symbol,
+                      isin: asset.isin || prev.isin,
+                      currency: asset.currency || prev.currency,
+                      unit_price: p ? p.toString() : prev.unit_price,
+                      amount: newAmount,
+                      asset_class: asset.type === "ETF" ? "ETF" : "Actions",
+                      etf_profile_id: asset.etf_profile_id || null,
+                    }
+                  })
+                }}
+                onChangeTicker={(t) => setFormData((prev) => ({ ...prev, ticker: t }))}
+                onChangeIsin={(isin) => setFormData((prev) => ({ ...prev, isin }))}
+                onChangeName={(name) => setFormData((prev) => ({ ...prev, name }))}
+              />
 
               {/* Shares & Unit Price */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-3 pt-1 border-t border-slate-200/60">
                 <div className="grid gap-1">
                   <Label htmlFor="quantity" className="text-xs text-slate-500 font-medium">Nb de parts</Label>
                   <Input

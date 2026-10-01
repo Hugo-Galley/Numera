@@ -229,6 +229,7 @@ import {
 import { Separator } from "@/components/ui/separator"
 import { Input } from "@/components/ui/input"
 import { HoldingsTable } from "@/components/investments/HoldingsTable"
+import { SecuritySearchInput } from "@/components/investments/SecuritySearchInput"
 import { PortfolioHolding } from "@/types/diversity"
 
 type Account = {
@@ -450,6 +451,7 @@ export default function AccountDetail() {
   const [invTxCurrency, setInvTxCurrency] = useState("EUR")
   const [invTxNote, setInvTxNote] = useState("")
   const [invTxTicker, setInvTxTicker] = useState("")
+  const [invTxIsin, setInvTxIsin] = useState("")
   const [invTxQuantity, setInvTxQuantity] = useState("")
   const [invTxUnitPrice, setInvTxUnitPrice] = useState("")
   const [invTxAssetClass, setInvTxAssetClass] = useState("")
@@ -694,6 +696,7 @@ export default function AccountDetail() {
     setInvTxCurrency(account?.currency || "EUR")
     setInvTxNote("")
     setInvTxTicker("")
+    setInvTxIsin("")
     setInvTxQuantity("")
     setInvTxUnitPrice("")
     setInvTxAssetClass("")
@@ -719,6 +722,7 @@ export default function AccountDetail() {
         currency: invTxCurrency,
         note: invTxNote || null,
         ticker: invTxTicker ? invTxTicker.trim().toUpperCase() : null,
+        isin: invTxIsin ? invTxIsin.trim().toUpperCase() : null,
         quantity: invTxQuantity ? Number(invTxQuantity) : null,
         unit_price: invTxUnitPrice ? Number(invTxUnitPrice) : null,
         asset_class: invTxAssetClass || null,
@@ -749,6 +753,10 @@ export default function AccountDetail() {
     setInvTxAmount(String(tx.original_amount || tx.amount))
     setInvTxCurrency(tx.currency || account?.currency || "EUR")
     setInvTxNote(tx.note || "")
+    setInvTxTicker(tx.ticker || "")
+    setInvTxIsin(tx.isin || "")
+    setInvTxQuantity(tx.quantity != null ? String(tx.quantity) : "")
+    setInvTxUnitPrice(tx.unit_price != null ? String(tx.unit_price) : "")
     setInvTxAssetClass(tx.asset_class || "")
     setInvTxSector(tx.sector || "")
     setInvTxZone(tx.geographic_zone || "")
@@ -1219,21 +1227,37 @@ export default function AccountDetail() {
                           <Input id="inote" value={invTxNote} onChange={(e) => setInvTxNote(e.target.value)} placeholder="Optionnel..." className="bg-slate-50 border-slate-200" />
                         </div>
 
-                        <div className="grid gap-4 pt-2 border-t">
+                        <div className="grid gap-3 pt-2 border-t">
                           <div className="flex items-center justify-between">
-                            <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500">Actif Boursier / Parts</h3>
+                            <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500">Actif Boursier / Titre (ETF, Action)</h3>
                             <Badge variant="outline" className="text-[10px]">Optionnel</Badge>
                           </div>
-                          <div className="grid grid-cols-3 gap-3">
-                            <div className="grid gap-1">
-                              <Label className="text-xs font-medium">Ticker / Code</Label>
-                              <Input
-                                placeholder="CW8.PA, AAPL..."
-                                value={invTxTicker}
-                                onChange={(e) => setInvTxTicker(e.target.value)}
-                                className="bg-slate-50 border-slate-200 uppercase text-xs"
-                              />
-                            </div>
+
+                          <SecuritySearchInput
+                            ticker={invTxTicker}
+                            isin={invTxIsin}
+                            name={invTxNote}
+                            unitPrice={invTxUnitPrice}
+                            onSelectAsset={(asset) => {
+                              setInvTxTicker(asset.symbol)
+                              if (asset.isin) setInvTxIsin(asset.isin)
+                              if (!invTxNote) setInvTxNote(asset.name)
+                              if (asset.price_eur || asset.price) {
+                                const p = (asset.price_eur || asset.price)!.toString()
+                                setInvTxUnitPrice(p)
+                                if (invTxQuantity) {
+                                  setInvTxAmount((Number(invTxQuantity) * Number(p)).toFixed(2))
+                                }
+                              }
+                              if (asset.type === "ETF") setInvTxAssetClass("ETF")
+                              else if (asset.type) setInvTxAssetClass("Actions")
+                            }}
+                            onChangeTicker={(t) => setInvTxTicker(t)}
+                            onChangeIsin={(isin) => setInvTxIsin(isin)}
+                            onChangeName={(name) => setInvTxNote(name)}
+                          />
+
+                          <div className="grid grid-cols-2 gap-3 pt-1 border-t border-slate-100">
                             <div className="grid gap-1">
                               <Label className="text-xs font-medium">Nb de parts</Label>
                               <Input
@@ -1271,6 +1295,7 @@ export default function AccountDetail() {
                               />
                             </div>
                           </div>
+
                           {invTxTicker && invTxQuantity && (
                             <p className="text-[11px] text-emerald-600 font-medium">
                               ✓ Mettra à jour automatiquement votre position {invTxTicker.toUpperCase()} ({invTxType === "retrait" ? "-" : "+"}{invTxQuantity} parts).
