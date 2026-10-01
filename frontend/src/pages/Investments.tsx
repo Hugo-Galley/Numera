@@ -533,6 +533,7 @@ export default function Investments() {
                           width={110}
                         />
                         <Tooltip
+                          cursor={false}
                           content={({ active, payload, label }: any) => {
                             if (active && payload && payload.length) {
                               const d = payload[0].payload
