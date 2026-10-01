@@ -37,8 +37,7 @@ import {
   Bar,
   XAxis,
   YAxis,
-  CartesianGrid,
-  LabelList
+  CartesianGrid
 } from "recharts"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
@@ -493,9 +492,6 @@ export default function Investments() {
                 <span className="flex items-center gap-1.5">
                   <span className="h-2.5 w-2.5 rounded-sm bg-black/15 border border-black/30" /> Via ETFs
                 </span>
-                <span className="text-[11px] text-slate-400 border-l pl-3 hidden md:inline">
-                  Apport total affiché à droite
-                </span>
               </div>
             </CardHeader>
             <CardContent className="pt-6">
@@ -508,136 +504,99 @@ export default function Investments() {
                     indirect: c.indirect_value_eur,
                     total: total,
                     pct: c.pct_stocks,
-                    totalLabel: `${formatCurrency(total)} (${c.pct_stocks.toFixed(1)}%)`,
                     sources: c.sources,
                     has_overlap: c.has_overlap,
                   }
                 })
 
                 return (
-                  <>
-                    <div className="h-[360px] w-full">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart
-                          data={topCompaniesData}
-                          layout="vertical"
-                          margin={{ top: 5, right: 120, left: 80, bottom: 5 }}
-                        >
-                          <XAxis
-                            type="number"
-                            tickFormatter={(v) => `${v.toFixed(0)}€`}
-                            tick={{ fontSize: 10 }}
-                            axisLine={false}
-                            tickLine={false}
-                          />
-                          <YAxis
-                            type="category"
-                            dataKey="name"
-                            tick={{ fontSize: 11, fontWeight: 500 }}
-                            axisLine={false}
-                            tickLine={false}
-                            width={110}
-                          />
-                          <Tooltip
-                            content={({ active, payload }: any) => {
-                              if (active && payload && payload.length) {
-                                const d = payload[0].payload
-                                return (
-                                  <div className="bg-slate-900 text-white p-3 rounded-lg shadow-xl border border-slate-800 text-xs min-w-[210px] space-y-2">
-                                    <div className="border-b border-slate-800 pb-1.5 flex items-center justify-between">
-                                      <span className="font-bold text-sm text-slate-100">{d.name}</span>
-                                      {d.has_overlap && (
-                                        <Badge variant="outline" className="text-[9px] px-1.5 py-0 border-slate-700 text-slate-300">
-                                          Doublon
-                                        </Badge>
-                                      )}
+                  <div className="h-[340px] w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        data={topCompaniesData}
+                        layout="vertical"
+                        margin={{ top: 5, right: 30, left: 80, bottom: 5 }}
+                      >
+                        <XAxis
+                          type="number"
+                          tickFormatter={(v) => `${v.toFixed(0)}€`}
+                          tick={{ fontSize: 10 }}
+                          axisLine={false}
+                          tickLine={false}
+                        />
+                        <YAxis
+                          type="category"
+                          dataKey="name"
+                          tick={{ fontSize: 11, fontWeight: 500 }}
+                          axisLine={false}
+                          tickLine={false}
+                          width={110}
+                        />
+                        <Tooltip
+                          content={({ active, payload }: any) => {
+                            if (active && payload && payload.length) {
+                              const d = payload[0].payload
+                              return (
+                                <div className="bg-slate-900 text-white p-3 rounded-lg shadow-xl border border-slate-800 text-xs min-w-[210px] space-y-2">
+                                  <div className="border-b border-slate-800 pb-1.5 flex items-center justify-between">
+                                    <span className="font-bold text-sm text-slate-100">{d.name}</span>
+                                    {d.has_overlap && (
+                                      <Badge variant="outline" className="text-[9px] px-1.5 py-0 border-slate-700 text-slate-300">
+                                        Doublon
+                                      </Badge>
+                                    )}
+                                  </div>
+                                  <div className="space-y-1">
+                                    <div className="flex justify-between items-center text-slate-200">
+                                      <span className="font-medium">Apport Total :</span>
+                                      <span className="font-mono text-emerald-400 font-bold">{formatCurrency(d.total)}</span>
                                     </div>
-                                    <div className="space-y-1">
-                                      <div className="flex justify-between items-center text-slate-200">
-                                        <span className="font-medium">Apport Total Consolidé :</span>
-                                        <span className="font-mono text-emerald-400 font-bold">{formatCurrency(d.total)}</span>
-                                      </div>
-                                      <div className="flex justify-between items-center text-[11px] text-slate-400">
-                                        <span>Part du portefeuille :</span>
-                                        <span className="font-mono font-medium">{d.pct.toFixed(1)}%</span>
-                                      </div>
-                                    </div>
-                                    <div className="border-t border-slate-800 pt-1.5 space-y-1 text-[11px]">
-                                      <div className="flex justify-between text-slate-400">
-                                        <span className="flex items-center gap-1.5">
-                                          <span className="h-2 w-2 rounded-full bg-white shrink-0" /> Détenu en direct :
-                                        </span>
-                                        <span className="font-mono text-slate-300">{formatCurrency(d.direct)}</span>
-                                      </div>
-                                      <div className="flex justify-between text-slate-400">
-                                        <span className="flex items-center gap-1.5">
-                                          <span className="h-2 w-2 rounded-full bg-slate-400 shrink-0" /> Détenu via ETFs :
-                                        </span>
-                                        <span className="font-mono text-slate-300">{formatCurrency(d.indirect)}</span>
-                                      </div>
+                                    <div className="flex justify-between items-center text-[11px] text-slate-400">
+                                      <span>Part du portefeuille :</span>
+                                      <span className="font-mono font-medium">{d.pct.toFixed(1)}%</span>
                                     </div>
                                   </div>
-                                )
-                              }
-                              return null
-                            }}
-                          />
-                          <Bar 
-                            dataKey="direct" 
-                            stackId="a" 
-                            fill="#000000" 
-                            radius={[2, 0, 0, 2]} 
-                            barSize={16} 
-                          />
-                          <Bar 
-                            dataKey="indirect" 
-                            stackId="a" 
-                            fill="#000000" 
-                            fillOpacity={0.12} 
-                            stroke="#000000" 
-                            strokeOpacity={0.25} 
-                            strokeWidth={1} 
-                            radius={[0, 4, 4, 0]} 
-                            barSize={16}
-                          >
-                            <LabelList 
-                              dataKey="totalLabel" 
-                              position="right" 
-                              offset={8} 
-                              style={{ fontSize: 11, fontWeight: 600, fill: "#475569" }} 
-                            />
-                          </Bar>
-                        </BarChart>
-                      </ResponsiveContainer>
-                    </div>
-
-                    {/* Breakdown cards for total apport details */}
-                    <div className="mt-5 border-t pt-4 grid grid-cols-1 md:grid-cols-2 gap-2.5">
-                      {topCompaniesData.slice(0, 8).map((comp, idx) => (
-                        <div key={idx} className="p-3 rounded-lg border bg-slate-50/50 flex items-center justify-between">
-                          <div className="min-w-0 pr-2 space-y-0.5">
-                            <div className="flex items-center gap-1.5">
-                              <span className="font-semibold text-xs truncate">{comp.name}</span>
-                              {comp.has_overlap && (
-                                <Badge variant="outline" className="text-[9px] px-1 py-0 font-normal">
-                                  Doublon
-                                </Badge>
-                              )}
-                            </div>
-                            <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                              <span>Direct : <strong className="text-slate-700">{formatCurrency(comp.direct)}</strong></span>
-                              <span>•</span>
-                              <span>Via ETFs : <strong className="text-slate-700">{formatCurrency(comp.indirect)}</strong></span>
-                            </div>
-                          </div>
-                          <div className="text-right shrink-0">
-                            <div className="text-xs font-bold font-mono amount-blur text-slate-900">{formatCurrency(comp.total)}</div>
-                            <div className="text-[10px] text-muted-foreground font-mono">{comp.pct.toFixed(1)}%</div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </>
+                                  <div className="border-t border-slate-800 pt-1.5 space-y-1 text-[11px]">
+                                    <div className="flex justify-between text-slate-400">
+                                      <span className="flex items-center gap-1.5">
+                                        <span className="h-2 w-2 rounded-full bg-white shrink-0" /> Détenu en direct :
+                                      </span>
+                                      <span className="font-mono text-slate-300">{formatCurrency(d.direct)}</span>
+                                    </div>
+                                    <div className="flex justify-between text-slate-400">
+                                      <span className="flex items-center gap-1.5">
+                                        <span className="h-2 w-2 rounded-full bg-slate-400 shrink-0" /> Détenu via ETFs :
+                                      </span>
+                                      <span className="font-mono text-slate-300">{formatCurrency(d.indirect)}</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              )
+                            }
+                            return null
+                          }}
+                        />
+                        <Bar 
+                          dataKey="direct" 
+                          stackId="a" 
+                          fill="#000000" 
+                          radius={[2, 0, 0, 2]} 
+                          barSize={16} 
+                        />
+                        <Bar 
+                          dataKey="indirect" 
+                          stackId="a" 
+                          fill="#000000" 
+                          fillOpacity={0.12} 
+                          stroke="#000000" 
+                          strokeOpacity={0.25} 
+                          strokeWidth={1} 
+                          radius={[0, 4, 4, 0]} 
+                          barSize={16}
+                        />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
                 )
               })()}
             </CardContent>
