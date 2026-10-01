@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.db.session import get_db
 from app.models.etf_profile import EtfProfile
-from app.schemas.etf_profile import EtfProfileCreate, EtfProfileRead, EtfProfileUpdate
+from app.schemas.etf_profile import EtfProfileCreate, EtfProfileRead, EtfProfileUpdate, AutoDecomposeRequest
 
 router = APIRouter(prefix="/etf-profiles", tags=["etf-profiles"])
 
@@ -101,3 +101,20 @@ def delete_etf_profile(profile_id: int, db: Session = Depends(get_db)):
 
     db.delete(profile)
     db.commit()
+
+
+@router.post("/auto-decompose", response_model=EtfProfileRead)
+async def auto_decompose_profile(payload: AutoDecomposeRequest, db: Session = Depends(get_db)):
+    """
+    Search online and decompose an unknown ETF or Fund into its countries, sectors, and top holdings.
+    """
+    from app.core.etf_analyzer import auto_decompose_and_create_profile
+    profile = await auto_decompose_and_create_profile(
+        db=db,
+        symbol=payload.symbol,
+        name=payload.name,
+        isin=payload.isin
+    )
+    if not profile:
+        raise HTTPException(status_code=400, detail="Could not decompose ETF profile online")
+    return _to_read_model(profile)

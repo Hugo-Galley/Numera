@@ -19,7 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { toast } from "sonner"
-import { PlusCircle, Layers } from "lucide-react"
+import { PlusCircle, Layers, Globe } from "lucide-react"
 
 interface CustomEtfModalProps {
   open: boolean
@@ -89,9 +89,42 @@ export function CustomEtfModal({
   const [isin, setIsin] = useState(initialIsin)
   const [template, setTemplate] = useState("world")
   const [saving, setSaving] = useState(false)
+  const [analyzing, setAnalyzing] = useState(false)
 
   const handleTemplateChange = (val: string) => {
     setTemplate(val)
+  }
+
+  const handleAutoDecompose = async () => {
+    const symbolToAnalyze = ticker.trim() || isin.trim()
+    if (!symbolToAnalyze) {
+      toast.error("Veuillez renseigner un symbole ou un code ISIN à décomposer")
+      return
+    }
+
+    setAnalyzing(true)
+    const toastId = toast.loading(`Décomposition en ligne de ${symbolToAnalyze}...`)
+    try {
+      const result = await api.post<any>("/etf-profiles/auto-decompose", {
+        symbol: symbolToAnalyze,
+        name: name.trim() || undefined,
+        isin: isin.trim() || undefined,
+      })
+      if (result && result.id) {
+        setName(result.name)
+        setTicker(result.ticker)
+        if (result.isin) setIsin(result.isin)
+        toast.success(`${result.name} décomposé avec succès !`, { id: toastId })
+        onProfileCreated?.(result)
+        onOpenChange(false)
+      } else {
+        toast.error("Impossible de décomposer ce fonds en ligne", { id: toastId })
+      }
+    } catch (err: any) {
+      toast.error(err?.response?.data?.detail || "Erreur lors de la décomposition en ligne", { id: toastId })
+    } finally {
+      setAnalyzing(false)
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -141,26 +174,39 @@ export function CustomEtfModal({
 
           <div className="space-y-4 py-4 text-xs">
             <div className="space-y-1">
-              <Label htmlFor="etf-name" className="text-xs">Nom de l'ETF</Label>
-              <Input
-                id="etf-name"
-                placeholder="Ex: Amundi Prime Global UCITS ETF"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="h-8 text-xs"
-                required
-              />
+              <Label htmlFor="etf-ticker" className="text-xs">Ticker / Symbole</Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  id="etf-ticker"
+                  placeholder="Ex: 0P0001HI7F.F ou CW8.PA"
+                  value={ticker}
+                  onChange={(e) => setTicker(e.target.value)}
+                  className="h-8 text-xs font-mono uppercase"
+                  required
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleAutoDecompose}
+                  disabled={analyzing || !ticker.trim()}
+                  className="h-8 text-xs gap-1.5 shrink-0"
+                >
+                  <Globe className="h-3.5 w-3.5" />
+                  Décomposer en ligne
+                </Button>
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
-                <Label htmlFor="etf-ticker" className="text-xs">Ticker / Symbole</Label>
+                <Label htmlFor="etf-name" className="text-xs">Nom de l'ETF</Label>
                 <Input
-                  id="etf-ticker"
-                  placeholder="Ex: PRAW.PA"
-                  value={ticker}
-                  onChange={(e) => setTicker(e.target.value)}
-                  className="h-8 text-xs font-mono uppercase"
+                  id="etf-name"
+                  placeholder="Ex: Amundi Prime Global"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="h-8 text-xs"
                   required
                 />
               </div>
@@ -168,7 +214,7 @@ export function CustomEtfModal({
                 <Label htmlFor="etf-isin" className="text-xs">Code ISIN (Optionnel)</Label>
                 <Input
                   id="etf-isin"
-                  placeholder="Ex: LU1931974692"
+                  placeholder="Ex: FR0014001FD5"
                   value={isin}
                   onChange={(e) => setIsin(e.target.value)}
                   className="h-8 text-xs font-mono uppercase"

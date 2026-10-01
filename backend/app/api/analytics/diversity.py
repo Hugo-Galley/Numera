@@ -97,6 +97,19 @@ async def diversity_scanner(
         profile_id = h.etf_profile_id
         if not profile_id:
             matched_p = _match_etf_profile(db, symbol=h.ticker, isin=h.isin, name=h.asset_name)
+            if not matched_p:
+                norm_upper = f"{h.ticker} {h.asset_name or ''}".upper()
+                if (
+                    h.ticker.upper().startswith("0P")
+                    or q.get("type") in ("ETF", "MUTUALFUND")
+                    or any(k in norm_upper for k in ["ETF", "FCP", "SICAV", "TRACKER", "INDEX", "FONDS", "FUND"])
+                ):
+                    try:
+                        from app.core.etf_analyzer import auto_decompose_and_create_profile
+                        matched_p = await auto_decompose_and_create_profile(db, symbol=h.ticker, name=h.asset_name, isin=h.isin)
+                    except Exception as e:
+                        logger.warning(f"Could not auto-decompose {h.ticker}: {e}")
+
             if matched_p:
                 profile_id = matched_p.id
                 try:
@@ -105,7 +118,7 @@ async def diversity_scanner(
                 except Exception:
                     db.rollback()
 
-        is_etf = bool(profile_id or q.get("type") == "ETF")
+        is_etf = bool(profile_id or q.get("type") in ("ETF", "MUTUALFUND"))
 
         val_eur = round(h.quantity * price_eur, 2)
         total_stocks_eur += val_eur

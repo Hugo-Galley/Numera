@@ -174,14 +174,37 @@ export function PointZeroModal({
       }
     } catch (e) {}
 
+    const isFundOrEtf = item.type === "ETF" || item.type === "MUTUALFUND" || !!item.etf_profile_id || item.symbol.startsWith("0P")
+    let profileId = item.etf_profile_id
+
+    // If it's an ETF or fund without a known profile, auto-decompose it online!
+    if (isFundOrEtf && !profileId) {
+      try {
+        const toastId = toast.loading(`Décomposition de ${item.name || item.symbol} en ligne...`)
+        const decomp = await api.post<any>("/etf-profiles/auto-decompose", {
+          symbol: item.symbol,
+          name: item.name,
+          isin: item.isin,
+        })
+        if (decomp && decomp.id) {
+          profileId = decomp.id
+          toast.success(`${decomp.name} décomposé avec succès !`, { id: toastId })
+        } else {
+          toast.dismiss(toastId)
+        }
+      } catch (err) {
+        // Fallback silently if offline or unavailable
+      }
+    }
+
     const newRow: BaselineRow = {
       ticker: item.symbol,
       asset_name: item.name || item.symbol,
       isin: item.isin,
       quantity: 1,
       currency: item.currency || "EUR",
-      etf_profile_id: item.etf_profile_id,
-      is_etf: item.type === "ETF" || !!item.etf_profile_id,
+      etf_profile_id: profileId,
+      is_etf: isFundOrEtf,
       current_price: price,
       current_price_eur: priceEur,
     }

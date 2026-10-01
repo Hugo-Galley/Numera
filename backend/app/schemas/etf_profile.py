@@ -40,3 +40,9 @@ class EtfProfileRead(EtfProfileBase):
     updated_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+class AutoDecomposeRequest(BaseModel):
+    symbol: str
+    name: Optional[str] = None
+    isin: Optional[str] = None

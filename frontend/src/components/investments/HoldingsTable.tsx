@@ -3,7 +3,7 @@ import { PortfolioHolding } from "@/types/diversity"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { TrendingUp, TrendingDown, Layers, SlidersHorizontal, Trash2 } from "lucide-react"
+import { TrendingUp, TrendingDown, Layers, SlidersHorizontal, Trash2, Globe } from "lucide-react"
 import { PointZeroModal } from "./PointZeroModal"
 import { api } from "@/lib/api"
 import { toast } from "sonner"
@@ -22,6 +22,33 @@ export function HoldingsTable({
   onRefresh,
 }: HoldingsTableProps) {
   const [pointZeroOpen, setPointZeroOpen] = useState(false)
+  const [decomposingId, setDecomposingId] = useState<number | null>(null)
+
+  const handleDecompose = async (h: PortfolioHolding) => {
+    setDecomposingId(h.id)
+    const toastId = toast.loading(`Décomposition de ${h.ticker} en ligne...`)
+    try {
+      const res = await api.post<any>("/etf-profiles/auto-decompose", {
+        symbol: h.ticker,
+        name: h.asset_name,
+        isin: h.isin,
+      })
+      if (res && res.id) {
+        await api.put(`/holdings/${h.id}`, {
+          etf_profile_id: res.id,
+          is_etf: true,
+        })
+        toast.success(`${res.name} décomposé avec succès !`, { id: toastId })
+        onRefresh()
+      } else {
+        toast.error("Impossible de décomposer ce fonds en ligne", { id: toastId })
+      }
+    } catch (err: any) {
+      toast.error(err?.response?.data?.detail || "Erreur de décomposition", { id: toastId })
+    } finally {
+      setDecomposingId(null)
+    }
+  }
 
   const formatCurrency = (val: number) => {
     return new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(val)
@@ -111,14 +138,26 @@ export function HoldingsTable({
                           <div className="flex flex-col">
                             <div className="flex items-center gap-1.5">
                               <span className="font-semibold text-sm">{h.ticker}</span>
-                              {h.is_etf ? (
+                              {h.is_etf || h.etf_profile_id ? (
                                 <Badge variant="secondary" className="text-[9px] px-1.5 py-0 font-normal">
-                                  ETF
+                                  {h.etf_profile_id ? "ETF (décomposé)" : "ETF"}
                                 </Badge>
                               ) : (
                                 <Badge variant="outline" className="text-[9px] px-1.5 py-0 font-normal text-muted-foreground">
                                   Action
                                 </Badge>
+                              )}
+                              {!h.etf_profile_id && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-5 px-1.5 text-[10px] text-slate-500 hover:text-slate-900 dark:hover:text-white gap-1"
+                                  onClick={() => handleDecompose(h)}
+                                  disabled={decomposingId === h.id}
+                                >
+                                  <Globe className="h-3 w-3" />
+                                  {decomposingId === h.id ? "Décomposition..." : "Décomposer"}
+                                </Button>
                               )}
                             </div>
                             <span className="text-muted-foreground text-[11px] truncate max-w-[200px]">{h.asset_name}</span>
