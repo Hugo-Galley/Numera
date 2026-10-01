@@ -3,7 +3,15 @@ import { PortfolioHolding } from "@/types/diversity"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { TrendingUp, TrendingDown, Layers, SlidersHorizontal, Trash2, Globe } from "lucide-react"
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from "@/components/ui/table"
+import { SlidersHorizontal, Trash2, Globe, Layers } from "lucide-react"
 import { PointZeroModal } from "./PointZeroModal"
 import { api } from "@/lib/api"
 import { toast } from "sonner"
@@ -57,10 +65,10 @@ export function HoldingsTable({
   const totalValue = holdings.reduce((acc, h) => acc + (h.current_value_eur || 0), 0)
 
   const handleDelete = async (holdingId: number, name: string) => {
-    if (!confirm(`Supprimer la ligne ${name} ?`)) return
+    if (!confirm(`Supprimer la position sur ${name} ?`)) return
     try {
       await api.delete(`/holdings/${holdingId}`)
-      toast.success("Ligne supprimée")
+      toast.success("Position supprimée")
       onRefresh()
     } catch (err) {
       toast.error("Erreur lors de la suppression")
@@ -70,13 +78,13 @@ export function HoldingsTable({
   return (
     <>
       <Card className="shadow-sm">
-        <CardHeader className="flex flex-row items-center justify-between pb-3 border-b">
+        <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b gap-3">
           <div>
             <div className="flex items-center gap-2">
-              <Layers className="h-4 w-4 text-slate-500" />
-              <CardTitle className="text-base font-bold">Positions Actuelles (Nombre de parts)</CardTitle>
+              <Layers className="h-5 w-5 text-slate-500" />
+              <CardTitle className="text-lg font-bold">Positions Actuelles (Actions & ETFs)</CardTitle>
             </div>
-            <CardDescription className="text-xs mt-0.5">
+            <CardDescription className="text-sm mt-1">
               Valorisation en direct de vos lignes boursières au cours de marché.
             </CardDescription>
           </div>
@@ -85,9 +93,9 @@ export function HoldingsTable({
             <Button
               size="sm"
               onClick={() => setPointZeroOpen(true)}
-              className="gap-1.5 bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-100 dark:hover:bg-slate-200 dark:text-slate-900 text-xs h-8"
+              className="gap-2"
             >
-              <SlidersHorizontal className="h-3.5 w-3.5" />
+              <SlidersHorizontal className="h-4 w-4" />
               Point Zéro / État des Lieux
             </Button>
           </div>
@@ -95,125 +103,139 @@ export function HoldingsTable({
 
         <CardContent className="p-0">
           {holdings.length === 0 ? (
-            <div className="p-8 text-center space-y-3">
-              <div className="h-10 w-10 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center mx-auto">
-                <Layers className="h-5 w-5" />
+            <div className="p-10 text-center space-y-3">
+              <div className="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto text-slate-400">
+                <Layers className="h-6 w-6" />
               </div>
               <div className="max-w-md mx-auto space-y-1">
-                <h4 className="font-semibold text-sm">Aucune position active renseignée</h4>
-                <p className="text-xs text-muted-foreground">
-                  Faites votre <strong>Point Zéro</strong> en renseignant le nombre de parts que vous détenez actuellement. Numera valorise vos positions au cours réel.
+                <h4 className="font-semibold text-base text-slate-900">Aucune position active renseignée</h4>
+                <p className="text-sm text-slate-500">
+                  Définissez votre <strong>Point Zéro</strong> en indiquant le nombre de parts détenues. Numera valorise vos positions au cours réel du marché.
                 </p>
               </div>
               <Button
                 size="sm"
                 onClick={() => setPointZeroOpen(true)}
-                className="gap-2 bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-100 dark:hover:bg-slate-200 dark:text-slate-900 text-xs"
+                className="gap-2 mt-2"
               >
-                <SlidersHorizontal className="h-3.5 w-3.5" />
+                <SlidersHorizontal className="h-4 w-4" />
                 Définir l'état des lieux
               </Button>
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-xs text-left">
-                <thead className="bg-slate-50 dark:bg-slate-800/50 text-muted-foreground uppercase font-semibold border-b">
-                  <tr>
-                    <th className="py-2.5 px-4">Actif / Symbole</th>
-                    <th className="py-2.5 px-3 text-right">Parts</th>
-                    <th className="py-2.5 px-3 text-right">Cours Réel</th>
-                    <th className="py-2.5 px-3 text-right">Valeur Actuelle</th>
-                    <th className="py-2.5 px-3 text-right">Plus-value</th>
-                    <th className="py-2.5 px-3 text-right">Poids</th>
-                    <th className="py-2.5 px-3 text-center"></th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="font-semibold text-slate-600">Actif / Symbole</TableHead>
+                    <TableHead className="font-semibold text-slate-600">Type</TableHead>
+                    <TableHead className="text-right font-semibold text-slate-600">Parts</TableHead>
+                    <TableHead className="text-right font-semibold text-slate-600">Cours actuel</TableHead>
+                    <TableHead className="text-right font-semibold text-slate-600">Valeur totale</TableHead>
+                    <TableHead className="text-right font-semibold text-slate-600">Plus-value latente</TableHead>
+                    <TableHead className="text-right font-semibold text-slate-600">Poids</TableHead>
+                    <TableHead className="text-right w-[90px] font-semibold text-slate-600">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                   {holdings.map((h) => {
                     const weightPct = totalValue > 0 ? ((h.current_value_eur || 0) / totalValue) * 100 : 0
 
                     return (
-                      <tr key={h.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
-                        <td className="py-2.5 px-4">
+                      <TableRow key={h.id} className="hover:bg-slate-50 transition-colors">
+                        <TableCell>
                           <div className="flex flex-col">
-                            <div className="flex items-center gap-1.5">
-                              <span className="font-semibold text-sm">{h.ticker}</span>
-                              {h.is_etf || h.etf_profile_id ? (
-                                <Badge variant="secondary" className="text-[9px] px-1.5 py-0 font-normal">
-                                  {h.etf_profile_id ? "ETF (décomposé)" : "ETF"}
-                                </Badge>
-                              ) : (
-                                <Badge variant="outline" className="text-[9px] px-1.5 py-0 font-normal text-muted-foreground">
-                                  Action
-                                </Badge>
-                              )}
-                              {!h.etf_profile_id && (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-5 px-1.5 text-[10px] text-slate-500 hover:text-slate-900 dark:hover:text-white gap-1"
-                                  onClick={() => handleDecompose(h)}
-                                  disabled={decomposingId === h.id}
-                                >
-                                  <Globe className="h-3 w-3" />
-                                  {decomposingId === h.id ? "Décomposition..." : "Décomposer"}
-                                </Button>
-                              )}
-                            </div>
-                            <span className="text-muted-foreground text-[11px] truncate max-w-[200px]">{h.asset_name}</span>
+                            <span className="font-bold text-slate-900 text-sm">{h.ticker}</span>
+                            <span className="text-xs text-slate-500 line-clamp-1">{h.asset_name}</span>
                           </div>
-                        </td>
+                        </TableCell>
 
-                        <td className="py-2.5 px-3 text-right font-mono font-medium">
+                        <TableCell>
+                          {h.is_etf || h.etf_profile_id ? (
+                            <Badge variant="secondary" className="font-normal text-xs">
+                              {h.etf_profile_id ? "ETF (décomposé)" : "ETF"}
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="font-normal text-xs text-slate-600">
+                              Action
+                            </Badge>
+                          )}
+                        </TableCell>
+
+                        <TableCell className="text-right font-mono text-sm font-medium">
                           {h.quantity}
-                        </td>
+                        </TableCell>
 
-                        <td className="py-2.5 px-3 text-right font-mono">
+                        <TableCell className="text-right font-mono text-sm">
                           {h.current_price ? (
-                            <div className="flex items-center justify-end gap-1">
-                              <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                              <span>{h.current_price.toFixed(2)} {h.currency}</span>
+                            <div className="flex flex-col items-end">
+                              <span className="text-slate-900 font-medium">
+                                {formatCurrency(h.current_price_eur || h.current_price)}
+                              </span>
+                              {h.currency && h.currency !== "EUR" && (
+                                <span className="text-[10px] text-slate-400 font-normal">
+                                  ({h.current_price.toFixed(2)} {h.currency})
+                                </span>
+                              )}
                             </div>
                           ) : (
-                            <span className="text-muted-foreground italic">-</span>
+                            <span className="text-slate-400 italic text-xs">-</span>
                           )}
-                        </td>
+                        </TableCell>
 
-                        <td className="py-2.5 px-3 text-right font-mono font-bold text-slate-900 dark:text-slate-100">
-                          {formatCurrency(h.current_value_eur || 0)}
-                        </td>
+                        <TableCell className="text-right font-mono font-bold text-sm text-slate-900">
+                          <span className="amount-blur">{formatCurrency(h.current_value_eur || 0)}</span>
+                        </TableCell>
 
-                        <td className="py-2.5 px-3 text-right font-mono">
+                        <TableCell className="text-right font-mono text-sm font-semibold">
                           {h.gain_eur !== undefined && h.gain_eur !== null ? (
-                            <div className={`flex items-center justify-end gap-0.5 ${h.gain_eur >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
-                              {h.gain_eur >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-                              <span>{h.gain_eur >= 0 ? "+" : ""}{formatCurrency(h.gain_eur)}</span>
-                              <span className="text-[10px]">({h.gain_pct}%)</span>
+                            <div className="flex flex-col items-end">
+                              <span className={`amount-blur ${h.gain_eur >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
+                                {h.gain_eur >= 0 ? "+" : ""}{formatCurrency(h.gain_eur)}
+                              </span>
+                              <span className={`text-[11px] font-medium ${h.gain_eur >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
+                                ({h.gain_eur >= 0 ? "+" : ""}{h.gain_pct}%)
+                              </span>
                             </div>
                           ) : (
-                            <span className="text-muted-foreground italic">-</span>
+                            <span className="text-slate-400 italic text-xs">-</span>
                           )}
-                        </td>
+                        </TableCell>
 
-                        <td className="py-2.5 px-3 text-right font-mono font-medium">
+                        <TableCell className="text-right font-mono text-xs text-slate-500 font-medium">
                           {weightPct.toFixed(1)}%
-                        </td>
+                        </TableCell>
 
-                        <td className="py-2.5 px-3 text-center">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-6 w-6 text-muted-foreground hover:text-rose-600"
-                            onClick={() => handleDelete(h.id, h.asset_name)}
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
-                        </td>
-                      </tr>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            {!h.etf_profile_id && (h.is_etf || h.ticker.startsWith("0P")) && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 w-8 p-0 text-slate-500 hover:text-slate-900"
+                                onClick={() => handleDecompose(h)}
+                                disabled={decomposingId === h.id}
+                                title="Décomposer en ligne"
+                              >
+                                <Globe className="h-4 w-4" />
+                              </Button>
+                            )}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0 text-slate-400 hover:text-rose-600"
+                              onClick={() => handleDelete(h.id, h.asset_name)}
+                              title="Supprimer la position"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
                     )
                   })}
-                </tbody>
-              </table>
+                </TableBody>
+              </Table>
             </div>
           )}
         </CardContent>
