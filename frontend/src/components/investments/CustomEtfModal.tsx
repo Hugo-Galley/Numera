@@ -19,7 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { toast } from "sonner"
-import { PlusCircle, Sparkles } from "lucide-react"
+import { PlusCircle, Layers } from "lucide-react"
 
 interface CustomEtfModalProps {
   open: boolean
@@ -131,73 +131,81 @@ export function CustomEtfModal({
         <form onSubmit={handleSubmit}>
           <DialogHeader>
             <div className="flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-indigo-500" />
-              <DialogTitle>Définir un profil d'ETF</DialogTitle>
+              <Layers className="h-5 w-5 text-slate-800 dark:text-slate-200" />
+              <DialogTitle className="text-base font-bold">Définir un profil d'ETF</DialogTitle>
             </div>
-            <DialogDescription>
+            <DialogDescription className="text-xs">
               Enregistrez la composition sous-jacente de cet ETF pour l'intégrer au scanner de diversité et au calcul de transparence.
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4 py-4">
+          <div className="space-y-4 py-4 text-xs">
             <div className="space-y-1">
-              <Label htmlFor="etf-name">Nom de l'ETF</Label>
+              <Label htmlFor="etf-name" className="text-xs">Nom de l'ETF</Label>
               <Input
                 id="etf-name"
                 placeholder="Ex: Amundi Prime Global UCITS ETF"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
+                className="h-8 text-xs"
                 required
               />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
-                <Label htmlFor="etf-ticker">Ticker / Symbole</Label>
+                <Label htmlFor="etf-ticker" className="text-xs">Ticker / Symbole</Label>
                 <Input
                   id="etf-ticker"
                   placeholder="Ex: PRAW.PA"
                   value={ticker}
                   onChange={(e) => setTicker(e.target.value)}
+                  className="h-8 text-xs font-mono uppercase"
                   required
                 />
               </div>
               <div className="space-y-1">
-                <Label htmlFor="etf-isin">Code ISIN (Optionnel)</Label>
+                <Label htmlFor="etf-isin" className="text-xs">Code ISIN (Optionnel)</Label>
                 <Input
                   id="etf-isin"
                   placeholder="Ex: LU1931974692"
                   value={isin}
                   onChange={(e) => setIsin(e.target.value)}
+                  className="h-8 text-xs font-mono uppercase"
                 />
               </div>
             </div>
 
             <div className="space-y-1">
-              <Label>Modèle de répartition de base</Label>
+              <Label className="text-xs">Modèle de répartition de base</Label>
               <Select value={template} onValueChange={handleTemplateChange}>
-                <SelectTrigger>
+                <SelectTrigger className="h-8 text-xs">
                   <SelectValue placeholder="Choisir un modèle..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="world">Modèle Monde (~71% USA, ~15% Europe, ~5% Japon)</SelectItem>
-                  <SelectItem value="sp500">Modèle USA / S&P 500 (100% USA, 31% Tech)</SelectItem>
-                  <SelectItem value="europe">Modèle Europe / STOXX (UK, France, Suisse, Allemagne)</SelectItem>
-                  <SelectItem value="emerging">Modèle Émergents (Chine, Inde, Taïwan, Corée)</SelectItem>
+                  <SelectItem value="world" className="text-xs">Modèle Monde (~71% USA, ~15% Europe, ~5% Japon)</SelectItem>
+                  <SelectItem value="sp500" className="text-xs">Modèle USA / S&P 500 (100% USA, 31% Tech)</SelectItem>
+                  <SelectItem value="europe" className="text-xs">Modèle Europe / STOXX (UK, France, Suisse, Allemagne)</SelectItem>
+                  <SelectItem value="emerging" className="text-xs">Modèle Émergents (Chine, Inde, Taïwan, Corée)</SelectItem>
                 </SelectContent>
               </Select>
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className="text-[11px] text-muted-foreground mt-1">
                 Pré-remplit les 10 premières entreprises et la ventilation géographique/sectorielle de référence.
               </p>
             </div>
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>
+            <Button type="button" variant="outline" size="sm" onClick={() => onOpenChange(false)} disabled={saving}>
               Annuler
             </Button>
-            <Button type="submit" disabled={saving} className="gap-2">
-              <PlusCircle className="h-4 w-4" />
+            <Button
+              type="submit"
+              size="sm"
+              disabled={saving}
+              className="gap-2 bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-100 dark:hover:bg-slate-200 dark:text-slate-900"
+            >
+              <PlusCircle className="h-3.5 w-3.5" />
               {saving ? "Enregistrement..." : "Enregistrer l'ETF"}
             </Button>
           </DialogFooter>
