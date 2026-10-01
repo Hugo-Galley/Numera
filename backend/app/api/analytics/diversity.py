@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.core.logging import get_logger
 from app.core.currency import get_exchange_rates
-from app.core.market_data import get_market_quotes
+from app.core.market_data import get_market_quotes, _match_etf_profile
 from app.db.session import get_db
 from app.models.account import Account
 from app.models.balance_snapshot import BalanceSnapshot
@@ -94,6 +94,19 @@ async def diversity_scanner(
         if price_eur <= 0 and h.buy_price_avg:
             price_eur = h.buy_price_avg
 
+        profile_id = h.etf_profile_id
+        if not profile_id:
+            matched_p = _match_etf_profile(db, symbol=h.ticker, isin=h.isin, name=h.asset_name)
+            if matched_p:
+                profile_id = matched_p.id
+                try:
+                    h.etf_profile_id = matched_p.id
+                    db.commit()
+                except Exception:
+                    db.rollback()
+
+        is_etf = bool(profile_id or q.get("type") == "ETF")
+
         val_eur = round(h.quantity * price_eur, 2)
         total_stocks_eur += val_eur
         valued_holdings.append({
@@ -105,8 +118,8 @@ async def diversity_scanner(
             "quantity": h.quantity,
             "price_eur": price_eur,
             "value_eur": val_eur,
-            "etf_profile_id": h.etf_profile_id,
-            "is_etf": bool(h.etf_profile_id or q.get("type") == "ETF"),
+            "etf_profile_id": profile_id,
+            "is_etf": is_etf,
         })
 
     # 3. Calculate "Ce qu'on a à côté" (Total Wealth context)
@@ -167,6 +180,8 @@ async def diversity_scanner(
             continue
 
         etf_profile = profiles_by_id.get(vh["etf_profile_id"]) if vh["etf_profile_id"] else None
+        if not etf_profile:
+            etf_profile = _match_etf_profile(db, symbol=vh["ticker"], isin=vh.get("isin"), name=vh.get("name"))
 
         if etf_profile:
             # It's an ETF -> decompose into underlying assets

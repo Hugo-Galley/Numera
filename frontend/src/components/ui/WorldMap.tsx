@@ -30,11 +30,74 @@ const WorldMap: React.FC<WorldMapProps> = ({ data }) => {
 
   const countryDataMap = useMemo(() => {
     const map: Record<string, { value: number; percentage: number; displayName: string }> = {};
-    const normalize = (name: string) => {
+
+    // Comprehensive mapping: ISO-3 codes, French names, English names → normalized key
+    // Keys are the UPPERCASE name used in world-atlas topology
+    const ALIASES: Record<string, string> = {
+      // North America
+      "USA": "UNITED STATES OF AMERICA", "UNITED STATES": "UNITED STATES OF AMERICA", "ÉTATS-UNIS": "UNITED STATES OF AMERICA", "US": "UNITED STATES OF AMERICA",
+      // Europe
+      "FRA": "FRANCE", "FRANCE": "FRANCE",
+      "DEU": "GERMANY", "GERMANY": "GERMANY", "ALLEMAGNE": "GERMANY",
+      "GBR": "UNITED KINGDOM", "UNITED KINGDOM": "UNITED KINGDOM", "ROYAUME-UNI": "UNITED KINGDOM", "UK": "UNITED KINGDOM",
+      "NLD": "NETHERLANDS", "NETHERLANDS": "NETHERLANDS", "PAYS-BAS": "NETHERLANDS",
+      "CHE": "SWITZERLAND", "SWITZERLAND": "SWITZERLAND", "SUISSE": "SWITZERLAND",
+      "IRL": "IRELAND", "IRELAND": "IRELAND", "IRLANDE": "IRELAND",
+      "DNK": "DENMARK", "DENMARK": "DENMARK", "DANEMARK": "DENMARK",
+      "SWE": "SWEDEN", "SWEDEN": "SWEDEN", "SUÈDE": "SWEDEN",
+      "FIN": "FINLAND", "FINLAND": "FINLAND", "FINLANDE": "FINLAND",
+      "NOR": "NORWAY", "NORWAY": "NORWAY", "NORVÈGE": "NORWAY",
+      "ESP": "SPAIN", "SPAIN": "SPAIN", "ESPAGNE": "SPAIN",
+      "ITA": "ITALY", "ITALY": "ITALY", "ITALIE": "ITALY",
+      "BEL": "BELGIUM", "BELGIUM": "BELGIUM", "BELGIQUE": "BELGIUM",
+      "AUT": "AUSTRIA", "AUSTRIA": "AUSTRIA", "AUTRICHE": "AUSTRIA",
+      "PRT": "PORTUGAL", "PORTUGAL": "PORTUGAL",
+      "LUX": "LUXEMBOURG", "LUXEMBOURG": "LUXEMBOURG",
+      // Asia-Pacific
+      "JPN": "JAPAN", "JAPAN": "JAPAN", "JAPON": "JAPAN",
+      "CHN": "CHINA", "CHINA": "CHINA", "CHINE": "CHINA",
+      "TWN": "TAIWAN", "TAIWAN": "TAIWAN", "TAÏWAN": "TAIWAN",
+      "KOR": "SOUTH KOREA", "SOUTH KOREA": "SOUTH KOREA", "CORÉE DU SUD": "SOUTH KOREA",
+      "IND": "INDIA", "INDIA": "INDIA", "INDE": "INDIA",
+      "AUS": "AUSTRALIA", "AUSTRALIA": "AUSTRALIA", "AUSTRALIE": "AUSTRALIA",
+      "HKG": "HONG KONG", "HONG KONG": "HONG KONG",
+      "SGP": "SINGAPORE", "SINGAPORE": "SINGAPORE", "SINGAPOUR": "SINGAPORE",
+      "NZL": "NEW ZEALAND", "NEW ZEALAND": "NEW ZEALAND", "NOUVELLE-ZÉLANDE": "NEW ZEALAND",
+      "IDN": "INDONESIA", "INDONESIA": "INDONESIA", "INDONÉSIE": "INDONESIA",
+      "THA": "THAILAND", "THAILAND": "THAILAND", "THAÏLANDE": "THAILAND",
+      "MYS": "MALAYSIA", "MALAYSIA": "MALAYSIA", "MALAISIE": "MALAYSIA",
+      "PHL": "PHILIPPINES", "PHILIPPINES": "PHILIPPINES",
+      "VNM": "VIETNAM", "VIETNAM": "VIETNAM",
+      // Americas
+      "CAN": "CANADA", "CANADA": "CANADA",
+      "BRA": "BRAZIL", "BRAZIL": "BRAZIL", "BRÉSIL": "BRAZIL",
+      "MEX": "MEXICO", "MEXICO": "MEXICO", "MEXIQUE": "MEXICO",
+      "CHL": "CHILE", "CHILE": "CHILE", "CHILI": "CHILE",
+      "COL": "COLOMBIA", "COLOMBIA": "COLOMBIA", "COLOMBIE": "COLOMBIA",
+      "ARG": "ARGENTINA", "ARGENTINA": "ARGENTINA", "ARGENTINE": "ARGENTINA",
+      "PER": "PERU", "PERU": "PERU", "PÉROU": "PERU",
+      // Middle East & Africa
+      "ZAF": "SOUTH AFRICA", "SOUTH AFRICA": "SOUTH AFRICA", "AFRIQUE DU SUD": "SOUTH AFRICA",
+      "SAU": "SAUDI ARABIA", "SAUDI ARABIA": "SAUDI ARABIA", "ARABIE SAOUDITE": "SAUDI ARABIA",
+      "ARE": "UNITED ARAB EMIRATES", "UNITED ARAB EMIRATES": "UNITED ARAB EMIRATES",
+      "ISR": "ISRAEL", "ISRAEL": "ISRAEL", "ISRAËL": "ISRAEL",
+      "TUR": "TURKEY", "TURKEY": "TURKEY", "TURQUIE": "TURKEY",
+      "QAT": "QATAR", "QATAR": "QATAR",
+      "KWT": "KUWAIT", "KUWAIT": "KUWAIT", "KOWEÏT": "KUWAIT",
+      "EGY": "EGYPT", "EGYPT": "EGYPT", "ÉGYPTE": "EGYPT",
+      "NGA": "NIGERIA", "NIGERIA": "NIGERIA",
+      // Other
+      "RUS": "RUSSIA", "RUSSIA": "RUSSIA", "RUSSIE": "RUSSIA",
+      "POL": "POLAND", "POLAND": "POLAND", "POLOGNE": "POLAND",
+      "CZE": "CZECHIA", "CZECHIA": "CZECHIA", "TCHÉQUIE": "CZECHIA",
+      "GRC": "GREECE", "GREECE": "GREECE", "GRÈCE": "GREECE",
+      "HUN": "HUNGARY", "HUNGARY": "HUNGARY", "HONGRIE": "HUNGARY",
+      "ROU": "ROMANIA", "ROMANIA": "ROMANIA", "ROUMANIE": "ROMANIA",
+    };
+
+    const normalize = (name: string): string => {
       const n = name.toUpperCase().trim();
-      if (n === "USA" || n === "UNITED STATES" || n === "UNITED STATES OF AMERICA" || n === "ÉTATS-UNIS") return "USA";
-      if (n === "FRANCE" || n === "FRA") return "FRANCE";
-      return n;
+      return ALIASES[n] || n;
     };
     data.forEach((d) => {
       const normalizedName = normalize(d.name);
@@ -68,11 +131,10 @@ const WorldMap: React.FC<WorldMapProps> = ({ data }) => {
           <Geographies geography={geoUrl}>
             {({ geographies }) =>
               geographies.map((geo) => {
-                const countryName = geo.properties.name.toUpperCase();
-                const countryId = geo.id?.toUpperCase();
-                const d = countryDataMap["USA"] && (countryName.includes("UNITED STATES") || countryId === "USA" || geo.properties.name === "United States")
-                  ? countryDataMap["USA"]
-                  : (countryDataMap[countryId] || countryDataMap[countryName]);
+                const geoName = geo.properties.name.toUpperCase();
+                const geoId = (geo.id || "").toUpperCase();
+                // Try matching by normalized geo name, then by geo ID (ISO numeric/alpha)
+                const d = countryDataMap[geoName] || countryDataMap[geoId];
                 
                 return (
                   <Geography

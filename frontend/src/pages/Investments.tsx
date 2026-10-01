@@ -6,7 +6,11 @@ import {
   Activity,
   Globe,
   Layers,
-  Briefcase
+  Briefcase,
+  Building,
+  AlertTriangle,
+  Info,
+  ShieldCheck
 } from "lucide-react"
 import { api } from "@/lib/api"
 import { 
@@ -39,7 +43,7 @@ import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
 import WorldMap from "@/components/ui/WorldMap"
 import { AllocationTreemap } from "@/components/analytics/AllocationTreemap"
-import { DiversityScanner } from "@/components/investments/DiversityScanner"
+import { DiversityScannerResponse } from "@/types/diversity"
 
 const COLORS = ["#000000", "#4b5563", "#9ca3af", "#d1d5db", "#e5e7eb", "#f3f4f6", "#f8fafc"]
 
@@ -47,6 +51,7 @@ export default function Investments() {
   const navigate = useNavigate()
   const [allocation, setAllocation] = useState<any>(null)
   const [advancedAllocation, setAdvancedAllocation] = useState<any>(null)
+  const [diversity, setDiversity] = useState<DiversityScannerResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [drillDown, setDrillDown] = useState<{ title: string, items: any[] } | null>(null)
 
@@ -59,6 +64,11 @@ export default function Investments() {
         ])
         setAllocation(basic)
         setAdvancedAllocation(advanced)
+        // Load diversity data separately (non-blocking, may have no holdings)
+        try {
+          const div = await api.get<DiversityScannerResponse>("/analytics/diversity-scanner")
+          if (div && div.totals.holdings_count > 0) setDiversity(div)
+        } catch { /* No holdings yet, that's fine */ }
       } catch (error) {
         toast.error("Erreur lors du chargement de l'allocation")
       } finally {
@@ -114,7 +124,7 @@ export default function Investments() {
       </div>
 
       {/* KPI Section */}
-      <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
+      <div className={`grid gap-4 grid-cols-1 ${diversity ? "md:grid-cols-4" : "md:grid-cols-3"}`}>
         <Card className="bg-slate-900 text-white shadow-md border-slate-800">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-slate-300">Valeur Totale</CardTitle>
@@ -155,10 +165,55 @@ export default function Investments() {
             <p className="text-xs text-muted-foreground mt-1">Comptes d'investissement actifs</p>
           </CardContent>
         </Card>
+
+        {diversity && (
+          <Card className="shadow-sm">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Score de Diversité</CardTitle>
+              <ShieldCheck className="h-4 w-4 text-slate-400" />
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-baseline gap-2">
+                <span className="text-3xl font-bold">{diversity.score}</span>
+                <span className="text-sm text-muted-foreground">/100</span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">{diversity.score_label}</p>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
-      {/* Section Scanner de Diversité & Transparence ETF */}
-      <DiversityScanner />
+      {/* Alerts Section */}
+      {diversity && diversity.alerts.length > 0 && (
+        <div className="space-y-3">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+            <AlertTriangle className="h-3.5 w-3.5 text-slate-500" />
+            Alertes de Surexposition ({diversity.alerts.length})
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {diversity.alerts.map((alert, idx) => (
+              <div
+                key={idx}
+                className="p-4 rounded-xl border bg-white flex items-start gap-3 shadow-sm"
+              >
+                <div className="shrink-0 mt-0.5">
+                  {alert.type === "danger" ? (
+                    <AlertTriangle className="h-4 w-4 text-rose-600" />
+                  ) : alert.type === "warning" ? (
+                    <AlertTriangle className="h-4 w-4 text-amber-600" />
+                  ) : (
+                    <Info className="h-4 w-4 text-slate-500" />
+                  )}
+                </div>
+                <div className="space-y-1">
+                  <h4 className="font-semibold text-xs">{alert.title}</h4>
+                  <p className="text-[11px] text-muted-foreground leading-relaxed">{alert.message}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Section 1: Répartition par comptes */}
       <div className="space-y-4">
@@ -355,51 +410,130 @@ export default function Investments() {
 
           <Card className="shadow-sm">
             <CardHeader className="border-b pb-3">
-              <div className="flex items-center gap-2">
-                <Briefcase className="h-4 w-4 text-slate-500" />
-                <CardTitle className="text-base">Par Secteur</CardTitle>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Briefcase className="h-4 w-4 text-slate-500" />
+                  <CardTitle className="text-base">Par Secteur</CardTitle>
+                </div>
+                {diversity && diversity.sectors.length > 0 && (
+                  <Badge variant="secondary" className="bg-slate-100 text-slate-600 text-[10px] pointer-events-none shadow-none border-none">Look-Through</Badge>
+                )}
               </div>
             </CardHeader>
             <CardContent className="h-[280px] flex flex-col items-center pt-4">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={advancedAllocation?.by_sector || []}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={85}
-                    paddingAngle={5}
-                    dataKey="value"
-                    nameKey="name"
-                    onClick={(data) => setDrillDown({ title: getDrilldownTitle("Secteur", data), items: getDrilldownItems(data) })}
-                    className="cursor-pointer outline-none"
-                  >
-                    {(advancedAllocation?.by_sector || []).map((_: any, index: number) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} className="hover:opacity-80 transition-opacity" />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(value: number) => formatCurrency(value)} />
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="w-full space-y-1 mt-4 px-2">
-                {(advancedAllocation?.by_sector || []).slice(0, 3).map((item: any, i: number) => (
-                  <div 
-                    key={i} 
-                    className="flex items-center justify-between text-xs cursor-pointer hover:text-slate-600 transition-colors"
-                    onClick={() => setDrillDown({ title: `Secteur : ${item.name}`, items: item.items || [] })}
-                  >
-                    <div className="flex items-center gap-2">
-                      <div className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
-                      <span className="truncate max-w-[150px]">{item.name}</span>
+              {(() => {
+                const sectorData = diversity && diversity.sectors.length > 0
+                  ? diversity.sectors.map(s => ({ name: s.name, value: s.value_eur, percentage: s.percentage_stocks }))
+                  : (advancedAllocation?.by_sector || [])
+                return (
+                  <>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={sectorData}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={60}
+                          outerRadius={85}
+                          paddingAngle={5}
+                          dataKey="value"
+                          nameKey="name"
+                          className="outline-none"
+                        >
+                          {sectorData.map((_: any, index: number) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} className="hover:opacity-80 transition-opacity" />
+                          ))}
+                        </Pie>
+                        <Tooltip formatter={(value: number) => formatCurrency(value)} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                    <div className="w-full space-y-1 mt-4 px-2">
+                      {sectorData.slice(0, 4).map((item: any, i: number) => (
+                        <div 
+                          key={i} 
+                          className="flex items-center justify-between text-xs"
+                        >
+                          <div className="flex items-center gap-2">
+                            <div className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
+                            <span className="truncate max-w-[150px]">{item.name}</span>
+                          </div>
+                          <span className="font-bold">{typeof item.percentage === 'number' ? item.percentage.toFixed(1) : item.percentage}%</span>
+                        </div>
+                      ))}
                     </div>
-                    <span className="font-bold">{item.percentage}%</span>
-                  </div>
-                ))}
-              </div>
+                  </>
+                )
+              })()}
             </CardContent>
           </Card>
         </div>
+
+        {/* Top 10 Companies Look-Through */}
+        {diversity && diversity.top_underlying_companies.length > 0 && (
+          <Card className="shadow-sm">
+            <CardHeader className="flex flex-row items-center justify-between pb-2 border-b">
+              <div>
+                <div className="flex items-center gap-2">
+                  <Building className="h-4 w-4 text-slate-500" />
+                  <CardTitle className="text-base font-bold">Top 10 Entreprises Détenues (Look-Through)</CardTitle>
+                </div>
+                <CardDescription className="text-xs mt-0.5">
+                  Exposition consolidée : direct + sous-jacents de vos ETFs.
+                </CardDescription>
+              </div>
+              <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                <span className="flex items-center gap-1.5">
+                  <span className="h-2.5 w-2.5 rounded-sm bg-black" /> Direct
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="h-2.5 w-2.5 rounded-sm bg-slate-400" /> Via ETFs
+                </span>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-6">
+              <div className="h-[340px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={diversity.top_underlying_companies.slice(0, 10).map(c => ({
+                      name: c.name,
+                      direct: c.direct_value_eur,
+                      indirect: c.indirect_value_eur,
+                      pct: c.pct_stocks,
+                    }))}
+                    layout="vertical"
+                    margin={{ top: 5, right: 30, left: 80, bottom: 5 }}
+                  >
+                    <XAxis
+                      type="number"
+                      tickFormatter={(v) => `${v.toFixed(0)}€`}
+                      tick={{ fontSize: 10 }}
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    <YAxis
+                      type="category"
+                      dataKey="name"
+                      tick={{ fontSize: 11, fontWeight: 500 }}
+                      axisLine={false}
+                      tickLine={false}
+                      width={110}
+                    />
+                    <Tooltip
+                      formatter={(val: number, name: string) => [
+                        formatCurrency(val),
+                        name === "direct" ? "Détenu en direct" : "Détenu via ETFs",
+                      ]}
+                      labelFormatter={(label) => `Actif : ${label}`}
+                      contentStyle={{ borderRadius: "8px", border: "1px solid #e2e8f0" }}
+                    />
+                    <Bar dataKey="direct" stackId="a" fill="#000000" radius={[0, 0, 0, 0]} />
+                    <Bar dataKey="indirect" stackId="a" fill="#9ca3af" radius={[0, 4, 4, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         <Card className="shadow-sm overflow-hidden">
           <CardHeader className="border-b bg-slate-50/50 pb-3">
@@ -408,14 +542,23 @@ export default function Investments() {
                 <Globe className="h-4 w-4 text-slate-500" />
                 <CardTitle className="text-base">Répartition Géographique Mondiale</CardTitle>
               </div>
-              <Badge variant="outline" className="bg-white">Interactif</Badge>
+              <div className="flex items-center gap-2">
+                {diversity && diversity.countries.length > 0 && (
+                  <Badge variant="secondary" className="bg-slate-100 text-slate-600 text-[10px] pointer-events-none shadow-none border-none">Look-Through</Badge>
+                )}
+                <Badge variant="outline" className="bg-white">Interactif</Badge>
+              </div>
             </div>
           </CardHeader>
           <CardContent className="h-[450px] p-0 relative bg-slate-50/30">
             <div className="absolute top-4 left-4 z-10 text-xs text-slate-500 bg-white/90 backdrop-blur shadow-sm px-3 py-1.5 rounded-md border">
               Utilisez la molette pour zoomer • Cliquez-glissez pour déplacer
             </div>
-            <WorldMap data={advancedAllocation?.by_geographic_zone || []} />
+            <WorldMap data={
+              diversity && diversity.countries.length > 0
+                ? diversity.countries.map(c => ({ name: c.name, value: c.value_eur, percentage: c.percentage_stocks }))
+                : (advancedAllocation?.by_geographic_zone || [])
+            } />
           </CardContent>
         </Card>
       </div>
