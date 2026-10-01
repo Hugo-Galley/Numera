@@ -109,3 +109,56 @@ async def test_recurring_generation_creates_investment_tx_and_holding(db_session
     assert holding is not None
     assert holding.quantity == 2.0
     assert holding.buy_price_avg == 180.0
+
+
+@pytest.mark.anyio
+async def test_recurring_generation_auto_calculates_shares(db_session: Session):
+    account = Account(name="PEA Boursorama", type="investissement", currency="EUR", active=True)
+    db_session.add(account)
+    db_session.commit()
+
+    # Recurring DCA with fixed amount (500 EUR) on ticker CW8.PA, NO quantity specified in advance
+    past_date = datetime.now() - timedelta(days=32)
+    rd = RecurringTransaction(
+        account_id=account.id,
+        name="DCA Amundi MSCI World",
+        type="versement",
+        amount=500.0,
+        currency="EUR",
+        frequency="monthly",
+        day_of_month=past_date.day,
+        start_date=past_date,
+        is_active=True,
+        auto_generate=True,
+        ticker="CW8.PA",
+        isin="FR0010315770",
+        quantity=None,  # Not known in advance!
+        unit_price=500.0,  # Fallback reference price
+    )
+    db_session.add(rd)
+    db_session.commit()
+
+    count = await generate_recurring_transactions(db_session)
+    assert count >= 1
+
+    inv_tx = db_session.query(InvestmentTransaction).filter(
+        InvestmentTransaction.recurring_transaction_id == rd.id
+    ).first()
+    assert inv_tx is not None
+    assert inv_tx.ticker == "CW8.PA"
+    # Share quantity should be automatically calculated: amount / unit_price
+    assert inv_tx.quantity is not None
+    assert inv_tx.quantity > 0.0
+    assert inv_tx.unit_price is not None
+    assert inv_tx.unit_price > 0.0
+    # Expected: 500 / price ~= quantity
+    assert abs(inv_tx.quantity * inv_tx.unit_price - 500.0) < 0.1
+
+    # Verify portfolio holding was created with the computed shares
+    holding = db_session.query(PortfolioHolding).filter(
+        PortfolioHolding.account_id == account.id,
+        PortfolioHolding.ticker == "CW8.PA"
+    ).first()
+    assert holding is not None
+    assert holding.quantity == inv_tx.quantity
+

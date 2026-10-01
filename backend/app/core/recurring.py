@@ -90,6 +90,28 @@ async def generate_recurring_transactions(db: Session) -> int:
                 inv_type = "retrait"
 
             if is_inv and inv_type in ["versement", "retrait", "dividende"]:
+                effective_unit_price = rd.unit_price
+                effective_quantity = rd.quantity
+
+                # If quantity or price is not fixed, fetch live market quote to calculate dynamic shares
+                if rd.ticker and (not effective_quantity or effective_quantity <= 0 or not effective_unit_price):
+                    norm_ticker = rd.ticker.upper().strip()
+                    try:
+                        from app.core.market_data import get_market_quotes
+                        quotes = await get_market_quotes([norm_ticker])
+                        q_data = quotes.get(norm_ticker, {})
+                        live_price = q_data.get("price_eur") or q_data.get("price")
+                        if live_price and float(live_price) > 0:
+                            effective_unit_price = round(float(live_price), 4)
+                    except Exception as e:
+                        logger.warning(f"Could not fetch live quote for recurring tx {rd.id} ({norm_ticker}): {e}")
+
+                # Automatically compute shares if not explicitly fixed
+                if (not effective_quantity or effective_quantity <= 0) and effective_unit_price and effective_unit_price > 0:
+                    effective_quantity = round(converted_amount / effective_unit_price, 6)
+                elif effective_quantity and (not effective_unit_price or effective_unit_price <= 0) and converted_amount > 0:
+                    effective_unit_price = round(converted_amount / effective_quantity, 4)
+
                 new_tx = InvestmentTransaction(
                     account_id=rd.account_id,
                     date=occ,
@@ -103,26 +125,32 @@ async def generate_recurring_transactions(db: Session) -> int:
                     geographic_zone=rd.geographic_zone,
                     ticker=rd.ticker.upper().strip() if rd.ticker else None,
                     isin=rd.isin.upper().strip() if rd.isin else None,
-                    quantity=rd.quantity,
-                    unit_price=rd.unit_price,
+                    quantity=effective_quantity,
+                    unit_price=effective_unit_price,
                     etf_profile_id=rd.etf_profile_id,
                     recurring_transaction_id=rd.id,
                 )
                 db.add(new_tx)
 
                 # Automatic hook: update or create PortfolioHolding if ticker and quantity are provided
-                if rd.ticker and rd.quantity and rd.quantity > 0:
+                if rd.ticker and effective_quantity and effective_quantity > 0:
                     from app.models.portfolio_holding import PortfolioHolding
                     norm_ticker = rd.ticker.upper().strip()
                     holding = db.query(PortfolioHolding).filter(
                         PortfolioHolding.account_id == rd.account_id,
                         PortfolioHolding.ticker == norm_ticker
                     ).first()
-                    qty_delta = rd.quantity if inv_type in ("versement", "achat") else -rd.quantity
+                    qty_delta = effective_quantity if inv_type in ("versement", "achat") else -effective_quantity
                     if holding:
+                        # Recalculate average buy price if purchasing more
+                        if qty_delta > 0 and effective_unit_price and holding.quantity > 0:
+                            old_cost = holding.quantity * (holding.buy_price_avg or effective_unit_price)
+                            new_cost = qty_delta * effective_unit_price
+                            new_total_qty = holding.quantity + qty_delta
+                            holding.buy_price_avg = round((old_cost + new_cost) / new_total_qty, 4) if new_total_qty > 0 else effective_unit_price
+                        elif qty_delta > 0 and effective_unit_price:
+                            holding.buy_price_avg = effective_unit_price
                         holding.quantity = max(0.0, holding.quantity + qty_delta)
-                        if rd.unit_price:
-                            holding.buy_price_avg = rd.unit_price
                     elif qty_delta > 0:
                         new_holding = PortfolioHolding(
                             account_id=rd.account_id,
@@ -130,7 +158,7 @@ async def generate_recurring_transactions(db: Session) -> int:
                             isin=rd.isin.upper().strip() if rd.isin else None,
                             asset_name=note or norm_ticker,
                             quantity=qty_delta,
-                            buy_price_avg=rd.unit_price,
+                            buy_price_avg=effective_unit_price,
                             currency=currency,
                             etf_profile_id=rd.etf_profile_id,
                         )

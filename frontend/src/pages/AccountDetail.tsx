@@ -1247,6 +1247,8 @@ export default function AccountDetail() {
                                 setInvTxUnitPrice(p)
                                 if (invTxQuantity) {
                                   setInvTxAmount((Number(invTxQuantity) * Number(p)).toFixed(2))
+                                } else if (invTxAmount && Number(p) > 0) {
+                                  setInvTxQuantity((Number(invTxAmount) / Number(p)).toFixed(4))
                                 }
                               }
                               if (asset.type === "ETF") setInvTxAssetClass("ETF")

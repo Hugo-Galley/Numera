@@ -15,7 +15,8 @@ import {
   Search,
   Filter,
   CalendarIcon,
-  ChevronDown
+  ChevronDown,
+  Sparkles
 } from "lucide-react"
 
 const MONTHS = [
@@ -141,6 +142,7 @@ export default function RecurringTransactions() {
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [editingTx, setEditingTx] = useState<RecurringTransaction | null>(null)
   const [isIrregularSubmenuOpen, setIsIrregularSubmenuOpen] = useState(false)
+  const [isManualQuantityOpen, setIsManualQuantityOpen] = useState(false)
 
   // Form State
   const [formData, setFormData] = useState({
@@ -213,6 +215,7 @@ export default function RecurringTransactions() {
   const handleOpenCreate = () => {
     setEditingTx(null)
     setIsIrregularSubmenuOpen(false)
+    setIsManualQuantityOpen(false)
     const firstAccount = accounts[0]
     setFormData({
       account_id: firstAccount?.id.toString() || "",
@@ -243,6 +246,7 @@ export default function RecurringTransactions() {
   const handleOpenEdit = (tx: RecurringTransaction) => {
     setEditingTx(tx)
     setIsIrregularSubmenuOpen(Boolean(tx.excluded_months && tx.excluded_months.length > 0))
+    setIsManualQuantityOpen(Boolean(tx.quantity && tx.quantity > 0))
     setFormData({
       account_id: tx.account_id.toString(),
       name: tx.name,
@@ -494,8 +498,7 @@ export default function RecurringTransactions() {
                               <div className="text-[10px] text-slate-500 font-medium uppercase mt-0.5 flex items-center gap-1.5 flex-wrap">
                                 <span>{accounts.find(a => a.id === tx.account_id)?.name}</span>
                                 <span>•</span>
-                                <span>{tx.category?.name || "Sans catégorie"}</span>
-                                {tx.quantity != null && tx.quantity > 0 && (
+                                {tx.quantity != null && tx.quantity > 0 ? (
                                   <>
                                     <span>•</span>
                                     <span className="font-semibold text-slate-700 font-mono">
@@ -503,7 +506,16 @@ export default function RecurringTransactions() {
                                       {tx.unit_price ? ` @ ${tx.unit_price}€` : ""}
                                     </span>
                                   </>
-                                )}
+                                ) : tx.ticker ? (
+                                  <>
+                                    <span>•</span>
+                                    <span className="text-[9px] text-blue-700 font-semibold bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200/60 inline-flex items-center gap-1">
+                                      <Sparkles className="h-2.5 w-2.5 text-blue-500" />
+                                      Parts auto
+                                      {tx.unit_price ? ` (~${(tx.amount / tx.unit_price).toFixed(2)}p)` : ""}
+                                    </span>
+                                  </>
+                                ) : null}
                               </div>
                             </div>
                           </div>
@@ -885,12 +897,7 @@ export default function RecurringTransactions() {
                 unitPrice={formData.unit_price}
                 onSelectAsset={(asset) => {
                   setFormData((prev) => {
-                    const q = prev.quantity
                     const p = asset.price_eur || asset.price || prev.unit_price
-                    let newAmount = prev.amount
-                    if (q && p) {
-                      newAmount = (Number(q) * Number(p)).toFixed(2)
-                    }
                     return {
                       ...prev,
                       name: prev.name.trim() ? prev.name : asset.name,
@@ -898,7 +905,6 @@ export default function RecurringTransactions() {
                       isin: asset.isin || prev.isin,
                       currency: asset.currency || prev.currency,
                       unit_price: p ? p.toString() : prev.unit_price,
-                      amount: newAmount,
                       asset_class: asset.type === "ETF" ? "ETF" : "Actions",
                       etf_profile_id: asset.etf_profile_id || null,
                     }
@@ -909,51 +915,92 @@ export default function RecurringTransactions() {
                 onChangeName={(name) => setFormData((prev) => ({ ...prev, name }))}
               />
 
-              {/* Shares & Unit Price */}
-              <div className="grid grid-cols-2 gap-3 pt-1 border-t border-slate-200/60">
-                <div className="grid gap-1">
-                  <Label htmlFor="quantity" className="text-xs text-slate-500 font-medium">Nb de parts</Label>
-                  <Input
-                    id="quantity"
-                    type="number"
-                    step="any"
-                    min="0"
-                    placeholder="Ex: 1.5"
-                    value={formData.quantity}
-                    onChange={(e) => {
-                      const q = e.target.value
-                      const p = formData.unit_price
-                      const updated: any = { ...formData, quantity: q }
-                      if (q && p) {
-                        updated.amount = (Number(q) * Number(p)).toFixed(2)
-                      }
-                      setFormData(updated)
-                    }}
-                    className="bg-white text-xs font-mono"
-                  />
+              {/* Automatic Shares Calculation (DCA) or Manual Override */}
+              {formData.ticker && (
+                <div className="space-y-2 pt-1 border-t border-slate-200/60">
+                  <div className="p-3 bg-blue-50/70 border border-blue-200/60 rounded-xl space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-blue-900">
+                        <Sparkles className="h-3.5 w-3.5 text-blue-600" />
+                        <span>Calcul automatique des parts (DCA)</span>
+                      </div>
+                      <Badge variant="outline" className="text-[10px] bg-white text-blue-700 border-blue-200 font-semibold">
+                        Auto
+                      </Badge>
+                    </div>
+                    <p className="text-[11px] text-blue-800/80 leading-relaxed">
+                      Le nombre de parts sera calculé automatiquement le jour de chaque transaction au cours réel du marché (<code className="font-mono text-[10px] bg-blue-100/60 px-1 py-0.5 rounded">Parts = Montant / Cours</code>).
+                    </p>
+                    {formData.amount && formData.unit_price && Number(formData.unit_price) > 0 && (
+                      <div className="pt-1.5 text-[11px] font-semibold text-blue-900 flex items-center justify-between border-t border-blue-200/40">
+                        <span className="text-blue-700/80">Estimation au cours actuel ({Number(formData.unit_price).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €) :</span>
+                        <span className="font-mono font-bold text-blue-950 bg-white px-2 py-0.5 rounded shadow-xs">
+                          ~ {(Number(formData.amount) / Number(formData.unit_price)).toFixed(4)} parts
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex items-center justify-between pt-0.5">
+                    <button
+                      type="button"
+                      onClick={() => setIsManualQuantityOpen(!isManualQuantityOpen)}
+                      className="text-[11px] text-slate-500 hover:text-slate-800 font-medium underline underline-offset-2"
+                    >
+                      {isManualQuantityOpen ? "Masquer la saisie manuelle de parts" : "Fixer un nombre de parts précis (Optionnel)"}
+                    </button>
+                    {isManualQuantityOpen && formData.quantity && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFormData(prev => ({ ...prev, quantity: "" }))
+                          setIsManualQuantityOpen(false)
+                        }}
+                        className="text-[10px] text-red-500 hover:underline"
+                      >
+                        Revenir au calcul auto
+                      </button>
+                    )}
+                  </div>
+
+                  {isManualQuantityOpen && (
+                    <div className="grid grid-cols-2 gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200/80">
+                      <div className="grid gap-1">
+                        <Label htmlFor="quantity" className="text-xs text-slate-600 font-medium">Nb de parts fixe</Label>
+                        <Input
+                          id="quantity"
+                          type="number"
+                          step="any"
+                          min="0"
+                          placeholder="Ex: 1.5 (Laisser vide pour auto)"
+                          value={formData.quantity}
+                          onChange={(e) => {
+                            const q = e.target.value
+                            setFormData(prev => ({ ...prev, quantity: q }))
+                          }}
+                          className="bg-white text-xs font-mono"
+                        />
+                      </div>
+                      <div className="grid gap-1">
+                        <Label htmlFor="unit_price" className="text-xs text-slate-600 font-medium">Cours indicatif (€)</Label>
+                        <Input
+                          id="unit_price"
+                          type="number"
+                          step="any"
+                          min="0"
+                          placeholder="Cours indicatif..."
+                          value={formData.unit_price}
+                          onChange={(e) => {
+                            const p = e.target.value
+                            setFormData(prev => ({ ...prev, unit_price: p }))
+                          }}
+                          className="bg-white text-xs font-mono"
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
-                <div className="grid gap-1">
-                  <Label htmlFor="unit_price" className="text-xs text-slate-500 font-medium">Prix unitaire</Label>
-                  <Input
-                    id="unit_price"
-                    type="number"
-                    step="any"
-                    min="0"
-                    placeholder="Cours actuel..."
-                    value={formData.unit_price}
-                    onChange={(e) => {
-                      const p = e.target.value
-                      const q = formData.quantity
-                      const updated: any = { ...formData, unit_price: p }
-                      if (q && p) {
-                        updated.amount = (Number(q) * Number(p)).toFixed(2)
-                      }
-                      setFormData(updated)
-                    }}
-                    className="bg-white text-xs font-mono"
-                  />
-                </div>
-              </div>
+              )}
             </div>
 
             {isInvestment && (

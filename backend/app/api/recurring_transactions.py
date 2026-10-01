@@ -26,7 +26,7 @@ async def read_recurring_transactions(
     return db.query(RecurringTransaction).offset(skip).limit(limit).all()
 
 @router.post("/", response_model=RecurringTransactionRead)
-def create_recurring_transaction(
+async def create_recurring_transaction(
     *,
     db: Session = Depends(get_db),
     recurring_tx_in: RecurringTransactionCreate,
@@ -39,10 +39,18 @@ def create_recurring_transaction(
     db.add(recurring_tx)
     db.commit()
     db.refresh(recurring_tx)
+
+    if recurring_tx.auto_generate and recurring_tx.is_active:
+        try:
+            await generate_recurring_transactions(db)
+            db.refresh(recurring_tx)
+        except Exception:
+            pass
+
     return recurring_tx
 
 @router.patch("/{recurring_tx_id}", response_model=RecurringTransactionRead)
-def update_recurring_transaction(
+async def update_recurring_transaction(
     *,
     db: Session = Depends(get_db),
     recurring_tx_id: int,
@@ -65,6 +73,14 @@ def update_recurring_transaction(
     db.add(recurring_tx)
     db.commit()
     db.refresh(recurring_tx)
+
+    if recurring_tx.auto_generate and recurring_tx.is_active:
+        try:
+            await generate_recurring_transactions(db)
+            db.refresh(recurring_tx)
+        except Exception:
+            pass
+
     return recurring_tx
 
 @router.delete("/{recurring_tx_id}")
