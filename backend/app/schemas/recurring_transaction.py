@@ -22,6 +22,11 @@ class RecurringTransactionBase(BaseModel):
     asset_class: str | None = None
     sector: str | None = None
     geographic_zone: str | None = None
+    ticker: str | None = None
+    isin: str | None = None
+    quantity: float | None = None
+    unit_price: float | None = None
+    etf_profile_id: int | None = None
 
 class RecurringTransactionCreate(RecurringTransactionBase):
     pass
@@ -45,6 +50,11 @@ class RecurringTransactionUpdate(BaseModel):
     asset_class: str | None = None
     sector: str | None = None
     geographic_zone: str | None = None
+    ticker: str | None = None
+    isin: str | None = None
+    quantity: float | None = None
+    unit_price: float | None = None
+    etf_profile_id: int | None = None
 
 class RecurringTransactionRead(RecurringTransactionBase):
     id: int

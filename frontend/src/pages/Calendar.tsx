@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/dialog"
 import { Link } from "react-router-dom"
 import { toast } from "sonner"
+import { CompanyLogo } from "@/components/ui/CompanyLogo"
 
 interface CalendarEvent {
   id: string | number
@@ -37,6 +38,9 @@ interface CalendarEvent {
   is_projected: boolean
   currency: string
   recurring_id?: number
+  ticker?: string
+  quantity?: number
+  unit_price?: number
 }
 
 interface DailyBalance {
@@ -147,20 +151,29 @@ export default function Calendar() {
         return
       }
 
-      const isInvAccount = account.type === "investissement" || account.type === "assurance_vie"
-      const isInvType = ["versement", "retrait", "dividende"].includes(ev.type.toLowerCase())
+      const isInvAccount = account.type === "investissement" || account.type === "assurance_vie" || !!recurringTx.ticker
+      const isInvType = ["versement", "retrait", "dividende", "achat", "vente", "sortie", "entree"].includes(ev.type.toLowerCase())
 
       if (isInvAccount && isInvType) {
+        let invType = ev.type.toLowerCase()
+        if (invType === "sortie" || invType === "achat") invType = "versement"
+        else if (invType === "entree" || invType === "vente") invType = "retrait"
+
         await api.post("/investment-transactions", {
           account_id: account.id,
           date: new Date(ev.date).toISOString(),
-          type: ev.type.toLowerCase(),
+          type: invType,
           amount: ev.amount,
           currency: ev.currency,
           note: recurringTx.note || recurringTx.name,
           asset_class: recurringTx.asset_class,
           sector: recurringTx.sector,
-          geographic_zone: recurringTx.geographic_zone
+          geographic_zone: recurringTx.geographic_zone,
+          ticker: recurringTx.ticker,
+          isin: recurringTx.isin,
+          quantity: recurringTx.quantity,
+          unit_price: recurringTx.unit_price,
+          etf_profile_id: recurringTx.etf_profile_id,
         })
       } else {
         await api.post("/transactions", {
@@ -393,16 +406,28 @@ export default function Calendar() {
                   return (
                     <div key={ev.id} className="flex items-center justify-between p-2 rounded-lg border border-slate-100 bg-slate-50/50">
                       <div className="flex items-center gap-3">
-                        {isEvNegative ? (
+                        {ev.ticker ? (
+                          <CompanyLogo ticker={ev.ticker} name={ev.name} className="h-8 w-8 rounded-lg shadow-2xs" />
+                        ) : isEvNegative ? (
                           <ArrowDownCircle className="h-8 w-8 text-slate-400" />
                         ) : (
                           <ArrowUpCircle className="h-8 w-8 text-emerald-500" />
                         )}
                         <div>
-                          <p className="text-sm font-bold text-slate-900">{ev.name}</p>
                           <div className="flex items-center gap-1.5">
+                            <p className="text-sm font-bold text-slate-900">{ev.name}</p>
+                            {ev.ticker && (
+                              <Badge variant="outline" className="text-[9px] font-mono px-1 py-0 h-4">
+                                {ev.ticker}
+                              </Badge>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-1.5 mt-0.5">
                             {ev.is_projected && <Badge variant="secondary" className="h-4 text-[9px] px-1 bg-amber-100 text-amber-700 hover:bg-amber-100 border-none">PRÉVU</Badge>}
                             <span className="text-[10px] text-slate-500 uppercase font-medium tracking-wider">{ev.type}</span>
+                            {ev.quantity && (
+                              <span className="text-[10px] text-slate-400 font-mono">• {ev.quantity} part(s)</span>
+                            )}
                           </div>
                         </div>
                       </div>

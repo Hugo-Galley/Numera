@@ -28,5 +28,14 @@ class RecurringTransaction(Base):
     sector: Mapped[str | None] = mapped_column(String(64), nullable=True)
     geographic_zone: Mapped[str | None] = mapped_column(String(64), nullable=True)
 
+    # Market & Securities (Sprint 5)
+    ticker: Mapped[str | None] = mapped_column(String(32), index=True, nullable=True)
+    isin: Mapped[str | None] = mapped_column(String(20), index=True, nullable=True)
+    quantity: Mapped[float | None] = mapped_column(Float, nullable=True)
+    unit_price: Mapped[float | None] = mapped_column(Float, nullable=True)
+    etf_profile_id: Mapped[int | None] = mapped_column(ForeignKey("etf_profiles.id", ondelete="SET NULL"), nullable=True, index=True)
+
     account: Mapped["Account"] = relationship("Account")
     category: Mapped["Category"] = relationship("Category")
+    etf_profile: Mapped["EtfProfile"] = relationship("EtfProfile", lazy="selectin")
+

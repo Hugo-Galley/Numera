@@ -33,6 +33,7 @@ const MONTHS = [
   { value: 12, label: "Déc" },
 ]
 import { api } from "@/lib/api"
+import { CompanyLogo } from "@/components/ui/CompanyLogo"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -113,6 +114,11 @@ type RecurringTransaction = {
   asset_class?: string | null
   sector?: string | null
   geographic_zone?: string | null
+  ticker?: string | null
+  isin?: string | null
+  quantity?: number | null
+  unit_price?: number | null
+  etf_profile_id?: number | null
   category?: Category
 }
 
@@ -134,6 +140,54 @@ export default function RecurringTransactions() {
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [editingTx, setEditingTx] = useState<RecurringTransaction | null>(null)
   const [isIrregularSubmenuOpen, setIsIrregularSubmenuOpen] = useState(false)
+
+  // Market search for ticker
+  const [tickerSearchQuery, setTickerSearchQuery] = useState("")
+  const [tickerSearchResults, setTickerSearchResults] = useState<any[]>([])
+  const [isSearchingTicker, setIsSearchingTicker] = useState(false)
+
+  useEffect(() => {
+    if (!tickerSearchQuery.trim() || tickerSearchQuery.length < 2) {
+      setTickerSearchResults([])
+      return
+    }
+    const timer = setTimeout(async () => {
+      setIsSearchingTicker(true)
+      try {
+        const res = await api.get<any[]>(`/market/search?query=${encodeURIComponent(tickerSearchQuery)}`)
+        setTickerSearchResults(res || [])
+      } catch (err) {
+        console.error("Error searching ticker:", err)
+      } finally {
+        setIsSearchingTicker(false)
+      }
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [tickerSearchQuery])
+
+  const handleSelectAsset = (asset: any) => {
+    setFormData((prev) => {
+      const q = prev.quantity
+      const p = asset.price || prev.unit_price
+      let newAmount = prev.amount
+      if (q && p) {
+        newAmount = (Number(q) * Number(p)).toFixed(2)
+      }
+      return {
+        ...prev,
+        name: prev.name.trim() ? prev.name : asset.name,
+        ticker: asset.symbol,
+        isin: asset.isin || prev.isin,
+        currency: asset.currency || prev.currency,
+        unit_price: p ? p.toString() : prev.unit_price,
+        amount: newAmount,
+        asset_class: asset.type === "ETF" ? "ETF" : "Actions",
+        etf_profile_id: asset.etf_profile_id || null,
+      }
+    })
+    setTickerSearchQuery("")
+    setTickerSearchResults([])
+  }
   
   // Form State
   const [formData, setFormData] = useState({
@@ -152,11 +206,16 @@ export default function RecurringTransactions() {
     note: "",
     asset_class: "",
     sector: "",
-    geographic_zone: ""
+    geographic_zone: "",
+    ticker: "",
+    isin: "",
+    quantity: "",
+    unit_price: "",
+    etf_profile_id: null as number | null,
   })
 
   const selectedAccount = accounts.find(a => a.id.toString() === formData.account_id)
-  const isInvestment = selectedAccount?.type === "investissement" || selectedAccount?.type === "assurance_vie"
+  const isInvestment = selectedAccount?.type === "investissement" || selectedAccount?.type === "assurance_vie" || !!formData.ticker
 
   const allSubs = subsData?.subscriptions || []
   const activeSubs = allSubs.filter((s: any) => {
@@ -218,8 +277,15 @@ export default function RecurringTransactions() {
       note: "",
       asset_class: "",
       sector: "",
-      geographic_zone: ""
+      geographic_zone: "",
+      ticker: "",
+      isin: "",
+      quantity: "",
+      unit_price: "",
+      etf_profile_id: null,
     })
+    setTickerSearchQuery("")
+    setTickerSearchResults([])
     setIsFormOpen(true)
   }
 
@@ -242,8 +308,15 @@ export default function RecurringTransactions() {
       note: tx.note || "",
       asset_class: tx.asset_class || "",
       sector: tx.sector || "",
-      geographic_zone: tx.geographic_zone || ""
+      geographic_zone: tx.geographic_zone || "",
+      ticker: tx.ticker || "",
+      isin: tx.isin || "",
+      quantity: tx.quantity != null ? tx.quantity.toString() : "",
+      unit_price: tx.unit_price != null ? tx.unit_price.toString() : "",
+      etf_profile_id: tx.etf_profile_id || null,
     })
+    setTickerSearchQuery("")
+    setTickerSearchResults([])
     setIsFormOpen(true)
   }
 
@@ -263,7 +336,12 @@ export default function RecurringTransactions() {
       start_date: new Date(formData.start_date).toISOString(),
       asset_class: formData.asset_class || null,
       sector: formData.sector || null,
-      geographic_zone: formData.geographic_zone || null
+      geographic_zone: formData.geographic_zone || null,
+      ticker: formData.ticker ? formData.ticker.trim().toUpperCase() : null,
+      isin: formData.isin ? formData.isin.trim().toUpperCase() : null,
+      quantity: formData.quantity ? parseFloat(formData.quantity) : null,
+      unit_price: formData.unit_price ? parseFloat(formData.unit_price) : null,
+      etf_profile_id: formData.etf_profile_id || null,
     }
 
     try {
@@ -449,9 +527,36 @@ export default function RecurringTransactions() {
                     recurringTxs.map((tx) => (
                       <TableRow key={tx.id} className="group hover:bg-slate-50 transition-colors">
                         <TableCell>
-                          <div className="font-bold text-slate-900">{tx.name}</div>
-                          <div className="text-[10px] text-slate-500 font-medium uppercase mt-0.5">
-                            {accounts.find(a => a.id === tx.account_id)?.name} • {tx.category?.name || "Sans catégorie"}
+                          <div className="flex items-center gap-3">
+                            <CompanyLogo
+                              ticker={tx.ticker || undefined}
+                              name={tx.name}
+                              className="h-8 w-8 rounded-lg shadow-2xs shrink-0"
+                            />
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <span className="font-bold text-slate-900">{tx.name}</span>
+                                {tx.ticker && (
+                                  <Badge variant="outline" className="text-[10px] font-mono px-1.5 py-0 h-4 font-semibold text-slate-800">
+                                    {tx.ticker}
+                                  </Badge>
+                                )}
+                              </div>
+                              <div className="text-[10px] text-slate-500 font-medium uppercase mt-0.5 flex items-center gap-1.5 flex-wrap">
+                                <span>{accounts.find(a => a.id === tx.account_id)?.name}</span>
+                                <span>•</span>
+                                <span>{tx.category?.name || "Sans catégorie"}</span>
+                                {tx.quantity != null && tx.quantity > 0 && (
+                                  <>
+                                    <span>•</span>
+                                    <span className="font-semibold text-slate-700 font-mono">
+                                      {tx.quantity} part{tx.quantity > 1 ? "s" : ""}
+                                      {tx.unit_price ? ` @ ${tx.unit_price}€` : ""}
+                                    </span>
+                                  </>
+                                )}
+                              </div>
+                            </div>
                           </div>
                         </TableCell>
                         <TableCell>
@@ -608,9 +713,11 @@ export default function RecurringTransactions() {
                         activeSubs.map((sub: any, i: number) => (
                           <div key={i} className="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors group">
                             <div className="flex items-center gap-4">
-                              <div className={`h-12 w-12 rounded-2xl flex items-center justify-center text-lg font-black group-hover:bg-white transition-colors shadow-sm ${subTab === 'subscriptions' ? 'bg-slate-100 text-slate-900' : 'bg-indigo-50 text-indigo-600'}`}>
-                                {(sub.name || "?").substring(0, 1)}
-                              </div>
+                              <CompanyLogo
+                                ticker={sub.ticker}
+                                name={sub.name}
+                                className="h-12 w-12 rounded-2xl shrink-0 shadow-sm"
+                              />
                               <div>
                                 <div className="flex items-center gap-2">
                                   <p className="font-bold text-slate-900">{sub.name}</p>
@@ -662,9 +769,11 @@ export default function RecurringTransactions() {
                         {potentialSubs.map((sub: any, i: number) => (
                           <div key={i} className="p-4 flex items-center justify-between group">
                             <div className="flex items-center gap-4">
-                              <div className={`h-12 w-12 rounded-2xl flex items-center justify-center text-lg font-black shadow-sm ${subTab === 'subscriptions' ? 'bg-amber-100 text-amber-700' : 'bg-indigo-100 text-indigo-700'}`}>
-                                {(sub.name || "?").substring(0, 1)}
-                              </div>
+                              <CompanyLogo
+                                ticker={sub.ticker}
+                                name={sub.name}
+                                className="h-12 w-12 rounded-2xl shrink-0 shadow-sm"
+                              />
                               <div>
                                 <p className="font-bold text-slate-900">{sub.name}</p>
                                 <div className="flex items-center gap-2 mt-0.5">
@@ -799,6 +908,114 @@ export default function RecurringTransactions() {
                   value={formData.amount}
                   onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
                 />
+              </div>
+            </div>
+
+            {/* Investment Asset DCA block */}
+            <div className="grid gap-3 p-3.5 border rounded-lg bg-slate-50/70">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <CompanyLogo
+                    ticker={formData.ticker}
+                    name={formData.name}
+                    className="h-5 w-5 rounded-xs shrink-0"
+                  />
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                    Actif Boursier / Titre (ETF, Action)
+                  </span>
+                </div>
+                <Badge variant="outline" className="text-[10px] font-normal">
+                  Optionnel
+                </Badge>
+              </div>
+
+              {/* Ticker Search & Input */}
+              <div className="relative">
+                <Label htmlFor="ticker" className="text-xs text-slate-500 font-medium">Ticker / Code</Label>
+                <div className="relative mt-1">
+                  <Input
+                    id="ticker"
+                    placeholder="Ex: CW8.PA, AAPL, MC.PA, 0P0001HI7F.F..."
+                    value={formData.ticker}
+                    onChange={(e) => {
+                      const val = e.target.value
+                      setFormData({ ...formData, ticker: val.toUpperCase() })
+                      setTickerSearchQuery(val)
+                    }}
+                    className="bg-white uppercase font-mono text-xs pr-8"
+                  />
+                  {isSearchingTicker && (
+                    <RefreshCw className="h-3.5 w-3.5 text-slate-400 animate-spin absolute right-2.5 top-2.5" />
+                  )}
+                </div>
+
+                {/* Autocomplete Dropdown */}
+                {tickerSearchResults.length > 0 && (
+                  <div className="absolute z-50 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-48 overflow-y-auto divide-y">
+                    {tickerSearchResults.map((asset, idx) => (
+                      <div
+                        key={idx}
+                        className="p-2 hover:bg-slate-50 cursor-pointer flex items-center justify-between text-xs"
+                        onClick={() => handleSelectAsset(asset)}
+                      >
+                        <div className="flex items-center gap-2 min-w-0">
+                          <CompanyLogo ticker={asset.symbol} name={asset.name} className="h-5 w-5 rounded-xs shrink-0" />
+                          <div className="truncate">
+                            <span className="font-bold text-slate-900">{asset.symbol}</span>
+                            <span className="text-slate-500 ml-1.5 truncate text-[11px]">{asset.name}</span>
+                          </div>
+                        </div>
+                        <Badge variant="secondary" className="text-[9px] shrink-0">{asset.type || "Action"}</Badge>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Shares & Unit Price */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="grid gap-1">
+                  <Label htmlFor="quantity" className="text-xs text-slate-500 font-medium">Nb de parts</Label>
+                  <Input
+                    id="quantity"
+                    type="number"
+                    step="any"
+                    min="0"
+                    placeholder="Ex: 1.5"
+                    value={formData.quantity}
+                    onChange={(e) => {
+                      const q = e.target.value
+                      const p = formData.unit_price
+                      const updated: any = { ...formData, quantity: q }
+                      if (q && p) {
+                        updated.amount = (Number(q) * Number(p)).toFixed(2)
+                      }
+                      setFormData(updated)
+                    }}
+                    className="bg-white text-xs font-mono"
+                  />
+                </div>
+                <div className="grid gap-1">
+                  <Label htmlFor="unit_price" className="text-xs text-slate-500 font-medium">Prix unitaire</Label>
+                  <Input
+                    id="unit_price"
+                    type="number"
+                    step="any"
+                    min="0"
+                    placeholder="Cours actuel..."
+                    value={formData.unit_price}
+                    onChange={(e) => {
+                      const p = e.target.value
+                      const q = formData.quantity
+                      const updated: any = { ...formData, unit_price: p }
+                      if (q && p) {
+                        updated.amount = (Number(q) * Number(p)).toFixed(2)
+                      }
+                      setFormData(updated)
+                    }}
+                    className="bg-white text-xs font-mono"
+                  />
+                </div>
               </div>
             </div>
 

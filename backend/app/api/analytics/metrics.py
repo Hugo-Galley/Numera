@@ -767,7 +767,10 @@ async def calendar_analytics(
                 "is_projected": True,
                 "recurring_id": rd.id,
                 "currency": rd.currency,
-                "account_id": rd.account_id
+                "account_id": rd.account_id,
+                "ticker": rd.ticker,
+                "quantity": rd.quantity,
+                "unit_price": rd.unit_price,
             })
 
     # 3. Format real transactions
@@ -796,7 +799,10 @@ async def calendar_analytics(
             "category_id": None,
             "is_projected": False,
             "currency": tx.currency,
-            "account_id": tx.account_id
+            "account_id": tx.account_id,
+            "ticker": getattr(tx, "ticker", None),
+            "quantity": getattr(tx, "quantity", None),
+            "unit_price": getattr(tx, "unit_price", None),
         })
         
     # 4. Calculate daily balance projections

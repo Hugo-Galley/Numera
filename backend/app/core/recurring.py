@@ -82,11 +82,18 @@ async def generate_recurring_transactions(db: Session) -> int:
             else:
                 converted_amount = original_amount
 
-            if account.type == "investissement" and rd.type.lower() in ["versement", "retrait", "dividende"]:
+            is_inv = account.type in ["investissement", "assurance_vie"] or bool(rd.ticker)
+            inv_type = rd.type.lower()
+            if inv_type in ["sortie", "achat"]:
+                inv_type = "versement"
+            elif inv_type in ["entree", "vente"]:
+                inv_type = "retrait"
+
+            if is_inv and inv_type in ["versement", "retrait", "dividende"]:
                 new_tx = InvestmentTransaction(
                     account_id=rd.account_id,
                     date=occ,
-                    type=rd.type.lower(),
+                    type=inv_type,
                     amount=converted_amount,
                     currency=currency,
                     original_amount=original_amount,
@@ -94,8 +101,40 @@ async def generate_recurring_transactions(db: Session) -> int:
                     asset_class=rd.asset_class,
                     sector=rd.sector,
                     geographic_zone=rd.geographic_zone,
+                    ticker=rd.ticker.upper().strip() if rd.ticker else None,
+                    isin=rd.isin.upper().strip() if rd.isin else None,
+                    quantity=rd.quantity,
+                    unit_price=rd.unit_price,
+                    etf_profile_id=rd.etf_profile_id,
                     recurring_transaction_id=rd.id,
                 )
+                db.add(new_tx)
+
+                # Automatic hook: update or create PortfolioHolding if ticker and quantity are provided
+                if rd.ticker and rd.quantity and rd.quantity > 0:
+                    from app.models.portfolio_holding import PortfolioHolding
+                    norm_ticker = rd.ticker.upper().strip()
+                    holding = db.query(PortfolioHolding).filter(
+                        PortfolioHolding.account_id == rd.account_id,
+                        PortfolioHolding.ticker == norm_ticker
+                    ).first()
+                    qty_delta = rd.quantity if inv_type in ("versement", "achat") else -rd.quantity
+                    if holding:
+                        holding.quantity = max(0.0, holding.quantity + qty_delta)
+                        if rd.unit_price:
+                            holding.buy_price_avg = rd.unit_price
+                    elif qty_delta > 0:
+                        new_holding = PortfolioHolding(
+                            account_id=rd.account_id,
+                            ticker=norm_ticker,
+                            isin=rd.isin.upper().strip() if rd.isin else None,
+                            asset_name=note or norm_ticker,
+                            quantity=qty_delta,
+                            buy_price_avg=rd.unit_price,
+                            currency=currency,
+                            etf_profile_id=rd.etf_profile_id,
+                        )
+                        db.add(new_holding)
             else:
                 new_tx = Transaction(
                     account_id=rd.account_id,
@@ -112,7 +151,7 @@ async def generate_recurring_transactions(db: Session) -> int:
                     is_recurring=True,
                     recurring_transaction_id=rd.id,
                 )
-            db.add(new_tx)
+                db.add(new_tx)
             generated_count += 1
             affected_account_ids.add(rd.account_id)
 
