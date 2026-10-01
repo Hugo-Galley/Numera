@@ -15,6 +15,8 @@ from app.models.dismissed_insight import DismissedInsight
 from app.models.salary_config import SalaryConfig
 from app.models.salary_month import SalaryMonth
 from app.models.telecommuting_day import TelecommutingDay
+from app.models.etf_profile import EtfProfile
+from app.models.portfolio_holding import PortfolioHolding
 
 __all__ = [
     "Account",
@@ -34,4 +36,6 @@ __all__ = [
     "SalaryConfig",
     "SalaryMonth",
     "TelecommutingDay",
+    "EtfProfile",
+    "PortfolioHolding",
 ]

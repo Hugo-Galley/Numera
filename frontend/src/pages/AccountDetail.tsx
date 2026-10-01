@@ -228,6 +228,8 @@ import {
 } from "recharts"
 import { Separator } from "@/components/ui/separator"
 import { Input } from "@/components/ui/input"
+import { HoldingsTable } from "@/components/investments/HoldingsTable"
+import { PortfolioHolding } from "@/types/diversity"
 
 type Account = {
   id: number
@@ -297,6 +299,7 @@ export default function AccountDetail() {
   const [timeseries, setTimeseries] = useState<any>(null)
   const [investmentData, setInvestmentData] = useState<any>(null)
   const [perfHistory, setPerfHistory] = useState<any[]>([])
+  const [holdings, setHoldings] = useState<PortfolioHolding[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [availableTags, setAvailableTags] = useState<TagType[]>([])
   const [tagTotals, setTagTotals] = useState<any[]>([])
@@ -446,6 +449,9 @@ export default function AccountDetail() {
   const [invTxAmount, setInvTxAmount] = useState("")
   const [invTxCurrency, setInvTxCurrency] = useState("EUR")
   const [invTxNote, setInvTxNote] = useState("")
+  const [invTxTicker, setInvTxTicker] = useState("")
+  const [invTxQuantity, setInvTxQuantity] = useState("")
+  const [invTxUnitPrice, setInvTxUnitPrice] = useState("")
   const [invTxAssetClass, setInvTxAssetClass] = useState("")
   const [invTxSector, setInvTxSector] = useState("")
   const [invTxZone, setInvTxZone] = useState("")
@@ -506,12 +512,14 @@ export default function AccountDetail() {
       setInvTxCurrency(accData.currency)
 
       if (accData.type === "investissement" || accData.type === "assurance_vie") {
-        const [invData, perfData] = await Promise.all([
+        const [invData, perfData, holdingsData] = await Promise.all([
           api.get<any>(`/analytics/investments/${id}`),
-          api.get<any>(`/analytics/investments/${id}/performance-history`)
+          api.get<any>(`/analytics/investments/${id}/performance-history`),
+          api.get<PortfolioHolding[]>(`/holdings?account_id=${id}`)
         ])
         setInvestmentData(invData)
         setPerfHistory(perfData.items || [])
+        setHoldings(holdingsData || [])
       } else {
         const params = buildTransactionParams()
 
@@ -685,21 +693,34 @@ export default function AccountDetail() {
     setInvTxAmount("")
     setInvTxCurrency(account?.currency || "EUR")
     setInvTxNote("")
+    setInvTxTicker("")
+    setInvTxQuantity("")
+    setInvTxUnitPrice("")
     setInvTxAssetClass("")
     setInvTxSector("")
     setInvTxZone("")
   }
 
   const handleCreateInvestmentTransaction = async () => {
-    if (!invTxAmount) return
+    if (!invTxAmount && (!invTxQuantity || !invTxUnitPrice)) {
+      toast.error("Veuillez saisir un montant ou un nombre de parts")
+      return
+    }
     try {
+      const calculatedAmount = invTxAmount 
+        ? Number(invTxAmount) 
+        : (Number(invTxQuantity || 0) * Number(invTxUnitPrice || 0))
+
       const payload = {
         account_id: Number(id),
         date: new Date(invTxDate).toISOString(),
         type: invTxType,
-        amount: Number(invTxAmount),
+        amount: calculatedAmount,
         currency: invTxCurrency,
         note: invTxNote || null,
+        ticker: invTxTicker ? invTxTicker.trim().toUpperCase() : null,
+        quantity: invTxQuantity ? Number(invTxQuantity) : null,
+        unit_price: invTxUnitPrice ? Number(invTxUnitPrice) : null,
         asset_class: invTxAssetClass || null,
         sector: invTxSector || null,
         geographic_zone: invTxZone || null
@@ -1196,6 +1217,65 @@ export default function AccountDetail() {
                         <div className="grid gap-2">
                           <Label htmlFor="inote" className="text-xs uppercase tracking-wider font-bold text-slate-500">Note</Label>
                           <Input id="inote" value={invTxNote} onChange={(e) => setInvTxNote(e.target.value)} placeholder="Optionnel..." className="bg-slate-50 border-slate-200" />
+                        </div>
+
+                        <div className="grid gap-4 pt-2 border-t">
+                          <div className="flex items-center justify-between">
+                            <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500">Actif Boursier / Parts</h3>
+                            <Badge variant="outline" className="text-[10px]">Optionnel</Badge>
+                          </div>
+                          <div className="grid grid-cols-3 gap-3">
+                            <div className="grid gap-1">
+                              <Label className="text-xs font-medium">Ticker / Code</Label>
+                              <Input
+                                placeholder="CW8.PA, AAPL..."
+                                value={invTxTicker}
+                                onChange={(e) => setInvTxTicker(e.target.value)}
+                                className="bg-slate-50 border-slate-200 uppercase text-xs"
+                              />
+                            </div>
+                            <div className="grid gap-1">
+                              <Label className="text-xs font-medium">Nb de parts</Label>
+                              <Input
+                                type="number"
+                                step="any"
+                                min="0"
+                                placeholder="Ex: 2"
+                                value={invTxQuantity}
+                                onChange={(e) => {
+                                  const q = e.target.value
+                                  setInvTxQuantity(q)
+                                  if (q && invTxUnitPrice) {
+                                    setInvTxAmount((Number(q) * Number(invTxUnitPrice)).toFixed(2))
+                                  }
+                                }}
+                                className="bg-slate-50 border-slate-200 text-xs font-mono"
+                              />
+                            </div>
+                            <div className="grid gap-1">
+                              <Label className="text-xs font-medium">Prix unitaire</Label>
+                              <Input
+                                type="number"
+                                step="any"
+                                min="0"
+                                placeholder="Cours..."
+                                value={invTxUnitPrice}
+                                onChange={(e) => {
+                                  const p = e.target.value
+                                  setInvTxUnitPrice(p)
+                                  if (p && invTxQuantity) {
+                                    setInvTxAmount((Number(invTxQuantity) * Number(p)).toFixed(2))
+                                  }
+                                }}
+                                className="bg-slate-50 border-slate-200 text-xs font-mono"
+                              />
+                            </div>
+                          </div>
+                          {invTxTicker && invTxQuantity && (
+                            <p className="text-[11px] text-emerald-600 font-medium">
+                              ✓ Mettra à jour automatiquement votre position {invTxTicker.toUpperCase()} ({invTxType === "retrait" ? "-" : "+"}{invTxQuantity} parts).
+                            </p>
+                          )}
                         </div>
 
                         <div className="grid gap-4 pt-2 border-t">
@@ -1838,8 +1918,17 @@ export default function AccountDetail() {
         </div>
       )}
 
-      {isInvestment && (
-        <div className="grid gap-8 lg:grid-cols-2">
+      {isInvestment && account && (
+        <div className="space-y-8">
+          {/* Positions Actuelles (Nombre de parts & Cotations en Direct) */}
+          <HoldingsTable
+            accountId={account.id}
+            accountName={account.name}
+            holdings={holdings}
+            onRefresh={loadData}
+          />
+
+          <div className="grid gap-8 lg:grid-cols-2">
            <Card className="shadow-sm">
              <CardHeader><CardTitle className="text-lg">Historique des flux</CardTitle></CardHeader>
              <CardContent className="p-0">
@@ -1946,7 +2035,7 @@ export default function AccountDetail() {
             </div>
              </CardContent>
            </Card>
-
+          </div>
         </div>
       )}
       {/* Bulk Actions Floating Bar */}

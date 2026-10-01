@@ -39,6 +39,7 @@ import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
 import WorldMap from "@/components/ui/WorldMap"
 import { AllocationTreemap } from "@/components/analytics/AllocationTreemap"
+import { DiversityScanner } from "@/components/investments/DiversityScanner"
 
 const COLORS = ["#000000", "#4b5563", "#9ca3af", "#d1d5db", "#e5e7eb", "#f3f4f6", "#f8fafc"]
 
@@ -155,6 +156,9 @@ export default function Investments() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Section Scanner de Diversité & Transparence ETF */}
+      <DiversityScanner />
 
       {/* Section 1: Répartition par comptes */}
       <div className="space-y-4">

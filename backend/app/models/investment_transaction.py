@@ -23,6 +23,13 @@ class InvestmentTransaction(Base):
     sector: Mapped[str | None] = mapped_column(String(64), nullable=True)
     geographic_zone: Mapped[str | None] = mapped_column(String(64), nullable=True)
 
+    # Market & Securities (Sprint 5)
+    ticker: Mapped[str | None] = mapped_column(String(32), index=True, nullable=True)
+    isin: Mapped[str | None] = mapped_column(String(20), index=True, nullable=True)
+    quantity: Mapped[float | None] = mapped_column(Float, nullable=True)
+    unit_price: Mapped[float | None] = mapped_column(Float, nullable=True)
+    etf_profile_id: Mapped[int | None] = mapped_column(ForeignKey("etf_profiles.id", ondelete="SET NULL"), nullable=True, index=True)
+
     # Transfers (Sprint 4)
     is_transfer: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     is_transfer_ignored: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
@@ -31,3 +38,4 @@ class InvestmentTransaction(Base):
 
     linked_transaction: Mapped["Transaction"] = relationship("Transaction", lazy="selectin", foreign_keys=[linked_transaction_id])
     recurring_transaction: Mapped["RecurringTransaction"] = relationship("RecurringTransaction", lazy="selectin")
+    etf_profile: Mapped["EtfProfile"] = relationship("EtfProfile", lazy="selectin")

@@ -46,3 +46,9 @@ def seed_default_categories(db: Session) -> int:
     if created:
         db.commit()
     return created + updated
+
+
+def seed_all(db: Session) -> None:
+    seed_default_categories(db)
+    from app.core.seeds_etf import seed_etf_profiles
+    seed_etf_profiles(db)

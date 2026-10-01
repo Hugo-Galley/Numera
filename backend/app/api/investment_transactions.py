@@ -79,8 +79,40 @@ async def create_investment_transaction(payload: InvestmentTransactionCreate, db
         asset_class=payload.asset_class,
         sector=payload.sector,
         geographic_zone=payload.geographic_zone,
+        ticker=payload.ticker.upper().strip() if payload.ticker else None,
+        isin=payload.isin.upper().strip() if payload.isin else None,
+        quantity=payload.quantity,
+        unit_price=payload.unit_price,
+        etf_profile_id=payload.etf_profile_id,
     )
     db.add(tx)
+
+    # Automatic hook: update or create PortfolioHolding if ticker and quantity are provided
+    if payload.ticker and payload.quantity and payload.quantity > 0:
+        from app.models.portfolio_holding import PortfolioHolding
+        norm_ticker = payload.ticker.upper().strip()
+        holding = db.query(PortfolioHolding).filter(
+            PortfolioHolding.account_id == payload.account_id,
+            PortfolioHolding.ticker == norm_ticker
+        ).first()
+
+        qty_delta = payload.quantity if tx_type in ("versement", "achat") else -payload.quantity
+        if holding:
+            holding.quantity = max(0.0, holding.quantity + qty_delta)
+            if payload.unit_price:
+                holding.buy_price_avg = payload.unit_price
+        elif qty_delta > 0:
+            new_holding = PortfolioHolding(
+                account_id=payload.account_id,
+                ticker=norm_ticker,
+                isin=payload.isin.upper().strip() if payload.isin else None,
+                asset_name=payload.note or norm_ticker,
+                quantity=qty_delta,
+                buy_price_avg=payload.unit_price,
+                currency=currency,
+                etf_profile_id=payload.etf_profile_id,
+            )
+            db.add(new_holding)
     
     from app.core.time import utcnow_naive
     account.last_verified_at = utcnow_naive()

@@ -14,6 +14,11 @@ class InvestmentTransactionBase(BaseModel):
     asset_class: str | None = None
     sector: str | None = None
     geographic_zone: str | None = None
+    ticker: str | None = None
+    isin: str | None = None
+    quantity: float | None = None
+    unit_price: float | None = None
+    etf_profile_id: int | None = None
     is_transfer: bool = False
     is_transfer_ignored: bool = False
     linked_transaction_id: int | None = None
@@ -38,6 +43,11 @@ class InvestmentTransactionUpdate(BaseModel):
     asset_class: str | None = None
     sector: str | None = None
     geographic_zone: str | None = None
+    ticker: str | None = None
+    isin: str | None = None
+    quantity: float | None = None
+    unit_price: float | None = None
+    etf_profile_id: int | None = None
     is_transfer: bool | None = None
     is_transfer_ignored: bool | None = None
     linked_transaction_id: int | None = None
