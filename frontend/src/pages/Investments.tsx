@@ -485,12 +485,12 @@ export default function Investments() {
                   Exposition consolidée : direct + sous-jacents de vos ETFs.
                 </CardDescription>
               </div>
-              <div className="flex items-center gap-4 text-xs text-muted-foreground">
+              <div className="flex items-center gap-3 text-xs text-muted-foreground">
                 <span className="flex items-center gap-1.5">
                   <span className="h-2.5 w-2.5 rounded-sm bg-black" /> Direct
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <span className="h-2.5 w-2.5 rounded-sm bg-black/15 border border-black/30" /> Via ETFs
+                  <span className="h-2.5 w-2.5 rounded-sm bg-slate-400" /> Via ETFs
                 </span>
               </div>
             </CardHeader>
@@ -533,41 +533,35 @@ export default function Investments() {
                           width={110}
                         />
                         <Tooltip
-                          content={({ active, payload }: any) => {
+                          content={({ active, payload, label }: any) => {
                             if (active && payload && payload.length) {
                               const d = payload[0].payload
                               return (
-                                <div className="bg-slate-900 text-white p-3 rounded-lg shadow-xl border border-slate-800 text-xs min-w-[210px] space-y-2">
-                                  <div className="border-b border-slate-800 pb-1.5 flex items-center justify-between">
-                                    <span className="font-bold text-sm text-slate-100">{d.name}</span>
+                                <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-md text-xs space-y-1.5 min-w-[200px]">
+                                  <div className="flex items-center justify-between border-b pb-1">
+                                    <span className="font-semibold text-slate-900">Actif : {label || d.name}</span>
                                     {d.has_overlap && (
-                                      <Badge variant="outline" className="text-[9px] px-1.5 py-0 border-slate-700 text-slate-300">
+                                      <Badge variant="outline" className="text-[9px] px-1 py-0 font-normal">
                                         Doublon
                                       </Badge>
                                     )}
                                   </div>
-                                  <div className="space-y-1">
-                                    <div className="flex justify-between items-center text-slate-200">
-                                      <span className="font-medium">Apport Total :</span>
-                                      <span className="font-mono text-emerald-400 font-bold">{formatCurrency(d.total)}</span>
-                                    </div>
-                                    <div className="flex justify-between items-center text-[11px] text-slate-400">
-                                      <span>Part du portefeuille :</span>
-                                      <span className="font-mono font-medium">{d.pct.toFixed(1)}%</span>
-                                    </div>
+                                  <div className="flex justify-between items-center text-slate-900 font-bold">
+                                    <span>Apport total :</span>
+                                    <span>{formatCurrency(d.total)} ({d.pct.toFixed(1)}%)</span>
                                   </div>
-                                  <div className="border-t border-slate-800 pt-1.5 space-y-1 text-[11px]">
-                                    <div className="flex justify-between text-slate-400">
+                                  <div className="text-[11px] text-muted-foreground space-y-0.5 pt-1 border-t">
+                                    <div className="flex justify-between">
                                       <span className="flex items-center gap-1.5">
-                                        <span className="h-2 w-2 rounded-full bg-white shrink-0" /> Détenu en direct :
+                                        <span className="h-2 w-2 rounded-full bg-black shrink-0" /> Détenu en direct :
                                       </span>
-                                      <span className="font-mono text-slate-300">{formatCurrency(d.direct)}</span>
+                                      <span className="font-medium text-slate-700">{formatCurrency(d.direct)}</span>
                                     </div>
-                                    <div className="flex justify-between text-slate-400">
+                                    <div className="flex justify-between">
                                       <span className="flex items-center gap-1.5">
                                         <span className="h-2 w-2 rounded-full bg-slate-400 shrink-0" /> Détenu via ETFs :
                                       </span>
-                                      <span className="font-mono text-slate-300">{formatCurrency(d.indirect)}</span>
+                                      <span className="font-medium text-slate-700">{formatCurrency(d.indirect)}</span>
                                     </div>
                                   </div>
                                 </div>
@@ -576,24 +570,8 @@ export default function Investments() {
                             return null
                           }}
                         />
-                        <Bar 
-                          dataKey="direct" 
-                          stackId="a" 
-                          fill="#000000" 
-                          radius={[2, 0, 0, 2]} 
-                          barSize={16} 
-                        />
-                        <Bar 
-                          dataKey="indirect" 
-                          stackId="a" 
-                          fill="#000000" 
-                          fillOpacity={0.12} 
-                          stroke="#000000" 
-                          strokeOpacity={0.25} 
-                          strokeWidth={1} 
-                          radius={[0, 4, 4, 0]} 
-                          barSize={16}
-                        />
+                        <Bar dataKey="direct" stackId="a" fill="#000000" radius={[0, 0, 0, 0]} />
+                        <Bar dataKey="indirect" stackId="a" fill="#9ca3af" radius={[0, 4, 4, 0]} />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
