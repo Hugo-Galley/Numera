@@ -25,65 +25,25 @@ const WorldMap: React.FC<WorldMapProps> = ({ data }) => {
 
     return scaleLinear<string>()
       .domain([0, 0.001, maxValue])
-      .range(["#f1f5f9", "#64748b", "#0f172a"]);
+      .range(["#f1f5f9", "#818cf8", "#1e1b4b"]);
   }, [data]);
 
   const countryDataMap = useMemo(() => {
     const map: Record<string, { value: number; percentage: number; displayName: string }> = {};
-
-    const CODE_ALIASES: Record<string, string[]> = {
-      USA: ["USA", "840", "UNITED STATES", "UNITED STATES OF AMERICA", "ÉTATS-UNIS", "ETATS-UNIS"],
-      FRA: ["FRA", "250", "FRANCE"],
-      DEU: ["DEU", "276", "GERMANY", "ALLEMAGNE"],
-      JPN: ["JPN", "392", "JAPAN", "JAPON"],
-      GBR: ["GBR", "826", "UNITED KINGDOM", "ROYAUME-UNI", "UK"],
-      CHE: ["CHE", "756", "SWITZERLAND", "SUISSE"],
-      NLD: ["NLD", "528", "NETHERLANDS", "PAYS-BAS"],
-      CHN: ["CHN", "156", "CHINA", "CHINE"],
-      IND: ["IND", "356", "INDIA", "INDE"],
-      TWN: ["TWN", "158", "TAIWAN", "TAÏWAN"],
-      KOR: ["KOR", "410", "SOUTH KOREA", "KOREA", "CORÉE DU SUD"],
-      BRA: ["BRA", "076", "76", "BRAZIL", "BRÉSIL"],
-      CAN: ["CAN", "124", "CANADA"],
-      AUS: ["AUS", "036", "36", "AUSTRALIA", "AUSTRALIE"],
-      SWE: ["SWE", "752", "SWEDEN", "SUÈDE"],
-      DNK: ["DNK", "208", "DENMARK", "DANEMARK"],
-      ESP: ["ESP", "724", "SPAIN", "ESPAGNE"],
-      ITA: ["ITA", "380", "ITALY", "ITALIE"],
-      IRL: ["IRL", "372", "IRELAND", "IRLANDE"],
-      BEL: ["BEL", "056", "56", "BELGIQUE", "BELGIUM"],
-      AUT: ["AUT", "040", "40", "AUSTRIA", "AUTRICHE"],
-      FIN: ["FIN", "246", "FINLAND", "FINLANDE"],
-      NOR: ["NOR", "578", "NORWAY", "NORVÈGE"],
-      SGP: ["SGP", "702", "SINGAPORE", "SINGAPOUR"],
-      HKG: ["HKG", "344", "HONG KONG"],
-      MEX: ["MEX", "484", "MEXICO", "MEXIQUE"],
-      ZAF: ["ZAF", "710", "SOUTH AFRICA", "AFRIQUE DU SUD"],
-      SAU: ["SAU", "682", "SAUDI ARABIA", "ARABIE SAOUDITE"],
-      POL: ["POL", "616", "POLAND", "POLOGNE"],
-      PRT: ["PRT", "620", "PORTUGAL"],
+    const normalize = (name: string) => {
+      const n = name.toUpperCase().trim();
+      if (n === "USA" || n === "UNITED STATES" || n === "UNITED STATES OF AMERICA" || n === "ÉTATS-UNIS") return "USA";
+      if (n === "FRANCE" || n === "FRA") return "FRANCE";
+      return n;
     };
-
     data.forEach((d) => {
-      const upper = d.name.toUpperCase().trim();
-      let matchedCode: string | null = null;
-      for (const [code, aliases] of Object.entries(CODE_ALIASES)) {
-        if (code === upper || aliases.some((a) => a === upper || upper.includes(a))) {
-          matchedCode = code;
-          break;
-        }
+      const normalizedName = normalize(d.name);
+      if (map[normalizedName]) {
+        map[normalizedName].value += d.value;
+      } else {
+        map[normalizedName] = { value: d.value, percentage: d.percentage, displayName: d.name };
       }
-
-      const keysToRegister = matchedCode ? CODE_ALIASES[matchedCode] : [upper];
-      keysToRegister.forEach((key) => {
-        if (map[key]) {
-          map[key].value += d.value;
-        } else {
-          map[key] = { value: d.value, percentage: d.percentage, displayName: d.name };
-        }
-      });
     });
-
     return map;
   }, [data]);
 
@@ -92,7 +52,7 @@ const WorldMap: React.FC<WorldMapProps> = ({ data }) => {
   };
 
   return (
-    <div className="relative w-full h-full bg-slate-50/50 rounded-xl overflow-hidden border border-slate-100 dark:border-slate-800 shadow-inner group">
+    <div className="relative w-full h-full bg-slate-50/50 rounded-xl overflow-hidden border border-slate-100 shadow-inner group">
       <ComposableMap
         projectionConfig={{ rotate: [-10, 0, 0], scale: 140 }}
         className="w-full h-full"
@@ -109,8 +69,10 @@ const WorldMap: React.FC<WorldMapProps> = ({ data }) => {
             {({ geographies }) =>
               geographies.map((geo) => {
                 const countryName = geo.properties.name.toUpperCase();
-                const countryId = geo.id?.toString().toUpperCase();
-                const d = countryDataMap[countryId] || countryDataMap[countryName];
+                const countryId = geo.id?.toUpperCase();
+                const d = countryDataMap["USA"] && (countryName.includes("UNITED STATES") || countryId === "USA" || geo.properties.name === "United States")
+                  ? countryDataMap["USA"]
+                  : (countryDataMap[countryId] || countryDataMap[countryName]);
                 
                 return (
                   <Geography
@@ -138,7 +100,7 @@ const WorldMap: React.FC<WorldMapProps> = ({ data }) => {
                     onMouseLeave={() => setHoveredCountry(null)}
                     style={{
                       default: { outline: "none", transition: "all 250ms" },
-                      hover: { fill: d ? "#0f172a" : "#cbd5e1", outline: "none", cursor: d ? "pointer" : "default" },
+                      hover: { fill: d ? "#4338ca" : "#cbd5e1", outline: "none", cursor: d ? "pointer" : "default" },
                       pressed: { outline: "none" }
                     }}
                   />
@@ -165,9 +127,10 @@ const WorldMap: React.FC<WorldMapProps> = ({ data }) => {
             </div>
             <div className="flex justify-between gap-4 text-xs">
               <span className="text-slate-400">Part du portef.</span>
-              <span className="font-bold text-slate-200">{hoveredCountry.percentage.toFixed(1)}%</span>
+              <span className="font-bold text-emerald-400">{hoveredCountry.percentage}%</span>
             </div>
           </div>
+          {/* Arrow */}
           <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-full w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-slate-900"></div>
         </div>
       )}
@@ -176,22 +139,22 @@ const WorldMap: React.FC<WorldMapProps> = ({ data }) => {
       <div className="absolute bottom-4 right-4 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
         <button 
           onClick={() => setPosition(p => ({ ...p, zoom: Math.min(p.zoom * 1.5, 8) }))}
-          className="w-8 h-8 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md shadow-sm flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-50 transition-colors"
+          className="w-8 h-8 bg-white border border-slate-200 rounded-md shadow-sm flex items-center justify-center text-slate-600 hover:bg-slate-50 transition-colors"
         >
           +
         </button>
         <button 
           onClick={() => setPosition(p => ({ ...p, zoom: Math.max(p.zoom / 1.5, 1), coordinates: p.zoom <= 1.5 ? [0, 0] : p.coordinates }))}
-          className="w-8 h-8 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md shadow-sm flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-50 transition-colors"
+          className="w-8 h-8 bg-white border border-slate-200 rounded-md shadow-sm flex items-center justify-center text-slate-600 hover:bg-slate-50 transition-colors"
         >
           -
         </button>
       </div>
       
       {/* Legend */}
-      <div className="absolute bottom-4 left-4 p-2 bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm rounded-lg border border-slate-200 dark:border-slate-800 text-[10px] text-slate-500 shadow-sm">
+      <div className="absolute bottom-4 left-4 p-2 bg-white/80 backdrop-blur-sm rounded-lg border border-slate-200 text-[10px] text-slate-500 shadow-sm">
         <div className="flex items-center gap-2 mb-1">
-          <div className="w-24 h-1.5 bg-gradient-to-r from-[#f1f5f9] via-[#64748b] to-[#0f172a] rounded-full border border-slate-200 dark:border-slate-700" />
+          <div className="w-24 h-1.5 bg-gradient-to-r from-[#f1f5f9] via-[#818cf8] to-[#1e1b4b] rounded-full border border-slate-200" />
         </div>
         <div className="flex justify-between px-0.5 font-medium">
           <span>0</span>
