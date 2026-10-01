@@ -368,30 +368,32 @@ export default function Investments() {
                 <CardTitle className="text-base">Par Classe d'actif</CardTitle>
               </div>
             </CardHeader>
-            <CardContent className="h-[280px] flex flex-col items-center pt-4">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={advancedAllocation?.by_asset_class || []}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={85}
-                    paddingAngle={5}
-                    dataKey="value"
-                    nameKey="name"
-                    onClick={(data) => setDrillDown({ title: getDrilldownTitle("Classe d'actif", data), items: getDrilldownItems(data) })}
-                    className="cursor-pointer outline-none"
-                  >
-                    {(advancedAllocation?.by_asset_class || []).map((_: any, index: number) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} className="hover:opacity-80 transition-opacity" />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(value: number) => formatCurrency(value)} />
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="w-full space-y-1 mt-4 px-2">
-                {(advancedAllocation?.by_asset_class || []).slice(0, 3).map((item: any, i: number) => (
+            <CardContent className="p-5 flex flex-col items-center">
+              <div className="h-[190px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
+                    <Pie
+                      data={advancedAllocation?.by_asset_class || []}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={50}
+                      outerRadius={75}
+                      paddingAngle={4}
+                      dataKey="value"
+                      nameKey="name"
+                      onClick={(data) => setDrillDown({ title: getDrilldownTitle("Classe d'actif", data), items: getDrilldownItems(data) })}
+                      className="cursor-pointer outline-none"
+                    >
+                      {(advancedAllocation?.by_asset_class || []).map((_: any, index: number) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} className="hover:opacity-80 transition-opacity" />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value: number) => formatCurrency(value)} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="w-full space-y-1.5 mt-3 px-2">
+                {(advancedAllocation?.by_asset_class || []).slice(0, 4).map((item: any, i: number) => (
                   <div 
                     key={i} 
                     className="flex items-center justify-between text-xs cursor-pointer hover:text-slate-600 transition-colors"
@@ -420,34 +422,36 @@ export default function Investments() {
                 )}
               </div>
             </CardHeader>
-            <CardContent className="h-[280px] flex flex-col items-center pt-4">
+            <CardContent className="p-5 flex flex-col items-center">
               {(() => {
                 const sectorData = diversity && diversity.sectors.length > 0
                   ? diversity.sectors.map(s => ({ name: s.name, value: s.value_eur, percentage: s.percentage_stocks }))
                   : (advancedAllocation?.by_sector || [])
                 return (
                   <>
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={sectorData}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={60}
-                          outerRadius={85}
-                          paddingAngle={5}
-                          dataKey="value"
-                          nameKey="name"
-                          className="outline-none"
-                        >
-                          {sectorData.map((_: any, index: number) => (
-                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} className="hover:opacity-80 transition-opacity" />
-                          ))}
-                        </Pie>
-                        <Tooltip formatter={(value: number) => formatCurrency(value)} />
-                      </PieChart>
-                    </ResponsiveContainer>
-                    <div className="w-full space-y-1 mt-4 px-2">
+                    <div className="h-[190px] w-full">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
+                          <Pie
+                            data={sectorData}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={50}
+                            outerRadius={75}
+                            paddingAngle={4}
+                            dataKey="value"
+                            nameKey="name"
+                            className="outline-none"
+                          >
+                            {sectorData.map((_: any, index: number) => (
+                              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} className="hover:opacity-80 transition-opacity" />
+                            ))}
+                          </Pie>
+                          <Tooltip formatter={(value: number) => formatCurrency(value)} />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+                    <div className="w-full space-y-1.5 mt-3 px-2">
                       {sectorData.slice(0, 4).map((item: any, i: number) => (
                         <div 
                           key={i} 
