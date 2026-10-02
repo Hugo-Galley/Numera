@@ -78,9 +78,9 @@ export function InvestmentsTab({
           </div>
           <CardDescription>Part de chaque compte investi.</CardDescription>
         </CardHeader>
-        <CardContent className="p-6 h-[400px]">
+        <CardContent className="p-6 h-[400px] flex items-center justify-center relative">
           <ResponsiveContainer width="100%" height="100%">
-            <PieChart margin={{ top: 20, right: 20, left: 20, bottom: 20 }}>
+            <PieChart margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
               <Pie 
                 data={allocation?.items || []} 
                 cx="50%" 
@@ -98,6 +98,16 @@ export function InvestmentsTab({
               <Tooltip contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} formatter={(v: number) => formatCurrency(v, displayCurrency)} />
             </PieChart>
           </ResponsiveContainer>
+          {/* Center Text (Total) */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total</span>
+            <span className="text-lg font-black text-slate-800 amount-blur">
+              {formatCurrency(allocation?.total_current_value || 0, displayCurrency)}
+            </span>
+            <span className="text-[11px] text-muted-foreground font-medium">
+              {allocation?.items?.length || 0} {allocation?.items?.length > 1 ? "comptes" : "compte"}
+            </span>
+          </div>
         </CardContent>
       </Card>
     </div>

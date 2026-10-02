@@ -222,71 +222,88 @@ export default function Investments() {
           <h2 className="text-xl font-bold tracking-tight">Répartition par compte</h2>
           <p className="text-sm text-muted-foreground">Vos investissements séparés par enveloppe.</p>
         </div>
-        <div className="grid gap-4 grid-cols-1 lg:grid-cols-7">
-          <Card className="lg:col-span-4 shadow-sm">
-            <CardContent className="h-[350px] p-4">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
-                  <Pie
-                    data={chartData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={window.innerWidth < 640 ? 60 : 90}
-                    outerRadius={window.innerWidth < 640 ? 100 : 130}
-                    paddingAngle={5}
-                    dataKey="value"
-                    nameKey="name"
-                    onClick={(data) => handleAccountClick(data.id)}
-                    className="cursor-pointer outline-none"
-                  >
-                    {chartData.map((entry: any, index: number) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} className="hover:opacity-80 transition-opacity" />
-                    ))}
-                  </Pie>
-                  <Tooltip 
-                    formatter={(value: number, name: string) => [formatCurrency(value), name]}
-                    contentStyle={{ borderRadius: "8px", border: "1px solid #e2e8f0" }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-          <Card className="lg:col-span-3 shadow-sm">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">Détails de l'allocation</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-5">
-                {allocation?.items.map((item: any, i: number) => (
+        <Card className="shadow-sm border-slate-100 overflow-hidden">
+          <CardHeader className="bg-slate-50/50 border-b pb-4 flex flex-row items-center justify-between">
+            <CardTitle className="text-base font-bold">Détails de l'allocation</CardTitle>
+            <span className="text-sm font-semibold text-slate-500 bg-slate-100/80 px-3 py-1 rounded-lg">
+              Total : <span className="amount-blur text-slate-900 font-bold">{formatCurrency(allocation?.total_current_value || 0)}</span>
+            </span>
+          </CardHeader>
+          <CardContent className="p-6">
+            <div className="grid gap-8 lg:grid-cols-12 items-center">
+              {/* Donut Chart */}
+              <div className="lg:col-span-5 h-[300px] flex items-center justify-center relative">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
+                    <Pie
+                      data={chartData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={75}
+                      outerRadius={105}
+                      paddingAngle={3}
+                      dataKey="value"
+                      nameKey="name"
+                      onClick={(data) => handleAccountClick(data.id)}
+                      className="cursor-pointer outline-none"
+                    >
+                      {chartData.map((entry: any, index: number) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} className="hover:opacity-80 transition-opacity" />
+                      ))}
+                    </Pie>
+                    <Tooltip 
+                      formatter={(value: number, name: string) => [formatCurrency(value), name]}
+                      contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+                {/* Center Text (Total) */}
+                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                  <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total</span>
+                  <span className="text-lg font-bold text-slate-800 amount-blur">
+                    {formatCurrency(allocation?.total_current_value || 0)}
+                  </span>
+                  <span className="text-[11px] text-muted-foreground font-medium">
+                    {allocation?.items?.length || 0} {allocation?.items?.length > 1 ? "comptes" : "compte"}
+                  </span>
+                </div>
+              </div>
+
+              {/* Détails de l'allocation */}
+              <div className="lg:col-span-7 space-y-2.5 max-h-[300px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-slate-200">
+                {allocation?.items?.map((item: any, i: number) => (
                   <div 
                     key={i} 
-                    className="flex flex-col gap-1 cursor-pointer hover:bg-slate-50 p-2 -mx-2 rounded-lg transition-colors group"
+                    className="flex flex-col gap-1 cursor-pointer hover:bg-slate-50/80 p-2.5 rounded-xl border border-slate-100 hover:border-slate-200 transition-all group"
                     onClick={() => handleAccountClick(item.account_id)}
                   >
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="h-3 w-3 rounded-full shrink-0" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
-                        <span className="font-medium text-sm truncate max-w-[150px] sm:max-w-none group-hover:text-slate-600 transition-colors">
+                      <div className="flex items-center gap-2.5">
+                        <div 
+                          className="h-3 w-3 rounded-full shrink-0" 
+                          style={{ backgroundColor: COLORS[i % COLORS.length] }} 
+                        />
+                        <span className="font-semibold text-sm truncate max-w-[180px] sm:max-w-none text-slate-800 group-hover:text-slate-900 transition-colors">
                           {item.account_name} 
                           {item.currency && item.currency !== "EUR" && (
-                            <span className="text-xs text-muted-foreground ml-1">({item.currency})</span>
+                            <span className="text-xs text-muted-foreground ml-1.5 font-normal">({item.currency})</span>
                           )}
                         </span>
                       </div>
-                      <span className="font-bold text-sm shrink-0">{item.percentage.toFixed(1)}%</span>
+                      <span className="font-bold text-sm text-slate-700 shrink-0">{item.percentage?.toFixed(1) || 0}%</span>
                     </div>
-                    <div className="flex justify-between text-xs text-muted-foreground ml-5">
-                      <span className="amount-blur">{formatCurrency(item.current_value)}</span>
-                      <span className={`amount-blur ${item.gain_eur >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
-                        {item.gain_eur >= 0 ? "+" : ""}{formatCurrency(item.gain_eur)}
+                    <div className="flex justify-between text-xs text-muted-foreground pl-5.5">
+                      <span className="amount-blur font-medium">{formatCurrency(item.current_value)}</span>
+                      <span className={`amount-blur font-medium ${item.gain_eur >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
+                        {item.gain_eur >= 0 ? "+" : ""}{formatCurrency(item.gain_eur)} ({item.gain_pct?.toFixed(2) || 0}%)
                       </span>
                     </div>
                   </div>
                 ))}
               </div>
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Section 2: Performance détaillée */}
