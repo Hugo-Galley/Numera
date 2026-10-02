@@ -487,17 +487,18 @@ export default function RecurringTransactions() {
                               isin={tx.isin || undefined}
                               className="h-8 w-8 rounded-lg shadow-2xs shrink-0"
                             />
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <span className="font-bold text-slate-900">{tx.name}</span>
+                            <div className="flex flex-col min-w-0">
+                              <span className="font-bold text-slate-900 text-sm truncate max-w-[260px]" title={tx.name}>
+                                {tx.name}
+                              </span>
+                              <div className="text-[11px] text-slate-500 font-medium mt-0.5 flex items-center gap-1.5 flex-wrap">
                                 {tx.ticker && (
-                                  <Badge variant="outline" className="text-[10px] font-mono px-1.5 py-0 h-4 font-semibold text-slate-800">
-                                    {tx.ticker}
-                                  </Badge>
+                                  <>
+                                    <span className="font-mono text-slate-400 text-[10px] font-semibold uppercase">{tx.ticker}</span>
+                                    <span className="text-slate-300">•</span>
+                                  </>
                                 )}
-                              </div>
-                              <div className="text-[10px] text-slate-500 font-medium uppercase mt-0.5 flex items-center gap-1.5 flex-wrap">
-                                <span>{accounts.find(a => a.id === tx.account_id)?.name}</span>
+                                <span className="text-slate-600">{accounts.find(a => a.id === tx.account_id)?.name}</span>
                                 <span>•</span>
                                 {tx.quantity != null && tx.quantity > 0 ? (
                                   <>

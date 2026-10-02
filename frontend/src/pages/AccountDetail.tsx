@@ -1988,9 +1988,22 @@ export default function AccountDetail() {
                      <TableRow key={tx.id + (tx.is_regular ? "-reg" : "-inv")}>
                        <TableCell className="text-xs">{format(new Date(tx.date), "dd/MM/yyyy")}</TableCell>
                        <TableCell>
-                         <div className="flex flex-col gap-1">
-                           <Badge variant="outline" className="capitalize w-fit">{tx.type}</Badge>
-                           {tx.note && <span className="text-[10px] text-slate-500 line-clamp-1">{tx.note}</span>}
+                         <div className="flex flex-col gap-0.5">
+                           <div className="flex items-center gap-2">
+                             <Badge variant="outline" className="capitalize w-fit text-[10px] py-0 h-4">{tx.type}</Badge>
+                             <span className="font-bold text-xs text-slate-900 line-clamp-1">{tx.note || tx.ticker || "Transaction"}</span>
+                           </div>
+                           {tx.ticker && (
+                             <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-mono mt-0.5">
+                               <span className="font-medium">{tx.ticker}</span>
+                               {tx.quantity != null && (
+                                 <span>• {tx.quantity} part{tx.quantity > 1 ? "s" : ""}</span>
+                               )}
+                               {tx.unit_price != null && (
+                                 <span>@ {formatCurrency(tx.unit_price)}</span>
+                               )}
+                             </div>
+                           )}
                          </div>
                        </TableCell>
                        <TableCell className="text-right font-bold">

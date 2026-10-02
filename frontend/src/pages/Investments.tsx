@@ -565,13 +565,18 @@ export default function Investments() {
                               return (
                                 <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-md text-xs space-y-1.5 min-w-[210px]">
                                   <div className="flex items-center justify-between border-b pb-1.5 gap-2">
-                                    <div className="flex items-center gap-2 min-w-0">
+                                    <div className="flex items-center gap-2.5 min-w-0">
                                       <CompanyLogo
                                         ticker={d.ticker}
                                         name={label || d.name}
-                                        className="h-5 w-5 rounded-xs shrink-0"
+                                        className="h-6 w-6 rounded-md shadow-2xs shrink-0"
                                       />
-                                      <span className="font-semibold text-slate-900 truncate">{label || d.name}</span>
+                                      <div className="flex flex-col min-w-0">
+                                        <span className="font-bold text-slate-900 truncate">{label || d.name}</span>
+                                        {d.ticker && (
+                                          <span className="text-[10px] text-slate-400 font-mono font-medium">{d.ticker}</span>
+                                        )}
+                                      </div>
                                     </div>
                                     {d.has_overlap && (
                                       <Badge variant="outline" className="text-[9px] px-1 py-0 font-normal shrink-0">

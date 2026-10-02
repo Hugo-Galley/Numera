@@ -414,15 +414,14 @@ export default function Calendar() {
                           <ArrowUpCircle className="h-8 w-8 text-emerald-500" />
                         )}
                         <div>
-                          <div className="flex items-center gap-1.5">
-                            <p className="text-sm font-bold text-slate-900">{ev.name}</p>
-                            {ev.ticker && (
-                              <Badge variant="outline" className="text-[9px] font-mono px-1 py-0 h-4">
-                                {ev.ticker}
-                              </Badge>
-                            )}
-                          </div>
+                          <p className="text-sm font-bold text-slate-900">{ev.name}</p>
                           <div className="flex items-center gap-1.5 mt-0.5">
+                            {ev.ticker && (
+                              <>
+                                <span className="text-[10px] text-slate-400 font-mono font-medium">{ev.ticker}</span>
+                                <span className="text-slate-300">•</span>
+                              </>
+                            )}
                             {ev.is_projected && <Badge variant="secondary" className="h-4 text-[9px] px-1 bg-amber-100 text-amber-700 hover:bg-amber-100 border-none">PRÉVU</Badge>}
                             <span className="text-[10px] text-slate-500 uppercase font-medium tracking-wider">{ev.type}</span>
                             {ev.quantity && (

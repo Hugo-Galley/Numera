@@ -153,10 +153,18 @@ export function HoldingsTable({
                               className="h-8 w-8 rounded-lg"
                             />
                             <div className="flex flex-col min-w-0">
-                              <span className="font-bold text-slate-900 text-sm">{h.ticker}</span>
-                              <span className="text-xs text-slate-500 truncate max-w-[220px]" title={h.asset_name}>
-                                {h.asset_name}
+                              <span className="font-bold text-slate-900 text-sm truncate max-w-[260px]" title={h.asset_name || h.ticker}>
+                                {h.asset_name || h.ticker}
                               </span>
+                              <div className="flex items-center gap-1.5 text-xs text-slate-400 font-mono mt-0.5">
+                                <span className="font-medium text-slate-400">{h.ticker}</span>
+                                {h.isin && (
+                                  <>
+                                    <span className="text-slate-300">•</span>
+                                    <span className="text-slate-400 text-[11px]">{h.isin}</span>
+                                  </>
+                                )}
+                              </div>
                             </div>
                           </div>
                         </TableCell>
