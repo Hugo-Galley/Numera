@@ -149,6 +149,7 @@ export function HoldingsTable({
                             <CompanyLogo
                               ticker={h.ticker}
                               name={h.asset_name}
+                              isin={h.isin}
                               className="h-8 w-8 rounded-lg"
                             />
                             <div className="flex flex-col min-w-0">

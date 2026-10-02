@@ -195,6 +195,7 @@ export function SecuritySearchInput({
                   <CompanyLogo
                     ticker={asset.symbol}
                     name={asset.name}
+                    isin={asset.isin}
                     className="h-7 w-7 rounded-md shrink-0 shadow-2xs"
                   />
                   <div className="min-w-0">
@@ -237,7 +238,7 @@ export function SecuritySearchInput({
             />
             {ticker && (
               <div className="absolute right-2 top-2">
-                <CompanyLogo ticker={ticker} name={name} className="h-4 w-4 rounded-xs shrink-0" />
+                <CompanyLogo ticker={ticker} name={name} isin={isin} className="h-4 w-4 rounded-xs shrink-0" />
               </div>
             )}
           </div>
@@ -271,6 +272,7 @@ export function SecuritySearchInput({
                 <CompanyLogo
                   ticker={validationInfo.symbol || ticker}
                   name={validationInfo.name || name}
+                  isin={validationInfo.isin || isin}
                   className="h-6 w-6 rounded-md shadow-2xs shrink-0"
                 />
                 <div className="min-w-0">

@@ -484,6 +484,7 @@ export default function RecurringTransactions() {
                             <CompanyLogo
                               ticker={tx.ticker || undefined}
                               name={tx.name}
+                              isin={tx.isin || undefined}
                               className="h-8 w-8 rounded-lg shadow-2xs shrink-0"
                             />
                             <div>
@@ -879,6 +880,7 @@ export default function RecurringTransactions() {
                   <CompanyLogo
                     ticker={formData.ticker}
                     name={formData.name}
+                    isin={formData.isin}
                     className="h-5 w-5 rounded-xs shrink-0"
                   />
                   <span className="text-xs font-bold uppercase tracking-wider text-slate-700">
