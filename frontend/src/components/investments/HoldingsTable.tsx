@@ -1,8 +1,9 @@
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { PortfolioHolding } from "@/types/diversity"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Input } from "@/components/ui/input"
 import {
   Table,
   TableHeader,
@@ -11,11 +12,15 @@ import {
   TableHead,
   TableCell,
 } from "@/components/ui/table"
-import { SlidersHorizontal, Trash2, Globe, Layers } from "lucide-react"
+import { SlidersHorizontal, Trash2, Globe, Layers, Search, X } from "lucide-react"
 import { PointZeroModal } from "./PointZeroModal"
 import { api } from "@/lib/api"
 import { toast } from "sonner"
 import { CompanyLogo } from "@/components/ui/CompanyLogo"
+import { cn } from "@/lib/utils"
+
+type TypeFilter = "all" | "action" | "etf"
+type PerfFilter = "all" | "gain" | "loss"
 
 interface HoldingsTableProps {
   accountId: number
@@ -32,6 +37,32 @@ export function HoldingsTable({
 }: HoldingsTableProps) {
   const [pointZeroOpen, setPointZeroOpen] = useState(false)
   const [decomposingId, setDecomposingId] = useState<number | null>(null)
+  const [search, setSearch] = useState("")
+  const [typeFilter, setTypeFilter] = useState<TypeFilter>("all")
+  const [perfFilter, setPerfFilter] = useState<PerfFilter>("all")
+
+  const filteredHoldings = useMemo(() => {
+    return holdings.filter((h) => {
+      // Text search
+      if (search.trim().length >= 1) {
+        const q = search.toLowerCase()
+        if (
+          !h.asset_name?.toLowerCase().includes(q) &&
+          !h.ticker?.toLowerCase().includes(q) &&
+          !h.isin?.toLowerCase().includes(q)
+        ) return false
+      }
+      // Type filter
+      if (typeFilter === "etf" && !h.is_etf && !h.etf_profile_id) return false
+      if (typeFilter === "action" && (h.is_etf || h.etf_profile_id)) return false
+      // Perf filter
+      if (perfFilter === "gain" && (h.gain_eur === undefined || h.gain_eur === null || h.gain_eur < 0)) return false
+      if (perfFilter === "loss" && (h.gain_eur === undefined || h.gain_eur === null || h.gain_eur >= 0)) return false
+      return true
+    })
+  }, [holdings, search, typeFilter, perfFilter])
+
+  const hasActiveFilters = search.trim().length > 0 || typeFilter !== "all" || perfFilter !== "all"
 
   const handleDecompose = async (h: PortfolioHolding) => {
     setDecomposingId(h.id)
@@ -63,7 +94,7 @@ export function HoldingsTable({
     return new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(val)
   }
 
-  const totalValue = holdings.reduce((acc, h) => acc + (h.current_value_eur || 0), 0)
+  const totalValue = filteredHoldings.reduce((acc, h) => acc + (h.current_value_eur || 0), 0)
 
   const handleDelete = async (holdingId: number, name: string) => {
     if (!confirm(`Supprimer la position sur ${name} ?`)) return
@@ -76,30 +107,107 @@ export function HoldingsTable({
     }
   }
 
+  const resetFilters = () => {
+    setSearch("")
+    setTypeFilter("all")
+    setPerfFilter("all")
+  }
+
   return (
     <>
       <Card className="shadow-sm">
-        <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b gap-3">
-          <div>
-            <div className="flex items-center gap-2">
-              <Layers className="h-5 w-5 text-slate-500" />
-              <CardTitle className="text-lg font-bold">Positions Actuelles (Actions & ETFs)</CardTitle>
+        <CardHeader className="flex flex-col gap-4 pb-4 border-b">
+          {/* Title + action button */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <div className="flex items-center gap-2">
+                <Layers className="h-5 w-5 text-slate-500" />
+                <CardTitle className="text-lg font-bold">Positions Actuelles (Actions & ETFs)</CardTitle>
+              </div>
+              <CardDescription className="text-sm mt-1">
+                Valorisation en direct de vos lignes boursières au cours de marché.
+              </CardDescription>
             </div>
-            <CardDescription className="text-sm mt-1">
-              Valorisation en direct de vos lignes boursières au cours de marché.
-            </CardDescription>
-          </div>
-
-          <div className="flex items-center gap-2">
             <Button
               size="sm"
               onClick={() => setPointZeroOpen(true)}
-              className="gap-2"
+              className="gap-2 shrink-0"
             >
               <SlidersHorizontal className="h-4 w-4" />
               Point Zéro / État des Lieux
             </Button>
           </div>
+
+          {/* Filter bar — only shown when there are holdings */}
+          {holdings.length > 0 && (
+            <div className="flex flex-col sm:flex-row gap-2.5 items-stretch sm:items-center">
+              {/* Search */}
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 pointer-events-none" />
+                <Input
+                  placeholder="Rechercher par nom, ticker, ISIN..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="pl-8 h-8 text-sm bg-slate-50 border-slate-200 focus-visible:ring-1 focus-visible:ring-slate-300"
+                />
+                {search && (
+                  <button
+                    onClick={() => setSearch("")}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                )}
+              </div>
+
+              {/* Type filter */}
+              <div className="flex items-center gap-1 bg-slate-100 rounded-lg p-1 shrink-0">
+                {(["all", "action", "etf"] as TypeFilter[]).map((v) => (
+                  <button
+                    key={v}
+                    onClick={() => setTypeFilter(v)}
+                    className={cn(
+                      "px-2.5 py-1 rounded-md text-xs font-semibold transition-all",
+                      typeFilter === v
+                        ? "bg-white text-slate-900 shadow-sm"
+                        : "text-slate-500 hover:text-slate-700"
+                    )}
+                  >
+                    {v === "all" ? "Tous" : v === "action" ? "Actions" : "ETFs"}
+                  </button>
+                ))}
+              </div>
+
+              {/* Perf filter */}
+              <div className="flex items-center gap-1 bg-slate-100 rounded-lg p-1 shrink-0">
+                {(["all", "gain", "loss"] as PerfFilter[]).map((v) => (
+                  <button
+                    key={v}
+                    onClick={() => setPerfFilter(v)}
+                    className={cn(
+                      "px-2.5 py-1 rounded-md text-xs font-semibold transition-all",
+                      perfFilter === v && v === "all" && "bg-white text-slate-900 shadow-sm",
+                      perfFilter === v && v === "gain" && "bg-white text-emerald-600 shadow-sm",
+                      perfFilter === v && v === "loss" && "bg-white text-rose-600 shadow-sm",
+                      perfFilter !== v && "text-slate-500 hover:text-slate-700",
+                    )}
+                  >
+                    {v === "all" ? "Tous" : v === "gain" ? "📈 En gain" : "📉 En perte"}
+                  </button>
+                ))}
+              </div>
+
+              {/* Reset */}
+              {hasActiveFilters && (
+                <button
+                  onClick={resetFilters}
+                  className="text-xs text-slate-400 hover:text-slate-600 transition-colors shrink-0 flex items-center gap-1"
+                >
+                  <X className="h-3 w-3" /> Réinitialiser
+                </button>
+              )}
+            </div>
+          )}
         </CardHeader>
 
         <CardContent className="p-0">
@@ -123,8 +231,27 @@ export function HoldingsTable({
                 Définir l'état des lieux
               </Button>
             </div>
+          ) : filteredHoldings.length === 0 ? (
+            /* Empty state when filters return nothing */
+            <div className="py-12 text-center">
+              <div className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-slate-50 mb-3 text-slate-300">
+                <Search className="h-5 w-5" />
+              </div>
+              <p className="text-slate-500 font-medium text-sm">Aucune position ne correspond aux filtres</p>
+              <button
+                onClick={resetFilters}
+                className="mt-2 text-xs text-slate-400 hover:text-slate-600 underline underline-offset-2 transition-colors"
+              >
+                Réinitialiser les filtres
+              </button>
+            </div>
           ) : (
             <div className="overflow-x-auto">
+              {hasActiveFilters && (
+                <div className="px-4 py-2 text-xs text-slate-400 border-b bg-slate-50/50">
+                  {filteredHoldings.length} résultat{filteredHoldings.length > 1 ? "s" : ""} sur {holdings.length} position{holdings.length > 1 ? "s" : ""}
+                </div>
+              )}
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -139,7 +266,7 @@ export function HoldingsTable({
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {holdings.map((h) => {
+                  {filteredHoldings.map((h) => {
                     const weightPct = totalValue > 0 ? ((h.current_value_eur || 0) / totalValue) * 100 : 0
 
                     return (
