@@ -850,6 +850,451 @@ def get_money_flow(
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# TOOLS — Portfolio & ETF
+# ═══════════════════════════════════════════════════════════════════════════════
+
+@mcp.tool()
+def list_holdings(account_id: int | None = None) -> str:
+    """Liste toutes les positions du portefeuille (actions et ETF) avec prix live, performance et gain.
+
+    Chaque position inclut :
+    - ticker, ISIN, nom de l'actif
+    - quantité et prix moyen d'achat (buy_price_avg)
+    - prix actuel et valeur actuelle en EUR
+    - gain en EUR et pourcentage de performance
+    - si c'est un ETF (is_etf)
+
+    Args:
+        account_id: Filtrer par compte d'investissement (optionnel)
+    """
+    try:
+        params: dict[str, Any] = {}
+        if account_id is not None:
+            params["account_id"] = account_id
+        resp = api.get("/holdings", params=params)
+        error = handle_response(resp)
+        if error:
+            return error
+        holdings = resp.json()
+        simplified = []
+        for h in holdings:
+            simplified.append({
+                "id": h["id"],
+                "compte": h.get("account_id"),
+                "ticker": h.get("ticker", ""),
+                "nom": h.get("asset_name", ""),
+                "isin": h.get("isin") or "—",
+                "quantite": h.get("quantity", 0),
+                "px_achat_moy": h.get("buy_price_avg") or "—",
+                "px_actuel_EUR": h.get("current_price_eur") or "—",
+                "valeur_EUR": h.get("current_value_eur") or "—",
+                "investi_EUR": h.get("total_invested_eur") or "—",
+                "gain_EUR": h.get("gain_eur") or "—",
+                "gain_%": h.get("gain_pct") or "—",
+                "etf": "✅" if h.get("is_etf") else "📈",
+            })
+        return f"📊 {len(simplified)} position(s) :\n\n" + format_table(simplified)
+    except Exception as e:
+        return f"❌ Erreur : {e}"
+
+
+@mcp.tool()
+def add_holding(
+    account_id: int,
+    ticker: str,
+    asset_name: str,
+    quantity: float,
+    buy_price_avg: float | None = None,
+    currency: str = "EUR",
+    isin: str | None = None,
+    etf_profile_id: int | None = None,
+) -> str:
+    """Ajoute une position dans le portefeuille (Point Zéro / état des lieux initial).
+
+    Utilisé pour enregistrer une position existante sans créer de transaction historique.
+    Pour les nouvelles opérations d'achat/vente, préférer add_investment_transaction.
+
+    Args:
+        account_id: ID du compte d'investissement
+        ticker: Symbole boursier (ex: MSFT, CW8.PA, LCWD.PA)
+        asset_name: Nom de l'actif (ex: Microsoft, Amundi World)
+        quantity: Nombre de parts/actions détenues
+        buy_price_avg: Prix moyen d'achat par unité (optionnel)
+        currency: Devise (défaut EUR)
+        isin: Code ISIN (optionnel, ex: IE00B4L5Y983)
+        etf_profile_id: ID du profil ETF si connu (optionnel)
+    """
+    try:
+        payload: dict[str, Any] = {
+            "account_id": account_id,
+            "ticker": ticker,
+            "asset_name": asset_name,
+            "quantity": quantity,
+            "currency": currency,
+        }
+        if buy_price_avg is not None:
+            payload["buy_price_avg"] = buy_price_avg
+        if isin:
+            payload["isin"] = isin
+        if etf_profile_id is not None:
+            payload["etf_profile_id"] = etf_profile_id
+        resp = api.post("/holdings", json_data=payload)
+        error = handle_response(resp)
+        if error:
+            return error
+        h = resp.json()
+        return (
+            f"✅ Position '{h['asset_name']}' ({h['ticker']}) créée (ID: #{h['id']})\n"
+            f"  📦 Quantité : {h['quantity']}\n"
+            f"  💰 Prix moyen : {h.get('buy_price_avg') or '—'} {h.get('currency', 'EUR')}\n"
+        )
+    except Exception as e:
+        return f"❌ Erreur : {e}"
+
+
+@mcp.tool()
+def delete_holding(holding_id: int) -> str:
+    """Supprime une position du portefeuille. ⚠️ Action irréversible !
+
+    Args:
+        holding_id: ID de la position à supprimer (obtenir via list_holdings)
+    """
+    try:
+        resp = api.delete(f"/holdings/{holding_id}")
+        if resp.status_code == 204:
+            return f"🗑️ Position #{holding_id} supprimée."
+        error = handle_response(resp)
+        return error or f"🗑️ Position #{holding_id} supprimée."
+    except Exception as e:
+        return f"❌ Erreur : {e}"
+
+
+@mcp.tool()
+def list_investment_transactions(account_id: int | None = None, limit: int = 50) -> str:
+    """Liste les transactions d'investissement : achats, ventes et dividendes avec ticker, ISIN, quantité et prix unitaire.
+
+    Ces transactions sont distinctes des transactions bancaires classiques.
+    Elles tracent les opérations sur titres (actions / ETF).
+
+    Types : versement (achat/dépôt), retrait (vente), dividende
+
+    Args:
+        account_id: Filtrer par compte d'investissement (optionnel)
+        limit: Nombre max de résultats (défaut 50, max 500)
+    """
+    try:
+        params: dict[str, Any] = {"limit": min(limit, 500)}
+        if account_id is not None:
+            params["account_id"] = account_id
+        resp = api.get("/investment-transactions", params=params)
+        error = handle_response(resp)
+        if error:
+            return error
+        txs = resp.json()
+        simplified = []
+        for tx in txs:
+            simplified.append({
+                "id": tx["id"],
+                "date": tx["date"][:10] if tx.get("date") else "",
+                "type": tx.get("type", ""),
+                "ticker": tx.get("ticker") or "—",
+                "isin": tx.get("isin") or "—",
+                "quantite": tx.get("quantity") or "—",
+                "px_unit": tx.get("unit_price") or "—",
+                "montant": tx.get("amount", 0),
+                "devise": tx.get("currency", "EUR"),
+                "note": (tx.get("note") or "")[:40],
+            })
+        return f"📈 {len(simplified)} transaction(s) d'investissement :\n\n" + format_table(simplified)
+    except Exception as e:
+        return f"❌ Erreur : {e}"
+
+
+@mcp.tool()
+def add_investment_transaction(
+    account_id: int,
+    date: str,
+    type: str,
+    amount: float,
+    ticker: str | None = None,
+    isin: str | None = None,
+    quantity: float | None = None,
+    unit_price: float | None = None,
+    note: str | None = None,
+    currency: str = "EUR",
+    asset_class: str | None = None,
+    sector: str | None = None,
+    geographic_zone: str | None = None,
+    etf_profile_id: int | None = None,
+) -> str:
+    """Enregistre une transaction d'investissement (achat, vente, dividende).
+
+    ⚡ Si ticker + quantité sont fournis, la position (holding) est automatiquement mise à jour.
+
+    Args:
+        account_id: ID du compte d'investissement
+        date: Date (YYYY-MM-DDTHH:MM:SS ou YYYY-MM-DD)
+        type: Type : versement (achat/dépôt), retrait (vente), dividende
+        amount: Montant total de la transaction (toujours positif)
+        ticker: Symbole boursier (ex: MSFT, CW8.PA) (optionnel mais recommandé)
+        isin: Code ISIN (optionnel, ex: IE00B4L5Y983)
+        quantity: Nombre de parts achetées/vendues (optionnel)
+        unit_price: Prix unitaire par part (optionnel)
+        note: Description (ex: "Achat iShares World ETF") (optionnel)
+        currency: Devise (défaut EUR)
+        asset_class: Classe d'actif (ex: Actions, Obligations, Immobilier) (optionnel)
+        sector: Secteur (ex: Technologie, Santé, Finance) (optionnel)
+        geographic_zone: Zone géo (ex: Monde, USA, Europe, Emergents) (optionnel)
+        etf_profile_id: ID du profil ETF lié (optionnel, voir list_etf_profiles)
+    """
+    try:
+        if type not in ("versement", "retrait", "dividende"):
+            return "❌ Type invalide. Valeurs acceptées : versement, retrait, dividende"
+        if amount <= 0:
+            return "❌ Le montant doit être positif."
+        if "T" not in date:
+            date = date + "T00:00:00"
+
+        payload: dict[str, Any] = {
+            "account_id": account_id,
+            "date": date,
+            "type": type,
+            "amount": amount,
+            "currency": currency,
+        }
+        if ticker:
+            payload["ticker"] = ticker
+        if isin:
+            payload["isin"] = isin
+        if quantity is not None:
+            payload["quantity"] = quantity
+        if unit_price is not None:
+            payload["unit_price"] = unit_price
+        if note:
+            payload["note"] = note
+        if asset_class:
+            payload["asset_class"] = asset_class
+        if sector:
+            payload["sector"] = sector
+        if geographic_zone:
+            payload["geographic_zone"] = geographic_zone
+        if etf_profile_id is not None:
+            payload["etf_profile_id"] = etf_profile_id
+
+        resp = api.post("/investment-transactions", json_data=payload)
+        error = handle_response(resp)
+        if error:
+            return error
+        tx = resp.json()
+        return (
+            f"✅ Transaction d'investissement #{tx['id']} enregistrée !\n"
+            f"  📅 Date : {tx['date'][:10]}\n"
+            f"  🔤 Type : {tx['type']}\n"
+            f"  📊 Ticker : {tx.get('ticker') or '—'}\n"
+            f"  📦 Quantité : {tx.get('quantity') or '—'}\n"
+            f"  💰 Montant : {tx['amount']:,.2f} {tx.get('currency', 'EUR')}\n"
+        )
+    except Exception as e:
+        return f"❌ Erreur : {e}"
+
+
+@mcp.tool()
+def delete_investment_transaction(transaction_id: int) -> str:
+    """Supprime une transaction d'investissement. ⚠️ Action irréversible !
+
+    Args:
+        transaction_id: ID de la transaction (obtenir via list_investment_transactions)
+    """
+    try:
+        resp = api.delete(f"/investment-transactions/{transaction_id}")
+        if resp.status_code == 204:
+            return f"🗑️ Transaction d'investissement #{transaction_id} supprimée."
+        error = handle_response(resp)
+        return error or f"🗑️ Transaction d'investissement #{transaction_id} supprimée."
+    except Exception as e:
+        return f"❌ Erreur : {e}"
+
+
+@mcp.tool()
+def list_etf_profiles() -> str:
+    """Liste tous les profils ETF connus avec leur composition par pays, secteurs et top holdings.
+
+    Utile pour comprendre ce que contient réellement un ETF.
+    Les profils système (is_system ✅) sont des présets intégrés à Numera.
+    Les profils personnalisés (📝) ont été générés automatiquement ou manuellement.
+    """
+    try:
+        resp = api.get("/etf-profiles")
+        error = handle_response(resp)
+        if error:
+            return error
+        profiles = resp.json()
+        simplified = []
+        for p in profiles:
+            top = p.get("top_holdings", [])
+            top_names = ", ".join(h.get("name", "") for h in top[:3]) if top else "—"
+            countries = p.get("countries", {})
+            top_countries = ", ".join(list(countries.keys())[:3]) if countries else "—"
+            simplified.append({
+                "id": p["id"],
+                "nom": p.get("name", ""),
+                "ticker": p.get("ticker", ""),
+                "isin": p.get("isin") or "—",
+                "top_pays": top_countries,
+                "top_holdings": top_names,
+                "systeme": "✅" if p.get("is_system") else "📝",
+            })
+        return f"🗂️ {len(simplified)} profil(s) ETF :\n\n" + format_table(simplified)
+    except Exception as e:
+        return f"❌ Erreur : {e}"
+
+
+@mcp.tool()
+def get_etf_profile(profile_id: int) -> str:
+    """Récupère le détail complet d'un profil ETF : pays (%), secteurs (%) et top 10 positions.
+
+    Args:
+        profile_id: ID du profil ETF (obtenir via list_etf_profiles)
+    """
+    try:
+        resp = api.get(f"/etf-profiles/{profile_id}")
+        error = handle_response(resp)
+        if error:
+            return error
+        data = resp.json()
+        lines = [
+            f"🗂️ ETF : {data.get('name', '')} ({data.get('ticker', '')})",
+            f"   ISIN : {data.get('isin') or '—'}",
+            "",
+        ]
+        countries = data.get("countries", {})
+        if countries:
+            lines.append("🌍 Pays :")
+            for country, pct in sorted(countries.items(), key=lambda x: -float(x[1]))[:10]:
+                lines.append(f"  • {country} : {pct}%")
+            lines.append("")
+        sectors = data.get("sectors", {})
+        if sectors:
+            lines.append("🏭 Secteurs :")
+            for sector, pct in sorted(sectors.items(), key=lambda x: -float(x[1]))[:10]:
+                lines.append(f"  • {sector} : {pct}%")
+            lines.append("")
+        top_holdings = data.get("top_holdings", [])
+        if top_holdings:
+            lines.append("🏢 Top Holdings :")
+            for h in top_holdings[:10]:
+                ticker_str = f" ({h.get('ticker')})" if h.get("ticker") else ""
+                lines.append(f"  • {h.get('name', '')}{ticker_str} : {h.get('weight', 0)}%")
+        return "\n".join(lines)
+    except Exception as e:
+        return f"❌ Erreur : {e}"
+
+
+@mcp.tool()
+def get_diversity_scanner(account_id: int | None = None) -> str:
+    """Analyse complète de diversification du portefeuille avec décomposition ETF (look-through).
+
+    ⏱️ Cet outil peut prendre quelques secondes : il récupère les cours live
+    et peut déclencher une auto-décomposition des ETF non encore profilés.
+
+    Retourne :
+    - Score de diversité HHI (0-100) : 90+ = excellent, 60-90 = bon, <60 = à améliorer
+    - Exposition réelle par entreprise sous-jacente (directe + via ETF look-through)
+    - Répartition par pays et secteur (à travers tous les ETF)
+    - Alertes : surconcentration, chevauchements (doublons ETF), biais géographique
+    - Totaux : valeur actions/ETF, épargne, liquidités, fonds euros (contexte patrimoine complet)
+
+    Args:
+        account_id: Filtrer par compte d'investissement (optionnel, défaut = tous)
+    """
+    try:
+        params: dict[str, Any] = {}
+        if account_id is not None:
+            params["account_id"] = account_id
+        resp = api.get("/analytics/diversity-scanner", params=params)
+        error = handle_response(resp)
+        if error:
+            return error
+        data = resp.json()
+
+        lines = [
+            f"🎯 Score de diversité : {data.get('score', '—')}/100 — {data.get('score_label', '')}",
+            "",
+        ]
+
+        totals = data.get("totals", {})
+        lines.append(f"💼 Valeur totale actions/ETF : {totals.get('stocks_eur', 0):,.2f} €")
+        lines.append(f"🏦 Épargne : {totals.get('epargne_eur', 0):,.2f} €")
+        lines.append(f"💳 Liquidités (courant) : {totals.get('courant_eur', 0):,.2f} €")
+        lines.append(f"🔐 Fonds euros : {totals.get('fonds_euros_eur', 0):,.2f} €")
+        lines.append(f"🌍 Patrimoine total : {totals.get('wealth_eur', 0):,.2f} €")
+        lines.append(f"   ({totals.get('holdings_count', 0)} positions dont {totals.get('etfs_count', 0)} ETF)")
+        lines.append("")
+
+        companies = data.get("top_underlying_companies", [])
+        if companies:
+            lines.append(f"🏢 Top entreprises sous-jacentes ({len(companies)}) :")
+            for c in companies[:10]:
+                overlap = " 🔁 doublon" if c.get("has_overlap") else ""
+                lines.append(
+                    f"  • {c['name']} ({c.get('ticker') or '?'}) : "
+                    f"{c['pct_stocks']}% actions / {c['pct_total_wealth']}% patrimoine{overlap}"
+                )
+            lines.append("")
+
+        countries = data.get("countries", [])
+        if countries:
+            lines.append("🌍 Répartition géographique (look-through ETF) :")
+            for c in countries[:8]:
+                lines.append(
+                    f"  • {c['name']} : {c['percentage_stocks']}% des actions "
+                    f"({c['percentage_total_wealth']}% du patrimoine)"
+                )
+            lines.append("")
+
+        sectors = data.get("sectors", [])
+        if sectors:
+            lines.append("🏭 Répartition sectorielle (look-through ETF) :")
+            for s in sectors[:8]:
+                lines.append(
+                    f"  • {s['name']} : {s['percentage_stocks']}% des actions "
+                    f"({s['percentage_total_wealth']}% du patrimoine)"
+                )
+            lines.append("")
+
+        alerts = data.get("alerts", [])
+        if alerts:
+            lines.append(f"⚠️ {len(alerts)} alerte(s) de diversification :")
+            for a in alerts:
+                icon = "🔴" if a.get("type") == "danger" else ("🟠" if a.get("type") == "warning" else "🔵")
+                lines.append(f"  {icon} {a.get('title', '')}")
+                lines.append(f"     {a.get('message', '')}")
+        else:
+            lines.append("✅ Aucune alerte de diversification.")
+
+        return "\n".join(lines)
+    except Exception as e:
+        return f"❌ Erreur : {e}"
+
+
+@mcp.tool()
+def get_patrimoine_allocation() -> str:
+    """Répartition complète du patrimoine global : courant, épargne, investissements, assurance-vie.
+
+    Vue macro de tous les comptes actifs avec leur valeur actuelle, type et part du patrimoine.
+    Complément idéal à get_diversity_scanner pour avoir une vue d'ensemble.
+    """
+    try:
+        resp = api.get("/analytics/patrimoine-allocation")
+        error = handle_response(resp)
+        if error:
+            return error
+        return f"🏛️ Allocation du patrimoine :\n\n{serialize(resp.json())}"
+    except Exception as e:
+        return f"❌ Erreur : {e}"
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # TOOLS — Écriture
 # ═══════════════════════════════════════════════════════════════════════════════
 
@@ -1289,8 +1734,74 @@ Groupe les transactions par marchand pour être efficace.
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# PROMPTS — Portfolio & ETF
+# ═══════════════════════════════════════════════════════════════════════════════
+
+@mcp.prompt()
+def analyze_portfolio() -> str:
+    """Analyse complète du portefeuille d'investissement : positions, performance, diversification."""
+    return """Analyse complète du portefeuille d'investissement.
+
+Étapes :
+1. `list_accounts(type="investissement")` — identifier les comptes d'investissement
+2. `list_holdings()` — positions actuelles avec prix live et performance
+3. `get_investments_summary()` — résumé global (net investi, valeur totale, gain)
+4. `get_diversity_scanner()` — décomposition ETF look-through + score de diversité + alertes
+5. `list_etf_profiles()` — profils ETF connus pour contexte
+6. `get_investments_allocation_advanced()` — répartition par classe d'actif, secteur, zone géo
+
+Rapport structuré attendu :
+## 1. Vue d'ensemble
+- Valeur totale du portefeuille, net investi, gain total, performance %
+- Nombre de positions (dont ETF vs actions directes)
+
+## 2. Positions actuelles
+- Top positions par valeur (ticker, nom, valeur, gain %)
+- ETF détenus et leur poids dans le portefeuille
+
+## 3. Analyse de diversification (look-through ETF)
+- Score de diversité (X/100) avec interprétation
+- Top 10 entreprises sous-jacentes réelles (directes + via ETF)
+- Répartition géographique et sectorielle
+
+## 4. Alertes & Risques
+- Surconcentrations détectées
+- Chevauchements / doublons d'exposition
+- Biais géographiques
+
+## 5. Recommandations de rééquilibrage
+"""
+
+
+@mcp.prompt()
+def analyze_etf_lookthrough() -> str:
+    """Décompose les ETF détenus pour révéler les entreprises réelles sous-jacentes et les doublons."""
+    return """Décomposition ETF et analyse look-through.
+
+Étapes :
+1. `list_holdings()` — identifier les ETF dans le portefeuille (colonne etf = ✅)
+2. `list_etf_profiles()` — voir les profils disponibles
+3. `get_etf_profile(profile_id)` — détail de chaque profil ETF détenu (pays, secteurs, top 10)
+4. `get_diversity_scanner()` — exposition réelle complète (look-through tous les ETF)
+
+Pour chaque ETF détenu :
+- Quel est son profil géographique (USA, Europe, Monde ?) ?
+- Quels sont ses top holdings (Apple, Microsoft, Amazon, LVMH ?) ?
+- Y a-t-il des chevauchements avec d'autres ETF ou actions directes ?
+
+Rapport :
+## 1. ETF détenus et leur poids dans le portefeuille
+## 2. Décomposition de chaque ETF (top pays, secteurs, holdings)
+## 3. Top 10 entreprises sous-jacentes agrégées (doublons additionnnés)
+## 4. Chevauchements identifiés (titres présents dans plusieurs ETF ou en direct ET en ETF)
+## 5. Recommandations (consolider, diversifier, remplacer un ETF redondant ?)
+"""
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # Point d'entrée
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 if __name__ == "__main__":
     logger.info(f"Démarrage du serveur MCP '{SERVER_NAME}' v{__version__}")
