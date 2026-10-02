@@ -49,7 +49,7 @@ export function DiversityScanner() {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center p-12 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm space-y-3">
+      <div className="flex flex-col items-center justify-center p-12 bg-white border border-slate-200 rounded-xl shadow-sm space-y-3">
         <div className="h-6 w-6 rounded-full border-2 border-slate-300 border-t-slate-900 animate-spin" />
         <p className="text-xs text-muted-foreground">Analyse de la diversification de vos actifs...</p>
       </div>
@@ -60,7 +60,7 @@ export function DiversityScanner() {
     return (
       <Card className="shadow-sm border-dashed">
         <CardContent className="p-8 text-center space-y-3">
-          <div className="h-10 w-10 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center mx-auto">
+          <div className="h-10 w-10 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center mx-auto">
             <Layers className="h-5 w-5" />
           </div>
           <div className="max-w-md mx-auto space-y-1">
@@ -189,7 +189,7 @@ export function DiversityScanner() {
             {data.alerts.map((alert, idx) => (
               <div
                 key={idx}
-                className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex items-start gap-3 shadow-sm transition-all"
+                className="p-4 rounded-xl border border-slate-200 bg-white flex items-start gap-3 shadow-sm transition-all"
               >
                 <div className="shrink-0 mt-0.5">
                   {alert.type === "danger" ? (
@@ -197,11 +197,11 @@ export function DiversityScanner() {
                   ) : alert.type === "warning" ? (
                     <AlertTriangle className="h-4 w-4 text-amber-600" />
                   ) : (
-                    <Info className="h-4 w-4 text-slate-600 dark:text-slate-400" />
+                    <Info className="h-4 w-4 text-slate-600" />
                   )}
                 </div>
                 <div className="space-y-1">
-                  <h4 className="font-semibold text-xs text-slate-900 dark:text-slate-100">{alert.title}</h4>
+                  <h4 className="font-semibold text-xs text-slate-900">{alert.title}</h4>
                   <p className="text-[11px] text-muted-foreground leading-relaxed">{alert.message}</p>
                 </div>
               </div>
@@ -228,10 +228,10 @@ export function DiversityScanner() {
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-3 text-xs text-muted-foreground mr-2">
               <span className="flex items-center gap-1.5">
-                <span className="h-2.5 w-2.5 rounded-sm bg-slate-900 dark:bg-slate-100" /> Direct
+                <span className="h-2.5 w-2.5 rounded-sm bg-slate-900" /> Direct
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="h-2.5 w-2.5 rounded-sm bg-slate-400 dark:bg-slate-600" /> Via ETFs
+                <span className="h-2.5 w-2.5 rounded-sm bg-slate-400" /> Via ETFs
               </span>
             </div>
           </div>
@@ -279,13 +279,13 @@ export function DiversityScanner() {
             {data.top_underlying_companies.slice(0, 8).map((comp, idx) => (
               <div
                 key={idx}
-                className="p-3 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 flex items-center justify-between"
+                className="p-3 rounded-lg border border-slate-200 bg-slate-50/50 flex items-center justify-between"
               >
                 <div className="flex flex-col min-w-0 pr-2">
                   <div className="flex items-center gap-1.5">
                     <span className="font-semibold text-xs truncate">{comp.name}</span>
                     {comp.has_overlap && (
-                      <Badge variant="outline" className="text-[9px] px-1.5 py-0 font-normal border-slate-300 dark:border-slate-700">
+                      <Badge variant="outline" className="text-[9px] px-1.5 py-0 font-normal border-slate-300">
                         Doublon ({comp.sources.length} sources)
                       </Badge>
                     )}
@@ -331,9 +331,9 @@ export function DiversityScanner() {
                     <span className="font-medium">{c.name}</span>
                     <span className="font-bold font-mono">{pct.toFixed(1)}% ({formatCurrency(c.value_eur)})</span>
                   </div>
-                  <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                  <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-slate-800 dark:bg-slate-200 rounded-full transition-all"
+                      className="h-full bg-slate-800 rounded-full transition-all"
                       style={{ width: `${Math.min(100, pct)}%` }}
                     />
                   </div>
@@ -363,9 +363,9 @@ export function DiversityScanner() {
                     <span className="font-medium">{s.name}</span>
                     <span className="font-bold font-mono">{pct.toFixed(1)}% ({formatCurrency(s.value_eur)})</span>
                   </div>
-                  <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                  <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-slate-600 dark:bg-slate-400 rounded-full transition-all"
+                      className="h-full bg-slate-600 rounded-full transition-all"
                       style={{ width: `${Math.min(100, pct)}%` }}
                     />
                   </div>

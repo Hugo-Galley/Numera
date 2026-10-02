@@ -164,7 +164,7 @@ export function CustomEtfModal({
         <form onSubmit={handleSubmit}>
           <DialogHeader>
             <div className="flex items-center gap-2">
-              <Layers className="h-5 w-5 text-slate-800 dark:text-slate-200" />
+              <Layers className="h-5 w-5 text-slate-800" />
               <DialogTitle className="text-base font-bold">Définir un profil d'ETF</DialogTitle>
             </div>
             <DialogDescription className="text-xs">
@@ -249,7 +249,7 @@ export function CustomEtfModal({
               type="submit"
               size="sm"
               disabled={saving}
-              className="gap-2 bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-100 dark:hover:bg-slate-200 dark:text-slate-900"
+              className="gap-2 bg-slate-900 hover:bg-slate-800 text-white shadow-sm"
             >
               <PlusCircle className="h-3.5 w-3.5" />
               {saving ? "Enregistrement..." : "Enregistrer l'ETF"}

@@ -17,9 +17,12 @@ import {
   Search, 
   Layers, 
   CheckCircle2, 
-  SlidersHorizontal
+  SlidersHorizontal,
+  X,
+  Loader2
 } from "lucide-react"
 import { CustomEtfModal } from "./CustomEtfModal"
+import { CompanyLogo } from "@/components/ui/CompanyLogo"
 
 interface BaselineRow {
   ticker: string
@@ -266,10 +269,10 @@ export function PointZeroModal({
         <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col p-6">
           <DialogHeader>
             <div className="flex items-center gap-2">
-              <SlidersHorizontal className="h-5 w-5 text-slate-800 dark:text-slate-200" />
-              <DialogTitle className="text-lg font-bold">Point Zéro : {accountName}</DialogTitle>
+              <SlidersHorizontal className="h-5 w-5 text-slate-800" />
+              <DialogTitle className="text-lg font-bold text-slate-900">Point Zéro : {accountName}</DialogTitle>
             </div>
-            <DialogDescription className="text-xs text-muted-foreground">
+            <DialogDescription className="text-xs text-slate-500">
               Déclarez vos positions actuelles. Les cours boursiers en direct valoriseront automatiquement votre portefeuille sans altérer vos transactions passées.
             </DialogDescription>
           </DialogHeader>
@@ -278,18 +281,31 @@ export function PointZeroModal({
           <div className="relative mt-2">
             <div className="flex items-center gap-2">
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                 <Input
                   placeholder="Rechercher par Code ISIN, Ticker (ex: CW8.PA, AAPL) ou Nom..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9 pr-4 text-sm"
+                  className="pl-9 pr-8 text-sm bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 shadow-2xs focus-visible:ring-1 focus-visible:ring-slate-400"
                 />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSearchQuery("")
+                      setSearchResults([])
+                      setShowSearchDropdown(false)
+                    }}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                )}
               </div>
               <Button
                 type="button"
                 variant="outline"
-                className="shrink-0 gap-1.5 text-xs h-9"
+                className="shrink-0 gap-1.5 text-xs h-9 border-slate-200 text-slate-700 hover:bg-slate-50"
                 onClick={() => {
                   setPendingEtfSearch(searchQuery)
                   setCustomEtfOpen(true)
@@ -302,38 +318,63 @@ export function PointZeroModal({
 
             {/* Search Dropdown */}
             {showSearchDropdown && (
-              <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+              <div className="absolute top-full left-0 right-0 z-50 mt-1.5 bg-white border border-slate-200 rounded-xl shadow-xl max-h-72 overflow-y-auto divide-y divide-slate-100">
                 {isSearching ? (
-                  <div className="p-4 text-center text-xs text-muted-foreground">Recherche en cours...</div>
+                  <div className="p-4 text-center text-xs text-slate-500 flex items-center justify-center gap-2">
+                    <Loader2 className="h-3.5 w-3.5 animate-spin text-slate-400" />
+                    <span>Recherche sur les marchés en cours...</span>
+                  </div>
                 ) : searchResults.length > 0 ? (
-                  <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                  <div className="divide-y divide-slate-100">
                     {searchResults.map((item, idx) => (
                       <div
                         key={idx}
-                        className="p-3 hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer flex items-center justify-between transition-colors"
+                        className="p-3 hover:bg-slate-50 cursor-pointer flex items-center justify-between transition-colors text-xs"
                         onClick={() => handleSelectSearchResult(item)}
                       >
-                        <div className="flex flex-col">
-                          <div className="flex items-center gap-2">
-                            <span className="font-semibold text-sm">{item.symbol}</span>
-                            <Badge variant="secondary" className="text-[10px] px-1.5 py-0 font-normal">
-                              {item.type}
-                            </Badge>
-                            {item.etf_profile_id && (
-                              <Badge variant="outline" className="text-[10px] px-1.5 py-0 font-normal text-slate-600 dark:text-slate-400">
-                                Profil ETF inclus
-                              </Badge>
-                            )}
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <CompanyLogo
+                            ticker={item.symbol}
+                            name={item.name}
+                            isin={item.isin}
+                            className="h-7 w-7 rounded-md shrink-0 shadow-2xs"
+                          />
+                          <div className="flex flex-col min-w-0">
+                            <span className="font-semibold text-slate-900 text-xs truncate max-w-[280px]">
+                              {item.name || item.symbol}
+                            </span>
+                            <div className="flex items-center gap-1.5 mt-0.5">
+                              <span className="font-mono text-[10px] text-slate-400 font-medium">
+                                {item.symbol}
+                              </span>
+                              {item.isin && (
+                                <span className="font-mono text-[10px] text-slate-400">
+                                  • {item.isin}
+                                </span>
+                              )}
+                            </div>
                           </div>
-                          <span className="text-xs text-muted-foreground line-clamp-1">{item.name}</span>
                         </div>
-                        <span className="text-xs text-muted-foreground font-mono">{item.exchange || item.currency}</span>
+
+                        <div className="flex items-center gap-2 shrink-0">
+                          <Badge variant="secondary" className="bg-slate-100 text-slate-700 text-[10px] px-1.5 py-0 font-normal">
+                            {item.type || (item.is_etf ? "ETF" : "Action")}
+                          </Badge>
+                          {item.etf_profile_id && (
+                            <Badge variant="outline" className="text-[9px] px-1.5 py-0 font-normal text-emerald-700 bg-emerald-50 border-emerald-200">
+                              Profil ETF inclus
+                            </Badge>
+                          )}
+                          <span className="text-[10px] text-slate-400 font-mono">
+                            {item.exchange || item.currency}
+                          </span>
+                        </div>
                       </div>
                     ))}
                   </div>
                 ) : (
                   <div className="p-4 text-center space-y-2">
-                    <p className="text-xs text-muted-foreground">Aucun résultat trouvé pour "{searchQuery}".</p>
+                    <p className="text-xs text-slate-500">Aucun résultat trouvé pour "{searchQuery}".</p>
                     <Button
                       size="sm"
                       variant="outline"
@@ -354,21 +395,21 @@ export function PointZeroModal({
           </div>
 
           {/* Table of Rows */}
-          <div className="flex-1 overflow-y-auto mt-4 border border-slate-200 dark:border-slate-800 rounded-lg">
+          <div className="flex-1 overflow-y-auto mt-4 border border-slate-200 rounded-lg bg-white">
             {loadingSuggestions ? (
-              <div className="p-8 text-center text-sm text-muted-foreground flex flex-col items-center gap-2">
+              <div className="p-8 text-center text-sm text-slate-500 flex flex-col items-center gap-2">
                 <div className="h-5 w-5 rounded-full border-2 border-slate-300 border-t-slate-900 animate-spin" />
                 <span className="text-xs">Détection automatique de vos actifs...</span>
               </div>
             ) : rows.length === 0 ? (
-              <div className="p-8 text-center text-sm text-muted-foreground space-y-2">
-                <Layers className="h-7 w-7 text-slate-300 dark:text-slate-600 mx-auto" />
-                <p className="font-medium text-xs">Aucun actif dans cet état des lieux.</p>
-                <p className="text-[11px]">Recherchez vos actions et ETFs ci-dessus pour les ajouter.</p>
+              <div className="p-8 text-center text-sm text-slate-500 space-y-2">
+                <Layers className="h-7 w-7 text-slate-300 mx-auto" />
+                <p className="font-medium text-xs text-slate-700">Aucun actif dans cet état des lieux.</p>
+                <p className="text-[11px] text-slate-400">Recherchez vos actions et ETFs ci-dessus pour les ajouter.</p>
               </div>
             ) : (
-              <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                <div className="grid grid-cols-12 gap-2 px-3 py-2 text-xs font-semibold text-muted-foreground bg-slate-50 dark:bg-slate-800/50">
+              <div className="divide-y divide-slate-100">
+                <div className="grid grid-cols-12 gap-2 px-3 py-2 text-xs font-semibold text-slate-500 bg-slate-50/80 border-b border-slate-100">
                   <div className="col-span-5">Actif / Symbole</div>
                   <div className="col-span-2 text-right">Cours Réel</div>
                   <div className="col-span-2 text-right">Nombre de parts</div>
@@ -383,43 +424,55 @@ export function PointZeroModal({
                   return (
                     <div
                       key={idx}
-                      className="grid grid-cols-12 gap-2 px-3 py-2 items-center hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors"
+                      className="grid grid-cols-12 gap-2 px-3 py-2 items-center hover:bg-slate-50/60 transition-colors"
                     >
-                      <div className="col-span-5 flex flex-col min-w-0 pr-2">
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="font-semibold text-xs truncate">{row.ticker}</span>
-                          {row.is_etf ? (
-                            <Badge variant="secondary" className="text-[9px] px-1 py-0 font-normal">
-                              ETF
-                            </Badge>
-                          ) : (
-                            <Badge variant="outline" className="text-[9px] px-1 py-0 font-normal text-muted-foreground">
-                              Action
-                            </Badge>
-                          )}
-                          {row.is_suggestion && row.quantity === 0 && (
-                            <Badge variant="outline" className="text-[9px] px-1 py-0 font-normal text-slate-500 border-slate-200">
-                              Suggéré
-                            </Badge>
-                          )}
+                      <div className="col-span-5 flex items-center gap-2.5 min-w-0 pr-2">
+                        <CompanyLogo
+                          ticker={row.ticker}
+                          name={row.asset_name}
+                          isin={row.isin}
+                          className="h-7 w-7 rounded-md shrink-0 shadow-2xs"
+                        />
+                        <div className="flex flex-col min-w-0">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="font-semibold text-xs text-slate-900 truncate">
+                              {row.asset_name || row.ticker}
+                            </span>
+                            {row.is_etf ? (
+                              <Badge variant="secondary" className="bg-slate-100 text-slate-700 text-[9px] px-1 py-0 font-normal">
+                                ETF
+                              </Badge>
+                            ) : (
+                              <Badge variant="outline" className="text-[9px] px-1 py-0 font-normal text-slate-500 border-slate-200">
+                                Action
+                              </Badge>
+                            )}
+                            {row.is_suggestion && row.quantity === 0 && (
+                              <Badge variant="outline" className="text-[9px] px-1 py-0 font-normal text-amber-700 bg-amber-50 border-amber-200">
+                                Suggéré
+                              </Badge>
+                            )}
+                          </div>
+                          <span className="font-mono text-[10px] text-slate-400 truncate">
+                            {row.ticker}{row.isin ? ` • ${row.isin}` : ""}
+                          </span>
                         </div>
-                        <span className="text-[11px] text-muted-foreground truncate">{row.asset_name}</span>
                       </div>
 
                       <div className="col-span-2 text-right">
                         {row.current_price ? (
                           <div className="flex flex-col items-end">
-                            <span className="font-mono text-xs font-medium">
+                            <span className="font-mono text-xs font-medium text-slate-800">
                               {row.current_price.toFixed(2)} {row.currency}
                             </span>
                             {row.currency !== "EUR" && row.current_price_eur && (
-                              <span className="text-[10px] text-muted-foreground">
+                              <span className="text-[10px] text-slate-400 font-mono">
                                 (~{row.current_price_eur.toFixed(2)} €)
                               </span>
                             )}
                           </div>
                         ) : (
-                          <span className="text-xs text-muted-foreground italic">-</span>
+                          <span className="text-xs text-slate-400 italic">-</span>
                         )}
                       </div>
 
@@ -431,11 +484,11 @@ export function PointZeroModal({
                           placeholder="0"
                           value={row.quantity || ""}
                           onChange={(e) => handleUpdateRow(idx, "quantity", parseFloat(e.target.value) || 0)}
-                          className="h-7 text-right font-mono text-xs"
+                          className="h-8 text-right font-mono text-xs bg-white border-slate-200 text-slate-900 focus-visible:ring-1 focus-visible:ring-slate-400"
                         />
                       </div>
 
-                      <div className="col-span-2 text-right font-mono text-xs font-semibold">
+                      <div className="col-span-2 text-right font-mono text-xs font-semibold text-slate-900">
                         {new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(rowVal)}
                       </div>
 
@@ -444,10 +497,10 @@ export function PointZeroModal({
                           type="button"
                           variant="ghost"
                           size="icon"
-                          className="h-6 w-6 text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
+                          className="h-7 w-7 text-slate-400 hover:text-rose-600 hover:bg-rose-50"
                           onClick={() => handleRemoveRow(idx)}
                         >
-                          <Trash2 className="h-3 w-3" />
+                          <Trash2 className="h-3.5 w-3.5" />
                         </Button>
                       </div>
                     </div>
@@ -460,14 +513,14 @@ export function PointZeroModal({
           {/* Footer summary */}
           <div className="flex items-center justify-between pt-4 border-t mt-4">
             <div className="flex flex-col">
-              <span className="text-xs text-muted-foreground">Valeur totale estimée :</span>
-              <span className="text-base font-bold font-mono">
+              <span className="text-xs text-slate-500">Valeur totale estimée :</span>
+              <span className="text-base font-bold font-mono text-slate-900">
                 {new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(totalCalculatedEur)}
               </span>
             </div>
 
             <div className="flex items-center gap-2">
-              <Button type="button" variant="outline" size="sm" onClick={() => onOpenChange(false)} disabled={saving}>
+              <Button type="button" variant="outline" size="sm" onClick={() => onOpenChange(false)} disabled={saving} className="border-slate-200 text-slate-700">
                 Annuler
               </Button>
               <Button
@@ -475,7 +528,7 @@ export function PointZeroModal({
                 size="sm"
                 onClick={handleSave}
                 disabled={saving}
-                className="gap-2 bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-100 dark:hover:bg-slate-200 dark:text-slate-900"
+                className="gap-2 bg-slate-900 hover:bg-slate-800 text-white shadow-sm"
               >
                 <CheckCircle2 className="h-4 w-4" />
                 {saving ? "Enregistrement..." : "Enregistrer l'état des lieux"}
