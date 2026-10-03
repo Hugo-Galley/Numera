@@ -29,6 +29,28 @@ def recalculate_running_balances(db: Session, account_id: int):
     db.commit()
 
 
+def validate_solde_initial(
+    db: Session, account_id: int, date: datetime, exclude_id: int | None = None
+) -> None:
+    """Un compte n'a qu'un seul Solde Initial et il doit être la première transaction
+    (il remet le solde à zéro à sa date, cf. apply_transaction_to_balance)."""
+    existing_initial = db.query(Transaction).filter(
+        Transaction.account_id == account_id,
+        Transaction.type == "Solde Initial",
+        Transaction.id != (exclude_id or -1),
+    ).first()
+    if existing_initial:
+        raise HTTPException(status_code=422, detail="A Solde Initial already exists for this account")
+    earliest = (
+        db.query(Transaction)
+        .filter(Transaction.account_id == account_id, Transaction.id != (exclude_id or -1))
+        .order_by(Transaction.date.asc(), Transaction.id.asc())
+        .first()
+    )
+    if earliest and date >= earliest.date:
+        raise HTTPException(status_code=422, detail="Solde Initial must be the chronologically first transaction")
+
+
 @router.get("/merchants", response_model=list[str])
 def list_merchants(db: Session = Depends(get_db)):
     merchants = (
@@ -135,12 +157,14 @@ async def find_potential_transfers(
 
     potential_pairs = []
     rates = await get_exchange_rates("EUR")
+    # `amount` est exprimé dans la devise du COMPTE (tx.currency = devise de saisie d'origine)
+    account_currency = {acc_id: cur for acc_id, cur in db.query(Account.id, Account.currency).all()}
 
     for sortie in sorties:
         start_date = sortie.date - timedelta(days=days_tolerance)
         end_date = sortie.date + timedelta(days=days_tolerance)
         
-        amount_eur = sortie.amount / rates.get(sortie.currency, 1.0)
+        amount_eur = sortie.amount / rates.get(account_currency.get(sortie.account_id, "EUR"), 1.0)
         min_amount_eur = amount_eur * (1 - amount_tolerance_pct / 100.0)
         max_amount_eur = amount_eur * (1 + amount_tolerance_pct / 100.0)
 
@@ -160,7 +184,7 @@ async def find_potential_transfers(
         )
 
         for entree in candidates:
-            entree_eur = entree.amount / rates.get(entree.currency, 1.0)
+            entree_eur = entree.amount / rates.get(account_currency.get(entree.account_id, "EUR"), 1.0)
             diff_pct = abs(entree_eur - amount_eur) / max(amount_eur, 1.0) * 100.0
             if diff_pct <= amount_tolerance_pct:
                 potential_pairs.append({
@@ -186,7 +210,7 @@ async def find_potential_transfers(
         )
 
         for itx in itx_candidates:
-            itx_eur = itx.amount / rates.get(itx.currency, 1.0)
+            itx_eur = itx.amount / rates.get(account_currency.get(itx.account_id, "EUR"), 1.0)
             diff_pct = abs(itx_eur - amount_eur) / max(amount_eur, 1.0) * 100.0
             if diff_pct <= amount_tolerance_pct:
                 potential_pairs.append({
@@ -197,6 +221,26 @@ async def find_potential_transfers(
                 })
 
     return potential_pairs
+
+
+def _detach_partner(db: Session, tx: Transaction) -> None:
+    """Retire proprement le lien de virement existant de `tx` (et de son partenaire)."""
+    from app.models.investment_transaction import InvestmentTransaction
+
+    if tx.linked_transaction_id:
+        other = db.query(Transaction).filter(Transaction.id == tx.linked_transaction_id).first()
+        if other:
+            other.linked_transaction_id = None
+            other.is_transfer = False
+    if tx.linked_investment_transaction_id:
+        other_inv = db.query(InvestmentTransaction).filter(
+            InvestmentTransaction.id == tx.linked_investment_transaction_id
+        ).first()
+        if other_inv:
+            other_inv.linked_transaction_id = None
+            other_inv.is_transfer = False
+    tx.linked_transaction_id = None
+    tx.linked_investment_transaction_id = None
 
 
 @router.post("/{transaction_id}/link/{other_id}")
@@ -211,12 +255,21 @@ def link_transactions(
     tx1 = db.query(Transaction).filter(Transaction.id == transaction_id).first()
     if not tx1:
         raise HTTPException(status_code=404, detail="Transaction not found")
-        
+
+    if type not in ("regular", "investment"):
+        raise HTTPException(status_code=422, detail="type must be 'regular' or 'investment'")
+    if type == "regular" and other_id == transaction_id:
+        raise HTTPException(status_code=422, detail="A transaction cannot be linked to itself")
+
+    # Si tx1 était déjà liée, on délie l'ancien partenaire pour ne pas laisser de lien orphelin
+    _detach_partner(db, tx1)
+
     if type == "regular":
         tx2 = db.query(Transaction).filter(Transaction.id == other_id).first()
         if not tx2:
             raise HTTPException(status_code=404, detail="Secondary transaction not found")
-        
+        _detach_partner(db, tx2)
+
         tx1.linked_transaction_id = tx2.id
         tx2.linked_transaction_id = tx1.id
         tx2.is_transfer = True
@@ -224,11 +277,16 @@ def link_transactions(
         tx2 = db.query(InvestmentTransaction).filter(InvestmentTransaction.id == other_id).first()
         if not tx2:
             raise HTTPException(status_code=404, detail="Investment transaction not found")
-            
+        if tx2.linked_transaction_id and tx2.linked_transaction_id != tx1.id:
+            previous = db.query(Transaction).filter(Transaction.id == tx2.linked_transaction_id).first()
+            if previous:
+                previous.linked_investment_transaction_id = None
+                previous.is_transfer = False
+
         tx1.linked_investment_transaction_id = tx2.id
         tx2.linked_transaction_id = tx1.id
         tx2.is_transfer = True
-    
+
     tx1.is_transfer = True
     db.commit()
     return {"status": "ok"}
@@ -297,20 +355,7 @@ async def create_transaction(payload: TransactionCreate, db: Session = Depends(g
         raise HTTPException(status_code=422, detail=str(exc)) from exc
 
     if transaction_type == "Solde Initial":
-        existing_initial = db.query(Transaction).filter(
-            Transaction.account_id == payload.account_id,
-            Transaction.type == "Solde Initial",
-        ).first()
-        if existing_initial:
-            raise HTTPException(status_code=422, detail="A Solde Initial already exists for this account")
-        earliest = (
-            db.query(Transaction)
-            .filter(Transaction.account_id == payload.account_id)
-            .order_by(Transaction.date.asc(), Transaction.id.asc())
-            .first()
-        )
-        if earliest and payload.date >= earliest.date:
-            raise HTTPException(status_code=422, detail="Solde Initial must be the chronologically first transaction")
+        validate_solde_initial(db, payload.account_id, payload.date)
 
     # Handle currency conversion
     from app.core.currency import convert_amount
@@ -370,7 +415,18 @@ async def bulk_update_transactions(payload: TransactionBulkUpdate, db: Session =
         return
 
     affected_account_ids = set()
-    
+
+    bulk_type = None
+    if payload.type is not None:
+        try:
+            bulk_type = normalize_transaction_type(payload.type)
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+        if bulk_type == "Solde Initial":
+            raise HTTPException(status_code=422, detail="Solde Initial cannot be set through bulk update")
+    if bulk_type is not None and any(tx.type == "Solde Initial" for tx in transactions):
+        raise HTTPException(status_code=422, detail="A Solde Initial transaction cannot be bulk-retyped")
+
     tags = []
     if payload.tag_ids is not None:
         from app.models.tag import Tag
@@ -381,11 +437,8 @@ async def bulk_update_transactions(payload: TransactionBulkUpdate, db: Session =
             tx.category_id = payload.category_id
         if payload.is_recurring is not None:
             tx.is_recurring = payload.is_recurring
-        if payload.type is not None:
-            try:
-                tx.type = normalize_transaction_type(payload.type)
-            except ValueError as exc:
-                raise HTTPException(status_code=422, detail=str(exc)) from exc
+        if bulk_type is not None:
+            tx.type = bulk_type
         if payload.merchant is not None:
             tx.merchant = payload.merchant
         if payload.tag_ids is not None:
@@ -417,6 +470,12 @@ async def update_transaction(transaction_id: int, payload: TransactionUpdate, db
     
     if "date" in update_data:
         update_data["month_label"] = month_label_from_date(update_data["date"])
+
+    new_type = update_data.get("type", transaction.type)
+    if new_type == "Solde Initial" and ("type" in update_data or "date" in update_data):
+        validate_solde_initial(
+            db, transaction.account_id, update_data.get("date", transaction.date), exclude_id=transaction.id
+        )
 
     # Handle currency conversion if amount or currency or date changed
     if "amount" in update_data or "currency" in update_data or "date" in update_data:
@@ -466,6 +525,8 @@ def delete_transaction(transaction_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Transaction not found")
     
     account_id = transaction.account_id
+    # Le partenaire d'un virement ne doit pas rester marqué is_transfer sans lien
+    _detach_partner(db, transaction)
     db.delete(transaction)
     db.commit()
     

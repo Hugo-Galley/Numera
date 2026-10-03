@@ -207,6 +207,7 @@ Un point zéro sert de base de performance pour un compte.
 - `GET /analytics/investments/{account_id}/performance-history`
 - `GET /analytics/subscriptions`
 - `GET /analytics/kpi-history`
+- `GET /analytics/account-flow-summary` (flux net du mois, variation, dépense moyenne d'un compte ; virements exclus)
 - `GET /analytics/investments-allocation`
 - `GET /analytics/investments-allocation-advanced`
 - `GET /analytics/timeseries`

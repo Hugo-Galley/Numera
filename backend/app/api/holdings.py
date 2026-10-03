@@ -12,19 +12,26 @@ from app.schemas.holding import (
     PortfolioHoldingUpdate,
     BaselineInventoryRequest,
 )
+from app.core.currency import get_exchange_rates
 from app.core.market_data import get_market_quotes, suggest_holdings_from_notes
 
 router = APIRouter(prefix="/holdings", tags=["holdings"])
 
 
-async def _enrich_holding_with_quote(holding: PortfolioHolding, quotes: dict) -> PortfolioHoldingRead:
+async def _enrich_holding_with_quote(holding: PortfolioHolding, quotes: dict, rates: dict | None = None) -> PortfolioHoldingRead:
     sym = holding.ticker.upper().strip()
     quote = quotes.get(sym, {})
     price = quote.get("price", 0.0)
     price_eur = quote.get("price_eur", price)
+    if rates is None:
+        rates = await get_exchange_rates("EUR")
 
     curr_val_eur = holding.quantity * price_eur if price_eur > 0 else 0.0
-    tot_invested_eur = (holding.quantity * holding.buy_price_avg) if (holding.buy_price_avg and holding.buy_price_avg > 0) else None
+    # Le PRU est exprimé dans la devise de la position : on le ramène en EUR comme la valeur actuelle
+    tot_invested_eur = None
+    if holding.buy_price_avg and holding.buy_price_avg > 0:
+        fx = rates.get((holding.currency or "EUR").upper(), 1.0) or 1.0
+        tot_invested_eur = holding.quantity * holding.buy_price_avg / fx
 
     gain_eur = None
     gain_pct = None
@@ -68,7 +75,8 @@ async def list_holdings(
     symbols = [h.ticker for h in holdings]
     quotes = await get_market_quotes(symbols)
 
-    return [await _enrich_holding_with_quote(h, quotes) for h in holdings]
+    rates = await get_exchange_rates("EUR")
+    return [await _enrich_holding_with_quote(h, quotes, rates) for h in holdings]
 
 
 @router.get("/suggestions")
@@ -126,7 +134,8 @@ async def set_baseline_inventory(
 
     symbols = [h.ticker for h in created_holdings]
     quotes = await get_market_quotes(symbols)
-    return [await _enrich_holding_with_quote(h, quotes) for h in created_holdings]
+    rates = await get_exchange_rates("EUR")
+    return [await _enrich_holding_with_quote(h, quotes, rates) for h in created_holdings]
 
 
 @router.post("", response_model=PortfolioHoldingRead, status_code=201)
