@@ -2,7 +2,7 @@ from typing import Generator
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-from jose import jwt
+import jwt
 from pydantic import ValidationError
 
 from app.core.config import settings
@@ -40,7 +40,7 @@ def get_current_user(
         token_data = payload.get("sub")
         if token_data is None:
             raise credentials_exception
-    except (jwt.JWTError, ValidationError):
+    except (jwt.PyJWTError, ValidationError):
         raise credentials_exception
     
     # In single user mode, we check if it's the current admin username

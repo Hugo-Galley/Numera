@@ -3,6 +3,7 @@ import time
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Depends, Request
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.auth import router as auth_router
@@ -28,6 +29,7 @@ from app.api.holdings import router as holdings_router
 from app.api.analytics.diversity import router as diversity_router
 from app.api.deps import get_current_user
 from app.core.config import settings
+from app.core.currency import CurrencyConversionError
 from app.core.migrations import run_migrations
 from app.core.seeds import seed_all
 from app.db.session import SessionLocal
@@ -61,17 +63,27 @@ async def recurring_transactions_task():
         await asyncio.sleep(3600)
 
 
+def _log_foreign_key_violations() -> None:
+    """Signale les lignes orphelines (FK non respectées) héritées de l'époque où SQLite ignorait les FK."""
+    if not settings.database_url.startswith("sqlite"):
+        return
+    from sqlalchemy import text
+    with SessionLocal() as session:
+        violations = session.execute(text("PRAGMA foreign_key_check")).fetchall()
+    if violations:
+        tables = sorted({row[0] for row in violations})
+        logger.warning(f"{len(violations)} foreign key violation(s) found in tables: {', '.join(tables)}")
+
+
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     logger.info("DEBUG: Lifespan starting...")
+    background_task = None
     if settings.app_env != "test":
-        logger.info("DEBUG: Starting migrations phase...")
-        try:
-            run_migrations()
-            logger.info("DEBUG: Migrations phase completed.")
-        except Exception as e:
-            logger.error(f"DEBUG: Migrations failed: {e}", exc_info=True)
-    
+        logger.info("Running database migrations...")
+        run_migrations()  # lève en cas d'échec : mieux vaut ne pas démarrer qu'avec un schéma cassé
+        _log_foreign_key_violations()
+
     if settings.app_env != "test":
         logger.info("DEBUG: Opening database session for seeding...")
         db = SessionLocal()
@@ -83,14 +95,29 @@ async def lifespan(_: FastAPI):
             db.close()
         
         logger.info("DEBUG: Starting background task...")
-        asyncio.create_task(recurring_transactions_task())
+        background_task = asyncio.create_task(recurring_transactions_task())
     
     logger.info("DEBUG: Lifespan setup complete. Yielding...")
     yield
 
+    if background_task:
+        # Référence conservée + arrêt propre (sinon la tâche peut être collectée ou survivre à l'arrêt)
+        background_task.cancel()
+        try:
+            await background_task
+        except asyncio.CancelledError:
+            pass
+
 
 
 app = FastAPI(title=settings.app_name, lifespan=lifespan)
+
+
+@app.exception_handler(CurrencyConversionError)
+async def currency_conversion_error_handler(_: Request, exc: CurrencyConversionError):
+    # Mieux vaut refuser l'opération qu'enregistrer un montant converti au taux 1:1
+    return JSONResponse(status_code=422, content={"detail": str(exc)})
+
 
 @app.middleware("http")
 async def log_requests(request: Request, call_next):

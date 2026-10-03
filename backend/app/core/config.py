@@ -35,10 +35,17 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def validate_production_security(self) -> "Settings":
+        if self.app_env == "test":
+            return self
+        # Une clé vide/placeholder permet de forger des JWT : refusé dans tous les environnements
+        # (dev compris, l'API est exposée sur 0.0.0.0 dans docker-compose).
+        if self.SECRET_KEY in INSECURE_SECRET_VALUES or len(self.SECRET_KEY) < 32:
+            raise ValueError(
+                "SECRET_KEY must be a non-default value of at least 32 characters "
+                "(generate one with: openssl rand -hex 32, or run `make setup`)"
+            )
         if self.app_env != "prod":
             return self
-        if self.SECRET_KEY in INSECURE_SECRET_VALUES or len(self.SECRET_KEY) < 32:
-            raise ValueError("SECRET_KEY must be a non-default value of at least 32 characters in production")
         if self.ADMIN_PASSWORD_HASH in INSECURE_PASSWORD_HASH_VALUES:
             raise ValueError("ADMIN_PASSWORD_HASH must be configured in production")
         if not self.cors_origins or "*" in self.cors_origins:

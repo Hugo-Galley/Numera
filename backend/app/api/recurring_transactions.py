@@ -104,6 +104,14 @@ def delete_recurring_transaction(
         {InvestmentTransaction.recurring_transaction_id: None}, synchronize_session=False
     )
 
+    from app.models.salary_config import SalaryConfig
+    db.query(SalaryConfig).filter(SalaryConfig.salary_recurring_id == recurring_tx_id).update(
+        {SalaryConfig.salary_recurring_id: None}, synchronize_session=False
+    )
+    db.query(SalaryConfig).filter(SalaryConfig.ticket_recurring_id == recurring_tx_id).update(
+        {SalaryConfig.ticket_recurring_id: None}, synchronize_session=False
+    )
+
     db.delete(recurring_tx)
     db.commit()
     return {"message": "Recurring transaction deleted"}

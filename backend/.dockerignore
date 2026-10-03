@@ -1,0 +1,16 @@
+# Ne jamais embarquer les données ni les secrets dans les couches de l'image
+data/
+*.db
+*.db-wal
+*.db-shm
+backups/
+.env
+.env.*
+venv/
+venv_new/
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+tests/
+.git/

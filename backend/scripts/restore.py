@@ -7,10 +7,21 @@ import shutil
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
+def _remove_stale_wal_files(dest_db):
+    """Un -wal/-shm résiduel serait rejoué sur la base restaurée et la corromprait."""
+    for suffix in ("-wal", "-shm"):
+        stale = f"{dest_db}{suffix}"
+        if os.path.exists(stale):
+            os.remove(stale)
+            logging.info(f"Removed stale {stale}")
+
+
 def restore_backup(backup_file, dest_db, key):
     if not os.path.exists(backup_file):
         logging.error(f"Backup file not found: {backup_file}")
         return
+
+    _remove_stale_wal_files(dest_db)
 
     try:
         if backup_file.endswith(".enc"):

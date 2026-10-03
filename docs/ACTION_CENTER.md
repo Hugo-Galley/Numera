@@ -34,7 +34,7 @@ cd backend
 PYTHONPATH=. python3.11 -m pytest tests/test_data_audit.py tests/test_import_and_analytics.py
 ```
 
-*Note : Si vous avez des erreurs de module `jose`, vérifiez que votre `venv` est bien activé.*
+*Note : Si vous avez des erreurs de module (`jwt`, etc.), vérifiez que votre `venv` est bien activé.*
 
 **Points de vérification critiques :**
 - L'endpoint doit retourner un `200 OK` même si la liste d'actions est vide.

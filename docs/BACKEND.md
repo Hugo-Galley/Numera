@@ -19,7 +19,7 @@ Le backend de Numera est conçu selon le principe **Local-First & Privacy**. Il 
 | **ORM** | [SQLAlchemy](https://www.sqlalchemy.org/) | `2.0.43` (syntaxe moderne 2.0 `Mapped`) |
 | **Migrations** | [Alembic](https://alembic.sqlalchemy.org/) | `1.16.5` |
 | **Validation & Schémas** | [Pydantic](https://docs.pydantic.dev/) | `v2.11.7` & `pydantic-settings` |
-| **Sécurité** | [python-jose](https://github.com/mpdavis/python-jose) & [bcrypt](https://github.com/pyca/bcrypt) | JWT token HS256 / Hashage de mot de passe |
+| **Sécurité** | [PyJWT](https://pyjwt.readthedocs.io) & [bcrypt](https://github.com/pyca/bcrypt) | JWT token HS256 / Hashage de mot de passe |
 | **Tests** | [Pytest](https://docs.pytest.org/) | `8.3.3` — `PYTHONPATH=. python3.11 -m pytest tests` depuis `backend/` (`make test` attend un `backend/venv` absent ici) |
 
 ### Pourquoi cette Stack ?
