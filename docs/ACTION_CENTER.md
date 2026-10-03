@@ -15,7 +15,7 @@ Le Centre d'Actions centralise trois types de flux :
 - **Logique** : Agrégation de fonctions de calcul existantes (`budget_alerts`, `data_audit`) et de nouvelles requêtes (suggestions de règles).
 
 ### Frontend
-- **Page** : `frontend/src/pages/Audit.tsx` (ex-Audit, maintenant Centre d'Actions).
+- **Page** : `frontend/src/pages/Audit.tsx`, route `/audit` (Centre d'actions).
 - **Composants clés** : 
     - `ActionCenter` : Gère le chargement et le routage des actions.
     - `TransactionEditor` : Interface de correction en ligne pour les audits.
@@ -31,7 +31,7 @@ Pour tester sans problèmes d'environnement, assurez-vous de définir le `PYTHON
 **Commande recommandée :**
 ```bash
 cd backend
-PYTHONPATH=. pytest tests/test_import_and_analytics.py
+PYTHONPATH=. python3.11 -m pytest tests/test_data_audit.py tests/test_import_and_analytics.py
 ```
 
 *Note : Si vous avez des erreurs de module `jose`, vérifiez que votre `venv` est bien activé.*
@@ -60,8 +60,8 @@ L'endpoint `/actions` effectue plusieurs scans de la base de données.
 
 ### Ajout d'une nouvelle action
 Pour ajouter un nouveau type d'action :
-1.  Ajoutez le type dans l'énumération du schéma `ActionItem`.
-2.  Implémentez la détection dans `get_action_center` (backend).
+1.  Choisissez un `action_type` (chaîne libre dans `ActionItem`, schéma `insight.py` : `link`, `modal_categorize`, `modal_rule`, `modal_snapshot`, `modal_merchant`).
+2.  Implémentez la détection dans `get_action_center` (`backend/app/api/analytics/audit.py`). Les actions écartées sont filtrées via `dismissed_insights` (`POST /analytics/actions/dismiss`).
 3.  Si une modale spécifique est requise, ajoutez-la dans `Audit.tsx` et gérez le `action_type`.
 
 ### Pièges à éviter
