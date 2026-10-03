@@ -233,6 +233,7 @@ import { SecuritySearchInput } from "@/components/investments/SecuritySearchInpu
 import { PortfolioHolding } from "@/types/diversity"
 
 type Account = {
+  balance?: number
   id: number
   name: string
   type: "courant" | "epargne" | "investissement" | "assurance_vie"
@@ -996,7 +997,7 @@ export default function AccountDetail() {
   const isInvestment = account.type === "investissement" || account.type === "assurance_vie"
   const currentBalance = isInvestment 
     ? (investmentData?.totals?.current_value || 0)
-    : (transactions.length > 0 ? transactions[0].running_balance : 0)
+    : (account.balance ?? 0)  // calculé par le backend : transactions[0] dépend des filtres/tri actifs
 
   return (
     <div className="space-y-8 pb-10">
