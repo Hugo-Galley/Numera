@@ -111,7 +111,7 @@ Principes:
 - `ProtectedRoute` bloque les pages applicatives sans token.
 - `UIProvider` porte l'etat UI global, dont le mode confidentialite.
 - `apiFetch()` centralise les appels JSON et redirige vers `/login` en cas de `401` (ou `403` hors `/auth/token`). `API_BASE` = `http://localhost:8001` sur localhost, `/api` ailleurs.
-- Les uploads CSV n'utilisent pas `apiFetch()` pour laisser le navigateur definir le multipart boundary (le `fetch` direct de `ImportTab.tsx` n'envoie actuellement pas le Bearer : bug connu).
+- Les uploads CSV n'utilisent pas `apiFetch()` pour laisser le navigateur definir le multipart boundary ; ils passent par `api.upload()` qui ajoute le Bearer sans `Content-Type`. Les exports utilisent `api.download()`.
 
 ## Modele De Donnees
 

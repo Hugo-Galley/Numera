@@ -15,7 +15,7 @@ PYTHONPATH=. python3.11 -m pytest tests/test_merchants.py -v     # un fichier
 PYTHONPATH=. python3.11 -m pytest tests/test_tags.py::test_x -v  # un test
 ```
 
-- `make test` / `make validate` appellent `./venv/bin/pytest`, **qui n'existe pas** sur cette machine (`backend/venv_new` est en Python 3.14, sans pytest, et pydantic-core ne supporte pas 3.14). Utiliser Python 3.11/3.12.
+- `make test` / `make validate` choisissent l'interpréteur automatiquement : `backend/venv/bin/python` si présent, sinon `python3.12`, sinon `python3.11` (surchargeable : `make test PYTHON=...`). `backend/venv_new` est en Python 3.14 sans pytest, et pydantic-core ne supporte pas 3.14.
 - Dépendances : `backend/requirements.txt` (jose, bcrypt, httpx, etc.).
 
 ## Infrastructure de test (`tests/conftest.py`)
@@ -42,7 +42,7 @@ Fichier `tests/test_<domaine>.py`. Créer les données via `db_session` ou l'API
 
 ## Frontend
 
-Aucun test automatisé. `cd frontend && npm run build` (Vite seul, sans vérification de types) et `npx tsc --noEmit` (déjà quelques erreurs préexistantes : ne pas en ajouter). Contrôles manuels : mode confidentialité, toasts, thème sombre, mobile.
+Aucun test automatisé. `cd frontend && npm run build` (= `tsc --noEmit && vite build` ; 0 erreur de types actuellement, ne pas en introduire). Contrôles manuels : mode confidentialité, toasts, thème sombre, mobile.
 
 ## Définition de « terminé »
 

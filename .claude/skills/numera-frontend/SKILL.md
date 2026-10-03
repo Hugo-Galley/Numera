@@ -24,7 +24,7 @@ Esthétique sobre « entreprise légère », Tailwind + shadcn. Palette : Slate 
 1. `src/pages/<Nom>.tsx`.
 2. Route dans `App.tsx` (à l'intérieur du bloc `ProtectedRoute`/`AppLayout`).
 3. Entrée dans la Sidebar (`components/layout/Sidebar.tsx`) et dans l'Omnibox (`Omnibox.tsx`, ⌘K) pour qu'elle soit découvrable.
-4. Données via `api.get<T>()`, jamais de calcul de KPI dans le composant.
+4. Données via `api.get<T>()` (uploads : `api.upload`, fichiers : `api.download`), jamais de calcul de KPI dans le composant.
 
 ## Ajouter un onglet au Dashboard
 
@@ -44,4 +44,4 @@ Créer `components/dashboard/tabs/<Nom>Tab.tsx` (onglets actuels : Overview, His
 
 ## Validation
 
-`cd frontend && npm run build` (ne vérifie pas les types) ; `npx tsc --noEmit` pour les types (il reste des erreurs préexistantes, ne pas en ajouter). Puis contrôle manuel : mode confidentialité, thème sombre, largeur mobile.
+`cd frontend && npm run build` (= `tsc --noEmit && vite build`, 0 erreur de types actuellement) ; `npm run typecheck` pour tsc seul. Puis contrôle manuel : mode confidentialité, thème sombre, largeur mobile.

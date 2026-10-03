@@ -38,6 +38,6 @@ Complète le `CLAUDE.md` racine. Procédures pas-à-pas : skill `numera-backend`
 
 ## Tests
 
-- `PYTHONPATH=. python3.11 -m pytest tests -q` depuis `backend/` (85 tests, ~8 s). Le `venv/` référencé par le Makefile n'existe pas ici ; `venv_new` est en Python 3.14 sans pytest.
+- `PYTHONPATH=. python3.11 -m pytest tests -q` depuis `backend/` (85 tests, ~8 s). `make test` détecte l'interpréteur (venv, sinon python3.12/3.11) ; `venv_new` est en Python 3.14 sans pytest.
 - Fixtures (`tests/conftest.py`) : `db_session` (SQLite temporaire par test, `Base.metadata.create_all`) et `client` (TestClient, override de `get_db` et `get_current_user` → `"admin"`, rate limiter réinitialisé). Vérifier l'état en base après l'appel API.
 - Un test par bug corrigé / fonctionnalité ajoutée, nommé `tests/test_<domaine>.py`.

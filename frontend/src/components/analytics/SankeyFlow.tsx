@@ -49,7 +49,6 @@ const CustomNode = (props: any) => {
         x={x + (isOut ? -8 : width + 8)}
         y={y + height / 2 - 4}
         textAnchor={isOut ? "end" : "start"}
-        verticalAnchor="middle"
         fontSize="10"
         fontWeight="bold"
         fill="#1e293b"
@@ -60,7 +59,6 @@ const CustomNode = (props: any) => {
         x={x + (isOut ? -8 : width + 8)}
         y={y + height / 2 + 8}
         textAnchor={isOut ? "end" : "start"}
-        verticalAnchor="middle"
         fontSize="9"
         fontWeight="500"
         fill="#64748b"

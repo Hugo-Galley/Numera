@@ -284,7 +284,7 @@ export function SalaryManager() {
 
             <div className="space-y-2">
               <Label>Compte de versement Salaire *</Label>
-              <Select value={config.salary_account_id.toString()} onValueChange={v => setConfig({...config, salary_account_id: v})}>
+              <Select value={config.salary_account_id.toString()} onValueChange={v => setConfig({...config, salary_account_id: Number(v)})}>
                 <SelectTrigger><SelectValue placeholder="Sélectionner..." /></SelectTrigger>
                 <SelectContent>
                   {accounts.map(a => <SelectItem key={a.id} value={a.id.toString()}>{a.name}</SelectItem>)}

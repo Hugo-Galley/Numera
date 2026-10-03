@@ -553,7 +553,6 @@ export default function Investments() {
                               <g transform={`translate(${x},${y})`}>
                                 <foreignObject x={-135} y={-10} width={130} height={20}>
                                   <div
-                                    xmlns="http://www.w3.org/1999/xhtml"
                                     className="flex items-center justify-end gap-1.5 h-full pr-1 overflow-hidden"
                                     title={payload.value}
                                   >

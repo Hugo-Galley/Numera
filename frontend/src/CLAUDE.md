@@ -15,7 +15,7 @@ Complète le `CLAUDE.md` racine. Procédures : skill `numera-frontend`. Le front
 ## Règles
 
 - Alias d'import `@/` → `src/`.
-- Appels API uniquement via `api` de `@/lib/api` (le JWT et la gestion du 401 y sont centralisés). Exception : upload CSV (`multipart/form-data`, `components/settings/ImportTab.tsx`) en `fetch()` direct, **sans** `Content-Type` (le navigateur fixe le boundary). ⚠ Ce `fetch` n'ajoute pas non plus le header `Authorization` alors que `/import/*` est protégé → à corriger (ajouter le Bearer lu dans `localStorage`).
+- Appels API uniquement via `api` de `@/lib/api` (le JWT et la gestion du 401 y sont centralisés). Uploads multipart : `api.upload(endpoint, formData)` (n'envoie pas `Content-Type`, le navigateur fixe le boundary, mais ajoute le Bearer). Téléchargements de fichiers : `api.download(endpoint)` → `Blob` (jamais `window.location`, qui n'envoie pas le JWT). Les helpers `api.*` ont `T = any` par défaut : typer le générique quand le payload est connu.
 - Récupération de données : dans la page, ou dans un hook dédié quand elle est lourde (`components/dashboard/useDashboardData.ts` charge tout le Dashboard avec un `safeLoad` par endpoint pour qu'un échec n'en bloque pas d'autres). Les sous-composants reçoivent des props.
 - TypeScript strict. Le code existant utilise encore `any` pour les réponses API ; dans du code nouveau, déclarer des types (`interface`) pour les payloads.
 - Montants : toujours `formatCurrency`. Tout montant sensible porte la classe **`amount-blur`** (définie dans `styles.css`, active quand `body.privacy-enabled`, se dévoile au survol). Ne pas utiliser `.amount-value` (n'existe pas).
@@ -26,4 +26,4 @@ Complète le `CLAUDE.md` racine. Procédures : skill `numera-frontend`. Le front
 
 ## Vérification
 
-Pas de tests ni de lint frontend. Seul garde-fou : `cd frontend && npm run build`, qui lance uniquement `vite build` (**pas de `tsc`** : les erreurs de types ne bloquent pas ; `npx tsc --noEmit` signale déjà des erreurs préexistantes, p. ex. `RecurringTransactions.tsx`, `Tools.tsx`). Contrôle manuel : mode confidentialité (œil), thème sombre, responsive mobile.
+Pas de tests ni de lint frontend. Seul garde-fou : `cd frontend && npm run build` = `tsc --noEmit && vite build` (les erreurs de types bloquent le build ; `npm run typecheck` pour tsc seul). Le projet est à 0 erreur TypeScript : ne pas en introduire. Types manquants : `types/react-simple-maps.d.ts`. Contrôle manuel : mode confidentialité (œil), thème sombre, responsive mobile.

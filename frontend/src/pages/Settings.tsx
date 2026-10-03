@@ -17,7 +17,7 @@ import {
   ShoppingBag
 } from "lucide-react"
 import { IconComponent, ICON_OPTIONS } from "@/components/dashboard/IconComponent"
-import { api, API_BASE } from "@/lib/api"
+import { api } from "@/lib/api"
 import { RulesTab } from "@/components/settings/RulesTab"
 import { TransfersTab } from "@/components/settings/TransfersTab"
 import { TagsTab } from "@/components/settings/TagsTab"
@@ -219,13 +219,23 @@ export default function Settings() {
     }
   }
 
-  const handleExport = () => {
-    // Direct download via window.location for CSV files
+  const handleExport = async () => {
+    // Téléchargement authentifié (le JWT ne peut pas passer par window.location)
     const params = new URLSearchParams()
     if (selectedAccounts.length > 0) {
       params.append("account_ids", selectedAccounts.join(","))
     }
-    window.location.href = `${API_BASE}/export/transactions.csv?${params.toString()}`;
+    try {
+      const blob = await api.download(`/export/transactions.csv?${params.toString()}`)
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = url
+      a.download = "transactions_export.csv"
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch (error: any) {
+      toast.error(error?.message || "Erreur lors de l'export")
+    }
   }
 
   return (

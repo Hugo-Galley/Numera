@@ -170,7 +170,7 @@ export default function RecurringTransactions() {
   })
 
   const selectedAccount = accounts.find(a => a.id.toString() === formData.account_id)
-  const isInvestment = selectedAccount?.type === "investissement" || selectedAccount?.type === "assurance_vie" || !!formData.ticker
+  const isInvestment = selectedAccount?.type === "investissement" || !!formData.ticker
 
   const allSubs = subsData?.subscriptions || []
   const activeSubs = allSubs.filter((s: any) => {
@@ -220,7 +220,7 @@ export default function RecurringTransactions() {
     setFormData({
       account_id: firstAccount?.id.toString() || "",
       name: "",
-      type: (firstAccount?.type === "investissement" || firstAccount?.type === "assurance_vie") ? "versement" : "Sortie",
+      type: firstAccount?.type === "investissement" ? "versement" : "Sortie",
       amount: "",
       currency: firstAccount?.currency || "EUR",
       category_id: "none",
@@ -351,7 +351,7 @@ export default function RecurringTransactions() {
     
     let acc = accounts[0]
     if (isInvest) {
-      const invAcc = accounts.find(a => a.type === "investissement" || a.type === "assurance_vie")
+      const invAcc = accounts.find(a => a.type === "investissement")
       if (invAcc) acc = invAcc
     }
 
@@ -371,7 +371,12 @@ export default function RecurringTransactions() {
       note: isInvest ? "Validé comme investissement" : "Validé depuis détection automatique",
       asset_class: "",
       sector: "",
-      geographic_zone: ""
+      geographic_zone: "",
+      ticker: "",
+      isin: "",
+      quantity: "",
+      unit_price: "",
+      etf_profile_id: null,
     })
     setIsFormOpen(true)
   }

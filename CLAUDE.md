@@ -31,7 +31,7 @@ Quand le code change une route, un modèle, une commande ou une règle métier, 
 make setup                 # premier lancement (setup.sh), crée .env depuis .env.example
 make dev                   # Docker : docker compose -f infra/docker-compose.yml up --build
 make prod                  # docker-compose.prod.yml
-make test                  # pytest backend (cible Makefile attend backend/venv/bin/pytest, absent sur cette machine → voir ci-dessous)
+make test                  # pytest backend (backend/venv si présent, sinon python3.12/3.11 ; PYTHON=... pour forcer)
 make validate              # tests backend + build frontend
 make backend-seed-demo     # données de démo
 make backup-now            # backup dans le conteneur
@@ -39,7 +39,8 @@ make backup-now            # backup dans le conteneur
 # Dev local
 cd backend && uvicorn app.main:app --reload --port 8001
 cd frontend && npm run dev          # port 5173
-cd frontend && npm run build        # seule vérification frontend (pas de lint/test configurés)
+cd frontend && npm run build        # tsc --noEmit + vite build : seule vérification frontend (pas de lint/test)
+cd frontend && npm run typecheck    # tsc seul
 
 # Un seul test
 cd backend && PYTHONPATH=. python3.11 -m pytest tests/test_tags.py -v   # PYTHONPATH=. requis
