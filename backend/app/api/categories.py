@@ -87,5 +87,13 @@ def delete_category(category_id: int, db: Session = Depends(get_db)):
         synchronize_session=False
     )
     
+    from app.models.salary_config import SalaryConfig
+    db.query(SalaryConfig).filter(SalaryConfig.salary_category_id == category_id).update(
+        {SalaryConfig.salary_category_id: None}, synchronize_session=False
+    )
+    db.query(SalaryConfig).filter(SalaryConfig.ticket_category_id == category_id).update(
+        {SalaryConfig.ticket_category_id: None}, synchronize_session=False
+    )
+
     db.delete(category)
     db.commit()

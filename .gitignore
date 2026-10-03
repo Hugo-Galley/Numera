@@ -37,7 +37,6 @@ backups/*
 
 # AI agent instructions
 AGENT.MD
-CLAUDE.md
 
 # OS specific
 Thumbs.db

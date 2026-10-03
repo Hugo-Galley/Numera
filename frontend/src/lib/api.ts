@@ -1,6 +1,6 @@
-export const API_BASE = typeof window !== 'undefined' && window.location.hostname !== 'localhost'
-  ? "/api"
-  : "http://localhost:8001"
+// Dev (vite, port 5173) : API directe sur :8001. Sinon (build servi par nginx, y compris sur
+// localhost:8082) : proxy /api. Se baser sur le hostname seul cassait la prod ouverte sur localhost.
+export const API_BASE = import.meta.env.DEV ? "http://localhost:8001" : "/api"
 
 export class ApiError extends Error {
   status: number
@@ -14,15 +14,17 @@ export class ApiError extends Error {
   }
 }
 
-export async function apiFetch<T>(endpoint: string, options?: RequestInit): Promise<T> {
+async function request(endpoint: string, options?: RequestInit): Promise<Response> {
   const token = localStorage.getItem("token")
-  
+  // Pour FormData, le navigateur fixe lui-même Content-Type (boundary multipart)
+  const isFormData = typeof FormData !== "undefined" && options?.body instanceof FormData
+
   let response: Response
   try {
     response = await fetch(`${API_BASE}${endpoint}`, {
       ...options,
       headers: {
-        "Content-Type": "application/json",
+        ...(isFormData ? {} : { "Content-Type": "application/json" }),
         ...(token ? { "Authorization": `Bearer ${token}` } : {}),
         ...options?.headers,
       },
@@ -57,6 +59,12 @@ export async function apiFetch<T>(endpoint: string, options?: RequestInit): Prom
     throw new ApiError(response.status, errorMessage, errorData?.detail)
   }
 
+  return response
+}
+
+export async function apiFetch<T>(endpoint: string, options?: RequestInit): Promise<T> {
+  const response = await request(endpoint, options)
+
   if (response.status === 204) {
     return null as T
   }
@@ -69,10 +77,18 @@ export async function apiFetch<T>(endpoint: string, options?: RequestInit): Prom
   return response.json()
 }
 
+/** Télécharge un fichier (CSV, etc.) avec le JWT et retourne le Blob. */
+export async function apiDownload(endpoint: string): Promise<Blob> {
+  const response = await request(endpoint)
+  return response.blob()
+}
+
 export const api = {
-  get: <T>(endpoint: string) => apiFetch<T>(endpoint),
-  post: <T>(endpoint: string, body: any) => apiFetch<T>(endpoint, { method: "POST", body: JSON.stringify(body) }),
-  put: <T>(endpoint: string, body: any) => apiFetch<T>(endpoint, { method: "PUT", body: JSON.stringify(body) }),
-  patch: <T>(endpoint: string, body: any) => apiFetch<T>(endpoint, { method: "PATCH", body: JSON.stringify(body) }),
-  delete: <T>(endpoint: string) => apiFetch<T>(endpoint, { method: "DELETE" }),
+  get: <T = any>(endpoint: string) => apiFetch<T>(endpoint),
+  post: <T = any>(endpoint: string, body?: any) => apiFetch<T>(endpoint, { method: "POST", body: JSON.stringify(body) }),
+  put: <T = any>(endpoint: string, body: any) => apiFetch<T>(endpoint, { method: "PUT", body: JSON.stringify(body) }),
+  patch: <T = any>(endpoint: string, body: any) => apiFetch<T>(endpoint, { method: "PATCH", body: JSON.stringify(body) }),
+  delete: <T = any>(endpoint: string) => apiFetch<T>(endpoint, { method: "DELETE" }),
+  upload: <T = any>(endpoint: string, formData: FormData) => apiFetch<T>(endpoint, { method: "POST", body: formData }),
+  download: apiDownload,
 }

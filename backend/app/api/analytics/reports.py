@@ -325,7 +325,7 @@ async def _calculate_money_flow_data(month: int, year: int, db: Session, account
         db.query(Account.currency, func.sum(Transaction.amount).label("total"))
         .join(Account, Transaction.account_id == Account.id)
         .filter(Transaction.date >= start, Transaction.date < end)
-        .filter(Transaction.type.in_(["Entree", "Interets", "Solde Initial"]))
+        .filter(Transaction.type.in_(["Entree", "Interets"]))  # Solde Initial = base du solde, pas un revenu
         .filter(Transaction.is_transfer == False)
     )
     
@@ -514,7 +514,7 @@ async def sankey_analytics(
         .filter(
             Transaction.date >= start,
             Transaction.date < end,
-            Transaction.type.in_(["Entree", "Interets", "Solde Initial"]), # Include Solde Initial for better flow visualization
+            Transaction.type.in_(["Entree", "Interets"]),  # Solde Initial exclu : base du solde, pas un revenu
             Transaction.is_transfer == False
         )
     )

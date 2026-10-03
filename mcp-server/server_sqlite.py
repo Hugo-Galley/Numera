@@ -39,7 +39,7 @@ DB_PATH = os.environ.get(
 )
 SERVER_NAME = os.environ.get("MCP_SERVER_NAME", "Suivi Budget MCP")
 TRANSPORT = os.environ.get("MCP_TRANSPORT", "stdio")
-HOST = os.environ.get("MCP_HOST", "0.0.0.0")
+HOST = os.environ.get("MCP_HOST", "127.0.0.1")
 PORT = int(os.environ.get("MCP_PORT", "8100"))
 
 # Logging
@@ -2014,7 +2014,10 @@ if __name__ == "__main__":
         import time
         # Small delay to let the backend finish migrations first
         time.sleep(5)
-        logger.info(f"Écoute sur {HOST}:{PORT}")
-        uvicorn.run(mcp.sse_app(), host=HOST, port=PORT)
+        from server_auth import protect
+        # Refuse de démarrer sans MCP_AUTH_TOKEN : le port exposerait tous les outils sans authentification
+        app = protect(mcp.sse_app())
+        logger.info(f"Écoute sur {HOST}:{PORT} (authentification bearer activée)")
+        uvicorn.run(app, host=HOST, port=PORT)
     else:
         mcp.run(transport="stdio")

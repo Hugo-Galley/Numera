@@ -47,16 +47,19 @@ def run_migrations() -> None:
         
         if result.returncode == 0:
             logger.info("Migrations successful:\n" + result.stdout)
-        else:
-            logger.error(f"Migrations failed (exit {result.returncode}):\n" + result.stderr)
-            
-            # Fallback: if it's a revision error, try stamping
-            if "Can't locate revision identified by" in result.stderr:
-                logger.warning("Unknown revision detected. Attempting 'alembic stamp head'...")
-                subprocess.run(["alembic", "stamp", "head"], cwd=str(backend_root), env=env)
-                subprocess.run(["alembic", "upgrade", "head"], cwd=str(backend_root), env=env)
-                
+            return
+
+        # Pas de `alembic stamp head` automatique : marquer le schéma « à jour » sans l'avoir
+        # migré masque des colonnes manquantes et casse l'application plus tard, sans explication.
+        logger.error(f"Migrations failed (exit {result.returncode}):\n" + result.stderr)
+        raise RuntimeError(
+            "Database migration failed; refusing to start with an out-of-date schema. "
+            "See the log above (restore a backup or fix the revision, then restart)."
+        )
+    except RuntimeError:
+        raise
     except Exception as e:
         logger.error(f"Unexpected error during migration subprocess: {e}", exc_info=True)
+        raise
 
 

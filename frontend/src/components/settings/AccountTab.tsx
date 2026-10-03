@@ -24,6 +24,7 @@ export function AccountTab() {
   
   const [username, setUsername] = useState("")
   const [profilePictureUrl, setProfilePictureUrl] = useState("")
+  const [currentPassword, setCurrentPassword] = useState("")
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [mcpEnabled, setMcpEnabled] = useState(true)
@@ -91,9 +92,18 @@ export function AccountTab() {
       toast.error("Les mots de passe ne correspondent pas")
       return
     }
+    if (password && password.length < 8) {
+      toast.error("Le mot de passe doit contenir au moins 8 caractères")
+      return
+    }
 
     const isUsernameChanged = username !== profile?.username
     const isPasswordChanged = password.length > 0
+
+    if ((isUsernameChanged || isPasswordChanged) && !currentPassword) {
+      toast.error("Saisissez votre mot de passe actuel pour modifier l'identifiant ou le mot de passe")
+      return
+    }
 
     if (isUsernameChanged || isPasswordChanged) {
       setShowConfirmDialog(true)
@@ -110,12 +120,14 @@ export function AccountTab() {
         username,
         profile_picture_url: profilePictureUrl || null,
         mcp_enabled: mcpEnabled,
-        ...(password ? { password } : {})
+        ...(password ? { password } : {}),
+        ...(currentPassword ? { current_password: currentPassword } : {})
       })
       
       toast.success("Profil mis à jour avec succès")
       const wasCriticalChange = username !== profile?.username || password.length > 0
       
+      setCurrentPassword("")
       setPassword("")
       setConfirmPassword("")
       
@@ -125,7 +137,7 @@ export function AccountTab() {
       
       await refreshProfile()
     } catch (error) {
-      toast.error("Erreur lors de la mise à jour du profil")
+      toast.error(error instanceof Error && error.message ? error.message : "Erreur lors de la mise à jour du profil")
       console.error(error)
     } finally {
       setLoading(false)
@@ -196,6 +208,17 @@ export function AccountTab() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            <div className="grid gap-2">
+              <Label htmlFor="current-password">Mot de passe actuel</Label>
+              <Input
+                id="current-password"
+                type="password"
+                autoComplete="current-password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                placeholder="Requis pour changer l'identifiant ou le mot de passe"
+              />
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="new-password">Nouveau mot de passe</Label>

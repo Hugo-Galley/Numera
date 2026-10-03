@@ -3,7 +3,7 @@ from collections.abc import Generator
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, event
 from sqlalchemy.orm import Session, sessionmaker
 
 os.environ["APP_ENV"] = "test"
@@ -13,7 +13,7 @@ from app.core import security
 settings.ADMIN_PASSWORD_HASH = security.get_password_hash("admin")
 
 from app.db.base import Base
-from app.db.session import get_db as get_db_session
+from app.db.session import enable_sqlite_foreign_keys, get_db as get_db_session
 from app.api.deps import get_db as get_db_deps
 from app.api.deps import get_current_user
 from app.main import app
@@ -25,6 +25,8 @@ from app import models # noqa: F401
 def db_session(tmp_path) -> Generator[Session, None, None]:
     db_file = tmp_path / "test.db"
     engine = create_engine(f"sqlite:///{db_file}", connect_args={"check_same_thread": False})
+    # Même comportement qu'en prod : clés étrangères actives (ON DELETE CASCADE / SET NULL)
+    event.listen(engine, "connect", enable_sqlite_foreign_keys)
     TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     Base.metadata.create_all(bind=engine)
 

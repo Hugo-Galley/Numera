@@ -1,5 +1,9 @@
 COMPOSE_FILE=infra/docker-compose.yml
 
+# Interpréteur Python pour les tests : venv du backend si présent, sinon python3.12 / python3.11 du PATH
+# (Python 3.14 est incompatible avec pydantic-core). Surchargeable : make test PYTHON=...
+PYTHON ?= $(shell if [ -x $(CURDIR)/backend/venv/bin/python ]; then echo $(CURDIR)/backend/venv/bin/python; else command -v python3.12 || command -v python3.11; fi)
+
 .PHONY: setup dev down prod prod-down backend-install frontend-install backend-seed-demo test validate backup-now backup-restore
 
 setup:
@@ -28,7 +32,7 @@ backend-seed-demo:
 	PYTHONPATH=backend python3 backend/scripts/seed_demo.py
 
 test:
-	cd backend && PYTHONPATH=. ./venv/bin/pytest tests/
+	cd backend && PYTHONPATH=. $(PYTHON) -m pytest tests/ -q
 
 frontend-build:
 	cd frontend && npm run build

@@ -174,7 +174,7 @@ export function WealthSimulator({ initialCapitalDefault = 10000 }: WealthSimulat
 
   // Sync initialCapitalDefault if it changes from parent
   useEffect(() => {
-    setParams(prev => ({ ...prev, initial_capital: initialCapitalDefault }))
+    setParams((prev: any) => ({ ...prev, initial_capital: initialCapitalDefault }))
   }, [initialCapitalDefault])
 
   // Main data fetcher

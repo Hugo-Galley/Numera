@@ -314,7 +314,9 @@ cd backend && python -m pytest tests/ -v --cov=app
 
 | Document | Description |
 |---|---|
+| [`CLAUDE.md`](CLAUDE.md) | Guide pour les agents Claude Code (commandes, règles métier, carte des docs) |
 | [`ARCHITECTURE.md`](ARCHITECTURE.md) | Architecture détaillée, flux de données et routes API |
+| [`docs/`](docs/) | Backend (exploitation), Centre d'Actions, sauvegardes |
 | [`ROADMAP.md`](ROADMAP.md) | État d'avancement, sprints terminés et backlog |
 | [`PLAN.MD`](PLAN.MD) | Cahier des charges produit historique |
 | [`TEST_PLAN.md`](TEST_PLAN.md) | Stratégie de tests et scénarios critiques |

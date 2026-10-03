@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from datetime import datetime
 
+from app.core.holdings import apply_trade_to_holding, reverse_trade_from_holding
 from app.db.session import get_db
 from app.models.account import Account
 from app.models.balance_snapshot import BalanceSnapshot
@@ -87,33 +88,19 @@ async def create_investment_transaction(payload: InvestmentTransactionCreate, db
     )
     db.add(tx)
 
-    # Automatic hook: update or create PortfolioHolding if ticker and quantity are provided
-    if payload.ticker and payload.quantity and payload.quantity > 0:
-        from app.models.portfolio_holding import PortfolioHolding
-        norm_ticker = payload.ticker.upper().strip()
-        holding = db.query(PortfolioHolding).filter(
-            PortfolioHolding.account_id == payload.account_id,
-            PortfolioHolding.ticker == norm_ticker
-        ).first()
+    apply_trade_to_holding(
+        db,
+        account_id=payload.account_id,
+        ticker=payload.ticker,
+        tx_type=tx_type,
+        quantity=payload.quantity,
+        unit_price=payload.unit_price,
+        isin=payload.isin,
+        asset_name=payload.note,
+        currency=currency,
+        etf_profile_id=payload.etf_profile_id,
+    )
 
-        qty_delta = payload.quantity if tx_type in ("versement", "achat") else -payload.quantity
-        if holding:
-            holding.quantity = max(0.0, holding.quantity + qty_delta)
-            if payload.unit_price:
-                holding.buy_price_avg = payload.unit_price
-        elif qty_delta > 0:
-            new_holding = PortfolioHolding(
-                account_id=payload.account_id,
-                ticker=norm_ticker,
-                isin=payload.isin.upper().strip() if payload.isin else None,
-                asset_name=payload.note or norm_ticker,
-                quantity=qty_delta,
-                buy_price_avg=payload.unit_price,
-                currency=currency,
-                etf_profile_id=payload.etf_profile_id,
-            )
-            db.add(new_holding)
-    
     from app.core.time import utcnow_naive
     account.last_verified_at = utcnow_naive()
     
@@ -127,6 +114,18 @@ def delete_investment_transaction(transaction_id: int, db: Session = Depends(get
     tx = db.query(InvestmentTransaction).filter(InvestmentTransaction.id == transaction_id).first()
     if not tx:
         raise HTTPException(status_code=404, detail="Investment transaction not found")
+    reverse_trade_from_holding(
+        db,
+        account_id=tx.account_id,
+        ticker=tx.ticker,
+        tx_type=tx.type,
+        quantity=tx.quantity,
+        unit_price=tx.unit_price,
+    )
+    from app.models.transaction import Transaction
+    for linked in db.query(Transaction).filter(Transaction.linked_investment_transaction_id == tx.id).all():
+        linked.linked_investment_transaction_id = None
+        linked.is_transfer = False
     db.delete(tx)
     db.commit()
 
@@ -182,8 +181,33 @@ async def update_investment_transaction(transaction_id: int, payload: Investment
         data["original_amount"] = original_amount
         data["currency"] = currency
 
+    # La position reflète le mouvement : on annule l'ancien, on applique le nouveau
+    reverse_trade_from_holding(
+        db,
+        account_id=tx.account_id,
+        ticker=tx.ticker,
+        tx_type=tx.type,
+        quantity=tx.quantity,
+        unit_price=tx.unit_price,
+    )
+
     for key, value in data.items():
         setattr(tx, key, value)
+    if tx.ticker:
+        tx.ticker = tx.ticker.upper().strip()
+
+    apply_trade_to_holding(
+        db,
+        account_id=tx.account_id,
+        ticker=tx.ticker,
+        tx_type=tx.type,
+        quantity=tx.quantity,
+        unit_price=tx.unit_price,
+        isin=tx.isin,
+        asset_name=tx.note,
+        currency=tx.currency,
+        etf_profile_id=tx.etf_profile_id,
+    )
 
     db.commit()
     db.refresh(tx)

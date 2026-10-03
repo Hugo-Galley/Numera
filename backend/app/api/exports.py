@@ -15,6 +15,13 @@ from app.models.investment_transaction import InvestmentTransaction
 router = APIRouter(prefix="/export", tags=["export"])
 
 
+def _csv_safe(value: str) -> str:
+    """Neutralise l'injection de formules (Excel/Numbers) dans les champs texte exportés."""
+    if value and value[0] in ("=", "+", "-", "@", "\t", "\r"):
+        return "'" + value
+    return value
+
+
 @router.get("/transactions.csv")
 def export_transactions_csv(
     account_ids: str | None = Query(default=None, description="Comma-separated list of account IDs"),
@@ -98,12 +105,12 @@ def export_transactions_csv(
         date_str = item["date"].strftime("%d/%m/%Y %H:%M") if isinstance(item["date"], datetime) else ""
         writer.writerow(
             [
-                item["account_name"],
+                _csv_safe(item["account_name"]),
                 date_str,
                 item["month_label"],
                 item["type"],
-                item["merchant"],
-                item["category"],
+                _csv_safe(item["merchant"]),
+                _csv_safe(item["category"]),
                 f"{item['amount']:.2f}",
                 f"{item['balance']:.2f}",
             ]

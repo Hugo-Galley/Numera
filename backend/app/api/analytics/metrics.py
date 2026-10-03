@@ -283,6 +283,69 @@ async def top_merchants(
     return {"month": month, "year": year, "items": items}
 
 
+@router.get("/account-flow-summary")
+def account_flow_summary(
+    account_id: int = Query(...),
+    start_date: datetime | None = Query(default=None),
+    end_date: datetime | None = Query(default=None),
+    db: Session = Depends(get_db),
+):
+    """Flux net du mois courant et du mois précédent d'un compte + dépense moyenne.
+
+    Calculé sur tout l'historique du compte (pas sur la page chargée par le frontend),
+    virements internes exclus, Solde Initial exclu. Montants dans la devise du compte.
+    """
+    account = db.query(Account).filter(Account.id == account_id).first()
+    if not account:
+        raise HTTPException(status_code=404, detail="Account not found")
+
+    now = datetime.now()
+    month_start = datetime(now.year, now.month, 1)
+    prev_start = datetime(now.year - 1, 12, 1) if now.month == 1 else datetime(now.year, now.month - 1, 1)
+    next_start = datetime(now.year + (1 if now.month == 12 else 0), 1 if now.month == 12 else now.month + 1, 1)
+
+    def _flow(start: datetime, end: datetime) -> float:
+        rows = (
+            db.query(Transaction.type, func.coalesce(func.sum(Transaction.amount), 0.0))
+            .filter(
+                Transaction.account_id == account_id,
+                Transaction.date >= start,
+                Transaction.date < end,
+                Transaction.is_transfer == False,
+                Transaction.type.in_(["Entree", "Interets", "Sortie"]),
+            )
+            .group_by(Transaction.type)
+            .all()
+        )
+        totals = {t: float(v) for t, v in rows}
+        return totals.get("Entree", 0.0) + totals.get("Interets", 0.0) - totals.get("Sortie", 0.0)
+
+    monthly_net_flow = _flow(month_start, next_start)
+    prev_monthly_net_flow = _flow(prev_start, month_start)
+    monthly_variation = None
+    if prev_monthly_net_flow != 0:
+        monthly_variation = (monthly_net_flow - prev_monthly_net_flow) / abs(prev_monthly_net_flow) * 100
+
+    expenses = db.query(func.coalesce(func.avg(Transaction.amount), 0.0)).filter(
+        Transaction.account_id == account_id,
+        Transaction.type == "Sortie",
+        Transaction.is_transfer == False,
+    )
+    if start_date is not None:
+        expenses = expenses.filter(Transaction.date >= start_date)
+    if end_date is not None:
+        expenses = expenses.filter(Transaction.date <= end_date)
+    avg_expense = float(expenses.scalar() or 0.0)
+
+    return {
+        "currency": account.currency,
+        "monthly_net_flow": round(monthly_net_flow, 2),
+        "prev_monthly_net_flow": round(prev_monthly_net_flow, 2),
+        "monthly_variation": round(monthly_variation, 2) if monthly_variation is not None else None,
+        "avg_expense": round(avg_expense, 2),
+    }
+
+
 @router.get("/kpi-history")
 async def kpi_history(
     months_count: int = Query(default=6, ge=1, le=24), 

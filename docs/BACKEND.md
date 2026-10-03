@@ -6,21 +6,21 @@ Ce document fournit une vue d'ensemble technique, opérationnelle et architectur
 
 ## 1. Stack Technique & Choix Architecturaux
 
-Le backend de Numera est conçu selon le principe **Local-First & Privacy**. Il s'exécute localement et stocke les données sans faire appel à des services cloud tiers (à l'exception des taux de change).
+Le backend de Numera est conçu selon le principe **Local-First & Privacy**. Il s'exécute localement et stocke les données sans faire appel à des services cloud tiers (à l'exception des taux de change Frankfurter et des cotations/profils de titres Yahoo Finance).
 
 ### La Stack Technique
 
 | Technologie | Composant / Rôle | Version / Détails |
 | :--- | :--- | :--- |
-| **Langage** | [Python](https://www.python.org/) | Python 3.10+ |
+| **Langage** | [Python](https://www.python.org/) | Python 3.12 (image Docker) ; 3.11 fonctionne en local, 3.14 est incompatible avec pydantic-core |
 | **Framework Web** | [FastAPI](https://fastapi.tiangolo.com/) | `0.116.1` (ASGI, asynchrone) |
 | **Serveur ASGI** | [Uvicorn](https://www.uvicorn.org/) | `0.35.0` (standard) |
 | **Base de Données** | [SQLite](https://sqlite.org/) | Fichier local `suivi_budget.db` |
 | **ORM** | [SQLAlchemy](https://www.sqlalchemy.org/) | `2.0.43` (syntaxe moderne 2.0 `Mapped`) |
 | **Migrations** | [Alembic](https://alembic.sqlalchemy.org/) | `1.16.5` |
 | **Validation & Schémas** | [Pydantic](https://docs.pydantic.dev/) | `v2.11.7` & `pydantic-settings` |
-| **Sécurité** | [python-jose](https://github.com/mpdavis/python-jose) & [bcrypt](https://github.com/pyca/bcrypt) | JWT token HS256 / Hashage de mot de passe |
-| **Tests** | [Pytest](https://docs.pytest.org/) | `8.3.3` |
+| **Sécurité** | [PyJWT](https://pyjwt.readthedocs.io) & [bcrypt](https://github.com/pyca/bcrypt) | JWT token HS256 / Hashage de mot de passe |
+| **Tests** | [Pytest](https://docs.pytest.org/) | `8.3.3` — `PYTHONPATH=. python3.11 -m pytest tests` depuis `backend/` (`make test` attend un `backend/venv` absent ici) |
 
 ### Pourquoi cette Stack ?
 
@@ -72,14 +72,14 @@ graph TD
 
 Au démarrage de l'application (événement `lifespan` configuré dans [backend/app/main.py](file:///Users/hugogalley/DEV/numera/backend/app/main.py)) :
 1. **Migrations automatiques** : Si `APP_ENV` n'est pas configuré sur `test`, Alembic est exécuté automatiquement via `run_migrations()` dans [backend/app/core/migrations.py](file:///Users/hugogalley/DEV/numera/backend/app/core/migrations.py) pour mettre à jour la structure de la base de données.
-2. **Peuplement par défaut (Seeding)** : Les catégories de dépenses/revenus fondamentales sont insérées si elles sont absentes via `seed_default_categories()` dans [backend/app/core/seeds.py](file:///Users/hugogalley/DEV/numera/backend/app/core/seeds.py).
+2. **Peuplement par défaut (Seeding)** : Les catégories fondamentales et les profils ETF système sont insérés s'ils sont absents via `seed_all()` dans [backend/app/core/seeds.py](file:///Users/hugogalley/DEV/numera/backend/app/core/seeds.py).
 3. **Tâche récurrente asynchrone** : Une boucle asynchrone permanente (`recurring_transactions_task`) est lancée en tâche de fond. Elle s'exécute toutes les heures pour :
    - Générer automatiquement les instances de transactions récurrentes (abonnements, charges fixes) définies par l'utilisateur ([backend/app/core/recurring.py](file:///Users/hugogalley/DEV/numera/backend/app/core/recurring.py)).
    - Vérifier et générer les transactions liées aux salaires configurés et jours de télétravail déclarés ([backend/app/core/salary.py](file:///Users/hugogalley/DEV/numera/backend/app/core/salary.py)).
 
 ### Règles Métier Majeures
 
-- **Calcul du Solde Cumulé (Running Balance)** : Contrairement à d'autres architectures, le solde cumulé à un instant T (`running_balance`) est stocké directement sur chaque transaction financière. Lors de l'ajout, modification ou suppression d'une transaction, le backend recalcule récursivement et chronologiquement les soldes cumulés du compte concerné via `recalculate_running_balances` ([backend/app/core/finance.py](file:///Users/hugogalley/DEV/numera/backend/app/core/finance.py)) afin de garantir l'intégrité absolue des graphiques temporels.
+- **Calcul du Solde Cumulé (Running Balance)** : Contrairement à d'autres architectures, le solde cumulé à un instant T (`running_balance`) est stocké directement sur chaque transaction financière. Lors de l'ajout, modification ou suppression d'une transaction, le backend recalcule récursivement et chronologiquement les soldes cumulés du compte concerné via `recalculate_running_balances` ([backend/app/api/transactions.py](file:///Users/hugogalley/DEV/numera/backend/app/api/transactions.py), appelée aussi par l'import CSV et la génération de salaire) afin de garantir l'intégrité absolue des graphiques temporels.
 - **Gestion Multidevises** :
   - L'application supporte nativement les transactions en devises étrangères (USD, GBP, CHF, etc.).
   - Le taux de change de référence est l'**EUR**. Les conversions s'effectuent via l'API publique Frankfurter.
@@ -97,10 +97,10 @@ L'application implémente un système d'authentification simple mais robuste :
 - **Authentification Unique** : Un compte administrateur unique est géré par les variables d'environnement `ADMIN_USERNAME` (par défaut `admin`) et `ADMIN_PASSWORD_HASH`.
 - **Génération de mot de passe** : Pour générer ou modifier le mot de passe, un script utilitaire est fourni. Vous devez hacher le mot de passe avant de l'ajouter dans votre fichier `.env` :
   ```bash
-  python3 backend/scripts/change_password.py "votre_mot_de_passe"
+  python3 scripts/change_password.py "votre_mot_de_passe"   # depuis la racine du dépôt
   ```
 - **JWT (JSON Web Tokens)** : Lors de la connexion (`POST /auth/token`), un token JWT signé en `HS256` avec la clé `SECRET_KEY` est généré. Sa validité est fixée à **60 minutes** (configurable via `ACCESS_TOKEN_EXPIRE_MINUTES` dans [backend/app/core/config.py](file:///Users/hugogalley/DEV/numera/backend/app/core/config.py)).
-- **Dépendance de Sécurité** : Toutes les routes nécessitant une authentification incluent la dépendance `Depends(get_current_user)` qui valide le jeton et lève une exception `HTTP 401 Unauthorized` si le token a expiré ou est invalide.
+- **Dépendance de Sécurité** : Toutes les routes métier incluent la dépendance `Depends(get_current_user)` (`app/api/deps.py`) qui valide le jeton (`401` si invalide/expiré, `403` si le `sub` ne correspond pas à l'admin courant). `POST /auth/token` est limité par `LoginRateLimiter` (5 échecs / 15 min par défaut, configurable via `LOGIN_*`). Le nom et le hash du mot de passe peuvent aussi être modifiés depuis l'UI (`PUT /admin/profile`, stockés dans `system_settings` et prioritaires sur le `.env`).
 
 ---
 

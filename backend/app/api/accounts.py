@@ -12,20 +12,21 @@ router = APIRouter(prefix="/accounts", tags=["accounts"])
 
 
 def _get_balance_for_account(db: Session, account_id: int) -> float:
+    """Solde = source la plus récente entre le dernier snapshot et la dernière transaction."""
     latest_snap = db.query(BalanceSnapshot).filter(
         BalanceSnapshot.account_id == account_id
     ).order_by(BalanceSnapshot.date.desc(), BalanceSnapshot.id.desc()).first()
-    
-    if latest_snap:
-        return float(latest_snap.current_value)
-        
+
     latest_tx = db.query(Transaction).filter(
         Transaction.account_id == account_id
     ).order_by(Transaction.date.desc(), Transaction.id.desc()).first()
-    
+
+    if latest_snap and (not latest_tx or latest_snap.date >= latest_tx.date):
+        return float(latest_snap.current_value)
+
     if latest_tx:
         return float(latest_tx.running_balance)
-        
+
     return 0.0
 
 

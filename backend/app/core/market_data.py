@@ -2,6 +2,7 @@ import re
 import json
 import httpx
 from datetime import datetime, timedelta
+from urllib.parse import quote
 from typing import Any, Dict, List, Optional
 from sqlalchemy.orm import Session
 
@@ -46,10 +47,13 @@ def _match_etf_profile(db: Session, symbol: str, isin: Optional[str] = None, nam
         except Exception:
             pass
 
-    # Name-based heuristic
+    # Name-based heuristic : nom vide => aucune correspondance (sinon "" est contenu dans tout),
+    # et on exige que le nom complet du profil figure dans le libellé (pas l'inverse, trop large)
+    if not norm_name:
+        return None
     for p in profiles:
-        p_name = p.name.lower()
-        if p_name in norm_name or norm_name in p_name:
+        p_name = p.name.lower().strip()
+        if len(p_name) >= 6 and (p_name == norm_name or p_name in norm_name):
             return p
 
     return None
@@ -107,9 +111,9 @@ async def search_market_assets(query: str, db: Optional[Session] = None) -> List
 
     # 2. Query Yahoo Finance public search API
     try:
-        url = f"https://query2.finance.yahoo.com/v1/finance/search?q={cleaned}&quotesCount=10&newsCount=0"
+        url = "https://query2.finance.yahoo.com/v1/finance/search"
         async with httpx.AsyncClient(headers=HEADERS, timeout=6.0) as client:
-            resp = await client.get(url)
+            resp = await client.get(url, params={"q": cleaned, "quotesCount": 10, "newsCount": 0})
             if resp.status_code == 200:
                 data = resp.json()
                 quotes = data.get("quotes", [])
@@ -179,17 +183,27 @@ async def get_market_quotes(symbols: List[str]) -> Dict[str, Dict[str, Any]]:
         for sym in missing_symbols:
             try:
                 # Query chart endpoint for live quote (query2 preferred)
-                url = f"https://query2.finance.yahoo.com/v8/finance/chart/{sym}?interval=1d&range=1d"
-                resp = await client.get(url)
+                chart_params = {"interval": "1d", "range": "1d"}
+                quoted_sym = quote(sym, safe="")
+                resp = await client.get(
+                    f"https://query2.finance.yahoo.com/v8/finance/chart/{quoted_sym}", params=chart_params
+                )
                 if resp.status_code != 200:
-                    resp = await client.get(f"https://query1.finance.yahoo.com/v8/finance/chart/{sym}?interval=1d&range=1d")
+                    resp = await client.get(
+                        f"https://query1.finance.yahoo.com/v8/finance/chart/{quoted_sym}", params=chart_params
+                    )
                 if resp.status_code == 200:
                     data = resp.json()
                     res_list = data.get("chart", {}).get("result", [])
                     if res_list:
                         meta = res_list[0].get("meta", {})
                         price = meta.get("regularMarketPrice") or meta.get("previousClose") or 0.0
-                        currency = (meta.get("currency") or "EUR").upper()
+                        raw_currency = meta.get("currency") or "EUR"
+                        currency = raw_currency.upper()
+                        if raw_currency in ("GBp", "GBX"):
+                            # Cotations LSE en pence : on ramène en livres
+                            price = float(price) / 100.0
+                            currency = "GBP"
                         short_name = meta.get("shortName") or meta.get("symbol") or sym
                         instrument_type = meta.get("instrumentType") or "EQUITY"
 

@@ -9,7 +9,7 @@ import {
   ChevronDown,
   ChevronUp
 } from "lucide-react"
-import { api, API_BASE } from "@/lib/api"
+import { api } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 import { 
   Card, 
@@ -121,13 +121,7 @@ export function ImportTab() {
 
     setLoading(true)
     try {
-      const r = await fetch(`${API_BASE}/import/preview`, { method: "POST", body: formData })
-      if (!r.ok) {
-        const err = await r.json().catch(() => ({ detail: "Erreur serveur" }))
-        toast.error(err.detail || "Erreur lors de l'analyse")
-        return
-      }
-      const data = await r.json()
+      const data = await api.upload<any>("/import/preview", formData)
       setPreview(data)
       
       // Initialize mapping with default behavior (CREATE)
@@ -136,8 +130,8 @@ export function ImportTab() {
         initialMapping[cat] = "CREATE"
       })
       setCategoryMapping(initialMapping)
-    } catch (error) {
-      toast.error("Erreur lors de l'analyse du fichier")
+    } catch (error: any) {
+      toast.error(error?.message || "Erreur lors de l'analyse du fichier")
     } finally {
       setLoading(false)
     }
@@ -154,21 +148,15 @@ export function ImportTab() {
 
     setImporting(true)
     try {
-      const r = await fetch(`${API_BASE}/import/commit`, { method: "POST", body: formData })
-      if (!r.ok) {
-        const err = await r.json().catch(() => ({ detail: "Erreur serveur" }))
-        toast.error(err.detail || "Erreur lors de l'importation")
-        return
-      }
-      const data = await r.json()
+      const data = await api.upload<any>("/import/commit", formData)
       setResult(data)
       toast.success("Import terminé avec succès")
       // Refresh logs
       api.get<ImportLog[]>("/import/logs").then(logs => {
         if (logs && Array.isArray(logs)) setImportLogs(logs)
       })
-    } catch (error) {
-      toast.error("Erreur lors de l'importation")
+    } catch (error: any) {
+      toast.error(error?.message || "Erreur lors de l'importation")
     } finally {
       setImporting(false)
     }

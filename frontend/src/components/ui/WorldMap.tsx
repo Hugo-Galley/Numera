@@ -129,8 +129,8 @@ const WorldMap: React.FC<WorldMapProps> = ({ data }) => {
           <Sphere id="sphere" stroke="#cbd5e1" strokeWidth={0.5} fill="transparent" />
           <Graticule stroke="#cbd5e1" strokeWidth={0.3} step={[10, 10]} />
           <Geographies geography={geoUrl}>
-            {({ geographies }) =>
-              geographies.map((geo) => {
+            {({ geographies }: { geographies: any[] }) =>
+              geographies.map((geo: any) => {
                 const geoName = geo.properties.name.toUpperCase();
                 const geoId = (geo.id || "").toUpperCase();
                 // Try matching by normalized geo name, then by geo ID (ISO numeric/alpha)
@@ -143,7 +143,7 @@ const WorldMap: React.FC<WorldMapProps> = ({ data }) => {
                     fill={d ? colorScale(d.value) : "#f8fafc"}
                     stroke="#94a3b8"
                     strokeWidth={0.4}
-                    onMouseEnter={(e) => {
+                    onMouseEnter={(e: React.MouseEvent) => {
                       if (d) {
                         setHoveredCountry({
                           name: geo.properties.name,
@@ -154,7 +154,7 @@ const WorldMap: React.FC<WorldMapProps> = ({ data }) => {
                         });
                       }
                     }}
-                    onMouseMove={(e) => {
+                    onMouseMove={(e: React.MouseEvent) => {
                       if (d) {
                         setHoveredCountry(prev => prev ? { ...prev, x: e.clientX, y: e.clientY } : null);
                       }

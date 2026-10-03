@@ -233,6 +233,7 @@ import { SecuritySearchInput } from "@/components/investments/SecuritySearchInpu
 import { PortfolioHolding } from "@/types/diversity"
 
 type Account = {
+  balance?: number
   id: number
   name: string
   type: "courant" | "epargne" | "investissement" | "assurance_vie"
@@ -296,6 +297,12 @@ export default function AccountDetail() {
   // -- Data State --
   const [account, setAccount] = useState<Account | null>(null)
   const [transactions, setTransactions] = useState<Transaction[]>([])
+  const [flowSummary, setFlowSummary] = useState<{
+    monthly_net_flow: number
+    prev_monthly_net_flow: number
+    monthly_variation: number | null
+    avg_expense: number
+  } | null>(null)
   const [knownMerchants, setKnownMerchants] = useState<string[]>([])
   const [timeseries, setTimeseries] = useState<any>(null)
   const [investmentData, setInvestmentData] = useState<any>(null)
@@ -948,49 +955,33 @@ export default function AccountDetail() {
       })
   }, [transactions, dateStart, dateEnd, sortField, sortOrder])
 
+  // KPI calculés par le backend (tout l'historique du compte, virements exclus) :
+  // la liste chargée ici est paginée et ne suffit pas à les calculer correctement.
+  useEffect(() => {
+    if (!id) return
+    const params = new URLSearchParams({ account_id: id })
+    if (dateStart) params.append("start_date", new Date(dateStart).toISOString())
+    if (dateEnd) params.append("end_date", new Date(dateEnd).toISOString())
+    api.get<typeof flowSummary>(`/analytics/account-flow-summary?${params.toString()}`)
+      .then(setFlowSummary)
+      .catch(() => setFlowSummary(null))
+  }, [id, dateStart, dateEnd, transactions])
+
   const stats = useMemo(() => {
     const source = (debouncedSearch || dateStart || dateEnd) ? filteredTransactions : transactions
-    if (source.length === 0) return null
-    const expenses = source.filter(t => t.type === "Sortie")
-    
-    // Current month flow
-    const now = new Date()
-    const currentMonth = now.getMonth()
-    const currentYear = now.getFullYear()
-    const thisMonthTx = transactions.filter(t => {
-      const d = new Date(t.date)
-      return d.getMonth() === currentMonth && d.getFullYear() === currentYear
-    })
-    const thisMonthIn = thisMonthTx.filter(t => ["Entree", "Interets"].includes(t.type)).reduce((acc, t) => acc + t.amount, 0)
-    const thisMonthOut = thisMonthTx.filter(t => t.type === "Sortie").reduce((acc, t) => acc + t.amount, 0)
-    const monthlyNetFlow = thisMonthIn - thisMonthOut
-
-    // Previous month flow for variation
-    const prevDate = new Date(currentYear, currentMonth - 1, 1)
-    const prevMonth = prevDate.getMonth()
-    const prevYear = prevDate.getFullYear()
-    const prevMonthTx = transactions.filter(t => {
-      const d = new Date(t.date)
-      return d.getMonth() === prevMonth && d.getFullYear() === prevYear
-    })
-    const prevMonthIn = prevMonthTx.filter(t => ["Entree", "Interets"].includes(t.type)).reduce((acc, t) => acc + t.amount, 0)
-    const prevMonthOut = prevMonthTx.filter(t => t.type === "Sortie").reduce((acc, t) => acc + t.amount, 0)
-    const prevMonthlyNetFlow = prevMonthIn - prevMonthOut
-
-    // Variation % (month-over-month on net flow)
-    let monthlyVariation: number | null = null
-    if (prevMonthlyNetFlow !== 0) {
-      monthlyVariation = ((monthlyNetFlow - prevMonthlyNetFlow) / Math.abs(prevMonthlyNetFlow)) * 100
-    }
-
+    if (source.length === 0 || !flowSummary) return null
+    // Recherche texte : la moyenne porte sur les lignes affichées (le backend ne filtre pas par texte)
+    const searchedExpenses = debouncedSearch ? source.filter(t => t.type === "Sortie") : []
     return {
-      monthlyNetFlow,
-      monthlyVariation,
-      prevMonthlyNetFlow,
+      monthlyNetFlow: flowSummary.monthly_net_flow,
+      monthlyVariation: flowSummary.monthly_variation,
+      prevMonthlyNetFlow: flowSummary.prev_monthly_net_flow,
       count: source.length,
-      avgTx: expenses.length > 0 ? expenses.reduce((acc, t) => acc + t.amount, 0) / expenses.length : 0
+      avgTx: debouncedSearch
+        ? (searchedExpenses.length > 0 ? searchedExpenses.reduce((acc, t) => acc + t.amount, 0) / searchedExpenses.length : 0)
+        : flowSummary.avg_expense,
     }
-  }, [transactions, filteredTransactions, search, dateStart, dateEnd])
+  }, [transactions, filteredTransactions, flowSummary, debouncedSearch, dateStart, dateEnd])
 
   if (loading) return (
     <div className="flex items-center justify-center h-[60vh]">
@@ -1006,7 +997,7 @@ export default function AccountDetail() {
   const isInvestment = account.type === "investissement" || account.type === "assurance_vie"
   const currentBalance = isInvestment 
     ? (investmentData?.totals?.current_value || 0)
-    : (transactions.length > 0 ? transactions[0].running_balance : 0)
+    : (account.balance ?? 0)  // calculé par le backend : transactions[0] dépend des filtres/tri actifs
 
   return (
     <div className="space-y-8 pb-10">

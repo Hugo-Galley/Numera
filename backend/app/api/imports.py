@@ -2,6 +2,7 @@ import csv
 import io
 import json
 import unicodedata
+from collections import Counter
 from datetime import datetime
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
@@ -89,7 +90,11 @@ def _canonicalize_row(raw_row: dict[str, str]) -> dict[str, str]:
 
 
 def _parse_csv(file_bytes: bytes) -> tuple[list[dict[str, str]], str, list[str]]:
-    content = file_bytes.decode("utf-8-sig")
+    try:
+        content = file_bytes.decode("utf-8-sig")
+    except UnicodeDecodeError:
+        # Exports bancaires fréquemment en Windows-1252 / Latin-1 (accents, « € »)
+        content = file_bytes.decode("cp1252", errors="replace")
     rows, delimiter, raw_headers = _read_csv_with_detected_delimiter(content)
     if not raw_headers:
         raise HTTPException(status_code=422, detail="Empty CSV file")
@@ -210,13 +215,23 @@ async def commit_import(
     )
     running_balance = last.running_balance if last else 0.0
 
-    # Pre-fetch existing transactions for duplicate detection in O(1) to avoid N+1 queries
-    existing_transactions = {
+    # Pre-fetch existing transactions for duplicate detection in O(1) to avoid N+1 queries.
+    # On compte les occurrences : deux lignes identiques d'un même fichier (ex. deux cafés
+    # au même prix le même jour) sont légitimes ; seule une ligne déjà présente en base
+    # (en nombre d'exemplaires) est un doublon, ce qui garde l'import idempotent.
+    existing_counts: Counter = Counter(
         (tx.date, round(float(tx.amount), 4), tx.merchant, tx.type)
         for tx in db.query(Transaction.date, Transaction.amount, Transaction.merchant, Transaction.type)
         .filter(Transaction.account_id == account_id)
         .all()
-    }
+    )
+    seen_in_file: Counter = Counter()
+    has_initial_balance = (
+        db.query(Transaction.id)
+        .filter(Transaction.account_id == account_id, Transaction.type == "Solde Initial")
+        .first()
+        is not None
+    )
 
     for row in rows:
         try:
@@ -280,10 +295,16 @@ async def commit_import(
                     category_id = category.id if category else None
 
             tx_key = (dt, round(float(amount), 4), merchant, tx_type)
-            if tx_key in existing_transactions:
+            seen_in_file[tx_key] += 1
+            if seen_in_file[tx_key] <= existing_counts[tx_key]:
                 skipped += 1
                 continue
-            existing_transactions.add(tx_key)
+
+            if tx_type == "Solde Initial":
+                # Un seul Solde Initial par compte (il remet le solde à zéro à sa date)
+                if has_initial_balance:
+                    raise ValueError(f"A Solde Initial already exists for this account ({row.get('Date')})")
+                has_initial_balance = True
 
             running_balance = apply_transaction_to_balance(running_balance, tx_type, amount)
             tx = Transaction(

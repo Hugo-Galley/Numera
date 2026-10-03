@@ -9,5 +9,7 @@ class AdminProfile(BaseModel):
 class AdminProfileUpdate(BaseModel):
     username: Optional[str] = None
     password: Optional[str] = None
+    # Obligatoire pour changer l'identifiant ou le mot de passe
+    current_password: Optional[str] = None
     profile_picture_url: Optional[str] = None
     mcp_enabled: Optional[bool] = None

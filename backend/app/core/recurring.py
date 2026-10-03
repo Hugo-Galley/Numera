@@ -4,7 +4,8 @@ from app.models.recurring_transaction import RecurringTransaction
 from app.models.transaction import Transaction
 from app.models.investment_transaction import InvestmentTransaction
 from app.core.finance import get_recurring_occurrences, month_label_from_date
-from app.core.currency import convert_amount
+from app.core.currency import CurrencyConversionError, convert_amount
+from app.core.holdings import apply_trade_to_holding
 from app.core.logging import get_logger
 
 logger = get_logger(__name__)
@@ -72,13 +73,18 @@ async def generate_recurring_transactions(db: Session) -> int:
             note = rd.note or rd.name
 
             if currency != account.currency:
-                converted_amount = await convert_amount(
-                    amount=original_amount,
-                    from_currency=currency,
-                    to_currency=account.currency,
-                    date=occ.date(),
-                    db=db,
-                )
+                try:
+                    converted_amount = await convert_amount(
+                        amount=original_amount,
+                        from_currency=currency,
+                        to_currency=account.currency,
+                        date=occ.date(),
+                        db=db,
+                    )
+                except CurrencyConversionError as exc:
+                    # Pas de taux : on ne génère rien (et on garde last_generated_date) pour réessayer plus tard
+                    logger.warning(f"Skipping recurring tx {rd.id} at {occ.date()}: {exc}")
+                    break
             else:
                 converted_amount = original_amount
 
@@ -132,37 +138,18 @@ async def generate_recurring_transactions(db: Session) -> int:
                 )
                 db.add(new_tx)
 
-                # Automatic hook: update or create PortfolioHolding if ticker and quantity are provided
-                if rd.ticker and effective_quantity and effective_quantity > 0:
-                    from app.models.portfolio_holding import PortfolioHolding
-                    norm_ticker = rd.ticker.upper().strip()
-                    holding = db.query(PortfolioHolding).filter(
-                        PortfolioHolding.account_id == rd.account_id,
-                        PortfolioHolding.ticker == norm_ticker
-                    ).first()
-                    qty_delta = effective_quantity if inv_type in ("versement", "achat") else -effective_quantity
-                    if holding:
-                        # Recalculate average buy price if purchasing more
-                        if qty_delta > 0 and effective_unit_price and holding.quantity > 0:
-                            old_cost = holding.quantity * (holding.buy_price_avg or effective_unit_price)
-                            new_cost = qty_delta * effective_unit_price
-                            new_total_qty = holding.quantity + qty_delta
-                            holding.buy_price_avg = round((old_cost + new_cost) / new_total_qty, 4) if new_total_qty > 0 else effective_unit_price
-                        elif qty_delta > 0 and effective_unit_price:
-                            holding.buy_price_avg = effective_unit_price
-                        holding.quantity = max(0.0, holding.quantity + qty_delta)
-                    elif qty_delta > 0:
-                        new_holding = PortfolioHolding(
-                            account_id=rd.account_id,
-                            ticker=norm_ticker,
-                            isin=rd.isin.upper().strip() if rd.isin else None,
-                            asset_name=note or norm_ticker,
-                            quantity=qty_delta,
-                            buy_price_avg=effective_unit_price,
-                            currency=currency,
-                            etf_profile_id=rd.etf_profile_id,
-                        )
-                        db.add(new_holding)
+                apply_trade_to_holding(
+                    db,
+                    account_id=rd.account_id,
+                    ticker=rd.ticker,
+                    tx_type=inv_type,
+                    quantity=effective_quantity,
+                    unit_price=effective_unit_price,
+                    isin=rd.isin,
+                    asset_name=note,
+                    currency=currency,
+                    etf_profile_id=rd.etf_profile_id,
+                )
             else:
                 new_tx = Transaction(
                     account_id=rd.account_id,
