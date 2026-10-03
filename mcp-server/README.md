@@ -1,211 +1,161 @@
-# 🔌 Serveur MCP — Suivi Budget
+# 🔌 Serveur MCP — Numera
 
-Serveur [MCP (Model Context Protocol)](https://modelcontextprotocol.io) permettant à un agent IA d'interroger et manipuler la base de données du suivi budgétaire.
+Serveur [MCP (Model Context Protocol)](https://modelcontextprotocol.io) permettant à un agent IA (Claude, Cursor…) d'interroger et de manipuler les données du suivi budgétaire.
 
-## 📋 Fonctionnalités
+Le point d'entrée `server.py` est un **dispatcher** qui lance l'un des deux serveurs :
 
-### 🔍 Outils de consultation (lecture seule)
-| Outil | Description |
-|-------|-------------|
-| `list_accounts` | Liste tous les comptes avec soldes |
-| `list_categories` | Liste les catégories (filtrable par type) |
-| `list_transactions` | Liste les transactions avec filtres avancés |
-| `get_transaction` | Détail complet d'une transaction |
-| `search_transactions` | Recherche textuelle (marchand, note) |
-| `list_recurring_transactions` | Abonnements et récurrences |
-| `list_savings_goals` | Objectifs d'épargne |
-| `list_tags` | Tags avec nombre d'utilisations |
+| Mode | Fichier | Fonctionnement | Outils |
+|------|---------|----------------|--------|
+| **API proxy** | `server_api.py` | Appelle l'API FastAPI (login JWT via `/auth/token`). Reprend les KPI calculés par le backend. Recommandé, et seul mode du `docker-compose.prod.yml`. | 42 outils, 4 ressources, 6 prompts |
+| **SQLite direct** | `server_sqlite.py` | Lit la base SQLite (connexion read-only), écritures par une connexion dédiée. Pour une installation locale. | 26 outils, 5 ressources, 3 prompts |
 
-### 📊 Outils d'analyse
-| Outil | Description |
-|-------|-------------|
-| `get_budget_summary` | Résumé budget par catégorie pour un mois |
-| `get_expenses_by_category` | Répartition des dépenses par catégorie |
-| `get_income_vs_expenses` | Comparaison revenus / dépenses |
-| `get_top_merchants` | Top marchands par montant |
-| `get_monthly_trends` | Tendances mensuelles (N mois) |
-| `get_account_balance_history` | Historique du solde d'un compte |
+### Choix du mode
 
-### ✏️ Outils d'écriture
-| Outil | Description |
-|-------|-------------|
-| `add_transaction` | Ajouter une transaction |
-| `update_transaction` | Modifier une transaction existante |
-| `delete_transaction` | Supprimer une transaction |
-| `add_category` | Ajouter une catégorie |
-| `categorize_transaction` | Changer la catégorie d'une transaction |
-| `bulk_categorize` | Catégoriser en masse par marchand |
+1. `MCP_MODE=api` ou `sqlite` : mode forcé.
+2. Sinon, si `MCP_API_URL` est défini → API.
+3. Sinon, si le fichier `MCP_DB_PATH` (défaut `../backend/data/suivi_budget.db`) existe → SQLite.
+4. Sinon → API.
 
-### 🔒 SQL sécurisé
-| Outil | Description |
-|-------|-------------|
-| `execute_read_query` | Requête SQL SELECT uniquement (LIMIT 200 forcé) |
-
-### 💡 Prompts (templates pour l'IA)
-| Prompt | Description |
-|--------|-------------|
-| `analyze_month` | Analyse détaillée d'un mois de budget |
-| `audit_subscriptions` | Audit complet des abonnements |
-| `budget_review` | Review complète des finances |
+> Règle du projet : les KPI sont calculés par le backend. Le mode SQLite recalcule certains agrégats en SQL et peut diverger ; en cas de doute, utiliser le mode API.
 
 ---
 
-## 🚀 Installation
+## 🧰 Outils
 
-### Prérequis
-- Python 3.12+
-- Le fichier `suivi_budget.db` accessible
+### Mode API (`server_api.py`)
 
-### Installation locale
+**Lecture — données**
+`list_accounts`, `list_categories`, `list_transactions`, `get_transaction`, `search_transactions`, `list_merchants`, `list_recurring_transactions`, `list_savings_goals`, `list_tags`, `list_holdings`, `list_investment_transactions`, `list_etf_profiles`, `get_etf_profile`
+
+**Lecture — analyses (via `/analytics/*`)**
+`get_budget_summary`, `get_expenses_by_category`, `get_top_merchants`, `get_subscriptions`, `get_budget_alerts`, `get_insights`, `get_monthly_report`, `get_kpi_history`, `get_cashflow_projection`, `get_money_flow`
+
+**Lecture — investissements**
+`get_investments_summary`, `get_investment_performance` (gains, baseline point zéro, PRU), `get_investment_performance_history`, `get_investments_allocation`, `get_investments_allocation_advanced`, `get_patrimoine_allocation`, `get_diversity_scanner`
+
+**Écriture**
+`add_transaction`, `update_transaction`, `delete_transaction`, `bulk_update_transactions`, `categorize_transaction`, `bulk_categorize_by_merchant`, `add_category`, `add_recurring_transaction`, `add_holding`, `delete_holding`, `add_investment_transaction`, `delete_investment_transaction`
+
+**Ressources** : `data://accounts`, `data://categories`, `data://tags`, `data://recurring-transactions`
+
+**Prompts** : `analyze_month`, `audit_subscriptions`, `budget_review`, `categorize_uncategorized`, `analyze_portfolio`, `analyze_etf_lookthrough`
+
+### Mode SQLite (`server_sqlite.py`)
+
+- **Lecture** : `list_accounts`, `list_categories`, `list_transactions`, `get_transaction`, `search_transactions`, `list_recurring_transactions`, `list_savings_goals`, `list_tags`
+- **Analyses** : `get_budget_summary`, `get_expenses_by_category`, `get_income_vs_expenses`, `get_top_merchants`, `get_monthly_trends`, `get_account_balance_history`
+- **Investissements** : `get_investments_summary`, `get_investment_performance`, `get_investment_performance_history`, `get_investments_allocation`, `get_investments_allocation_advanced`
+- **Écriture** : `add_transaction`, `update_transaction`, `delete_transaction`, `add_category`, `categorize_transaction`, `bulk_categorize`
+- **SQL** : `execute_read_query` (SELECT uniquement, `LIMIT 200` forcé)
+- **Ressources** : `data://accounts`, `data://categories`, `data://tags`, tables et schémas de la base
+- **Prompts** : `analyze_month`, `audit_subscriptions`, `budget_review`
+
+Les outils d'écriture du mode API passent par l'API : les `running_balance` sont recalculés par le backend.
+
+> ⚠️ **Limite du mode SQLite** : `add_transaction` calcule le solde à partir de la dernière transaction du compte, mais `update_transaction` et `delete_transaction` ne recalculent pas les `running_balance`, et un ajout daté dans le passé laisse les soldes suivants faux. Pour toute écriture, préférer le mode API ; sinon, corriger ensuite les soldes via l'API (modifier une transaction depuis l'interface relance le recalcul du compte). Toute évolution du modèle de données impose de vérifier `server_sqlite.py`.
+
+---
+
+## 📦 Installation
+
+Prérequis : Python 3.12+.
 
 ```bash
 cd mcp-server
-pip install -r requirements.txt
-```
+pip install -r requirements.txt     # mcp[cli]>=1.9.0 (httpx arrive avec mcp)
 
-### Vérification
-
-```bash
-# Tester le serveur avec l'Inspector MCP
+# Tester avec l'Inspector MCP
 npx -y @modelcontextprotocol/inspector python server.py
 ```
 
+## ⚙️ Variables d'environnement
+
+| Variable | Mode | Description | Défaut |
+|----------|------|-------------|--------|
+| `MCP_MODE` | les deux | Force `api` ou `sqlite` | auto |
+| `MCP_SERVER_NAME` | les deux | Nom affiché | `Suivi Budget MCP` |
+| `MCP_TRANSPORT` | les deux | `stdio`, `streamable-http`, `sse` | `stdio` (l'image Docker met `streamable-http`) |
+| `MCP_HOST` / `MCP_PORT` | HTTP/SSE | Écoute | `127.0.0.1` / `8100` (l'image Docker met `0.0.0.0`) |
+| `MCP_AUTH_TOKEN` | HTTP/SSE | Token bearer exigé de tous les clients (`Authorization: Bearer …`), 16 caractères minimum — **obligatoire**, le serveur refuse de démarrer en HTTP sans. Génération : `openssl rand -hex 32` | — |
+| `MCP_DB_PATH` | SQLite | Fichier SQLite | `../backend/data/suivi_budget.db` |
+| `MCP_API_URL` | API | URL de l'API. Derrière le Nginx de prod, **terminer par `/api`** (ex. `http://hote:8082/api`) ; en direct sur le backend, `http://backend:8001` | `http://192.168.1.100:8001` (valeur d'exemple à remplacer) |
+| `MCP_API_USERNAME` | API | Compte admin | `admin` |
+| `MCP_API_PASSWORD` | API | Mot de passe admin — **obligatoire**, le serveur refuse de démarrer sans | — |
+
 ---
 
-## ⚙️ Configuration
+## 🖥️ Claude Desktop / Cursor
 
-### Variables d'environnement
-
-| Variable | Description | Défaut |
-|----------|-------------|--------|
-| `MCP_DB_PATH` | Chemin vers la base SQLite | `../backend/data/suivi_budget.db` |
-| `MCP_SERVER_NAME` | Nom du serveur | `Suivi Budget MCP` |
-| `MCP_TRANSPORT` | Transport : `stdio`, `streamable-http`, `sse` | `stdio` |
-| `MCP_HOST` | Host d'écoute (HTTP/SSE) | `0.0.0.0` |
-| `MCP_PORT` | Port d'écoute (HTTP/SSE) | `8100` |
-
----
-
-## 🖥️ Utilisation avec Claude Desktop
-
-Ajouter dans le fichier de configuration Claude Desktop (`~/Library/Application Support/Claude/claude_desktop_config.json` sur macOS) :
+**Mode SQLite (installation locale)**
 
 ```json
 {
   "mcpServers": {
-    "suivi-budget": {
+    "numera": {
       "command": "python",
-      "args": ["/chemin/absolu/vers/suivi-budget/mcp-server/server.py"],
+      "args": ["/chemin/absolu/numera/mcp-server/server.py"],
       "env": {
-        "MCP_DB_PATH": "/chemin/absolu/vers/suivi-budget/backend/data/suivi_budget.db"
+        "MCP_MODE": "sqlite",
+        "MCP_DB_PATH": "/chemin/absolu/numera/backend/data/suivi_budget.db"
       }
     }
   }
 }
 ```
 
-> 💡 **Conseil :** Utilisez des chemins absolus.
-
----
-
-## 🖱️ Utilisation avec Cursor
-
-Ajouter dans `.cursor/mcp.json` à la racine du projet :
+**Mode API (instance distante)**
 
 ```json
 {
   "mcpServers": {
-    "suivi-budget": {
+    "numera": {
       "command": "python",
-      "args": ["mcp-server/server.py"],
+      "args": ["/chemin/absolu/numera/mcp-server/server.py"],
       "env": {
-        "MCP_DB_PATH": "backend/data/suivi_budget.db"
+        "MCP_MODE": "api",
+        "MCP_API_URL": "https://votre-domaine/api",
+        "MCP_API_USERNAME": "admin",
+        "MCP_API_PASSWORD": "••••••••"
       }
     }
   }
 }
 ```
 
+Claude Desktop : `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS). Cursor : `.cursor/mcp.json` à la racine du projet. Utiliser des chemins absolus.
+
 ---
 
-## 🐳 Déploiement Docker (VPS)
+## 🐳 Docker
 
-### Build et run
+Le service est déclaré dans `docker-compose.prod.yml` sous le **profil `mcp`** (non lancé par défaut), en mode API, transport `stdio`, **sans port publié** :
 
 ```bash
-cd mcp-server
-docker build -t suivi-budget-mcp .
-docker run -d \
-  --name mcp-server \
-  -v /chemin/vers/backend/data:/data:ro \
-  -p 8100:8100 \
-  -e MCP_TRANSPORT=streamable-http \
-  suivi-budget-mcp
+MCP_API_PASSWORD=... docker compose --env-file .env -f docker-compose.prod.yml --profile mcp up -d mcp-server
 ```
 
-### Avec docker-compose (ajouter dans `docker-compose.prod.yml`)
+Il cible `http://backend:8001` dans le réseau Docker. Les transports HTTP (`sse`, `streamable-http`) exigent `MCP_AUTH_TOKEN` (token bearer, `server_auth.py`) et refusent de démarrer sans. Le token ne chiffre rien : pour une exposition hors réseau local, ajouter TLS (reverse proxy). Le transport `stdio` n'est pas concerné.
 
-```yaml
-  mcp-server:
-    build:
-      context: ./mcp-server
-    container_name: suivi-budget-mcp
-    environment:
-      - MCP_DB_PATH=/data/suivi_budget.db
-      - MCP_TRANSPORT=streamable-http
-      - MCP_HOST=0.0.0.0
-      - MCP_PORT=8100
-    volumes:
-      - ./backend/data:/data:ro
-    ports:
-      - "8100:8100"
-    restart: always
-```
-
-> ⚠️ **Sécurité :** Le volume est monté en lecture seule (`:ro`). Les opérations d'écriture du MCP ouvrent leur propre connexion en écriture.
+Build manuel de l'image : `docker build -t numera-mcp ./mcp-server` (l'image définit `MCP_DB_PATH=/data/suivi_budget.db` et `MCP_TRANSPORT=streamable-http` ; en mode API, surcharger `MCP_MODE`, `MCP_API_URL`, `MCP_API_PASSWORD` et `MCP_TRANSPORT`).
 
 ---
 
 ## 🔒 Sécurité
 
-### Mesures implémentées
-
-1. **Requêtes SQL brutes** : uniquement `SELECT`, avec `LIMIT 200` forcé
-2. **Mots-clés interdits** : `INSERT`, `UPDATE`, `DELETE`, `DROP`, `ALTER`, `CREATE`, `TRUNCATE`, `REPLACE`, `ATTACH`, `DETACH`, `PRAGMA` sont bloqués dans les requêtes SQL brutes
-3. **Outils structurés** : les écritures passent par des outils validés avec vérification des entrées
-4. **Connexion read-only** : la DB est ouverte en lecture seule par défaut
-5. **Mode WAL** : journaling WAL pour éviter les conflits de verrous avec le backend
-
-### Recommandations pour la production
-
-- **Reverse proxy** : Mettez le serveur MCP derrière un Nginx avec TLS
-- **Accès réseau** : Ne pas exposer le port 8100 directement sur Internet
-- **Backups** : La base est partagée avec le backend, les backups existants couvrent le MCP
-- **Monitoring** : Les logs sont envoyés sur stderr
+- **Mode API** : toutes les règles du backend s'appliquent (JWT, limitation des tentatives de login). Le mot de passe admin est fourni par variable d'environnement, jamais dans le dépôt.
+- **Mode SQLite** : lecture via connexion `mode=ro` ; SQL brut limité aux `SELECT` (mots-clés `INSERT`, `UPDATE`, `DELETE`, `DROP`, `ALTER`, `CREATE`, `TRUNCATE`, `REPLACE`, `ATTACH`, `DETACH`, `PRAGMA` refusés), `LIMIT 200` forcé ; écritures par outils validés uniquement ; journal WAL pour cohabiter avec le backend.
+- Les écritures de l'agent (ajout, suppression, catégorisation en masse) modifient vraiment les données : faire une sauvegarde (`make backup-now`) avant une session de nettoyage en masse.
+- Logs sur stderr.
 
 ---
 
-## 🧪 Exemples d'utilisation
+## 🧪 Exemples
 
-### Demander une analyse mensuelle
-> "Analyse mon budget du mois de mai 2026"
-
-L'IA utilisera automatiquement `get_budget_summary`, `get_expenses_by_category`, `get_top_merchants`, etc.
-
-### Ajouter une transaction
-> "J'ai payé 45€ chez Carrefour aujourd'hui, compte courant"
-
-L'IA utilisera `list_accounts` pour trouver le bon compte, puis `add_transaction`.
-
-### Auditer les abonnements
-> "Fais un audit de tous mes abonnements"
-
-L'IA utilisera le prompt `audit_subscriptions` et les outils associés.
-
-### Requête SQL personnalisée
-> "Combien j'ai dépensé chez Amazon cette année ?"
-
-L'IA utilisera `execute_read_query` avec une requête SELECT adaptée.
+- « Analyse mon budget de mai 2026 » → `get_budget_summary`, `get_expenses_by_category`, `get_top_merchants` (ou prompt `analyze_month`).
+- « J'ai payé 45 € chez Carrefour aujourd'hui » → `list_accounts` puis `add_transaction`.
+- « Audit de mes abonnements » → prompt `audit_subscriptions` (`get_subscriptions` en mode API).
+- « Combien chez Amazon cette année ? » → `execute_read_query` (mode SQLite) ou `search_transactions`.
+- « Analyse mon portefeuille » → prompts `analyze_portfolio` / `analyze_etf_lookthrough` (mode API).
 
 ---
 
@@ -213,9 +163,11 @@ L'IA utilisera `execute_read_query` avec une requête SELECT adaptée.
 
 ```
 mcp-server/
-├── server.py          # Serveur MCP principal
-├── requirements.txt   # Dépendances Python
-├── Dockerfile         # Image Docker
-├── .env.example       # Variables d'environnement
-└── README.md          # Cette documentation
+├── server.py          # Dispatcher (choisit api ou sqlite)
+├── server_api.py      # Mode proxy API (httpx + JWT)
+├── server_sqlite.py   # Mode SQLite direct
+├── requirements.txt
+├── Dockerfile
+├── .env.example
+└── README.md
 ```
