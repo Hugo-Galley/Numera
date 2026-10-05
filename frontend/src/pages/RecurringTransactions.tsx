@@ -911,7 +911,6 @@ export default function RecurringTransactions() {
                       name: prev.name.trim() ? prev.name : asset.name,
                       ticker: asset.symbol,
                       isin: asset.isin || prev.isin,
-                      currency: asset.currency || prev.currency,
                       unit_price: p ? p.toString() : prev.unit_price,
                       asset_class: asset.type === "ETF" ? "ETF" : "Actions",
                       etf_profile_id: asset.etf_profile_id || null,
