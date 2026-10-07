@@ -111,6 +111,19 @@ Application locale de finance personnelle qui remplace un tableur Numbers et ajo
 
 ---
 
+## Idées retenues (octobre 2026)
+
+Ordre de réalisation : 1 puis 2 en premier, le reste au fil de l'eau. Pas de notifications push (l'app est consultée à la main, le Centre d'Actions suffit).
+
+1. **Fiscalité et enveloppes françaises** *(en cours de cadrage)* : plafonds (PEA 150 k€, Livret A 22 950 €, LDDS 12 000 €) avec place restante, dates clés (5 ans PEA, 8 ans AV, abattement 4 600 €), récap fiscal annuel (dividendes, plus-values réalisées du CTO, par case de déclaration).
+2. **Remboursements et dépenses avancées** *(en cours de cadrage)* : lier une `Sortie` à un ou plusieurs remboursements qui la compensent, KPI nets, liste de « ce qu'on me doit ».
+3. Découper une transaction entre plusieurs catégories.
+4. Revue de fin de mois guidée (catégoriser, valider les soldes, comparer au budget, noter un fait marquant, clôturer).
+5. Prix en heures de travail (à partir du salaire net et des jours travaillés).
+6. Projection d'indépendance financière (FIRE) sur les données réelles, en extension du `WealthSimulator`.
+7. Garanties et justificatifs : pièce jointe par transaction, date de fin de garantie, rappel.
+8. Bilan annuel « Wrapped » (taux d'épargne, plus gros poste, évolution du patrimoine, abonnements résiliés).
+
 ## Critères de Livraison Généraux
 - Les calculs financiers sensibles s'effectuent côté backend.
 - Aucune modification destructive sans migration de base de données.
