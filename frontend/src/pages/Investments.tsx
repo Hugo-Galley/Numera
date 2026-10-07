@@ -45,8 +45,6 @@ import WorldMap from "@/components/ui/WorldMap"
 import { AllocationTreemap } from "@/components/analytics/AllocationTreemap"
 import { DiversityScannerResponse } from "@/types/diversity"
 import { CompanyLogo } from "@/components/ui/CompanyLogo"
-import { PortfolioOverviewCard } from "@/components/investments/PortfolioOverviewCard"
-import type { PortfolioOverview } from "@/types/portfolio"
 
 const COLORS = ["#000000", "#4b5563", "#9ca3af", "#d1d5db", "#e5e7eb", "#f3f4f6", "#f8fafc"]
 
@@ -55,7 +53,6 @@ export default function Investments() {
   const [allocation, setAllocation] = useState<any>(null)
   const [advancedAllocation, setAdvancedAllocation] = useState<any>(null)
   const [diversity, setDiversity] = useState<DiversityScannerResponse | null>(null)
-  const [portfolio, setPortfolio] = useState<PortfolioOverview | null>(null)
 const [loading, setLoading] = useState(true)
   const [drillDown, setDrillDown] = useState<{ title: string, items: any[] } | null>(null)
 
@@ -68,10 +65,6 @@ const [loading, setLoading] = useState(true)
         ])
         setAllocation(basic)
         setAdvancedAllocation(advanced)
-        try {
-          const overview = await api.get<PortfolioOverview>("/analytics/portfolio")
-          if (overview && overview.accounts.length > 0) setPortfolio(overview)
-        } catch { /* indicateurs de plus-value indisponibles : le reste de la page s'affiche */ }
         // Load diversity data separately (non-blocking, may have no holdings)
         try {
           const div = await api.get<DiversityScannerResponse>("/analytics/diversity-scanner")
@@ -191,38 +184,21 @@ const [loading, setLoading] = useState(true)
         )}
       </div>
 
-      {portfolio && <PortfolioOverviewCard data={portfolio} />}
-
-      {/* Alerts Section */}
+      {/* Alertes de surexposition (discret) */}
       {diversity && diversity.alerts.length > 0 && (
-        <div className="space-y-3">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-            <AlertTriangle className="h-3.5 w-3.5 text-slate-500" />
-            Alertes de Surexposition ({diversity.alerts.length})
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <details className="group text-xs text-muted-foreground">
+          <summary className="cursor-pointer select-none flex items-center gap-1.5 w-fit hover:text-foreground">
+            <AlertTriangle className="h-3 w-3" />
+            {diversity.alerts.length} alerte{diversity.alerts.length > 1 ? "s" : ""} de surexposition
+          </summary>
+          <ul className="mt-2 space-y-1 pl-4.5 border-l ml-1.5 pl-3">
             {diversity.alerts.map((alert, idx) => (
-              <div
-                key={idx}
-                className="p-4 rounded-xl border bg-white flex items-start gap-3 shadow-sm"
-              >
-                <div className="shrink-0 mt-0.5">
-                  {alert.type === "danger" ? (
-                    <AlertTriangle className="h-4 w-4 text-rose-600" />
-                  ) : alert.type === "warning" ? (
-                    <AlertTriangle className="h-4 w-4 text-amber-600" />
-                  ) : (
-                    <Info className="h-4 w-4 text-slate-500" />
-                  )}
-                </div>
-                <div className="space-y-1">
-                  <h4 className="font-semibold text-xs">{alert.title}</h4>
-                  <p className="text-[11px] text-muted-foreground leading-relaxed">{alert.message}</p>
-                </div>
-              </div>
+              <li key={idx}>
+                <span className="font-medium text-foreground/80">{alert.title}</span> · {alert.message}
+              </li>
             ))}
-          </div>
-        </div>
+          </ul>
+        </details>
       )}
 
       {/* Section 1: Répartition par comptes */}
