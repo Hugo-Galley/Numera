@@ -33,6 +33,15 @@ export interface PortfolioHolding {
   gain_eur?: number
   gain_pct?: number
   is_etf: boolean
+  quote_currency?: string
+  price_date?: string
+  price_stale?: boolean
+  pays_dividends?: boolean | null
+  dividends_received_eur?: number
+  dividends_12m_eur?: number
+  last_dividend_date?: string | null
+  total_return_eur?: number | null
+  total_return_pct?: number | null
 }
 
 export interface MarketSearchResult {

@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import DateTime, Float, ForeignKey, String
+from sqlalchemy import Boolean, DateTime, Float, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.time import utcnow_naive
@@ -21,6 +21,8 @@ class PortfolioHolding(Base):
     currency: Mapped[str] = mapped_column(String(3), nullable=False, default="EUR")
     # Coût de revient total en EUR, aux taux de change des dates d'achat (calculé par rebuild_holdings)
     cost_basis_eur: Mapped[float | None] = mapped_column(Float, nullable=True)
+    # Titre distribuant (saisi à la main, None = non renseigné) : alimente le rappel « dividende attendu »
+    pays_dividends: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
 
     etf_profile_id: Mapped[int | None] = mapped_column(ForeignKey("etf_profiles.id", ondelete="SET NULL"), nullable=True, index=True)
     

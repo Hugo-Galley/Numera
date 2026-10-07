@@ -15,6 +15,7 @@ from app.schemas.holding import (
     BaselineInventoryRequest,
 )
 from app.core.currency import get_exchange_rates
+from app.core.dividends import HoldingDividends, load_dividends_eur, summarize_by_holding
 from app.core.holdings import TRADE_TYPES, normalize_ticker, rebuild_holdings, trade_cutoff
 from app.core.market_data import get_market_quotes, suggest_holdings_from_notes
 from app.core.time import utcnow_naive
@@ -22,7 +23,9 @@ from app.core.time import utcnow_naive
 router = APIRouter(prefix="/holdings", tags=["holdings"])
 
 
-async def _enrich_holding_with_quote(holding: PortfolioHolding, quotes: dict, rates: dict | None = None) -> PortfolioHoldingRead:
+async def _enrich_holding_with_quote(
+    holding: PortfolioHolding, quotes: dict, rates: dict | None = None, divs: HoldingDividends | None = None
+) -> PortfolioHoldingRead:
     sym = holding.ticker.upper().strip()
     quote = quotes.get(sym, {})
     price = quote.get("price", 0.0) or 0.0
@@ -43,6 +46,12 @@ async def _enrich_holding_with_quote(holding: PortfolioHolding, quotes: dict, ra
     if tot_invested_eur is not None and tot_invested_eur > 0 and curr_val_eur > 0:
         gain_eur = round(curr_val_eur - tot_invested_eur, 2)
         gain_pct = round((gain_eur / tot_invested_eur) * 100.0, 2)
+
+    divs = divs or HoldingDividends()
+    total_return_eur = total_return_pct = None
+    if gain_eur is not None:
+        total_return_eur = round(gain_eur + divs.total_eur, 2)
+        total_return_pct = round(total_return_eur / tot_invested_eur * 100.0, 2)
 
     return PortfolioHoldingRead(
         id=holding.id,
@@ -66,13 +75,23 @@ async def _enrich_holding_with_quote(holding: PortfolioHolding, quotes: dict, ra
         gain_eur=gain_eur,
         gain_pct=gain_pct,
         is_etf=bool(holding.etf_profile_id or quote.get("type") == "ETF"),
+        pays_dividends=holding.pays_dividends,
+        dividends_received_eur=round(divs.total_eur, 2),
+        dividends_12m_eur=round(divs.last_12m_eur, 2),
+        last_dividend_date=divs.last_date.isoformat() if divs.last_date else None,
+        total_return_eur=total_return_eur,
+        total_return_pct=total_return_pct,
     )
 
 
 async def _enrich_all(db: Session, holdings: list[PortfolioHolding]) -> list[PortfolioHoldingRead]:
     quotes = await get_market_quotes([h.ticker for h in holdings], db=db)
     rates = await get_exchange_rates("EUR")
-    return [await _enrich_holding_with_quote(h, quotes, rates) for h in holdings]
+    dividends = summarize_by_holding(await load_dividends_eur(db))
+    return [
+        await _enrich_holding_with_quote(h, quotes, rates, dividends.get((h.account_id, h.ticker.upper())))
+        for h in holdings
+    ]
 
 
 def _account_holdings(db: Session, account_id: int) -> list[PortfolioHolding]:
@@ -220,6 +239,8 @@ async def update_holding(
         holding.asset_name = payload.asset_name.strip()
     if payload.etf_profile_id is not None:
         holding.etf_profile_id = payload.etf_profile_id
+    if "pays_dividends" in payload.model_fields_set:
+        holding.pays_dividends = payload.pays_dividends
     if item is not None:
         item.isin, item.asset_name, item.etf_profile_id = holding.isin, holding.asset_name, holding.etf_profile_id
 

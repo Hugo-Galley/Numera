@@ -20,6 +20,8 @@ class InvestmentTransactionBase(BaseModel):
     unit_price: float | None = None
     price_currency: str | None = None
     fees: float | None = Field(default=None, ge=0)
+    withholding_tax: float | None = Field(default=None, ge=0)
+    reinvested: bool = False
     etf_profile_id: int | None = None
     is_transfer: bool = False
     is_transfer_ignored: bool = False
@@ -32,6 +34,7 @@ class InvestmentTransactionCreate(InvestmentTransactionBase):
 
 class InvestmentTransactionRead(InvestmentTransactionBase):
     id: int
+    reinvest_of_id: int | None = None
 
     model_config = {"from_attributes": True}
 
@@ -51,6 +54,8 @@ class InvestmentTransactionUpdate(BaseModel):
     unit_price: float | None = None
     price_currency: str | None = None
     fees: float | None = Field(default=None, ge=0)
+    withholding_tax: float | None = Field(default=None, ge=0)
+    reinvested: bool | None = None
     etf_profile_id: int | None = None
     is_transfer: bool | None = None
     is_transfer_ignored: bool | None = None

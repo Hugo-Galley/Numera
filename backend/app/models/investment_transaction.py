@@ -31,6 +31,14 @@ class InvestmentTransaction(Base):
     # Devise de `unit_price` et de `fees` (devise de cotation du titre) ; à défaut, `currency`
     price_currency: Mapped[str | None] = mapped_column(String(3), nullable=True)
     fees: Mapped[float | None] = mapped_column(Float, nullable=True)
+
+    # Dividendes : `amount` = net reçu ; la retenue à la source (même devise que `currency`) est informative.
+    withholding_tax: Mapped[float | None] = mapped_column(Float, nullable=True)
+    # Dividende réinvesti : un `achat` lié (reinvest_of_id) est généré et suivi automatiquement
+    reinvested: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0", nullable=False)
+    reinvest_of_id: Mapped[int | None] = mapped_column(
+        ForeignKey("investment_transactions.id", ondelete="CASCADE"), nullable=True, index=True
+    )
     etf_profile_id: Mapped[int | None] = mapped_column(ForeignKey("etf_profiles.id", ondelete="SET NULL"), nullable=True, index=True)
 
     # Transfers (Sprint 4)

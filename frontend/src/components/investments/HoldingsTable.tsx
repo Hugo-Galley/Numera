@@ -12,7 +12,7 @@ import {
   TableHead,
   TableCell,
 } from "@/components/ui/table"
-import { SlidersHorizontal, Trash2, Globe, Layers, Search, X } from "lucide-react"
+import { SlidersHorizontal, Trash2, Globe, Layers, Search, X, Coins, CalendarCheck } from "lucide-react"
 import { PointZeroModal } from "./PointZeroModal"
 import { api } from "@/lib/api"
 import { toast } from "sonner"
@@ -27,6 +27,7 @@ interface HoldingsTableProps {
   accountName: string
   holdings: PortfolioHolding[]
   onRefresh: () => void
+  onAddDividend?: (holding: PortfolioHolding) => void
 }
 
 export function HoldingsTable({
@@ -34,6 +35,7 @@ export function HoldingsTable({
   accountName,
   holdings,
   onRefresh,
+  onAddDividend,
 }: HoldingsTableProps) {
   const [pointZeroOpen, setPointZeroOpen] = useState(false)
   const [decomposingId, setDecomposingId] = useState<number | null>(null)
@@ -102,8 +104,18 @@ export function HoldingsTable({
       await api.delete(`/holdings/${holdingId}`)
       toast.success("Position supprimée")
       onRefresh()
-    } catch (err) {
-      toast.error("Erreur lors de la suppression")
+    } catch (err: any) {
+      toast.error(err?.message || "Erreur lors de la suppression")
+    }
+  }
+
+  const handleTogglePaysDividends = async (h: PortfolioHolding) => {
+    try {
+      await api.put(`/holdings/${h.id}`, { pays_dividends: !h.pays_dividends })
+      toast.success(h.pays_dividends ? `${h.ticker} : ne distribue pas` : `${h.ticker} : titre distribuant (rappel si aucun dividende pendant 13 mois)`)
+      onRefresh()
+    } catch (err: any) {
+      toast.error(err?.message || "Erreur lors de la mise à jour")
     }
   }
 
@@ -261,6 +273,8 @@ export function HoldingsTable({
                     <TableHead className="text-right font-semibold text-slate-600">Cours actuel</TableHead>
                     <TableHead className="text-right font-semibold text-slate-600">Valeur totale</TableHead>
                     <TableHead className="text-right font-semibold text-slate-600">Plus-value latente</TableHead>
+                    <TableHead className="text-right font-semibold text-slate-600">Dividendes reçus</TableHead>
+                    <TableHead className="text-right font-semibold text-slate-600">Rendement total</TableHead>
                     <TableHead className="text-right font-semibold text-slate-600">Poids</TableHead>
                     <TableHead className="text-right w-[90px] font-semibold text-slate-600">Actions</TableHead>
                   </TableRow>
@@ -348,12 +362,60 @@ export function HoldingsTable({
                           )}
                         </TableCell>
 
+                        <TableCell className="text-right font-mono text-sm">
+                          {(h.dividends_received_eur ?? 0) > 0 ? (
+                            <div className="flex flex-col items-end">
+                              <span className="amount-blur font-semibold text-slate-900">{formatCurrency(h.dividends_received_eur!)}</span>
+                              <span className="text-[10px] text-slate-400 font-normal amount-blur">
+                                {formatCurrency(h.dividends_12m_eur ?? 0)} sur 12 mois
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="text-slate-400 italic text-xs">-</span>
+                          )}
+                        </TableCell>
+
+                        <TableCell className="text-right font-mono text-sm font-semibold">
+                          {h.total_return_eur !== undefined && h.total_return_eur !== null ? (
+                            <div className="flex flex-col items-end">
+                              <span className={`amount-blur ${h.total_return_eur >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
+                                {h.total_return_eur >= 0 ? "+" : ""}{formatCurrency(h.total_return_eur)}
+                              </span>
+                              <span className={`text-[11px] font-medium ${h.total_return_eur >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
+                                ({h.total_return_eur >= 0 ? "+" : ""}{h.total_return_pct}%)
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="text-slate-400 italic text-xs">-</span>
+                          )}
+                        </TableCell>
+
                         <TableCell className="text-right font-mono text-xs text-slate-500 font-medium">
                           {weightPct.toFixed(1)}%
                         </TableCell>
 
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-1">
+                            {onAddDividend && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 w-8 p-0 text-slate-500 hover:text-emerald-600"
+                                onClick={() => onAddDividend(h)}
+                                title="Saisir un dividende"
+                              >
+                                <Coins className="h-4 w-4" />
+                              </Button>
+                            )}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className={cn("h-8 w-8 p-0", h.pays_dividends ? "text-emerald-600 hover:text-emerald-700" : "text-slate-300 hover:text-slate-600")}
+                              onClick={() => handleTogglePaysDividends(h)}
+                              title={h.pays_dividends ? "Titre distribuant : cliquer pour désactiver le rappel" : "Marquer comme titre distribuant (rappel de dividende)"}
+                            >
+                              <CalendarCheck className="h-4 w-4" />
+                            </Button>
                             {!h.etf_profile_id && (h.is_etf || h.ticker.startsWith("0P")) && (
                               <Button
                                 variant="ghost"

@@ -26,6 +26,7 @@ class PortfolioHoldingUpdate(BaseModel):
     buy_price_avg: Optional[float] = Field(default=None, ge=0)
     currency: Optional[str] = None
     etf_profile_id: Optional[int] = None
+    pays_dividends: Optional[bool] = None
 
 
 class PortfolioHoldingRead(PortfolioHoldingBase):
@@ -44,6 +45,14 @@ class PortfolioHoldingRead(PortfolioHoldingBase):
     gain_eur: Optional[float] = None
     gain_pct: Optional[float] = None
     is_etf: bool = False
+
+    # Dividendes (EUR) rattachés à ce titre
+    pays_dividends: Optional[bool] = None
+    dividends_received_eur: float = 0.0
+    dividends_12m_eur: float = 0.0
+    last_dividend_date: Optional[str] = None
+    total_return_eur: Optional[float] = None  # plus-value latente + dividendes reçus
+    total_return_pct: Optional[float] = None
 
     model_config = {"from_attributes": True}
 

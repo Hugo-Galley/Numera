@@ -70,11 +70,11 @@ docker-compose.prod.yml, Makefile, setup.sh, install.sh
 - `accounts.py`: CRUD comptes, suppression logique par `active=False`.
 - `categories.py`: CRUD catégories avec limites mensuelles/annuelles.
 - `transactions.py`: CRUD transactions, recherche marchands, bulk update, recalcul soldes.
-- `investment_transactions.py`: opérations `versement`, `retrait`, `achat`, `vente`, `dividende`, `frais` ; toute mutation appelle `rebuild_holdings`.
+- `investment_transactions.py`: opérations `versement`, `retrait`, `achat`, `vente`, `dividende`, `frais` ; toute mutation appelle `rebuild_holdings`. `POST /investment-transactions/link-dividends?account_id=&dry_run=` rattache les anciens dividendes sans titre à une position d'après leur libellé.
 - `balance_snapshots.py`: snapshots de valeur et définition de point zéro.
 - `imports.py`: preview/commit CSV Numbers.
 - `exports.py`: export CSV compatible Numbers.
-- `analytics/` (package, prefixe `/analytics`): `metrics` (tags, depenses par categorie, top marchands, kpi-history, timeseries, calendar), `budget` (budget, budget-alerts), `investments` (investissements, performance, allocations, patrimoine, simulation), `reports` (cashflow-projection, monthly-report, money-flow, sankey), `subscriptions`, `insights`, `audit` (audit + Centre d'Actions `/actions`), `diversity` (scanner de diversification), `utils`.
+- `analytics/` (package, prefixe `/analytics`): `metrics` (tags, depenses par categorie, top marchands, kpi-history, timeseries, calendar), `budget` (budget, budget-alerts), `investments` (investissements, performance, allocations, patrimoine, simulation), `reports` (cashflow-projection, monthly-report, money-flow, sankey), `subscriptions`, `insights`, `audit` (audit + Centre d'Actions `/actions`), `diversity` (scanner de diversification), `dividends` (dividendes en EUR : totaux, par mois / année / titre, rendements), `utils`.
 - `holdings.py`: positions titres (`portfolio_holdings`, lecture seule hors métadonnées), inventaire Point Zéro (`POST /holdings/baseline` avec `date` optionnelle ; `POST`/`PUT`/`DELETE /holdings` éditent une ligne d'inventaire), suggestions depuis les notes. Chaque position porte `price_date` / `price_stale`.
 - `market.py`: recherche, validation et cotation de titres (Yahoo Finance).
 - `etf_profiles.py`: profils ETF (pays/secteurs/top holdings), auto-decomposition en ligne.
@@ -139,6 +139,8 @@ Champs: `id`, `account_id`, `date`, `type`, `amount`, `currency`, `original_amou
 
 Types : `versement` / `retrait` (flux d'espèces, comptés dans le montant investi ; avec ticker + quantité ils font aussi bouger la position), `achat` / `vente` (opérations sur titres, ticker + quantité obligatoires, sans effet sur le montant investi), `dividende`, `frais`. `unit_price` et `fees` sont exprimés en `price_currency` (défaut : `currency`) ; sans `unit_price`, il est déduit du montant hors frais.
 
+Dividendes (`core/dividends.py`) : `ticker` obligatoire à la création, `amount` = **net reçu** (comme chez le courtier), `withholding_tax` = retenue informative (même devise que `currency`, brut = net + retenue), `reinvested` = un `achat` lié (`reinvest_of_id`, non modifiable à la main) est généré avec `quantity` = parts reçues. Un dividende saisi marque la position comme distribuante (`portfolio_holdings.pays_dividends`, réglable à la main).
+
 ### `balance_snapshots`
 
 Champs: `id`, `account_id`, `date`, `current_value`, `note`, `is_zero_point`.
@@ -147,7 +149,7 @@ Un point zéro sert de base de performance pour un compte.
 
 ### Autres Tables
 
-- `portfolio_holdings`: positions titres par compte (`account_id`, `ticker`, `isin`, `asset_name`, `quantity`, `buy_price_avg` = PRU frais inclus dans `currency`, `cost_basis_eur` = coût aux taux historiques, `etf_profile_id`). **Dérivées** : recalculées par `core/holdings.py::rebuild_holdings` = inventaire `holding_baseline_items` + opérations sur titres postérieures à `accounts.holdings_baseline_date` (une opération sur titre antérieure est refusée en 422).
+- `portfolio_holdings`: positions titres par compte (`account_id`, `ticker`, `isin`, `asset_name`, `quantity`, `buy_price_avg` = PRU frais inclus dans `currency`, `cost_basis_eur` = coût aux taux historiques, `pays_dividends` = titre distribuant (rappel), `etf_profile_id`). **Dérivées** : recalculées par `core/holdings.py::rebuild_holdings` = inventaire `holding_baseline_items` + opérations sur titres postérieures à `accounts.holdings_baseline_date` (une opération sur titre antérieure est refusée en 422).
 - `holding_baseline_items`: inventaire Point Zéro des positions (`account_id`, `baseline_date`, `ticker`, `quantity`, `buy_price_avg`, `currency`, …).
 - `security_prices`: cours de clôture journaliers (`ticker`, `date`, `close`, `currency`, `source`), alimentés à chaque cotation Yahoo (`get_market_quotes(..., db=)`), par la tâche de fond horaire (`refresh_held_prices`) et par `get_price_on` / `fetch_price_history`. Si Yahoo échoue, le dernier cours stocké est renvoyé avec `stale=True`.
 - `etf_profiles`: profils ETF (`name`, `ticker`, `isin`, `aliases`, `countries`, `sectors`, `top_holdings` en JSON texte, `is_system`).
@@ -205,6 +207,7 @@ Un point zéro sert de base de performance pour un compte.
 - `GET /analytics/expenses-by-category`
 - `GET /analytics/top-merchants`
 - `GET /analytics/investments`
+- `GET /analytics/dividends` (`account_id`, `months`)
 - `GET /analytics/investments/{account_id}`
 - `GET /analytics/investments/{account_id}/performance-history`
 - `GET /analytics/subscriptions`

@@ -686,6 +686,55 @@ async def get_action_center(db: Session = Depends(get_db)):
                 metadata={"merchant": merchant, "count": count}
             ))
 
+        # --- 4b. Dividendes (comptes titres) ---
+        from app.models.portfolio_holding import PortfolioHolding
+        account_names = {a.id: a.name for a in db.query(Account.id, Account.name).all()}
+
+        unlinked_rows = (
+            db.query(InvestmentTransaction.account_id, func.count(InvestmentTransaction.id))
+            .filter(InvestmentTransaction.type == "dividende", InvestmentTransaction.ticker.is_(None))
+            .group_by(InvestmentTransaction.account_id)
+            .all()
+        )
+        for acc_id, count in unlinked_rows:
+            actions.append(ActionItem(
+                id=f"dividends-unlinked-{acc_id}",
+                type="investments",
+                severity="medium",
+                title=f"Dividendes à rattacher à un titre : {account_names.get(acc_id, acc_id)}",
+                description=f"{count} dividende(s) ne sont rattachés à aucun titre : rendement et plus-value totale par ligne sont incomplets.",
+                action_label="Rattacher",
+                action_url=f"/accounts/{acc_id}",
+                action_type="link",
+                metadata={"account_id": acc_id, "count": count},
+            ))
+
+        # Titre distribuant sans dividende depuis plus de 13 mois (réglage manuel, aucun appel externe)
+        stale_before = now - timedelta(days=395)
+        last_dividend = {
+            (acc_id, ticker.upper()): last
+            for acc_id, ticker, last in db.query(
+                InvestmentTransaction.account_id, InvestmentTransaction.ticker, func.max(InvestmentTransaction.date)
+            )
+            .filter(InvestmentTransaction.type == "dividende", InvestmentTransaction.ticker.isnot(None))
+            .group_by(InvestmentTransaction.account_id, InvestmentTransaction.ticker)
+            .all()
+        }
+        for h in db.query(PortfolioHolding).filter(PortfolioHolding.pays_dividends.is_(True), PortfolioHolding.quantity > 0).all():
+            reference = last_dividend.get((h.account_id, h.ticker.upper())) or h.created_at
+            if reference < stale_before:
+                actions.append(ActionItem(
+                    id=f"dividend-missing-{h.account_id}-{h.ticker}",
+                    type="investments",
+                    severity="low",
+                    title=f"Dividende attendu : {h.asset_name}",
+                    description=f"Aucun dividende saisi sur {h.ticker} depuis plus de 13 mois. En as-tu reçu un ?",
+                    action_label="Saisir un dividende",
+                    action_url=f"/accounts/{h.account_id}",
+                    action_type="link",
+                    metadata={"account_id": h.account_id, "ticker": h.ticker},
+                ))
+
         # --- 5. Summary & Sort ---
         # Safe sort: defaults to 3 (lowest) if severity is unexpected
         actions.sort(key=lambda x: {"high": 0, "medium": 1, "low": 2}.get(x.severity, 3))

@@ -64,6 +64,10 @@ Pour ajouter un nouveau type d'action :
 2.  Implémentez la détection dans `get_action_center` (`backend/app/api/analytics/audit.py`). Les actions écartées sont filtrées via `dismissed_insights` (`POST /analytics/actions/dismiss`).
 3.  Si une modale spécifique est requise, ajoutez-la dans `Audit.tsx` et gérez le `action_type`.
 
+### Actions « dividendes » (`type: investments`)
+- `dividends-unlinked-{account_id}` : dividendes sans titre (rattachement via `POST /investment-transactions/link-dividends`).
+- `dividend-missing-{account_id}-{ticker}` : position marquée distribuante (`pays_dividends`) sans dividende saisi depuis plus de 13 mois (saisie manuelle, aucun appel externe).
+
 ### Pièges à éviter
 - **Doubles appels** : Ne pas rafraîchir la liste complète (`loadActions`) trop souvent ; privilégier le rafraîchissement ciblé si possible.
 - **IDs stables** : L'ID de l'action doit être déterministe (ex: `suggest-rule-{merchant}`) pour permettre au frontend de garder l'état local si nécessaire.

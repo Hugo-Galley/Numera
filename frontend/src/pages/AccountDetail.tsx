@@ -229,6 +229,7 @@ import {
 import { Separator } from "@/components/ui/separator"
 import { Input } from "@/components/ui/input"
 import { HoldingsTable } from "@/components/investments/HoldingsTable"
+import { DividendsCard } from "@/components/investments/DividendsCard"
 import { SecuritySearchInput } from "@/components/investments/SecuritySearchInput"
 import { PortfolioHolding } from "@/types/diversity"
 
@@ -462,6 +463,8 @@ export default function AccountDetail() {
   const [invTxQuantity, setInvTxQuantity] = useState("")
   const [invTxUnitPrice, setInvTxUnitPrice] = useState("")
   const [invTxFees, setInvTxFees] = useState("")
+  const [invTxWithholding, setInvTxWithholding] = useState("")
+  const [invTxReinvested, setInvTxReinvested] = useState(false)
   const [invTxAssetClass, setInvTxAssetClass] = useState("")
   const [invTxSector, setInvTxSector] = useState("")
   const [invTxZone, setInvTxZone] = useState("")
@@ -708,6 +711,8 @@ export default function AccountDetail() {
     setInvTxQuantity("")
     setInvTxUnitPrice("")
     setInvTxFees("")
+    setInvTxWithholding("")
+    setInvTxReinvested(false)
     setInvTxAssetClass("")
     setInvTxSector("")
     setInvTxZone("")
@@ -716,6 +721,14 @@ export default function AccountDetail() {
   const handleCreateInvestmentTransaction = async () => {
     if (!invTxAmount && (!invTxQuantity || !invTxUnitPrice)) {
       toast.error("Veuillez saisir un montant ou un nombre de parts")
+      return
+    }
+    if (invTxType === "dividende" && !invTxTicker) {
+      toast.error("Un dividende doit être rattaché à un titre")
+      return
+    }
+    if (invTxType === "dividende" && invTxReinvested && !invTxQuantity) {
+      toast.error("Indique le nombre de parts reçues pour un dividende réinvesti")
       return
     }
     try {
@@ -737,6 +750,8 @@ export default function AccountDetail() {
         // Le prix unitaire et les frais sont saisis dans la devise de l'opération
         price_currency: invTxUnitPrice ? invTxCurrency : null,
         fees: invTxFees ? Number(invTxFees) : null,
+        withholding_tax: invTxType === "dividende" && invTxWithholding ? Number(invTxWithholding) : null,
+        reinvested: invTxType === "dividende" && invTxReinvested,
         asset_class: invTxAssetClass || null,
         sector: invTxSector || null,
         geographic_zone: invTxZone || null
@@ -770,9 +785,21 @@ export default function AccountDetail() {
     setInvTxQuantity(tx.quantity != null ? String(tx.quantity) : "")
     setInvTxUnitPrice(tx.unit_price != null ? String(tx.unit_price) : "")
     setInvTxFees(tx.fees != null ? String(tx.fees) : "")
+    setInvTxWithholding(tx.withholding_tax != null ? String(tx.withholding_tax) : "")
+    setInvTxReinvested(Boolean(tx.reinvested))
     setInvTxAssetClass(tx.asset_class || "")
     setInvTxSector(tx.sector || "")
     setInvTxZone(tx.geographic_zone || "")
+    setInvTxOpen(true)
+  }
+
+  // Bouton « Dividende » d'une position : ouvre le formulaire de flux prérempli avec le titre
+  const handleAddDividend = (holding: PortfolioHolding) => {
+    resetInvTxForm()
+    setInvTxType("dividende")
+    setInvTxTicker(holding.ticker)
+    setInvTxIsin(holding.isin || "")
+    setInvTxNote(`Dividende ${holding.asset_name}`)
     setInvTxOpen(true)
   }
 
@@ -782,8 +809,8 @@ export default function AccountDetail() {
       await api.delete(`/investment-transactions/${txId}`)
       toast.success("Flux supprimé")
       await loadData()
-    } catch (error) {
-      toast.error("Erreur lors de la suppression")
+    } catch (error: any) {
+      toast.error(error?.message || "Erreur lors de la suppression")
     }
   }
 
@@ -1230,7 +1257,7 @@ export default function AccountDetail() {
                         <div className="grid gap-3 pt-2 border-t">
                           <div className="flex items-center justify-between">
                             <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500">Actif Boursier / Titre (ETF, Action)</h3>
-                            <Badge variant="outline" className="text-[10px]">Optionnel</Badge>
+                            <Badge variant="outline" className="text-[10px]">{invTxType === "dividende" || invTxType === "achat" || invTxType === "vente" ? "Obligatoire" : "Optionnel"}</Badge>
                           </div>
 
                           <SecuritySearchInput
@@ -1245,10 +1272,12 @@ export default function AccountDetail() {
                               if (asset.price_eur || asset.price) {
                                 const p = (asset.price_eur || asset.price)!.toString()
                                 setInvTxUnitPrice(p)
-                                if (invTxQuantity) {
-                                  setInvTxAmount((Number(invTxQuantity) * Number(p)).toFixed(2))
-                                } else if (invTxAmount && Number(p) > 0) {
-                                  setInvTxQuantity((Number(invTxAmount) / Number(p)).toFixed(4))
+                                if (invTxType !== "dividende") {
+                                  if (invTxQuantity) {
+                                    setInvTxAmount((Number(invTxQuantity) * Number(p)).toFixed(2))
+                                  } else if (invTxAmount && Number(p) > 0) {
+                                    setInvTxQuantity((Number(invTxAmount) / Number(p)).toFixed(4))
+                                  }
                                 }
                               }
                               if (asset.type === "ETF") setInvTxAssetClass("ETF")
@@ -1261,7 +1290,7 @@ export default function AccountDetail() {
 
                           <div className="grid grid-cols-2 gap-3 pt-1 border-t border-slate-100">
                             <div className="grid gap-1">
-                              <Label className="text-xs font-medium">Nb de parts</Label>
+                              <Label className="text-xs font-medium">{invTxType === "dividende" ? "Parts reçues (si réinvesti)" : "Nb de parts"}</Label>
                               <Input
                                 type="number"
                                 step="any"
@@ -1278,6 +1307,7 @@ export default function AccountDetail() {
                                 className="bg-slate-50 border-slate-200 text-xs font-mono"
                               />
                             </div>
+                            {invTxType !== "dividende" && (
                             <div className="grid gap-1">
                               <Label className="text-xs font-medium">Prix unitaire</Label>
                               <Input
@@ -1296,7 +1326,35 @@ export default function AccountDetail() {
                                 className="bg-slate-50 border-slate-200 text-xs font-mono"
                               />
                             </div>
+                            )}
                           </div>
+
+                          {invTxType === "dividende" && (
+                            <div className="grid gap-3 rounded-md border border-emerald-100 bg-emerald-50/50 p-3">
+                              <div className="grid gap-1">
+                                <Label className="text-xs font-medium">Retenue à la source ({invTxCurrency}, optionnel)</Label>
+                                <Input
+                                  type="number"
+                                  step="any"
+                                  min="0"
+                                  placeholder="0.00"
+                                  value={invTxWithholding}
+                                  onChange={(e) => setInvTxWithholding(e.target.value)}
+                                  className="bg-white border-slate-200 text-xs font-mono"
+                                />
+                                <p className="text-[11px] text-slate-500">Le montant saisi plus haut est le <strong>net reçu</strong>, comme dans l'appli de ton courtier.</p>
+                              </div>
+                              <label className="flex items-center gap-2 text-xs font-medium text-slate-700">
+                                <input
+                                  type="checkbox"
+                                  checked={invTxReinvested}
+                                  onChange={(e) => setInvTxReinvested(e.target.checked)}
+                                  className="h-4 w-4 rounded border-slate-300"
+                                />
+                                Dividende réinvesti (achat de parts avec ce montant)
+                              </label>
+                            </div>
+                          )}
 
                           {(invTxType === "achat" || invTxType === "vente") && (
                             <div className="grid gap-1">
@@ -1969,7 +2027,10 @@ export default function AccountDetail() {
             accountName={account.name}
             holdings={holdings}
             onRefresh={loadData}
+            onAddDividend={handleAddDividend}
           />
+
+          <DividendsCard accountId={account.id} reloadKey={holdings} onChanged={loadData} />
 
           <div className="grid gap-8 lg:grid-cols-2">
            <Card className="shadow-sm">
@@ -2018,6 +2079,11 @@ export default function AccountDetail() {
                                {tx.unit_price != null && (
                                  <span>@ {formatCurrency(tx.unit_price)}</span>
                                )}
+                               {tx.withholding_tax ? (
+                                 <span>• retenue {formatValue(tx.withholding_tax, tx.currency || account.currency)}</span>
+                               ) : null}
+                               {tx.reinvested && <span className="text-emerald-600">• réinvesti</span>}
+                               {tx.reinvest_of_id && <span className="text-emerald-600">↳ dividende réinvesti</span>}
                              </div>
                            )}
                          </div>

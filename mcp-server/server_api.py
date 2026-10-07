@@ -714,6 +714,30 @@ def get_cashflow_projection(months: int = 3) -> str:
 
 
 @mcp.tool()
+def get_dividends(account_id: int | None = None, months: int = 24) -> str:
+    """Dividendes reçus (EUR) : totaux net/brut/retenues, 12 derniers mois, par mois, par année et par titre.
+
+    Chaque titre porte son rendement sur PRU (12 derniers mois ÷ coût de revient) et son rendement
+    actuel (÷ valeur de la position). `unlinked` compte les dividendes encore sans titre.
+
+    Args:
+        account_id: Filtrer par compte d'investissement (optionnel)
+        months: Nombre de mois de la série mensuelle (défaut 24, max 120)
+    """
+    try:
+        params: dict[str, Any] = {"months": months}
+        if account_id is not None:
+            params["account_id"] = account_id
+        resp = api.get("/analytics/dividends", params=params)
+        error = handle_response(resp)
+        if error:
+            return error
+        return f"💶 Dividendes :\n\n{serialize(resp.json())}"
+    except Exception as e:
+        return f"❌ Erreur : {e}"
+
+
+@mcp.tool()
 def get_investments_summary(
     account_id: int | None = None,
     month: int | None = None,
@@ -977,7 +1001,7 @@ def list_investment_transactions(account_id: int | None = None, limit: int = 50)
     Elles tracent les opérations sur titres (actions / ETF).
 
     Types : versement / retrait (flux d'espèces, avec titre = dépôt + achat / vente + retrait),
-    achat / vente (opération sur titres, sans effet sur le montant investi), dividende, frais
+    achat / vente (opération sur titres, sans effet sur le montant investi), dividende (ticker obligatoire), frais
 
     Args:
         account_id: Filtrer par compte d'investissement (optionnel)
@@ -1029,6 +1053,8 @@ def add_investment_transaction(
     etf_profile_id: int | None = None,
     fees: float | None = None,
     price_currency: str | None = None,
+    withholding_tax: float | None = None,
+    reinvested: bool = False,
 ) -> str:
     """Enregistre une transaction d'investissement (versement, retrait, achat, vente, dividende, frais).
 
@@ -1050,6 +1076,8 @@ def add_investment_transaction(
         sector: Secteur (ex: Technologie, Santé, Finance) (optionnel)
         geographic_zone: Zone géo (ex: Monde, USA, Europe, Emergents) (optionnel)
         etf_profile_id: ID du profil ETF lié (optionnel, voir list_etf_profiles)
+        withholding_tax: Retenue à la source d'un dividende, dans la devise de saisie (optionnel ; `amount` = net reçu)
+        reinvested: Dividende réinvesti (exige quantity = parts reçues) : un achat lié est créé automatiquement
         fees: Frais de courtage, dans la devise du prix unitaire (optionnel, inclus dans le PRU)
         price_currency: Devise du prix unitaire et des frais (optionnel, défaut = currency)
     """
@@ -1084,6 +1112,10 @@ def add_investment_transaction(
             payload["sector"] = sector
         if geographic_zone:
             payload["geographic_zone"] = geographic_zone
+        if withholding_tax is not None:
+            payload["withholding_tax"] = withholding_tax
+        if reinvested:
+            payload["reinvested"] = True
         if fees is not None:
             payload["fees"] = fees
         if price_currency:
