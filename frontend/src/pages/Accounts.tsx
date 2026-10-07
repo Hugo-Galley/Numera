@@ -64,7 +64,19 @@ type Account = {
   fonds_euros_pct?: number
   fonds_investis_pct?: number
   valuation_mode?: "positions" | "snapshot"
+  tax_wrapper?: "pea" | "per" | "cto" | "assurance_vie" | "livret_a" | null
+  opened_at?: string | null
 }
+
+const TAX_WRAPPERS = [
+  { value: "pea", label: "PEA" },
+  { value: "per", label: "PER" },
+  { value: "cto", label: "CTO" },
+  { value: "assurance_vie", label: "Assurance-vie" },
+  { value: "livret_a", label: "Livret A" },
+] as const
+
+type TaxWrapper = (typeof TAX_WRAPPERS)[number]["value"]
 
 export default function Accounts() {
   const [accounts, setAccounts] = useState<Account[]>([])
@@ -81,6 +93,8 @@ export default function Accounts() {
   const [newSector, setNewSector] = useState("")
   const [newZone, setNewZone] = useState("")
   const [newValuationMode, setNewValuationMode] = useState<"positions" | "snapshot">("positions")
+  const [newTaxWrapper, setNewTaxWrapper] = useState<string>("none")
+  const [newOpenedAt, setNewOpenedAt] = useState("")
   const [newEurosPct, setNewEurosPct] = useState("")
   const [newInvestisPct, setNewInvestisPct] = useState("")
   const [sortField, setSortField] = useState<"name" | "type" | "currency" | "institution">("name")
@@ -167,6 +181,8 @@ export default function Accounts() {
         sector: newType === "investissement" ? newSector : null,
         geographic_zone: newType === "investissement" ? newZone : null,
         valuation_mode: newType === "investissement" || newType === "assurance_vie" ? newValuationMode : "positions",
+        tax_wrapper: newTaxWrapper === "none" ? null : newTaxWrapper,
+        opened_at: newTaxWrapper === "none" || !newOpenedAt ? null : newOpenedAt,
         fonds_euros_pct: newType === "assurance_vie" ? (newEurosPct ? parseFloat(newEurosPct) : 0) : null,
         fonds_investis_pct: newType === "assurance_vie" ? (newInvestisPct ? parseFloat(newInvestisPct) : 0) : null
       })
@@ -179,6 +195,8 @@ export default function Accounts() {
       setNewSector("")
       setNewZone("")
       setNewValuationMode("positions")
+      setNewTaxWrapper("none")
+      setNewOpenedAt("")
       setNewEurosPct("")
       setNewInvestisPct("")
       loadAccounts()
@@ -199,6 +217,8 @@ export default function Accounts() {
         sector: editingAccount.type === "investissement" ? editingAccount.sector : null,
         geographic_zone: editingAccount.type === "investissement" ? editingAccount.geographic_zone : null,
         valuation_mode: editingAccount.type === "investissement" || editingAccount.type === "assurance_vie" ? (editingAccount.valuation_mode ?? (editingAccount.type === "assurance_vie" ? "snapshot" : "positions")) : "positions",
+        tax_wrapper: editingAccount.tax_wrapper ?? null,
+        opened_at: editingAccount.tax_wrapper ? (editingAccount.opened_at || null) : null,
         fonds_euros_pct: editingAccount.type === "assurance_vie" ? (editingAccount.fonds_euros_pct !== undefined && editingAccount.fonds_euros_pct !== null ? editingAccount.fonds_euros_pct : 0) : null,
         fonds_investis_pct: editingAccount.type === "assurance_vie" ? (editingAccount.fonds_investis_pct !== undefined && editingAccount.fonds_investis_pct !== null ? editingAccount.fonds_investis_pct : 0) : null
       })
@@ -394,6 +414,32 @@ export default function Accounts() {
                 </div>
               )}
 
+              {newType !== "courant" && (
+                <div className="grid gap-2 pt-2 border-t mt-2">
+                  <Label htmlFor="tax_wrapper">Enveloppe fiscale</Label>
+                  <Select value={newTaxWrapper} onValueChange={setNewTaxWrapper}>
+                    <SelectTrigger id="tax_wrapper">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Aucune</SelectItem>
+                      {TAX_WRAPPERS.map(w => (
+                        <SelectItem key={w.value} value={w.value}>{w.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {newTaxWrapper !== "none" && (
+                    <>
+                      <Label htmlFor="opened_at">Date d'ouverture</Label>
+                      <Input id="opened_at" type="date" value={newOpenedAt} onChange={(e) => setNewOpenedAt(e.target.value)} />
+                    </>
+                  )}
+                  <p className="text-xs text-slate-500">
+                    Active le suivi des plafonds et des dates clés dans la page Fiscalité.
+                  </p>
+                </div>
+              )}
+
               {newType === "investissement" && (
                 <div className="grid gap-4 pt-2 border-t mt-2">
                   <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500">Asset Allocation</h3>
@@ -583,6 +629,40 @@ export default function Accounts() {
                   </Select>
                   <p className="text-xs text-slate-500">
                     Choisis si la valeur du compte est calculée à partir des positions ou reprise du dernier relevé.
+                  </p>
+                </div>
+              )}
+
+              {editingAccount.type !== "courant" && (
+                <div className="grid gap-2 pt-2 border-t mt-2">
+                  <Label htmlFor="edit-tax_wrapper">Enveloppe fiscale</Label>
+                  <Select
+                    value={editingAccount.tax_wrapper ?? "none"}
+                    onValueChange={(v) => setEditingAccount({ ...editingAccount, tax_wrapper: v === "none" ? null : (v as TaxWrapper) })}
+                  >
+                    <SelectTrigger id="edit-tax_wrapper">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Aucune</SelectItem>
+                      {TAX_WRAPPERS.map(w => (
+                        <SelectItem key={w.value} value={w.value}>{w.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {editingAccount.tax_wrapper && (
+                    <>
+                      <Label htmlFor="edit-opened_at">Date d'ouverture</Label>
+                      <Input
+                        id="edit-opened_at"
+                        type="date"
+                        value={editingAccount.opened_at ?? ""}
+                        onChange={(e) => setEditingAccount({ ...editingAccount, opened_at: e.target.value || null })}
+                      />
+                    </>
+                  )}
+                  <p className="text-xs text-slate-500">
+                    Active le suivi des plafonds et des dates clés dans la page Fiscalité.
                   </p>
                 </div>
               )}
