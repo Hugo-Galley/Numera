@@ -209,6 +209,7 @@ Un point zéro sert de base de performance pour un compte.
 - `GET /analytics/expenses-by-category`
 - `GET /analytics/top-merchants`
 - `GET /analytics/investments`
+- `GET /holdings/estimate-costs?account_id=` : PRU estimé de chaque ligne du Point Zéro depuis les achats antérieurs à sa date (+ `coverage`) ; `POST /holdings/apply-costs` enregistre les PRU validés
 - `GET /analytics/dividends` (`account_id`, `months`)
 - `GET /analytics/portfolio` (vue globale EUR) et `GET /analytics/portfolio/{account_id}` : valeur calculée, espèces, montant investi, plus-value latente (+ effet de change par ligne), plus-value réalisée par année, dividendes, frais, XIRR, TWR, courbe reconstituée, rapprochement avec les snapshots
 - `GET /analytics/investments/{account_id}`

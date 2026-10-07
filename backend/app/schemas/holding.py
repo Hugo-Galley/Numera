@@ -71,3 +71,27 @@ class BaselineInventoryRequest(BaseModel):
     account_id: int
     date: Optional[datetime] = None
     holdings: List[BaselineHoldingItem]
+
+
+class CostEstimateRead(BaseModel):
+    ticker: str
+    asset_name: str
+    quantity: float
+    currency: str
+    current_cost: Optional[float] = None
+    estimate: Optional[float] = None
+    buys: int
+    bought_quantity: float
+    sold_quantity: float
+    coverage: Optional[float] = None
+    first_buy: Optional[str] = None
+
+
+class ApplyCostLine(BaseModel):
+    ticker: str
+    buy_price_avg: float = Field(gt=0)
+
+
+class ApplyCostsRequest(BaseModel):
+    account_id: int
+    items: List[ApplyCostLine]

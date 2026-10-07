@@ -13,10 +13,12 @@ from app.schemas.holding import (
     PortfolioHoldingRead,
     PortfolioHoldingUpdate,
     BaselineInventoryRequest,
+    CostEstimateRead,
+    ApplyCostsRequest,
 )
 from app.core.currency import get_exchange_rates
 from app.core.dividends import HoldingDividends, load_dividends_eur, summarize_by_holding
-from app.core.holdings import TRADE_TYPES, normalize_ticker, rebuild_holdings, trade_cutoff
+from app.core.holdings import TRADE_TYPES, estimate_baseline_costs, normalize_ticker, rebuild_holdings, trade_cutoff
 from app.core.market_data import get_market_quotes, suggest_holdings_from_notes
 from app.core.time import utcnow_naive
 
@@ -135,6 +137,45 @@ async def get_holding_suggestions(
         raise HTTPException(status_code=404, detail="Account not found")
 
     return await suggest_holdings_from_notes(db, account_id)
+
+
+@router.get("/estimate-costs", response_model=List[CostEstimateRead])
+async def get_cost_estimates(account_id: int = Query(...), db: Session = Depends(get_db)):
+    """
+    PRU estimé de chaque ligne du Point Zéro, déduit des achats saisis avant sa date (moyenne pondérée,
+    frais inclus). `coverage` = part de l'inventaire expliquée par ces achats : en dessous de 1, des titres
+    détenus avant le premier achat saisi ne sont pas pris en compte. Aucune écriture.
+    """
+    _get_account(db, account_id)
+    return [
+        CostEstimateRead(
+            ticker=e.ticker, asset_name=e.asset_name, quantity=e.quantity, currency=e.currency,
+            current_cost=e.current_cost, estimate=e.estimate, buys=e.buys,
+            bought_quantity=round(e.bought_quantity, 6), sold_quantity=round(e.sold_quantity, 6),
+            coverage=round(e.coverage, 4) if e.coverage is not None else None,
+            first_buy=e.first_buy.isoformat() if e.first_buy else None,
+        )
+        for e in await estimate_baseline_costs(db, account_id)
+    ]
+
+
+@router.post("/apply-costs", response_model=List[PortfolioHoldingRead])
+async def apply_costs(payload: ApplyCostsRequest, db: Session = Depends(get_db)):
+    """Enregistre les PRU validés dans l'inventaire Point Zéro, puis recalcule les positions."""
+    _get_account(db, payload.account_id)
+    items = {
+        i.ticker: i
+        for i in db.query(HoldingBaselineItem).filter(HoldingBaselineItem.account_id == payload.account_id).all()
+    }
+    for line in payload.items:
+        item = items.get(normalize_ticker(line.ticker))
+        if item is None:
+            raise HTTPException(status_code=422, detail=f"{line.ticker} n'est pas dans l'inventaire du Point Zéro")
+        item.buy_price_avg = line.buy_price_avg
+    db.flush()
+    await rebuild_holdings(db, payload.account_id)
+    db.commit()
+    return await _enrich_all(db, _account_holdings(db, payload.account_id))
 
 
 @router.post("/baseline", response_model=List[PortfolioHoldingRead])

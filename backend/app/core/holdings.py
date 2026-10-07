@@ -246,3 +246,87 @@ async def rebuild_holdings(db: Session, account_id: int) -> None:
             holding.isin = holding.isin or pos.isin
             holding.etf_profile_id = holding.etf_profile_id or pos.etf_profile_id
     db.flush()
+
+
+@dataclass
+class CostEstimate:
+    ticker: str
+    asset_name: str
+    quantity: float  # quantité de l'inventaire
+    currency: str
+    current_cost: float | None  # PRU actuellement saisi
+    estimate: float | None  # PRU estimé depuis les achats antérieurs à l'inventaire
+    buys: int
+    bought_quantity: float
+    sold_quantity: float
+    first_buy: datetime | None
+
+    @property
+    def coverage(self) -> float | None:
+        """Part de l'inventaire expliquée par les opérations antérieures (1.0 = tout)."""
+        if self.quantity <= EPSILON:
+            return None
+        return (self.bought_quantity - self.sold_quantity) / self.quantity
+
+
+async def estimate_baseline_costs(db: Session, account_id: int) -> list[CostEstimate]:
+    """Estime le PRU de chaque ligne d'inventaire depuis les achats saisis avant la date du Point Zéro.
+
+    Ce sont exactement les opérations que l'inventaire « remplace » : leurs prix et quantités restent
+    en base et permettent de retrouver le coût moyen (moyenne pondérée, frais inclus). Aucune écriture.
+    """
+    results: list[CostEstimate] = []
+    items = db.query(HoldingBaselineItem).filter(HoldingBaselineItem.account_id == account_id).order_by(HoldingBaselineItem.id).all()
+    for item in items:
+        cutoff = trade_cutoff(db, account_id, item.ticker) or item.baseline_date
+        txs = (
+            db.query(InvestmentTransaction)
+            .filter(
+                InvestmentTransaction.account_id == account_id,
+                InvestmentTransaction.ticker.isnot(None),
+                InvestmentTransaction.quantity > 0,
+                InvestmentTransaction.type.in_(TRADE_TYPES),
+                InvestmentTransaction.date <= cutoff,
+            )
+            .order_by(InvestmentTransaction.date.asc(), InvestmentTransaction.id.asc())
+            .all()
+        )
+        total_cost = bought = sold = 0.0
+        priced_qty = 0.0
+        buys = 0
+        first_buy = None
+        for tx in txs:
+            if normalize_ticker(tx.ticker) != item.ticker:
+                continue
+            if tx.type in SELL_TYPES:
+                sold += tx.quantity
+                continue
+            buys += 1
+            bought += tx.quantity
+            first_buy = first_buy or tx.date
+            if tx.unit_price:
+                gross, cur = tx.quantity * tx.unit_price + (tx.fees or 0.0), (tx.price_currency or tx.currency or "EUR").upper()
+            elif tx.original_amount:
+                gross, cur = tx.original_amount, (tx.currency or "EUR").upper()
+            else:
+                continue
+            converted = gross if cur == item.currency else await _convert(db, gross, cur, item.currency, tx.date)
+            if converted is None:
+                continue
+            total_cost += converted
+            priced_qty += tx.quantity
+        results.append(
+            CostEstimate(
+                ticker=item.ticker,
+                asset_name=item.asset_name,
+                quantity=item.quantity,
+                currency=item.currency,
+                current_cost=item.buy_price_avg,
+                estimate=round(total_cost / priced_qty, 4) if priced_qty > EPSILON else None,
+                buys=buys,
+                bought_quantity=bought,
+                sold_quantity=sold,
+                first_buy=first_buy,
+            )
+        )
+    return results

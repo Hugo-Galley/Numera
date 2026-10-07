@@ -12,8 +12,9 @@ import {
   TableHead,
   TableCell,
 } from "@/components/ui/table"
-import { SlidersHorizontal, Trash2, Globe, Layers, Search, X, Coins, CalendarCheck } from "lucide-react"
+import { Calculator, SlidersHorizontal, Trash2, Globe, Layers, Search, X, Coins, CalendarCheck } from "lucide-react"
 import { PointZeroModal } from "./PointZeroModal"
+import { CostEstimateDialog } from "./CostEstimateDialog"
 import { api } from "@/lib/api"
 import { toast } from "sonner"
 import { CompanyLogo } from "@/components/ui/CompanyLogo"
@@ -38,6 +39,7 @@ export function HoldingsTable({
   onAddDividend,
 }: HoldingsTableProps) {
   const [pointZeroOpen, setPointZeroOpen] = useState(false)
+  const [costEstimateOpen, setCostEstimateOpen] = useState(false)
   const [decomposingId, setDecomposingId] = useState<number | null>(null)
   const [search, setSearch] = useState("")
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all")
@@ -140,14 +142,22 @@ export function HoldingsTable({
                 Valorisation en direct de vos lignes boursières au cours de marché.
               </CardDescription>
             </div>
-            <Button
-              size="sm"
-              onClick={() => setPointZeroOpen(true)}
-              className="gap-2 shrink-0"
-            >
-              <SlidersHorizontal className="h-4 w-4" />
-              Point Zéro / État des Lieux
-            </Button>
+            <div className="flex flex-wrap gap-2 shrink-0">
+              {holdings.some((h) => !h.buy_price_avg) && (
+                <Button size="sm" variant="outline" onClick={() => setCostEstimateOpen(true)} className="gap-2">
+                  <Calculator className="h-4 w-4" />
+                  Estimer les PRU
+                </Button>
+              )}
+              <Button
+                size="sm"
+                onClick={() => setPointZeroOpen(true)}
+                className="gap-2"
+              >
+                <SlidersHorizontal className="h-4 w-4" />
+                Point Zéro / État des Lieux
+              </Button>
+            </div>
           </div>
 
           {/* Filter bar — only shown when there are holdings */}
@@ -474,6 +484,13 @@ export function HoldingsTable({
           )}
         </CardContent>
       </Card>
+
+      <CostEstimateDialog
+        open={costEstimateOpen}
+        onOpenChange={setCostEstimateOpen}
+        accountId={accountId}
+        onApplied={onRefresh}
+      />
 
       <PointZeroModal
         open={pointZeroOpen}
