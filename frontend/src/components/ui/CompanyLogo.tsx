@@ -71,6 +71,43 @@ const NAME_TO_TICKER: Record<string, string> = {
   renault: "RNO.PA",
 }
 
+// Cryptos : nom usuel → symbole
+const CRYPTO_NAME_TO_SYMBOL: Record<string, string> = {
+  bitcoin: "btc",
+  ethereum: "eth",
+  ether: "eth",
+  solana: "sol",
+  ripple: "xrp",
+  cardano: "ada",
+  dogecoin: "doge",
+  litecoin: "ltc",
+  polkadot: "dot",
+  chainlink: "link",
+  avalanche: "avax",
+  tether: "usdt",
+  "usd coin": "usdc",
+  polygon: "matic",
+  stellar: "xlm",
+  monero: "xmr",
+  cosmos: "atom",
+  tron: "trx",
+  toncoin: "ton",
+  shiba: "shib",
+}
+
+const CRYPTO_PAIR = /^([A-Z0-9]{2,10})-(EUR|USD|USDT|USDC|GBP|CHF|BTC|ETH)$/
+
+/** Symbole crypto déduit d'un ticker Yahoo (`BTC-EUR`) ou d'un nom (`Bitcoin`), sinon null. */
+function cryptoSymbol(ticker?: string, name?: string): string | null {
+  const pair = (ticker || "").trim().toUpperCase().match(CRYPTO_PAIR)
+  if (pair) return pair[1].toLowerCase()
+  const text = (name || "").trim().toLowerCase()
+  for (const [key, sym] of Object.entries(CRYPTO_NAME_TO_SYMBOL)) {
+    if (text === key || text.startsWith(`${key} `)) return sym
+  }
+  return null
+}
+
 // Major ETF issuers and funds mapping
 const ISSUER_PATTERNS: Array<{
   keywords: string[]
@@ -175,6 +212,13 @@ function resolveCandidates(ticker?: string, name?: string, isin?: string): strin
     }
   }
 
+  // 1 bis. Cryptos (BTC-EUR, « Bitcoin »…) : icônes de pièces
+  const crypto = cryptoSymbol(ticker, name)
+  if (crypto) {
+    candidates.push(`https://assets.coincap.io/assets/icons/${crypto}@2x.png`)
+    candidates.push(`https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/${crypto}.png`)
+  }
+
   // 2. ISIN candidate (if provided and valid format)
   const cleanIsin = (isin || (ticker && /^[A-Z]{2}[A-Z0-9]{10}$/i.test(ticker.trim()) ? ticker : ""))
     .trim()
@@ -218,6 +262,8 @@ function resolveCandidates(ticker?: string, name?: string, isin?: string): strin
 }
 
 function getInitials(name?: string, ticker?: string): string {
+  const crypto = cryptoSymbol(ticker, name)
+  if (crypto) return crypto.slice(0, 4).toUpperCase()
   if (ticker && ticker.length <= 4 && !ticker.includes(".")) {
     return ticker.slice(0, 3).toUpperCase()
   }
