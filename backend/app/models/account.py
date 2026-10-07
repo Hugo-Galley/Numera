@@ -1,6 +1,6 @@
-from datetime import datetime
+from datetime import date, datetime
 
-from sqlalchemy import Boolean, DateTime, Float, String
+from sqlalchemy import Boolean, Date, DateTime, Float, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.time import utcnow_naive
@@ -32,6 +32,10 @@ class Account(Base):
 
     # "positions" : valeur = positions × cours + espèces (PEA, CTO) ; "snapshot" : dernier relevé saisi (crypto, etc.)
     valuation_mode: Mapped[str] = mapped_column(String(12), default="positions", server_default="positions", nullable=False)
+
+    # Enveloppe fiscale française (pea, per, cto, assurance_vie, livret_a) et date d'ouverture : page Fiscalité
+    tax_wrapper: Mapped[str | None] = mapped_column(String(16), nullable=True)
+    opened_at: Mapped[date | None] = mapped_column(Date, nullable=True)
 
     is_main: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0", nullable=False)
     

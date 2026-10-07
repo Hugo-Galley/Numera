@@ -1,7 +1,10 @@
-from datetime import datetime
+from datetime import date, datetime
 from typing import Literal
 
 from pydantic import BaseModel, Field
+
+
+TaxWrapper = Literal["pea", "per", "cto", "assurance_vie", "livret_a"]
 
 
 class AccountBase(BaseModel):
@@ -16,6 +19,8 @@ class AccountBase(BaseModel):
     fonds_euros_pct: float | None = None
     fonds_investis_pct: float | None = None
     valuation_mode: Literal["positions", "snapshot"] = "positions"
+    tax_wrapper: TaxWrapper | None = None
+    opened_at: date | None = None
 
 
 class AccountCreate(AccountBase):
@@ -36,6 +41,8 @@ class AccountUpdate(BaseModel):
     fonds_euros_pct: float | None = None
     fonds_investis_pct: float | None = None
     valuation_mode: Literal["positions", "snapshot"] | None = None
+    tax_wrapper: TaxWrapper | None = None
+    opened_at: date | None = None
 
 
 class AccountRead(AccountBase):
