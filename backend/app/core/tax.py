@@ -1,8 +1,10 @@
 """Calculs fiscaux par enveloppe. Fonctions pures : aucune base de données, aucun appel réseau."""
 from datetime import date
+from typing import NamedTuple
 
 from app.core.tax_rules import TaxRules
 
+_CAPITALISED_INTEREST_ALERT = "Plafond de versements du {name} atteint : les intérêts capitalisés peuvent légitimement le dépasser."
 PEA_MILESTONE_YEARS = 5
 AV_MILESTONE_YEARS = 8
 
@@ -20,7 +22,8 @@ def _blank(**overrides) -> dict:
     status = {
         "current": None, "ceiling": None, "remaining": None, "used_pct": None,
         "age_years": None, "milestone_years": None, "milestone_reached": None,
-        "estimated_tax_saving": None, "allowance": None, "alerts": [],
+        "estimated_tax_saving": None, "allowance": None, "total_contributed": None,
+        "blocked": None, "available": None, "next_unlock_date": None, "alerts": [],
     }
     status.update(overrides)
     return status
@@ -70,8 +73,61 @@ def per_status(contributed_this_year: float, prior_year_income: float, tmi_pct: 
 
 def livret_a_status(balance: float, rules: TaxRules) -> dict:
     remaining, used_pct = _room(balance, rules.livret_a_ceiling)
-    alerts = ["Solde supérieur au plafond du Livret A."] if balance > rules.livret_a_ceiling else []
+    alerts = [_CAPITALISED_INTEREST_ALERT.format(name="Livret A")] if balance > rules.livret_a_ceiling else []
     return _blank(current=balance, ceiling=rules.livret_a_ceiling, remaining=remaining, used_pct=used_pct, alerts=alerts)
+
+
+def livret_jeune_status(balance: float, rules: TaxRules) -> dict:
+    remaining, used_pct = _room(balance, rules.livret_jeune_ceiling)
+    alerts = [_CAPITALISED_INTEREST_ALERT.format(name="Livret Jeune")] if balance > rules.livret_jeune_ceiling else []
+    return _blank(current=balance, ceiling=rules.livret_jeune_ceiling, remaining=remaining, used_pct=used_pct, alerts=alerts)
+
+
+class PeeLot(NamedTuple):
+    """Un versement au PEE ; `employer` = abondement de l'employeur (hors plafond des versements volontaires)."""
+
+    date: date
+    amount: float
+    employer: bool
+
+
+def _add_years(day: date, years: int) -> date:
+    try:
+        return day.replace(year=day.year + years)
+    except ValueError:  # 29 février
+        return day.replace(year=day.year + years, day=28)
+
+
+def pee_status(lots: list[PeeLot], withdrawn: float, gross_annual_salary: float, today: date, rules: TaxRules) -> dict:
+    """Total versé, part bloquée / disponible (retraits imputés sur les plus anciens), plafond des versements volontaires."""
+    remaining_withdrawal = withdrawn
+    open_lots: list[tuple[date, float]] = []
+    for lot in sorted(lots, key=lambda l: l.date):
+        taken = min(lot.amount, remaining_withdrawal)
+        remaining_withdrawal -= taken
+        if lot.amount - taken > 0:
+            open_lots.append((lot.date, lot.amount - taken))
+    unlock = [(_add_years(day, rules.pee_lock_years), amount) for day, amount in open_lots]
+    blocked_lots = [(when, amount) for when, amount in unlock if when > today]
+    blocked = sum(amount for _, amount in blocked_lots)
+    available = sum(amount for when, amount in unlock if when <= today)
+    voluntary = sum(l.amount for l in lots if not l.employer and l.date.year == today.year)
+
+    alerts: list[str] = []
+    ceiling = remaining = used_pct = None
+    if gross_annual_salary > 0:
+        ceiling = gross_annual_salary * rules.pee_voluntary_rate
+        remaining, used_pct = _room(voluntary, ceiling)
+        if voluntary > ceiling:
+            alerts.append("Versements volontaires supérieurs au plafond de 25 % de la rémunération brute annuelle.")
+    else:
+        alerts.append("Renseigne ton salaire brut annuel dans les réglages pour suivre le plafond des versements volontaires.")
+    return _blank(
+        current=voluntary, ceiling=ceiling, remaining=remaining, used_pct=used_pct,
+        total_contributed=sum(l.amount for l in lots), blocked=blocked, available=available,
+        next_unlock_date=min(when for when, _ in blocked_lots).isoformat() if blocked_lots else None,
+        alerts=alerts,
+    )
 
 
 def av_status(opened_at: date | None, household: str, today: date, rules: TaxRules) -> dict:

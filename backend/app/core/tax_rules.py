@@ -12,6 +12,9 @@ Sources :
 - PASS 2024 = 46 368 EUR, PASS 2025 = 47 100 EUR, PASS 2026 = 48 060 EUR (arrêté du 22.12.2025).
 - Livret A : 22 950 EUR (hors intérêts capitalisés) ; PEA : 150 000 EUR de versements ;
   assurance-vie : abattement de 4 600 EUR (seul) / 9 200 EUR (couple) sur les gains de rachats après 8 ans.
+- Livret Jeune : 1 600 EUR de versements, intérêts capitalisés exclus (economie.gouv.fr).
+- PEE : versements volontaires <= 25 % de la rémunération brute annuelle ; chaque versement indisponible 5 ans
+  (sauf cas de déblocage anticipé) ; abondement employeur <= 8 % du PASS (3 844,80 EUR en 2026), non suivi ici.
 """
 from dataclasses import dataclass
 
@@ -26,6 +29,9 @@ class TaxRules:
     per_ceiling: float            # plafond de déduction maximal (10 % de 8 PASS N-1)
     av_allowance_single: float    # abattement annuel sur les gains de rachat d'AV > 8 ans (seul)
     av_allowance_couple: float    # idem, couple
+    livret_jeune_ceiling: float   # plafond de versements du Livret Jeune (intérêts capitalisés exclus)
+    pee_voluntary_rate: float     # versements volontaires PEE : part de la rémunération brute annuelle
+    pee_lock_years: int           # indisponibilité de chaque versement au PEE
     pfu_rate_dividends: float     # PFU sur les dividendes perçus dans l'année (12,8 % + prélèvements sociaux à la source)
     pfu_rate_gains: float         # PFU sur les plus-values de cession de l'année (12,8 % + prélèvements sociaux)
 
@@ -33,9 +39,9 @@ class TaxRules:
 RULES_BY_YEAR: dict[int, TaxRules] = {
     # Plafond PER 2025 = 10 % du PASS 2024 (46 368) : plancher 4 637, maximum 37 094.
     # Dividendes perçus en 2025 : PS à 17,2 % -> 30 % ; plus-values de 2025 : PS à 18,6 % -> 31,4 %.
-    2025: TaxRules(2025, 150_000.0, 22_950.0, 0.10, 4_637.0, 37_094.0, 4_600.0, 9_200.0, 0.30, 0.314),
+    2025: TaxRules(2025, 150_000.0, 22_950.0, 0.10, 4_637.0, 37_094.0, 4_600.0, 9_200.0, 1_600.0, 0.25, 5, 0.30, 0.314),
     # Plafond PER 2026 = 10 % du PASS 2025 (47 100) : plancher 4 710, maximum 37 680. PS à 18,6 % : 31,4 %.
-    2026: TaxRules(2026, 150_000.0, 22_950.0, 0.10, 4_710.0, 37_680.0, 4_600.0, 9_200.0, 0.314, 0.314),
+    2026: TaxRules(2026, 150_000.0, 22_950.0, 0.10, 4_710.0, 37_680.0, 4_600.0, 9_200.0, 1_600.0, 0.25, 5, 0.314, 0.314),
 }
 
 

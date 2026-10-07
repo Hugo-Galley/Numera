@@ -9,16 +9,18 @@ class TaxSettings(BaseModel):
     tmi_pct: float = 30.0
     prior_year_pro_income: float = 0.0
     household: Household = "single"
+    gross_annual_salary: float = 0.0
 
 
 class TaxSettingsUpdate(BaseModel):
     tmi_pct: float | None = Field(default=None, ge=0, le=45)
     prior_year_pro_income: float | None = Field(default=None, ge=0)
     household: Household | None = None
+    gross_annual_salary: float | None = Field(default=None, ge=0)
 
 
 class WrapperCard(BaseModel):
-    kind: Literal["pea", "per", "cto", "assurance_vie", "livret_a"]
+    kind: Literal["pea", "per", "cto", "assurance_vie", "livret_a", "livret_jeune", "pee"]
     account_id: int
     account_name: str
     opened_at: str | None = None
@@ -31,6 +33,10 @@ class WrapperCard(BaseModel):
     milestone_reached: bool | None = None
     estimated_tax_saving: float | None = None
     allowance: float | None = None
+    total_contributed: float | None = None
+    blocked: float | None = None
+    available: float | None = None
+    next_unlock_date: str | None = None
     alerts: list[str] = []
 
 

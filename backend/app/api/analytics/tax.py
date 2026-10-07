@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from app.api.accounts import _get_balance_for_account
 from app.core.dividends import load_dividends_eur
 from app.core.holdings import replay_account
-from app.core.tax import av_status, livret_a_status, pea_status, per_status
+from app.core.tax import PeeLot, av_status, livret_a_status, livret_jeune_status, pea_status, pee_status, per_status
 from app.core.tax_rules import rules_for
 from app.db.system_settings import get_setting, set_setting
 from app.models.account import Account
@@ -18,6 +18,7 @@ SETTING_KEYS = {
     "tmi_pct": "tax_tmi_pct",
     "prior_year_pro_income": "tax_prior_year_pro_income",
     "household": "tax_household",
+    "gross_annual_salary": "tax_gross_annual_salary",
 }
 
 
@@ -27,6 +28,7 @@ def load_tax_settings(db: Session) -> TaxSettings:
         tmi_pct=float(get_setting(db, SETTING_KEYS["tmi_pct"], defaults.tmi_pct)),
         prior_year_pro_income=float(get_setting(db, SETTING_KEYS["prior_year_pro_income"], defaults.prior_year_pro_income)),
         household=get_setting(db, SETTING_KEYS["household"], defaults.household),
+        gross_annual_salary=float(get_setting(db, SETTING_KEYS["gross_annual_salary"], defaults.gross_annual_salary)),
     )
 
 
@@ -96,6 +98,15 @@ def build_overview(db: Session, today: date) -> TaxOverview:
             name = " + ".join(a.name for a in per_accounts)
         elif kind == "livret_a":
             status = livret_a_status(_get_balance_for_account(db, account.id), rules)
+        elif kind == "livret_jeune":
+            status = livret_jeune_status(_get_balance_for_account(db, account.id), rules)
+        elif kind == "pee":
+            lots = [
+                PeeLot(t.date.date(), t.amount, "abondement" in (t.note or "").lower())
+                for t in _contributions(db, account.id, "versement")
+            ]
+            withdrawn = sum(t.amount for t in _contributions(db, account.id, "retrait"))
+            status = pee_status(lots, withdrawn, settings.gross_annual_salary, today, rules)
         elif kind == "assurance_vie":
             status = av_status(account.opened_at, settings.household, today, rules)
         else:  # cto : pas de plafond, seul le récap annuel compte

@@ -55,10 +55,12 @@ Agrège : audit d'intégrité (`/analytics/audit`, issues avec `id` stable : `un
 
 - **PEA** : versements cumulés (somme des `versement`) face à 150 k€ ; un retrait ne restitue pas de place ; retrait avant 5 ans = alerte ; alerte si le compte démarre d'un inventaire / Point Zéro (versements antérieurs non saisis, place restante surestimée).
 - **PER** : versements de l'année civile **de tous les PER actifs additionnés** (plafond du foyer, une seule carte) face au plafond de déduction = 10 % des revenus pro N-1 borné entre plancher et maximum ; économie d'impôt = versé déductible × TMI.
-- **Livret A** : solde actuel du compte face au plafond.
+- **Livret A** : solde actuel du compte face au plafond (alerte « plafond atteint » : les intérêts capitalisés peuvent légitimement le dépasser).
+- **Livret Jeune** : idem face à 1 600 € ; l'âge (12-25 ans) n'est pas contrôlé.
+- **PEE** (`pee`) : chaque `versement` est indisponible 5 ans (les `retrait` s'imputent sur les plus anciens) → total versé, bloqué, disponible, prochain déblocage ; plafond des versements volontaires de l'année = 25 % du salaire brut annuel (réglage `tax_gross_annual_salary`). Un versement dont la note contient « abondement » est l'abondement de l'employeur : il compte dans le total et le blocage, jamais dans le plafond. Aucun impôt calculé (taux de prélèvements sociaux du PEE non confirmé).
 - **Assurance-vie** : ancienneté face à 8 ans et abattement annuel rappelé (seul / couple) ; la part de gain d'un rachat n'est pas calculée.
 - **CTO** : seul compte concerné par le récap annuel : dividendes bruts (net + retenue, case 2DC), plus-values réalisées (3VG) ou moins-values (3VH) issues du rejeu `replay_account` (aucun appel réseau), impôt estimé au PFU par catégorie (`pfu_rate_dividends` et `pfu_rate_gains`, car la hausse de la CSG à 10,6 % s'applique dès les revenus 2025 aux plus-values mais seulement à partir du 1.1.2026 aux dividendes : en 2025, 30 % sur les dividendes et 31,4 % sur les plus-values ; 31,4 % partout en 2026 ; l'assurance-vie reste à 17,2 %) ; une perte ne compense pas les dividendes. Ventes sans coût de revient connu : signalées, jamais comptées à zéro en silence.
-- Réglages (`system_settings`) : `tax_tmi_pct`, `tax_prior_year_pro_income`, `tax_household`.
+- Réglages (`system_settings`) : `tax_tmi_pct`, `tax_prior_year_pro_income`, `tax_household`, `tax_gross_annual_salary`.
 
 ## Services externes
 

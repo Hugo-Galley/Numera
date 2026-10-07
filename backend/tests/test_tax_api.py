@@ -41,10 +41,10 @@ def _versement(client, account_id, amount, *, date_iso, type_="versement"):
 
 
 def test_settings_have_defaults_then_persist(client):
-    assert client.get("/tax/settings").json() == {"tmi_pct": 30.0, "prior_year_pro_income": 0.0, "household": "single"}
-    resp = client.patch("/tax/settings", json={"tmi_pct": 41, "prior_year_pro_income": 52000, "household": "couple"})
+    assert client.get("/tax/settings").json() == {"tmi_pct": 30.0, "prior_year_pro_income": 0.0, "household": "single", "gross_annual_salary": 0.0}
+    resp = client.patch("/tax/settings", json={"tmi_pct": 41, "prior_year_pro_income": 52000, "household": "couple", "gross_annual_salary": 61000})
     assert resp.status_code == 200
-    assert client.get("/tax/settings").json() == {"tmi_pct": 41.0, "prior_year_pro_income": 52000.0, "household": "couple"}
+    assert client.get("/tax/settings").json() == {"tmi_pct": 41.0, "prior_year_pro_income": 52000.0, "household": "couple", "gross_annual_salary": 61000.0}
 
 
 def test_settings_reject_invalid_tmi(client):
@@ -286,3 +286,40 @@ def test_overview_pea_with_starting_inventory_warns_contributions_are_partial(cl
     assert resp.status_code == 200, resp.text
     card = next(w for w in client.get("/tax/overview").json()["wrappers"] if w["kind"] == "pea")
     assert any("inventaire" in a.lower() for a in card["alerts"])
+
+
+def test_overview_livret_jeune_uses_balance_and_its_own_ceiling(client):
+    lj = _account(client, name="Livret Jeune", type_="epargne", tax_wrapper="livret_jeune")
+    resp = client.post("/transactions", json={
+        "account_id": lj["id"], "date": "2026-01-01T00:00:00", "type": "Solde Initial", "merchant": "Solde initial", "amount": 900.0,
+    })
+    assert resp.status_code in (200, 201), resp.text
+    card = next(w for w in client.get("/tax/overview").json()["wrappers"] if w["kind"] == "livret_jeune")
+    assert card["current"] == 900.0
+    assert card["ceiling"] == 1_600.0
+    assert card["remaining"] == pytest.approx(700.0)
+
+
+def test_overview_pee_blocks_five_years_and_keeps_employer_contribution_out_of_the_cap(client):
+    pee = _account(client, name="PEE", tax_wrapper="pee")
+    year = date.today().year
+    client.patch("/tax/settings", json={"gross_annual_salary": 40_000})
+    _versement(client, pee["id"], 1_000.0, date_iso="2018-03-01T00:00:00")
+    _versement(client, pee["id"], 2_000.0, date_iso=f"{year}-01-10T00:00:00")
+    abondement = client.post("/investment-transactions", json={
+        "account_id": pee["id"], "date": f"{year}-01-11T00:00:00", "type": "versement", "amount": 1_500.0,
+        "note": "Abondement employeur",
+    })
+    assert abondement.status_code == 201, abondement.text
+    card = next(w for w in client.get("/tax/overview").json()["wrappers"] if w["kind"] == "pee")
+    assert card["total_contributed"] == 4_500.0
+    assert card["available"] == 1_000.0
+    assert card["blocked"] == 3_500.0
+    assert card["next_unlock_date"] == f"{year + 5}-01-10"
+    assert card["current"] == 2_000.0                      # l'abondement n'entre pas dans le plafond
+    assert card["ceiling"] == pytest.approx(10_000.0)
+
+
+def test_account_accepts_new_wrappers(client):
+    assert _account(client, name="LJ", type_="epargne", tax_wrapper="livret_jeune")["tax_wrapper"] == "livret_jeune"
+    assert _account(client, name="PEE", tax_wrapper="pee")["tax_wrapper"] == "pee"

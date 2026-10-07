@@ -4,7 +4,7 @@ from typing import Literal
 from pydantic import BaseModel, Field
 
 
-TaxWrapper = Literal["pea", "per", "cto", "assurance_vie", "livret_a"]
+TaxWrapper = Literal["pea", "per", "cto", "assurance_vie", "livret_a", "livret_jeune", "pee"]
 
 
 class AccountBase(BaseModel):

@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Skeleton } from "@/components/ui/skeleton"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
-type Kind = "pea" | "per" | "cto" | "assurance_vie" | "livret_a"
+type Kind = "pea" | "per" | "cto" | "assurance_vie" | "livret_a" | "livret_jeune" | "pee"
 
 interface WrapperCard {
   kind: Kind
@@ -28,6 +28,10 @@ interface WrapperCard {
   milestone_reached: boolean | null
   estimated_tax_saving: number | null
   allowance: number | null
+  total_contributed: number | null
+  blocked: number | null
+  available: number | null
+  next_unlock_date: string | null
   alerts: string[]
 }
 
@@ -35,6 +39,7 @@ interface TaxSettings {
   tmi_pct: number
   prior_year_pro_income: number
   household: "single" | "couple"
+  gross_annual_salary: number
 }
 
 interface TaxOverview {
@@ -73,6 +78,8 @@ const KIND_LABELS: Record<Kind, string> = {
   cto: "CTO",
   assurance_vie: "Assurance-vie",
   livret_a: "Livret A",
+  livret_jeune: "Livret Jeune",
+  pee: "PEE",
 }
 
 const TMI_OPTIONS = [0, 11, 30, 41, 45]
@@ -130,6 +137,18 @@ function WrapperCardView({ card }: { card: WrapperCard }) {
         )}
         {card.allowance !== null && (
           <div>Abattement annuel sur les gains de rachat : <strong><Money value={card.allowance} /></strong></div>
+        )}
+        {card.total_contributed !== null && (
+          <div className="space-y-1">
+            <div>Total versé : <strong><Money value={card.total_contributed} /></strong></div>
+            <div>Disponible : <strong><Money value={card.available ?? 0} /></strong></div>
+            <div>
+              Bloqué (moins de 5 ans) : <strong><Money value={card.blocked ?? 0} /></strong>
+              {card.next_unlock_date && (
+                <span className="text-slate-500"> — prochain déblocage le {new Date(card.next_unlock_date).toLocaleDateString("fr-FR")}</span>
+              )}
+            </div>
+          </div>
         )}
         {card.alerts.map((alert) => (
           <div key={alert} className="flex items-start gap-2 rounded-md bg-amber-50 p-2 text-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
@@ -242,6 +261,16 @@ export default function Tax() {
                   <SelectItem value="couple">Couple</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="tax-gross">Salaire brut annuel (€), pour le plafond du PEE</Label>
+              <Input
+                id="tax-gross"
+                type="number"
+                min={0}
+                value={draft.gross_annual_salary}
+                onChange={(e) => setDraft({ ...draft, gross_annual_salary: Number(e.target.value) || 0 })}
+              />
             </div>
             <div className="md:col-span-3">
               <Button onClick={saveSettings}>Enregistrer</Button>
