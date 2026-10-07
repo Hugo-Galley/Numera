@@ -63,6 +63,7 @@ type Account = {
   is_main?: boolean
   fonds_euros_pct?: number
   fonds_investis_pct?: number
+  valuation_mode?: "positions" | "snapshot"
 }
 
 export default function Accounts() {
@@ -79,6 +80,7 @@ export default function Accounts() {
   const [newAssetClass, setNewAssetClass] = useState("")
   const [newSector, setNewSector] = useState("")
   const [newZone, setNewZone] = useState("")
+  const [newValuationMode, setNewValuationMode] = useState<"positions" | "snapshot">("positions")
   const [newEurosPct, setNewEurosPct] = useState("")
   const [newInvestisPct, setNewInvestisPct] = useState("")
   const [sortField, setSortField] = useState<"name" | "type" | "currency" | "institution">("name")
@@ -164,6 +166,7 @@ export default function Accounts() {
         asset_class: newType === "investissement" ? newAssetClass : null,
         sector: newType === "investissement" ? newSector : null,
         geographic_zone: newType === "investissement" ? newZone : null,
+        valuation_mode: newType === "investissement" ? newValuationMode : "positions",
         fonds_euros_pct: newType === "assurance_vie" ? (newEurosPct ? parseFloat(newEurosPct) : 0) : null,
         fonds_investis_pct: newType === "assurance_vie" ? (newInvestisPct ? parseFloat(newInvestisPct) : 0) : null
       })
@@ -175,6 +178,7 @@ export default function Accounts() {
       setNewAssetClass("")
       setNewSector("")
       setNewZone("")
+      setNewValuationMode("positions")
       setNewEurosPct("")
       setNewInvestisPct("")
       loadAccounts()
@@ -194,6 +198,7 @@ export default function Accounts() {
         asset_class: editingAccount.type === "investissement" ? editingAccount.asset_class : null,
         sector: editingAccount.type === "investissement" ? editingAccount.sector : null,
         geographic_zone: editingAccount.type === "investissement" ? editingAccount.geographic_zone : null,
+        valuation_mode: editingAccount.type === "investissement" ? (editingAccount.valuation_mode ?? "positions") : "positions",
         fonds_euros_pct: editingAccount.type === "assurance_vie" ? (editingAccount.fonds_euros_pct !== undefined && editingAccount.fonds_euros_pct !== null ? editingAccount.fonds_euros_pct : 0) : null,
         fonds_investis_pct: editingAccount.type === "assurance_vie" ? (editingAccount.fonds_investis_pct !== undefined && editingAccount.fonds_investis_pct !== null ? editingAccount.fonds_investis_pct : 0) : null
       })
@@ -372,6 +377,24 @@ export default function Accounts() {
               </div>
 
               {newType === "investissement" && (
+                <div className="grid gap-2 pt-2 border-t mt-2">
+                  <Label htmlFor="valuation_mode">Valorisation du compte</Label>
+                  <Select value={newValuationMode} onValueChange={(v) => setNewValuationMode(v as "positions" | "snapshot")}>
+                    <SelectTrigger id="valuation_mode">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="positions">Calculée : positions × cours + espèces</SelectItem>
+                      <SelectItem value="snapshot">Par relevés (snapshots) saisis</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-slate-500">
+                    Choisis si la valeur du compte est calculée à partir des positions ou reprise du dernier relevé.
+                  </p>
+                </div>
+              )}
+
+              {newType === "investissement" && (
                 <div className="grid gap-4 pt-2 border-t mt-2">
                   <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500">Asset Allocation</h3>
                   <div className="grid gap-2">
@@ -545,6 +568,24 @@ export default function Accounts() {
                   </SelectContent>
                 </Select>
               </div>
+
+              {editingAccount.type === "investissement" && (
+                <div className="grid gap-2 pt-2 border-t mt-2">
+                  <Label htmlFor="edit-valuation_mode">Valorisation du compte</Label>
+                  <Select value={editingAccount.valuation_mode ?? "positions"} onValueChange={(v) => setEditingAccount({...editingAccount, valuation_mode: v as "positions" | "snapshot"})}>
+                    <SelectTrigger id="edit-valuation_mode">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="positions">Calculée : positions × cours + espèces</SelectItem>
+                      <SelectItem value="snapshot">Par relevés (snapshots) saisis</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-slate-500">
+                    Choisis si la valeur du compte est calculée à partir des positions ou reprise du dernier relevé.
+                  </p>
+                </div>
+              )}
 
               {editingAccount.type === "investissement" && (
                 <div className="grid gap-4 pt-2 border-t mt-2">
