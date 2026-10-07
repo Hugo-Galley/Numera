@@ -12,7 +12,7 @@ import {
   TableHead,
   TableCell,
 } from "@/components/ui/table"
-import { Calculator, SlidersHorizontal, Trash2, Globe, Layers, Search, X, Coins, CalendarCheck } from "lucide-react"
+import { Calculator, Check, Pencil, SlidersHorizontal, Trash2, Globe, Layers, Search, X, Coins, CalendarCheck } from "lucide-react"
 import { PointZeroModal } from "./PointZeroModal"
 import { CostEstimateDialog } from "./CostEstimateDialog"
 import { api } from "@/lib/api"
@@ -40,6 +40,8 @@ export function HoldingsTable({
 }: HoldingsTableProps) {
   const [pointZeroOpen, setPointZeroOpen] = useState(false)
   const [costEstimateOpen, setCostEstimateOpen] = useState(false)
+  const [editingCostId, setEditingCostId] = useState<number | null>(null)
+  const [costDraft, setCostDraft] = useState("")
   const [decomposingId, setDecomposingId] = useState<number | null>(null)
   const [search, setSearch] = useState("")
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all")
@@ -118,6 +120,28 @@ export function HoldingsTable({
       onRefresh()
     } catch (err: any) {
       toast.error(err?.message || "Erreur lors de la mise à jour")
+    }
+  }
+
+  const startEditCost = (h: PortfolioHolding) => {
+    setEditingCostId(h.id)
+    setCostDraft(h.buy_price_avg ? String(h.buy_price_avg) : "")
+  }
+
+  const saveCost = async (h: PortfolioHolding) => {
+    const value = Number(costDraft.replace(",", "."))
+    if (costDraft.trim() !== "" && !(value > 0)) {
+      toast.error("Le PRU doit être un nombre positif")
+      return
+    }
+    try {
+      // Vide = PRU inconnu ; le backend modifie la ligne du Point Zéro puis recalcule les positions
+      await api.put(`/holdings/${h.id}`, { buy_price_avg: costDraft.trim() === "" ? null : value })
+      toast.success(`PRU de ${h.ticker} mis à jour`)
+      setEditingCostId(null)
+      onRefresh()
+    } catch (err: any) {
+      toast.error(err?.message || "Impossible de modifier le PRU")
     }
   }
 
@@ -339,10 +363,42 @@ export function HoldingsTable({
                         </TableCell>
 
                         <TableCell className="text-right font-mono text-sm">
-                          {h.buy_price_avg ? (
-                            <span className="text-slate-700">{h.buy_price_avg.toFixed(2)} {h.currency}</span>
+                          {editingCostId === h.id ? (
+                            <div className="flex items-center justify-end gap-1">
+                              <Input
+                                autoFocus
+                                type="text"
+                                inputMode="decimal"
+                                value={costDraft}
+                                onChange={(e) => setCostDraft(e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter") saveCost(h)
+                                  if (e.key === "Escape") setEditingCostId(null)
+                                }}
+                                className="h-7 w-24 text-right font-mono text-xs"
+                                placeholder={`PRU (${h.currency})`}
+                              />
+                              <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-emerald-600" onClick={() => saveCost(h)} title="Enregistrer">
+                                <Check className="h-4 w-4" />
+                              </Button>
+                              <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-slate-400" onClick={() => setEditingCostId(null)} title="Annuler">
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </div>
                           ) : (
-                            <span className="text-amber-600 italic text-xs" title="Renseigne le PRU dans le Point Zéro">à renseigner</span>
+                            <button
+                              type="button"
+                              onClick={() => startEditCost(h)}
+                              className="group inline-flex items-center gap-1.5 hover:text-slate-900"
+                              title="Modifier le PRU"
+                            >
+                              {h.buy_price_avg ? (
+                                <span className="text-slate-700">{h.buy_price_avg.toFixed(2)} {h.currency}</span>
+                              ) : (
+                                <span className="text-amber-600 italic text-xs">à renseigner</span>
+                              )}
+                              <Pencil className="h-3 w-3 text-slate-300 group-hover:text-slate-600" />
+                            </button>
                           )}
                         </TableCell>
 
