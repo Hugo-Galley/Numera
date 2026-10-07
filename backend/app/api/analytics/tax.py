@@ -4,12 +4,14 @@ from datetime import date, datetime
 from sqlalchemy.orm import Session
 
 from app.api.accounts import _get_balance_for_account
+from app.core.dividends import load_dividends_eur
+from app.core.portfolio import compute_portfolio
 from app.core.tax import av_status, livret_a_status, pea_status, per_status
 from app.core.tax_rules import rules_for
 from app.db.system_settings import get_setting, set_setting
 from app.models.account import Account
 from app.models.investment_transaction import InvestmentTransaction
-from app.schemas.tax import TaxOverview, TaxSettings, TaxSettingsUpdate, WrapperCard
+from app.schemas.tax import AnnualReport, CtoYearRow, TaxOverview, TaxSettings, TaxSettingsUpdate, WrapperCard
 
 SETTING_KEYS = {
     "tmi_pct": "tax_tmi_pct",
@@ -81,3 +83,44 @@ def build_overview(db: Session, today: date) -> TaxOverview:
             )
         )
     return TaxOverview(year=today.year, settings=settings, wrappers=cards)
+
+
+async def build_annual_report(db: Session, year: int) -> AnnualReport:
+    """Dividendes (2DC) et plus-values réalisées (3VG gain, 3VH perte) des comptes CTO pour l'année."""
+    rules = rules_for(year)
+    accounts = db.query(Account).filter(Account.tax_wrapper == "cto").order_by(Account.id.asc()).all()
+    rows: list[CtoYearRow] = []
+    warnings: list[str] = []
+    for account in accounts:
+        portfolio = await compute_portfolio(db, account, fetch=False, history=False)
+        realized = next((e for e in portfolio["realized_by_year"] if e["year"] == year), None)
+        dividends = [d for d in await load_dividends_eur(db, account.id) if d.tx.date.year == year]
+        unknown = portfolio["realized_unknown_sales"] if realized else 0
+        if unknown:
+            warnings.append(f"{account.name} : {unknown} vente(s) sans coût de revient connu, plus-value non comptée.")
+        rows.append(
+            CtoYearRow(
+                account_id=account.id,
+                account_name=account.name,
+                dividends_gross_eur=round(sum(d.gross_eur for d in dividends), 2),
+                dividends_net_eur=round(sum(d.net_eur for d in dividends), 2),
+                withholding_eur=round(sum(d.tax_eur for d in dividends), 2),
+                realized_eur=realized["realized_eur"] if realized else 0.0,
+                proceeds_eur=realized["proceeds_eur"] if realized else 0.0,
+                sales=realized["sales"] if realized else 0,
+                unknown_cost_sales=unknown,
+            )
+        )
+    dividends_gross = sum(r.dividends_gross_eur for r in rows)
+    realized_total = sum(r.realized_eur for r in rows)
+    gains, losses = max(realized_total, 0.0), max(-realized_total, 0.0)
+    return AnnualReport(
+        year=year,
+        pfu_rate=rules.pfu_rate,
+        accounts=rows,
+        box_2dc=round(dividends_gross, 2),
+        box_3vg=round(gains, 2),
+        box_3vh=round(losses, 2),
+        estimated_pfu_eur=round((dividends_gross + gains) * rules.pfu_rate, 2),
+        warnings=warnings,
+    )

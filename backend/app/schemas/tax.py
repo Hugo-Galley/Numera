@@ -38,3 +38,26 @@ class TaxOverview(BaseModel):
     year: int
     settings: TaxSettings
     wrappers: list[WrapperCard]
+
+
+class CtoYearRow(BaseModel):
+    account_id: int
+    account_name: str
+    dividends_gross_eur: float
+    dividends_net_eur: float
+    withholding_eur: float
+    realized_eur: float
+    proceeds_eur: float
+    sales: int
+    unknown_cost_sales: int
+
+
+class AnnualReport(BaseModel):
+    year: int
+    pfu_rate: float
+    accounts: list[CtoYearRow]
+    box_2dc: float
+    box_3vg: float
+    box_3vh: float
+    estimated_pfu_eur: float
+    warnings: list[str] = []

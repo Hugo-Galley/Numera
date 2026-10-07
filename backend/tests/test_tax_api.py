@@ -1,7 +1,10 @@
 """Fiscalité : enveloppes, plafonds, dates clés, récap annuel du CTO."""
-from datetime import date
+from datetime import date, datetime, timedelta
 
 import pytest
+
+import app.core.currency as currency_mod
+import app.core.market_data as market_data
 
 
 def _account(client, name="PEA", type_="investissement", **extra) -> dict:
@@ -99,3 +102,110 @@ def test_tax_routes_require_authentication(db_session):
     app.dependency_overrides.clear()
     with TestClient(app) as anonymous:
         assert anonymous.get("/tax/overview").status_code in (401, 403)
+
+
+@pytest.fixture()
+def offline_market(monkeypatch):
+    async def no_chart(client, sym, params):
+        return None
+
+    async def fake_historical_rate(db, day, currency, base="EUR"):
+        return {"EUR": 1.0, "USD": 2.0}[currency]
+
+    monkeypatch.setattr(market_data, "_fetch_chart", no_chart)
+    monkeypatch.setattr(currency_mod, "get_historical_rate", fake_historical_rate)
+    market_data._QUOTES_CACHE.clear()
+    yield
+    market_data._QUOTES_CACHE.clear()
+
+
+def _iso(days_ago: int) -> str:
+    return (datetime.now() - timedelta(days=days_ago)).replace(microsecond=0).isoformat()
+
+
+def _cto_with_sale_and_dividend(client, db_session, *, wrapper="cto"):
+    account = _account(client, name="CTO", tax_wrapper=wrapper)
+    resp = client.post("/holdings/baseline", json={
+        "account_id": account["id"], "date": _iso(200),
+        "holdings": [{"ticker": "CW8.PA", "asset_name": "MSCI World", "quantity": 10, "buy_price_avg": 100.0, "currency": "EUR"}],
+    })
+    assert resp.status_code == 200, resp.text
+    for days_ago, close in ((200, 100.0), (60, 130.0), (0, 120.0)):
+        market_data.store_price(db_session, "CW8.PA", (datetime.now() - timedelta(days=days_ago)).date(), close, "EUR")
+    db_session.commit()
+    sale = client.post("/investment-transactions", json={
+        "account_id": account["id"], "date": _iso(60), "type": "vente", "amount": 520.0,
+        "ticker": "CW8.PA", "quantity": 4, "unit_price": 130.0,
+    })
+    assert sale.status_code == 201, sale.text
+    dividend = client.post("/investment-transactions", json={
+        "account_id": account["id"], "date": _iso(30), "type": "dividende", "amount": 35.0,
+        "ticker": "CW8.PA", "withholding_tax": 15.0,
+    })
+    assert dividend.status_code == 201, dividend.text
+    return account
+
+
+def test_annual_report_groups_dividends_and_realized_gains(client, db_session, offline_market):
+    account = _cto_with_sale_and_dividend(client, db_session)
+    year = (datetime.now() - timedelta(days=60)).year
+    report = client.get(f"/tax/annual-report?year={year}").json()
+
+    row = next(r for r in report["accounts"] if r["account_id"] == account["id"])
+    assert row["realized_eur"] == pytest.approx(120.0)   # 520 − 4 × 100
+    assert row["dividends_net_eur"] == pytest.approx(35.0)
+    assert row["dividends_gross_eur"] == pytest.approx(50.0)  # net + retenue
+    assert report["box_2dc"] == pytest.approx(50.0)
+    assert report["box_3vg"] == pytest.approx(120.0)
+    assert report["box_3vh"] == 0.0
+    assert report["estimated_pfu_eur"] == pytest.approx((50.0 + 120.0) * report["pfu_rate"])
+
+
+def test_annual_report_ignores_non_cto_accounts(client, db_session, offline_market):
+    _cto_with_sale_and_dividend(client, db_session, wrapper="pea")
+    year = (datetime.now() - timedelta(days=60)).year
+    report = client.get(f"/tax/annual-report?year={year}").json()
+    assert report["accounts"] == []
+    assert report["box_2dc"] == 0.0
+    assert report["box_3vg"] == 0.0
+
+
+def test_annual_report_empty_year_is_all_zero_not_an_error(client, db_session, offline_market):
+    _cto_with_sale_and_dividend(client, db_session)
+    report = client.get("/tax/annual-report?year=2001")
+    assert report.status_code == 200
+    body = report.json()
+    assert body["box_2dc"] == 0.0 and body["box_3vg"] == 0.0 and body["estimated_pfu_eur"] == 0.0
+    assert body["accounts"][0]["realized_eur"] == 0.0
+
+
+def test_annual_report_loss_goes_to_box_3vh_and_is_not_taxed(client, db_session, offline_market):
+    account = _account(client, name="CTO", tax_wrapper="cto")
+    client.post("/holdings/baseline", json={
+        "account_id": account["id"], "date": _iso(200),
+        "holdings": [{"ticker": "CW8.PA", "asset_name": "MSCI World", "quantity": 10, "buy_price_avg": 100.0, "currency": "EUR"}],
+    })
+    market_data.store_price(db_session, "CW8.PA", (datetime.now() - timedelta(days=60)).date(), 80.0, "EUR")
+    db_session.commit()
+    client.post("/investment-transactions", json={
+        "account_id": account["id"], "date": _iso(60), "type": "vente", "amount": 320.0,
+        "ticker": "CW8.PA", "quantity": 4, "unit_price": 80.0,
+    })
+    year = (datetime.now() - timedelta(days=60)).year
+    report = client.get(f"/tax/annual-report?year={year}").json()
+    assert report["box_3vh"] == pytest.approx(80.0)   # 320 − 400
+    assert report["box_3vg"] == 0.0
+    assert report["estimated_pfu_eur"] == 0.0
+
+
+def test_annual_report_flags_sales_without_known_cost(client, db_session, offline_market):
+    account = _account(client, name="CTO", tax_wrapper="cto")
+    sale = client.post("/investment-transactions", json={
+        "account_id": account["id"], "date": _iso(10), "type": "vente", "amount": 500.0,
+        "ticker": "ORPH.PA", "quantity": 5, "unit_price": 100.0,
+    })
+    assert sale.status_code == 201, sale.text
+    report = client.get(f"/tax/annual-report?year={datetime.now().year}").json()
+    assert report["accounts"][0]["unknown_cost_sales"] == 1
+    assert report["box_3vg"] == 0.0
+    assert any("coût de revient" in w for w in report["warnings"])
