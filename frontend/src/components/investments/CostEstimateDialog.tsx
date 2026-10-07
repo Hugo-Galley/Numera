@@ -27,6 +27,8 @@ interface CostEstimate {
   sold_quantity: number
   coverage: number | null
   first_buy: string | null
+  method: "quantities" | "amounts"
+  amount_only_buys: number
 }
 
 interface Line {
@@ -59,7 +61,7 @@ export function CostEstimateDialog({ open, onOpenChange, accountId, onApplied }:
             data.map((r) => [
               r.ticker,
               {
-                checked: r.estimate !== null && r.current_cost === null && (r.coverage ?? 0) >= 0.99,
+                checked: r.estimate !== null && r.current_cost === null && (r.method === "amounts" || (r.coverage ?? 0) >= 0.99),
                 value: r.estimate !== null ? String(r.estimate) : "",
               },
             ])
@@ -133,6 +135,15 @@ export function CostEstimateDialog({ open, onOpenChange, accountId, onApplied }:
                         <Badge variant="outline" className="font-normal text-slate-500">Aucun achat saisi : à renseigner à la main</Badge>
                       ) : (
                         <Badge variant="secondary" className="font-normal">{r.buys} achat{r.buys > 1 ? "s" : ""}</Badge>
+                      )}
+                      {r.method === "amounts" && (
+                        <Badge
+                          variant="outline"
+                          className="border-amber-300 font-normal text-amber-700"
+                          title="Tes anciens versements n'ont pas de quantité : PRU = total versé ÷ parts détenues. Exact si tous tes achats de ce titre sont saisis."
+                        >
+                          Estimé : total versé ÷ parts
+                        </Badge>
                       )}
                       {partial && (
                         <Badge variant="outline" className="border-amber-300 font-normal text-amber-700" title="Des parts détenues avant le premier achat saisi ne sont pas prises en compte">

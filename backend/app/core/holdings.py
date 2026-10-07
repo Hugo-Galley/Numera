@@ -260,11 +260,13 @@ class CostEstimate:
     bought_quantity: float
     sold_quantity: float
     first_buy: datetime | None
+    method: str = "quantities"  # "quantities" : prix × quantités saisis ; "amounts" : montants versés ÷ parts détenues
+    amount_only_buys: int = 0
 
     @property
     def coverage(self) -> float | None:
         """Part de l'inventaire expliquée par les opérations antérieures (1.0 = tout)."""
-        if self.quantity <= EPSILON:
+        if self.quantity <= EPSILON or self.method == "amounts":
             return None
         return (self.bought_quantity - self.sold_quantity) / self.quantity
 
@@ -275,8 +277,25 @@ async def estimate_baseline_costs(db: Session, account_id: int) -> list[CostEsti
     Ce sont exactement les opérations que l'inventaire « remplace » : leurs prix et quantités restent
     en base et permettent de retrouver le coût moyen (moyenne pondérée, frais inclus). Aucune écriture.
     """
+    from app.core.dividends import match_dividend_ticker  # import local : dividends dépend de market_data
+
     results: list[CostEstimate] = []
     items = db.query(HoldingBaselineItem).filter(HoldingBaselineItem.account_id == account_id).order_by(HoldingBaselineItem.id).all()
+    candidates = [(i.ticker, i.asset_name) for i in items]
+    # Anciens versements « Achat Apple » : ni titre ni quantité, seulement un montant et un libellé
+    amount_only: dict[str, list[InvestmentTransaction]] = {}
+    for tx in (
+        db.query(InvestmentTransaction)
+        .filter(InvestmentTransaction.account_id == account_id, InvestmentTransaction.type.in_(BUY_TYPES))
+        .order_by(InvestmentTransaction.date.asc(), InvestmentTransaction.id.asc())
+        .all()
+    ):
+        if tx.ticker and tx.quantity and tx.quantity > 0:
+            continue
+        ticker = normalize_ticker(tx.ticker) if tx.ticker else match_dividend_ticker(tx.note, candidates)
+        if ticker:
+            amount_only.setdefault(ticker, []).append(tx)
+
     for item in items:
         cutoff = trade_cutoff(db, account_id, item.ticker) or item.baseline_date
         txs = (
@@ -315,6 +334,20 @@ async def estimate_baseline_costs(db: Session, account_id: int) -> list[CostEsti
                 continue
             total_cost += converted
             priced_qty += tx.quantity
+        method = "quantities"
+        estimate = round(total_cost / priced_qty, 4) if priced_qty > EPSILON else None
+        cutoff_date = trade_cutoff(db, account_id, item.ticker) or item.baseline_date
+        extra = [t for t in amount_only.get(item.ticker, []) if t.date <= cutoff_date]
+        if extra and item.quantity > EPSILON:
+            # Quantités inconnues : on suppose que ces versements ont financé toutes les parts de l'inventaire
+            for tx in extra:
+                cur = (tx.currency or "EUR").upper()
+                converted = tx.original_amount if cur == item.currency else await _convert(db, tx.original_amount, cur, item.currency, tx.date)
+                if converted is not None:
+                    total_cost += converted
+                    first_buy = min(first_buy, tx.date) if first_buy else tx.date
+            estimate = round(total_cost / item.quantity, 4)
+            method = "amounts"
         results.append(
             CostEstimate(
                 ticker=item.ticker,
@@ -322,8 +355,10 @@ async def estimate_baseline_costs(db: Session, account_id: int) -> list[CostEsti
                 quantity=item.quantity,
                 currency=item.currency,
                 current_cost=item.buy_price_avg,
-                estimate=round(total_cost / priced_qty, 4) if priced_qty > EPSILON else None,
-                buys=buys,
+                estimate=estimate,
+                buys=buys + len(extra),
+                method=method,
+                amount_only_buys=len(extra),
                 bought_quantity=bought,
                 sold_quantity=sold,
                 first_buy=first_buy,

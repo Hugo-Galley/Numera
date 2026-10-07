@@ -112,3 +112,33 @@ def test_apply_costs_updates_baseline_and_rebuilds_positions(client, db_session)
 
     bad = client.post("/holdings/apply-costs", json={"account_id": account_id, "items": [{"ticker": "ZZZ", "buy_price_avg": 1}]})
     assert bad.status_code == 422
+
+
+def _legacy_versement(client, account_id, note, original_amount, currency, *, days_ago):
+    """Ancien format : montant et libellé seulement, sans titre ni quantité."""
+    resp = client.post("/investment-transactions", json={
+        "account_id": account_id, "date": _iso(days_ago), "type": "versement", "amount": original_amount,
+        "currency": currency, "note": note,
+    })
+    assert resp.status_code == 201, resp.text
+
+
+def test_estimate_from_legacy_amounts_matched_by_label(client):
+    account_id = _account(client)
+    _legacy_versement(client, account_id, "Achat Apple", 10.0, "USD", days_ago=300)
+    _legacy_versement(client, account_id, "Apple", 90.0, "USD", days_ago=100)
+    _legacy_versement(client, account_id, "Microsoft", 500.0, "USD", days_ago=100)  # autre titre : ignoré
+    client.post("/holdings/baseline", json={
+        "account_id": account_id, "date": _iso(5),
+        "holdings": [
+            {"ticker": "AAPL", "asset_name": "Apple Inc.", "quantity": 0.5, "buy_price_avg": None, "currency": "USD"},
+            {"ticker": "MSFT", "asset_name": "Microsoft Corporation", "quantity": 1, "buy_price_avg": None, "currency": "USD"},
+        ],
+    })
+
+    by_ticker = {e["ticker"]: e for e in client.get(f"/holdings/estimate-costs?account_id={account_id}").json()}
+    apple = by_ticker["AAPL"]
+    assert apple["method"] == "amounts" and apple["amount_only_buys"] == 2
+    assert apple["estimate"] == pytest.approx(100.0 / 0.5)  # 100 USD versés pour 0,5 part
+    assert apple["coverage"] is None
+    assert by_ticker["MSFT"]["estimate"] == pytest.approx(500.0)

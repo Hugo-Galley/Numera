@@ -85,6 +85,8 @@ class CostEstimateRead(BaseModel):
     sold_quantity: float
     coverage: Optional[float] = None
     first_buy: Optional[str] = None
+    method: str = "quantities"
+    amount_only_buys: int = 0
 
 
 class ApplyCostLine(BaseModel):

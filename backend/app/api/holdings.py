@@ -154,6 +154,7 @@ async def get_cost_estimates(account_id: int = Query(...), db: Session = Depends
             bought_quantity=round(e.bought_quantity, 6), sold_quantity=round(e.sold_quantity, 6),
             coverage=round(e.coverage, 4) if e.coverage is not None else None,
             first_buy=e.first_buy.isoformat() if e.first_buy else None,
+            method=e.method, amount_only_buys=e.amount_only_buys,
         )
         for e in await estimate_baseline_costs(db, account_id)
     ]
