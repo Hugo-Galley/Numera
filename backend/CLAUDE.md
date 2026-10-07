@@ -26,6 +26,7 @@ Complète le `CLAUDE.md` racine. Procédures pas-à-pas : skill `numera-backend`
 - Toute mutation de transaction (create / update / delete / bulk / liaison de virement / import) → `recalculate_running_balances(db, account_id)`, définie dans **`app/api/transactions.py`** (pas dans `core/`). Recalcul intégral par ordre chronologique.
 - Devises : `await convert_amount(...)` / `await get_exchange_rates()` (`core/currency.py`). Stocker `amount` (devise du compte) et garder `original_amount` + `currency`. Conversion datée par taux croisé via l'EUR pour toute paire ; sans taux exploitable `CurrencyConversionError` (→ HTTP 422 via le handler de `main.py`), **jamais** de repli 1:1.
 - Positions : `portfolio_holdings` est **dérivé**. Après toute mutation d'opération d'investissement ou de l'inventaire Point Zéro (`holding_baseline_items`), appeler `await rebuild_holdings(db, account_id)` (`core/holdings.py`) : inventaire + opérations sur titres postérieures à `accounts.holdings_baseline_date`, PRU en moyenne pondérée frais inclus (devise de la position), vente sans effet sur le PRU, `cost_basis_eur` aux taux historiques. Ne jamais écrire `quantity`/`buy_price_avg` directement.
+- Valorisation : `core/portfolio.py::compute_portfolio` (valeur = positions × cours + espèces, plus-values latente/réalisée, XIRR/TWR, courbe, rapprochement) ; un compte `investissement` avec positions n'est plus valorisé par snapshot (`uses_positions`). `core/holdings.py::replay_account` rejoue aussi les ventes (plus-value réalisée) et les variations de quantité.
 - Cours : `get_market_quotes(symbols, db=db)` enregistre chaque cotation dans `security_prices` et renvoie le dernier cours stocké (`stale=True`) si Yahoo échoue ; `get_price_on(db, ticker, date)` pour un cours historique.
 - Solde Initial : un seul par compte et chronologiquement premier ; contrôle centralisé dans `validate_solde_initial` (`api/transactions.py`) pour create/update, et dans l'import.
 - SQLite : `PRAGMA foreign_keys=ON` est posé à chaque connexion (`db/session.py`, aussi dans `conftest.py`) : les `ondelete` sont effectifs. Une FK sans `ondelete` (ex. `salary_configs`) oblige à mettre la référence à `NULL` avant de supprimer la cible.
@@ -44,6 +45,6 @@ Complète le `CLAUDE.md` racine. Procédures pas-à-pas : skill `numera-backend`
 
 ## Tests
 
-- `PYTHONPATH=. python3.11 -m pytest tests -q` depuis `backend/` (146 tests, ~13 s). `make test` détecte l'interpréteur (venv, sinon python3.12/3.11) ; `venv_new` est en Python 3.14 sans pytest.
+- `PYTHONPATH=. python3.11 -m pytest tests -q` depuis `backend/` (166 tests, ~13 s). `make test` détecte l'interpréteur (venv, sinon python3.12/3.11) ; `venv_new` est en Python 3.14 sans pytest.
 - Fixtures (`tests/conftest.py`) : `db_session` (SQLite temporaire par test, `Base.metadata.create_all`) et `client` (TestClient, override de `get_db` et `get_current_user` → `"admin"`, rate limiter réinitialisé). Vérifier l'état en base après l'appel API.
 - Un test par bug corrigé / fonctionnalité ajoutée, nommé `tests/test_<domaine>.py`.
