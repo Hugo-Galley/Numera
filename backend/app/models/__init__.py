@@ -17,6 +17,8 @@ from app.models.salary_month import SalaryMonth
 from app.models.telecommuting_day import TelecommutingDay
 from app.models.etf_profile import EtfProfile
 from app.models.portfolio_holding import PortfolioHolding
+from app.models.holding_baseline_item import HoldingBaselineItem
+from app.models.security_price import SecurityPrice
 
 __all__ = [
     "Account",
@@ -38,4 +40,6 @@ __all__ = [
     "TelecommutingDay",
     "EtfProfile",
     "PortfolioHolding",
+    "HoldingBaselineItem",
+    "SecurityPrice",
 ]

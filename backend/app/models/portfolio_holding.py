@@ -19,7 +19,9 @@ class PortfolioHolding(Base):
     quantity: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
     buy_price_avg: Mapped[float | None] = mapped_column(Float, nullable=True)
     currency: Mapped[str] = mapped_column(String(3), nullable=False, default="EUR")
-    
+    # Coût de revient total en EUR, aux taux de change des dates d'achat (calculé par rebuild_holdings)
+    cost_basis_eur: Mapped[float | None] = mapped_column(Float, nullable=True)
+
     etf_profile_id: Mapped[int | None] = mapped_column(ForeignKey("etf_profiles.id", ondelete="SET NULL"), nullable=True, index=True)
     
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow_naive, nullable=False)

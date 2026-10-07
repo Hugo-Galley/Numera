@@ -976,7 +976,8 @@ def list_investment_transactions(account_id: int | None = None, limit: int = 50)
     Ces transactions sont distinctes des transactions bancaires classiques.
     Elles tracent les opérations sur titres (actions / ETF).
 
-    Types : versement (achat/dépôt), retrait (vente), dividende
+    Types : versement / retrait (flux d'espèces, avec titre = dépôt + achat / vente + retrait),
+    achat / vente (opération sur titres, sans effet sur le montant investi), dividende, frais
 
     Args:
         account_id: Filtrer par compte d'investissement (optionnel)
@@ -1026,16 +1027,19 @@ def add_investment_transaction(
     sector: str | None = None,
     geographic_zone: str | None = None,
     etf_profile_id: int | None = None,
+    fees: float | None = None,
+    price_currency: str | None = None,
 ) -> str:
-    """Enregistre une transaction d'investissement (achat, vente, dividende).
+    """Enregistre une transaction d'investissement (versement, retrait, achat, vente, dividende, frais).
 
-    ⚡ Si ticker + quantité sont fournis, la position (holding) est automatiquement mise à jour.
+    ⚡ Si ticker + quantité sont fournis, les positions du compte sont recalculées (PRU frais inclus).
+    Une opération sur titre antérieure au Point Zéro des positions est refusée.
 
     Args:
         account_id: ID du compte d'investissement
         date: Date (YYYY-MM-DDTHH:MM:SS ou YYYY-MM-DD)
-        type: Type : versement (achat/dépôt), retrait (vente), dividende
-        amount: Montant total de la transaction (toujours positif)
+        type: versement, retrait, achat, vente, dividende ou frais (achat/vente exigent ticker + quantité)
+        amount: Montant total de la transaction (toujours positif ; achat = total débité frais inclus)
         ticker: Symbole boursier (ex: MSFT, CW8.PA) (optionnel mais recommandé)
         isin: Code ISIN (optionnel, ex: IE00B4L5Y983)
         quantity: Nombre de parts achetées/vendues (optionnel)
@@ -1046,10 +1050,12 @@ def add_investment_transaction(
         sector: Secteur (ex: Technologie, Santé, Finance) (optionnel)
         geographic_zone: Zone géo (ex: Monde, USA, Europe, Emergents) (optionnel)
         etf_profile_id: ID du profil ETF lié (optionnel, voir list_etf_profiles)
+        fees: Frais de courtage, dans la devise du prix unitaire (optionnel, inclus dans le PRU)
+        price_currency: Devise du prix unitaire et des frais (optionnel, défaut = currency)
     """
     try:
-        if type not in ("versement", "retrait", "dividende"):
-            return "❌ Type invalide. Valeurs acceptées : versement, retrait, dividende"
+        if type not in ("versement", "retrait", "achat", "vente", "dividende", "frais"):
+            return "❌ Type invalide. Valeurs acceptées : versement, retrait, achat, vente, dividende, frais"
         if amount <= 0:
             return "❌ Le montant doit être positif."
         if "T" not in date:
@@ -1078,6 +1084,10 @@ def add_investment_transaction(
             payload["sector"] = sector
         if geographic_zone:
             payload["geographic_zone"] = geographic_zone
+        if fees is not None:
+            payload["fees"] = fees
+        if price_currency:
+            payload["price_currency"] = price_currency
         if etf_profile_id is not None:
             payload["etf_profile_id"] = etf_profile_id
 

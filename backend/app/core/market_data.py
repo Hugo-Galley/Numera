@@ -1,7 +1,7 @@
 import re
 import json
 import httpx
-from datetime import datetime, timedelta
+from datetime import date as date_type, datetime, timedelta
 from urllib.parse import quote
 from typing import Any, Dict, List, Optional
 from sqlalchemy.orm import Session
@@ -10,6 +10,7 @@ from app.core.logging import get_logger
 from app.core.currency import get_exchange_rates
 from app.models.etf_profile import EtfProfile
 from app.models.investment_transaction import InvestmentTransaction
+from app.models.security_price import SecurityPrice
 
 logger = get_logger(__name__)
 
@@ -143,7 +144,7 @@ async def search_market_assets(query: str, db: Optional[Session] = None) -> List
                         "isin": None,
                         "type": q_type,
                         "exchange": exchange,
-                        "currency": "EUR" if exchange in ("PAR", "AMS", "BRU", "GER", "FRA", "EAM") else "USD",
+                        "currency": guess_quote_currency(sym),
                         "etf_profile_id": etf_profile.id if etf_profile else None,
                         "is_custom_etf": False,
                     })
@@ -153,16 +154,80 @@ async def search_market_assets(query: str, db: Optional[Session] = None) -> List
     return results
 
 
-async def get_market_quotes(symbols: List[str]) -> Dict[str, Dict[str, Any]]:
+# Devise de cotation déduite du suffixe Yahoo (la recherche ne renvoie pas la devise)
+QUOTE_SUFFIX_CURRENCIES: Dict[str, str] = {
+    **{sfx: "EUR" for sfx in (".PA", ".AS", ".BR", ".DE", ".F", ".SG", ".MU", ".DU", ".HM", ".BE", ".MI", ".MC", ".VI", ".LS", ".HE", ".IR")},
+    ".SW": "CHF",
+    ".L": "GBP",
+}
+
+
+def guess_quote_currency(symbol: str) -> str:
+    """Devise probable d'un ticker Yahoo (`CW8.PA` → EUR, `BTC-EUR` → EUR, `AAPL` → USD)."""
+    sym = symbol.upper().strip()
+    if "-" in sym and len(sym.rsplit("-", 1)[1]) == 3:
+        return sym.rsplit("-", 1)[1]
+    for suffix, currency in QUOTE_SUFFIX_CURRENCIES.items():
+        if sym.endswith(suffix):
+            return currency
+    return "USD"
+
+
+def _normalize_price(price: float, raw_currency: str) -> tuple[float, str]:
+    if raw_currency in ("GBp", "GBX"):
+        # Cotations LSE en pence : on ramène en livres
+        return float(price) / 100.0, "GBP"
+    return float(price), (raw_currency or "EUR").upper()
+
+
+async def _fetch_chart(client: httpx.AsyncClient, sym: str, params: Dict[str, str]) -> Optional[Dict[str, Any]]:
+    """Appelle l'endpoint chart de Yahoo (query2 puis query1) et renvoie le premier résultat."""
+    quoted_sym = quote(sym, safe="")
+    for host in ("query2", "query1"):
+        resp = await client.get(f"https://{host}.finance.yahoo.com/v8/finance/chart/{quoted_sym}", params=params)
+        if resp.status_code == 200:
+            res_list = resp.json().get("chart", {}).get("result") or []
+            return res_list[0] if res_list else None
+    return None
+
+
+def store_price(db: Session, ticker: str, day: date_type, close: float, currency: str, source: str = "yahoo") -> None:
+    """Enregistre (ou met à jour) le cours de clôture d'un titre pour un jour donné. Ne commit pas."""
+    sym = ticker.upper().strip()
+    row = db.query(SecurityPrice).filter(SecurityPrice.ticker == sym, SecurityPrice.date == day).first()
+    if row is None:
+        db.add(SecurityPrice(ticker=sym, date=day, close=close, currency=currency, source=source))
+    else:
+        row.close, row.currency, row.source = close, currency, source
+
+
+def _latest_stored_price(db: Session, ticker: str, on_or_before: Optional[date_type] = None) -> Optional[SecurityPrice]:
+    q = db.query(SecurityPrice).filter(SecurityPrice.ticker == ticker.upper().strip())
+    if on_or_before is not None:
+        q = q.filter(SecurityPrice.date <= on_or_before)
+    return q.order_by(SecurityPrice.date.desc()).first()
+
+
+def _to_eur(price: float, currency: str, rates: Dict[str, float]) -> Optional[float]:
+    rate = rates.get(currency)
+    if not rate:
+        logger.warning(f"No EUR exchange rate for {currency}: price left unconverted")
+        return None
+    return price / rate
+
+
+async def get_market_quotes(symbols: List[str], db: Optional[Session] = None) -> Dict[str, Dict[str, Any]]:
     """
-    Get live market quotes for a list of symbols with in-memory caching (TTL 1 hour).
-    Returns quotes with price converted to EUR.
+    Cours actuels d'une liste de tickers, avec conversion en EUR (cache mémoire 1 h).
+
+    Avec `db`, chaque cours obtenu est enregistré dans `security_prices` ; si Yahoo ne répond pas,
+    on renvoie le dernier cours enregistré avec `stale=True` plutôt qu'un prix nul.
+    Chaque cotation porte `price_date` et `stale`. `price == 0` signifie « aucun cours connu ».
     """
     now = datetime.now()
     output: Dict[str, Dict[str, Any]] = {}
     missing_symbols: List[str] = []
 
-    # Check cache
     for s in symbols:
         sym = s.strip().upper()
         if not sym:
@@ -176,69 +241,123 @@ async def get_market_quotes(symbols: List[str]) -> Dict[str, Dict[str, Any]]:
     if not missing_symbols:
         return output
 
-    # Fetch exchange rates for EUR conversions
     rates = await get_exchange_rates("EUR")
+    stored_any = False
 
     async with httpx.AsyncClient(headers=HEADERS, timeout=8.0) as client:
         for sym in missing_symbols:
             try:
-                # Query chart endpoint for live quote (query2 preferred)
-                chart_params = {"interval": "1d", "range": "1d"}
-                quoted_sym = quote(sym, safe="")
-                resp = await client.get(
-                    f"https://query2.finance.yahoo.com/v8/finance/chart/{quoted_sym}", params=chart_params
-                )
-                if resp.status_code != 200:
-                    resp = await client.get(
-                        f"https://query1.finance.yahoo.com/v8/finance/chart/{quoted_sym}", params=chart_params
-                    )
-                if resp.status_code == 200:
-                    data = resp.json()
-                    res_list = data.get("chart", {}).get("result", [])
-                    if res_list:
-                        meta = res_list[0].get("meta", {})
-                        price = meta.get("regularMarketPrice") or meta.get("previousClose") or 0.0
-                        raw_currency = meta.get("currency") or "EUR"
-                        currency = raw_currency.upper()
-                        if raw_currency in ("GBp", "GBX"):
-                            # Cotations LSE en pence : on ramène en livres
-                            price = float(price) / 100.0
-                            currency = "GBP"
-                        short_name = meta.get("shortName") or meta.get("symbol") or sym
-                        instrument_type = meta.get("instrumentType") or "EQUITY"
-
-                        # Convert price to EUR
-                        fx_rate = rates.get(currency, 1.0)
-                        price_eur = price / fx_rate if fx_rate > 0 else price
-
+                result = await _fetch_chart(client, sym, {"interval": "1d", "range": "1d"})
+                if result:
+                    meta = result.get("meta", {})
+                    raw_price = meta.get("regularMarketPrice") or meta.get("previousClose") or 0.0
+                    if raw_price:
+                        price, currency = _normalize_price(raw_price, meta.get("currency") or "EUR")
+                        market_time = meta.get("regularMarketTime")
+                        price_day = datetime.fromtimestamp(market_time).date() if market_time else now.date()
+                        price_eur = _to_eur(price, currency, rates)
                         quote_data = {
                             "symbol": sym,
-                            "name": short_name,
-                            "price": round(float(price), 4),
+                            "name": meta.get("shortName") or meta.get("symbol") or sym,
+                            "price": round(price, 4),
                             "currency": currency,
-                            "price_eur": round(float(price_eur), 4),
-                            "type": instrument_type,
+                            "price_eur": round(price_eur, 4) if price_eur is not None else 0.0,
+                            "type": meta.get("instrumentType") or "EQUITY",
+                            "price_date": price_day.isoformat(),
+                            "stale": False,
                             "expires_at": now + CACHE_TTL,
                         }
                         _QUOTES_CACHE[sym] = quote_data
                         output[sym] = quote_data
+                        if db is not None:
+                            store_price(db, sym, price_day, round(price, 6), currency)
+                            stored_any = True
                         continue
             except Exception as e:
                 logger.warning(f"Error fetching quote for '{sym}': {e}")
 
-            # Fallback for failed quote
-            fallback = {
-                "symbol": sym,
-                "name": sym,
-                "price": 0.0,
-                "currency": "EUR",
-                "price_eur": 0.0,
-                "type": "UNKNOWN",
-                "expires_at": now + timedelta(minutes=5),
-            }
-            output[sym] = fallback
+            # Échec : dernier cours enregistré si on en a un, sinon cotation vide
+            last = _latest_stored_price(db, sym) if db is not None else None
+            if last is not None:
+                price_eur = _to_eur(last.close, last.currency, rates)
+                output[sym] = {
+                    "symbol": sym,
+                    "name": sym,
+                    "price": round(last.close, 4),
+                    "currency": last.currency,
+                    "price_eur": round(price_eur, 4) if price_eur is not None else 0.0,
+                    "type": "UNKNOWN",
+                    "price_date": last.date.isoformat(),
+                    "stale": True,
+                    "expires_at": now + timedelta(minutes=5),
+                }
+            else:
+                output[sym] = {
+                    "symbol": sym,
+                    "name": sym,
+                    "price": 0.0,
+                    "currency": guess_quote_currency(sym),
+                    "price_eur": 0.0,
+                    "type": "UNKNOWN",
+                    "price_date": None,
+                    "stale": True,
+                    "expires_at": now + timedelta(minutes=5),
+                }
 
+    if stored_any:
+        db.commit()
     return output
+
+
+async def fetch_price_history(db: Session, ticker: str, start: date_type) -> int:
+    """Télécharge les clôtures journalières de `ticker` depuis `start` et les enregistre. Renvoie le nombre de jours."""
+    sym = ticker.upper().strip()
+    period1 = int(datetime.combine(start, datetime.min.time()).timestamp())
+    period2 = int(datetime.now().timestamp())
+    async with httpx.AsyncClient(headers=HEADERS, timeout=15.0) as client:
+        result = await _fetch_chart(client, sym, {"interval": "1d", "period1": str(period1), "period2": str(period2)})
+    if not result:
+        return 0
+    raw_currency = result.get("meta", {}).get("currency") or guess_quote_currency(sym)
+    timestamps = result.get("timestamp") or []
+    closes = ((result.get("indicators") or {}).get("quote") or [{}])[0].get("close") or []
+    count = 0
+    for ts, close in zip(timestamps, closes):
+        if close is None:
+            continue
+        price, currency = _normalize_price(close, raw_currency)
+        store_price(db, sym, datetime.fromtimestamp(ts).date(), round(price, 6), currency)
+        count += 1
+    db.commit()
+    return count
+
+
+async def get_price_on(db: Session, ticker: str, day: date_type, max_gap_days: int = 7) -> Optional[Dict[str, Any]]:
+    """
+    Cours de clôture de `ticker` au jour `day` (ou au dernier jour de cotation précédent).
+    Si la base n'a rien de suffisamment proche, on télécharge l'historique depuis `day`.
+    Renvoie {"price", "currency", "date"} ou None.
+    """
+    row = _latest_stored_price(db, ticker, on_or_before=day)
+    if row is None or (day - row.date).days > max_gap_days:
+        try:
+            await fetch_price_history(db, ticker, day - timedelta(days=max_gap_days))
+        except Exception as e:
+            logger.warning(f"Could not fetch price history for '{ticker}': {e}")
+        row = _latest_stored_price(db, ticker, on_or_before=day)
+    if row is None or (day - row.date).days > max_gap_days:
+        return None
+    return {"price": row.close, "currency": row.currency, "date": row.date.isoformat()}
+
+
+async def refresh_held_prices(db: Session) -> int:
+    """Rafraîchit et enregistre le cours de tous les titres détenus (tâche de fond)."""
+    from app.models.portfolio_holding import PortfolioHolding
+
+    tickers = sorted({t for (t,) in db.query(PortfolioHolding.ticker).filter(PortfolioHolding.quantity > 0).distinct()})
+    if tickers:
+        await get_market_quotes(tickers, db=db)
+    return len(tickers)
 
 
 def extract_asset_clean_name(note: str) -> Optional[str]:

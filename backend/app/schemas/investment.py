@@ -18,6 +18,8 @@ class InvestmentTransactionBase(BaseModel):
     isin: str | None = None
     quantity: float | None = None
     unit_price: float | None = None
+    price_currency: str | None = None
+    fees: float | None = Field(default=None, ge=0)
     etf_profile_id: int | None = None
     is_transfer: bool = False
     is_transfer_ignored: bool = False
@@ -47,6 +49,8 @@ class InvestmentTransactionUpdate(BaseModel):
     isin: str | None = None
     quantity: float | None = None
     unit_price: float | None = None
+    price_currency: str | None = None
+    fees: float | None = Field(default=None, ge=0)
     etf_profile_id: int | None = None
     is_transfer: bool | None = None
     is_transfer_ignored: bool | None = None

@@ -36,6 +36,9 @@ class PortfolioHoldingRead(PortfolioHoldingBase):
     # Dynamic live market fields
     current_price: Optional[float] = None
     current_price_eur: Optional[float] = None
+    quote_currency: Optional[str] = None
+    price_date: Optional[str] = None
+    price_stale: bool = False
     current_value_eur: Optional[float] = None
     total_invested_eur: Optional[float] = None
     gain_eur: Optional[float] = None
@@ -57,4 +60,5 @@ class BaselineHoldingItem(BaseModel):
 
 class BaselineInventoryRequest(BaseModel):
     account_id: int
+    date: Optional[datetime] = None
     holdings: List[BaselineHoldingItem]

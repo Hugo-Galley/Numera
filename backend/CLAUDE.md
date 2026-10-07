@@ -4,7 +4,7 @@ Complète le `CLAUDE.md` racine. Procédures pas-à-pas : skill `numera-backend`
 
 ## Structure et cycle de vie
 
-- `app/main.py` : `lifespan` → `run_migrations()` (Alembic ; un échec **bloque le démarrage**, pas de `stamp head` automatique) + `seed_all()` (catégories par défaut + profils ETF système), sauf si `APP_ENV=test`. Lance aussi `recurring_transactions_task` : boucle asynchrone (1er passage après 10 s, puis toutes les heures) qui appelle `generate_recurring_transactions` et `check_and_generate_pending_salaries`.
+- `app/main.py` : `lifespan` → `run_migrations()` (Alembic ; un échec **bloque le démarrage**, pas de `stamp head` automatique) + `seed_all()` (catégories par défaut + profils ETF système), sauf si `APP_ENV=test`. Lance aussi `recurring_transactions_task` : boucle asynchrone (1er passage après 10 s, puis toutes les heures) qui appelle `generate_recurring_transactions`, `check_and_generate_pending_salaries` et `refresh_held_prices` (cours des titres détenus).
 - Routers : tous dans `protected_routers` (`Depends(get_current_user)`) sauf `health` et `auth`. `api/analytics/` agrège 7 sous-routers sous le préfixe `/analytics` (`__init__.py`), plus `analytics/diversity.py` enregistré séparément.
 - `api/deps.py` : `get_db` (session par requête) et `get_current_user` (décode le JWT, compare `sub` à `admin_username` lu dans `system_settings` avec repli sur `settings.ADMIN_USERNAME`).
 - Sessions de **test** : `conftest.py` surcharge `get_db` (deux chemins : `app.db.session` et `app.api.deps`) et `get_current_user`.
@@ -25,7 +25,8 @@ Complète le `CLAUDE.md` racine. Procédures pas-à-pas : skill `numera-backend`
 - Montants **toujours positifs** en base ; `type` donne le sens. `apply_transaction_to_balance` : `Entree`/`Interets` ajoutent, `Sortie` retranche, `Solde Initial` **remplace** le solde. (`finance.py`)
 - Toute mutation de transaction (create / update / delete / bulk / liaison de virement / import) → `recalculate_running_balances(db, account_id)`, définie dans **`app/api/transactions.py`** (pas dans `core/`). Recalcul intégral par ordre chronologique.
 - Devises : `await convert_amount(...)` / `await get_exchange_rates()` (`core/currency.py`). Stocker `amount` (devise du compte) et garder `original_amount` + `currency`. Conversion datée par taux croisé via l'EUR pour toute paire ; sans taux exploitable `CurrencyConversionError` (→ HTTP 422 via le handler de `main.py`), **jamais** de repli 1:1.
-- Positions : toute écriture de `portfolio_holdings` à partir d'un mouvement passe par `core/holdings.py` (`apply_trade_to_holding` / `reverse_trade_from_holding` : PRU en moyenne pondérée, vente sans effet sur le PRU, dividende sans effet sur la quantité). Ne pas dupliquer cette logique.
+- Positions : `portfolio_holdings` est **dérivé**. Après toute mutation d'opération d'investissement ou de l'inventaire Point Zéro (`holding_baseline_items`), appeler `await rebuild_holdings(db, account_id)` (`core/holdings.py`) : inventaire + opérations sur titres postérieures à `accounts.holdings_baseline_date`, PRU en moyenne pondérée frais inclus (devise de la position), vente sans effet sur le PRU, `cost_basis_eur` aux taux historiques. Ne jamais écrire `quantity`/`buy_price_avg` directement.
+- Cours : `get_market_quotes(symbols, db=db)` enregistre chaque cotation dans `security_prices` et renvoie le dernier cours stocké (`stale=True`) si Yahoo échoue ; `get_price_on(db, ticker, date)` pour un cours historique.
 - Solde Initial : un seul par compte et chronologiquement premier ; contrôle centralisé dans `validate_solde_initial` (`api/transactions.py`) pour create/update, et dans l'import.
 - SQLite : `PRAGMA foreign_keys=ON` est posé à chaque connexion (`db/session.py`, aussi dans `conftest.py`) : les `ondelete` sont effectifs. Une FK sans `ondelete` (ex. `salary_configs`) oblige à mettre la référence à `NULL` avant de supprimer la cible.
 - Virements internes : `is_transfer`, `linked_transaction_id`, `is_transfer_ignored` ; un virement vers un compte `investissement` peut être lié à une `investment_transaction` (`linked_investment_transaction_id`). Les KPI « dépenses réelles » excluent ces transferts.
@@ -43,6 +44,6 @@ Complète le `CLAUDE.md` racine. Procédures pas-à-pas : skill `numera-backend`
 
 ## Tests
 
-- `PYTHONPATH=. python3.11 -m pytest tests -q` depuis `backend/` (110 tests, ~11 s). `make test` détecte l'interpréteur (venv, sinon python3.12/3.11) ; `venv_new` est en Python 3.14 sans pytest.
+- `PYTHONPATH=. python3.11 -m pytest tests -q` depuis `backend/` (126 tests, ~13 s). `make test` détecte l'interpréteur (venv, sinon python3.12/3.11) ; `venv_new` est en Python 3.14 sans pytest.
 - Fixtures (`tests/conftest.py`) : `db_session` (SQLite temporaire par test, `Base.metadata.create_all`) et `client` (TestClient, override de `get_db` et `get_current_user` → `"admin"`, rate limiter réinitialisé). Vérifier l'état en base après l'appel API.
 - Un test par bug corrigé / fonctionnalité ajoutée, nommé `tests/test_<domaine>.py`.

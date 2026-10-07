@@ -11,7 +11,9 @@ Les règles critiques courtes sont dans le `CLAUDE.md` racine ; ce skill détail
 
 - `transactions.amount > 0` toujours ; `type` ∈ `Entree | Sortie | Interets | Solde Initial`. Impact sur le solde : `core/finance.py::apply_transaction_to_balance` (`Solde Initial` remplace le solde, il n'est ni revenu ni dépense).
 - `running_balance` est stocké et recalculé en entier par `api/transactions.py::recalculate_running_balances(db, account_id)` après toute mutation, bulk, liaison/déliaison de virement et import.
-- Investissement : `investment_transactions` (`versement | retrait | dividende`) pour les flux, `balance_snapshots` pour la valeur ; `portfolio_holdings` pour les positions (ticker, ISIN, quantité, PRU) reliées à un `etf_profile`.
+- Investissement : `investment_transactions` (`versement | retrait` = flux d'espèces comptés dans le montant investi ; `achat | vente` = opérations sur titres ; `dividende` ; `frais`), `balance_snapshots` pour la valeur saisie ; `portfolio_holdings` pour les positions (ticker, ISIN, quantité, PRU frais inclus, `cost_basis_eur`) reliées à un `etf_profile`.
+- Positions dérivées : inventaire Point Zéro (`holding_baseline_items`, daté par `accounts.holdings_baseline_date`) + opérations sur titres postérieures, recalculées par `core/holdings.py::rebuild_holdings`. Une opération sur titre antérieure au Point Zéro est refusée ; pour corriger un PRU ou une quantité de départ, on modifie la ligne d'inventaire (`PUT /holdings/{id}`).
+- Cours : stockés dans `security_prices` (une clôture par ticker et par jour), le dernier cours connu sert de repli (`stale`) si Yahoo ne répond pas.
 
 ## Virements internes
 

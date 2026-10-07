@@ -249,13 +249,18 @@ def test_holding_gain_converts_cost_basis_to_eur(client, db_session, monkeypatch
     async def fake_rates(base="EUR"):
         return {"EUR": 1.0, "USD": 2.0}
 
-    async def fake_quotes(symbols):
+    async def fake_quotes(symbols, db=None):
         return {s.upper(): {"price": 100.0, "price_eur": 50.0, "type": "EQUITY"} for s in symbols}
 
+    async def fake_historical_rate(db, date, currency, base="EUR"):
+        return {"EUR": 1.0, "USD": 2.0}[currency]
+
     import app.api.holdings as holdings_api
+    import app.core.currency as currency_mod
 
     monkeypatch.setattr(holdings_api, "get_exchange_rates", fake_rates)
     monkeypatch.setattr(holdings_api, "get_market_quotes", fake_quotes)
+    monkeypatch.setattr(currency_mod, "get_historical_rate", fake_historical_rate)
 
     account_id = _account(client, "CTO", "investissement")
     resp = client.post("/holdings", json={

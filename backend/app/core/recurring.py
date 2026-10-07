@@ -5,7 +5,7 @@ from app.models.transaction import Transaction
 from app.models.investment_transaction import InvestmentTransaction
 from app.core.finance import get_recurring_occurrences, month_label_from_date
 from app.core.currency import CurrencyConversionError, convert_amount
-from app.core.holdings import apply_trade_to_holding
+from app.core.holdings import rebuild_holdings
 from app.core.logging import get_logger
 
 logger = get_logger(__name__)
@@ -41,6 +41,7 @@ async def generate_recurring_transactions(db: Session) -> int:
 
     generated_count = 0
     affected_account_ids: set[int] = set()
+    affected_holding_account_ids: set[int] = set()
 
     for rd in recurring_defs:
         # Determine the search window start
@@ -98,25 +99,34 @@ async def generate_recurring_transactions(db: Session) -> int:
             if is_inv and inv_type in ["versement", "retrait", "dividende"]:
                 effective_unit_price = rd.unit_price
                 effective_quantity = rd.quantity
+                # Prix fixé dans la règle : exprimé dans la devise de la règle
+                price_currency = currency if effective_unit_price else None
 
-                # If quantity or price is not fixed, fetch live market quote to calculate dynamic shares
+                # Quantité ou prix non fixés : on part du cours du titre, dans sa devise de cotation
                 if rd.ticker and (not effective_quantity or effective_quantity <= 0 or not effective_unit_price):
                     norm_ticker = rd.ticker.upper().strip()
                     try:
                         from app.core.market_data import get_market_quotes
-                        quotes = await get_market_quotes([norm_ticker])
+                        quotes = await get_market_quotes([norm_ticker], db=db)
                         q_data = quotes.get(norm_ticker, {})
-                        live_price = q_data.get("price_eur") or q_data.get("price")
-                        if live_price and float(live_price) > 0:
-                            effective_unit_price = round(float(live_price), 4)
+                        if q_data.get("price") and float(q_data["price"]) > 0:
+                            effective_unit_price = round(float(q_data["price"]), 4)
+                            price_currency = q_data.get("currency") or account.currency
                     except Exception as e:
                         logger.warning(f"Could not fetch live quote for recurring tx {rd.id} ({norm_ticker}): {e}")
 
                 # Automatically compute shares if not explicitly fixed
                 if (not effective_quantity or effective_quantity <= 0) and effective_unit_price and effective_unit_price > 0:
-                    effective_quantity = round(converted_amount / effective_unit_price, 6)
+                    try:
+                        price_in_account = await convert_amount(
+                            effective_unit_price, price_currency or account.currency, account.currency, date=occ.date(), db=db
+                        )
+                        effective_quantity = round(converted_amount / price_in_account, 6)
+                    except CurrencyConversionError as exc:
+                        logger.warning(f"Recurring tx {rd.id}: cannot size the trade ({exc})")
                 elif effective_quantity and (not effective_unit_price or effective_unit_price <= 0) and converted_amount > 0:
                     effective_unit_price = round(converted_amount / effective_quantity, 4)
+                    price_currency = account.currency
 
                 new_tx = InvestmentTransaction(
                     account_id=rd.account_id,
@@ -133,23 +143,13 @@ async def generate_recurring_transactions(db: Session) -> int:
                     isin=rd.isin.upper().strip() if rd.isin else None,
                     quantity=effective_quantity,
                     unit_price=effective_unit_price,
+                    price_currency=price_currency,
                     etf_profile_id=rd.etf_profile_id,
                     recurring_transaction_id=rd.id,
                 )
                 db.add(new_tx)
-
-                apply_trade_to_holding(
-                    db,
-                    account_id=rd.account_id,
-                    ticker=rd.ticker,
-                    tx_type=inv_type,
-                    quantity=effective_quantity,
-                    unit_price=effective_unit_price,
-                    isin=rd.isin,
-                    asset_name=note,
-                    currency=currency,
-                    etf_profile_id=rd.etf_profile_id,
-                )
+                if rd.ticker:
+                    affected_holding_account_ids.add(rd.account_id)
             else:
                 new_tx = Transaction(
                     account_id=rd.account_id,
@@ -173,6 +173,11 @@ async def generate_recurring_transactions(db: Session) -> int:
             # Update last_generated_date
             rd.last_generated_date = occ
 
+        db.commit()
+
+    for acc_id in affected_holding_account_ids:
+        await rebuild_holdings(db, acc_id)
+    if affected_holding_account_ids:
         db.commit()
 
     if generated_count > 0:

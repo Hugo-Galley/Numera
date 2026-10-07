@@ -453,7 +453,7 @@ export default function AccountDetail() {
   const [invTxOpen, setInvTxOpen] = useState(false)
   const [editInvTxId, setEditInvTxId] = useState<number | null>(null)
   const [invTxDate, setInvTxDate] = useState(() => new Date().toISOString().slice(0, 16))
-  const [invTxType, setInvTxType] = useState<"versement" | "retrait" | "dividende">("versement")
+  const [invTxType, setInvTxType] = useState<"versement" | "retrait" | "dividende" | "achat" | "vente" | "frais">("versement")
   const [invTxAmount, setInvTxAmount] = useState("")
   const [invTxCurrency, setInvTxCurrency] = useState("EUR")
   const [invTxNote, setInvTxNote] = useState("")
@@ -461,6 +461,7 @@ export default function AccountDetail() {
   const [invTxIsin, setInvTxIsin] = useState("")
   const [invTxQuantity, setInvTxQuantity] = useState("")
   const [invTxUnitPrice, setInvTxUnitPrice] = useState("")
+  const [invTxFees, setInvTxFees] = useState("")
   const [invTxAssetClass, setInvTxAssetClass] = useState("")
   const [invTxSector, setInvTxSector] = useState("")
   const [invTxZone, setInvTxZone] = useState("")
@@ -706,6 +707,7 @@ export default function AccountDetail() {
     setInvTxIsin("")
     setInvTxQuantity("")
     setInvTxUnitPrice("")
+    setInvTxFees("")
     setInvTxAssetClass("")
     setInvTxSector("")
     setInvTxZone("")
@@ -732,6 +734,9 @@ export default function AccountDetail() {
         isin: invTxIsin ? invTxIsin.trim().toUpperCase() : null,
         quantity: invTxQuantity ? Number(invTxQuantity) : null,
         unit_price: invTxUnitPrice ? Number(invTxUnitPrice) : null,
+        // Le prix unitaire et les frais sont saisis dans la devise de l'opération
+        price_currency: invTxUnitPrice ? invTxCurrency : null,
+        fees: invTxFees ? Number(invTxFees) : null,
         asset_class: invTxAssetClass || null,
         sector: invTxSector || null,
         geographic_zone: invTxZone || null
@@ -764,6 +769,7 @@ export default function AccountDetail() {
     setInvTxIsin(tx.isin || "")
     setInvTxQuantity(tx.quantity != null ? String(tx.quantity) : "")
     setInvTxUnitPrice(tx.unit_price != null ? String(tx.unit_price) : "")
+    setInvTxFees(tx.fees != null ? String(tx.fees) : "")
     setInvTxAssetClass(tx.asset_class || "")
     setInvTxSector(tx.sector || "")
     setInvTxZone(tx.geographic_zone || "")
@@ -1190,6 +1196,9 @@ export default function AccountDetail() {
                                 <SelectItem value="versement">Versement (+)</SelectItem>
                                 <SelectItem value="retrait">Retrait (-)</SelectItem>
                                 <SelectItem value="dividende">Dividende (Gain)</SelectItem>
+                                <SelectItem value="achat">Achat de titres</SelectItem>
+                                <SelectItem value="vente">Vente de titres</SelectItem>
+                                <SelectItem value="frais">Frais</SelectItem>
                               </SelectContent>
                             </Select>
                           </div>
@@ -1289,9 +1298,25 @@ export default function AccountDetail() {
                             </div>
                           </div>
 
-                          {invTxTicker && invTxQuantity && (
+                          {(invTxType === "achat" || invTxType === "vente") && (
+                            <div className="grid gap-1">
+                              <Label className="text-xs font-medium">Frais de courtage ({invTxCurrency})</Label>
+                              <Input
+                                type="number"
+                                step="any"
+                                min="0"
+                                placeholder="0.00"
+                                value={invTxFees}
+                                onChange={(e) => setInvTxFees(e.target.value)}
+                                className="bg-slate-50 border-slate-200 text-xs font-mono"
+                              />
+                              <p className="text-[11px] text-slate-500">Inclus dans le PRU. Le montant correspond au total débité (achat) ou crédité (vente).</p>
+                            </div>
+                          )}
+
+                          {invTxTicker && invTxQuantity && invTxType !== "dividende" && invTxType !== "frais" && (
                             <p className="text-[11px] text-emerald-600 font-medium">
-                              ✓ Mettra à jour automatiquement votre position {invTxTicker.toUpperCase()} ({invTxType === "retrait" ? "-" : "+"}{invTxQuantity} parts).
+                              ✓ Mettra à jour automatiquement votre position {invTxTicker.toUpperCase()} ({invTxType === "retrait" || invTxType === "vente" ? "-" : "+"}{invTxQuantity} parts).
                             </p>
                           )}
                         </div>

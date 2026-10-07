@@ -82,7 +82,8 @@ async def diversity_scanner(
 
     # Pre-fetch live quotes
     symbols = [h.ticker for h in holdings]
-    quotes = await get_market_quotes(symbols)
+    quotes = await get_market_quotes(symbols, db=db)
+    fx_rates = await get_exchange_rates("EUR")
 
     # 2. Value each holding in EUR
     total_stocks_eur = 0.0
@@ -90,9 +91,10 @@ async def diversity_scanner(
     for h in holdings:
         q = quotes.get(h.ticker.upper(), {})
         price_eur = q.get("price_eur", 0.0)
-        # Fallback to buy price if market price is 0
+        # Aucun cours connu : repli sur le PRU, converti de la devise de la position en EUR
         if price_eur <= 0 and h.buy_price_avg:
-            price_eur = h.buy_price_avg
+            fx = fx_rates.get((h.currency or "EUR").upper())
+            price_eur = h.buy_price_avg / fx if fx else 0.0
 
         profile_id = h.etf_profile_id
         if not profile_id:
