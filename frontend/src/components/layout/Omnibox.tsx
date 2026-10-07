@@ -11,7 +11,8 @@ import {
   Settings,
   Receipt,
   ArrowRight,
-  ShieldCheck
+  ShieldCheck,
+  Landmark
 } from "lucide-react"
 import {
   Dialog,
@@ -30,6 +31,7 @@ const NAVIGATION = [
   { name: "Comptes", href: "/accounts", icon: Wallet },
   { name: "Épargne", href: "/savings", icon: PiggyBank },
   { name: "Investissements", href: "/investments", icon: TrendingUp },
+  { name: "Fiscalité", href: "/tax", icon: Landmark },
   { name: "Comparaison", href: "/comparison", icon: ArrowLeftRight },
   { name: "Audit des données", href: "/audit", icon: ShieldCheck },
   { name: "Importation", href: "/settings?tab=import", icon: Upload },

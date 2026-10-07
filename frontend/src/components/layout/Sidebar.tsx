@@ -18,6 +18,7 @@ import {
   Sparkles,
   ShieldCheck,
   Calculator,
+  Landmark,
   User,
   ChevronDown,
   ChevronRight
@@ -49,6 +50,7 @@ const navigationGroups = [
       { name: "Comptes", href: "/accounts", icon: Wallet },
       { name: "Épargne", href: "/savings", icon: PiggyBank },
       { name: "Investissements", href: "/investments", icon: TrendingUp },
+      { name: "Fiscalité", href: "/tax", icon: Landmark },
     ]
   },
   {

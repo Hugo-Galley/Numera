@@ -13,6 +13,7 @@ import RecurringTransactions from "@/pages/RecurringTransactions"
 import Login from "@/pages/Login"
 import Audit from "@/pages/Audit"
 import Tools from "@/pages/Tools"
+import Tax from "@/pages/Tax"
 import { UIProvider } from "@/providers/UIProvider"
 import { AuthProvider } from "@/providers/AuthProvider"
 import { ProtectedRoute } from "@/components/layout/ProtectedRoute"
@@ -42,6 +43,7 @@ export function App() {
               <Route path="/recurring" element={<RecurringTransactions />} />
               <Route path="/audit" element={<Audit />} />
               <Route path="/tools" element={<Tools />} />
+              <Route path="/tax" element={<Tax />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Route>
