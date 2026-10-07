@@ -5,6 +5,7 @@ import pytest
 
 import app.core.currency as currency_mod
 import app.core.market_data as market_data
+from app.models.investment_transaction import InvestmentTransaction
 
 
 def _account(client, name="PEA", type_="investissement", **extra) -> dict:
@@ -200,11 +201,13 @@ def test_annual_report_loss_goes_to_box_3vh_and_is_not_taxed(client, db_session,
 
 def test_annual_report_flags_sales_without_known_cost(client, db_session, offline_market):
     account = _account(client, name="CTO", tax_wrapper="cto")
-    sale = client.post("/investment-transactions", json={
-        "account_id": account["id"], "date": _iso(10), "type": "vente", "amount": 500.0,
-        "ticker": "ORPH.PA", "quantity": 5, "unit_price": 100.0,
-    })
-    assert sale.status_code == 201, sale.text
+    # L'API déduit le prix unitaire ; un achat sans prix (donnée importée) laisse le coût de revient inconnu
+    for tx_type, days_ago, unit_price in (("achat", 20, None), ("vente", 10, 100.0)):
+        db_session.add(InvestmentTransaction(
+            account_id=account["id"], date=datetime.now() - timedelta(days=days_ago), type=tx_type,
+            amount=500.0, original_amount=500.0, currency="EUR", ticker="ORPH.PA", quantity=5.0, unit_price=unit_price,
+        ))
+    db_session.commit()
     report = client.get(f"/tax/annual-report?year={datetime.now().year}").json()
     assert report["accounts"][0]["unknown_cost_sales"] == 1
     assert report["box_3vg"] == 0.0
