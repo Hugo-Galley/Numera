@@ -26,6 +26,7 @@ from app.api.salary import router as salary_router
 from app.api.market import router as market_router
 from app.api.etf_profiles import router as etf_profiles_router
 from app.api.holdings import router as holdings_router
+from app.api.tax import router as tax_router
 from app.api.analytics.diversity import router as diversity_router
 from app.api.deps import get_current_user
 from app.core.config import settings
@@ -179,6 +180,7 @@ protected_routers = [
     etf_profiles_router,
     holdings_router,
     diversity_router,
+    tax_router,
 ]
 
 for router in protected_routers:
