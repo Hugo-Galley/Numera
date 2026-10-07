@@ -4,7 +4,7 @@ Complète le `CLAUDE.md` racine. Procédures : skill `numera-frontend`. Le front
 
 ## Structure
 
-- `App.tsx` : react-router v7. `/login` public ; le reste sous `ProtectedRoute` + `AppLayout` (Sidebar, Omnibox). Routes : `/`, `/accounts`, `/accounts/:id`, `/savings`, `/investments`, `/comparison`, `/report` (page `MonthlyReport.tsx`, composant `IntelligentReport`), `/calendar`, `/recurring`, `/audit` (Centre d'Actions), `/tools`, `/settings`. Route inconnue → `/`.
+- `App.tsx` : react-router v7. `/login` public ; le reste sous `ProtectedRoute` + `AppLayout` (Sidebar, Omnibox). Routes : `/`, `/accounts`, `/accounts/:id`, `/savings`, `/investments`, `/comparison`, `/report` (page `MonthlyReport.tsx`, composant `IntelligentReport`), `/calendar`, `/recurring`, `/audit` (Centre d'Actions), `/tools`, `/tax` (Fiscalité), `/settings`. Route inconnue → `/`.
 - `providers/` : `AuthProvider` (token en `localStorage`, `useAuth()`), `UIProvider` (thème, mode confidentialité `isPrivacyMode`, état de l'omnibox).
 - `lib/api.ts` : `api.get/post/put/patch/delete` + `apiFetch`. Ajoute le Bearer ; sur `401` (ou `403` hors `/auth/token`) vide la session et redirige vers `/login`. `API_BASE` : `http://localhost:8001` sur `localhost`, sinon `/api` (reverse proxy nginx en prod → `backend:8001`). Erreurs levées en `ApiError(status, message, detail)`.
 - `types/` (un seul fichier : `diversity.ts`) et `hooks/` (vide) : les types d'API sont majoritairement définis localement dans les pages/composants.

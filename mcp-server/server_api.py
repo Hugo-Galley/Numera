@@ -946,6 +946,36 @@ def list_holdings(account_id: int | None = None) -> str:
 
 
 @mcp.tool()
+def get_tax_overview() -> str:
+    """Plafonds, place restante et dates clés des enveloppes fiscales (PEA, PER, Livret A, assurance-vie).
+
+    Chaque enveloppe indique le montant courant, le plafond, la place restante, l'ancienneté
+    face aux 5 ans (PEA) ou 8 ans (assurance-vie) et les alertes éventuelles.
+    """
+    try:
+        resp = api.get("/tax/overview")
+        error = handle_response(resp)
+        if error:
+            return error
+        data = resp.json()
+        rows = [
+            {
+                "compte": w["account_name"],
+                "enveloppe": w["kind"],
+                "courant_EUR": w["current"] if w["current"] is not None else "—",
+                "plafond_EUR": w["ceiling"] if w["ceiling"] is not None else "—",
+                "restant_EUR": w["remaining"] if w["remaining"] is not None else "—",
+                "anciennete_ans": round(w["age_years"], 1) if w["age_years"] is not None else "—",
+                "alertes": "; ".join(w["alerts"]) or "—",
+            }
+            for w in data["wrappers"]
+        ]
+        return f"🏛️ Fiscalité {data['year']} — {len(rows)} enveloppe(s) :\n\n" + format_table(rows)
+    except Exception as e:
+        return f"❌ Erreur : {e}"
+
+
+@mcp.tool()
 def add_holding(
     account_id: int,
     ticker: str,

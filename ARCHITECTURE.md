@@ -96,6 +96,7 @@ Routes dans `frontend/src/App.tsx`:
 - `/accounts`: liste des comptes (incluant la bannière de validation périodique).
 - `/accounts/:id`: détail compte courant/épargne/investissement.
 - `/savings`: objectifs d'épargne.
+- `/tax`: Fiscalité (plafonds PEA/PER/Livret A, dates clés PEA/AV, récap annuel CTO 2DC/3VG/3VH).
 - `/investments`: vue globale investissements.
 - `/comparison`: comparaison mensuelle.
 - `/calendar`: calendrier financier.
@@ -117,7 +118,7 @@ Principes:
 
 ### `accounts`
 
-Champs principaux: `id`, `name`, `type`, `currency`, `created_at`, `active`, `color`, `asset_class`, `sector`, `geographic_zone`, `institution`, `fonds_euros_pct`, `fonds_investis_pct` (assurance-vie), `is_main`, `last_verified_at`. La suppression API est logique (`active=False`).
+Champs principaux: `id`, `name`, `type`, `currency`, `created_at`, `active`, `color`, `asset_class`, `sector`, `geographic_zone`, `institution`, `fonds_euros_pct`, `fonds_investis_pct` (assurance-vie), `is_main`, `last_verified_at`, `tax_wrapper` (`pea`, `per`, `cto`, `assurance_vie`, `livret_a`, nullable) et `opened_at` (date d'ouverture) pour la page Fiscalité. La suppression API est logique (`active=False`).
 
 Types connus: `courant`, `epargne`, `investissement`.
 
@@ -190,6 +191,7 @@ Un point zéro sert de base de performance pour un compte.
 - `/tags`
 - `/merchants` (+ aliases, `auto-normalize`, `suggestions/unnormalized`)
 - `/holdings`, `/etf-profiles`, `/market` (search, validate, quote)
+- `/tax` (`GET /tax/overview`, `GET`/`PATCH /tax/settings`, `GET /tax/annual-report?year=`) : calculs dans `api/analytics/tax.py`, règles chiffrées par année dans `core/tax_rules.py` (valeurs à vérifier), calculs purs dans `core/tax.py`
 - `/salary` (config, months, telecommuting, summary, generate)
 - `/admin` (profile, reset-database)
 
