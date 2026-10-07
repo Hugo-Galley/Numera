@@ -316,3 +316,14 @@ def test_usd_line_splits_unrealized_gain_into_price_and_currency_effect(client, 
     assert line["unrealized_local"] == pytest.approx(500.0)  # (150 − 100) × 10 en USD
     assert line["fx_effect_eur"] == pytest.approx(125.0)  # 437,5 − 500/1,6
     assert p["fx_effect_eur"] == pytest.approx(125.0)
+
+
+def test_allocation_endpoint_uses_computed_value(client, db_session):
+    account_id = _setup(client, db_session)
+    db_session.add(BalanceSnapshot(account_id=account_id, date=datetime.now() - timedelta(days=10), current_value=900.0))
+    db_session.commit()
+    data = client.get("/analytics/investments-allocation").json()
+    item = next(i for i in data["items"] if i["account_id"] == account_id)
+    assert item["value_source"] == "positions"
+    assert item["current_value"] == pytest.approx(1200.0)
+    assert data["total_current_value"] == pytest.approx(1200.0)

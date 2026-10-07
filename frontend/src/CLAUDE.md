@@ -10,7 +10,7 @@ Complète le `CLAUDE.md` racine. Procédures : skill `numera-frontend`. Le front
 - `types/` (un seul fichier : `diversity.ts`) et `hooks/` (vide) : les types d'API sont majoritairement définis localement dans les pages/composants.
 - `lib/utils.ts` : `formatCurrency(value, currency="EUR")` (locale `fr-FR`), `cn()`, `isTokenExpired()`.
 - `components/ui/` : primitives shadcn/Radix (`button`, `card`, `dialog`, `table`, `tabs`, `select`, `sheet`, `sonner`, `skeleton`…). Ne pas les modifier sans nécessité. Ajouter un composant : `components.json` est configuré pour shadcn.
-- `components/<domaine>/` : `dashboard` (KPI, header, `tabs/` = Overview, History, Budgets, Insights, Investments, Merchants, Projections, Subscriptions), `investments`, `settings`, `tools`, `analytics`, `layout`.
+- `components/<domaine>/` : `investments` (dont `PortfolioSummary` valeur calculée / rapprochement, `PortfolioOverviewCard`, `DividendsCard`, `HoldingsTable`), `dashboard` (KPI, header, `tabs/` = Overview, History, Budgets, Insights, Investments, Merchants, Projections, Subscriptions), `investments`, `settings`, `tools`, `analytics`, `layout`.
 
 ## Règles
 

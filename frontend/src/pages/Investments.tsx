@@ -45,6 +45,8 @@ import WorldMap from "@/components/ui/WorldMap"
 import { AllocationTreemap } from "@/components/analytics/AllocationTreemap"
 import { DiversityScannerResponse } from "@/types/diversity"
 import { CompanyLogo } from "@/components/ui/CompanyLogo"
+import { PortfolioOverviewCard } from "@/components/investments/PortfolioOverviewCard"
+import type { PortfolioOverview } from "@/types/portfolio"
 
 const COLORS = ["#000000", "#4b5563", "#9ca3af", "#d1d5db", "#e5e7eb", "#f3f4f6", "#f8fafc"]
 
@@ -53,7 +55,8 @@ export default function Investments() {
   const [allocation, setAllocation] = useState<any>(null)
   const [advancedAllocation, setAdvancedAllocation] = useState<any>(null)
   const [diversity, setDiversity] = useState<DiversityScannerResponse | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [portfolio, setPortfolio] = useState<PortfolioOverview | null>(null)
+const [loading, setLoading] = useState(true)
   const [drillDown, setDrillDown] = useState<{ title: string, items: any[] } | null>(null)
 
   useEffect(() => {
@@ -65,6 +68,10 @@ export default function Investments() {
         ])
         setAllocation(basic)
         setAdvancedAllocation(advanced)
+        try {
+          const overview = await api.get<PortfolioOverview>("/analytics/portfolio")
+          if (overview && overview.accounts.length > 0) setPortfolio(overview)
+        } catch { /* indicateurs de plus-value indisponibles : le reste de la page s'affiche */ }
         // Load diversity data separately (non-blocking, may have no holdings)
         try {
           const div = await api.get<DiversityScannerResponse>("/analytics/diversity-scanner")
@@ -135,7 +142,7 @@ export default function Investments() {
             <div className="text-3xl font-bold">
               <span className="amount-blur">{formatCurrency(allocation?.total_current_value || 0)}</span>
             </div>
-            <p className="text-xs text-slate-400 mt-1">Somme des dernières valeurs connues</p>
+            <p className="text-xs text-slate-400 mt-1">Positions × cours (comptes titres) et derniers relevés (assurance-vie)</p>
           </CardContent>
         </Card>
         
@@ -183,6 +190,8 @@ export default function Investments() {
           </Card>
         )}
       </div>
+
+      {portfolio && <PortfolioOverviewCard data={portfolio} />}
 
       {/* Alerts Section */}
       {diversity && diversity.alerts.length > 0 && (

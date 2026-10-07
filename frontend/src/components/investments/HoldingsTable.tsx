@@ -270,7 +270,9 @@ export function HoldingsTable({
                     <TableHead className="font-semibold text-slate-600">Actif / Symbole</TableHead>
                     <TableHead className="font-semibold text-slate-600">Type</TableHead>
                     <TableHead className="text-right font-semibold text-slate-600">Parts</TableHead>
+                    <TableHead className="text-right font-semibold text-slate-600" title="Prix de revient unitaire moyen, frais inclus">PRU</TableHead>
                     <TableHead className="text-right font-semibold text-slate-600">Cours actuel</TableHead>
+                    <TableHead className="text-right font-semibold text-slate-600" title="Coût de revient en EUR (taux de change des achats)">Investi</TableHead>
                     <TableHead className="text-right font-semibold text-slate-600">Valeur totale</TableHead>
                     <TableHead className="text-right font-semibold text-slate-600">Plus-value latente</TableHead>
                     <TableHead className="text-right font-semibold text-slate-600">Dividendes reçus</TableHead>
@@ -327,6 +329,14 @@ export function HoldingsTable({
                         </TableCell>
 
                         <TableCell className="text-right font-mono text-sm">
+                          {h.buy_price_avg ? (
+                            <span className="text-slate-700">{h.buy_price_avg.toFixed(2)} {h.currency}</span>
+                          ) : (
+                            <span className="text-amber-600 italic text-xs" title="Renseigne le PRU dans le Point Zéro">à renseigner</span>
+                          )}
+                        </TableCell>
+
+                        <TableCell className="text-right font-mono text-sm">
                           {h.current_price ? (
                             <div className="flex flex-col items-end">
                               <span className="text-slate-900 font-medium">
@@ -334,10 +344,26 @@ export function HoldingsTable({
                               </span>
                               {h.currency && h.currency !== "EUR" && (
                                 <span className="text-[10px] text-slate-400 font-normal">
-                                  ({h.current_price.toFixed(2)} {h.currency})
+                                  ({h.current_price.toFixed(2)} {h.quote_currency || h.currency})
+                                </span>
+                              )}
+                              {h.price_date && (
+                                <span
+                                  className={cn("text-[10px] font-normal", h.price_stale ? "text-amber-600" : "text-slate-400")}
+                                  title={h.price_stale ? "Cours non rafraîchi : dernier cours connu" : "Cours du marché"}
+                                >
+                                  {h.price_stale ? "⚠ " : ""}{new Date(h.price_date).toLocaleDateString("fr-FR")}
                                 </span>
                               )}
                             </div>
+                          ) : (
+                            <span className="text-slate-400 italic text-xs">-</span>
+                          )}
+                        </TableCell>
+
+                        <TableCell className="text-right font-mono text-sm text-slate-600">
+                          {h.total_invested_eur != null ? (
+                            <span className="amount-blur">{formatCurrency(h.total_invested_eur)}</span>
                           ) : (
                             <span className="text-slate-400 italic text-xs">-</span>
                           )}

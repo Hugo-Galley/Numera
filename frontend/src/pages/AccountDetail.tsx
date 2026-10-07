@@ -230,6 +230,7 @@ import { Separator } from "@/components/ui/separator"
 import { Input } from "@/components/ui/input"
 import { HoldingsTable } from "@/components/investments/HoldingsTable"
 import { DividendsCard } from "@/components/investments/DividendsCard"
+import { PortfolioSummary } from "@/components/investments/PortfolioSummary"
 import { SecuritySearchInput } from "@/components/investments/SecuritySearchInput"
 import { PortfolioHolding } from "@/types/diversity"
 
@@ -1626,14 +1627,14 @@ export default function AccountDetail() {
             </Card>
             <Card className="shadow-sm">
               <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
-                <CardDescription className="font-medium">Plus-value Latente</CardDescription>
+                <CardDescription className="font-medium">Gain total</CardDescription>
                 <Activity className="h-4 w-4 text-emerald-500" />
               </CardHeader>
               <CardContent>
                 <CardTitle className={`text-2xl font-bold ${(investmentData?.totals?.gain_eur || 0) >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
                   {formatCurrency(investmentData?.totals?.gain_eur || 0)}
                 </CardTitle>
-                <p className="text-xs text-slate-400 mt-2">Evolution du capital</p>
+                <p className="text-xs text-slate-400 mt-2">Valeur − net investi (détail plus bas)</p>
               </CardContent>
             </Card>
             <Card className="shadow-sm">
@@ -1740,15 +1741,18 @@ export default function AccountDetail() {
           <CardContent className="p-0 h-[300px] md:h-[450px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               {isInvestment ? (
-                <AreaChart data={investmentData?.value_series || []} margin={{ top: 20, right: 0, left: 0, bottom: 0 }}>
+                <AreaChart data={investmentData?.totals?.value_source === "positions" ? perfHistory : (investmentData?.value_series || [])} margin={{ top: 20, right: 0, left: 0, bottom: 0 }}>
                   <defs>
                     <linearGradient id="colorInv" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#0f172a" stopOpacity={0.1}/><stop offset="95%" stopColor="#0f172a" stopOpacity={0}/></linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                   <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#94a3b8' }} tickFormatter={(val) => format(new Date(val), "dd/MM")} minTickGap={40} />
                   <YAxis hide domain={['auto', 'auto']} />
-                  <Tooltip labelFormatter={(val) => format(new Date(val), "PPP", { locale: fr })} formatter={(val: number) => [formatCurrency(val), "Valeur"]} contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} />
+                  <Tooltip labelFormatter={(val) => format(new Date(val), "PPP", { locale: fr })} formatter={(val: number, name: string) => [formatCurrency(val), name === "net_invested" ? "Investi" : "Valeur"]} contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} />
                   <Area type="monotone" dataKey="current_value" stroke="#0f172a" fillOpacity={1} fill="url(#colorInv)" strokeWidth={4} />
+                  {investmentData?.totals?.value_source === "positions" && (
+                    <Area type="stepAfter" dataKey="net_invested" stroke="#94a3b8" strokeDasharray="5 4" fill="none" strokeWidth={2} />
+                  )}
                 </AreaChart>
               ) : (
                 <AreaChart data={timeseries?.balance_points || []} margin={{ top: 20, right: 0, left: 0, bottom: 0 }}>
@@ -2029,6 +2033,8 @@ export default function AccountDetail() {
             onRefresh={loadData}
             onAddDividend={handleAddDividend}
           />
+
+          <PortfolioSummary accountId={account.id} reloadKey={holdings} />
 
           <DividendsCard accountId={account.id} reloadKey={holdings} onChanged={loadData} />
 

@@ -643,6 +643,24 @@ async def investments_allocation(account_id: int | None = Query(default=None), d
 
     items = []
     for acc in investment_accounts:
+        if uses_positions(acc, await replay_account(db, acc.id)):
+            p = await compute_portfolio(db, acc, history=False)
+            net_invested_eur, value_eur = p["net_invested_eur"], p["value_eur"]
+            total_net_invested_eur += net_invested_eur
+            total_current_value_eur += value_eur
+            items.append(
+                {
+                    "account_id": acc.id,
+                    "account_name": acc.name,
+                    "current_value": round(value_eur, 2),
+                    "net_invested": round(net_invested_eur, 2),
+                    "gain_eur": round(value_eur - net_invested_eur, 2),
+                    "currency": acc.currency,
+                    "value_source": "positions",
+                }
+            )
+            continue
+
         # Net invested converted with historical rates
         flows = await _calculate_investment_flows(db, acc, now, target_currency="EUR")
         net_invested_eur = flows["net_invested_target"]
@@ -666,6 +684,7 @@ async def investments_allocation(account_id: int | None = Query(default=None), d
                 "net_invested": round(net_invested_eur, 2),
                 "gain_eur": round(value_eur - net_invested_eur, 2),
                 "currency": acc.currency,
+                "value_source": "snapshot",
             }
         )
 
