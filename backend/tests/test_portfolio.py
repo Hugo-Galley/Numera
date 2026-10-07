@@ -374,3 +374,9 @@ def test_snapshot_valuation_mode_keeps_the_account_on_statements(client, db_sess
     assert allocation["current_value"] == pytest.approx(950.0)
     actions = client.get("/analytics/actions").json()["actions"]
     assert not any(a["id"].startswith(f"reconciliation-gap-{account_id}") for a in actions)
+
+
+def test_assurance_vie_can_opt_into_positions(client, db_session):
+    account_id = _setup(client, db_session, account_type="assurance_vie")
+    assert client.patch(f"/accounts/{account_id}", json={"valuation_mode": "positions"}).status_code == 200
+    assert _portfolio(client, account_id)["value_source"] != "snapshot"

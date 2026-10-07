@@ -2035,7 +2035,7 @@ export default function AccountDetail() {
             onAddDividend={handleAddDividend}
           />
 
-          {account.type === "investissement" && (
+          {isInvestment && (
             <div className="flex flex-col gap-2 rounded-lg border bg-white p-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="text-sm font-semibold text-slate-900">Valorisation du compte</p>

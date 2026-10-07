@@ -166,7 +166,7 @@ export default function Accounts() {
         asset_class: newType === "investissement" ? newAssetClass : null,
         sector: newType === "investissement" ? newSector : null,
         geographic_zone: newType === "investissement" ? newZone : null,
-        valuation_mode: newType === "investissement" ? newValuationMode : "positions",
+        valuation_mode: newType === "investissement" || newType === "assurance_vie" ? newValuationMode : "positions",
         fonds_euros_pct: newType === "assurance_vie" ? (newEurosPct ? parseFloat(newEurosPct) : 0) : null,
         fonds_investis_pct: newType === "assurance_vie" ? (newInvestisPct ? parseFloat(newInvestisPct) : 0) : null
       })
@@ -198,7 +198,7 @@ export default function Accounts() {
         asset_class: editingAccount.type === "investissement" ? editingAccount.asset_class : null,
         sector: editingAccount.type === "investissement" ? editingAccount.sector : null,
         geographic_zone: editingAccount.type === "investissement" ? editingAccount.geographic_zone : null,
-        valuation_mode: editingAccount.type === "investissement" ? (editingAccount.valuation_mode ?? "positions") : "positions",
+        valuation_mode: editingAccount.type === "investissement" || editingAccount.type === "assurance_vie" ? (editingAccount.valuation_mode ?? (editingAccount.type === "assurance_vie" ? "snapshot" : "positions")) : "positions",
         fonds_euros_pct: editingAccount.type === "assurance_vie" ? (editingAccount.fonds_euros_pct !== undefined && editingAccount.fonds_euros_pct !== null ? editingAccount.fonds_euros_pct : 0) : null,
         fonds_investis_pct: editingAccount.type === "assurance_vie" ? (editingAccount.fonds_investis_pct !== undefined && editingAccount.fonds_investis_pct !== null ? editingAccount.fonds_investis_pct : 0) : null
       })
@@ -307,7 +307,7 @@ export default function Accounts() {
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="type">Type de compte</Label>
-                <Select value={newType} onValueChange={setNewType}>
+                <Select value={newType} onValueChange={(v) => { setNewType(v); setNewValuationMode(v === "assurance_vie" ? "snapshot" : "positions") }}>
                   <SelectTrigger>
                     <SelectValue placeholder="Sélectionnez un type" />
                   </SelectTrigger>
@@ -376,7 +376,7 @@ export default function Accounts() {
                 </Select>
               </div>
 
-              {newType === "investissement" && (
+              {(newType === "investissement" || newType === "assurance_vie") && (
                 <div className="grid gap-2 pt-2 border-t mt-2">
                   <Label htmlFor="valuation_mode">Valorisation du compte</Label>
                   <Select value={newValuationMode} onValueChange={(v) => setNewValuationMode(v as "positions" | "snapshot")}>
@@ -569,10 +569,10 @@ export default function Accounts() {
                 </Select>
               </div>
 
-              {editingAccount.type === "investissement" && (
+              {(editingAccount.type === "investissement" || editingAccount.type === "assurance_vie") && (
                 <div className="grid gap-2 pt-2 border-t mt-2">
                   <Label htmlFor="edit-valuation_mode">Valorisation du compte</Label>
-                  <Select value={editingAccount.valuation_mode ?? "positions"} onValueChange={(v) => setEditingAccount({...editingAccount, valuation_mode: v as "positions" | "snapshot"})}>
+                  <Select value={editingAccount.valuation_mode ?? (editingAccount.type === "assurance_vie" ? "snapshot" : "positions")} onValueChange={(v) => setEditingAccount({...editingAccount, valuation_mode: v as "positions" | "snapshot"})}>
                     <SelectTrigger id="edit-valuation_mode">
                       <SelectValue />
                     </SelectTrigger>

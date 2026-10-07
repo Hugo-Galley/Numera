@@ -245,8 +245,8 @@ def _sample_days(start: date_type, end: date_type, extra: set[date_type]) -> lis
 
 
 def uses_positions(account: Account, replay: Replay) -> bool:
-    """Un compte titres est valorisé par ses positions dès qu'il en a (ou a eu) ; l'assurance-vie reste au snapshot."""
-    return account.type == "investissement" and account.valuation_mode == "positions" and bool(replay.positions or replay.baseline or replay.realized)
+    """Un compte titres ou une assurance-vie est valorisé par ses positions si son mode le demande et qu'il en a (ou a eu)."""
+    return account.type in ("investissement", "assurance_vie") and account.valuation_mode == "positions" and bool(replay.positions or replay.baseline or replay.realized)
 
 
 async def compute_portfolio(db: Session, account: Account, *, fetch: bool = True, history: bool = True) -> dict:
