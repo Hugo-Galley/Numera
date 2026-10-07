@@ -30,6 +30,13 @@ def _norm(text: str) -> str:
     return re.sub(r"[^a-z0-9 ]+", " ", ascii_text.lower()).strip()
 
 
+# Noms usuels de cryptos → symbole (un libellé « Bitcoin » ou « Achat BTC » doit retrouver BTC-EUR)
+CRYPTO_ALIASES = {
+    "bitcoin": "btc", "ethereum": "eth", "ether": "eth", "solana": "sol", "ripple": "xrp", "cardano": "ada",
+    "dogecoin": "doge", "litecoin": "ltc", "polkadot": "dot", "chainlink": "link", "avalanche": "avax",
+}
+
+
 def match_dividend_ticker(note: str | None, candidates: list[tuple[str, str]]) -> str | None:
     """Ticker dont le nom ou le symbole correspond au libellé du dividende (« Dividende Apple » → AAPL).
 
@@ -42,13 +49,14 @@ def match_dividend_ticker(note: str | None, candidates: list[tuple[str, str]]) -
     wanted = _norm(name)
     if not wanted:
         return None
+    wanted_symbol = CRYPTO_ALIASES.get(wanted, wanted)
 
     matches: set[str] = set()
     for ticker, asset_name in candidates:
         symbol = _norm(ticker)
-        base_symbol = _norm(ticker.split(".")[0])
+        base_symbol = _norm(re.split(r"[.\-]", ticker)[0])  # CW8.PA → cw8, BTC-EUR → btc
         label = _norm(asset_name)
-        if wanted in (symbol, base_symbol):
+        if wanted in (symbol, base_symbol) or wanted_symbol == base_symbol:
             matches.add(ticker)
         elif len(wanted) >= 4 and (label.startswith(wanted) or f" {wanted}" in f" {label}"):
             matches.add(ticker)

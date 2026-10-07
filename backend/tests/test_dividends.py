@@ -270,3 +270,17 @@ def test_action_center_dividend_reminders(client, db_session):
     _dividend(client, account_id, 5.0, days_ago=10)
     ids = {a["id"] for a in client.get("/analytics/actions").json()["actions"]}
     assert f"dividend-missing-{account_id}-CW8.PA" not in ids
+
+
+@pytest.mark.parametrize("note,expected", [
+    ("Bitcoin", "BTC-EUR"),
+    ("Achat BTC", "BTC-EUR"),
+    ("BTC", "BTC-EUR"),
+    ("Ethereum", "ETH-USD"),
+    ("ETH", "ETH-USD"),
+    ("Ether", "ETH-USD"),
+    ("SOL", "SOL-EUR"),
+])
+def test_match_ticker_for_crypto_pairs(note, expected):
+    candidates = [("BTC-EUR", "Bitcoin EUR"), ("ETH-USD", "Ethereum USD"), ("SOL-EUR", "Solana EUR")]
+    assert match_dividend_ticker(note, candidates) == expected
