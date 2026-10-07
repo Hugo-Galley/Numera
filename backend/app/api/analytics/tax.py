@@ -5,11 +5,12 @@ from sqlalchemy.orm import Session
 
 from app.api.accounts import _get_balance_for_account
 from app.core.dividends import load_dividends_eur
-from app.core.portfolio import compute_portfolio
+from app.core.holdings import replay_account
 from app.core.tax import av_status, livret_a_status, pea_status, per_status
 from app.core.tax_rules import rules_for
 from app.db.system_settings import get_setting, set_setting
 from app.models.account import Account
+from app.models.balance_snapshot import BalanceSnapshot
 from app.models.investment_transaction import InvestmentTransaction
 from app.schemas.tax import AnnualReport, CtoYearRow, TaxOverview, TaxSettings, TaxSettingsUpdate, WrapperCard
 
@@ -48,6 +49,22 @@ def _contributions(db: Session, account_id: int, tx_type: str, *, year: int | No
     return query.all()
 
 
+def _partial_history_alert(db: Session, account: Account) -> str | None:
+    """Un inventaire ou relevé de départ résume l'historique antérieur : les versements d'avant ne sont pas saisis."""
+    has_zero_point = (
+        db.query(BalanceSnapshot.id)
+        .filter(BalanceSnapshot.account_id == account.id, BalanceSnapshot.is_zero_point.is_(True))
+        .first()
+        is not None
+    )
+    if account.holdings_baseline_date is not None or has_zero_point:
+        return (
+            "Le compte démarre d'un inventaire (Point Zéro) : les versements antérieurs n'étant pas saisis, "
+            "la place restante est probablement surestimée."
+        )
+    return None
+
+
 def build_overview(db: Session, today: date) -> TaxOverview:
     rules = rules_for(today.year)
     settings = load_tax_settings(db)
@@ -58,15 +75,25 @@ def build_overview(db: Session, today: date) -> TaxOverview:
         .all()
     )
     cards: list[WrapperCard] = []
+    per_accounts = [a for a in accounts if a.tax_wrapper == "per"]
     for account in accounts:
         kind = account.tax_wrapper
+        name = account.name
         if kind == "pea":
             versements = sum(t.amount for t in _contributions(db, account.id, "versement"))
             withdrawals = [t.date.date() for t in _contributions(db, account.id, "retrait")]
             status = pea_status(versements, account.opened_at, withdrawals, today, rules)
+            partial = _partial_history_alert(db, account)
+            if partial:
+                status["alerts"].append(partial)
         elif kind == "per":
-            versements = sum(t.amount for t in _contributions(db, account.id, "versement", year=today.year))
+            if account is not per_accounts[0]:
+                continue  # le plafond de déduction est celui du foyer : une seule carte pour tous les PER
+            versements = sum(
+                t.amount for a in per_accounts for t in _contributions(db, a.id, "versement", year=today.year)
+            )
             status = per_status(versements, settings.prior_year_pro_income, settings.tmi_pct, rules)
+            name = " + ".join(a.name for a in per_accounts)
         elif kind == "livret_a":
             status = livret_a_status(_get_balance_for_account(db, account.id), rules)
         elif kind == "assurance_vie":
@@ -77,7 +104,7 @@ def build_overview(db: Session, today: date) -> TaxOverview:
             WrapperCard(
                 kind=kind,
                 account_id=account.id,
-                account_name=account.name,
+                account_name=name,
                 opened_at=account.opened_at.isoformat() if account.opened_at else None,
                 **status,
             )
@@ -92,10 +119,11 @@ async def build_annual_report(db: Session, year: int) -> AnnualReport:
     rows: list[CtoYearRow] = []
     warnings: list[str] = []
     for account in accounts:
-        portfolio = await compute_portfolio(db, account, fetch=False, history=False)
-        realized = next((e for e in portfolio["realized_by_year"] if e["year"] == year), None)
+        # Rejeu des opérations seul : aucun cours ni taux de change n'est demandé au réseau (GET sans effet de bord)
+        sales = [sale for sale in (await replay_account(db, account.id)).realized if sale.date.year == year]
+        unknown = sum(1 for sale in sales if sale.realized_eur is None)
+        known = [sale for sale in sales if sale.realized_eur is not None]
         dividends = [d for d in await load_dividends_eur(db, account.id) if d.tx.date.year == year]
-        unknown = portfolio["realized_unknown_sales"] if realized else 0
         if unknown:
             warnings.append(f"{account.name} : {unknown} vente(s) sans coût de revient connu, plus-value non comptée.")
         rows.append(
@@ -105,9 +133,9 @@ async def build_annual_report(db: Session, year: int) -> AnnualReport:
                 dividends_gross_eur=round(sum(d.gross_eur for d in dividends), 2),
                 dividends_net_eur=round(sum(d.net_eur for d in dividends), 2),
                 withholding_eur=round(sum(d.tax_eur for d in dividends), 2),
-                realized_eur=realized["realized_eur"] if realized else 0.0,
-                proceeds_eur=realized["proceeds_eur"] if realized else 0.0,
-                sales=realized["sales"] if realized else 0,
+                realized_eur=round(sum(sale.realized_eur for sale in known), 2),
+                proceeds_eur=round(sum(sale.proceeds_eur or 0.0 for sale in known), 2),
+                sales=len(sales),
                 unknown_cost_sales=unknown,
             )
         )

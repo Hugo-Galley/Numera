@@ -53,11 +53,11 @@ Agrège : audit d'intégrité (`/analytics/audit`, issues avec `id` stable : `un
 
 `accounts.tax_wrapper` (`pea`, `per`, `cto`, `assurance_vie`, `livret_a`) et `opened_at` activent le suivi. Règles dans `core/tax.py`, valeurs chiffrées uniquement dans `core/tax_rules.py` (table par année, à vérifier chaque année) :
 
-- **PEA** : versements cumulés (somme des `versement`) face à 150 k€ ; un retrait ne restitue pas de place ; retrait avant 5 ans = alerte.
-- **PER** : versements de l'année civile face au plafond de déduction = 10 % des revenus pro N-1 borné entre plancher et maximum ; économie d'impôt = versé déductible × TMI.
+- **PEA** : versements cumulés (somme des `versement`) face à 150 k€ ; un retrait ne restitue pas de place ; retrait avant 5 ans = alerte ; alerte si le compte démarre d'un inventaire / Point Zéro (versements antérieurs non saisis, place restante surestimée).
+- **PER** : versements de l'année civile **de tous les PER actifs additionnés** (plafond du foyer, une seule carte) face au plafond de déduction = 10 % des revenus pro N-1 borné entre plancher et maximum ; économie d'impôt = versé déductible × TMI.
 - **Livret A** : solde actuel du compte face au plafond.
 - **Assurance-vie** : ancienneté face à 8 ans et abattement annuel rappelé (seul / couple) ; la part de gain d'un rachat n'est pas calculée.
-- **CTO** : seul compte concerné par le récap annuel : dividendes bruts (net + retenue, case 2DC), plus-values réalisées (3VG) ou moins-values (3VH) issues de `compute_portfolio`, impôt estimé au PFU (une perte ne compense pas les dividendes). Ventes sans coût de revient connu : signalées, jamais comptées à zéro en silence.
+- **CTO** : seul compte concerné par le récap annuel : dividendes bruts (net + retenue, case 2DC), plus-values réalisées (3VG) ou moins-values (3VH) issues du rejeu `replay_account` (aucun appel réseau), impôt estimé au PFU (une perte ne compense pas les dividendes). Ventes sans coût de revient connu : signalées, jamais comptées à zéro en silence.
 - Réglages (`system_settings`) : `tax_tmi_pct`, `tax_prior_year_pro_income`, `tax_household`.
 
 ## Services externes
