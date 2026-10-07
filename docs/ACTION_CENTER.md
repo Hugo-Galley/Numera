@@ -66,6 +66,7 @@ Pour ajouter un nouveau type d'action :
 
 ### Actions « dividendes » (`type: investments`)
 - `dividends-unlinked-{account_id}` : dividendes sans titre (rattachement via `POST /investment-transactions/link-dividends`).
+- `reconciliation-gap-{account_id}-{date}` : le dernier snapshot (relevé du courtier) s'écarte de plus de 2 % de la valeur calculée par Numera (opération, frais ou dividende manquant) ; calcul sans appel réseau d'historique.
 - `dividend-missing-{account_id}-{ticker}` : position marquée distribuante (`pays_dividends`) sans dividende saisi depuis plus de 13 mois (saisie manuelle, aucun appel externe).
 
 ### Pièges à éviter

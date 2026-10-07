@@ -44,6 +44,8 @@ from app.models.investment_transaction import InvestmentTransaction
 from app.models.transaction import Transaction
 from app.models.recurring_transaction import RecurringTransaction
 from app.core.finance import get_recurring_occurrences
+from app.core.holdings import replay_account
+from app.core.portfolio import compute_portfolio, uses_positions
 from app.core.logging import get_logger
 from app.schemas.transaction import TransactionRead
 
@@ -134,6 +136,31 @@ async def investments_analytics(
     total_current_value_eur = 0.0
     
     for account in investment_accounts:
+        # Sur toute la période, un compte titres est valorisé par ses positions × cours (les snapshots ne servent qu'au rapprochement)
+        if start_date is None and uses_positions(account, await replay_account(db, account.id)):
+            p = await compute_portfolio(db, account, history=False)
+            total_net_invested_eur += p["net_invested_eur"]
+            total_current_value_eur += p["value_eur"]
+            items.append(
+                {
+                    "account_id": account.id,
+                    "account_name": account.name,
+                    "total_verse": round(p["net_invested"], 2),
+                    "total_retire": 0.0,
+                    "net_invested": p["net_invested_eur"],
+                    "current_value": p["value_eur"],
+                    "gain_eur": p["gain_eur"],
+                    "performance_pct": p["performance_pct"] or 0.0,
+                    "currency": account.currency,
+                    "value_source": "positions",
+                    "xirr_pct": p["xirr_pct"],
+                    "unrealized_eur": p["unrealized_eur"],
+                    "realized_eur": p["realized_eur"],
+                    "dividends_eur": p["dividends_eur"],
+                }
+            )
+            continue
+
         flows = await _calculate_investment_flows(db, account, end_date, start_date=start_date, target_currency="EUR")
         net_invested_eur = flows["net_invested_target"]
         
@@ -162,7 +189,8 @@ async def investments_analytics(
                 "current_value": round(current_value_eur, 2),
                 "gain_eur": round(gain_eur, 2),
                 "performance_pct": round(performance_pct, 2),
-                "currency": account.currency
+                "currency": account.currency,
+                "value_source": "snapshot",
             }
         )
 
@@ -255,7 +283,9 @@ async def _calculate_investment_flows(db: Session, account: Account, end_date: d
     elif baseline_date:
         rtx_query = rtx_query.filter(Transaction.date > baseline_date)
         
-    rtxs = rtx_query.all()
+    # Un compte qui a des opérations d'investissement n'est pas aussi alimenté par ses transactions bancaires
+    has_investment_ops = db.query(InvestmentTransaction.id).filter(InvestmentTransaction.account_id == account.id).first() is not None
+    rtxs = [] if has_investment_ops else rtx_query.all()
     for tx in rtxs:
         merchant_lower = (tx.merchant or "").lower()
         # On investment accounts, "Solde Initial" OR "Entree" (that are NOT interests/dividends) are versements
@@ -343,6 +373,13 @@ async def investment_account_analytics(account_id: int, db: Session = Depends(ge
         if last_tx:
             current_value = float(last_tx.running_balance)
 
+    value_source = "snapshot"
+    snapshot_value = current_value if latest_snapshot else None
+    if uses_positions(account, await replay_account(db, account.id)):
+        p = await compute_portfolio(db, account, history=False)
+        current_value, net_invested, value_source = p["value"], p["net_invested"], "positions"
+        flows = {**flows, "total_verse_target": net_invested - flows["baseline_val_target"], "total_retire_target": 0.0}
+
     gain = current_value - net_invested
     performance_pct = (gain / net_invested * 100.0) if net_invested > 0 else 0.0
 
@@ -421,6 +458,8 @@ async def investment_account_analytics(account_id: int, db: Session = Depends(ge
             "current_value": round(current_value, 2),
             "gain_eur": round(gain, 2),
             "performance_pct": round(performance_pct, 2),
+            "value_source": value_source,
+            "snapshot_value": round(snapshot_value, 2) if snapshot_value is not None else None,
         },
         "transactions": all_txs,
         "value_series": value_series,
@@ -434,6 +473,24 @@ async def investment_performance_history(account_id: int, db: Session = Depends(
         raise HTTPException(status_code=404, detail="Account not found")
     if account.type not in ["investissement", "assurance_vie"]:
         raise HTTPException(status_code=422, detail="Account must be investissement or assurance_vie")
+
+    if uses_positions(account, await replay_account(db, account_id)):
+        p = await compute_portfolio(db, account)
+        if p["history"]:
+            return {
+                "items": [
+                    {
+                        "date": pt["date"],
+                        "net_invested": pt["net_invested"],
+                        "current_value": pt["value"],
+                        "gain_eur": pt["gain"],
+                        "performance_pct": pt["performance_pct"] or 0.0,
+                        "is_zero_point": pt["date"][:10] == (p["baseline_date"] or "")[:10],
+                    }
+                    for pt in p["history"]
+                ],
+                "value_source": "positions",
+            }
 
     zero_point = (
         db.query(BalanceSnapshot)

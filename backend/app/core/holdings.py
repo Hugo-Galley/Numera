@@ -14,7 +14,7 @@ rejoue dans l'ordre chronologique les opérations postérieures à la date du Po
 Le PRU est exprimé dans la devise de la position ; `cost_basis_eur` cumule les coûts convertis en EUR
 au taux du jour de chaque achat (taux du Point Zéro pour l'inventaire).
 """
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import datetime
 
 from sqlalchemy.orm import Session
@@ -58,6 +58,35 @@ def trade_cutoff(db: Session, account_id: int, ticker: str) -> datetime | None:
 
 
 @dataclass
+class RealizedSale:
+    """Vente rejouée : produit net et coût de revient de la quantité cédée (plus-value réalisée en EUR)."""
+
+    tx_id: int
+    date: datetime
+    ticker: str
+    quantity: float
+    proceeds_eur: float | None
+    cost_eur: float | None  # coût de revient (EUR, taux des achats) de la quantité vendue
+
+    @property
+    def realized_eur(self) -> float | None:
+        if self.proceeds_eur is None or self.cost_eur is None:
+            return None
+        return self.proceeds_eur - self.cost_eur
+
+
+@dataclass
+class Replay:
+    """Résultat du rejeu : positions finales, ventes réalisées et variations de quantité datées."""
+
+    positions: dict[str, "_Position"]
+    realized: list[RealizedSale]
+    baseline_date: datetime | None
+    baseline: dict[str, "_Position"]  # inventaire Point Zéro tel que rejoué
+    quantity_events: list[tuple[datetime, str, float]]  # (date, ticker, ±quantité)
+
+
+@dataclass
 class _Position:
     ticker: str
     currency: str
@@ -78,11 +107,13 @@ async def _convert(db: Session, amount: float, from_cur: str, to_cur: str, when:
         return None
 
 
-async def rebuild_holdings(db: Session, account_id: int) -> None:
-    """Recalcule toutes les positions du compte depuis l'inventaire et les opérations. Ne commit pas."""
+async def replay_account(db: Session, account_id: int) -> Replay:
+    """Rejoue l'inventaire Point Zéro puis les opérations sur titres (aucune écriture)."""
     account = db.get(Account, account_id)
     account_cutoff = account.holdings_baseline_date if account else None
     positions: dict[str, _Position] = {}
+    realized: list[RealizedSale] = []
+    events: list[tuple[datetime, str, float]] = []
 
     for item in db.query(HoldingBaselineItem).filter(HoldingBaselineItem.account_id == account_id).all():
         cost = item.quantity * item.buy_price_avg if item.buy_price_avg else None
@@ -97,6 +128,9 @@ async def rebuild_holdings(db: Session, account_id: int) -> None:
             etf_profile_id=item.etf_profile_id,
             cutoff=max(d for d in (account_cutoff, item.baseline_date) if d is not None),
         )
+    baseline = {t: replace(p) for t, p in positions.items()}
+    baseline_dates = [i.baseline_date for i in db.query(HoldingBaselineItem).filter(HoldingBaselineItem.account_id == account_id).all()]
+    baseline_date = account_cutoff or (max(baseline_dates) if baseline_dates else None)
 
     trades = (
         db.query(InvestmentTransaction)
@@ -143,9 +177,28 @@ async def rebuild_holdings(db: Session, account_id: int) -> None:
             else:
                 pos.cost = pos.cost_eur = None
             pos.quantity += tx.quantity
+            events.append((tx.date, ticker, tx.quantity))
         else:
             sold = min(tx.quantity, pos.quantity)
             ratio = (pos.quantity - sold) / pos.quantity if pos.quantity > EPSILON else 0.0
+            if sold > EPSILON:
+                share = sold / tx.quantity
+                if tx.unit_price:
+                    net = tx.quantity * tx.unit_price - (tx.fees or 0.0)
+                    proceeds_eur = await _convert(db, net * share, price_currency, "EUR", tx.date)
+                else:
+                    proceeds_eur = await _convert(db, tx.original_amount * share, tx.currency, "EUR", tx.date)
+                realized.append(
+                    RealizedSale(
+                        tx_id=tx.id,
+                        date=tx.date,
+                        ticker=ticker,
+                        quantity=sold,
+                        proceeds_eur=proceeds_eur,
+                        cost_eur=pos.cost_eur * (1 - ratio) if pos.cost_eur is not None else None,
+                    )
+                )
+                events.append((tx.date, ticker, -sold))
             pos.cost = pos.cost * ratio if pos.cost is not None else None
             pos.cost_eur = pos.cost_eur * ratio if pos.cost_eur is not None else None
             pos.quantity -= sold
@@ -153,6 +206,12 @@ async def rebuild_holdings(db: Session, account_id: int) -> None:
                 # Position soldée : un rachat ultérieur repart d'un coût nul (PRU de nouveau calculable)
                 pos.quantity, pos.cost, pos.cost_eur = 0.0, 0.0, 0.0
 
+    return Replay(positions=positions, realized=realized, baseline_date=baseline_date, baseline=baseline, quantity_events=events)
+
+
+async def rebuild_holdings(db: Session, account_id: int) -> None:
+    """Recalcule toutes les positions du compte depuis l'inventaire et les opérations. Ne commit pas."""
+    positions = (await replay_account(db, account_id)).positions
     existing = {h.ticker: h for h in db.query(PortfolioHolding).filter(PortfolioHolding.account_id == account_id).all()}
     for ticker, holding in existing.items():
         pos = positions.get(ticker)

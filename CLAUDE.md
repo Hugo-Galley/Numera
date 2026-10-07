@@ -65,13 +65,13 @@ python scripts/change_password.py <mot-de-passe>
 - `pages/` (une par route, react-router v7 dans `App.tsx`, protégé par `components/layout/ProtectedRoute`) ; composants par domaine dans `components/{analytics,dashboard,investments,settings,tools,layout}` ; primitives shadcn/Radix dans `components/ui`. `Dashboard` est découpé via `components/dashboard/tabs` et le hook `useDashboardData`.
 
 ### Serveur MCP (`mcp-server/`)
-Dispatcher `server.py` → `server_api.py` (proxy de l'API FastAPI, JWT, 43 outils ; mode recommandé, KPI calculés par le backend) ou `server_sqlite.py` (SQLite direct, 26 outils). Détails et limites (le mode SQLite ne recalcule pas les `running_balance` sur update/delete) : `mcp-server/README.md`. Toute nouvelle route ou règle métier exposable doit être répercutée dans `server_api.py`.
+Dispatcher `server.py` → `server_api.py` (proxy de l'API FastAPI, JWT, 44 outils ; mode recommandé, KPI calculés par le backend) ou `server_sqlite.py` (SQLite direct, 26 outils). Détails et limites (le mode SQLite ne recalcule pas les `running_balance` sur update/delete) : `mcp-server/README.md`. Toute nouvelle route ou règle métier exposable doit être répercutée dans `server_api.py`.
 
 ## Modèle de données
 
 - `accounts.type` : `courant`, `epargne`, `investissement`.
 - `transactions.type` : `Entree`, `Sortie`, `Interets`, `Solde Initial` (base du solde, exclue des KPI revenus/dépenses).
-- `investment_transactions.type` : `versement`, `retrait`, `dividende` (dividende non compté dans les flows).
+- `investment_transactions.type` : `versement`, `retrait`, `achat`, `vente`, `frais`, `dividende` (dividende non compté dans le montant investi). Valeur d'un compte titres = positions × cours + espèces (`core/portfolio.py`).
 - Positions titres : `portfolio_holding` / `api/holdings.py` ; profils ETF : `etf_profile`.
 
 ## Règles métier critiques

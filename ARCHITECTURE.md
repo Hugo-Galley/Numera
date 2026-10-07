@@ -74,7 +74,7 @@ docker-compose.prod.yml, Makefile, setup.sh, install.sh
 - `balance_snapshots.py`: snapshots de valeur et définition de point zéro.
 - `imports.py`: preview/commit CSV Numbers.
 - `exports.py`: export CSV compatible Numbers.
-- `analytics/` (package, prefixe `/analytics`): `metrics` (tags, depenses par categorie, top marchands, kpi-history, timeseries, calendar), `budget` (budget, budget-alerts), `investments` (investissements, performance, allocations, patrimoine, simulation), `reports` (cashflow-projection, monthly-report, money-flow, sankey), `subscriptions`, `insights`, `audit` (audit + Centre d'Actions `/actions`), `diversity` (scanner de diversification), `dividends` (dividendes en EUR : totaux, par mois / année / titre, rendements), `utils`.
+- `analytics/` (package, prefixe `/analytics`): `metrics` (tags, depenses par categorie, top marchands, kpi-history, timeseries, calendar), `budget` (budget, budget-alerts), `investments` (investissements, performance, allocations, patrimoine, simulation), `reports` (cashflow-projection, monthly-report, money-flow, sankey), `subscriptions`, `insights`, `audit` (audit + Centre d'Actions `/actions`), `diversity` (scanner de diversification), `dividends` (dividendes en EUR : totaux, par mois / année / titre, rendements), `portfolio` (valeur calculée, plus-values, XIRR/TWR, rapprochement), `utils`.
 - `holdings.py`: positions titres (`portfolio_holdings`, lecture seule hors métadonnées), inventaire Point Zéro (`POST /holdings/baseline` avec `date` optionnelle ; `POST`/`PUT`/`DELETE /holdings` éditent une ligne d'inventaire), suggestions depuis les notes. Chaque position porte `price_date` / `price_stale`.
 - `market.py`: recherche, validation et cotation de titres (Yahoo Finance).
 - `etf_profiles.py`: profils ETF (pays/secteurs/top holdings), auto-decomposition en ligne.
@@ -138,6 +138,8 @@ Champs: `id`, `account_id`, `date`, `month_label`, `type`, `merchant`, `merchant
 Champs: `id`, `account_id`, `date`, `type`, `amount`, `currency`, `original_amount`, `note`, `asset_class`, `sector`, `geographic_zone`, `ticker`, `isin`, `quantity`, `unit_price`, `price_currency`, `fees`, `etf_profile_id`, `is_transfer`, `is_transfer_ignored`, `linked_transaction_id`, `recurring_transaction_id`.
 
 Types : `versement` / `retrait` (flux d'espèces, comptés dans le montant investi ; avec ticker + quantité ils font aussi bouger la position), `achat` / `vente` (opérations sur titres, ticker + quantité obligatoires, sans effet sur le montant investi), `dividende`, `frais`. `unit_price` et `fees` sont exprimés en `price_currency` (défaut : `currency`) ; sans `unit_price`, il est déduit du montant hors frais.
+
+Valorisation (`core/portfolio.py`) : pour un compte `investissement` ayant des positions, **valeur = Σ quantité × dernier cours + espèces** ; les espèces partent du Point Zéro (relevé − inventaire valorisé, si un snapshot est à ±7 j) puis cumulent `versement` +, `retrait` −, `achat` −, `vente` +, `frais` −, `dividende` + (un versement/retrait portant un titre et une quantité est à la fois flux externe et opération : espèces inchangées). Montant investi = valeur d'ouverture + versements − retraits ; les dividendes ne l'augmentent pas. Plus-value latente = valeur − coût de revient EUR (taux des achats), avec `fx_effect_eur` = part due au change ; plus-value réalisée rejouée par `core/holdings.py::replay_account` (produit net − coût EUR de la quantité vendue, par année). XIRR (flux datés, valeur actuelle en dernier) et TWR (chaîne entre les flux, sur la courbe reconstituée avec `security_prices` et taux datés). Les snapshots deviennent un contrôle : écart > 2 % sur le dernier relevé → action `reconciliation-gap-…`. L'assurance-vie et un compte sans position restent valorisés par snapshot (`value_source`). `/analytics/investments`, `/investments/{id}` et `/performance-history` utilisent cette valeur pour les comptes titres.
 
 Dividendes (`core/dividends.py`) : `ticker` obligatoire à la création, `amount` = **net reçu** (comme chez le courtier), `withholding_tax` = retenue informative (même devise que `currency`, brut = net + retenue), `reinvested` = un `achat` lié (`reinvest_of_id`, non modifiable à la main) est généré avec `quantity` = parts reçues. Un dividende saisi marque la position comme distribuante (`portfolio_holdings.pays_dividends`, réglable à la main).
 
@@ -208,6 +210,7 @@ Un point zéro sert de base de performance pour un compte.
 - `GET /analytics/top-merchants`
 - `GET /analytics/investments`
 - `GET /analytics/dividends` (`account_id`, `months`)
+- `GET /analytics/portfolio` (vue globale EUR) et `GET /analytics/portfolio/{account_id}` : valeur calculée, espèces, montant investi, plus-value latente (+ effet de change par ligne), plus-value réalisée par année, dividendes, frais, XIRR, TWR, courbe reconstituée, rapprochement avec les snapshots
 - `GET /analytics/investments/{account_id}`
 - `GET /analytics/investments/{account_id}/performance-history`
 - `GET /analytics/subscriptions`

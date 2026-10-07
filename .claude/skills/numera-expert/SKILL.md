@@ -14,6 +14,7 @@ Les règles critiques courtes sont dans le `CLAUDE.md` racine ; ce skill détail
 - Investissement : `investment_transactions` (`versement | retrait` = flux d'espèces comptés dans le montant investi ; `achat | vente` = opérations sur titres ; `dividende` ; `frais`), `balance_snapshots` pour la valeur saisie ; `portfolio_holdings` pour les positions (ticker, ISIN, quantité, PRU frais inclus, `cost_basis_eur`) reliées à un `etf_profile`.
 - Positions dérivées : inventaire Point Zéro (`holding_baseline_items`, daté par `accounts.holdings_baseline_date`) + opérations sur titres postérieures, recalculées par `core/holdings.py::rebuild_holdings`. Une opération sur titre antérieure au Point Zéro est refusée ; pour corriger un PRU ou une quantité de départ, on modifie la ligne d'inventaire (`PUT /holdings/{id}`).
 - Dividendes : `type = dividende` avec ticker obligatoire ; `amount` = net reçu, `withholding_tax` informatif, `reinvested` crée un `achat` lié (`reinvest_of_id`). Saisie **manuelle** (le montant du courtier fait foi, pas de détection Yahoo). Agrégats EUR : `core/dividends.py`, `GET /analytics/dividends`. Les dividendes ne comptent pas dans le montant investi.
+- Valeur d'un compte titres (PEA/CTO/crypto) = positions × cours + espèces (`core/portfolio.py`, `GET /analytics/portfolio[/{id}]`) ; assurance-vie et comptes sans position = dernier snapshot. Les snapshots servent au rapprochement (écart > 2 % → Centre d'Actions). Plus-value latente avec effet de change, plus-value réalisée par année (base de la 2074), XIRR et TWR sont calculés côté backend.
 - Cours : stockés dans `security_prices` (une clôture par ticker et par jour), le dernier cours connu sert de repli (`stale`) si Yahoo ne répond pas.
 
 ## Virements internes
@@ -22,7 +23,7 @@ Détection : `GET /transactions/potential-transfers` ; liaison : `POST /transact
 
 ## Point zéro et performance
 
-Un seul `is_zero_point` par compte investissement (`POST /balance-snapshots/set-zero-point`). Performance = valeur actuelle (dernier snapshot) − base point zéro − flux (`api/analytics/investments.py`). Allocation avancée et scanner de diversification utilisent les `etf_profiles` (pays/secteurs/top holdings en JSON texte).
+Un seul `is_zero_point` par compte investissement (`POST /balance-snapshots/set-zero-point`). Performance : compte titres = valeur calculée (positions × cours + espèces, `core/portfolio.py`) − montant investi ; assurance-vie = dernier snapshot − base point zéro − flux (`api/analytics/investments.py`). Allocation avancée et scanner de diversification utilisent les `etf_profiles` (pays/secteurs/top holdings en JSON texte).
 
 ## Marchands et catégorisation
 

@@ -714,6 +714,29 @@ def get_cashflow_projection(months: int = 3) -> str:
 
 
 @mcp.tool()
+def get_portfolio(account_id: int | None = None) -> str:
+    """Valeur calculée (positions × cours + espèces), plus-values, XIRR/TWR et rapprochement.
+
+    Sans `account_id` : vue globale (somme EUR des comptes titres valorisés par positions, plus-values
+    réalisées par année pour la déclaration, dividendes, frais, XIRR global). Avec `account_id` : valeur,
+    espèces, montant investi, plus-value latente (dont effet de change par ligne), plus-value réalisée,
+    dividendes, frais, XIRR, TWR, courbe reconstituée et écart avec les relevés du courtier.
+    `value_source` vaut "positions" (PEA/CTO/crypto) ou "snapshot" (assurance-vie, compte sans positions).
+
+    Args:
+        account_id: ID du compte d'investissement (optionnel)
+    """
+    try:
+        resp = api.get(f"/analytics/portfolio/{account_id}" if account_id is not None else "/analytics/portfolio")
+        error = handle_response(resp)
+        if error:
+            return error
+        return f"📈 Portefeuille :\n\n{serialize(resp.json())}"
+    except Exception as e:
+        return f"❌ Erreur : {e}"
+
+
+@mcp.tool()
 def get_dividends(account_id: int | None = None, months: int = 24) -> str:
     """Dividendes reçus (EUR) : totaux net/brut/retenues, 12 derniers mois, par mois, par année et par titre.
 

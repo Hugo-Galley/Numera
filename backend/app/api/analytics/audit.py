@@ -735,6 +735,35 @@ async def get_action_center(db: Session = Depends(get_db)):
                     metadata={"account_id": h.account_id, "ticker": h.ticker},
                 ))
 
+        # --- 4c. Rapprochement : dernier relevé du courtier vs valeur calculée par Numera ---
+        from app.core.holdings import replay_account
+        from app.core.portfolio import RECONCILIATION_THRESHOLD_PCT, compute_portfolio, uses_positions
+        for account in db.query(Account).filter(Account.type == "investissement", Account.active.is_(True)).all():
+            try:
+                if not uses_positions(account, await replay_account(db, account.id)):
+                    continue
+                portfolio = await compute_portfolio(db, account, fetch=False)
+            except Exception as exc:  # une règle d'audit ne doit jamais casser le Centre d'Actions
+                logger.warning(f"Reconciliation skipped for account {account.id}: {exc}")
+                continue
+            latest = (portfolio["reconciliation"] or [None])[-1]
+            if latest and latest["flagged"]:
+                actions.append(ActionItem(
+                    id=f"reconciliation-gap-{account.id}-{latest['date'][:10]}",
+                    type="investments",
+                    severity="medium",
+                    title=f"Écart avec le relevé du courtier : {account.name}",
+                    description=(
+                        f"Le relevé du {latest['date'][:10]} indique {latest['snapshot_value']:.2f} {account.currency}, "
+                        f"Numera calcule {latest['computed_value']:.2f} ({latest['gap_pct']:+.1f} %, seuil {RECONCILIATION_THRESHOLD_PCT:.0f} %). "
+                        "Une opération, des frais ou un dividende manquent probablement."
+                    ),
+                    action_label="Vérifier le compte",
+                    action_url=f"/accounts/{account.id}",
+                    action_type="link",
+                    metadata={"account_id": account.id, **latest},
+                ))
+
         # --- 5. Summary & Sort ---
         # Safe sort: defaults to 3 (lowest) if severity is unexpected
         actions.sort(key=lambda x: {"high": 0, "medium": 1, "low": 2}.get(x.severity, 3))
