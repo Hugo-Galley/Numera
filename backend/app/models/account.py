@@ -30,6 +30,9 @@ class Account(Base):
     fonds_euros_pct: Mapped[float | None] = mapped_column(Float, nullable=True)
     fonds_investis_pct: Mapped[float | None] = mapped_column(Float, nullable=True)
 
+    # "positions" : valeur = positions × cours + espèces (PEA, CTO) ; "snapshot" : dernier relevé saisi (crypto, etc.)
+    valuation_mode: Mapped[str] = mapped_column(String(12), default="positions", server_default="positions", nullable=False)
+
     is_main: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0", nullable=False)
     
     last_verified_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow_naive, nullable=False)

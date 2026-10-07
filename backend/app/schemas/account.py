@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel, Field
 
@@ -14,6 +15,7 @@ class AccountBase(BaseModel):
     is_main: bool = False
     fonds_euros_pct: float | None = None
     fonds_investis_pct: float | None = None
+    valuation_mode: Literal["positions", "snapshot"] = "positions"
 
 
 class AccountCreate(AccountBase):
@@ -33,6 +35,7 @@ class AccountUpdate(BaseModel):
     is_main: bool | None = None
     fonds_euros_pct: float | None = None
     fonds_investis_pct: float | None = None
+    valuation_mode: Literal["positions", "snapshot"] | None = None
 
 
 class AccountRead(AccountBase):

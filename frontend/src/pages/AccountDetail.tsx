@@ -242,6 +242,7 @@ type Account = {
   currency: string
   fonds_euros_pct?: number
   fonds_investis_pct?: number
+  valuation_mode?: "positions" | "snapshot"
 }
 
 type Category = {
@@ -2033,6 +2034,41 @@ export default function AccountDetail() {
             onRefresh={loadData}
             onAddDividend={handleAddDividend}
           />
+
+          {account.type === "investissement" && (
+            <div className="flex flex-col gap-2 rounded-lg border bg-white p-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-sm font-semibold text-slate-900">Valorisation du compte</p>
+                <p className="text-xs text-slate-500">
+                  {account.valuation_mode === "snapshot"
+                    ? "La valeur vient de tes relevés (snapshots) : pas de suivi des positions pour le calcul."
+                    : "La valeur est calculée : positions × cours + espèces. Les relevés servent à vérifier."}
+                </p>
+              </div>
+              <div className="flex shrink-0 items-center gap-1 rounded-lg bg-slate-100 p-1">
+                {([["positions", "Positions × cours"], ["snapshot", "Relevés"]] as const).map(([mode, label]) => (
+                  <button
+                    key={mode}
+                    onClick={async () => {
+                      if ((account.valuation_mode ?? "positions") === mode) return
+                      try {
+                        await api.patch(`/accounts/${account.id}`, { valuation_mode: mode })
+                        toast.success(mode === "snapshot" ? "Valorisation par relevés" : "Valorisation par positions")
+                        loadData()
+                      } catch (err: any) {
+                        toast.error(err?.message || "Impossible de changer la valorisation")
+                      }
+                    }}
+                    className={`rounded-md px-3 py-1 text-xs font-semibold transition-all ${
+                      (account.valuation_mode ?? "positions") === mode ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           <PortfolioSummary accountId={account.id} reloadKey={holdings} />
 

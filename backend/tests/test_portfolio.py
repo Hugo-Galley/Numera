@@ -353,3 +353,24 @@ def test_gain_is_measured_since_inception_not_since_the_positions_baseline(clien
     assert first["date"][:10] == _day(60).isoformat()
     assert first["value"] == pytest.approx(720.0)
     assert first["net_invested"] == pytest.approx(730.0)
+
+
+def test_snapshot_valuation_mode_keeps_the_account_on_statements(client, db_session):
+    account_id = _setup(client, db_session)
+    db_session.add(BalanceSnapshot(account_id=account_id, date=datetime.now() - timedelta(days=3), current_value=950.0))
+    db_session.commit()
+    assert _portfolio(client, account_id)["value_source"] == "positions"
+
+    resp = client.patch(f"/accounts/{account_id}", json={"valuation_mode": "snapshot"})
+    assert resp.status_code == 200 and resp.json()["valuation_mode"] == "snapshot"
+    assert client.patch(f"/accounts/{account_id}", json={"valuation_mode": "n'importe quoi"}).status_code == 422
+
+    p = _portfolio(client, account_id)
+    assert p["value_source"] == "snapshot" and p["valued_by_positions"] is False
+    item = next(i for i in client.get("/analytics/investments").json()["items"] if i["account_id"] == account_id)
+    assert item["value_source"] == "snapshot"
+    assert item["current_value"] == pytest.approx(950.0)
+    allocation = next(i for i in client.get("/analytics/investments-allocation").json()["items"] if i["account_id"] == account_id)
+    assert allocation["current_value"] == pytest.approx(950.0)
+    actions = client.get("/analytics/actions").json()["actions"]
+    assert not any(a["id"].startswith(f"reconciliation-gap-{account_id}") for a in actions)

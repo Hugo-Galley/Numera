@@ -61,6 +61,7 @@ def create_account(payload: AccountCreate, db: Session = Depends(get_db)):
         is_main=payload.is_main,
         fonds_euros_pct=payload.fonds_euros_pct,
         fonds_investis_pct=payload.fonds_investis_pct,
+        valuation_mode=payload.valuation_mode,
     )
     db.add(account)
     db.commit()
