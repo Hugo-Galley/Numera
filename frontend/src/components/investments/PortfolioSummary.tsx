@@ -74,7 +74,7 @@ export function PortfolioSummary({ accountId, reloadKey }: PortfolioSummaryProps
 
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           <Kpi label="Valeur" value={formatCurrency(data.value, data.currency)} hint={`dont espèces ${formatCurrency(data.cash, data.currency)}`} />
-          <Kpi label="Montant investi" value={formatCurrency(data.net_invested, data.currency)} hint="Ouverture + versements − retraits" />
+          <Kpi label="Montant investi" value={formatCurrency(data.net_invested, data.currency)} hint="Versements − retraits depuis l'origine" />
           <Kpi
             label="Gain total"
             value={signed(data.gain)}

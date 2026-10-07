@@ -327,3 +327,29 @@ def test_allocation_endpoint_uses_computed_value(client, db_session):
     assert item["value_source"] == "positions"
     assert item["current_value"] == pytest.approx(1200.0)
     assert data["total_current_value"] == pytest.approx(1200.0)
+
+
+def test_gain_is_measured_since_inception_not_since_the_positions_baseline(client, db_session):
+    """Point Zéro des positions posé après coup : les versements et relevés antérieurs restent comptés."""
+    account_id = client.post("/accounts", json={"name": "CTO", "type": "investissement", "currency": "EUR", "color": None}).json()["id"]
+    _tx(client, account_id, "versement", 400.0, days_ago=120, ticker="CW8.PA", quantity=4, unit_price=100.0)
+    _tx(client, account_id, "versement", 330.0, days_ago=60, ticker="CW8.PA", quantity=3, unit_price=110.0)
+    db_session.add(BalanceSnapshot(account_id=account_id, date=datetime.now() - timedelta(days=60), current_value=720.0))
+    db_session.commit()
+    resp = client.post("/holdings/baseline", json={
+        "account_id": account_id, "date": _iso(5),
+        "holdings": [{"ticker": "CW8.PA", "asset_name": "MSCI World", "quantity": 7, "buy_price_avg": None, "currency": "EUR"}],
+    })
+    assert resp.status_code == 200, resp.text
+    _prices(db_session, "CW8.PA", (120, 100.0), (60, 110.0), (5, 118.0), (0, 120.0))
+    p = _portfolio(client, account_id)
+
+    assert p["net_invested"] == pytest.approx(730.0)  # 400 + 330, pas la valeur du jour du Point Zéro
+    assert p["value"] == pytest.approx(7 * 120)
+    assert p["gain"] == pytest.approx(110.0)
+    assert p["xirr_pct"] is not None
+    # la courbe reprend les relevés antérieurs au Point Zéro
+    first = p["history"][0]
+    assert first["date"][:10] == _day(60).isoformat()
+    assert first["value"] == pytest.approx(720.0)
+    assert first["net_invested"] == pytest.approx(730.0)

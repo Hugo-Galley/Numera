@@ -341,7 +341,23 @@ async def compute_portfolio(db: Session, account: Account, *, fetch: bool = True
     # ── Flux et espèces ──
     events, _ = cash_events(db, account.id, baseline_date)
     cash_delta = sum(e.cash for e in events)
-    external_total = sum(e.external for e in events)
+
+    # Capital investi depuis l'origine du compte, indépendamment de la date du Point Zéro des positions :
+    # base = snapshot Point Zéro s'il existe (comme avant), sinon rien ; puis tous les flux externes datés après.
+    reference = (
+        db.query(BalanceSnapshot)
+        .filter(BalanceSnapshot.account_id == account.id, BalanceSnapshot.is_zero_point.is_(True))
+        .order_by(BalanceSnapshot.date.desc(), BalanceSnapshot.id.desc())
+        .first()
+    )
+    reference_date = reference.date if reference else None
+    reference_value = reference.current_value if reference else 0.0
+    flow_events, _ = cash_events(db, account.id, reference_date)
+    flow_events = [e for e in flow_events if e.external]
+    external_total = sum(e.external for e in flow_events)
+
+    def invested_at(day: date_type) -> float:
+        return reference_value + sum(e.external for e in flow_events if e.date.date() <= day)
 
     # ── Valeur d'ouverture (Point Zéro) ──
     book = PriceBook()
@@ -393,9 +409,16 @@ async def compute_portfolio(db: Session, account: Account, *, fetch: bool = True
         if opening_approx:
             warnings.append("Cours du Point Zéro indisponibles : valeur d'ouverture estimée au coût de revient.")
 
+    # Sans snapshot Point Zéro ni versement antérieur à l'inventaire, rien ne justifie le capital déjà en
+    # portefeuille : on le compte comme investi à la valeur d'ouverture (sinon tout le portefeuille serait « gain »).
+    if reference is None and baseline_date is not None and not any(e.date <= baseline_date for e in flow_events):
+        reference_date, reference_value = baseline_date, opening_value
+        flow_events = [e for e in flow_events if e.date > baseline_date]
+        external_total = sum(e.external for e in flow_events)
+
     cash = opening_cash + cash_delta
     value = value_eur_positions * rate + cash
-    net_invested = opening_value + external_total
+    net_invested = reference_value + external_total
     gain = value - net_invested
     performance_pct = gain / net_invested * 100.0 if net_invested > 0 else None
     if cash < -0.01 * max(value, 1.0):
@@ -445,7 +468,14 @@ async def compute_portfolio(db: Session, account: Account, *, fetch: bool = True
     twr_value = None
     history_missing = [t for t in all_tickers if not book.has(t)]
     snapshots = []
+    snapshots_before = []
     if baseline_date is not None:
+        snapshots_before = (
+            db.query(BalanceSnapshot)
+            .filter(BalanceSnapshot.account_id == account.id, BalanceSnapshot.date < baseline_date)
+            .order_by(BalanceSnapshot.date.asc(), BalanceSnapshot.id.asc())
+            .all()
+        )
         snapshots = (
             db.query(BalanceSnapshot)
             .filter(BalanceSnapshot.account_id == account.id, BalanceSnapshot.date >= baseline_date)
@@ -455,6 +485,18 @@ async def compute_portfolio(db: Session, account: Account, *, fetch: bool = True
 
     if history and baseline_date is not None and valued_by_positions and not history_missing:
         flow_days = {e.date.date() for e in events if e.external}
+        pre_points = []
+        for snap in snapshots_before:
+            invested_then = invested_at(snap.date.date())
+            pre_points.append(
+                {
+                    "date": snap.date.date().isoformat(),
+                    "value": round(snap.current_value, 2),
+                    "net_invested": round(invested_then, 2),
+                    "gain": round(snap.current_value - invested_then, 2),
+                    "performance_pct": round((snap.current_value - invested_then) / invested_then * 100.0, 2) if invested_then > 0 else None,
+                }
+            )
         snapshot_days = {s.date.date() for s in snapshots}
         days = _sample_days(baseline_date.date(), today_day, flow_days | snapshot_days)
 
@@ -463,8 +505,7 @@ async def compute_portfolio(db: Session, account: Account, *, fetch: bool = True
         cash_sorted = sorted(events, key=lambda e: e.date)
         qi = ci = 0
         running_cash = opening_cash
-        running_external = 0.0
-        points: list[dict] = []
+        points: list[dict] = list(pre_points)  # avant le Point Zéro des positions : valeurs des relevés
         twr_points: list[tuple[date_type, float, float]] = []
         for day in days:
             while qi < len(qty_events) and qty_events[qi][0].date() <= day:
@@ -474,7 +515,6 @@ async def compute_portfolio(db: Session, account: Account, *, fetch: bool = True
             day_flow = 0.0
             while ci < len(cash_sorted) and cash_sorted[ci].date.date() <= day:
                 running_cash += cash_sorted[ci].cash
-                running_external += cash_sorted[ci].external
                 day_flow += cash_sorted[ci].external
                 ci += 1
             total = running_cash
@@ -484,7 +524,7 @@ async def compute_portfolio(db: Session, account: Account, *, fetch: bool = True
                     total += qty * (unit or 0.0)
             if day == today_day:
                 total = value  # le dernier point reprend la valeur actuelle (dernier cours)
-            invested = opening_value + running_external
+            invested = invested_at(day)
             points.append(
                 {
                     "date": day.isoformat(),
@@ -521,9 +561,9 @@ async def compute_portfolio(db: Session, account: Account, *, fetch: bool = True
 
     # XIRR : valeur d'ouverture, flux externes, puis valeur actuelle
     xirr_flows: list[tuple[date_type, float]] = []
-    if baseline_date is not None and opening_value > 0:
-        xirr_flows.append((baseline_date.date(), -opening_value))
-    xirr_flows += [(e.date.date(), -e.external) for e in events if e.external]
+    if reference_date is not None and reference_value > 0:
+        xirr_flows.append((reference_date.date(), -reference_value))
+    xirr_flows += [(e.date.date(), -e.external) for e in flow_events]
     xirr_flows.append((today_day, value))
     xirr_value = xirr(xirr_flows) if valued_by_positions else None
     first_flow_day = min((d for d, _ in xirr_flows), default=today_day)
