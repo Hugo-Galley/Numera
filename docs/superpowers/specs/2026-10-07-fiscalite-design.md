@@ -37,7 +37,7 @@ l'UI les édite dans les paramètres de compte, à côté du mode de valorisatio
 | PER | Versements de l'année civile vs plafond de déduction = 10 % des revenus pro N-1, borné entre un plancher et un maximum. Économie d'impôt estimée = versé × TMI. |
 | Livret A | Solde actuel vs 22 950 €, place restante (jamais négative). |
 | Assurance-vie | Ancienneté vs 8 ans ; abattement annuel rappelé (4 600 € seul, 9 200 € couple). Pas de calcul de la part de gain d'un rachat. |
-| CTO | Par année : dividendes (case 2DC) et plus-values réalisées (case 3VG), impôt estimé au PFU 30 %. Seuls les comptes `cto` comptent (ni PEA ni AV). |
+| CTO | Par année : dividendes (case 2DC) et plus-values réalisées (case 3VG), impôt estimé au PFU, avec deux taux distincts (dividendes / plus-values) selon l'année, cf. `core/tax_rules.py` (en 2025 : 30 % et 31,4 % ; en 2026 : 31,4 %). Seuls les comptes `cto` comptent (ni PEA ni AV). |
 
 Les plafonds officiels changent chaque année : table par année, valeurs à faire vérifier par
 l'utilisateur avant mise en service. Aucune valeur non confirmée codée en dur ailleurs que dans cette table.

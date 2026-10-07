@@ -57,7 +57,8 @@ interface CtoYearRow {
 
 interface AnnualReport {
   year: number
-  pfu_rate: number
+  pfu_rate_dividends: number
+  pfu_rate_gains: number
   accounts: CtoYearRow[]
   box_2dc: number
   box_3vg: number
@@ -326,7 +327,9 @@ export default function Tax() {
                 <div><dt className="text-slate-500">Case 3VG (plus-values)</dt><dd className="text-lg font-semibold"><Money value={report.box_3vg} /></dd></div>
                 <div><dt className="text-slate-500">Case 3VH (moins-values)</dt><dd className="text-lg font-semibold"><Money value={report.box_3vh} /></dd></div>
                 <div>
-                  <dt className="text-slate-500">Impôt estimé (PFU {(report.pfu_rate * 100).toFixed(0)} %)</dt>
+                  <dt className="text-slate-500">
+                    Impôt estimé (PFU {(report.pfu_rate_dividends * 100).toFixed(1)} % dividendes, {(report.pfu_rate_gains * 100).toFixed(1)} % plus-values)
+                  </dt>
                   <dd className="text-lg font-semibold"><Money value={report.estimated_pfu_eur} /></dd>
                 </div>
               </dl>

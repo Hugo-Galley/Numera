@@ -54,7 +54,8 @@ class CtoYearRow(BaseModel):
 
 class AnnualReport(BaseModel):
     year: int
-    pfu_rate: float
+    pfu_rate_dividends: float
+    pfu_rate_gains: float
     accounts: list[CtoYearRow]
     box_2dc: float
     box_3vg: float

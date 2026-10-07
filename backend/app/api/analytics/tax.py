@@ -144,11 +144,12 @@ async def build_annual_report(db: Session, year: int) -> AnnualReport:
     gains, losses = max(realized_total, 0.0), max(-realized_total, 0.0)
     return AnnualReport(
         year=year,
-        pfu_rate=rules.pfu_rate,
+        pfu_rate_dividends=rules.pfu_rate_dividends,
+        pfu_rate_gains=rules.pfu_rate_gains,
         accounts=rows,
         box_2dc=round(dividends_gross, 2),
         box_3vg=round(gains, 2),
         box_3vh=round(losses, 2),
-        estimated_pfu_eur=round((dividends_gross + gains) * rules.pfu_rate, 2),
+        estimated_pfu_eur=round(dividends_gross * rules.pfu_rate_dividends + gains * rules.pfu_rate_gains, 2),
         warnings=warnings,
     )

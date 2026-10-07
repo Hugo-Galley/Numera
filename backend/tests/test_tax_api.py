@@ -5,6 +5,7 @@ import pytest
 
 import app.core.currency as currency_mod
 import app.core.market_data as market_data
+from app.core.tax_rules import rules_for
 from app.models.investment_transaction import InvestmentTransaction
 
 
@@ -167,7 +168,10 @@ def test_annual_report_groups_dividends_and_realized_gains(client, db_session, o
     assert report["box_2dc"] == pytest.approx(50.0)
     assert report["box_3vg"] == pytest.approx(120.0)
     assert report["box_3vh"] == 0.0
-    assert report["estimated_pfu_eur"] == pytest.approx((50.0 + 120.0) * report["pfu_rate"])
+    rules = rules_for(YEAR)
+    assert report["pfu_rate_dividends"] == pytest.approx(rules.pfu_rate_dividends)
+    assert report["pfu_rate_gains"] == pytest.approx(rules.pfu_rate_gains)
+    assert report["estimated_pfu_eur"] == pytest.approx(50.0 * rules.pfu_rate_dividends + 120.0 * rules.pfu_rate_gains)
 
 
 def test_annual_report_ignores_non_cto_accounts(client, db_session, offline_market):

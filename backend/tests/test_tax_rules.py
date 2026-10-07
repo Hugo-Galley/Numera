@@ -98,3 +98,12 @@ def test_av_before_eight_years_not_reached():
     status = av_status(date(2022, 5, 1), "single", TODAY, RULES)
     assert status["milestone_reached"] is False
     assert status["age_years"] == pytest.approx(4.4, abs=0.1)
+
+
+def test_pfu_rates_follow_the_official_calendar():
+    # LFSS 2026, art. 12 : CSG 9,2 % -> 10,6 % dès les revenus 2025 pour les revenus du patrimoine (plus-values),
+    # mais seulement à compter du 1.1.2026 pour les produits de placement (dividendes).
+    assert rules_for(2025).pfu_rate_dividends == pytest.approx(0.30)
+    assert rules_for(2025).pfu_rate_gains == pytest.approx(0.314)
+    assert rules_for(2026).pfu_rate_dividends == pytest.approx(0.314)
+    assert rules_for(2026).pfu_rate_gains == pytest.approx(0.314)
