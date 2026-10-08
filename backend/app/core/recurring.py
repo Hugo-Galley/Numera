@@ -6,6 +6,7 @@ from app.models.investment_transaction import InvestmentTransaction
 from app.core.finance import get_recurring_occurrences, month_label_from_date
 from app.core.currency import CurrencyConversionError, convert_amount
 from app.core.holdings import rebuild_holdings
+from app.core.transfers import auto_link_transfers, create_counterpart
 from app.core.logging import get_logger
 
 logger = get_logger(__name__)
@@ -151,6 +152,20 @@ async def generate_recurring_transactions(db: Session) -> int:
                 if rd.ticker:
                     affected_holding_account_ids.add(rd.account_id)
             else:
+                # Virement vers un autre compte : on convertit avant de créer quoi que ce soit
+                transfer_dest = None
+                transfer_amount = None
+                if rd.transfer_to_account_id:
+                    transfer_dest = db.query(Account).filter(Account.id == rd.transfer_to_account_id).first()
+                    if transfer_dest and transfer_dest.currency != account.currency:
+                        try:
+                            transfer_amount = await convert_amount(
+                                converted_amount, account.currency, transfer_dest.currency, date=occ.date(), db=db
+                            )
+                        except CurrencyConversionError as exc:
+                            logger.warning(f"Skipping recurring transfer {rd.id} at {occ.date()}: {exc}")
+                            break
+
                 new_tx = Transaction(
                     account_id=rd.account_id,
                     date=occ,
@@ -167,6 +182,13 @@ async def generate_recurring_transactions(db: Session) -> int:
                     recurring_transaction_id=rd.id,
                 )
                 db.add(new_tx)
+                if transfer_dest:
+                    db.flush()
+                    await create_counterpart(
+                        db, new_tx, transfer_dest, date=occ, amount=transfer_amount,
+                        origin="recurring", recurring_transaction_id=rd.id,
+                    )
+                    affected_account_ids.add(transfer_dest.id)
             generated_count += 1
             affected_account_ids.add(rd.account_id)
 
@@ -185,7 +207,6 @@ async def generate_recurring_transactions(db: Session) -> int:
         from app.api.transactions import recalculate_running_balances
         for acc_id in affected_account_ids:
             recalculate_running_balances(db, acc_id)
-        from app.core.transfers import auto_link_transfers
         await auto_link_transfers(db)
         logger.info(f"Generated {generated_count} recurring transactions")
 

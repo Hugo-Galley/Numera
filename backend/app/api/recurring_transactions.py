@@ -3,11 +3,28 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_db
+from app.models.account import Account
 from app.models.recurring_transaction import RecurringTransaction
 from app.schemas.recurring_transaction import RecurringTransactionCreate, RecurringTransactionRead, RecurringTransactionUpdate
 from app.core.recurring import generate_recurring_transactions
 
 router = APIRouter(prefix="/recurring-transactions", tags=["recurring-transactions"])
+
+
+def _validate_transfer_target(db: Session, account_id: int, type_: str, ticker: str | None, dest_id: int | None) -> None:
+    """Une récurrence « virement » est une Sortie d'un compte non titres vers un autre compte."""
+    if dest_id is None:
+        return
+    source = db.query(Account).filter(Account.id == account_id).first()
+    dest = db.query(Account).filter(Account.id == dest_id).first()
+    if not dest:
+        raise HTTPException(status_code=404, detail="Destination account not found")
+    if dest_id == account_id:
+        raise HTTPException(status_code=422, detail="Source and destination accounts must differ")
+    if type_ != "Sortie":
+        raise HTTPException(status_code=422, detail="A transfer recurrence must be a Sortie")
+    if ticker or (source and source.type == "investissement"):
+        raise HTTPException(status_code=422, detail="A transfer recurrence cannot come from a securities account")
 
 @router.post("/trigger", response_model=int)
 async def trigger_generation(db: Session = Depends(get_db)) -> int:
@@ -35,6 +52,7 @@ async def create_recurring_transaction(
     # Convert list[int] to CSV string for DB storage
     if data.get("excluded_months") is not None:
         data["excluded_months"] = ",".join(str(m) for m in data["excluded_months"])
+    _validate_transfer_target(db, data["account_id"], data["type"], data.get("ticker"), data.get("transfer_to_account_id"))
     recurring_tx = RecurringTransaction(**data)
     db.add(recurring_tx)
     db.commit()
@@ -67,6 +85,13 @@ async def update_recurring_transaction(
             update_data["excluded_months"] = ",".join(str(m) for m in update_data["excluded_months"])
         else:
             update_data["excluded_months"] = None
+    _validate_transfer_target(
+        db,
+        update_data.get("account_id", recurring_tx.account_id),
+        update_data.get("type", recurring_tx.type),
+        update_data.get("ticker", recurring_tx.ticker),
+        update_data.get("transfer_to_account_id", recurring_tx.transfer_to_account_id),
+    )
     for field, value in update_data.items():
         setattr(recurring_tx, field, value)
     
