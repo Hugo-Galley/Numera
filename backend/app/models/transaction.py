@@ -52,3 +52,8 @@ class Transaction(Base):
         if self.linked_investment_transaction is not None:
             return self.linked_investment_transaction.account_id
         return None
+
+    @property
+    def recurring_logo(self) -> str | None:
+        """Logo de la récurrence d'origine (exposé par TransactionRead)."""
+        return self.recurring_transaction.logo if self.recurring_transaction else None

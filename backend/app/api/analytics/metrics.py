@@ -834,6 +834,7 @@ async def calendar_analytics(
                 "ticker": rd.ticker,
                 "quantity": rd.quantity,
                 "unit_price": rd.unit_price,
+                "logo": rd.logo,
             })
 
     # 3. Format real transactions
@@ -849,7 +850,8 @@ async def calendar_analytics(
             "is_projected": False,
             "currency": tx.currency,
             "account_id": tx.account_id,
-            "running_balance": getattr(tx, "running_balance", None)
+            "running_balance": getattr(tx, "running_balance", None),
+            "logo": tx.recurring_logo,
         })
     
     for tx in real_inv_txs:

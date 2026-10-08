@@ -110,3 +110,49 @@ def test_recurrence_rejects_bad_logo(client, db_session):
         "frequency": "monthly", "start_date": datetime(2026, 1, 1).isoformat(), "logo": "http://evil/x.png",
     }
     assert client.post("/recurring-transactions/", json=payload).status_code == 422
+
+
+def _account_with_recurrence(db_session, logo="si:claude"):
+    acc = Account(name="Courant", type="courant", currency="EUR", active=True)
+    db_session.add(acc)
+    db_session.commit()
+    rec = RecurringTransaction(
+        account_id=acc.id, name="Claude Pro", type="Sortie", amount=20.0, currency="EUR",
+        frequency="monthly", day_of_month=15, start_date=datetime(2020, 1, 1), is_active=True, logo=logo,
+    )
+    db_session.add(rec)
+    db_session.commit()
+    return acc, rec
+
+
+def test_transactions_expose_recurrence_logo(client, db_session):
+    from app.models.transaction import Transaction
+    acc, rec = _account_with_recurrence(db_session)
+    db_session.add_all([
+        Transaction(account_id=acc.id, date=datetime(2026, 3, 15), month_label="2026-03", type="Sortie",
+                    merchant="CLAUDE.AI", amount=20.0, currency="EUR", original_amount=20.0,
+                    running_balance=-20.0, is_recurring=True, recurring_transaction_id=rec.id),
+        Transaction(account_id=acc.id, date=datetime(2026, 3, 16), month_label="2026-03", type="Sortie",
+                    merchant="BOULANGER", amount=5.0, currency="EUR", original_amount=5.0, running_balance=-25.0),
+    ])
+    db_session.commit()
+    rows = {t["merchant"]: t for t in client.get(f"/transactions/?account_id={acc.id}").json()}
+    assert rows["CLAUDE.AI"]["recurring_logo"] == "si:claude"
+    assert rows["BOULANGER"]["recurring_logo"] is None
+
+
+def test_calendar_events_expose_logo(client, db_session):
+    from app.models.transaction import Transaction
+    acc, rec = _account_with_recurrence(db_session)
+    now = datetime.now()
+    y, m = (now.year + 1, 1) if now.month == 12 else (now.year, now.month + 1)
+    res = client.get(f"/analytics/calendar?month={m}&year={y}&account_id={acc.id}").json()
+    proj = [e for e in res["events"] if e["is_projected"]]
+    assert proj and proj[0]["logo"] == "si:claude"
+
+    db_session.add(Transaction(account_id=acc.id, date=datetime(2026, 3, 15), month_label="2026-03", type="Sortie",
+                               merchant="CLAUDE.AI", amount=20.0, currency="EUR", original_amount=20.0,
+                               running_balance=-20.0, is_recurring=True, recurring_transaction_id=rec.id))
+    db_session.commit()
+    real = client.get(f"/analytics/calendar?month=3&year=2026&account_id={acc.id}").json()["events"]
+    assert [e["logo"] for e in real if not e["is_projected"]] == ["si:claude"]

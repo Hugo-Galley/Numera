@@ -38,6 +38,7 @@ interface CalendarEvent {
   is_projected: boolean
   currency: string
   recurring_id?: number
+  logo?: string | null
   ticker?: string
   quantity?: number
   unit_price?: number
@@ -406,8 +407,8 @@ export default function Calendar() {
                   return (
                     <div key={ev.id} className="flex items-center justify-between p-2 rounded-lg border border-slate-100 bg-slate-50/50">
                       <div className="flex items-center gap-3">
-                        {ev.ticker ? (
-                          <CompanyLogo ticker={ev.ticker} name={ev.name} className="h-8 w-8 rounded-lg shadow-2xs" />
+                        {ev.ticker || ev.logo ? (
+                          <CompanyLogo ticker={ev.ticker} name={ev.name} logo={ev.logo} className="h-8 w-8 rounded-lg shadow-2xs" />
                         ) : isEvNegative ? (
                           <ArrowDownCircle className="h-8 w-8 text-slate-400" />
                         ) : (

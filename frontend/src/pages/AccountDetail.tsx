@@ -164,6 +164,7 @@ import type { AccountLite } from "@/types/transfers"
 import { IconComponent } from "@/components/dashboard/IconComponent"
 import { COUNTRIES } from "@/lib/countries"
 import { Button } from "@/components/ui/button"
+import { CompanyLogo } from "@/components/ui/CompanyLogo"
 import {
   Dialog,
   DialogContent,
@@ -267,6 +268,7 @@ type Transaction = {
   date: string
   type: string
   merchant: string
+  recurring_logo?: string | null
   merchant_id: number | null
   merchant_obj?: {
     id: number
@@ -1968,6 +1970,10 @@ export default function AccountDetail() {
                     </TableCell>
                     <TableCell className="text-xs">{format(new Date(tx.date), "dd/MM/yyyy")}</TableCell>
                     <TableCell title={tx.merchant}>
+                      <div className="flex items-center gap-2.5">
+                      {tx.recurring_logo && (
+                        <CompanyLogo logo={tx.recurring_logo} name={tx.merchant} className="h-7 w-7 rounded-md" />
+                      )}
                       <div className="flex flex-col">
                         <div className="flex items-center gap-1.5">
                           {tx.merchant_obj && (
@@ -1993,6 +1999,7 @@ export default function AccountDetail() {
                             ))}
                           </div>
                         )}
+                      </div>
                       </div>
                     </TableCell>
                     <TableCell>
