@@ -172,7 +172,11 @@ export default function RecurringTransactions() {
   })
 
   const selectedAccount = accounts.find(a => a.id.toString() === formData.account_id)
-  const isInvestment = selectedAccount?.type === "investissement" || !!formData.ticker
+  // Virement vers un compte investissement : la sortie et le dépôt + achat de parts sont créés ensemble
+  const transferDest = accounts.find(a => a.id.toString() === formData.transfer_to_account_id)
+  const transferToInvestment = formData.type === "Sortie" && selectedAccount?.type !== "investissement" && transferDest?.type === "investissement"
+  const isInvestment = selectedAccount?.type === "investissement" || (!!formData.ticker && !transferToInvestment)
+  const showSecurities = isInvestment || transferToInvestment
 
   const allSubs = subsData?.subscriptions || []
   const activeSubs = allSubs.filter((s: any) => {
@@ -295,7 +299,7 @@ export default function RecurringTransactions() {
       asset_class: formData.asset_class || null,
       sector: formData.sector || null,
       geographic_zone: formData.geographic_zone || null,
-      ticker: formData.ticker ? formData.ticker.trim().toUpperCase() : null,
+      ticker: showSecurities && formData.ticker ? formData.ticker.trim().toUpperCase() : null,
       isin: formData.isin ? formData.isin.trim().toUpperCase() : null,
       quantity: formData.quantity ? parseFloat(formData.quantity) : null,
       unit_price: formData.unit_price ? parseFloat(formData.unit_price) : null,
@@ -1019,7 +1023,7 @@ export default function RecurringTransactions() {
               )}
             </div>
 
-            {isInvestment && (
+            {showSecurities && (
               <div className="grid grid-cols-1 gap-4 p-3 border rounded-md bg-slate-50/50">
                 <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500">Asset Allocation</h3>
                 <div className="grid grid-cols-2 gap-4">
@@ -1108,7 +1112,7 @@ export default function RecurringTransactions() {
               </div>
             </div>
 
-            {formData.type === "Sortie" && selectedAccount?.type !== "investissement" && !formData.ticker && (
+            {formData.type === "Sortie" && selectedAccount?.type !== "investissement" && (
               <div className="grid gap-2">
                 <Label htmlFor="transfer-to">Virement vers un compte (optionnel)</Label>
                 <Select
@@ -1131,7 +1135,9 @@ export default function RecurringTransactions() {
                 </Select>
                 {formData.transfer_to_account_id !== "none" && (
                   <p className="text-xs text-slate-500">
-                    Chaque échéance crée la sortie et l'entrée correspondante, déjà liées : le montant n'est pas compté deux fois.
+                    {transferToInvestment
+                      ? "Chaque échéance crée la sortie, le dépôt et l'achat des parts (au cours de clôture de la date), déjà liés : renseignez le titre ci-dessous."
+                      : "Chaque échéance crée la sortie et l'entrée correspondante, déjà liées : le montant n'est pas compté deux fois."}
                   </p>
                 )}
               </div>

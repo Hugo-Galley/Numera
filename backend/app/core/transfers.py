@@ -284,11 +284,14 @@ async def create_counterpart(
     amount: float | None = None,
     origin: str = "manual",
     recurring_transaction_id: int | None = None,
+    trade: dict | None = None,
 ) -> tuple[Leg, str]:
     """Crée l'entrée (ou le versement) manquante sur `dest` et la relie à `sortie`.
 
     `amount` est exprimé dans la devise de `dest` ; par défaut, le montant de la sortie converti.
     L'appelant recalcule les soldes de `dest` (`recalculate_running_balances`) pour un compte courant.
+    `trade` (compte investissement) : titre, quantité et prix du versement, qui est alors un dépôt
+    et un achat de parts en une seule opération (l'appelant relance `rebuild_holdings`).
     """
     src = db.get(Account, sortie.account_id)
     when = date or sortie.date
@@ -304,6 +307,7 @@ async def create_counterpart(
             account_id=dest.id, date=when, type="versement", amount=amount, original_amount=amount,
             currency=dest.currency, note=f"Virement depuis {src.name}",
             recurring_transaction_id=recurring_transaction_id,
+            **(trade or {}),
         )
     else:
         kind = "regular"

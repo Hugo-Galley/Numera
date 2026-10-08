@@ -23,8 +23,10 @@ def _validate_transfer_target(db: Session, account_id: int, type_: str, ticker: 
         raise HTTPException(status_code=422, detail="Source and destination accounts must differ")
     if type_ != "Sortie":
         raise HTTPException(status_code=422, detail="A transfer recurrence must be a Sortie")
-    if ticker or (source and source.type == "investissement"):
+    if source and source.type == "investissement":
         raise HTTPException(status_code=422, detail="A transfer recurrence cannot come from a securities account")
+    if ticker and dest.type != "investissement":
+        raise HTTPException(status_code=422, detail="A security can only be bought through a transfer to an investment account")
 
 @router.post("/trigger", response_model=int)
 async def trigger_generation(db: Session = Depends(get_db)) -> int:

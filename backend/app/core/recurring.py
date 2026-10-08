@@ -1,15 +1,65 @@
-from datetime import datetime
+from datetime import date, datetime
 from sqlalchemy.orm import Session
 from app.models.recurring_transaction import RecurringTransaction
 from app.models.transaction import Transaction
 from app.models.investment_transaction import InvestmentTransaction
 from app.core.finance import get_recurring_occurrences, month_label_from_date
 from app.core.currency import CurrencyConversionError, convert_amount
+from app.core import market_data
 from app.core.holdings import rebuild_holdings
 from app.core.transfers import auto_link_transfers, create_counterpart
 from app.core.logging import get_logger
 
 logger = get_logger(__name__)
+
+
+async def _market_price(db: Session, ticker: str, day: date) -> tuple[float, str | None] | None:
+    """Cours d'un titre pour l'échéance `day` : clôture historique du jour (échéance passée, y compris
+    rattrapée après coup), sinon cotation en direct. None si aucun cours exploitable."""
+    try:
+        if day < date.today():
+            hist = await market_data.get_price_on(db, ticker, day)
+            if hist and hist["price"] and float(hist["price"]) > 0:
+                return round(float(hist["price"]), 4), hist.get("currency")
+        quotes = await market_data.get_market_quotes([ticker], db=db)
+        q_data = quotes.get(ticker, {})
+        if q_data.get("price") and float(q_data["price"]) > 0:
+            return round(float(q_data["price"]), 4), q_data.get("currency")
+    except Exception as e:
+        logger.warning(f"Could not fetch a price for recurring buy of {ticker} on {day}: {e}")
+    return None
+
+
+async def _size_trade(
+    db: Session, rd: RecurringTransaction, account_currency: str, amount: float, currency: str, occ: datetime
+) -> tuple[float | None, float | None, str | None]:
+    """Quantité, prix unitaire et devise du prix d'un achat récurrent de `amount` (devise du compte).
+
+    Quantité et prix fixés dans la règle : repris tels quels. Sinon le prix vient du cours de clôture
+    à la date de l'échéance (devise de cotation) et la quantité = montant ÷ prix.
+    """
+    unit_price = rd.unit_price
+    quantity = rd.quantity
+    price_currency = currency if unit_price else None  # prix fixé dans la règle : devise de la règle
+
+    if rd.ticker and (not quantity or quantity <= 0 or not unit_price):
+        market = await _market_price(db, rd.ticker.upper().strip(), occ.date())
+        if market:
+            unit_price, quoted_currency = market
+            price_currency = quoted_currency or account_currency
+
+    if (not quantity or quantity <= 0) and unit_price and unit_price > 0:
+        try:
+            price_in_account = await convert_amount(
+                unit_price, price_currency or account_currency, account_currency, date=occ.date(), db=db
+            )
+            quantity = round(amount / price_in_account, 6)
+        except CurrencyConversionError as exc:
+            logger.warning(f"Recurring tx {rd.id}: cannot size the trade ({exc})")
+    elif quantity and (not unit_price or unit_price <= 0) and amount > 0:
+        unit_price = round(amount / quantity, 4)
+        price_currency = account_currency
+    return quantity, unit_price, price_currency
 
 
 async def generate_recurring_transactions(db: Session) -> int:
@@ -90,7 +140,7 @@ async def generate_recurring_transactions(db: Session) -> int:
             else:
                 converted_amount = original_amount
 
-            is_inv = account.type in ["investissement", "assurance_vie"] or bool(rd.ticker)
+            is_inv = account.type in ["investissement", "assurance_vie"] or (bool(rd.ticker) and not rd.transfer_to_account_id)
             inv_type = rd.type.lower()
             if inv_type in ["sortie", "achat"]:
                 inv_type = "versement"
@@ -98,36 +148,9 @@ async def generate_recurring_transactions(db: Session) -> int:
                 inv_type = "retrait"
 
             if is_inv and inv_type in ["versement", "retrait", "dividende"]:
-                effective_unit_price = rd.unit_price
-                effective_quantity = rd.quantity
-                # Prix fixé dans la règle : exprimé dans la devise de la règle
-                price_currency = currency if effective_unit_price else None
-
-                # Quantité ou prix non fixés : on part du cours du titre, dans sa devise de cotation
-                if rd.ticker and (not effective_quantity or effective_quantity <= 0 or not effective_unit_price):
-                    norm_ticker = rd.ticker.upper().strip()
-                    try:
-                        from app.core.market_data import get_market_quotes
-                        quotes = await get_market_quotes([norm_ticker], db=db)
-                        q_data = quotes.get(norm_ticker, {})
-                        if q_data.get("price") and float(q_data["price"]) > 0:
-                            effective_unit_price = round(float(q_data["price"]), 4)
-                            price_currency = q_data.get("currency") or account.currency
-                    except Exception as e:
-                        logger.warning(f"Could not fetch live quote for recurring tx {rd.id} ({norm_ticker}): {e}")
-
-                # Automatically compute shares if not explicitly fixed
-                if (not effective_quantity or effective_quantity <= 0) and effective_unit_price and effective_unit_price > 0:
-                    try:
-                        price_in_account = await convert_amount(
-                            effective_unit_price, price_currency or account.currency, account.currency, date=occ.date(), db=db
-                        )
-                        effective_quantity = round(converted_amount / price_in_account, 6)
-                    except CurrencyConversionError as exc:
-                        logger.warning(f"Recurring tx {rd.id}: cannot size the trade ({exc})")
-                elif effective_quantity and (not effective_unit_price or effective_unit_price <= 0) and converted_amount > 0:
-                    effective_unit_price = round(converted_amount / effective_quantity, 4)
-                    price_currency = account.currency
+                effective_quantity, effective_unit_price, price_currency = await _size_trade(
+                    db, rd, account.currency, converted_amount, currency, occ
+                )
 
                 new_tx = InvestmentTransaction(
                     account_id=rd.account_id,
@@ -166,6 +189,22 @@ async def generate_recurring_transactions(db: Session) -> int:
                             logger.warning(f"Skipping recurring transfer {rd.id} at {occ.date()}: {exc}")
                             break
 
+                trade = None
+                if transfer_dest and rd.ticker and transfer_dest.type == "investissement":
+                    leg_amount = transfer_amount if transfer_amount is not None else converted_amount
+                    qty, price, price_cur = await _size_trade(db, rd, transfer_dest.currency, leg_amount, currency, occ)
+                    trade = {
+                        "ticker": rd.ticker.upper().strip(),
+                        "isin": rd.isin.upper().strip() if rd.isin else None,
+                        "quantity": qty,
+                        "unit_price": price,
+                        "price_currency": price_cur,
+                        "asset_class": rd.asset_class,
+                        "sector": rd.sector,
+                        "geographic_zone": rd.geographic_zone,
+                        "etf_profile_id": rd.etf_profile_id,
+                    }
+
                 new_tx = Transaction(
                     account_id=rd.account_id,
                     date=occ,
@@ -186,9 +225,11 @@ async def generate_recurring_transactions(db: Session) -> int:
                     db.flush()
                     await create_counterpart(
                         db, new_tx, transfer_dest, date=occ, amount=transfer_amount,
-                        origin="recurring", recurring_transaction_id=rd.id,
+                        origin="recurring", recurring_transaction_id=rd.id, trade=trade,
                     )
                     affected_account_ids.add(transfer_dest.id)
+                    if trade:
+                        affected_holding_account_ids.add(transfer_dest.id)
             generated_count += 1
             affected_account_ids.add(rd.account_id)
 
