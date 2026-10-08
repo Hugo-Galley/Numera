@@ -3,6 +3,7 @@ from sqlalchemy import and_, or_
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 
+from app.core.transfers import find_pairs, link_pair, unlink_pair
 from app.core.finance import apply_transaction_to_balance, month_label_from_date, normalize_transaction_type
 from app.db.session import get_db
 from app.models.account import Account
@@ -130,123 +131,37 @@ def list_transactions(
 async def find_potential_transfers(
     days_tolerance: int = Query(default=3, ge=0, le=14),
     amount_tolerance_pct: float = Query(default=0.01, ge=0, le=10),
+    months: int = Query(default=24, ge=0, le=240, description="0 = tout l'historique"),
     db: Session = Depends(get_db)
 ):
     """
-    Find pairs of transactions that could be internal transfers.
-    A potential transfer is a Sortie from one account and an Entree (or versement) to another account
-    with similar amounts and close dates.
+    Suggestions de virements internes : une Sortie et une Entree (ou un versement d'investissement)
+    de comptes différents, au montant et à la date proches. Appariement 1 pour 1 global : une entrée
+    n'est jamais proposée pour deux sorties ; les égalités parfaites sont marquées `ambiguous`.
     """
-    from app.core.currency import get_exchange_rates
-    from app.models.investment_transaction import InvestmentTransaction
-
-    # Get all unlinked Sortie transactions from the last 6 months
-    six_months_ago = datetime.now() - timedelta(days=180)
-    sorties = (
-        db.query(Transaction)
-        .filter(
-            Transaction.type == "Sortie",
-            Transaction.is_transfer == False,
-            Transaction.is_transfer_ignored == False,
-            Transaction.linked_transaction_id == None,
-            Transaction.linked_investment_transaction_id == None,
-            Transaction.date >= six_months_ago
-        )
-        .all()
+    pairs = await find_pairs(
+        db,
+        day_tolerance=days_tolerance,
+        amount_tolerance_pct=amount_tolerance_pct,
+        months=months or None,
     )
-
-    potential_pairs = []
-    rates = await get_exchange_rates("EUR")
-    # `amount` est exprimé dans la devise du COMPTE (tx.currency = devise de saisie d'origine)
-    account_currency = {acc_id: cur for acc_id, cur in db.query(Account.id, Account.currency).all()}
-
-    for sortie in sorties:
-        start_date = sortie.date - timedelta(days=days_tolerance)
-        end_date = sortie.date + timedelta(days=days_tolerance)
-        
-        amount_eur = sortie.amount / rates.get(account_currency.get(sortie.account_id, "EUR"), 1.0)
-        min_amount_eur = amount_eur * (1 - amount_tolerance_pct / 100.0)
-        max_amount_eur = amount_eur * (1 + amount_tolerance_pct / 100.0)
-
-        # 1. Look for regular Entrees
-        candidates = (
-            db.query(Transaction)
-            .filter(
-                Transaction.type == "Entree",
-                Transaction.account_id != sortie.account_id,
-                Transaction.is_transfer == False,
-                Transaction.is_transfer_ignored == False,
-                Transaction.linked_transaction_id == None,
-                Transaction.date >= start_date,
-                Transaction.date <= end_date
-            )
-            .all()
-        )
-
-        for entree in candidates:
-            entree_eur = entree.amount / rates.get(account_currency.get(entree.account_id, "EUR"), 1.0)
-            diff_pct = abs(entree_eur - amount_eur) / max(amount_eur, 1.0) * 100.0
-            if diff_pct <= amount_tolerance_pct:
-                potential_pairs.append({
-                    "sortie": sortie,
-                    "entree": entree,
-                    "type": "regular",
-                    "confidence": "high" if diff_pct < 0.001 else "medium"
-                })
-
-        # 2. Look for Investment Versements
-        itx_candidates = (
-            db.query(InvestmentTransaction)
-            .filter(
-                InvestmentTransaction.type == "versement",
-                InvestmentTransaction.account_id != sortie.account_id,
-                InvestmentTransaction.is_transfer == False,
-                InvestmentTransaction.is_transfer_ignored == False,
-                InvestmentTransaction.linked_transaction_id == None,
-                InvestmentTransaction.date >= start_date,
-                InvestmentTransaction.date <= end_date
-            )
-            .all()
-        )
-
-        for itx in itx_candidates:
-            itx_eur = itx.amount / rates.get(account_currency.get(itx.account_id, "EUR"), 1.0)
-            diff_pct = abs(itx_eur - amount_eur) / max(amount_eur, 1.0) * 100.0
-            if diff_pct <= amount_tolerance_pct:
-                potential_pairs.append({
-                    "sortie": sortie,
-                    "entree": itx,
-                    "type": "investment",
-                    "confidence": "high" if diff_pct < 0.001 else "medium"
-                })
-
-    return potential_pairs
-
-
-def _detach_partner(db: Session, tx: Transaction) -> None:
-    """Retire proprement le lien de virement existant de `tx` (et de son partenaire)."""
-    from app.models.investment_transaction import InvestmentTransaction
-
-    if tx.linked_transaction_id:
-        other = db.query(Transaction).filter(Transaction.id == tx.linked_transaction_id).first()
-        if other:
-            other.linked_transaction_id = None
-            other.is_transfer = False
-    if tx.linked_investment_transaction_id:
-        other_inv = db.query(InvestmentTransaction).filter(
-            InvestmentTransaction.id == tx.linked_investment_transaction_id
-        ).first()
-        if other_inv:
-            other_inv.linked_transaction_id = None
-            other_inv.is_transfer = False
-    tx.linked_transaction_id = None
-    tx.linked_investment_transaction_id = None
+    return [
+        {
+            "sortie": p.sortie,
+            "entree": p.entree,
+            "type": p.kind,
+            "confidence": "high" if p.amount_gap_pct < 0.001 and not p.ambiguous else "medium",
+            "ambiguous": p.ambiguous,
+            "day_gap": p.day_gap,
+        }
+        for p in pairs
+    ]
 
 
 @router.post("/{transaction_id}/link/{other_id}")
 def link_transactions(
-    transaction_id: int, 
-    other_id: int, 
+    transaction_id: int,
+    other_id: int,
     type: str = Query(default="regular"),
     db: Session = Depends(get_db)
 ):
@@ -261,44 +176,40 @@ def link_transactions(
     if type == "regular" and other_id == transaction_id:
         raise HTTPException(status_code=422, detail="A transaction cannot be linked to itself")
 
-    # Si tx1 était déjà liée, on délie l'ancien partenaire pour ne pas laisser de lien orphelin
-    _detach_partner(db, tx1)
-
     if type == "regular":
-        tx2 = db.query(Transaction).filter(Transaction.id == other_id).first()
-        if not tx2:
+        other = db.query(Transaction).filter(Transaction.id == other_id).first()
+        if not other:
             raise HTTPException(status_code=404, detail="Secondary transaction not found")
-        _detach_partner(db, tx2)
-
-        tx1.linked_transaction_id = tx2.id
-        tx2.linked_transaction_id = tx1.id
-        tx2.is_transfer = True
     else:
-        tx2 = db.query(InvestmentTransaction).filter(InvestmentTransaction.id == other_id).first()
-        if not tx2:
+        other = db.query(InvestmentTransaction).filter(InvestmentTransaction.id == other_id).first()
+        if not other:
             raise HTTPException(status_code=404, detail="Investment transaction not found")
-        if tx2.linked_transaction_id and tx2.linked_transaction_id != tx1.id:
-            previous = db.query(Transaction).filter(Transaction.id == tx2.linked_transaction_id).first()
-            if previous:
-                previous.linked_investment_transaction_id = None
-                previous.is_transfer = False
 
-        tx1.linked_investment_transaction_id = tx2.id
-        tx2.linked_transaction_id = tx1.id
-        tx2.is_transfer = True
-
-    tx1.is_transfer = True
+    link_pair(db, tx1, other, type, "manual")
     db.commit()
     return {"status": "ok"}
 
 
 @router.post("/{transaction_id}/ignore", status_code=204)
-def ignore_transfer(transaction_id: int, db: Session = Depends(get_db)):
+def ignore_transfer(
+    transaction_id: int,
+    other_id: int | None = Query(default=None),
+    type: str = Query(default="regular"),
+    db: Session = Depends(get_db),
+):
+    """Écarte une suggestion de virement. Avec `other_id`, la ligne en face est écartée aussi."""
+    from app.models.investment_transaction import InvestmentTransaction
+
     tx = db.query(Transaction).filter(Transaction.id == transaction_id).first()
     if not tx:
         raise HTTPException(status_code=404, detail="Transaction not found")
-    
+
     tx.is_transfer_ignored = True
+    if other_id is not None:
+        model = InvestmentTransaction if type == "investment" else Transaction
+        other = db.query(model).filter(model.id == other_id).first()
+        if other:
+            other.is_transfer_ignored = True
     db.commit()
     return
 
@@ -308,7 +219,7 @@ def ignore_duplicate(transaction_id: int, db: Session = Depends(get_db)):
     tx = db.query(Transaction).filter(Transaction.id == transaction_id).first()
     if not tx:
         raise HTTPException(status_code=404, detail="Transaction not found")
-    
+
     tx.is_duplicate_ignored = True
     db.commit()
     return
@@ -316,28 +227,11 @@ def ignore_duplicate(transaction_id: int, db: Session = Depends(get_db)):
 
 @router.post("/{transaction_id}/unlink", response_model=TransactionRead)
 def unlink_transaction(transaction_id: int, db: Session = Depends(get_db)):
-    from app.models.investment_transaction import InvestmentTransaction
-
     tx = db.query(Transaction).filter(Transaction.id == transaction_id).first()
     if not tx:
         raise HTTPException(status_code=404, detail="Transaction not found")
-        
-    if tx.linked_transaction_id:
-        other = db.query(Transaction).filter(Transaction.id == tx.linked_transaction_id).first()
-        if other:
-            other.linked_transaction_id = None
-            other.is_transfer = False
-            
-    if tx.linked_investment_transaction_id:
-        other_inv = db.query(InvestmentTransaction).filter(InvestmentTransaction.id == tx.linked_investment_transaction_id).first()
-        if other_inv:
-            other_inv.linked_transaction_id = None
-            other_inv.is_transfer = False
 
-    tx.linked_transaction_id = None
-    tx.linked_investment_transaction_id = None
-    tx.is_transfer = False
-    
+    unlink_pair(db, tx)
     db.commit()
     db.refresh(tx)
     return tx
