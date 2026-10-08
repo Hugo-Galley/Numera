@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react"
 import { useParams, Link } from "react-router-dom"
 import { 
   ArrowLeft, 
+  ArrowRightLeft,
   Plus, 
   Filter, 
   Wallet,
@@ -158,6 +159,8 @@ import {
   X
 } from "lucide-react"
 import { api } from "@/lib/api"
+import { TransferLinkDialog } from "@/components/transfers/TransferLinkDialog"
+import type { AccountLite } from "@/types/transfers"
 import { IconComponent } from "@/components/dashboard/IconComponent"
 import { COUNTRIES } from "@/lib/countries"
 import { Button } from "@/components/ui/button"
@@ -260,6 +263,7 @@ type TagType = {
 
 type Transaction = {
   id: number
+  account_id: number
   date: string
   type: string
   merchant: string
@@ -280,6 +284,7 @@ type Transaction = {
   is_recurring: boolean
   custom_icon: string | null
   custom_color: string | null
+  is_transfer?: boolean
 }
 
 const getMerchantIcon = (merchantName: string) => {
@@ -299,6 +304,8 @@ export default function AccountDetail() {
   
   // -- Data State --
   const [account, setAccount] = useState<Account | null>(null)
+  const [transferTx, setTransferTx] = useState<Transaction | null>(null)
+  const [allAccounts, setAllAccounts] = useState<AccountLite[]>([])
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [flowSummary, setFlowSummary] = useState<{
     monthly_net_flow: number
@@ -509,6 +516,18 @@ export default function AccountDetail() {
     } catch (error) {
       toast.error("Erreur lors de la recherche")
     }
+  }
+
+  const openTransferDialog = async (tx: Transaction) => {
+    if (allAccounts.length === 0) {
+      try {
+        setAllAccounts(await api.get<AccountLite[]>("/accounts"))
+      } catch {
+        toast.error("Erreur lors du chargement des comptes")
+        return
+      }
+    }
+    setTransferTx(tx)
   }
 
   const loadData = async () => {
@@ -2007,6 +2026,17 @@ export default function AccountDetail() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-1">
+                        {(tx.type === "Sortie" || tx.type === "Entree") && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            title={tx.is_transfer ? "Virement interne lié" : "Virement interne…"}
+                            onClick={() => openTransferDialog(tx)}
+                            className="h-8 w-8 p-0"
+                          >
+                            <ArrowRightLeft className={`h-3.5 w-3.5 ${tx.is_transfer ? "text-emerald-600" : "text-slate-400"}`} />
+                          </Button>
+                        )}
                         <Button variant="ghost" size="sm" onClick={() => handleEditTransaction(tx)} className="h-8 w-8 p-0">
                           <Pencil className="h-3.5 w-3.5 text-slate-500" />
                         </Button>
@@ -2359,6 +2389,17 @@ export default function AccountDetail() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <TransferLinkDialog
+        open={transferTx !== null}
+        onOpenChange={(o) => !o && setTransferTx(null)}
+        transaction={transferTx}
+        accounts={allAccounts}
+        onDone={() => {
+          setTransferTx(null)
+          loadTransactions()
+        }}
+      />
     </div>
   )
 }

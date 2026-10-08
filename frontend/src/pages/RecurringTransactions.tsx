@@ -113,6 +113,7 @@ type RecurringTransaction = {
   is_active: boolean
   auto_generate: boolean
   note: string | null
+  transfer_to_account_id?: number | null
   asset_class?: string | null
   sector?: string | null
   geographic_zone?: string | null
@@ -158,6 +159,7 @@ export default function RecurringTransactions() {
     start_date: format(new Date(), "yyyy-MM-dd"),
     is_active: true,
     auto_generate: false,
+    transfer_to_account_id: "none",
     note: "",
     asset_class: "",
     sector: "",
@@ -230,6 +232,7 @@ export default function RecurringTransactions() {
       start_date: format(new Date(), "yyyy-MM-dd"),
       is_active: true,
       auto_generate: false,
+      transfer_to_account_id: "none",
       note: "",
       asset_class: "",
       sector: "",
@@ -260,6 +263,7 @@ export default function RecurringTransactions() {
       start_date: format(new Date(tx.start_date), "yyyy-MM-dd"),
       is_active: tx.is_active,
       auto_generate: tx.auto_generate,
+      transfer_to_account_id: tx.transfer_to_account_id?.toString() || "none",
       note: tx.note || "",
       asset_class: tx.asset_class || "",
       sector: tx.sector || "",
@@ -284,6 +288,7 @@ export default function RecurringTransactions() {
       account_id: parseInt(formData.account_id),
       amount: parseFloat(formData.amount),
       category_id: formData.category_id === "none" ? null : parseInt(formData.category_id),
+      transfer_to_account_id: formData.type === "Sortie" && formData.transfer_to_account_id !== "none" ? parseInt(formData.transfer_to_account_id) : null,
       day_of_month: parseInt(formData.day_of_month),
       excluded_months: formData.frequency === "monthly" && formData.excluded_months.length > 0 ? formData.excluded_months : null,
       start_date: new Date(formData.start_date).toISOString(),
@@ -368,6 +373,7 @@ export default function RecurringTransactions() {
       start_date: format(new Date(), "yyyy-MM-dd"),
       is_active: true,
       auto_generate: false,
+      transfer_to_account_id: "none",
       note: isInvest ? "Validé comme investissement" : "Validé depuis détection automatique",
       asset_class: "",
       sector: "",
@@ -504,6 +510,9 @@ export default function RecurringTransactions() {
                                   </>
                                 )}
                                 <span className="text-slate-600">{accounts.find(a => a.id === tx.account_id)?.name}</span>
+                                {tx.transfer_to_account_id && (
+                                  <span className="font-medium text-indigo-600">→ {accounts.find(a => a.id === tx.transfer_to_account_id)?.name}</span>
+                                )}
                                 <span>•</span>
                                 {tx.quantity != null && tx.quantity > 0 ? (
                                   <>
@@ -1098,6 +1107,35 @@ export default function RecurringTransactions() {
                 </Select>
               </div>
             </div>
+
+            {formData.type === "Sortie" && selectedAccount?.type !== "investissement" && !formData.ticker && (
+              <div className="grid gap-2">
+                <Label htmlFor="transfer-to">Virement vers un compte (optionnel)</Label>
+                <Select
+                  value={formData.transfer_to_account_id}
+                  onValueChange={(v) => setFormData({ ...formData, transfer_to_account_id: v })}
+                >
+                  <SelectTrigger id="transfer-to">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Non, c'est une dépense</SelectItem>
+                    {accounts
+                      .filter((acc) => acc.id.toString() !== formData.account_id)
+                      .map((acc) => (
+                        <SelectItem key={acc.id} value={acc.id.toString()}>
+                          {acc.name} ({acc.currency})
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+                {formData.transfer_to_account_id !== "none" && (
+                  <p className="text-xs text-slate-500">
+                    Chaque échéance crée la sortie et l'entrée correspondante, déjà liées : le montant n'est pas compté deux fois.
+                  </p>
+                )}
+              </div>
+            )}
 
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
