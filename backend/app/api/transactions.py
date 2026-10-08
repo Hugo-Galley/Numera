@@ -3,7 +3,7 @@ from sqlalchemy import and_, or_
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 
-from app.core.transfers import find_pairs, link_pair, unlink_pair
+from app.core.transfers import auto_link_transfers, find_pairs, link_pair, unlink_pair
 from app.core.finance import apply_transaction_to_balance, month_label_from_date, normalize_transaction_type
 from app.db.session import get_db
 from app.models.account import Account
@@ -295,6 +295,7 @@ async def create_transaction(payload: TransactionCreate, db: Session = Depends(g
     db.commit()
     
     recalculate_running_balances(db, payload.account_id)
+    await auto_link_transfers(db)
     db.refresh(transaction)
     return transaction
 
@@ -408,6 +409,7 @@ async def update_transaction(transaction_id: int, payload: TransactionUpdate, db
 
     db.commit()
     recalculate_running_balances(db, transaction.account_id)
+    await auto_link_transfers(db)
     db.refresh(transaction)
     return transaction
 

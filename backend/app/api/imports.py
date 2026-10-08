@@ -17,6 +17,7 @@ from app.models.categorization_rule import CategorizationRule
 from app.models.import_log import ImportLog
 from app.models.transaction import Transaction
 from app.api.transactions import recalculate_running_balances
+from app.core.transfers import auto_link_transfers
 
 from app.core.logging import get_logger
 
@@ -349,6 +350,7 @@ async def commit_import(
     if imported > 0:
         logger.info(f"Recalculating running balances for account_id={account_id}")
         recalculate_running_balances(db, account_id)
+        await auto_link_transfers(db)
 
     logger.info(
         f"Import finished: file={file.filename}, imported={imported}, "

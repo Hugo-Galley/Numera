@@ -185,6 +185,8 @@ async def generate_recurring_transactions(db: Session) -> int:
         from app.api.transactions import recalculate_running_balances
         for acc_id in affected_account_ids:
             recalculate_running_balances(db, acc_id)
+        from app.core.transfers import auto_link_transfers
+        await auto_link_transfers(db)
         logger.info(f"Generated {generated_count} recurring transactions")
 
     return generated_count
