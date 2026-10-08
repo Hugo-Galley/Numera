@@ -976,6 +976,78 @@ def get_tax_overview() -> str:
 
 
 @mcp.tool()
+def list_transfer_rules() -> str:
+    """Règles de virement interne (compte source → compte destination) qui relient automatiquement
+    les sorties aux entrées pour ne pas compter deux fois un revenu réparti entre comptes."""
+    try:
+        resp = api.get("/transfer-rules")
+        error = handle_response(resp)
+        if error:
+            return error
+        accounts = {a["id"]: a["name"] for a in api.get("/accounts").json()}
+        rows = [
+            {
+                "id": r["id"],
+                "source": accounts.get(r["source_account_id"], r["source_account_id"]),
+                "destination": accounts.get(r["dest_account_id"], r["dest_account_id"]),
+                "libelle_contient": r["pattern"] or "—",
+                "montant": r["amount"] if r["amount"] is not None else "—",
+                "tolerance_%": r["amount_tolerance_pct"],
+                "tolerance_jours": r["day_tolerance"],
+                "active": "oui" if r["is_active"] else "non",
+            }
+            for r in resp.json()
+        ]
+        return f"🔁 {len(rows)} règle(s) de virement :\n\n" + (format_table(rows) if rows else "Aucune règle.")
+    except Exception as e:
+        return f"❌ Erreur : {e}"
+
+
+@mcp.tool()
+def create_transfer_rule(
+    source_account_id: int,
+    dest_account_id: int,
+    pattern: str | None = None,
+    amount: float | None = None,
+    amount_tolerance_pct: float = 1.0,
+    day_tolerance: int = 5,
+) -> str:
+    """Crée une règle de virement interne. Les sorties du compte source (filtrées par libellé et
+    montant si fournis) sont reliées aux entrées du compte destination quand le couple est sans ambiguïté."""
+    try:
+        resp = api.post("/transfer-rules", json_data={
+            "source_account_id": source_account_id,
+            "dest_account_id": dest_account_id,
+            "pattern": pattern,
+            "amount": amount,
+            "amount_tolerance_pct": amount_tolerance_pct,
+            "day_tolerance": day_tolerance,
+        })
+        error = handle_response(resp)
+        if error:
+            return error
+        return f"✅ Règle #{resp.json()['id']} créée. Utilisez apply_transfer_rules pour rattraper l'historique."
+    except Exception as e:
+        return f"❌ Erreur : {e}"
+
+
+@mcp.tool()
+def apply_transfer_rules(dry_run: bool = True) -> str:
+    """Rattrape l'historique avec les règles de virement actives. Par défaut `dry_run=True` : aperçu
+    du nombre de couples qui seraient liés, sans rien écrire."""
+    try:
+        resp = api.post(f"/transfer-rules/apply?dry_run={'true' if dry_run else 'false'}", json_data={})
+        error = handle_response(resp)
+        if error:
+            return error
+        data = resp.json()
+        verb = "seraient liés" if dry_run else "ont été liés"
+        return f"🔗 {data['count']} virement(s) {verb}."
+    except Exception as e:
+        return f"❌ Erreur : {e}"
+
+
+@mcp.tool()
 def add_holding(
     account_id: int,
     ticker: str,

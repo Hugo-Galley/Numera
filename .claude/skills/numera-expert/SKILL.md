@@ -20,7 +20,14 @@ Les règles critiques courtes sont dans le `CLAUDE.md` racine ; ce skill détail
 
 ## Virements internes
 
-Détection : `GET /transactions/potential-transfers` ; liaison : `POST /transactions/{id}/link/{other_id}` (`is_transfer`, `linked_transaction_id`), `.../unlink`, `.../ignore` (`is_transfer_ignored`). Un virement vers un compte `investissement` peut pointer vers une `investment_transaction`. Les « dépenses réelles » et le taux d'épargne excluent ces transferts (voir `api/analytics/metrics.py`, `budget.py`).
+Un virement est un couple **1 pour 1** : une `Sortie` et une `Entree` (ou un `versement` d'investissement) sur deux comptes différents (`is_transfer`, `linked_transaction_id` / `linked_investment_transaction_id`). Un lien ne change aucun montant. Les « dépenses réelles », les revenus et le taux d'épargne excluent ces lignes (`api/analytics/metrics.py`, `budget.py`). Toute la logique est dans `core/transfers.py` :
+
+- `link_pair` / `unlink_pair` : seule porte d'entrée pour lier ou délier (endpoints `POST /transactions/{id}/link/{other_id}`, `.../unlink`). `link_origin` = `manual` | `rule` | `recurring` ; `transfer_rule_id` = règle à l'origine.
+- **Délier un lien `rule` ou `recurring`** marque les deux lignes `is_transfer_ignored`, sinon la règle les relierait aussitôt. Un lien manuel délié n'est pas ignoré.
+- `find_pairs` : appariement 1 pour 1 global (écart de date, puis de montant), une entrée n'est jamais utilisée pour deux sorties ; les égalités parfaites sont renvoyées `ambiguous=True` et jamais liées seules. Sert aux suggestions (`GET /transactions/potential-transfers?months=`, 24 mois par défaut, 0 = tout) et aux règles.
+- `transfer_rules` (`/transfer-rules`) : compte source → compte destination, `pattern` optionnel (marchand/note de la sortie), `amount` optionnel, tolérances (1 % / 5 jours par défaut). `apply_rules` lie les couples sans ambiguïté ; déclenché après un import CSV, la création/modification d'une transaction et la génération des récurrences (fenêtre de 3 mois, `auto_link_transfers` n'échoue jamais), et sur tout l'historique par `POST /transfer-rules/apply` (`dry_run=true` pour l'aperçu).
+- Récurrence « virement » : `recurring_transactions.transfer_to_account_id` (Sortie d'un compte non titres) → chaque échéance crée la sortie **et** l'entrée/le versement (`create_counterpart`, conversion de devise, soldes recalculés), liées avec `link_origin = recurring`. Deux récurrences existantes (une par compte) sont reliées par une règle.
+- Liaison manuelle : `GET /transactions/{id}/transfer-candidates` (±15 j, ±5 %, tous comptes) et `POST /transactions/{id}/transfer-counterpart` (crée l'entrée manquante). UI : `TransferLinkDialog` (bouton sur chaque ligne d'`AccountDetail`) et onglet Paramètres › Virements.
 
 ## Point zéro et performance
 

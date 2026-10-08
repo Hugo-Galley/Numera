@@ -6,7 +6,7 @@ Le point d'entrée `server.py` est un **dispatcher** qui lance l'un des deux ser
 
 | Mode | Fichier | Fonctionnement | Outils |
 |------|---------|----------------|--------|
-| **API proxy** | `server_api.py` | Appelle l'API FastAPI (login JWT via `/auth/token`). Reprend les KPI calculés par le backend. Recommandé, et seul mode du `docker-compose.prod.yml`. | 45 outils, 4 ressources, 6 prompts |
+| **API proxy** | `server_api.py` | Appelle l'API FastAPI (login JWT via `/auth/token`). Reprend les KPI calculés par le backend. Recommandé, et seul mode du `docker-compose.prod.yml`. | 48 outils, 4 ressources, 6 prompts |
 | **SQLite direct** | `server_sqlite.py` | Lit la base SQLite (connexion read-only), écritures par une connexion dédiée. Pour une installation locale. | 26 outils, 5 ressources, 3 prompts |
 
 ### Choix du mode

@@ -130,13 +130,13 @@ Champs: `id`, `name`, `icon`, `color`, `type`, `monthly_limit`, `annual_limit`, 
 
 ### `transactions`
 
-Champs: `id`, `account_id`, `date`, `month_label`, `type`, `merchant`, `merchant_id`, `category_id`, `amount`, `currency`, `original_amount`, `running_balance`, `note`, `is_recurring`, `recurring_transaction_id`, `is_subscription_ignored`, `custom_icon`, `custom_color`, `is_transfer`, `is_transfer_ignored`, `is_duplicate_ignored`, `linked_transaction_id`, `linked_investment_transaction_id`.
+Champs: `id`, `account_id`, `date`, `month_label`, `type`, `merchant`, `merchant_id`, `category_id`, `amount`, `currency`, `original_amount`, `running_balance`, `note`, `is_recurring`, `recurring_transaction_id`, `is_subscription_ignored`, `custom_icon`, `custom_color`, `is_transfer`, `is_transfer_ignored`, `is_duplicate_ignored`, `linked_transaction_id`, `linked_investment_transaction_id`, `link_origin` (`manual` | `rule` | `recurring`), `transfer_rule_id`.
 
 `amount` est le montant converti dans la devise du compte. `original_amount` et `currency` gardent la saisie d'origine. Les champs de liaison permettent de connecter des virements internes ou de rattacher une transaction à sa règle récurrente génératrice.
 
 ### `investment_transactions`
 
-Champs: `id`, `account_id`, `date`, `type`, `amount`, `currency`, `original_amount`, `note`, `asset_class`, `sector`, `geographic_zone`, `ticker`, `isin`, `quantity`, `unit_price`, `price_currency`, `fees`, `etf_profile_id`, `is_transfer`, `is_transfer_ignored`, `linked_transaction_id`, `recurring_transaction_id`.
+Champs: `id`, `account_id`, `date`, `type`, `amount`, `currency`, `original_amount`, `note`, `asset_class`, `sector`, `geographic_zone`, `ticker`, `isin`, `quantity`, `unit_price`, `price_currency`, `fees`, `etf_profile_id`, `is_transfer`, `is_transfer_ignored`, `linked_transaction_id`, `link_origin`, `transfer_rule_id`, `recurring_transaction_id`.
 
 Types : `versement` / `retrait` (flux d'espèces, comptés dans le montant investi ; avec ticker + quantité ils font aussi bouger la position), `achat` / `vente` (opérations sur titres, ticker + quantité obligatoires, sans effet sur le montant investi), `dividende`, `frais`. `unit_price` et `fees` sont exprimés en `price_currency` (défaut : `currency`) ; sans `unit_price`, il est déduit du montant hors frais.
 
@@ -161,7 +161,8 @@ Un point zéro sert de base de performance pour un compte.
 - `historical_exchange_rates`: cache de taux historiques.
 - `savings_goals`: objectifs d'épargne (`name`, `target_amount`, `keyword`, `deadline`, `account_id`, `category_id`, `icon`, `color`).
 - `categorization_rules`: règles d'auto-catégorisation locale basées sur des patterns de commerçants (`id`, `pattern`, `category_id`, `transaction_type`, `merchant_name`, `priority`).
-- `recurring_transactions`: définitions d'abonnements/charges fixes récurrentes (`id`, `account_id`, `name`, `type`, `amount`, `currency`, `category_id`, `frequency`, `day_of_month`, `start_date`, `end_date`, `excluded_months`, `last_generated_date`, `is_active`, `auto_generate`, `note`, `asset_class`, `sector`, `geographic_zone`, `ticker`, `isin`, `quantity`, `unit_price`, `etf_profile_id`).
+- `recurring_transactions`: définitions d'abonnements/charges fixes récurrentes (`id`, `account_id`, `name`, `type`, `amount`, `currency`, `category_id`, `frequency`, `day_of_month`, `start_date`, `end_date`, `excluded_months`, `last_generated_date`, `is_active`, `auto_generate`, `note`, `transfer_to_account_id`, `asset_class`, `sector`, `geographic_zone`, `ticker`, `isin`, `quantity`, `unit_price`, `etf_profile_id`).
+- `transfer_rules`: règles de virement interne (`source_account_id`, `dest_account_id`, `pattern` sur marchand/note de la sortie, `amount`, `amount_tolerance_pct`, `day_tolerance`, `is_active`). Moteur : `core/transfers.py`.
 - `tags`: tags transversaux personnalisés (`id`, `name`, `color`).
 - `transaction_tags`: table d'association many-to-many (`transaction_id`, `tag_id`).
 - `merchants`: marchands canoniques (`id`, `name`, `category_id`, `icon`, `color`).
@@ -187,7 +188,9 @@ Un point zéro sert de base de performance pour un compte.
 - `/balance-snapshots`
 - `/goals`
 - `/categorization-rules`
-- `/recurring-transactions` (+ `POST /trigger`)
+- `/recurring-transactions` (+ `POST /trigger`) ; `transfer_to_account_id` en fait une récurrence « virement » (sortie + entrée liées à chaque échéance)
+- `/transfer-rules` (CRUD, `POST /apply[?dry_run=true&rule_id=]` : rattrapage de l'historique)
+- `/transactions/potential-transfers[?months=]` (suggestions), `GET /transactions/{id}/transfer-candidates` (liaison manuelle), `POST /transactions/{id}/transfer-counterpart`, `link/{other_id}`, `unlink`, `ignore[?other_id=]`
 - `/tags`
 - `/merchants` (+ aliases, `auto-normalize`, `suggestions/unnormalized`)
 - `/holdings`, `/etf-profiles`, `/market` (search, validate, quote)
