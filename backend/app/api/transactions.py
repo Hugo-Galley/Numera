@@ -3,12 +3,12 @@ from sqlalchemy import and_, or_
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 
-from app.core.transfers import auto_link_transfers, find_pairs, link_pair, unlink_pair
+from app.core.transfers import auto_link_transfers, candidates_for, create_counterpart, find_pairs, link_pair, unlink_pair
 from app.core.finance import apply_transaction_to_balance, month_label_from_date, normalize_transaction_type
 from app.db.session import get_db
 from app.models.account import Account
 from app.models.transaction import Transaction
-from app.schemas.transaction import TransactionCreate, TransactionRead, TransactionUpdate, TransactionBulkUpdate
+from app.schemas.transaction import TransferCandidate, TransferCounterpartCreate, TransferCounterpartRead, TransactionCreate, TransactionRead, TransactionUpdate, TransactionBulkUpdate
 
 router = APIRouter(prefix="/transactions", tags=["transactions"])
 
@@ -156,6 +156,44 @@ async def find_potential_transfers(
         }
         for p in pairs
     ]
+
+
+@router.get("/{transaction_id}/transfer-candidates", response_model=list[TransferCandidate])
+async def transfer_candidates(
+    transaction_id: int,
+    days: int = Query(default=15, ge=0, le=60),
+    amount_tolerance_pct: float = Query(default=5.0, ge=0, le=100),
+    account_id: int | None = Query(default=None),
+    db: Session = Depends(get_db),
+):
+    """Candidates classées pour relier cette ligne à un virement interne (liaison manuelle)."""
+    tx = db.query(Transaction).filter(Transaction.id == transaction_id).first()
+    if not tx:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+    return await candidates_for(db, tx, days=days, amount_tolerance_pct=amount_tolerance_pct, account_id=account_id)
+
+
+@router.post("/{transaction_id}/transfer-counterpart", response_model=TransferCounterpartRead, status_code=201)
+async def create_transfer_counterpart(
+    transaction_id: int, payload: TransferCounterpartCreate, db: Session = Depends(get_db)
+):
+    """Crée la contrepartie manquante d'une sortie sur un autre compte et la relie."""
+    tx = db.query(Transaction).filter(Transaction.id == transaction_id).first()
+    if not tx:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+    if tx.type != "Sortie":
+        raise HTTPException(status_code=422, detail="Only a Sortie can get a counterpart")
+    dest = db.query(Account).filter(Account.id == payload.account_id).first()
+    if not dest:
+        raise HTTPException(status_code=404, detail="Account not found")
+    if dest.id == tx.account_id:
+        raise HTTPException(status_code=422, detail="Destination must be another account")
+
+    leg, kind = await create_counterpart(db, tx, dest, date=payload.date, amount=payload.amount)
+    db.commit()
+    if kind == "regular":
+        recalculate_running_balances(db, dest.id)
+    return TransferCounterpartRead(id=leg.id, type=kind)
 
 
 @router.post("/{transaction_id}/link/{other_id}")

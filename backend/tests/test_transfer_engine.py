@@ -188,3 +188,40 @@ def test_api_ignore_marks_both_sides(client, db_session: Session):
     db_session.refresh(s); db_session.refresh(e)
     assert s.is_transfer_ignored and e.is_transfer_ignored
     assert client.get("/transactions/potential-transfers").json() == []
+
+
+def test_candidates_are_ranked_and_wide_window(client, db_session: Session):
+    main, livret, pea = make_accounts(db_session, ("Principal", "courant"), ("Livret A", "epargne"), ("PEA cash", "epargne"))
+    s = tx(db_session, main, "Sortie", 500, datetime(2026, 6, 5))
+    far = tx(db_session, livret, "Entree", 500, datetime(2026, 6, 15))   # 10 jours
+    near = tx(db_session, pea, "Entree", 505, datetime(2026, 6, 6))      # 1 jour, 1 % d'écart
+    tx(db_session, pea, "Entree", 500, datetime(2026, 8, 1))             # hors fenêtre
+    tx(db_session, main, "Entree", 500, datetime(2026, 6, 5))            # même compte
+
+    rows = client.get(f"/transactions/{s.id}/transfer-candidates").json()
+    assert [r["other_id"] for r in rows] == [near.id, far.id]
+    assert rows[0]["sortie_id"] == s.id and rows[0]["type"] == "regular"
+
+    only_livret = client.get(f"/transactions/{s.id}/transfer-candidates", params={"account_id": livret.id}).json()
+    assert [r["other_id"] for r in only_livret] == [far.id]
+
+    # depuis l'entrée, on retrouve la sortie, prête pour /link/{sortie}/{entrée}
+    back = client.get(f"/transactions/{far.id}/transfer-candidates").json()
+    assert back[0]["sortie_id"] == s.id and back[0]["other_id"] == far.id
+
+
+def test_create_counterpart_links_and_recalculates(client, db_session: Session):
+    main, livret = make_accounts(db_session, ("Principal", "courant"), ("Livret A", "epargne"))
+    s = tx(db_session, main, "Sortie", 300, datetime(2026, 6, 5), "Vir livret")
+
+    resp = client.post(f"/transactions/{s.id}/transfer-counterpart", json={"account_id": livret.id, "date": "2026-06-07T00:00:00"})
+    assert resp.status_code == 201
+    leg = db_session.get(Transaction, resp.json()["id"])
+    db_session.refresh(s)
+    assert leg.account_id == livret.id and leg.type == "Entree" and leg.amount == 300
+    assert leg.running_balance == 300 and leg.date == datetime(2026, 6, 7)
+    assert s.linked_transaction_id == leg.id and s.link_origin == "manual" and leg.is_transfer
+
+    assert client.post(f"/transactions/{s.id}/transfer-counterpart", json={"account_id": main.id}).status_code == 422
+    e = tx(db_session, livret, "Entree", 10, datetime(2026, 6, 9))
+    assert client.post(f"/transactions/{e.id}/transfer-counterpart", json={"account_id": main.id}).status_code == 422

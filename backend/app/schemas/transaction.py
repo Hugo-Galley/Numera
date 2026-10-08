@@ -77,3 +77,27 @@ class TransactionRead(TransactionBase):
     tags: list[TagRead] = []
 
     model_config = {"from_attributes": True, "populate_by_name": True}
+
+
+class TransferCandidate(BaseModel):
+    sortie_id: int
+    other_id: int
+    type: str  # regular | investment
+    account_id: int
+    date: datetime
+    amount: float
+    currency: str
+    label: str | None = None
+    day_gap: int
+    amount_gap_pct: float
+
+
+class TransferCounterpartCreate(BaseModel):
+    account_id: int
+    date: datetime | None = None
+    amount: float | None = Field(default=None, gt=0)  # devise du compte de destination
+
+
+class TransferCounterpartRead(BaseModel):
+    id: int
+    type: str  # regular | investment

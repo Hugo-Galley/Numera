@@ -318,3 +318,67 @@ async def create_counterpart(
     db.flush()
     link_pair(db, sortie, leg, kind, origin)
     return leg, kind
+
+
+async def candidates_for(
+    db: Session,
+    tx: Transaction,
+    *,
+    days: int = 15,
+    amount_tolerance_pct: float = 5.0,
+    account_id: int | None = None,
+    limit: int = 30,
+) -> list[dict]:
+    """Candidates pour relier `tx` à la main, classées par écart de date puis de montant.
+
+    Pour une `Sortie`, on cherche des entrées (ou versements) ; pour une `Entree`, des sorties.
+    Chaque candidate porte `sortie_id` / `other_id` / `type`, directement utilisables avec
+    `POST /transactions/{sortie_id}/link/{other_id}?type=`.
+    """
+    accounts = {a.id: a for a in db.query(Account).all()}
+    rates = await currency_module.get_exchange_rates("EUR")
+
+    def to_eur(value: float, acc_id: int) -> float:
+        currency = accounts[acc_id].currency if acc_id in accounts else "EUR"
+        return value / rates.get(currency, 1.0)
+
+    reference = to_eur(tx.amount, tx.account_id)
+    low = tx.date - timedelta(days=days)
+    high = tx.date + timedelta(days=days, hours=23, minutes=59)
+
+    rows: list[tuple[str, Leg]] = []
+    if tx.type == "Sortie":
+        wanted = [(Transaction, "Entree", "regular"), (InvestmentTransaction, "versement", "investment")]
+    elif tx.type == "Entree":
+        wanted = [(Transaction, "Sortie", "regular")]
+    else:
+        return []
+    for model, type_, kind in wanted:
+        q = db.query(model).filter(
+            model.type == type_, model.is_transfer.is_(False),
+            model.account_id != tx.account_id, model.date >= low, model.date <= high,
+        )
+        if account_id is not None:
+            q = q.filter(model.account_id == account_id)
+        rows.extend((kind, leg) for leg in q.all())
+
+    out = []
+    for kind, leg in rows:
+        gap = abs(to_eur(leg.amount, leg.account_id) - reference) / max(reference, 1.0) * 100.0
+        if gap > amount_tolerance_pct:
+            continue
+        sortie_id, other_id = (tx.id, leg.id) if tx.type == "Sortie" else (leg.id, tx.id)
+        out.append({
+            "sortie_id": sortie_id,
+            "other_id": other_id,
+            "type": kind,
+            "account_id": leg.account_id,
+            "date": leg.date,
+            "amount": leg.amount,
+            "currency": leg.currency,
+            "label": getattr(leg, "merchant", None) or leg.note,
+            "day_gap": abs((leg.date.date() - tx.date.date()).days),
+            "amount_gap_pct": round(gap, 4),
+        })
+    out.sort(key=lambda c: (c["day_gap"], c["amount_gap_pct"], c["other_id"]))
+    return out[:limit]
