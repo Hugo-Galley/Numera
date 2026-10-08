@@ -19,6 +19,7 @@ class RecurringTransactionBase(BaseModel):
     is_active: bool = True
     auto_generate: bool = False
     note: str | None = None
+    transfer_to_account_id: int | None = None
     asset_class: str | None = None
     sector: str | None = None
     geographic_zone: str | None = None
@@ -47,6 +48,7 @@ class RecurringTransactionUpdate(BaseModel):
     is_active: bool | None = None
     auto_generate: bool | None = None
     note: str | None = None
+    transfer_to_account_id: int | None = None
     asset_class: str | None = None
     sector: str | None = None
     geographic_zone: str | None = None

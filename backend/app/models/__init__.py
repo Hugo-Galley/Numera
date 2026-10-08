@@ -13,6 +13,7 @@ from app.models.system_setting import SystemSetting
 from app.models.merchant import Merchant, MerchantAlias
 from app.models.dismissed_insight import DismissedInsight
 from app.models.salary_config import SalaryConfig
+from app.models.transfer_rule import TransferRule
 from app.models.salary_month import SalaryMonth
 from app.models.telecommuting_day import TelecommutingDay
 from app.models.etf_profile import EtfProfile

@@ -32,6 +32,9 @@ class Transaction(Base):
     is_duplicate_ignored: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     linked_transaction_id: Mapped[int | None] = mapped_column(ForeignKey("transactions.id", ondelete="SET NULL"), nullable=True, index=True)
     linked_investment_transaction_id: Mapped[int | None] = mapped_column(ForeignKey("investment_transactions.id", ondelete="SET NULL", use_alter=True, name="fk_tx_linked_investment"), nullable=True, index=True)
+    # Origine du lien de virement (manual | rule | recurring) et règle à l'origine
+    link_origin: Mapped[str | None] = mapped_column(String(16), nullable=True)
+    transfer_rule_id: Mapped[int | None] = mapped_column(ForeignKey("transfer_rules.id", ondelete="SET NULL"), nullable=True, index=True)
     merchant_id: Mapped[int | None] = mapped_column(ForeignKey("merchants.id", ondelete="SET NULL"), nullable=True, index=True)
 
     category: Mapped["Category"] = relationship("Category", lazy="selectin")
@@ -40,3 +43,12 @@ class Transaction(Base):
     linked_investment_transaction: Mapped["InvestmentTransaction"] = relationship("InvestmentTransaction", lazy="selectin", foreign_keys=[linked_investment_transaction_id])
     merchant_obj: Mapped["Merchant"] = relationship("Merchant", lazy="selectin")
     tags: Mapped[list["Tag"]] = relationship("Tag", secondary=transaction_tags, back_populates="transactions", lazy="selectin")
+
+    @property
+    def linked_account_id(self) -> int | None:
+        """Compte du partenaire du virement (transaction ou opération d'investissement liée)."""
+        if self.linked_transaction_id is not None and self.linked_transaction is not None:
+            return self.linked_transaction.account_id
+        if self.linked_investment_transaction is not None:
+            return self.linked_investment_transaction.account_id
+        return None

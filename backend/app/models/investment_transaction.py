@@ -45,6 +45,9 @@ class InvestmentTransaction(Base):
     is_transfer: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     is_transfer_ignored: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     linked_transaction_id: Mapped[int | None] = mapped_column(ForeignKey("transactions.id", ondelete="SET NULL"), nullable=True, index=True)
+    # Origine du lien de virement (manual | rule | recurring) et règle à l'origine
+    link_origin: Mapped[str | None] = mapped_column(String(16), nullable=True)
+    transfer_rule_id: Mapped[int | None] = mapped_column(ForeignKey("transfer_rules.id", ondelete="SET NULL"), nullable=True, index=True)
     recurring_transaction_id: Mapped[int | None] = mapped_column(ForeignKey("recurring_transactions.id", ondelete="SET NULL"), nullable=True, index=True)
 
     linked_transaction: Mapped["Transaction"] = relationship("Transaction", lazy="selectin", foreign_keys=[linked_transaction_id])

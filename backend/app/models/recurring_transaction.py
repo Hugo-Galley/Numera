@@ -22,6 +22,7 @@ class RecurringTransaction(Base):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     auto_generate: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     note: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    transfer_to_account_id: Mapped[int | None] = mapped_column(ForeignKey("accounts.id", ondelete="SET NULL"), nullable=True)  # virement vers ce compte
 
     # Asset Allocation (Sprint 4)
     asset_class: Mapped[str | None] = mapped_column(String(32), nullable=True)
@@ -35,7 +36,7 @@ class RecurringTransaction(Base):
     unit_price: Mapped[float | None] = mapped_column(Float, nullable=True)
     etf_profile_id: Mapped[int | None] = mapped_column(ForeignKey("etf_profiles.id", ondelete="SET NULL"), nullable=True, index=True)
 
-    account: Mapped["Account"] = relationship("Account")
+    account: Mapped["Account"] = relationship("Account", foreign_keys=[account_id])
     category: Mapped["Category"] = relationship("Category")
     etf_profile: Mapped["EtfProfile"] = relationship("EtfProfile", lazy="selectin")
 
