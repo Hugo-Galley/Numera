@@ -1,4 +1,10 @@
 import React, { useState, useEffect, useMemo } from "react"
+import { API_BASE } from "@/lib/api"
+
+/** URL d'un logo choisi (`si:claude`, `file:<hash>.png`), servi par le backend. */
+export function logoUrl(ref: string): string {
+  return `${API_BASE}/logos/img/${ref}`
+}
 
 const NAME_TO_TICKER: Record<string, string> = {
   // Tech & Global
@@ -284,12 +290,17 @@ interface CompanyLogoProps {
   ticker?: string
   name?: string
   isin?: string
+  /** Logo choisi manuellement : prioritaire sur la déduction par ticker/nom. */
+  logo?: string | null
   className?: string
   alt?: string
 }
 
-export function CompanyLogo({ ticker, name, isin, className = "h-7 w-7", alt }: CompanyLogoProps) {
-  const candidates = useMemo(() => resolveCandidates(ticker, name, isin), [ticker, name, isin])
+export function CompanyLogo({ ticker, name, isin, logo, className = "h-7 w-7", alt }: CompanyLogoProps) {
+  const candidates = useMemo(
+    () => (logo ? [logoUrl(logo)] : resolveCandidates(ticker, name, isin)),
+    [logo, ticker, name, isin],
+  )
   const [candidateIndex, setCandidateIndex] = useState(0)
   const [hasError, setHasError] = useState(false)
 

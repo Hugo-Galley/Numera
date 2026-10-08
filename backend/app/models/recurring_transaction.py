@@ -24,6 +24,8 @@ class RecurringTransaction(Base):
     note: Mapped[str | None] = mapped_column(String(255), nullable=True)
     transfer_to_account_id: Mapped[int | None] = mapped_column(ForeignKey("accounts.id", ondelete="SET NULL"), nullable=True)  # virement vers ce compte
 
+    logo: Mapped[str | None] = mapped_column(String(64), nullable=True)  # "si:<slug>" (Simple Icons) ou "file:<hash>.png" (favicon local)
+
     # Asset Allocation (Sprint 4)
     asset_class: Mapped[str | None] = mapped_column(String(32), nullable=True)
     sector: Mapped[str | None] = mapped_column(String(64), nullable=True)

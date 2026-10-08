@@ -1,6 +1,15 @@
 from datetime import datetime
+import re
 from pydantic import BaseModel, Field, field_validator
 from app.schemas.category import CategoryRead
+
+LOGO_REF_RE = re.compile(r"^(si:[a-z0-9]{1,60}|file:[0-9a-f]{16}\.png)$")
+
+
+def _check_logo(v: str | None) -> str | None:
+    if v is not None and not LOGO_REF_RE.match(v):
+        raise ValueError("invalid logo reference")
+    return v
 
 
 class RecurringTransactionBase(BaseModel):
@@ -28,6 +37,9 @@ class RecurringTransactionBase(BaseModel):
     quantity: float | None = None
     unit_price: float | None = None
     etf_profile_id: int | None = None
+    logo: str | None = None
+
+    _validate_logo = field_validator("logo")(_check_logo)
 
 class RecurringTransactionCreate(RecurringTransactionBase):
     pass
@@ -57,6 +69,9 @@ class RecurringTransactionUpdate(BaseModel):
     quantity: float | None = None
     unit_price: float | None = None
     etf_profile_id: int | None = None
+    logo: str | None = None
+
+    _validate_logo = field_validator("logo")(_check_logo)
 
 class RecurringTransactionRead(RecurringTransactionBase):
     id: int

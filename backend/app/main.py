@@ -18,6 +18,7 @@ from app.api.imports import router as imports_router
 from app.api.investment_transactions import router as investment_transactions_router
 from app.api.transactions import router as transactions_router
 from app.api.recurring_transactions import router as recurring_transactions_router
+from app.api.logos import router as logos_router, public_router as logos_public_router
 from app.api.savings_goals import router as savings_goals_router
 from app.api.categorization_rules import router as categorization_rules_router
 from app.api.merchants import router as merchants_router
@@ -159,6 +160,7 @@ app.add_middleware(
 
 app.include_router(health_router)
 app.include_router(auth_router)
+app.include_router(logos_public_router)  # <img> ne peut pas envoyer le JWT : lecture seule, références validées
 
 # Protected routers
 protected_routers = [
@@ -183,6 +185,7 @@ protected_routers = [
     diversity_router,
     tax_router,
     transfer_rules_router,
+    logos_router,
 ]
 
 for router in protected_routers:

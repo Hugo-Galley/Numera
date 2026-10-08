@@ -188,7 +188,8 @@ Un point zéro sert de base de performance pour un compte.
 - `/balance-snapshots`
 - `/goals`
 - `/categorization-rules`
-- `/recurring-transactions` (+ `POST /trigger`) ; `transfer_to_account_id` en fait une récurrence « virement » (sortie + entrée liées à chaque échéance)
+- `/recurring-transactions` (+ `POST /trigger`) ; `transfer_to_account_id` en fait une récurrence « virement » (sortie + entrée liées à chaque échéance) ; `logo` optionnel (`si:<slug>` Simple Icons ou `file:<hash>.png` favicon local)
+- `/logos` : `GET /search?q=` (catalogue Simple Icons embarqué `app/assets/simple_icons/`, CC0), `POST /from-domain` (télécharge une fois le favicon d'un domaine via le service favicon de Google, stocké dans `data/logos/`, réglage `logos_dir`) ; `GET /logos/img/{ref}` est **public** (lecture seule, référence validée par regex) car une balise `<img>` n'envoie pas le JWT
 - `/transfer-rules` (CRUD, `POST /apply[?dry_run=true&rule_id=]` : rattrapage de l'historique)
 - `/transactions/potential-transfers[?months=]` (suggestions), `GET /transactions/{id}/transfer-candidates` (liaison manuelle), `POST /transactions/{id}/transfer-counterpart`, `link/{other_id}`, `unlink`, `ignore[?other_id=]`
 - `/tags`

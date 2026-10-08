@@ -18,6 +18,7 @@ class Settings(BaseSettings):
     app_name: str = "Suivi Budget API"
     app_env: str = "dev"
     database_url: str = "sqlite:///./data/suivi_budget.db"
+    logos_dir: str = "./data/logos"  # favicons d'entreprises mis en cache localement
 
     # Security
     SECRET_KEY: str = "placeholder-key-to-be-replaced-in-env"

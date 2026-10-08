@@ -82,6 +82,7 @@ import { fr } from "date-fns/locale"
 import { cn } from "@/lib/utils"
 import { COUNTRIES } from "@/lib/countries"
 import { SalaryManager } from "@/components/tools/SalaryManager"
+import { LogoPicker } from "@/components/ui/LogoPicker"
 
 type Category = {
   id: number
@@ -122,6 +123,7 @@ type RecurringTransaction = {
   quantity?: number | null
   unit_price?: number | null
   etf_profile_id?: number | null
+  logo?: string | null
   category?: Category
 }
 
@@ -169,6 +171,7 @@ export default function RecurringTransactions() {
     quantity: "",
     unit_price: "",
     etf_profile_id: null as number | null,
+    logo: null as string | null,
   })
 
   const selectedAccount = accounts.find(a => a.id.toString() === formData.account_id)
@@ -246,6 +249,7 @@ export default function RecurringTransactions() {
       quantity: "",
       unit_price: "",
       etf_profile_id: null,
+      logo: null,
     })
     setIsFormOpen(true)
   }
@@ -277,6 +281,7 @@ export default function RecurringTransactions() {
       quantity: tx.quantity != null ? tx.quantity.toString() : "",
       unit_price: tx.unit_price != null ? tx.unit_price.toString() : "",
       etf_profile_id: tx.etf_profile_id || null,
+      logo: tx.logo || null,
     })
     setIsFormOpen(true)
   }
@@ -304,6 +309,7 @@ export default function RecurringTransactions() {
       quantity: formData.quantity ? parseFloat(formData.quantity) : null,
       unit_price: formData.unit_price ? parseFloat(formData.unit_price) : null,
       etf_profile_id: formData.etf_profile_id || null,
+      logo: formData.logo || null,
     }
 
     try {
@@ -387,6 +393,7 @@ export default function RecurringTransactions() {
       quantity: "",
       unit_price: "",
       etf_profile_id: null,
+      logo: null,
     })
     setIsFormOpen(true)
   }
@@ -500,6 +507,7 @@ export default function RecurringTransactions() {
                               ticker={tx.ticker || undefined}
                               name={tx.name}
                               isin={tx.isin || undefined}
+                              logo={tx.logo}
                               className="h-8 w-8 rounded-lg shadow-2xs shrink-0"
                             />
                             <div className="flex flex-col min-w-0">
@@ -850,6 +858,15 @@ export default function RecurringTransactions() {
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 placeholder="Ex: Loyer, Netflix, Salaire..."
+              />
+            </div>
+
+            <div className="grid gap-2">
+              <Label>Logo</Label>
+              <LogoPicker
+                value={formData.logo}
+                suggestFor={formData.name}
+                onChange={(logo) => setFormData((prev) => ({ ...prev, logo }))}
               />
             </div>
 
