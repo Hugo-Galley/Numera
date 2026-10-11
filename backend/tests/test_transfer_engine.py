@@ -225,3 +225,26 @@ def test_create_counterpart_links_and_recalculates(client, db_session: Session):
     assert client.post(f"/transactions/{s.id}/transfer-counterpart", json={"account_id": main.id}).status_code == 422
     e = tx(db_session, livret, "Entree", 10, datetime(2026, 6, 9))
     assert client.post(f"/transactions/{e.id}/transfer-counterpart", json={"account_id": main.id}).status_code == 422
+
+
+def test_suggestions_default_to_full_history_and_wider_tolerance(client, db_session: Session):
+    main, livret = make_accounts(db_session, ("Principal", "courant"), ("Livret A", "epargne"))
+    old = datetime(2020, 3, 5)
+    s = tx(db_session, main, "Sortie", 500, old)
+    e = tx(db_session, livret, "Entree", 503, datetime(2020, 3, 9))  # +4 jours, +0,6 %
+    pairs = client.get("/transactions/potential-transfers").json()
+    assert [(p["sortie"]["id"], p["entree"]["id"]) for p in pairs] == [(s.id, e.id)]
+    assert client.get("/transactions/potential-transfers", params={"months": 24}).json() == []
+    assert client.get("/transactions/potential-transfers", params={"days_tolerance": 3}).json() == []
+
+
+def test_api_update_rule_fields(client, db_session: Session):
+    main, livret, pea = make_accounts(db_session, ("Principal", "courant"), ("Livret A", "epargne"), ("PEA", "investissement"))
+    r = rule(db_session, main, livret, pattern="LIVRET", amount=500.0)
+    body = client.patch(f"/transfer-rules/{r.id}", json={
+        "dest_account_id": pea.id, "pattern": None, "amount": None, "amount_tolerance_pct": 2.5, "day_tolerance": 7,
+    }).json()
+    assert body["dest_account_id"] == pea.id and body["pattern"] is None and body["amount"] is None
+    db_session.refresh(r)
+    assert (r.amount_tolerance_pct, r.day_tolerance) == (2.5, 7)
+    assert client.patch(f"/transfer-rules/{r.id}", json={"dest_account_id": main.id}).status_code == 422

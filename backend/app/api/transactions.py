@@ -129,9 +129,9 @@ def list_transactions(
 
 @router.get("/potential-transfers")
 async def find_potential_transfers(
-    days_tolerance: int = Query(default=3, ge=0, le=14),
-    amount_tolerance_pct: float = Query(default=0.01, ge=0, le=10),
-    months: int = Query(default=24, ge=0, le=240, description="0 = tout l'historique"),
+    days_tolerance: int = Query(default=5, ge=0, le=30),
+    amount_tolerance_pct: float = Query(default=1.0, ge=0, le=50),
+    months: int = Query(default=0, ge=0, le=240, description="0 = tout l'historique"),
     db: Session = Depends(get_db)
 ):
     """

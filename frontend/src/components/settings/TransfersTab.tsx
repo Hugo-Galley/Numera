@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import {
   AlertCircle,
   ArrowRight,
@@ -7,7 +7,9 @@ import {
   CheckCircle2,
   History,
   Link,
+  Pencil,
   Plus,
+  Search,
   Trash2,
   Unlink,
   Wallet,
@@ -44,6 +46,16 @@ import type {
 const ORIGIN_LABEL: Record<string, string> = { manual: "Manuel", rule: "Règle", recurring: "Récurrence" }
 
 const EMPTY_FORM = { source: "", dest: "", pattern: "", amount: "", tolerance: "1", days: "5" }
+const DEFAULT_SEARCH = { days: "5", tolerance: "1" }
+
+function suggestionsQuery(search: typeof DEFAULT_SEARCH) {
+  const params = new URLSearchParams({
+    months: "0",
+    days_tolerance: String(parseInt(search.days) || 0),
+    amount_tolerance_pct: String(parseFloat(search.tolerance.replace(",", ".")) || 0),
+  })
+  return `/transactions/potential-transfers?${params}`
+}
 
 export function TransfersTab() {
   const [rules, setRules] = useState<TransferRule[]>([])
@@ -53,7 +65,11 @@ export function TransfersTab() {
   const [loading, setLoading] = useState(true)
 
   const [formOpen, setFormOpen] = useState(false)
+  const [editingId, setEditingId] = useState<number | null>(null)
   const [form, setForm] = useState(EMPTY_FORM)
+  const [search, setSearch] = useState(DEFAULT_SEARCH)
+  const appliedSearch = useRef(DEFAULT_SEARCH)
+  const [searching, setSearching] = useState(false)
   const [preview, setPreview] = useState<TransferApplyResult | null>(null)
 
   const loadData = useCallback(async () => {
@@ -61,7 +77,7 @@ export function TransfersTab() {
     try {
       const [r, p, l, accs] = await Promise.all([
         api.get<TransferRule[]>("/transfer-rules"),
-        api.get<PotentialTransfer[]>("/transactions/potential-transfers"),
+        api.get<PotentialTransfer[]>(suggestionsQuery(appliedSearch.current)),
         api.get<LinkedTransfer[]>("/transactions?is_transfer=true&type=Sortie&limit=1000"),
         api.get<AccountLite[]>("/accounts"),
       ])
@@ -83,26 +99,64 @@ export function TransfersTab() {
 
   const accountName = (id: number | null) => accounts.find((a) => a.id === id)?.name ?? "Compte inconnu"
 
-  async function createRule() {
+  async function searchSuggestions() {
+    setSearching(true)
+    try {
+      setPotentials(await api.get<PotentialTransfer[]>(suggestionsQuery(search)))
+      appliedSearch.current = search
+    } catch {
+      toast.error("Échec de la recherche (tolérance jours ≤ 30, montant ≤ 50 %)")
+    } finally {
+      setSearching(false)
+    }
+  }
+
+  function openCreate() {
+    setEditingId(null)
+    setForm(EMPTY_FORM)
+    setFormOpen(true)
+  }
+
+  function openEdit(rule: TransferRule) {
+    setEditingId(rule.id)
+    setForm({
+      source: rule.source_account_id.toString(),
+      dest: rule.dest_account_id.toString(),
+      pattern: rule.pattern ?? "",
+      amount: rule.amount != null ? rule.amount.toString() : "",
+      tolerance: rule.amount_tolerance_pct.toString(),
+      days: rule.day_tolerance.toString(),
+    })
+    setFormOpen(true)
+  }
+
+  async function saveRule() {
     if (!form.source || !form.dest) {
       toast.error("Choisissez un compte source et un compte destination")
       return
     }
+    const payload = {
+      source_account_id: Number(form.source),
+      dest_account_id: Number(form.dest),
+      pattern: form.pattern.trim() || null,
+      amount: form.amount ? parseFloat(form.amount.replace(",", ".")) : null,
+      amount_tolerance_pct: parseFloat(form.tolerance.replace(",", ".")) || 1,
+      day_tolerance: parseInt(form.days) || 5,
+    }
     try {
-      await api.post("/transfer-rules", {
-        source_account_id: Number(form.source),
-        dest_account_id: Number(form.dest),
-        pattern: form.pattern.trim() || null,
-        amount: form.amount ? parseFloat(form.amount.replace(",", ".")) : null,
-        amount_tolerance_pct: parseFloat(form.tolerance.replace(",", ".")) || 1,
-        day_tolerance: parseInt(form.days) || 5,
-      })
-      toast.success("Règle créée")
+      if (editingId === null) {
+        await api.post("/transfer-rules", payload)
+        toast.success("Règle créée")
+      } else {
+        await api.patch(`/transfer-rules/${editingId}`, payload)
+        toast.success("Règle modifiée")
+      }
       setFormOpen(false)
+      setEditingId(null)
       setForm(EMPTY_FORM)
       loadData()
     } catch {
-      toast.error("Impossible de créer la règle")
+      toast.error(editingId === null ? "Impossible de créer la règle" : "Impossible de modifier la règle")
     }
   }
 
@@ -219,7 +273,7 @@ export function TransfersTab() {
               <History className="h-4 w-4" />
               Rattraper le passé
             </Button>
-            <Button size="sm" className="gap-2 bg-indigo-600 hover:bg-indigo-700" onClick={() => setFormOpen(true)}>
+            <Button size="sm" className="gap-2 bg-indigo-600 hover:bg-indigo-700" onClick={openCreate}>
               <Plus className="h-4 w-4" />
               Nouvelle règle
             </Button>
@@ -243,6 +297,9 @@ export function TransfersTab() {
                 </div>
                 <div className="flex items-center gap-3">
                   <Switch checked={rule.is_active} onCheckedChange={() => toggleRule(rule)} />
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-slate-400 hover:bg-indigo-50 hover:text-indigo-600" onClick={() => openEdit(rule)} aria-label="Modifier la règle">
+                    <Pencil className="h-4 w-4" />
+                  </Button>
                   <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-slate-400 hover:bg-red-50 hover:text-red-600" onClick={() => deleteRule(rule)}>
                     <Trash2 className="h-4 w-4" />
                   </Button>
@@ -266,8 +323,23 @@ export function TransfersTab() {
             Suggestions à confirmer
           </h3>
           <p className="mt-1 text-sm text-slate-500">
-            Mouvements qui ressemblent à des virements internes mais qu'aucune règle n'a pu lier sans doute. Liez-les pour les exclure de vos dépenses réelles.
+            Mouvements qui ressemblent à des virements internes mais qu'aucune règle n'a pu lier sans doute, sur tout l'historique. Liez-les pour les exclure de vos dépenses réelles.
           </p>
+          <div className="mt-3 flex flex-wrap items-end gap-3">
+            <div className="grid gap-1">
+              <Label htmlFor="search-days" className="text-xs text-slate-500">Écart de date (jours)</Label>
+              <Input id="search-days" inputMode="numeric" className="h-8 w-24" value={search.days} onChange={(e) => setSearch({ ...search, days: e.target.value })} />
+            </div>
+            <div className="grid gap-1">
+              <Label htmlFor="search-tol" className="text-xs text-slate-500">Écart de montant (%)</Label>
+              <Input id="search-tol" inputMode="decimal" className="h-8 w-24" value={search.tolerance} onChange={(e) => setSearch({ ...search, tolerance: e.target.value })} />
+            </div>
+            <Button variant="outline" size="sm" className="gap-2" onClick={searchSuggestions} disabled={searching}>
+              <Search className="h-4 w-4" />
+              {searching ? "Recherche..." : "Rechercher"}
+            </Button>
+            <span className="text-xs text-slate-400">{potentials.length} suggestion{potentials.length > 1 ? "s" : ""}</span>
+          </div>
         </div>
 
         <div className="grid gap-4">
@@ -392,12 +464,15 @@ export function TransfersTab() {
         </p>
       </div>
 
-      {/* Nouvelle règle */}
+      {/* Création / édition de règle */}
       <Dialog open={formOpen} onOpenChange={setFormOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Nouvelle règle de virement</DialogTitle>
-            <DialogDescription>Les sorties du compte source seront reliées aux entrées du compte destination.</DialogDescription>
+            <DialogTitle>{editingId === null ? "Nouvelle règle de virement" : "Modifier la règle de virement"}</DialogTitle>
+            <DialogDescription>
+              Les sorties du compte source seront reliées aux entrées du compte destination.
+              {editingId !== null && " Les virements déjà liés ne changent pas : utilisez « Rattraper le passé » pour appliquer la règle modifiée à l'historique."}
+            </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4">
             <div className="grid grid-cols-2 gap-4">
@@ -431,7 +506,7 @@ export function TransfersTab() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setFormOpen(false)}>Annuler</Button>
-            <Button className="bg-indigo-600 hover:bg-indigo-700" onClick={createRule}>Créer la règle</Button>
+            <Button className="bg-indigo-600 hover:bg-indigo-700" onClick={saveRule}>{editingId === null ? "Créer la règle" : "Enregistrer"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

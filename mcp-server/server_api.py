@@ -1032,6 +1032,48 @@ def create_transfer_rule(
 
 
 @mcp.tool()
+def update_transfer_rule(
+    rule_id: int,
+    source_account_id: int | None = None,
+    dest_account_id: int | None = None,
+    pattern: str | None = None,
+    amount: float | None = None,
+    amount_tolerance_pct: float | None = None,
+    day_tolerance: int | None = None,
+    is_active: bool | None = None,
+    clear_pattern: bool = False,
+    clear_amount: bool = False,
+) -> str:
+    """Modifie une règle de virement existante (seuls les champs fournis changent).
+    `clear_pattern` / `clear_amount` retirent le filtre de libellé ou de montant. Les virements déjà liés
+    ne bougent pas : relancer apply_transfer_rules pour appliquer la règle modifiée à l'historique."""
+    try:
+        fields = {
+            "source_account_id": source_account_id,
+            "dest_account_id": dest_account_id,
+            "pattern": pattern,
+            "amount": amount,
+            "amount_tolerance_pct": amount_tolerance_pct,
+            "day_tolerance": day_tolerance,
+            "is_active": is_active,
+        }
+        payload = {k: v for k, v in fields.items() if v is not None}
+        if clear_pattern:
+            payload["pattern"] = None
+        if clear_amount:
+            payload["amount"] = None
+        if not payload:
+            return "❌ Aucun champ à modifier."
+        resp = api.patch(f"/transfer-rules/{rule_id}", json_data=payload)
+        error = handle_response(resp)
+        if error:
+            return error
+        return f"✅ Règle #{rule_id} modifiée."
+    except Exception as e:
+        return f"❌ Erreur : {e}"
+
+
+@mcp.tool()
 def apply_transfer_rules(dry_run: bool = True) -> str:
     """Rattrape l'historique avec les règles de virement actives. Par défaut `dry_run=True` : aperçu
     du nombre de couples qui seraient liés, sans rien écrire."""
