@@ -44,7 +44,9 @@ from app.models.investment_transaction import InvestmentTransaction
 from app.models.transaction import Transaction
 from app.models.recurring_transaction import RecurringTransaction
 from app.core.finance import get_recurring_occurrences
+from app.core import reimbursements as remb
 from app.core.logging import get_logger
+from app.models.reimbursement import ReimbursementClaim
 from app.schemas.transaction import TransactionRead
 from .budget import budget_analytics, budget_alerts
 
@@ -60,6 +62,28 @@ from .utils import (
     _savings_total_at,
     _get_ticket_restaurant_account_ids,
 )
+
+
+def _unallocated_reimbursements_query(db: Session, now: datetime):
+    """Remboursements reçus (catégorie « Remboursement… ») non affectés, s'il existe une créance ouverte."""
+    has_open_claim = any(
+        remb.claim_received(db, claim.id) < claim.expected_amount - remb.EPS
+        for claim in db.query(ReimbursementClaim).all()
+    )
+    if not has_open_claim:
+        return None
+    return (
+        db.query(Transaction)
+        .join(Category, Transaction.category_id == Category.id)
+        .filter(
+            Transaction.type == "Entree",
+            Category.name.ilike("Remboursement%"),
+            Transaction.reimbursement_offset == 0,
+            Transaction.is_transfer.is_(False),
+            Transaction.date >= now - timedelta(days=180),
+        )
+        .order_by(Transaction.date.desc(), Transaction.id.desc())
+    )
 
 
 @router.get("/audit", response_model=DataAuditResponse)
@@ -316,6 +340,21 @@ def data_audit(db: Session = Depends(get_db)):
             samples=transfer_samples,
         ))
 
+    unallocated_query = _unallocated_reimbursements_query(db, now)
+    unallocated = unallocated_query.all() if unallocated_query is not None else []
+    if unallocated:
+        issues.append(DataAuditIssue(
+            id="unallocated-reimbursements",
+            type="reimbursements",
+            severity="low",
+            title="Remboursements à affecter",
+            description="Ces remboursements reçus ne sont rattachés à aucune créance : ils comptent encore comme revenus et la dépense d'origine reste comptée en entier.",
+            count=len(unallocated),
+            action_label="Affecter",
+            action_url="/reimbursements",
+            samples=[_tx_sample(t) for t in unallocated[:5]],
+        ))
+
     high_count = sum(1 for issue in issues if issue.severity == "high")
     medium_count = sum(1 for issue in issues if issue.severity == "medium")
     low_count = sum(1 for issue in issues if issue.severity == "low")
@@ -455,6 +494,11 @@ def data_audit_issue_details(issue_id: str, db: Session = Depends(get_db)):
                     return {"issue_id": issue_id, "transfer_pairs": pairs}
         return {"issue_id": issue_id, "transfer_pairs": pairs}
 
+    if issue_id == "unallocated-reimbursements":
+        query = _unallocated_reimbursements_query(db, datetime.now())
+        transactions = query.limit(200).all() if query is not None else []
+        return {"issue_id": issue_id, "transactions": [_tx_read(tx) for tx in transactions]}
+
     raise HTTPException(status_code=404, detail="Audit issue not found or not editable")
 
 
@@ -593,6 +637,23 @@ async def get_action_center(db: Session = Depends(get_db)):
                 action_url="/settings?tab=transfers",
                 action_type="link",
                 metadata={"issue_id": "unmatched-transfers"}
+            ))
+
+        # 1.5 Remboursements reçus non affectés à une créance
+        unallocated_query = _unallocated_reimbursements_query(db, now)
+        unallocated_count = unallocated_query.count() if unallocated_query is not None else 0
+        if unallocated_count:
+            actions.append(ActionItem(
+                id="unallocated-reimbursements",
+                type="audit",
+                severity="low",
+                title="Remboursements à affecter",
+                description=f"{unallocated_count} remboursement(s) reçu(s) ne sont rattachés à aucune créance ouverte.",
+                action_label="Affecter",
+                action_url="/reimbursements",
+                action_type="link",
+                samples=[_tx_sample(tx) for tx in unallocated_query.limit(5).all()],
+                metadata={"issue_id": "unallocated-reimbursements"}
             ))
 
         # --- 2. Budget Actions (New) ---

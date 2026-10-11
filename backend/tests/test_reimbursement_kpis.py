@@ -75,3 +75,36 @@ def test_partial_allocation_counts_remainder_as_income(client, db_session, scena
     assert octo["revenus_totaux"] == 20.0
     sept = client.get("/analytics/budget", params={"month": 9, "year": 2025}).json()
     assert sept["depenses_totales"] == 30.0
+
+
+def test_audit_flags_unallocated_reimbursements(client, db_session, scenario):
+    from app.core.time import utcnow_naive
+    main, _, _ = scenario
+    cat = db_session.query(Category).filter(Category.name == "Remboursement (recu)").one()
+    cpam = _tx(db_session, main, "Entree", 12.0, utcnow_naive(), "CPAM", cat)
+    issues = {i["id"]: i for i in client.get("/analytics/audit").json()["issues"]}
+    assert issues["unallocated-reimbursements"]["count"] == 1
+    assert issues["unallocated-reimbursements"]["action_url"] == "/reimbursements"
+    details = client.get("/analytics/audit/unallocated-reimbursements").json()
+    assert [t["id"] for t in details["transactions"]] == [cpam.id]
+
+
+def test_audit_silent_without_open_claim(client, db_session):
+    from app.core.time import utcnow_naive
+    main = Account(name="P", type="courant", currency="EUR", active=True)
+    cat = Category(name="Remboursement (recu)", type="revenu")
+    db_session.add_all([main, cat])
+    db_session.commit()
+    _tx(db_session, main, "Entree", 12.0, utcnow_naive(), "CPAM", cat)
+    ids = {i["id"] for i in client.get("/analytics/audit").json()["issues"]}
+    assert "unallocated-reimbursements" not in ids
+
+
+def test_action_center_lists_unallocated_reimbursements(client, db_session, scenario):
+    from app.core.time import utcnow_naive
+    main, _, _ = scenario
+    cat = db_session.query(Category).filter(Category.name == "Remboursement (recu)").one()
+    _tx(db_session, main, "Entree", 12.0, utcnow_naive(), "CPAM", cat)
+    actions = {a["id"]: a for a in client.get("/analytics/actions").json()["actions"]}
+    action = actions["unallocated-reimbursements"]
+    assert action["action_type"] == "link" and action["action_url"] == "/reimbursements"

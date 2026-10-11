@@ -69,6 +69,9 @@ Pour ajouter un nouveau type d'action :
 - `reconciliation-gap-{account_id}-{date}` : le dernier snapshot (relevé du courtier) s'écarte de plus de 2 % de la valeur calculée par Numera (opération, frais ou dividende manquant) ; calcul sans appel réseau d'historique.
 - `dividend-missing-{account_id}-{ticker}` : position marquée distribuante (`pays_dividends`) sans dividende saisi depuis plus de 13 mois (saisie manuelle, aucun appel externe).
 
+### Action « remboursements » (`type: audit`)
+- `unallocated-reimbursements` : entrées de catégorie « Remboursement… » des 180 derniers jours non affectées à une créance (`reimbursement_offset = 0`), remontée seulement s'il existe au moins une créance ouverte. `action_type: link` vers `/reimbursements`. Aussi présente dans `/analytics/audit` (détail : `GET /analytics/audit/unallocated-reimbursements`). Requête partagée : `_unallocated_reimbursements_query` (`audit.py`).
+
 ### Pièges à éviter
 - **Doubles appels** : Ne pas rafraîchir la liste complète (`loadActions`) trop souvent ; privilégier le rafraîchissement ciblé si possible.
 - **IDs stables** : L'ID de l'action doit être déterministe (ex: `suggest-rule-{merchant}`) pour permettre au frontend de garder l'état local si nécessaire.

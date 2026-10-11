@@ -29,6 +29,15 @@ Un virement est un couple **1 pour 1** : une `Sortie` et une `Entree` (ou un `ve
 - Récurrence « virement » : `recurring_transactions.transfer_to_account_id` (Sortie d'un compte non titres) → chaque échéance crée la sortie **et** l'entrée/le versement (`create_counterpart`, conversion de devise, soldes recalculés), liées avec `link_origin = recurring`. Avec un ticker (destination `investissement` uniquement), la jambe d'entrée est un `versement` avec titre : dépôt **et** achat de parts en une opération (cash neutre, compté une seule fois dans le montant investi), `rebuild_holdings` relancé. Deux récurrences existantes (une par compte) sont reliées par une règle.
 - Liaison manuelle : `GET /transactions/{id}/transfer-candidates` (±15 j, ±5 %, tous comptes) et `POST /transactions/{id}/transfer-counterpart` (crée l'entrée manquante). UI : `TransferLinkDialog` (bouton sur chaque ligne d'`AccountDetail`) et onglet Paramètres › Virements.
 
+## Remboursements
+
+Une `Sortie` porte des **créances** (`reimbursement_claims` : débiteur libre, montant attendu) ; des `Entree` leur sont **affectées** avec un montant (`reimbursement_allocations`, plusieurs entrées par créance et plusieurs créances par entrée). Tout passe par `core/reimbursements.py`, qui recalcule `transactions.reimbursement_offset` (Sortie : total reçu ; Entree : total affecté).
+
+- KPI revenus/dépenses **nets** sur le mois et la catégorie de la dépense : `NET_AMOUNT = amount − reimbursement_offset` (`api/analytics/utils.py`) dans budget, budget-alerts, expenses-by-category, top-merchants, tags, kpi-history, timeseries, monthly-report, money-flow, sankey, insights. Restent **bruts** : soldes, account-flow-summary, calendar, cashflow-projection, subscriptions, tax, série salaire.
+- Règles : Sortie ↔ Entree, même devise de compte, jamais un virement interne (et `find_pairs` / `candidates_for` / la liaison manuelle excluent ces transactions), plafonds (créances ≤ dépense, affectations ≤ attendu et ≤ entrée, arrondi au centime), attendu jamais sous le reçu. Modifier le type ou baisser le montant d'une transaction liée est refusé (400) ; supprimer l'une libère l'autre (`detach_before_delete` + `sync_offsets`).
+- Abandon : ramener l'attendu au reçu, ou supprimer la créance. Pas d'espèces, pas de liaison automatique (candidates : débiteur dans le libellé, puis montant exact, puis date ; −7 j / +180 j).
+- Centre d'Actions : `unallocated-reimbursements` (entrées « Remboursement… » des 180 derniers jours non affectées, s'il existe une créance ouverte).
+
 ## Point zéro et performance
 
 Un seul `is_zero_point` par compte investissement (`POST /balance-snapshots/set-zero-point`). Performance : compte titres = valeur calculée (positions × cours + espèces, `core/portfolio.py`) − montant investi ; assurance-vie = dernier snapshot − base point zéro − flux (`api/analytics/investments.py`). Allocation avancée et scanner de diversification utilisent les `etf_profiles` (pays/secteurs/top holdings en JSON texte).

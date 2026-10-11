@@ -1090,6 +1090,83 @@ def apply_transfer_rules(dry_run: bool = True) -> str:
 
 
 @mcp.tool()
+def list_reimbursement_claims(status: str = "open", debtor: str | None = None) -> str:
+    """Créances de remboursement (« ce qu'on me doit ») : dépense, débiteur, attendu, reçu, reste dû.
+    `status` : open (reste dû > 0, défaut), settled ou all."""
+    try:
+        params = {"status": status}
+        if debtor:
+            params["debtor"] = debtor
+        resp = api.get("/reimbursements/claims", params=params)
+        error = handle_response(resp)
+        if error:
+            return error
+        rows = [
+            {
+                "id": c["id"],
+                "date": c["expense"]["date"][:10],
+                "depense": c["expense"]["label"],
+                "debiteur": c["debtor"],
+                "attendu": c["expected_amount"],
+                "recu": c["received"],
+                "reste_du": c["remaining"],
+            }
+            for c in resp.json()
+        ]
+        total = round(sum(r["reste_du"] for r in rows), 2)
+        return f"💸 {len(rows)} créance(s), {total} restant dû :\n\n" + (format_table(rows) if rows else "Aucune créance.")
+    except Exception as e:
+        return f"❌ Erreur : {e}"
+
+
+@mcp.tool()
+def create_reimbursement_claim(transaction_id: int, debtor: str, expected_amount: float, note: str | None = None) -> str:
+    """Déclare qu'une dépense (Sortie) doit être remboursée en partie ou en totalité par `debtor`.
+    Le total des créances d'une dépense ne peut pas dépasser son montant."""
+    try:
+        resp = api.post("/reimbursements/claims", json_data={
+            "transaction_id": transaction_id, "debtor": debtor, "expected_amount": expected_amount, "note": note,
+        })
+        error = handle_response(resp)
+        if error:
+            return error
+        return f"✅ Créance #{resp.json()['id']} créée ({debtor}, {expected_amount})."
+    except Exception as e:
+        return f"❌ Erreur : {e}"
+
+
+@mcp.tool()
+def allocate_reimbursement(claim_id: int, entree_id: int, amount: float | None = None) -> str:
+    """Affecte une entrée (remboursement reçu) à une créance. Sans `amount` : le plus petit entre le reste dû
+    et la part non affectée de l'entrée. Les KPI deviennent nets : la dépense baisse, l'entrée n'est plus un revenu."""
+    try:
+        payload = {"entree_id": entree_id}
+        if amount is not None:
+            payload["amount"] = amount
+        resp = api.post(f"/reimbursements/claims/{claim_id}/allocations", json_data=payload)
+        error = handle_response(resp)
+        if error:
+            return error
+        data = resp.json()
+        return f"✅ Créance #{claim_id} : {data['received']} reçu, {data['remaining']} restant dû."
+    except Exception as e:
+        return f"❌ Erreur : {e}"
+
+
+@mcp.tool()
+def delete_reimbursement_claim(claim_id: int) -> str:
+    """Supprime une créance et ses affectations (abandon d'une créance sans rien de reçu)."""
+    try:
+        resp = api.delete(f"/reimbursements/claims/{claim_id}")
+        error = handle_response(resp)
+        if error:
+            return error
+        return f"✅ Créance #{claim_id} supprimée."
+    except Exception as e:
+        return f"❌ Erreur : {e}"
+
+
+@mcp.tool()
 def add_holding(
     account_id: int,
     ticker: str,
