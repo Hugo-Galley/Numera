@@ -227,3 +227,64 @@ def test_reimbursement_excludes_transfer_matching(client, db_session, resto):
     assert client.get("/transactions/potential-transfers").json() == []
     assert client.post(f"/transactions/{sortie.id}/link/{mirror.id}").status_code == 400
     assert client.get(f"/transactions/{mirror.id}/transfer-candidates").json() == []
+
+
+def test_categorization_apply_all_does_not_retype_reimbursed_transactions(client, db_session, resto):
+    from app.models.categorization_rule import CategorizationRule
+    main, sortie = resto
+    claim = remb.create_claim(db_session, sortie.id, "Denis", 30.0)
+    entree = tx(db_session, main, "Entree", 30.0, datetime(2026, 10, 3))
+    remb.allocate(db_session, claim, entree.id)
+    db_session.add(CategorizationRule(pattern="resto", transaction_type="Entree", priority=1))
+    db_session.commit()
+    assert client.post("/categorization-rules/apply-all").status_code == 200
+    db_session.expire_all()
+    assert db_session.get(Transaction, sortie.id).type == "Sortie"
+
+
+def _salary_setup(db_session, main):
+    from app.models.recurring_transaction import RecurringTransaction
+    from app.models.salary_config import SalaryConfig
+    from app.models.salary_month import SalaryMonth
+    from datetime import date
+    rec = RecurringTransaction(account_id=main.id, name="Salaire", type="Entree", amount=2000.0,
+                               frequency="monthly", start_date=datetime(2026, 1, 1))
+    db_session.add(rec)
+    db_session.commit()
+    config = SalaryConfig(salary_account_id=main.id, net_salary=2000.0, ticket_value=10.0,
+                          ticket_employee_share=5.0, salary_recurring_id=rec.id, is_active=True)
+    db_session.add(config)
+    db_session.commit()
+    db_session.add(SalaryMonth(salary_config_id=config.id, month_label="2026-10", salary_date=date(2026, 10, 3), is_generated=True))
+    salary = Transaction(
+        account_id=main.id, date=datetime(2026, 10, 3), month_label="2026-10", type="Entree", merchant="Salaire",
+        amount=2000.0, original_amount=2000.0, currency="EUR", running_balance=0.0,
+        is_recurring=True, recurring_transaction_id=rec.id,
+    )
+    db_session.add(salary)
+    db_session.commit()
+    return salary
+
+
+def test_salary_reset_resyncs_reimbursed_expense(client, db_session, resto):
+    main, sortie = resto
+    salary = _salary_setup(db_session, main)
+    claim = remb.create_claim(db_session, sortie.id, "Employeur", 50.0)
+    remb.allocate(db_session, claim, salary.id)
+    salary_id, sortie_id = salary.id, sortie.id
+    assert client.delete("/salary/generate/2026/10").status_code == 200
+    db_session.expire_all()
+    assert db_session.get(Transaction, salary_id) is None
+    assert db_session.get(Transaction, sortie_id).reimbursement_offset == 0.0
+
+
+def test_salary_telecommuting_cannot_drop_below_allocations(client, db_session, resto):
+    main, sortie = resto
+    salary = _salary_setup(db_session, main)
+    big = tx(db_session, main, "Sortie", 3000.0, datetime(2026, 9, 1))
+    claim = remb.create_claim(db_session, big.id, "Employeur", 2000.0)
+    remb.allocate(db_session, claim, salary.id)
+    r = client.put("/salary/telecommuting/2026/10", json={"dates": ["2026-10-05", "2026-10-06"]})
+    assert r.status_code == 400
+    db_session.expire_all()
+    assert db_session.get(Transaction, salary.id).amount == 2000.0

@@ -52,7 +52,7 @@ Le point d'entrée `server.py` est un **dispatcher** qui lance l'un des deux ser
 
 Les outils d'écriture du mode API passent par l'API : les `running_balance` sont recalculés par le backend.
 
-> ⚠️ **Limite du mode SQLite** : `add_transaction` calcule le solde à partir de la dernière transaction du compte, mais `update_transaction` et `delete_transaction` ne recalculent pas les `running_balance`, et un ajout daté dans le passé laisse les soldes suivants faux. Pour toute écriture, préférer le mode API ; sinon, corriger ensuite les soldes via l'API (modifier une transaction depuis l'interface relance le recalcul du compte). Toute évolution du modèle de données impose de vérifier `server_sqlite.py`.
+> ⚠️ **Limite du mode SQLite** : `add_transaction` calcule le solde à partir de la dernière transaction du compte, mais `update_transaction` et `delete_transaction` ne recalculent pas les `running_balance`, et un ajout daté dans le passé laisse les soldes suivants faux. Pour toute écriture, préférer le mode API ; sinon, corriger ensuite les soldes via l'API (modifier une transaction depuis l'interface relance le recalcul du compte). Toute évolution du modèle de données impose de vérifier `server_sqlite.py`. Il ignore aussi les remboursements : modifier le montant ou le type, ou supprimer une transaction qui porte une créance ou une affectation, laisse `reimbursement_offset` et les créances incohérents (passer par le mode API).
 
 ---
 

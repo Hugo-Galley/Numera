@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react"
-import { HandCoins, Link, Pencil, Trash2 } from "lucide-react"
+import { HandCoins, Link, Pencil, Trash2, X } from "lucide-react"
 import { format } from "date-fns"
 import { toast } from "sonner"
 
@@ -114,12 +114,21 @@ export default function Reimbursements() {
         ))}
       </div>
 
-      <Tabs value={status} onValueChange={(v) => setStatus(v as "open" | "settled")}>
-        <TabsList>
-          <TabsTrigger value="open">À recevoir</TabsTrigger>
-          <TabsTrigger value="settled">Soldées</TabsTrigger>
-        </TabsList>
-      </Tabs>
+      <div className="flex flex-wrap items-center gap-3">
+        <Tabs value={status} onValueChange={(v) => setStatus(v as "open" | "settled")}>
+          <TabsList>
+            <TabsTrigger value="open">À recevoir</TabsTrigger>
+            <TabsTrigger value="settled">Soldées</TabsTrigger>
+          </TabsList>
+        </Tabs>
+        {debtor && (
+          <Button variant="outline" size="sm" className="gap-2" onClick={() => setDebtor(null)}>
+            {debtor}
+            <X className="h-3.5 w-3.5" />
+            <span className="sr-only">Retirer le filtre</span>
+          </Button>
+        )}
+      </div>
 
       {loading ? (
         <div className="space-y-3">

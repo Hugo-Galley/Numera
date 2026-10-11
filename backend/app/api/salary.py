@@ -1,6 +1,7 @@
 from datetime import date, datetime
 
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import and_, or_
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_db
@@ -251,6 +252,8 @@ def set_telecommuting_days(
             Transaction.month_label == month_label,
         ).first()
         if tx_salary:
+            from app.core import reimbursements as remb
+            remb.check_transaction_change(db, tx_salary, tx_salary.type, real_salary, False)
             tx_salary.amount = real_salary
             tx_salary.original_amount = real_salary
             tx_salary.note = (
@@ -365,6 +368,27 @@ def reset_generation(
 
     from app.models.transaction import Transaction
 
+    # Les remboursements affectés aux transactions supprimées libèrent leurs créances : on resynchronise
+    # l'autre côté après la suppression en masse (les FK en cascade suppriment créances et affectations)
+    from app.core import reimbursements as remb
+    recurring_ids = [i for i in (config.salary_recurring_id, config.ticket_recurring_id) if i]
+    doomed = db.query(Transaction).filter(
+        Transaction.month_label.in_(both_labels),
+        or_(
+            Transaction.recurring_transaction_id.in_(recurring_ids),
+            and_(
+                Transaction.merchant.in_(["Salaire", "Tickets Restaurant"]),
+                Transaction.is_recurring == True,
+                Transaction.recurring_transaction_id == None,
+            ),
+        ),
+    ).all()
+    reimbursement_others: set[int] = set()
+    for doomed_tx in doomed:
+        reimbursement_others |= remb.detach_before_delete(db, doomed_tx)
+    reimbursement_others -= {t.id for t in doomed}
+    db.flush()
+
     # Delete salary transactions (matching EITHER month_label format)
     if config.salary_recurring_id:
         db.query(Transaction).filter(
@@ -387,6 +411,7 @@ def reset_generation(
         Transaction.recurring_transaction_id == None,
     ).delete(synchronize_session="fetch")
 
+    remb.sync_offsets(db, reimbursement_others)
     db.commit()
 
     # Recalculate balances

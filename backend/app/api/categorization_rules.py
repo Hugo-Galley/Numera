@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_db
+from app.core import reimbursements as remb
 from app.models.categorization_rule import CategorizationRule
 from app.models.transaction import Transaction
 from app.schemas.categorization_rule import CategorizationRuleCreate, CategorizationRuleRead, CategorizationRuleUpdate
@@ -64,7 +65,8 @@ def apply_rules_to_transactions(db: Session = Depends(get_db)):
                 if rule.category_id and tx.category_id != rule.category_id:
                     tx.category_id = rule.category_id
                     tx_changed = True
-                if rule.transaction_type and tx.type != rule.transaction_type:
+                # Une transaction qui porte des remboursements garde son type (cf. core/reimbursements.py)
+                if rule.transaction_type and tx.type != rule.transaction_type and not remb.has_reimbursement(db, tx.id):
                     tx.type = rule.transaction_type
                     tx_changed = True
                     affected_balance_account_ids.add(tx.account_id)
