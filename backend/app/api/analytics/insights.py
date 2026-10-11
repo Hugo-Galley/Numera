@@ -55,6 +55,7 @@ logger = get_logger(__name__)
 router = APIRouter()
 
 from .utils import (
+    net_amount,
     _tx_sample,
     _tx_read,
     _savings_account_ids,
@@ -179,7 +180,7 @@ async def get_intelligent_insights(
     
     all_txs = large_tx_query.all()
     for tx, curr in all_txs:
-        val_eur = tx.amount / rates.get(curr, 1.0)
+        val_eur = net_amount(tx) / rates.get(curr, 1.0)
         # Exclude internal transfers or investments already tracked
         if tx.category and tx.category.name == "Investissement":
             continue

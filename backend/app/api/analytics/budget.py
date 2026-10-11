@@ -53,6 +53,7 @@ logger = get_logger(__name__)
 router = APIRouter()
 
 from .utils import (
+    NET_AMOUNT,
     _tx_sample,
     _tx_read,
     _savings_account_ids,
@@ -90,7 +91,7 @@ async def budget_analytics(
 
         revenus_by_curr = db.query(
             Account.currency,
-            func.coalesce(func.sum(Transaction.amount), 0.0).label("total")
+            func.coalesce(func.sum(NET_AMOUNT), 0.0).label("total")
         ).join(Account, Transaction.account_id == Account.id).filter(
             Transaction.type.in_(revenus_query_filter),
             Transaction.is_transfer == False
@@ -134,7 +135,7 @@ async def budget_analytics(
         # Calculate "Interets" separately — restricted to courant/epargne accounts
         interets_by_curr = db.query(
             Account.currency,
-            func.coalesce(func.sum(Transaction.amount), 0.0).label("total")
+            func.coalesce(func.sum(NET_AMOUNT), 0.0).label("total")
         ).join(Account, Transaction.account_id == Account.id).outerjoin(Category, Transaction.category_id == Category.id).filter(
             ((Transaction.type == "Interets") |
              (Category.name.in_(["Interets", "Intérêts", "Intérêt", "Interet", "Dividendes", "Dividende"]))),
@@ -169,7 +170,7 @@ async def budget_analytics(
         # Expenses grouped by account currency
         depenses_by_curr = db.query(
             Account.currency,
-            func.coalesce(func.sum(Transaction.amount), 0.0).label("total")
+            func.coalesce(func.sum(NET_AMOUNT), 0.0).label("total")
         ).join(Account, Transaction.account_id == Account.id).filter(
             Transaction.type == "Sortie",
             Transaction.is_transfer == False
@@ -207,7 +208,7 @@ async def budget_analytics(
         investments_by_curr = (
             db.query(
                 Account.currency,
-                func.coalesce(func.sum(Transaction.amount), 0.0).label("total")
+                func.coalesce(func.sum(NET_AMOUNT), 0.0).label("total")
             )
             .join(Account, Transaction.account_id == Account.id)
             .join(Category, Transaction.category_id == Category.id)
@@ -432,7 +433,7 @@ async def budget_analytics(
 
             # We need to re-query without currency conversion
             revenus_query = (
-                db.query(func.coalesce(func.sum(Transaction.amount), 0.0))
+                db.query(func.coalesce(func.sum(NET_AMOUNT), 0.0))
                 .filter(Transaction.account_id == account_id, Transaction.type.in_(["Entree", "Solde Initial"]), Transaction.is_transfer == False)
             )
             if start:
@@ -451,7 +452,7 @@ async def budget_analytics(
             revenus += float(itx_revenus_query.scalar() or 0.0)
             
             depenses_query = (
-                db.query(func.coalesce(func.sum(Transaction.amount), 0.0))
+                db.query(func.coalesce(func.sum(NET_AMOUNT), 0.0))
                 .filter(Transaction.account_id == account_id, Transaction.type == "Sortie", Transaction.is_transfer == False)
             )
             if start:
@@ -470,7 +471,7 @@ async def budget_analytics(
             
             # Calculate investments for specific account
             inv_q = (
-                db.query(func.coalesce(func.sum(Transaction.amount), 0.0))
+                db.query(func.coalesce(func.sum(NET_AMOUNT), 0.0))
                 .join(Category, Transaction.category_id == Category.id)
                 .filter(
                     Transaction.account_id == account_id, 
@@ -559,7 +560,7 @@ async def budget_alerts(
 
     # Monthly spending per category in EUR
     monthly_query = (
-        db.query(Transaction.category_id, Account.currency, func.sum(Transaction.amount))
+        db.query(Transaction.category_id, Account.currency, func.sum(NET_AMOUNT))
         .join(Account, Transaction.account_id == Account.id)
         .filter(
             Transaction.type == "Sortie",
@@ -584,7 +585,7 @@ async def budget_alerts(
 
     # Annual spending per category in EUR
     annual_query = (
-        db.query(Transaction.category_id, Account.currency, func.sum(Transaction.amount))
+        db.query(Transaction.category_id, Account.currency, func.sum(NET_AMOUNT))
         .join(Account, Transaction.account_id == Account.id)
         .filter(
             Transaction.type == "Sortie",

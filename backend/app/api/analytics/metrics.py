@@ -53,6 +53,7 @@ logger = get_logger(__name__)
 router = APIRouter()
 
 from .utils import (
+    NET_AMOUNT,
     _tx_sample,
     _tx_read,
     _savings_account_ids,
@@ -88,7 +89,7 @@ async def tags_analytics(
             Tag.name,
             Tag.color,
             Account.currency,
-            func.sum(Transaction.amount).label("total")
+            func.sum(NET_AMOUNT).label("total")
         ).join(transaction_tags, Tag.id == transaction_tags.c.tag_id) \
          .join(Transaction, Transaction.id == transaction_tags.c.transaction_id) \
          .join(Account, Transaction.account_id == Account.id) \
@@ -146,7 +147,7 @@ async def expenses_by_category(
         db.query(
             Category,
             Account.currency,
-            func.coalesce(func.sum(Transaction.amount), 0.0).label("total"),
+            func.coalesce(func.sum(NET_AMOUNT), 0.0).label("total"),
         )
         .join(Account, Transaction.account_id == Account.id)
         .join(Category, Transaction.category_id == Category.id)
@@ -248,7 +249,7 @@ async def top_merchants(
         db.query(
             func.coalesce(Merchant.name, Transaction.merchant).label("merchant"),
             Account.currency,
-            func.coalesce(func.sum(Transaction.amount), 0.0).label("total"),
+            func.coalesce(func.sum(NET_AMOUNT), 0.0).label("total"),
         )
         .join(Account, Transaction.account_id == Account.id)
         .outerjoin(Category, Transaction.category_id == Category.id)
@@ -386,7 +387,7 @@ async def kpi_history(
         tx_month_label,
         Account.currency,
         Transaction.type,
-        func.coalesce(func.sum(Transaction.amount), 0.0).label("total")
+        func.coalesce(func.sum(NET_AMOUNT), 0.0).label("total")
     ).select_from(Transaction).join(Account, Transaction.account_id == Account.id).filter(
         Transaction.date >= overall_start, Transaction.date < overall_end
     )
@@ -443,7 +444,7 @@ async def kpi_history(
     inv_cat_query = db.query(
         tx_month_label,
         Account.currency,
-        func.coalesce(func.sum(Transaction.amount), 0.0).label("total")
+        func.coalesce(func.sum(NET_AMOUNT), 0.0).label("total")
     ).select_from(Transaction).join(Account, Transaction.account_id == Account.id).join(Category, Transaction.category_id == Category.id).filter(
         Transaction.date >= overall_start, Transaction.date < overall_end,
         Transaction.type == "Sortie",
@@ -465,7 +466,7 @@ async def kpi_history(
     inte_cat_query = db.query(
         tx_month_label,
         Account.currency,
-        func.coalesce(func.sum(Transaction.amount), 0.0).label("total")
+        func.coalesce(func.sum(NET_AMOUNT), 0.0).label("total")
     ).select_from(Transaction).join(Account, Transaction.account_id == Account.id).join(Category, Transaction.category_id == Category.id).filter(
         Transaction.date >= overall_start, Transaction.date < overall_end,
         Transaction.type != "Interets",
@@ -574,7 +575,7 @@ async def timeseries_analytics(
         # Correctly handle multi-currency for global view
         income_by_curr = db.query(
             Account.currency,
-            func.coalesce(func.sum(Transaction.amount), 0.0).label("total")
+            func.coalesce(func.sum(NET_AMOUNT), 0.0).label("total")
         ).join(Account, Transaction.account_id == Account.id).filter(
             Transaction.date >= start,
             Transaction.date < end,
@@ -583,7 +584,7 @@ async def timeseries_analytics(
         
         expense_by_curr = db.query(
             Account.currency,
-            func.coalesce(func.sum(Transaction.amount), 0.0).label("total")
+            func.coalesce(func.sum(NET_AMOUNT), 0.0).label("total")
         ).join(Account, Transaction.account_id == Account.id).filter(
             Transaction.date >= start,
             Transaction.date < end,

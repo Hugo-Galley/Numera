@@ -9,6 +9,14 @@ from app.schemas.transaction import TransactionRead
 
 logger = get_logger(__name__)
 
+# Montant « économique » : brut moins la part remboursée (Sortie) ou affectée à une créance (Entree).
+# Les KPI de revenus/dépenses l'utilisent ; les flux de trésorerie (soldes, calendrier) restent en brut.
+NET_AMOUNT = Transaction.amount - Transaction.reimbursement_offset
+
+
+def net_amount(tx: Transaction) -> float:
+    return float(tx.amount) - float(tx.reimbursement_offset or 0.0)
+
 
 def _tx_sample(tx: Transaction) -> dict:
     return {

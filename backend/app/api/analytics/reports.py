@@ -60,6 +60,8 @@ def calc_diff(curr: float, prev: float) -> tuple[float, float]:
     return round(diff, 2), round(pct, 2)
 
 from .utils import (
+    net_amount,
+    NET_AMOUNT,
     _tx_sample,
     _tx_read,
     _savings_account_ids,
@@ -322,7 +324,7 @@ async def _calculate_money_flow_data(month: int, year: int, db: Session, account
     # To be precise and follow user instruction: we only want cash flowing INTO checking accounts.
     
     income_query = (
-        db.query(Account.currency, func.sum(Transaction.amount).label("total"))
+        db.query(Account.currency, func.sum(NET_AMOUNT).label("total"))
         .join(Account, Transaction.account_id == Account.id)
         .filter(Transaction.date >= start, Transaction.date < end)
         .filter(Transaction.type.in_(["Entree", "Interets"]))  # Solde Initial = base du solde, pas un revenu
@@ -374,7 +376,7 @@ async def _calculate_money_flow_data(month: int, year: int, db: Session, account
         tx = row.Transaction
         cat_name = row.cat_name or "Sans catégorie"
         
-        amount_eur = tx.amount / rates.get(tx.currency, 1.0)
+        amount_eur = net_amount(tx) / rates.get(tx.currency, 1.0)
         
         if tx.type == "Sortie":
             if cat_name in ["Epargne", "Épargne"]:
@@ -476,7 +478,7 @@ async def sankey_analytics(
         db.query(
             Category,
             Account.currency,
-            func.coalesce(func.sum(Transaction.amount), 0.0).label("total"),
+            func.coalesce(func.sum(NET_AMOUNT), 0.0).label("total"),
         )
         .join(Account, Transaction.account_id == Account.id)
         .join(Category, Transaction.category_id == Category.id)
@@ -507,7 +509,7 @@ async def sankey_analytics(
         db.query(
             Category,
             Account.currency,
-            func.coalesce(func.sum(Transaction.amount), 0.0).label("total"),
+            func.coalesce(func.sum(NET_AMOUNT), 0.0).label("total"),
         )
         .join(Account, Transaction.account_id == Account.id)
         .outerjoin(Category, Transaction.category_id == Category.id)
