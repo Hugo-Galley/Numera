@@ -77,6 +77,11 @@ def _detach(db: Session, tx: Transaction, *, mark_ignored: bool) -> None:
     _clear(tx, ignore)
 
 
+def release_partner(db: Session, tx: Transaction) -> None:
+    """Délie `tx` et son partenaire sans marquer « ignoré » (avant la suppression de `tx`)."""
+    _detach(db, tx, mark_ignored=False)
+
+
 def unlink_pair(db: Session, tx: Transaction) -> None:
     """Délie `tx` et son partenaire. Un lien automatique délié est marqué « ignoré » des deux côtés."""
     _detach(db, tx, mark_ignored=True)

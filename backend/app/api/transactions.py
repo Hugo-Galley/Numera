@@ -3,7 +3,7 @@ from sqlalchemy import and_, or_
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 
-from app.core.transfers import auto_link_transfers, candidates_for, create_counterpart, find_pairs, link_pair, unlink_pair
+from app.core.transfers import auto_link_transfers, candidates_for, create_counterpart, find_pairs, link_pair, release_partner, unlink_pair
 from app.core.finance import apply_transaction_to_balance, month_label_from_date, normalize_transaction_type
 from app.db.session import get_db
 from app.models.account import Account
@@ -460,7 +460,7 @@ def delete_transaction(transaction_id: int, db: Session = Depends(get_db)):
     
     account_id = transaction.account_id
     # Le partenaire d'un virement ne doit pas rester marqué is_transfer sans lien
-    _detach_partner(db, transaction)
+    release_partner(db, transaction)
     db.delete(transaction)
     db.commit()
     

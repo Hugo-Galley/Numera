@@ -248,3 +248,17 @@ def test_api_update_rule_fields(client, db_session: Session):
     db_session.refresh(r)
     assert (r.amount_tolerance_pct, r.day_tolerance) == (2.5, 7)
     assert client.patch(f"/transfer-rules/{r.id}", json={"dest_account_id": main.id}).status_code == 422
+
+
+def test_api_delete_linked_transfer_releases_partner(client, db_session: Session):
+    main, livret = make_accounts(db_session, ("Principal", "courant"), ("Livret A", "epargne"))
+    d = datetime(2026, 6, 5)
+    s = tx(db_session, main, "Sortie", 500, d)
+    e = tx(db_session, livret, "Entree", 500, d)
+    link_pair(db_session, s, e, "regular", "manual")
+    db_session.commit()
+    assert client.delete(f"/transactions/{s.id}").status_code == 204
+    db_session.expire_all()
+    partner = db_session.get(Transaction, e.id)
+    assert partner.is_transfer is False and partner.linked_transaction_id is None
+    assert partner.is_transfer_ignored is False
