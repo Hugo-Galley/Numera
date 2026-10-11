@@ -36,6 +36,8 @@ class Transaction(Base):
     link_origin: Mapped[str | None] = mapped_column(String(16), nullable=True)
     transfer_rule_id: Mapped[int | None] = mapped_column(ForeignKey("transfer_rules.id", ondelete="SET NULL"), nullable=True, index=True)
     merchant_id: Mapped[int | None] = mapped_column(ForeignKey("merchants.id", ondelete="SET NULL"), nullable=True, index=True)
+    # Total remboursé (Sortie) ou affecté à des créances (Entree) ; maintenu par core/reimbursements.py
+    reimbursement_offset: Mapped[float] = mapped_column(Float, default=0.0, server_default="0", nullable=False)
 
     category: Mapped["Category"] = relationship("Category", lazy="selectin")
     recurring_transaction: Mapped["RecurringTransaction"] = relationship("RecurringTransaction", lazy="selectin")
@@ -43,6 +45,9 @@ class Transaction(Base):
     linked_investment_transaction: Mapped["InvestmentTransaction"] = relationship("InvestmentTransaction", lazy="selectin", foreign_keys=[linked_investment_transaction_id])
     merchant_obj: Mapped["Merchant"] = relationship("Merchant", lazy="selectin")
     tags: Mapped[list["Tag"]] = relationship("Tag", secondary=transaction_tags, back_populates="transactions", lazy="selectin")
+    claims: Mapped[list["ReimbursementClaim"]] = relationship(
+        "ReimbursementClaim", lazy="selectin", passive_deletes=True, viewonly=True
+    )
 
     @property
     def linked_account_id(self) -> int | None:
@@ -57,3 +62,8 @@ class Transaction(Base):
     def recurring_logo(self) -> str | None:
         """Logo de la récurrence d'origine (exposé par TransactionRead)."""
         return self.recurring_transaction.logo if self.recurring_transaction else None
+
+    @property
+    def has_claims(self) -> bool:
+        """La dépense porte au moins une créance de remboursement."""
+        return bool(self.claims)
