@@ -15,6 +15,7 @@ import {
   Search,
   CalendarDays,
   Repeat,
+  HandCoins,
   Sparkles,
   ShieldCheck,
   Calculator,
@@ -58,6 +59,7 @@ const navigationGroups = [
     items: [
       { name: "Calendrier", href: "/calendar", icon: CalendarDays },
       { name: "Récurrences", href: "/recurring", icon: Repeat },
+      { name: "Remboursements", href: "/reimbursements", icon: HandCoins },
       { name: "Centre d'actions", href: "/audit", icon: ShieldCheck },
       { name: "Outils de simulation", href: "/tools", icon: Calculator },
       { name: "Comparaison", href: "/comparison", icon: ArrowLeftRight },

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react"
 import { useNavigate } from "react-router-dom"
 import { 
+  HandCoins,
   Search, 
   Wallet, 
   LayoutDashboard, 
@@ -32,6 +33,7 @@ const NAVIGATION = [
   { name: "Épargne", href: "/savings", icon: PiggyBank },
   { name: "Investissements", href: "/investments", icon: TrendingUp },
   { name: "Fiscalité", href: "/tax", icon: Landmark },
+  { name: "Remboursements", href: "/reimbursements", icon: HandCoins },
   { name: "Comparaison", href: "/comparison", icon: ArrowLeftRight },
   { name: "Audit des données", href: "/audit", icon: ShieldCheck },
   { name: "Importation", href: "/settings?tab=import", icon: Upload },
