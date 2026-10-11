@@ -7,7 +7,7 @@ retranchent du montant (`api/analytics/utils.py::NET_AMOUNT`). Aucun montant ban
 from datetime import timedelta
 
 from fastapi import HTTPException
-from sqlalchemy import func
+from sqlalchemy import func, select, union
 from sqlalchemy.orm import Session
 
 from app.models.account import Account
@@ -93,6 +93,43 @@ def has_reimbursement(db: Session, tx_id: int) -> bool:
     if db.query(ReimbursementClaim.id).filter(ReimbursementClaim.transaction_id == tx_id).first():
         return True
     return db.query(ReimbursementAllocation.id).filter(ReimbursementAllocation.entree_transaction_id == tx_id).first() is not None
+
+
+def locked_transaction_ids():
+    """Sous-requête des transactions portant une créance ou une affectation (exclues des virements)."""
+    return union(
+        select(ReimbursementClaim.transaction_id),
+        select(ReimbursementAllocation.entree_transaction_id),
+    )
+
+
+def check_transaction_change(db: Session, tx: Transaction, new_type: str, new_amount: float, sets_transfer: bool) -> None:
+    """Refuse une modification qui casserait les créances ou affectations de `tx`."""
+    expected = sortie_expected(db, tx.id)
+    allocated = entree_allocated(db, tx.id)
+    if expected <= 0 and allocated <= 0:
+        return
+    if new_type != tx.type:
+        _refuse("Cette transaction porte des remboursements : retirez-les avant de changer son type")
+    if sets_transfer:
+        _refuse("Cette transaction porte des remboursements : elle ne peut pas être un virement interne")
+    if expected > 0 and cents(new_amount) < expected - EPS:
+        _refuse("Le montant ne peut pas être inférieur au total des créances déclarées")
+    if allocated > 0 and cents(new_amount) < allocated - EPS:
+        _refuse("Le montant ne peut pas être inférieur au total déjà affecté à des créances")
+
+
+def detach_before_delete(db: Session, tx: Transaction) -> set[int]:
+    """Supprime créances et affectations de `tx` ; renvoie les transactions de l'autre côté à resynchroniser."""
+    touched: set[int] = set()
+    for claim in db.query(ReimbursementClaim).filter(ReimbursementClaim.transaction_id == tx.id).all():
+        touched.update(a.entree_transaction_id for a in claim.allocations)
+        db.delete(claim)
+    for allocation in db.query(ReimbursementAllocation).filter(ReimbursementAllocation.entree_transaction_id == tx.id).all():
+        touched.add(allocation.claim.transaction_id)
+        db.delete(allocation)
+    touched.discard(tx.id)
+    return touched
 
 
 def create_claim(db: Session, transaction_id: int, debtor: str, expected_amount: float, note: str | None = None) -> ReimbursementClaim:

@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 from app.core import currency as currency_module
 from app.core.finance import month_label_from_date
 from app.core.logging import get_logger
+from app.core.reimbursements import locked_transaction_ids
 from app.core.time import utcnow_naive
 from app.models.account import Account
 from app.models.investment_transaction import InvestmentTransaction
@@ -155,6 +156,7 @@ async def find_pairs(
         Transaction.is_transfer_ignored.is_(False),
         Transaction.linked_transaction_id.is_(None),
         Transaction.linked_investment_transaction_id.is_(None),
+        Transaction.id.notin_(locked_transaction_ids()),
     )
     if source_account_id is not None:
         sorties_q = sorties_q.filter(Transaction.account_id == source_account_id)
@@ -176,6 +178,7 @@ async def find_pairs(
             Transaction.is_transfer.is_(False),
             Transaction.is_transfer_ignored.is_(False),
             Transaction.linked_transaction_id.is_(None),
+            Transaction.id.notin_(locked_transaction_ids()),
         )
         if dest_account_id is not None:
             q = q.filter(Transaction.account_id == dest_account_id)
@@ -352,6 +355,8 @@ async def candidates_for(
         return value / rates.get(currency, 1.0)
 
     reference = to_eur(tx.amount, tx.account_id)
+    if db.query(Transaction.id).filter(Transaction.id == tx.id, Transaction.id.in_(locked_transaction_ids())).first():
+        return []
     low = tx.date - timedelta(days=days)
     high = tx.date + timedelta(days=days, hours=23, minutes=59)
 
@@ -369,6 +374,8 @@ async def candidates_for(
         )
         if account_id is not None:
             q = q.filter(model.account_id == account_id)
+        if model is Transaction:
+            q = q.filter(Transaction.id.notin_(locked_transaction_ids()))
         rows.extend((kind, leg) for leg in q.all())
 
     out = []

@@ -179,3 +179,51 @@ def test_api_flow(client, db_session, resto):
     assert client.delete(f"/reimbursements/claims/{claim_id}").status_code == 204
     assert client.post("/reimbursements/claims", json={"transaction_id": entree.id, "debtor": "X", "expected_amount": 5}).status_code == 400
     assert client.get("/reimbursements/claims/9999/candidates").status_code == 404
+
+
+def test_guards_on_transaction_mutations(client, db_session, resto):
+    main, sortie = resto
+    claim = remb.create_claim(db_session, sortie.id, "Denis", 30.0)
+    entree = tx(db_session, main, "Entree", 30.0, datetime(2026, 10, 3))
+    remb.allocate(db_session, claim, entree.id)
+
+    assert client.patch(f"/transactions/{sortie.id}", json={"amount": 20}).status_code == 400
+    assert client.patch(f"/transactions/{entree.id}", json={"amount": 10}).status_code == 400
+    assert client.patch(f"/transactions/{sortie.id}", json={"type": "Entree"}).status_code == 400
+    assert client.patch("/transactions/bulk", json={"ids": [entree.id], "type": "Sortie"}).status_code == 400
+    assert client.patch(f"/transactions/{sortie.id}", json={"is_transfer": True}).status_code == 400
+    db_session.refresh(sortie)
+    assert sortie.amount == 90.0 and sortie.type == "Sortie"
+    assert client.patch(f"/transactions/{sortie.id}", json={"amount": 95}).status_code == 200
+
+
+def test_deleting_entree_reopens_claim(client, db_session, resto):
+    main, sortie = resto
+    claim = remb.create_claim(db_session, sortie.id, "Denis", 30.0)
+    entree = tx(db_session, main, "Entree", 30.0, datetime(2026, 10, 3))
+    remb.allocate(db_session, claim, entree.id)
+    assert client.delete(f"/transactions/{entree.id}").status_code == 204
+    db_session.expire_all()
+    assert db_session.get(Transaction, sortie.id).reimbursement_offset == 0.0
+    assert [c["remaining"] for c in client.get("/reimbursements/claims").json()] == [30.0]
+
+
+def test_deleting_sortie_frees_entree(client, db_session, resto):
+    main, sortie = resto
+    claim = remb.create_claim(db_session, sortie.id, "Denis", 30.0)
+    entree = tx(db_session, main, "Entree", 30.0, datetime(2026, 10, 3))
+    remb.allocate(db_session, claim, entree.id)
+    assert client.delete(f"/transactions/{sortie.id}").status_code == 204
+    db_session.expire_all()
+    assert db_session.get(Transaction, entree.id).reimbursement_offset == 0.0
+    assert client.get("/reimbursements/claims", params={"status": "all"}).json() == []
+
+
+def test_reimbursement_excludes_transfer_matching(client, db_session, resto):
+    main, sortie = resto
+    livret = make_account(db_session, "Livret A", type_="epargne")
+    remb.create_claim(db_session, sortie.id, "Denis", 30.0)
+    mirror = tx(db_session, livret, "Entree", 90.0, datetime(2026, 9, 28))
+    assert client.get("/transactions/potential-transfers").json() == []
+    assert client.post(f"/transactions/{sortie.id}/link/{mirror.id}").status_code == 400
+    assert client.get(f"/transactions/{mirror.id}/transfer-candidates").json() == []

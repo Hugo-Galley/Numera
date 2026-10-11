@@ -3,6 +3,7 @@ from sqlalchemy import and_, or_
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 
+from app.core import reimbursements as remb
 from app.core.transfers import auto_link_transfers, candidates_for, create_counterpart, find_pairs, link_pair, release_partner, unlink_pair
 from app.core.finance import apply_transaction_to_balance, month_label_from_date, normalize_transaction_type
 from app.db.session import get_db
@@ -183,6 +184,8 @@ async def create_transfer_counterpart(
         raise HTTPException(status_code=404, detail="Transaction not found")
     if tx.type != "Sortie":
         raise HTTPException(status_code=422, detail="Only a Sortie can get a counterpart")
+    if remb.has_reimbursement(db, tx.id):
+        raise HTTPException(status_code=400, detail="Une transaction qui porte des remboursements ne peut pas être un virement interne")
     dest = db.query(Account).filter(Account.id == payload.account_id).first()
     if not dest:
         raise HTTPException(status_code=404, detail="Account not found")
@@ -223,6 +226,8 @@ def link_transactions(
         if not other:
             raise HTTPException(status_code=404, detail="Investment transaction not found")
 
+    if remb.has_reimbursement(db, tx1.id) or (type == "regular" and remb.has_reimbursement(db, other.id)):
+        raise HTTPException(status_code=400, detail="Une transaction qui porte des remboursements ne peut pas être un virement interne")
     link_pair(db, tx1, other, type, "manual")
     db.commit()
     return {"status": "ok"}
@@ -359,6 +364,9 @@ async def bulk_update_transactions(payload: TransactionBulkUpdate, db: Session =
             raise HTTPException(status_code=422, detail="Solde Initial cannot be set through bulk update")
     if bulk_type is not None and any(tx.type == "Solde Initial" for tx in transactions):
         raise HTTPException(status_code=422, detail="A Solde Initial transaction cannot be bulk-retyped")
+    if bulk_type is not None:
+        for tx in transactions:
+            remb.check_transaction_change(db, tx, bulk_type, tx.amount, False)
 
     tags = []
     if payload.tag_ids is not None:
@@ -442,6 +450,14 @@ async def update_transaction(transaction_id: int, payload: TransactionUpdate, db
         else:
             transaction.tags = []
 
+    remb.check_transaction_change(
+        db,
+        transaction,
+        update_data.get("type", transaction.type),
+        update_data.get("amount", transaction.amount),
+        bool(update_data.get("is_transfer")),
+    )
+
     for field, value in update_data.items():
         setattr(transaction, field, value)
 
@@ -461,7 +477,9 @@ def delete_transaction(transaction_id: int, db: Session = Depends(get_db)):
     account_id = transaction.account_id
     # Le partenaire d'un virement ne doit pas rester marqué is_transfer sans lien
     release_partner(db, transaction)
+    others = remb.detach_before_delete(db, transaction)
     db.delete(transaction)
+    remb.sync_offsets(db, others)
     db.commit()
     
     recalculate_running_balances(db, account_id)
