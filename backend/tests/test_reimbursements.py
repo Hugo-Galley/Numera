@@ -138,3 +138,44 @@ def test_delete_claim_resets_offsets(db_session, resto):
     remb.delete_claim(db_session, claim)
     db_session.refresh(sortie); db_session.refresh(entree)
     assert sortie.reimbursement_offset == 0.0 and entree.reimbursement_offset == 0.0
+
+
+def test_api_flow(client, db_session, resto):
+    main, sortie = resto
+    r = client.post("/reimbursements/claims", json={"transaction_id": sortie.id, "debtor": "Denis", "expected_amount": 30})
+    assert r.status_code == 201
+    claim_id = r.json()["id"]
+    client.post("/reimbursements/claims", json={"transaction_id": sortie.id, "debtor": "Julie", "expected_amount": 30})
+    entree = tx(db_session, main, "Entree", 30.0, datetime(2026, 10, 3), "VIR SEPA DENIS DUPONT")
+    autre = tx(db_session, main, "Entree", 30.0, datetime(2026, 10, 2), "REMBOURSEMENT AMAZON")
+
+    cands = client.get(f"/reimbursements/claims/{claim_id}/candidates").json()
+    assert [c["id"] for c in cands][:2] == [entree.id, autre.id]  # débiteur dans le libellé d'abord
+    assert cands[0]["available"] == 30.0
+
+    body = client.post(f"/reimbursements/claims/{claim_id}/allocations", json={"entree_id": entree.id}).json()
+    assert body["received"] == 30.0 and body["remaining"] == 0.0
+    assert body["expense"]["id"] == sortie.id and body["allocations"][0]["entree_id"] == entree.id
+
+    assert [c["debtor"] for c in client.get("/reimbursements/claims").json()] == ["Julie"]
+    assert [c["debtor"] for c in client.get("/reimbursements/claims", params={"status": "settled"}).json()] == ["Denis"]
+    summary = client.get("/reimbursements/summary").json()
+    assert summary["total_due"] == 30.0
+    assert summary["debtors"] == [{"debtor": "Julie", "claims": 1, "due": 30.0}]
+
+    listed = client.get("/transactions", params={"account_id": main.id}).json()
+    by_id = {t["id"]: t for t in listed}
+    assert by_id[sortie.id]["has_claims"] is True and by_id[sortie.id]["reimbursement_offset"] == 30.0
+    assert by_id[sortie.id]["reimbursement_expected"] == 60.0
+    assert by_id[entree.id]["reimbursement_offset"] == 30.0
+
+    for_entree = client.get(f"/reimbursements/entries/{autre.id}/claims").json()
+    assert [c["debtor"] for c in for_entree["open_claims"]] == ["Julie"]
+    assert for_entree["available"] == 30.0
+
+    alloc_id = body["allocations"][0]["id"]
+    assert client.delete(f"/reimbursements/allocations/{alloc_id}").status_code == 204
+    assert client.patch(f"/reimbursements/claims/{claim_id}", json={"expected_amount": 25}).json()["expected_amount"] == 25.0
+    assert client.delete(f"/reimbursements/claims/{claim_id}").status_code == 204
+    assert client.post("/reimbursements/claims", json={"transaction_id": entree.id, "debtor": "X", "expected_amount": 5}).status_code == 400
+    assert client.get("/reimbursements/claims/9999/candidates").status_code == 404

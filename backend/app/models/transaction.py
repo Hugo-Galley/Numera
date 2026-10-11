@@ -67,3 +67,8 @@ class Transaction(Base):
     def has_claims(self) -> bool:
         """La dépense porte au moins une créance de remboursement."""
         return bool(self.claims)
+
+    @property
+    def reimbursement_expected(self) -> float:
+        """Total attendu des créances de la dépense (affichage du statut de remboursement)."""
+        return round(sum(c.expected_amount for c in self.claims), 2)

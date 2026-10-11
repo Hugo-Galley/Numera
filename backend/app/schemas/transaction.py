@@ -73,6 +73,9 @@ class TransactionRead(TransactionBase):
     transfer_rule_id: int | None = None
     recurring_logo: str | None = None
     linked_account_id: int | None = None
+    reimbursement_offset: float = 0.0
+    reimbursement_expected: float = 0.0
+    has_claims: bool = False
     category: CategoryRead | None = None
     merchant_obj: MerchantRead | None = Field(None, alias="merchant_obj")
     tags: list[TagRead] = []

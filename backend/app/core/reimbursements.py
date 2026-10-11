@@ -4,6 +4,8 @@ Seule porte d'entrée pour créer, modifier ou supprimer créances et affectatio
 recalcule `transactions.reimbursement_offset` des transactions touchées (`sync_offsets`), que les KPI
 retranchent du montant (`api/analytics/utils.py::NET_AMOUNT`). Aucun montant bancaire n'est modifié.
 """
+from datetime import timedelta
+
 from fastapi import HTTPException
 from sqlalchemy import func
 from sqlalchemy.orm import Session
@@ -13,6 +15,9 @@ from app.models.reimbursement import ReimbursementAllocation, ReimbursementClaim
 from app.models.transaction import Transaction
 
 EPS = 0.005
+CANDIDATE_DAYS_BEFORE = 7
+CANDIDATE_DAYS_AFTER = 180
+CANDIDATE_LIMIT = 30
 
 
 def cents(value: float | None) -> float:
@@ -180,3 +185,117 @@ def remove_allocation(db: Session, allocation: ReimbursementAllocation) -> None:
     db.delete(allocation)
     sync_offsets(db, touched)
     db.commit()
+
+
+def _label(tx: Transaction) -> str:
+    return tx.merchant or tx.note or ""
+
+
+def claim_view(db: Session, claim: ReimbursementClaim) -> dict:
+    sortie = db.get(Transaction, claim.transaction_id)
+    received = claim_received(db, claim.id)
+    allocations = []
+    for a in claim.allocations:
+        entree = db.get(Transaction, a.entree_transaction_id)
+        allocations.append({
+            "id": a.id, "entree_id": a.entree_transaction_id, "amount": cents(a.amount),
+            "date": entree.date if entree else None, "label": _label(entree) if entree else None,
+            "account_id": entree.account_id if entree else None,
+        })
+    return {
+        "id": claim.id,
+        "debtor": claim.debtor,
+        "expected_amount": cents(claim.expected_amount),
+        "received": received,
+        "remaining": cents(claim.expected_amount - received),
+        "note": claim.note,
+        "created_at": claim.created_at,
+        "currency": account_currency(db, sortie),
+        "expense": {
+            "id": sortie.id, "account_id": sortie.account_id, "date": sortie.date,
+            "label": _label(sortie), "amount": cents(sortie.amount),
+        },
+        "allocations": allocations,
+    }
+
+
+def list_claims(db: Session, status: str = "open", debtor: str | None = None) -> list[dict]:
+    q = db.query(ReimbursementClaim).join(Transaction, ReimbursementClaim.transaction_id == Transaction.id)
+    if debtor:
+        q = q.filter(func.lower(ReimbursementClaim.debtor) == debtor.strip().lower())
+    views = [claim_view(db, c) for c in q.order_by(Transaction.date.desc(), ReimbursementClaim.id).all()]
+    if status == "open":
+        return [v for v in views if v["remaining"] > EPS]
+    if status == "settled":
+        return [v for v in views if v["remaining"] <= EPS]
+    return views
+
+
+def summary(db: Session) -> dict:
+    by_debtor: dict[str, dict] = {}
+    for view in list_claims(db, "open"):
+        key = view["debtor"].strip().lower()
+        row = by_debtor.setdefault(key, {"debtor": view["debtor"], "claims": 0, "due": 0.0})
+        row["claims"] += 1
+        row["due"] = cents(row["due"] + view["remaining"])
+    debtors = sorted(by_debtor.values(), key=lambda r: (-r["due"], r["debtor"]))
+    return {"total_due": cents(sum(r["due"] for r in debtors)), "debtors": debtors}
+
+
+def candidates(db: Session, claim: ReimbursementClaim) -> list[dict]:
+    """Entrées qui peuvent solder la créance : débiteur dans le libellé, puis montant exact, puis date."""
+    sortie = db.get(Transaction, claim.transaction_id)
+    currency = account_currency(db, sortie)
+    remaining = cents(claim.expected_amount - claim_received(db, claim.id))
+    debtor = claim.debtor.strip().lower()
+    already = {a.entree_transaction_id for a in claim.allocations}
+    rows = (
+        db.query(Transaction)
+        .join(Account, Transaction.account_id == Account.id)
+        .filter(
+            Transaction.type == "Entree",
+            Transaction.is_transfer.is_(False),
+            Account.currency == currency,
+            Transaction.date >= sortie.date - timedelta(days=CANDIDATE_DAYS_BEFORE),
+            Transaction.date <= sortie.date + timedelta(days=CANDIDATE_DAYS_AFTER),
+        )
+        .all()
+    )
+    out = []
+    for e in rows:
+        if e.id in already:
+            continue
+        available = cents(e.amount - entree_allocated(db, e.id))
+        if available <= EPS:
+            continue
+        label = _label(e)
+        out.append({
+            "id": e.id, "account_id": e.account_id, "date": e.date, "label": label,
+            "amount": cents(e.amount), "available": available,
+            "day_gap": abs((e.date.date() - sortie.date.date()).days),
+            "debtor_match": bool(debtor) and debtor in label.lower(),
+        })
+    out.sort(key=lambda c: (not c["debtor_match"], abs(c["available"] - remaining) > EPS, c["day_gap"], c["id"]))
+    return out[:CANDIDATE_LIMIT]
+
+
+def claims_for_entree(db: Session, entree: Transaction) -> dict:
+    """Créances ouvertes auxquelles affecter `entree` (débiteur reconnu dans le libellé d'abord)."""
+    if entree.type != "Entree":
+        _refuse("Seule une entrée (Entree) peut rembourser une créance")
+    currency = account_currency(db, entree)
+    label = _label(entree).lower()
+    open_claims = [v for v in list_claims(db, "open") if v["currency"] == currency]
+    open_claims.sort(key=lambda v: (v["debtor"].strip().lower() not in label, v["expense"]["date"]))
+    allocations = (
+        db.query(ReimbursementAllocation).filter(ReimbursementAllocation.entree_transaction_id == entree.id).all()
+    )
+    return {
+        "entree_id": entree.id,
+        "amount": cents(entree.amount),
+        "available": cents(entree.amount - entree_allocated(db, entree.id)),
+        "open_claims": open_claims,
+        "allocations": [
+            {"id": a.id, "claim_id": a.claim_id, "amount": cents(a.amount), "debtor": a.claim.debtor} for a in allocations
+        ],
+    }
