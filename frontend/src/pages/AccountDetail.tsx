@@ -156,10 +156,12 @@ import {
   Wine,
   Wrench,
   Check,
+  HandCoins,
   X
 } from "lucide-react"
 import { api } from "@/lib/api"
 import { TransferLinkDialog } from "@/components/transfers/TransferLinkDialog"
+import { ReimbursementDialog } from "@/components/reimbursements/ReimbursementDialog"
 import type { AccountLite } from "@/types/transfers"
 import { IconComponent } from "@/components/dashboard/IconComponent"
 import { COUNTRIES } from "@/lib/countries"
@@ -287,6 +289,9 @@ type Transaction = {
   custom_icon: string | null
   custom_color: string | null
   is_transfer?: boolean
+  reimbursement_offset?: number
+  reimbursement_expected?: number
+  has_claims?: boolean
 }
 
 const getMerchantIcon = (merchantName: string) => {
@@ -307,6 +312,7 @@ export default function AccountDetail() {
   // -- Data State --
   const [account, setAccount] = useState<Account | null>(null)
   const [transferTx, setTransferTx] = useState<Transaction | null>(null)
+  const [reimbursementTx, setReimbursementTx] = useState<Transaction | null>(null)
   const [allAccounts, setAllAccounts] = useState<AccountLite[]>([])
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [flowSummary, setFlowSummary] = useState<{
@@ -2021,6 +2027,21 @@ export default function AccountDetail() {
                         <span className="amount-blur">
                           {tx.type === "Sortie" ? "-" : (tx.type === "Entree" || tx.type === "Interets") ? "+" : ""}{formatCurrency(tx.amount)}
                         </span>
+                        {(tx.reimbursement_offset ?? 0) > 0 && (
+                          <span className="text-[10px] font-normal text-slate-400 amount-blur">
+                            net {formatCurrency(tx.amount - (tx.reimbursement_offset ?? 0))}
+                          </span>
+                        )}
+                        {tx.type === "Sortie" && tx.has_claims && (() => {
+                          const received = tx.reimbursement_offset ?? 0
+                          const expected = tx.reimbursement_expected ?? 0
+                          const [label, tone] = received <= 0
+                            ? ["À rembourser", "bg-amber-50 text-amber-700"]
+                            : received < expected - 0.005
+                              ? ["Partiel", "bg-sky-50 text-sky-700"]
+                              : ["Remboursé", "bg-emerald-50 text-emerald-700"]
+                          return <Badge variant="outline" className={`mt-0.5 border-none px-1 py-0 text-[10px] ${tone}`}>{label}</Badge>
+                        })()}
                         {tx.currency !== account.currency && (
                           <span className="text-[10px] text-slate-400 font-normal amount-blur">
                             ({formatValue(tx.original_amount, tx.currency)})
@@ -2033,6 +2054,17 @@ export default function AccountDetail() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-1">
+                        {(tx.type === "Sortie" || tx.type === "Entree") && !tx.is_transfer && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            title={tx.type === "Sortie" ? "On me doit…" : "Affecter à une créance…"}
+                            onClick={() => setReimbursementTx(tx)}
+                            className="h-8 w-8 p-0"
+                          >
+                            <HandCoins className={`h-3.5 w-3.5 ${tx.has_claims || (tx.reimbursement_offset ?? 0) > 0 ? "text-emerald-600" : "text-slate-400"}`} />
+                          </Button>
+                        )}
                         {(tx.type === "Sortie" || tx.type === "Entree") && (
                           <Button
                             variant="ghost"
@@ -2396,6 +2428,13 @@ export default function AccountDetail() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ReimbursementDialog
+        open={reimbursementTx !== null}
+        onOpenChange={(o) => !o && setReimbursementTx(null)}
+        transaction={reimbursementTx}
+        onDone={loadTransactions}
+      />
 
       <TransferLinkDialog
         open={transferTx !== null}
