@@ -71,3 +71,34 @@ def test_bulk_delete_both_legs_of_transfer(client, db_session):
     db_session.expire_all()
     assert [t.id for t in db_session.query(Transaction).all()] == [keep.id]
     assert db_session.get(Transaction, keep.id).running_balance == 5.0
+
+
+def test_delete_recurring_dca_legs(client, db_session):
+    """DCA récurrent par virement : chaque côté se supprime et délie l'autre."""
+    import asyncio
+
+    from app.core.recurring import generate_recurring_transactions
+    from app.models.investment_transaction import InvestmentTransaction
+    from app.models.recurring_transaction import RecurringTransaction
+
+    cc = make_account(db_session, "CC")
+    pea = Account(name="PEA", type="investissement", currency="EUR", active=True)
+    db_session.add(pea)
+    db_session.commit()
+    db_session.add(RecurringTransaction(
+        account_id=cc.id, name="DCA CW8", type="Sortie", amount=100.0, currency="EUR", frequency="monthly",
+        day_of_month=5, start_date=datetime(2026, 7, 5), auto_generate=True, is_active=True,
+        transfer_to_account_id=pea.id, ticker="CW8", quantity=0.2, unit_price=500.0,
+    ))
+    db_session.commit()
+    assert asyncio.run(generate_recurring_transactions(db_session)) >= 2
+
+    first, second = db_session.query(InvestmentTransaction).order_by(InvestmentTransaction.id).limit(2).all()
+    sortie_of_first = first.linked_transaction_id
+    assert client.delete(f"/investment-transactions/{first.id}").status_code == 204
+    db_session.expire_all()
+    assert db_session.get(Transaction, sortie_of_first).linked_investment_transaction_id is None
+
+    assert client.post("/transactions/bulk-delete", json={"ids": [second.linked_transaction_id]}).status_code == 200
+    db_session.expire_all()
+    assert db_session.get(InvestmentTransaction, second.id).linked_transaction_id is None

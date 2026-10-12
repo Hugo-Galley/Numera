@@ -404,6 +404,9 @@ def bulk_delete_transactions(payload: TransactionBulkDelete, db: Session = Depen
     for tx in transactions:
         release_partner(db, tx)
         others |= remb.detach_before_delete(db, tx)
+    # Les FK des bases migrées n'ont pas de ON DELETE SET NULL : les liens doivent être nuls en base avant les DELETE
+    db.flush()
+    for tx in transactions:
         db.delete(tx)
     remb.sync_offsets(db, others - deleted_ids)
     db.commit()
@@ -498,6 +501,7 @@ def delete_transaction(transaction_id: int, db: Session = Depends(get_db)):
     # Le partenaire d'un virement ne doit pas rester marqué is_transfer sans lien
     release_partner(db, transaction)
     others = remb.detach_before_delete(db, transaction)
+    db.flush()  # liens remis à NULL avant le DELETE (FK sans ON DELETE SET NULL en base migrée)
     db.delete(transaction)
     remb.sync_offsets(db, others)
     db.commit()

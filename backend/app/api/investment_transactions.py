@@ -242,6 +242,8 @@ async def delete_investment_transaction(transaction_id: int, db: Session = Depen
     for linked in db.query(Transaction).filter(Transaction.linked_investment_transaction_id == tx.id).all():
         linked.linked_investment_transaction_id = None
         linked.is_transfer = False
+    # Les FK des bases migrées n'ont pas de ON DELETE SET NULL : le lien doit être nul en base avant le DELETE
+    db.flush()
     db.delete(tx)
     db.flush()
     await rebuild_holdings(db, account_id)

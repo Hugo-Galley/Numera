@@ -42,7 +42,7 @@ class Transaction(Base):
     category: Mapped["Category"] = relationship("Category", lazy="selectin")
     recurring_transaction: Mapped["RecurringTransaction"] = relationship("RecurringTransaction", lazy="selectin")
     linked_transaction: Mapped["Transaction"] = relationship("Transaction", remote_side=[id], post_update=True, foreign_keys=[linked_transaction_id])
-    linked_investment_transaction: Mapped["InvestmentTransaction"] = relationship("InvestmentTransaction", lazy="selectin", foreign_keys=[linked_investment_transaction_id])
+    linked_investment_transaction: Mapped["InvestmentTransaction"] = relationship("InvestmentTransaction", lazy="selectin", post_update=True, foreign_keys=[linked_investment_transaction_id])
     merchant_obj: Mapped["Merchant"] = relationship("Merchant", lazy="selectin")
     tags: Mapped[list["Tag"]] = relationship("Tag", secondary=transaction_tags, back_populates="transactions", lazy="selectin")
     claims: Mapped[list["ReimbursementClaim"]] = relationship(
