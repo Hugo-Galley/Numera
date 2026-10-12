@@ -2297,7 +2297,7 @@ export default function AccountDetail() {
               onClick={async () => {
                 if (confirm(`Supprimer ${selectedIds.length} transactions ?`)) {
                   try {
-                    await Promise.all(selectedIds.map(id => api.delete(`/transactions/${id}`)))
+                    await api.post("/transactions/bulk-delete", { ids: selectedIds })
                     toast.success(`${selectedIds.length} transactions supprimées`)
                     setSelectedIds([])
                     await loadData()

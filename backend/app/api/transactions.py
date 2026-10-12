@@ -9,7 +9,7 @@ from app.core.finance import apply_transaction_to_balance, month_label_from_date
 from app.db.session import get_db
 from app.models.account import Account
 from app.models.transaction import Transaction
-from app.schemas.transaction import TransferCandidate, TransferCounterpartCreate, TransferCounterpartRead, TransactionCreate, TransactionRead, TransactionUpdate, TransactionBulkUpdate
+from app.schemas.transaction import TransferCandidate, TransferCounterpartCreate, TransferCounterpartRead, TransactionCreate, TransactionRead, TransactionUpdate, TransactionBulkDelete, TransactionBulkDeleteResult, TransactionBulkUpdate
 
 router = APIRouter(prefix="/transactions", tags=["transactions"])
 
@@ -391,6 +391,26 @@ async def bulk_update_transactions(payload: TransactionBulkUpdate, db: Session =
     # Recalculate balances for all affected accounts
     for account_id in affected_account_ids:
         recalculate_running_balances(db, account_id)
+
+
+@router.post("/bulk-delete", response_model=TransactionBulkDeleteResult)
+def bulk_delete_transactions(payload: TransactionBulkDelete, db: Session = Depends(get_db)):
+    """Supprime plusieurs transactions dans une seule transaction SQL, puis recalcule
+    une fois les soldes de chaque compte (des DELETE parallèles se marchent dessus)."""
+    transactions = db.query(Transaction).filter(Transaction.id.in_(payload.ids)).all()
+    deleted_ids = {tx.id for tx in transactions}
+    affected_account_ids = {tx.account_id for tx in transactions}
+    others: set[int] = set()
+    for tx in transactions:
+        release_partner(db, tx)
+        others |= remb.detach_before_delete(db, tx)
+        db.delete(tx)
+    remb.sync_offsets(db, others - deleted_ids)
+    db.commit()
+
+    for account_id in affected_account_ids:
+        recalculate_running_balances(db, account_id)
+    return TransactionBulkDeleteResult(deleted=len(transactions))
 
 
 @router.patch("/{transaction_id}", response_model=TransactionRead)

@@ -69,7 +69,7 @@ docker-compose.prod.yml, Makefile, setup.sh, install.sh
 - `auth.py`: login OAuth2 password et génération JWT.
 - `accounts.py`: CRUD comptes, suppression logique par `active=False`.
 - `categories.py`: CRUD catégories avec limites mensuelles/annuelles.
-- `transactions.py`: CRUD transactions, recherche marchands, bulk update, recalcul soldes.
+- `transactions.py`: CRUD transactions, recherche marchands, bulk update, suppression groupée (`POST /transactions/bulk-delete`, une seule transaction SQL puis un recalcul par compte), recalcul soldes.
 - `investment_transactions.py`: opérations `versement`, `retrait`, `achat`, `vente`, `dividende`, `frais` ; toute mutation appelle `rebuild_holdings`. `POST /investment-transactions/link-dividends?account_id=&dry_run=` rattache les anciens dividendes sans titre à une position d'après leur libellé.
 - `balance_snapshots.py`: snapshots de valeur et définition de point zéro.
 - `imports.py`: preview/commit CSV Numbers.

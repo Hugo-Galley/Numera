@@ -50,6 +50,14 @@ class TransactionUpdate(BaseModel):
     tag_ids: list[int] | None = None
 
 
+class TransactionBulkDelete(BaseModel):
+    ids: list[int]
+
+
+class TransactionBulkDeleteResult(BaseModel):
+    deleted: int
+
+
 class TransactionBulkUpdate(BaseModel):
     ids: list[int]
     category_id: int | None = None
