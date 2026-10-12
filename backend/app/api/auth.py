@@ -7,8 +7,10 @@ from sqlalchemy.orm import Session
 
 from app.core import security
 from app.core.config import settings
+from app.core.mcp_tokens import is_mcp_token
 from app.core.logging import get_logger
 from app.core.login_rate_limit import LoginRateLimiter
+from app.api.deps import get_current_user, optional_oauth2
 from app.db.session import get_db
 from app.db.system_settings import get_setting
 
@@ -73,3 +75,12 @@ def login_access_token(
         ),
         "token_type": "bearer",
     }
+
+
+@router.get("/whoami")
+def whoami(
+    username: str = Depends(get_current_user),
+    token: str | None = Depends(optional_oauth2),
+) -> dict[str, str]:
+    """Valide les identifiants présentés (utilisé par le serveur MCP pour filtrer les clients)."""
+    return {"username": username, "auth": "mcp_token" if is_mcp_token(token) else "session"}

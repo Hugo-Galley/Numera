@@ -1,20 +1,22 @@
 """
 Serveur MCP pour Suivi Budget — Mode Proxy API
 ================================================
-Se connecte à l'API FastAPI distante sur le VPS via HTTP.
-Tourne en local (transport stdio) et proxifie les requêtes.
+Proxy MCP vers l'API FastAPI : les KPI et les écritures passent par le backend.
 
 Architecture :
-  [Claude Desktop / Cursor] ←stdio→ [MCP Server local] ←HTTP→ [API VPS]
+  [Claude Code] ←HTTPS (streamable-http)→ [Nginx /mcp] → [MCP Server] ←HTTP→ [API]
+  [Client local] ←stdio→ [MCP Server] ←HTTP→ [API]
 
 Sécurité :
-  - Authentification JWT vers l'API du VPS
-  - Token rafraîchi automatiquement
-  - Aucune donnée stockée localement
+  - Authentification par token MCP généré dans Numera (Paramètres → Compte), jamais par mot de passe
+  - HTTP : le token du client (`Authorization: Bearer nmr_…`) est validé par le backend
+    (`server_auth.py`) puis transmis tel quel à chaque appel API
+  - stdio : token lu dans MCP_API_TOKEN
+  - Le backend refuse les tokens révoqués, l'accès MCP désactivé et toute route /admin
   - Requêtes SQL brutes impossibles (pas d'accès direct à la DB)
 """
 
-__version__ = "2.0.0"
+__version__ = "3.0.0"
 
 import json
 import os
@@ -25,25 +27,28 @@ from typing import Any
 
 import httpx
 from mcp.server.fastmcp import FastMCP
+from mcp.server.transport_security import TransportSecuritySettings
 
 # ─── Configuration ───────────────────────────────────────────────────────────
 
-# URL de base de l'API sur le VPS (réseau local)
-API_BASE_URL = os.environ.get("MCP_API_URL", "http://192.168.1.100:8001")
-
-# Credentials pour l'auth JWT
-API_USERNAME = os.environ.get("MCP_API_USERNAME", "admin")
-API_PASSWORD = os.environ.get("MCP_API_PASSWORD")
-if not API_PASSWORD:
-    raise ValueError("MCP_API_PASSWORD environment variable must be set")
+# URL de base de l'API (dans Docker : http://backend:8001)
+API_BASE_URL = os.environ.get("MCP_API_URL", "http://localhost:8001")
 
 # Nom du serveur
-SERVER_NAME = os.environ.get("MCP_SERVER_NAME", "Suivi Budget MCP")
+SERVER_NAME = os.environ.get("MCP_SERVER_NAME", "Numera")
 
 # Transport (stdio par défaut pour usage local)
 TRANSPORT = os.environ.get("MCP_TRANSPORT", "stdio")
 HOST = os.environ.get("MCP_HOST", "127.0.0.1")
 PORT = int(os.environ.get("MCP_PORT", "8100"))
+HTTP_TRANSPORTS = ("sse", "streamable-http")
+
+# stdio uniquement : token MCP généré dans l'interface (en HTTP, c'est celui du client)
+API_TOKEN = os.environ.get("MCP_API_TOKEN")
+if TRANSPORT not in HTTP_TRANSPORTS and not API_TOKEN:
+    raise ValueError(
+        "MCP_API_TOKEN doit être défini en transport stdio : générez un token dans Numera (Paramètres → Compte)"
+    )
 
 # Logging (sur stderr pour ne pas interférer avec stdio)
 logging.basicConfig(
@@ -53,77 +58,35 @@ logging.basicConfig(
 )
 logger = logging.getLogger("mcp-suivi-budget")
 
-# ─── Client HTTP avec auth JWT ──────────────────────────────────────────────
+# ─── Client HTTP ─────────────────────────────────────────────────────────────
 
 class APIClient:
-    """Client HTTP pour l'API FastAPI du VPS avec gestion automatique du JWT."""
+    """Client HTTP de l'API, authentifié par le token MCP (celui du client en HTTP, MCP_API_TOKEN en stdio)."""
 
-    def __init__(self, base_url: str, username: str, password: str):
+    def __init__(self, base_url: str, static_token: str | None):
         self.base_url = base_url.rstrip("/")
-        self.username = username
-        self.password = password
-        self._token: str | None = None
+        self._static_token = static_token
         self._client = httpx.Client(timeout=30.0)
 
-    def _authenticate(self) -> None:
-        """Obtient un token JWT via l'endpoint /auth/token."""
-        try:
-            resp = self._client.post(
-                f"{self.base_url}/auth/token",
-                data={"username": self.username, "password": self.password},
-                headers={"Content-Type": "application/x-www-form-urlencoded"},
-            )
-            resp.raise_for_status()
-            try:
-                self._token = resp.json()["access_token"]
-            except (ValueError, KeyError) as parse_err:
-                raise ConnectionError(
-                    f"❌ Réponse invalide reçue de {self.base_url}. Le format JSON attendu est manquant ou incorrect. "
-                    f"Assurez-vous que MCP_API_URL se termine bien par '/api' (par exemple: 'http://votre-vps:8082/api')."
-                ) from parse_err
-            logger.info("✅ Authentification réussie auprès de l'API")
-        except httpx.HTTPStatusError as e:
-            raise ConnectionError(
-                f"❌ Échec d'authentification ({e.response.status_code}). "
-                f"Vérifiez MCP_API_USERNAME et MCP_API_PASSWORD."
-            ) from e
-        except httpx.ConnectError as e:
-            raise ConnectionError(
-                f"❌ Impossible de se connecter à {self.base_url}. "
-                f"Vérifiez que le VPS est accessible et que MCP_API_URL est correct."
-            ) from e
-
-    @property
-    def headers(self) -> dict[str, str]:
-        if not self._token:
-            self._authenticate()
-        return {"Authorization": f"Bearer {self._token}"}
+    def _token(self) -> str:
+        if self._static_token:
+            return self._static_token
+        # Transport HTTP : le middleware a déjà validé le token de la requête en cours
+        request = mcp.get_context().request_context.request
+        authorization = request.headers.get("authorization", "") if request is not None else ""
+        scheme, _, token = authorization.partition(" ")
+        if scheme.lower() != "bearer" or not token.strip():
+            raise PermissionError("Aucun token MCP dans la requête")
+        return token.strip()
 
     def _request(self, method: str, path: str, **kwargs) -> httpx.Response:
-        """Effectue une requête avec retry automatique si le token a expiré."""
-        # Ne pas vérifier mcp_enabled si on est déjà en train de le vérifier pour éviter la boucle infinie
-        if path != "/admin/profile":
-            try:
-                profile_resp = self._client.get(f"{self.base_url}/admin/profile", headers=self.headers)
-                if profile_resp.status_code == 200:
-                    if not profile_resp.json().get("mcp_enabled", True):
-                        raise PermissionError("Le serveur MCP est actuellement désactivé dans les paramètres de Suivi Budget.")
-            except Exception as e:
-                if isinstance(e, PermissionError):
-                    raise e
-                logger.error(f"Erreur lors de la vérification du statut MCP: {e}")
-
         url = f"{self.base_url}{path}"
-        # Premier essai
-        resp = self._client.request(method, url, headers=self.headers, **kwargs)
-
-        # Si 401/403, le token a peut-être expiré → re-auth et retry
-        if resp.status_code in (401, 403):
-            logger.info("🔄 Token expiré, re-authentification...")
-            self._token = None
-            resp = self._client.request(method, url, headers=self.headers, **kwargs)
-
-        return resp
+        try:
+            return self._client.request(method, url, headers={"Authorization": f"Bearer {self._token()}"}, **kwargs)
+        except httpx.ConnectError as e:
+            raise ConnectionError(
+                f"❌ Impossible de joindre l'API ({self.base_url}). Vérifiez MCP_API_URL."
+            ) from e
 
     def get(self, path: str, params: dict | None = None) -> httpx.Response:
         return self._request("GET", path, params=params)
@@ -141,12 +104,18 @@ class APIClient:
         self._client.close()
 
 
-# Client global (initialisé au premier appel)
-api = APIClient(API_BASE_URL, API_USERNAME, API_PASSWORD)
+api = APIClient(API_BASE_URL, API_TOKEN if TRANSPORT not in HTTP_TRANSPORTS else None)
 
 # ─── Initialisation du serveur MCP ───────────────────────────────────────────
 
-mcp = FastMCP(SERVER_NAME)
+mcp = FastMCP(
+    SERVER_NAME,
+    # Sans état : chaque requête HTTP est autonome (pas d'affinité de session derrière Nginx)
+    stateless_http=True,
+    # La protection DNS rebinding n'autorise que localhost ; derrière Nginx, l'hôte est le domaine public.
+    # Inutile ici : l'accès repose sur un token bearer explicite, pas sur un accès réseau local.
+    transport_security=TransportSecuritySettings(enable_dns_rebinding_protection=False),
+)
 
 # ─── Helpers de formatage ────────────────────────────────────────────────────
 
@@ -2103,15 +2072,12 @@ if __name__ == "__main__":
     logger.info(f"API cible : {API_BASE_URL}")
     logger.info(f"Transport : {TRANSPORT}")
 
-    if TRANSPORT == "sse" or TRANSPORT == "streamable-http":
+    if TRANSPORT in HTTP_TRANSPORTS:
         import uvicorn
-        import time
-        # Small delay to let the backend finish migrations first
-        time.sleep(5)
         from server_auth import protect
-        # Refuse de démarrer sans MCP_AUTH_TOKEN : le port exposerait tous les outils sans authentification
-        app = protect(mcp.sse_app())
-        logger.info(f"Écoute sur {HOST}:{PORT} (authentification bearer activée)")
-        uvicorn.run(app, host=HOST, port=PORT)
+
+        app = mcp.streamable_http_app() if TRANSPORT == "streamable-http" else mcp.sse_app()
+        logger.info(f"Écoute sur {HOST}:{PORT} (tokens MCP validés par l'API)")
+        uvicorn.run(protect(app, API_BASE_URL), host=HOST, port=PORT, proxy_headers=True, forwarded_allow_ips="*")
     else:
         mcp.run(transport="stdio")

@@ -19,15 +19,13 @@ COPY server*.py ./
 RUN groupadd -r mcp && useradd -r -g mcp mcp
 USER mcp
 
-# Le volume de la DB sera monté ici
-VOLUME ["/data"]
-
-# Variables d'environnement par défaut
-ENV MCP_DB_PATH=/data/suivi_budget.db
+# Mode API derrière Nginx (/mcp) : aucun secret, les tokens des clients sont validés par l'API
+ENV MCP_MODE=api
+ENV MCP_API_URL=http://backend:8001
 ENV MCP_TRANSPORT=streamable-http
 ENV MCP_HOST=0.0.0.0
 ENV MCP_PORT=8100
-ENV MCP_SERVER_NAME="Suivi Budget MCP"
+ENV MCP_SERVER_NAME="Numera"
 
 EXPOSE 8100
 

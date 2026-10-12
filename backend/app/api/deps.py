@@ -6,7 +6,7 @@ import jwt
 from pydantic import ValidationError
 
 from app.core.config import settings
-from app.core import security
+from app.core.mcp_tokens import authenticate_mcp_token, is_mcp_token
 from app.db.session import SessionLocal
 
 from sqlalchemy.orm import Session
@@ -15,6 +15,7 @@ from app.db.system_settings import get_setting
 reusable_oauth2 = OAuth2PasswordBearer(
     tokenUrl="/auth/token"
 )
+optional_oauth2 = OAuth2PasswordBearer(tokenUrl="/auth/token", auto_error=False)
 
 def get_db() -> Generator:
     try:
@@ -33,6 +34,13 @@ def get_current_user(
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
+    current_admin = get_setting(db, "admin_username", settings.ADMIN_USERNAME)
+    # Token MCP généré depuis l'interface (agents IA) : même droits que l'admin, hors /admin
+    if is_mcp_token(token):
+        if not authenticate_mcp_token(db, token):
+            raise credentials_exception
+        return current_admin
+
     try:
         payload = jwt.decode(
             token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
@@ -44,7 +52,6 @@ def get_current_user(
         raise credentials_exception
     
     # In single user mode, we check if it's the current admin username
-    current_admin = get_setting(db, "admin_username", settings.ADMIN_USERNAME)
     if token_data != current_admin:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -52,3 +59,15 @@ def get_current_user(
         )
     
     return token_data
+
+
+def require_interactive_session(token: str | None = Depends(optional_oauth2)) -> None:
+    """Refuse les tokens MCP : réservé à l'interface (profil, reset, gestion des tokens).
+
+    L'authentification elle-même reste faite par `get_current_user` au niveau du router.
+    """
+    if is_mcp_token(token):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Action réservée à l'interface web",
+        )

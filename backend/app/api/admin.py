@@ -3,17 +3,21 @@ from pydantic import BaseModel
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_user
+from app.api.deps import get_current_user, require_interactive_session
 from app.core import security
 from app.core.config import settings
+from app.core.mcp_tokens import generate_token, hash_token
 from app.core.migrations import run_migrations
 from app.core.seeds import seed_default_categories
 from app.db.base import Base
 from app.db.session import SessionLocal, engine, get_db
 from app.db.system_settings import get_setting, set_setting
-from app.schemas.admin import AdminProfile, AdminProfileUpdate
+from app.models.mcp_token import McpToken
+from app.schemas.admin import AdminProfile, AdminProfileUpdate, McpTokenCreate, McpTokenCreated, McpTokenRead
 
-router = APIRouter(prefix="/admin", tags=["admin"])
+# Les tokens MCP n'ont pas accès à /admin : un agent ne peut ni changer le mot de passe, ni vider
+# la base, ni se créer d'autres tokens.
+router = APIRouter(prefix="/admin", tags=["admin"], dependencies=[Depends(require_interactive_session)])
 
 MIN_PASSWORD_LENGTH = 8
 
@@ -58,6 +62,30 @@ def update_admin_profile(
     if profile_in.mcp_enabled is not None:
         set_setting(db, "mcp_enabled", "true" if profile_in.mcp_enabled else "false")
     return get_admin_profile(db, current_user)
+
+
+@router.get("/mcp-tokens", response_model=list[McpTokenRead])
+def list_mcp_tokens(db: Session = Depends(get_db)):
+    return db.query(McpToken).order_by(McpToken.created_at.desc()).all()
+
+
+@router.post("/mcp-tokens", response_model=McpTokenCreated, status_code=201)
+def create_mcp_token(payload: McpTokenCreate, db: Session = Depends(get_db)):
+    token = generate_token()
+    record = McpToken(name=payload.name.strip(), token_hash=hash_token(token), token_prefix=token[:8])
+    db.add(record)
+    db.commit()
+    db.refresh(record)
+    return McpTokenCreated(**McpTokenRead.model_validate(record).model_dump(), token=token)
+
+
+@router.delete("/mcp-tokens/{token_id}", status_code=204)
+def revoke_mcp_token(token_id: int, db: Session = Depends(get_db)):
+    record = db.get(McpToken, token_id)
+    if record is None:
+        raise HTTPException(status_code=404, detail="Token introuvable")
+    db.delete(record)
+    db.commit()
 
 
 class ResetDatabaseRequest(BaseModel):

@@ -9,10 +9,10 @@ Decrire l'architecture actuelle du depot pour permettre a un humain ou a un agen
 - Frontend: SPA React 18 + Vite + TypeScript + Tailwind + Recharts.
 - Backend: FastAPI + SQLAlchemy + Alembic + Pydantic v2.
 - Base: SQLite locale dans `backend/data/suivi_budget.db` en dev Docker.
-- Auth: mono-admin JWT, routes metier protegees.
-- Orchestration: `infra/docker-compose.yml` (dev : `backend`, `frontend`, `backup`) ; `docker-compose.prod.yml` (prod : + service optionnel `mcp-server`, profil `mcp`; frontend Nginx publié sur `127.0.0.1:8082`, proxy `/api/` → `backend:8001`).
+- Auth: mono-admin JWT, routes metier protegees ; tokens MCP (`nmr_…`) acceptés à la place du JWT, sauf sur `/admin`.
+- Orchestration: `infra/docker-compose.yml` (dev : `backend`, `frontend`, `backup`) ; `docker-compose.prod.yml` (prod : + `mcp-server` en streamable-http ; frontend Nginx publié sur `127.0.0.1:8082`, proxy `/api/` → `backend:8001` et `/mcp` → `mcp-server:8100`).
 - Services externes (seuls appels sortants) : Frankfurter (taux de change) et Yahoo Finance (recherche/cotations de titres, profils ETF).
-- Serveur MCP optionnel dans `mcp-server/` (voir `mcp-server/README.md`).
+- Serveur MCP dans `mcp-server/`, connecté à Claude Code par token généré dans Paramètres → Compte (voir `mcp-server/README.md`).
 
 Flux principal:
 
@@ -62,11 +62,11 @@ docker-compose.prod.yml, Makefile, setup.sh, install.sh
 - `seed_all()` insere les categories par defaut et les profils ETF systeme sauf en `test`.
 - Une tache de fond (`recurring_transactions_task`, toutes les heures, 1er passage apres 10 s) genere les transactions recurrentes et les salaires en attente.
 - `GET /health` et `POST /auth/token` sont publics.
-- Les autres routeurs sont inclus avec `Depends(get_current_user)`.
+- Les autres routeurs sont inclus avec `Depends(get_current_user)` : JWT de session, ou token MCP (`core/mcp_tokens.py` : empreinte SHA-256 dans `mcp_tokens`, refusé si révoqué ou si `mcp_enabled` est faux). Le router `/admin` ajoute `require_interactive_session` : 403 pour un token MCP.
 
 ### Modules API
 
-- `auth.py`: login OAuth2 password et génération JWT.
+- `auth.py`: login OAuth2 password et génération JWT ; `GET /auth/whoami` (validation des identifiants, utilisé par le serveur MCP).
 - `accounts.py`: CRUD comptes, suppression logique par `active=False`.
 - `categories.py`: CRUD catégories avec limites mensuelles/annuelles.
 - `transactions.py`: CRUD transactions, recherche marchands, bulk update, suppression groupée (`POST /transactions/bulk-delete`, une seule transaction SQL puis un recalcul par compte), recalcul soldes.
@@ -84,7 +84,7 @@ docker-compose.prod.yml, Makefile, setup.sh, install.sh
 - `tags.py`: tags transversaux personnalisables.
 - `salary.py`: configuration de salaire, jours de télétravail (TT) et génération des transactions associées.
 - `merchants.py`: gestion des marchands canoniques et de leurs alias de normalisation.
-- `admin.py`: profil admin (nom/mot de passe, stockes dans `system_settings`) et reset database.
+- `admin.py`: profil admin (nom/mot de passe, `mcp_enabled`, stockes dans `system_settings`), tokens MCP (`GET`/`POST /admin/mcp-tokens`, `DELETE /admin/mcp-tokens/{id}` ; le token en clair n'est renvoyé qu'à la création) et reset database.
 - `health.py`: healthcheck public.
 
 ## Frontend
@@ -156,7 +156,8 @@ Un point zéro sert de base de performance pour un compte.
 - `holding_baseline_items`: inventaire Point Zéro des positions (`account_id`, `baseline_date`, `ticker`, `quantity`, `buy_price_avg`, `currency`, …).
 - `security_prices`: cours de clôture journaliers (`ticker`, `date`, `close`, `currency`, `source`), alimentés à chaque cotation Yahoo (`get_market_quotes(..., db=)`), par la tâche de fond horaire (`refresh_held_prices`) et par `get_price_on` / `fetch_price_history`. Si Yahoo échoue, le dernier cours stocké est renvoyé avec `stale=True`.
 - `etf_profiles`: profils ETF (`name`, `ticker`, `isin`, `aliases`, `countries`, `sectors`, `top_holdings` en JSON texte, `is_system`, `composition_sources`, `composition_refreshed_at`). `composition_sources` donne la source de chaque champ : `yahoo` (réécrit à chaque actualisation), `preset` (préréglage des profils système dans `seeds_etf.py`, repli tant que Yahoo ne fournit pas le champ, réécrit au démarrage), `manual` (saisi via `PUT`, jamais écrasé). Le scanner de diversité compte la part non couverte d'un ETF en « Non renseigné » et renvoie l'origine des compositions dans `etf_compositions`.
-- `system_settings`: paires cle/valeur (ex. `admin_username`, `admin_password_hash`).
+- `system_settings`: paires cle/valeur (ex. `admin_username`, `admin_password_hash`, `mcp_enabled`).
+- `mcp_tokens`: tokens d'accès MCP (`name`, `token_hash` SHA-256 unique, `token_prefix` pour l'affichage, `created_at`, `last_used_at`).
 - `imports_log`: journal d'import CSV.
 - `historical_exchange_rates`: cache de taux historiques.
 - `savings_goals`: objectifs d'épargne (`name`, `target_amount`, `keyword`, `deadline`, `account_id`, `category_id`, `icon`, `color`).
@@ -179,6 +180,7 @@ Un point zéro sert de base de performance pour un compte.
 
 - `GET /health`
 - `POST /auth/token` (limite de tentatives par client/utilisateur)
+- `GET /auth/whoami` (authentifié : JWT ou token MCP)
 
 ### CRUD Et Donnees
 
@@ -199,7 +201,7 @@ Un point zéro sert de base de performance pour un compte.
 - `/holdings`, `/etf-profiles`, `/market` (search, validate, quote)
 - `/tax` (`GET /tax/overview`, `GET`/`PATCH /tax/settings`, `GET /tax/annual-report?year=`) : calculs dans `api/analytics/tax.py`, règles chiffrées par année dans `core/tax_rules.py` (valeurs à vérifier), calculs purs dans `core/tax.py`
 - `/salary` (config, months, telecommuting, summary, generate)
-- `/admin` (profile, reset-database)
+- `/admin` (profile, mcp-tokens, reset-database) — interdit aux tokens MCP
 
 ### Import Export
 

@@ -191,71 +191,25 @@ cd frontend && npm run build # Build de production du frontend
 
 Numera embarque un serveur [MCP (Model Context Protocol)](https://modelcontextprotocol.io) qui permet à des agents IA (comme Claude ou Cursor) d'interroger et d'analyser vos finances de manière fiable et sécurisée.
 
-Le serveur supporte deux modes de fonctionnement :
-1. **Mode direct SQLite** (`server_sqlite.py`) : Connexion directe en lecture seule sur le fichier de base de données SQLite.
-2. **Mode Proxy API** (`server_api.py`) : Requêtes HTTP vers l'API FastAPI (idéal pour un serveur distant ou sur VPS).
+En production, le serveur MCP tourne dans le conteneur `mcp-server` et il est exposé par Nginx sur `https://<votre-domaine>/mcp`. Il n'y a ni SSH, ni copie locale, ni mot de passe dans une configuration.
 
-Le service MCP n'est pas lancé par défaut en production et son port n'est jamais publié. Pour l'activer localement dans le réseau Docker, utilisez le profil `mcp` avec `MCP_API_PASSWORD` défini dans l'environnement. Ne publiez pas un transport MCP HTTP sans une couche d'authentification dédiée.
+### 🚀 Connecter Claude Code
 
-### 🚀 Utilisation et configuration
+1. Dans Numera : **Paramètres → Compte → Claude Code (MCP)**, cliquer sur **Générer un token**.
+2. Copier la commande affichée (le token n'est montré qu'une fois) et la lancer dans un terminal :
+   ```bash
+   claude mcp add --transport http --scope user numera https://<votre-domaine>/mcp \
+     --header "Authorization: Bearer nmr_…"
+   ```
+3. Vérifier avec `claude mcp list`.
 
-#### 1. Cas d'une installation locale (Mode direct SQLite)
-Idéal si Numera tourne directement sur votre machine et que le fichier de base de données est accessible localement.
+Sécurité :
+- seule l'empreinte SHA-256 du token est stockée, et chaque token est révocable individuellement depuis la même page ;
+- l'interrupteur « Accès MCP » coupe tous les tokens immédiatement ;
+- un token MCP n'a pas accès à `/admin` (profil, mot de passe, reset de la base, création de tokens) ;
+- le serveur MCP ne détient aucun secret : il fait valider le token par l'API puis le transmet à chaque appel.
 
-##### Avec Claude Desktop
-Ajoutez ce bloc dans votre fichier `claude_desktop_config.json` (situé dans `~/Library/Application Support/Claude/` sous macOS) :
-```json
-{
-  "mcpServers": {
-    "numera-mcp": {
-      "command": "python3",
-      "args": ["/chemin/absolu/vers/votre/dossier/numera/mcp-server/server.py"],
-      "env": {
-        "MCP_DB_PATH": "/chemin/absolu/vers/votre/dossier/numera/backend/data/suivi_budget.db"
-      }
-    }
-  }
-}
-```
-
-##### Avec Cursor
-Ajoutez un serveur MCP dans vos réglages Cursor (**Settings > Features > MCP**) :
-* **Name** : `numera`
-* **Type** : `command`
-* **Command** : `python3 mcp-server/server.py`
-
----
-
-#### 2. Cas d'une instance distante (Mode Proxy API — VPS / Docker)
-Idéal si votre application Numera est hébergée sur un serveur distant (VPS, Docker, etc.) et que vous y accédez via une URL web. Vous devez cloner/télécharger le dossier `mcp-server` localement sur votre Mac et configurer les identifiants d'accès.
-
-##### Avec Claude Desktop
-Configurez votre fichier `claude_desktop_config.json` avec l'URL de votre VPS et votre mot de passe d'accès :
-```json
-{
-  "mcpServers": {
-    "numera-mcp": {
-      "command": "python3",
-      "args": ["/chemin/absolu/vers/votre/mcp-server/server.py"],
-      "env": {
-        "MCP_API_URL": "https://votre-numera-vps.com/api",
-        "MCP_API_USERNAME": "admin",
-        "MCP_API_PASSWORD": "VOTRE_MOT_DE_PASSE_ADMIN_DE_NUMERA"
-      }
-    }
-  }
-}
-```
-
-##### Avec Cursor
-Ajoutez un serveur MCP dans vos réglages Cursor (**Settings > Features > MCP**) :
-* **Name** : `numera-mcp`
-* **Type** : `command`
-* **Command** : `python3 /chemin/absolu/vers/votre/mcp-server/server.py`
-* **Variables d'environnement** (à ajouter via le bouton `+` de Cursor) :
-  * `MCP_API_URL` : `https://votre-numera-vps.com/api`
-  * `MCP_API_USERNAME` : `admin`
-  * `MCP_API_PASSWORD` : `VOTRE_MOT_DE_PASSE_ADMIN_DE_NUMERA`
+Détails techniques, mode local (stdio) et mode SQLite : [`mcp-server/README.md`](mcp-server/README.md).
 
 ---
 

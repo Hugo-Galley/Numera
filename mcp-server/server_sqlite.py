@@ -2009,15 +2009,9 @@ if __name__ == "__main__":
     logger.info(f"Base de données : {os.path.abspath(DB_PATH)}")
     logger.info(f"Transport : {TRANSPORT}")
 
-    if TRANSPORT == "sse" or TRANSPORT == "streamable-http":
-        import uvicorn
-        import time
-        # Small delay to let the backend finish migrations first
-        time.sleep(5)
-        from server_auth import protect
-        # Refuse de démarrer sans MCP_AUTH_TOKEN : le port exposerait tous les outils sans authentification
-        app = protect(mcp.sse_app())
-        logger.info(f"Écoute sur {HOST}:{PORT} (authentification bearer activée)")
-        uvicorn.run(app, host=HOST, port=PORT)
-    else:
-        mcp.run(transport="stdio")
+    if TRANSPORT != "stdio":
+        # Accès direct au fichier, sans authentification possible : jamais exposé sur le réseau.
+        # Pour un accès distant, utiliser le mode API (tokens MCP générés dans Numera).
+        logger.error("Le mode SQLite ne fonctionne qu'en transport stdio (MCP_TRANSPORT=stdio).")
+        raise SystemExit(1)
+    mcp.run(transport="stdio")

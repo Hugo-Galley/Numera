@@ -20,6 +20,7 @@ from app.models.etf_profile import EtfProfile
 from app.models.portfolio_holding import PortfolioHolding
 from app.models.holding_baseline_item import HoldingBaselineItem
 from app.models.security_price import SecurityPrice
+from app.models.mcp_token import McpToken
 from app.models.reimbursement import ReimbursementAllocation, ReimbursementClaim
 
 __all__ = [
@@ -44,6 +45,7 @@ __all__ = [
     "PortfolioHolding",
     "HoldingBaselineItem",
     "SecurityPrice",
+    "McpToken",
     "ReimbursementClaim",
     "ReimbursementAllocation",
 ]

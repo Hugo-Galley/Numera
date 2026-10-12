@@ -1,41 +1,76 @@
-"""Authentification par token bearer pour les transports HTTP du serveur MCP.
+"""Authentification des transports HTTP du serveur MCP par les tokens générés dans Numera.
 
-Sans cela, n'importe qui pouvant joindre le port MCP utilise les outils (dont écriture et
-suppression) avec les identifiants admin du backend. Le transport stdio n'est pas concerné
-(le processus est lancé par le client MCP lui-même).
+Le client MCP (Claude Code…) envoie `Authorization: Bearer nmr_…`, token créé dans Paramètres → Compte.
+Le middleware le fait valider par le backend (`GET /auth/whoami`) avant tout échange MCP : un client
+sans token valide ne voit même pas la liste des outils. Le même token est ensuite transmis tel quel au
+backend par chaque outil (`server_api.APIClient`) : révocation et interrupteur « Accès MCP » s'appliquent
+immédiatement, le serveur MCP ne détient aucun secret.
 """
-import hmac
-import os
-import sys
+import hashlib
+import json
+import time
 
-MIN_TOKEN_LENGTH = 16
+import httpx
+
+MCP_TOKEN_PREFIX = "nmr_"
+# Durée pendant laquelle une validation positive est réutilisée (évite un aller-retour par message MCP)
+VALIDATION_CACHE_SECONDS = 30
+UNAUTHORIZED_BODY = json.dumps(
+    {"detail": "Token MCP invalide ou révoqué. Générez-en un dans Numera : Paramètres → Compte."},
+    ensure_ascii=False,
+).encode("utf-8")
 
 
-class BearerAuthMiddleware:
-    """Middleware ASGI : refuse (401) toute requête HTTP sans `Authorization: Bearer <token>`."""
+def bearer_token(headers: dict[bytes, bytes]) -> str | None:
+    scheme, _, value = headers.get(b"authorization", b"").partition(b" ")
+    token = value.strip().decode("latin-1")
+    if scheme.lower() != b"bearer" or not token.startswith(MCP_TOKEN_PREFIX):
+        return None
+    return token
 
-    def __init__(self, app, token: str):
+
+class BackendTokenAuthMiddleware:
+    """Middleware ASGI : refuse (401) toute requête HTTP sans token MCP accepté par le backend."""
+
+    def __init__(self, app, api_base_url: str, cache_seconds: float = VALIDATION_CACHE_SECONDS):
         self.app = app
-        self._token = token.encode("utf-8")
+        self._whoami_url = f"{api_base_url.rstrip('/')}/auth/whoami"
+        self._cache_seconds = cache_seconds
+        self._valid_until: dict[str, float] = {}
+
+    async def _is_valid(self, token: str) -> bool:
+        key = hashlib.sha256(token.encode("utf-8")).hexdigest()
+        now = time.monotonic()
+        if self._valid_until.get(key, 0) > now:
+            return True
+        try:
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                response = await client.get(self._whoami_url, headers={"Authorization": f"Bearer {token}"})
+        except httpx.HTTPError:
+            return False
+        valid = response.status_code == 200 and response.json().get("auth") == "mcp_token"
+        if valid:
+            self._valid_until[key] = now + self._cache_seconds
+        else:
+            self._valid_until.pop(key, None)
+        return valid
 
     async def __call__(self, scope, receive, send):
-        if scope["type"] != "http":  # lifespan, websocket : laissés au serveur
+        if scope["type"] != "http":  # lifespan : laissé au serveur
             await self.app(scope, receive, send)
             return
 
-        headers = dict(scope.get("headers") or [])
-        authorization = headers.get(b"authorization", b"")
-        scheme, _, provided = authorization.partition(b" ")
-        if scheme.lower() == b"bearer" and hmac.compare_digest(provided.strip(), self._token):
+        token = bearer_token(dict(scope.get("headers") or []))
+        if token and await self._is_valid(token):
             await self.app(scope, receive, send)
             return
 
-        body = b'{"detail":"Unauthorized"}'
+        body = UNAUTHORIZED_BODY
         await send({
             "type": "http.response.start",
             "status": 401,
             "headers": [
-                (b"content-type", b"application/json"),
+                (b"content-type", b"application/json; charset=utf-8"),
                 (b"content-length", str(len(body)).encode()),
                 (b"www-authenticate", b"Bearer"),
             ],
@@ -43,19 +78,6 @@ class BearerAuthMiddleware:
         await send({"type": "http.response.body", "body": body})
 
 
-def require_auth_token() -> str:
-    """Retourne MCP_AUTH_TOKEN ou arrête le serveur : pas de transport HTTP sans authentification."""
-    token = os.environ.get("MCP_AUTH_TOKEN", "")
-    if len(token) < MIN_TOKEN_LENGTH:
-        print(
-            f"❌ MCP_AUTH_TOKEN (au moins {MIN_TOKEN_LENGTH} caractères) est obligatoire pour les transports "
-            "HTTP (sse / streamable-http). Générez-en un : openssl rand -hex 32",
-            file=sys.stderr,
-        )
-        sys.exit(1)
-    return token
-
-
-def protect(app):
-    """Enveloppe l'application ASGI du serveur MCP avec l'authentification bearer."""
-    return BearerAuthMiddleware(app, require_auth_token())
+def protect(app, api_base_url: str):
+    """Enveloppe l'application ASGI du serveur MCP avec la validation des tokens par le backend."""
+    return BackendTokenAuthMiddleware(app, api_base_url)

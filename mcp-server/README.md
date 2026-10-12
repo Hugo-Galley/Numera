@@ -6,8 +6,8 @@ Le point d'entrée `server.py` est un **dispatcher** qui lance l'un des deux ser
 
 | Mode | Fichier | Fonctionnement | Outils |
 |------|---------|----------------|--------|
-| **API proxy** | `server_api.py` | Appelle l'API FastAPI (login JWT via `/auth/token`). Reprend les KPI calculés par le backend. Recommandé, et seul mode du `docker-compose.prod.yml`. | 53 outils, 4 ressources, 6 prompts |
-| **SQLite direct** | `server_sqlite.py` | Lit la base SQLite (connexion read-only), écritures par une connexion dédiée. Pour une installation locale. | 26 outils, 5 ressources, 3 prompts |
+| **API proxy** | `server_api.py` | Appelle l'API FastAPI avec un **token MCP** généré dans Numera. Reprend les KPI calculés par le backend. Recommandé, et seul mode du `docker-compose.prod.yml` (exposé sur `/mcp`). | 53 outils, 4 ressources, 6 prompts |
+| **SQLite direct** | `server_sqlite.py` | Lit la base SQLite (connexion read-only), écritures par une connexion dédiée. Installation locale, **stdio uniquement**. | 26 outils, 5 ressources, 3 prompts |
 
 ### Choix du mode
 
@@ -56,7 +56,35 @@ Les outils d'écriture du mode API passent par l'API : les `running_balance` son
 
 ---
 
-## 📦 Installation
+## 🔑 Connexion de Claude Code (recommandé)
+
+En production, `docker-compose.prod.yml` lance `mcp-server` (mode API, transport `streamable-http`, sans état) ; Nginx l'expose sur `https://<domaine>/mcp`. Aucun port publié, aucun secret dans le conteneur.
+
+1. Numera → **Paramètres → Compte → Claude Code (MCP)** → **Générer un token** (`nmr_…`, affiché une seule fois).
+2. Lancer la commande affichée :
+   ```bash
+   claude mcp add --transport http --scope user numera https://<domaine>/mcp \
+     --header "Authorization: Bearer nmr_…"
+   ```
+3. `claude mcp list` doit afficher `numera` connecté.
+
+Chaîne d'authentification :
+
+```
+Claude Code ──Bearer nmr_…──▶ Nginx /mcp ──▶ mcp-server
+   server_auth.py : GET /auth/whoami avec ce token (refus 401 sinon, validation gardée 30 s)
+   chaque outil   : appel API avec ce même token (server_api.APIClient)
+backend : get_current_user accepte le token (empreinte SHA-256 dans mcp_tokens),
+          le refuse s'il est révoqué ou si l'accès MCP est coupé, et /admin le refuse toujours (403)
+```
+
+Révoquer un token ou couper « Accès MCP » prend effet immédiatement pour les données : les appels d'outils sont refusés par l'API, même pendant les 30 s où la validation du middleware est gardée en cache.
+
+En dev (`make dev`), le service `mcp-server` écoute sur `8100` et Vite proxifie `/mcp` : la commande affichée par l'interface (`http://localhost:5173/mcp`) fonctionne telle quelle.
+
+---
+
+## 📦 Installation locale (stdio)
 
 Prérequis : Python 3.12+.
 
@@ -73,79 +101,49 @@ npx -y @modelcontextprotocol/inspector python server.py
 | Variable | Mode | Description | Défaut |
 |----------|------|-------------|--------|
 | `MCP_MODE` | les deux | Force `api` ou `sqlite` | auto |
-| `MCP_SERVER_NAME` | les deux | Nom affiché | `Suivi Budget MCP` |
-| `MCP_TRANSPORT` | les deux | `stdio`, `streamable-http`, `sse` | `stdio` (l'image Docker met `streamable-http`) |
+| `MCP_SERVER_NAME` | les deux | Nom affiché | `Numera` |
+| `MCP_TRANSPORT` | les deux | `stdio`, `streamable-http`, `sse` (SQLite : `stdio` seulement) | `stdio` (l'image Docker met `streamable-http`) |
 | `MCP_HOST` / `MCP_PORT` | HTTP/SSE | Écoute | `127.0.0.1` / `8100` (l'image Docker met `0.0.0.0`) |
-| `MCP_AUTH_TOKEN` | HTTP/SSE | Token bearer exigé de tous les clients (`Authorization: Bearer …`), 16 caractères minimum — **obligatoire**, le serveur refuse de démarrer en HTTP sans. Génération : `openssl rand -hex 32` | — |
+| `MCP_API_URL` | API | URL de l'API : `http://backend:8001` dans Docker, `https://domaine/api` via Nginx | `http://localhost:8001` (l'image Docker met `http://backend:8001`) |
+| `MCP_API_TOKEN` | API, stdio | Token MCP généré dans l'interface — **obligatoire en stdio**. En HTTP, ignoré : chaque client envoie le sien | — |
 | `MCP_DB_PATH` | SQLite | Fichier SQLite | `../backend/data/suivi_budget.db` |
-| `MCP_API_URL` | API | URL de l'API. Derrière le Nginx de prod, **terminer par `/api`** (ex. `http://hote:8082/api`) ; en direct sur le backend, `http://backend:8001` | `http://192.168.1.100:8001` (valeur d'exemple à remplacer) |
-| `MCP_API_USERNAME` | API | Compte admin | `admin` |
-| `MCP_API_PASSWORD` | API | Mot de passe admin — **obligatoire**, le serveur refuse de démarrer sans | — |
 
----
+Plus aucun mot de passe : `MCP_API_USERNAME`, `MCP_API_PASSWORD` et `MCP_AUTH_TOKEN` n'existent plus.
 
-## 🖥️ Claude Desktop / Cursor
+### Client local en stdio (optionnel)
 
-**Mode SQLite (installation locale)**
+Mode API, par exemple pour Claude Code sans passer par `/mcp` :
 
-```json
-{
-  "mcpServers": {
-    "numera": {
-      "command": "python",
-      "args": ["/chemin/absolu/numera/mcp-server/server.py"],
-      "env": {
-        "MCP_MODE": "sqlite",
-        "MCP_DB_PATH": "/chemin/absolu/numera/backend/data/suivi_budget.db"
-      }
-    }
-  }
-}
+```bash
+claude mcp add --scope user numera-local \
+  -e MCP_MODE=api -e MCP_API_URL=https://<domaine>/api -e MCP_API_TOKEN=nmr_… \
+  -- python3 /chemin/absolu/numera/mcp-server/server.py
 ```
 
-**Mode API (instance distante)**
-
-```json
-{
-  "mcpServers": {
-    "numera": {
-      "command": "python",
-      "args": ["/chemin/absolu/numera/mcp-server/server.py"],
-      "env": {
-        "MCP_MODE": "api",
-        "MCP_API_URL": "https://votre-domaine/api",
-        "MCP_API_USERNAME": "admin",
-        "MCP_API_PASSWORD": "••••••••"
-      }
-    }
-  }
-}
-```
-
-Claude Desktop : `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS). Cursor : `.cursor/mcp.json` à la racine du projet. Utiliser des chemins absolus.
+Mode SQLite (même machine que la base ; pas d'authentification, le fichier suffit) : `-e MCP_MODE=sqlite -e MCP_DB_PATH=/chemin/absolu/numera/backend/data/suivi_budget.db`.
 
 ---
 
 ## 🐳 Docker
 
-Le service est déclaré dans `docker-compose.prod.yml` sous le **profil `mcp`** (non lancé par défaut), en mode API, transport `stdio`, **sans port publié** :
+Service `mcp-server` de `docker-compose.prod.yml` (toujours lancé, frontend Nginx en dépend) : mode API, `streamable-http` sur `8100` dans le réseau Docker seulement, `MCP_API_URL=http://backend:8001`. Bloc Nginx : `location = /mcp` dans `frontend/nginx.conf` (`proxy_buffering off` pour le flux SSE).
 
-```bash
-MCP_API_PASSWORD=... docker compose --env-file .env -f docker-compose.prod.yml --profile mcp up -d mcp-server
-```
+Le serveur est construit en `stateless_http` (pas d'affinité de session) et sans protection DNS rebinding de la lib `mcp` (elle n'accepte que `Host: localhost`, ce qui casse derrière Nginx ; inutile puisque l'accès repose sur un token bearer explicite).
 
-Il cible `http://backend:8001` dans le réseau Docker. Les transports HTTP (`sse`, `streamable-http`) exigent `MCP_AUTH_TOKEN` (token bearer, `server_auth.py`) et refusent de démarrer sans. Le token ne chiffre rien : pour une exposition hors réseau local, ajouter TLS (reverse proxy). Le transport `stdio` n'est pas concerné.
-
-Build manuel de l'image : `docker build -t numera-mcp ./mcp-server` (l'image définit `MCP_DB_PATH=/data/suivi_budget.db` et `MCP_TRANSPORT=streamable-http` ; en mode API, surcharger `MCP_MODE`, `MCP_API_URL`, `MCP_API_PASSWORD` et `MCP_TRANSPORT`).
+Build manuel : `docker build -t numera-mcp ./mcp-server`.
 
 ---
 
 ## 🔒 Sécurité
 
-- **Mode API** : toutes les règles du backend s'appliquent (JWT, limitation des tentatives de login). Le mot de passe admin est fourni par variable d'environnement, jamais dans le dépôt.
-- **Mode SQLite** : lecture via connexion `mode=ro` ; SQL brut limité aux `SELECT` (mots-clés `INSERT`, `UPDATE`, `DELETE`, `DROP`, `ALTER`, `CREATE`, `TRUNCATE`, `REPLACE`, `ATTACH`, `DETACH`, `PRAGMA` refusés), `LIMIT 200` forcé ; écritures par outils validés uniquement ; journal WAL pour cohabiter avec le backend.
+- **Tokens MCP** : 256 bits aléatoires préfixés `nmr_`, seule l'empreinte SHA-256 est stockée (`mcp_tokens`), affichés une seule fois, révocables un par un, `last_used_at` mis à jour (au plus une fois par minute). Interrupteur global « Accès MCP » (`system_settings.mcp_enabled`).
+- **Périmètre** : un token MCP a les droits de l'admin sur les données, mais **aucun accès à `/admin`** (profil, mot de passe, reset de la base, gestion des tokens) : 403.
+- **Transport** : le token circule dans un en-tête ; en production, n'exposer Numera qu'en HTTPS.
+- **Mode SQLite** : stdio uniquement (refuse de démarrer en HTTP) ; lecture via connexion `mode=ro` ; SQL brut limité aux `SELECT` (mots-clés `INSERT`, `UPDATE`, `DELETE`, `DROP`, `ALTER`, `CREATE`, `TRUNCATE`, `REPLACE`, `ATTACH`, `DETACH`, `PRAGMA` refusés), `LIMIT 200` forcé ; écritures par outils validés uniquement ; journal WAL pour cohabiter avec le backend.
 - Les écritures de l'agent (ajout, suppression, catégorisation en masse) modifient vraiment les données : faire une sauvegarde (`make backup-now`) avant une session de nettoyage en masse.
 - Logs sur stderr.
+
+Tests : `cd mcp-server && python3 -m pytest test_server_auth.py -q` (middleware) et `backend/tests/test_mcp_tokens.py` (tokens côté API).
 
 ---
 
@@ -164,7 +162,8 @@ Build manuel de l'image : `docker build -t numera-mcp ./mcp-server` (l'image dé
 ```
 mcp-server/
 ├── server.py          # Dispatcher (choisit api ou sqlite)
-├── server_api.py      # Mode proxy API (httpx + JWT)
+├── server_api.py      # Mode proxy API (httpx, token MCP)
+├── server_auth.py     # Validation des tokens par l'API (transports HTTP)
 ├── server_sqlite.py   # Mode SQLite direct
 ├── requirements.txt
 ├── Dockerfile

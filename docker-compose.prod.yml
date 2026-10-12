@@ -46,13 +46,12 @@ services:
     build:
       context: ./mcp-server
     container_name: numera-mcp-prod
-    profiles: ["mcp"]
+    # Exposé uniquement via Nginx (/mcp). Aucun secret : chaque client présente un token MCP
+    # généré dans Paramètres → Compte, validé par le backend.
     environment:
       - MCP_MODE=api
       - MCP_API_URL=http://backend:8001
-      - MCP_API_USERNAME=${ADMIN_USERNAME:-admin}
-      - MCP_API_PASSWORD=${MCP_API_PASSWORD:-}
-      - MCP_TRANSPORT=stdio
+      - MCP_TRANSPORT=streamable-http
     depends_on:
       backend:
         condition: service_healthy
@@ -67,4 +66,5 @@ services:
       - "127.0.0.1:8082:80"
     depends_on:
       - backend
+      - mcp-server
     restart: always

@@ -12,6 +12,10 @@ export default defineConfig({
   server: {
     host: true,
     port: 5173,
-    allowedHosts: "all"
+    allowedHosts: "all",
+    // Même URL qu'en prod (/mcp via Nginx) pour le serveur MCP local
+    proxy: {
+      "/mcp": process.env.MCP_PROXY_TARGET ?? "http://localhost:8100",
+    },
   }
 })
