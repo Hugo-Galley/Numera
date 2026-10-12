@@ -11,6 +11,10 @@ __pycache__/
 # Databases
 *.db
 *.sqlite
+# Fichiers WAL / mémoire partagée de SQLite (base en cours d'utilisation)
+*.db-shm
+*.db-wal
+*.db-journal
 backend/data/*.db
 backend/data/*.sqlite
 data/*.db
@@ -41,4 +45,5 @@ AGENT.MD
 # OS specific
 Thumbs.db
 Desktop.ini
-backend/venvbackend/data/logos/
+backend/venv
+backend/data/logos/
