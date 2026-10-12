@@ -30,6 +30,13 @@ interface McpTokenCreated extends McpToken {
   token: string
 }
 
+type McpClient = "claude-code" | "claude-desktop"
+
+const CLIENTS: { id: McpClient; label: string }[] = [
+  { id: "claude-code", label: "Claude Code" },
+  { id: "claude-desktop", label: "Claude Desktop" },
+]
+
 const formatDateTime = (value: string | null) =>
   value
     ? new Date(`${value}Z`).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" })
@@ -55,7 +62,7 @@ function CopyBlock({ value, label }: { value: string; label: string }) {
   )
 }
 
-/** Accès des agents IA (Claude Code) au serveur MCP, par tokens générés ici et révocables. */
+/** Accès en lecture seule de Claude (Code / Desktop) au serveur MCP, par tokens générés ici et révocables. */
 export function McpAccessCard() {
   const { profile, refreshProfile } = useAuth()
   const [enabled, setEnabled] = useState(true)
@@ -64,6 +71,7 @@ export function McpAccessCard() {
   const [creating, setCreating] = useState(false)
   const [created, setCreated] = useState<McpTokenCreated | null>(null)
   const [toRevoke, setToRevoke] = useState<McpToken | null>(null)
+  const [client, setClient] = useState<McpClient>("claude-code")
 
   const mcpUrl = `${window.location.origin}/mcp`
 
@@ -103,6 +111,7 @@ export function McpAccessCard() {
     try {
       const token = await api.post<McpTokenCreated>("/admin/mcp-tokens", { name: name.trim() })
       setCreated(token)
+      setClient(name.toLowerCase().includes("desktop") ? "claude-desktop" : "claude-code")
       await loadTokens()
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Impossible de générer le token")
@@ -128,17 +137,33 @@ export function McpAccessCard() {
   const command = created
     ? `claude mcp add --transport http --scope user numera ${mcpUrl} --header "Authorization: Bearer ${created.token}"`
     : ""
+  // Claude Desktop ne passe pas d'en-tête aux serveurs distants : pont local mcp-remote (Node.js requis)
+  const desktopConfig = created
+    ? JSON.stringify(
+        {
+          mcpServers: {
+            numera: {
+              command: "npx",
+              args: ["-y", "mcp-remote", mcpUrl, "--header", "Authorization:${NUMERA_AUTH}"],
+              env: { NUMERA_AUTH: `Bearer ${created.token}` },
+            },
+          },
+        },
+        null,
+        2,
+      )
+    : ""
 
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Bot className="h-5 w-5" />
-          Claude Code (MCP)
+          Claude (MCP)
         </CardTitle>
         <CardDescription>
-          Donnez à Claude Code l'accès à vos données via le serveur MCP. Chaque token est révocable ; aucun ne
-          permet de modifier votre profil, votre mot de passe ou de vider la base.
+          Donnez à Claude Code ou Claude Desktop un accès en <strong>lecture seule</strong> à vos données via le
+          serveur MCP. Chaque token est révocable ; aucun ne permet de modifier quoi que ce soit.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -159,7 +184,7 @@ export function McpAccessCard() {
               id="mcp-token-name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Ex. Claude Code — MacBook"
+              placeholder="Ex. Claude Desktop — MacBook"
               maxLength={100}
             />
             <Button type="submit" disabled={creating || !name.trim()} className="gap-2 shrink-0">
@@ -175,18 +200,49 @@ export function McpAccessCard() {
               <TriangleAlert className="h-4 w-4" />
               Copiez-le maintenant : ce token ne sera plus affiché.
             </p>
-            <div className="space-y-1.5">
-              <p className="text-xs font-medium text-slate-700 dark:text-slate-300">
-                Dans un terminal, ajoutez Numera à Claude Code :
-              </p>
-              <CopyBlock value={command} label="Commande" />
+            <div className="flex gap-2">
+              {CLIENTS.map((item) => (
+                <Button
+                  key={item.id}
+                  type="button"
+                  size="sm"
+                  variant={client === item.id ? "default" : "outline"}
+                  onClick={() => setClient(item.id)}
+                  className="text-xs"
+                >
+                  {item.label}
+                </Button>
+              ))}
             </div>
+            {client === "claude-code" ? (
+              <div className="space-y-1.5">
+                <p className="text-xs font-medium text-slate-700 dark:text-slate-300">
+                  Dans un terminal, ajoutez Numera à Claude Code :
+                </p>
+                <CopyBlock value={command} label="Commande" />
+                <p className="text-xs text-slate-600 dark:text-slate-400">
+                  Vérifiez ensuite avec <code>claude mcp list</code>.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-1.5">
+                <p className="text-xs font-medium text-slate-700 dark:text-slate-300">
+                  Claude Desktop → Réglages → Développeur → Modifier la configuration, puis fusionnez ce bloc dans{" "}
+                  <code>claude_desktop_config.json</code> :
+                </p>
+                <CopyBlock value={desktopConfig} label="Configuration" />
+                <p className="text-xs text-slate-600 dark:text-slate-400">
+                  Node.js doit être installé (le pont <code>mcp-remote</code> transmet le token). Redémarrez ensuite
+                  Claude Desktop.
+                </p>
+              </div>
+            )}
             <div className="space-y-1.5">
               <p className="text-xs font-medium text-slate-700 dark:text-slate-300">Token seul :</p>
               <CopyBlock value={created.token} label="Token" />
             </div>
             <p className="text-xs text-slate-600 dark:text-slate-400">
-              Vérifiez ensuite avec <code>claude mcp list</code>. Le serveur est joignable sur <code>{mcpUrl}</code>.
+              Serveur MCP : <code>{mcpUrl}</code>
             </p>
             <Button type="button" variant="outline" size="sm" onClick={() => setCreated(null)}>
               J'ai copié le token
@@ -199,7 +255,7 @@ export function McpAccessCard() {
           {tokens === null ? (
             <Skeleton className="h-12 w-full" />
           ) : tokens.length === 0 ? (
-            <p className="text-sm text-slate-500 py-2">Aucun token : générez-en un pour connecter Claude Code.</p>
+            <p className="text-sm text-slate-500 py-2">Aucun token : générez-en un pour connecter Claude.</p>
           ) : (
             <ul className="divide-y rounded-md border">
               {tokens.map((token) => (

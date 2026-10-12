@@ -189,13 +189,13 @@ cd frontend && npm run build # Build de production du frontend
 
 ## 🔌 Serveur MCP
 
-Numera embarque un serveur [MCP (Model Context Protocol)](https://modelcontextprotocol.io) qui permet à des agents IA (comme Claude ou Cursor) d'interroger et d'analyser vos finances de manière fiable et sécurisée.
+Numera embarque un serveur [MCP (Model Context Protocol)](https://modelcontextprotocol.io) qui permet à Claude (Claude Code, Claude Desktop) d'interroger et d'analyser vos finances, **en lecture seule**.
 
 En production, le serveur MCP tourne dans le conteneur `mcp-server` et il est exposé par Nginx sur `https://<votre-domaine>/mcp`. Il n'y a ni SSH, ni copie locale, ni mot de passe dans une configuration.
 
-### 🚀 Connecter Claude Code
+### 🚀 Connecter Claude
 
-1. Dans Numera : **Paramètres → Compte → Claude Code (MCP)**, cliquer sur **Générer un token**.
+1. Dans Numera : **Paramètres → Compte → Claude (MCP)**, cliquer sur **Générer un token**.
 2. Copier la commande affichée (le token n'est montré qu'une fois) et la lancer dans un terminal :
    ```bash
    claude mcp add --transport http --scope user numera https://<votre-domaine>/mcp \
@@ -203,10 +203,12 @@ En production, le serveur MCP tourne dans le conteneur `mcp-server` et il est ex
    ```
 3. Vérifier avec `claude mcp list`.
 
+Pour **Claude Desktop**, l'interface génère à la place le bloc à coller dans `claude_desktop_config.json` (pont `mcp-remote`, Node.js requis).
+
 Sécurité :
 - seule l'empreinte SHA-256 du token est stockée, et chaque token est révocable individuellement depuis la même page ;
 - l'interrupteur « Accès MCP » coupe tous les tokens immédiatement ;
-- un token MCP n'a pas accès à `/admin` (profil, mot de passe, reset de la base, création de tokens) ;
+- un token MCP est en lecture seule (l'API refuse tout sauf `GET`) et n'a pas accès à `/admin` (profil, mot de passe, reset de la base, création de tokens) ;
 - le serveur MCP ne détient aucun secret : il fait valider le token par l'API puis le transmet à chaque appel.
 
 Détails techniques, mode local (stdio) et mode SQLite : [`mcp-server/README.md`](mcp-server/README.md).

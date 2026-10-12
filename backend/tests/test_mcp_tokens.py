@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_current_user
 from app.core.mcp_tokens import hash_token
 from app.main import app
+from app.models.category import Category
 from app.models.mcp_token import McpToken
 
 
@@ -78,3 +79,17 @@ def test_token_cannot_reach_admin_routes(client: TestClient):
         "/admin/reset-database", json={"confirm": True, "confirmation_code": "EFFACER"}, headers=headers
     )
     assert response.status_code == 403
+
+
+def test_token_is_read_only(client: TestClient, db_session: Session):
+    token = _create_token(client)["token"]
+    _as_real_auth()
+    headers = {"Authorization": f"Bearer {token}"}
+
+    response = client.post("/categories", json={"name": "Créée par un agent", "type": "Sortie"}, headers=headers)
+    assert response.status_code == 403
+    assert response.json()["detail"] == "Accès MCP en lecture seule"
+    assert db_session.query(Category).filter(Category.name == "Créée par un agent").count() == 0
+    assert client.delete("/transactions/1", headers=headers).status_code == 403
+    assert client.patch("/transactions/bulk", json={}, headers=headers).status_code == 403
+    assert client.get("/categories", headers=headers).status_code == 200

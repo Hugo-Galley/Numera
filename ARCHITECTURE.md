@@ -9,10 +9,10 @@ Decrire l'architecture actuelle du depot pour permettre a un humain ou a un agen
 - Frontend: SPA React 18 + Vite + TypeScript + Tailwind + Recharts.
 - Backend: FastAPI + SQLAlchemy + Alembic + Pydantic v2.
 - Base: SQLite locale dans `backend/data/suivi_budget.db` en dev Docker.
-- Auth: mono-admin JWT, routes metier protegees ; tokens MCP (`nmr_…`) acceptés à la place du JWT, sauf sur `/admin`.
+- Auth: mono-admin JWT, routes metier protegees ; tokens MCP (`nmr_…`) acceptés à la place du JWT en lecture seule (`GET`), jamais sur `/admin`.
 - Orchestration: `infra/docker-compose.yml` (dev : `backend`, `frontend`, `backup`) ; `docker-compose.prod.yml` (prod : + `mcp-server` en streamable-http ; frontend Nginx publié sur `127.0.0.1:8082`, proxy `/api/` → `backend:8001` et `/mcp` → `mcp-server:8100`).
 - Services externes (seuls appels sortants) : Frankfurter (taux de change) et Yahoo Finance (recherche/cotations de titres, profils ETF).
-- Serveur MCP dans `mcp-server/`, connecté à Claude Code par token généré dans Paramètres → Compte (voir `mcp-server/README.md`).
+- Serveur MCP dans `mcp-server/`, en lecture seule, connecté à Claude Code / Claude Desktop par token généré dans Paramètres → Compte (voir `mcp-server/README.md`).
 
 Flux principal:
 
@@ -62,7 +62,7 @@ docker-compose.prod.yml, Makefile, setup.sh, install.sh
 - `seed_all()` insere les categories par defaut et les profils ETF systeme sauf en `test`.
 - Une tache de fond (`recurring_transactions_task`, toutes les heures, 1er passage apres 10 s) genere les transactions recurrentes et les salaires en attente.
 - `GET /health` et `POST /auth/token` sont publics.
-- Les autres routeurs sont inclus avec `Depends(get_current_user)` : JWT de session, ou token MCP (`core/mcp_tokens.py` : empreinte SHA-256 dans `mcp_tokens`, refusé si révoqué ou si `mcp_enabled` est faux). Le router `/admin` ajoute `require_interactive_session` : 403 pour un token MCP.
+- Les autres routeurs sont inclus avec `Depends(get_current_user)` : JWT de session, ou token MCP (`core/mcp_tokens.py` : empreinte SHA-256 dans `mcp_tokens`, refusé si révoqué, si `mcp_enabled` est faux ou pour toute méthode autre que `GET`/`HEAD`). Le router `/admin` ajoute `require_interactive_session` : 403 pour un token MCP.
 
 ### Modules API
 

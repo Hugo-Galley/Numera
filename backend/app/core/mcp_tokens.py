@@ -1,8 +1,8 @@
 """Tokens d'accès MCP : générés depuis l'interface, acceptés par l'API à la place d'un JWT.
 
 Le token n'est affiché qu'une fois ; la base ne garde que son empreinte SHA-256 (token aléatoire de
-256 bits : un hash lent n'apporte rien). Ils sont refusés quand l'accès MCP est désactivé et ne
-donnent pas accès à `/admin` (profil, reset, gestion des tokens).
+256 bits : un hash lent n'apporte rien). Ils sont refusés quand l'accès MCP est désactivé, ne
+permettent que la lecture (GET) et ne donnent pas accès à `/admin` (profil, reset, gestion des tokens).
 """
 import hashlib
 import hmac

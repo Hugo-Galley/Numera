@@ -1,6 +1,6 @@
 from typing import Generator
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer
 import jwt
 from pydantic import ValidationError
@@ -25,7 +25,11 @@ def get_db() -> Generator:
         db.close()
 
 
+MCP_ALLOWED_METHODS = {"GET", "HEAD"}
+
+
 def get_current_user(
+    request: Request,
     db: Session = Depends(get_db),
     token: str = Depends(reusable_oauth2)
 ) -> str:
@@ -35,10 +39,15 @@ def get_current_user(
         headers={"WWW-Authenticate": "Bearer"},
     )
     current_admin = get_setting(db, "admin_username", settings.ADMIN_USERNAME)
-    # Token MCP généré depuis l'interface (agents IA) : même droits que l'admin, hors /admin
+    # Token MCP généré depuis l'interface (agents IA) : lecture seule, hors /admin
     if is_mcp_token(token):
         if not authenticate_mcp_token(db, token):
             raise credentials_exception
+        if request.method not in MCP_ALLOWED_METHODS:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Accès MCP en lecture seule",
+            )
         return current_admin
 
     try:
