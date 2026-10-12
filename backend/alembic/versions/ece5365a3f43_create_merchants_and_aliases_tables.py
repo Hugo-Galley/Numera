@@ -45,24 +45,37 @@ def upgrade() -> None:
         batch_op.create_index(batch_op.f('ix_merchant_aliases_label'), ['label'], unique=True)
         batch_op.create_index(batch_op.f('ix_merchant_aliases_merchant_id'), ['merchant_id'], unique=False)
 
+    # Les colonnes bancaires (external_id, iban, bic, ...) et la table bank_connections ne viennent
+    # d'aucune migration : elles n'existent que sur d'anciennes bases. Sur une base neuve, rien à supprimer.
+    inspector = sa.inspect(op.get_bind())
+    tables = set(inspector.get_table_names())
+    account_columns = {c['name'] for c in inspector.get_columns('accounts')}
+    account_indexes = {i['name'] for i in inspector.get_indexes('accounts')}
+    account_fks = {fk['name'] for fk in inspector.get_foreign_keys('accounts')}
+    transaction_columns = {c['name'] for c in inspector.get_columns('transactions')}
+    transaction_indexes = {i['name'] for i in inspector.get_indexes('transactions')}
+
     with op.batch_alter_table('accounts', schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f('ix_accounts_external_id'))
-        batch_op.drop_constraint(batch_op.f('fk_accounts_parent_id_accounts'), type_='foreignkey')
-        batch_op.drop_constraint(batch_op.f('fk_accounts_bank_connection_id_bank_connections'), type_='foreignkey')
-        batch_op.drop_column('bic')
-        batch_op.drop_column('external_id')
-        batch_op.drop_column('iban')
-        batch_op.drop_column('bank_connection_id')
-        batch_op.drop_column('parent_id')
+        if 'ix_accounts_external_id' in account_indexes:
+            batch_op.drop_index(batch_op.f('ix_accounts_external_id'))
+        for fk in ('fk_accounts_parent_id_accounts', 'fk_accounts_bank_connection_id_bank_connections'):
+            if fk in account_fks:
+                batch_op.drop_constraint(batch_op.f(fk), type_='foreignkey')
+        for column in ('bic', 'external_id', 'iban', 'bank_connection_id', 'parent_id'):
+            if column in account_columns:
+                batch_op.drop_column(column)
 
     with op.batch_alter_table('transactions', schema=None) as batch_op:
         batch_op.add_column(sa.Column('merchant_id', sa.Integer(), nullable=True))
-        batch_op.drop_index(batch_op.f('ix_transactions_external_id'))
+        if 'ix_transactions_external_id' in transaction_indexes:
+            batch_op.drop_index(batch_op.f('ix_transactions_external_id'))
         batch_op.create_index(batch_op.f('ix_transactions_merchant_id'), ['merchant_id'], unique=False)
         batch_op.create_foreign_key(batch_op.f('fk_transactions_merchant_id_merchants'), 'merchants', ['merchant_id'], ['id'])
-        batch_op.drop_column('external_id')
+        if 'external_id' in transaction_columns:
+            batch_op.drop_column('external_id')
 
-    op.drop_table('bank_connections')
+    if 'bank_connections' in tables:
+        op.drop_table('bank_connections')
     # ### end Alembic commands ###
 
 

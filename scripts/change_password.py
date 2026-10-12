@@ -27,7 +27,7 @@ if __name__ == "__main__":
     print("\n--- ÉTAPES POUR APPLIQUER ---")
     print("1. Ouvre le fichier '.env' à la racine du projet")
     print("2. Trouve la ligne 'ADMIN_PASSWORD_HASH'")
-    print(f"3. Remplace la valeur par : {new_hash}")
+    print(f"3. Remplace la valeur par : '{new_hash}'  (avec les guillemets simples)")
     print("\nNote: Si vous utilisez Docker Compose directement dans le YAML (déconseillé), utilisez ce hash échappé :")
     print(f"ADMIN_PASSWORD_HASH={escaped_hash}")
     print("\n4. Relancez l'application : make dev (ou make prod)")

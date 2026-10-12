@@ -30,7 +30,7 @@ fi
 # 3. Générer une BACKUP_KEY si elle est par défaut
 if grep -q "generate-a-fernet-key-using-python" .env; then
     echo "🛡️  Génération d'une BACKUP_KEY pour les sauvegardes chiffrées..."
-    NEW_BACKUP_KEY=$(python3 -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())" 2>/dev/null || echo "")
+    NEW_BACKUP_KEY=$(openssl rand -base64 32 | tr '+/' '-_')
     if [ -n "$NEW_BACKUP_KEY" ]; then
         if [[ "$OSTYPE" == "darwin"* ]]; then
             sed -i '' "s/BACKUP_KEY=generate-a-fernet-key-using-python/BACKUP_KEY=$NEW_BACKUP_KEY/" .env
