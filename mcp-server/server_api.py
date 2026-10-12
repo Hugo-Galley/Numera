@@ -1406,8 +1406,9 @@ def list_etf_profiles() -> str:
     """Liste tous les profils ETF connus avec leur composition par pays, secteurs et top holdings.
 
     Utile pour comprendre ce que contient réellement un ETF.
-    Les profils système (is_system ✅) sont des présets intégrés à Numera.
-    Les profils personnalisés (📝) ont été générés automatiquement ou manuellement.
+    Les profils système (is_system ✅) sont intégrés à Numera, les autres (📝) créés à l'usage.
+    Secteurs et top 10 viennent de Yahoo Finance (actualisés chaque semaine) ; la répartition
+    par pays n'est jamais fournie par Yahoo : préréglage intégré ou saisie, sinon vide.
     """
     try:
         resp = api.get("/etf-profiles")
@@ -1448,9 +1449,16 @@ def get_etf_profile(profile_id: int) -> str:
         if error:
             return error
         data = resp.json()
+        source_labels = {"yahoo": "Yahoo Finance", "preset": "préréglage", "manual": "saisie manuelle"}
+        sources = data.get("composition_sources") or {}
         lines = [
             f"🗂️ ETF : {data.get('name', '')} ({data.get('ticker', '')})",
             f"   ISIN : {data.get('isin') or '—'}",
+            "   Sources : " + ", ".join(
+                f"{label} = {source_labels.get(sources.get(field), 'non renseigné')}"
+                for field, label in (("countries", "pays"), ("sectors", "secteurs"), ("top_holdings", "top 10"))
+            ),
+            f"   Actualisé le : {data.get('composition_refreshed_at') or 'jamais'}",
             "",
         ]
         countries = data.get("countries", {})
@@ -1481,7 +1489,8 @@ def get_diversity_scanner(account_id: int | None = None) -> str:
     """Analyse complète de diversification du portefeuille avec décomposition ETF (look-through).
 
     ⏱️ Cet outil peut prendre quelques secondes : il récupère les cours live
-    et peut déclencher une auto-décomposition des ETF non encore profilés.
+    et peut créer depuis Yahoo le profil des ETF non encore profilés. La part d'un ETF
+    dont la composition n'est pas connue est comptée en « Non renseigné ».
 
     Retourne :
     - Score de diversité HHI (0-100) : 90+ = excellent, 60-90 = bon, <60 = à améliorer

@@ -10,8 +10,10 @@ import {
   Building,
   AlertTriangle,
   Info,
-  ShieldCheck
+  ShieldCheck,
+  RefreshCw
 } from "lucide-react"
+import { Button } from "@/components/ui/button"
 import { api } from "@/lib/api"
 import { 
   Card, 
@@ -43,8 +45,20 @@ import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
 import WorldMap from "@/components/ui/WorldMap"
 import { AllocationTreemap } from "@/components/analytics/AllocationTreemap"
-import { DiversityScannerResponse } from "@/types/diversity"
+import { CompositionField, CompositionSource, DiversityScannerResponse } from "@/types/diversity"
 import { CompanyLogo } from "@/components/ui/CompanyLogo"
+
+const COMPOSITION_FIELDS: { key: CompositionField; label: string }[] = [
+  { key: "sectors", label: "Secteurs" },
+  { key: "top_holdings", label: "Top 10" },
+  { key: "countries", label: "Pays" },
+]
+
+const SOURCE_LABELS: Record<CompositionSource, { label: string; className: string }> = {
+  yahoo: { label: "Yahoo", className: "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-900" },
+  preset: { label: "Préréglage", className: "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-900" },
+  manual: { label: "Saisie", className: "bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700" },
+}
 
 const COLORS = ["#000000", "#4b5563", "#9ca3af", "#d1d5db", "#e5e7eb", "#f3f4f6", "#f8fafc"]
 
@@ -55,6 +69,21 @@ export default function Investments() {
   const [diversity, setDiversity] = useState<DiversityScannerResponse | null>(null)
 const [loading, setLoading] = useState(true)
   const [drillDown, setDrillDown] = useState<{ title: string, items: any[] } | null>(null)
+  const [refreshingCompositions, setRefreshingCompositions] = useState(false)
+
+  const refreshCompositions = async () => {
+    setRefreshingCompositions(true)
+    try {
+      const res = await api.post<{ refreshed: number }>("/etf-profiles/refresh-held", {})
+      const div = await api.get<DiversityScannerResponse>("/analytics/diversity-scanner")
+      if (div && div.totals.holdings_count > 0) setDiversity(div)
+      toast.success(`${res.refreshed} composition${res.refreshed > 1 ? "s" : ""} actualisée${res.refreshed > 1 ? "s" : ""} depuis Yahoo`)
+    } catch {
+      toast.error("Impossible d'actualiser les compositions")
+    } finally {
+      setRefreshingCompositions(false)
+    }
+  }
 
   useEffect(() => {
     async function loadData() {
@@ -646,6 +675,60 @@ const [loading, setLoading] = useState(true)
             } />
           </CardContent>
         </Card>
+
+        {diversity && diversity.etf_compositions.length > 0 && (
+          <Card className="shadow-sm">
+            <CardHeader className="border-b pb-3">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <Layers className="h-4 w-4 text-slate-500" />
+                  <div>
+                    <CardTitle className="text-base">Origine des compositions</CardTitle>
+                    <CardDescription className="text-xs">
+                      Yahoo fournit secteurs et top 10 (pas les pays) ; à défaut, le préréglage intégré est utilisé. La part non couverte apparaît en « Non renseigné ».
+                    </CardDescription>
+                  </div>
+                </div>
+                <Button variant="outline" size="sm" className="gap-1.5 shrink-0" onClick={refreshCompositions} disabled={refreshingCompositions}>
+                  <RefreshCw className={`h-3.5 w-3.5 ${refreshingCompositions ? "animate-spin" : ""}`} />
+                  <span className="hidden sm:inline">Actualiser</span>
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="divide-y">
+                {diversity.etf_compositions.map((c) => (
+                  <div key={c.profile_id} className="flex flex-col gap-2 px-5 py-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="min-w-0">
+                      <div className="text-sm font-medium truncate">{c.profile_name}</div>
+                      <div className="text-xs text-muted-foreground truncate">
+                        {c.tickers.join(", ")} · <span className="amount-blur">{formatCurrency(c.value_eur)}</span>
+                        {" · "}
+                        {c.refreshed_at
+                          ? `actualisé le ${new Date(c.refreshed_at + "Z").toLocaleDateString("fr-FR")}`
+                          : "jamais actualisé"}
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {COMPOSITION_FIELDS.map(({ key, label }) => {
+                        const source = c.sources[key]
+                        return (
+                          <Badge
+                            key={key}
+                            variant="outline"
+                            className={`text-[10px] font-medium shadow-none ${source ? SOURCE_LABELS[source].className : "text-slate-400 border-dashed"}`}
+                          >
+                            {label} : {source ? SOURCE_LABELS[source].label : "—"}
+                          </Badge>
+                        )
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       <Dialog open={!!drillDown} onOpenChange={(open) => !open && setDrillDown(null)}>

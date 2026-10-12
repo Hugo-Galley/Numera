@@ -36,6 +36,9 @@ class EtfProfileUpdate(BaseModel):
 class EtfProfileRead(EtfProfileBase):
     id: int
     is_system: bool
+    # Source de chaque champ de composition : yahoo | preset | manual (absent = non renseigné)
+    composition_sources: Dict[str, str] = {}
+    composition_refreshed_at: Optional[datetime] = None
     created_at: datetime
     updated_at: datetime
 
@@ -46,3 +49,7 @@ class AutoDecomposeRequest(BaseModel):
     symbol: str
     name: Optional[str] = None
     isin: Optional[str] = None
+
+
+class EtfRefreshResult(BaseModel):
+    refreshed: int

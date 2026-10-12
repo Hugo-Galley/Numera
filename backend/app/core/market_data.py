@@ -128,14 +128,8 @@ async def search_market_assets(query: str, db: Optional[Session] = None) -> List
                     short_name = q.get("shortname") or q.get("longname") or sym
                     exchange = q.get("exchange", "")
 
-                    # Check if matches an ETF profile in DB
+                    # Profil ETF déjà connu ; sinon il est créé quand le titre est réellement ajouté
                     etf_profile = _match_etf_profile(db, sym, None, short_name) if db else None
-                    if not etf_profile and db and (q_type in ("ETF", "MUTUALFUND") or sym.startswith("0P")):
-                        try:
-                            from app.core.etf_analyzer import auto_decompose_and_create_profile
-                            etf_profile = await auto_decompose_and_create_profile(db, symbol=sym, name=short_name)
-                        except Exception as e:
-                            logger.warning(f"Could not auto-decompose searched ETF {sym}: {e}")
 
                     seen_symbols.add(sym)
                     results.append({

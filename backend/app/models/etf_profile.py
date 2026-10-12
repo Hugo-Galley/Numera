@@ -27,6 +27,11 @@ class EtfProfile(Base):
     # top_holdings: [{"name": "Apple", "ticker": "AAPL", "weight": 4.8}, {"name": "Microsoft", "ticker": "MSFT", "weight": 4.3}, ...]
     top_holdings: Mapped[str] = mapped_column(Text, default="[]", nullable=False)
     
+    # Source de chaque champ de composition : {"sectors": "yahoo", "countries": "preset", ...}
+    # (yahoo | preset | manual, cf. core/etf_analyzer.py)
+    composition_sources: Mapped[str] = mapped_column(Text, default="{}", nullable=False)
+    composition_refreshed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
     is_system: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow_naive, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow_naive, onupdate=utcnow_naive, nullable=False)

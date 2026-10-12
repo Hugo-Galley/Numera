@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.core.logging import get_logger
 from app.core.currency import get_exchange_rates
+from app.core.etf_analyzer import load_sources
 from app.core.market_data import get_market_quotes, _match_etf_profile
 from app.db.session import get_db
 from app.models.account import Account
@@ -31,6 +32,22 @@ def _normalize_company_key(ticker: Optional[str], name: Optional[str]) -> str:
         if clean_n:
             return f"NAME:{clean_n}"
     return f"RAW:{ticker or name or 'unknown'}"
+
+
+UNKNOWN_LABEL = "Non renseigné"
+
+
+def _spread_weights(target: Dict[str, float], weights_json: str, value_eur: float) -> None:
+    """Répartit `value_eur` selon les poids (en %) ; la part non couverte va dans « Non renseigné »."""
+    try:
+        weights = {k: float(v) for k, v in json.loads(weights_json or "{}").items()}
+    except (TypeError, ValueError):
+        weights = {}
+    for name, weight in weights.items():
+        target[name] = target.get(name, 0.0) + value_eur * weight / 100.0
+    uncovered = 100.0 - sum(weights.values())
+    if uncovered > 0.5:
+        target[UNKNOWN_LABEL] = target.get(UNKNOWN_LABEL, 0.0) + value_eur * uncovered / 100.0
 
 
 def _calculate_hhi_score(weights: List[float]) -> float:
@@ -185,6 +202,8 @@ async def diversity_scanner(
     underlying_countries: Dict[str, float] = {}
     underlying_sectors: Dict[str, float] = {}
     etfs_breakdown: List[Dict[str, Any]] = []
+    # Origine des compositions utilisées (Yahoo, préréglage, saisie), par profil
+    compositions: Dict[int, Dict[str, Any]] = {}
 
     # Cache ETF profiles
     profiles_by_id = {p.id: p for p in db.query(EtfProfile).all()}
@@ -207,23 +226,20 @@ async def diversity_scanner(
                 "profile_name": etf_profile.name,
             })
 
-            # Countries
-            try:
-                c_dict = json.loads(etf_profile.countries)
-                for country, weight in c_dict.items():
-                    val = vh_val * (float(weight) / 100.0)
-                    underlying_countries[country] = underlying_countries.get(country, 0.0) + val
-            except Exception:
-                underlying_countries["Monde"] = underlying_countries.get("Monde", 0.0) + vh_val
+            if etf_profile.id not in compositions:
+                compositions[etf_profile.id] = {
+                    "profile_id": etf_profile.id,
+                    "profile_name": etf_profile.name,
+                    "tickers": [],
+                    "value_eur": 0.0,
+                    "sources": load_sources(etf_profile),
+                    "refreshed_at": etf_profile.composition_refreshed_at,
+                }
+            compositions[etf_profile.id]["tickers"].append(vh["ticker"])
+            compositions[etf_profile.id]["value_eur"] += vh_val
 
-            # Sectors
-            try:
-                s_dict = json.loads(etf_profile.sectors)
-                for sector, weight in s_dict.items():
-                    val = vh_val * (float(weight) / 100.0)
-                    underlying_sectors[sector] = underlying_sectors.get(sector, 0.0) + val
-            except Exception:
-                underlying_sectors["Diversifié"] = underlying_sectors.get("Diversifié", 0.0) + vh_val
+            _spread_weights(underlying_countries, etf_profile.countries, vh_val)
+            _spread_weights(underlying_sectors, etf_profile.sectors, vh_val)
 
             # Top holdings look-through
             try:
@@ -389,7 +405,7 @@ async def diversity_scanner(
 
     # Alert: Sector concentration
     for sector in formatted_sectors:
-        if sector["percentage_stocks"] >= 30.0:
+        if sector["name"] != UNKNOWN_LABEL and sector["percentage_stocks"] >= 30.0:
             alerts.append({
                 "type": "warning",
                 "category": "sector",
@@ -429,4 +445,9 @@ async def diversity_scanner(
         "sectors": formatted_sectors,
         "alerts": alerts,
         "holdings": valued_holdings,
+        "etf_compositions": sorted(
+            ({**c, "value_eur": round(c["value_eur"], 2)} for c in compositions.values()),
+            key=lambda c: c["value_eur"],
+            reverse=True,
+        ),
     }

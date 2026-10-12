@@ -40,7 +40,7 @@ Une `Sortie` porte des **créances** (`reimbursement_claims` : débiteur libre, 
 
 ## Point zéro et performance
 
-Un seul `is_zero_point` par compte investissement (`POST /balance-snapshots/set-zero-point`). Performance : compte titres = valeur calculée (positions × cours + espèces, `core/portfolio.py`) − montant investi ; assurance-vie = dernier snapshot − base point zéro − flux (`api/analytics/investments.py`). Allocation avancée et scanner de diversification utilisent les `etf_profiles` (pays/secteurs/top holdings en JSON texte).
+Un seul `is_zero_point` par compte investissement (`POST /balance-snapshots/set-zero-point`). Performance : compte titres = valeur calculée (positions × cours + espèces, `core/portfolio.py`) − montant investi ; assurance-vie = dernier snapshot − base point zéro − flux (`api/analytics/investments.py`). Allocation avancée et scanner de diversification utilisent les `etf_profiles` (pays/secteurs/top holdings en JSON texte). Secteurs et top 10 viennent de Yahoo (actualisation hebdomadaire) ; les pays ne sont jamais fournis par Yahoo (préréglage des profils système ou saisie). Aucune composition n'est devinée : un champ inconnu reste vide et sa part est comptée en « Non renseigné ».
 
 ## Marchands et catégorisation
 

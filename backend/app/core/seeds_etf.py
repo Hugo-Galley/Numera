@@ -1,6 +1,7 @@
 import json
 from sqlalchemy.orm import Session
 from app.models.etf_profile import EtfProfile
+from app.core.etf_analyzer import COMPOSITION_FIELDS, SOURCE_PRESET, load_sources
 from app.core.logging import get_logger
 
 logger = get_logger(__name__)
@@ -406,7 +407,10 @@ SYSTEM_ETF_PRESETS = [
 
 def seed_etf_profiles(db: Session) -> None:
     """
-    Seed or update system ETF profiles.
+    Crée ou met à jour les profils ETF système.
+
+    Les compositions ci-dessus ne sont qu'un repli : un champ actualisé depuis Yahoo
+    ou saisi à la main n'est jamais réécrit (cf. `composition_sources`).
     """
     count = 0
     for preset in SYSTEM_ETF_PRESETS:
@@ -420,20 +424,22 @@ def seed_etf_profiles(db: Session) -> None:
                 countries=json.dumps(preset["countries"]),
                 sectors=json.dumps(preset["sectors"]),
                 top_holdings=json.dumps(preset["top_holdings"]),
+                composition_sources=json.dumps({field: SOURCE_PRESET for field in COMPOSITION_FIELDS}),
                 is_system=True,
             )
             db.add(profile)
             count += 1
-        else:
-            # Update aliases and preset data if system
-            if existing.is_system:
-                existing.ticker = preset["ticker"]
-                existing.isin = preset["isin"]
-                existing.aliases = json.dumps(preset["aliases"])
-                existing.countries = json.dumps(preset["countries"])
-                existing.sectors = json.dumps(preset["sectors"])
-                existing.top_holdings = json.dumps(preset["top_holdings"])
-    
+        elif existing.is_system:
+            existing.ticker = preset["ticker"]
+            existing.isin = preset["isin"]
+            existing.aliases = json.dumps(preset["aliases"])
+            sources = load_sources(existing)
+            for field in COMPOSITION_FIELDS:
+                if sources.get(field, SOURCE_PRESET) == SOURCE_PRESET:
+                    setattr(existing, field, json.dumps(preset[field]))
+                    sources[field] = SOURCE_PRESET
+            existing.composition_sources = json.dumps(sources)
+
+    db.commit()
     if count > 0:
-        db.commit()
         logger.info(f"Seeded {count} system ETF profiles.")

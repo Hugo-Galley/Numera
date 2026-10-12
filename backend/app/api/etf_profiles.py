@@ -5,7 +5,15 @@ from sqlalchemy.orm import Session
 
 from app.db.session import get_db
 from app.models.etf_profile import EtfProfile
-from app.schemas.etf_profile import EtfProfileCreate, EtfProfileRead, EtfProfileUpdate, AutoDecomposeRequest
+from app.core.etf_analyzer import (
+    COMPOSITION_FIELDS,
+    SOURCE_MANUAL,
+    YahooUnavailable,
+    load_sources,
+    refresh_etf_profile,
+    refresh_held_etf_profiles,
+)
+from app.schemas.etf_profile import EtfProfileCreate, EtfProfileRead, EtfProfileUpdate, AutoDecomposeRequest, EtfRefreshResult
 
 router = APIRouter(prefix="/etf-profiles", tags=["etf-profiles"])
 
@@ -21,6 +29,8 @@ def _to_read_model(profile: EtfProfile) -> EtfProfileRead:
         sectors=json.loads(profile.sectors) if profile.sectors else {},
         top_holdings=json.loads(profile.top_holdings) if profile.top_holdings else [],
         is_system=profile.is_system,
+        composition_sources=load_sources(profile),
+        composition_refreshed_at=profile.composition_refreshed_at,
         created_at=profile.created_at,
         updated_at=profile.updated_at,
     )
@@ -30,6 +40,13 @@ def _to_read_model(profile: EtfProfile) -> EtfProfileRead:
 def list_etf_profiles(db: Session = Depends(get_db)):
     profiles = db.query(EtfProfile).order_by(EtfProfile.is_system.desc(), EtfProfile.name.asc()).all()
     return [_to_read_model(p) for p in profiles]
+
+
+@router.post("/refresh-held", response_model=EtfRefreshResult)
+async def refresh_held_profiles(db: Session = Depends(get_db)):
+    """Actualise depuis Yahoo la composition de tous les profils rattachés à une position détenue."""
+    refreshed = await refresh_held_etf_profiles(db, force=True)
+    return EtfRefreshResult(refreshed=refreshed)
 
 
 @router.get("/{profile_id}", response_model=EtfProfileRead)
@@ -57,6 +74,9 @@ def create_etf_profile(payload: EtfProfileCreate, db: Session = Depends(get_db))
         countries=json.dumps(payload.countries or {}),
         sectors=json.dumps(payload.sectors or {}),
         top_holdings=json.dumps([h.model_dump() for h in payload.top_holdings]),
+        composition_sources=json.dumps({
+            field: SOURCE_MANUAL for field in COMPOSITION_FIELDS if getattr(payload, field)
+        }),
         is_system=False,
     )
     db.add(profile)
@@ -86,6 +106,13 @@ def update_etf_profile(profile_id: int, payload: EtfProfileUpdate, db: Session =
     if payload.top_holdings is not None:
         profile.top_holdings = json.dumps([h.model_dump() for h in payload.top_holdings])
 
+    # Un champ de composition saisi à la main n'est plus écrasé par l'actualisation Yahoo
+    sources = load_sources(profile)
+    for field in COMPOSITION_FIELDS:
+        if getattr(payload, field) is not None:
+            sources[field] = SOURCE_MANUAL
+    profile.composition_sources = json.dumps(sources)
+
     db.commit()
     db.refresh(profile)
     return _to_read_model(profile)
@@ -103,10 +130,25 @@ def delete_etf_profile(profile_id: int, db: Session = Depends(get_db)):
     db.commit()
 
 
+@router.post("/{profile_id}/refresh", response_model=EtfProfileRead)
+async def refresh_profile(profile_id: int, db: Session = Depends(get_db)):
+    """Actualise la composition d'un profil depuis Yahoo (secteurs et top 10 ; jamais les pays)."""
+    profile = db.query(EtfProfile).filter(EtfProfile.id == profile_id).first()
+    if not profile:
+        raise HTTPException(status_code=404, detail="ETF profile not found")
+    try:
+        await refresh_etf_profile(db, profile)
+    except YahooUnavailable:
+        raise HTTPException(status_code=502, detail="Yahoo Finance est injoignable, réessayez plus tard")
+    db.refresh(profile)
+    return _to_read_model(profile)
+
+
 @router.post("/auto-decompose", response_model=EtfProfileRead)
 async def auto_decompose_profile(payload: AutoDecomposeRequest, db: Session = Depends(get_db)):
     """
-    Search online and decompose an unknown ETF or Fund into its countries, sectors, and top holdings.
+    Crée le profil d'un ETF ou fonds inconnu à partir de la composition publiée par Yahoo
+    (secteurs et top 10 ; la répartition par pays reste vide).
     """
     from app.core.etf_analyzer import auto_decompose_and_create_profile
     profile = await auto_decompose_and_create_profile(

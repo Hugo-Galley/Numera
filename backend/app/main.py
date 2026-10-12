@@ -38,6 +38,7 @@ from app.core.migrations import run_migrations
 from app.core.seeds import seed_all
 from app.db.session import SessionLocal
 from app.core.logging import setup_logging, get_logger
+from app.core.etf_analyzer import refresh_held_etf_profiles
 from app.core.market_data import refresh_held_prices
 from app.core.recurring import generate_recurring_transactions
 from app.core.salary import check_and_generate_pending_salaries
@@ -61,6 +62,8 @@ async def recurring_transactions_task():
                 check_and_generate_pending_salaries(db)
                 # Cours des titres détenus enregistrés en base (historique de valorisation)
                 await refresh_held_prices(db)
+                # Composition des ETF détenus (Yahoo), au plus une fois par semaine et par profil
+                await refresh_held_etf_profiles(db)
             finally:
                 db.close()
         except Exception as e:

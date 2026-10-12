@@ -14,6 +14,21 @@ export interface EtfProfile {
   sectors: Record<string, number>
   top_holdings: EtfHoldingItem[]
   is_system: boolean
+  composition_sources: Partial<Record<CompositionField, CompositionSource>>
+  composition_refreshed_at?: string | null
+}
+
+export type CompositionField = "countries" | "sectors" | "top_holdings"
+// yahoo : actualisé depuis Yahoo Finance · preset : préréglage intégré · manual : saisi à la main
+export type CompositionSource = "yahoo" | "preset" | "manual"
+
+export interface EtfCompositionInfo {
+  profile_id: number
+  profile_name: string
+  tickers: string[]
+  value_eur: number
+  sources: Partial<Record<CompositionField, CompositionSource>>
+  refreshed_at?: string | null
 }
 
 export interface PortfolioHolding {
@@ -117,4 +132,5 @@ export interface DiversityScannerResponse {
   sectors: BreakdownItem[]
   alerts: DiversityAlert[]
   holdings: any[]
+  etf_compositions: EtfCompositionInfo[]
 }
