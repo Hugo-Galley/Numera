@@ -45,7 +45,9 @@ export function SpendingSection({ data }: { data: MonthlyReportData }) {
                       {p.label}
                     </div>
                     <div className="amount-blur text-sm font-bold">{formatCurrency(p.block.amount)}</div>
-                    <div className="text-[11px] text-slate-400">{p.block.percentage}% des revenus</div>
+                    {flow.remainder.amount >= 0 && (
+                      <div className="text-[11px] text-slate-400">{p.block.percentage}% des revenus</div>
+                    )}
                   </div>
                 ))}
               </div>

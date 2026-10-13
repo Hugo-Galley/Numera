@@ -128,7 +128,7 @@ async def get_intelligent_insights(
 
     # D. Investment Ratio (20 pts)
     # Target: 10% of income
-    inv_ratio = (investissements / revenus * 100.0) if revenus > 0 else 0.0
+    inv_ratio = min(investissements / revenus * 100.0, 100.0) if revenus > 0 else 0.0
     inv_score = min(inv_ratio / 10.0 * 20.0, 20.0)
     metrics.append(MetricDetail(
         name="Ratio d'Investissement",

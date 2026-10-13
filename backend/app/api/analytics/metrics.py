@@ -54,6 +54,7 @@ router = APIRouter()
 
 from .utils import (
     NET_AMOUNT,
+    budget_versement_ids,
     _tx_sample,
     _tx_read,
     _savings_account_ids,
@@ -190,6 +191,8 @@ async def expenses_by_category(
     )
     if account_id:
         itx_inv_query = itx_inv_query.filter(InvestmentTransaction.account_id == account_id)
+    else:
+        itx_inv_query = itx_inv_query.filter(InvestmentTransaction.id.in_(budget_versement_ids(db)))
 
     itx_rows = itx_inv_query.group_by(Account.currency).all()
     if itx_rows:

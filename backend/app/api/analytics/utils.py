@@ -14,6 +14,20 @@ logger = get_logger(__name__)
 NET_AMOUNT = Transaction.amount - Transaction.reimbursement_offset
 
 
+def budget_versement_ids(db: Session):
+    """Versements alimentés par un compte du budget (virement interne lié).
+
+    Seuls ceux-là sont de l'argent « investi » au sens du budget : un versement
+    sans virement lié (rapatriement d'un ancien contrat, solde initial,
+    intéressement versé directement) n'a pas été prélevé sur les revenus du mois,
+    et un couple non lié est déjà compté par la sortie catégorisée.
+    """
+    return db.query(Transaction.linked_investment_transaction_id).filter(
+        Transaction.is_transfer == True,
+        Transaction.linked_investment_transaction_id.isnot(None),
+    )
+
+
 def net_amount(tx: Transaction) -> float:
     return float(tx.amount) - float(tx.reimbursement_offset or 0.0)
 

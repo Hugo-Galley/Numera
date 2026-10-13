@@ -83,6 +83,9 @@ Agrège : audit d'intégrité (`/analytics/audit`, issues avec `id` stable : `un
 - `transactions.is_exceptional` : la dépense reste dans les totaux officiels et `running_balance` ; seules les lectures `*_excl_exceptional` l'isolent. Les catégories « Investissement » / « Epargne » sont exclues du calcul (déjà hors `depenses_reelles`). Alertes budget et projection de fin de mois **non** concernées.
 - L'étape « catégoriser » est bornée au mois (le Centre d'Actions `/analytics/actions` est global : ne pas le réutiliser tel quel).
 
+## « Investi du mois » (budget)
+`investissements_du_mois` (vue globale) = sorties catégorisées `Investissement`/`Epargne` non virement **+ versements liés à un virement interne** (`utils.budget_versement_ids`). Un versement sans virement lié (rapatriement d'un contrat, solde initial, intéressement) n'est pas de l'argent prélevé sur les revenus : il est exclu, y compris de la catégorie virtuelle « Investissement » (`expenses-by-category`, `budget-alerts`). `depenses_reelles` ne retranche que les sorties catégorisées, jamais les versements (absents de `depenses`). Vue par compte inchangée (les versements y sont les flux du compte).
+
 ## Services externes
 
 Frankfurter (taux), Yahoo Finance (recherche/cotations titres, profils ETF). Aucun autre appel sortant, pas de télémétrie.

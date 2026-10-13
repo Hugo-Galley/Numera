@@ -54,6 +54,7 @@ router = APIRouter()
 
 from .utils import (
     NET_AMOUNT,
+    budget_versement_ids,
     _tx_sample,
     _tx_read,
     _savings_account_ids,
@@ -238,11 +239,17 @@ async def budget_analytics(
         itx_inv_query = itx_inv_query.filter(InvestmentTransaction.date < end)
         if account_id:
             itx_inv_query = itx_inv_query.filter(InvestmentTransaction.account_id == account_id)
+        else:
+            itx_inv_query = itx_inv_query.filter(InvestmentTransaction.id.in_(budget_versement_ids(db)))
+
+        # Les dépenses ne contiennent que les sorties catégorisées : on ne retranche
+        # que celles-ci, jamais les versements (absents de `depenses`).
+        categorized_investments = investments
 
         itx_inv_rows = itx_inv_query.group_by(Account.currency).all()
         investments += sum(row.total / rates.get(row.currency, 1.0) for row in itx_inv_rows)
 
-        real_depenses = depenses - investments
+        real_depenses = depenses - (investments if account_id else categorized_investments)
         remaining = revenus - depenses
 
         # Savings rate = (Revenus - Real Expenses) / Revenus
@@ -618,6 +625,8 @@ async def budget_alerts(
         )
         if account_id:
             itx_monthly_query = itx_monthly_query.filter(InvestmentTransaction.account_id == account_id)
+        else:
+            itx_monthly_query = itx_monthly_query.filter(InvestmentTransaction.id.in_(budget_versement_ids(db)))
 
         itx_monthly_rows = itx_monthly_query.group_by(Account.currency).all()
         for curr, amount in itx_monthly_rows:
@@ -633,6 +642,8 @@ async def budget_alerts(
         )
         if account_id:
             itx_annual_query = itx_annual_query.filter(InvestmentTransaction.account_id == account_id)
+        else:
+            itx_annual_query = itx_annual_query.filter(InvestmentTransaction.id.in_(budget_versement_ids(db)))
 
         itx_annual_rows = itx_annual_query.group_by(Account.currency).all()
         for curr, amount in itx_annual_rows:
