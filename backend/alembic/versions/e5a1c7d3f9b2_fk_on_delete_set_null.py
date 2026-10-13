@@ -8,11 +8,16 @@ Revision ID: e5a1c7d3f9b2
 Revises: d4f2a8c6e1b9
 """
 from alembic import op
+import sqlalchemy as sa
 
 revision = "e5a1c7d3f9b2"
 down_revision = "d4f2a8c6e1b9"
 branch_labels = None
 depends_on = None
+
+NAMING_CONVENTION = {
+    "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
+}
 
 # (table, contrainte, colonne, table référencée)
 FKS = [
@@ -26,12 +31,18 @@ FKS = [
 
 
 def _recreate(ondelete: str | None) -> None:
+    conn = op.get_bind()
     for table in ("transactions", "investment_transactions"):
-        with op.batch_alter_table(table) as batch_op:
-            for t, name, column, referent in FKS:
-                if t != table:
+        meta = sa.MetaData(naming_convention=NAMING_CONVENTION)
+        t = sa.Table(table, meta, autoload_with=conn)
+        existing_constraint_names = {c.name for c in t.constraints if c.name}
+
+        with op.batch_alter_table(table, naming_convention=NAMING_CONVENTION) as batch_op:
+            for t_name, name, column, referent in FKS:
+                if t_name != table:
                     continue
-                batch_op.drop_constraint(name, type_="foreignkey")
+                if name in existing_constraint_names:
+                    batch_op.drop_constraint(name, type_="foreignkey")
                 batch_op.create_foreign_key(name, referent, [column], ["id"], ondelete=ondelete)
 
 

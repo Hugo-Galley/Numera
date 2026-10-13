@@ -48,7 +48,7 @@ class Transaction(Base):
     merchant_obj: Mapped["Merchant"] = relationship("Merchant", lazy="selectin")
     tags: Mapped[list["Tag"]] = relationship("Tag", secondary=transaction_tags, back_populates="transactions", lazy="selectin")
     claims: Mapped[list["ReimbursementClaim"]] = relationship(
-        "ReimbursementClaim", lazy="selectin", passive_deletes=True, viewonly=True
+        "ReimbursementClaim", lazy="selectin", viewonly=True
     )
 
     @property
