@@ -3,7 +3,7 @@ from datetime import datetime
 import pytest
 
 from app.core.finance import month_label_from_date
-from app.core.month_review import differs
+from app.core.month_review import without_exceptional
 from app.models.account import Account
 from app.models.category import Category
 from app.models.month_closure import MonthClosure
@@ -63,13 +63,6 @@ def test_exceptional_investment_category_not_double_counted(client, db_session):
     assert report["real_expenses"] == 100.0  # 600 de dépenses − 500 d'investissement
     assert report["exceptional_expenses"] == 0.0
     assert report["real_expenses_excl_exceptional"] == 100.0
-
-
-def test_differs_tolerates_small_drift():
-    assert differs(1000.0, 1002.0) is False  # 0,2 % : dérive de taux de change
-    assert differs(1000.0, 1010.0) is True
-    assert differs(0.0, 0.005) is False
-    assert differs(0.0, 0.02) is True
 
 
 PARAMS = {"year": 2025, "month": 10}
@@ -201,3 +194,87 @@ def test_closures_list_most_recent_first(client, october):
     _close(client)
     closures = client.get("/month-review/closures").json()
     assert [(c["year"], c["month"]) for c in closures] == [(2025, 10), (2025, 9)]
+
+
+# --- Passe de correction après la revue finale ---
+
+
+def test_create_transaction_keeps_exceptional_flag(client, db_session):
+    acc = _courant(db_session)
+    base = {"account_id": acc.id, "date": "2025-10-05T00:00:00", "merchant": "CANAPE", "amount": 300.0}
+
+    res = client.post("/transactions", json={**base, "type": "Sortie", "is_exceptional": True})
+    assert res.status_code in (200, 201)
+    assert res.json()["is_exceptional"] is True
+
+    res = client.post("/transactions", json={**base, "type": "Entree", "merchant": "VIR", "is_exceptional": True})
+    assert res.json()["is_exceptional"] is False  # seul une Sortie peut être exceptionnelle
+
+
+def test_capped_savings_rate_stays_exact_without_exceptional(client, db_session):
+    acc = _courant(db_session)
+    _tx(db_session, acc, "Entree", 1000.0, datetime(2025, 10, 1), "SALAIRE")
+    _tx(db_session, acc, "Sortie", 1500.0, datetime(2025, 10, 5), "LOYER")
+    _tx(db_session, acc, "Sortie", 1000.0, datetime(2025, 10, 6), "VOYAGE", exceptional=True)
+
+    report = client.get("/analytics/monthly-report", params={"month": 10, "year": 2025}).json()
+
+    assert report["savings_rate"] == -100.0  # plafonné
+    assert report["savings_rate_excl_exceptional"] == -50.0
+
+
+def test_without_exceptional_account_scope_uses_remaining():
+    budget = {
+        "depenses_reelles": 700.0, "revenus_totaux": 1000.0, "taux_epargne": 25.0,
+        "burn_rate": 10.0, "revenus_apres_depenses": 250.0,
+    }
+    scoped = without_exceptional(budget, 100.0, account_scope=True)
+    assert scoped["savings_rate_excl_exceptional"] == 35.0  # (250 + 100) / 1000
+    assert without_exceptional(budget, 100.0)["savings_rate_excl_exceptional"] == 40.0  # (1000 − 600) / 1000
+
+
+def test_top_expenses_ignore_non_budget_accounts(client, db_session):
+    cur = _courant(db_session)
+    pea = Account(name="PEA", type="investissement", currency="EUR", active=True)
+    db_session.add(pea)
+    db_session.commit()
+    _tx(db_session, cur, "Entree", 2000.0, datetime(2025, 10, 1), "SALAIRE")
+    _tx(db_session, cur, "Sortie", 50.0, datetime(2025, 10, 2), "CAFE")
+    _tx(db_session, pea, "Sortie", 900.0, datetime(2025, 10, 3), "FRAIS")
+
+    top = client.get("/month-review", params=PARAMS).json()["budget"]["top_expenses"]
+
+    assert [t["merchant"] for t in top] == ["CAFE"]
+
+
+def test_small_correction_is_detected_as_modification(client, october):
+    _, _, nocat, _ = october
+    _close(client)
+    client.patch(f"/transactions/{nocat.id}", json={"amount": 81.0})  # +1 € sur un mois à 580 €
+    assert client.get("/month-review", params=PARAMS).json()["modified_since_close"] is True
+
+
+def test_exchange_rate_drift_does_not_flag_modification(client, db_session, monkeypatch):
+    import app.api.analytics.budget as budget_mod
+    import app.api.month_review as router_mod
+
+    eur = _courant(db_session)
+    usd = Account(name="USD", type="courant", currency="USD", active=True)
+    db_session.add(usd)
+    db_session.commit()
+    _tx(db_session, eur, "Entree", 2000.0, datetime(2025, 10, 1), "SALAIRE")
+    _tx(db_session, eur, "Sortie", 1000.0, datetime(2025, 10, 5), "LOYER")
+    _tx(db_session, usd, "Sortie", 500.0, datetime(2025, 10, 6), "SAAS")
+
+    def fixed_rates(usd_rate):
+        async def _rates(base="EUR"):
+            return {"EUR": 1.0, "USD": usd_rate}
+        return _rates
+
+    for module in (budget_mod, router_mod):
+        monkeypatch.setattr(module, "get_exchange_rates", fixed_rates(1.08))
+    assert _close(client).json()["closed"] is True
+
+    for module in (budget_mod, router_mod):
+        monkeypatch.setattr(module, "get_exchange_rates", fixed_rates(1.12))
+    assert client.get("/month-review", params=PARAMS).json()["modified_since_close"] is False

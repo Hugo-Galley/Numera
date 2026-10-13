@@ -23,3 +23,5 @@ class MonthClosure(Base):
     income: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
     expenses: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
     unresolved_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    # Totaux par devise (JSON), sans conversion : détecte une modification sans dépendre des taux de change
+    fingerprint: Mapped[str | None] = mapped_column(String, nullable=True)

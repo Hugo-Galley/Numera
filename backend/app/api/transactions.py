@@ -323,6 +323,7 @@ async def create_transaction(payload: TransactionCreate, db: Session = Depends(g
         original_amount=original_amount,
         running_balance=0.0, # Will be recalculated
         note=payload.note,
+        is_exceptional=payload.is_exceptional and transaction_type == "Sortie",
     )
 
     if payload.tag_ids:

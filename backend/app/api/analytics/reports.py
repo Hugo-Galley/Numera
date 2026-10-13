@@ -290,7 +290,11 @@ async def get_monthly_report(
     
     start, end = month_bounds(year, month)
     rates = await get_exchange_rates("EUR")
-    excl = without_exceptional(current_budget, exceptional_expenses(db, start, end, rates, account_id))
+    excl = without_exceptional(
+        current_budget,
+        exceptional_expenses(db, start, end, rates, account_id),
+        account_scope=account_id is not None,
+    )
 
     return MonthlyReport(
         month=month,

@@ -79,7 +79,7 @@ Agrège : audit d'intégrité (`/analytics/audit`, issues avec `id` stable : `un
 - Réglages (`system_settings`) : `tax_tmi_pct`, `tax_prior_year_pro_income`, `tax_household`, `tax_gross_annual_salary`.
 
 ## Revue de fin de mois (`/month-review`, page `MonthReview.tsx`)
-- Clôturer = **marquer** (table `month_closures`, photo `tx_count`/`income`/`expenses`/`unresolved_count`), jamais verrouiller : imports CSV et remboursements tardifs restent possibles. `modified_since_close` compare la photo au recalcul (tolérance relative, pas d'`updated_at` sur `Transaction` : un simple changement de catégorie n'est pas détecté, voulu).
+- Clôturer = **marquer** (table `month_closures`, photo `tx_count`/`income`/`expenses`/`unresolved_count`), jamais verrouiller : imports CSV et remboursements tardifs restent possibles. `modified_since_close` compare le nombre de transactions et l'empreinte (totaux entrées/sorties par devise de compte, sans conversion) au recalcul : exact, insensible aux taux de change ; pas d'`updated_at` sur `Transaction`, donc un simple changement de catégorie n'est pas détecté (voulu).
 - `transactions.is_exceptional` : la dépense reste dans les totaux officiels et `running_balance` ; seules les lectures `*_excl_exceptional` l'isolent. Les catégories « Investissement » / « Epargne » sont exclues du calcul (déjà hors `depenses_reelles`). Alertes budget et projection de fin de mois **non** concernées.
 - L'étape « catégoriser » est bornée au mois (le Centre d'Actions `/analytics/actions` est global : ne pas le réutiliser tel quel).
 

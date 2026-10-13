@@ -24,11 +24,6 @@ def month_bounds(year: int, month: int) -> tuple[datetime, datetime]:
     return start, end
 
 
-def differs(current: float, snapshot: float) -> bool:
-    """Écart significatif entre un chiffre recalculé et sa photo (tolère la dérive des taux de change)."""
-    return abs(current - snapshot) > max(0.01, 0.005 * abs(snapshot))
-
-
 def exceptional_expenses(
     db: Session,
     start: datetime,
@@ -63,17 +58,23 @@ def exceptional_expenses(
     return float(sum(total / rates.get(currency, 1.0) for currency, total in rows))
 
 
-def without_exceptional(budget: dict, exceptional: float) -> dict:
-    """Lecture « hors exceptionnel » à partir du dict de `budget_analytics` ; les totaux officiels ne bougent pas."""
+def without_exceptional(budget: dict, exceptional: float, account_scope: bool = False) -> dict:
+    """Lecture « hors exceptionnel » à partir du dict de `budget_analytics` ; les totaux officiels ne bougent pas.
+
+    Le taux officiel est plafonné à ±100 : on le recalcule depuis les montants bruts, avec le même numérateur
+    que `budget_analytics` (vue globale : revenus − dépenses réelles ; vue d'un compte : revenus − dépenses).
+    """
     real = float(budget["depenses_reelles"])
     income = float(budget["revenus_totaux"])
     real_excl = real - exceptional
-    rate_excl = float(budget["taux_epargne"]) + (exceptional / income * 100.0 if income > 0 else 0.0)
+    savings_excl = float(budget["revenus_apres_depenses"]) + exceptional
+    numerator = savings_excl if account_scope else income - real_excl
+    rate_excl = numerator / income * 100.0 if income > 0 else 0.0
     burn_excl = float(budget["burn_rate"]) * (real_excl / real) if real > 0 else 0.0
     return {
         "exceptional_expenses": round(exceptional, 2),
         "real_expenses_excl_exceptional": round(real_excl, 2),
-        "savings_excl_exceptional": round(float(budget["revenus_apres_depenses"]) + exceptional, 2),
+        "savings_excl_exceptional": round(savings_excl, 2),
         "savings_rate_excl_exceptional": round(max(min(rate_excl, 100.0), -100.0), 2),
         "burn_rate_excl_exceptional": round(max(burn_excl, 0.0), 2),
     }
@@ -118,20 +119,46 @@ def categorize_step(db: Session, start: datetime, end: datetime) -> dict:
 
 def top_expenses(db: Session, start: datetime, end: datetime) -> list[dict]:
     """Plus grosses dépenses nettes du mois (hors virements et investissement), à marquer exceptionnelles."""
-    from app.api.analytics.utils import NET_AMOUNT
+    from app.api.analytics.utils import NET_AMOUNT, _get_ticket_restaurant_account_ids
 
-    rows = (
+    query = (
         db.query(Transaction)
+        .join(Account, Transaction.account_id == Account.id)
         .outerjoin(Category, Transaction.category_id == Category.id)
         .filter(
             Transaction.type == "Sortie",
             Transaction.is_transfer.is_(False),
             Transaction.date >= start,
             Transaction.date < end,
+            Account.type.in_(["courant", "epargne"]),
             or_(Category.name.is_(None), Category.name.notin_(INVESTMENT_CATEGORIES)),
         )
-        .order_by(NET_AMOUNT.desc(), Transaction.id.asc())
-        .limit(TOP_EXPENSES_LIMIT)
+    )
+    tr_accounts = _get_ticket_restaurant_account_ids(db)
+    if tr_accounts:
+        query = query.filter(Transaction.account_id.notin_(tr_accounts))
+    rows = query.order_by(NET_AMOUNT.desc(), Transaction.id.asc()).limit(TOP_EXPENSES_LIMIT).all()
+    return [_review_tx(t) for t in rows]
+
+
+def month_fingerprint(db: Session, start: datetime, end: datetime) -> dict[str, dict[str, float]]:
+    """Totaux nets du mois par devise de compte (entrées / sorties), sans conversion : insensibles aux taux de change."""
+    from app.api.analytics.utils import NET_AMOUNT
+
+    rows = (
+        db.query(Account.currency, Transaction.type, func.coalesce(func.sum(NET_AMOUNT), 0.0))
+        .join(Account, Transaction.account_id == Account.id)
+        .filter(
+            Transaction.type.in_(["Entree", "Interets", "Sortie"]),
+            Transaction.is_transfer.is_(False),
+            Transaction.date >= start,
+            Transaction.date < end,
+        )
+        .group_by(Account.currency, Transaction.type)
         .all()
     )
-    return [_review_tx(t) for t in rows]
+    fingerprint: dict[str, dict[str, float]] = {}
+    for currency, type_, total in rows:
+        bucket = fingerprint.setdefault(currency, {"in": 0.0, "out": 0.0})
+        bucket["out" if type_ == "Sortie" else "in"] += float(total)
+    return {c: {k: round(v, 2) for k, v in b.items()} for c, b in sorted(fingerprint.items())}

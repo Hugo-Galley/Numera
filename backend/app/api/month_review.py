@@ -1,3 +1,4 @@
+import json
 from datetime import datetime
 
 from fastapi import APIRouter, Depends, Query
@@ -9,9 +10,9 @@ from app.api.deps import get_db
 from app.core.currency import get_exchange_rates
 from app.core.month_review import (
     categorize_step,
-    differs,
     exceptional_expenses,
     month_bounds,
+    month_fingerprint,
     top_expenses,
     tx_count,
     without_exceptional,
@@ -59,13 +60,15 @@ async def _build_review(db: Session, year: int, month: int) -> tuple[dict, dict]
         "income": round(float(budget["revenus_totaux"]), 2),
         "expenses": round(float(budget["depenses_reelles"]), 2),
         "unresolved_count": categorize["count"] + accounts["unverified_count"],
+        "fingerprint": month_fingerprint(db, start, end),
     }
 
     closure = db.query(MonthClosure).filter(MonthClosure.year == year, MonthClosure.month == month).first()
+    # Comparaison exacte des totaux par devise (aucune conversion, donc aucune dérive de taux) ;
+    # une clôture sans empreinte (ancienne ligne) ne se compare que sur le nombre de transactions.
     modified = closure is not None and (
         current["tx_count"] != closure.tx_count
-        or differs(current["income"], closure.income)
-        or differs(current["expenses"], closure.expenses)
+        or (closure.fingerprint is not None and json.loads(closure.fingerprint) != current["fingerprint"])
     )
 
     review = {
@@ -120,6 +123,7 @@ async def close_month(payload: CloseRequest, db: Session = Depends(get_db)):
     closure.income = current["income"]
     closure.expenses = current["expenses"]
     closure.unresolved_count = current["unresolved_count"]
+    closure.fingerprint = json.dumps(current["fingerprint"], sort_keys=True)
     db.commit()
     review, _ = await _build_review(db, payload.year, payload.month)
     return review

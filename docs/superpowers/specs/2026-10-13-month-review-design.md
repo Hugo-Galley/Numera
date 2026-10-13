@@ -28,6 +28,7 @@ Principes validés :
 | `income` | float | photo à la clôture (revenus du mois) |
 | `expenses` | float | photo à la clôture (dépenses réelles nettes) |
 | `unresolved_count` | int | points restants à la clôture (étapes 1 et 2) |
+| `fingerprint` | texte JSON | totaux entrées/sorties par devise de compte, sans conversion (migration `c5a9e1d7b2f4`) |
 
 Rouvrir un mois supprime sa ligne. Re-clôturer remplace la photo.
 
@@ -66,7 +67,7 @@ Le total officiel ne change pas : une dépense exceptionnelle reste dans les dé
 
 ### 3.4 « Modifié depuis la clôture »
 
-À la lecture, le backend recalcule `tx_count`, `income` et `expenses` du mois et les compare à la photo. Un écart passe `modified_since_close` à vrai. Un simple changement de catégorie, qui ne bouge pas les totaux, ne déclenche pas l'indicateur (choix assumé : pas de `updated_at` sur `Transaction`).
+À la lecture, le backend recalcule `tx_count` et l'empreinte (`fingerprint` : totaux par devise de compte, sans conversion) et les compare exactement à la photo. Un écart passe `modified_since_close` à vrai ; les taux de change n'interviennent pas. Un simple changement de catégorie, qui ne bouge pas les totaux, ne déclenche pas l'indicateur (choix assumé : pas de `updated_at` sur `Transaction`).
 
 ### 3.5 Clôture
 
