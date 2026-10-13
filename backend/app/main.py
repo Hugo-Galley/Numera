@@ -30,6 +30,7 @@ from app.api.holdings import router as holdings_router
 from app.api.tax import router as tax_router
 from app.api.transfer_rules import router as transfer_rules_router
 from app.api.reimbursements import router as reimbursements_router
+from app.api.month_review import router as month_review_router
 from app.api.analytics.diversity import router as diversity_router
 from app.api.deps import get_current_user
 from app.core.config import settings
@@ -190,6 +191,7 @@ protected_routers = [
     tax_router,
     transfer_rules_router,
     reimbursements_router,
+    month_review_router,
     logos_router,
 ]
 

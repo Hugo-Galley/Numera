@@ -1,0 +1,102 @@
+from datetime import datetime
+
+from fastapi import APIRouter, Depends, Query
+from sqlalchemy.orm import Session
+
+from app.api.accounts import _get_balance_for_account
+from app.api.analytics.budget import budget_alerts, budget_analytics
+from app.api.deps import get_db
+from app.core.currency import get_exchange_rates
+from app.core.month_review import (
+    categorize_step,
+    differs,
+    exceptional_expenses,
+    month_bounds,
+    top_expenses,
+    tx_count,
+    without_exceptional,
+)
+from app.core.time import utcnow_naive
+from app.models.account import Account
+from app.models.month_closure import MonthClosure
+from app.schemas.month_review import ClosureRead, MonthReviewRead
+
+router = APIRouter(prefix="/month-review", tags=["month-review"])
+
+
+def _accounts_step(db: Session, end: datetime) -> dict:
+    """Étape 2 : un compte est « vérifié » s'il l'a été depuis la fin du mois (ou aujourd'hui si le mois n'est pas fini)."""
+    now = utcnow_naive()
+    reference = min(end, datetime(now.year, now.month, now.day))
+    accounts = db.query(Account).filter(Account.active.is_(True)).order_by(Account.id.asc()).all()
+    items = [
+        {
+            "id": acc.id,
+            "name": acc.name,
+            "currency": acc.currency,
+            "balance": round(_get_balance_for_account(db, acc.id), 2),
+            "last_verified_at": acc.last_verified_at,
+            "verified_since_month_end": acc.last_verified_at >= reference,
+        }
+        for acc in accounts
+    ]
+    return {"unverified_count": sum(1 for i in items if not i["verified_since_month_end"]), "accounts": items}
+
+
+async def _build_review(db: Session, year: int, month: int) -> tuple[dict, dict]:
+    start, end = month_bounds(year, month)
+    prev_year, prev_month = (year - 1, 12) if month == 1 else (year, month - 1)
+
+    budget = await budget_analytics(month=month, year=year, account_id=None, db=db)
+    previous = await budget_analytics(month=prev_month, year=prev_year, account_id=None, db=db)
+    alerts = await budget_alerts(year=year, month=month, account_id=None, db=db)
+    rates = await get_exchange_rates("EUR")
+
+    categorize = categorize_step(db, start, end)
+    accounts = _accounts_step(db, end)
+    current = {
+        "tx_count": tx_count(db, start, end),
+        "income": round(float(budget["revenus_totaux"]), 2),
+        "expenses": round(float(budget["depenses_reelles"]), 2),
+        "unresolved_count": categorize["count"] + accounts["unverified_count"],
+    }
+
+    closure = db.query(MonthClosure).filter(MonthClosure.year == year, MonthClosure.month == month).first()
+    modified = closure is not None and (
+        current["tx_count"] != closure.tx_count
+        or differs(current["income"], closure.income)
+        or differs(current["expenses"], closure.expenses)
+    )
+
+    review = {
+        "year": year,
+        "month": month,
+        "closed": closure is not None,
+        "closure": ClosureRead.model_validate(closure) if closure else None,
+        "modified_since_close": modified,
+        "categorize": categorize,
+        "accounts": accounts,
+        "budget": {
+            "income": current["income"],
+            "real_expenses": current["expenses"],
+            "savings": budget["revenus_apres_depenses"],
+            "savings_rate": budget["taux_epargne"],
+            "burn_rate": budget["burn_rate"],
+            **without_exceptional(budget, exceptional_expenses(db, start, end, rates)),
+            "previous_real_expenses": previous["depenses_reelles"],
+            "alerts": alerts,
+            "top_expenses": top_expenses(db, start, end),
+        },
+    }
+    return review, current
+
+
+@router.get("", response_model=MonthReviewRead)
+async def get_month_review(
+    year: int = Query(ge=2000, le=2200),
+    month: int = Query(ge=1, le=12),
+    db: Session = Depends(get_db),
+):
+    """État de la revue d'un mois : étapes 1 à 3 calculées, statut de clôture, indicateur de modification."""
+    review, _ = await _build_review(db, year, month)
+    return review
