@@ -237,7 +237,7 @@ Un point zéro sert de base de performance pour un compte.
 - `GET /analytics/wealth-simulation`
 - `GET /analytics/sankey`
 - `GET /analytics/money-flow`
-- `GET /analytics/monthly-report` (inclut `exceptional_expenses`, `real_expenses_excl_exceptional`, `savings_excl_exceptional`, `savings_rate_excl_exceptional`, `burn_rate_excl_exceptional`)
+- `GET /analytics/monthly-report` (inclut `exceptional_expenses`, `real_expenses_excl_exceptional`, `savings_excl_exceptional`, `savings_rate_excl_exceptional`, `burn_rate_excl_exceptional`; `top_categories` : 8 premières catégories avec `prev_total`, total du mois précédent)
 
 ## Regles De Calcul
 
