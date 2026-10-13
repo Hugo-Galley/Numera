@@ -49,6 +49,21 @@ def test_monthly_report_exposes_figures_without_exceptional(client, db_session):
     assert report["burn_rate_excl_exceptional"] == pytest.approx(300.0 / 31, abs=0.02)
 
 
+def test_monthly_report_top_categories_carry_previous_month_total(client, db_session):
+    acc = _courant(db_session)
+    courses = Category(name="Courses", type="depense")
+    db_session.add(courses)
+    db_session.commit()
+    _tx(db_session, acc, "Sortie", 120.0, datetime(2025, 9, 12), "MARCHE", courses)
+    _tx(db_session, acc, "Sortie", 300.0, datetime(2025, 10, 8), "MARCHE", courses)
+
+    report = client.get("/analytics/monthly-report", params={"month": 10, "year": 2025}).json()
+
+    top = {c["name"]: c for c in report["top_categories"]}
+    assert top["Courses"]["total"] == 300.0
+    assert top["Courses"]["prev_total"] == 120.0
+
+
 def test_exceptional_investment_category_not_double_counted(client, db_session):
     acc = _courant(db_session)
     invest = Category(name="Investissement", type="depense")

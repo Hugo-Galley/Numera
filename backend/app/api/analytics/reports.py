@@ -263,17 +263,20 @@ async def get_monthly_report(
     
     # 4. Top categories
     cat_data = await expenses_by_category(month=month, year=year, account_id=account_id, db=db)
+    prev_cat_data = await expenses_by_category(month=prev_month, year=prev_year, account_id=account_id, db=db)
+    prev_cat_totals = {item["category"]["id"]: item["total"] for item in prev_cat_data["items"]}
     top_categories = []
     # Sort items by total descending
     sorted_items = sorted(cat_data["items"], key=lambda x: x["total"], reverse=True)
-    for item in sorted_items[:5]:
+    for item in sorted_items[:8]:
         top_categories.append({
             "name": item["category"]["name"],
             "total": item["total"],
             "icon": item["category"]["icon"],
-            "color": item["category"]["color"]
+            "color": item["category"]["color"],
+            "prev_total": round(prev_cat_totals.get(item["category"]["id"], 0.0), 2),
         })
-    
+
     # 5. Top merchants
     merch_data = await top_merchants(month=month, year=year, limit=5, account_id=account_id, db=db)
     
