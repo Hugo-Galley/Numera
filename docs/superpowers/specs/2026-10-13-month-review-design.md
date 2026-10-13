@@ -50,7 +50,7 @@ Nouveau router `app/api/month_review.py`, à ajouter à la liste `protected_rout
 
 ### 3.1 Étape 1 — Catégoriser
 
-`/analytics/actions` est **global** (tous mois confondus) ; la revue est par mois. L'étape fait donc ses propres requêtes **bornées au mois**, avec les mêmes filtres que l'audit : transactions `Sortie`, `is_transfer` faux, sans catégorie, doublons non ignorés (`is_duplicate_ignored`). Le Centre d'Actions n'est pas modifié.
+`/analytics/actions` est **global** (tous mois confondus) ; la revue est par mois. L'étape fait donc ses propres requêtes **bornées au mois**, avec les mêmes filtres que la requête `uncategorized-expenses` de l'audit : transactions `Sortie`, `is_transfer` faux, sans catégorie. Le Centre d'Actions n'est pas modifié.
 
 ### 3.2 Étape 2 — Soldes
 
@@ -76,7 +76,7 @@ La clôture n'est jamais bloquée par des points non résolus. `unresolved_count
 
 - **Page `/month-review`** (route protégée dans `App.tsx`), paramètres `?year=&month=`. Bandeau de cinq étapes, une étape visible à la fois, état « OK » ou « à traiter » par pastille, toutes passables.
   1. Catégoriser · 2. Soldes · 3. Budget · 4. Fait marquant · 5. Clôturer.
-- **Étape 3** : le mois est montré avec et sans dépenses exceptionnelles, et chaque dépassement permet de « marquer exceptionnelle » les transactions concernées.
+- **Étape 3** : le mois est montré avec et sans dépenses exceptionnelles, et la liste des 10 plus grosses dépenses du mois permet de marquer une transaction comme exceptionnelle.
 - **Éditeur de transaction** : case « Exceptionnelle ».
 - **Pop-up Dashboard** :
   - Déclencheur : à l'ouverture du Dashboard, si le **mois précédent** n'est pas clôturé, à partir du 1er du mois en cours.

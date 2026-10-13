@@ -78,6 +78,11 @@ Agrège : audit d'intégrité (`/analytics/audit`, issues avec `id` stable : `un
 - **CTO** : seul compte concerné par le récap annuel : dividendes bruts (net + retenue, case 2DC), plus-values réalisées (3VG) ou moins-values (3VH) issues du rejeu `replay_account` (aucun appel réseau), impôt estimé au PFU par catégorie (`pfu_rate_dividends` et `pfu_rate_gains`, car la hausse de la CSG à 10,6 % s'applique dès les revenus 2025 aux plus-values mais seulement à partir du 1.1.2026 aux dividendes : en 2025, 30 % sur les dividendes et 31,4 % sur les plus-values ; 31,4 % partout en 2026 ; l'assurance-vie reste à 17,2 %) ; une perte ne compense pas les dividendes. Ventes sans coût de revient connu : signalées, jamais comptées à zéro en silence.
 - Réglages (`system_settings`) : `tax_tmi_pct`, `tax_prior_year_pro_income`, `tax_household`, `tax_gross_annual_salary`.
 
+## Revue de fin de mois (`/month-review`, page `MonthReview.tsx`)
+- Clôturer = **marquer** (table `month_closures`, photo `tx_count`/`income`/`expenses`/`unresolved_count`), jamais verrouiller : imports CSV et remboursements tardifs restent possibles. `modified_since_close` compare la photo au recalcul (tolérance relative, pas d'`updated_at` sur `Transaction` : un simple changement de catégorie n'est pas détecté, voulu).
+- `transactions.is_exceptional` : la dépense reste dans les totaux officiels et `running_balance` ; seules les lectures `*_excl_exceptional` l'isolent. Les catégories « Investissement » / « Epargne » sont exclues du calcul (déjà hors `depenses_reelles`). Alertes budget et projection de fin de mois **non** concernées.
+- L'étape « catégoriser » est bornée au mois (le Centre d'Actions `/analytics/actions` est global : ne pas le réutiliser tel quel).
+
 ## Services externes
 
 Frankfurter (taux), Yahoo Finance (recherche/cotations titres, profils ETF). Aucun autre appel sortant, pas de télémétrie.

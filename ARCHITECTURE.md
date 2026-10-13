@@ -130,7 +130,7 @@ Champs: `id`, `name`, `icon`, `color`, `type`, `monthly_limit`, `annual_limit`, 
 
 ### `transactions`
 
-Champs: `id`, `account_id`, `date`, `month_label`, `type`, `merchant`, `merchant_id`, `category_id`, `amount`, `currency`, `original_amount`, `running_balance`, `note`, `is_recurring`, `recurring_transaction_id`, `is_subscription_ignored`, `custom_icon`, `custom_color`, `is_transfer`, `is_transfer_ignored`, `is_duplicate_ignored`, `linked_transaction_id`, `linked_investment_transaction_id`, `link_origin` (`manual` | `rule` | `recurring`), `transfer_rule_id`, `reimbursement_offset` (total remboursé pour une Sortie, total affecté pour une Entree ; maintenu par `core/reimbursements.py`).
+Champs: `id`, `account_id`, `date`, `month_label`, `type`, `merchant`, `merchant_id`, `category_id`, `amount`, `currency`, `original_amount`, `running_balance`, `note`, `is_recurring`, `recurring_transaction_id`, `is_subscription_ignored`, `custom_icon`, `custom_color`, `is_transfer`, `is_transfer_ignored`, `is_duplicate_ignored`, `linked_transaction_id`, `linked_investment_transaction_id`, `link_origin` (`manual` | `rule` | `recurring`), `transfer_rule_id`, `reimbursement_offset` (total remboursé pour une Sortie, total affecté pour une Entree ; maintenu par `core/reimbursements.py`). `is_exceptional` (dépense hors norme : reste dans les totaux et les soldes, isolée dans la lecture « hors exceptionnel » de la revue de mois).
 
 `amount` est le montant converti dans la devise du compte. `original_amount` et `currency` gardent la saisie d'origine. Les champs de liaison permettent de connecter des virements internes ou de rattacher une transaction à sa règle récurrente génératrice.
 
@@ -165,6 +165,7 @@ Un point zéro sert de base de performance pour un compte.
 - `recurring_transactions`: définitions d'abonnements/charges fixes récurrentes (`id`, `account_id`, `name`, `type`, `amount`, `currency`, `category_id`, `frequency`, `day_of_month`, `start_date`, `end_date`, `excluded_months`, `last_generated_date`, `is_active`, `auto_generate`, `note`, `transfer_to_account_id`, `asset_class`, `sector`, `geographic_zone`, `ticker`, `isin`, `quantity`, `unit_price`, `etf_profile_id`).
 - `transfer_rules`: règles de virement interne (`source_account_id`, `dest_account_id`, `pattern` sur marchand/note de la sortie, `amount`, `amount_tolerance_pct`, `day_tolerance`, `is_active`). Moteur : `core/transfers.py`.
 - `reimbursement_claims` (créance : `transaction_id` → Sortie, `debtor`, `expected_amount`, `note`) et `reimbursement_allocations` (`claim_id`, `entree_transaction_id`, `amount`, unique par couple). Moteur : `core/reimbursements.py` ; les KPI utilisent `NET_AMOUNT = amount − reimbursement_offset` (`api/analytics/utils.py`).
+- `month_closures` (revue de fin de mois : `year` + `month` uniques ensemble, `closed_at`, `highlight`, photo `tx_count` / `income` / `expenses` / `unresolved_count`). Marqueur non bloquant ; « modifié depuis la clôture » = écart (tolérant) entre la photo et le recalcul. Logique : `core/month_review.py`, route : `api/month_review.py`.
 - `tags`: tags transversaux personnalisés (`id`, `name`, `color`).
 - `transaction_tags`: table d'association many-to-many (`transaction_id`, `tag_id`).
 - `merchants`: marchands canoniques (`id`, `name`, `category_id`, `icon`, `color`).
@@ -195,6 +196,7 @@ Un point zéro sert de base de performance pour un compte.
 - `/logos` : `GET /search?q=` (catalogue Simple Icons embarqué `app/assets/simple_icons/`, CC0), `POST /from-domain` (télécharge une fois le favicon d'un domaine via le service favicon de Google, stocké dans `data/logos/`, réglage `logos_dir`) ; `GET /logos/img/{ref}` est **public** (lecture seule, référence validée par regex) car une balise `<img>` n'envoie pas le JWT
 - `/transfer-rules` (CRUD, `PATCH /{id}` pour éditer une règle depuis Réglages › Virements, `POST /apply[?dry_run=true&rule_id=]` : rattrapage de l'historique)
 - `/reimbursements` : `GET /claims?status=open|settled|all&debtor=`, `GET /summary`, `POST /claims`, `PATCH|DELETE /claims/{id}`, `GET /claims/{id}/candidates`, `POST /claims/{id}/allocations`, `DELETE /allocations/{id}`, `GET /entries/{entree_id}/claims`
+- `/month-review` : `GET ?year=&month=` (étapes catégoriser, soldes, budget + statut de clôture + `modified_since_close`), `POST /close` (`year`, `month`, `highlight`, idempotent), `DELETE ?year=&month=` (rouvrir, 204), `GET /closures`
 - `/transactions/potential-transfers[?months=&days_tolerance=&amount_tolerance_pct=]` (suggestions ; par défaut tout l'historique, ±5 j, ±1 %), `GET /transactions/{id}/transfer-candidates` (liaison manuelle), `POST /transactions/{id}/transfer-counterpart`, `link/{other_id}`, `unlink`, `ignore[?other_id=]`
 - `/tags`
 - `/merchants` (+ aliases, `auto-normalize`, `suggestions/unnormalized`)
@@ -235,7 +237,7 @@ Un point zéro sert de base de performance pour un compte.
 - `GET /analytics/wealth-simulation`
 - `GET /analytics/sankey`
 - `GET /analytics/money-flow`
-- `GET /analytics/monthly-report`
+- `GET /analytics/monthly-report` (inclut `exceptional_expenses`, `real_expenses_excl_exceptional`, `savings_excl_exceptional`, `savings_rate_excl_exceptional`, `burn_rate_excl_exceptional`)
 
 ## Regles De Calcul
 

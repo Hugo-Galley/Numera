@@ -118,7 +118,7 @@ Ordre de réalisation : 1 puis 2 en premier, le reste au fil de l'eau. Pas de no
 1. **Fiscalité et enveloppes françaises** *(en cours de cadrage)* : plafonds (PEA 150 k€, Livret A 22 950 €, LDDS 12 000 €) avec place restante, dates clés (5 ans PEA, 8 ans AV, abattement 4 600 €), récap fiscal annuel (dividendes, plus-values réalisées du CTO, par case de déclaration).
 2. **Remboursements et dépenses avancées** *(réalisé : page Remboursements, KPI nets)* : lier une `Sortie` à un ou plusieurs remboursements qui la compensent, KPI nets, liste de « ce qu'on me doit ».
 3. Découper une transaction entre plusieurs catégories.
-4. Revue de fin de mois guidée (catégoriser, valider les soldes, comparer au budget, noter un fait marquant, clôturer).
+4. Revue de fin de mois guidée *(réalisé : page `/month-review`, pop-up du Dashboard, drapeau « dépense exceptionnelle »)* : catégoriser, valider les soldes, comparer au budget, noter un fait marquant, clôturer.
 5. Prix en heures de travail (à partir du salaire net et des jours travaillés).
 6. Projection d'indépendance financière (FIRE) sur les données réelles, en extension du `WealthSimulator`.
 7. Garanties et justificatifs : pièce jointe par transaction, date de fin de garantie, rappel.
