@@ -639,6 +639,46 @@ def get_monthly_report(month: int | None = None, year: int | None = None) -> str
 
 
 @mcp.tool()
+def get_month_review(month: int | None = None, year: int | None = None) -> str:
+    """Revue de fin de mois : points à traiter (dépenses sans catégorie, comptes non vérifiés),
+    comparaison au budget avec et sans dépenses exceptionnelles, et statut de clôture.
+
+    Args:
+        month: Mois (1-12, optionnel, défaut: mois précédent)
+        year: Année (optionnel, défaut: année du mois précédent)
+    """
+    try:
+        now = datetime.now()
+        default_year, default_month = (now.year - 1, 12) if now.month == 1 else (now.year, now.month - 1)
+        params = {
+            "month": month if month is not None else default_month,
+            "year": year if year is not None else default_year,
+        }
+        resp = api.get("/month-review", params=params)
+        error = handle_response(resp)
+        if error:
+            return error
+        data = resp.json()
+        return f"🗓️ Revue de fin de mois :\n\n{serialize(data)}"
+    except Exception as e:
+        return f"❌ Erreur : {e}"
+
+
+@mcp.tool()
+def list_month_closures() -> str:
+    """Mois clôturés (revue de fin de mois) avec la date, le fait marquant et la photo des chiffres."""
+    try:
+        resp = api.get("/month-review/closures")
+        error = handle_response(resp)
+        if error:
+            return error
+        data = resp.json()
+        return f"✅ Mois clôturés :\n\n{serialize(data)}"
+    except Exception as e:
+        return f"❌ Erreur : {e}"
+
+
+@mcp.tool()
 def get_kpi_history(months: int = 6) -> str:
     """Historique des KPIs financiers sur N mois (revenus, dépenses, épargne, etc.).
 
