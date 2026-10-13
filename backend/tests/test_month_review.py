@@ -6,6 +6,7 @@ from app.core.finance import month_label_from_date
 from app.core.month_review import differs
 from app.models.account import Account
 from app.models.category import Category
+from app.models.month_closure import MonthClosure
 from app.models.transaction import Transaction
 
 
@@ -136,3 +137,67 @@ def test_empty_month_returns_200(client, db_session):
 
 def test_invalid_month_is_422(client):
     assert client.get("/month-review", params={"year": 2025, "month": 13}).status_code == 422
+
+
+def _close(client, highlight=None, **period):
+    return client.post("/month-review/close", json={**(period or PARAMS), "highlight": highlight})
+
+
+def test_close_stores_snapshot(client, october):
+    res = _close(client, "Canapé acheté")
+    assert res.status_code == 200
+    body = res.json()
+    assert body["closed"] is True
+    assert body["modified_since_close"] is False
+    closure = body["closure"]
+    assert closure["highlight"] == "Canapé acheté"
+    assert closure["tx_count"] == 4
+    assert closure["income"] == 2000.0
+    assert closure["expenses"] == 580.0
+    assert closure["unresolved_count"] == 2  # 1 dépense sans catégorie + 1 compte non vérifié
+
+
+def test_close_twice_keeps_one_row(client, october, db_session):
+    _close(client, "a")
+    _close(client, "b")
+    rows = db_session.query(MonthClosure).all()
+    assert len(rows) == 1
+    assert rows[0].highlight == "b"
+
+
+def test_reopen_deletes_closure_and_is_idempotent(client, october):
+    _close(client)
+    assert client.delete("/month-review", params=PARAMS).status_code == 204
+    assert client.get("/month-review", params=PARAMS).json()["closed"] is False
+    assert client.delete("/month-review", params=PARAMS).status_code == 204
+
+
+def test_modified_since_close_after_new_transaction(client, october, db_session):
+    _close(client)
+    _tx(db_session, october[0], "Sortie", 15.0, datetime(2025, 10, 25), "NEW")
+    data = client.get("/month-review", params=PARAMS).json()
+    assert data["closed"] is True
+    assert data["modified_since_close"] is True
+
+
+def test_recategorizing_does_not_flag_modification(client, october):
+    _, courses, nocat, _ = october
+    _close(client)
+    client.patch(f"/transactions/{nocat.id}", json={"category_id": courses.id})
+    data = client.get("/month-review", params=PARAMS).json()
+    assert data["closed"] is True
+    assert data["modified_since_close"] is False
+
+
+def test_empty_month_can_be_closed(client, db_session):
+    res = _close(client, year=2024, month=2)
+    assert res.status_code == 200
+    assert res.json()["closed"] is True
+    assert res.json()["closure"]["tx_count"] == 0
+
+
+def test_closures_list_most_recent_first(client, october):
+    _close(client, year=2025, month=9)
+    _close(client)
+    closures = client.get("/month-review/closures").json()
+    assert [(c["year"], c["month"]) for c in closures] == [(2025, 10), (2025, 9)]
