@@ -22,6 +22,7 @@ from app.models.holding_baseline_item import HoldingBaselineItem
 from app.models.security_price import SecurityPrice
 from app.models.mcp_token import McpToken
 from app.models.reimbursement import ReimbursementAllocation, ReimbursementClaim
+from app.models.month_closure import MonthClosure
 
 __all__ = [
     "Account",
@@ -48,4 +49,5 @@ __all__ = [
     "McpToken",
     "ReimbursementClaim",
     "ReimbursementAllocation",
+    "MonthClosure",
 ]

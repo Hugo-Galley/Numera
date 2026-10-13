@@ -38,6 +38,8 @@ class Transaction(Base):
     merchant_id: Mapped[int | None] = mapped_column(ForeignKey("merchants.id", ondelete="SET NULL"), nullable=True, index=True)
     # Total remboursé (Sortie) ou affecté à des créances (Entree) ; maintenu par core/reimbursements.py
     reimbursement_offset: Mapped[float] = mapped_column(Float, default=0.0, server_default="0", nullable=False)
+    # Dépense hors norme (achat ponctuel) : reste dans les totaux, isolée dans la lecture « hors exceptionnel »
+    is_exceptional: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0", nullable=False)
 
     category: Mapped["Category"] = relationship("Category", lazy="selectin")
     recurring_transaction: Mapped["RecurringTransaction"] = relationship("RecurringTransaction", lazy="selectin")

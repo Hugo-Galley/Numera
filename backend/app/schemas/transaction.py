@@ -24,6 +24,7 @@ class TransactionBase(BaseModel):
     linked_investment_transaction_id: int | None = None
     custom_icon: str | None = None
     custom_color: str | None = None
+    is_exceptional: bool = False
 
 
 class TransactionCreate(TransactionBase):
@@ -47,6 +48,7 @@ class TransactionUpdate(BaseModel):
     linked_investment_transaction_id: int | None = None
     custom_icon: str | None = None
     custom_color: str | None = None
+    is_exceptional: bool | None = None
     tag_ids: list[int] | None = None
 
 

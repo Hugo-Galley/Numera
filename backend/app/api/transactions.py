@@ -481,6 +481,10 @@ async def update_transaction(transaction_id: int, payload: TransactionUpdate, db
         bool(update_data.get("is_transfer")),
     )
 
+    # La colonne n'est pas nullable : un `null` explicite équivaut à « ne pas modifier »
+    if update_data.get("is_exceptional", True) is None:
+        update_data.pop("is_exceptional")
+
     for field, value in update_data.items():
         setattr(transaction, field, value)
 
