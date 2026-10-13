@@ -45,6 +45,7 @@ from app.models.transaction import Transaction
 from app.models.recurring_transaction import RecurringTransaction
 from app.core.finance import get_recurring_occurrences
 from app.core.logging import get_logger
+from app.core.month_review import exceptional_expenses, month_bounds, without_exceptional
 from app.schemas.transaction import TransactionRead
 from .budget import budget_analytics, budget_alerts
 from .insights import get_intelligent_insights
@@ -287,6 +288,10 @@ async def get_monthly_report(
     # 7. Money Flow (Integrated)
     flow_data = await get_money_flow(month=month, year=year, account_id=account_id, db=db)
     
+    start, end = month_bounds(year, month)
+    rates = await get_exchange_rates("EUR")
+    excl = without_exceptional(current_budget, exceptional_expenses(db, start, end, rates, account_id))
+
     return MonthlyReport(
         month=month,
         year=year,
@@ -310,7 +315,8 @@ async def get_monthly_report(
         ),
         insights=insights_data.insights,
         health_score=insights_data.health_score,
-        money_flow=flow_data
+        money_flow=flow_data,
+        **excl,
     )
 
 

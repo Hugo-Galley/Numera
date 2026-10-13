@@ -55,6 +55,11 @@ class MonthlyReport(BaseModel):
     comparison: MonthlyComparison
     insights: List[Insight]
     health_score: HealthScore
+    exceptional_expenses: float
+    real_expenses_excl_exceptional: float
+    savings_excl_exceptional: float
+    savings_rate_excl_exceptional: float
+    burn_rate_excl_exceptional: float
     money_flow: Optional["MoneyFlowReport"] = None
 
 
