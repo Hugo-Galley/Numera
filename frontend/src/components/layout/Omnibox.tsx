@@ -13,7 +13,8 @@ import {
   Receipt,
   ArrowRight,
   ShieldCheck,
-  Landmark
+  Landmark,
+  ClipboardCheck,
 } from "lucide-react"
 import {
   Dialog,
@@ -29,6 +30,7 @@ import { Badge } from "@/components/ui/badge"
 
 const NAVIGATION = [
   { name: "Tableau de bord", href: "/", icon: LayoutDashboard },
+  { name: "Revue de mois", href: "/month-review", icon: ClipboardCheck },
   { name: "Comptes", href: "/accounts", icon: Wallet },
   { name: "Épargne", href: "/savings", icon: PiggyBank },
   { name: "Investissements", href: "/investments", icon: TrendingUp },

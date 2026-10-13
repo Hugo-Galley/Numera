@@ -14,6 +14,7 @@ import { SubscriptionsTab } from "@/components/dashboard/tabs/SubscriptionsTab"
 import { InvestmentsTab } from "@/components/dashboard/tabs/InvestmentsTab"
 import { HistoryTab } from "@/components/dashboard/tabs/HistoryTab"
 import { AccountVerificationBanner } from "@/components/dashboard/AccountVerificationBanner"
+import { MonthReviewPopup } from "@/components/month-review/MonthReviewPopup"
 
 export default function Dashboard() {
   const navigate = useNavigate()
@@ -86,6 +87,7 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-10 pb-10">
+      <MonthReviewPopup />
       <DashboardHeader 
         accounts={accounts}
         selectedAccountId={selectedAccountId}

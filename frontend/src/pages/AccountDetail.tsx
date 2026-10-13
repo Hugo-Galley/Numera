@@ -289,6 +289,7 @@ type Transaction = {
   custom_icon: string | null
   custom_color: string | null
   is_transfer?: boolean
+  is_exceptional?: boolean
   reimbursement_offset?: number
   reimbursement_expected?: number
   has_claims?: boolean
@@ -457,6 +458,7 @@ export default function AccountDetail() {
   const [txTagIds, setTxTagIds] = useState<number[]>([])
   const [txNote, setTxNote] = useState("")
   const [txIsRecurring, setTxIsRecurring] = useState(false)
+  const [txIsExceptional, setTxIsExceptional] = useState(false)
   const [txCustomIcon, setTxCustomIcon] = useState("")
   const [txCustomColor, setTxCustomColor] = useState("#0f172a")
 
@@ -615,6 +617,7 @@ export default function AccountDetail() {
     setTxTagIds([])
     setTxNote("")
     setTxIsRecurring(false)
+    setTxIsExceptional(false)
     setTxCustomIcon("")
     setTxCustomColor("#0f172a")
   }
@@ -646,6 +649,7 @@ export default function AccountDetail() {
         currency: txCurrency,
         note: txNote || null,
         is_recurring: txIsRecurring,
+        is_exceptional: txType === "Sortie" && txIsExceptional,
         custom_icon: txCustomIcon || null,
         custom_color: txCustomColor || null
       }
@@ -687,6 +691,7 @@ export default function AccountDetail() {
         currency: txCurrency,
         note: txNote || null,
         is_recurring: txIsRecurring,
+        is_exceptional: txType === "Sortie" && txIsExceptional,
         custom_icon: txCustomIcon || null,
         custom_color: txCustomColor || null
       }
@@ -711,6 +716,7 @@ export default function AccountDetail() {
     setTxTagIds(tx.tags?.map(t => t.id) || [])
     setTxNote(tx.note || "")
     setTxIsRecurring(tx.is_recurring)
+    setTxIsExceptional(!!tx.is_exceptional)
     setTxCustomIcon(tx.custom_icon || "")
     setTxCustomColor(tx.custom_color || "#0f172a")
     setTxOpen(true)
@@ -1207,6 +1213,13 @@ export default function AccountDetail() {
                         <Checkbox id="recurring" checked={txIsRecurring} onCheckedChange={(checked) => setTxIsRecurring(!!checked)} />
                         <Label htmlFor="recurring" className="text-sm font-medium leading-none cursor-pointer">Transaction récurrente</Label>
                       </div>
+
+                      {txType === "Sortie" && (
+                        <div className="flex items-center space-x-2 py-2">
+                          <Checkbox id="exceptional" checked={txIsExceptional} onCheckedChange={(checked) => setTxIsExceptional(!!checked)} />
+                          <Label htmlFor="exceptional" className="text-sm font-medium leading-none cursor-pointer">Dépense exceptionnelle (achat ponctuel)</Label>
+                        </div>
+                      )}
 
                       <div className="grid grid-cols-2 gap-4">
                         <div className="grid gap-2">

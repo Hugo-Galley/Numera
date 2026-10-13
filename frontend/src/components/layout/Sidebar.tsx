@@ -22,7 +22,8 @@ import {
   Landmark,
   User,
   ChevronDown,
-  ChevronRight
+  ChevronRight,
+  ClipboardCheck,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useUI } from "@/providers/UIProvider"
@@ -43,6 +44,7 @@ const navigationGroups = [
     items: [
       { name: "Tableau de bord", href: "/", icon: LayoutDashboard },
       { name: "Bilan Mensuel", href: "/report", icon: Sparkles },
+      { name: "Revue de mois", href: "/month-review", icon: ClipboardCheck },
     ]
   },
   {
