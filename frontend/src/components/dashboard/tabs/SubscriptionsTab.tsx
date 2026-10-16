@@ -66,10 +66,7 @@ export function SubscriptionsTab({ subscriptions, displayCurrency }: Subscriptio
                     )}
                   </div>
                 </div>
-                <div className="flex flex-col items-end">
-                  <span className="font-bold text-slate-900 amount-blur">{formatCurrency(sub.monthly_cost, displayCurrency)}</span>
-                  {displayCurrency === "EUR" && <WorkHours amount={sub.monthly_cost} />}
-                </div>
+                <span className="font-bold text-slate-900 amount-blur">{formatCurrency(sub.monthly_cost, displayCurrency)}</span>
               </div>
             ))}
             {items.length === 0 && <p className="text-center text-slate-400 py-10">Aucun abonnement détecté.</p>}

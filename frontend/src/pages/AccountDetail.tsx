@@ -157,7 +157,8 @@ import {
   Wrench,
   Check,
   HandCoins,
-  X
+  X,
+  MoreHorizontal,
 } from "lucide-react"
 import { api } from "@/lib/api"
 import { TransferLinkDialog } from "@/components/transfers/TransferLinkDialog"
@@ -180,6 +181,7 @@ import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
@@ -2046,9 +2048,6 @@ export default function AccountDetail() {
                             net {formatCurrency(tx.amount - (tx.reimbursement_offset ?? 0))}
                           </span>
                         )}
-                        {tx.type === "Sortie" && !tx.is_transfer && account?.currency === "EUR" && (
-                          <WorkHours amount={tx.amount - (tx.reimbursement_offset ?? 0)} />
-                        )}
                         {tx.type === "Sortie" && tx.has_claims && (() => {
                           const received = tx.reimbursement_offset ?? 0
                           const expected = tx.reimbursement_expected ?? 0
@@ -2071,34 +2070,55 @@ export default function AccountDetail() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-1">
-                        {(tx.type === "Sortie" || tx.type === "Entree") && !tx.is_transfer && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            title={tx.type === "Sortie" ? "On me doit…" : "Affecter à une créance…"}
-                            onClick={() => setReimbursementTx(tx)}
-                            className="h-8 w-8 p-0"
-                          >
-                            <HandCoins className={`h-3.5 w-3.5 ${tx.has_claims || (tx.reimbursement_offset ?? 0) > 0 ? "text-emerald-600" : "text-slate-400"}`} />
-                          </Button>
+                        {/* Seuls les liens actifs restent visibles ; les actions sont dans le menu */}
+                        {(tx.has_claims || (tx.reimbursement_offset ?? 0) > 0) && (
+                          <span title="Remboursement lié" className="flex h-8 w-6 items-center justify-center">
+                            <HandCoins className="h-3.5 w-3.5 text-emerald-600" />
+                          </span>
                         )}
-                        {(tx.type === "Sortie" || tx.type === "Entree") && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            title={tx.is_transfer ? "Virement interne lié" : "Virement interne…"}
-                            onClick={() => openTransferDialog(tx)}
-                            className="h-8 w-8 p-0"
-                          >
-                            <ArrowRightLeft className={`h-3.5 w-3.5 ${tx.is_transfer ? "text-emerald-600" : "text-slate-400"}`} />
-                          </Button>
+                        {tx.is_transfer && (
+                          <span title="Virement interne lié" className="flex h-8 w-6 items-center justify-center">
+                            <ArrowRightLeft className="h-3.5 w-3.5 text-emerald-600" />
+                          </span>
                         )}
-                        <Button variant="ghost" size="sm" onClick={() => handleEditTransaction(tx)} className="h-8 w-8 p-0">
-                          <Pencil className="h-3.5 w-3.5 text-slate-500" />
-                        </Button>
-                        <Button variant="ghost" size="sm" onClick={() => handleDeleteTransaction(tx.id)} className="h-8 w-8 p-0">
-                          <Trash2 className="h-3.5 w-3.5 text-rose-500" />
-                        </Button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0" title="Actions">
+                              <MoreHorizontal className="h-4 w-4 text-slate-500" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-56">
+                            {tx.type === "Sortie" && !tx.is_transfer && account?.currency === "EUR" && (
+                              <>
+                                <DropdownMenuLabel className="py-1">
+                                  <WorkHours amount={tx.amount - (tx.reimbursement_offset ?? 0)} className="text-xs text-slate-500" />
+                                </DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                              </>
+                            )}
+                            {(tx.type === "Sortie" || tx.type === "Entree") && !tx.is_transfer && (
+                              <DropdownMenuItem onClick={() => setReimbursementTx(tx)}>
+                                <HandCoins className="mr-2 h-4 w-4" />
+                                {tx.type === "Sortie" ? "On me doit…" : "Affecter à une créance…"}
+                              </DropdownMenuItem>
+                            )}
+                            {(tx.type === "Sortie" || tx.type === "Entree") && (
+                              <DropdownMenuItem onClick={() => openTransferDialog(tx)}>
+                                <ArrowRightLeft className="mr-2 h-4 w-4" />
+                                {tx.is_transfer ? "Virement interne lié…" : "Virement interne…"}
+                              </DropdownMenuItem>
+                            )}
+                            <DropdownMenuItem onClick={() => handleEditTransaction(tx)}>
+                              <Pencil className="mr-2 h-4 w-4" />
+                              Modifier
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => handleDeleteTransaction(tx.id)} className="text-rose-600 focus:text-rose-600">
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Supprimer
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
                     </TableCell>
                   </TableRow>
