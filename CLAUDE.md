@@ -65,7 +65,7 @@ python scripts/change_password.py <mot-de-passe>
 - `pages/` (une par route, react-router v7 dans `App.tsx`, protégé par `components/layout/ProtectedRoute`) ; composants par domaine dans `components/{analytics,dashboard,investments,settings,tools,layout}` ; primitives shadcn/Radix dans `components/ui`. `Dashboard` est découpé via `components/dashboard/tabs` et le hook `useDashboardData`.
 
 ### Serveur MCP (`mcp-server/`)
-**Lecture seule.** Dispatcher `server.py` → `server_api.py` (proxy de l'API FastAPI authentifié par token MCP généré dans Paramètres → Compte, exposé sur `/mcp` par Nginx ; 38 outils ; mode recommandé, KPI calculés par le backend) ou `server_sqlite.py` (SQLite direct en `mode=ro`, stdio, 20 outils). L'API refuse toute méthode autre que `GET` avec un token MCP : ne pas ajouter d'outil d'écriture. Clients : Claude Code (`claude mcp add --transport http`) et Claude Desktop (pont `mcp-remote`). Détails : `mcp-server/README.md`. Toute nouvelle route de lecture exposable doit être répercutée dans `server_api.py`.
+**Lecture seule.** Dispatcher `server.py` → `server_api.py` (proxy de l'API FastAPI authentifié par token MCP généré dans Paramètres → Compte, exposé sur `/mcp` par Nginx ; 39 outils ; mode recommandé, KPI calculés par le backend) ou `server_sqlite.py` (SQLite direct en `mode=ro`, stdio, 20 outils). L'API refuse toute méthode autre que `GET` avec un token MCP : ne pas ajouter d'outil d'écriture. Clients : Claude Code (`claude mcp add --transport http`) et Claude Desktop (pont `mcp-remote`). Détails : `mcp-server/README.md`. Toute nouvelle route de lecture exposable doit être répercutée dans `server_api.py`.
 
 ## Modèle de données
 

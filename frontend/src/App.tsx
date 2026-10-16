@@ -12,6 +12,7 @@ import Calendar from "@/pages/Calendar"
 import RecurringTransactions from "@/pages/RecurringTransactions"
 import Reimbursements from "@/pages/Reimbursements"
 import MonthReview from "@/pages/MonthReview"
+import Wrapped from "@/pages/Wrapped"
 import Login from "@/pages/Login"
 import Audit from "@/pages/Audit"
 import Tools from "@/pages/Tools"
@@ -45,6 +46,7 @@ export function App() {
               <Route path="/recurring" element={<RecurringTransactions />} />
               <Route path="/reimbursements" element={<Reimbursements />} />
               <Route path="/month-review" element={<MonthReview />} />
+              <Route path="/wrapped" element={<Wrapped />} />
               <Route path="/audit" element={<Audit />} />
               <Route path="/tools" element={<Tools />} />
               <Route path="/tax" element={<Tax />} />

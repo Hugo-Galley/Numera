@@ -665,6 +665,27 @@ def get_month_review(month: int | None = None, year: int | None = None) -> str:
 
 
 @mcp.tool()
+def get_wrapped(year: int | None = None) -> str:
+    """Bilan annuel : revenus, dépenses réelles, taux d'épargne, plus gros postes et marchands,
+    plus grosse dépense, évolution du patrimoine, abonnements nouveaux/arrêtés, comparaison à N-1.
+
+    L'année en cours est arrêtée au mois courant et comparée à la même période de N-1.
+
+    Args:
+        year: Année (optionnel, défaut: année en cours)
+    """
+    try:
+        resp = api.get("/analytics/wrapped", params={"year": year if year is not None else datetime.now().year})
+        error = handle_response(resp)
+        if error:
+            return error
+        data = resp.json()
+        return f"🎁 Bilan annuel :\n\n{serialize(data)}"
+    except Exception as e:
+        return f"❌ Erreur : {e}"
+
+
+@mcp.tool()
 def list_month_closures() -> str:
     """Mois clôturés (revue de fin de mois) avec la date, le fait marquant et la photo des chiffres."""
     try:

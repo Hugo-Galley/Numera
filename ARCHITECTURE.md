@@ -228,6 +228,7 @@ Un point zéro sert de base de performance pour un compte.
 - `GET /analytics/investments/{account_id}`
 - `GET /analytics/investments/{account_id}/performance-history`
 - `GET /analytics/subscriptions`
+- `GET /analytics/wrapped?year=` (bilan annuel, `api/analytics/wrapped.py` : agrège mois par mois `budget`, `expenses-by-category` (hors Investissement/Epargne) et `top-merchants` ; année en cours arrêtée au mois courant, `previous` = N-1 sur la même période ; abonnements = récurrences `Sortie` hors virement et hors épargne/investissement, nouveaux = 1re échéance dans l'année, arrêtés = récurrence close dont la dernière échéance tombe dans l'année ; heures de travail au taux horaire actuel)
 - `GET /analytics/kpi-history`
 - `GET /analytics/account-flow-summary` (flux net du mois, variation, dépense moyenne d'un compte ; virements exclus)
 - `GET /analytics/investments-allocation`

@@ -122,7 +122,7 @@ Ordre de réalisation : 1 puis 2 en premier, le reste au fil de l'eau. Pas de no
 5. Prix en heures de travail (à partir du salaire net et des jours travaillés) *(réalisé : `GET/PATCH /salary/work-time`, affichage sur les dépenses, abonnements et top marchands, réglages dans le gestionnaire de salaire)*.
 6. Projection d'indépendance financière (FIRE) sur les données réelles, en extension du `WealthSimulator`.
 7. Garanties et justificatifs : pièce jointe par transaction, date de fin de garantie, rappel.
-8. Bilan annuel « Wrapped » (taux d'épargne, plus gros poste, évolution du patrimoine, abonnements résiliés).
+8. Bilan annuel « Wrapped » (taux d'épargne, plus gros poste, évolution du patrimoine, abonnements résiliés) *(réalisé : page `/wrapped` avec story plein écran, `GET /analytics/wrapped`, comparaison N-1 sur la même période)*.
 
 ## Critères de Livraison Généraux
 - Les calculs financiers sensibles s'effectuent côté backend.

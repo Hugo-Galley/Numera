@@ -6,7 +6,7 @@ Le point d'entrée `server.py` est un **dispatcher** qui lance l'un des deux ser
 
 | Mode | Fichier | Fonctionnement | Outils |
 |------|---------|----------------|--------|
-| **API proxy** | `server_api.py` | Appelle l'API FastAPI avec un **token MCP** généré dans Numera. Reprend les KPI calculés par le backend. Recommandé, et seul mode du `docker-compose.prod.yml` (exposé sur `/mcp`). | 38 outils, 4 ressources, 6 prompts |
+| **API proxy** | `server_api.py` | Appelle l'API FastAPI avec un **token MCP** généré dans Numera. Reprend les KPI calculés par le backend. Recommandé, et seul mode du `docker-compose.prod.yml` (exposé sur `/mcp`). | 39 outils, 4 ressources, 6 prompts |
 | **SQLite direct** | `server_sqlite.py` | Lit la base SQLite (connexion `mode=ro`). Installation locale, **stdio uniquement**. | 20 outils, 5 ressources, 3 prompts |
 
 ### Choix du mode
@@ -30,7 +30,7 @@ Le point d'entrée `server.py` est un **dispatcher** qui lance l'un des deux ser
 `list_accounts`, `list_categories`, `list_transactions`, `get_transaction`, `search_transactions`, `list_merchants`, `list_recurring_transactions`, `list_savings_goals`, `list_tags`, `list_transfer_rules`, `list_reimbursement_claims`
 
 **Analyses (via `/analytics/*`)**
-`get_budget_summary`, `get_expenses_by_category`, `get_top_merchants`, `get_subscriptions`, `get_budget_alerts`, `get_insights`, `get_monthly_report`, `get_month_review`, `list_month_closures`, `get_kpi_history`, `get_cashflow_projection`, `get_money_flow`, `get_tax_overview`, `get_work_time`
+`get_budget_summary`, `get_expenses_by_category`, `get_top_merchants`, `get_subscriptions`, `get_budget_alerts`, `get_insights`, `get_monthly_report`, `get_month_review`, `get_wrapped`, `list_month_closures`, `get_kpi_history`, `get_cashflow_projection`, `get_money_flow`, `get_tax_overview`, `get_work_time`
 
 **Investissements**
 `get_portfolio`, `get_dividends`, `list_holdings`, `list_investment_transactions`, `list_etf_profiles`, `get_etf_profile`, `get_investments_summary`, `get_investment_performance` (gains, baseline point zéro, PRU), `get_investment_performance_history`, `get_investments_allocation`, `get_investments_allocation_advanced`, `get_patrimoine_allocation`, `get_diversity_scanner`
