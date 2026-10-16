@@ -7,6 +7,7 @@ import {
   CardDescription
 } from "@/components/ui/card"
 import { formatCurrency } from "@/lib/utils"
+import { WorkHours } from "@/components/ui/work-hours"
 import {
   ResponsiveContainer,
   PieChart,
@@ -41,6 +42,12 @@ export function SubscriptionsTab({ subscriptions, displayCurrency }: Subscriptio
             <CardTitle className="text-lg">Abonnements Mensuels</CardTitle>
           </div>
           <CardDescription>Total ce mois: <span className="text-slate-900 font-bold amount-blur">{formatCurrency(total, displayCurrency)}</span></CardDescription>
+          {displayCurrency === "EUR" && (
+            <div className="flex flex-wrap gap-x-3 text-xs text-slate-500">
+              <WorkHours amount={total} className="text-xs" />
+              <span className="inline-flex items-center gap-1">par an <WorkHours amount={total * 12} className="text-xs" showIcon={false} /></span>
+            </div>
+          )}
         </CardHeader>
         <CardContent className="p-6">
           <div className="space-y-4">
@@ -59,7 +66,10 @@ export function SubscriptionsTab({ subscriptions, displayCurrency }: Subscriptio
                     )}
                   </div>
                 </div>
-                <span className="font-bold text-slate-900 amount-blur">{formatCurrency(sub.monthly_cost, displayCurrency)}</span>
+                <div className="flex flex-col items-end">
+                  <span className="font-bold text-slate-900 amount-blur">{formatCurrency(sub.monthly_cost, displayCurrency)}</span>
+                  {displayCurrency === "EUR" && <WorkHours amount={sub.monthly_cost} />}
+                </div>
               </div>
             ))}
             {items.length === 0 && <p className="text-center text-slate-400 py-10">Aucun abonnement détecté.</p>}

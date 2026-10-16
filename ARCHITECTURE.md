@@ -83,6 +83,7 @@ docker-compose.prod.yml, Makefile, setup.sh, install.sh
 - `recurring_transactions.py`: abonnements et transactions récurrentes avec génération automatique.
 - `tags.py`: tags transversaux personnalisables.
 - `salary.py`: configuration de salaire, jours de télétravail (TT) et génération des transactions associées.
+- `work_time.py`: taux horaire net = `net_salary × 12 ÷ (work_days_per_year × work_hours_per_day)` (218 j × 7 h par défaut), base du prix en heures de travail.
 - `merchants.py`: gestion des marchands canoniques et de leurs alias de normalisation.
 - `admin.py`: profil admin (nom/mot de passe, `mcp_enabled`, stockes dans `system_settings`), tokens MCP (`GET`/`POST /admin/mcp-tokens`, `DELETE /admin/mcp-tokens/{id}` ; le token en clair n'est renvoyé qu'à la création) et reset database.
 - `health.py`: healthcheck public.
@@ -202,7 +203,7 @@ Un point zéro sert de base de performance pour un compte.
 - `/merchants` (+ aliases, `auto-normalize`, `suggestions/unnormalized`)
 - `/holdings`, `/etf-profiles`, `/market` (search, validate, quote)
 - `/tax` (`GET /tax/overview`, `GET`/`PATCH /tax/settings`, `GET /tax/annual-report?year=`) : calculs dans `api/analytics/tax.py`, règles chiffrées par année dans `core/tax_rules.py` (valeurs à vérifier), calculs purs dans `core/tax.py`
-- `/salary` (config, months, telecommuting, summary, generate)
+- `/salary` (config, months, telecommuting, summary, generate, work-time : taux horaire net pour le prix en heures de travail, réglages `work_days_per_year` / `work_hours_per_day` dans `system_settings`)
 - `/admin` (profile, mcp-tokens, reset-database) — interdit aux tokens MCP
 
 ### Import Export

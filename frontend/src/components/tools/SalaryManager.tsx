@@ -10,6 +10,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast } from "sonner"
 import { TelecommutingCalendar } from "./TelecommutingCalendar"
+import { WorkTimeSettings } from "./WorkTimeSettings"
+import { useWorkTime } from "@/providers/WorkTimeProvider"
 
 interface SalaryConfig {
   id?: number
@@ -34,6 +36,7 @@ interface Category {
 }
 
 export function SalaryManager() {
+  const { refresh: refreshWorkTime } = useWorkTime()
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [generating, setGenerating] = useState(false)
@@ -149,6 +152,7 @@ export function SalaryManager() {
       })
       toast.success("Configuration sauvegardée")
       loadMonthData(currentDate)
+      refreshWorkTime()
     } catch (error) {
       toast.error("Impossible de sauvegarder")
     } finally {
@@ -310,6 +314,8 @@ export function SalaryManager() {
           </div>
         </CardContent>
       </Card>
+
+      {config.id && <WorkTimeSettings />}
 
       {config.id && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

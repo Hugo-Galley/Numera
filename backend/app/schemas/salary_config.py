@@ -64,3 +64,17 @@ class SalaryMonthSummary(BaseModel):
     real_salary: float
     ticket_credit: float
     is_generated: bool
+
+
+class WorkTimeRead(BaseModel):
+    configured: bool
+    net_salary: float | None
+    work_days_per_year: int
+    work_hours_per_day: float
+    hours_per_month: float
+    hourly_rate: float | None
+
+
+class WorkTimeUpdate(BaseModel):
+    work_days_per_year: int | None = Field(default=None, ge=1, le=366)
+    work_hours_per_day: float | None = Field(default=None, gt=0, le=24)

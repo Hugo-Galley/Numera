@@ -119,7 +119,7 @@ Ordre de réalisation : 1 puis 2 en premier, le reste au fil de l'eau. Pas de no
 2. **Remboursements et dépenses avancées** *(réalisé : page Remboursements, KPI nets)* : lier une `Sortie` à un ou plusieurs remboursements qui la compensent, KPI nets, liste de « ce qu'on me doit ».
 3. Découper une transaction entre plusieurs catégories.
 4. Revue de fin de mois guidée *(réalisé : page `/month-review`, pop-up du Dashboard, drapeau « dépense exceptionnelle »)* : catégoriser, valider les soldes, comparer au budget, noter un fait marquant, clôturer.
-5. Prix en heures de travail (à partir du salaire net et des jours travaillés).
+5. Prix en heures de travail (à partir du salaire net et des jours travaillés) *(réalisé : `GET/PATCH /salary/work-time`, affichage sur les dépenses, abonnements et top marchands, réglages dans le gestionnaire de salaire)*.
 6. Projection d'indépendance financière (FIRE) sur les données réelles, en extension du `WealthSimulator`.
 7. Garanties et justificatifs : pièce jointe par transaction, date de fin de garantie, rappel.
 8. Bilan annuel « Wrapped » (taux d'épargne, plus gros poste, évolution du patrimoine, abonnements résiliés).

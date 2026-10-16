@@ -977,6 +977,32 @@ def get_tax_overview() -> str:
 
 
 @mcp.tool()
+def get_work_time() -> str:
+    """Taux horaire net (salaire net × 12 ÷ heures travaillées par an) pour exprimer un prix en heures de travail.
+
+    Diviser un montant en euros par `taux_horaire_EUR` donne le nombre d'heures de travail qu'il représente.
+    """
+    try:
+        resp = api.get("/salary/work-time")
+        error = handle_response(resp)
+        if error:
+            return error
+        data = resp.json()
+        if not data["configured"]:
+            return "ℹ️ Aucun salaire configuré : le prix en heures de travail n'est pas disponible."
+        row = {
+            "salaire_net_EUR": data["net_salary"],
+            "jours_travailles_an": data["work_days_per_year"],
+            "heures_par_jour": data["work_hours_per_day"],
+            "heures_par_mois": data["hours_per_month"],
+            "taux_horaire_EUR": data["hourly_rate"],
+        }
+        return "⏱️ Temps de travail :\n\n" + format_table([row])
+    except Exception as e:
+        return f"❌ Erreur : {e}"
+
+
+@mcp.tool()
 def list_transfer_rules() -> str:
     """Règles de virement interne (compte source → compte destination) qui relient automatiquement
     les sorties aux entrées pour ne pas compter deux fois un revenu réparti entre comptes."""

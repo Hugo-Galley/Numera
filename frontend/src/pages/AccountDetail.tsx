@@ -233,6 +233,7 @@ import {
   Line
 } from "recharts"
 import { Separator } from "@/components/ui/separator"
+import { WorkHours } from "@/components/ui/work-hours"
 import { Input } from "@/components/ui/input"
 import { HoldingsTable } from "@/components/investments/HoldingsTable"
 import { DividendsCard } from "@/components/investments/DividendsCard"
@@ -2044,6 +2045,9 @@ export default function AccountDetail() {
                           <span className="text-[10px] font-normal text-slate-400 amount-blur">
                             net {formatCurrency(tx.amount - (tx.reimbursement_offset ?? 0))}
                           </span>
+                        )}
+                        {tx.type === "Sortie" && !tx.is_transfer && account?.currency === "EUR" && (
+                          <WorkHours amount={tx.amount - (tx.reimbursement_offset ?? 0)} />
                         )}
                         {tx.type === "Sortie" && tx.has_claims && (() => {
                           const received = tx.reimbursement_offset ?? 0

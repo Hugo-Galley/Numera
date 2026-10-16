@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_db
 from app.core.finance import month_label_from_date
 from app.core.salary import generate_salary_transactions
+from app.core.work_time import load_work_time, save_work_time
 from app.models.recurring_transaction import RecurringTransaction
 from app.models.salary_config import SalaryConfig
 from app.models.salary_month import SalaryMonth
@@ -20,6 +21,8 @@ from app.schemas.salary_config import (
     SalaryMonthUpdate,
     TelecommutingDayRead,
     TelecommutingDaysUpdate,
+    WorkTimeRead,
+    WorkTimeUpdate,
 )
 
 
@@ -129,6 +132,16 @@ def update_salary_config(
     db.commit()
     db.refresh(config)
     return config
+
+
+@router.get("/work-time", response_model=WorkTimeRead)
+def get_work_time(db: Session = Depends(get_db)) -> WorkTimeRead:
+    return load_work_time(db)
+
+
+@router.patch("/work-time", response_model=WorkTimeRead)
+def update_work_time(update: WorkTimeUpdate, db: Session = Depends(get_db)) -> WorkTimeRead:
+    return save_work_time(db, update)
 
 
 @router.get("/months/{year}", response_model=list[SalaryMonthRead])
