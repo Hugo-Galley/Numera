@@ -57,7 +57,16 @@ def get_recurring_occurrences(
     
     # Ensure current_date is at the beginning of the day
     current_date = current_date.replace(hour=0, minute=0, second=0, microsecond=0)
-    
+
+    # Monthly / quarterly: the first occurrence falls on day_of_month on or after start_date,
+    # not on start_date itself (a rule created on the 8th for the 16th starts on the 16th).
+    if recurring_tx.frequency in ("monthly", "quarterly") and recurring_tx.day_of_month:
+        day = recurring_tx.day_of_month
+        year, month = current_date.year, current_date.month
+        if current_date.day > min(day, calendar.monthrange(year, month)[1]):
+            year, month = (year + 1, 1) if month == 12 else (year, month + 1)
+        current_date = datetime(year, month, min(day, calendar.monthrange(year, month)[1]))
+
     # Parse excluded months (stored as CSV string "5,10" → {5, 10})
     excluded_months: set[int] = set()
     if hasattr(recurring_tx, 'excluded_months') and recurring_tx.excluded_months:
