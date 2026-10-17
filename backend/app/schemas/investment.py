@@ -1,11 +1,11 @@
-from datetime import datetime
-
 from pydantic import BaseModel, Field
+
+from app.core.time import NaiveUTCDatetime
 
 
 class InvestmentTransactionBase(BaseModel):
     account_id: int
-    date: datetime
+    date: NaiveUTCDatetime
     type: str
     amount: float = Field(gt=0)
     currency: str = "EUR"
@@ -40,7 +40,7 @@ class InvestmentTransactionRead(InvestmentTransactionBase):
 
 
 class InvestmentTransactionUpdate(BaseModel):
-    date: datetime | None = None
+    date: NaiveUTCDatetime | None = None
     type: str | None = None
     amount: float | None = Field(default=None, gt=0)
     currency: str | None = None
@@ -64,7 +64,7 @@ class InvestmentTransactionUpdate(BaseModel):
 
 class BalanceSnapshotBase(BaseModel):
     account_id: int
-    date: datetime
+    date: NaiveUTCDatetime
     current_value: float = Field(ge=0)
     note: str | None = None
     is_zero_point: bool = False
@@ -81,7 +81,7 @@ class BalanceSnapshotRead(BalanceSnapshotBase):
 
 
 class BalanceSnapshotUpdate(BaseModel):
-    date: datetime | None = None
+    date: NaiveUTCDatetime | None = None
     current_value: float | None = Field(default=None, ge=0)
     note: str | None = None
     is_zero_point: bool | None = None
@@ -90,5 +90,5 @@ class BalanceSnapshotUpdate(BaseModel):
 class SetZeroPointRequest(BaseModel):
     account_id: int
     current_value: float | None = Field(default=None, ge=0)
-    date: datetime | None = None
+    date: NaiveUTCDatetime | None = None
     note: str | None = None
