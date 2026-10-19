@@ -14,7 +14,8 @@ import {
   Upload,
   Filter,
   User,
-  ShoppingBag
+  ShoppingBag,
+  Layers
 } from "lucide-react"
 import { IconComponent, ICON_OPTIONS } from "@/components/dashboard/IconComponent"
 import { api } from "@/lib/api"
@@ -54,6 +55,8 @@ import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 
 import { Checkbox } from "@/components/ui/checkbox"
+import { Switch } from "@/components/ui/switch"
+import { useUI } from "@/providers/UIProvider"
 import { ImportTab } from "@/components/settings/ImportTab"
 
 const COLOR_OPTIONS = [
@@ -89,6 +92,7 @@ type Account = {
 
 export default function Settings() {
   const [searchParams] = useSearchParams()
+  const { hideHoldingValues, setHideHoldingValues } = useUI()
   const defaultTab = searchParams.get("tab") || "categories"
   
   const [categories, setCategories] = useState<Category[]>([])
@@ -614,6 +618,33 @@ export default function Settings() {
         </TabsContent>
 
         <TabsContent value="system" className="space-y-8">
+          <Card className="shadow-sm border-slate-100 overflow-hidden">
+            <CardHeader className="bg-slate-50/50 border-b">
+              <div className="flex items-center gap-2">
+                <Layers className="h-5 w-5 text-slate-500" />
+                <CardTitle className="text-lg">Affichage</CardTitle>
+              </div>
+              <CardDescription>Préférences d'affichage propres à ce navigateur.</CardDescription>
+            </CardHeader>
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <Label htmlFor="hide-holding-values" className="font-bold text-slate-900 cursor-pointer">
+                    Positions simplifiées (comptes titres)
+                  </Label>
+                  <p className="text-sm text-slate-500">
+                    N'affiche que le titre (logo, nom, ticker) et le nombre de parts : PRU, cours, valeurs, plus-values, dividendes et poids sont masqués.
+                  </p>
+                </div>
+                <Switch
+                  id="hide-holding-values"
+                  checked={hideHoldingValues}
+                  onCheckedChange={setHideHoldingValues}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
           <div className="grid gap-8 grid-cols-1 lg:grid-cols-2">
             <Card className="shadow-sm border-slate-100 overflow-hidden">
               <CardHeader className="bg-slate-50/50 border-b">
