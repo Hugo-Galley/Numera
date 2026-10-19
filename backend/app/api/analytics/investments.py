@@ -45,7 +45,7 @@ from app.models.transaction import Transaction
 from app.models.recurring_transaction import RecurringTransaction
 from app.core.finance import get_recurring_occurrences
 from app.core.holdings import replay_account
-from app.core.portfolio import compute_portfolio, uses_positions
+from app.core.portfolio import compute_portfolio, only_transfer_legs, uses_positions
 from app.core.logging import get_logger
 from app.schemas.transaction import TransactionRead
 
@@ -283,9 +283,12 @@ async def _calculate_investment_flows(db: Session, account: Account, end_date: d
     elif baseline_date:
         rtx_query = rtx_query.filter(Transaction.date > baseline_date)
         
-    # Un compte qui a des opérations d'investissement n'est pas aussi alimenté par ses transactions bancaires
+    # Un compte qui a des opérations d'investissement n'est alimenté par ses transactions bancaires que via
+    # ses virements (un virement vers une assurance-vie crée une Entree, pas un versement)
     has_investment_ops = db.query(InvestmentTransaction.id).filter(InvestmentTransaction.account_id == account.id).first() is not None
-    rtxs = [] if has_investment_ops else rtx_query.all()
+    if has_investment_ops:
+        rtx_query = only_transfer_legs(rtx_query)
+    rtxs = rtx_query.all()
     for tx in rtxs:
         merchant_lower = (tx.merchant or "").lower()
         # On investment accounts, "Solde Initial" OR "Entree" (that are NOT interests/dividends) are versements
@@ -533,6 +536,8 @@ async def investment_performance_history(account_id: int, db: Session = Depends(
     rtx_q = db.query(Transaction).outerjoin(Category, Transaction.category_id == Category.id).filter(Transaction.account_id == account_id)
     if baseline_date:
         rtx_q = rtx_q.filter(Transaction.date >= baseline_date)
+    if txs or db.query(InvestmentTransaction.id).filter(InvestmentTransaction.account_id == account_id).first() is not None:
+        rtx_q = only_transfer_legs(rtx_q)
     for tx in rtx_q.all():
         key = tx.date.date().isoformat()
         if key not in tx_events_by_day:

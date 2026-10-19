@@ -93,3 +93,42 @@ def test_assurance_vie_snapshots_and_analytics(client, db_session):
     perf_response = client.get(f"/analytics/investments/{acc.id}/performance-history")
     assert perf_response.status_code == 200
 
+
+
+def test_assurance_vie_counts_bank_transfers_alongside_versements(client, db_session):
+    """Versements saisis + virements bancaires (Entree) : les deux font le capital investi, partout."""
+    from datetime import datetime
+
+    from app.models.balance_snapshot import BalanceSnapshot
+    from app.models.investment_transaction import InvestmentTransaction
+    from app.models.transaction import Transaction
+
+    acc = Account(name="Linxea", type="assurance_vie", currency="EUR", active=True)
+    db_session.add(acc)
+    db_session.commit()
+    db_session.add_all([
+        InvestmentTransaction(account_id=acc.id, date=datetime(2026, 7, 1), type="versement", amount=500.0, currency="EUR", original_amount=500.0),
+        InvestmentTransaction(account_id=acc.id, date=datetime(2026, 9, 2), type="versement", amount=5437.66, currency="EUR", original_amount=5437.66),
+        *[
+            Transaction(account_id=acc.id, date=d, month_label="m", type="Entree", merchant="Virement depuis Principale",
+                        amount=100.0, running_balance=0.0, currency="EUR", original_amount=100.0, is_transfer=True)
+            for d in (datetime(2026, 8, 30), datetime(2026, 9, 11), datetime(2026, 10, 10))
+        ],
+        # Entree non reconnue comme virement : ignorée dès qu'il y a des versements saisis
+        Transaction(account_id=acc.id, date=datetime(2026, 9, 15), month_label="m", type="Entree", merchant="Divers",
+                    amount=50.0, running_balance=0.0, currency="EUR", original_amount=50.0),
+        BalanceSnapshot(account_id=acc.id, date=datetime(2026, 9, 30), current_value=6231.21),
+        BalanceSnapshot(account_id=acc.id, date=datetime(2026, 10, 16), current_value=6300.0),
+    ])
+    db_session.commit()
+
+    totals = client.get(f"/analytics/investments/{acc.id}").json()["totals"]
+    assert totals["net_invested"] == 6237.66
+    assert totals["gain_eur"] == 62.34
+
+    overview = next(i for i in client.get("/analytics/investments").json()["items"] if i["account_id"] == acc.id)
+    assert overview["net_invested"] == 6237.66
+
+    history = client.get(f"/analytics/investments/{acc.id}/performance-history").json()["items"]
+    assert [p["net_invested"] for p in history] == [6137.66, 6237.66]
+    assert history[-1]["gain_eur"] == totals["gain_eur"]

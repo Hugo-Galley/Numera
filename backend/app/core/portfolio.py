@@ -186,6 +186,11 @@ def classify_regular_flow(tx: Transaction) -> float:
     return 0.0
 
 
+def only_transfer_legs(query):
+    """Restreint une requête de transactions bancaires aux jambes de virement reconnues."""
+    return query.filter(Transaction.is_transfer.is_(True), Transaction.is_transfer_ignored.is_(False))
+
+
 def cash_events(db: Session, account_id: int, after: datetime | None) -> tuple[list[CashEvent], bool]:
     """Variations d'espèces datées après `after`. Renvoie aussi si le compte a des opérations d'investissement."""
     query = db.query(InvestmentTransaction).filter(InvestmentTransaction.account_id == account_id)
@@ -203,23 +208,23 @@ def cash_events(db: Session, account_id: int, after: datetime | None) -> tuple[l
             events.append(CashEvent(tx.date, tx.amount))
         elif tx.type in ("achat", "frais"):
             events.append(CashEvent(tx.date, -tx.amount))
-    if all_txs:
-        return events, True
-
     regular = (
         db.query(Transaction)
         .outerjoin(Category, Transaction.category_id == Category.id)
         .filter(Transaction.account_id == account_id)
-        .order_by(Transaction.date.asc(), Transaction.id.asc())
-        .all()
     )
-    for tx in regular:
+    # Avec des opérations d'investissement, seuls les virements bancaires restent des flux (un virement vers
+    # une assurance-vie crée une Entree, pas un versement)
+    if all_txs:
+        regular = only_transfer_legs(regular)
+    for tx in regular.order_by(Transaction.date.asc(), Transaction.id.asc()).all():
         if after is not None and tx.date <= after:
             continue
         flow = classify_regular_flow(tx)
         if flow:
             events.append(CashEvent(tx.date, flow, flow))
-    return events, False
+    events.sort(key=lambda e: e.date)
+    return events, bool(all_txs)
 
 
 # ── Calcul principal ───────────────────────────────────────────────────────────
