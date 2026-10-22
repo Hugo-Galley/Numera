@@ -8,6 +8,7 @@ from datetime import datetime
 from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 
+from app.core.budget_period import period_bounds
 from app.models.account import Account
 from app.models.category import Category
 from app.models.transaction import Transaction
@@ -18,10 +19,8 @@ CATEGORIZE_LIMIT = 50
 TOP_EXPENSES_LIMIT = 10
 
 
-def month_bounds(year: int, month: int) -> tuple[datetime, datetime]:
-    start = datetime(year, month, 1)
-    end = datetime(year + (1 if month == 12 else 0), 1 if month == 12 else month + 1, 1)
-    return start, end
+def month_bounds(db: Session, year: int, month: int) -> tuple[datetime, datetime]:
+    return period_bounds(db, year, month)
 
 
 def exceptional_expenses(

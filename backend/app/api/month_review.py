@@ -46,7 +46,7 @@ def _accounts_step(db: Session, end: datetime) -> dict:
 
 
 async def _build_review(db: Session, year: int, month: int) -> tuple[dict, dict]:
-    start, end = month_bounds(year, month)
+    start, end = month_bounds(db, year, month)
     prev_year, prev_month = (year - 1, 12) if month == 1 else (year, month - 1)
 
     budget = await budget_analytics(month=month, year=year, account_id=None, db=db)

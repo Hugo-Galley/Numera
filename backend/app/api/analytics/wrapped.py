@@ -29,6 +29,7 @@ from app.schemas.wrapped import (
     WrappedTotals,
 )
 
+from app.core.budget_period import civil_months
 from .budget import budget_analytics
 from .metrics import expenses_by_category, top_merchants
 from .utils import NET_AMOUNT, _get_ticket_restaurant_account_ids
@@ -266,6 +267,12 @@ async def get_wrapped(
     year: int = Query(ge=2000, le=2200),
     db: Session = Depends(get_db),
 ) -> WrappedReport:
+    # Le bilan annuel reste en année civile, même si le dashboard suit le mois de paie.
+    with civil_months():
+        return await _build_wrapped(year, db)
+
+
+async def _build_wrapped(year: int, db: Session) -> WrappedReport:
     today = date.today()
     if year > today.year:
         raise HTTPException(status_code=400, detail="Le bilan d'une année future n'est pas disponible")

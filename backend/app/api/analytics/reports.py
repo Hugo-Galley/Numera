@@ -8,6 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import case, func, or_
 from sqlalchemy.orm import Session
 
+from app.core.budget_period import period_bounds
 from app.core.currency import get_exchange_rates, convert_amount
 from app.db.session import get_db
 from app.models.account import Account
@@ -293,7 +294,7 @@ async def get_monthly_report(
     # 7. Money Flow (Integrated)
     flow_data = await get_money_flow(month=month, year=year, account_id=account_id, db=db)
     
-    start, end = month_bounds(year, month)
+    start, end = month_bounds(db, year, month)
     rates = await get_exchange_rates("EUR")
     excl = without_exceptional(
         current_budget,
@@ -330,8 +331,7 @@ async def get_monthly_report(
 
 
 async def _calculate_money_flow_data(month: int, year: int, db: Session, account_id: int | None = None):
-    start = datetime(year, month, 1)
-    end = datetime(year + (1 if month == 12 else 0), 1 if month == 12 else month + 1, 1)
+    start, end = period_bounds(db, year, month)
     rates = await get_exchange_rates("EUR")
     
     # 1. Income (Filtered to checking accounts by default if account_id is None)
@@ -483,8 +483,7 @@ async def sankey_analytics(
     db: Session = Depends(get_db),
 ):
     # 1. Prepare time and rates
-    start = datetime(year, month, 1)
-    end = datetime(year + (1 if month == 12 else 0), 1 if month == 12 else month + 1, 1)
+    start, end = period_bounds(db, year, month)
     rates = await get_exchange_rates("EUR")
     budget_data = await budget_analytics(month=month, year=year, account_id=account_id, db=db)
     

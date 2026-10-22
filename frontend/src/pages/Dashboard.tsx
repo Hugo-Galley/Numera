@@ -13,11 +13,23 @@ import { SubscriptionsTab } from "@/components/dashboard/tabs/SubscriptionsTab"
 import { HistoryTab } from "@/components/dashboard/tabs/HistoryTab"
 import { AccountVerificationBanner } from "@/components/dashboard/AccountVerificationBanner"
 import { MonthReviewPopup } from "@/components/month-review/MonthReviewPopup"
+import { fetchCurrentBudgetMonth, formatPeriodRange, useBudgetPeriod } from "@/lib/budgetPeriod"
 
 export default function Dashboard() {
   const [month, setMonth] = useState(new Date().getMonth() + 1)
   const [year, setYear] = useState(new Date().getFullYear())
   const [accounts, setAccounts] = useState<any[]>([])
+  const period = useBudgetPeriod(year, month)
+
+  // Mois de paie : le mois affiché au départ est celui du dernier salaire reçu, pas le mois civil.
+  useEffect(() => {
+    fetchCurrentBudgetMonth().then(current => {
+      if (current) {
+        setMonth(current.month)
+        setYear(current.year)
+      }
+    })
+  }, [])
   // Vue globale par défaut, puis le dernier choix de l'utilisateur. (Basculer d'office sur le compte
   // principal rechargeait tout le tableau de bord et empêchait de rester sur « Tous les comptes ».)
   const [selectedAccountId, setSelectedAccountIdState] = useState<string>(() => {
@@ -84,6 +96,7 @@ export default function Dashboard() {
         setMonth={setMonth}
         year={year}
         setYear={setYear}
+        periodRange={formatPeriodRange(period)}
       />
 
       <AccountVerificationBanner 

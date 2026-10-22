@@ -8,6 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import case, func, or_
 from sqlalchemy.orm import Session
 
+from app.core.budget_period import period_bounds
 from app.core.currency import get_exchange_rates, convert_amount
 from app.db.session import get_db
 from app.models.account import Account
@@ -73,8 +74,7 @@ async def get_intelligent_insights(
     db: Session = Depends(get_db),
 ):
     rates = await get_exchange_rates("EUR")
-    start_month = datetime(year, month, 1)
-    end_month = datetime(year + (1 if month == 12 else 0), 1 if month == 12 else month + 1, 1)
+    start_month, end_month = period_bounds(db, year, month)
     
     # 1. Fetch current month data for Score
     budget_data = await budget_analytics(month=month, year=year, account_id=account_id, db=db)

@@ -1,3 +1,4 @@
+import { fetchCurrentBudgetMonth } from "@/lib/budgetPeriod"
 import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
 import { CheckCircle2, ChevronLeft, ChevronRight, ClipboardCheck, Printer } from "lucide-react"
@@ -39,6 +40,13 @@ export default function IntelligentReport() {
     const d = new Date()
     return { month: d.getMonth() + 1, year: d.getFullYear() }
   })
+
+  // Mois de paie : on ouvre le mois du dernier salaire reçu.
+  useEffect(() => {
+    fetchCurrentBudgetMonth().then(current => {
+      if (current) setDate({ month: current.month, year: current.year })
+    })
+  }, [])
 
   useEffect(() => {
     let cancelled = false

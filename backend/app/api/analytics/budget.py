@@ -2,12 +2,14 @@ import calendar
 import traceback
 from datetime import date, datetime, timedelta
 
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Literal, Optional, Tuple
 from pydantic import BaseModel
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import case, func, or_
 from sqlalchemy.orm import Session
 
+from app.core import budget_period
+from app.core.budget_period import period_bounds
 from app.core.currency import get_exchange_rates, convert_amount
 from app.db.session import get_db
 from app.models.account import Account
@@ -81,8 +83,7 @@ async def budget_analytics(
         rates = await get_exchange_rates(base_currency)
         
         if month and year:
-            start = datetime(year, month, 1)
-            end = datetime(year + (1 if month == 12 else 0), 1 if month == 12 else month + 1, 1)
+            start, end = period_bounds(db, year, month)
 
         # Get ticket restaurant accounts to exclude from global views
         tr_accounts = _get_ticket_restaurant_account_ids(db)
@@ -264,10 +265,7 @@ async def budget_analytics(
 
         if month and year:
             now = datetime.now()
-            if now.year == year and now.month == month:
-                days = now.day
-            else:
-                days = calendar.monthrange(year, month)[1]
+            days = max((min(end.date(), now.date() + timedelta(days=1)) - start.date()).days, 1)
         else:
             # For all-time, use days between earliest tx and end
             earliest = db.query(func.min(Transaction.date)).scalar()
@@ -615,8 +613,7 @@ async def budget_alerts(
 
     rates = await get_exchange_rates("EUR")
     tr_accounts = _get_ticket_restaurant_account_ids(db)
-    start_month = datetime(year, month, 1)
-    end_month = datetime(year + (1 if month == 12 else 0), 1 if month == 12 else month + 1, 1)
+    start_month, end_month = period_bounds(db, year, month)
     start_year = datetime(year, 1, 1)
     end_year = datetime(year + 1, 1, 1)
 
@@ -736,3 +733,25 @@ async def budget_alerts(
     return results
 
 
+
+
+class BudgetPeriodModeUpdate(BaseModel):
+    mode: Literal["civil", "salary"]
+
+
+@router.get("/budget-period")
+def get_budget_period(
+    year: int | None = Query(default=None, ge=2000, le=2200),
+    month: int | None = Query(default=None, ge=1, le=12),
+    db: Session = Depends(get_db),
+):
+    """Mois budgétaire en cours et fenêtre (début / fin incluse) du mois demandé."""
+    current_year, current_month = budget_period.current_period(db)
+    info = budget_period.describe(db, year or current_year, month or current_month)
+    return {**info, "current": {"year": current_year, "month": current_month}}
+
+
+@router.put("/budget-period")
+def set_budget_period_mode(payload: BudgetPeriodModeUpdate, db: Session = Depends(get_db)):
+    budget_period.set_mode(db, payload.mode)
+    return get_budget_period(year=None, month=None, db=db)

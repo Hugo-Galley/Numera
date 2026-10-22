@@ -12,6 +12,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { api } from "@/lib/api"
+import { fetchCurrentBudgetMonth } from "@/lib/budgetPeriod"
 import type { MonthClosureSummary, MonthReview } from "@/types/monthReview"
 
 // Confort par appareil : le stockage peut être indisponible, la pop-up fonctionne sans.
@@ -40,17 +41,19 @@ export function MonthReviewPopup() {
 
   useEffect(() => {
     let cancelled = false
-    const now = new Date()
-    const target =
-      now.getMonth() === 0
-        ? { year: now.getFullYear() - 1, month: 12 }
-        : { year: now.getFullYear(), month: now.getMonth() }
-    const suffix = `${target.year}-${target.month}`
-    if (readStorage(`month-review-skip-${suffix}`) === "1") return
-    if (readStorage(`month-review-snooze-${suffix}`) === todayKey()) return
-
     ;(async () => {
       try {
+        // Mois de paie : la revue porte sur le mois budgétaire qui précède celui en cours.
+        const current = (await fetchCurrentBudgetMonth()) ?? {
+          year: new Date().getFullYear(),
+          month: new Date().getMonth() + 1,
+        }
+        const previous = new Date(current.year, current.month - 2, 1)
+        const target = { year: previous.getFullYear(), month: previous.getMonth() + 1 }
+        const suffix = `${target.year}-${target.month}`
+        if (readStorage(`month-review-skip-${suffix}`) === "1") return
+        if (readStorage(`month-review-snooze-${suffix}`) === todayKey()) return
+
         const closures = await api.get<MonthClosureSummary[]>("/month-review/closures")
         if (closures.some((c) => c.year === target.year && c.month === target.month)) return
         const data = await api.get<MonthReview>(`/month-review?year=${target.year}&month=${target.month}`)

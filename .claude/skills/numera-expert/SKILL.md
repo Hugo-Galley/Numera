@@ -54,6 +54,10 @@ Un seul `is_zero_point` par compte investissement (`POST /balance-snapshots/set-
 - Salaire : `salary_configs` (comptes salaire/tickets, net, valeur ticket, part salarié), `telecommuting_days` (jours TT), `salary_months` (`is_generated`). `POST/DELETE /salary/generate/{year}/{month}` crée / supprime la transaction. `core/salary.py` génère **une seule** transaction « Salaire » = `net_salary − nb_jours_TT × ticket_employee_share` (pas de transaction TR : les tickets sont informatifs) ; idempotent.
 - Prix en heures de travail : `core/work_time.py`, `GET/PATCH /salary/work-time` → taux horaire net = `net_salary × 12 ÷ (work_days_per_year × work_hours_per_day)` (réglages `system_settings`, 218 j × 7 h par défaut, `net_salary` avant déduction TR). Le frontend divise un montant EUR par ce taux pour l'affichage (`components/ui/work-hours.tsx`, contexte `WorkTimeProvider`) : dépenses d'`AccountDetail` (nettes des remboursements, hors virements, comptes EUR), abonnements, top marchands.
 
+## Mois de paie
+
+`core/budget_period.py` : un salaire reçu ouvre une période (jusqu'au salaire suivant) nommée d'après le mois qu'elle finance (salaire du 25 août → septembre ; nom = mois de `début + 15 j`). Tout calcul de fenêtre mensuelle doit passer par `period_bounds(db, year, month)` (jamais `datetime(year, month, 1)`), et tout regroupement par mois par `period_key_expr` (jamais `strftime("%Y-%m")`). Réglage `budget_month_mode` (`civil` | `salary`, défaut `salary`), `GET/PUT /analytics/budget-period`. Les dates et soldes ne changent pas. Bilan annuel `/wrapped` : forcé en mois civil (`civil_months()`).
+
 ## Import / export CSV
 
 Colonnes obligatoires : `Date, Mois, Type, Commercant, Categorie, Montant` (aliases d'en-têtes dans `HEADER_ALIASES`). `POST /import/preview` (aucune écriture) puis `POST /import/commit` ; idempotent sur `(account_id, date, amount, merchant, type)` ; `imports_log` ; recalcul final des soldes. Export : `GET /export/transactions.csv` (format Numbers).

@@ -8,6 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import case, func, or_
 from sqlalchemy.orm import Session
 
+from app.core.budget_period import current_period, months_back, period_bounds, period_key_expr
 from app.core.currency import get_exchange_rates, convert_amount
 from app.db.session import get_db
 from app.models.account import Account
@@ -82,8 +83,7 @@ async def tags_analytics(
         rates = await get_exchange_rates(base_currency)
         
         if month and year and not start_date:
-            start = datetime(year, month, 1)
-            end = datetime(year + (1 if month == 12 else 0), 1 if month == 12 else month + 1, 1)
+            start, end = period_bounds(db, year, month)
 
         query = db.query(
             Tag.id,
@@ -140,8 +140,7 @@ async def expenses_by_category(
     account_id: int | None = Query(default=None),
     db: Session = Depends(get_db),
 ):
-    start = datetime(year, month, 1)
-    end = datetime(year + (1 if month == 12 else 0), 1 if month == 12 else month + 1, 1)
+    start, end = period_bounds(db, year, month)
     rates = await get_exchange_rates("EUR")
 
     query = (
@@ -244,8 +243,7 @@ async def top_merchants(
     db: Session = Depends(get_db),
 ):
     from app.models.merchant import Merchant
-    start = datetime(year, month, 1)
-    end = datetime(year + (1 if month == 12 else 0), 1 if month == 12 else month + 1, 1)
+    start, end = period_bounds(db, year, month)
     rates = await get_exchange_rates("EUR")
 
     query = (
@@ -380,12 +378,13 @@ async def kpi_history(
         return []
 
     results = []
-    earliest_allowed_total = now.year * 12 + (now.month - 1) - (months_count - 1)
-    overall_start = datetime(earliest_allowed_total // 12, (earliest_allowed_total % 12) + 1, 1)
-    overall_end = datetime(now.year + (1 if now.month == 12 else 0), 1 if now.month == 12 else now.month + 1, 1)
+    history_months = months_back(db, months_count)
+    current_ym = current_period(db)
+    overall_start = period_bounds(db, *history_months[0])[0]
+    overall_end = period_bounds(db, *history_months[-1])[1]
 
     # 1. Batch query regular transactions grouped by month, currency, and type
-    tx_month_label = func.strftime("%Y-%m", Transaction.date).label("m_label")
+    tx_month_label = period_key_expr(db, Transaction.date, overall_start, overall_end).label("m_label")
     tx_query = db.query(
         tx_month_label,
         Account.currency,
@@ -422,7 +421,7 @@ async def kpi_history(
             dep_map[m_lbl] = dep_map.get(m_lbl, 0.0) + amount_eur
 
     # 2. Batch query investment transactions (dividends and versements)
-    itx_month_label = func.strftime("%Y-%m", InvestmentTransaction.date).label("m_label")
+    itx_month_label = period_key_expr(db, InvestmentTransaction.date, overall_start, overall_end).label("m_label")
     itx_query = db.query(
         itx_month_label,
         Account.currency,
@@ -503,13 +502,8 @@ async def kpi_history(
     # 5. Preload savings events for all savings accounts up to overall_end
     all_savings_events = _savings_events_by_account(db, savings_account_ids, overall_end) if savings_account_ids else {}
 
-    for i in range(months_count - 1, -1, -1):
-        total_months = now.year * 12 + (now.month - 1) - i
-        y = total_months // 12
-        m = (total_months % 12) + 1
-
-        start = datetime(y, m, 1)
-        end = datetime(y + (1 if m == 12 else 0), 1 if m == 12 else m + 1, 1)
+    for y, m in history_months:
+        start, end = period_bounds(db, y, m)
 
         # Only include if month is NOT in the future AND there's data after the earliest tx
         if start > now:
@@ -522,7 +516,7 @@ async def kpi_history(
         inv = inv_map.get(m_key, 0.0)
 
         # If no revenue and no expense, and it's not the current month, skip to keep chart tight
-        if rev == 0 and dep == 0 and not (now.year == y and now.month == m):
+        if rev == 0 and dep == 0 and (y, m) != current_ym:
             continue
 
         # Epargne totale at end of month (calculated from in-memory preloaded events)
@@ -585,8 +579,7 @@ async def timeseries_analytics(
     tr_accounts = _get_ticket_restaurant_account_ids(db)
 
     for month in range(1, 13):
-        start = datetime(year, month, 1)
-        end = datetime(year + (1 if month == 12 else 0), 1 if month == 12 else month + 1, 1)
+        start, end = period_bounds(db, year, month)
 
         # Don't show future months
         if start > now:
@@ -651,11 +644,9 @@ async def timeseries_analytics(
                 expense += sum(row.total / rates.get(row.currency, 1.0) for row in itx_exp_rows)
         
         # Only add month if it has data or is the current month
-        if income > 0 or expense > 0 or (now.year == year and now.month == month):
-            days = calendar.monthrange(year, month)[1]
-            if now.year == year and now.month == month:
-                days = now.day
-                
+        if income > 0 or expense > 0 or start <= now < end:
+            days = max((min(end.date(), now.date() + timedelta(days=1)) - start.date()).days, 1)
+
             monthly.append(
                 {
                     "month": month,
@@ -684,36 +675,35 @@ async def timeseries_analytics(
         # For now, let's keep it as is but it's a known limitation for global charts.
         balance_points = []
 
-    salary_rows_query = (
-        db.query(
-            func.strftime("%m", Transaction.date).label("month"),
-            Account.currency,
-            func.coalesce(func.sum(Transaction.amount), 0.0).label("total"),
+    salary_by_month: dict[int, float] = {}
+    for month in range(1, 13):
+        m_start, m_end = period_bounds(db, year, month)
+        salary_rows_query = (
+            db.query(
+                Account.currency,
+                func.coalesce(func.sum(Transaction.amount), 0.0).label("total"),
+            )
+            .join(Account, Transaction.account_id == Account.id)
+            .join(Category, Transaction.category_id == Category.id)
+            .filter(
+                Transaction.date >= m_start,
+                Transaction.date < m_end,
+                Category.name == "Salaire",
+                Transaction.type == "Entree",
+            )
+            .group_by(Account.currency)
         )
-        .join(Account, Transaction.account_id == Account.id)
-        .join(Category, Transaction.category_id == Category.id)
-        .filter(
-            func.strftime("%Y", Transaction.date) == str(year),
-            Category.name == "Salaire",
-            Transaction.type == "Entree",
-        )
-        .group_by(func.strftime("%m", Transaction.date), Account.currency)
-    )
-    if account_id is not None:
-        salary_rows_query = salary_rows_query.filter(Transaction.account_id == account_id)
+        if account_id is not None:
+            salary_rows_query = salary_rows_query.filter(Transaction.account_id == account_id)
+        total = sum(row.total / rates.get(row.currency, 1.0) for row in salary_rows_query.all())
+        if total:
+            salary_by_month[month] = total
 
-    salary_data = salary_rows_query.all()
-    salary_by_month = {}
-    for row in salary_data:
-        m = int(row.month)
-        val_eur = row.total / rates.get(row.currency, 1.0)
-        salary_by_month[m] = salary_by_month.get(m, 0.0) + val_eur
-    
     salary_series = []
     for month in range(1, 13):
         # Only add to salary series if month has data and is not in future
-        if datetime(year, month, 1) <= now and (salary_by_month.get(month, 0) > 0):
-             salary_series.append({"month": month, "salary": salary_by_month.get(month, 0.0)})
+        if period_bounds(db, year, month)[0] <= now and (salary_by_month.get(month, 0) > 0):
+            salary_series.append({"month": month, "salary": salary_by_month.get(month, 0.0)})
 
     return {
         "year": year,

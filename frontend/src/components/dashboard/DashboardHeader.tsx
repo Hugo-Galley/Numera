@@ -22,6 +22,7 @@ interface DashboardHeaderProps {
   setMonth: (v: number) => void
   year: number
   setYear: (v: number) => void
+  periodRange?: string | null
 }
 
 export function DashboardHeader({
@@ -31,7 +32,8 @@ export function DashboardHeader({
   month,
   setMonth,
   year,
-  setYear
+  setYear,
+  periodRange
 }: DashboardHeaderProps) {
   const navigate = useNavigate()
   const mainAccount = accounts.find(a => a.is_main)
@@ -40,7 +42,10 @@ export function DashboardHeader({
     <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
       <div>
         <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900">Tableau de bord</h1>
-        <p className="text-slate-500 mt-1">Toutes vos analyses financières en un coup d'œil.</p>
+        <p className="text-slate-500 mt-1">
+          Toutes vos analyses financières en un coup d'œil.
+          {periodRange && <span className="ml-2 text-slate-400">Période de paie : {periodRange}</span>}
+        </p>
       </div>
       <div className="flex flex-wrap items-center gap-2 md:gap-3 bg-white p-1.5 md:p-2 rounded-xl border shadow-sm w-fit">
         <Select value={selectedAccountId} onValueChange={setSelectedAccountId}>

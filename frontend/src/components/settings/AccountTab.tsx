@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { toast } from "sonner"
 import { McpAccessCard } from "./McpAccessCard"
+import { BudgetPeriodCard } from "./BudgetPeriodCard"
 import {
   Dialog,
   DialogContent,
@@ -200,6 +201,8 @@ export function AccountTab() {
           </Button>
         </div>
       </form>
+
+      <BudgetPeriodCard />
 
       <McpAccessCard />
 

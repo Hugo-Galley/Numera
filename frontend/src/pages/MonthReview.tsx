@@ -12,6 +12,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { api } from "@/lib/api"
 import { cn } from "@/lib/utils"
+import { fetchCurrentBudgetMonth } from "@/lib/budgetPeriod"
 import type { MonthReview as MonthReviewData } from "@/types/monthReview"
 
 const STEPS = ["Catégoriser", "Soldes", "Budget", "Fait marquant", "Clôturer"] as const
@@ -25,7 +26,16 @@ function previousMonth() {
 
 export default function MonthReview() {
   const [params, setParams] = useSearchParams()
-  const fallback = previousMonth()
+  const [fallback, setFallback] = useState(previousMonth)
+  // Mois de paie : le dernier mois terminé est celui qui précède le mois budgétaire en cours.
+  useEffect(() => {
+    fetchCurrentBudgetMonth().then(current => {
+      if (current) {
+        const d = new Date(current.year, current.month - 2, 1)
+        setFallback({ year: d.getFullYear(), month: d.getMonth() + 1 })
+      }
+    })
+  }, [])
   const year = Number(params.get("year")) || fallback.year
   const month = Number(params.get("month")) || fallback.month
 
