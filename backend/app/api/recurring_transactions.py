@@ -11,9 +11,13 @@ from app.core.recurring import generate_recurring_transactions
 router = APIRouter(prefix="/recurring-transactions", tags=["recurring-transactions"])
 
 
-def _validate_transfer_target(db: Session, account_id: int, type_: str, ticker: str | None, dest_id: int | None) -> None:
+def _validate_transfer_target(
+    db: Session, account_id: int, type_: str, ticker: str | None, dest_id: int | None, credit_day: int | None = None
+) -> None:
     """Une récurrence « virement » est une Sortie d'un compte non titres vers un autre compte."""
     if dest_id is None:
+        if credit_day is not None:
+            raise HTTPException(status_code=422, detail="A credit day requires a transfer destination")
         return
     source = db.query(Account).filter(Account.id == account_id).first()
     dest = db.query(Account).filter(Account.id == dest_id).first()
@@ -54,7 +58,10 @@ async def create_recurring_transaction(
     # Convert list[int] to CSV string for DB storage
     if data.get("excluded_months") is not None:
         data["excluded_months"] = ",".join(str(m) for m in data["excluded_months"])
-    _validate_transfer_target(db, data["account_id"], data["type"], data.get("ticker"), data.get("transfer_to_account_id"))
+    _validate_transfer_target(
+        db, data["account_id"], data["type"], data.get("ticker"),
+        data.get("transfer_to_account_id"), data.get("transfer_credit_day"),
+    )
     recurring_tx = RecurringTransaction(**data)
     db.add(recurring_tx)
     db.commit()
@@ -93,6 +100,7 @@ async def update_recurring_transaction(
         update_data.get("type", recurring_tx.type),
         update_data.get("ticker", recurring_tx.ticker),
         update_data.get("transfer_to_account_id", recurring_tx.transfer_to_account_id),
+        update_data.get("transfer_credit_day", recurring_tx.transfer_credit_day),
     )
     for field, value in update_data.items():
         setattr(recurring_tx, field, value)

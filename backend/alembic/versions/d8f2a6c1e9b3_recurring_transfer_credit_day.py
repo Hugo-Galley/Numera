@@ -18,8 +18,11 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     op.add_column("recurring_transactions", sa.Column("transfer_credit_day", sa.Integer(), nullable=True))
+    op.add_column("transactions", sa.Column("transfer_credit_due", sa.DateTime(), nullable=True))
 
 
 def downgrade() -> None:
+    with op.batch_alter_table("transactions") as batch:
+        batch.drop_column("transfer_credit_due")
     with op.batch_alter_table("recurring_transactions") as batch:
         batch.drop_column("transfer_credit_day")

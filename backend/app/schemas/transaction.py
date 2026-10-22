@@ -81,6 +81,7 @@ class TransactionRead(TransactionBase):
     linked_investment_transaction_id: int | None = None
     link_origin: str | None = None
     transfer_rule_id: int | None = None
+    transfer_credit_due: datetime | None = None
     recurring_logo: str | None = None
     linked_account_id: int | None = None
     reimbursement_offset: float = 0.0

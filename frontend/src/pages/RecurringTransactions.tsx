@@ -120,6 +120,7 @@ type RecurringTransaction = {
   auto_generate: boolean
   note: string | null
   transfer_to_account_id?: number | null
+  transfer_credit_day?: number | null
   asset_class?: string | null
   sector?: string | null
   geographic_zone?: string | null
@@ -182,6 +183,7 @@ export default function RecurringTransactions() {
     is_active: true,
     auto_generate: false,
     transfer_to_account_id: "none",
+    transfer_credit_day: "",
     note: "",
     asset_class: "",
     sector: "",
@@ -272,6 +274,7 @@ export default function RecurringTransactions() {
       is_active: true,
       auto_generate: false,
       transfer_to_account_id: "none",
+      transfer_credit_day: "",
       note: "",
       asset_class: "",
       sector: "",
@@ -304,6 +307,7 @@ export default function RecurringTransactions() {
       is_active: tx.is_active,
       auto_generate: tx.auto_generate,
       transfer_to_account_id: tx.transfer_to_account_id?.toString() || "none",
+      transfer_credit_day: tx.transfer_credit_day?.toString() || "",
       note: tx.note || "",
       asset_class: tx.asset_class || "",
       sector: tx.sector || "",
@@ -324,12 +328,14 @@ export default function RecurringTransactions() {
       return
     }
 
+    const hasTransfer = formData.type === "Sortie" && formData.transfer_to_account_id !== "none"
     const payload = {
       ...formData,
       account_id: parseInt(formData.account_id),
       amount: parseFloat(formData.amount),
       category_id: formData.category_id === "none" ? null : parseInt(formData.category_id),
-      transfer_to_account_id: formData.type === "Sortie" && formData.transfer_to_account_id !== "none" ? parseInt(formData.transfer_to_account_id) : null,
+      transfer_to_account_id: hasTransfer ? parseInt(formData.transfer_to_account_id) : null,
+      transfer_credit_day: hasTransfer && formData.transfer_credit_day ? parseInt(formData.transfer_credit_day) : null,
       day_of_month: parseInt(formData.day_of_month),
       excluded_months: formData.frequency === "monthly" && formData.excluded_months.length > 0 ? formData.excluded_months : null,
       start_date: new Date(formData.start_date).toISOString(),
@@ -416,6 +422,7 @@ export default function RecurringTransactions() {
       is_active: true,
       auto_generate: false,
       transfer_to_account_id: "none",
+      transfer_credit_day: "",
       note: isInvest ? "Validé comme investissement" : "Validé depuis détection automatique",
       asset_class: "",
       sector: "",
@@ -559,7 +566,10 @@ export default function RecurringTransactions() {
                                 )}
                                 <span className="text-slate-600">{accounts.find(a => a.id === tx.account_id)?.name}</span>
                                 {tx.transfer_to_account_id && (
-                                  <span className="font-medium text-indigo-600">→ {accounts.find(a => a.id === tx.transfer_to_account_id)?.name}</span>
+                                  <span className="font-medium text-indigo-600">
+                                    → {accounts.find(a => a.id === tx.transfer_to_account_id)?.name}
+                                    {tx.transfer_credit_day ? ` (arrivée le ${tx.transfer_credit_day})` : ""}
+                                  </span>
                                 )}
                                 <span>•</span>
                                 {tx.quantity != null && tx.quantity > 0 ? (
@@ -1199,6 +1209,25 @@ export default function RecurringTransactions() {
                       ? "Chaque échéance crée la sortie, le dépôt et l'achat des parts (au cours de clôture de la date), déjà liés : renseignez le titre ci-dessous."
                       : "Chaque échéance crée la sortie et l'entrée correspondante, déjà liées : le montant n'est pas compté deux fois."}
                   </p>
+                )}
+                {formData.transfer_to_account_id !== "none" && (
+                  <div className="grid gap-2 pt-1">
+                    <Label htmlFor="transfer_credit_day">Arrivée sur le compte destination (jour du mois)</Label>
+                    <Input
+                      id="transfer_credit_day"
+                      type="number"
+                      min="1"
+                      max="31"
+                      placeholder="Le jour même"
+                      value={formData.transfer_credit_day}
+                      onChange={(e) => setFormData({ ...formData, transfer_credit_day: e.target.value })}
+                    />
+                    <p className="text-xs text-slate-500">
+                      {formData.transfer_credit_day
+                        ? `Débité le ${formData.day_of_month || "…"}, crédité le ${formData.transfer_credit_day} suivant : d'ici là l'argent est en transit, rien n'est crédité.`
+                        : "Vide : crédité le jour du débit. Renseignez un jour si le virement met du temps à arriver."}
+                    </p>
+                  </div>
                 )}
               </div>
             )}

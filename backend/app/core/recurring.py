@@ -1,5 +1,7 @@
+import calendar
 from datetime import date, datetime
 from sqlalchemy.orm import Session
+from app.models.account import Account
 from app.models.recurring_transaction import RecurringTransaction
 from app.models.transaction import Transaction
 from app.models.investment_transaction import InvestmentTransaction
@@ -62,6 +64,86 @@ async def _size_trade(
     return quantity, unit_price, price_currency
 
 
+def transfer_credit_date(debit: datetime, credit_day: int | None) -> datetime:
+    """Date d'arrivée d'un virement récurrent débité le `debit` : le premier `credit_day` du mois
+    (borné à la fin du mois) à partir du jour du débit. Sans jour d'arrivée, le jour du débit."""
+    if not credit_day:
+        return debit
+    year, month = debit.year, debit.month
+    while True:
+        candidate = debit.replace(year=year, month=month, day=min(credit_day, calendar.monthrange(year, month)[1]))
+        if candidate.date() >= debit.date():
+            return candidate
+        year, month = (year + 1, 1) if month == 12 else (year, month + 1)
+
+
+async def _transfer_credit(
+    db: Session, rd: RecurringTransaction, account: Account, dest: Account, amount: float, currency: str, when: datetime
+) -> tuple[float | None, dict | None]:
+    """Montant (devise de `dest`, None si identique) et achat de titres de la jambe créditrice d'un
+    virement récurrent arrivant le `when`. Lève CurrencyConversionError sans taux disponible."""
+    transfer_amount = None
+    if dest.currency != account.currency:
+        transfer_amount = await convert_amount(amount, account.currency, dest.currency, date=when.date(), db=db)
+
+    trade = None
+    if rd.ticker and dest.type == "investissement":
+        leg_amount = transfer_amount if transfer_amount is not None else amount
+        qty, price, price_cur = await _size_trade(db, rd, dest.currency, leg_amount, currency, when)
+        trade = {
+            "ticker": rd.ticker.upper().strip(),
+            "isin": rd.isin.upper().strip() if rd.isin else None,
+            "quantity": qty,
+            "unit_price": price,
+            "price_currency": price_cur,
+            "asset_class": rd.asset_class,
+            "sector": rd.sector,
+            "geographic_zone": rd.geographic_zone,
+            "etf_profile_id": rd.etf_profile_id,
+        }
+    return transfer_amount, trade
+
+
+async def _credit_pending_transfers(
+    db: Session, now: datetime, affected_account_ids: set[int], affected_holding_account_ids: set[int]
+) -> int:
+    """Crédite les virements récurrents à arrivée différée dont la date d'arrivée est passée.
+
+    Une sortie d'une telle règle reste « en transit » (`transfer_credit_due`) jusqu'à son jour d'arrivée.
+    Si elle a été liée entre-temps (contrepartie importée puis rapprochée) ou que sa règle n'a plus de
+    destination, l'échéance est simplement levée : jamais deux crédits pour une sortie.
+    """
+    due = db.query(Transaction).filter(
+        Transaction.transfer_credit_due.isnot(None), Transaction.transfer_credit_due <= now
+    ).order_by(Transaction.transfer_credit_due).all()
+    credited = 0
+    for sortie in due:
+        when = sortie.transfer_credit_due
+        rd = db.get(RecurringTransaction, sortie.recurring_transaction_id) if sortie.recurring_transaction_id else None
+        dest = db.get(Account, rd.transfer_to_account_id) if rd and rd.transfer_to_account_id else None
+        account = db.get(Account, sortie.account_id)
+        already_linked = sortie.is_transfer or sortie.linked_transaction_id or sortie.linked_investment_transaction_id
+        if not dest or not account or already_linked or sortie.is_transfer_ignored:
+            sortie.transfer_credit_due = None
+            db.commit()
+            continue
+        try:
+            transfer_amount, trade = await _transfer_credit(db, rd, account, dest, sortie.amount, rd.currency, when)
+        except CurrencyConversionError as exc:
+            logger.warning(f"Deferring credit of recurring transfer {rd.id} ({when.date()}): {exc}")
+            continue
+        await create_counterpart(
+            db, sortie, dest, date=when, amount=transfer_amount,
+            origin="recurring", recurring_transaction_id=rd.id, trade=trade,
+        )
+        sortie.transfer_credit_due = None
+        db.commit()
+        credited += 1
+        affected_account_ids.add(dest.id)
+        if trade:
+            affected_holding_account_ids.add(dest.id)
+    return credited
+
 async def generate_recurring_transactions(db: Session) -> int:
     """
     Check all active recurring transactions and generate pending real transactions.
@@ -108,7 +190,6 @@ async def generate_recurring_transactions(db: Session) -> int:
 
         occurrences = get_recurring_occurrences(rd, start_search, now)
 
-        from app.models.account import Account
         account = db.query(Account).filter(Account.id == rd.account_id).first()
         if not account:
             logger.warning(f"Account {rd.account_id} not found for recurring tx {rd.id}. Disabling rule to prevent infinite retries.")
@@ -182,33 +263,15 @@ async def generate_recurring_transactions(db: Session) -> int:
             else:
                 # Virement vers un autre compte : on convertit avant de créer quoi que ce soit
                 transfer_dest = None
-                transfer_amount = None
+                credit = None
                 if rd.transfer_to_account_id:
                     transfer_dest = db.query(Account).filter(Account.id == rd.transfer_to_account_id).first()
-                    if transfer_dest and transfer_dest.currency != account.currency:
-                        try:
-                            transfer_amount = await convert_amount(
-                                converted_amount, account.currency, transfer_dest.currency, date=occ.date(), db=db
-                            )
-                        except CurrencyConversionError as exc:
-                            logger.warning(f"Skipping recurring transfer {rd.id} at {occ.date()}: {exc}")
-                            break
-
-                trade = None
-                if transfer_dest and rd.ticker and transfer_dest.type == "investissement":
-                    leg_amount = transfer_amount if transfer_amount is not None else converted_amount
-                    qty, price, price_cur = await _size_trade(db, rd, transfer_dest.currency, leg_amount, currency, occ)
-                    trade = {
-                        "ticker": rd.ticker.upper().strip(),
-                        "isin": rd.isin.upper().strip() if rd.isin else None,
-                        "quantity": qty,
-                        "unit_price": price,
-                        "price_currency": price_cur,
-                        "asset_class": rd.asset_class,
-                        "sector": rd.sector,
-                        "geographic_zone": rd.geographic_zone,
-                        "etf_profile_id": rd.etf_profile_id,
-                    }
+                if transfer_dest and not rd.transfer_credit_day:
+                    try:
+                        credit = await _transfer_credit(db, rd, account, transfer_dest, converted_amount, currency, occ)
+                    except CurrencyConversionError as exc:
+                        logger.warning(f"Skipping recurring transfer {rd.id} at {occ.date()}: {exc}")
+                        break
 
                 new_tx = Transaction(
                     account_id=rd.account_id,
@@ -224,9 +287,14 @@ async def generate_recurring_transactions(db: Session) -> int:
                     note=note,
                     is_recurring=True,
                     recurring_transaction_id=rd.id,
+                    transfer_credit_due=(
+                        transfer_credit_date(occ, rd.transfer_credit_day) if transfer_dest and rd.transfer_credit_day else None
+                    ),
                 )
                 db.add(new_tx)
-                if transfer_dest:
+                # Crédit différé : la contrepartie est créée par _credit_pending_transfers au jour d'arrivée
+                if credit is not None:
+                    transfer_amount, trade = credit
                     db.flush()
                     await create_counterpart(
                         db, new_tx, transfer_dest, date=occ, amount=transfer_amount,
@@ -242,6 +310,8 @@ async def generate_recurring_transactions(db: Session) -> int:
             rd.last_generated_date = occ
 
         db.commit()
+
+    generated_count += await _credit_pending_transfers(db, now, affected_account_ids, affected_holding_account_ids)
 
     for acc_id in affected_holding_account_ids:
         await rebuild_holdings(db, acc_id)

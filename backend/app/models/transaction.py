@@ -35,6 +35,8 @@ class Transaction(Base):
     # Origine du lien de virement (manual | rule | recurring) et règle à l'origine
     link_origin: Mapped[str | None] = mapped_column(String(16), nullable=True)
     transfer_rule_id: Mapped[int | None] = mapped_column(ForeignKey("transfer_rules.id", ondelete="SET NULL"), nullable=True, index=True)
+    # Virement récurrent à arrivée différée : date à laquelle créditer la destination (None une fois crédité)
+    transfer_credit_due: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     merchant_id: Mapped[int | None] = mapped_column(ForeignKey("merchants.id", ondelete="SET NULL"), nullable=True, index=True)
     # Total remboursé (Sortie) ou affecté à des créances (Entree) ; maintenu par core/reimbursements.py
     reimbursement_offset: Mapped[float] = mapped_column(Float, default=0.0, server_default="0", nullable=False)
