@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from "react"
+import { startPrivacyScanner } from "@/lib/privacyScanner"
 
 interface UIContextType {
   isPrivacyMode: boolean
@@ -29,11 +30,13 @@ export function UIProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     localStorage.setItem("privacy-mode", String(isPrivacyMode))
-    if (isPrivacyMode) {
-      document.body.classList.add("privacy-enabled")
-    } else {
+    if (!isPrivacyMode) {
       document.body.classList.remove("privacy-enabled")
+      return
     }
+    document.body.classList.add("privacy-enabled")
+    // Détection automatique de tous les montants (en plus de `amount-blur`)
+    return startPrivacyScanner()
   }, [isPrivacyMode])
 
   useEffect(() => {

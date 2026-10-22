@@ -60,15 +60,24 @@
 }
 
 /* Privacy Mode Styles */
-body.privacy-enabled .amount-blur {
-  filter: blur(12px) !important;
-  transition: filter 0.2s ease-in-out;
-  user-select: none;
+/* `.privacy-masked` est posé automatiquement par lib/privacyScanner.ts ; `.amount-blur` reste un marquage explicite. Aucun dévoilement au survol. */
+body.privacy-enabled .amount-blur,
+body.privacy-enabled .privacy-masked {
+  filter: blur(9px) !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  pointer-events: none;
 }
 
-body.privacy-enabled .amount-blur:hover {
-  filter: blur(0) !important;
-  user-select: auto;
+/* Champs de saisie : le texte est flouté, le champ reste utilisable */
+body.privacy-enabled input.privacy-masked,
+body.privacy-enabled textarea.privacy-masked {
+  pointer-events: auto;
+  filter: blur(6px) !important;
+}
+body.privacy-enabled input.privacy-masked:focus,
+body.privacy-enabled textarea.privacy-masked:focus {
+  filter: none !important;
 }
 
 /* Bilan annuel : entrée de chaque carte de la story */
