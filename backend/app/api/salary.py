@@ -345,6 +345,11 @@ def trigger_generation(
     if month_record.is_generated:
         raise HTTPException(status_code=400, detail="Already generated for this month")
 
+    # Saisie à l'avance : rien n'est créé avant la date de paie, la tâche de fond
+    # (check_and_generate_pending_salaries) enregistre la transaction ce jour-là.
+    if month_record.salary_date > date.today():
+        return {"status": "scheduled", "salary_date": month_record.salary_date.isoformat()}
+
     # Actually generate the transaction (fix Bug 4)
     success = generate_salary_transactions(db, config, month_record, month_label)
     if not success:

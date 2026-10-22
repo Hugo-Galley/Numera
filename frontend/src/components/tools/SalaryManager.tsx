@@ -226,9 +226,13 @@ export function SalaryManager() {
     try {
       const year = currentDate.getFullYear()
       const month = currentDate.getMonth() + 1
-      await api.post(`/salary/generate/${year}/${month}`)
-      toast.success("Transactions générées avec succès !")
-      setIsGenerated(true)
+      const res = await api.post<{ status: string }>(`/salary/generate/${year}/${month}`)
+      if (res?.status === "scheduled") {
+        toast.success(`Salaire programmé : la transaction sera créée le ${format(new Date(salaryDate), "dd/MM/yyyy")}`)
+      } else {
+        toast.success("Transactions générées avec succès !")
+        setIsGenerated(true)
+      }
     } catch (error: any) {
       toast.error(error.message || "Erreur de génération")
     } finally {
