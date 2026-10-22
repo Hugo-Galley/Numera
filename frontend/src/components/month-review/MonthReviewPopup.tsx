@@ -109,7 +109,7 @@ export function MonthReviewPopup() {
             >
               Plus tard
             </Button>
-            <Button onClick={() => navigate(`/month-review?year=${review.year}&month=${review.month}`)}>
+            <Button onClick={() => navigate(`/month/revue?year=${review.year}&month=${review.month}`)}>
               Faire la revue
             </Button>
           </div>

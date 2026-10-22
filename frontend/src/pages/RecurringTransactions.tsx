@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { lazy, Suspense, useEffect, useState } from "react"
 import { useSearchParams } from "react-router-dom"
 import {
   Plus,
@@ -17,7 +17,9 @@ import {
   Filter,
   CalendarIcon,
   ChevronDown,
-  Sparkles
+  Sparkles,
+  CalendarDays,
+  Wallet,
 } from "lucide-react"
 
 const MONTHS = [
@@ -35,6 +37,7 @@ const MONTHS = [
   { value: 12, label: "Déc" },
 ]
 import { api } from "@/lib/api"
+import { PageLoader } from "@/components/layout/PageLoader"
 import { CompanyLogo } from "@/components/ui/CompanyLogo"
 import { SecuritySearchInput } from "@/components/investments/SecuritySearchInput"
 import { Button } from "@/components/ui/button"
@@ -129,6 +132,8 @@ type RecurringTransaction = {
   category?: Category
 }
 
+const FinancialCalendar = lazy(() => import("@/pages/Calendar"))
+
 export default function RecurringTransactions() {
   const confirm = useConfirm()
   const [recurringTxs, setRecurringTxs] = useState<RecurringTransaction[]>([])
@@ -141,11 +146,19 @@ export default function RecurringTransactions() {
     geographic_zones: string[]
   }>({ asset_classes: [], sectors: [], geographic_zones: [] })
   const [loading, setLoading] = useState(true)
-  const [searchParams] = useSearchParams()
-  const [activeTab, setActiveTab] = useState(() => {
-    const tab = searchParams.get("tab")
-    return tab === "subscriptions" || tab === "salary" ? tab : "recurring"
-  })
+  // L'onglet actif vit dans l'URL (?tab=) : les raccourcis (Omnibox, ancienne adresse /calendar)
+  // changent d'onglet même quand la page est déjà ouverte
+  const [searchParams, setSearchParams] = useSearchParams()
+  const requestedTab = searchParams.get("tab")
+  const activeTab = requestedTab === "subscriptions" || requestedTab === "salary" || requestedTab === "calendar"
+    ? requestedTab
+    : "recurring"
+  const setActiveTab = (tab: string) => {
+    setSearchParams((params) => {
+      params.set("tab", tab)
+      return params
+    }, { replace: true })
+  }
   const [subTab, setSubTab] = useState<"subscriptions" | "investments">("subscriptions")
   
   // Dialogs
@@ -451,8 +464,8 @@ export default function RecurringTransactions() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Récurrences & Abonnements</h1>
-          <p className="text-slate-500">Anticipez vos charges fixes et gérez vos flux automatiques.</p>
+          <h1 className="text-3xl font-bold tracking-tight">Échéances</h1>
+          <p className="text-slate-500">Récurrences, abonnements, calendrier des flux et salaire.</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={handleTrigger} className="gap-2">
@@ -476,8 +489,12 @@ export default function RecurringTransactions() {
             <CreditCard className="h-4 w-4" />
             Analyse Abonnements
           </TabsTrigger>
+          <TabsTrigger value="calendar" className="rounded-lg gap-2">
+            <CalendarDays className="h-4 w-4" />
+            Calendrier
+          </TabsTrigger>
           <TabsTrigger value="salary" className="rounded-lg gap-2">
-            <CreditCard className="h-4 w-4" />
+            <Wallet className="h-4 w-4" />
             Salaire & Avantages
           </TabsTrigger>
         </TabsList>
@@ -854,6 +871,13 @@ export default function RecurringTransactions() {
            </div>
         </TabsContent>
         
+        <TabsContent value="calendar" className="space-y-6">
+          {/* Ex-page /calendar : chargée seulement quand l'onglet est ouvert */}
+          <Suspense fallback={<PageLoader />}>
+            <FinancialCalendar embedded />
+          </Suspense>
+        </TabsContent>
+
         <TabsContent value="salary" className="space-y-6">
           <SalaryManager />
         </TabsContent>

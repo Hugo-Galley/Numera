@@ -93,18 +93,16 @@ docker-compose.prod.yml, Makefile, setup.sh, install.sh
 Routes dans `frontend/src/App.tsx`:
 
 - `/login`: authentification.
-- `/`: dashboard (organisé avec des onglets : Overview, History, Budgets, Insights, Investments, Merchants, Projections, Subscriptions).
+- `/`: dashboard, 5 onglets : Aperçu (`OverviewTab`), Budgets, Dépenses (`MerchantsTab` + `SubscriptionsTab`), Analyse (`InsightsTab` + `HistoryTab`), Projections. Vue « Tous les comptes » par défaut, dernier compte choisi mémorisé (`localStorage`).
 - `/accounts`: liste des comptes (incluant la bannière de validation périodique).
 - `/accounts/:id`: détail compte courant/épargne/investissement.
 - `/savings`: objectifs d'épargne.
 - `/tax`: Fiscalité (plafonds PEA/PER/Livret A/Livret Jeune, blocage 5 ans du PEE, dates clés PEA/AV, récap annuel CTO 2DC/3VG/3VH).
 - `/investments`: vue globale investissements.
-- `/comparison`: comparaison mensuelle.
-- `/calendar`: calendrier financier.
-- `/recurring`: abonnements et charges fixes.
-- `/report`: rapport mensuel intelligent (page `MonthlyReport.tsx`) avec export PDF et onglets d'analyse des flux.
+- `/month` (`MonthHub.tsx`, sous-routes) : `/month/bilan` (rapport mensuel, `MonthlyReport.tsx`), `/month/revue` (revue de fin de mois, `MonthReview.tsx`, `?year=&month=`), `/month/comparaison` (`Comparison.tsx`). Anciennes adresses `/report`, `/month-review`, `/comparison` redirigées avec leurs paramètres (`RedirectKeepingSearch`).
+- `/recurring` « Échéances » : onglets `?tab=` recurring | subscriptions | calendar (`Calendar.tsx` en mode `embedded`) | salary (`SalaryManager`, salaire et télétravail). `/calendar` redirige vers `?tab=calendar`.
 - `/audit`: Centre d'Actions (audit d'integrite, alertes budget, suggestions de regles) — voir `docs/ACTION_CENTER.md`.
-- `/tools`: gestion du salaire et calendrier de télétravail (TT).
+- `/tools` « Simulateur » : simulateur de patrimoine (`WealthSimulator`).
 - `/settings`: configuration, import CSV, gestion des virements, règles d'auto-catégorisation, tags, gestion des marchands canoniques et actions admin.
 
 Principes:

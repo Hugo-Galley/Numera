@@ -75,7 +75,7 @@ export default function IntelligentReport() {
     })
 
   const hasExceptional = (data?.exceptional_expenses ?? 0) > 0
-  const reviewLink = `/month-review?year=${date.year}&month=${date.month}`
+  const reviewLink = `/month/revue?year=${date.year}&month=${date.month}`
 
   return (
     <div className="mx-auto max-w-4xl space-y-8 pb-12">

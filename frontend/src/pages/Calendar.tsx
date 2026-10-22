@@ -63,7 +63,9 @@ interface Account {
   type: string
 }
 
-export default function Calendar() {
+/** `embedded` : affiché dans l'onglet Calendrier de la page Échéances (titre et raccourci vers les
+ * récurrences inutiles, ils sont déjà sur la page). */
+export default function Calendar({ embedded = false }: { embedded?: boolean }) {
   const { isPrivacyMode } = useUI()
   const [date, setDate] = useState(new Date())
   const [data, setData] = useState<CalendarData | null>(null)
@@ -208,10 +210,12 @@ export default function Calendar() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Calendrier Financier</h1>
-          <p className="text-slate-500">Visualisez vos flux réels et prévus sur le mois.</p>
-        </div>
+        {!embedded && (
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">Calendrier Financier</h1>
+            <p className="text-slate-500">Visualisez vos flux réels et prévus sur le mois.</p>
+          </div>
+        )}
         
         <div className="flex items-center gap-2">
           <Select value={selectedAccountId} onValueChange={setSelectedAccountId}>
@@ -373,7 +377,7 @@ export default function Calendar() {
           </CardContent>
         </Card>
 
-        <Card className="border-slate-200 flex flex-col justify-center items-center p-6 text-center">
+        {!embedded && <Card className="border-slate-200 flex flex-col justify-center items-center p-6 text-center">
           <div className="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mb-4">
             <Plus className="h-6 w-6 text-slate-600" />
           </div>
@@ -384,7 +388,7 @@ export default function Calendar() {
           <Button variant="outline" size="sm" className="w-full" asChild>
             <Link to="/recurring">Accéder aux récurrences</Link>
           </Button>
-        </Card>
+        </Card>}
       </div>
 
       <Dialog open={isDayDetailOpen} onOpenChange={setIsDayDetailOpen}>

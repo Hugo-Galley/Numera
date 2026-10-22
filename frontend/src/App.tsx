@@ -6,6 +6,7 @@ import { AuthProvider } from "@/providers/AuthProvider"
 import { ConfirmProvider } from "@/providers/ConfirmProvider"
 import { ProtectedRoute } from "@/components/layout/ProtectedRoute"
 import { PageLoader } from "@/components/layout/PageLoader"
+import { RedirectKeepingSearch } from "@/components/layout/RedirectKeepingSearch"
 
 // Une page = un fichier JS chargé à la demande (le bundle unique pesait 1,7 Mo)
 const Dashboard = lazy(() => import("@/pages/Dashboard"))
@@ -16,7 +17,6 @@ const Settings = lazy(() => import("@/pages/Settings"))
 const Savings = lazy(() => import("@/pages/Savings"))
 const Comparison = lazy(() => import("@/pages/Comparison"))
 const IntelligentReport = lazy(() => import("@/pages/MonthlyReport"))
-const Calendar = lazy(() => import("@/pages/Calendar"))
 const RecurringTransactions = lazy(() => import("@/pages/RecurringTransactions"))
 const Reimbursements = lazy(() => import("@/pages/Reimbursements"))
 const MonthReview = lazy(() => import("@/pages/MonthReview"))
@@ -25,6 +25,7 @@ const Login = lazy(() => import("@/pages/Login"))
 const Audit = lazy(() => import("@/pages/Audit"))
 const Tools = lazy(() => import("@/pages/Tools"))
 const Tax = lazy(() => import("@/pages/Tax"))
+const MonthHub = lazy(() => import("@/pages/MonthHub"))
 
 export function App() {
   return (
@@ -47,12 +48,19 @@ export function App() {
               <Route path="/accounts/:id" element={<AccountDetail />} />
               <Route path="/savings" element={<Savings />} />
               <Route path="/investments" element={<Investments />} />
-              <Route path="/comparison" element={<Comparison />} />
-              <Route path="/report" element={<IntelligentReport />} />
-              <Route path="/calendar" element={<Calendar />} />
+              <Route path="/month" element={<MonthHub />}>
+                <Route index element={<Navigate to="bilan" replace />} />
+                <Route path="bilan" element={<IntelligentReport />} />
+                <Route path="revue" element={<MonthReview />} />
+                <Route path="comparaison" element={<Comparison />} />
+              </Route>
               <Route path="/recurring" element={<RecurringTransactions />} />
               <Route path="/reimbursements" element={<Reimbursements />} />
-              <Route path="/month-review" element={<MonthReview />} />
+              {/* Anciennes adresses (favoris, liens internes) */}
+              <Route path="/report" element={<RedirectKeepingSearch to="/month/bilan" />} />
+              <Route path="/month-review" element={<RedirectKeepingSearch to="/month/revue" />} />
+              <Route path="/comparison" element={<RedirectKeepingSearch to="/month/comparaison" />} />
+              <Route path="/calendar" element={<RedirectKeepingSearch to="/recurring?tab=calendar" />} />
               <Route path="/wrapped" element={<Wrapped />} />
               <Route path="/audit" element={<Audit />} />
               <Route path="/tools" element={<Tools />} />

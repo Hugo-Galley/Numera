@@ -1,32 +1,27 @@
-import { useState } from "react"
-import { NavLink } from "react-router-dom"
-import { 
-  LayoutDashboard, 
-  Wallet, 
-  TrendingUp, 
-  Upload, 
+import { useEffect, useRef, useState } from "react"
+import { NavLink, useLocation } from "react-router-dom"
+import {
+  LayoutDashboard,
+  Wallet,
+  TrendingUp,
   Settings,
   CreditCard,
   PiggyBank,
-  Eye, 
+  Eye,
   EyeOff,
-  ArrowLeftRight,
   LogOut,
   Search,
-  CalendarDays,
   Repeat,
   HandCoins,
-  Sparkles,
   ShieldCheck,
   Calculator,
   Landmark,
   User,
-  ChevronDown,
-  ChevronRight,
   ClipboardCheck,
   Gift,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { api } from "@/lib/api"
 import { useUI } from "@/providers/UIProvider"
 import { useAuth } from "@/providers/AuthProvider"
 import { Button } from "@/components/ui/button"
@@ -39,14 +34,16 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
+// 11 entrées en 3 groupes toujours ouverts : Bilan, Revue et Comparaison sont des onglets de « Mois »,
+// le calendrier et le salaire des onglets d'« Échéances ».
 const navigationGroups = [
   {
     title: "Vue d'ensemble",
     items: [
       { name: "Tableau de bord", href: "/", icon: LayoutDashboard },
-      { name: "Bilan Mensuel", href: "/report", icon: Sparkles },
-      { name: "Revue de mois", href: "/month-review", icon: ClipboardCheck },
+      { name: "Mois", href: "/month", icon: ClipboardCheck },
       { name: "Bilan annuel", href: "/wrapped", icon: Gift },
+      { name: "Centre d'actions", href: "/audit", icon: ShieldCheck, badge: "actions" as const },
     ]
   },
   {
@@ -59,31 +56,37 @@ const navigationGroups = [
     ]
   },
   {
-    title: "Analyse & Outils",
+    title: "Gestion",
     items: [
-      { name: "Calendrier", href: "/calendar", icon: CalendarDays },
-      { name: "Récurrences", href: "/recurring", icon: Repeat },
+      { name: "Échéances", href: "/recurring", icon: Repeat },
       { name: "Remboursements", href: "/reimbursements", icon: HandCoins },
-      { name: "Centre d'actions", href: "/audit", icon: ShieldCheck },
-      { name: "Outils de simulation", href: "/tools", icon: Calculator },
-      { name: "Comparaison", href: "/comparison", icon: ArrowLeftRight },
+      { name: "Simulateur", href: "/tools", icon: Calculator },
     ]
   }
 ]
+
+/** Nombre d'actions urgentes du Centre d'actions, relu au plus une fois par minute en naviguant. */
+function useUrgentActionCount(): number {
+  const { pathname } = useLocation()
+  const [count, setCount] = useState(0)
+  const lastFetch = useRef(0)
+
+  useEffect(() => {
+    if (Date.now() - lastFetch.current < 60_000) return
+    lastFetch.current = Date.now()
+    api.get<{ summary: { high_priority: number } }>("/analytics/actions")
+      .then((data) => setCount(data.summary.high_priority))
+      .catch(() => {})
+  }, [pathname])
+
+  return count
+}
 
 export function Sidebar({ className, onItemClick }: { className?: string, onItemClick?: () => void }) {
   const { isPrivacyMode, togglePrivacyMode, setSearchOpen } = useUI()
   const { logout, username, profile } = useAuth()
   
-  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
-    "Vue d'ensemble": true,
-    "Patrimoine": true,
-    "Analyse & Outils": false,
-  })
-
-  const toggleGroup = (title: string) => {
-    setOpenGroups(prev => ({ ...prev, [title]: !prev[title] }))
-  }
+  const urgentActions = useUrgentActionCount()
 
   const initials = username ? username.slice(0, 2).toUpperCase() : "?"
   const profilePicture = profile?.profile_picture_url
@@ -98,22 +101,10 @@ export function Sidebar({ className, onItemClick }: { className?: string, onItem
         <nav className="space-y-4 px-3">
           {navigationGroups.map((group, i) => (
             <div key={i} className="space-y-1">
-              <button
-                onClick={() => toggleGroup(group.title)}
-                className="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold text-slate-500 uppercase tracking-wider hover:bg-slate-50 rounded-md transition-colors"
-              >
-                <span>{group.title}</span>
-                {openGroups[group.title] ? (
-                  <ChevronDown className="h-4 w-4" />
-                ) : (
-                  <ChevronRight className="h-4 w-4" />
-                )}
-              </button>
-              
-              <div className={cn(
-                "space-y-1 overflow-hidden transition-all duration-200 ease-in-out",
-                openGroups[group.title] ? "max-h-96 opacity-100 pt-1" : "max-h-0 opacity-0"
-              )}>
+              <p className="px-3 pt-2 pb-1 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                {group.title}
+              </p>
+              <div className="space-y-1">
                 {group.items.map((item) => (
                   <NavLink
                     key={item.name}
@@ -136,6 +127,14 @@ export function Sidebar({ className, onItemClick }: { className?: string, onItem
                       aria-hidden="true"
                     />
                     {item.name}
+                    {"badge" in item && urgentActions > 0 && (
+                      <span
+                        className="ml-auto rounded-full bg-rose-600 px-2 py-0.5 text-[10px] font-bold text-white"
+                        aria-label={`${urgentActions} actions urgentes`}
+                      >
+                        {urgentActions}
+                      </span>
+                    )}
                   </NavLink>
                 ))}
               </div>

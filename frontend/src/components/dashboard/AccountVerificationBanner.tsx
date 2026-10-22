@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { AlertCircle, CheckCircle2, ArrowRight } from "lucide-react"
+import { AlertCircle, CheckCircle2, ArrowRight, ChevronDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { api } from "@/lib/api"
 import { useNavigate } from "react-router-dom"
@@ -21,6 +21,8 @@ export function AccountVerificationBanner({
 }) {
   const navigate = useNavigate()
   const [verifying, setVerifying] = useState<number | null>(null)
+  // Replié par défaut : la liste dépliée occupait la moitié du tableau de bord
+  const [open, setOpen] = useState(false)
 
   const now = new Date()
   const daysDiff = (dateStr: string) => {
@@ -48,14 +50,23 @@ export function AccountVerificationBanner({
   }
 
   return (
-    <div className="bg-amber-50 border border-amber-200 text-amber-900 mb-8 rounded-lg p-4">
-      <div className="flex items-center gap-2 mb-2">
-        <AlertCircle className="h-5 w-5 text-amber-600" />
-        <h3 className="text-lg font-semibold text-amber-800">
-          Mise à jour requise ({unverifiedAccounts.length} compte{unverifiedAccounts.length > 1 ? 's' : ''})
-        </h3>
-      </div>
-      <div className="mt-2 space-y-4 text-sm">
+    <div className="bg-amber-50 border border-amber-200 text-amber-900 mb-8 rounded-lg">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm"
+      >
+        <AlertCircle className="h-4 w-4 shrink-0 text-amber-600" />
+        <span className="whitespace-nowrap font-semibold text-amber-800">
+          {unverifiedAccounts.length} compte{unverifiedAccounts.length > 1 ? "s" : ""} à mettre à jour
+        </span>
+        <span className="hidden min-w-0 truncate text-amber-700 sm:inline">
+          · {unverifiedAccounts.map((a) => a.name).join(", ")}
+        </span>
+        <ChevronDown className={`ml-auto h-4 w-4 shrink-0 text-amber-700 transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
+      {open && <div className="space-y-4 px-4 pb-4 text-sm">
         <p>Cela fait plus de 15 jours que vous n'avez pas mis à jour ces comptes. Veuillez vérifier s'il y a de nouvelles transactions ou valider leur solde.</p>
         
         <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
@@ -105,7 +116,7 @@ export function AccountVerificationBanner({
             </div>
           ))}
         </div>
-      </div>
+      </div>}
     </div>
   )
 }

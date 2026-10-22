@@ -1,5 +1,4 @@
 import { useState, useCallback, useEffect } from "react"
-import { useNavigate } from "react-router-dom"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { api } from "@/lib/api"
 import { useDashboardData } from "@/components/dashboard/useDashboardData"
@@ -11,13 +10,11 @@ import { ProjectionsTab } from "@/components/dashboard/tabs/ProjectionsTab"
 import { BudgetsTab } from "@/components/dashboard/tabs/BudgetsTab"
 import { MerchantsTab } from "@/components/dashboard/tabs/MerchantsTab"
 import { SubscriptionsTab } from "@/components/dashboard/tabs/SubscriptionsTab"
-import { InvestmentsTab } from "@/components/dashboard/tabs/InvestmentsTab"
 import { HistoryTab } from "@/components/dashboard/tabs/HistoryTab"
 import { AccountVerificationBanner } from "@/components/dashboard/AccountVerificationBanner"
 import { MonthReviewPopup } from "@/components/month-review/MonthReviewPopup"
 
 export default function Dashboard() {
-  const navigate = useNavigate()
   const [month, setMonth] = useState(new Date().getMonth() + 1)
   const [year, setYear] = useState(new Date().getFullYear())
   const [accounts, setAccounts] = useState<any[]>([])
@@ -64,8 +61,6 @@ export default function Dashboard() {
     topMerchants,
     subscriptions,
     salarySeries,
-    investments,
-    allocation,
     patrimoineAllocation,
     burnRateSeries,
     budgetAlerts,
@@ -74,19 +69,6 @@ export default function Dashboard() {
     projection,
     tagTotals
   } = useDashboardData(selectedAccountId, month, year)
-
-  const onAllocationClick = useCallback((_: any, index: number) => {
-    const item = allocation?.items?.[index]
-    if (item && item.account_id) {
-      navigate(`/accounts/${item.account_id}`)
-    }
-  }, [allocation, navigate])
-
-  const onInvestmentBarClick = useCallback((data: any) => {
-    if (data && data.account_id) {
-      navigate(`/accounts/${data.account_id}`)
-    }
-  }, [navigate])
 
   const selectedAccount = accounts.find(a => String(a.id) === selectedAccountId)
   const displayCurrency = selectedAccount?.currency || "EUR"
@@ -116,16 +98,14 @@ export default function Dashboard() {
         kpiHistory={kpiHistory}
       />
 
+      {/* 5 onglets (au lieu de 8) : l'onglet Investissements doublonnait la page du même nom */}
       <Tabs defaultValue="overview" className="space-y-8">
         <div className="overflow-x-auto pb-2 [ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <TabsList className="bg-slate-50/50 border border-slate-100 p-1 rounded-xl inline-flex w-max">
-            <TabsTrigger value="overview" className="rounded-lg whitespace-nowrap">Aperçu Général</TabsTrigger>
-            <TabsTrigger value="insights" className="rounded-lg whitespace-nowrap">Insights</TabsTrigger>
-            <TabsTrigger value="merchants" className="rounded-lg whitespace-nowrap">Top Commerçants</TabsTrigger>
+            <TabsTrigger value="overview" className="rounded-lg whitespace-nowrap">Aperçu</TabsTrigger>
             <TabsTrigger value="budgets" className="rounded-lg whitespace-nowrap">Budgets</TabsTrigger>
-            <TabsTrigger value="subscriptions" className="rounded-lg whitespace-nowrap">Abonnements</TabsTrigger>
-            <TabsTrigger value="investments" className="rounded-lg whitespace-nowrap">Investissements</TabsTrigger>
-            <TabsTrigger value="history" className="rounded-lg whitespace-nowrap">Évolutions</TabsTrigger>
+            <TabsTrigger value="spending" className="rounded-lg whitespace-nowrap">Dépenses</TabsTrigger>
+            <TabsTrigger value="analysis" className="rounded-lg whitespace-nowrap">Analyse</TabsTrigger>
             <TabsTrigger value="projections" className="rounded-lg whitespace-nowrap">Projections</TabsTrigger>
           </TabsList>
         </div>
@@ -140,43 +120,27 @@ export default function Dashboard() {
           />
         </TabsContent>
 
-        <TabsContent value="insights">
-          <InsightsTab insights={insights} />
-        </TabsContent>
-
-        <TabsContent value="projections">
-          <ProjectionsTab projection={projection} displayCurrency={displayCurrency} />
-        </TabsContent>
-
         <TabsContent value="budgets">
           <BudgetsTab budgetAlerts={budgetAlerts} />
         </TabsContent>
 
-        <TabsContent value="merchants">
+        <TabsContent value="spending" className="space-y-8">
           <MerchantsTab topMerchants={topMerchants} displayCurrency={displayCurrency} />
-        </TabsContent>
-
-        <TabsContent value="subscriptions">
           <SubscriptionsTab subscriptions={subscriptions} displayCurrency={displayCurrency} />
         </TabsContent>
 
-        <TabsContent value="investments">
-          <InvestmentsTab 
-            investments={investments}
-            allocation={allocation}
-            displayCurrency={displayCurrency}
-            onInvestmentBarClick={onInvestmentBarClick}
-            onAllocationClick={onAllocationClick}
-          />
-        </TabsContent>
-
-        <TabsContent value="history">
+        <TabsContent value="analysis" className="space-y-8">
+          <InsightsTab insights={insights} />
           <HistoryTab 
             kpiHistory={kpiHistory}
             burnRateSeries={burnRateSeries}
             salarySeries={salarySeries}
             displayCurrency={displayCurrency}
           />
+        </TabsContent>
+
+        <TabsContent value="projections">
+          <ProjectionsTab projection={projection} displayCurrency={displayCurrency} />
         </TabsContent>
       </Tabs>
     </div>

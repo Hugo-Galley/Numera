@@ -8,8 +8,6 @@ export function useDashboardData(selectedAccountId: string, month: number, year:
   const [topMerchants, setTopMerchants] = useState<any[]>([])
   const [subscriptions, setSubscriptions] = useState<any>(null)
   const [salarySeries, setSalarySeries] = useState<any[]>([])
-  const [investments, setInvestments] = useState<any>(null)
-  const [allocation, setAllocation] = useState<any>(null)
   const [patrimoineAllocation, setPatrimoineAllocation] = useState<any>(null)
   const [burnRateSeries, setBurnRateSeries] = useState<any[]>([])
   const [budgetAlerts, setBudgetAlerts] = useState<any[]>([])
@@ -44,8 +42,6 @@ export function useDashboardData(selectedAccountId: string, month: number, year:
         setSalarySeries(d?.salary_series || [])
         setBurnRateSeries(d?.monthly_flows || [])
       })
-      safeLoad(`/analytics/investments?month=${month}&year=${year}${accParam}`, setInvestments)
-      safeLoad(`/analytics/investments-allocation${accId ? `?account_id=${accId}` : ""}`, setAllocation)
       safeLoad("/analytics/patrimoine-allocation", setPatrimoineAllocation)
       safeLoad(`/analytics/budget-alerts?month=${month}&year=${year}${accParam}`, setBudgetAlerts)
       safeLoad(`/analytics/insights?month=${month}&year=${year}${accParam}`, setInsights)
@@ -63,8 +59,6 @@ export function useDashboardData(selectedAccountId: string, month: number, year:
     topMerchants,
     subscriptions,
     salarySeries,
-    investments,
-    allocation,
     patrimoineAllocation,
     burnRateSeries,
     budgetAlerts,
