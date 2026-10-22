@@ -293,3 +293,25 @@ def test_exchange_rate_drift_does_not_flag_modification(client, db_session, monk
     for module in (budget_mod, router_mod):
         monkeypatch.setattr(module, "get_exchange_rates", fixed_rates(1.12))
     assert client.get("/month-review", params=PARAMS).json()["modified_since_close"] is False
+
+
+def test_savings_amount_matches_savings_rate_when_money_is_invested(client, db_session):
+    """Septembre affichait 1 618 € d'épargne pour un taux de 77 % : l'investi était retiré du montant, pas du taux."""
+    acc = _courant(db_session)
+    courses = Category(name="Courses", type="depense")
+    invest = Category(name="Investissement", type="depense")
+    db_session.add_all([courses, invest])
+    db_session.commit()
+    _tx(db_session, acc, "Entree", 2000.0, datetime(2025, 10, 1), "SALAIRE")
+    _tx(db_session, acc, "Sortie", 300.0, datetime(2025, 10, 8), "MARCHE", courses)
+    _tx(db_session, acc, "Sortie", 500.0, datetime(2025, 10, 29), "Alimentation PEA", invest)
+
+    report = client.get("/analytics/monthly-report", params={"month": 10, "year": 2025}).json()
+    assert report["expenses"] == 800.0
+    assert report["real_expenses"] == 300.0
+    assert report["savings"] == 1700.0
+    assert report["savings_rate"] == pytest.approx(report["savings"] / report["income"] * 100)
+
+    budget = client.get("/month-review", params={"month": 10, "year": 2025}).json()["budget"]
+    assert budget["savings"] == 1700.0
+    assert budget["savings_rate"] == pytest.approx(budget["savings"] / budget["income"] * 100)

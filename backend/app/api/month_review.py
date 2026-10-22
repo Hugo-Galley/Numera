@@ -13,6 +13,7 @@ from app.core.month_review import (
     exceptional_expenses,
     month_bounds,
     month_fingerprint,
+    savings_basis,
     top_expenses,
     tx_count,
     without_exceptional,
@@ -82,7 +83,7 @@ async def _build_review(db: Session, year: int, month: int) -> tuple[dict, dict]
         "budget": {
             "income": current["income"],
             "real_expenses": current["expenses"],
-            "savings": budget["revenus_apres_depenses"],
+            "savings": round(savings_basis(budget), 2),
             "savings_rate": budget["taux_epargne"],
             "burn_rate": budget["burn_rate"],
             **without_exceptional(budget, exceptional_expenses(db, start, end, rates)),

@@ -43,9 +43,9 @@ class MonthlyReport(BaseModel):
     month: int
     year: int
     income: float
-    expenses: float
-    real_expenses: float
-    savings: float
+    expenses: float = Field(description="Sorties totales, sorties vers épargne/investissement non liées comprises")
+    real_expenses: float = Field(description="Dépenses de consommation (hors épargne, investissement et virements)")
+    savings: float = Field(description="Revenus − dépenses réelles : numérateur du taux d'épargne")
     savings_rate: float
     burn_rate: float
     net_worth: float

@@ -25,7 +25,9 @@ export function SavingsSection({ data }: { data: MonthlyReportData }) {
           <Figure
             label="Taux d'épargne"
             value={`${data.savings_rate.toFixed(1)} %`}
-            hint={hasExceptional ? `${data.savings_rate_excl_exceptional.toFixed(1)} % hors exceptionnel` : undefined}
+            hint={hasExceptional
+              ? `${data.savings_rate_excl_exceptional.toFixed(1)} % hors exceptionnel`
+              : "part des revenus non dépensée"}
           />
           <Figure
             label="Variation du patrimoine"

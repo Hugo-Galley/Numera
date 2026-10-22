@@ -64,8 +64,16 @@ import { toast } from "sonner"
 
 const GOAL_COLORS = ["#3b82f6", "#10b981", "#8b5cf6", "#f59e0b", "#f43f5e", "#06b6d4", "#ec4899", "#64748b"]
 
+interface Resilience {
+  months: number | null
+  liquid_savings: number
+  avg_monthly_real_expenses: number
+  months_used: number
+}
+
 export default function Savings() {
   const [analytics, setAnalytics] = useState<any>(null)
+  const [resilience, setResilience] = useState<Resilience | null>(null)
   const [history, setHistory] = useState<any[]>([])
   const [goals, setGoals] = useState<any[]>([])
   const [accounts, setAccounts] = useState<any[]>([])
@@ -96,14 +104,19 @@ export default function Savings() {
         ? `month=${month}&year=${year}`
         : ""
       
-      const [budget, kpiHistory, goalsData, accs, cats] = await Promise.all([
+      const now = new Date()
+      const [budget, kpiHistory, goalsData, accs, cats, resilienceData] = await Promise.all([
         api.get<any>(`/analytics/budget?${queryParams}`),
         api.get<any[]>("/analytics/kpi-history?months_count=12"),
         api.get<any[]>("/goals"),
         api.get<any[]>("/accounts"),
-        api.get<any[]>("/categories")
+        api.get<any[]>("/categories"),
+        api.get<Resilience>(period === "monthly"
+          ? `/analytics/resilience?month=${month}&year=${year}`
+          : `/analytics/resilience?month=${now.getMonth() + 1}&year=${now.getFullYear()}`),
       ])
       setAnalytics(budget)
+      setResilience(resilienceData)
       setHistory(kpiHistory)
       setGoals(goalsData)
       setAccounts(accs)
@@ -184,6 +197,7 @@ export default function Savings() {
   }
 
   const savingsRate = analytics?.taux_epargne || 0
+  const hasIncome = (analytics?.revenus_totaux ?? 0) >= 1
   
   const getRateColor = (rate: number) => {
     if (rate >= 30) return "text-emerald-600"
@@ -197,10 +211,6 @@ export default function Savings() {
     "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"
   ]
 
-  // Resilience: how many months could you live with current net worth?
-  const resilienceMonths = analytics?.burn_rate > 0 
-    ? (analytics.patrimoine_net_total / (analytics.burn_rate * 30.5)).toFixed(1)
-    : "∞"
 
   return (
     <div className="space-y-12 pb-10">
@@ -306,9 +316,11 @@ export default function Savings() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <CardTitle className={`text-2xl sm:text-3xl font-bold ${getRateColor(savingsRate)}`}>
-                    {savingsRate}%
+                  <CardTitle className={`text-2xl sm:text-3xl font-bold ${hasIncome ? getRateColor(savingsRate) : "text-slate-400"}`}>
+                    {/* Le backend borne le taux à ±100 % : afficher « −100 % » ferait croire à une valeur exacte */}
+                    {!hasIncome ? "—" : savingsRate <= -100 ? "≤ −100 %" : `${savingsRate} %`}
                   </CardTitle>
+                  {!hasIncome && <p className="text-xs text-slate-500 mt-1">Aucun revenu sur la période</p>}
                   <div className="mt-2 flex items-center gap-2">
                     <div className="flex-1 bg-slate-100 h-1.5 rounded-full overflow-hidden">
                       <div 
@@ -330,9 +342,13 @@ export default function Savings() {
                 </CardHeader>
                 <CardContent>
                   <CardTitle className="text-2xl sm:text-3xl font-bold text-slate-900">
-                    {resilienceMonths} mois
+                    {resilience?.months != null ? `${resilience.months} mois` : "—"}
                   </CardTitle>
-                  <p className="text-xs text-slate-500 mt-2">Autonomie financière sans revenus</p>
+                  <p className="text-xs text-slate-500 mt-2">
+                    {resilience?.months != null
+                      ? `Épargne liquide ÷ dépenses moyennes des ${resilience.months_used} derniers mois complets`
+                      : "Pas encore de mois complet avec des dépenses"}
+                  </p>
                 </CardContent>
               </Card>
             </div>
@@ -452,10 +468,7 @@ export default function Savings() {
                 <CardContent className="h-[300px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart 
-                      data={history.map(h => ({ 
-                        label: h.label, 
-                        rate: h.revenus > 0 ? Number((h.epargne_flow / h.revenus * 100).toFixed(1)) : 0 
-                      }))} 
+                      data={history.map(h => ({ label: h.label, rate: h.taux_epargne }))}
                       margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
                     >
                       <defs>
@@ -466,7 +479,7 @@ export default function Savings() {
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                       <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} dy={10} />
-                      <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} tickFormatter={(v) => `${v}%`} />
+                      <YAxis domain={[-100, 100]} axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} tickFormatter={(v) => `${v}%`} />
                       <Tooltip formatter={(v: number) => [`${v}%`, "Taux"]} contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} />
                       <Area type="monotone" dataKey="rate" stroke="#3b82f6" fillOpacity={1} fill="url(#colorRate)" strokeWidth={3} dot={{ r: 4, fill: "#3b82f6", strokeWidth: 2, stroke: "#fff" }} activeDot={{ r: 6 }} />
                     </AreaChart>
@@ -720,24 +733,6 @@ export default function Savings() {
               )}
             </div>
           </section>
-
-          {/* SECTION 4 : CONSEIL STRATÉGIQUE */}
-          <div className="mt-8 flex items-start gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-100">
-            <div className="h-8 w-8 rounded-full bg-slate-200 flex items-center justify-center flex-shrink-0 mt-0.5">
-              <Info className="h-4 w-4 text-slate-500" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-slate-900">Le point stratégique</p>
-              <p className="text-sm text-slate-500 mt-1">
-                Avec <span className="font-semibold text-slate-700">{resilienceMonths} mois</span> d'autonomie financière, 
-                {Number(resilienceMonths) >= 12 
-                  ? " votre résilience est exceptionnelle. Vous pouvez allouer plus de capital vers des actifs risqués et plus rémunérateurs." 
-                  : Number(resilienceMonths) >= 6
-                  ? " votre situation est très solide. C'est le moment idéal pour automatiser vos investissements à long-terme."
-                  : " concentrez vos efforts sur la construction de votre épargne de précaution (idéalement jusqu'à 6 mois de dépenses)."}
-              </p>
-            </div>
-          </div>
 
         </div>
       )}

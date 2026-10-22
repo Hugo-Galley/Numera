@@ -22,7 +22,7 @@ __version__ = "3.0.0"
 import json
 import os
 import logging
-from datetime import datetime
+from datetime import date, datetime
 from urllib.parse import urlencode
 from typing import Any
 
@@ -634,6 +634,26 @@ def get_monthly_report(month: int | None = None, year: int | None = None) -> str
             return error
         data = resp.json()
         return f"📊 Rapport mensuel :\n\n{serialize(data)}"
+    except Exception as e:
+        return f"❌ Erreur : {e}"
+
+
+@mcp.tool()
+def get_resilience(month: int | None = None, year: int | None = None) -> str:
+    """Mois d'autonomie : épargne liquide ÷ dépenses réelles moyennes des 6 derniers mois complets.
+
+    Args:
+        month: Mois de référence (1-12, défaut : mois en cours)
+        year: Année de référence (défaut : année en cours)
+    """
+    try:
+        today = date.today()
+        params = {"month": month or today.month, "year": year or today.year}
+        resp = api.get("/analytics/resilience", params=params)
+        error = handle_response(resp)
+        if error:
+            return error
+        return f"🛟 Résilience :\n\n{serialize(resp.json())}"
     except Exception as e:
         return f"❌ Erreur : {e}"
 

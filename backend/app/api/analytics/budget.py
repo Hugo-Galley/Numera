@@ -45,6 +45,9 @@ from app.models.transaction import Transaction
 from app.models.recurring_transaction import RecurringTransaction
 from app.core.finance import get_recurring_occurrences
 from app.core.logging import get_logger
+from app.core.portfolio import positions_values_eur
+
+INVESTMENT_ACCOUNT_TYPES = ("investissement", "assurance_vie")
 from app.schemas.transaction import TransactionRead
 
 
@@ -298,17 +301,25 @@ async def budget_analytics(
         )
 
         # Patrimoine / Solde Actuel logic
-        # 1. Investments
+        # 1. Investments (comptes titres et assurances-vie)
+        # Période en cours : un compte valorisé par ses positions prend la même valeur que la page
+        # Investissements ; un mois passé garde le dernier relevé à sa date.
+        is_current_period = end.date() >= date.today()
         if account_id:
             # For a single investment account, use raw value from snapshots
             inv_acc = db.query(Account).filter(Account.id == account_id).first()
-            if inv_acc and inv_acc.type == "investissement":
+            positions_values = (
+                await positions_values_eur(db, [inv_acc]) if inv_acc and is_current_period else {}
+            )
+            if inv_acc and inv_acc.type in INVESTMENT_ACCOUNT_TYPES:
                 latest_snap = db.query(BalanceSnapshot).filter(
                     BalanceSnapshot.account_id == account_id,
                     BalanceSnapshot.date <= end
                 ).order_by(BalanceSnapshot.date.desc(), BalanceSnapshot.id.desc()).first()
-                
-                if latest_snap:
+
+                if account_id in positions_values:
+                    investment_value = positions_values[account_id] * rates.get(inv_acc.currency, 1.0)
+                elif latest_snap:
                     investment_value = float(latest_snap.current_value)
                 else:
                     # Fallback to Transaction table
@@ -321,7 +332,8 @@ async def budget_analytics(
                 investment_value = 0.0
         else:
             # Global view: sum snapshots for all investment accounts
-            investment_accounts = db.query(Account).filter(Account.type == "investissement", Account.active == True).all()
+            investment_accounts = db.query(Account).filter(Account.type.in_(INVESTMENT_ACCOUNT_TYPES), Account.active == True).all()
+            positions_values = await positions_values_eur(db, investment_accounts) if is_current_period else {}
             investment_value = 0.0
             
             # Get latest values from snapshots
@@ -333,6 +345,9 @@ async def budget_analytics(
             latest_values = {row.account_id: float(row.current_value or 0.0) for row in latest_values_rows}
             
             for acc in investment_accounts:
+                if acc.id in positions_values:
+                    investment_value += positions_values[acc.id]
+                    continue
                 val = 0.0
                 if acc.id in latest_values:
                     val = latest_values[acc.id]
@@ -425,7 +440,7 @@ async def budget_analytics(
             solde_actuel = checking_bal + savings_total + investment_value
         else:
             acc_obj = db.query(Account).filter(Account.id == account_id).first()
-            if acc_obj.type == "investissement":
+            if acc_obj.type in INVESTMENT_ACCOUNT_TYPES:
                 solde_actuel = investment_value
             elif acc_obj.type == "epargne":
                 solde_actuel = savings_total
@@ -542,6 +557,46 @@ async def budget_analytics(
         print(f"ERROR in budget_analytics: {e}")
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
+
+
+RESILIENCE_WINDOW_MONTHS = 6
+
+
+async def compute_resilience(db: Session, year: int, month: int, window: int = RESILIENCE_WINDOW_MONTHS) -> dict:
+    """Mois d'autonomie = épargne liquide ÷ dépenses réelles mensuelles moyennes.
+
+    La moyenne porte sur les `window` derniers mois **complets** ayant des dépenses : le mois en
+    cours (incomplet, parfois sans salaire) faussait l'indice quand il servait de référence.
+    """
+    today = date.today()
+    index = year * 12 + (month - 1)
+    if index >= today.year * 12 + (today.month - 1):
+        index = today.year * 12 + (today.month - 1) - 1  # dernier mois complet
+
+    expenses: list[float] = []
+    for offset in range(window):
+        y, m = divmod(index - offset, 12)
+        real = (await budget_analytics(month=m + 1, year=y, account_id=None, db=db))["depenses_reelles"]
+        if real > 0:
+            expenses.append(real)
+
+    liquid = (await budget_analytics(month=month, year=year, account_id=None, db=db))["epargne_total"]
+    average = sum(expenses) / len(expenses) if expenses else 0.0
+    return {
+        "months": round(liquid / average, 1) if average > 0 else None,
+        "liquid_savings": round(liquid, 2),
+        "avg_monthly_real_expenses": round(average, 2),
+        "months_used": len(expenses),
+    }
+
+
+@router.get("/resilience")
+async def resilience(
+    month: int = Query(ge=1, le=12),
+    year: int = Query(ge=2000, le=2200),
+    db: Session = Depends(get_db),
+):
+    return await compute_resilience(db, year, month)
 
 
 @router.get("/budget-alerts", response_model=list[BudgetAlert])

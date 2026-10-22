@@ -629,3 +629,16 @@ async def compute_portfolio(db: Session, account: Account, *, fetch: bool = True
         "warnings": warnings,
         "_xirr_flows_eur": [(d, eur(a)) for d, a in xirr_flows],
     }
+
+
+async def positions_values_eur(db: Session, accounts: list[Account]) -> dict[int, float]:
+    """Valeur actuelle en EUR (positions × cours + espèces) des comptes valorisés par leurs positions.
+
+    Source unique pour toute vue qui affiche la valeur courante d'un compte titres (patrimoine,
+    budget, investissements) : les autres comptes restent valorisés par relevé ou solde.
+    """
+    values: dict[int, float] = {}
+    for account in accounts:
+        if uses_positions(account, await replay_account(db, account.id)):
+            values[account.id] = (await compute_portfolio(db, account, history=False))["value_eur"]
+    return values

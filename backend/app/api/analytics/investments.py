@@ -45,7 +45,7 @@ from app.models.transaction import Transaction
 from app.models.recurring_transaction import RecurringTransaction
 from app.core.finance import get_recurring_occurrences
 from app.core.holdings import replay_account
-from app.core.portfolio import compute_portfolio, only_transfer_legs, uses_positions
+from app.core.portfolio import compute_portfolio, only_transfer_legs, positions_values_eur, uses_positions
 from app.core.logging import get_logger
 from app.schemas.transaction import TransactionRead
 
@@ -911,16 +911,21 @@ async def patrimoine_allocation(db: Session = Depends(get_db)):
     )
     current_by_tx = {row.account_id: float(row.running_balance or 0.0) for row in latest_tx_rows}
 
+    # Comptes titres : même valeur que la page Investissements (positions × cours), pas le dernier relevé
+    positions_values = await positions_values_eur(db, accounts)
+
     total_patrimoine_eur = 0.0
     items = []
-    
+
     for acc in accounts:
         val = 0.0
-        if acc.id in current_by_snapshot:
+        if acc.id in positions_values:
+            val = positions_values[acc.id] * rates.get(acc.currency, 1.0)
+        elif acc.id in current_by_snapshot:
             val = current_by_snapshot[acc.id]
         elif acc.id in current_by_tx:
             val = current_by_tx[acc.id]
-            
+
         val_eur = val / rates.get(acc.currency, 1.0)
         total_patrimoine_eur += val_eur
         

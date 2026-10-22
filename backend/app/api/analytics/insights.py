@@ -46,7 +46,7 @@ from app.models.recurring_transaction import RecurringTransaction
 from app.core.finance import get_recurring_occurrences
 from app.core.logging import get_logger
 from app.schemas.transaction import TransactionRead
-from .budget import budget_analytics, budget_alerts
+from .budget import budget_analytics, budget_alerts, compute_resilience
 from .subscriptions import get_subscription_total_for_period
 from .metrics import expenses_by_category
 
@@ -102,7 +102,11 @@ async def get_intelligent_insights(
 
     # B. Runway / Safety Fund (30 pts)
     # Target: 6 months of burn rate
-    runway_months = (epargne_total / burn_rate / 30.5) if (burn_rate > 0 and epargne_total > 0) else 0.0
+    if account_id:
+        runway_months = (epargne_total / burn_rate / 30.5) if (burn_rate > 0 and epargne_total > 0) else 0.0
+    else:
+        # Vue globale : même indice que la page Épargne (moyenne des derniers mois complets)
+        runway_months = (await compute_resilience(db, year, month))["months"] or 0.0
     runway_score = min(runway_months / 6.0 * 30.0, 30.0)
     metrics.append(MetricDetail(
         name="Fonds de Sécurité",

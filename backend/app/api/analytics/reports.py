@@ -45,7 +45,7 @@ from app.models.transaction import Transaction
 from app.models.recurring_transaction import RecurringTransaction
 from app.core.finance import get_recurring_occurrences
 from app.core.logging import get_logger
-from app.core.month_review import exceptional_expenses, month_bounds, without_exceptional
+from app.core.month_review import exceptional_expenses, month_bounds, savings_basis, without_exceptional
 from app.schemas.transaction import TransactionRead
 from .budget import budget_analytics, budget_alerts
 from .insights import get_intelligent_insights
@@ -283,7 +283,9 @@ async def get_monthly_report(
     # 6. Comparison logic
     inc_diff, inc_pct = calc_diff(current_budget["revenus_totaux"], prev_budget["revenus_totaux"])
     exp_diff, exp_pct = calc_diff(current_budget["depenses_reelles"], prev_budget["depenses_reelles"])
-    sav_diff, sav_pct = calc_diff(current_budget["revenus_apres_depenses"], prev_budget["revenus_apres_depenses"])
+    account_scope = account_id is not None
+    current_savings = savings_basis(current_budget, account_scope)
+    sav_diff, sav_pct = calc_diff(current_savings, savings_basis(prev_budget, account_scope))
     
     # Net worth change
     nw_change = current_budget["patrimoine_net_total"] - prev_budget["patrimoine_net_total"]
@@ -305,7 +307,7 @@ async def get_monthly_report(
         income=current_budget["revenus_totaux"],
         expenses=current_budget["depenses_totales"],
         real_expenses=current_budget["depenses_reelles"],
-        savings=current_budget["revenus_apres_depenses"],
+        savings=round(current_savings, 2),
         savings_rate=current_budget["taux_epargne"],
         burn_rate=current_budget["burn_rate"],
         net_worth=current_budget["patrimoine_net_total"],

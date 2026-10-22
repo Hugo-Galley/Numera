@@ -392,7 +392,9 @@ async def kpi_history(
         Transaction.type,
         func.coalesce(func.sum(NET_AMOUNT), 0.0).label("total")
     ).select_from(Transaction).join(Account, Transaction.account_id == Account.id).filter(
-        Transaction.date >= overall_start, Transaction.date < overall_end
+        Transaction.date >= overall_start, Transaction.date < overall_end,
+        # Mêmes règles que budget_analytics : un virement interne n'est ni un revenu ni une dépense
+        Transaction.is_transfer == False,
     )
     if not account_id:
         tx_query = tx_query.filter(Account.type.in_(["courant", "epargne"]))
@@ -432,6 +434,13 @@ async def kpi_history(
     )
     if account_id:
         itx_query = itx_query.filter(InvestmentTransaction.account_id == account_id)
+    else:
+        # Vue globale : seul un versement alimenté par un virement interne est de l'argent investi
+        # pris sur les revenus (cf. budget_versement_ids) ; les autres ne passent pas par le budget.
+        itx_query = itx_query.filter(or_(
+            InvestmentTransaction.type != "versement",
+            InvestmentTransaction.id.in_(budget_versement_ids(db)),
+        ))
     itx_rows = itx_query.group_by(itx_month_label, Account.currency, InvestmentTransaction.type).all()
 
     for row in itx_rows:
@@ -451,7 +460,8 @@ async def kpi_history(
     ).select_from(Transaction).join(Account, Transaction.account_id == Account.id).join(Category, Transaction.category_id == Category.id).filter(
         Transaction.date >= overall_start, Transaction.date < overall_end,
         Transaction.type == "Sortie",
-        Category.name.in_(["Investissement", "Epargne"])
+        Category.name.in_(["Investissement", "Epargne"]),
+        Transaction.is_transfer == False,
     )
     if not account_id:
         if tr_accounts:
@@ -534,7 +544,9 @@ async def kpi_history(
             "investissements": round(float(inv), 2),
             "epargne": round(float(epargne_total), 2),
             "epargne_flow": round(float(rev - real_dep), 2),
-            "cash_flow": round(float(rev - dep), 2)
+            "cash_flow": round(float(rev - dep), 2),
+            # Même formule et mêmes bornes que budget_analytics ; None sans revenu (taux sans objet)
+            "taux_epargne": round(max(min((rev - real_dep) / rev * 100.0, 100.0), -100.0), 2) if rev > 0 else None,
         })
         
     return results

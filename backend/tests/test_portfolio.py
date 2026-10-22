@@ -338,6 +338,29 @@ def test_allocation_items_carry_their_own_performance(client, db_session):
     assert item["performance_pct"] > 0
 
 
+def test_net_worth_is_the_same_on_every_page(client, db_session):
+    """Tableau de bord, Épargne et Investissements donnaient trois patrimoines différents :
+    relevé périmé au lieu de positions × cours, et assurance-vie oubliée par le budget."""
+    cto_id = _setup(client, db_session)  # 10 parts à 120 € = 1 200 €
+    db_session.add(BalanceSnapshot(account_id=cto_id, date=datetime.now() - timedelta(days=10), current_value=900.0))
+    av_id = client.post("/accounts", json={
+        "name": "AV", "type": "assurance_vie", "currency": "EUR", "fonds_euros_pct": 100.0, "fonds_investis_pct": 0.0,
+    }).json()["id"]
+    db_session.add(BalanceSnapshot(account_id=av_id, date=datetime.now() - timedelta(days=5), current_value=3000.0))
+    db_session.commit()
+
+    allocation = client.get("/analytics/patrimoine-allocation").json()
+    budget = client.get("/analytics/budget").json()
+    investments = client.get("/analytics/investments-allocation").json()
+
+    cto_on_dashboard = next(i for i in allocation["items"] if i["account_id"] == cto_id)
+    cto_on_investments = next(i for i in investments["items"] if i["account_id"] == cto_id)
+    assert cto_on_dashboard["balance_eur"] == pytest.approx(cto_on_investments["current_value"])
+    assert cto_on_dashboard["balance_eur"] == pytest.approx(1200.0)
+    assert allocation["total_patrimoine"] == pytest.approx(4200.0)
+    assert budget["patrimoine_net_total"] == pytest.approx(allocation["total_patrimoine"])
+
+
 def test_gain_is_measured_since_inception_not_since_the_positions_baseline(client, db_session):
     """Point Zéro des positions posé après coup : les versements et relevés antérieurs restent comptés."""
     account_id = client.post("/accounts", json={"name": "CTO", "type": "investissement", "currency": "EUR", "color": None}).json()["id"]

@@ -74,7 +74,7 @@ docker-compose.prod.yml, Makefile, setup.sh, install.sh
 - `balance_snapshots.py`: snapshots de valeur et définition de point zéro.
 - `imports.py`: preview/commit CSV Numbers.
 - `exports.py`: export CSV compatible Numbers.
-- `analytics/` (package, prefixe `/analytics`): `metrics` (tags, depenses par categorie, top marchands, kpi-history, timeseries, calendar), `budget` (budget, budget-alerts), `investments` (investissements, performance, allocations, patrimoine, simulation), `reports` (cashflow-projection, monthly-report, money-flow, sankey), `subscriptions`, `insights`, `audit` (audit + Centre d'Actions `/actions`), `diversity` (scanner de diversification), `dividends` (dividendes en EUR : totaux, par mois / année / titre, rendements), `portfolio` (valeur calculée, plus-values, XIRR/TWR, rapprochement), `utils`.
+- `analytics/` (package, prefixe `/analytics`): `metrics` (tags, depenses par categorie, top marchands, kpi-history, timeseries, calendar), `budget` (budget, budget-alerts, resilience), `investments` (investissements, performance, allocations, patrimoine, simulation), `reports` (cashflow-projection, monthly-report, money-flow, sankey), `subscriptions`, `insights`, `audit` (audit + Centre d'Actions `/actions`), `diversity` (scanner de diversification), `dividends` (dividendes en EUR : totaux, par mois / année / titre, rendements), `portfolio` (valeur calculée, plus-values, XIRR/TWR, rapprochement), `utils`.
 - `holdings.py`: positions titres (`portfolio_holdings`, lecture seule hors métadonnées), inventaire Point Zéro (`POST /holdings/baseline` avec `date` optionnelle ; `POST`/`PUT`/`DELETE /holdings` éditent une ligne d'inventaire), suggestions depuis les notes. Chaque position porte `price_date` / `price_stale`.
 - `market.py`: recherche, validation et cotation de titres (Yahoo Finance).
 - `etf_profiles.py`: profils ETF (pays/secteurs/top holdings). Composition récupérée sur Yahoo Finance (`quoteSummary`, module `topHoldings` : secteurs + top 10, jamais les pays) : `POST /etf-profiles/auto-decompose` (création), `POST /etf-profiles/{id}/refresh` (502 si Yahoo injoignable), `POST /etf-profiles/refresh-held` (tous les profils détenus). La tâche de fond actualise les profils détenus au plus une fois par semaine.
@@ -229,7 +229,8 @@ Un point zéro sert de base de performance pour un compte.
 - `GET /analytics/investments/{account_id}/performance-history`
 - `GET /analytics/subscriptions`
 - `GET /analytics/wrapped?year=` (bilan annuel, `api/analytics/wrapped.py` : agrège mois par mois `budget`, `expenses-by-category` (hors Investissement/Epargne) et `top-merchants` ; année en cours arrêtée au mois courant, `previous` = N-1 sur la même période ; abonnements = récurrences `Sortie` hors virement et hors épargne/investissement, nouveaux = 1re échéance dans l'année, arrêtés = récurrence close dont la dernière échéance tombe dans l'année ; heures de travail au taux horaire actuel)
-- `GET /analytics/kpi-history`
+- `GET /analytics/kpi-history` (mêmes règles que `budget` : virements internes exclus, seuls les versements liés à un virement comptent comme investis ; `taux_epargne` borné à ±100, `null` sans revenu)
+- `GET /analytics/resilience?month=&year=` (mois d'autonomie = épargne liquide ÷ dépenses réelles moyennes des 6 derniers mois complets ; aussi utilisé par le « fonds de sécurité » du score de santé)
 - `GET /analytics/account-flow-summary` (flux net du mois, variation, dépense moyenne d'un compte ; virements exclus)
 - `GET /analytics/investments-allocation`
 - `GET /analytics/investments-allocation-advanced`
