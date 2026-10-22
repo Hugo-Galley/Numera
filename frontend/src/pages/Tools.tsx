@@ -1,10 +1,13 @@
 import { useState, useEffect } from "react"
 import { api } from "@/lib/api"
 import { WealthSimulator } from "@/components/analytics/WealthSimulator"
+import { WealthForecast } from "@/components/tools/WealthForecast"
+import { Button } from "@/components/ui/button"
 
 export default function Tools() {
   const [totalValue, setTotalValue] = useState(0)
   const [loading, setLoading] = useState(true)
+  const [advanced, setAdvanced] = useState(false)
 
   useEffect(() => {
     async function loadData() {
@@ -27,13 +30,23 @@ export default function Tools() {
         <p className="text-muted-foreground">Simulez et projetez l'évolution de votre patrimoine.</p>
       </div>
 
-      {!loading ? (
-        <WealthSimulator initialCapitalDefault={totalValue} />
+      {advanced ? (
+        !loading ? (
+          <WealthSimulator initialCapitalDefault={totalValue} />
+        ) : (
+          <div className="flex items-center justify-center h-[400px]">
+            <div className="h-8 w-8 rounded-full border-4 border-slate-200 border-t-slate-900 animate-spin" />
+          </div>
+        )
       ) : (
-        <div className="flex items-center justify-center h-[400px]">
-          <div className="h-8 w-8 rounded-full border-4 border-slate-200 border-t-slate-900 animate-spin" />
-        </div>
+        <WealthForecast />
       )}
+
+      <div className="flex justify-center">
+        <Button variant="ghost" size="sm" onClick={() => setAdvanced((v) => !v)}>
+          {advanced ? "Retour à la vue simple" : "Mode avancé"}
+        </Button>
+      </div>
     </div>
   )
 }

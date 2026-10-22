@@ -29,6 +29,7 @@ class RecurringTransactionBase(BaseModel):
     auto_generate: bool = False
     note: str | None = None
     transfer_to_account_id: int | None = None
+    transfer_credit_day: int | None = Field(default=None, ge=1, le=31)
     asset_class: str | None = None
     sector: str | None = None
     geographic_zone: str | None = None
@@ -61,6 +62,7 @@ class RecurringTransactionUpdate(BaseModel):
     auto_generate: bool | None = None
     note: str | None = None
     transfer_to_account_id: int | None = None
+    transfer_credit_day: int | None = Field(default=None, ge=1, le=31)
     asset_class: str | None = None
     sector: str | None = None
     geographic_zone: str | None = None

@@ -23,6 +23,7 @@ class RecurringTransaction(Base):
     auto_generate: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     note: Mapped[str | None] = mapped_column(String(255), nullable=True)
     transfer_to_account_id: Mapped[int | None] = mapped_column(ForeignKey("accounts.id", ondelete="SET NULL"), nullable=True)  # virement vers ce compte
+    transfer_credit_day: Mapped[int | None] = mapped_column(nullable=True)  # jour d'arrivée sur la destination (crédit différé)
 
     logo: Mapped[str | None] = mapped_column(String(64), nullable=True)  # "si:<slug>" (Simple Icons) ou "file:<hash>.png" (favicon local)
 

@@ -29,6 +29,8 @@ from app.schemas.insight import (
     SubscriptionIgnore,
     WealthSimulationResponse,
     WealthSimulationPoint,
+    WealthForecastResponse,
+    WealthForecastPoint,
     MoneyFlowReport,
     MoneyFlowBlock,
     MoneyFlowItem,
@@ -978,6 +980,73 @@ async def patrimoine_allocation(db: Session = Depends(get_db)):
         "total_patrimoine": round(total_patrimoine_eur, 2),
         "items": items
     }
+
+
+# Rendement annuel supposé par type de compte pour la prévision simple (en %)
+FORECAST_RETURN_BY_TYPE = {"courant": 0.0, "epargne": 3.0, "investissement": 6.5}
+
+
+@router.get("/wealth-forecast", response_model=WealthForecastResponse)
+async def wealth_forecast(
+    years: int = Query(default=10, ge=1, le=50),
+    extra_monthly: float = Query(default=0.0, ge=-100000, le=100000),
+    db: Session = Depends(get_db),
+):
+    """
+    Prévision simple du patrimoine : patrimoine actuel (tous comptes actifs) + épargne mensuelle
+    moyenne des 12 derniers mois complets, rendement pondéré par type de compte.
+    `extra_monthly` ajoute un effort d'épargne hypothétique pour comparer.
+    """
+    from .metrics import kpi_history
+
+    allocation = await patrimoine_allocation(db)
+    current_wealth = float(allocation["total_patrimoine"])
+
+    weighted = 0.0
+    positive_total = 0.0
+    for item in allocation["items"]:
+        bal = float(item["balance_eur"])
+        if bal <= 0:
+            continue
+        positive_total += bal
+        weighted += bal * FORECAST_RETURN_BY_TYPE.get(item["type"], 0.0)
+    annual_return_pct = weighted / positive_total if positive_total > 0 else 0.0
+
+    history = await kpi_history(months_count=13, account_id=None, db=db)
+    now = datetime.now()
+    completed = [r for r in history if not (r["year"] == now.year and r["month"] == now.month)]
+    rows = completed[-12:] if completed else history
+    avg_savings = sum(float(r["epargne_flow"]) for r in rows) / len(rows) if rows else 0.0
+
+    monthly_rate = (1 + annual_return_pct / 100.0) ** (1 / 12) - 1
+
+    def project(monthly: float) -> List[float]:
+        value = current_wealth
+        values = [value]
+        for _ in range(years):
+            for _ in range(12):
+                value = value * (1 + monthly_rate) + monthly
+            values.append(value)
+        return values
+
+    base = project(avg_savings)
+    boosted = project(avg_savings + extra_monthly)
+
+    return WealthForecastResponse(
+        current_wealth=round(current_wealth, 2),
+        avg_monthly_savings=round(avg_savings, 2),
+        months_used=len(rows),
+        annual_return_pct=round(annual_return_pct, 2),
+        years=years,
+        extra_monthly=extra_monthly,
+        final_base=round(base[-1], 2),
+        final_boosted=round(boosted[-1], 2),
+        gain_from_extra=round(boosted[-1] - base[-1], 2),
+        points=[
+            WealthForecastPoint(year=y, base=round(base[y], 2), boosted=round(boosted[y], 2))
+            for y in range(years + 1)
+        ],
+    )
 
 
 @router.get("/asset-allocation/suggestions")

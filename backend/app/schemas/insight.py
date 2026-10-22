@@ -141,6 +141,25 @@ class WealthSimulationResponse(BaseModel):
     optimistic_final: Optional[float] = None
 
 
+class WealthForecastPoint(BaseModel):
+    year: int
+    base: float
+    boosted: float
+
+
+class WealthForecastResponse(BaseModel):
+    current_wealth: float
+    avg_monthly_savings: float
+    months_used: int
+    annual_return_pct: float
+    years: int
+    extra_monthly: float
+    final_base: float
+    final_boosted: float
+    gain_from_extra: float
+    points: List[WealthForecastPoint]
+
+
 class MoneyFlowItem(BaseModel):
     name: str
     amount: float

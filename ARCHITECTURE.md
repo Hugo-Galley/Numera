@@ -102,7 +102,7 @@ Routes dans `frontend/src/App.tsx`:
 - `/month` (`MonthHub.tsx`, sous-routes) : `/month/bilan` (rapport mensuel, `MonthlyReport.tsx`), `/month/revue` (revue de fin de mois, `MonthReview.tsx`, `?year=&month=`), `/month/comparaison` (`Comparison.tsx`). Anciennes adresses `/report`, `/month-review`, `/comparison` redirigées avec leurs paramètres (`RedirectKeepingSearch`).
 - `/recurring` « Échéances » : onglets `?tab=` recurring | subscriptions | calendar (`Calendar.tsx` en mode `embedded`) | salary (`SalaryManager`, salaire et télétravail). `/calendar` redirige vers `?tab=calendar`.
 - `/audit`: Centre d'Actions (audit d'integrite, alertes budget, suggestions de regles) — voir `docs/ACTION_CENTER.md`.
-- `/tools` « Simulateur » : simulateur de patrimoine (`WealthSimulator`).
+- `/tools` « Simulateur » : prévision simple (`WealthForecast`, « dans N ans » + « et si j'épargne +X ») avec bouton « Mode avancé » vers le simulateur complet (`WealthSimulator`).
 - `/settings`: configuration, import CSV, gestion des virements, règles d'auto-catégorisation, tags, gestion des marchands canoniques et actions admin.
 
 Principes:
@@ -235,7 +235,8 @@ Un point zéro sert de base de performance pour un compte.
 - `GET /analytics/timeseries`
 - `GET /analytics/budget-alerts`
 - `GET /analytics/insights`
-- `GET /analytics/wealth-simulation`
+- `GET /analytics/wealth-simulation` (mode avancé : Monte Carlo, événements, fiscalité)
+- `GET /analytics/wealth-forecast` (prévision simple : patrimoine total + épargne moyenne 12 mois, rendement pondéré par type de compte, `years`, `extra_monthly`)
 - `GET /analytics/sankey`
 - `GET /analytics/money-flow`
 - `GET /analytics/monthly-report` (inclut `exceptional_expenses`, `real_expenses_excl_exceptional`, `savings_excl_exceptional`, `savings_rate_excl_exceptional`, `burn_rate_excl_exceptional`; `top_categories` : 8 premières catégories avec `prev_total`, total du mois précédent)

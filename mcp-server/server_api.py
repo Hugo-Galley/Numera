@@ -756,6 +756,26 @@ def get_cashflow_projection(months: int = 3) -> str:
 
 
 @mcp.tool()
+def get_wealth_forecast(years: int = 10, extra_monthly: float = 0.0) -> str:
+    """Prévision simple du patrimoine : patrimoine actuel + épargne mensuelle moyenne des 12 derniers mois,
+    rendement pondéré par type de compte. Compare le rythme actuel à un effort d'épargne supplémentaire.
+
+    Args:
+        years: Horizon en années (défaut 10)
+        extra_monthly: Épargne mensuelle supplémentaire hypothétique en € (défaut 0)
+    """
+    try:
+        resp = api.get("/analytics/wealth-forecast", params={"years": years, "extra_monthly": extra_monthly})
+        error = handle_response(resp)
+        if error:
+            return error
+        data = resp.json()
+        return f"🔭 Prévision de patrimoine ({years} ans) :\n\n{serialize(data)}"
+    except Exception as e:
+        return f"❌ Erreur : {e}"
+
+
+@mcp.tool()
 def get_portfolio(account_id: int | None = None) -> str:
     """Valeur calculée (positions × cours + espèces), plus-values, XIRR/TWR et rapprochement.
 
