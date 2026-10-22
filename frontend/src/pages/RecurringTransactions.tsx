@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import { useSearchParams } from "react-router-dom"
 import {
   Plus,
   Repeat,
@@ -138,7 +139,11 @@ export default function RecurringTransactions() {
     geographic_zones: string[]
   }>({ asset_classes: [], sectors: [], geographic_zones: [] })
   const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState("recurring")
+  const [searchParams] = useSearchParams()
+  const [activeTab, setActiveTab] = useState(() => {
+    const tab = searchParams.get("tab")
+    return tab === "subscriptions" || tab === "salary" ? tab : "recurring"
+  })
   const [subTab, setSubTab] = useState<"subscriptions" | "investments">("subscriptions")
   
   // Dialogs
@@ -180,6 +185,18 @@ export default function RecurringTransactions() {
   const transferToInvestment = formData.type === "Sortie" && selectedAccount?.type !== "investissement" && transferDest?.type === "investissement"
   const isInvestment = selectedAccount?.type === "investissement" || (!!formData.ticker && !transferToInvestment)
   const showSecurities = isInvestment || transferToInvestment
+
+  // Changer de compte ne doit pas laisser un type de l'autre famille (une « Entrée » sur un PEA)
+  // (seul le type du compte décide : un titre saisi depuis un compte courant garde Sortie pour le virement)
+  const accountIsInvestment = selectedAccount?.type === "investissement"
+  useEffect(() => {
+    const investmentTypes = ["versement", "retrait", "dividende"]
+    if (accountIsInvestment && !investmentTypes.includes(formData.type)) {
+      setFormData(prev => ({ ...prev, type: "versement" }))
+    } else if (selectedAccount && !accountIsInvestment && !formData.ticker && investmentTypes.includes(formData.type)) {
+      setFormData(prev => ({ ...prev, type: "Sortie" }))
+    }
+  }, [selectedAccount, accountIsInvestment, formData.type, formData.ticker])
 
   const allSubs = subsData?.subscriptions || []
   const activeSubs = allSubs.filter((s: any) => {

@@ -5,6 +5,9 @@ from pydantic import BaseModel, Field
 
 
 TaxWrapper = Literal["pea", "per", "cto", "assurance_vie", "livret_a", "livret_jeune", "pee"]
+# Types reconnus par les calculs ; un type inconnu (ex. « bank ») était classé au hasard selon les vues.
+# La lecture reste en `str` pour ne pas casser d'anciens comptes déjà enregistrés avec un autre type.
+AccountType = Literal["courant", "epargne", "investissement", "assurance_vie"]
 
 
 class AccountBase(BaseModel):
@@ -24,12 +27,13 @@ class AccountBase(BaseModel):
 
 
 class AccountCreate(AccountBase):
+    type: AccountType
     currency: str = "EUR"
 
 
 class AccountUpdate(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=120)
-    type: str | None = None
+    type: AccountType | None = None
     currency: str | None = Field(default=None, min_length=3, max_length=3)
     color: str | None = None
     active: bool | None = None

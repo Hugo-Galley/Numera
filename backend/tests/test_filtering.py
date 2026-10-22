@@ -102,3 +102,27 @@ def test_transactions_pagination_skip_limit(client: TestClient, db_session: Sess
     assert r_page3.status_code == 200
     p3_items = r_page3.json()
     assert len(p3_items) == 1
+
+
+def test_account_history_beyond_default_limit_is_reachable_page_by_page(client: TestClient, db_session: Session):
+    """La page d'un compte s'arrêtait aux 100 lignes par défaut : les pages de 200 doivent tout couvrir."""
+    account = Account(name="Long", type="courant", currency="EUR", active=True)
+    db_session.add(account)
+    db_session.commit()
+    # 250 lignes sur 10 jours : beaucoup d'égalités de date, l'ordre doit rester stable entre deux pages
+    db_session.add_all([
+        Transaction(
+            account_id=account.id, date=datetime(2026, 1, 1) + timedelta(days=i % 10), type="Sortie",
+            merchant=f"Shop_{i}", amount=1, original_amount=1, currency="EUR", running_balance=0, month_label="Janvier",
+        )
+        for i in range(250)
+    ])
+    db_session.commit()
+
+    assert len(client.get("/transactions", params={"account_id": account.id}).json()) == 100
+
+    page1 = client.get("/transactions", params={"account_id": account.id, "skip": 0, "limit": 200}).json()
+    page2 = client.get("/transactions", params={"account_id": account.id, "skip": 200, "limit": 200}).json()
+    assert len(page1) == 200
+    assert len(page2) == 50
+    assert len({tx["id"] for tx in page1 + page2}) == 250

@@ -329,6 +329,15 @@ def test_allocation_endpoint_uses_computed_value(client, db_session):
     assert data["total_current_value"] == pytest.approx(1200.0)
 
 
+def test_allocation_items_carry_their_own_performance(client, db_session):
+    """La page Investissements affichait « (0%) » : chaque compte doit porter son rendement."""
+    account_id = _setup(client, db_session)
+    item = next(i for i in client.get("/analytics/investments-allocation").json()["items"] if i["account_id"] == account_id)
+    assert item["net_invested"] > 0
+    assert item["performance_pct"] == pytest.approx(item["gain_eur"] / item["net_invested"] * 100, abs=0.01)
+    assert item["performance_pct"] > 0
+
+
 def test_gain_is_measured_since_inception_not_since_the_positions_baseline(client, db_session):
     """Point Zéro des positions posé après coup : les versements et relevés antérieurs restent comptés."""
     account_id = client.post("/accounts", json={"name": "CTO", "type": "investissement", "currency": "EUR", "color": None}).json()["id"]

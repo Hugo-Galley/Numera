@@ -696,6 +696,10 @@ async def investments_allocation(account_id: int | None = Query(default=None), d
     # Re-calculate percentages based on EUR values
     for item in items:
         item["percentage"] = round((item["current_value"] / total_current_value_eur * 100.0), 2) if total_current_value_eur > 0 else 0.0
+        # Rendement du compte ; sans capital net investi positif, un pourcentage n'a pas de sens
+        item["performance_pct"] = (
+            round(item["gain_eur"] / item["net_invested"] * 100.0, 2) if item["net_invested"] > 0 else None
+        )
 
     total_gain_eur = total_current_value_eur - total_net_invested_eur
     total_perf_pct = (total_gain_eur / total_net_invested_eur * 100.0) if total_net_invested_eur > 0 else 0.0

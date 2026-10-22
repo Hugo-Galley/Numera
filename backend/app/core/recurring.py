@@ -140,12 +140,17 @@ async def generate_recurring_transactions(db: Session) -> int:
             else:
                 converted_amount = original_amount
 
-            is_inv = account.type in ["investissement", "assurance_vie"] or (bool(rd.ticker) and not rd.transfer_to_account_id)
+            is_investment_account = account.type in ["investissement", "assurance_vie"]
+            is_inv = is_investment_account or (bool(rd.ticker) and not rd.transfer_to_account_id)
             inv_type = rd.type.lower()
-            if inv_type in ["sortie", "achat"]:
-                inv_type = "versement"
-            elif inv_type in ["entree", "vente"]:
-                inv_type = "retrait"
+            if inv_type in ["achat", "vente"]:
+                inv_type = "versement" if inv_type == "achat" else "retrait"
+            elif is_investment_account and inv_type in ["entree", "sortie"]:
+                # Règle posée sur le compte investissement lui-même : une Entrée y fait entrer l'argent
+                inv_type = "versement" if inv_type == "entree" else "retrait"
+            elif inv_type in ["sortie", "entree"]:
+                # Achat programmé depuis un compte bancaire (ticker) : la Sortie finance l'achat
+                inv_type = "versement" if inv_type == "sortie" else "retrait"
 
             if is_inv and inv_type in ["versement", "retrait", "dividende"]:
                 effective_quantity, effective_unit_price, price_currency = await _size_trade(

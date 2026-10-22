@@ -309,7 +309,8 @@ const [loading, setLoading] = useState(true)
                     <div className="flex justify-between text-xs text-muted-foreground pl-5.5">
                       <span className="amount-blur font-medium">{formatCurrency(item.current_value)}</span>
                       <span className={`amount-blur font-medium ${item.gain_eur >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
-                        {item.gain_eur >= 0 ? "+" : ""}{formatCurrency(item.gain_eur)} ({item.gain_pct?.toFixed(2) || 0}%)
+                        {item.gain_eur >= 0 ? "+" : ""}{formatCurrency(item.gain_eur)}
+                        {item.performance_pct != null && ` (${item.performance_pct >= 0 ? "+" : ""}${item.performance_pct.toFixed(2)} %)`}
                       </span>
                     </div>
                   </div>

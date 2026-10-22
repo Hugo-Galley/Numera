@@ -1,6 +1,9 @@
+import calendar
 from datetime import date, datetime
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
+from app.models.category import Category
 from app.models.salary_config import SalaryConfig
 from app.models.salary_month import SalaryMonth
 from app.models.telecommuting_day import TelecommutingDay
@@ -73,6 +76,64 @@ def generate_salary_transactions(
 
     logger.info(f"Generated salary transaction for {month_label}")
     return True
+
+
+def find_missing_salary_months(db: Session, today: date, lookback_months: int = 3) -> list[str]:
+    """Mois récents dont le salaire attendu n'apparaît nulle part.
+
+    Le salaire n'est généré que pour les mois renseignés (SalaryMonth) : un mois oublié
+    passait inaperçu. On ne génère rien ici (le montant peut avoir changé, l'emploi avoir pris
+    fin) : on signale seulement les mois dont le jour de paie est passé, sans SalaryMonth et sans
+    entrée de type salaire saisie à la main sur le compte de salaire.
+    """
+    config = db.query(SalaryConfig).filter(SalaryConfig.is_active == True).first()
+    if not config:
+        return []
+
+    last_month = (
+        db.query(SalaryMonth)
+        .filter(SalaryMonth.salary_config_id == config.id)
+        .order_by(SalaryMonth.salary_date.desc())
+        .first()
+    )
+    pay_day = last_month.salary_date.day if last_month else 28
+
+    def shift(year: int, month: int, delta: int) -> tuple[int, int]:
+        index = year * 12 + (month - 1) + delta
+        return index // 12, index % 12 + 1
+
+    start = shift(today.year, today.month, -lookback_months)
+    created = (config.created_at.year, config.created_at.month)
+    year, month = max(start, created)
+
+    known_labels = {
+        label for (label,) in db.query(SalaryMonth.month_label)
+        .filter(SalaryMonth.salary_config_id == config.id).all()
+    }
+
+    missing: list[str] = []
+    while (year, month) <= (today.year, today.month):
+        label = f"{year}-{month:02d}"
+        expected = date(year, month, min(pay_day, calendar.monthrange(year, month)[1]))
+        if expected <= today and label not in known_labels and not _has_salary_entry(db, config, year, month):
+            missing.append(label)
+        year, month = shift(year, month, 1)
+    return missing
+
+
+def _has_salary_entry(db: Session, config: SalaryConfig, year: int, month: int) -> bool:
+    start = datetime(year, month, 1)
+    end = datetime(year + month // 12, month % 12 + 1, 1)
+    salary_like = [Transaction.merchant.ilike("salaire%"), Category.name.ilike("salaire%")]
+    if config.salary_category_id:
+        salary_like.append(Transaction.category_id == config.salary_category_id)
+    return db.query(Transaction.id).outerjoin(Category, Category.id == Transaction.category_id).filter(
+        Transaction.account_id == config.salary_account_id,
+        Transaction.type == "Entree",
+        Transaction.date >= start,
+        Transaction.date < end,
+        or_(*salary_like),
+    ).first() is not None
 
 
 def check_and_generate_pending_salaries(db: Session) -> int:

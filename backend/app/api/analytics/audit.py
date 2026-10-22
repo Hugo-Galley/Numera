@@ -64,6 +64,16 @@ from .utils import (
 )
 
 
+_MONTH_NAMES = ("janvier", "février", "mars", "avril", "mai", "juin",
+                "juillet", "août", "septembre", "octobre", "novembre", "décembre")
+
+
+def _month_name(label: str) -> str:
+    """« 2026-10 » → « octobre 2026 » (FRENCH_MONTHS, sans accents, sert aux libellés stockés)."""
+    year, month = label.split("-")
+    return f"{_MONTH_NAMES[int(month) - 1]} {year}"
+
+
 def _unallocated_reimbursements_query(db: Session, now: datetime):
     """Remboursements reçus (catégorie « Remboursement… ») non affectés, s'il existe une créance ouverte."""
     has_open_claim = any(
@@ -597,6 +607,26 @@ async def get_action_center(db: Session = Depends(get_db)):
                 action_url="/investments",
                 action_type="link",
                 metadata={"account_ids": [acc.id for acc in stale_snapshot_accounts]}
+            ))
+
+        # 1.4 Salaire attendu absent (mois non renseigné dans le gestionnaire de salaire)
+        from app.core.salary import find_missing_salary_months
+        missing_salary_months = find_missing_salary_months(db, now.date())
+        if missing_salary_months:
+            labels = ", ".join(_month_name(label) for label in missing_salary_months)
+            actions.append(ActionItem(
+                id=f"missing-salary-{missing_salary_months[-1]}",
+                type="audit",
+                severity="high",
+                title="Salaire absent",
+                description=(
+                    f"Aucun salaire pour {labels}. Renseigne le mois dans le gestionnaire de salaire, "
+                    "ou désactive la configuration si tu ne perçois plus ce salaire."
+                ),
+                action_label="Ouvrir le salaire",
+                action_url="/recurring?tab=salary",
+                action_type="link",
+                metadata={"months": missing_salary_months},
             ))
 
         # 1.4 Unmatched Transfers

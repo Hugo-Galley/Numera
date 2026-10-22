@@ -310,6 +310,9 @@ const getMerchantIcon = (merchantName: string) => {
   return "Briefcase";
 }
 
+// Taille d'une page de transactions (l'API renvoie 100 lignes par défaut, 1000 au plus)
+const TX_PAGE_SIZE = 200
+
 export default function AccountDetail() {
   const { id } = useParams<{ id: string }>()
   
@@ -319,6 +322,8 @@ export default function AccountDetail() {
   const [reimbursementTx, setReimbursementTx] = useState<Transaction | null>(null)
   const [allAccounts, setAllAccounts] = useState<AccountLite[]>([])
   const [transactions, setTransactions] = useState<Transaction[]>([])
+  const [hasMoreTx, setHasMoreTx] = useState(false)
+  const [loadingMoreTx, setLoadingMoreTx] = useState(false)
   const [flowSummary, setFlowSummary] = useState<{
     monthly_net_flow: number
     prev_monthly_net_flow: number
@@ -502,7 +507,7 @@ export default function AccountDetail() {
   const [zeroValue, setZeroValue] = useState("")
   const [zeroNote, setZeroNote] = useState("")
 
-  const buildTransactionParams = () => {
+  const buildTransactionParams = (skip = 0, limit = TX_PAGE_SIZE) => {
     const params = new URLSearchParams()
     params.append("account_id", id!)
     if (filterType !== "all") params.append("type", filterType)
@@ -513,21 +518,37 @@ export default function AccountDetail() {
     if (filterTags.length > 0) {
       filterTags.forEach(tid => params.append("tag_ids", String(tid)))
     }
-    if (debouncedSearch) {
-      params.append("search", debouncedSearch)
-      params.append("limit", "1000")
-    }
+    if (debouncedSearch) params.append("search", debouncedSearch)
+    params.append("skip", String(skip))
+    params.append("limit", String(limit))
     return params
   }
 
   const loadTransactions = async () => {
     if (!id) return
     try {
-      const params = buildTransactionParams()
-      const txData = await api.get<Transaction[]>(`/transactions?${params.toString()}`)
+      // Garder les pages déjà chargées après une modification (l'API plafonne à 1000)
+      const limit = Math.min(Math.max(TX_PAGE_SIZE, transactions.length), 1000)
+      const txData = await api.get<Transaction[]>(`/transactions?${buildTransactionParams(0, limit).toString()}`)
       setTransactions(txData)
+      setHasMoreTx(txData.length === limit)
     } catch (error) {
       toast.error("Erreur lors de la recherche")
+    }
+  }
+
+  const loadMoreTransactions = async () => {
+    if (!id) return
+    setLoadingMoreTx(true)
+    try {
+      const params = buildTransactionParams(transactions.length)
+      const more = await api.get<Transaction[]>(`/transactions?${params.toString()}`)
+      setTransactions(prev => [...prev, ...more])
+      setHasMoreTx(more.length === TX_PAGE_SIZE)
+    } catch (error) {
+      toast.error("Erreur lors du chargement des transactions")
+    } finally {
+      setLoadingMoreTx(false)
     }
   }
 
@@ -578,6 +599,7 @@ export default function AccountDetail() {
           api.get<any[]>(`/analytics/tags?account_id=${id}${dateStart ? `&start_date=${dateStart}` : ""}${dateEnd ? `&end_date=${dateEnd}` : ""}`)
         ])
         setTransactions(txData)
+        setHasMoreTx(txData.length === TX_PAGE_SIZE)
         setTimeseries(timeData)
         setCategories(catData)
         setAvailableTags(tagsData)
@@ -2126,6 +2148,13 @@ export default function AccountDetail() {
               </TableBody>
             </Table>
             </div>
+            {hasMoreTx && (
+              <div className="flex justify-center border-t p-3">
+                <Button variant="outline" size="sm" onClick={loadMoreTransactions} disabled={loadingMoreTx}>
+                  {loadingMoreTx ? "Chargement…" : "Charger plus de transactions"}
+                </Button>
+              </div>
+            )}
           </Card>
         </div>
       )}

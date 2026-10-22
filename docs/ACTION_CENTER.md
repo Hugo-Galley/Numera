@@ -72,6 +72,9 @@ Pour ajouter un nouveau type d'action :
 ### Action « remboursements » (`type: audit`)
 - `unallocated-reimbursements` : entrées de catégorie « Remboursement… » des 180 derniers jours non affectées à une créance (`reimbursement_offset = 0`), remontée seulement s'il existe au moins une créance ouverte. `action_type: link` vers `/reimbursements`. Aussi présente dans `/analytics/audit` (détail : `GET /analytics/audit/unallocated-reimbursements`). Requête partagée : `_unallocated_reimbursements_query` (`audit.py`).
 
+### Action « salaire absent » (`type: audit`, `severity: high`)
+- `missing-salary-{YYYY-MM}` (dernier mois manquant) : config de salaire active, mois des 3 derniers (et pas avant la création de la config) dont le jour de paie est passé, sans `SalaryMonth` et sans entrée de type salaire (marchand ou catégorie « Salaire… », ou `salary_category_id`) sur le compte de salaire. Jour de paie = celui du dernier `SalaryMonth`, sinon le 28. Rien n'est généré automatiquement (montant ou emploi peuvent avoir changé). `action_type: link` vers `/recurring?tab=salary`. Logique : `core/salary.py::find_missing_salary_months`.
+
 ### Pièges à éviter
 - **Doubles appels** : Ne pas rafraîchir la liste complète (`loadActions`) trop souvent ; privilégier le rafraîchissement ciblé si possible.
 - **IDs stables** : L'ID de l'action doit être déterministe (ex: `suggest-rule-{merchant}`) pour permettre au frontend de garder l'état local si nécessaire.

@@ -121,7 +121,7 @@ Principes:
 
 Champs principaux: `id`, `name`, `type`, `currency`, `created_at`, `active`, `color`, `asset_class`, `sector`, `geographic_zone`, `institution`, `fonds_euros_pct`, `fonds_investis_pct` (assurance-vie), `is_main`, `last_verified_at`, `tax_wrapper` (`pea`, `per`, `cto`, `assurance_vie`, `livret_a`, `livret_jeune`, `pee`, nullable) et `opened_at` (date d'ouverture) pour la page Fiscalité. La suppression API est logique (`active=False`).
 
-Types connus: `courant`, `epargne`, `investissement`.
+Types connus: `courant`, `epargne`, `investissement`, `assurance_vie` (`AccountType` dans `schemas/account.py`, imposé en création/modification).
 
 ### `categories`
 

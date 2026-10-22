@@ -162,3 +162,24 @@ async def test_recurring_generation_auto_calculates_shares(db_session: Session):
     assert holding is not None
     assert holding.quantity == inv_tx.quantity
 
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize("rule_type, expected", [("Entree", "versement"), ("Sortie", "retrait")])
+async def test_bank_style_rule_on_investment_account_keeps_the_money_direction(db_session: Session, rule_type, expected):
+    """Une « Entrée » de 400 € sur le PEA lui-même devenait un retrait : l'argent entre dans le compte."""
+    account = Account(name="PEA", type="investissement", currency="EUR", active=True)
+    db_session.add(account)
+    db_session.commit()
+    past_date = datetime.now() - timedelta(days=45)
+    rd = RecurringTransaction(
+        account_id=account.id, name="Alimentation PEA", type=rule_type, amount=400.0, currency="EUR",
+        frequency="monthly", day_of_month=past_date.day, start_date=past_date, is_active=True, auto_generate=True,
+    )
+    db_session.add(rd)
+    db_session.commit()
+
+    assert await generate_recurring_transactions(db_session) >= 1
+
+    types = {tx.type for tx in db_session.query(InvestmentTransaction).filter_by(recurring_transaction_id=rd.id)}
+    assert types == {expected}

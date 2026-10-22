@@ -45,7 +45,7 @@ cd frontend && npm run typecheck    # tsc seul
 # Un seul test
 cd backend && PYTHONPATH=. python3.11 -m pytest tests/test_tags.py -v   # PYTHONPATH=. requis
 cd backend && PYTHONPATH=. python3.11 -m pytest tests/test_tags.py::test_name -v
-cd backend && PYTHONPATH=. python3.11 -m pytest tests -q     # suite complète : 250 tests, ~19 s
+cd backend && PYTHONPATH=. python3.11 -m pytest tests -q     # suite complète : 366 tests, ~30 s
 
 # Mot de passe admin (hash à mettre dans ADMIN_PASSWORD_HASH ; doubler les $ dans docker-compose)
 python scripts/change_password.py <mot-de-passe>
@@ -69,7 +69,7 @@ python scripts/change_password.py <mot-de-passe>
 
 ## Modèle de données
 
-- `accounts.type` : `courant`, `epargne`, `investissement`.
+- `accounts.type` : `courant`, `epargne`, `investissement`, `assurance_vie` (validé à la création/modification ; un ancien type inconnu reste lisible).
 - `transactions.type` : `Entree`, `Sortie`, `Interets`, `Solde Initial` (base du solde, exclue des KPI revenus/dépenses).
 - `investment_transactions.type` : `versement`, `retrait`, `achat`, `vente`, `frais`, `dividende` (dividende non compté dans le montant investi). Valeur d'un compte titres = positions × cours + espèces (`core/portfolio.py`).
 - Positions titres : `portfolio_holding` / `api/holdings.py` ; profils ETF : `etf_profile`.
