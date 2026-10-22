@@ -42,10 +42,12 @@ export function DashboardHeader({
     <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
       <div>
         <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900">Tableau de bord</h1>
-        <p className="text-slate-500 mt-1">
-          Toutes vos analyses financières en un coup d'œil.
-          {periodRange && <span className="ml-2 text-slate-400">Période de paie : {periodRange}</span>}
-        </p>
+        <p className="text-slate-500 mt-1">Toutes vos analyses financières en un coup d'œil.</p>
+        {periodRange && (
+          <span className="mt-2 inline-flex items-center whitespace-nowrap rounded-full border border-slate-200 bg-white px-2.5 py-0.5 text-xs font-medium text-slate-500">
+            Période de paie : {periodRange}
+          </span>
+        )}
       </div>
       <div className="flex flex-wrap items-center gap-2 md:gap-3 bg-white p-1.5 md:p-2 rounded-xl border shadow-sm w-fit">
         <Select value={selectedAccountId} onValueChange={setSelectedAccountId}>
