@@ -40,10 +40,18 @@ class WrapperCard(BaseModel):
     alerts: list[str] = []
 
 
+class WrapperSuggestion(BaseModel):
+    """Compte actif sans enveloppe dont le nom évoque une enveloppe connue."""
+    account_id: int
+    account_name: str
+    kind: Literal["pea", "per", "cto", "assurance_vie", "livret_a", "livret_jeune", "pee"]
+
+
 class TaxOverview(BaseModel):
     year: int
     settings: TaxSettings
     wrappers: list[WrapperCard]
+    suggestions: list[WrapperSuggestion] = []
 
 
 class CtoYearRow(BaseModel):

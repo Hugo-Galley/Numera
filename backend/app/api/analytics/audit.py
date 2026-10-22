@@ -1,5 +1,7 @@
 import calendar
+import re
 import traceback
+import unicodedata
 from datetime import date, datetime, timedelta
 
 from typing import Any, Dict, List, Optional, Tuple
@@ -66,6 +68,12 @@ from .utils import (
 
 _MONTH_NAMES = ("janvier", "février", "mars", "avril", "mai", "juin",
                 "juillet", "août", "septembre", "octobre", "novembre", "décembre")
+
+
+def merchant_key(label: str) -> str:
+    """Clé de rapprochement d'un libellé : sans accents, casse, chiffres ni ponctuation."""
+    text = unicodedata.normalize("NFKD", label).encode("ascii", "ignore").decode().lower()
+    return " ".join(re.sub(r"[^a-z]+", " ", text).split())
 
 
 def _month_name(label: str) -> str:
@@ -720,61 +728,93 @@ async def get_action_center(db: Session = Depends(get_db)):
                 metadata={"category_id": alert.category_id, "spent": alert.monthly_spent, "limit": alert.monthly_limit}
             ))
 
-        # --- 3. Rule Suggestions (New) ---
-        # Merchants with >= 5 transactions in the last 6 months that DON'T have a rule
+        # --- 3. Rule Suggestions ---
+        # Une règle ne s'applique qu'à l'import (et via « appliquer à tout ») : elle n'apporte quelque chose
+        # que si le marchand a encore des transactions sans catégorie. Virements et récurrences (qui portent
+        # leur propre catégorie) ne comptent pas.
         six_months_ago = now - timedelta(days=180)
-        top_merchants_without_rules = (
-            db.query(Transaction.merchant, func.count(Transaction.id).label("tx_count"), func.max(Transaction.category_id).label("suggested_cat_id"))
-            .filter(Transaction.date >= six_months_ago)
-            .filter(Transaction.merchant.is_not(None), Transaction.merchant != "")
-            .group_by(Transaction.merchant)
-            .having(func.count(Transaction.id) >= 5)
+        candidate_rows = (
+            db.query(Transaction.merchant, Transaction.category_id, func.count(Transaction.id))
+            .filter(
+                Transaction.date >= six_months_ago,
+                Transaction.merchant.is_not(None), Transaction.merchant != "",
+                Transaction.is_transfer.is_(False),
+                Transaction.recurring_transaction_id.is_(None),
+                Transaction.type.in_(["Sortie", "Entree"]),
+            )
+            .group_by(Transaction.merchant, Transaction.category_id)
             .all()
         )
-        
-        for merchant, count, suggested_cat_id in top_merchants_without_rules:
-            # Check if a rule already exists for this merchant
+        by_merchant: dict[str, dict] = {}
+        for merchant, category_id, count in candidate_rows:
+            stats = by_merchant.setdefault(merchant, {"total": 0, "uncategorized": 0, "categories": {}})
+            stats["total"] += count
+            if category_id is None:
+                stats["uncategorized"] += count
+            else:
+                stats["categories"][category_id] = stats["categories"].get(category_id, 0) + count
+
+        for merchant, stats in sorted(by_merchant.items(), key=lambda kv: -kv[1]["uncategorized"]):
+            if stats["total"] < 5 or stats["uncategorized"] == 0:
+                continue
             rule_exists = db.query(CategorizationRule).filter(
                 or_(
                     func.lower(CategorizationRule.merchant_name) == func.lower(merchant),
                     func.lower(CategorizationRule.pattern) == func.lower(merchant)
                 )
             ).first() is not None
-            
-            if not rule_exists:
-                actions.append(ActionItem(
-                    id=f"suggest-rule-{merchant}",
-                    type="rule",
-                    severity="low",
-                    title=f"Nouvelle règle suggérée : {merchant}",
-                    description=f"Vous avez {count} transactions chez '{merchant}'. Créer une règle d'auto-catégorisation ?",
-                    action_label="Créer la règle",
-                    action_url="/settings?tab=rules",
-                    action_type="modal_rule",
-                    metadata={"merchant": merchant, "suggested_category_id": suggested_cat_id}
-                ))
+            if rule_exists:
+                continue
+            suggested_cat_id = max(stats["categories"], key=stats["categories"].get) if stats["categories"] else None
+            actions.append(ActionItem(
+                id=f"suggest-rule-{merchant}",
+                type="rule",
+                severity="low",
+                title=f"Nouvelle règle suggérée : {merchant}",
+                description=(
+                    f"{stats['uncategorized']} transaction(s) sans catégorie chez '{merchant}' "
+                    f"(sur {stats['total']}). Une règle les catégoriserait, ainsi que les prochains imports."
+                ),
+                action_label="Créer la règle",
+                action_url="/settings?tab=rules",
+                action_type="modal_rule",
+                metadata={"merchant": merchant, "suggested_category_id": suggested_cat_id}
+            ))
 
         # --- 4. Merchant Normalization Suggestions ---
-        unnormalized_merchants = (
-            db.query(Transaction.merchant, func.count(Transaction.id).label("count"))
+        # Un marchand canonique sert à regrouper plusieurs écritures d'un même commerçant : on ne le propose
+        # que si le même nom apparaît sous au moins deux libellés (casse, accents, chiffres, ponctuation).
+        unnormalized = (
+            db.query(Transaction.merchant, func.count(Transaction.id))
             .filter(Transaction.merchant_id.is_(None), Transaction.merchant.is_not(None), Transaction.merchant != "")
             .group_by(Transaction.merchant)
-            .having(func.count(Transaction.id) >= 10)
-            .order_by(func.count(Transaction.id).desc())
-            .limit(5)
             .all()
         )
-        for merchant, count in unnormalized_merchants:
+        variants: dict[str, list[tuple[str, int]]] = {}
+        for merchant, count in unnormalized:
+            key = merchant_key(merchant)
+            if key:
+                variants.setdefault(key, []).append((merchant, count))
+        groups = sorted(
+            (sorted(labels, key=lambda lc: -lc[1]) for labels in variants.values() if len(labels) >= 2),
+            key=lambda labels: -sum(c for _, c in labels),
+        )
+        for labels in groups[:5]:
+            main_label, _ = labels[0]
+            total = sum(c for _, c in labels)
             actions.append(ActionItem(
-                id=f"suggest-normalization-{merchant}",
+                id=f"suggest-normalization-{main_label}",
                 type="merchant",
                 severity="low",
-                title=f"Normalisation suggérée : {merchant}",
-                description=f"Le marchand '{merchant}' apparaît {count} fois. Créer un marchand canonique ?",
+                title=f"Normalisation suggérée : {main_label}",
+                description=(
+                    f"{len(labels)} écritures pour le même marchand ({', '.join(repr(l) for l, _ in labels[:4])}), "
+                    f"{total} transactions. Les regrouper sous un marchand canonique ?"
+                ),
                 action_label="Normaliser",
                 action_url="/settings?tab=merchants",
                 action_type="modal_merchant",
-                metadata={"merchant": merchant, "count": count}
+                metadata={"merchant": main_label, "count": total, "variants": [l for l, _ in labels]}
             ))
 
         # --- 4b. Dividendes (comptes titres) ---

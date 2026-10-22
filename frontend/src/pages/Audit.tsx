@@ -187,6 +187,11 @@ function TransactionEditor({
     }
   }
 
+  // Une sortie ne se catégorise pas en Salaire ou Dividendes ; la catégorie actuelle reste toujours visible
+  const categoryOptions = categories.filter(
+    (c) => draft.type !== "Sortie" || c.type !== "revenu" || String(c.id) === draft.category_id
+  )
+
   return (
     <div className="rounded-md border border-slate-200 bg-white shadow-sm overflow-hidden">
       <div className="flex flex-col p-3 gap-3 lg:hidden">
@@ -243,7 +248,7 @@ function TransactionEditor({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">Sans catégorie</SelectItem>
-                {categories.map((category) => (
+                {categoryOptions.map((category) => (
                   <SelectItem key={category.id} value={String(category.id)}>
                     {category.name}
                   </SelectItem>
@@ -323,7 +328,7 @@ function TransactionEditor({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">Sans catégorie</SelectItem>
-                {categories.map((category) => (
+                {categoryOptions.map((category) => (
                   <SelectItem key={category.id} value={String(category.id)}>
                     {category.name}
                   </SelectItem>
@@ -454,11 +459,13 @@ function RuleCreatorModal({
 
 function MerchantCreatorModal({
   merchant,
+  variants,
   categories,
   onCreated,
   onClose,
 }: {
   merchant: string
+  variants?: string[]
   categories: Category[]
   onCreated: () => void
   onClose: () => void
@@ -475,7 +482,8 @@ function MerchantCreatorModal({
       await api.post("/merchants", {
         name: draft.name.trim(),
         category_id: draft.category_id === "none" ? null : Number(draft.category_id),
-        aliases: [merchant]
+        // Toutes les écritures repérées par le Centre d'actions, pas seulement la plus fréquente
+        aliases: variants?.length ? variants : [merchant]
       })
       toast.success("Marchand créé et normalisé")
       await api.post("/merchants/auto-normalize", {})
@@ -537,7 +545,7 @@ export default function ActionCenter() {
   const [details, setDetails] = useState<Record<string, IssueDetails>>({})
   const [activeActionId, setActiveActionId] = useState<string | null>(null)
   const [ruleMerchant, setRuleMerchant] = useState<{merchant: string, catId?: number} | null>(null)
-  const [normMerchant, setNormMerchant] = useState<string | null>(null)
+  const [normMerchant, setNormMerchant] = useState<{ merchant: string; variants?: string[] } | null>(null)
   const [loading, setLoading] = useState(true)
   const [loadingIssueId, setLoadingIssueId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -587,7 +595,7 @@ export default function ActionCenter() {
     }
 
     if (action.action_type === "modal_merchant") {
-      setNormMerchant(action.metadata?.merchant)
+      setNormMerchant({ merchant: action.metadata?.merchant, variants: action.metadata?.variants })
       return
     }
 
@@ -976,7 +984,8 @@ export default function ActionCenter() {
 
       {normMerchant && (
         <MerchantCreatorModal 
-          merchant={normMerchant}
+          merchant={normMerchant.merchant}
+          variants={normMerchant.variants}
           categories={categories}
           onCreated={loadActions}
           onClose={() => setNormMerchant(null)}

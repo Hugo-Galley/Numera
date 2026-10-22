@@ -1,4 +1,6 @@
 """Calculs fiscaux par enveloppe. Fonctions pures : aucune base de données, aucun appel réseau."""
+import re
+import unicodedata
 from datetime import date
 from typing import NamedTuple
 
@@ -140,3 +142,28 @@ def av_status(opened_at: date | None, household: str, today: date, rules: TaxRul
         )
     age = years_between(opened_at, today)
     return _blank(age_years=age, milestone_years=AV_MILESTONE_YEARS, milestone_reached=age >= AV_MILESTONE_YEARS, allowance=allowance)
+
+
+# Libellés courants → enveloppe. Ordre important : « PEA-PME » avant « PEE », « PERCO » avant « PER ».
+_WRAPPER_PATTERNS: list[tuple[str, str]] = [
+    (r"\bpea\b", "pea"),
+    (r"\b(pee|peg|peeg|pei)\b|epargne salariale", "pee"),
+    (r"\b(per|perin|perco|percol|pero)\b|epargne retraite", "per"),
+    (r"\bcto\b|compte titres?", "cto"),
+    (r"assurance vie|\bav\b", "assurance_vie"),
+    (r"livret jeune", "livret_jeune"),
+    (r"livret a\b", "livret_a"),
+]
+
+
+def guess_tax_wrapper(name: str, account_type: str | None = None) -> str | None:
+    """Enveloppe probable d'un compte d'après son nom (et son type pour l'assurance-vie), ou None.
+
+    Sert uniquement à proposer l'enveloppe : rien n'est enregistré sans validation.
+    """
+    text = unicodedata.normalize("NFKD", name).encode("ascii", "ignore").decode().lower()
+    text = " ".join(re.sub(r"[^a-z0-9]+", " ", text).split())
+    for pattern, kind in _WRAPPER_PATTERNS:
+        if re.search(pattern, text):
+            return kind
+    return "assurance_vie" if account_type == "assurance_vie" else None

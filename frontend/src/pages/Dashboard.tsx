@@ -21,31 +21,37 @@ export default function Dashboard() {
   const [month, setMonth] = useState(new Date().getMonth() + 1)
   const [year, setYear] = useState(new Date().getFullYear())
   const [accounts, setAccounts] = useState<any[]>([])
-  const [selectedAccountId, setSelectedAccountId] = useState<string>("all")
+  // Vue globale par défaut, puis le dernier choix de l'utilisateur. (Basculer d'office sur le compte
+  // principal rechargeait tout le tableau de bord et empêchait de rester sur « Tous les comptes ».)
+  const [selectedAccountId, setSelectedAccountIdState] = useState<string>(() => {
+    try {
+      return localStorage.getItem("dashboard-account") || "all"
+    } catch {
+      return "all"
+    }
+  })
+  const setSelectedAccountId = useCallback((id: string) => {
+    setSelectedAccountIdState(id)
+    try {
+      localStorage.setItem("dashboard-account", id)
+    } catch {
+      // stockage indisponible (navigation privée) : le choix vaut pour la session
+    }
+  }, [])
 
   const fetchAccounts = useCallback(async () => {
     try {
       const accs = await api.get<any[]>("/accounts")
-      if (accs && Array.isArray(accs)) {
-        setAccounts(accs)
-        if (selectedAccountId === "all" || !selectedAccountId) {
-          const mainAcc = accs.find(a => a.is_main && a.active)
-          if (mainAcc) {
-            setSelectedAccountId(String(mainAcc.id))
-          } else {
-            const defaultAcc = accs.find(a => a.type === "courant" && a.active)
-            if (defaultAcc) {
-              setSelectedAccountId(String(defaultAcc.id))
-            }
-          }
-        }
-      } else {
-        setAccounts([])
-      }
+      const list = Array.isArray(accs) ? accs : []
+      setAccounts(list)
+      // Compte mémorisé supprimé ou désactivé depuis : retour à la vue globale
+      setSelectedAccountIdState(current =>
+        current === "all" || list.some(a => String(a.id) === current && a.active) ? current : "all"
+      )
     } catch (error) {
       console.error("Failed to load accounts", error)
     }
-  }, [selectedAccountId])
+  }, [])
 
   useEffect(() => {
     fetchAccounts()

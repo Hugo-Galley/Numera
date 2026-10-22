@@ -40,6 +40,8 @@ PYTHONPATH=. python3.11 -m pytest tests/test_data_audit.py tests/test_import_and
 - L'endpoint doit retourner un `200 OK` même si la liste d'actions est vide.
 - Les doublons doivent être ignorés s'ils ont le flag `is_duplicate_ignored`.
 - Les suggestions de règles ne doivent pas apparaître pour des marchands ayant déjà une règle active.
+- Une règle ne s'applique qu'à l'import (et via « appliquer à tout ») : `suggest-rule-{merchant}` n'apparaît que si le marchand a au moins 5 transactions sur 6 mois **dont au moins une sans catégorie** (virements et lignes générées par une récurrence exclus) ; catégorie proposée = la plus fréquente.
+- `suggest-normalization-{libellé}` n'apparaît que si un même marchand existe sous au moins deux écritures (clé `audit.py::merchant_key` : sans accents, casse, chiffres ni ponctuation) ; `metadata.variants` liste les libellés, tous ajoutés comme alias par la modale.
 
 ### 2.2 Frontend (UI & Workflows)
 Le test manuel est privilégié ici pour valider les interactions.
@@ -47,7 +49,7 @@ Le test manuel est privilégié ici pour valider les interactions.
 **Scénarios à tester :**
 1.  **Action Audit** : Cliquer sur "Catégoriser" -> Modifier une transaction -> Vérifier que l'action disparaît après actualisation.
 2.  **Action Budget** : Créer une dépense dépassant une limite -> L'action "Budget dépassé" doit apparaître.
-3.  **Action Règle** : Créer 5 transactions avec le même marchand inconnu -> Une suggestion doit apparaître -> Cliquer sur "Créer la règle" -> Vérifier la création dans les paramètres.
+3.  **Action Règle** : Créer 5 transactions avec le même marchand, dont une sans catégorie -> Une suggestion doit apparaître -> Cliquer sur "Créer la règle" -> Vérifier la création dans les paramètres.
 
 ---
 

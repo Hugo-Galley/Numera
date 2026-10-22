@@ -6,13 +6,13 @@ from sqlalchemy.orm import Session
 from app.api.accounts import _get_balance_for_account
 from app.core.dividends import load_dividends_eur
 from app.core.holdings import replay_account
-from app.core.tax import PeeLot, av_status, livret_a_status, livret_jeune_status, pea_status, pee_status, per_status
+from app.core.tax import PeeLot, av_status, guess_tax_wrapper, livret_a_status, livret_jeune_status, pea_status, pee_status, per_status
 from app.core.tax_rules import rules_for
 from app.db.system_settings import get_setting, set_setting
 from app.models.account import Account
 from app.models.balance_snapshot import BalanceSnapshot
 from app.models.investment_transaction import InvestmentTransaction
-from app.schemas.tax import AnnualReport, CtoYearRow, TaxOverview, TaxSettings, TaxSettingsUpdate, WrapperCard
+from app.schemas.tax import AnnualReport, CtoYearRow, TaxOverview, TaxSettings, TaxSettingsUpdate, WrapperCard, WrapperSuggestion
 
 SETTING_KEYS = {
     "tmi_pct": "tax_tmi_pct",
@@ -120,7 +120,12 @@ def build_overview(db: Session, today: date) -> TaxOverview:
                 **status,
             )
         )
-    return TaxOverview(year=today.year, settings=settings, wrappers=cards)
+    suggestions = [
+        WrapperSuggestion(account_id=a.id, account_name=a.name, kind=kind)
+        for a in db.query(Account).filter(Account.tax_wrapper.is_(None), Account.active.is_(True)).order_by(Account.id).all()
+        if (kind := guess_tax_wrapper(a.name, a.type))
+    ]
+    return TaxOverview(year=today.year, settings=settings, wrappers=cards, suggestions=suggestions)
 
 
 async def build_annual_report(db: Session, year: int) -> AnnualReport:

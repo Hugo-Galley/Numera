@@ -42,10 +42,17 @@ interface TaxSettings {
   gross_annual_salary: number
 }
 
+interface WrapperSuggestion {
+  account_id: number
+  account_name: string
+  kind: Kind
+}
+
 interface TaxOverview {
   year: number
   settings: TaxSettings
   wrappers: WrapperCard[]
+  suggestions: WrapperSuggestion[]
 }
 
 interface CtoYearRow {
@@ -211,7 +218,18 @@ export default function Tax() {
     }
   }
 
+  const applySuggestion = async (s: WrapperSuggestion) => {
+    try {
+      await api.patch(`/accounts/${s.account_id}`, { tax_wrapper: s.kind })
+      toast.success(`${s.account_name} suivi comme ${KIND_LABELS[s.kind]}`)
+      await loadOverview()
+    } catch {
+      toast.error("Impossible d'enregistrer l'enveloppe")
+    }
+  }
+
   const cards = (overview?.wrappers ?? []).filter((w) => w.kind !== "cto")
+  const suggestions = overview?.suggestions ?? []
   const years = Array.from({ length: 6 }, (_, i) => currentYear - i)
 
   return (
@@ -281,6 +299,25 @@ export default function Tax() {
 
       <section className="space-y-4">
         <h2 className="text-xl font-semibold">Plafonds et dates clés</h2>
+        {suggestions.length > 0 && (
+          <Card className="border-amber-200 bg-amber-50/50">
+            <CardContent className="space-y-3 p-4">
+              <p className="text-sm text-slate-700">
+                Ces comptes n'ont pas d'enveloppe fiscale : leurs plafonds et dates clés ne sont pas suivis.
+              </p>
+              {suggestions.map((s) => (
+                <div key={s.account_id} className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="text-sm">
+                    <span className="font-semibold">{s.account_name}</span> — enveloppe probable : {KIND_LABELS[s.kind]}
+                  </span>
+                  <Button size="sm" variant="outline" onClick={() => applySuggestion(s)}>
+                    Suivre comme {KIND_LABELS[s.kind]}
+                  </Button>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        )}
         {loadingOverview ? (
           <div className="grid gap-4 md:grid-cols-2">
             <Skeleton className="h-44" />

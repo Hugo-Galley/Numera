@@ -49,7 +49,7 @@ export function DashboardHeader({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Tous les comptes</SelectItem>
-            {accounts.map((acc) => (
+            {accounts.filter((acc) => acc.active).map((acc) => (
               <SelectItem key={acc.id} value={String(acc.id)}>{acc.name}</SelectItem>
             ))}
           </SelectContent>

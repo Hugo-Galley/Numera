@@ -10,6 +10,7 @@ import type { MonthReview } from "@/types/monthReview"
 interface CategoryOption {
   id: number
   name: string
+  type?: string
 }
 
 export function CategorizeStep({
@@ -22,7 +23,10 @@ export function CategorizeStep({
   const [categories, setCategories] = useState<CategoryOption[]>([])
 
   useEffect(() => {
-    api.get<CategoryOption[]>("/categories").then(setCategories).catch(() => setCategories([]))
+    // L'étape ne traite que des dépenses : pas de Salaire ni de Dividendes dans la liste
+    api.get<CategoryOption[]>("/categories")
+      .then((all) => setCategories(all.filter((c) => c.type !== "revenu")))
+      .catch(() => setCategories([]))
   }, [])
 
   async function assign(id: number, categoryId: string) {
