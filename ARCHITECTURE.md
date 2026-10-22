@@ -66,7 +66,7 @@ docker-compose.prod.yml, Makefile, setup.sh, install.sh
 
 ### Modules API
 
-- `auth.py`: login OAuth2 password et génération JWT ; `GET /auth/whoami` (validation des identifiants, utilisé par le serveur MCP).
+- `auth.py`: login OAuth2 password et génération JWT ; `POST /auth/refresh` (renouvellement glissant d'un jeton de session valide, durée totale bornée par `SESSION_MAX_HOURS` via le claim `auth_time`, refusé aux jetons MCP) ; `GET /auth/whoami` (validation des identifiants, utilisé par le serveur MCP).
 - `accounts.py`: CRUD comptes, suppression logique par `active=False`.
 - `categories.py`: CRUD catégories avec limites mensuelles/annuelles.
 - `transactions.py`: CRUD transactions, recherche marchands, bulk update, suppression groupée (`POST /transactions/bulk-delete`, une seule transaction SQL puis un recalcul par compte), recalcul soldes.

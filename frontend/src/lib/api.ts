@@ -1,3 +1,5 @@
+import { getTokenExpiry } from "@/lib/utils"
+
 // Dev (vite, port 5173) : API directe sur :8001. Sinon (build servi par nginx, y compris sur
 // localhost:8082) : proxy /api. Se baser sur le hostname seul cassait la prod ouverte sur localhost.
 export const API_BASE = import.meta.env.DEV ? "http://localhost:8001" : "/api"
@@ -14,7 +16,34 @@ export class ApiError extends Error {
   }
 }
 
+// Renouvellement glissant : un jeton qui expire dans moins de 15 min est renouvelé au prochain appel.
+// L'inactivité reste bornée par l'expiration du jeton, la session entière par SESSION_MAX_HOURS (backend).
+const REFRESH_MARGIN_MS = 15 * 60 * 1000
+export const TOKEN_REFRESHED_EVENT = "numera:token-refreshed"
+let pendingRefresh: Promise<void> | null = null
+
+async function refreshTokenIfNeeded(): Promise<void> {
+  const token = localStorage.getItem("token")
+  const expiry = token ? getTokenExpiry(token) : null
+  if (!token || !expiry || expiry <= Date.now() || expiry - Date.now() > REFRESH_MARGIN_MS) return
+  if (!pendingRefresh) {
+    pendingRefresh = fetch(`${API_BASE}/auth/refresh`, { method: "POST", headers: { Authorization: `Bearer ${token}` } })
+      .then(async (response) => {
+        if (!response.ok) return  // session trop ancienne : le jeton expirera normalement
+        const { access_token } = await response.json()
+        localStorage.setItem("token", access_token)
+        window.dispatchEvent(new CustomEvent(TOKEN_REFRESHED_EVENT, { detail: access_token }))
+      })
+      .catch(() => {})
+      .finally(() => {
+        pendingRefresh = null
+      })
+  }
+  await pendingRefresh
+}
+
 async function request(endpoint: string, options?: RequestInit): Promise<Response> {
+  if (!endpoint.startsWith("/auth/")) await refreshTokenIfNeeded()
   const token = localStorage.getItem("token")
   // Pour FormData, le navigateur fixe lui-même Content-Type (boundary multipart)
   const isFormData = typeof FormData !== "undefined" && options?.body instanceof FormData

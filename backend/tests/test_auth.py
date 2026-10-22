@@ -156,3 +156,45 @@ def test_profile_update_without_credential_change_needs_no_current_password(real
     response = real_auth_client.put("/admin/profile", json={"mcp_enabled": False}, headers=headers)
     assert response.status_code == 200
     assert response.json()["mcp_enabled"] is False
+
+
+# ─── Renouvellement de session ──────────────────────────────────────────────
+
+def test_refresh_extends_an_active_session_and_keeps_the_login_time(real_auth_client: TestClient):
+    """L'interface déconnectait toutes les heures, même en pleine saisie."""
+    import time
+
+    token = _login(real_auth_client)
+    first = security.jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+    time.sleep(1)
+
+    response = real_auth_client.post("/auth/refresh", headers={"Authorization": f"Bearer {token}"})
+    assert response.status_code == 200
+    renewed = response.json()["access_token"]
+    second = security.jwt.decode(renewed, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+    assert second["exp"] > first["exp"]
+    assert second["auth_time"] == first["auth_time"]
+    assert real_auth_client.get("/accounts", headers={"Authorization": f"Bearer {renewed}"}).status_code == 200
+
+
+def test_refresh_is_refused_after_the_maximum_session_length(real_auth_client: TestClient):
+    import time
+
+    login_long_ago = int(time.time()) - (settings.SESSION_MAX_HOURS * 3600 + 60)
+    old = security.create_access_token(settings.ADMIN_USERNAME, auth_time=login_long_ago)
+    response = real_auth_client.post("/auth/refresh", headers={"Authorization": f"Bearer {old}"})
+    assert response.status_code == 401
+
+
+def test_refresh_needs_a_valid_session_token(real_auth_client: TestClient):
+    from datetime import timedelta
+
+    expired = security.create_access_token(settings.ADMIN_USERNAME, expires_delta=timedelta(minutes=-1))
+    assert real_auth_client.post("/auth/refresh", headers={"Authorization": f"Bearer {expired}"}).status_code == 401
+    assert real_auth_client.post("/auth/refresh").status_code == 401
+
+
+def test_refresh_is_refused_to_mcp_tokens(client: TestClient):
+    token = client.post("/admin/mcp-tokens", json={"name": "Claude"}).json()["token"]
+    response = client.post("/auth/refresh", headers={"Authorization": f"Bearer {token}"})
+    assert response.status_code == 403

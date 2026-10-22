@@ -1,8 +1,10 @@
+import time
 from datetime import timedelta
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordRequestForm
+import jwt
 from sqlalchemy.orm import Session
 
 from app.core import security
@@ -10,7 +12,7 @@ from app.core.config import settings
 from app.core.mcp_tokens import is_mcp_token
 from app.core.logging import get_logger
 from app.core.login_rate_limit import LoginRateLimiter
-from app.api.deps import get_current_user, optional_oauth2
+from app.api.deps import get_current_user, optional_oauth2, require_interactive_session
 from app.db.session import get_db
 from app.db.system_settings import get_setting
 
@@ -84,3 +86,27 @@ def whoami(
 ) -> dict[str, str]:
     """Valide les identifiants présentés (utilisé par le serveur MCP pour filtrer les clients)."""
     return {"username": username, "auth": "mcp_token" if is_mcp_token(token) else "session"}
+
+
+@router.post("/refresh", dependencies=[Depends(require_interactive_session)])
+def refresh_access_token(
+    username: str = Depends(get_current_user),
+    token: str | None = Depends(optional_oauth2),
+) -> Any:
+    """Renouvelle un jeton de session encore valide (l'interface l'appelle quand il expire bientôt).
+
+    La durée d'inactivité reste bornée par l'expiration du jeton ; la durée totale de la session l'est
+    par `SESSION_MAX_HOURS` depuis la connexion par mot de passe (`auth_time`). Jamais pour un jeton MCP.
+    """
+    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+    auth_time = int(payload.get("auth_time") or time.time())
+    if time.time() - auth_time > settings.SESSION_MAX_HOURS * 3600:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Session expirée, reconnectez-vous",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    return {
+        "access_token": security.create_access_token(username, auth_time=auth_time),
+        "token_type": "bearer",
+    }

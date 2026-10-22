@@ -24,6 +24,7 @@ class Settings(BaseSettings):
     SECRET_KEY: str = "placeholder-key-to-be-replaced-in-env"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60  # 1 hour
+    SESSION_MAX_HOURS: int = 12  # au-delà, /auth/refresh refuse : nouvelle connexion par mot de passe
     ADMIN_USERNAME: str = "admin"
     # To generate a hash: python scripts/change_password.py your-password
     ADMIN_PASSWORD_HASH: str = "placeholder-hash-to-be-replaced-in-env"

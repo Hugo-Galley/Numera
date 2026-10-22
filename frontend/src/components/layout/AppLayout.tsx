@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { Suspense, useState } from "react"
 import { Outlet } from "react-router-dom"
 import { Sidebar } from "./Sidebar"
 import { Omnibox } from "./Omnibox"
@@ -7,6 +7,7 @@ import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescri
 import { Button } from "@/components/ui/button"
 import { Menu, CreditCard } from "lucide-react"
 import { WorkTimeProvider } from "@/providers/WorkTimeProvider"
+import { PageLoader } from "./PageLoader"
 
 export function AppLayout() {
   const [open, setOpen] = useState(false)
@@ -43,7 +44,10 @@ export function AppLayout() {
         {/* Main Content */}
         <main className="flex-1 overflow-y-auto">
           <div className="container mx-auto p-4 md:p-8 max-w-7xl">
-            <Outlet />
+            {/* Le menu reste affiché pendant le chargement d'une page */}
+            <Suspense fallback={<PageLoader />}>
+              <Outlet />
+            </Suspense>
           </div>
         </main>
         <Omnibox />

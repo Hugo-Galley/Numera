@@ -27,7 +27,7 @@ Le backend de Numera est conçu selon le principe **Local-First & Privacy**. Il 
 1. **FastAPI & Pydantic v2** : Offrent des performances exceptionnelles (grâce au cœur de validation de Pydantic v2 écrit en Rust) et un typage fort. La génération automatique de la documentation interactive Swagger UI (`/docs`) et ReDoc (`/redoc`) facilite grandement l'intégration avec le frontend.
 2. **SQLite** : Parfaitement adapté au modèle **mono-utilisateur** (Single Admin). SQLite élimine le besoin d'installer, configurer et administrer un serveur de base de données complet comme PostgreSQL ou MySQL. Cela garantit une empreinte système minimale et un respect total de la vie privée (les données restent sur la machine de l'utilisateur).
 3. **SQLAlchemy 2.0 & Alembic** : Permettent de modéliser proprement les relations complexes (par exemple, le chaînage des virements internes, les liaisons de transactions récurrentes) tout en conservant une flexibilité totale de migration de schéma lors des mises à jour applicatives.
-4. **Authentification JWT simple** : Conforme au modèle de déploiement privé, l'application utilise un unique compte d'administration avec une validité de jeton d'une heure.
+4. **Authentification JWT simple** : Conforme au modèle de déploiement privé, l'application utilise un unique compte d'administration ; le jeton expire après une heure d'inactivité (renouvelé pendant l'utilisation, session bornée à 12 h).
 
 ---
 

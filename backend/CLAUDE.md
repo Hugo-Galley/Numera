@@ -40,7 +40,7 @@ Complète le `CLAUDE.md` racine. Procédures pas-à-pas : skill `numera-backend`
 - `POST /auth/token` protégé par `LoginRateLimiter` (`core/login_rate_limit.py`, 5 tentatives / 15 min par défaut).
 - `config.py` refuse une `SECRET_KEY` placeholder ou < 32 caractères dans **tous** les environnements sauf `test` ; en `APP_ENV=prod` il refuse aussi hash admin placeholder et CORS `*`.
 - Changer l'identifiant ou le mot de passe via `PUT /admin/profile` exige `current_password` (400 sinon, jamais 401/403 : le client API déconnecte sur ces codes) ; mot de passe ≥ 8 caractères.
-- JWT : PyJWT (`jwt`), HS256.
+- JWT : PyJWT (`jwt`), HS256. `POST /auth/refresh` renouvelle un jeton de session encore valide (jamais un jeton MCP) en gardant `auth_time` ; refusé (401) au-delà de `SESSION_MAX_HOURS` (12 h) depuis la connexion. Le front l'appelle quand il reste moins de 15 min (`lib/api.ts`).
 - Ne jamais commiter `*.db` (ignorés par `.gitignore`).
 
 ## Tests

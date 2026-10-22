@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react"
 import { isTokenExpired } from "@/lib/utils"
-import { API_BASE } from "@/lib/api"
+import { API_BASE, TOKEN_REFRESHED_EVENT } from "@/lib/api"
 
 interface UserProfile {
   username: string
@@ -70,6 +70,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setProfile(null)
     }
   }, [token])
+
+  // Jeton renouvelé par lib/api : sans cette synchro, la vérification périodique ci-dessous
+  // déconnecterait sur l'ancien jeton
+  useEffect(() => {
+    const onRefreshed = (event: Event) => setToken((event as CustomEvent<string>).detail)
+    window.addEventListener(TOKEN_REFRESHED_EVENT, onRefreshed)
+    return () => window.removeEventListener(TOKEN_REFRESHED_EVENT, onRefreshed)
+  }, [])
 
   useEffect(() => {
     // Vérifier l'expiration périodiquement (optionnel mais utile si l'onglet reste ouvert)

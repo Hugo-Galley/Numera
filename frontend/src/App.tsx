@@ -1,26 +1,30 @@
+import { lazy, Suspense } from "react"
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
 import { AppLayout } from "@/components/layout/AppLayout"
-import Dashboard from "@/pages/Dashboard"
-import Accounts from "@/pages/Accounts"
-import AccountDetail from "@/pages/AccountDetail"
-import Investments from "@/pages/Investments"
-import Settings from "@/pages/Settings"
-import Savings from "@/pages/Savings"
-import Comparison from "@/pages/Comparison"
-import IntelligentReport from "@/pages/MonthlyReport"
-import Calendar from "@/pages/Calendar"
-import RecurringTransactions from "@/pages/RecurringTransactions"
-import Reimbursements from "@/pages/Reimbursements"
-import MonthReview from "@/pages/MonthReview"
-import Wrapped from "@/pages/Wrapped"
-import Login from "@/pages/Login"
-import Audit from "@/pages/Audit"
-import Tools from "@/pages/Tools"
-import Tax from "@/pages/Tax"
 import { UIProvider } from "@/providers/UIProvider"
 import { AuthProvider } from "@/providers/AuthProvider"
 import { ConfirmProvider } from "@/providers/ConfirmProvider"
 import { ProtectedRoute } from "@/components/layout/ProtectedRoute"
+import { PageLoader } from "@/components/layout/PageLoader"
+
+// Une page = un fichier JS chargé à la demande (le bundle unique pesait 1,7 Mo)
+const Dashboard = lazy(() => import("@/pages/Dashboard"))
+const Accounts = lazy(() => import("@/pages/Accounts"))
+const AccountDetail = lazy(() => import("@/pages/AccountDetail"))
+const Investments = lazy(() => import("@/pages/Investments"))
+const Settings = lazy(() => import("@/pages/Settings"))
+const Savings = lazy(() => import("@/pages/Savings"))
+const Comparison = lazy(() => import("@/pages/Comparison"))
+const IntelligentReport = lazy(() => import("@/pages/MonthlyReport"))
+const Calendar = lazy(() => import("@/pages/Calendar"))
+const RecurringTransactions = lazy(() => import("@/pages/RecurringTransactions"))
+const Reimbursements = lazy(() => import("@/pages/Reimbursements"))
+const MonthReview = lazy(() => import("@/pages/MonthReview"))
+const Wrapped = lazy(() => import("@/pages/Wrapped"))
+const Login = lazy(() => import("@/pages/Login"))
+const Audit = lazy(() => import("@/pages/Audit"))
+const Tools = lazy(() => import("@/pages/Tools"))
+const Tax = lazy(() => import("@/pages/Tax"))
 
 export function App() {
   return (
@@ -28,6 +32,7 @@ export function App() {
       <AuthProvider>
         <ConfirmProvider>
         <BrowserRouter>
+          <Suspense fallback={<PageLoader />}>
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route
@@ -56,6 +61,7 @@ export function App() {
               <Route path="*" element={<Navigate to="/" replace />} />
             </Route>
           </Routes>
+          </Suspense>
         </BrowserRouter>
         </ConfirmProvider>
       </AuthProvider>
