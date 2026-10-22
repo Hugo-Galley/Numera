@@ -638,6 +638,41 @@ def get_monthly_report(month: int | None = None, year: int | None = None) -> str
         return f"❌ Erreur : {e}"
 
 
+def _current_budget_month() -> tuple[int, int]:
+    """(année, mois) du mois budgétaire en cours ; mois civil si l'API ne répond pas."""
+    try:
+        resp = api.get("/analytics/budget-period")
+        if resp.status_code == 200:
+            current = resp.json()["current"]
+            return current["year"], current["month"]
+    except Exception:
+        pass
+    today = date.today()
+    return today.year, today.month
+
+
+@mcp.tool()
+def get_budget_period(month: int | None = None, year: int | None = None) -> str:
+    """Découpage des mois : mode (mois de paie ou mois civil), mois en cours et fenêtre de dates.
+
+    En mode « salary », chaque salaire reçu ouvre un mois qui porte le nom du mois qu'il finance
+    (salaire du 25 août = septembre) ; tous les outils mensuels lisent ce découpage.
+
+    Args:
+        month: Mois (1-12, défaut : mois en cours)
+        year: Année (défaut : année du mois en cours)
+    """
+    try:
+        params = {k: v for k, v in {"month": month, "year": year}.items() if v is not None}
+        resp = api.get("/analytics/budget-period", params=params)
+        error = handle_response(resp)
+        if error:
+            return error
+        return f"🗓️ Découpage des mois :\n\n{serialize(resp.json())}"
+    except Exception as e:
+        return f"❌ Erreur : {e}"
+
+
 @mcp.tool()
 def get_resilience(month: int | None = None, year: int | None = None) -> str:
     """Mois d'autonomie : épargne liquide ÷ dépenses réelles moyennes des 6 derniers mois complets.
@@ -647,8 +682,8 @@ def get_resilience(month: int | None = None, year: int | None = None) -> str:
         year: Année de référence (défaut : année en cours)
     """
     try:
-        today = date.today()
-        params = {"month": month or today.month, "year": year or today.year}
+        current_year, current_month = _current_budget_month()
+        params = {"month": month or current_month, "year": year or current_year}
         resp = api.get("/analytics/resilience", params=params)
         error = handle_response(resp)
         if error:
@@ -664,12 +699,12 @@ def get_month_review(month: int | None = None, year: int | None = None) -> str:
     comparaison au budget avec et sans dépenses exceptionnelles, et statut de clôture.
 
     Args:
-        month: Mois (1-12, optionnel, défaut: mois précédent)
+        month: Mois (1-12, optionnel, défaut: mois budgétaire précédent)
         year: Année (optionnel, défaut: année du mois précédent)
     """
     try:
-        now = datetime.now()
-        default_year, default_month = (now.year - 1, 12) if now.month == 1 else (now.year, now.month - 1)
+        current_year, current_month = _current_budget_month()
+        default_year, default_month = (current_year - 1, 12) if current_month == 1 else (current_year, current_month - 1)
         params = {
             "month": month if month is not None else default_month,
             "year": year if year is not None else default_year,
