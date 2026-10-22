@@ -242,6 +242,7 @@ import { DividendsCard } from "@/components/investments/DividendsCard"
 import { PortfolioSummary } from "@/components/investments/PortfolioSummary"
 import { SecuritySearchInput } from "@/components/investments/SecuritySearchInput"
 import { PortfolioHolding } from "@/types/diversity"
+import { useConfirm } from "@/providers/ConfirmProvider"
 
 type Account = {
   balance?: number
@@ -252,6 +253,7 @@ type Account = {
   fonds_euros_pct?: number
   fonds_investis_pct?: number
   valuation_mode?: "positions" | "snapshot"
+  last_verified_at?: string
 }
 
 type Category = {
@@ -314,6 +316,7 @@ const getMerchantIcon = (merchantName: string) => {
 const TX_PAGE_SIZE = 200
 
 export default function AccountDetail() {
+  const confirm = useConfirm()
   const { id } = useParams<{ id: string }>()
   
   // -- Data State --
@@ -748,7 +751,7 @@ export default function AccountDetail() {
   }
 
   const handleDeleteTransaction = async (txId: number) => {
-    if (!confirm("Supprimer cette transaction ?")) return
+    if (!(await confirm("Supprimer cette transaction ?"))) return
     try {
       await api.delete(`/transactions/${txId}`)
       toast.success("Transaction supprimée")
@@ -864,7 +867,7 @@ export default function AccountDetail() {
   }
 
   const handleDeleteInvTransaction = async (txId: number) => {
-    if (!confirm("Supprimer ce flux ?")) return
+    if (!(await confirm("Supprimer ce flux ?"))) return
     try {
       await api.delete(`/investment-transactions/${txId}`)
       toast.success("Flux supprimé")
@@ -918,7 +921,7 @@ export default function AccountDetail() {
   }
 
   const handleDeleteSnapshot = async (snapId: number) => {
-    if (!confirm("Supprimer ce snapshot ?")) return
+    if (!(await confirm("Supprimer ce snapshot ?"))) return
     try {
       await api.delete(`/balance-snapshots/${snapId}`)
       toast.success("Snapshot supprimé")
@@ -1623,9 +1626,9 @@ export default function AccountDetail() {
         </div>
       </div>
 
-      {/* Account KPIs */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="border-none shadow-md bg-slate-900 text-white">
+      {/* Account KPIs : 2 colonnes compactes sur mobile pour que la liste ne soit pas repoussée de deux écrans */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 max-sm:[&_.text-2xl]:text-lg max-sm:[&_p.text-xs]:hidden">
+        <Card className="col-span-2 lg:col-span-1 border-none shadow-md bg-slate-900 text-white">
           <CardHeader className="pb-2">
             <CardDescription className="text-slate-400 font-medium">Solde Actuel</CardDescription>
             <CardTitle className="text-3xl font-bold">{formatCurrency(currentBalance || 0)}</CardTitle>
@@ -1633,7 +1636,12 @@ export default function AccountDetail() {
           <CardContent>
             <div className="flex items-center gap-2 text-xs text-slate-400 mt-2">
               <TrendingUp className="h-3 w-3" />
-              <span>Dernière mise à jour aujourd'hui</span>
+              {/* Date de la dernière validation explicite du solde (et non « aujourd'hui » codé en dur) */}
+              <span>
+                {account.last_verified_at
+                  ? `Solde vérifié le ${new Date(account.last_verified_at).toLocaleDateString("fr-FR")}`
+                  : "Solde jamais vérifié"}
+              </span>
             </div>
           </CardContent>
         </Card>
@@ -2365,7 +2373,7 @@ export default function AccountDetail() {
               variant="ghost" 
               className="text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 gap-2"
               onClick={async () => {
-                if (confirm(`Supprimer ${selectedIds.length} transactions ?`)) {
+                if (await confirm(`Supprimer ${selectedIds.length} transactions ?`)) {
                   try {
                     await api.post("/transactions/bulk-delete", { ids: selectedIds })
                     toast.success(`${selectedIds.length} transactions supprimées`)

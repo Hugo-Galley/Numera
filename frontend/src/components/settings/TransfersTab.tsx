@@ -42,6 +42,7 @@ import type {
   TransferApplyResult,
   TransferRule,
 } from "@/types/transfers"
+import { useConfirm } from "@/providers/ConfirmProvider"
 
 const ORIGIN_LABEL: Record<string, string> = { manual: "Manuel", rule: "Règle", recurring: "Récurrence" }
 
@@ -58,6 +59,7 @@ function suggestionsQuery(search: typeof DEFAULT_SEARCH) {
 }
 
 export function TransfersTab() {
+  const confirm = useConfirm()
   const [rules, setRules] = useState<TransferRule[]>([])
   const [potentials, setPotentials] = useState<PotentialTransfer[]>([])
   const [linked, setLinked] = useState<LinkedTransfer[]>([])
@@ -170,7 +172,7 @@ export function TransfersTab() {
   }
 
   async function deleteRule(rule: TransferRule) {
-    if (!confirm("Supprimer cette règle ? Les virements déjà liés restent liés.")) return
+    if (!(await confirm("Supprimer cette règle ? Les virements déjà liés restent liés."))) return
     try {
       await api.delete(`/transfer-rules/${rule.id}`)
       toast.success("Règle supprimée")
@@ -225,7 +227,7 @@ export function TransfersTab() {
   }
 
   async function handleUnlink(id: number) {
-    if (!confirm("Voulez-vous délier ces transactions ?")) return
+    if (!(await confirm("Voulez-vous délier ces transactions ?", { title: "Délier le virement", confirmLabel: "Délier", destructive: false }))) return
     try {
       await api.post(`/transactions/${id}/unlink`, {})
       toast.success("Transactions déliées")

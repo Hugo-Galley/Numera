@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label"
 import { api, ApiError } from "@/lib/api"
 import { formatCurrency } from "@/lib/utils"
 import type { Claim, EntryClaims, ReimbursableTransaction } from "@/types/reimbursements"
+import { useConfirm } from "@/providers/ConfirmProvider"
 
 interface Props {
   open: boolean
@@ -22,6 +23,7 @@ const parseAmount = (value: string) => parseFloat(value.replace(",", "."))
 const errorMessage = (e: unknown, fallback: string) => (e instanceof ApiError && e.message ? e.message : fallback)
 
 export function ReimbursementDialog({ open, onOpenChange, transaction, onDone }: Props) {
+  const confirm = useConfirm()
   const [claims, setClaims] = useState<Claim[]>([])
   const [entry, setEntry] = useState<EntryClaims | null>(null)
   const [debtor, setDebtor] = useState("")
@@ -101,7 +103,7 @@ export function ReimbursementDialog({ open, onOpenChange, transaction, onDone }:
   }
 
   async function handleDeleteClaim(claim: Claim) {
-    if (!confirm(`Supprimer la créance de ${claim.debtor} ?`)) return
+    if (!(await confirm(`Supprimer la créance de ${claim.debtor} ?`))) return
     try {
       await api.delete(`/reimbursements/claims/${claim.id}`)
       toast.success("Créance supprimée")

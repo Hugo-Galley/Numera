@@ -32,9 +32,11 @@ const formatCurrencyShort = (value: number, currency: string) => {
 };
 
 const CustomNode = (props: any) => {
-  const { x, y, width, height, index, payload, containerWidth, currency } = props;
-  const isOut = x + width + 40 > containerWidth;
-  
+  const { x, y, width, height, index, payload, currency } = props;
+  // Libellés toujours à droite du nœud : ceux de la dernière colonne tombent dans la marge droite.
+  // (Les écrire à gauche les faisait chevaucher ceux de la colonne précédente.)
+  const isOut = false;
+
   return (
     <Layer key={`node-${index}`}>
       <Rectangle
@@ -98,7 +100,7 @@ const CustomLink = (props: any) => {
 export function SankeyFlow({ data, currency = "EUR" }: SankeyFlowProps) {
   if (!data || !data.nodes || data.nodes.length === 0 || data.links.length === 0) {
     return (
-      <div className="flex items-center justify-center h-full text-slate-400">
+      <div className="flex items-center justify-center h-[200px] text-slate-400">
         Pas assez de données pour générer le diagramme de flux.
       </div>
     );
@@ -111,16 +113,21 @@ export function SankeyFlow({ data, currency = "EUR" }: SankeyFlowProps) {
     }).format(value);
   };
 
+  // Hauteur selon la colonne la plus chargée (les feuilles) : ~36 px par libellé de deux lignes
+  const sources = new Set(data.links.map((l) => l.source))
+  const leaves = data.nodes.filter((_, i) => !sources.has(i)).length
+  const height = Math.max(400, leaves * 36 + 60)
+
   return (
-    <div className="h-full w-full bg-white border border-slate-200 rounded-sm overflow-hidden">
+    <div className="w-full bg-white border border-slate-200 rounded-sm overflow-hidden" style={{ height }}>
       <ResponsiveContainer width="100%" height="100%">
         <Sankey
           data={data}
           node={<CustomNode currency={currency} />}
           link={<CustomLink />}
           nodeWidth={4}
-          nodePadding={40}
-          margin={{ top: 20, right: 100, bottom: 20, left: 100 }}
+          nodePadding={28}
+          margin={{ top: 20, right: 150, bottom: 20, left: 20 }}
         >
           <Tooltip
             isAnimationActive={false}

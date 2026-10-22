@@ -31,3 +31,17 @@ export function isTokenExpired(token: string | null): boolean {
     return true
   }
 }
+
+const FREQUENCY_LABELS: Record<string, string> = {
+  weekly: "Hebdomadaire",
+  monthly: "Mensuelle",
+  quarterly: "Trimestrielle",
+  yearly: "Annuelle",
+  annual: "Annuelle",
+  "monthly (detected)": "Mensuelle (détectée)",
+}
+
+/** Libellé français d'une fréquence renvoyée par l'API (`monthly`, `yearly`…). */
+export function frequencyLabel(frequency: string): string {
+  return FREQUENCY_LABELS[frequency] ?? frequency
+}

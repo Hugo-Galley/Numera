@@ -80,10 +80,11 @@ import { Calendar } from "@/components/ui/calendar"
 import { toast } from "sonner"
 import { format } from "date-fns"
 import { fr } from "date-fns/locale"
-import { cn } from "@/lib/utils"
+import { cn, frequencyLabel } from "@/lib/utils"
 import { COUNTRIES } from "@/lib/countries"
 import { SalaryManager } from "@/components/tools/SalaryManager"
 import { LogoPicker } from "@/components/ui/LogoPicker"
+import { useConfirm } from "@/providers/ConfirmProvider"
 
 type Category = {
   id: number
@@ -129,6 +130,7 @@ type RecurringTransaction = {
 }
 
 export default function RecurringTransactions() {
+  const confirm = useConfirm()
   const [recurringTxs, setRecurringTxs] = useState<RecurringTransaction[]>([])
   const [accounts, setAccounts] = useState<Account[]>([])
   const [categories, setCategories] = useState<Category[]>([])
@@ -346,7 +348,7 @@ export default function RecurringTransactions() {
   }
 
   const handleDelete = async (id: number) => {
-    if (!confirm("Êtes-vous sûr de vouloir supprimer cette récurrence ?")) return
+    if (!(await confirm("Êtes-vous sûr de vouloir supprimer cette récurrence ?"))) return
     try {
       await api.delete(`/recurring-transactions/${id}`)
       toast.success("Transaction récurrente supprimée")
@@ -416,7 +418,7 @@ export default function RecurringTransactions() {
   }
 
   const handleIgnoreDetection = async (potential: any) => {
-    if (!confirm(`Ne plus suggérer "${potential.name}" (${formatCurrency(potential.amount)}) comme abonnement ?`)) return
+    if (!(await confirm(`Ne plus suggérer "${potential.name}" (${formatCurrency(potential.amount)}) comme abonnement ?`, { title: "Ignorer la suggestion", confirmLabel: "Ne plus suggérer", destructive: false }))) return
     try {
       await api.post("/analytics/subscriptions/ignore", {
         merchant: potential.name,
@@ -575,7 +577,7 @@ export default function RecurringTransactions() {
                           {tx.amount.toLocaleString("fr-FR", { style: "currency", currency: tx.currency })}
                         </TableCell>
                         <TableCell>
-                          <div className="text-sm font-medium capitalize text-slate-700">{tx.frequency}</div>
+                          <div className="text-sm font-medium text-slate-700">{frequencyLabel(tx.frequency)}</div>
                           <div className="text-[10px] text-slate-400 font-bold">JOUR {tx.day_of_month}</div>
                           {tx.excluded_months && tx.excluded_months.length > 0 && (
                             <div className="mt-1">
@@ -732,7 +734,7 @@ export default function RecurringTransactions() {
                                 <div className="flex items-center gap-2 mt-0.5">
                                   <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">{sub.category_name}</span>
                                   <span className="text-slate-300">•</span>
-                                  <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">{sub.frequency}</span>
+                                  <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">{frequencyLabel(sub.frequency)}</span>
                                 </div>
                               </div>
                             </div>

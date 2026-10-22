@@ -12,8 +12,10 @@ import { api, ApiError } from "@/lib/api"
 import { formatCurrency } from "@/lib/utils"
 import type { Claim, ReimbursementSummary } from "@/types/reimbursements"
 import type { AccountLite } from "@/types/transfers"
+import { useConfirm } from "@/providers/ConfirmProvider"
 
 export default function Reimbursements() {
+  const confirm = useConfirm()
   const [status, setStatus] = useState<"open" | "settled">("open")
   const [debtor, setDebtor] = useState<string | null>(null)
   const [claims, setClaims] = useState<Claim[]>([])
@@ -66,7 +68,7 @@ export default function Reimbursements() {
   }
 
   async function remove(claim: Claim) {
-    if (!confirm(`Supprimer la créance de ${claim.debtor} ? La dépense redevient entièrement à votre charge.`)) return
+    if (!(await confirm(`Supprimer la créance de ${claim.debtor} ? La dépense redevient entièrement à votre charge.`))) return
     try {
       await api.delete(`/reimbursements/claims/${claim.id}`)
       toast.success("Créance supprimée")

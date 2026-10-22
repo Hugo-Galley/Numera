@@ -34,6 +34,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { useConfirm } from "@/providers/ConfirmProvider"
 
 type MerchantAlias = {
   id: number
@@ -75,6 +76,7 @@ const COLOR_OPTIONS = [
 ]
 
 export function MerchantsTab() {
+  const confirm = useConfirm()
   const [merchants, setMerchants] = useState<Merchant[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [suggestions, setSuggestions] = useState<Suggestion[]>([])
@@ -165,7 +167,7 @@ export function MerchantsTab() {
   }
 
   const handleDeleteMerchant = async (id: number) => {
-    if (!confirm("Supprimer ce marchand canonique ?")) return
+    if (!(await confirm("Supprimer ce marchand canonique ?"))) return
     try {
       await api.delete(`/merchants/${id}`)
       toast.success("Marchand supprimé")

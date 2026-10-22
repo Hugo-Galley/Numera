@@ -20,6 +20,7 @@ import { toast } from "sonner"
 import { CompanyLogo } from "@/components/ui/CompanyLogo"
 import { cn } from "@/lib/utils"
 import { useUI } from "@/providers/UIProvider"
+import { useConfirm } from "@/providers/ConfirmProvider"
 
 type TypeFilter = "all" | "action" | "etf"
 type PerfFilter = "all" | "gain" | "loss"
@@ -39,6 +40,7 @@ export function HoldingsTable({
   onRefresh,
   onAddDividend,
 }: HoldingsTableProps) {
+  const confirm = useConfirm()
   const [pointZeroOpen, setPointZeroOpen] = useState(false)
   const [costEstimateOpen, setCostEstimateOpen] = useState(false)
   const [editingCostId, setEditingCostId] = useState<number | null>(null)
@@ -106,7 +108,7 @@ export function HoldingsTable({
   const totalValue = filteredHoldings.reduce((acc, h) => acc + (h.current_value_eur || 0), 0)
 
   const handleDelete = async (holdingId: number, name: string) => {
-    if (!confirm(`Supprimer la position sur ${name} ?`)) return
+    if (!(await confirm(`Supprimer la position sur ${name} ?`))) return
     try {
       await api.delete(`/holdings/${holdingId}`)
       toast.success("Position supprimée")

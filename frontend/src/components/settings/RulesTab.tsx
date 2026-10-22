@@ -39,8 +39,10 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { toast } from "sonner"
+import { useConfirm } from "@/providers/ConfirmProvider"
 
 export function RulesTab() {
+  const confirm = useConfirm()
   const [rules, setRules] = useState<any[]>([])
   const [categories, setCategories] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -97,7 +99,7 @@ export function RulesTab() {
   }
 
   async function handleDelete(id: number) {
-    if (!confirm("Supprimer cette règle ?")) return
+    if (!(await confirm("Supprimer cette règle ?"))) return
     try {
       await api.delete(`/categorization-rules/${id}`)
       toast.success("Règle supprimée")

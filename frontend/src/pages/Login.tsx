@@ -55,7 +55,7 @@ export default function Login() {
     <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
       <Card className="w-full max-w-sm">
         <CardHeader className="space-y-1 text-center">
-          <CardTitle className="text-2xl font-bold">Suivi Budget</CardTitle>
+          <CardTitle className="text-2xl font-bold">Numera</CardTitle>
           <p className="text-sm text-muted-foreground">
             Entrez vos identifiants pour vous connecter
           </p>

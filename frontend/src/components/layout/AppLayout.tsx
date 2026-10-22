@@ -33,7 +33,7 @@ export function AppLayout() {
               </SheetContent>
             </Sheet>
             <CreditCard className="h-6 w-6 mr-2" />
-            <span className="text-lg font-bold tracking-tight text-slate-900">Suivi Budget</span>
+            <span className="text-lg font-bold tracking-tight text-slate-900">Numera</span>
           </div>
         </header>
 

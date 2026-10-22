@@ -5,7 +5,7 @@ Complète le `CLAUDE.md` racine. Procédures : skill `numera-frontend`. Le front
 ## Structure
 
 - `App.tsx` : react-router v7. `/login` public ; le reste sous `ProtectedRoute` + `AppLayout` (Sidebar, Omnibox). Routes : `/`, `/accounts`, `/accounts/:id`, `/savings`, `/investments`, `/comparison`, `/report` (page `MonthlyReport.tsx`, composant `IntelligentReport`, sections dans `components/monthly-report/`), `/calendar`, `/recurring`, `/audit` (Centre d'Actions), `/month-review` (revue de fin de mois, `MonthReview.tsx` ; pop-up `components/month-review/MonthReviewPopup` sur le Dashboard), `/wrapped` (bilan annuel, `Wrapped.tsx` : récap + story plein écran `components/wrapped/WrappedStory`), `/tools`, `/tax` (Fiscalité), `/settings`. Route inconnue → `/`.
-- `providers/` : `AuthProvider` (token en `localStorage`, `useAuth()`), `UIProvider` (thème, mode confidentialité `isPrivacyMode`, état de l'omnibox).
+- `providers/` : `AuthProvider` (token en `localStorage`, `useAuth()`), `UIProvider` (thème, mode confidentialité `isPrivacyMode`, état de l'omnibox), `ConfirmProvider` (`useConfirm()`, boîte de confirmation).
 - `lib/api.ts` : `api.get/post/put/patch/delete` + `apiFetch`. Ajoute le Bearer ; sur `401` (ou `403` hors `/auth/token`) vide la session et redirige vers `/login`. `API_BASE` : `http://localhost:8001` sur `localhost`, sinon `/api` (reverse proxy nginx en prod → `backend:8001`). Erreurs levées en `ApiError(status, message, detail)`.
 - `types/` (un seul fichier : `diversity.ts`) et `hooks/` (vide) : les types d'API sont majoritairement définis localement dans les pages/composants.
 - `lib/utils.ts` : `formatCurrency(value, currency="EUR")` (locale `fr-FR`), `cn()`, `isTokenExpired()`.
@@ -19,6 +19,7 @@ Complète le `CLAUDE.md` racine. Procédures : skill `numera-frontend`. Le front
 - Récupération de données : dans la page, ou dans un hook dédié quand elle est lourde (`components/dashboard/useDashboardData.ts` charge tout le Dashboard avec un `safeLoad` par endpoint pour qu'un échec n'en bloque pas d'autres). Les sous-composants reçoivent des props.
 - TypeScript strict. Le code existant utilise encore `any` pour les réponses API ; dans du code nouveau, déclarer des types (`interface`) pour les payloads.
 - Montants : toujours `formatCurrency`. Tout montant sensible porte la classe **`amount-blur`** (définie dans `styles.css`, active quand `body.privacy-enabled`, se dévoile au survol). Ne pas utiliser `.amount-value` (n'existe pas).
+- Confirmation avant une action destructive : `const confirm = useConfirm()` (`providers/ConfirmProvider`) puis `if (!(await confirm("…"))) return` ; jamais `window.confirm()` / `alert()`.
 - Retours utilisateur : `toast.success` / `toast.error` (`sonner`) après chaque mutation ; `Skeleton` pendant le chargement ; état vide avec icône + action.
 - Icônes `lucide-react`. Graphiques `recharts` (palette Slate / Emerald / Rose / Amber ; tooltips et légendes obligatoires ; éléments cliquables pour drill-down quand une vue filtrée existe). Sankey/treemap dans `components/analytics`.
 - Formulaires : `react-hook-form` + `zod` (+ `@hookform/resolvers`) avec `components/ui/form`.

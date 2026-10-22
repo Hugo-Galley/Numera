@@ -61,6 +61,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
+import { useConfirm } from "@/providers/ConfirmProvider"
 
 const GOAL_COLORS = ["#3b82f6", "#10b981", "#8b5cf6", "#f59e0b", "#f43f5e", "#06b6d4", "#ec4899", "#64748b"]
 
@@ -72,6 +73,7 @@ interface Resilience {
 }
 
 export default function Savings() {
+  const confirm = useConfirm()
   const [analytics, setAnalytics] = useState<any>(null)
   const [resilience, setResilience] = useState<Resilience | null>(null)
   const [history, setHistory] = useState<any[]>([])
@@ -168,7 +170,7 @@ export default function Savings() {
   }
 
   const handleDeleteGoal = async (id: number) => {
-    if (!confirm("Supprimer cet objectif ?")) return
+    if (!(await confirm("Supprimer cet objectif ?"))) return
     try {
       await api.delete(`/goals/${id}`)
       toast.success("Objectif supprimé")

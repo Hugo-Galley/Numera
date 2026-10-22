@@ -226,7 +226,7 @@ export function OverviewTab({
           <CardTitle className="text-lg">Flux Financiers</CardTitle>
           <CardDescription>Visualisation des revenus vers les dépenses et l'épargne.</CardDescription>
         </CardHeader>
-        <CardContent className="p-6 h-[600px]">
+        <CardContent className="p-6">
           <SankeyFlow data={sankeyData} currency={displayCurrency} />
         </CardContent>
       </Card>

@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dialog"
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
+import { useConfirm } from "@/providers/ConfirmProvider"
 
 type TagType = {
   id: number
@@ -37,6 +38,7 @@ const COLOR_OPTIONS = [
 ]
 
 export function TagsTab() {
+  const confirm = useConfirm()
   const [tags, setTags] = useState<TagType[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -106,7 +108,7 @@ export function TagsTab() {
   }
 
   const handleDeleteTag = async (tagId: number) => {
-    if (!confirm("Supprimer ce tag ? Il sera retiré de toutes les transactions.")) return
+    if (!(await confirm("Supprimer ce tag ? Il sera retiré de toutes les transactions."))) return
     try {
       await api.delete(`/tags/${tagId}`)
       toast.success("Tag supprimé")

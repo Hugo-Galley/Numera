@@ -19,12 +19,14 @@ import Tools from "@/pages/Tools"
 import Tax from "@/pages/Tax"
 import { UIProvider } from "@/providers/UIProvider"
 import { AuthProvider } from "@/providers/AuthProvider"
+import { ConfirmProvider } from "@/providers/ConfirmProvider"
 import { ProtectedRoute } from "@/components/layout/ProtectedRoute"
 
 export function App() {
   return (
     <UIProvider>
       <AuthProvider>
+        <ConfirmProvider>
         <BrowserRouter>
           <Routes>
             <Route path="/login" element={<Login />} />
@@ -55,6 +57,7 @@ export function App() {
             </Route>
           </Routes>
         </BrowserRouter>
+        </ConfirmProvider>
       </AuthProvider>
     </UIProvider>
   )

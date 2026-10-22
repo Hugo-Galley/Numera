@@ -27,6 +27,7 @@ import { Input } from "@/components/ui/input"
 import { Progress } from "@/components/ui/progress"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { useConfirm } from "@/providers/ConfirmProvider"
 
 interface Category {
   id: number
@@ -139,6 +140,7 @@ function TransactionEditor({
   onSaved: (tx: Transaction) => void
   onDeleted?: (id: number) => void
 }) {
+  const confirm = useConfirm()
   const [draft, setDraft] = useState({
     date: toDateTimeLocal(tx.date),
     type: tx.type,
@@ -172,7 +174,7 @@ function TransactionEditor({
   }
 
   async function remove() {
-    if (!confirm("Supprimer cette transaction ?")) return
+    if (!(await confirm("Supprimer cette transaction ?"))) return
     setSaving(true)
     try {
       await api.delete(`/transactions/${tx.id}`)

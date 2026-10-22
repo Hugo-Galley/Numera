@@ -78,9 +78,10 @@ export function MonthReviewPopup() {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 capitalize">
+          <DialogTitle className="flex items-center gap-2">
             <ClipboardCheck className="h-5 w-5 text-emerald-600" />
-            {label} n'est pas encore clôturé
+            {/* `capitalize` mettait une majuscule à chaque mot : seul le mois en prend une */}
+            {label.charAt(0).toUpperCase() + label.slice(1)} n'est pas encore clôturé
           </DialogTitle>
           <DialogDescription>
             {points > 0

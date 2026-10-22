@@ -58,6 +58,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Switch } from "@/components/ui/switch"
 import { useUI } from "@/providers/UIProvider"
 import { ImportTab } from "@/components/settings/ImportTab"
+import { useConfirm } from "@/providers/ConfirmProvider"
 
 const COLOR_OPTIONS = [
   { name: "Emerald", value: "#10b981" },
@@ -91,6 +92,7 @@ type Account = {
 }
 
 export default function Settings() {
+  const confirm = useConfirm()
   const [searchParams] = useSearchParams()
   const { hideHoldingValues, setHideHoldingValues } = useUI()
   const defaultTab = searchParams.get("tab") || "categories"
@@ -213,7 +215,7 @@ export default function Settings() {
   }
 
   const handleDeleteCategory = async (categoryId: number) => {
-    if (!confirm("Supprimer cette catégorie ? Les transactions associées n'auront plus de catégorie.")) return
+    if (!(await confirm("Supprimer cette catégorie ? Les transactions associées n'auront plus de catégorie."))) return
     try {
       await api.delete(`/categories/${categoryId}`)
       toast.success("Catégorie supprimée")
