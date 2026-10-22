@@ -409,6 +409,7 @@ async def kpi_history(
     dep_map: dict[str, float] = {}
     inte_map: dict[str, float] = {}
     inv_map: dict[str, float] = {}
+    cat_inv_map: dict[str, float] = {}  # sorties catégorisées Investissement/Epargne (seules retranchées des dépenses)
 
     for row in tx_rows:
         m_lbl = row.m_label
@@ -474,6 +475,7 @@ async def kpi_history(
         m_lbl = row.m_label
         amount_eur = row.total / rates.get(row.currency, 1.0)
         inv_map[m_lbl] = inv_map.get(m_lbl, 0.0) + amount_eur
+        cat_inv_map[m_lbl] = cat_inv_map.get(m_lbl, 0.0) + amount_eur
 
     # 4. Batch query category-based interests (excluding type Interets to avoid double count)
     inte_cat_query = db.query(
@@ -532,7 +534,10 @@ async def kpi_history(
                 acc = savings_account_map.get(acc_id)
                 epargne_total += val / rates.get(acc.currency, 1.0) if acc else val
         
-        real_dep = dep - inv
+        # Comme budget_analytics : seules les sorties catégorisées sont retranchées, jamais les versements
+        # (un versement financé par une sortie du mois précédent rendait les dépenses réelles négatives)
+        # (vue d'un compte inchangée : les versements y sont les flux du compte, comme dans budget_analytics)
+        real_dep = dep - (inv if account_id else cat_inv_map.get(m_key, 0.0))
         results.append({
             "month": m,
             "year": y,
@@ -546,7 +551,7 @@ async def kpi_history(
             "epargne_flow": round(float(rev - real_dep), 2),
             "cash_flow": round(float(rev - dep), 2),
             # Même formule et mêmes bornes que budget_analytics ; None sans revenu (taux sans objet)
-            "taux_epargne": round(max(min((rev - real_dep) / rev * 100.0, 100.0), -100.0), 2) if rev > 0 else None,
+            "taux_epargne": round(max(min((rev - real_dep) / rev * 100.0, 100.0), -100.0), 2) if rev >= 1 else None,
         })
         
     return results

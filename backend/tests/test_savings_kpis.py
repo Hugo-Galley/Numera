@@ -89,3 +89,27 @@ def test_resilience_uses_complete_months_not_the_current_one(client, db_session)
     assert data["months_used"] == 3
     assert data["liquid_savings"] == pytest.approx(6000.0)
     assert data["months"] == pytest.approx(6.0)
+
+
+def test_kpi_history_rate_ignores_a_versement_funded_the_previous_month(client, db_session):
+    """Sortie le 29 du mois précédent, arrivée sur le PEA ce mois-ci : octobre affichait 100 % d'épargne."""
+    from app.core.transfers import link_pair
+
+    courant = _account(db_session, "Courant", "courant")
+    pea = _account(db_session, "PEA", "investissement")
+    invest = Category(name="Investissement", type="depense")
+    db_session.add(invest)
+    db_session.commit()
+    day = _month_start(0) + timedelta(days=1)
+    sortie = _tx(db_session, courant, "Sortie", 400.0, _month_start(0) - timedelta(days=2), "Alimentation PEA", invest)
+    versement = InvestmentTransaction(account_id=pea.id, date=day, type="versement", amount=400.0, currency="EUR", original_amount=400.0)
+    db_session.add(versement)
+    db_session.commit()
+    link_pair(db_session, sortie, versement, kind="investment", origin="manual")
+    db_session.commit()
+    _tx(db_session, courant, "Entree", 1000.0, day, "SALAIRE")
+    _tx(db_session, courant, "Sortie", 300.0, day, "COURSES")
+
+    row = _current_month_row(client)
+    assert row["investissements"] == 400.0
+    assert row["taux_epargne"] == 70.0  # (1000 − 300) / 1000, le versement n'est pas une « dépense négative »
