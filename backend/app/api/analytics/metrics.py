@@ -292,7 +292,7 @@ def account_flow_summary(
     end_date: datetime | None = Query(default=None),
     db: Session = Depends(get_db),
 ):
-    """Flux net du mois courant et du mois précédent d'un compte + dépense moyenne.
+    """Flux net du mois (de paie) courant et du précédent d'un compte + dépense moyenne.
 
     Calculé sur tout l'historique du compte (pas sur la page chargée par le frontend),
     virements internes exclus, Solde Initial exclu. Montants dans la devise du compte.
@@ -301,10 +301,10 @@ def account_flow_summary(
     if not account:
         raise HTTPException(status_code=404, detail="Account not found")
 
-    now = datetime.now()
-    month_start = datetime(now.year, now.month, 1)
-    prev_start = datetime(now.year - 1, 12, 1) if now.month == 1 else datetime(now.year, now.month - 1, 1)
-    next_start = datetime(now.year + (1 if now.month == 12 else 0), 1 if now.month == 12 else now.month + 1, 1)
+    year, month = current_period(db)
+    month_start, next_start = period_bounds(db, year, month)
+    prev_year, prev_month = (year - 1, 12) if month == 1 else (year, month - 1)
+    prev_start, _ = period_bounds(db, prev_year, prev_month)
 
     def _flow(start: datetime, end: datetime) -> float:
         rows = (
