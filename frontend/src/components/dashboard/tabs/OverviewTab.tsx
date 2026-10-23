@@ -229,7 +229,19 @@ export function OverviewTab({
           <CardDescription>Visualisation des revenus vers les dépenses et l'épargne.</CardDescription>
         </CardHeader>
         <CardContent className="p-3 md:p-6">
-          <SankeyFlow data={sankeyData} currency={displayCurrency} />
+          {isMobile ? (
+            // Mobile : le diagramme garde sa taille lisible de bureau et se fait défiler au doigt
+            <div>
+              <div className="-mx-1 overflow-x-auto overscroll-x-contain pb-2">
+                <div className="min-w-[760px]">
+                  <SankeyFlow data={sankeyData} currency={displayCurrency} />
+                </div>
+              </div>
+              <p className="mt-1 text-center text-xs text-slate-400">Faites glisser pour voir tout le diagramme →</p>
+            </div>
+          ) : (
+            <SankeyFlow data={sankeyData} currency={displayCurrency} />
+          )}
         </CardContent>
       </Card>
 
