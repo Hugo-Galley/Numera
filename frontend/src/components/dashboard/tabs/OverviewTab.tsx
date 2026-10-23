@@ -230,10 +230,10 @@ export function OverviewTab({
         </CardHeader>
         <CardContent className="p-3 md:p-6">
           {isMobile ? (
-            // Mobile : le diagramme garde sa taille lisible de bureau et se fait défiler au doigt
+            // Mobile : même diagramme que sur PC, calculé sur une largeur lisible et défilant au doigt
             <div>
               <div className="-mx-1 overflow-x-auto overscroll-x-contain pb-2">
-                <div className="min-w-[760px]">
+                <div className="min-w-[640px]">
                   <SankeyFlow data={sankeyData} currency={displayCurrency} />
                 </div>
               </div>
