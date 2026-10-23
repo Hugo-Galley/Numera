@@ -971,7 +971,7 @@ export default function RecurringTransactions() {
 
       {/* Form Dialog */}
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto max-sm:[&_input]:text-base max-sm:[&_textarea]:text-base">
+        <DialogContent className="max-w-md max-h-[calc(100dvh-2*max(1rem,env(safe-area-inset-top)))] overflow-y-auto max-sm:[&_input]:text-base max-sm:[&_textarea]:text-base">
           <DialogHeader>
             <DialogTitle>{editingTx ? "Modifier" : "Nouvelle"} récurrence</DialogTitle>
             <DialogDescription>

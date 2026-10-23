@@ -266,7 +266,7 @@ export function PointZeroModal({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-3xl max-h-[90dvh] flex flex-col p-4 sm:p-6">
+        <DialogContent className="max-w-3xl max-h-[calc(100dvh-2*max(1rem,env(safe-area-inset-top)))] flex flex-col p-4 sm:p-6">
           <DialogHeader>
             <div className="flex items-center gap-2">
               <SlidersHorizontal className="h-5 w-5 shrink-0 text-slate-800" />
