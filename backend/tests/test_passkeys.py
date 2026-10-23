@@ -113,3 +113,11 @@ def test_delete_passkey(client):
     credential_id = _register(client, authenticator).json()["id"]
     assert client.delete(f"/auth/passkey/{credential_id}").status_code == 200
     assert client.get("/auth/passkey").json() == []
+
+
+def test_origin_matching_request_host_is_accepted(client):
+    resp = client.post(
+        "/auth/passkey/register/options",
+        headers={"Origin": "https://numera.example.net", "X-Forwarded-Host": "numera.example.net"},
+    )
+    assert resp.status_code == 200

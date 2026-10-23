@@ -22,7 +22,7 @@ export function MobileNav() {
   return (
     <>
       <nav
-        className="fixed inset-x-0 bottom-0 z-40 flex border-t bg-white/95 backdrop-blur md:hidden pb-[env(safe-area-inset-bottom)]"
+        className="fixed inset-x-0 bottom-0 z-40 flex border-t bg-white/95 backdrop-blur md:hidden pb-[calc(env(safe-area-inset-bottom)*0.45)]"
         aria-label="Navigation principale"
       >
         {tabs.map((tab) => (
@@ -32,7 +32,7 @@ export function MobileNav() {
             end={tab.end}
             className={({ isActive }) =>
               cn(
-                "flex min-h-[56px] flex-1 flex-col items-center justify-center gap-0.5 text-[11px] font-medium",
+                "flex min-h-[52px] flex-1 flex-col items-center justify-center gap-0.5 text-[11px] font-medium",
                 isActive ? "text-slate-900" : "text-slate-500"
               )
             }
@@ -45,7 +45,7 @@ export function MobileNav() {
           type="button"
           onClick={() => setOpen(true)}
           className={cn(
-            "flex min-h-[56px] flex-1 flex-col items-center justify-center gap-0.5 text-[11px] font-medium",
+            "flex min-h-[52px] flex-1 flex-col items-center justify-center gap-0.5 text-[11px] font-medium",
             !inTabs ? "text-slate-900" : "text-slate-500"
           )}
         >
@@ -54,7 +54,7 @@ export function MobileNav() {
         </button>
       </nav>
       <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent side="bottom" className="max-h-[85dvh] rounded-t-2xl p-0">
+        <SheetContent side="bottom" className="max-h-[85dvh] rounded-t-2xl p-0 pb-[env(safe-area-inset-bottom)]">
           <SheetHeader className="sr-only">
             <SheetTitle>Navigation</SheetTitle>
             <SheetDescription>Toutes les pages de Numera</SheetDescription>

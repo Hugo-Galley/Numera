@@ -70,13 +70,23 @@ def _save(db: Session, credentials: list[dict]) -> None:
 
 
 def _origin(request: Request) -> tuple[str, str]:
-    """Origine du navigateur (doit être autorisée par CORS) et RP ID qui en découle."""
+    """Origine du navigateur et RP ID (son nom d'hôte).
+
+    Acceptée si elle figure dans `CORS_ORIGINS` ou si son nom d'hôte est celui par lequel la requête
+    est arrivée (en-tête Host / X-Forwarded-Host posé par le reverse proxy) : une passkey fonctionne
+    ainsi depuis l'adresse réellement utilisée sans réglage supplémentaire.
+    """
     origin = (request.headers.get("origin") or "").rstrip("/")
-    if origin not in settings.cors_origins:
-        raise HTTPException(status_code=400, detail="Origine non autorisée pour les passkeys")
     host = urlparse(origin).hostname
     if not host:
         raise HTTPException(status_code=400, detail="Origine invalide")
+    served = {
+        urlparse(f"//{value.split(',')[0].strip()}").hostname
+        for value in (request.headers.get("x-forwarded-host"), request.headers.get("host"))
+        if value
+    }
+    if origin not in settings.cors_origins and host not in served:
+        raise HTTPException(status_code=400, detail="Origine non autorisée pour les passkeys")
     return origin, host
 
 
