@@ -568,10 +568,17 @@ def get_subscriptions() -> str:
 
 
 @mcp.tool()
-def get_budget_alerts() -> str:
-    """Alertes budgétaires : catégories proches ou dépassant les limites."""
+def get_budget_alerts(month: int | None = None, year: int | None = None) -> str:
+    """Alertes budgétaires : catégories proches ou dépassant les limites.
+
+    Args:
+        month: Mois (1-12, défaut : mois budgétaire en cours)
+        year: Année (défaut : année du mois en cours)
+    """
     try:
-        resp = api.get("/analytics/budget-alerts")
+        current_year, current_month = _current_budget_month()
+        params = {"month": month or current_month, "year": year or current_year}
+        resp = api.get("/analytics/budget-alerts", params=params)
         error = handle_response(resp)
         if error:
             return error
@@ -600,10 +607,17 @@ def get_budget_alerts() -> str:
 
 
 @mcp.tool()
-def get_insights() -> str:
-    """Insights intelligents : score de santé financière, tendances, recommandations."""
+def get_insights(month: int | None = None, year: int | None = None) -> str:
+    """Insights intelligents : score de santé financière, tendances, recommandations.
+
+    Args:
+        month: Mois (1-12, défaut : mois budgétaire en cours)
+        year: Année (défaut : année du mois en cours)
+    """
     try:
-        resp = api.get("/analytics/insights")
+        current_year, current_month = _current_budget_month()
+        params = {"month": month or current_month, "year": year or current_year}
+        resp = api.get("/analytics/insights", params=params)
         error = handle_response(resp)
         if error:
             return error
