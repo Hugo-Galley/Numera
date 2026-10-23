@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/card"
 import { formatCurrency } from "@/lib/utils"
 import { useIsMobile } from "@/hooks/useIsMobile"
+import { CompanyLogo } from "@/components/ui/CompanyLogo"
 import { WorkHours } from "@/components/ui/work-hours"
 import {
   ResponsiveContainer,
@@ -56,9 +57,7 @@ export function SubscriptionsTab({ subscriptions, displayCurrency }: Subscriptio
             {items.map((sub: any, i: number) => (
               <div key={i} className="flex min-h-14 items-center justify-between gap-3 p-3 md:p-4 border rounded-xl hover:bg-slate-50 transition-colors">
                 <div className="flex min-w-0 items-center gap-3">
-                  <div className="h-10 w-10 shrink-0 bg-slate-900 rounded-lg flex items-center justify-center text-white text-xs font-bold uppercase">
-                    {(sub.name || "").substring(0, 2)}
-                  </div>
+                  <CompanyLogo name={sub.name} logo={sub.logo} className="h-10 w-10 rounded-lg" />
                   <div className="min-w-0">
                     <span className="block truncate font-medium text-slate-900">{sub.name}</span>
                     {sub.status === "potential" && (

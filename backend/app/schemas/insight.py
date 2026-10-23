@@ -99,6 +99,7 @@ class SubscriptionInsight(BaseModel):
     next_occurrence: Optional[str]
     is_recurring_entity: bool
     status: str  # "active", "potential", "changed"
+    logo: Optional[str] = None
 
 
 class SubscriptionIgnore(BaseModel):

@@ -115,7 +115,8 @@ async def get_subscriptions_analytics(
             last_occurrence=last_occ,
             next_occurrence=next_occ,
             is_recurring_entity=True,
-            status="active" if rd.is_active else "paused"
+            status="active" if rd.is_active else "paused",
+            logo=rd.logo,
         ))
 
     # 2. Detect potential subscriptions (Repeated transactions same merchant + same amount)
