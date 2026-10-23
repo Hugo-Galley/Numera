@@ -825,6 +825,7 @@ export default function RecurringTransactions() {
                               <CompanyLogo
                                 ticker={sub.ticker}
                                 name={sub.name}
+                                logo={sub.logo}
                                 className="h-10 w-10 md:h-12 md:w-12 rounded-2xl shrink-0 shadow-sm"
                               />
                               <div className="min-w-0">
@@ -881,6 +882,7 @@ export default function RecurringTransactions() {
                               <CompanyLogo
                                 ticker={sub.ticker}
                                 name={sub.name}
+                                logo={sub.logo}
                                 className="h-10 w-10 md:h-12 md:w-12 rounded-2xl shrink-0 shadow-sm"
                               />
                               <div className="min-w-0 flex-1">

@@ -24,7 +24,8 @@ def test_subscriptions_analytics(client: TestClient, db_session: Session):
         frequency="monthly",
         day_of_month=1,
         start_date=datetime.now() - timedelta(days=60),
-        is_active=True
+        is_active=True,
+        logo="si:netflix"
     )
     db_session.add(rd)
     db_session.commit()
@@ -57,6 +58,7 @@ def test_subscriptions_analytics(client: TestClient, db_session: Session):
     netflix = next(s for s in data["subscriptions"] if s["name"] == "Netflix")
     assert netflix["is_recurring_entity"] is True
     assert netflix["monthly_cost"] == 15.99
+    assert netflix["logo"] == "si:netflix"
     
     # Check Spotify (potential)
     spotify = next(s for s in data["subscriptions"] if s["name"] == "Spotify")
