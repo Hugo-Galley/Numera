@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "backend-demo",
+      "runtimeExecutable": "/private/tmp/claude-501/-Users-hugogalley-DEV-numera/b7417bd3-b837-4f6d-9ae6-15e8a6ca79dc/scratchpad/mobile/run-backend.sh",
+      "runtimeArgs": [],
+      "port": 8011
+    },
+    {
+      "name": "frontend",
+      "runtimeExecutable": "/private/tmp/claude-501/-Users-hugogalley-DEV-numera/b7417bd3-b837-4f6d-9ae6-15e8a6ca79dc/scratchpad/mobile/run-frontend.sh",
+      "runtimeArgs": [],
+      "port": 5173
+    }
+  ]
+}
