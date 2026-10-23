@@ -1,4 +1,4 @@
-import { Suspense } from "react"
+import { Suspense, useRef } from "react"
 import { Outlet } from "react-router-dom"
 import { Sidebar } from "./Sidebar"
 import { Omnibox } from "./Omnibox"
@@ -9,9 +9,11 @@ import { MobileNav } from "./MobileNav"
 import { useUI } from "@/providers/UIProvider"
 import { WorkTimeProvider } from "@/providers/WorkTimeProvider"
 import { PageLoader } from "./PageLoader"
+import { PwaExtras } from "./PwaExtras"
 
 export function AppLayout() {
   const { isPrivacyMode, togglePrivacyMode, setSearchOpen } = useUI()
+  const mainRef = useRef<HTMLElement>(null)
 
   return (
     <WorkTimeProvider>
@@ -36,7 +38,7 @@ export function AppLayout() {
         <Sidebar className="hidden md:flex h-full w-64 border-r shrink-0" />
 
         {/* Main Content */}
-        <main className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0">
+        <main ref={mainRef} className="flex-1 overscroll-y-contain min-w-0 overflow-y-auto overflow-x-hidden pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0">
           <div className="container mx-auto p-4 md:p-8 max-w-7xl">
             {/* Le menu reste affiché pendant le chargement d'une page */}
             <Suspense fallback={<PageLoader />}>
@@ -44,6 +46,7 @@ export function AppLayout() {
             </Suspense>
           </div>
         </main>
+        <PwaExtras scrollRef={mainRef} />
         <MobileNav />
         <Omnibox />
         <Toaster />

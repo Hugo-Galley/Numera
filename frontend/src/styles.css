@@ -89,3 +89,17 @@ body.privacy-enabled textarea.privacy-masked:focus {
 @media (prefers-reduced-motion: reduce) {
   .wrapped-enter { animation: none; }
 }
+
+/* PWA : pas de halo gris au toucher, pas de rebond de page derrière l'app */
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior-y: none;
+  }
+  body {
+    -webkit-touch-callout: none;
+  }
+  input, textarea, [contenteditable] {
+    -webkit-touch-callout: default;
+  }
+}

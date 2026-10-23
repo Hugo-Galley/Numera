@@ -7,6 +7,7 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.auth import router as auth_router
+from app.api.passkeys import router as passkeys_router
 from app.api.accounts import router as accounts_router
 from app.api.analytics import router as analytics_router
 from app.api.admin import router as admin_router
@@ -165,6 +166,7 @@ app.add_middleware(
 
 app.include_router(health_router)
 app.include_router(auth_router)
+app.include_router(passkeys_router)
 app.include_router(logos_public_router)  # <img> ne peut pas envoyer le JWT : lecture seule, références validées
 
 # Protected routers

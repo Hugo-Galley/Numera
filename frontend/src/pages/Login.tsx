@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useNavigate, useLocation } from "react-router-dom"
 import { useAuth } from "@/providers/AuthProvider"
 import { Button } from "@/components/ui/button"
@@ -7,6 +7,8 @@ import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/componen
 import { Label } from "@/components/ui/label"
 import { API_BASE } from "@/lib/api"
 import { toast } from "sonner"
+import { Fingerprint } from "lucide-react"
+import { loginWithPasskey, passkeySupported } from "@/lib/passkey"
 
 export default function Login() {
   const [username, setUsername] = useState("")
@@ -17,6 +19,28 @@ export default function Login() {
   const location = useLocation()
 
   const from = (location.state as any)?.from?.pathname || "/"
+  const [passkeyAvailable, setPasskeyAvailable] = useState(false)
+
+  useEffect(() => {
+    if (!passkeySupported()) return
+    fetch(`${API_BASE}/auth/passkey/available`)
+      .then((r) => (r.ok ? r.json() : { available: false }))
+      .then((d) => setPasskeyAvailable(!!d.available))
+      .catch(() => {})
+  }, [])
+
+  const handlePasskey = async () => {
+    setLoading(true)
+    try {
+      login(await loginWithPasskey())
+      toast.success("Connexion réussie")
+      navigate(from, { replace: true })
+    } catch (err: any) {
+      if (err?.name !== "NotAllowedError") toast.error(err.message)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -90,10 +114,16 @@ export default function Login() {
               />
             </div>
           </CardContent>
-          <CardFooter>
+          <CardFooter className="flex-col gap-3">
             <Button className="h-12 w-full text-base sm:h-10 sm:text-sm" type="submit" disabled={loading}>
               {loading ? "Connexion..." : "Se connecter"}
             </Button>
+            {passkeyAvailable && (
+              <Button type="button" variant="outline" className="h-12 w-full text-base sm:h-10 sm:text-sm" onClick={handlePasskey} disabled={loading}>
+                <Fingerprint className="mr-2 h-4 w-4" />
+                Face ID / Touch ID
+              </Button>
+            )}
           </CardFooter>
         </form>
       </Card>
