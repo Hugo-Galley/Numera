@@ -209,7 +209,7 @@ export default function Calendar({ embedded = false }: { embedded?: boolean }) {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 md:gap-4">
         {!embedded && (
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Calendrier Financier</h1>
@@ -217,9 +217,9 @@ export default function Calendar({ embedded = false }: { embedded?: boolean }) {
           </div>
         )}
         
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
           <Select value={selectedAccountId} onValueChange={setSelectedAccountId}>
-            <SelectTrigger className="w-[180px] bg-white">
+            <SelectTrigger className="h-10 w-full bg-white sm:w-[180px]">
               <SelectValue placeholder="Tous les comptes" />
             </SelectTrigger>
             <SelectContent>
@@ -230,14 +230,14 @@ export default function Calendar({ embedded = false }: { embedded?: boolean }) {
             </SelectContent>
           </Select>
           
-          <div className="flex items-center bg-white border rounded-md p-1 shadow-sm">
-            <Button variant="ghost" size="icon" onClick={prevMonth} className="h-8 w-8">
+          <div className="flex items-center justify-between bg-white border rounded-md p-1 shadow-sm">
+            <Button variant="ghost" size="icon" onClick={prevMonth} className="h-10 w-10 md:h-8 md:w-8" aria-label="Mois précédent">
               <ChevronLeft className="h-4 w-4" />
             </Button>
-            <div className="px-4 py-1 text-sm font-medium min-w-[140px] text-center capitalize">
+            <div className="px-4 py-1 text-sm font-medium flex-1 md:flex-none md:min-w-[140px] text-center capitalize">
               {date.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}
             </div>
-            <Button variant="ghost" size="icon" onClick={nextMonth} className="h-8 w-8">
+            <Button variant="ghost" size="icon" onClick={nextMonth} className="h-10 w-10 md:h-8 md:w-8" aria-label="Mois suivant">
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
@@ -250,7 +250,7 @@ export default function Calendar({ embedded = false }: { embedded?: boolean }) {
             <div key={d}>{d}</div>
           ))}
         </div>
-        <div className="grid grid-cols-7 auto-rows-[minmax(100px,1fr)]">
+        <div className="grid grid-cols-7 auto-rows-[56px] md:auto-rows-[minmax(100px,1fr)]">
           {calendarDays.map((day, idx) => {
             if (day === null) {
               return <div key={`empty-${idx}`} className="bg-slate-50/30 border-b border-r border-slate-100" />
@@ -265,11 +265,11 @@ export default function Calendar({ embedded = false }: { embedded?: boolean }) {
                 key={day} 
                 onClick={() => handleDayClick(day)}
                 className={cn(
-                  "p-2 border-b border-r border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer flex flex-col gap-1",
+                  "p-1 md:p-2 border-b border-r border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer flex flex-col items-center md:items-stretch gap-0.5 md:gap-1 min-w-0",
                   isToday && "bg-blue-50/30"
                 )}
               >
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-center md:justify-between w-full">
                   <span className={cn(
                     "text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full",
                     isToday ? "bg-blue-600 text-white" : "text-slate-400"
@@ -278,7 +278,7 @@ export default function Calendar({ embedded = false }: { embedded?: boolean }) {
                   </span>
                   {balance !== null && balance !== undefined && !isPrivacyMode && (
                     <span className={cn(
-                      "text-[10px] font-medium",
+                      "hidden md:inline text-[10px] font-medium",
                       balance < 0 ? "text-red-500" : "text-slate-400"
                     )}>
                       {formatCurrency(balance, "EUR")}
@@ -286,7 +286,23 @@ export default function Calendar({ embedded = false }: { embedded?: boolean }) {
                   )}
                 </div>
                 
-                <div className="flex flex-col gap-0.5 overflow-hidden">
+                {events.length > 0 && (
+                  <div className="flex items-center gap-0.5 md:hidden">
+                    {events.slice(0, 3).map((ev) => (
+                      <span
+                        key={ev.id}
+                        className={cn(
+                          "h-1.5 w-1.5 rounded-full",
+                          ev.type === "Sortie" || ev.type === "retrait"
+                            ? (ev.is_projected ? "bg-amber-400" : "bg-slate-500")
+                            : "bg-emerald-500"
+                        )}
+                      />
+                    ))}
+                    {events.length > 3 && <span className="text-[9px] leading-none text-slate-400">+</span>}
+                  </div>
+                )}
+                <div className="hidden md:flex flex-col gap-0.5 overflow-hidden">
                   {events.slice(0, 3).map((ev, i) => {
                     const isEvNegative = ev.type === "Sortie" || ev.type === "retrait"
                     return (
@@ -316,7 +332,7 @@ export default function Calendar({ embedded = false }: { embedded?: boolean }) {
         </div>
       </Card>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
         <Card className="border-slate-200">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-slate-500">Prochaines Échéances</CardTitle>
@@ -326,13 +342,13 @@ export default function Calendar({ embedded = false }: { embedded?: boolean }) {
               {data?.events.filter(e => e.is_projected).slice(0, 5).map(ev => {
                 const isEvNegative = ev.type === "Sortie" || ev.type === "retrait"
                 return (
-                  <div key={ev.id} className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-2">
+                  <div key={ev.id} className="flex items-center justify-between gap-3 text-sm min-h-10">
+                    <div className="flex items-center gap-2 min-w-0">
                       <Clock className="h-4 w-4 text-amber-500" />
-                      <span className="font-medium truncate max-w-[120px]">{ev.name}</span>
+                      <span className="font-medium truncate max-w-[140px]">{ev.name}</span>
                     </div>
-                    <div className="flex flex-col items-end">
-                      <span className={cn("font-bold", isEvNegative ? "text-slate-900" : "text-emerald-600")}>
+                    <div className="flex flex-col items-end shrink-0">
+                      <span className={cn("font-bold whitespace-nowrap tabular-nums", isEvNegative ? "text-slate-900" : "text-emerald-600")}>
                         {isEvNegative ? "-" : "+"}{isPrivacyMode ? "***" : formatCurrency(ev.amount, ev.currency)}
                       </span>
                       <span className="text-[10px] text-slate-400">
@@ -409,18 +425,18 @@ export default function Calendar({ embedded = false }: { embedded?: boolean }) {
                 {selectedDayEvents.map((ev) => {
                   const isEvNegative = ev.type === "Sortie" || ev.type === "retrait"
                   return (
-                    <div key={ev.id} className="flex items-center justify-between p-2 rounded-lg border border-slate-100 bg-slate-50/50">
-                      <div className="flex items-center gap-3">
+                    <div key={ev.id} className="flex items-center justify-between gap-3 p-3 md:p-2 rounded-lg border border-slate-100 bg-slate-50/50">
+                      <div className="flex items-center gap-3 min-w-0">
                         {ev.ticker || ev.logo ? (
                           <CompanyLogo ticker={ev.ticker} name={ev.name} logo={ev.logo} className="h-8 w-8 rounded-lg shadow-2xs" />
                         ) : isEvNegative ? (
-                          <ArrowDownCircle className="h-8 w-8 text-slate-400" />
+                          <ArrowDownCircle className="h-8 w-8 shrink-0 text-slate-400" />
                         ) : (
-                          <ArrowUpCircle className="h-8 w-8 text-emerald-500" />
+                          <ArrowUpCircle className="h-8 w-8 shrink-0 text-emerald-500" />
                         )}
-                        <div>
-                          <p className="text-sm font-bold text-slate-900">{ev.name}</p>
-                          <div className="flex items-center gap-1.5 mt-0.5">
+                        <div className="min-w-0">
+                          <p className="text-sm font-bold text-slate-900 break-words">{ev.name}</p>
+                          <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
                             {ev.ticker && (
                               <>
                                 <span className="text-[10px] text-slate-400 font-mono font-medium">{ev.ticker}</span>
@@ -435,9 +451,9 @@ export default function Calendar({ embedded = false }: { embedded?: boolean }) {
                           </div>
                         </div>
                       </div>
-                      <div className="flex flex-col items-end gap-1">
+                      <div className="flex flex-col items-end gap-1 shrink-0">
                         <p className={cn(
-                          "text-sm font-bold",
+                          "text-sm font-bold whitespace-nowrap tabular-nums",
                           isEvNegative ? "text-slate-900" : "text-emerald-600"
                         )}>
                           {isEvNegative ? "-" : "+"}{isPrivacyMode ? "***" : formatCurrency(ev.amount, ev.currency)}
@@ -446,7 +462,7 @@ export default function Calendar({ embedded = false }: { embedded?: boolean }) {
                           <Button 
                             size="sm" 
                             variant="ghost" 
-                            className="h-6 text-[10px] gap-1 px-1.5 hover:bg-emerald-50 hover:text-emerald-700"
+                            className="h-9 md:h-6 text-xs md:text-[10px] gap-1 px-2 md:px-1.5 hover:bg-emerald-50 hover:text-emerald-700"
                             onClick={() => handleValidate(ev)}
                           >
                             <CheckCircle2 className="h-3 w-3" />

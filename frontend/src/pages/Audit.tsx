@@ -203,20 +203,20 @@ function TransactionEditor({
           <Badge variant="outline" className="text-[10px]">{tx.currency}</Badge>
         </div>
         
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div>
-            <p className="mb-1 text-[10px] font-medium text-slate-400">Date et heure</p>
+            <p className="mb-1 text-xs font-medium text-slate-500">Date et heure</p>
             <Input
               type="datetime-local"
               value={draft.date}
               onChange={(event) => setDraft({ ...draft, date: event.target.value })}
-              className="h-9 text-xs"
+              className="h-11 text-base"
             />
           </div>
           <div>
-            <p className="mb-1 text-[10px] font-medium text-slate-400">Type</p>
+            <p className="mb-1 text-xs font-medium text-slate-500">Type</p>
             <Select value={draft.type} onValueChange={(value) => setDraft({ ...draft, type: value })}>
-              <SelectTrigger className="h-9 text-xs">
+              <SelectTrigger className="h-11 text-base">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -230,20 +230,20 @@ function TransactionEditor({
         </div>
 
         <div>
-          <p className="mb-1 text-[10px] font-medium text-slate-400">Marchand</p>
+          <p className="mb-1 text-xs font-medium text-slate-500">Marchand</p>
           <Input
             value={draft.merchant}
             onChange={(event) => setDraft({ ...draft, merchant: event.target.value })}
             placeholder="Marchand"
-            className="h-9 text-xs"
+            className="h-11 text-base"
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <p className="mb-1 text-[10px] font-medium text-slate-400">Catégorie</p>
+        <div className="grid grid-cols-[1.5fr_1fr] gap-3">
+          <div className="min-w-0">
+            <p className="mb-1 text-xs font-medium text-slate-500">Catégorie</p>
             <Select value={draft.category_id} onValueChange={(value) => setDraft({ ...draft, category_id: value })}>
-              <SelectTrigger className="h-9 text-xs">
+              <SelectTrigger className="h-11 text-base">
                 <SelectValue placeholder="Catégorie" />
               </SelectTrigger>
               <SelectContent>
@@ -257,25 +257,25 @@ function TransactionEditor({
             </Select>
           </div>
           <div>
-            <p className="mb-1 text-[10px] font-medium text-slate-400">Montant</p>
+            <p className="mb-1 text-xs font-medium text-slate-500">Montant</p>
             <Input
               type="number"
               min="0"
               step="0.01"
               value={draft.amount}
               onChange={(event) => setDraft({ ...draft, amount: event.target.value })}
-              className="h-9 text-xs font-bold"
+              className="h-11 text-base font-bold"
             />
           </div>
         </div>
 
         <div className="flex justify-end gap-2 border-t pt-3">
           {onDeleted && (
-            <Button type="button" variant="outline" size="icon" onClick={remove} disabled={saving} className="h-9 w-9 text-rose-500 hover:bg-rose-50 hover:text-rose-600">
+            <Button type="button" variant="outline" size="icon" onClick={remove} disabled={saving} className="h-11 w-11 text-rose-500 hover:bg-rose-50 hover:text-rose-600">
               <Trash2 className="h-4 w-4" />
             </Button>
           )}
-          <Button type="button" size="sm" onClick={save} disabled={saving || !draft.merchant.trim() || Number(draft.amount) <= 0} className="h-9 shadow-sm flex-1">
+          <Button type="button" size="sm" onClick={save} disabled={saving || !draft.merchant.trim() || Number(draft.amount) <= 0} className="h-11 shadow-sm flex-1">
             {saving ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
             Enregistrer
           </Button>
@@ -418,7 +418,7 @@ function RuleCreatorModal({
 
   return (
     <Dialog open onOpenChange={onClose}>
-      <DialogContent>
+      <DialogContent className="[&_input]:text-base md:[&_input]:text-sm">
         <DialogHeader>
           <DialogTitle>Créer une règle d'auto-catégorisation</DialogTitle>
           <DialogDescription>
@@ -445,9 +445,9 @@ function RuleCreatorModal({
             </Select>
           </div>
         </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Annuler</Button>
-          <Button onClick={create} disabled={saving}>
+        <DialogFooter className="gap-2 sm:gap-0">
+          <Button variant="outline" className="h-11 sm:h-10" onClick={onClose}>Annuler</Button>
+          <Button className="h-11 sm:h-10" onClick={create} disabled={saving}>
             {saving ? <RefreshCw className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
             Créer la règle
           </Button>
@@ -498,7 +498,7 @@ function MerchantCreatorModal({
 
   return (
     <Dialog open onOpenChange={onClose}>
-      <DialogContent>
+      <DialogContent className="[&_input]:text-base md:[&_input]:text-sm">
         <DialogHeader>
           <DialogTitle>Normaliser le marchand</DialogTitle>
           <DialogDescription>
@@ -525,9 +525,9 @@ function MerchantCreatorModal({
             </Select>
           </div>
         </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Annuler</Button>
-          <Button onClick={create} disabled={saving}>
+        <DialogFooter className="gap-2 sm:gap-0">
+          <Button variant="outline" className="h-11 sm:h-10" onClick={onClose}>Annuler</Button>
+          <Button className="h-11 sm:h-10" onClick={create} disabled={saving}>
             {saving ? <RefreshCw className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
             Créer et normaliser
           </Button>
@@ -734,7 +734,7 @@ export default function ActionCenter() {
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" onClick={() => setActiveActionId(null)} className="-ml-2 h-8 px-2 text-slate-500">
+          <Button variant="ghost" size="sm" onClick={() => setActiveActionId(null)} className="-ml-2 h-10 px-2 text-slate-500 md:h-8">
             <ArrowRight className="mr-2 h-4 w-4 rotate-180" />
             Retour au centre d'actions
           </Button>
@@ -744,8 +744,8 @@ export default function ActionCenter() {
           <div className={cn("mt-0.5 shrink-0", actionIconClass[activeAction.severity])}>
             <Wrench className="h-5 w-5" />
           </div>
-          <div>
-            <div className="flex items-center gap-2">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
               <h1 className="text-lg font-semibold text-slate-900">{activeAction.title}</h1>
               <Badge variant="outline" className={cn("text-[10px] font-medium uppercase tracking-wider", severityClass[activeAction.severity])}>
                 {severityLabel[activeAction.severity]}
@@ -755,7 +755,7 @@ export default function ActionCenter() {
           </div>
         </div>
 
-        <div className="rounded-lg border border-slate-200 bg-white p-4 md:p-6">
+        <div className="rounded-lg border border-slate-200 bg-white p-2 sm:p-4 md:p-6">
           {loadingIssueId === activeActionId && (
             <div className="flex h-40 items-center justify-center gap-3 text-slate-500">
               <RefreshCw className="h-5 w-5 animate-spin" />
@@ -781,14 +781,14 @@ export default function ActionCenter() {
             <div className="space-y-6">
               {detail.duplicate_groups.map((group) => (
                 <div key={group.key} className="space-y-3">
-                  <div className="flex items-center justify-between gap-3 px-1">
+                  <div className="flex flex-col gap-2 px-1 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
                     <p className="text-sm font-bold text-slate-900">{group.count} transactions identiques détectées</p>
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <Button
                         size="sm"
                         variant="outline"
                         onClick={() => ignoreDuplicate(group.transactions)}
-                        className="h-7 text-[10px] font-bold uppercase tracking-wider"
+                        className="h-10 text-[10px] font-bold uppercase tracking-wider sm:h-7"
                       >
                         Marquer comme OK
                       </Button>
@@ -797,7 +797,7 @@ export default function ActionCenter() {
                       </Badge>
                     </div>
                   </div>
-                  <div className="space-y-3 rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
+                  <div className="space-y-3 rounded-lg border border-slate-200 bg-white p-2 shadow-sm sm:p-3">
                     {group.transactions.map((tx) => (
                       <TransactionEditor
                         key={tx.id}
@@ -824,12 +824,12 @@ export default function ActionCenter() {
                         {formatCurrency(pair.sortie.amount, pair.sortie.currency)} entre deux comptes
                       </p>
                     </div>
-                    <div className="flex gap-2">
-                      <Button size="sm" onClick={() => linkTransfer(pair.sortie.id, pair.entree.id)}>
+                    <div className="grid grid-cols-2 gap-2 md:flex">
+                      <Button size="sm" className="h-11 md:h-9" onClick={() => linkTransfer(pair.sortie.id, pair.entree.id)}>
                         <Link2 className="h-4 w-4" />
                         Rapprocher
                       </Button>
-                      <Button size="sm" variant="outline" onClick={() => ignoreTransfer(pair.sortie.id)}>
+                      <Button size="sm" variant="outline" className="h-11 md:h-9" onClick={() => ignoreTransfer(pair.sortie.id)}>
                         Ignorer
                       </Button>
                     </div>
@@ -882,22 +882,22 @@ export default function ActionCenter() {
             Une liste centralisée des tâches pour maintenir vos finances propres et sous contrôle.
           </p>
         </div>
-        <Button onClick={loadActions} variant="outline" className="gap-2">
+        <Button onClick={loadActions} variant="outline" className="h-11 gap-2 md:h-10">
           <RefreshCw className="h-4 w-4" />
           Actualiser
         </Button>
       </div>
 
-      <div className="flex flex-wrap gap-4">
-        <div className="flex min-w-[140px] flex-col gap-1 rounded-md border border-slate-200 bg-white p-3">
+      <div className="grid grid-cols-3 gap-2 sm:flex sm:flex-wrap sm:gap-4">
+        <div className="flex min-w-0 flex-col gap-1 rounded-md border border-slate-200 bg-white p-3 sm:min-w-[140px]">
           <p className="text-xs font-medium text-slate-500">Priorité haute</p>
           <p className="text-xl font-semibold text-rose-600">{data.summary.high_priority}</p>
         </div>
-        <div className="flex min-w-[140px] flex-col gap-1 rounded-md border border-slate-200 bg-white p-3">
+        <div className="flex min-w-0 flex-col gap-1 rounded-md border border-slate-200 bg-white p-3 sm:min-w-[140px]">
           <p className="text-xs font-medium text-slate-500">Priorité moyenne</p>
           <p className="text-xl font-semibold text-amber-600">{data.summary.medium_priority}</p>
         </div>
-        <div className="flex min-w-[140px] flex-col gap-1 rounded-md border border-slate-200 bg-white p-3">
+        <div className="flex min-w-0 flex-col gap-1 rounded-md border border-slate-200 bg-white p-3 sm:min-w-[140px]">
           <p className="text-xs font-medium text-slate-500">Suggestions</p>
           <p className="text-xl font-semibold text-slate-700">{data.summary.low_priority}</p>
         </div>
@@ -928,16 +928,16 @@ export default function ActionCenter() {
                   <div className="flex min-w-0 items-start gap-3">
                     <Icon className={cn("mt-0.5 h-4 w-4 shrink-0", actionIconClass[action.severity])} />
                     <div className="min-w-0 space-y-1">
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                         <h2 className="text-sm font-semibold text-slate-900">{action.title}</h2>
                         <Badge variant="outline" className={cn("h-5 px-1.5 text-[9px] font-medium uppercase tracking-wider", severityClass[action.severity])}>
                           {severityLabel[action.severity]}
                         </Badge>
                       </div>
-                      <p className="text-xs text-slate-500 line-clamp-1">{action.description}</p>
+                      <p className="text-xs text-slate-500 line-clamp-2 sm:line-clamp-1">{action.description}</p>
                     </div>
                   </div>
-                  <div className="flex shrink-0 items-center gap-3">
+                  <div className="flex w-full shrink-0 items-center gap-2 sm:w-auto sm:gap-3">
                     {action.samples.length > 0 && (
                       <div className="hidden gap-2 sm:flex">
                         {action.samples.slice(0, 1).map((sample, index) => (
@@ -950,7 +950,7 @@ export default function ActionCenter() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-8 text-xs font-medium group-hover:bg-slate-200/50"
+                      className="h-11 flex-1 justify-center bg-slate-100 text-xs font-medium group-hover:bg-slate-200/50 sm:h-8 sm:flex-none sm:bg-transparent"
                     >
                       {action.action_label || "Traiter"}
                       <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
@@ -958,7 +958,7 @@ export default function ActionCenter() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8 text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                      className="h-11 w-11 text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors sm:h-8 sm:w-8"
                       onClick={(e) => dismissAction(e, action.id)}
                       title="Masquer cette action définitivement"
                     >

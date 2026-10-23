@@ -36,41 +36,41 @@ export function TelecommutingCalendar({
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 border-b">
+      <CardHeader className="flex flex-col items-stretch gap-3 space-y-0 pb-3 border-b sm:flex-row sm:items-center sm:justify-between">
         <CardTitle className="text-lg font-medium flex items-center gap-2">
           <CalendarIcon className="h-5 w-5" />
           Calendrier Télétravail
         </CardTitle>
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="icon" onClick={() => onDateChange(subMonths(currentDate, 1))}>
+          <div className="flex w-full items-center justify-between gap-2 sm:w-auto sm:justify-start">
+            <Button variant="outline" size="icon" className="h-10 w-10 md:h-9 md:w-9" aria-label="Mois précédent" onClick={() => onDateChange(subMonths(currentDate, 1))}>
               <ChevronLeft className="h-4 w-4" />
             </Button>
-            <span className="w-32 text-center font-medium">
+            <span className="flex-1 text-center font-medium capitalize sm:w-32 sm:flex-none">
               {format(currentDate, "MMMM yyyy", { locale: fr })}
             </span>
-            <Button variant="outline" size="icon" onClick={() => onDateChange(addMonths(currentDate, 1))}>
+            <Button variant="outline" size="icon" className="h-10 w-10 md:h-9 md:w-9" aria-label="Mois suivant" onClick={() => onDateChange(addMonths(currentDate, 1))}>
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
         </div>
       </CardHeader>
-      <CardContent className="pt-6">
+      <CardContent className="px-3 pt-4 sm:px-6 sm:pt-6">
         <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center mb-6 gap-4">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/50 px-3 py-1.5 rounded-full">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/50 px-3 py-1.5 rounded-full max-w-full">
             <Home className="h-4 w-4 text-primary" />
             <span className="font-semibold text-foreground">{ttDays.length}</span> jours de TT = <span className="font-semibold text-foreground">{ttDays.length}</span> tickets
           </div>
           
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-            <div className="flex items-center gap-2">
+          <div className="flex w-full flex-col sm:w-auto sm:flex-row items-start sm:items-center gap-4">
+            <div className="flex w-full items-center justify-between gap-2 sm:w-auto">
               <span className="text-sm font-medium">Versement Salaire:</span>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
                     variant={"outline"}
                     className={cn(
-                      "w-[140px] justify-start text-left font-normal",
+                      "h-10 w-[150px] justify-start text-left font-normal md:h-9",
                       !salaryDate && "text-muted-foreground"
                     )}
                   >
@@ -111,7 +111,7 @@ export function TelecommutingCalendar({
                 key={i}
                 variant="outline"
                 className={cn(
-                  "h-12 md:h-16 flex flex-col items-center justify-center relative p-0 overflow-hidden",
+                  "h-11 md:h-16 flex flex-col items-center justify-center relative p-0 overflow-hidden",
                   isWknd ? "bg-muted/30 text-muted-foreground cursor-not-allowed opacity-50" : "hover:border-primary/50",
                   isTT && "bg-primary text-primary-foreground hover:bg-primary/90 hover:border-primary"
                 )}
@@ -125,7 +125,7 @@ export function TelecommutingCalendar({
                   {format(date, 'd')}
                 </span>
                 {isTT && (
-                  <Home className="h-4 w-4 absolute bottom-1 md:bottom-2 text-primary-foreground/80" />
+                  <Home className="h-3 w-3 md:h-4 md:w-4 md:absolute md:bottom-2 text-primary-foreground/80" />
                 )}
               </Button>
             )

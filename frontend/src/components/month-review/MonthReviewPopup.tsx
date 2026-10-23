@@ -81,7 +81,7 @@ export function MonthReviewPopup() {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+          <DialogTitle className="flex items-center gap-2 pr-6 text-left">
             <ClipboardCheck className="h-5 w-5 text-emerald-600" />
             {/* `capitalize` mettait une majuscule à chaque mot : seul le mois en prend une */}
             {label.charAt(0).toUpperCase() + label.slice(1)} n'est pas encore clôturé
@@ -95,6 +95,7 @@ export function MonthReviewPopup() {
         <DialogFooter className="gap-2 sm:justify-between">
           <Button
             variant="ghost"
+            className="h-11 sm:h-10"
             onClick={() => {
               writeStorage(`month-review-skip-${suffix}`, "1")
               setOpen(false)
@@ -102,9 +103,10 @@ export function MonthReviewPopup() {
           >
             Pas ce mois-ci
           </Button>
-          <div className="flex gap-2">
+          <div className="flex flex-col-reverse gap-2 sm:flex-row">
             <Button
               variant="outline"
+              className="h-11 sm:h-10"
               onClick={() => {
                 writeStorage(`month-review-snooze-${suffix}`, todayKey())
                 setOpen(false)
@@ -112,7 +114,7 @@ export function MonthReviewPopup() {
             >
               Plus tard
             </Button>
-            <Button onClick={() => navigate(`/month/revue?year=${review.year}&month=${review.month}`)}>
+            <Button className="h-11 sm:h-10" onClick={() => navigate(`/month/revue?year=${review.year}&month=${review.month}`)}>
               Faire la revue
             </Button>
           </div>

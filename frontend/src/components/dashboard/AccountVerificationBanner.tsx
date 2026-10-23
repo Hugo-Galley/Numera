@@ -50,12 +50,12 @@ export function AccountVerificationBanner({
   }
 
   return (
-    <div className="bg-amber-50 border border-amber-200 text-amber-900 mb-8 rounded-lg">
+    <div className="bg-amber-50 border border-amber-200 text-amber-900 mb-0 md:mb-8 rounded-lg">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm"
+        className="flex w-full min-h-11 items-center gap-2 px-4 py-2.5 text-left text-sm"
       >
         <AlertCircle className="h-4 w-4 shrink-0 text-amber-600" />
         <span className="whitespace-nowrap font-semibold text-amber-800">
@@ -84,7 +84,7 @@ export function AccountVerificationBanner({
                   <Button 
                     size="sm" 
                     variant="outline" 
-                    className="w-full bg-white hover:bg-amber-100 hover:text-amber-900 border-amber-200 text-amber-800 h-8 text-xs"
+                    className="w-full bg-white hover:bg-amber-100 hover:text-amber-900 border-amber-200 text-amber-800 h-10 md:h-8 text-xs"
                     onClick={() => navigate(`/accounts/${acc.id}`)}
                   >
                     Faire un snapshot
@@ -95,7 +95,7 @@ export function AccountVerificationBanner({
                     <Button 
                       size="sm" 
                       variant="outline" 
-                      className="flex-1 bg-white hover:bg-amber-100 hover:text-amber-900 border-amber-200 text-amber-800 h-8 text-xs px-2"
+                      className="flex-1 bg-white hover:bg-amber-100 hover:text-amber-900 border-amber-200 text-amber-800 h-10 md:h-8 text-xs px-2"
                       onClick={() => handleVerify(acc.id)}
                       disabled={verifying === acc.id}
                     >
@@ -105,7 +105,7 @@ export function AccountVerificationBanner({
                     <Button 
                       size="sm" 
                       variant="ghost" 
-                      className="flex-1 hover:bg-amber-100 hover:text-amber-900 text-amber-800 h-8 text-xs px-2"
+                      className="flex-1 hover:bg-amber-100 hover:text-amber-900 text-amber-800 h-10 md:h-8 text-xs px-2"
                       onClick={() => navigate(`/accounts/${acc.id}`)}
                     >
                       Aller au compte

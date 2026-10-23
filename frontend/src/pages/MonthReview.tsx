@@ -109,35 +109,35 @@ export default function MonthReview() {
   }
 
   return (
-    <div className="space-y-6 pb-10">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+    <div className="space-y-5 pb-10 md:space-y-6">
+      <div className="flex flex-col gap-3 md:flex-row md:flex-wrap md:items-center md:justify-between">
         <div>
-          <h1 className="flex items-center gap-2 text-3xl font-bold tracking-tight">
+          <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight md:text-3xl">
             <ClipboardCheck className="h-7 w-7 text-emerald-600" />
             Revue de mois
           </h1>
-          <p className="text-slate-500">Passez le mois en revue, étape par étape, puis clôturez-le.</p>
+          <p className="text-sm text-slate-500 md:text-base">Passez le mois en revue, étape par étape, puis clôturez-le.</p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="icon" onClick={() => go(-1)} aria-label="Mois précédent">
+        <div className="flex items-center justify-between gap-2 rounded-xl border border-slate-200 bg-white p-1 md:justify-start md:border-0 md:bg-transparent md:p-0">
+          <Button variant="outline" size="icon" className="h-11 w-11 md:h-10 md:w-10" onClick={() => go(-1)} aria-label="Mois précédent">
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          <span className="min-w-36 text-center font-semibold capitalize">{label}</span>
-          <Button variant="outline" size="icon" onClick={() => go(1)} aria-label="Mois suivant">
+          <span className="min-w-36 flex-1 text-center font-semibold capitalize md:flex-none">{label}</span>
+          <Button variant="outline" size="icon" className="h-11 w-11 md:h-10 md:w-10" onClick={() => go(1)} aria-label="Mois suivant">
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-2">
+      <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 md:mx-0 md:flex-wrap md:overflow-visible md:px-0 md:pb-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {STEPS.map((name, i) => {
           const s = status(i)
           return (
             <button
               key={name}
-              onClick={() => setStep(i)}
+              onClick={(e) => { setStep(i); e.currentTarget.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" }) }}
               className={cn(
-                "rounded-full border px-4 py-1.5 text-sm transition-colors",
+                "min-h-10 shrink-0 whitespace-nowrap rounded-full border px-4 py-1.5 text-sm transition-colors md:min-h-0",
                 step === i ? "border-slate-900 bg-slate-900 text-white" : "bg-white hover:bg-slate-50",
                 step !== i && s === "ok" && "border-emerald-200 text-emerald-700",
                 step !== i && s === "todo" && "border-amber-300 text-amber-700"
@@ -158,7 +158,7 @@ export default function MonthReview() {
           {step === 2 && <BudgetStep budget={review.budget} onChanged={load} />}
           {step === 3 && (
             <Card>
-              <CardContent className="space-y-3 p-6">
+              <CardContent className="space-y-3 p-4 md:p-6">
                 <label htmlFor="highlight" className="text-sm text-slate-600">
                   Un fait marquant à retenir de ce mois (optionnel) : résiliation, grosse dépense, changement d'épargne…
                 </label>
@@ -168,7 +168,7 @@ export default function MonthReview() {
                   maxLength={500}
                   onChange={(e) => setHighlight(e.target.value)}
                   rows={4}
-                  className="w-full rounded-md border border-slate-200 bg-white p-3 text-sm"
+                  className="w-full rounded-md border border-slate-200 bg-white p-3 text-base md:text-sm"
                 />
               </CardContent>
             </Card>

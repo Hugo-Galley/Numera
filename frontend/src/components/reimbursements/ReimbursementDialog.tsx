@@ -172,14 +172,14 @@ export function ReimbursementDialog({ open, onOpenChange, transaction, onDone }:
             <div className="divide-y divide-slate-100 rounded-xl border border-slate-100">
               {claims.map((c) => (
                 <div key={c.id} className="space-y-1 p-3">
-                  <div className="flex items-center justify-between gap-3">
-                    <Input defaultValue={c.debtor} className="h-8 max-w-[12rem]" onBlur={(e) => handleRename(c, e.target.value)} />
-                    <span className="text-sm text-slate-600">
+                  <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-3">
+                    <Input defaultValue={c.debtor} className="h-10 min-w-0 flex-1 text-base sm:h-8 sm:max-w-[12rem] sm:flex-none sm:text-sm" onBlur={(e) => handleRename(c, e.target.value)} />
+                    <span className="whitespace-nowrap text-sm text-slate-600">
                       <span className="amount-blur font-semibold text-emerald-600">{formatCurrency(c.received, c.currency)}</span>
                       {" / "}
                       <span className="amount-blur">{formatCurrency(c.expected_amount, c.currency)}</span>
                     </span>
-                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-slate-400 hover:text-red-600" onClick={() => handleDeleteClaim(c)} aria-label="Supprimer la créance">
+                    <Button variant="ghost" size="sm" className="h-10 w-10 p-0 text-slate-400 hover:text-red-600 sm:h-8 sm:w-8" onClick={() => handleDeleteClaim(c)} aria-label="Supprimer la créance">
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
@@ -200,13 +200,13 @@ export function ReimbursementDialog({ open, onOpenChange, transaction, onDone }:
             <div className="grid grid-cols-1 items-end gap-2 sm:grid-cols-[1fr_8rem_auto]">
               <div className="grid gap-1">
                 <Label htmlFor="claim-debtor">Qui me doit</Label>
-                <Input id="claim-debtor" value={debtor} onChange={(e) => setDebtor(e.target.value)} placeholder="Denis, Sécu…" />
+                <Input id="claim-debtor" className="h-10 text-base sm:h-9 sm:text-sm" value={debtor} onChange={(e) => setDebtor(e.target.value)} placeholder="Denis, Sécu…" />
               </div>
               <div className="grid gap-1">
                 <Label htmlFor="claim-amount">Montant</Label>
-                <Input id="claim-amount" inputMode="decimal" value={expected} onChange={(e) => setExpected(e.target.value)} />
+                <Input id="claim-amount" className="h-10 text-base sm:h-9 sm:text-sm" inputMode="decimal" value={expected} onChange={(e) => setExpected(e.target.value)} />
               </div>
-              <Button className="gap-2" onClick={handleAdd}>
+              <Button className="h-10 gap-2 sm:h-9" onClick={handleAdd}>
                 <Plus className="h-4 w-4" />
                 Ajouter
               </Button>
@@ -215,9 +215,9 @@ export function ReimbursementDialog({ open, onOpenChange, transaction, onDone }:
               <div className="flex flex-wrap items-end gap-2 rounded-xl bg-slate-50 p-3 dark:bg-slate-900">
                 <div className="grid gap-1">
                   <Label htmlFor="claim-split">Partager à parts égales entre (vous compris)</Label>
-                  <Input id="claim-split" inputMode="numeric" className="w-24" value={splitCount} onChange={(e) => setSplitCount(e.target.value)} />
+                  <Input id="claim-split" inputMode="numeric" className="h-10 w-24 text-base sm:h-9 sm:text-sm" value={splitCount} onChange={(e) => setSplitCount(e.target.value)} />
                 </div>
-                <Button variant="outline" className="gap-2" onClick={handleSplit}>
+                <Button variant="outline" className="h-10 gap-2 sm:h-9" onClick={handleSplit}>
                   <Users className="h-4 w-4" />
                   Répartir
                 </Button>
@@ -230,19 +230,19 @@ export function ReimbursementDialog({ open, onOpenChange, transaction, onDone }:
               Disponible : <span className="amount-blur font-semibold">{formatCurrency(entry?.available ?? 0, transaction.currency)}</span>
             </p>
             {entry?.allocations.map((a) => (
-              <div key={a.id} className="flex items-center justify-between rounded-lg bg-emerald-50 px-3 py-2 text-sm dark:bg-emerald-950">
+              <div key={a.id} className="flex items-center justify-between gap-2 rounded-lg bg-emerald-50 px-3 py-2 text-sm dark:bg-emerald-950">
                 <span>
                   Affecté à {a.debtor} : <span className="amount-blur font-semibold">{formatCurrency(a.amount, transaction.currency)}</span>
                 </span>
-                <Button variant="ghost" size="sm" onClick={() => handleRemoveAllocation(a.id)}>Retirer</Button>
+                <Button variant="ghost" size="sm" className="h-10 sm:h-9" onClick={() => handleRemoveAllocation(a.id)}>Retirer</Button>
               </div>
             ))}
-            <div className="max-h-72 divide-y divide-slate-100 overflow-y-auto rounded-xl border border-slate-100">
+            <div className="max-h-[50dvh] sm:max-h-72 divide-y divide-slate-100 overflow-y-auto rounded-xl border border-slate-100">
               {entry?.open_claims.map((c) => (
-                <div key={c.id} className="flex items-center justify-between gap-3 p-3">
+                <div key={c.id} className="flex flex-col gap-2 p-3 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
                   <div className="min-w-0">
                     <p className="font-semibold text-slate-900 dark:text-slate-100">{c.debtor}</p>
-                    <p className="truncate text-xs text-slate-500">
+                    <p className="break-words text-xs text-slate-500 sm:truncate">
                       {format(new Date(c.expense.date), "dd/MM/yyyy")} · {c.expense.label} · reste{" "}
                       <span className="amount-blur">{formatCurrency(c.remaining, c.currency)}</span>
                     </p>
@@ -250,12 +250,12 @@ export function ReimbursementDialog({ open, onOpenChange, transaction, onDone }:
                   <div className="flex items-center gap-2">
                     <Input
                       inputMode="decimal"
-                      className="h-8 w-24"
+                      className="h-10 flex-1 text-base sm:h-8 sm:w-24 sm:flex-none sm:text-sm"
                       placeholder={String(Math.min(c.remaining, entry.available))}
                       value={allocInputs[c.id] ?? ""}
                       onChange={(e) => setAllocInputs({ ...allocInputs, [c.id]: e.target.value })}
                     />
-                    <Button size="sm" onClick={() => handleAllocate(c)} disabled={entry.available <= 0}>Affecter</Button>
+                    <Button size="sm" className="h-10 sm:h-9" onClick={() => handleAllocate(c)} disabled={entry.available <= 0}>Affecter</Button>
                   </div>
                 </div>
               ))}

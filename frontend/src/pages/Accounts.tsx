@@ -279,7 +279,7 @@ export default function Accounts() {
     <div className="space-y-8">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Comptes</h1>
+          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Comptes</h1>
           <p className="text-muted-foreground">Gérez vos différents comptes bancaires et d'investissement.</p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -343,7 +343,7 @@ export default function Accounts() {
               </div>
 
               {newType === "assurance_vie" && (
-                <div className="grid grid-cols-2 gap-4 pt-2 border-t mt-2">
+                <div className="grid grid-cols-1 gap-4 pt-2 border-t mt-2 sm:grid-cols-2">
                   <div className="grid gap-2">
                     <Label htmlFor="fonds_euros_pct">Fonds Euros (%)</Label>
                     <Input 
@@ -555,7 +555,7 @@ export default function Accounts() {
               </div>
 
               {editingAccount.type === "assurance_vie" && (
-                <div className="grid grid-cols-2 gap-4 pt-2 border-t mt-2">
+                <div className="grid grid-cols-1 gap-4 pt-2 border-t mt-2 sm:grid-cols-2">
                   <div className="grid gap-2">
                     <Label htmlFor="edit-fonds_euros_pct">Fonds Euros (%)</Label>
                     <Input 
@@ -724,8 +724,75 @@ export default function Accounts() {
           <CardTitle>Liste des comptes</CardTitle>
           <CardDescription>Tous vos comptes actifs.</CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="rounded-md border overflow-x-auto">
+        <CardContent className="px-3 sm:px-6">
+          <div className="space-y-3 md:hidden">
+            {loading ? (
+              <p className="py-8 text-center text-muted-foreground">Chargement...</p>
+            ) : sortedAccounts.length === 0 ? (
+              <p className="py-8 text-center text-muted-foreground">Aucun compte trouvé.</p>
+            ) : (
+              sortedAccounts.map((account) => (
+                <div key={account.id} className="rounded-xl border bg-white p-3 dark:bg-slate-900">
+                  <div className="flex items-start gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      aria-label="Compte principal"
+                      className={`h-10 w-10 shrink-0 ${account.is_main ? 'text-amber-500 hover:text-amber-600' : 'text-slate-300 hover:text-amber-500'}`}
+                      onClick={() => handleToggleMain(account.id, !!account.is_main)}
+                    >
+                      <Star className={`h-5 w-5 ${account.is_main ? 'fill-current' : ''}`} />
+                    </Button>
+                    <Link to={`/accounts/${account.id}`} className="min-w-0 flex-1 py-1">
+                      <p className="break-words font-semibold leading-tight">{account.name}</p>
+                      <div className="mt-1 flex flex-wrap items-center gap-x-2 text-sm text-muted-foreground">
+                        {getTypeIcon(account.type)}
+                        <span>{getTypeLabel(account.type)}</span>
+                        <span>· {account.currency}</span>
+                      </div>
+                    </Link>
+                    <Badge variant={account.active ? "outline" : "secondary"} className="mt-2 shrink-0">
+                      {account.active ? "Actif" : "Inactif"}
+                    </Badge>
+                  </div>
+                  <div className="mt-2 flex flex-wrap items-center gap-2 pl-1">
+                    {account.institution && (
+                      <Badge variant="secondary" className="bg-slate-50 font-semibold text-slate-700 border-slate-200">
+                        {account.institution}
+                      </Badge>
+                    )}
+                    {account.type === "assurance_vie" && (account.fonds_euros_pct != null || account.fonds_investis_pct != null) && (
+                      <Badge variant="secondary" className="bg-slate-100 font-medium text-slate-700">
+                        Euro : {account.fonds_euros_pct || 0}% / Investi : {account.fonds_investis_pct || 0}%
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="mt-3 flex items-center gap-2">
+                    <Button asChild className="h-10 flex-1 bg-slate-900 text-white hover:bg-slate-800">
+                      <Link to={`/accounts/${account.id}`}>Voir détails <ArrowRight className="ml-2 h-4 w-4" /></Link>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="h-10"
+                      onClick={() => { setEditingAccount(account); setIsEditDialogOpen(true) }}
+                    >
+                      Modifier
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      aria-label="Supprimer"
+                      className="h-10 w-10 text-rose-600 hover:text-rose-700"
+                      onClick={() => handleDeleteAccount(account.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+          <div className="hidden rounded-md border overflow-x-auto md:block">
             <Table>
               <TableHeader>
                 <TableRow>

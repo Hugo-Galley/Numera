@@ -62,6 +62,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
 import { useConfirm } from "@/providers/ConfirmProvider"
+import { useIsMobile } from "@/hooks/useIsMobile"
 
 const GOAL_COLORS = ["#3b82f6", "#10b981", "#8b5cf6", "#f59e0b", "#f43f5e", "#06b6d4", "#ec4899", "#64748b"]
 
@@ -74,6 +75,7 @@ interface Resilience {
 
 export default function Savings() {
   const confirm = useConfirm()
+  const isMobile = useIsMobile()
   const [analytics, setAnalytics] = useState<any>(null)
   const [resilience, setResilience] = useState<Resilience | null>(null)
   const [history, setHistory] = useState<any[]>([])
@@ -215,11 +217,11 @@ export default function Savings() {
 
 
   return (
-    <div className="space-y-12 pb-10">
+    <div className="space-y-8 pb-10 md:space-y-12">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900">Suivi de l'Épargne</h1>
-          <p className="text-slate-500 mt-1">Gérez votre capacité d'accumulation et sécurisez votre avenir.</p>
+          <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-slate-900">Suivi de l'Épargne</h1>
+          <p className="text-sm text-slate-500 mt-1 md:text-base">Gérez votre capacité d'accumulation et sécurisez votre avenir.</p>
         </div>
         
         <div className="flex flex-wrap items-center gap-2 sm:gap-3 bg-white p-1.5 rounded-xl border shadow-sm">
@@ -270,24 +272,24 @@ export default function Savings() {
            </div>
         </div>
       ) : (
-        <div className="space-y-12">
+        <div className="space-y-8 md:space-y-12">
 
           {/* SECTION 1 : BILAN FINANCIER */}
-          <section className="space-y-6">
+          <section className="space-y-4 md:space-y-6">
             <div className="flex items-center gap-2 border-b pb-2">
               <Eye className="h-5 w-5 text-slate-400" />
               <h2 className="text-xl font-bold text-slate-900">Bilan Financier</h2>
             </div>
             
-            <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-              <Card className="shadow-sm border-slate-200 bg-slate-900 text-white hover:shadow-md transition-shadow">
-                <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
+            <div className="grid gap-3 grid-cols-2 md:gap-6 lg:grid-cols-4">
+              <Card className="col-span-2 shadow-sm border-slate-200 bg-slate-900 md:col-span-1 text-white hover:shadow-md transition-shadow">
+                <CardHeader className="pb-2 flex flex-row items-center justify-between gap-2 space-y-0 p-4 md:p-6 md:pb-2">
                   <CardDescription className="font-medium text-slate-300">Patrimoine Net Total</CardDescription>
                   <div className="h-10 w-10 bg-white/10 rounded-xl flex items-center justify-center">
                     <TrendingUp className="h-5 w-5 text-white" />
                   </div>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="p-4 pt-0 md:p-6 md:pt-0">
                   <CardTitle className="text-2xl sm:text-3xl font-black">
                     {formatCurrency(analytics?.patrimoine_net_total || 0)}
                   </CardTitle>
@@ -295,14 +297,14 @@ export default function Savings() {
                 </CardContent>
               </Card>
 
-              <Card className="shadow-sm border-slate-100 hover:border-emerald-200 transition-colors">
-                <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
+              <Card className="col-span-2 shadow-sm border-slate-100 hover:border-emerald-200 transition-colors md:col-span-1">
+                <CardHeader className="pb-2 flex flex-row items-center justify-between gap-2 space-y-0 p-4 md:p-6 md:pb-2">
                   <CardDescription className="font-medium">Épargne Liquide</CardDescription>
                   <div className="h-10 w-10 bg-emerald-50 rounded-xl flex items-center justify-center">
                     <PiggyBank className="h-5 w-5 text-emerald-600" />
                   </div>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="p-4 pt-0 md:p-6 md:pt-0">
                   <CardTitle className="text-2xl sm:text-3xl font-bold text-emerald-600 amount-blur">
                     {formatCurrency(analytics?.epargne_total || 0)}
                   </CardTitle>
@@ -311,13 +313,13 @@ export default function Savings() {
               </Card>
 
               <Card className="shadow-sm border-slate-100 hover:border-blue-200 transition-colors">
-                <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
+                <CardHeader className="pb-2 flex flex-row items-center justify-between gap-2 space-y-0 p-4 md:p-6 md:pb-2">
                   <CardDescription className="font-medium">Taux d'Épargne</CardDescription>
                   <div className="h-10 w-10 bg-blue-50 rounded-xl flex items-center justify-center">
                     <Target className="h-5 w-5 text-blue-600" />
                   </div>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="p-4 pt-0 md:p-6 md:pt-0">
                   <CardTitle className={`text-2xl sm:text-3xl font-bold ${hasIncome ? getRateColor(savingsRate) : "text-slate-400"}`}>
                     {/* Le backend borne le taux à ±100 % : afficher « −100 % » ferait croire à une valeur exacte */}
                     {!hasIncome ? "—" : savingsRate <= -100 ? "≤ −100 %" : `${savingsRate} %`}
@@ -336,13 +338,13 @@ export default function Savings() {
               </Card>
 
               <Card className="shadow-sm border-slate-100 hover:border-slate-200 transition-colors">
-                <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
+                <CardHeader className="pb-2 flex flex-row items-center justify-between gap-2 space-y-0 p-4 md:p-6 md:pb-2">
                   <CardDescription className="font-medium">Indice Résilience</CardDescription>
                   <div className="h-10 w-10 bg-slate-50 rounded-xl flex items-center justify-center">
                     <ShieldCheck className="h-5 w-5 text-slate-600" />
                   </div>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="p-4 pt-0 md:p-6 md:pt-0">
                   <CardTitle className="text-2xl sm:text-3xl font-bold text-slate-900">
                     {resilience?.months != null ? `${resilience.months} mois` : "—"}
                   </CardTitle>
@@ -357,15 +359,15 @@ export default function Savings() {
           </section>
 
           {/* SECTION 2 : DYNAMIQUE ET FLUX */}
-          <section className="space-y-6">
+          <section className="space-y-4 md:space-y-6">
             <div className="flex items-center gap-2 border-b pb-2">
               <Activity className="h-5 w-5 text-slate-400" />
               <h2 className="text-xl font-bold text-slate-900">Dynamique & Flux</h2>
             </div>
 
-            <div className="grid gap-6 grid-cols-1 md:grid-cols-2">
+            <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2">
               <Card className="shadow-sm border-slate-100 hover:shadow-md transition-shadow">
-                <CardContent className="p-6">
+                <CardContent className="p-4 md:p-6">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
                       <div className="h-10 w-10 bg-blue-50 rounded-xl flex items-center justify-center">
@@ -373,7 +375,7 @@ export default function Savings() {
                       </div>
                       <div>
                         <p className="text-sm font-medium text-slate-500">Flux d'Épargne {period === "all-time" ? "Total" : "Mensuel"}</p>
-                        <p className="text-2xl font-bold text-slate-900">
+                        <p className="whitespace-nowrap text-2xl font-bold tabular-nums text-slate-900">
                           {formatCurrency((analytics?.revenus_apres_depenses || 0) + (analytics?.investissements_du_mois || 0))}
                         </p>
                       </div>
@@ -417,7 +419,7 @@ export default function Savings() {
               </Card>
 
               <Card className="shadow-sm border-slate-100 hover:shadow-md transition-shadow">
-                <CardContent className="p-6">
+                <CardContent className="p-4 md:p-6">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
                       <div className="h-10 w-10 bg-amber-50 rounded-xl flex items-center justify-center">
@@ -425,7 +427,7 @@ export default function Savings() {
                       </div>
                       <div>
                         <p className="text-sm font-medium text-slate-500">Intérêts Perçus {period === "all-time" ? "Cumulés" : "du Mois"}</p>
-                        <p className="text-2xl font-bold text-slate-900">
+                        <p className="whitespace-nowrap text-2xl font-bold tabular-nums text-slate-900">
                           {formatCurrency(analytics?.interets_totaux || 0)}
                         </p>
                       </div>
@@ -440,17 +442,17 @@ export default function Savings() {
               </Card>
             </div>
 
-            <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
+            <div className="grid gap-4 md:gap-6 grid-cols-1 lg:grid-cols-2">
               <Card className="shadow-sm border-slate-100">
                 <CardHeader className="pb-4">
                   <CardTitle className="text-base">Historique des Flux d'Épargne</CardTitle>
                   <CardDescription>Répartition de votre épargne mensuelle sur l'année.</CardDescription>
                 </CardHeader>
-                <CardContent className="h-[300px]">
+                <CardContent className="h-[260px] px-2 md:h-[300px] md:px-6">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={history} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <BarChart data={history} margin={{ top: 10, right: 10, left: isMobile ? -8 : -20, bottom: 0 }}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                      <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} dy={10} />
+                      <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} dy={10} interval="preserveStartEnd" minTickGap={12} />
                       <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} tickFormatter={(v) => `${v}€`} />
                       <Tooltip cursor={{ fill: '#f8fafc' }} formatter={(v: number) => formatCurrency(v)} contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} />
                       <Legend verticalAlign="top" height={36} wrapperStyle={{ fontSize: '12px', paddingBottom: '20px' }}/>
@@ -467,11 +469,11 @@ export default function Savings() {
                   <CardTitle className="text-base">Évolution du Taux d'Épargne (%)</CardTitle>
                   <CardDescription>Visualisez la régularité de vos efforts.</CardDescription>
                 </CardHeader>
-                <CardContent className="h-[300px]">
+                <CardContent className="h-[260px] px-2 md:h-[300px] md:px-6">
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart 
                       data={history.map(h => ({ label: h.label, rate: h.taux_epargne }))}
-                      margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                      margin={{ top: 10, right: 10, left: isMobile ? -8 : -20, bottom: 0 }}
                     >
                       <defs>
                         <linearGradient id="colorRate" x1="0" y1="0" x2="0" y2="1">
@@ -480,7 +482,7 @@ export default function Savings() {
                         </linearGradient>
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                      <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} dy={10} />
+                      <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} dy={10} interval="preserveStartEnd" minTickGap={12} />
                       <YAxis domain={[-100, 100]} axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} tickFormatter={(v) => `${v}%`} />
                       <Tooltip formatter={(v: number) => [`${v}%`, "Taux"]} contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} />
                       <Area type="monotone" dataKey="rate" stroke="#3b82f6" fillOpacity={1} fill="url(#colorRate)" strokeWidth={3} dot={{ r: 4, fill: "#3b82f6", strokeWidth: 2, stroke: "#fff" }} activeDot={{ r: 6 }} />
@@ -492,8 +494,8 @@ export default function Savings() {
           </section>
 
           {/* SECTION 3 : OBJECTIFS */}
-          <section className="space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-2">
+          <section className="space-y-4 md:space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b pb-3 md:gap-4 md:pb-2">
               <div className="flex items-center gap-2">
                 <Target className="h-5 w-5 text-slate-400" />
                 <h2 className="text-xl font-bold text-slate-900">Mes Objectifs</h2>
@@ -507,12 +509,12 @@ export default function Savings() {
                 }
               }}>
                 <DialogTrigger asChild>
-                  <Button className="rounded-xl shadow-sm w-full sm:w-auto">
+                  <Button className="h-11 w-full rounded-xl shadow-sm sm:h-10 sm:w-auto">
                     <Plus className="h-4 w-4 mr-2" />
                     Nouvel Objectif
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-[500px] rounded-2xl">
+                <DialogContent className="rounded-2xl sm:max-w-[500px]">
                   <DialogHeader>
                     <DialogTitle>{editingGoal ? "Modifier l'objectif" : "Créer un objectif"}</DialogTitle>
                     <DialogDescription>
@@ -520,7 +522,7 @@ export default function Savings() {
                     </DialogDescription>
                   </DialogHeader>
                   <div className="grid gap-4 py-4">
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                       <div className="grid gap-2">
                         <Label htmlFor="name">Nom de l'objectif</Label>
                         <Input 
@@ -542,7 +544,7 @@ export default function Savings() {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                       <div className="grid gap-2">
                         <Label>Lier à un compte (optionnel)</Label>
                         <Select value={goalForm.account_id} onValueChange={(v) => setGoalForm({ ...goalForm, account_id: v })}>
@@ -573,7 +575,7 @@ export default function Savings() {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                       <div className="grid gap-2">
                         <Label htmlFor="keyword">Mot-clé Tag (optionnel)</Label>
                         <Input 
@@ -601,16 +603,17 @@ export default function Savings() {
                           <button
                             key={c}
                             type="button"
-                            className={`h-8 w-8 rounded-full border-2 transition-all ${goalForm.color === c ? 'border-slate-900 scale-110 shadow-md' : 'border-transparent'}`}
+                            className={`h-10 w-10 rounded-full border-2 transition-all md:h-8 md:w-8 ${goalForm.color === c ? 'border-slate-900 scale-110 shadow-md' : 'border-transparent'}`}
                             style={{ backgroundColor: c }}
                             onClick={() => setGoalForm({ ...goalForm, color: c })}
+                            aria-label={`Couleur ${c}`}
                           />
                         ))}
                       </div>
                     </div>
                   </div>
                   <DialogFooter>
-                    <Button onClick={handleCreateOrUpdateGoal} className="w-full rounded-xl">
+                    <Button onClick={handleCreateOrUpdateGoal} className="h-11 w-full rounded-xl sm:h-10">
                       {editingGoal ? "Mettre à jour" : "Créer l'objectif"}
                     </Button>
                   </DialogFooter>
@@ -618,11 +621,11 @@ export default function Savings() {
               </Dialog>
             </div>
 
-            <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
               {goals.map((goal) => (
                 <Card key={goal.id} className="group overflow-hidden border-slate-100 shadow-sm hover:shadow-md transition-all hover:border-slate-200">
                   <CardHeader className="pb-3 flex flex-row items-start justify-between">
-                    <div className="flex gap-4">
+                    <div className="flex min-w-0 flex-1 gap-3 md:gap-4">
                       <div 
                         className="h-12 w-12 rounded-2xl flex items-center justify-center text-white shadow-lg shrink-0"
                         style={{ backgroundColor: goal.color || "#0f172a" }}
@@ -630,7 +633,7 @@ export default function Savings() {
                         <Target className="h-6 w-6" />
                       </div>
                       <div className="min-w-0">
-                        <CardTitle className="text-lg font-bold truncate">{goal.name}</CardTitle>
+                        <CardTitle className="text-lg font-bold break-words line-clamp-2 md:truncate md:line-clamp-none">{goal.name}</CardTitle>
                         <div className="flex flex-wrap gap-1 mt-1">
                           {goal.deadline && (
                             <Badge variant="secondary" className="text-[9px] uppercase tracking-wider font-bold bg-slate-200 text-slate-700">
@@ -641,11 +644,11 @@ export default function Savings() {
                         </div>
                       </div>
                     </div>
-                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" onClick={() => openEditDialog(goal)}>
+                    <div className="-mr-2 -mt-1 flex shrink-0 gap-0 opacity-100 transition-opacity md:mr-0 md:mt-0 md:gap-1 md:opacity-0 md:group-hover:opacity-100">
+                      <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full md:h-8 md:w-8" onClick={() => openEditDialog(goal)} aria-label="Modifier l'objectif">
                         <Pencil className="h-4 w-4 text-slate-400" />
                       </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:text-rose-600" onClick={() => handleDeleteGoal(goal.id)}>
+                      <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full hover:text-rose-600 md:h-8 md:w-8" onClick={() => handleDeleteGoal(goal.id)} aria-label="Supprimer l'objectif">
                         <Trash2 className="h-4 w-4 text-slate-400" />
                       </Button>
                     </div>
@@ -653,7 +656,7 @@ export default function Savings() {
                   <CardContent className="space-y-4">
                     <div className="flex items-end justify-between">
                       <div>
-                        <p className="text-2xl font-black text-slate-900">{formatCurrency(goal.current_amount)}</p>
+                        <p className="whitespace-nowrap text-2xl font-black tabular-nums text-slate-900">{formatCurrency(goal.current_amount)}</p>
                         <p className="text-xs text-slate-500 font-medium">sur {formatCurrency(goal.target_amount)}</p>
                       </div>
                       <div className="text-right">
@@ -685,10 +688,10 @@ export default function Savings() {
                       </div>
                     </div>
 
-                    {goal.monthly_required && goal.percentage < 100 && (
-                      <div className="flex items-center justify-between text-[11px] bg-slate-50 p-2 rounded-lg border border-slate-100">
+                    {!!goal.monthly_required && goal.percentage < 100 && (
+                      <div className="flex flex-wrap items-center justify-between gap-x-2 text-[11px] bg-slate-50 p-2 rounded-lg border border-slate-100">
                         <span className="text-slate-500 font-medium italic">Besoin mensuel recommandé:</span>
-                        <span className="font-bold text-slate-900">{formatCurrency(goal.monthly_required)} / mois</span>
+                        <span className="whitespace-nowrap font-bold text-slate-900">{formatCurrency(goal.monthly_required)} / mois</span>
                       </div>
                     )}
 

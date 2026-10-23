@@ -80,7 +80,7 @@ export function WealthForecast() {
       <Card className="shadow-sm border-slate-100">
         <CardHeader>
           <CardDescription>Dans {data.years} ans, tu auras environ</CardDescription>
-          <CardTitle className="text-5xl font-black tracking-tight text-slate-900 amount-blur">
+          <CardTitle className="text-4xl sm:text-5xl font-black tracking-tight tabular-nums text-slate-900 amount-blur">
             {formatCurrency(final, "EUR")}
           </CardTitle>
           {boostedShown && (
@@ -108,11 +108,12 @@ export function WealthForecast() {
           )}
 
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-sm font-medium text-slate-700 mr-1">J'épargne en plus :</span>
+            <span className="mr-1 w-full text-sm font-medium text-slate-700 sm:w-auto">J'épargne en plus :</span>
             {EXTRA_PRESETS.map((v) => (
               <Button
                 key={v}
                 size="sm"
+                className="h-10 md:h-9"
                 variant={extra === v ? "default" : "outline"}
                 onClick={() => setExtra(v)}
               >
@@ -121,7 +122,7 @@ export function WealthForecast() {
             ))}
             <Input
               type="number"
-              className="w-28 h-9"
+              className="h-10 w-28 md:h-9"
               placeholder="Autre"
               value={EXTRA_PRESETS.includes(extra) ? "" : extra}
               onChange={(e) => setExtra(Number(e.target.value) || 0)}
@@ -129,10 +130,10 @@ export function WealthForecast() {
             <span className="text-sm text-slate-500">€/mois</span>
           </div>
 
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-slate-700 mr-1">Horizon :</span>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="mr-1 w-full text-sm font-medium text-slate-700 sm:w-auto">Horizon :</span>
             {HORIZONS.map((h) => (
-              <Button key={h} size="sm" variant={years === h ? "default" : "outline"} onClick={() => setYears(h)}>
+              <Button key={h} size="sm" className="h-10 flex-1 sm:flex-none md:h-9" variant={years === h ? "default" : "outline"} onClick={() => setYears(h)}>
                 {h} ans
               </Button>
             ))}
@@ -146,15 +147,15 @@ export function WealthForecast() {
             <TrendingUp className="h-5 w-5 text-blue-500" /> Évolution prévue
           </CardTitle>
         </CardHeader>
-        <CardContent className="h-[360px]">
+        <CardContent className="h-[260px] px-2 md:h-[360px] md:px-6">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={data.points} margin={{ top: 10, right: 20, left: 10, bottom: 10 }}>
+            <LineChart data={data.points} margin={{ top: 10, right: 12, left: 0, bottom: 10 }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-              <XAxis dataKey="year" tickFormatter={(v) => `${v} an${v > 1 ? "s" : ""}`} tick={{ fontSize: 12, fill: "#64748b" }} />
+              <XAxis dataKey="year" tickFormatter={(v) => `${v} an${v > 1 ? "s" : ""}`} tick={{ fontSize: 11, fill: "#64748b" }} interval="preserveStartEnd" minTickGap={16} />
               <YAxis
                 tick={{ fontSize: 12, fill: "#64748b" }}
                 tickFormatter={(v) => `${Math.round(v / 1000)}k€`}
-                width={60}
+                width={52}
               />
               <Tooltip
                 contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }}

@@ -17,9 +17,9 @@ import type { WrappedReport } from "@/types/wrapped"
 function Kpi({ label, value, delta }: { label: string; value: string; delta?: ReactNode }) {
   return (
     <Card className="shadow-sm">
-      <CardContent className="space-y-1 p-5">
-        <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">{label}</p>
-        <p className="text-2xl font-black tracking-tight amount-blur">{value}</p>
+      <CardContent className="space-y-1 p-4 sm:p-5">
+        <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground sm:text-xs">{label}</p>
+        <p className="whitespace-nowrap text-lg font-black tabular-nums tracking-tight amount-blur min-[400px]:text-xl sm:text-2xl">{value}</p>
         <div className="min-h-5">{delta}</div>
       </CardContent>
     </Card>
@@ -49,6 +49,13 @@ export default function Wrapped() {
   const [storyOpen, setStoryOpen] = useState(false)
   const { workTime } = useWorkTime()
   const hoursPerDay = workTime?.work_hours_per_day ?? 7
+  const [narrow, setNarrow] = useState(() => typeof window !== "undefined" && window.matchMedia("(max-width: 639px)").matches)
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 639px)")
+    const onChange = () => setNarrow(mq.matches)
+    mq.addEventListener("change", onChange)
+    return () => mq.removeEventListener("change", onChange)
+  }, [])
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -74,11 +81,11 @@ export default function Wrapped() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-3xl font-black tracking-tight">Bilan annuel</h1>
+          <h1 className="text-2xl font-black tracking-tight md:text-3xl">Bilan annuel</h1>
           <p className="text-muted-foreground">Ton année en chiffres, comparée à la précédente.</p>
         </div>
         <Select value={String(year)} onValueChange={(v) => setParams({ year: v })}>
-          <SelectTrigger className="w-full sm:w-32">
+          <SelectTrigger className="h-11 w-full text-base sm:h-10 sm:w-32 sm:text-sm">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -111,22 +118,22 @@ export default function Wrapped() {
         </Card>
       ) : (
         <>
-          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900 p-6 text-white shadow-md sm:p-8">
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900 p-5 text-white shadow-md sm:p-8">
             <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
               <div className="space-y-1">
                 <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/60">{period}</p>
-                <p className="text-6xl font-black tracking-tight">{report.year}</p>
+                <p className="text-5xl font-black tracking-tight sm:text-6xl">{report.year}</p>
                 <p className="text-white/70">
                   {report.totals.expense_count.toLocaleString("fr-FR")} dépenses, {report.top_merchants.length ? `${report.top_merchants[0].merchant} en tête` : "aucun marchand"}.
                 </p>
               </div>
-              <Button size="lg" onClick={() => setStoryOpen(true)} className="bg-white text-slate-950 hover:bg-white/90">
+              <Button size="lg" onClick={() => setStoryOpen(true)} className="h-12 w-full bg-white sm:w-auto text-slate-950 hover:bg-white/90">
                 <Play className="mr-2 h-4 w-4" /> Revivre mon année
               </Button>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
             <Kpi
               label="Revenus"
               value={formatCurrency(report.totals.income)}
@@ -159,18 +166,18 @@ export default function Wrapped() {
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
             <div className="lg:col-span-2">
               <Section icon={<CalendarRange className="h-5 w-5 text-slate-400" />} title="Mois par mois">
-                <div className="h-72">
+                <div className="h-60 sm:h-72">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={report.months} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                      <XAxis dataKey="month" tickFormatter={monthShort} axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "#64748b" }} />
-                      <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "#64748b" }} tickFormatter={(v: number) => `${Math.round(v / 1000)}k`} width={36} />
+                      <XAxis dataKey="month" tickFormatter={(m: number) => (narrow ? monthShort(m).charAt(0).toUpperCase() : monthShort(m))} axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "#64748b" }} interval={0} />
+                      <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "#64748b" }} tickFormatter={(v: number) => `${Number((v / 1000).toFixed(1))}k`} width={40} />
                       <Tooltip
                         labelFormatter={(m: number) => monthName(m)}
                         formatter={(v: number) => formatCurrency(v)}
                         contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }}
                       />
-                      <Legend />
+                      <Legend wrapperStyle={{ fontSize: 12 }} />
                       <Bar dataKey="income" name="Revenus" fill="#10b981" radius={[4, 4, 0, 0]} />
                       <Bar dataKey="real_expenses" name="Dépenses" fill="#f43f5e" radius={[4, 4, 0, 0]} />
                     </BarChart>
@@ -200,8 +207,8 @@ export default function Wrapped() {
                 {report.top_categories.map((c) => (
                   <li key={c.name} className="space-y-1">
                     <div className="flex justify-between gap-3 text-sm">
-                      <span className="font-medium">{c.name}</span>
-                      <span className="font-bold amount-blur">{formatCurrency(c.total)}</span>
+                      <span className="min-w-0 truncate font-medium">{c.name}</span>
+                      <span className="shrink-0 whitespace-nowrap font-bold amount-blur">{formatCurrency(c.total)}</span>
                     </div>
                     <div className="h-1.5 rounded-full bg-slate-100">
                       <div className="h-1.5 rounded-full" style={{ width: `${c.percentage}%`, backgroundColor: c.color || "#0f172a" }} />
@@ -224,7 +231,7 @@ export default function Wrapped() {
                       <span className="mr-2 font-bold text-muted-foreground">{i + 1}</span>
                       {m.merchant}
                     </span>
-                    <span className="shrink-0 font-bold amount-blur">{formatCurrency(m.total)}</span>
+                    <span className="shrink-0 whitespace-nowrap font-bold amount-blur">{formatCurrency(m.total)}</span>
                   </li>
                 ))}
               </ol>
@@ -256,7 +263,7 @@ export default function Wrapped() {
                   ].map(([label, value]) => (
                     <div key={label}>
                       <dt className="text-muted-foreground">{label}</dt>
-                      <dd className="text-lg font-black amount-blur">{value}</dd>
+                      <dd className="whitespace-nowrap text-base font-black tabular-nums amount-blur min-[400px]:text-lg">{value}</dd>
                     </div>
                   ))}
                 </dl>

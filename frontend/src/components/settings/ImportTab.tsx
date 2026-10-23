@@ -170,18 +170,18 @@ export function ImportTab() {
   }
 
   return (
-    <div className="grid gap-8 grid-cols-1 lg:grid-cols-3">
+    <div className="grid gap-6 md:gap-8 grid-cols-1 lg:grid-cols-3">
       <div className="lg:col-span-1 space-y-6">
         <Card className="shadow-sm border-slate-100 overflow-hidden">
           <CardHeader className="bg-slate-50/50 border-b">
             <CardTitle className="text-lg">Source des données</CardTitle>
             <CardDescription>Sélectionnez le compte et le fichier CSV.</CardDescription>
           </CardHeader>
-          <CardContent className="p-6 space-y-4">
+          <CardContent className="p-4 sm:p-6 space-y-4">
             <div className="space-y-2">
               <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">Compte de destination</Label>
               <Select value={selectedAccountId} onValueChange={setSelectedAccountId}>
-                <SelectTrigger className="bg-slate-50 border-slate-200">
+                <SelectTrigger className="h-11 bg-slate-50 border-slate-200 sm:h-10">
                   <SelectValue placeholder="Choisir un compte" />
                 </SelectTrigger>
                 <SelectContent>
@@ -197,11 +197,11 @@ export function ImportTab() {
             <div className="space-y-2">
               <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">Fichier CSV</Label>
               <div className="flex items-center justify-center w-full">
-                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-xl cursor-pointer bg-slate-50 hover:bg-slate-100 transition-colors border-slate-200">
+                <label className="flex flex-col items-center justify-center w-full h-36 sm:h-32 border-2 border-dashed rounded-xl cursor-pointer bg-slate-50 hover:bg-slate-100 transition-colors border-slate-200">
                   <div className="flex flex-col items-center justify-center pt-5 pb-6">
                     <Upload className="w-8 h-8 mb-3 text-slate-400" />
                     <p className="mb-2 text-sm text-slate-500">
-                      <span className="font-semibold text-center px-4">Cliquez pour uploader</span>
+                      <span className="font-semibold text-center px-4"><span className="md:hidden">Touchez pour choisir un fichier</span><span className="hidden md:inline">Cliquez pour uploader</span></span>
                     </p>
                     <p className="text-xs text-slate-400">CSV (format Numbers)</p>
                   </div>
@@ -216,7 +216,7 @@ export function ImportTab() {
               )}
             </div>
 
-            <div className="flex items-center space-x-2 pt-2">
+            <div className="flex min-h-10 items-center space-x-3 pt-2">
               <Checkbox 
                 id="categories" 
                 checked={createMissingCategories} 
@@ -242,7 +242,7 @@ export function ImportTab() {
              <CardHeader className="bg-slate-50/50 border-b">
                <CardTitle className="text-sm font-bold">Analyse du fichier</CardTitle>
              </CardHeader>
-             <CardContent className="p-6 space-y-4">
+             <CardContent className="p-4 sm:p-6 space-y-4">
                <div className="flex justify-between items-center">
                  <span className="text-sm text-slate-500 font-medium">Lignes totales</span>
                  <Badge variant="secondary" className="font-bold">{preview.total_rows}</Badge>
@@ -265,7 +265,7 @@ export function ImportTab() {
                            value={String(categoryMapping[csvCat])} 
                            onValueChange={(v) => handleMappingChange(csvCat, v)}
                          >
-                           <SelectTrigger className="h-9 text-xs bg-white border-slate-200">
+                           <SelectTrigger className="h-11 text-sm bg-white border-slate-200 sm:h-9 sm:text-xs">
                              <SelectValue />
                            </SelectTrigger>
                            <SelectContent>
@@ -295,18 +295,18 @@ export function ImportTab() {
               </div>
               <CardDescription className="text-emerald-600/70">Les données ont été traitées avec succès.</CardDescription>
             </CardHeader>
-            <CardContent className="p-6 grid gap-4 grid-cols-1 sm:grid-cols-3">
-              <div className="bg-white p-4 rounded-2xl border border-emerald-100 shadow-sm">
+            <CardContent className="p-4 sm:p-6 grid gap-3 sm:gap-4 grid-cols-3">
+              <div className="bg-white p-3 sm:p-4 rounded-2xl border border-emerald-100 shadow-sm">
                 <p className="text-[10px] uppercase font-black text-slate-400 tracking-widest">Transactions</p>
-                <p className="text-3xl font-extrabold text-emerald-600 mt-1">{result.imported}</p>
+                <p className="text-2xl sm:text-3xl font-extrabold text-emerald-600 mt-1">{result.imported}</p>
               </div>
-              <div className="bg-white p-4 rounded-2xl border border-amber-100 shadow-sm">
+              <div className="bg-white p-3 sm:p-4 rounded-2xl border border-amber-100 shadow-sm">
                 <p className="text-[10px] uppercase font-black text-slate-400 tracking-widest">Doublons</p>
-                <p className="text-3xl font-extrabold text-amber-500 mt-1">{result.skipped}</p>
+                <p className="text-2xl sm:text-3xl font-extrabold text-amber-500 mt-1">{result.skipped}</p>
               </div>
-              <div className="bg-white p-4 rounded-2xl border border-rose-100 shadow-sm">
+              <div className="bg-white p-3 sm:p-4 rounded-2xl border border-rose-100 shadow-sm">
                 <p className="text-[10px] uppercase font-black text-slate-400 tracking-widest">Erreurs</p>
-                <p className="text-3xl font-extrabold text-rose-500 mt-1">{result.errors}</p>
+                <p className="text-2xl sm:text-3xl font-extrabold text-rose-500 mt-1">{result.errors}</p>
               </div>
             </CardContent>
           </Card>
@@ -317,7 +317,21 @@ export function ImportTab() {
               <CardDescription>Les 20 premières lignes identifiées dans le fichier.</CardDescription>
             </CardHeader>
             <CardContent className="p-0">
-              <div className="overflow-x-auto">
+              <ul className="divide-y divide-slate-100 md:hidden">
+                {preview.preview.map((row, i) => (
+                  <li key={i} className="flex items-center justify-between gap-3 px-4 py-3">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-bold text-slate-900">{row.Commercant}</p>
+                      <p className="mt-0.5 flex items-center gap-2 text-xs text-slate-500">
+                        <span>{row.Date}</span>
+                        <Badge variant="outline" className="h-5 max-w-[10rem] truncate border-slate-200 py-0 text-[10px] font-bold text-slate-600">{row.Categorie}</Badge>
+                      </p>
+                    </div>
+                    <span className="shrink-0 whitespace-nowrap text-sm font-black tabular-nums text-slate-900">{row.Montant}€</span>
+                  </li>
+                ))}
+              </ul>
+              <div className="hidden overflow-x-auto md:block">
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-slate-50/50 hover:bg-slate-50/50 border-b border-slate-100">
@@ -346,7 +360,7 @@ export function ImportTab() {
             </CardContent>
           </Card>
         ) : (
-          <div className="h-full min-h-[400px] flex flex-col items-center justify-center p-12 text-center border-2 border-dashed rounded-3xl bg-slate-50/50 border-slate-200">
+          <div className="h-full min-h-[220px] md:min-h-[400px] flex flex-col items-center justify-center p-8 md:p-12 text-center border-2 border-dashed rounded-3xl bg-slate-50/50 border-slate-200">
             <div className="h-16 w-16 bg-white rounded-2xl flex items-center justify-center shadow-sm border border-slate-100 mb-6">
               <Upload className="h-8 w-8 text-slate-300" />
             </div>
@@ -359,21 +373,21 @@ export function ImportTab() {
       </div>
 
       <div className="lg:col-span-3 space-y-6 pt-4 border-t">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 text-slate-900">
             <History className="h-5 w-5" />
-            <h3 className="font-bold text-lg">Historique des importations</h3>
+            <h3 className="font-bold text-base sm:text-lg">Historique des importations</h3>
           </div>
           <Button 
             variant="ghost" 
             size="sm" 
             onClick={() => setShowLogs(!showLogs)}
-            className="text-slate-500 hover:text-slate-900"
+            className="h-10 shrink-0 text-slate-500 hover:text-slate-900"
           >
             {showLogs ? (
               <><ChevronUp className="h-4 w-4 mr-2" /> Masquer</>
             ) : (
-              <><ChevronDown className="h-4 w-4 mr-2" /> Afficher les {importLogs.length} dernières</>
+              <><ChevronDown className="h-4 w-4 mr-2" /> <span className="sm:hidden">Afficher ({importLogs.length})</span><span className="hidden sm:inline">Afficher les {importLogs.length} dernières</span></>
             )}
           </Button>
         </div>

@@ -24,7 +24,7 @@ export function SpendingSection({ data }: { data: MonthlyReportData }) {
     <section className="space-y-3">
       <h2 className="text-lg font-black text-slate-900">Où est passé l'argent ?</h2>
       <Card>
-        <CardContent className="space-y-6 p-5">
+        <CardContent className="space-y-6 p-4 md:p-5">
           {flow && total > 0 && (
             <div className="space-y-3">
               <div className="flex h-3 w-full overflow-hidden rounded-full bg-slate-100">
@@ -71,7 +71,7 @@ export function SpendingSection({ data }: { data: MonthlyReportData }) {
             ) : (
               <ul className="divide-y divide-slate-100">
                 {data.top_categories.map((c) => (
-                  <li key={c.name} className="flex items-center gap-3 py-2.5">
+                  <li key={c.name} className="flex min-h-12 items-center gap-3 py-2.5">
                     <span
                       className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
                       style={{ backgroundColor: `${c.color}1f`, color: c.color }}
@@ -81,18 +81,18 @@ export function SpendingSection({ data }: { data: MonthlyReportData }) {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-baseline justify-between gap-2">
                         <span className="truncate text-sm font-semibold text-slate-800">{c.name}</span>
-                        <span className="amount-blur whitespace-nowrap text-sm font-black">
+                        <span className="amount-blur whitespace-nowrap text-sm font-black tabular-nums">
                           {formatCurrency(c.total)}
                         </span>
                       </div>
-                      <div className="mt-1 flex items-center gap-3">
+                      <div className="mt-1.5 flex items-center gap-3">
                         <div className="h-1 flex-1 overflow-hidden rounded-full bg-slate-100">
                           <div
                             className="h-full rounded-full"
                             style={{ width: `${(c.total / maxCat) * 100}%`, backgroundColor: c.color }}
                           />
                         </div>
-                        <span className="w-28 text-right">
+                        <span className="shrink-0 whitespace-nowrap text-right md:w-28">
                           <Delta diff={c.total - c.prev_total} />
                         </span>
                       </div>

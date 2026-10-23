@@ -14,15 +14,15 @@ interface Slide {
 }
 
 function Eyebrow({ children }: { children: ReactNode }) {
-  return <p className="text-sm font-bold uppercase tracking-[0.2em] text-white/60">{children}</p>
+  return <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/60 sm:text-sm">{children}</p>
 }
 
 function Big({ children, className, blur = true }: { children: ReactNode; className?: string; blur?: boolean }) {
-  return <p className={cn("text-5xl font-black tracking-tight text-white sm:text-7xl", blur && "amount-blur", className)}>{children}</p>
+  return <p className={cn("break-words text-4xl font-black tracking-tight text-white min-[400px]:text-5xl sm:text-7xl", blur && "amount-blur", className)}>{children}</p>
 }
 
 function Sub({ children }: { children: ReactNode }) {
-  return <p className="text-lg text-white/80 sm:text-xl">{children}</p>
+  return <p className="text-base text-white/80 min-[400px]:text-lg sm:text-xl">{children}</p>
 }
 
 function buildSlides(report: WrappedReport, hoursPerDay: number): Slide[] {
@@ -54,7 +54,7 @@ function buildSlides(report: WrappedReport, hoursPerDay: number): Slide[] {
         {prev && <Delta value={prev.income_change_pct} vsYear={prev.year} />}
         <div className="mt-6 space-y-2">
           <Eyebrow>Ce qui est sorti</Eyebrow>
-          <p className="text-4xl font-black text-white sm:text-5xl amount-blur">{formatCurrency(totals.real_expenses)}</p>
+          <p className="text-3xl font-black text-white min-[400px]:text-4xl sm:text-5xl amount-blur">{formatCurrency(totals.real_expenses)}</p>
           {prev && <Delta value={prev.real_expenses_change_pct} higherIsBetter={false} vsYear={prev.year} />}
           {hoursLabel(report.real_expenses_work_hours, hoursPerDay) && (
             <p className="text-white/60 amount-blur">{hoursLabel(report.real_expenses_work_hours, hoursPerDay)}</p>
@@ -95,9 +95,9 @@ function buildSlides(report: WrappedReport, hoursPerDay: number): Slide[] {
           {report.top_categories.length > 1 && (
             <ol className="mt-6 space-y-2 text-left text-white/80">
               {report.top_categories.slice(1).map((c, i) => (
-                <li key={c.name} className="flex justify-between gap-6">
-                  <span>{i + 2}. {c.name}</span>
-                  <span className="font-semibold amount-blur">{formatCurrency(c.total)}</span>
+                <li key={c.name} className="flex justify-between gap-4">
+                  <span className="min-w-0 truncate">{i + 2}. {c.name}</span>
+                  <span className="shrink-0 whitespace-nowrap font-semibold amount-blur">{formatCurrency(c.total)}</span>
                 </li>
               ))}
             </ol>
@@ -116,12 +116,12 @@ function buildSlides(report: WrappedReport, hoursPerDay: number): Slide[] {
           <Eyebrow>Là où tu as le plus dépensé</Eyebrow>
           <ol className="mt-4 w-full max-w-md space-y-4 text-left">
             {report.top_merchants.map((m, i) => (
-              <li key={m.merchant} className="flex items-baseline justify-between gap-4">
-                <span className={cn("font-black text-white", i === 0 ? "text-3xl sm:text-4xl" : "text-xl")}>
-                  <span className="mr-3 text-white/40">{i + 1}</span>
+              <li key={m.merchant} className="flex items-baseline gap-3">
+                <span className="w-5 shrink-0 text-lg font-black text-white/40 sm:text-xl">{i + 1}</span>
+                <span className={cn("line-clamp-2 min-w-0 flex-1 break-words font-black text-white", i === 0 ? "text-xl min-[400px]:text-2xl sm:text-4xl" : "text-base sm:text-xl")}>
                   {m.merchant}
                 </span>
-                <span className="shrink-0 font-semibold text-white/80 amount-blur">{formatCurrency(m.total)}</span>
+                <span className="shrink-0 whitespace-nowrap font-semibold text-white/80 amount-blur">{formatCurrency(m.total)}</span>
               </li>
             ))}
           </ol>
@@ -208,12 +208,12 @@ function buildSlides(report: WrappedReport, hoursPerDay: number): Slide[] {
         <div className="mt-6 grid grid-cols-2 gap-6 text-left">
           <div>
             <Eyebrow>Investi / épargné</Eyebrow>
-            <p className="text-2xl font-black text-white amount-blur">{formatCurrency(totals.invested)}</p>
+            <p className="whitespace-nowrap text-xl font-black text-white min-[400px]:text-2xl amount-blur">{formatCurrency(totals.invested)}</p>
             {prev && <Delta value={prev.invested_change_pct} vsYear={prev.year} />}
           </div>
           <div>
             <Eyebrow>Dividendes</Eyebrow>
-            <p className="text-2xl font-black text-white amount-blur">{formatCurrency(totals.dividends)}</p>
+            <p className="whitespace-nowrap text-xl font-black text-white min-[400px]:text-2xl amount-blur">{formatCurrency(totals.dividends)}</p>
           </div>
         </div>
       </>
@@ -281,7 +281,7 @@ function buildSlides(report: WrappedReport, hoursPerDay: number): Slide[] {
           ].map(([label, value]) => (
             <div key={label}>
               <Eyebrow>{label}</Eyebrow>
-              <p className="text-2xl font-black text-white sm:text-3xl amount-blur">{value}</p>
+              <p className="whitespace-nowrap text-xl font-black text-white min-[400px]:text-2xl sm:text-3xl amount-blur">{value}</p>
             </div>
           ))}
         </div>
@@ -330,22 +330,22 @@ export function WrappedStory({ report, onClose }: WrappedStoryProps) {
   const slide = slides[index]
 
   return (
-    <div className={cn("fixed inset-0 z-50 flex flex-col bg-gradient-to-br transition-colors duration-500", slide.tone)}>
-      <div className="flex items-center gap-1.5 px-4 pt-4 sm:px-8">
+    <div className={cn("fixed inset-0 z-50 flex h-dvh flex-col overflow-hidden bg-gradient-to-br transition-colors duration-500", slide.tone)}>
+      <div className="flex items-center gap-1.5 px-4 pt-[max(1rem,env(safe-area-inset-top))] sm:px-8">
         {slides.map((s, i) => (
           <button
             key={s.key}
             aria-label={`Carte ${i + 1}`}
             onClick={() => setIndex(i)}
-            className={cn("h-1 flex-1 rounded-full transition-colors", i <= index ? "bg-white" : "bg-white/25")}
+            className={cn("relative h-1 flex-1 rounded-full transition-colors before:absolute before:-inset-y-3 before:inset-x-0 before:content-['']", i <= index ? "bg-white" : "bg-white/25")}
           />
         ))}
-        <button onClick={onClose} aria-label="Fermer" className="ml-3 rounded-full p-1.5 text-white/70 hover:bg-white/10 hover:text-white">
+        <button onClick={onClose} aria-label="Fermer" className="-my-2 ml-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-white/70 hover:bg-white/10 hover:text-white">
           <X className="h-5 w-5" />
         </button>
       </div>
 
-      <div className="relative flex flex-1 items-center justify-center overflow-y-auto px-6 py-8">
+      <div className="relative flex flex-1 items-center justify-center overflow-y-auto overflow-x-hidden px-5 py-6 sm:px-6 sm:py-8">
         {/* Zones de navigation : tiers gauche = précédent, le reste = suivant */}
         <button aria-label="Précédent" onClick={prev} className="absolute inset-y-0 left-0 w-1/3 cursor-w-resize" />
         <button aria-label="Suivant" onClick={next} className="absolute inset-y-0 right-0 w-2/3 cursor-e-resize" />
@@ -357,14 +357,14 @@ export function WrappedStory({ report, onClose }: WrappedStoryProps) {
         </div>
       </div>
 
-      <div className="flex items-center justify-between px-4 pb-6 sm:px-8">
-        <button onClick={prev} disabled={index === 0} className="rounded-full p-2 text-white/70 hover:bg-white/10 disabled:opacity-0" aria-label="Précédent">
+      <div className="flex items-center justify-between px-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-8 sm:pb-6">
+        <button onClick={prev} disabled={index === 0} className="flex h-12 w-12 items-center justify-center rounded-full text-white/70 hover:bg-white/10 disabled:opacity-0" aria-label="Précédent">
           <ChevronLeft className="h-6 w-6" />
         </button>
         <span className="text-xs font-semibold text-white/50">
           {index + 1} / {slides.length}
         </span>
-        <button onClick={next} className="rounded-full p-2 text-white/70 hover:bg-white/10" aria-label={index === last ? "Terminer" : "Suivant"}>
+        <button onClick={next} className="flex h-12 w-12 items-center justify-center rounded-full text-white/70 hover:bg-white/10" aria-label={index === last ? "Terminer" : "Suivant"}>
           <ChevronRight className="h-6 w-6" />
         </button>
       </div>

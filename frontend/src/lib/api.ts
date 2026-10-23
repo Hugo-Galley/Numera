@@ -2,7 +2,7 @@ import { getTokenExpiry } from "@/lib/utils"
 
 // Dev (vite, port 5173) : API directe sur :8001. Sinon (build servi par nginx, y compris sur
 // localhost:8082) : proxy /api. Se baser sur le hostname seul cassait la prod ouverte sur localhost.
-export const API_BASE = import.meta.env.DEV ? "http://localhost:8001" : "/api"
+export const API_BASE = import.meta.env.VITE_API_BASE ?? (import.meta.env.DEV ? "http://localhost:8001" : "/api")
 
 export class ApiError extends Error {
   status: number

@@ -156,16 +156,16 @@ export function SecuritySearchInput({
           )}
         </Label>
         <div className="relative mt-1">
-          <Search className="h-4 w-4 text-slate-400 absolute left-3 top-2.5" />
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
           <Input
             id="asset-search"
-            placeholder="Ex: Apple, AAPL, Amundi World, CW8.PA, FR0010315770..."
+            placeholder="Apple, AAPL, CW8.PA, FR0010315770…"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onFocus={() => {
               if (results.length > 0) setIsOpen(true)
             }}
-            className="pl-9 pr-8 bg-white border-slate-200 text-xs shadow-2xs"
+            className="h-11 pl-9 pr-10 bg-white border-slate-200 text-base shadow-2xs sm:h-9 sm:pr-8 sm:text-xs"
           />
           {query && (
             <button
@@ -175,7 +175,8 @@ export function SecuritySearchInput({
                 setResults([])
                 setIsOpen(false)
               }}
-              className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600"
+              className="absolute right-0 top-1/2 flex h-11 w-10 -translate-y-1/2 items-center justify-center text-slate-400 hover:text-slate-600 sm:right-2.5 sm:h-auto sm:w-auto"
+              aria-label="Effacer la recherche"
             >
               <X className="h-3.5 w-3.5" />
             </button>
@@ -188,7 +189,7 @@ export function SecuritySearchInput({
             {results.map((asset, idx) => (
               <div
                 key={idx}
-                className="p-2.5 hover:bg-slate-50 cursor-pointer flex items-center justify-between transition-colors text-xs"
+                className="flex min-h-12 cursor-pointer items-center justify-between gap-2 p-2.5 text-xs transition-colors hover:bg-slate-50"
                 onClick={() => handleSelect(asset)}
               >
                 <div className="flex items-center gap-2.5 min-w-0">
@@ -199,13 +200,13 @@ export function SecuritySearchInput({
                     className="h-7 w-7 rounded-md shrink-0 shadow-2xs"
                   />
                   <div className="min-w-0">
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex flex-wrap items-center gap-x-1.5">
                       <span className="font-bold text-slate-900">{asset.symbol}</span>
                       {asset.isin && (
                         <span className="text-[10px] text-slate-400 font-mono">({asset.isin})</span>
                       )}
                     </div>
-                    <p className="text-slate-500 text-[11px] truncate max-w-[260px]">{asset.name}</p>
+                    <p className="text-slate-500 text-[11px] truncate max-w-[200px] sm:max-w-[260px]">{asset.name}</p>
                   </div>
                 </div>
                 <div className="text-right shrink-0 flex flex-col items-end gap-0.5">
@@ -223,7 +224,7 @@ export function SecuritySearchInput({
       </div>
 
       {/* 2. Direct Ticker & ISIN Inputs */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div className="grid gap-1">
           <Label htmlFor="sec-ticker" className="text-xs text-slate-500 font-medium">
             Ticker / Code
@@ -234,10 +235,10 @@ export function SecuritySearchInput({
               placeholder="Ex: CW8.PA"
               value={ticker}
               onChange={(e) => onChangeTicker(e.target.value.toUpperCase())}
-              className="bg-white uppercase font-mono text-xs pr-7 border-slate-200"
+              className="h-11 bg-white uppercase font-mono text-base pr-8 border-slate-200 sm:h-9 sm:text-xs sm:pr-7"
             />
             {ticker && (
-              <div className="absolute right-2 top-2">
+              <div className="absolute right-2.5 top-1/2 -translate-y-1/2">
                 <CompanyLogo ticker={ticker} name={name} isin={isin} className="h-4 w-4 rounded-xs shrink-0" />
               </div>
             )}
@@ -253,7 +254,7 @@ export function SecuritySearchInput({
             placeholder="Ex: FR0010315770"
             value={isin || ""}
             onChange={(e) => onChangeIsin && onChangeIsin(e.target.value.toUpperCase())}
-            className="bg-white uppercase font-mono text-xs border-slate-200"
+            className="h-11 bg-white uppercase font-mono text-base border-slate-200 sm:h-9 sm:text-xs"
           />
         </div>
       </div>
@@ -285,7 +286,7 @@ export function SecuritySearchInput({
                       Reconnu
                     </Badge>
                   </div>
-                  <div className="text-[11px] text-emerald-700/80 flex items-center gap-2 mt-0.5">
+                  <div className="text-[11px] text-emerald-700/80 flex flex-wrap items-center gap-x-2 mt-0.5">
                     <span className="font-mono font-medium">{validationInfo.symbol}</span>
                     {validationInfo.price_eur != null && (
                       <>

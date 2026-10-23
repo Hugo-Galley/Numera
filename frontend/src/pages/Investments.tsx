@@ -47,6 +47,7 @@ import WorldMap from "@/components/ui/WorldMap"
 import { AllocationTreemap } from "@/components/analytics/AllocationTreemap"
 import { CompositionField, CompositionSource, DiversityScannerResponse } from "@/types/diversity"
 import { CompanyLogo } from "@/components/ui/CompanyLogo"
+import { useIsMobile } from "@/hooks/useIsMobile"
 
 const COMPOSITION_FIELDS: { key: CompositionField; label: string }[] = [
   { key: "sectors", label: "Secteurs" },
@@ -64,6 +65,7 @@ const COLORS = ["#000000", "#4b5563", "#9ca3af", "#d1d5db", "#e5e7eb", "#f3f4f6"
 
 export default function Investments() {
   const navigate = useNavigate()
+  const isMobile = useIsMobile()
   const [allocation, setAllocation] = useState<any>(null)
   const [advancedAllocation, setAdvancedAllocation] = useState<any>(null)
   const [diversity, setDiversity] = useState<DiversityScannerResponse | null>(null)
@@ -147,34 +149,34 @@ const [loading, setLoading] = useState(true)
   }))
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-8 md:space-y-10">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Investissements</h1>
-        <p className="text-muted-foreground mt-1">Suivez la performance et la répartition de votre patrimoine investi.</p>
+        <h1 className="text-2xl font-bold tracking-tight md:text-3xl">Investissements</h1>
+        <p className="text-sm text-muted-foreground mt-1 md:text-base">Suivez la performance et la répartition de votre patrimoine investi.</p>
       </div>
 
       {/* KPI Section */}
-      <div className={`grid gap-4 grid-cols-1 ${diversity ? "md:grid-cols-4" : "md:grid-cols-3"}`}>
-        <Card className="bg-slate-900 text-white shadow-md border-slate-800">
+      <div className={`grid gap-3 grid-cols-2 md:gap-4 ${diversity ? "md:grid-cols-4" : "md:grid-cols-3"}`}>
+        <Card className="col-span-2 bg-slate-900 text-white shadow-md border-slate-800 md:col-span-1">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-slate-300">Valeur Totale</CardTitle>
             <TrendingUp className="h-4 w-4 text-slate-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">
+            <div className="text-3xl font-bold tabular-nums">
               <span className="amount-blur">{formatCurrency(allocation?.total_current_value || 0)}</span>
             </div>
             <p className="text-xs text-slate-400 mt-1">Positions × cours (comptes titres) et derniers relevés (assurance-vie)</p>
           </CardContent>
         </Card>
         
-        <Card className="shadow-sm">
+        <Card className="col-span-2 shadow-sm md:col-span-1">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Performance Globale</CardTitle>
             <Activity className="h-4 w-4 text-slate-400" />
           </CardHeader>
           <CardContent>
-            <div className={`text-3xl font-bold ${allocation?.total_gain_eur >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
+            <div className={`text-2xl font-bold tabular-nums md:text-3xl ${allocation?.total_gain_eur >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
               <span className="amount-blur">
                 {allocation?.total_gain_eur >= 0 ? "+" : ""}{formatCurrency(allocation?.total_gain_eur || 0)}
               </span>
@@ -185,14 +187,14 @@ const [loading, setLoading] = useState(true)
           </CardContent>
         </Card>
 
-        <Card className="shadow-sm">
+        <Card className={`shadow-sm ${diversity ? "" : "col-span-2 md:col-span-1"}`}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Nombre de supports</CardTitle>
+            <CardTitle className="text-sm font-medium">Supports</CardTitle>
             <Wallet className="h-4 w-4 text-slate-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{allocation?.items.length || 0}</div>
-            <p className="text-xs text-muted-foreground mt-1">Comptes d'investissement actifs</p>
+            <div className="text-2xl font-bold md:text-3xl">{allocation?.items.length || 0}</div>
+            <p className="text-xs text-muted-foreground mt-1">Comptes d'investissement</p>
           </CardContent>
         </Card>
 
@@ -204,7 +206,7 @@ const [loading, setLoading] = useState(true)
             </CardHeader>
             <CardContent>
               <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-bold">{diversity.score}</span>
+                <span className="text-2xl font-bold md:text-3xl">{diversity.score}</span>
                 <span className="text-sm text-muted-foreground">/100</span>
               </div>
               <p className="text-xs text-muted-foreground mt-1">{diversity.score_label}</p>
@@ -216,7 +218,7 @@ const [loading, setLoading] = useState(true)
       {/* Alertes de surexposition (discret) */}
       {diversity && diversity.alerts.length > 0 && (
         <details className="group text-xs text-muted-foreground">
-          <summary className="cursor-pointer select-none flex items-center gap-1.5 w-fit hover:text-foreground">
+          <summary className="flex min-h-11 w-fit cursor-pointer select-none items-center gap-1.5 hover:text-foreground md:min-h-0">
             <AlertTriangle className="h-3 w-3" />
             {diversity.alerts.length} alerte{diversity.alerts.length > 1 ? "s" : ""} de surexposition
           </summary>
@@ -237,16 +239,16 @@ const [loading, setLoading] = useState(true)
           <p className="text-sm text-muted-foreground">Vos investissements séparés par enveloppe.</p>
         </div>
         <Card className="shadow-sm border-slate-100 overflow-hidden">
-          <CardHeader className="bg-slate-50/50 border-b pb-4 flex flex-row items-center justify-between">
+          <CardHeader className="flex flex-col items-start justify-between gap-2 border-b bg-slate-50/50 pb-4 sm:flex-row sm:items-center">
             <CardTitle className="text-base font-bold">Détails de l'allocation</CardTitle>
             <span className="text-sm font-semibold text-slate-500 bg-slate-100/80 px-3 py-1 rounded-lg">
               Total : <span className="amount-blur text-slate-900 font-bold">{formatCurrency(allocation?.total_current_value || 0)}</span>
             </span>
           </CardHeader>
-          <CardContent className="p-6">
-            <div className="grid gap-8 lg:grid-cols-12 items-center">
+          <CardContent className="p-4 md:p-6">
+            <div className="grid grid-cols-1 items-center gap-6 md:gap-8 lg:grid-cols-12">
               {/* Donut Chart */}
-              <div className="lg:col-span-5 h-[300px] flex items-center justify-center relative">
+              <div className="min-w-0 lg:col-span-5 h-[240px] md:h-[300px] flex items-center justify-center relative">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
                     <Pie
@@ -284,31 +286,31 @@ const [loading, setLoading] = useState(true)
               </div>
 
               {/* Détails de l'allocation */}
-              <div className="lg:col-span-7 space-y-2.5 max-h-[300px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-slate-200">
+              <div className="min-w-0 lg:col-span-7 space-y-2.5 md:max-h-[300px] md:overflow-y-auto md:pr-2 scrollbar-thin scrollbar-thumb-slate-200">
                 {allocation?.items?.map((item: any, i: number) => (
                   <div 
                     key={i} 
-                    className="flex flex-col gap-1 cursor-pointer hover:bg-slate-50/80 p-2.5 rounded-xl border border-slate-100 hover:border-slate-200 transition-all group"
+                    className="flex min-h-11 flex-col gap-1 cursor-pointer hover:bg-slate-50/80 p-3 md:p-2.5 rounded-xl border border-slate-100 hover:border-slate-200 transition-all group"
                     onClick={() => handleAccountClick(item.account_id)}
                   >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2.5">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex min-w-0 items-center gap-2.5">
                         <div 
                           className="h-3 w-3 rounded-full shrink-0" 
                           style={{ backgroundColor: COLORS[i % COLORS.length] }} 
                         />
-                        <span className="font-semibold text-sm truncate max-w-[180px] sm:max-w-none text-slate-800 group-hover:text-slate-900 transition-colors">
+                        <span className="font-semibold text-sm truncate min-w-0 text-slate-800 group-hover:text-slate-900 transition-colors">
                           {item.account_name} 
                           {item.currency && item.currency !== "EUR" && (
                             <span className="text-xs text-muted-foreground ml-1.5 font-normal">({item.currency})</span>
                           )}
                         </span>
                       </div>
-                      <span className="font-bold text-sm text-slate-700 shrink-0">{item.percentage?.toFixed(1) || 0}%</span>
+                      <span className="font-bold text-sm text-slate-700 shrink-0 tabular-nums">{item.percentage?.toFixed(1) || 0}%</span>
                     </div>
-                    <div className="flex justify-between text-xs text-muted-foreground pl-5.5">
-                      <span className="amount-blur font-medium">{formatCurrency(item.current_value)}</span>
-                      <span className={`amount-blur font-medium ${item.gain_eur >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
+                    <div className="flex flex-wrap justify-between gap-x-2 text-xs text-muted-foreground pl-5.5">
+                      <span className="amount-blur font-medium whitespace-nowrap">{formatCurrency(item.current_value)}</span>
+                      <span className={`amount-blur font-medium whitespace-nowrap ${item.gain_eur >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
                         {item.gain_eur >= 0 ? "+" : ""}{formatCurrency(item.gain_eur)}
                         {item.performance_pct != null && ` (${item.performance_pct >= 0 ? "+" : ""}${item.performance_pct.toFixed(2)} %)`}
                       </span>
@@ -328,7 +330,7 @@ const [loading, setLoading] = useState(true)
           <p className="text-sm text-muted-foreground">Historique et évolution de vos supports.</p>
         </div>
         <Card className="shadow-sm">
-          <CardContent className="h-[300px] px-2 sm:px-6 pt-6">
+          <CardContent className="h-[260px] px-2 sm:px-6 pt-6 md:h-[300px]">
              <ResponsiveContainer width="100%" height="100%">
                <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
@@ -340,7 +342,8 @@ const [loading, setLoading] = useState(true)
                    interval={0}
                    angle={-45}
                    textAnchor="end"
-                   height={60}
+                   height={isMobile ? 70 : 60}
+                   tickFormatter={(v: string) => (isMobile && v.length > 12 ? `${v.slice(0, 11)}…` : v)}
                  />
                  <YAxis 
                    axisLine={false} 
@@ -373,13 +376,13 @@ const [loading, setLoading] = useState(true)
         </div>
         
         <Card className="shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between pb-2 border-b">
+          <CardHeader className="flex flex-row items-center justify-between gap-2 pb-2 border-b">
             <div>
               <CardTitle className="text-base font-bold">Vue d'ensemble de l'allocation</CardTitle>
             </div>
             <Badge variant="secondary" className="bg-slate-100 text-slate-900 pointer-events-none shadow-none border-none">Treemap</Badge>
           </CardHeader>
-          <CardContent className="pt-6">
+          <CardContent className="px-3 pt-4 md:px-6 md:pt-6">
             {advancedAllocation ? (
               <AllocationTreemap 
                 data={advancedAllocation.by_asset_class} 
@@ -393,7 +396,7 @@ const [loading, setLoading] = useState(true)
           </CardContent>
         </Card>
 
-        <div className="grid gap-6 grid-cols-1 md:grid-cols-2">
+        <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2">
           <Card className="shadow-sm">
             <CardHeader className="border-b pb-3">
               <div className="flex items-center gap-2">
@@ -429,14 +432,14 @@ const [loading, setLoading] = useState(true)
                 {(advancedAllocation?.by_asset_class || []).slice(0, 4).map((item: any, i: number) => (
                   <div 
                     key={i} 
-                    className="flex items-center justify-between text-xs cursor-pointer hover:text-slate-600 transition-colors"
+                    className="flex min-h-9 items-center justify-between gap-2 text-xs cursor-pointer hover:text-slate-600 transition-colors md:min-h-0"
                     onClick={() => setDrillDown({ title: `Classe d'actif : ${item.name}`, items: item.items || [] })}
                   >
                     <div className="flex items-center gap-2">
                       <div className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
-                      <span className="truncate max-w-[150px]">{item.name}</span>
+                      <span className="truncate max-w-[200px] md:max-w-[150px]">{item.name}</span>
                     </div>
-                    <span className="font-bold">{item.percentage}%</span>
+                    <span className="font-bold shrink-0">{item.percentage}%</span>
                   </div>
                 ))}
               </div>
@@ -492,9 +495,9 @@ const [loading, setLoading] = useState(true)
                         >
                           <div className="flex items-center gap-2">
                             <div className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
-                            <span className="truncate max-w-[150px]">{item.name}</span>
+                            <span className="truncate max-w-[200px] md:max-w-[150px]">{item.name}</span>
                           </div>
-                          <span className="font-bold">{typeof item.percentage === 'number' ? item.percentage.toFixed(1) : item.percentage}%</span>
+                          <span className="font-bold shrink-0">{typeof item.percentage === 'number' ? item.percentage.toFixed(1) : item.percentage}%</span>
                         </div>
                       ))}
                     </div>
@@ -527,7 +530,7 @@ const [loading, setLoading] = useState(true)
                 </span>
               </div>
             </CardHeader>
-            <CardContent className="pt-6">
+            <CardContent className="px-2 pt-4 md:px-6 md:pt-6">
               {(() => {
                 const topCompaniesData = diversity.top_underlying_companies.slice(0, 10).map((c) => {
                   const total = c.total_value_eur || (c.direct_value_eur + c.indirect_value_eur)
@@ -549,12 +552,13 @@ const [loading, setLoading] = useState(true)
                       <BarChart
                         data={topCompaniesData}
                         layout="vertical"
-                        margin={{ top: 5, right: 30, left: 15, bottom: 5 }}
+                        margin={{ top: 5, right: isMobile ? 8 : 30, left: isMobile ? 0 : 15, bottom: 5 }}
                       >
                         <XAxis
                           type="number"
                           tickFormatter={(v) => `${v.toFixed(0)}€`}
                           tick={{ fontSize: 10 }}
+                          tickCount={isMobile ? 3 : 5}
                           axisLine={false}
                           tickLine={false}
                         />
@@ -566,7 +570,7 @@ const [loading, setLoading] = useState(true)
                             const comp = topCompaniesData.find((c) => c.name === payload.value)
                             return (
                               <g transform={`translate(${x},${y})`}>
-                                <foreignObject x={-135} y={-10} width={130} height={20}>
+                                <foreignObject x={isMobile ? -105 : -135} y={-10} width={isMobile ? 100 : 130} height={20}>
                                   <div
                                     className="flex items-center justify-end gap-1.5 h-full pr-1 overflow-hidden"
                                     title={payload.value}
@@ -576,7 +580,7 @@ const [loading, setLoading] = useState(true)
                                       name={payload.value}
                                       className="h-4 w-4 rounded-xs shrink-0"
                                     />
-                                    <span className="text-[11px] font-medium text-slate-700 truncate max-w-[105px]">
+                                    <span className="text-[11px] font-medium text-slate-700 truncate max-w-[75px] md:max-w-[105px]">
                                       {payload.value}
                                     </span>
                                   </div>
@@ -586,7 +590,7 @@ const [loading, setLoading] = useState(true)
                           }}
                           axisLine={false}
                           tickLine={false}
-                          width={140}
+                          width={isMobile ? 110 : 140}
                         />
                         <Tooltip
                           cursor={false}
@@ -652,10 +656,10 @@ const [loading, setLoading] = useState(true)
 
         <Card className="shadow-sm overflow-hidden">
           <CardHeader className="border-b bg-slate-50/50 pb-3">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-2">
-                <Globe className="h-4 w-4 text-slate-500" />
-                <CardTitle className="text-base">Répartition Géographique Mondiale</CardTitle>
+                <Globe className="h-4 w-4 shrink-0 text-slate-500" />
+                <CardTitle className="text-base">Répartition géographique mondiale</CardTitle>
               </div>
               <div className="flex items-center gap-2">
                 {diversity && diversity.countries.length > 0 && (
@@ -665,9 +669,9 @@ const [loading, setLoading] = useState(true)
               </div>
             </div>
           </CardHeader>
-          <CardContent className="h-[450px] p-0 relative bg-slate-50/30">
-            <div className="absolute top-4 left-4 z-10 text-xs text-slate-500 bg-white/90 backdrop-blur shadow-sm px-3 py-1.5 rounded-md border">
-              Utilisez la molette pour zoomer • Cliquez-glissez pour déplacer
+          <CardContent className="h-[300px] p-0 relative bg-slate-50/30 md:h-[450px]">
+            <div className="absolute top-3 left-3 z-10 rounded-md border bg-white/90 px-2.5 py-1 text-[11px] text-slate-500 shadow-sm backdrop-blur md:top-4 md:left-4 md:px-3 md:py-1.5 md:text-xs">
+              <span className="md:hidden">Pincez pour zoomer • Glissez pour déplacer</span><span className="hidden md:inline">Utilisez la molette pour zoomer • Cliquez-glissez pour déplacer</span>
             </div>
             <WorldMap data={
               diversity && diversity.countries.length > 0
@@ -682,7 +686,7 @@ const [loading, setLoading] = useState(true)
             <CardHeader className="border-b pb-3">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
-                  <Layers className="h-4 w-4 text-slate-500" />
+                  <Layers className="h-4 w-4 shrink-0 text-slate-500" />
                   <div>
                     <CardTitle className="text-base">Origine des compositions</CardTitle>
                     <CardDescription className="text-xs">
@@ -690,7 +694,7 @@ const [loading, setLoading] = useState(true)
                     </CardDescription>
                   </div>
                 </div>
-                <Button variant="outline" size="sm" className="gap-1.5 shrink-0" onClick={refreshCompositions} disabled={refreshingCompositions}>
+                <Button variant="outline" size="sm" className="h-10 min-w-10 shrink-0 gap-1.5 md:h-9" aria-label="Actualiser" onClick={refreshCompositions} disabled={refreshingCompositions}>
                   <RefreshCw className={`h-3.5 w-3.5 ${refreshingCompositions ? "animate-spin" : ""}`} />
                   <span className="hidden sm:inline">Actualiser</span>
                 </Button>
@@ -699,10 +703,10 @@ const [loading, setLoading] = useState(true)
             <CardContent className="p-0">
               <div className="divide-y">
                 {diversity.etf_compositions.map((c) => (
-                  <div key={c.profile_id} className="flex flex-col gap-2 px-5 py-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div key={c.profile_id} className="flex flex-col gap-2 px-4 py-3 md:px-5 sm:flex-row sm:items-center sm:justify-between">
                     <div className="min-w-0">
                       <div className="text-sm font-medium truncate">{c.profile_name}</div>
-                      <div className="text-xs text-muted-foreground truncate">
+                      <div className="text-xs text-muted-foreground break-words">
                         {c.tickers.join(", ")} · <span className="amount-blur">{formatCurrency(c.value_eur)}</span>
                         {" · "}
                         {c.refreshed_at
@@ -740,22 +744,22 @@ const [loading, setLoading] = useState(true)
               Détail des comptes contribuant à cette catégorie.
             </DialogDescription>
           </DialogHeader>
-          <div className="mt-4 space-y-4">
+          <div className="mt-2 space-y-2.5 md:mt-4 md:space-y-4">
             {(drillDown?.items || []).map((item: any, i: number) => (
               <div 
                 key={i} 
-                className="flex items-center justify-between p-3 rounded-lg border bg-slate-50/50 cursor-pointer hover:bg-slate-50 transition-colors group"
+                className="flex min-h-12 items-center justify-between gap-3 p-3 rounded-lg border bg-slate-50/50 cursor-pointer hover:bg-slate-50 transition-colors group"
                 onClick={() => {
                   setDrillDown(null)
                   handleAccountClick(item.account_id)
                 }}
               >
-                <div className="flex flex-col">
-                  <span className="font-medium text-sm group-hover:text-slate-600 transition-colors">{item.account_name || "Compte sans nom"}</span>
+                <div className="flex min-w-0 flex-col">
+                  <span className="font-medium text-sm break-words group-hover:text-slate-600 transition-colors">{item.account_name || "Compte sans nom"}</span>
                   <span className="text-xs text-muted-foreground">{typeof item.percentage_of_group === 'number' ? `${item.percentage_of_group.toFixed(1)}%` : `${item.percentage_of_group || 0}%`} du groupe</span>
                 </div>
-                <div className="text-right">
-                  <span className="font-bold text-sm amount-blur">{formatCurrency(item.value)}</span>
+                <div className="shrink-0 text-right">
+                  <span className="whitespace-nowrap font-bold text-sm tabular-nums amount-blur">{formatCurrency(item.value)}</span>
                 </div>
               </div>
             ))}

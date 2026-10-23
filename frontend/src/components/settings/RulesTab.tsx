@@ -121,25 +121,25 @@ export function RulesTab() {
   if (loading) return <div className="p-8 text-center text-slate-500">Chargement...</div>
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6 [&_input]:text-base md:[&_input]:text-sm">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h3 className="text-lg font-bold text-slate-900">Règles d'auto-catégorisation</h3>
           <p className="text-sm text-slate-500 mt-1">Définissez des règles pour automatiser le tri de vos transactions lors de l'import.</p>
         </div>
-        <div className="flex gap-2">
-           <Button variant="outline" size="sm" className="gap-2" onClick={handleApplyAll}>
+        <div className="grid grid-cols-2 gap-2 sm:flex">
+           <Button variant="outline" size="sm" className="h-11 gap-2 sm:h-9" onClick={handleApplyAll}>
              <RefreshCw className="h-4 w-4" />
              Appliquer à l'existant
            </Button>
            <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
              <DialogTrigger asChild>
-               <Button size="sm" className="gap-2">
+               <Button size="sm" className="h-11 w-full gap-2 sm:h-9 sm:w-auto">
                  <Plus className="h-4 w-4" />
                  Nouvelle règle
                </Button>
              </DialogTrigger>
-             <DialogContent className="sm:max-w-[425px]">
+             <DialogContent className="[&_input]:text-base md:[&_input]:text-sm sm:max-w-[425px]">
                <DialogHeader>
                  <DialogTitle>Ajouter une règle</DialogTitle>
                  <DialogDescription>
@@ -205,9 +205,9 @@ export function RulesTab() {
                     </div>
                  </div>
                </div>
-               <DialogFooter>
-                 <Button variant="outline" onClick={() => setIsAddOpen(false)}>Annuler</Button>
-                 <Button onClick={handleCreate}>Créer la règle</Button>
+               <DialogFooter className="gap-2 sm:gap-0">
+                 <Button variant="outline" className="h-11 sm:h-10" onClick={() => setIsAddOpen(false)}>Annuler</Button>
+                 <Button className="h-11 sm:h-10" onClick={handleCreate}>Créer la règle</Button>
                </DialogFooter>
              </DialogContent>
            </Dialog>
@@ -220,18 +220,18 @@ export function RulesTab() {
             {rules.map((rule) => {
               const category = categories.find(c => c.id === rule.category_id)
               return (
-                <div key={rule.id} className="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
-                  <div className="flex items-center gap-4">
-                    <div className="h-10 w-10 bg-slate-100 rounded-xl flex items-center justify-center text-slate-500 shadow-sm">
+                <div key={rule.id} className="p-4 flex items-center justify-between gap-2 hover:bg-slate-50 transition-colors">
+                  <div className="flex min-w-0 items-center gap-3 sm:gap-4">
+                    <div className="h-10 w-10 shrink-0 bg-slate-100 rounded-xl flex items-center justify-center text-slate-500 shadow-sm">
                       <Filter className="h-5 w-5" />
                     </div>
-                    <div>
-                      <p className="font-bold text-slate-900 flex items-center gap-2">
-                        {rule.pattern}
-                        <ArrowRight className="h-3 w-3 text-slate-400" />
-                        {rule.merchant_name || rule.pattern}
+                    <div className="min-w-0">
+                      <p className="font-bold text-slate-900 flex min-w-0 items-center gap-2">
+                        <span className="truncate">{rule.pattern}</span>
+                        <ArrowRight className="h-3 w-3 shrink-0 text-slate-400" />
+                        <span className="truncate">{rule.merchant_name || rule.pattern}</span>
                       </p>
-                      <div className="flex items-center gap-2 mt-0.5">
+                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-0.5">
                         {category && (
                           <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 border-slate-200">
                              <div className="h-1.5 w-1.5 rounded-full mr-1.5" style={{ backgroundColor: category.color }} />
@@ -242,8 +242,8 @@ export function RulesTab() {
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-slate-400 hover:text-red-600 hover:bg-red-50" onClick={() => handleDelete(rule.id)}>
+                  <div className="flex shrink-0 items-center gap-2">
+                    <Button variant="ghost" size="sm" className="h-10 w-10 md:h-8 md:w-8 p-0 text-slate-400 hover:text-red-600 hover:bg-red-50" onClick={() => handleDelete(rule.id)}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
@@ -262,7 +262,7 @@ export function RulesTab() {
       <div className="p-4 bg-amber-50 rounded-xl border border-amber-100 flex gap-3">
          <AlertCircle className="h-5 w-5 text-amber-600 shrink-0" />
          <p className="text-xs text-amber-800 leading-relaxed">
-           Les règles sont appliquées dans l'ordre de **priorité** décroissante. La première règle qui correspond à une transaction arrête le processus pour cette transaction.
+           Les règles sont appliquées dans l'ordre de <strong>priorité</strong> décroissante. La première règle qui correspond à une transaction arrête le processus pour cette transaction.
          </p>
       </div>
     </div>

@@ -19,11 +19,11 @@ export function WatchSection({ insights }: { insights: Insight[] }) {
         <Card>
           <CardContent className="divide-y divide-slate-100 p-0">
             {items.map((i, idx) => (
-              <div key={idx} className="flex items-start gap-3 px-5 py-3">
+              <div key={idx} className="flex items-start gap-3 px-4 py-3 md:px-5">
                 <AlertTriangle
                   className={`mt-0.5 h-4 w-4 shrink-0 ${i.severity === "high" ? "text-rose-500" : "text-amber-500"}`}
                 />
-                <div>
+                <div className="min-w-0">
                   <div className="text-sm font-semibold text-slate-800">{i.title}</div>
                   <p className="amount-blur text-xs text-slate-500">{i.description}</p>
                 </div>

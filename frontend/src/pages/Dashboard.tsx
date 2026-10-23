@@ -86,7 +86,7 @@ export default function Dashboard() {
   const displayCurrency = selectedAccount?.currency || "EUR"
 
   return (
-    <div className="space-y-10 pb-10">
+    <div className="space-y-5 md:space-y-10 pb-6 md:pb-10">
       <MonthReviewPopup />
       <DashboardHeader 
         accounts={accounts}
@@ -112,14 +112,28 @@ export default function Dashboard() {
       />
 
       {/* 5 onglets (au lieu de 8) : l'onglet Investissements doublonnait la page du même nom */}
-      <Tabs defaultValue="overview" className="space-y-8">
-        <div className="overflow-x-auto pb-2 [ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <Tabs
+        defaultValue="overview"
+        className="space-y-5 md:space-y-8"
+        onValueChange={() =>
+          // Liste d'onglets scrollable sur mobile : centrer l'onglet actif sans bouger la page
+          requestAnimationFrame(() => {
+            const tab = document.querySelector<HTMLElement>("[role=tab][data-state=active]")
+            const box = tab?.closest<HTMLElement>(".overflow-x-auto")
+            if (!tab || !box) return
+            const t = tab.getBoundingClientRect()
+            const c = box.getBoundingClientRect()
+            box.scrollTo({ left: box.scrollLeft + (t.left - c.left) - (c.width - t.width) / 2, behavior: "smooth" })
+          })
+        }
+      >
+        <div className="-mx-4 px-4 md:mx-0 md:px-0 overflow-x-auto pb-2 [ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <TabsList className="bg-slate-50/50 border border-slate-100 p-1 rounded-xl inline-flex w-max">
-            <TabsTrigger value="overview" className="rounded-lg whitespace-nowrap">Aperçu</TabsTrigger>
-            <TabsTrigger value="budgets" className="rounded-lg whitespace-nowrap">Budgets</TabsTrigger>
-            <TabsTrigger value="spending" className="rounded-lg whitespace-nowrap">Dépenses</TabsTrigger>
-            <TabsTrigger value="analysis" className="rounded-lg whitespace-nowrap">Analyse</TabsTrigger>
-            <TabsTrigger value="projections" className="rounded-lg whitespace-nowrap">Projections</TabsTrigger>
+            <TabsTrigger value="overview" className="rounded-lg whitespace-nowrap h-9 px-4 md:h-auto md:px-3">Aperçu</TabsTrigger>
+            <TabsTrigger value="budgets" className="rounded-lg whitespace-nowrap h-9 px-4 md:h-auto md:px-3">Budgets</TabsTrigger>
+            <TabsTrigger value="spending" className="rounded-lg whitespace-nowrap h-9 px-4 md:h-auto md:px-3">Dépenses</TabsTrigger>
+            <TabsTrigger value="analysis" className="rounded-lg whitespace-nowrap h-9 px-4 md:h-auto md:px-3">Analyse</TabsTrigger>
+            <TabsTrigger value="projections" className="rounded-lg whitespace-nowrap h-9 px-4 md:h-auto md:px-3">Projections</TabsTrigger>
           </TabsList>
         </div>
 
@@ -137,12 +151,12 @@ export default function Dashboard() {
           <BudgetsTab budgetAlerts={budgetAlerts} />
         </TabsContent>
 
-        <TabsContent value="spending" className="space-y-8">
+        <TabsContent value="spending" className="space-y-5 md:space-y-8">
           <MerchantsTab topMerchants={topMerchants} displayCurrency={displayCurrency} />
           <SubscriptionsTab subscriptions={subscriptions} displayCurrency={displayCurrency} />
         </TabsContent>
 
-        <TabsContent value="analysis" className="space-y-8">
+        <TabsContent value="analysis" className="space-y-5 md:space-y-8">
           <InsightsTab insights={insights} />
           <HistoryTab 
             kpiHistory={kpiHistory}

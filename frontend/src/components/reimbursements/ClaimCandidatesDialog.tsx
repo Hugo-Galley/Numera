@@ -47,12 +47,12 @@ export function ClaimCandidatesDialog({ claim, accountName, onOpenChange, onDone
             {claim?.debtor} · reste <span className="amount-blur">{claim ? formatCurrency(claim.remaining, claim.currency) : ""}</span> · {claim?.expense.label}
           </DialogDescription>
         </DialogHeader>
-        <div className="max-h-96 divide-y divide-slate-100 overflow-y-auto rounded-xl border border-slate-100">
+        <div className="max-h-[60dvh] md:max-h-96 divide-y divide-slate-100 overflow-y-auto rounded-xl border border-slate-100">
           {candidates === null && <p className="p-6 text-center text-sm text-slate-400">Recherche…</p>}
           {candidates?.map((c) => (
-            <div key={c.id} className="flex items-center justify-between gap-3 p-3">
+            <div key={c.id} className="flex flex-col gap-2 p-3 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
               <div className="min-w-0">
-                <p className="flex items-center gap-2 truncate font-medium text-slate-900 dark:text-slate-100">
+                <p className="flex flex-wrap items-center gap-2 break-words font-medium text-slate-900 dark:text-slate-100">
                   {c.label}
                   {c.debtor_match && <Badge variant="outline" className="border-emerald-100 bg-emerald-50 px-1 py-0 text-[10px] text-emerald-700">Débiteur reconnu</Badge>}
                 </p>
@@ -61,7 +61,7 @@ export function ClaimCandidatesDialog({ claim, accountName, onOpenChange, onDone
                   <span className="amount-blur">{formatCurrency(c.available, claim?.currency)}</span>
                 </p>
               </div>
-              <Button size="sm" onClick={() => link(c)}>Lier</Button>
+              <Button size="sm" className="h-10 w-full sm:h-9 sm:w-auto" onClick={() => link(c)}>Lier</Button>
             </div>
           ))}
           {candidates?.length === 0 && (

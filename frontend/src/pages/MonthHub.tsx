@@ -14,14 +14,14 @@ const TABS = [
 export default function MonthHub() {
   return (
     <div className="space-y-6">
-      <nav className="inline-flex rounded-lg bg-slate-100 p-1">
+      <nav className="grid grid-cols-3 rounded-xl bg-slate-100 p-1 md:inline-flex">
         {TABS.map((tab) => (
           <NavLink
             key={tab.to}
             to={tab.to}
             className={({ isActive }) =>
               cn(
-                "rounded-md px-4 py-1.5 text-sm font-medium transition-colors",
+                "flex min-h-10 items-center justify-center rounded-lg px-2 text-sm font-medium transition-colors md:min-h-0 md:rounded-md md:px-4 md:py-1.5",
                 isActive ? "bg-white text-slate-900 shadow-sm" : "text-slate-600 hover:text-slate-900"
               )
             }

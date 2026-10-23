@@ -24,10 +24,10 @@ export default function Tools() {
   }, [])
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 md:space-y-8">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Outils</h1>
-        <p className="text-muted-foreground">Simulez et projetez l'évolution de votre patrimoine.</p>
+        <h1 className="text-2xl font-bold tracking-tight md:text-3xl">Outils</h1>
+        <p className="text-sm text-muted-foreground md:text-base">Simulez et projetez l'évolution de votre patrimoine.</p>
       </div>
 
       {advanced ? (
@@ -43,7 +43,7 @@ export default function Tools() {
       )}
 
       <div className="flex justify-center">
-        <Button variant="ghost" size="sm" onClick={() => setAdvanced((v) => !v)}>
+        <Button variant="ghost" size="sm" className="h-11 md:h-9" onClick={() => setAdvanced((v) => !v)}>
           {advanced ? "Retour à la vue simple" : "Mode avancé"}
         </Button>
       </div>

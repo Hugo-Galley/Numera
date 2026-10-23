@@ -8,6 +8,7 @@ import {
   CardTitle,
   CardDescription
 } from "@/components/ui/card"
+import { useIsMobile } from "@/hooks/useIsMobile"
 import { formatCurrency } from "@/lib/utils"
 import {
   ResponsiveContainer,
@@ -37,15 +38,16 @@ interface ProjectionsTabProps {
 }
 
 export function ProjectionsTab({ projection, displayCurrency }: ProjectionsTabProps) {
+  const isMobile = useIsMobile()
   return (
-    <div className="space-y-8">
-      <div className="grid gap-6 md:grid-cols-3">
+    <div className="space-y-5 md:space-y-8">
+      <div className="grid grid-cols-2 gap-3 md:gap-6 md:grid-cols-3">
         <Card className="shadow-sm border-slate-100">
-          <CardHeader className="pb-2">
+          <CardHeader className="p-3 pb-1 md:p-6 md:pb-2">
             <CardDescription className="font-medium text-slate-500">Solde Projeté (60j)</CardDescription>
           </CardHeader>
-          <CardContent>
-            <CardTitle className="text-2xl font-bold text-slate-900 amount-blur">
+          <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
+            <CardTitle className="text-xl md:text-2xl font-bold text-slate-900 whitespace-nowrap tabular-nums amount-blur">
               {formatCurrency(projection?.projected_balance || 0, displayCurrency)}
             </CardTitle>
             <div className="flex items-center gap-1.5 mt-1">
@@ -59,11 +61,11 @@ export function ProjectionsTab({ projection, displayCurrency }: ProjectionsTabPr
         </Card>
 
         <Card className="shadow-sm border-slate-100">
-          <CardHeader className="pb-2">
+          <CardHeader className="p-3 pb-1 md:p-6 md:pb-2">
             <CardDescription className="font-medium text-slate-500">Point le plus bas</CardDescription>
           </CardHeader>
-          <CardContent>
-            <CardTitle className="text-2xl font-bold text-slate-900 amount-blur">
+          <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
+            <CardTitle className="text-xl md:text-2xl font-bold text-slate-900 whitespace-nowrap tabular-nums amount-blur">
               {formatCurrency(projection?.low_point || 0, displayCurrency)}
             </CardTitle>
             <p className="text-xs text-slate-400 mt-1 uppercase font-bold tracking-tight">
@@ -72,11 +74,11 @@ export function ProjectionsTab({ projection, displayCurrency }: ProjectionsTabPr
           </CardContent>
         </Card>
 
-        <Card className="shadow-sm border-slate-100">
-          <CardHeader className="pb-2">
+        <Card className="col-span-2 md:col-span-1 shadow-sm border-slate-100">
+          <CardHeader className="p-3 pb-1 md:p-6 md:pb-2">
             <CardDescription className="font-medium text-slate-500">Flux récurrents attendus</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
             <CardTitle className="text-2xl font-bold text-slate-900">
               {projection?.events?.length || 0}
             </CardTitle>
@@ -86,13 +88,13 @@ export function ProjectionsTab({ projection, displayCurrency }: ProjectionsTabPr
       </div>
 
       <Card className="shadow-sm border-slate-100 overflow-hidden">
-        <CardHeader className="bg-slate-50/50 border-b pb-4">
+        <CardHeader className="bg-slate-50/50 border-b p-4 pb-3 md:p-6 md:pb-4">
           <CardTitle className="text-lg">Évolution du Solde Projeté</CardTitle>
           <CardDescription>Projection basée sur vos revenus et dépenses récurrentes sur les 2 prochains mois.</CardDescription>
         </CardHeader>
-        <CardContent className="p-0 sm:p-6 h-[400px]">
+        <CardContent className="p-2 pt-4 sm:p-6 h-[280px] md:h-[400px]">
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={projection?.points || []} margin={{ top: 40, right: 30, left: 20, bottom: 20 }}>
+            <AreaChart data={projection?.points || []} margin={isMobile ? { top: 8, right: 12, left: 0, bottom: 4 } : { top: 40, right: 30, left: 20, bottom: 20 }}>
               <defs>
                 <linearGradient id="colorProj" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.2}/>
@@ -111,7 +113,8 @@ export function ProjectionsTab({ projection, displayCurrency }: ProjectionsTabPr
               <YAxis 
                 axisLine={false} 
                 tickLine={false} 
-                tick={{ fontSize: 12, fill: '#64748b' }} 
+                tick={{ fontSize: isMobile ? 11 : 12, fill: '#64748b' }} 
+                width={isMobile ? 52 : undefined}
                 tickFormatter={(v) => `${Math.round(v)}€`}
               />
               <Tooltip 
@@ -126,26 +129,26 @@ export function ProjectionsTab({ projection, displayCurrency }: ProjectionsTabPr
         </CardContent>
       </Card>
 
-      <div className="grid gap-8 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-5 md:gap-8 lg:grid-cols-2">
          <Card className="shadow-sm border-slate-100">
-           <CardHeader>
+           <CardHeader className="p-4 md:p-6">
              <CardTitle className="text-lg">Prochains flux</CardTitle>
              <CardDescription>Événements prévus dans les 30 prochains jours.</CardDescription>
            </CardHeader>
            <CardContent className="p-0">
              <div className="divide-y">
                {projection?.events?.slice(0, 10).map((ev: any, i: number) => (
-                 <div key={i} className="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
-                   <div className="flex items-center gap-3">
-                     <div className={`h-8 w-8 rounded-lg flex items-center justify-center ${ev.is_income ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}`}>
+                 <div key={i} className="min-h-14 p-3 md:p-4 flex items-center justify-between gap-3 hover:bg-slate-50 transition-colors">
+                   <div className="flex min-w-0 items-center gap-3">
+                     <div className={`h-8 w-8 shrink-0 rounded-lg flex items-center justify-center ${ev.is_income ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}`}>
                        {ev.is_income ? <ArrowUpRight className="h-4 w-4" /> : <ArrowDownRight className="h-4 w-4" />}
                      </div>
-                     <div>
-                       <p className="text-sm font-bold text-slate-900">{ev.name}</p>
+                     <div className="min-w-0">
+                       <p className="truncate text-sm font-bold text-slate-900">{ev.name}</p>
                        <p className="text-[10px] text-slate-500 font-medium uppercase">{format(new Date(ev.date), "d MMMM", { locale: fr })}</p>
                      </div>
                    </div>
-                   <span className={`text-sm font-black amount-blur ${ev.is_income ? 'text-emerald-600' : 'text-slate-900'}`}>
+                   <span className={`shrink-0 whitespace-nowrap tabular-nums text-sm font-black amount-blur ${ev.is_income ? 'text-emerald-600' : 'text-slate-900'}`}>
                      {ev.is_income ? '+' : '-'}{formatCurrency(ev.amount, displayCurrency)}
                    </span>
                  </div>
@@ -154,15 +157,15 @@ export function ProjectionsTab({ projection, displayCurrency }: ProjectionsTabPr
            </CardContent>
          </Card>
 
-         <div className="space-y-6">
+         <div className="space-y-4 md:space-y-6">
             <Card className="shadow-sm border-blue-100 bg-blue-50/20">
-              <CardHeader>
+              <CardHeader className="p-4 md:p-6">
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Sparkles className="h-5 w-5 text-blue-500" />
                   Analyse de trésorerie
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-4 p-4 pt-0 md:p-6 md:pt-0">
                 <p className="text-sm text-slate-600 leading-relaxed">
                   Votre solde devrait rester **positif** sur toute la période projetée. 
                   Le point bas est estimé à <span className="font-bold text-slate-900 amount-blur">{formatCurrency(projection?.low_point || 0, displayCurrency)}</span>.

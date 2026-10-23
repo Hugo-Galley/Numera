@@ -81,14 +81,14 @@ const CustomizedContent = (props: any) => {
 export const AllocationTreemap: React.FC<AllocationTreemapProps> = ({ data, onItemClick }) => {
   if (!data || data.length === 0) {
     return (
-      <div className="flex items-center justify-center h-[400px] bg-slate-50 rounded-xl border border-dashed border-slate-200">
+      <div className="flex items-center justify-center h-[260px] md:h-[400px] bg-slate-50 rounded-xl border border-dashed border-slate-200">
         <p className="text-slate-400 font-medium">Aucune donnée d'allocation disponible.</p>
       </div>
     );
   }
 
   return (
-    <div className="w-full h-[400px] bg-slate-900 rounded-xl overflow-hidden">
+    <div className="w-full h-[300px] md:h-[400px] bg-slate-900 rounded-xl overflow-hidden">
       <ResponsiveContainer width="100%" height="100%">
         <Treemap
           data={[{ name: 'root', children: data }]}

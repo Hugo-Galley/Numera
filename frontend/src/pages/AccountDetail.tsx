@@ -1079,6 +1079,47 @@ export default function AccountDetail() {
     }
   }, [transactions, filteredTransactions, flowSummary, debouncedSearch, dateStart, dateEnd])
 
+  const renderTxMenu = (tx: any) => (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="sm" className="h-10 w-10 p-0 md:h-8 md:w-8" title="Actions">
+            <MoreHorizontal className="h-4 w-4 text-slate-500" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" collisionPadding={12} className="w-56 max-md:[&_[role=menuitem]]:min-h-11">
+          {tx.type === "Sortie" && !tx.is_transfer && account?.currency === "EUR" && (
+            <>
+              <DropdownMenuLabel className="py-1">
+                <WorkHours amount={tx.amount - (tx.reimbursement_offset ?? 0)} className="text-xs text-slate-500" />
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+            </>
+          )}
+          {(tx.type === "Sortie" || tx.type === "Entree") && !tx.is_transfer && (
+            <DropdownMenuItem onClick={() => setReimbursementTx(tx)}>
+              <HandCoins className="mr-2 h-4 w-4" />
+              {tx.type === "Sortie" ? "On me doit…" : "Affecter à une créance…"}
+            </DropdownMenuItem>
+          )}
+          {(tx.type === "Sortie" || tx.type === "Entree") && (
+            <DropdownMenuItem onClick={() => openTransferDialog(tx)}>
+              <ArrowRightLeft className="mr-2 h-4 w-4" />
+              {tx.is_transfer ? "Virement interne lié…" : "Virement interne…"}
+            </DropdownMenuItem>
+          )}
+          <DropdownMenuItem onClick={() => handleEditTransaction(tx)}>
+            <Pencil className="mr-2 h-4 w-4" />
+            Modifier
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={() => handleDeleteTransaction(tx.id)} className="text-rose-600 focus:text-rose-600">
+            <Trash2 className="mr-2 h-4 w-4" />
+            Supprimer
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+  )
+
   if (loading) return (
     <div className="flex items-center justify-center h-[60vh]">
       <div className="flex flex-col items-center gap-4">
@@ -1100,20 +1141,20 @@ export default function AccountDetail() {
       {/* Breadcrumbs & Header */}
       <div className="flex flex-col gap-6">
         <div className="flex flex-col gap-4">
-          <div className="flex items-center gap-2 text-sm text-slate-500">
+          <div className="flex min-w-0 items-center gap-2 text-sm text-slate-500">
             <Link to="/accounts" className="hover:text-slate-900 transition-colors">Comptes</Link>
             <ChevronRight className="h-3 w-3" />
-            <span className="text-slate-900 font-medium">{account.name}</span>
+            <span className="truncate text-slate-900 font-medium">{account.name}</span>
           </div>
           
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <div className="h-14 w-14 bg-slate-900 rounded-2xl flex items-center justify-center text-white shadow-lg">
+            <div className="flex items-center gap-3 sm:gap-4">
+              <div className="hidden h-14 w-14 shrink-0 bg-slate-900 rounded-2xl sm:flex items-center justify-center text-white shadow-lg">
                 <Wallet className="h-7 w-7" />
               </div>
               <div>
                 <div className="flex flex-wrap items-center gap-2">
-                  <h1 className="text-3xl font-bold tracking-tight text-slate-900">{account.name}</h1>
+                  <h1 className="break-words text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">{account.name}</h1>
                   <Badge className="bg-slate-100 text-slate-600 border-none capitalize">
                     {account.type === "assurance_vie" ? "Assurance-Vie" : account.type}
                   </Badge>
@@ -1122,23 +1163,23 @@ export default function AccountDetail() {
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2 max-sm:[&>button]:h-11 max-sm:[&>button]:flex-1">
               {!isInvestment ? (
                 <Dialog open={txOpen} onOpenChange={(open) => { if (!open) { setTxOpen(false); resetTxForm(); } else { setTxOpen(true); } }}>
                   <DialogTrigger asChild>
-                    <Button className="bg-slate-900 text-white hover:bg-slate-800 shadow-md">
+                    <Button className="h-11 w-full bg-slate-900 text-white shadow-md hover:bg-slate-800 sm:h-10 sm:w-auto">
                       <Plus className="h-4 w-4 mr-2" /> Nouvelle opération
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="sm:max-w-[425px] rounded-2xl border-none shadow-2xl max-h-[90vh] overflow-y-auto">
+                  <DialogContent className="max-sm:[&_input]:text-base sm:max-w-[425px] rounded-2xl border-none shadow-2xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                       <DialogTitle className="text-2xl font-bold">{editTxId ? "Modifier l'opération" : "Nouvelle opération"}</DialogTitle>
                       <DialogDescription>
                         {editTxId ? "Modifiez les détails. Les soldes seront recalculés." : "Saisissez les détails de la transaction."}
                       </DialogDescription>
                     </DialogHeader>
-                    <div className="grid gap-6 py-6">
-                      <div className="grid grid-cols-2 gap-4">
+                    <div className="grid gap-5 py-4 sm:gap-6 sm:py-6">
+                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div className="grid gap-2">
                           <Label htmlFor="date" className="text-xs uppercase tracking-wider font-bold text-slate-500">Date</Label>
                           <Input id="date" type="datetime-local" value={txDate} onChange={(e) => setTxDate(e.target.value)} className="bg-slate-50 border-slate-200" />
@@ -1249,7 +1290,7 @@ export default function AccountDetail() {
                         </div>
                       )}
 
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div className="grid gap-2">
                           <Label htmlFor="custom_icon" className="text-xs uppercase tracking-wider font-bold text-slate-500">Icône (Lucide)</Label>
                           <Input id="custom_icon" value={txCustomIcon} onChange={(e) => setTxCustomIcon(e.target.value)} placeholder="Ex: Coffee, Zap..." className="bg-slate-50 border-slate-200" />
@@ -1274,13 +1315,13 @@ export default function AccountDetail() {
                         <Plus className="h-4 w-4 mr-2" /> Versement / Retrait
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
+                    <DialogContent className="max-sm:[&_input]:text-base sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
                       <DialogHeader>
                         <DialogTitle className="text-2xl font-bold">{editInvTxId ? "Modifier le flux" : "Flux d'investissement"}</DialogTitle>
                         <DialogDescription>Enregistrez un mouvement de fonds sur ce compte.</DialogDescription>
                       </DialogHeader>
-                      <div className="grid gap-6 py-6">
-                        <div className="grid grid-cols-2 gap-4">
+                      <div className="grid gap-5 py-4 sm:gap-6 sm:py-6">
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                           <div className="grid gap-2">
                             <Label className="text-xs uppercase tracking-wider font-bold text-slate-500">Date</Label>
                             <Input type="datetime-local" value={invTxDate} onChange={(e) => setInvTxDate(e.target.value)} className="bg-slate-50 border-slate-200" />
@@ -1300,7 +1341,7 @@ export default function AccountDetail() {
                             </Select>
                           </div>
                         </div>
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                           <div className="grid gap-2">
                             <Label htmlFor="ival" className="text-xs uppercase tracking-wider font-bold text-slate-500">Montant</Label>
                             <Input id="ival" type="number" step="0.01" value={invTxAmount} onChange={(e) => setInvTxAmount(e.target.value)} placeholder="0.00" className="bg-slate-50 border-slate-200 font-bold text-lg" />
@@ -1358,7 +1399,7 @@ export default function AccountDetail() {
                             onChangeName={(name) => setInvTxNote(name)}
                           />
 
-                          <div className="grid grid-cols-2 gap-3 pt-1 border-t border-slate-100">
+                          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 pt-1 border-t border-slate-100">
                             <div className="grid gap-1">
                               <Label className="text-xs font-medium">{invTxType === "dividende" ? "Parts reçues (si réinvesti)" : "Nb de parts"}</Label>
                               <Input
@@ -1451,7 +1492,7 @@ export default function AccountDetail() {
 
                         <div className="grid gap-4 pt-2 border-t">
                           <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500">Asset Allocation</h3>
-                          <div className="grid grid-cols-2 gap-4">
+                          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                             <div className="grid gap-2">
                               <Label htmlFor="aclass" className="text-xs uppercase tracking-wider font-bold text-slate-500">Classe d'actif</Label>
                               <Input 
@@ -1509,12 +1550,12 @@ export default function AccountDetail() {
                         <TrendingUp className="h-4 w-4 mr-2" /> Nouveau Snapshot
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="sm:max-w-[425px]">
+                    <DialogContent className="max-sm:[&_input]:text-base sm:max-w-[425px]">
                       <DialogHeader>
                         <DialogTitle className="text-2xl font-bold">{editSnapId ? "Modifier le snapshot" : "Mettre à jour la valeur"}</DialogTitle>
                         <DialogDescription>Définissez la valeur actuelle de votre support d'investissement.</DialogDescription>
                       </DialogHeader>
-                      <div className="grid gap-6 py-6">
+                      <div className="grid gap-5 py-4 sm:gap-6 sm:py-6">
                         <div className="grid gap-2">
                           <Label htmlFor="sdate" className="text-xs uppercase tracking-wider font-bold text-slate-500">Date</Label>
                           <Input id="sdate" type="date" value={snapDate} onChange={(e) => setSnapDate(e.target.value)} className="bg-slate-50 border-slate-200" />
@@ -1541,14 +1582,14 @@ export default function AccountDetail() {
                         <Target className="h-4 w-4 mr-2" /> Nouveau point zéro
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="sm:max-w-[425px]">
+                    <DialogContent className="max-sm:[&_input]:text-base sm:max-w-[425px]">
                       <DialogHeader>
                         <DialogTitle className="text-2xl font-bold text-rose-600">Nouveau point zéro</DialogTitle>
                         <DialogDescription>
                           Attention : Définir un nouveau point zéro archivera la performance passée. Les calculs de performance repartiront de cette valeur.
                         </DialogDescription>
                       </DialogHeader>
-                      <div className="grid gap-6 py-6">
+                      <div className="grid gap-5 py-4 sm:gap-6 sm:py-6">
                         <div className="grid gap-2">
                           <Label htmlFor="zdate" className="text-xs uppercase tracking-wider font-bold text-slate-500">Date d'effet</Label>
                           <Input id="zdate" type="date" value={zeroDate} onChange={(e) => setZeroDate(e.target.value)} className="bg-slate-50 border-slate-200" />
@@ -1575,15 +1616,15 @@ export default function AccountDetail() {
         </div>
 
         {/* Filter Bar */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-white p-3 rounded-2xl border border-slate-100 shadow-sm">
-          <div className="flex items-center gap-2 text-slate-400 mr-2">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 bg-white p-3 rounded-2xl border border-slate-100 shadow-sm">
+          <div className="hidden items-center gap-2 text-slate-400 mr-2 sm:flex">
             <Filter className="h-4 w-4" />
             <span className="text-xs font-bold uppercase tracking-wider">Filtres</span>
           </div>
           
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
             <Select onValueChange={handleQuickFilter}>
-              <SelectTrigger className="w-[140px] h-9 bg-slate-50 border-slate-200 text-xs font-medium">
+              <SelectTrigger className="h-11 w-full sm:h-9 sm:w-[140px] bg-slate-50 border-slate-200 text-xs font-medium">
                 <SelectValue placeholder="Période rapide" />
               </SelectTrigger>
               <SelectContent>
@@ -1596,27 +1637,27 @@ export default function AccountDetail() {
 
             <div className="h-4 w-px bg-slate-200 mx-1 hidden sm:block" />
 
-            <div className="flex items-center gap-2 bg-slate-50 rounded-lg border border-slate-200 px-3 py-0.5">
+            <div className="flex items-center gap-2 bg-slate-50 rounded-lg border border-slate-200 px-3 py-0.5 max-sm:h-11">
               <Calendar className="h-3.5 w-3.5 text-slate-400" />
               <Input 
                 type="date" 
                 value={dateStart} 
                 onChange={(e) => setDateStart(e.target.value)} 
-                className="border-none shadow-none h-8 w-[120px] p-0 text-xs focus-visible:ring-0 bg-transparent font-medium" 
+                className="h-8 min-w-0 flex-1 border-none bg-transparent p-0 text-base font-medium shadow-none focus-visible:ring-0 sm:w-[120px] sm:flex-none sm:text-xs" 
               />
               <span className="text-slate-300 text-[10px] font-bold">À</span>
               <Input 
                 type="date" 
                 value={dateEnd} 
                 onChange={(e) => setDateEnd(e.target.value)} 
-                className="border-none shadow-none h-8 w-[120px] p-0 text-xs focus-visible:ring-0 bg-transparent font-medium" 
+                className="h-8 min-w-0 flex-1 border-none bg-transparent p-0 text-base font-medium shadow-none focus-visible:ring-0 sm:w-[120px] sm:flex-none sm:text-xs" 
               />
               {(dateStart || dateEnd) && (
                 <Button 
                   variant="ghost" 
                   size="icon" 
                   onClick={() => { setDateStart(""); setDateEnd(""); }} 
-                  className="h-6 w-6 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-full"
+                  className="h-8 w-8 shrink-0 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-full sm:h-6 sm:w-6"
                 >
                   <Plus className="h-4 w-4 rotate-45" />
                 </Button>
@@ -1876,9 +1917,9 @@ export default function AccountDetail() {
         <div className="space-y-4">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2"><History className="h-5 w-5 text-slate-400" /> Historique</h2>
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center sm:gap-3">
               <Select value={filterType} onValueChange={setFilterType}>
-                <SelectTrigger className="w-[120px] bg-white h-9">
+                <SelectTrigger className="h-11 w-full bg-white sm:h-9 sm:w-[120px]">
                   <SelectValue placeholder="Type" />
                 </SelectTrigger>
                 <SelectContent>
@@ -1891,7 +1932,7 @@ export default function AccountDetail() {
               </Select>
 
               <Select value={filterCategory} onValueChange={setFilterCategory}>
-                <SelectTrigger className="w-[150px] bg-white h-9">
+                <SelectTrigger className="h-11 w-full bg-white sm:h-9 sm:w-[150px]">
                   <SelectValue placeholder="Catégorie" />
                 </SelectTrigger>
                 <SelectContent>
@@ -1905,7 +1946,7 @@ export default function AccountDetail() {
               {availableTags.length > 0 && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm" className="h-9 bg-white gap-2">
+                    <Button variant="outline" size="sm" className="h-11 w-full bg-white gap-2 sm:h-9 sm:w-auto">
                       <Tag className="h-4 w-4" />
                       {filterTags.length === 0 ? "Tags" : `${filterTags.length} tags`}
                     </Button>
@@ -1948,14 +1989,96 @@ export default function AccountDetail() {
                 </DropdownMenu>
               )}
 
-              <div className="relative w-full md:w-64">
+              <div className="relative col-span-2 w-full md:w-64">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                <Input placeholder="Rechercher..." className="pl-10 bg-white h-9" value={search} onChange={(e) => setSearch(e.target.value)} />
+                <Input placeholder="Rechercher..." className="pl-10 bg-white h-11 text-base sm:h-9 sm:text-sm" value={search} onChange={(e) => setSearch(e.target.value)} />
               </div>
             </div>
           </div>
 
-          <Card className="shadow-sm border-slate-100 overflow-hidden">
+          <div className="space-y-2 md:hidden">
+            {filteredTransactions.length > 0 && (
+              <label className="flex min-h-11 items-center gap-3 px-1 text-sm text-slate-500">
+                <Checkbox
+                  checked={selectedIds.length === filteredTransactions.length && filteredTransactions.length > 0}
+                  onCheckedChange={(checked) => setSelectedIds(checked ? filteredTransactions.map(t => t.id) : [])}
+                />
+                Tout sélectionner
+              </label>
+            )}
+            {filteredTransactions.map((tx) => {
+              const sign = tx.type === "Sortie" ? "-" : (tx.type === "Entree" || tx.type === "Interets") ? "+" : ""
+              const tone = tx.type === "Sortie" ? "text-rose-600" : (tx.type === "Entree" || tx.type === "Interets") ? "text-emerald-600" : "text-slate-900"
+              return (
+                <div key={tx.id} className={`flex items-start gap-1 rounded-xl border bg-white p-2 shadow-sm ${selectedIds.includes(tx.id) ? "border-indigo-300 bg-indigo-50/40" : "border-slate-100"}`}>
+                  <label className="flex h-10 w-9 shrink-0 cursor-pointer items-center justify-center">
+                    <Checkbox
+                      checked={selectedIds.includes(tx.id)}
+                      onCheckedChange={(checked) => {
+                        if (checked) setSelectedIds(prev => [...prev, tx.id])
+                        else setSelectedIds(prev => prev.filter(id => id !== tx.id))
+                      }}
+                    />
+                  </label>
+                  <div className="min-w-0 flex-1 py-1">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex min-w-0 items-center gap-1.5">
+                        {tx.recurring_logo && <CompanyLogo logo={tx.recurring_logo} name={tx.merchant} className="h-6 w-6 shrink-0 rounded-md" />}
+                        {tx.merchant_obj && <div className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: tx.merchant_obj.color || "#64748b" }} />}
+                        <span className="break-words text-sm font-bold leading-tight text-slate-900">{tx.merchant_obj?.name || tx.merchant}</span>
+                        {tx.is_recurring && <Repeat className="h-3 w-3 shrink-0 text-indigo-500" />}
+                      </div>
+                      <span className={`shrink-0 whitespace-nowrap text-sm font-bold tabular-nums amount-blur ${tone}`}>
+                        {sign}{formatCurrency(tx.amount)}
+                      </span>
+                    </div>
+                    <div className="mt-1 flex flex-wrap items-center justify-between gap-x-2 gap-y-0.5 text-xs text-slate-500">
+                      <div className="flex min-w-0 flex-wrap items-center gap-x-1.5">
+                        <span className="shrink-0">{format(new Date(tx.date), "dd/MM/yy")}</span>
+                        <span className="text-slate-300">·</span>
+                        {tx.type === "Solde Initial" ? (
+                          <span>Solde Initial</span>
+                        ) : tx.type === "Interets" ? (
+                          <span className="text-amber-700">Intérêts</span>
+                        ) : (
+                          <>
+                            <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded" style={{ backgroundColor: tx.category?.color || "#cbd5e1" }}>
+                              <IconComponent name={tx.category?.icon} className="h-2.5 w-2.5 text-white" />
+                            </span>
+                            <span>{tx.category?.name || "Sans catégorie"}</span>
+                          </>
+                        )}
+                      </div>
+                      <span className="shrink-0 whitespace-nowrap tabular-nums text-slate-400 amount-blur">Solde {formatCurrency(tx.running_balance)}</span>
+                    </div>
+                    {tx.merchant_obj && tx.merchant_obj.name !== tx.merchant && (
+                      <p className="mt-0.5 truncate text-[11px] italic text-slate-400">{tx.merchant}</p>
+                    )}
+                    {tx.note && <p className="mt-0.5 break-words text-[11px] text-slate-400">{tx.note}</p>}
+                    {((tx.reimbursement_offset ?? 0) > 0 || tx.is_transfer || (tx.tags && tx.tags.length > 0) || tx.currency !== account.currency) && (
+                      <div className="mt-1.5 flex flex-wrap items-center gap-1">
+                        {tx.tags?.map((tag: any) => (
+                          <Badge key={tag.id} className="border-none px-1.5 py-0 text-[10px] font-bold text-white" style={{ backgroundColor: tag.color || "#64748b" }}>{tag.name}</Badge>
+                        ))}
+                        {tx.is_transfer && <Badge variant="outline" className="gap-1 border-none bg-emerald-50 px-1.5 py-0 text-[10px] text-emerald-700"><ArrowRightLeft className="h-3 w-3" />Virement</Badge>}
+                        {(tx.reimbursement_offset ?? 0) > 0 && (
+                          <Badge variant="outline" className="gap-1 border-none bg-emerald-50 px-1.5 py-0 text-[10px] text-emerald-700 amount-blur">
+                            <HandCoins className="h-3 w-3" />net {formatCurrency(tx.amount - (tx.reimbursement_offset ?? 0))}
+                          </Badge>
+                        )}
+                        {tx.currency !== account.currency && (
+                          <span className="text-[10px] text-slate-400 amount-blur">({formatValue(tx.original_amount, tx.currency)})</span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  {renderTxMenu(tx)}
+                </div>
+              )
+            })}
+          </div>
+
+          <Card className="hidden shadow-sm border-slate-100 overflow-hidden md:block">
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader className="bg-slate-50/50">
@@ -2111,44 +2234,7 @@ export default function AccountDetail() {
                             <ArrowRightLeft className="h-3.5 w-3.5 text-emerald-600" />
                           </span>
                         )}
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0" title="Actions">
-                              <MoreHorizontal className="h-4 w-4 text-slate-500" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-56">
-                            {tx.type === "Sortie" && !tx.is_transfer && account?.currency === "EUR" && (
-                              <>
-                                <DropdownMenuLabel className="py-1">
-                                  <WorkHours amount={tx.amount - (tx.reimbursement_offset ?? 0)} className="text-xs text-slate-500" />
-                                </DropdownMenuLabel>
-                                <DropdownMenuSeparator />
-                              </>
-                            )}
-                            {(tx.type === "Sortie" || tx.type === "Entree") && !tx.is_transfer && (
-                              <DropdownMenuItem onClick={() => setReimbursementTx(tx)}>
-                                <HandCoins className="mr-2 h-4 w-4" />
-                                {tx.type === "Sortie" ? "On me doit…" : "Affecter à une créance…"}
-                              </DropdownMenuItem>
-                            )}
-                            {(tx.type === "Sortie" || tx.type === "Entree") && (
-                              <DropdownMenuItem onClick={() => openTransferDialog(tx)}>
-                                <ArrowRightLeft className="mr-2 h-4 w-4" />
-                                {tx.is_transfer ? "Virement interne lié…" : "Virement interne…"}
-                              </DropdownMenuItem>
-                            )}
-                            <DropdownMenuItem onClick={() => handleEditTransaction(tx)}>
-                              <Pencil className="mr-2 h-4 w-4" />
-                              Modifier
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => handleDeleteTransaction(tx.id)} className="text-rose-600 focus:text-rose-600">
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              Supprimer
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                        {renderTxMenu(tx)}
                       </div>
                     </TableCell>
                   </TableRow>
@@ -2157,13 +2243,20 @@ export default function AccountDetail() {
             </Table>
             </div>
             {hasMoreTx && (
-              <div className="flex justify-center border-t p-3">
+              <div className="hidden justify-center border-t p-3 md:flex">
                 <Button variant="outline" size="sm" onClick={loadMoreTransactions} disabled={loadingMoreTx}>
                   {loadingMoreTx ? "Chargement…" : "Charger plus de transactions"}
                 </Button>
               </div>
             )}
           </Card>
+          {hasMoreTx && (
+            <div className="flex justify-center md:hidden">
+              <Button variant="outline" className="h-11 w-full" onClick={loadMoreTransactions} disabled={loadingMoreTx}>
+                {loadingMoreTx ? "Chargement…" : "Charger plus de transactions"}
+              </Button>
+            </div>
+          )}
         </div>
       )}
 
@@ -2218,10 +2311,45 @@ export default function AccountDetail() {
           <DividendsCard accountId={account.id} reloadKey={holdings} onChanged={loadData} />
 
           <div className="grid gap-8 lg:grid-cols-2">
-           <Card className="shadow-sm">
+           <Card className="min-w-0 shadow-sm">
              <CardHeader><CardTitle className="text-lg">Historique des flux</CardTitle></CardHeader>
              <CardContent className="p-0">
-               <div className="overflow-x-auto">
+               <div className="divide-y md:hidden">
+                 {sortedInvestmentTransactions.map((tx: any) => (
+                   <div key={tx.id + (tx.is_regular ? "-reg" : "-inv")} className="flex items-start gap-1 py-2 pl-4 pr-2">
+                     <div className="min-w-0 flex-1 py-1">
+                       <div className="flex items-start justify-between gap-2">
+                         <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+                           <Badge variant="outline" className="h-5 w-fit py-0 text-[10px] capitalize">{tx.type}</Badge>
+                           <span className="break-words text-sm font-bold text-slate-900">{tx.note || tx.ticker || "Transaction"}</span>
+                         </div>
+                         <span className="shrink-0 whitespace-nowrap text-sm font-bold tabular-nums amount-blur">{formatCurrency(tx.amount)}</span>
+                       </div>
+                       <div className="mt-1 flex flex-wrap items-center gap-x-1.5 text-xs text-slate-500">
+                         <span>{format(new Date(tx.date), "dd/MM/yy")}</span>
+                         {tx.ticker && <span className="font-mono text-slate-400">· {tx.ticker}</span>}
+                         {tx.quantity != null && <span className="text-slate-400">· {tx.quantity} part{tx.quantity > 1 ? "s" : ""}</span>}
+                         {tx.unit_price != null && <span className="text-slate-400 amount-blur">@ {formatCurrency(tx.unit_price)}</span>}
+                         {tx.reinvested && <span className="text-emerald-600">· réinvesti</span>}
+                         {tx.reinvest_of_id && <span className="text-emerald-600">↳ dividende réinvesti</span>}
+                         {tx.currency && tx.currency !== account.currency && (
+                           <span className="text-slate-400 amount-blur">({formatValue(tx.original_amount || tx.amount, tx.currency)})</span>
+                         )}
+                       </div>
+                     </div>
+                     <div className="flex shrink-0 items-center">
+                       {!tx.is_regular && (
+                         <Button variant="ghost" size="icon" aria-label="Modifier" onClick={() => handleEditInvTransaction(tx)} className="h-10 w-10"><Pencil className="h-4 w-4" /></Button>
+                       )}
+                       <Button variant="ghost" size="icon" aria-label="Supprimer" onClick={() => tx.is_regular ? handleDeleteTransaction(tx.id) : handleDeleteInvTransaction(tx.id)} className="h-10 w-10 text-rose-500"><Trash2 className="h-4 w-4" /></Button>
+                     </div>
+                   </div>
+                 ))}
+                 {(investmentData?.transactions || []).length === 0 && (
+                   <p className="py-10 text-center text-slate-400">Aucun flux enregistré.</p>
+                 )}
+               </div>
+               <div className="hidden overflow-x-auto md:block">
                  <Table>                 <TableHeader>
                    <TableRow>
                      <TableHead className="cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => handleInvSort("date")}>
@@ -2305,7 +2433,7 @@ export default function AccountDetail() {
             </div>
              </CardContent>
            </Card>
-           <Card className="shadow-sm">
+           <Card className="min-w-0 shadow-sm">
              <CardHeader><CardTitle className="text-lg">Derniers Snapshots</CardTitle></CardHeader>
              <CardContent className="p-0">
                <div className="overflow-x-auto">
@@ -2351,17 +2479,17 @@ export default function AccountDetail() {
       )}
       {/* Bulk Actions Floating Bar */}
       {selectedIds.length > 0 && (
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white px-6 py-4 rounded-2xl shadow-2xl border border-slate-800 flex items-center gap-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
-          <div className="flex items-center gap-2 pr-4 border-r border-slate-700">
+        <div className="fixed bottom-[calc(4.75rem+env(safe-area-inset-bottom))] left-1/2 z-50 flex w-[calc(100%-2rem)] -translate-x-1/2 items-center justify-between gap-2 rounded-2xl border border-slate-800 bg-slate-900 px-3 py-2 text-white shadow-2xl md:bottom-8 md:w-auto md:justify-start md:gap-6 md:px-6 md:py-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
+          <div className="flex items-center gap-2 pr-2 border-r border-slate-700 md:pr-4">
             <Badge className="bg-emerald-500 text-white border-none">{selectedIds.length}</Badge>
-            <span className="text-sm font-medium">sélectionnés</span>
+            <span className="hidden text-sm font-medium sm:inline">sélectionnés</span>
           </div>
           
           <div className="flex items-center gap-2">
             <Button 
               size="sm" 
               variant="ghost" 
-              className="text-white hover:bg-slate-800 gap-2"
+              className="h-10 text-white hover:bg-slate-800 gap-2 md:h-9"
               onClick={() => setIsBulkEditDialogOpen(true)}
             >
               <Pencil className="h-4 w-4" />
@@ -2371,7 +2499,7 @@ export default function AccountDetail() {
             <Button 
               size="sm" 
               variant="ghost" 
-              className="text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 gap-2"
+              className="h-10 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 gap-2 md:h-9"
               onClick={async () => {
                 if (await confirm(`Supprimer ${selectedIds.length} transactions ?`)) {
                   try {
@@ -2390,12 +2518,12 @@ export default function AccountDetail() {
             </Button>
           </div>
 
-          <Separator orientation="vertical" className="h-6 bg-slate-700" />
+          <Separator orientation="vertical" className="hidden h-6 bg-slate-700 md:block" />
 
           <Button 
             size="sm" 
             variant="ghost" 
-            className="text-slate-400 hover:text-white p-2"
+            className="h-10 w-10 text-slate-400 hover:text-white p-2 md:h-9 md:w-auto"
             onClick={() => setSelectedIds([])}
           >
             <X className="h-4 w-4" />
@@ -2405,7 +2533,7 @@ export default function AccountDetail() {
 
       {/* Bulk Edit Dialog */}
       <Dialog open={isBulkEditDialogOpen} onOpenChange={setIsBulkEditDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="max-sm:[&_input]:text-base sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Modification groupée</DialogTitle>
             <DialogDescription>

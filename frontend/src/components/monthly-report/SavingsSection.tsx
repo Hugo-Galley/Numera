@@ -6,7 +6,7 @@ function Figure({ label, value, hint, tone }: { label: string; value: string; hi
   return (
     <div>
       <div className="text-xs text-slate-500">{label}</div>
-      <div className={`amount-blur text-xl font-black ${tone ?? "text-slate-900"}`}>{value}</div>
+      <div className={`amount-blur whitespace-nowrap text-xl font-black tabular-nums ${tone ?? "text-slate-900"}`}>{value}</div>
       {hint && <div className="amount-blur text-[11px] text-slate-400">{hint}</div>}
     </div>
   )

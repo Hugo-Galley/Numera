@@ -133,7 +133,7 @@ export function DividendsCard({ accountId, reloadKey, onChanged }: DividendsCard
                 <span className="amount-blur">{formatCurrency(unlinked.total_eur)}</span>) ne {unlinked.count > 1 ? "sont" : "est"} rattaché
                 {unlinked.count > 1 ? "s" : ""} à aucun titre : le rendement par ligne est incomplet.
               </p>
-              <Button size="sm" variant="outline" className="gap-2 shrink-0" onClick={openLinkPreview}>
+              <Button size="sm" variant="outline" className="h-10 gap-2 shrink-0 md:h-9" onClick={openLinkPreview}>
                 <Link2 className="h-4 w-4" /> Rattacher automatiquement
               </Button>
             </div>
@@ -143,7 +143,7 @@ export function DividendsCard({ accountId, reloadKey, onChanged }: DividendsCard
             <p className="py-6 text-center text-sm text-slate-500">Aucun dividende saisi sur ce compte.</p>
           ) : (
             <>
-              <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+              <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
                 <Kpi label="12 derniers mois" value={totals.last_12m_eur} />
                 <Kpi label="Total reçu (net)" value={totals.net_eur} />
                 <Kpi label="Total brut" value={totals.gross_eur} />
@@ -166,7 +166,42 @@ export function DividendsCard({ accountId, reloadKey, onChanged }: DividendsCard
                 </ResponsiveContainer>
               </div>
 
-              <div className="overflow-x-auto">
+              {/* Mobile : une carte par titre */}
+              <ul className="space-y-2 md:hidden">
+                {data.by_ticker.map((t) => (
+                  <li key={t.ticker} className="rounded-lg border p-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="break-words text-sm font-semibold text-slate-900">{t.asset_name}</div>
+                        <div className="font-mono text-[11px] text-slate-500">
+                          {t.ticker}
+                          {t.last_date && ` • dernier : ${new Date(t.last_date).toLocaleDateString("fr-FR")}`}
+                        </div>
+                      </div>
+                      <div className="shrink-0 text-right">
+                        <div className="amount-blur whitespace-nowrap font-mono text-base font-bold tabular-nums">{formatCurrency(t.total_eur)}</div>
+                        <div className="text-[11px] text-slate-500">{t.count} versement{t.count > 1 ? "s" : ""}</div>
+                      </div>
+                    </div>
+                    <dl className="mt-2 grid grid-cols-3 gap-2 border-t pt-2 text-xs">
+                      <div>
+                        <dt className="text-slate-500">12 mois</dt>
+                        <dd className="amount-blur whitespace-nowrap font-mono font-medium tabular-nums">{formatCurrency(t.last_12m_eur)}</dd>
+                      </div>
+                      <div>
+                        <dt className="text-slate-500">Rdt / PRU</dt>
+                        <dd className="font-mono font-medium tabular-nums">{pct(t.yield_on_cost_pct)}</dd>
+                      </div>
+                      <div>
+                        <dt className="text-slate-500">Rdt actuel</dt>
+                        <dd className="font-mono font-medium tabular-nums">{pct(t.current_yield_pct)}</dd>
+                      </div>
+                    </dl>
+                  </li>
+                ))}
+              </ul>
+
+              <div className="hidden overflow-x-auto md:block">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -220,7 +255,7 @@ export function DividendsCard({ accountId, reloadKey, onChanged }: DividendsCard
       </Card>
 
       <Dialog open={preview !== null} onOpenChange={(open) => !open && setPreview(null)}>
-        <DialogContent className="max-w-xl max-h-[85vh] overflow-y-auto">
+        <DialogContent className="max-w-xl">
           <DialogHeader>
             <DialogTitle>Rattacher les dividendes à leur titre</DialogTitle>
             <DialogDescription>
@@ -234,8 +269,8 @@ export function DividendsCard({ accountId, reloadKey, onChanged }: DividendsCard
                 <ul className="space-y-1">
                   {preview.matched.map((m) => (
                     <li key={m.id} className="flex items-center justify-between gap-3 rounded border px-3 py-1.5">
-                      <span className="truncate">{m.note || "(sans libellé)"}</span>
-                      <Badge variant="secondary" className="font-mono">{m.ticker}</Badge>
+                      <span className="min-w-0 truncate">{m.note || "(sans libellé)"}</span>
+                      <Badge variant="secondary" className="shrink-0 font-mono">{m.ticker}</Badge>
                     </li>
                   ))}
                 </ul>
@@ -255,8 +290,8 @@ export function DividendsCard({ accountId, reloadKey, onChanged }: DividendsCard
             </div>
           )}
           <DialogFooter>
-            <Button variant="outline" onClick={() => setPreview(null)}>Annuler</Button>
-            <Button onClick={applyLink} disabled={applying || !preview || preview.matched.length === 0}>
+            <Button variant="outline" className="h-11 sm:h-10" onClick={() => setPreview(null)}>Annuler</Button>
+            <Button className="h-11 sm:h-10" onClick={applyLink} disabled={applying || !preview || preview.matched.length === 0}>
               {applying ? "Rattachement..." : "Rattacher"}
             </Button>
           </DialogFooter>
@@ -269,8 +304,8 @@ export function DividendsCard({ accountId, reloadKey, onChanged }: DividendsCard
 function Kpi({ label, value }: { label: string; value: number }) {
   return (
     <div className="rounded-lg border bg-slate-50/60 p-3">
-      <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">{label}</p>
-      <p className="mt-1 text-lg font-bold text-slate-900 amount-blur">{formatCurrency(value)}</p>
+      <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 leading-tight">{label}</p>
+      <p className="mt-1 whitespace-nowrap text-base font-bold tabular-nums text-slate-900 amount-blur md:text-lg">{formatCurrency(value)}</p>
     </div>
   )
 }

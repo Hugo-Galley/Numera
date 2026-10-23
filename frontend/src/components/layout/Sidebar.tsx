@@ -82,7 +82,7 @@ function useUrgentActionCount(): number {
   return count
 }
 
-export function Sidebar({ className, onItemClick }: { className?: string, onItemClick?: () => void }) {
+export function Sidebar({ className, onItemClick, hideBrand }: { className?: string, onItemClick?: () => void, hideBrand?: boolean }) {
   const { isPrivacyMode, togglePrivacyMode, setSearchOpen } = useUI()
   const { logout, username, profile } = useAuth()
   
@@ -93,10 +93,12 @@ export function Sidebar({ className, onItemClick }: { className?: string, onItem
 
   return (
     <div className={cn("flex flex-col bg-white", className)}>
-      <div className="flex h-16 items-center border-b px-6">
-        <CreditCard className="h-6 w-6 mr-2" />
-        <span className="text-lg font-bold tracking-tight">Numera</span>
-      </div>
+      {!hideBrand && (
+        <div className="flex h-16 items-center border-b px-6">
+          <CreditCard className="h-6 w-6 mr-2" />
+          <span className="text-lg font-bold tracking-tight">Numera</span>
+        </div>
+      )}
       <div className="flex-1 overflow-y-auto py-4">
         <nav className="space-y-4 px-3">
           {navigationGroups.map((group, i) => (
@@ -187,7 +189,7 @@ export function Sidebar({ className, onItemClick }: { className?: string, onItem
               </div>
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent side="right" align="end" className="w-56">
+          <DropdownMenuContent side="right" align="end" className="w-56 max-md:mb-2">
             <DropdownMenuLabel>Mon Compte</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <NavLink to="/settings">

@@ -8,11 +8,11 @@ import type { ReviewBudget } from "@/types/monthReview"
 
 function Row({ label, value, extra }: { label: string; value: string; extra?: string }) {
   return (
-    <div className="flex items-baseline justify-between py-2">
-      <span className="text-sm text-slate-600">{label}</span>
-      <span className="text-right">
-        <span className="amount-blur font-semibold">{value}</span>
-        {extra && <span className="amount-blur ml-2 text-xs text-slate-500">{extra}</span>}
+    <div className="flex items-baseline justify-between gap-3 py-2.5">
+      <span className="min-w-0 text-sm text-slate-600">{label}</span>
+      <span className="flex shrink-0 flex-col items-end text-right sm:block">
+        <span className="amount-blur whitespace-nowrap font-semibold tabular-nums">{value}</span>
+        {extra && <span className="amount-blur text-xs text-slate-500 sm:ml-2">{extra}</span>}
       </span>
     </div>
   )
@@ -36,7 +36,7 @@ export function BudgetStep({ budget, onChanged }: { budget: ReviewBudget; onChan
   return (
     <div className="space-y-4">
       <Card>
-        <CardContent className="divide-y p-6">
+        <CardContent className="divide-y p-4 md:p-6">
           <Row label="Revenus" value={formatCurrency(budget.income)} />
           <Row
             label="Dépenses réelles"
@@ -70,12 +70,12 @@ export function BudgetStep({ budget, onChanged }: { budget: ReviewBudget; onChan
 
       {overruns.length > 0 && (
         <Card>
-          <CardContent className="space-y-2 p-6">
+          <CardContent className="space-y-2 p-4 md:p-6">
             <p className="text-sm font-semibold">Budgets dépassés</p>
             {overruns.map((a) => (
-              <div key={a.category_id} className="flex justify-between text-sm">
-                <span>{a.category_name}</span>
-                <span className="amount-blur text-rose-600">
+              <div key={a.category_id} className="flex justify-between gap-3 text-sm">
+                <span className="min-w-0 truncate">{a.category_name}</span>
+                <span className="amount-blur shrink-0 whitespace-nowrap text-rose-600">
                   {formatCurrency(a.monthly_spent)} / {formatCurrency(a.monthly_limit ?? 0)}
                 </span>
               </div>
@@ -85,25 +85,26 @@ export function BudgetStep({ budget, onChanged }: { budget: ReviewBudget; onChan
       )}
 
       <Card>
-        <CardContent className="space-y-3 p-6">
+        <CardContent className="space-y-3 p-4 md:p-6">
           <p className="text-sm text-slate-600">
             Plus grosses dépenses du mois. Marquez un achat ponctuel comme <strong>exceptionnel</strong> pour
             juger le mois sans lui (il reste dans les totaux et les soldes).
           </p>
           <ul className="divide-y">
             {budget.top_expenses.map((tx) => (
-              <li key={tx.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
-                <div>
-                  <p className="font-medium">{tx.merchant}</p>
+              <li key={tx.id} className="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+                <div className="min-w-0">
+                  <p className="truncate font-medium">{tx.merchant}</p>
                   <p className="text-xs text-slate-500">
                     {new Date(tx.date).toLocaleDateString("fr-FR")}
                     {tx.category_name ? ` · ${tx.category_name}` : ""}
                   </p>
                 </div>
-                <div className="flex items-center gap-3">
-                  <span className="amount-blur font-semibold">{formatCurrency(tx.amount)}</span>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="amount-blur whitespace-nowrap font-semibold tabular-nums">{formatCurrency(tx.amount)}</span>
                   <Button
                     size="sm"
+                    className="h-10 md:h-9"
                     variant={tx.is_exceptional ? "default" : "outline"}
                     onClick={() => toggle(tx.id, !tx.is_exceptional)}
                   >

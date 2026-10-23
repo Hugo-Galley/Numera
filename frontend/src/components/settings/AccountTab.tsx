@@ -108,16 +108,16 @@ export function AccountTab() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex flex-col md:flex-row gap-6 items-start">
+            <div className="flex flex-col md:flex-row gap-6 items-center md:items-start">
               <div className="flex flex-col items-center gap-2">
-                <div className="h-24 w-24 rounded-full bg-slate-100 flex items-center justify-center overflow-hidden border-2 border-slate-200">
+                <div className="h-20 w-20 md:h-24 md:w-24 rounded-full bg-slate-100 flex items-center justify-center overflow-hidden border-2 border-slate-200">
                   {profilePictureUrl ? (
                     <img src={profilePictureUrl} alt="Profil" className="h-full w-full object-cover" />
                   ) : (
                     <User className="h-12 w-12 text-slate-400" />
                   )}
                 </div>
-                <Label htmlFor="avatar-url" className="text-xs cursor-pointer text-slate-500 hover:text-slate-900 flex items-center gap-1">
+                <Label htmlFor="avatar-url" className="py-2 text-xs cursor-pointer text-slate-500 hover:text-slate-900 flex items-center gap-1">
                   <Camera className="h-3 w-3" /> Changer la photo
                 </Label>
               </div>
@@ -127,6 +127,8 @@ export function AccountTab() {
                   <Label htmlFor="username">Nom d'utilisateur</Label>
                   <Input 
                     id="username" 
+                    autoCapitalize="none"
+                    autoComplete="username"
                     value={username} 
                     onChange={(e) => setUsername(e.target.value)} 
                     placeholder="admin"
@@ -174,6 +176,7 @@ export function AccountTab() {
                 <Label htmlFor="new-password">Nouveau mot de passe</Label>
                 <Input 
                   id="new-password" 
+                  autoComplete="new-password"
                   type="password" 
                   value={password} 
                   onChange={(e) => setPassword(e.target.value)} 
@@ -184,6 +187,7 @@ export function AccountTab() {
                 <Label htmlFor="confirm-password">Confirmer le mot de passe</Label>
                 <Input 
                   id="confirm-password" 
+                  autoComplete="new-password"
                   type="password" 
                   value={confirmPassword} 
                   onChange={(e) => setConfirmPassword(e.target.value)} 
@@ -195,7 +199,7 @@ export function AccountTab() {
         </Card>
 
         <div className="flex justify-end">
-          <Button type="submit" disabled={loading} className="bg-slate-900 hover:bg-slate-800 text-white gap-2">
+          <Button type="submit" disabled={loading} className="h-11 w-full sm:h-10 sm:w-auto bg-slate-900 hover:bg-slate-800 text-white gap-2">
             <Save className="h-4 w-4" />
             {loading ? "Enregistrement..." : "Enregistrer les modifications"}
           </Button>
@@ -222,10 +226,10 @@ export function AccountTab() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2 sm:gap-0">
-            <Button variant="outline" onClick={() => setShowConfirmDialog(false)} disabled={loading}>
+            <Button variant="outline" className="h-11 sm:h-10" onClick={() => setShowConfirmDialog(false)} disabled={loading}>
               Annuler
             </Button>
-            <Button onClick={performUpdate} disabled={loading} className="bg-amber-600 hover:bg-amber-700 text-white">
+            <Button onClick={performUpdate} disabled={loading} className="h-11 sm:h-10 bg-amber-600 hover:bg-amber-700 text-white">
               Confirmer et se déconnecter
             </Button>
           </DialogFooter>

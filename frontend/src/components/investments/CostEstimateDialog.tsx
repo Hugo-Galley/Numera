@@ -98,7 +98,7 @@ export function CostEstimateDialog({ open, onOpenChange, accountId, onApplied }:
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl">
         <DialogHeader>
           <DialogTitle>Estimer les PRU</DialogTitle>
           <DialogDescription>
@@ -116,16 +116,19 @@ export function CostEstimateDialog({ open, onOpenChange, accountId, onApplied }:
               const line = lines[r.ticker]
               const partial = r.coverage !== null && r.coverage < 0.99
               return (
-                <div key={r.ticker} className="flex flex-col gap-2 rounded-lg border p-3 sm:flex-row sm:items-center">
+                <div key={r.ticker} className="flex flex-col gap-3 rounded-lg border p-3 sm:flex-row sm:items-center sm:gap-2">
+                  <div className="flex min-w-0 flex-1 items-start gap-3">
+                  <label className="-m-2 flex h-10 w-10 shrink-0 items-center justify-center sm:m-0 sm:h-auto sm:w-auto sm:pt-0">
                   <input
                     type="checkbox"
-                    className="h-4 w-4 shrink-0"
+                    className="h-5 w-5 shrink-0 sm:h-4 sm:w-4"
                     checked={line?.checked ?? false}
                     onChange={(e) => update(r.ticker, { checked: e.target.checked })}
                     aria-label={`Appliquer le PRU de ${r.ticker}`}
                   />
+                  </label>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold text-slate-900">{r.asset_name}</p>
+                    <p className="break-words text-sm font-semibold text-slate-900 sm:truncate">{r.asset_name}</p>
                     <p className="font-mono text-[11px] text-slate-400">
                       {r.ticker} • {r.quantity} parts
                       {r.current_cost !== null && ` • PRU actuel ${r.current_cost} ${r.currency}`}
@@ -153,17 +156,19 @@ export function CostEstimateDialog({ open, onOpenChange, accountId, onApplied }:
                       {r.sold_quantity > 0 && <Badge variant="outline" className="font-normal">{r.sold_quantity} vendue(s)</Badge>}
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  </div>
+                  <div className="flex items-center gap-2 pl-10 sm:pl-0">
                     <Input
                       type="number"
+                      inputMode="decimal"
                       step="0.0001"
                       min="0"
-                      className="h-8 w-32 text-right font-mono"
+                      className="h-11 w-full text-right font-mono text-base sm:h-8 sm:w-32 sm:text-sm"
                       value={line?.value ?? ""}
                       onChange={(e) => update(r.ticker, { value: e.target.value, checked: Number(e.target.value) > 0 })}
                       placeholder="PRU"
                     />
-                    <span className="w-9 text-xs text-slate-500">{r.currency}</span>
+                    <span className="w-9 shrink-0 text-xs text-slate-500">{r.currency}</span>
                   </div>
                 </div>
               )
@@ -172,8 +177,8 @@ export function CostEstimateDialog({ open, onOpenChange, accountId, onApplied }:
         )}
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Annuler</Button>
-          <Button onClick={apply} disabled={saving || selected.length === 0}>
+          <Button variant="outline" className="h-11 sm:h-10" onClick={() => onOpenChange(false)}>Annuler</Button>
+          <Button className="h-11 sm:h-10" onClick={apply} disabled={saving || selected.length === 0}>
             {saving ? "Enregistrement..." : `Enregistrer ${selected.length} PRU`}
           </Button>
         </DialogFooter>

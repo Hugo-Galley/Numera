@@ -39,19 +39,19 @@ export function DashboardHeader({
   const mainAccount = accounts.find(a => a.is_main)
 
   return (
-    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-      <div>
-        <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900">Tableau de bord</h1>
-        <p className="text-slate-500 mt-1">Toutes vos analyses financières en un coup d'œil.</p>
+    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 md:gap-6">
+      <div className="min-w-0">
+        <h1 className="text-2xl md:text-4xl font-extrabold tracking-tight text-slate-900">Tableau de bord</h1>
+        <p className="hidden sm:block text-slate-500 mt-1">Toutes vos analyses financières en un coup d'œil.</p>
         {periodRange && (
-          <span className="mt-2 inline-flex items-center whitespace-nowrap rounded-full border border-slate-200 bg-white px-2.5 py-0.5 text-xs font-medium text-slate-500">
+          <span className="mt-1.5 md:mt-2 inline-flex items-center whitespace-nowrap rounded-full border border-slate-200 bg-white px-2.5 py-0.5 text-xs font-medium text-slate-500">
             Période de paie : {periodRange}
           </span>
         )}
       </div>
-      <div className="flex flex-wrap items-center gap-2 md:gap-3 bg-white p-1.5 md:p-2 rounded-xl border shadow-sm w-fit">
+      <div className="grid grid-cols-[1fr_auto] gap-2 sm:flex sm:flex-wrap sm:items-center md:gap-3 bg-white p-2 rounded-xl border shadow-sm w-full sm:w-fit">
         <Select value={selectedAccountId} onValueChange={setSelectedAccountId}>
-          <SelectTrigger className="w-[140px] md:w-[180px] border-none shadow-none focus:ring-0 font-medium h-8 md:h-10">
+          <SelectTrigger className="col-span-2 w-full sm:w-[160px] md:w-[180px] border-slate-200 sm:border-none shadow-none focus:ring-0 font-medium h-11 md:h-10 text-base md:text-sm">
             <SelectValue placeholder="Comptes" />
           </SelectTrigger>
           <SelectContent>
@@ -63,7 +63,7 @@ export function DashboardHeader({
         </Select>
         <Separator orientation="vertical" className="h-6 hidden md:block" />
         <Select value={String(month)} onValueChange={(v: string) => setMonth(Number(v))}>
-          <SelectTrigger className="w-[110px] md:w-[130px] border-none shadow-none focus:ring-0 h-8 md:h-10">
+          <SelectTrigger className="w-full sm:w-[120px] md:w-[130px] border-slate-200 sm:border-none shadow-none focus:ring-0 h-11 md:h-10 text-base md:text-sm">
             <SelectValue placeholder="Mois" />
           </SelectTrigger>
           <SelectContent>
@@ -74,7 +74,7 @@ export function DashboardHeader({
         </Select>
         <Separator orientation="vertical" className="h-6 hidden md:block" />
         <Select value={String(year)} onValueChange={(v: string) => setYear(Number(v))}>
-          <SelectTrigger className="w-[80px] md:w-[100px] border-none shadow-none focus:ring-0 h-8 md:h-10">
+          <SelectTrigger className="w-[96px] sm:w-[90px] md:w-[100px] border-slate-200 sm:border-none shadow-none focus:ring-0 h-11 md:h-10 text-base md:text-sm">
             <SelectValue placeholder="Année" />
           </SelectTrigger>
           <SelectContent>
@@ -87,11 +87,11 @@ export function DashboardHeader({
           <>
             <Separator orientation="vertical" className="h-6 hidden md:block" />
             <div 
-              className="cursor-pointer flex items-center justify-center px-3 h-8 md:h-10 text-slate-700 border border-slate-200 bg-white hover:bg-slate-50 hover:text-slate-900 font-medium rounded-lg transition-colors text-sm shadow-sm"
+              className="col-span-2 cursor-pointer flex items-center justify-center px-3 h-11 md:h-10 text-slate-700 border border-slate-200 bg-white hover:bg-slate-50 hover:text-slate-900 font-medium rounded-lg transition-colors text-sm shadow-sm"
               onClick={() => navigate(`/accounts/${mainAccount.id}`)}
             >
               <Star className="h-4 w-4 mr-2 text-slate-400" />
-              <span className="truncate max-w-[120px] md:max-w-[150px]">{mainAccount.name}</span>
+              <span className="truncate max-w-[240px] sm:max-w-[120px] md:max-w-[150px]">{mainAccount.name}</span>
             </div>
           </>
         )}

@@ -25,15 +25,15 @@ export function BudgetSection({ lines }: { lines: BudgetLine[] }) {
             const left = limit - l.monthly_spent
             const tone = ratio >= 1 ? "bg-rose-500" : ratio >= 0.8 ? "bg-amber-500" : "bg-emerald-500"
             return (
-              <div key={l.category_id} className="space-y-1.5 px-5 py-3">
+              <div key={l.category_id} className="space-y-1.5 px-4 py-3 md:px-5">
                 <div className="flex items-baseline justify-between gap-2">
-                  <span className="truncate text-sm font-semibold text-slate-800">{l.category_name}</span>
-                  <span className="amount-blur whitespace-nowrap text-sm">
+                  <span className="min-w-0 truncate text-sm font-semibold text-slate-800">{l.category_name}</span>
+                  <span className="amount-blur shrink-0 whitespace-nowrap text-sm tabular-nums">
                     <span className="font-black">{formatCurrency(l.monthly_spent)}</span>
                     <span className="text-slate-400"> / {formatCurrency(limit)}</span>
                   </span>
                 </div>
-                <div className="h-1.5 overflow-hidden rounded-full bg-slate-100">
+                <div className="h-2 overflow-hidden rounded-full bg-slate-100 md:h-1.5">
                   <div className={`h-full rounded-full ${tone}`} style={{ width: `${Math.min(100, ratio * 100)}%` }} />
                 </div>
                 <div className={`amount-blur text-xs ${left < 0 ? "font-semibold text-rose-600" : "text-slate-500"}`}>

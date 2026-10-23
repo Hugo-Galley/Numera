@@ -52,10 +52,10 @@ export default function Login() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
+    <div className="flex min-h-dvh items-start justify-center bg-muted/40 px-4 pb-8 pt-[12dvh] sm:items-center sm:py-4">
       <Card className="w-full max-w-sm">
         <CardHeader className="space-y-1 text-center">
-          <CardTitle className="text-2xl font-bold">Numera</CardTitle>
+          <CardTitle className="text-3xl font-bold sm:text-2xl">Numera</CardTitle>
           <p className="text-sm text-muted-foreground">
             Entrez vos identifiants pour vous connecter
           </p>
@@ -67,6 +67,10 @@ export default function Login() {
               <Input
                 id="username"
                 type="text"
+                autoComplete="username"
+                autoCapitalize="none"
+                autoCorrect="off"
+                className="h-12 text-base sm:h-10 sm:text-sm"
                 placeholder="admin"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
@@ -78,6 +82,8 @@ export default function Login() {
               <Input
                 id="password"
                 type="password"
+                autoComplete="current-password"
+                className="h-12 text-base sm:h-10 sm:text-sm"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -85,7 +91,7 @@ export default function Login() {
             </div>
           </CardContent>
           <CardFooter>
-            <Button className="w-full" type="submit" disabled={loading}>
+            <Button className="h-12 w-full text-base sm:h-10 sm:text-sm" type="submit" disabled={loading}>
               {loading ? "Connexion..." : "Se connecter"}
             </Button>
           </CardFooter>

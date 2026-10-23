@@ -63,6 +63,22 @@ export function Omnibox() {
   const [loading, setLoading] = useState(false)
   const [activeIndex, setActiveIndex] = useState(0)
   const scrollRef = useRef<HTMLDivElement>(null)
+  // Mobile : plein écran, calé sur la zone réellement visible (clavier virtuel ouvert)
+  const [viewport, setViewport] = useState<{ height: number; top: number } | null>(null)
+
+  useEffect(() => {
+    if (!isSearchOpen) return
+    const vv = window.visualViewport
+    if (!vv) return
+    const update = () => setViewport({ height: vv.height, top: vv.offsetTop })
+    update()
+    vv.addEventListener("resize", update)
+    vv.addEventListener("scroll", update)
+    return () => {
+      vv.removeEventListener("resize", update)
+      vv.removeEventListener("scroll", update)
+    }
+  }, [isSearchOpen])
 
   useEffect(() => {
     if (isSearchOpen) {
@@ -161,14 +177,20 @@ export function Omnibox() {
   return (
     <Dialog open={isSearchOpen} onOpenChange={setSearchOpen}>
       <DialogContent 
-        className="sm:max-w-[600px] p-0 gap-0 overflow-hidden border-none shadow-2xl rounded-2xl" 
+        className="sm:max-w-[600px] p-0 gap-0 overflow-hidden border-none shadow-2xl rounded-2xl max-sm:left-0 max-sm:top-[var(--vvt,0px)] max-sm:flex max-sm:h-[var(--vvh,100dvh)] max-sm:max-h-none max-sm:w-full max-sm:max-w-none max-sm:translate-x-0 max-sm:translate-y-0 max-sm:flex-col max-sm:rounded-none max-sm:data-[state=closed]:slide-out-to-left-0 max-sm:data-[state=closed]:slide-out-to-top-0 max-sm:data-[state=open]:slide-in-from-left-0 max-sm:data-[state=open]:slide-in-from-top-0"
+        style={viewport ? ({ "--vvh": `${viewport.height}px`, "--vvt": `${viewport.top}px` } as React.CSSProperties) : undefined}
         onKeyDown={handleKeyDown}
       >
-        <DialogHeader className="px-4 py-4 border-b flex flex-row items-center gap-3">
+        <DialogHeader className="px-4 py-3 pr-12 border-b flex flex-row items-center gap-3 shrink-0 sm:py-4 sm:pr-4">
           <Search className="h-5 w-5 text-slate-400 shrink-0" />
           <Input
             placeholder="Rechercher un compte, une vue, un commerçant..."
-            className="border-none shadow-none focus-visible:ring-0 text-lg p-0 h-10"
+            className="border-none shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 text-lg p-0 h-11 sm:h-10"
+            inputMode="search"
+            enterKeyHint="search"
+            autoComplete="off"
+            autoCorrect="off"
+            autoCapitalize="none"
             value={query}
             onChange={(e) => {
               setQuery(e.target.value)
@@ -180,8 +202,8 @@ export function Omnibox() {
             <div className="h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
           )}
         </DialogHeader>
-        <ScrollArea className="max-h-[450px]">
-          <div className="p-2" ref={scrollRef}>
+        <ScrollArea className="min-h-0 flex-1 max-sm:[&>[data-radix-scroll-area-viewport]>div]:!block sm:max-h-[450px] sm:flex-none">
+          <div className="p-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]" ref={scrollRef}>
             {filteredNavigation.length > 0 && (
               <div className="mb-4">
                 <h3 className="px-3 py-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
@@ -197,18 +219,18 @@ export function Omnibox() {
                       onClick={() => handleSelect(item)}
                       onMouseEnter={() => setActiveIndex(resultIdx)}
                       className={cn(
-                        "group w-full flex items-center justify-between px-3 py-2 rounded-xl transition-colors text-left outline-none",
+                        "group w-full flex min-h-12 items-center justify-between gap-2 px-3 py-2 rounded-xl transition-colors text-left outline-none",
                         isActive ? "bg-slate-100" : "hover:bg-slate-50"
                       )}
                     >
-                      <div className="flex items-center gap-3">
+                      <div className="flex min-w-0 items-center gap-3">
                         <div className={cn(
-                          "h-8 w-8 rounded-lg flex items-center justify-center transition-colors",
+                          "h-8 w-8 shrink-0 rounded-lg flex items-center justify-center transition-colors",
                           isActive ? "bg-white text-slate-900 shadow-sm" : "bg-slate-100 text-slate-600"
                         )}>
                           <item.icon className="h-4 w-4" />
                         </div>
-                        <span className="font-medium text-slate-900">{item.name}</span>
+                        <span className="truncate font-medium text-slate-900">{item.name}</span>
                       </div>
                       <ArrowRight className={cn(
                         "h-4 w-4 text-slate-300 transition-all",
@@ -235,24 +257,24 @@ export function Omnibox() {
                       onClick={() => handleSelect(acc)}
                       onMouseEnter={() => setActiveIndex(resultIdx)}
                       className={cn(
-                        "group w-full flex items-center justify-between px-3 py-2 rounded-xl transition-colors text-left outline-none",
+                        "group w-full flex min-h-12 items-center justify-between gap-2 px-3 py-2 rounded-xl transition-colors text-left outline-none",
                         isActive ? "bg-slate-100" : "hover:bg-slate-50"
                       )}
                     >
-                      <div className="flex items-center gap-3">
+                      <div className="flex min-w-0 items-center gap-3">
                         <div className={cn(
-                          "h-8 w-8 rounded-lg flex items-center justify-center font-bold text-[10px] uppercase transition-colors",
+                          "h-8 w-8 shrink-0 rounded-lg flex items-center justify-center font-bold text-[10px] uppercase transition-colors",
                           isActive ? "bg-white text-blue-600 shadow-sm" : "bg-blue-50 text-blue-600"
                         )}>
                           {acc.type.substring(0, 2)}
                         </div>
-                        <div className="flex flex-col">
-                          <span className="font-medium text-slate-900">{acc.name}</span>
+                        <div className="flex min-w-0 flex-col">
+                          <span className="truncate font-medium text-slate-900">{acc.name}</span>
                           <span className="text-[10px] text-slate-400 uppercase font-bold tracking-tight">{acc.type}</span>
                         </div>
                       </div>
                       <Badge variant="outline" className={cn(
-                        "text-[10px] border-slate-200 text-slate-500",
+                        "shrink-0 whitespace-nowrap text-[10px] border-slate-200 text-slate-500",
                         isActive && "bg-white"
                       )}>
                         {isPrivacyMode ? "****" : formatCurrency(acc.balance, acc.currency)}
@@ -278,31 +300,31 @@ export function Omnibox() {
                       onClick={() => handleSelect(tx)}
                       onMouseEnter={() => setActiveIndex(resultIdx)}
                       className={cn(
-                        "group w-full flex items-center justify-between px-3 py-2 rounded-xl transition-colors text-left outline-none",
+                        "group w-full flex min-h-12 items-center justify-between gap-2 px-3 py-2 rounded-xl transition-colors text-left outline-none",
                         isActive ? "bg-slate-100" : "hover:bg-slate-50"
                       )}
                     >
-                      <div className="flex items-center gap-3">
+                      <div className="flex min-w-0 items-center gap-3">
                         <div className={cn(
-                          "h-8 w-8 rounded-lg flex items-center justify-center transition-colors",
+                          "h-8 w-8 shrink-0 rounded-lg flex items-center justify-center transition-colors",
                           isActive ? "bg-white text-slate-900 shadow-sm" : "bg-slate-50 text-slate-500"
                         )}>
                           <Receipt className="h-4 w-4" />
                         </div>
-                        <div className="flex flex-col">
-                          <span className="font-medium text-slate-900 truncate max-w-[200px] sm:max-w-[300px]">
+                        <div className="flex min-w-0 flex-col">
+                          <span className="font-medium text-slate-900 truncate sm:max-w-[300px]">
                             {tx.merchant_obj?.name || tx.merchant}
                           </span>
-                          <span className="text-[10px] text-slate-400 flex items-center gap-1.5">
+                          <span className="text-[10px] text-slate-400 flex items-center gap-1.5 truncate">
                             {new Date(tx.date).toLocaleDateString("fr-FR")}
                             {tx.merchant_obj && tx.merchant_obj.name !== tx.merchant && <span className="italic">• {tx.merchant}</span>}
                             {tx.note && <span className="italic">• {tx.note}</span>}
                           </span>
                         </div>
                       </div>
-                      <div className="text-right">
+                      <div className="shrink-0 text-right">
                         <span className={cn(
-                          "text-sm font-bold",
+                          "whitespace-nowrap text-sm font-bold tabular-nums",
                           tx.amount < 0 ? "text-rose-600" : "text-emerald-600"
                         )}>
                           {isPrivacyMode ? "****" : formatCurrency(tx.amount, tx.currency)}
@@ -325,7 +347,7 @@ export function Omnibox() {
             )}
           </div>
         </ScrollArea>
-        <div className="px-4 py-3 border-t bg-slate-50 text-[10px] text-slate-400 flex justify-between items-center">
+        <div className="hidden shrink-0 px-4 py-3 border-t bg-slate-50 text-[10px] text-slate-400 justify-between items-center sm:flex">
           <div className="flex gap-4">
             <span className="flex items-center gap-1"><kbd className="bg-white border rounded px-1 text-slate-500 font-sans shadow-sm">↑↓</kbd> Naviguer</span>
             <span className="flex items-center gap-1"><kbd className="bg-white border rounded px-1 text-slate-500 font-sans shadow-sm">Enter</kbd> Sélectionner</span>

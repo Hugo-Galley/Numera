@@ -257,10 +257,10 @@ export function TransfersTab() {
   )
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 [&_input]:text-base md:[&_input]:text-sm">
       {/* Règles */}
       <section className="space-y-4">
-        <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
           <div>
             <h3 className="flex items-center gap-2 text-lg font-bold text-slate-900">
               <ArrowRightLeft className="h-5 w-5 text-indigo-500" />
@@ -270,12 +270,12 @@ export function TransfersTab() {
               Une règle relie automatiquement les sorties d'un compte aux entrées d'un autre (import, saisie, récurrences) dès que le couple est sans ambiguïté.
             </p>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" className="gap-2" onClick={previewCatchUp} disabled={rules.length === 0}>
+          <div className="grid grid-cols-2 gap-2 sm:flex">
+            <Button variant="outline" size="sm" className="h-11 gap-2 px-2 sm:h-9 sm:px-3" onClick={previewCatchUp} disabled={rules.length === 0}>
               <History className="h-4 w-4" />
               Rattraper le passé
             </Button>
-            <Button size="sm" className="gap-2 bg-indigo-600 hover:bg-indigo-700" onClick={openCreate}>
+            <Button size="sm" className="h-11 gap-2 bg-indigo-600 px-2 hover:bg-indigo-700 sm:h-9 sm:px-3" onClick={openCreate}>
               <Plus className="h-4 w-4" />
               Nouvelle règle
             </Button>
@@ -285,24 +285,24 @@ export function TransfersTab() {
         <div className="grid gap-3">
           {rules.map((rule) => (
             <Card key={rule.id} className="border-slate-100 shadow-sm">
-              <CardContent className="flex items-center justify-between gap-4 p-4">
+              <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="min-w-0 space-y-1">
-                  <p className="flex items-center gap-2 font-bold text-slate-900">
-                    {accountName(rule.source_account_id)}
-                    <ArrowRight className="h-4 w-4 text-indigo-400" />
-                    {accountName(rule.dest_account_id)}
+                  <p className="flex flex-wrap items-center gap-x-2 font-bold text-slate-900">
+                    <span className="break-words">{accountName(rule.source_account_id)}</span>
+                    <ArrowRight className="h-4 w-4 shrink-0 text-indigo-400" />
+                    <span className="break-words">{accountName(rule.dest_account_id)}</span>
                   </p>
                   <p className="text-xs text-slate-500">
                     {rule.pattern ? `Libellé contient « ${rule.pattern} » · ` : "Tout libellé · "}
                     {rule.amount ? `≈ ${formatCurrency(rule.amount)} · ` : "Tout montant · "}±{rule.amount_tolerance_pct} % · ±{rule.day_tolerance} j
                   </p>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex shrink-0 items-center justify-between gap-1 border-t border-slate-100 pt-2 sm:justify-start sm:gap-3 sm:border-0 sm:pt-0">
                   <Switch checked={rule.is_active} onCheckedChange={() => toggleRule(rule)} />
-                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-slate-400 hover:bg-indigo-50 hover:text-indigo-600" onClick={() => openEdit(rule)} aria-label="Modifier la règle">
+                  <Button variant="ghost" size="sm" className="h-10 w-10 p-0 text-slate-400 md:h-8 md:w-8 hover:bg-indigo-50 hover:text-indigo-600" onClick={() => openEdit(rule)} aria-label="Modifier la règle">
                     <Pencil className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-slate-400 hover:bg-red-50 hover:text-red-600" onClick={() => deleteRule(rule)}>
+                  <Button variant="ghost" size="sm" className="h-10 w-10 p-0 text-slate-400 md:h-8 md:w-8 hover:bg-red-50 hover:text-red-600" onClick={() => deleteRule(rule)}>
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
@@ -327,34 +327,34 @@ export function TransfersTab() {
           <p className="mt-1 text-sm text-slate-500">
             Mouvements qui ressemblent à des virements internes mais qu'aucune règle n'a pu lier sans doute, sur tout l'historique. Liez-les pour les exclure de vos dépenses réelles.
           </p>
-          <div className="mt-3 flex flex-wrap items-end gap-3">
+          <div className="mt-3 grid grid-cols-2 items-end gap-3 sm:flex sm:flex-wrap">
             <div className="grid gap-1">
               <Label htmlFor="search-days" className="text-xs text-slate-500">Écart de date (jours)</Label>
-              <Input id="search-days" inputMode="numeric" className="h-8 w-24" value={search.days} onChange={(e) => setSearch({ ...search, days: e.target.value })} />
+              <Input id="search-days" inputMode="numeric" className="h-11 w-full sm:h-8 sm:w-24" value={search.days} onChange={(e) => setSearch({ ...search, days: e.target.value })} />
             </div>
             <div className="grid gap-1">
               <Label htmlFor="search-tol" className="text-xs text-slate-500">Écart de montant (%)</Label>
-              <Input id="search-tol" inputMode="decimal" className="h-8 w-24" value={search.tolerance} onChange={(e) => setSearch({ ...search, tolerance: e.target.value })} />
+              <Input id="search-tol" inputMode="decimal" className="h-11 w-full sm:h-8 sm:w-24" value={search.tolerance} onChange={(e) => setSearch({ ...search, tolerance: e.target.value })} />
             </div>
-            <Button variant="outline" size="sm" className="gap-2" onClick={searchSuggestions} disabled={searching}>
+            <Button variant="outline" size="sm" className="h-11 gap-2 sm:h-9" onClick={searchSuggestions} disabled={searching}>
               <Search className="h-4 w-4" />
               {searching ? "Recherche..." : "Rechercher"}
             </Button>
-            <span className="text-xs text-slate-400">{potentials.length} suggestion{potentials.length > 1 ? "s" : ""}</span>
+            <span className="self-center text-xs text-slate-400">{potentials.length} suggestion{potentials.length > 1 ? "s" : ""}</span>
           </div>
         </div>
 
         <div className="grid gap-4">
           {potentials.map((pair) => (
             <Card key={`${pair.sortie.id}-${pair.type}-${pair.entree.id}`} className="overflow-hidden border-slate-100 shadow-sm transition-colors hover:border-indigo-200">
-              <CardContent className="flex items-center justify-between p-4">
-                <div className="flex flex-1 items-center gap-6">
-                  <div className="flex-1 space-y-1">
+              <CardContent className="flex flex-col gap-4 p-4 md:flex-row md:items-center md:justify-between">
+                <div className="flex min-w-0 flex-1 flex-col gap-3 md:flex-row md:items-center md:gap-6">
+                  <div className="min-w-0 flex-1 space-y-1">
                     <div className="flex items-center gap-2">
                       <Wallet className="h-3 w-3 text-slate-400" />
                       <span className="text-xs font-bold uppercase tracking-wider text-slate-500">{accountName(pair.sortie.account_id)}</span>
                     </div>
-                    <p className="font-bold text-slate-900">{pair.sortie.merchant}</p>
+                    <p className="break-words font-bold text-slate-900">{pair.sortie.merchant}</p>
                     <div className="flex items-center gap-2 text-xs text-slate-400">
                       <Calendar className="h-3 w-3" />
                       {format(new Date(pair.sortie.date), "dd MMMM yyyy", { locale: fr })}
@@ -362,8 +362,8 @@ export function TransfersTab() {
                     </div>
                   </div>
 
-                  <div className="flex flex-col items-center gap-1">
-                    <ArrowRight className="h-5 w-5 text-indigo-400" />
+                  <div className="flex flex-row items-center gap-2 md:flex-col md:gap-1">
+                    <ArrowRight className="h-5 w-5 rotate-90 text-indigo-400 md:rotate-0" />
                     {pair.ambiguous ? (
                       <Badge variant="outline" className="border-red-100 bg-red-50 px-1 py-0 text-[10px] text-red-700">Plusieurs choix</Badge>
                     ) : pair.confidence === "high" ? (
@@ -373,13 +373,13 @@ export function TransfersTab() {
                     )}
                   </div>
 
-                  <div className="flex-1 space-y-1 text-right">
-                    <div className="flex items-center justify-end gap-2">
+                  <div className="min-w-0 flex-1 space-y-1 md:text-right">
+                    <div className="flex items-center gap-2 md:justify-end">
                       <span className="text-xs font-bold uppercase tracking-wider text-slate-500">{accountName(pair.entree.account_id)}</span>
                       <Wallet className="h-3 w-3 text-slate-400" />
                     </div>
-                    <p className="font-bold text-slate-900">{pair.entree.merchant || pair.entree.note || "Versement"}</p>
-                    <div className="flex items-center justify-end gap-2 text-xs text-slate-400">
+                    <p className="break-words font-bold text-slate-900">{pair.entree.merchant || pair.entree.note || "Versement"}</p>
+                    <div className="flex items-center gap-2 text-xs text-slate-400 md:justify-end">
                       <span className="font-medium text-emerald-500 amount-blur">+{formatCurrency(pair.entree.amount, pair.entree.currency)}</span>
                       {format(new Date(pair.entree.date), "dd MMMM yyyy", { locale: fr })}
                       <Calendar className="h-3 w-3" />
@@ -387,12 +387,12 @@ export function TransfersTab() {
                   </div>
                 </div>
 
-                <div className="ml-8 flex flex-col gap-2">
-                  <Button size="sm" className="gap-2 bg-indigo-600 hover:bg-indigo-700" onClick={() => handleLink(pair)}>
+                <div className="grid grid-cols-2 gap-2 md:ml-8 md:flex md:flex-col">
+                  <Button size="sm" className="h-11 gap-2 bg-indigo-600 hover:bg-indigo-700 md:h-9" onClick={() => handleLink(pair)}>
                     <Link className="h-4 w-4" />
                     Lier
                   </Button>
-                  <Button variant="ghost" size="sm" className="text-slate-400 hover:text-slate-600" onClick={() => handleIgnore(pair)}>
+                  <Button variant="outline" size="sm" className="h-11 text-slate-500 hover:text-slate-700 md:h-9 md:border-transparent md:text-slate-400" onClick={() => handleIgnore(pair)}>
                     Ignorer
                   </Button>
                 </div>
@@ -424,14 +424,14 @@ export function TransfersTab() {
           <CardContent className="p-0">
             <div className="divide-y divide-slate-100">
               {linked.map((tx) => (
-                <div key={tx.id} className="flex items-center justify-between p-4 transition-colors hover:bg-slate-50">
-                  <div className="flex items-center gap-4">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
+                <div key={tx.id} className="flex items-center justify-between gap-2 p-3 transition-colors hover:bg-slate-50 md:p-4">
+                  <div className="flex min-w-0 items-center gap-3 md:gap-4">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
                       <ArrowRightLeft className="h-5 w-5" />
                     </div>
-                    <div>
-                      <p className="font-bold text-slate-900">{tx.merchant}</p>
-                      <div className="mt-0.5 flex items-center gap-2">
+                    <div className="min-w-0">
+                      <p className="truncate font-bold text-slate-900">{tx.merchant}</p>
+                      <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5">
                         <span className="text-xs text-slate-500">{accountName(tx.account_id)}</span>
                         <ArrowRight className="h-3 w-3 text-slate-300" />
                         <span className="text-xs text-slate-500">{accountName(tx.linked_account_id)}</span>
@@ -443,9 +443,9 @@ export function TransfersTab() {
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <span className="font-bold text-slate-700 amount-blur">{formatCurrency(tx.amount, tx.currency)}</span>
-                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-slate-400 hover:bg-red-50 hover:text-red-600" onClick={() => handleUnlink(tx.id)}>
+                  <div className="flex shrink-0 flex-col items-end md:flex-row md:items-center md:gap-4">
+                    <span className="whitespace-nowrap font-bold tabular-nums text-slate-700 amount-blur">{formatCurrency(tx.amount, tx.currency)}</span>
+                    <Button variant="ghost" size="sm" className="h-10 w-10 p-0 text-slate-400 md:h-8 md:w-8 hover:bg-red-50 hover:text-red-600" onClick={() => handleUnlink(tx.id)}>
                       <Unlink className="h-4 w-4" />
                     </Button>
                   </div>
@@ -468,7 +468,7 @@ export function TransfersTab() {
 
       {/* Création / édition de règle */}
       <Dialog open={formOpen} onOpenChange={setFormOpen}>
-        <DialogContent>
+        <DialogContent className="[&_input]:text-base md:[&_input]:text-sm">
           <DialogHeader>
             <DialogTitle>{editingId === null ? "Nouvelle règle de virement" : "Modifier la règle de virement"}</DialogTitle>
             <DialogDescription>
@@ -477,7 +477,7 @@ export function TransfersTab() {
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="grid gap-2">
                 <Label>Compte source</Label>
                 {accountSelect(form.source, (v) => setForm({ ...form, source: v }), form.dest)}
@@ -491,8 +491,8 @@ export function TransfersTab() {
               <Label htmlFor="rule-pattern">Le libellé de la sortie contient (optionnel)</Label>
               <Input id="rule-pattern" value={form.pattern} onChange={(e) => setForm({ ...form, pattern: e.target.value })} placeholder="ex. LIVRET" />
             </div>
-            <div className="grid grid-cols-3 gap-4">
-              <div className="grid gap-2">
+            <div className="grid grid-cols-2 items-end gap-4 sm:grid-cols-3">
+              <div className="col-span-2 grid gap-2 sm:col-span-1">
                 <Label htmlFor="rule-amount">Montant (optionnel)</Label>
                 <Input id="rule-amount" inputMode="decimal" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} placeholder="500" />
               </div>
@@ -506,9 +506,9 @@ export function TransfersTab() {
               </div>
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setFormOpen(false)}>Annuler</Button>
-            <Button className="bg-indigo-600 hover:bg-indigo-700" onClick={saveRule}>{editingId === null ? "Créer la règle" : "Enregistrer"}</Button>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" className="h-11 sm:h-10" onClick={() => setFormOpen(false)}>Annuler</Button>
+            <Button className="h-11 bg-indigo-600 sm:h-10 hover:bg-indigo-700" onClick={saveRule}>{editingId === null ? "Créer la règle" : "Enregistrer"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -524,20 +524,20 @@ export function TransfersTab() {
           </DialogHeader>
           <div className="max-h-80 divide-y divide-slate-100 overflow-y-auto rounded-xl border border-slate-100">
             {preview?.pairs.map((p) => (
-              <div key={`${p.sortie.id}-${p.entree.id}`} className="flex items-center justify-between p-3 text-sm">
-                <span className="text-slate-500">{format(new Date(p.sortie.date), "dd/MM/yyyy")}</span>
-                <span className="flex items-center gap-2 font-medium text-slate-800">
+              <div key={`${p.sortie.id}-${p.entree.id}`} className="flex items-center justify-between gap-2 p-3 text-sm">
+                <span className="hidden text-slate-500 sm:inline">{format(new Date(p.sortie.date), "dd/MM/yyyy")}</span>
+                <span className="flex min-w-0 flex-wrap items-center gap-x-2 font-medium text-slate-800">
                   {accountName(p.sortie.account_id)}
                   <ArrowRight className="h-3 w-3 text-slate-400" />
                   {accountName(p.entree.account_id)}
                 </span>
-                <span className="font-bold amount-blur">{formatCurrency(p.sortie.amount, p.sortie.currency)}</span>
+                <span className="whitespace-nowrap font-bold tabular-nums amount-blur">{formatCurrency(p.sortie.amount, p.sortie.currency)}</span>
               </div>
             ))}
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setPreview(null)}>Annuler</Button>
-            <Button className="bg-indigo-600 hover:bg-indigo-700" onClick={applyCatchUp}>Lier ces virements</Button>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" className="h-11 sm:h-10" onClick={() => setPreview(null)}>Annuler</Button>
+            <Button className="h-11 bg-indigo-600 sm:h-10 hover:bg-indigo-700" onClick={applyCatchUp}>Lier ces virements</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

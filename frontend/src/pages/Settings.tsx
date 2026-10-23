@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useSearchParams } from "react-router-dom"
 import { 
   Plus, 
@@ -96,6 +96,19 @@ export default function Settings() {
   const [searchParams] = useSearchParams()
   const { hideHoldingValues, setHideHoldingValues } = useUI()
   const defaultTab = searchParams.get("tab") || "categories"
+  const [activeTab, setActiveTab] = useState(defaultTab)
+  const tabsListRef = useRef<HTMLDivElement>(null)
+
+  // Garde l'onglet actif visible dans la liste défilante (mobile)
+  useEffect(() => {
+    const list = tabsListRef.current
+    const el = list?.querySelector<HTMLElement>('[data-state="active"]')
+    if (!list || !el) return
+    const raf = requestAnimationFrame(() => {
+      list.scrollTo({ left: el.offsetLeft - (list.clientWidth - el.offsetWidth) / 2, behavior: "smooth" })
+    })
+    return () => cancelAnimationFrame(raf)
+  }, [activeTab])
   
   const [categories, setCategories] = useState<Category[]>([])
   const [accounts, setAccounts] = useState<Account[]>([])
@@ -245,39 +258,39 @@ export default function Settings() {
   }
 
   return (
-    <div className="space-y-10 pb-10">
+    <div className="space-y-6 pb-10 md:space-y-10 [&_input]:text-base md:[&_input]:text-sm">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-4xl font-extrabold tracking-tight text-slate-900">Paramètres</h1>
+          <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900">Paramètres</h1>
           <p className="text-slate-500 mt-1">Personnalisez votre expérience et gérez vos données.</p>
         </div>
       </div>
 
-      <Tabs defaultValue={defaultTab} className="w-full">
-        <div className="overflow-x-auto pb-2 [ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          <TabsList className="bg-slate-100 p-1 rounded-xl mb-2 sm:mb-8 inline-flex w-full sm:w-auto">
-            <TabsTrigger value="account" className="rounded-lg px-6 flex-1 sm:flex-none">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <div className="-mx-4 px-4 md:mx-0 md:px-0">
+          <TabsList ref={tabsListRef} className="bg-slate-100 p-1 rounded-xl mb-4 sm:mb-8 flex h-12 w-full justify-start gap-1 sm:inline-flex sm:h-10 sm:w-auto [ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <TabsTrigger value="account" className="h-10 shrink-0 rounded-lg px-4 sm:h-auto sm:px-6">
               <User className="h-4 w-4 mr-2" /> Compte
             </TabsTrigger>
-            <TabsTrigger value="categories" className="rounded-lg px-6 flex-1 sm:flex-none">
+            <TabsTrigger value="categories" className="h-10 shrink-0 rounded-lg px-4 sm:h-auto sm:px-6">
               <Tag className="h-4 w-4 mr-2" /> Catégories
             </TabsTrigger>
-            <TabsTrigger value="tags" className="rounded-lg px-6 flex-1 sm:flex-none">
+            <TabsTrigger value="tags" className="h-10 shrink-0 rounded-lg px-4 sm:h-auto sm:px-6">
               <Tag className="h-4 w-4 mr-2" /> Tags
             </TabsTrigger>
-            <TabsTrigger value="merchants" className="rounded-lg px-6 flex-1 sm:flex-none">
+            <TabsTrigger value="merchants" className="h-10 shrink-0 rounded-lg px-4 sm:h-auto sm:px-6">
               <ShoppingBag className="h-4 w-4 mr-2" /> Marchands
             </TabsTrigger>
-            <TabsTrigger value="rules" className="rounded-lg px-6 flex-1 sm:flex-none">
+            <TabsTrigger value="rules" className="h-10 shrink-0 rounded-lg px-4 sm:h-auto sm:px-6">
               <Filter className="h-4 w-4 mr-2" /> Règles
             </TabsTrigger>
-            <TabsTrigger value="transferts" className="rounded-lg px-6 flex-1 sm:flex-none">
+            <TabsTrigger value="transferts" className="h-10 shrink-0 rounded-lg px-4 sm:h-auto sm:px-6">
               <ArrowRightLeft className="h-4 w-4 mr-2" /> Transferts
             </TabsTrigger>
-            <TabsTrigger value="import" className="rounded-lg px-6 flex-1 sm:flex-none">
+            <TabsTrigger value="import" className="h-10 shrink-0 rounded-lg px-4 sm:h-auto sm:px-6">
               <Upload className="h-4 w-4 mr-2" /> Importation
             </TabsTrigger>
-            <TabsTrigger value="system" className="rounded-lg px-6 flex-1 sm:flex-none">
+            <TabsTrigger value="system" className="h-10 shrink-0 rounded-lg px-4 sm:h-auto sm:px-6">
               <SettingsIcon className="h-4 w-4 mr-2" /> Système
             </TabsTrigger>
           </TabsList>
@@ -289,23 +302,23 @@ export default function Settings() {
 
         <TabsContent value="categories" className="space-y-8">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <h2 className="text-2xl font-bold text-slate-900">Gestion des catégories</h2>
+            <h2 className="text-xl md:text-2xl font-bold text-slate-900">Gestion des catégories</h2>
             
             <Dialog open={newOpen} onOpenChange={setNewOpen}>
               <DialogTrigger asChild>
-                <Button className="bg-slate-900 text-white hover:bg-slate-800 shadow-lg w-full sm:w-auto">
+                <Button className="bg-slate-900 text-white hover:bg-slate-800 shadow-lg w-full sm:w-auto h-11 sm:h-10">
                   <Plus className="h-4 w-4 mr-2" /> Nouvelle catégorie
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-[500px]">
+              <DialogContent className="[&_input]:text-base md:[&_input]:text-sm sm:max-w-[500px]">
                 <DialogHeader>
                   <DialogTitle className="text-2xl font-bold">Nouvelle catégorie</DialogTitle>
                   <DialogDescription>
                     Créez une catégorie personnalisée avec son icône et sa couleur.
                   </DialogDescription>
                 </DialogHeader>
-                <div className="grid gap-6 py-4">
-                  <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-5 py-2 sm:gap-6 sm:py-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="grid gap-2">
                       <Label htmlFor="new-name" className="text-xs font-bold uppercase tracking-wider text-slate-500">Nom</Label>
                       <Input 
@@ -345,13 +358,13 @@ export default function Settings() {
                   <div className="grid gap-2">
                     <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">Icône</Label>
                     <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
-                      <div className="grid grid-cols-5 sm:grid-cols-10 gap-2 max-h-[200px] overflow-y-auto pr-2 custom-scrollbar">
+                      <div className="grid grid-cols-6 sm:grid-cols-10 gap-1 sm:gap-2 max-h-[200px] overflow-y-auto pr-2 custom-scrollbar">
                         {ICON_OPTIONS.map((iconName) => (
                           <button
                             key={iconName}
                             type="button"
                             onClick={() => setNewCatIcon(iconName)}
-                            className={`p-2 rounded-lg flex items-center justify-center transition-all ${newCatIcon === iconName ? 'bg-slate-900 text-white' : 'hover:bg-slate-200 text-slate-500'}`}
+                            className={`p-3 sm:p-2 rounded-lg flex items-center justify-center transition-all ${newCatIcon === iconName ? 'bg-slate-900 text-white' : 'hover:bg-slate-200 text-slate-500'}`}
                           >
                             <IconComponent name={iconName} className="h-4 w-4" />
                           </button>
@@ -368,7 +381,7 @@ export default function Settings() {
                           key={opt.name}
                           type="button"
                           onClick={() => setNewCatColor(opt.value)}
-                          className={`h-8 w-8 rounded-full border-4 transition-all ${newCatColor === opt.value ? 'border-slate-300 scale-110' : 'border-transparent hover:scale-105'}`}
+                          className={`h-10 w-10 sm:h-8 sm:w-8 rounded-full border-4 transition-all ${newCatColor === opt.value ? 'border-slate-300 scale-110' : 'border-transparent hover:scale-105'}`}
                           style={{ backgroundColor: opt.value }}
                           title={opt.name}
                         />
@@ -413,9 +426,9 @@ export default function Settings() {
                     </div>
                   </div>
                 </div>
-                <DialogFooter>
-                  <Button variant="ghost" onClick={() => setNewOpen(false)}>Annuler</Button>
-                  <Button onClick={handleAddCategory} className="bg-slate-900 text-white shadow-lg">Créer la catégorie</Button>
+                <DialogFooter className="gap-2 sm:gap-0">
+                  <Button variant="ghost" className="h-11 sm:h-10" onClick={() => setNewOpen(false)}>Annuler</Button>
+                  <Button onClick={handleAddCategory} className="h-11 bg-slate-900 text-white shadow-lg sm:h-10">Créer la catégorie</Button>
                 </DialogFooter>
               </DialogContent>
             </Dialog>
@@ -424,12 +437,12 @@ export default function Settings() {
           {loading ? (
              <div className="text-center py-20 text-slate-400">Chargement de vos catégories...</div>
           ) : (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <div className="grid gap-3 md:gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {categories.map((cat) => (
                 <Card key={cat.id} className="group hover:border-slate-300 transition-all shadow-sm border-slate-100 overflow-hidden">
                   <CardContent className="p-0">
-                    <div className="p-4 flex items-center gap-4">
-                      <div className="h-12 w-12 rounded-2xl flex items-center justify-center shadow-sm" style={{ backgroundColor: cat.color || "#f1f5f9" }}>
+                    <div className="p-3 pl-4 md:p-4 flex items-center gap-3 md:gap-4">
+                      <div className="h-12 w-12 shrink-0 rounded-2xl flex items-center justify-center shadow-sm" style={{ backgroundColor: cat.color || "#f1f5f9" }}>
                         <IconComponent name={cat.icon} className="h-6 w-6 text-white" />
                       </div>
                       <div className="flex-1 min-w-0">
@@ -453,14 +466,22 @@ export default function Settings() {
                           <p className="text-[10px] text-amber-600 font-semibold mt-0.5">{cat.monthly_limit}€/mois</p>
                         )}
                       </div>
-                    </div>
-                    <div className="px-4 py-3 bg-slate-50/50 border-t flex justify-between items-center opacity-0 group-hover:opacity-100 transition-opacity">
-                      <p className="text-[10px] text-slate-400 font-medium">ID: #{cat.id}</p>
-                      <div className="flex gap-1">
-                        <Button variant="ghost" size="sm" onClick={() => handleEditClick(cat)} className="h-8 w-8 p-0 text-slate-500 hover:text-slate-900">
+                      <div className="flex shrink-0 gap-0 md:hidden">
+                        <Button variant="ghost" size="sm" onClick={() => handleEditClick(cat)} aria-label="Modifier" className="h-10 w-10 p-0 text-slate-500">
                           <Pencil className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="sm" onClick={() => handleDeleteCategory(cat.id)} className="h-8 w-8 p-0 text-rose-500 hover:text-rose-600 hover:bg-rose-50">
+                        <Button variant="ghost" size="sm" onClick={() => handleDeleteCategory(cat.id)} aria-label="Supprimer" className="h-10 w-10 p-0 text-rose-500 hover:bg-rose-50">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="hidden md:flex px-4 py-3 bg-slate-50/50 border-t justify-between items-center md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                      <p className="text-[10px] text-slate-400 font-medium">ID: #{cat.id}</p>
+                      <div className="flex gap-1">
+                        <Button variant="ghost" size="sm" onClick={() => handleEditClick(cat)} className="h-10 w-10 md:h-8 md:w-8 p-0 text-slate-500 hover:text-slate-900">
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => handleDeleteCategory(cat.id)} className="h-10 w-10 md:h-8 md:w-8 p-0 text-rose-500 hover:text-rose-600 hover:bg-rose-50">
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
@@ -473,13 +494,13 @@ export default function Settings() {
 
           {/* Edit Dialog */}
           <Dialog open={editOpen} onOpenChange={setEditOpen}>
-            <DialogContent className="sm:max-w-[500px]">
+            <DialogContent className="[&_input]:text-base md:[&_input]:text-sm sm:max-w-[500px]">
               <DialogHeader>
                 <DialogTitle className="text-2xl font-bold">Modifier la catégorie</DialogTitle>
                 <DialogDescription>Mettez à jour les informations de votre catégorie.</DialogDescription>
               </DialogHeader>
-              <div className="grid gap-6 py-4">
-                <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-5 py-2 sm:gap-6 sm:py-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="grid gap-2">
                     <Label htmlFor="edit-name" className="text-xs font-bold uppercase tracking-wider text-slate-500">Nom</Label>
                     <Input 
@@ -519,13 +540,13 @@ export default function Settings() {
                       <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">Icône</Label>
 
                   <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
-                    <div className="grid grid-cols-10 gap-2 max-h-[200px] overflow-y-auto pr-2 custom-scrollbar">
+                    <div className="grid grid-cols-6 sm:grid-cols-10 gap-1 sm:gap-2 max-h-[200px] overflow-y-auto pr-2 custom-scrollbar">
                       {ICON_OPTIONS.map((iconName) => (
                         <button
                           key={iconName}
                           type="button"
                           onClick={() => setEditCatIcon(iconName)}
-                          className={`p-2 rounded-lg flex items-center justify-center transition-all ${editCatIcon === iconName ? 'bg-slate-900 text-white' : 'hover:bg-slate-200 text-slate-500'}`}
+                          className={`p-3 sm:p-2 rounded-lg flex items-center justify-center transition-all ${editCatIcon === iconName ? 'bg-slate-900 text-white' : 'hover:bg-slate-200 text-slate-500'}`}
                         >
                           <IconComponent name={iconName} className="h-4 w-4" />
                         </button>
@@ -542,7 +563,7 @@ export default function Settings() {
                         key={opt.name}
                         type="button"
                         onClick={() => setEditCatColor(opt.value)}
-                        className={`h-8 w-8 rounded-full border-4 transition-all ${editCatColor === opt.value ? 'border-slate-300 scale-110' : 'border-transparent hover:scale-105'}`}
+                        className={`h-10 w-10 sm:h-8 sm:w-8 rounded-full border-4 transition-all ${editCatColor === opt.value ? 'border-slate-300 scale-110' : 'border-transparent hover:scale-105'}`}
                         style={{ backgroundColor: opt.value }}
                         title={opt.name}
                       />
@@ -550,7 +571,7 @@ export default function Settings() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="grid gap-2">
                     <Label htmlFor="edit-monthly-limit" className="text-xs font-bold uppercase tracking-wider text-slate-500">Limite mensuelle (€)</Label>
                     <Input
@@ -587,9 +608,9 @@ export default function Settings() {
                   </div>
                 </div>
               </div>
-              <DialogFooter>
-                <Button variant="ghost" onClick={() => setEditOpen(false)}>Annuler</Button>
-                <Button onClick={handleUpdateCategory} className="bg-slate-900 text-white shadow-lg">Enregistrer les modifications</Button>
+              <DialogFooter className="gap-2 sm:gap-0">
+                <Button variant="ghost" className="h-11 sm:h-10" onClick={() => setEditOpen(false)}>Annuler</Button>
+                <Button onClick={handleUpdateCategory} className="h-11 bg-slate-900 text-white shadow-lg sm:h-10">Enregistrer les modifications</Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
@@ -614,7 +635,7 @@ export default function Settings() {
         <TabsContent value="import" className="space-y-6">
 
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <h2 className="text-2xl font-bold text-slate-900">Importation de données</h2>
+            <h2 className="text-xl md:text-2xl font-bold text-slate-900">Importation de données</h2>
           </div>
           <ImportTab />
         </TabsContent>
@@ -630,7 +651,7 @@ export default function Settings() {
             </CardHeader>
             <CardContent className="p-4 sm:p-6">
               <div className="flex items-center justify-between gap-4">
-                <div>
+                <div className="min-w-0">
                   <Label htmlFor="hide-holding-values" className="font-bold text-slate-900 cursor-pointer">
                     Positions simplifiées (comptes titres)
                   </Label>
@@ -661,7 +682,7 @@ export default function Settings() {
                       <Button 
                         variant="ghost" 
                         size="sm" 
-                        className="h-7 text-[10px] uppercase font-bold px-2"
+                        className="h-10 sm:h-7 text-[10px] uppercase font-bold px-3 sm:px-2"
                         onClick={() => setSelectedAccounts(accounts.map(a => a.id))}
                       >
                         Tout sélectionner
@@ -669,7 +690,7 @@ export default function Settings() {
                       <Button 
                         variant="ghost" 
                         size="sm" 
-                        className="h-7 text-[10px] uppercase font-bold px-2"
+                        className="h-10 sm:h-7 text-[10px] uppercase font-bold px-3 sm:px-2"
                         onClick={() => setSelectedAccounts([])}
                       >
                         Tout désélectionner
@@ -681,7 +702,7 @@ export default function Settings() {
                     {accounts.map((account) => (
                       <div 
                         key={account.id} 
-                        className="flex items-center space-x-3 p-3 border rounded-xl bg-white hover:bg-slate-50 transition-colors"
+                        className="flex min-h-12 items-center space-x-3 p-3 border rounded-xl bg-white hover:bg-slate-50 transition-colors"
                       >
                         <Checkbox 
                           id={`account-${account.id}`} 
@@ -753,7 +774,7 @@ export default function Settings() {
                           <Database className="h-4 w-4 mr-2" /> Tout effacer définitivement
                         </Button>
                       </DialogTrigger>
-                      <DialogContent className="sm:max-w-[425px]">
+                      <DialogContent className="[&_input]:text-base md:[&_input]:text-sm sm:max-w-[425px]">
                         <DialogHeader>
                           <DialogTitle className="text-2xl font-bold text-rose-600 flex items-center gap-2">
                             <AlertTriangle className="h-6 w-6" /> Attention
@@ -773,10 +794,11 @@ export default function Settings() {
                             className="bg-rose-50 border-rose-200 focus-visible:ring-rose-500 font-bold text-center"
                           />
                         </div>
-                        <DialogFooter>
-                          <Button variant="ghost" onClick={() => { setResetOpen(false); setResetConfirmText(""); }}>Annuler</Button>
+                        <DialogFooter className="gap-2 sm:gap-0">
+                          <Button variant="ghost" className="h-11 sm:h-10" onClick={() => { setResetOpen(false); setResetConfirmText(""); }}>Annuler</Button>
                           <Button
                             variant="destructive"
+                            className="h-11 sm:h-10"
                             disabled={resetConfirmText !== "EFFACER"}
                             onClick={async () => {
                               try {

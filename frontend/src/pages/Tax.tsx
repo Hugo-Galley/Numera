@@ -92,7 +92,7 @@ const KIND_LABELS: Record<Kind, string> = {
 const TMI_OPTIONS = [0, 11, 30, 41, 45]
 
 function Money({ value }: { value: number }) {
-  return <span className="amount-blur">{formatCurrency(value)}</span>
+  return <span className="amount-blur whitespace-nowrap tabular-nums">{formatCurrency(value)}</span>
 }
 
 function Gauge({ pct }: { pct: number }) {
@@ -108,16 +108,16 @@ function WrapperCardView({ card }: { card: WrapperCard }) {
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="flex items-center justify-between text-base">
-          <span>{card.account_name}</span>
-          <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">{KIND_LABELS[card.kind]}</span>
+        <CardTitle className="flex items-start justify-between gap-3 text-base">
+          <span className="min-w-0 break-words">{card.account_name}</span>
+          <span className="shrink-0 pt-0.5 text-xs font-semibold uppercase tracking-wider text-slate-500">{KIND_LABELS[card.kind]}</span>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3 text-sm">
         {card.ceiling !== null && card.current !== null && (
           <div className="space-y-2">
             <Gauge pct={card.used_pct ?? 0} />
-            <div className="flex justify-between">
+            <div className="flex flex-wrap justify-between gap-x-3">
               <span><Money value={card.current} /> sur <Money value={card.ceiling} /></span>
               <span className="text-slate-500">{(card.used_pct ?? 0).toFixed(1)} %</span>
             </div>
@@ -233,13 +233,13 @@ export default function Tax() {
   const years = Array.from({ length: 6 }, (_, i) => currentYear - i)
 
   return (
-    <div className="space-y-8">
-      <div className="flex flex-wrap items-start justify-between gap-4">
+    <div className="space-y-6 md:space-y-8">
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between sm:gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Fiscalité</h1>
-          <p className="text-muted-foreground">Plafonds, dates clés et déclaration de tes enveloppes.</p>
+          <h1 className="text-2xl font-bold tracking-tight md:text-3xl">Fiscalité</h1>
+          <p className="text-sm text-muted-foreground md:text-base">Plafonds, dates clés et déclaration de tes enveloppes.</p>
         </div>
-        <Button variant="outline" onClick={() => setSettingsOpen((open) => !open)}>
+        <Button variant="outline" className="h-11 w-full sm:h-10 sm:w-auto" onClick={() => setSettingsOpen((open) => !open)}>
           <Settings2 className="mr-2 h-4 w-4" /> Réglages
         </Button>
       </div>
@@ -250,7 +250,7 @@ export default function Tax() {
             <CardTitle className="text-base">Réglages fiscaux</CardTitle>
             <CardDescription>Servent au calcul du plafond PER, de l'économie d'impôt et de l'abattement assurance-vie.</CardDescription>
           </CardHeader>
-          <CardContent className="grid gap-4 md:grid-cols-3">
+          <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-3">
             <div className="grid gap-2">
               <Label htmlFor="tax-tmi">Tranche marginale (TMI)</Label>
               <Select value={String(draft.tmi_pct)} onValueChange={(v) => setDraft({ ...draft, tmi_pct: Number(v) })}>
@@ -291,7 +291,7 @@ export default function Tax() {
               />
             </div>
             <div className="md:col-span-3">
-              <Button onClick={saveSettings}>Enregistrer</Button>
+              <Button className="h-11 w-full sm:h-10 sm:w-auto" onClick={saveSettings}>Enregistrer</Button>
             </div>
           </CardContent>
         </Card>
@@ -306,11 +306,11 @@ export default function Tax() {
                 Ces comptes n'ont pas d'enveloppe fiscale : leurs plafonds et dates clés ne sont pas suivis.
               </p>
               {suggestions.map((s) => (
-                <div key={s.account_id} className="flex flex-wrap items-center justify-between gap-2">
+                <div key={s.account_id} className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <span className="text-sm">
                     <span className="font-semibold">{s.account_name}</span> — enveloppe probable : {KIND_LABELS[s.kind]}
                   </span>
-                  <Button size="sm" variant="outline" onClick={() => applySuggestion(s)}>
+                  <Button size="sm" variant="outline" className="h-10 sm:h-9" onClick={() => applySuggestion(s)}>
                     Suivre comme {KIND_LABELS[s.kind]}
                   </Button>
                 </div>
@@ -330,18 +330,18 @@ export default function Tax() {
               <p className="text-sm text-slate-600 dark:text-slate-300">
                 Aucun compte n'a d'enveloppe fiscale. Renseigne l'enveloppe dans les paramètres d'un compte.
               </p>
-              <Button asChild variant="outline"><Link to="/accounts">Aller aux comptes</Link></Button>
+              <Button asChild variant="outline" className="h-11 w-full sm:h-10 sm:w-auto"><Link to="/accounts">Aller aux comptes</Link></Button>
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             {cards.map((card) => <WrapperCardView key={card.account_id} card={card} />)}
           </div>
         )}
       </section>
 
       <section className="space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center justify-between gap-3">
           <h2 className="flex items-center gap-2 text-xl font-semibold"><FileText className="h-5 w-5" /> Déclaration</h2>
           <Select value={String(year)} onValueChange={(v) => setYear(Number(v))}>
             <SelectTrigger className="w-32" aria-label="Année de déclaration"><SelectValue /></SelectTrigger>
@@ -368,7 +368,27 @@ export default function Tax() {
                   <span>{warning}</span>
                 </div>
               ))}
-              <Table>
+              <ul className="space-y-2 md:hidden">
+                {report.accounts.map((row) => (
+                  <li key={row.account_id} className="rounded-lg border p-3 text-sm">
+                    <div className="flex items-baseline justify-between gap-3">
+                      <span className="min-w-0 break-words font-medium">{row.account_name}</span>
+                      <span className="shrink-0 text-xs text-slate-500">{row.sales} cession{row.sales > 1 ? "s" : ""}</span>
+                    </div>
+                    <dl className="mt-2 grid grid-cols-2 gap-3 border-t pt-2 text-xs">
+                      <div>
+                        <dt className="text-slate-500">Dividendes bruts (2DC)</dt>
+                        <dd className="mt-0.5 text-sm font-semibold"><Money value={row.dividends_gross_eur} /></dd>
+                      </div>
+                      <div>
+                        <dt className="text-slate-500">Plus-values réalisées</dt>
+                        <dd className="mt-0.5 text-sm font-semibold"><Money value={row.realized_eur} /></dd>
+                      </div>
+                    </dl>
+                  </li>
+                ))}
+              </ul>
+              <Table className="hidden md:table">
                 <TableHeader>
                   <TableRow>
                     <TableHead>Compte</TableHead>
@@ -388,11 +408,11 @@ export default function Tax() {
                   ))}
                 </TableBody>
               </Table>
-              <dl className="grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
+              <dl className="grid grid-cols-2 gap-3 text-sm lg:grid-cols-4">
                 <div><dt className="text-slate-500">Case 2DC (dividendes)</dt><dd className="text-lg font-semibold"><Money value={report.box_2dc} /></dd></div>
                 <div><dt className="text-slate-500">Case 3VG (plus-values)</dt><dd className="text-lg font-semibold"><Money value={report.box_3vg} /></dd></div>
                 <div><dt className="text-slate-500">Case 3VH (moins-values)</dt><dd className="text-lg font-semibold"><Money value={report.box_3vh} /></dd></div>
-                <div>
+                <div className="col-span-2 lg:col-span-1">
                   <dt className="text-slate-500">
                     Impôt estimé (PFU {(report.pfu_rate_dividends * 100).toFixed(1)} % dividendes, {(report.pfu_rate_gains * 100).toFixed(1)} % plus-values)
                   </dt>

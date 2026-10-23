@@ -32,7 +32,10 @@ interface SankeyFlowProps {
 // colonne des groupes, et sa relaxation itérative croisait les liens. Ici le placement est
 // déterministe : chaque nœud reste à sa profondeur naturelle, les colonnes sont ordonnées
 // d'après leurs parents et les enfants descendent en cascade sous leur parent.
-const MARGIN = { top: 16, right: 170, bottom: 16, left: 16 };
+const DEFAULT_MARGIN = { top: 16, right: 170, bottom: 16, left: 16 };
+// Écran étroit : marge droite réduite (libellés plus courts, coupés au besoin) pour laisser de la place aux flux
+const NARROW_WIDTH = 520;
+const MARGIN_NARROW = { top: 12, right: 92, bottom: 12, left: 10 };
 const NODE_WIDTH = 4;
 const LABEL_HEIGHT = 30; // hauteur réservée à un libellé de deux lignes
 const NODE_GAP = 8;
@@ -61,6 +64,7 @@ interface LaidLink {
 }
 
 function computeLayout(data: SankeyData, width: number) {
+  const MARGIN = width < NARROW_WIDTH ? MARGIN_NARROW : DEFAULT_MARGIN;
   const n = data.nodes.length;
   const links = data.links.filter((l) => l.value > 0 && l.source < n && l.target < n);
   const outLinks: number[][] = Array.from({ length: n }, () => []);
@@ -190,6 +194,7 @@ function computeLayout(data: SankeyData, width: number) {
     nodes: laidNodes.filter((_, i) => used[i]),
     links: laidLinks,
     height: Math.max(240, bottom + MARGIN.bottom),
+    narrow: width < NARROW_WIDTH,
   };
 }
 
@@ -292,7 +297,9 @@ export function SankeyFlow({ data, currency = "EUR" }: SankeyFlowProps) {
 
           {layout.nodes.map((nd) => {
             const cy = nd.y + nd.height / 2;
-            const labelX = nd.x + NODE_WIDTH + 8;
+            const labelX = nd.x + NODE_WIDTH + 6;
+            // Écran étroit : libellé tronqué pour tenir dans la marge droite
+            const label = layout.narrow && nd.name.length > 13 ? `${nd.name.slice(0, 12)}…` : nd.name;
             return (
               <g
                 key={nd.index}
@@ -311,7 +318,7 @@ export function SankeyFlow({ data, currency = "EUR" }: SankeyFlowProps) {
                   strokeWidth={3}
                   paintOrder="stroke"
                 >
-                  {nd.name}
+                  {label}
                 </text>
                 <text
                   x={labelX}

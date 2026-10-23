@@ -72,7 +72,7 @@ export function PortfolioSummary({ accountId, reloadKey }: PortfolioSummaryProps
           </div>
         )}
 
-        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
           <Kpi label="Valeur" value={formatCurrency(data.value, data.currency)} hint={`dont espèces ${formatCurrency(data.cash, data.currency)}`} />
           <Kpi label="Montant investi" value={formatCurrency(data.net_invested, data.currency)} hint="Versements − retraits depuis l'origine" />
           <Kpi
@@ -119,7 +119,7 @@ export function PortfolioSummary({ accountId, reloadKey }: PortfolioSummaryProps
 
         {latest && (
           <div className="space-y-3">
-            <div className="flex items-center gap-2 text-sm font-semibold text-slate-700">
+            <div className="flex flex-wrap items-center gap-2 text-sm font-semibold text-slate-700">
               <Scale className="h-4 w-4" /> Rapprochement : relevé du courtier vs Numera
               {latest.flagged ? (
                 <Badge variant="destructive" className="font-normal">Écart {pct(latest.gap_pct)}</Badge>
@@ -127,7 +127,29 @@ export function PortfolioSummary({ accountId, reloadKey }: PortfolioSummaryProps
                 <Badge variant="secondary" className="gap-1 font-normal"><CheckCircle2 className="h-3 w-3" /> Cohérent</Badge>
               )}
             </div>
-            <div className="overflow-x-auto">
+            <ul className="space-y-2 md:hidden">
+              {[...reconciliation].reverse().slice(0, 5).map((r) => (
+                <li key={r.date} className="rounded-lg border p-3 text-sm">
+                  <div className="flex items-baseline justify-between gap-2">
+                    <span className="font-medium">{new Date(r.date).toLocaleDateString("fr-FR")}</span>
+                    <span className={`whitespace-nowrap font-mono text-xs tabular-nums ${r.flagged ? "font-semibold text-rose-600" : "text-slate-500"}`}>
+                      <span className="amount-blur">{signed(r.gap)}</span> ({pct(r.gap_pct)})
+                    </span>
+                  </div>
+                  <dl className="mt-1.5 grid grid-cols-2 gap-2 text-xs">
+                    <div>
+                      <dt className="text-slate-500">Relevé</dt>
+                      <dd className="amount-blur whitespace-nowrap font-mono tabular-nums">{formatCurrency(r.snapshot_value, data.currency)}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-slate-500">Numera</dt>
+                      <dd className="amount-blur whitespace-nowrap font-mono tabular-nums">{formatCurrency(r.computed_value, data.currency)}</dd>
+                    </div>
+                  </dl>
+                </li>
+              ))}
+            </ul>
+            <div className="hidden overflow-x-auto md:block">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -166,8 +188,8 @@ export function PortfolioSummary({ accountId, reloadKey }: PortfolioSummaryProps
 function Kpi({ label, value, hint, className = "text-slate-900" }: { label: string; value: string; hint?: string; className?: string }) {
   return (
     <div className="rounded-lg border bg-slate-50/60 p-3">
-      <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">{label}</p>
-      <p className={`mt-1 text-lg font-bold amount-blur ${className}`}>{value}</p>
+      <p className="text-[11px] font-semibold uppercase leading-tight tracking-wider text-slate-500">{label}</p>
+      <p className={`mt-1 whitespace-nowrap text-base font-bold tabular-nums amount-blur md:text-lg ${className}`}>{value}</p>
       {hint && <p className="mt-0.5 text-[11px] text-slate-400">{hint}</p>}
     </div>
   )

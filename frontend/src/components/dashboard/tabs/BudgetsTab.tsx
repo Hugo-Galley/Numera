@@ -7,12 +7,12 @@ interface BudgetsTabProps {
 
 export function BudgetsTab({ budgetAlerts }: BudgetsTabProps) {
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-2">
-        <h2 className="text-xl font-bold text-slate-900">Suivi des budgets</h2>
+    <div className="space-y-4 md:space-y-6">
+      <div className="flex flex-col gap-1 md:gap-2">
+        <h2 className="text-lg md:text-xl font-bold text-slate-900">Suivi des budgets</h2>
         <p className="text-sm text-slate-500">Visualisez votre consommation par rapport aux limites fixées par catégorie.</p>
       </div>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {budgetAlerts.map((alert) => {
           const monthlyOver = alert.monthly_ratio != null && alert.monthly_ratio >= 1
           const annualOver = alert.annual_ratio != null && alert.annual_ratio >= 1
@@ -28,7 +28,7 @@ export function BudgetsTab({ budgetAlerts }: BudgetsTabProps) {
           return (
             <div
               key={alert.category_id}
-              className={`p-5 rounded-2xl border flex flex-col gap-4 transition-all shadow-sm ${
+              className={`p-4 md:p-5 rounded-2xl border flex flex-col gap-3 md:gap-4 transition-all shadow-sm ${
                 isOver 
                   ? "bg-rose-50 border-rose-200" 
                   : isWarning 
@@ -37,11 +37,11 @@ export function BudgetsTab({ budgetAlerts }: BudgetsTabProps) {
               }`}
             >
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-xl flex items-center justify-center shadow-sm" style={{ backgroundColor: alert.category_color || "#64748b" }}>
+                <div className="h-10 w-10 shrink-0 rounded-xl flex items-center justify-center shadow-sm" style={{ backgroundColor: alert.category_color || "#64748b" }}>
                   <IconComponent name={alert.category_icon} className="h-6 w-6 text-white" />
                 </div>
-                <div>
-                  <p className="font-bold text-slate-900">{alert.category_name}</p>
+                <div className="min-w-0">
+                  <p className="truncate font-bold text-slate-900">{alert.category_name}</p>
                   <p className={`text-[10px] font-black uppercase tracking-wider ${
                     isOver ? "text-rose-500" : isWarning ? "text-amber-500" : "text-emerald-500"
                   }`}>
@@ -51,9 +51,9 @@ export function BudgetsTab({ budgetAlerts }: BudgetsTabProps) {
               </div>
               {monthlyPct != null && (
                 <div className="space-y-2">
-                  <div className="flex justify-between text-xs text-slate-500 font-medium">
-                    <span>Mensuel — <span className="amount-blur">{formatCurrency(alert.monthly_spent)}</span> / <span className="amount-blur">{formatCurrency(alert.monthly_limit)}</span></span>
-                    <span className={`font-bold amount-blur ${monthlyOver ? "text-rose-600" : monthlyWarning ? "text-amber-600" : "text-slate-600"}`}>{monthlyPct}%</span>
+                  <div className="flex justify-between gap-2 text-xs text-slate-500 font-medium">
+                    <span className="min-w-0">Mensuel — <span className="amount-blur">{formatCurrency(alert.monthly_spent)}</span> / <span className="amount-blur">{formatCurrency(alert.monthly_limit)}</span></span>
+                    <span className={`shrink-0 font-bold amount-blur ${monthlyOver ? "text-rose-600" : monthlyWarning ? "text-amber-600" : "text-slate-600"}`}>{monthlyPct}%</span>
                   </div>
                   <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
                     <div
@@ -67,9 +67,9 @@ export function BudgetsTab({ budgetAlerts }: BudgetsTabProps) {
               )}
               {annualPct != null && (
                 <div className="space-y-2">
-                  <div className="flex justify-between text-xs text-slate-500 font-medium">
-                    <span>Annuel — <span className="amount-blur">{formatCurrency(alert.annual_spent)}</span> / <span className="amount-blur">{formatCurrency(alert.annual_limit)}</span></span>
-                    <span className={`font-bold amount-blur ${annualOver ? "text-rose-600" : annualWarning ? "text-amber-600" : "text-slate-600"}`}>{annualPct}%</span>
+                  <div className="flex justify-between gap-2 text-xs text-slate-500 font-medium">
+                    <span className="min-w-0">Annuel — <span className="amount-blur">{formatCurrency(alert.annual_spent)}</span> / <span className="amount-blur">{formatCurrency(alert.annual_limit)}</span></span>
+                    <span className={`shrink-0 font-bold amount-blur ${annualOver ? "text-rose-600" : annualWarning ? "text-amber-600" : "text-slate-600"}`}>{annualPct}%</span>
                   </div>
                   <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
                     <div
@@ -85,7 +85,7 @@ export function BudgetsTab({ budgetAlerts }: BudgetsTabProps) {
           )
         })}
         {budgetAlerts.length === 0 && (
-          <div className="col-span-full py-20 text-center bg-slate-50 rounded-3xl border border-dashed">
+          <div className="col-span-full py-12 md:py-20 px-4 text-center bg-slate-50 rounded-3xl border border-dashed">
             <p className="text-slate-400">Aucun budget configuré. Ajoutez des limites dans les réglages des catégories.</p>
           </div>
         )}

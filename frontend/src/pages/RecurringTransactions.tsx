@@ -207,6 +207,11 @@ export default function RecurringTransactions() {
   // (seul le type du compte décide : un titre saisi depuis un compte courant garde Sortie pour le virement)
   const accountIsInvestment = selectedAccount?.type === "investissement"
   useEffect(() => {
+    // Mobile : garde l'onglet actif visible dans la liste d'onglets scrollable
+    document.querySelector<HTMLElement>('[role="tab"][data-state="active"]')?.scrollIntoView({ inline: "center", block: "nearest" })
+  }, [activeTab])
+
+  useEffect(() => {
     const investmentTypes = ["versement", "retrait", "dividende"]
     if (accountIsInvestment && !investmentTypes.includes(formData.type)) {
       setFormData(prev => ({ ...prev, type: "versement" }))
@@ -471,15 +476,15 @@ export default function RecurringTransactions() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Échéances</h1>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Échéances</h1>
           <p className="text-slate-500">Récurrences, abonnements, calendrier des flux et salaire.</p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={handleTrigger} className="gap-2">
+        <div className="grid grid-cols-2 gap-2 sm:flex">
+          <Button variant="outline" onClick={handleTrigger} className="h-11 gap-2 px-3 md:h-9">
             <Play className="h-4 w-4" />
             Lancer la génération
           </Button>
-          <Button onClick={handleOpenCreate} className="gap-2">
+          <Button onClick={handleOpenCreate} className="h-11 gap-2 px-3 md:h-9">
             <Plus className="h-4 w-4" />
             Nouvelle récurrence
           </Button>
@@ -487,14 +492,15 @@ export default function RecurringTransactions() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="bg-slate-100 p-1">
+        <div className="-mx-4 overflow-x-auto px-4 md:mx-0 md:overflow-visible md:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <TabsList className="bg-slate-100 p-1 w-max min-w-full md:w-auto md:min-w-0 h-11 md:h-auto">
           <TabsTrigger value="recurring" className="rounded-lg gap-2">
             <Repeat className="h-4 w-4" />
-            Liste des Récurrences
+            <span className="md:hidden">Récurrences</span><span className="hidden md:inline">Liste des Récurrences</span>
           </TabsTrigger>
           <TabsTrigger value="subscriptions" className="rounded-lg gap-2">
             <CreditCard className="h-4 w-4" />
-            Analyse Abonnements
+            <span className="md:hidden">Abonnements</span><span className="hidden md:inline">Analyse Abonnements</span>
           </TabsTrigger>
           <TabsTrigger value="calendar" className="rounded-lg gap-2">
             <CalendarDays className="h-4 w-4" />
@@ -502,9 +508,10 @@ export default function RecurringTransactions() {
           </TabsTrigger>
           <TabsTrigger value="salary" className="rounded-lg gap-2">
             <Wallet className="h-4 w-4" />
-            Salaire & Avantages
+            <span className="md:hidden">Salaire</span><span className="hidden md:inline">Salaire & Avantages</span>
           </TabsTrigger>
         </TabsList>
+        </div>
 
         <TabsContent value="recurring" className="space-y-6">
           <Card className="shadow-sm border-slate-100">
@@ -515,6 +522,72 @@ export default function RecurringTransactions() {
               </CardDescription>
             </CardHeader>
             <CardContent className="p-0">
+              <div className="md:hidden divide-y">
+                {loading ? (
+                  <p className="text-center py-10 text-slate-400 italic text-sm">Chargement des récurrences...</p>
+                ) : recurringTxs.length === 0 ? (
+                  <p className="text-center py-10 text-slate-400 italic text-sm">Aucune transaction récurrente configurée.</p>
+                ) : (
+                  recurringTxs.map((tx) => {
+                    const positive = tx.type === "Entree" || tx.type === "Interets" || tx.type === "versement" || tx.type === "dividende"
+                    return (
+                      <div key={tx.id} className={`p-4 space-y-3 ${tx.is_active ? "" : "opacity-60"}`}>
+                        <div className="flex items-start gap-3">
+                          <CompanyLogo
+                            ticker={tx.ticker || undefined}
+                            name={tx.name}
+                            isin={tx.isin || undefined}
+                            logo={tx.logo}
+                            className="h-10 w-10 rounded-lg shadow-2xs shrink-0"
+                          />
+                          <div className="min-w-0 flex-1">
+                            <p className="font-bold text-slate-900 text-sm break-words">{tx.name}</p>
+                            <p className="text-xs text-slate-500 break-words">
+                              {accounts.find(a => a.id === tx.account_id)?.name}
+                              {tx.transfer_to_account_id && (
+                                <span className="text-indigo-600"> → {accounts.find(a => a.id === tx.transfer_to_account_id)?.name}</span>
+                              )}
+                              {tx.quantity != null && tx.quantity > 0 && ` • ${tx.quantity} part${tx.quantity > 1 ? "s" : ""}${tx.unit_price ? ` @ ${tx.unit_price}€` : ""}`}
+                            </p>
+                          </div>
+                          <p className={`font-black text-base whitespace-nowrap tabular-nums ${positive ? "text-emerald-600" : "text-slate-900"}`}>
+                            {(tx.type === "Sortie" || tx.type === "retrait") ? "-" : "+"}
+                            {tx.amount.toLocaleString("fr-FR", { style: "currency", currency: tx.currency })}
+                          </p>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-600">
+                          <Badge variant={positive ? "default" : "secondary"} className="text-[10px] h-5">{tx.type}</Badge>
+                          <span className="font-medium">{frequencyLabel(tx.frequency)} • jour {tx.day_of_month}</span>
+                          <span className="text-slate-400">
+                            Dernière : {tx.last_generated_date ? format(new Date(tx.last_generated_date), "dd MMM yyyy", { locale: fr }) : "aucune"}
+                          </span>
+                          {tx.excluded_months && tx.excluded_months.length > 0 && (
+                            <Badge variant="outline" className="text-[9px] h-4 px-1.5 text-amber-700 border-amber-200 bg-amber-50">
+                              {tx.excluded_months.length} mois exclu{tx.excluded_months.length > 1 ? "s" : ""}
+                            </Badge>
+                          )}
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <label className="flex min-h-10 items-center gap-2 text-sm text-slate-700">
+                            <Checkbox checked={tx.is_active} onCheckedChange={() => toggleActive(tx)} className="rounded-md h-5 w-5" />
+                            Actif
+                            {tx.auto_generate && <span className="inline-flex items-center gap-1 text-xs text-emerald-600"><CheckCircle2 className="h-3.5 w-3.5" />Auto</span>}
+                          </label>
+                          <div className="flex gap-1">
+                            <Button variant="ghost" size="icon" className="h-10 w-10 text-slate-500" onClick={() => handleOpenEdit(tx)} aria-label="Modifier">
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" className="h-10 w-10 text-slate-500 hover:text-red-600" onClick={() => handleDelete(tx.id)} aria-label="Supprimer">
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })
+                )}
+              </div>
+              <div className="hidden md:block">
               <Table>
                 <TableHeader className="bg-slate-50/50">
                   <TableRow>
@@ -651,17 +724,18 @@ export default function RecurringTransactions() {
                   )}
                 </TableBody>
               </Table>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="subscriptions" className="space-y-8">
+        <TabsContent value="subscriptions" className="space-y-6 md:space-y-8">
            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
              <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-xl w-fit">
                <Button 
                 variant={subTab === "subscriptions" ? "white" : "ghost"} 
                 size="sm" 
-                className={`rounded-lg font-bold text-xs px-4 ${subTab === "subscriptions" ? "shadow-sm" : "text-slate-500 hover:text-slate-900"}`}
+                className={`h-9 rounded-lg font-bold text-xs px-4 ${subTab === "subscriptions" ? "shadow-sm" : "text-slate-500 hover:text-slate-900"}`}
                 onClick={() => setSubTab("subscriptions")}
                >
                  Abonnements
@@ -681,7 +755,7 @@ export default function RecurringTransactions() {
              </div>
            </div>
 
-           <div className="grid gap-6 md:grid-cols-3">
+           <div className="grid grid-cols-2 gap-3 md:gap-6 md:grid-cols-3">
              <Card className="shadow-sm border-slate-100">
                <CardHeader className="pb-2">
                  <CardDescription className="font-medium text-slate-500">
@@ -689,7 +763,7 @@ export default function RecurringTransactions() {
                  </CardDescription>
                </CardHeader>
                <CardContent>
-                 <CardTitle className="text-3xl font-bold text-slate-900">
+                 <CardTitle className="text-2xl md:text-3xl font-bold text-slate-900">
                    {formatCurrency(activeSubs.reduce((acc: number, s: any) => acc + s.monthly_cost, 0))}
                  </CardTitle>
                  <p className="text-xs text-slate-400 mt-1">
@@ -705,7 +779,7 @@ export default function RecurringTransactions() {
                  </CardDescription>
                </CardHeader>
                <CardContent>
-                 <CardTitle className="text-3xl font-bold text-slate-900">
+                 <CardTitle className="text-2xl md:text-3xl font-bold text-slate-900">
                    {formatCurrency(activeSubs.reduce((acc: number, s: any) => acc + s.annual_cost, 0))}
                  </CardTitle>
                  <p className="text-xs text-slate-400 mt-1">
@@ -714,14 +788,14 @@ export default function RecurringTransactions() {
                </CardContent>
              </Card>
 
-             <Card className="shadow-sm border-slate-100">
+             <Card className="shadow-sm border-slate-100 col-span-2 md:col-span-1">
                <CardHeader className="pb-2">
                  <CardDescription className="font-medium text-slate-500">
                    {subTab === "subscriptions" ? "Services actifs" : "Plans d'investissement"}
                  </CardDescription>
                </CardHeader>
                <CardContent>
-                 <CardTitle className="text-3xl font-bold text-slate-900">
+                 <CardTitle className="text-2xl md:text-3xl font-bold text-slate-900">
                    {activeSubs.length}
                  </CardTitle>
                  <p className="text-xs text-slate-400 mt-1">{potentialSubs.length} détections en attente</p>
@@ -729,7 +803,7 @@ export default function RecurringTransactions() {
              </Card>
            </div>
 
-           <div className="grid gap-8 lg:grid-cols-12">
+           <div className="grid gap-6 lg:gap-8 lg:grid-cols-12">
              <div className="lg:col-span-8 space-y-6">
                 <Card className="shadow-sm border-slate-100 overflow-hidden">
                   <CardHeader className="border-b bg-slate-50/30">
@@ -746,26 +820,26 @@ export default function RecurringTransactions() {
                         </div>
                       ) : (
                         activeSubs.map((sub: any, i: number) => (
-                          <div key={i} className="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors group">
-                            <div className="flex items-center gap-4">
+                          <div key={i} className="p-4 flex items-center justify-between gap-3 hover:bg-slate-50 transition-colors group">
+                            <div className="flex items-center gap-3 md:gap-4 min-w-0">
                               <CompanyLogo
                                 ticker={sub.ticker}
                                 name={sub.name}
-                                className="h-12 w-12 rounded-2xl shrink-0 shadow-sm"
+                                className="h-10 w-10 md:h-12 md:w-12 rounded-2xl shrink-0 shadow-sm"
                               />
-                              <div>
-                                <div className="flex items-center gap-2">
-                                  <p className="font-bold text-slate-900">{sub.name}</p>
+                              <div className="min-w-0">
+                                <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                                  <p className="font-bold text-slate-900 break-words">{sub.name}</p>
                                   <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-none text-[9px] h-4 px-1.5 font-black uppercase">Certifié</Badge>
                                 </div>
-                                <div className="flex items-center gap-2 mt-0.5">
+                                <div className="flex flex-wrap items-center gap-x-2 mt-0.5">
                                   <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">{sub.category_name}</span>
                                   <span className="text-slate-300">•</span>
                                   <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">{frequencyLabel(sub.frequency)}</span>
                                 </div>
                               </div>
                             </div>
-                            <div className="text-right flex items-center gap-6">
+                            <div className="text-right flex items-center gap-6 shrink-0">
                               <div className="hidden sm:block text-right">
                                 <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Prochain</p>
                                 <p className="text-sm font-bold text-slate-700">
@@ -773,8 +847,8 @@ export default function RecurringTransactions() {
                                 </p>
                               </div>
                               <div>
-                                <p className="text-lg font-black text-slate-900">{formatCurrency(sub.amount)}</p>
-                                <p className="text-[10px] font-bold text-slate-400 text-right">
+                                <p className="text-base md:text-lg font-black text-slate-900 whitespace-nowrap tabular-nums">{formatCurrency(sub.amount)}</p>
+                                <p className="text-[10px] font-bold text-slate-400 text-right whitespace-nowrap">
                                   {subTab === "subscriptions" ? `${formatCurrency(sub.monthly_cost)}/mois` : "Versé"}
                                 </p>
                               </div>
@@ -802,35 +876,35 @@ export default function RecurringTransactions() {
                     <CardContent className="p-0">
                       <div className={`divide-y border-t ${subTab === 'subscriptions' ? 'border-amber-100' : 'border-indigo-100'}`}>
                         {potentialSubs.map((sub: any, i: number) => (
-                          <div key={i} className="p-4 flex items-center justify-between group">
-                            <div className="flex items-center gap-4">
+                          <div key={i} className="p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between group">
+                            <div className="flex items-center gap-3 md:gap-4 min-w-0">
                               <CompanyLogo
                                 ticker={sub.ticker}
                                 name={sub.name}
-                                className="h-12 w-12 rounded-2xl shrink-0 shadow-sm"
+                                className="h-10 w-10 md:h-12 md:w-12 rounded-2xl shrink-0 shadow-sm"
                               />
-                              <div>
-                                <p className="font-bold text-slate-900">{sub.name}</p>
+                              <div className="min-w-0 flex-1">
+                                <p className="font-bold text-slate-900 break-words">{sub.name}</p>
                                 <div className="flex items-center gap-2 mt-0.5">
                                   <span className={`text-[10px] font-black uppercase tracking-widest ${subTab === 'subscriptions' ? 'text-amber-600' : 'text-indigo-600'}`}>Récurrence détectée</span>
                                 </div>
                               </div>
                             </div>
-                            <div className="flex items-center gap-4">
+                            <div className="flex flex-wrap items-center justify-between gap-3 sm:justify-end sm:gap-4">
                               <div className="text-right">
-                                <p className="text-lg font-black text-slate-900">{formatCurrency(sub.amount)}</p>
+                                <p className="text-lg font-black text-slate-900 whitespace-nowrap tabular-nums">{formatCurrency(sub.amount)}</p>
                                 <p className="text-[10px] font-bold text-slate-400 uppercase">Valider ?</p>
                               </div>
                               <div className="flex items-center gap-2">
-                                <Button size="sm" variant="ghost" className="text-slate-400 hover:text-red-600 h-8 px-2" onClick={() => handleIgnoreDetection(sub)}>
+                                <Button size="sm" variant="ghost" aria-label="Ignorer" className="text-slate-400 hover:text-red-600 h-10 w-10 px-2 md:h-8 md:w-auto" onClick={() => handleIgnoreDetection(sub)}>
                                   <Trash2 className="h-3.5 w-3.5" />
                                 </Button>
                                 {subTab === "subscriptions" && (
-                                  <Button size="sm" variant="outline" className="border-slate-200 text-slate-600 hover:bg-slate-100 rounded-xl font-bold h-8 text-[11px]" onClick={() => handleOpenValidate(sub, true)}>
+                                  <Button size="sm" variant="outline" className="border-slate-200 text-slate-600 hover:bg-slate-100 rounded-xl font-bold h-10 md:h-8 text-xs md:text-[11px]" onClick={() => handleOpenValidate(sub, true)}>
                                     Invest.
                                   </Button>
                                 )}
-                                <Button size="sm" variant="outline" className={`rounded-xl font-bold h-8 text-[11px] ${subTab === 'subscriptions' ? 'border-amber-200 text-amber-700 hover:bg-amber-100' : 'border-indigo-200 text-indigo-700 hover:bg-indigo-100'}`} onClick={() => handleOpenValidate(sub, subTab === "investments")}>
+                                <Button size="sm" variant="outline" className={`rounded-xl font-bold h-10 md:h-8 text-xs md:text-[11px] ${subTab === 'subscriptions' ? 'border-amber-200 text-amber-700 hover:bg-amber-100' : 'border-indigo-200 text-indigo-700 hover:bg-indigo-100'}`} onClick={() => handleOpenValidate(sub, subTab === "investments")}>
                                   Confirmer
                                 </Button>
                               </div>
@@ -851,7 +925,7 @@ export default function RecurringTransactions() {
                       {subTab === "subscriptions" ? "Optimisation" : "Allocation"}
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="p-6 space-y-6">
+                  <CardContent className="p-4 md:p-6 space-y-6">
                     <div>
                       <p className="text-sm font-medium text-slate-900 mb-2">Poids sur votre budget</p>
                       <div className="space-y-1.5">
@@ -895,7 +969,7 @@ export default function RecurringTransactions() {
 
       {/* Form Dialog */}
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto max-sm:[&_input]:text-base max-sm:[&_textarea]:text-base">
           <DialogHeader>
             <DialogTitle>{editingTx ? "Modifier" : "Nouvelle"} récurrence</DialogTitle>
             <DialogDescription>
@@ -1096,7 +1170,7 @@ export default function RecurringTransactions() {
             {showSecurities && (
               <div className="grid grid-cols-1 gap-4 p-3 border rounded-md bg-slate-50/50">
                 <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500">Asset Allocation</h3>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="grid gap-2">
                     <Label htmlFor="aclass" className="text-xs uppercase tracking-wider font-bold text-slate-500">Classe d'actif</Label>
                     <Input 
@@ -1142,7 +1216,7 @@ export default function RecurringTransactions() {
               </div>
             )}
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="account">Compte</Label>
                 <Select
@@ -1232,7 +1306,7 @@ export default function RecurringTransactions() {
               </div>
             )}
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="frequency">Fréquence</Label>
                 <Select
@@ -1389,8 +1463,8 @@ export default function RecurringTransactions() {
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsFormOpen(false)}>Annuler</Button>
-            <Button onClick={handleSubmit}>Enregistrer</Button>
+            <Button variant="outline" className="h-11 sm:h-10" onClick={() => setIsFormOpen(false)}>Annuler</Button>
+            <Button className="h-11 sm:h-10" onClick={handleSubmit}>Enregistrer</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

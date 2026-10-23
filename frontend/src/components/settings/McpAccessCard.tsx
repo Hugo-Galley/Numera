@@ -55,7 +55,7 @@ function CopyBlock({ value, label }: { value: string; label: string }) {
       <pre className="flex-1 min-w-0 p-2.5 bg-slate-900 text-slate-100 rounded overflow-x-auto text-[11px] leading-relaxed font-mono whitespace-pre-wrap break-all">
         {value}
       </pre>
-      <Button type="button" variant="outline" size="sm" className="shrink-0 h-8 w-8 p-0" onClick={copy} aria-label={`Copier ${label}`}>
+      <Button type="button" variant="outline" size="sm" className="shrink-0 h-10 w-10 p-0 sm:h-8 sm:w-8" onClick={copy} aria-label={`Copier ${label}`}>
         {copied ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4" />}
       </Button>
     </div>
@@ -168,7 +168,7 @@ export function McpAccessCard() {
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="flex items-center justify-between gap-4">
-          <div className="space-y-0.5">
+          <div className="min-w-0 space-y-0.5">
             <Label className="text-base">Accès MCP</Label>
             <p className="text-sm text-slate-500">
               Désactivé, tous les tokens sont refusés immédiatement (sans les supprimer).
@@ -187,7 +187,7 @@ export function McpAccessCard() {
               placeholder="Ex. Claude Desktop — MacBook"
               maxLength={100}
             />
-            <Button type="submit" disabled={creating || !name.trim()} className="gap-2 shrink-0">
+            <Button type="submit" disabled={creating || !name.trim()} className="h-11 gap-2 shrink-0 sm:h-10">
               <KeyRound className="h-4 w-4" />
               {creating ? "Génération..." : "Générer un token"}
             </Button>
@@ -200,7 +200,7 @@ export function McpAccessCard() {
               <TriangleAlert className="h-4 w-4" />
               Copiez-le maintenant : ce token ne sera plus affiché.
             </p>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               {CLIENTS.map((item) => (
                 <Button
                   key={item.id}
@@ -208,7 +208,7 @@ export function McpAccessCard() {
                   size="sm"
                   variant={client === item.id ? "default" : "outline"}
                   onClick={() => setClient(item.id)}
-                  className="text-xs"
+                  className="h-10 text-xs sm:h-9"
                 >
                   {item.label}
                 </Button>
@@ -244,7 +244,7 @@ export function McpAccessCard() {
             <p className="text-xs text-slate-600 dark:text-slate-400">
               Serveur MCP : <code>{mcpUrl}</code>
             </p>
-            <Button type="button" variant="outline" size="sm" onClick={() => setCreated(null)}>
+            <Button type="button" variant="outline" className="h-11 w-full sm:h-9 sm:w-auto" onClick={() => setCreated(null)}>
               J'ai copié le token
             </Button>
           </div>
@@ -263,15 +263,15 @@ export function McpAccessCard() {
                   <div className="min-w-0">
                     <p className="text-sm font-medium truncate">{token.name}</p>
                     <p className="text-xs text-slate-500">
-                      <code>{token.token_prefix}…</code> · créé le {formatDateTime(token.created_at)} · dernière
-                      utilisation : {formatDateTime(token.last_used_at)}
+                      <code>{token.token_prefix}…</code> · créé le {formatDateTime(token.created_at)}
+                      <span className="block sm:inline"><span className="hidden sm:inline"> · </span>dernière utilisation : {formatDateTime(token.last_used_at)}</span>
                     </p>
                   </div>
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
-                    className="shrink-0 text-rose-600 hover:text-rose-700 hover:bg-rose-50"
+                    className="h-10 w-10 shrink-0 p-0 text-rose-600 hover:text-rose-700 hover:bg-rose-50"
                     onClick={() => setToRevoke(token)}
                     aria-label={`Révoquer ${token.name}`}
                   >
@@ -293,8 +293,8 @@ export function McpAccessCard() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2 sm:gap-0">
-            <Button variant="outline" onClick={() => setToRevoke(null)}>Annuler</Button>
-            <Button variant="destructive" onClick={revokeToken}>Révoquer</Button>
+            <Button variant="outline" className="h-11 sm:h-10" onClick={() => setToRevoke(null)}>Annuler</Button>
+            <Button variant="destructive" className="h-11 sm:h-10" onClick={revokeToken}>Révoquer</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

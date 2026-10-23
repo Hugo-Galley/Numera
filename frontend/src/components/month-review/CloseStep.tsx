@@ -22,10 +22,10 @@ export function CloseStep({
 
   return (
     <Card>
-      <CardContent className="space-y-4 p-6">
+      <CardContent className="space-y-4 p-4 md:p-6">
         {review.closed && review.closure && (
           <div className="flex items-start gap-3 rounded-lg bg-emerald-50 p-4 text-emerald-800">
-            <CheckCircle2 className="mt-0.5 h-5 w-5" />
+            <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0" />
             <div className="text-sm">
               <p className="font-semibold">
                 Clôturé le {new Date(review.closure.closed_at).toLocaleDateString("fr-FR")}
@@ -38,7 +38,7 @@ export function CloseStep({
         )}
         {review.modified_since_close && (
           <div className="flex items-start gap-3 rounded-lg bg-amber-50 p-4 text-sm text-amber-900">
-            <AlertTriangle className="mt-0.5 h-5 w-5" />
+            <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" />
             Des transactions ont changé depuis la clôture. Vous pouvez re-clôturer pour mettre la photo à jour.
           </div>
         )}
@@ -62,7 +62,7 @@ export function CloseStep({
           </div>
           <div className="col-span-2">
             <dt className="text-slate-500">Fait marquant</dt>
-            <dd className="font-medium">{highlight.trim() || "—"}</dd>
+            <dd className="break-words font-medium">{highlight.trim() || "—"}</dd>
           </div>
         </dl>
 
@@ -72,12 +72,12 @@ export function CloseStep({
           </p>
         )}
 
-        <div className="flex flex-wrap gap-3">
-          <Button onClick={onClose} disabled={busy}>
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <Button className="h-11 sm:h-10" onClick={onClose} disabled={busy}>
             {review.closed ? "Re-clôturer le mois" : "Clôturer le mois"}
           </Button>
           {review.closed && (
-            <Button variant="outline" onClick={onReopen} disabled={busy}>
+            <Button variant="outline" className="h-11 sm:h-10" onClick={onReopen} disabled={busy}>
               Rouvrir le mois
             </Button>
           )}

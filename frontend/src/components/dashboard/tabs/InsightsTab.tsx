@@ -36,7 +36,7 @@ export function InsightsTab({ insights }: InsightsTabProps) {
   ) || []
 
   return (
-    <div className="grid gap-8 lg:grid-cols-12">
+    <div className="grid grid-cols-1 gap-5 md:gap-8 lg:grid-cols-12">
       <Card className="lg:col-span-4 shadow-sm border-slate-100 overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 text-white">
         <CardHeader className="pb-2">
           <CardTitle className="text-lg flex items-center gap-2">
@@ -45,7 +45,7 @@ export function InsightsTab({ insights }: InsightsTabProps) {
           </CardTitle>
           <CardDescription className="text-slate-400">Score global de votre situation.</CardDescription>
         </CardHeader>
-        <CardContent className="flex flex-col items-center justify-center py-10">
+        <CardContent className="flex flex-col items-center justify-center py-6 md:py-10">
           <div className="relative flex items-center justify-center">
             <svg className="w-48 h-48 transform -rotate-90">
               <circle
@@ -78,7 +78,7 @@ export function InsightsTab({ insights }: InsightsTabProps) {
             </div>
           </div>
           
-          <div className="grid grid-cols-2 gap-4 w-full mt-10">
+          <div className="grid grid-cols-2 gap-3 md:gap-4 w-full mt-6 md:mt-10">
             {insights?.health_score?.metrics.map((m: any, i: number) => (
               <div key={i} className="bg-slate-800/50 p-3 rounded-2xl border border-slate-700/50">
                 <p className="text-[10px] uppercase font-black text-slate-500 tracking-wider mb-1">{m.name}</p>
@@ -92,39 +92,44 @@ export function InsightsTab({ insights }: InsightsTabProps) {
         </CardContent>
       </Card>
 
-      <div className="lg:col-span-8 space-y-6">
-        <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+      <div className="lg:col-span-8 space-y-4 md:space-y-6">
+        <h3 className="text-lg md:text-xl font-bold text-slate-900 flex items-center gap-2">
           <Sparkles className="h-5 w-5 text-amber-500" />
           Analyse & Conseils
         </h3>
-        <div className="grid gap-4">
+        <div className="grid grid-cols-1 gap-4">
           {visibleInsights.map((insight: any, i: number) => (
             <Card key={i} className={`shadow-sm border-l-4 ${
               insight.type === 'anomaly' ? 'border-l-amber-500' : 'border-l-emerald-500'
             } hover:bg-slate-50 transition-colors group relative`}>
-              <CardHeader className="p-5">
-                <div className="flex items-start justify-between">
-                  <div className="flex gap-4">
-                    <div className={`mt-1 p-2 rounded-xl ${
+              <CardHeader className="p-4 md:p-5">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex min-w-0 gap-3 md:gap-4">
+                    <div className={`mt-1 h-fit shrink-0 p-2 rounded-xl ${
                       insight.type === 'anomaly' ? 'bg-amber-100 text-amber-600' : 'bg-emerald-100 text-emerald-600'
                     }`}>
                       {insight.type === 'anomaly' ? <AlertTriangle className="h-5 w-5" /> : <Sparkles className="h-5 w-5" />}
                     </div>
-                    <div>
-                      <CardTitle className="text-lg font-bold text-slate-900">{insight.title}</CardTitle>
+                    <div className="min-w-0">
+                      <CardTitle className="text-base md:text-lg font-bold text-slate-900 break-words">{insight.title}</CardTitle>
                       <CardDescription className="text-slate-600 mt-1">{insight.description}</CardDescription>
+                      {insight.value && (
+                        <Badge variant="outline" className={`mt-2 md:hidden whitespace-nowrap ${insight.type === 'anomaly' ? 'text-amber-700 bg-amber-50' : 'text-emerald-700 bg-emerald-50'}`}>
+                          {insight.type === 'anomaly' ? `+${formatCurrency(insight.value)}` : insight.unit === '%' ? `${insight.value}%` : formatCurrency(insight.value)}
+                        </Badge>
+                      )}
                     </div>
                   </div>
-                  <div className="flex items-center gap-3">
+                  <div className="flex shrink-0 items-center gap-3">
                     {insight.value && (
-                      <Badge variant="outline" className={insight.type === 'anomaly' ? 'text-amber-700 bg-amber-50' : 'text-emerald-700 bg-emerald-50'}>
+                      <Badge variant="outline" className={`hidden md:inline-flex whitespace-nowrap ${insight.type === 'anomaly' ? 'text-amber-700 bg-amber-50' : 'text-emerald-700 bg-emerald-50'}`}>
                         {insight.type === 'anomaly' ? `+${formatCurrency(insight.value)}` : insight.unit === '%' ? `${insight.value}%` : formatCurrency(insight.value)}
                       </Badge>
                     )}
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8 text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                      className="h-10 w-10 md:h-8 md:w-8 text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
                       onClick={() => handleDismiss(insight.title)}
                       title="Ne pas prendre en compte de façon permanente"
                     >
@@ -136,7 +141,7 @@ export function InsightsTab({ insights }: InsightsTabProps) {
             </Card>
           ))}
           {visibleInsights.length === 0 && (
-            <div className="py-20 text-center bg-slate-50 rounded-3xl border border-dashed">
+            <div className="py-12 md:py-20 px-4 text-center bg-slate-50 rounded-3xl border border-dashed">
               <p className="text-slate-400 font-medium">Tout semble sous contrôle ! Aucun conseil particulier ce mois-ci.</p>
             </div>
           )}

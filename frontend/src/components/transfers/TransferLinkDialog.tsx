@@ -110,12 +110,12 @@ export function TransferLinkDialog({ open, onOpenChange, transaction, accounts, 
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
           <p className="text-sm text-slate-500">
             {isSortie ? "Entrées" : "Sorties"} proches (±15 jours, ±5 % du montant) sur vos autres comptes.
           </p>
           <Select value={filterAccount} onValueChange={setFilterAccount}>
-            <SelectTrigger className="w-48">
+            <SelectTrigger className="h-11 w-full sm:h-10 sm:w-48">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -129,7 +129,7 @@ export function TransferLinkDialog({ open, onOpenChange, transaction, accounts, 
           </Select>
         </div>
 
-        <div className="max-h-72 space-y-2 overflow-y-auto">
+        <div className="max-h-[40dvh] space-y-2 overflow-y-auto sm:max-h-72">
           {loading && <Skeleton className="h-14 w-full" />}
           {!loading && candidates.length === 0 && (
             <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-6 text-center text-sm italic text-slate-400">
@@ -137,7 +137,7 @@ export function TransferLinkDialog({ open, onOpenChange, transaction, accounts, 
             </div>
           )}
           {candidates.map((c) => (
-            <div key={`${c.type}-${c.other_id}`} className="flex items-center justify-between rounded-xl border border-slate-100 p-3 hover:border-indigo-200">
+            <div key={`${c.type}-${c.other_id}`} className="flex flex-col gap-2 rounded-xl border border-slate-100 p-3 hover:border-indigo-200 sm:flex-row sm:items-center sm:justify-between">
               <div className="min-w-0">
                 <p className="truncate text-sm font-bold text-slate-900">{c.label || "—"}</p>
                 <p className="text-xs text-slate-500">
@@ -146,9 +146,9 @@ export function TransferLinkDialog({ open, onOpenChange, transaction, accounts, 
                   {c.amount_gap_pct > 0.001 && <span className="ml-1 text-amber-600">({c.amount_gap_pct.toFixed(1)} % d'écart)</span>}
                 </p>
               </div>
-              <div className="flex items-center gap-3">
-                <span className="font-bold text-slate-700 amount-blur">{formatCurrency(c.amount, c.currency)}</span>
-                <Button size="sm" className="gap-1 bg-indigo-600 hover:bg-indigo-700" onClick={() => link(c)}>
+              <div className="flex items-center justify-between gap-3">
+                <span className="whitespace-nowrap font-bold tabular-nums text-slate-700 amount-blur">{formatCurrency(c.amount, c.currency)}</span>
+                <Button size="sm" className="h-10 gap-1 bg-indigo-600 hover:bg-indigo-700 sm:h-9" onClick={() => link(c)}>
                   <LinkIcon className="h-3.5 w-3.5" />
                   Lier
                 </Button>
@@ -158,11 +158,11 @@ export function TransferLinkDialog({ open, onOpenChange, transaction, accounts, 
         </div>
 
         {isSortie && (
-          <div className="flex items-end gap-2 rounded-xl bg-slate-50 p-3">
+          <div className="flex flex-col gap-2 rounded-xl bg-slate-50 p-3 sm:flex-row sm:items-end">
             <div className="flex-1">
               <p className="mb-1 text-xs font-bold uppercase tracking-wider text-slate-500">Créer la contrepartie sur</p>
               <Select value={counterpartAccount} onValueChange={setCounterpartAccount}>
-                <SelectTrigger>
+                <SelectTrigger className="h-11 sm:h-10">
                   <SelectValue placeholder="Choisir un compte" />
                 </SelectTrigger>
                 <SelectContent>
@@ -174,7 +174,7 @@ export function TransferLinkDialog({ open, onOpenChange, transaction, accounts, 
                 </SelectContent>
               </Select>
             </div>
-            <Button variant="outline" className="gap-1" disabled={!counterpartAccount} onClick={createCounterpart}>
+            <Button variant="outline" className="h-11 gap-1 sm:h-10" disabled={!counterpartAccount} onClick={createCounterpart}>
               <PlusCircle className="h-4 w-4" />
               Créer et lier
             </Button>
@@ -182,7 +182,7 @@ export function TransferLinkDialog({ open, onOpenChange, transaction, accounts, 
         )}
 
         <div className="flex justify-end">
-          <Button variant="ghost" size="sm" className="gap-1 text-slate-500" onClick={notATransfer}>
+          <Button variant="ghost" size="sm" className="h-10 gap-1 text-slate-500" onClick={notATransfer}>
             <Ban className="h-4 w-4" />
             Ce n'est pas un virement
           </Button>

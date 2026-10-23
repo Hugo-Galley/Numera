@@ -266,27 +266,27 @@ export function PointZeroModal({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col p-6">
+        <DialogContent className="max-w-3xl max-h-[90dvh] flex flex-col p-4 sm:p-6">
           <DialogHeader>
             <div className="flex items-center gap-2">
-              <SlidersHorizontal className="h-5 w-5 text-slate-800" />
-              <DialogTitle className="text-lg font-bold text-slate-900">Point Zéro : {accountName}</DialogTitle>
+              <SlidersHorizontal className="h-5 w-5 shrink-0 text-slate-800" />
+              <DialogTitle className="pr-6 text-left text-lg font-bold text-slate-900">Point Zéro : {accountName}</DialogTitle>
             </div>
-            <DialogDescription className="text-xs text-slate-500">
+            <DialogDescription className="hidden text-xs text-slate-500 sm:block">
               Déclarez vos positions actuelles. Les cours boursiers en direct valoriseront automatiquement votre portefeuille sans altérer vos transactions passées.
             </DialogDescription>
           </DialogHeader>
 
           {/* Search bar */}
           <div className="relative mt-2">
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                 <Input
-                  placeholder="Rechercher par Code ISIN, Ticker (ex: CW8.PA, AAPL) ou Nom..."
+                  placeholder="ISIN, ticker (CW8.PA) ou nom…"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9 pr-8 text-sm bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 shadow-2xs focus-visible:ring-1 focus-visible:ring-slate-400"
+                  className="h-11 pl-9 pr-10 text-base sm:h-9 sm:pr-8 sm:text-sm bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 shadow-2xs focus-visible:ring-1 focus-visible:ring-slate-400"
                 />
                 {searchQuery && (
                   <button
@@ -296,7 +296,8 @@ export function PointZeroModal({
                       setSearchResults([])
                       setShowSearchDropdown(false)
                     }}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5"
+                    className="absolute right-0 top-1/2 flex h-11 w-10 -translate-y-1/2 items-center justify-center text-slate-400 hover:text-slate-600 sm:right-2.5 sm:h-auto sm:w-auto sm:p-0.5"
+                    aria-label="Effacer la recherche"
                   >
                     <X className="h-3.5 w-3.5" />
                   </button>
@@ -305,7 +306,7 @@ export function PointZeroModal({
               <Button
                 type="button"
                 variant="outline"
-                className="shrink-0 gap-1.5 text-xs h-9 border-slate-200 text-slate-700 hover:bg-slate-50"
+                className="shrink-0 gap-1.5 text-sm h-10 sm:h-9 sm:text-xs border-slate-200 text-slate-700 hover:bg-slate-50"
                 onClick={() => {
                   setPendingEtfSearch(searchQuery)
                   setCustomEtfOpen(true)
@@ -329,7 +330,7 @@ export function PointZeroModal({
                     {searchResults.map((item, idx) => (
                       <div
                         key={idx}
-                        className="p-3 hover:bg-slate-50 cursor-pointer flex items-center justify-between transition-colors text-xs"
+                        className="flex min-h-12 cursor-pointer flex-col gap-1.5 p-3 text-xs transition-colors hover:bg-slate-50 sm:flex-row sm:items-center sm:justify-between"
                         onClick={() => handleSelectSearchResult(item)}
                       >
                         <div className="flex items-center gap-2.5 min-w-0">
@@ -340,7 +341,7 @@ export function PointZeroModal({
                             className="h-7 w-7 rounded-md shrink-0 shadow-2xs"
                           />
                           <div className="flex flex-col min-w-0">
-                            <span className="font-semibold text-slate-900 text-xs truncate max-w-[280px]">
+                            <span className="max-w-[280px] truncate text-xs font-semibold text-slate-900 max-sm:max-w-[60vw]">
                               {item.name || item.symbol}
                             </span>
                             <div className="flex items-center gap-1.5 mt-0.5">
@@ -356,7 +357,7 @@ export function PointZeroModal({
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-2 shrink-0">
+                        <div className="flex shrink-0 flex-wrap items-center gap-2 pl-[38px] sm:pl-0">
                           <Badge variant="secondary" className="bg-slate-100 text-slate-700 text-[10px] px-1.5 py-0 font-normal">
                             {item.type || (item.is_etf ? "ETF" : "Action")}
                           </Badge>
@@ -395,7 +396,7 @@ export function PointZeroModal({
           </div>
 
           {/* Table of Rows */}
-          <div className="flex-1 overflow-y-auto mt-4 border border-slate-200 rounded-lg bg-white">
+          <div className="flex-1 min-h-[140px] overflow-y-auto mt-4 border border-slate-200 rounded-lg bg-white">
             {loadingSuggestions ? (
               <div className="p-8 text-center text-sm text-slate-500 flex flex-col items-center gap-2">
                 <div className="h-5 w-5 rounded-full border-2 border-slate-300 border-t-slate-900 animate-spin" />
@@ -409,7 +410,7 @@ export function PointZeroModal({
               </div>
             ) : (
               <div className="divide-y divide-slate-100">
-                <div className="grid grid-cols-12 gap-2 px-3 py-2 text-xs font-semibold text-slate-500 bg-slate-50/80 border-b border-slate-100">
+                <div className="hidden md:grid grid-cols-12 gap-2 px-3 py-2 text-xs font-semibold text-slate-500 bg-slate-50/80 border-b border-slate-100">
                   <div className="col-span-5">Actif / Symbole</div>
                   <div className="col-span-2 text-right">Cours Réel</div>
                   <div className="col-span-2 text-right">Nombre de parts</div>
@@ -422,9 +423,48 @@ export function PointZeroModal({
                   const rowVal = (row.quantity || 0) * unitPrice
 
                   return (
+                    <div key={idx}>
+                    {/* Mobile : carte */}
+                    <div className="space-y-3 p-3 md:hidden">
+                      <div className="flex items-start gap-2.5">
+                        <CompanyLogo ticker={row.ticker} name={row.asset_name} isin={row.isin} className="h-9 w-9 rounded-md shrink-0 shadow-2xs" />
+                        <div className="min-w-0 flex-1">
+                          <div className="break-words text-sm font-semibold leading-snug text-slate-900">{row.asset_name || row.ticker}</div>
+                          <div className="mt-0.5 flex flex-wrap items-center gap-1.5">
+                            <span className="font-mono text-[11px] text-slate-500">{row.ticker}{row.isin ? ` • ${row.isin}` : ""}</span>
+                            <Badge variant={row.is_etf ? "secondary" : "outline"} className="px-1.5 py-0 text-[10px] font-normal">{row.is_etf ? "ETF" : "Action"}</Badge>
+                            {row.is_suggestion && row.quantity === 0 && (
+                              <Badge variant="outline" className="border-amber-200 bg-amber-50 px-1.5 py-0 text-[10px] font-normal text-amber-700">Suggéré</Badge>
+                            )}
+                          </div>
+                        </div>
+                        <Button type="button" variant="ghost" size="icon" className="-mr-1 -mt-1 h-10 w-10 shrink-0 text-slate-400 hover:bg-rose-50 hover:text-rose-600" onClick={() => handleRemoveRow(idx)} aria-label="Retirer cette ligne">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <div className="grid grid-cols-[1fr_6.5rem] items-end gap-3">
+                        <div className="min-w-0 text-xs text-slate-500">
+                          <div>Cours : <span className="font-mono font-medium text-slate-800">{row.current_price ? `${row.current_price.toFixed(2)} ${row.currency}` : "-"}</span></div>
+                          <div className="mt-1">Valeur : <span className="whitespace-nowrap font-mono text-sm font-semibold text-slate-900">{new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(rowVal)}</span></div>
+                        </div>
+                        <label className="block text-xs text-slate-500">
+                          Parts
+                          <Input
+                            type="number"
+                            inputMode="decimal"
+                            step="any"
+                            min="0"
+                            placeholder="0"
+                            value={row.quantity || ""}
+                            onChange={(e) => handleUpdateRow(idx, "quantity", parseFloat(e.target.value) || 0)}
+                            className="mt-1 h-11 bg-white text-right font-mono text-base text-slate-900"
+                          />
+                        </label>
+                      </div>
+                    </div>
+                    {/* Bureau : ligne de tableau */}
                     <div
-                      key={idx}
-                      className="grid grid-cols-12 gap-2 px-3 py-2 items-center hover:bg-slate-50/60 transition-colors"
+                      className="hidden md:grid grid-cols-12 gap-2 px-3 py-2 items-center hover:bg-slate-50/60 transition-colors"
                     >
                       <div className="col-span-5 flex items-center gap-2.5 min-w-0 pr-2">
                         <CompanyLogo
@@ -504,6 +544,7 @@ export function PointZeroModal({
                         </Button>
                       </div>
                     </div>
+                    </div>
                   )
                 })}
               </div>
@@ -511,7 +552,7 @@ export function PointZeroModal({
           </div>
 
           {/* Footer summary */}
-          <div className="flex items-center justify-between pt-4 border-t mt-4">
+          <div className="flex flex-col gap-3 pt-3 border-t mt-3 sm:pt-4 sm:mt-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex flex-col">
               <span className="text-xs text-slate-500">Valeur totale estimée :</span>
               <span className="text-base font-bold font-mono text-slate-900">
@@ -519,8 +560,8 @@ export function PointZeroModal({
               </span>
             </div>
 
-            <div className="flex items-center gap-2">
-              <Button type="button" variant="outline" size="sm" onClick={() => onOpenChange(false)} disabled={saving} className="border-slate-200 text-slate-700">
+            <div className="flex flex-row-reverse gap-2 sm:items-center">
+              <Button type="button" variant="outline" size="sm" onClick={() => onOpenChange(false)} disabled={saving} className="h-11 border-slate-200 text-slate-700 sm:h-8">
                 Annuler
               </Button>
               <Button
@@ -528,7 +569,7 @@ export function PointZeroModal({
                 size="sm"
                 onClick={handleSave}
                 disabled={saving}
-                className="gap-2 bg-slate-900 hover:bg-slate-800 text-white shadow-sm"
+                className="h-11 flex-1 gap-2 bg-slate-900 text-white shadow-sm hover:bg-slate-800 sm:h-8 sm:flex-none"
               >
                 <CheckCircle2 className="h-4 w-4" />
                 {saving ? "Enregistrement..." : "Enregistrer l'état des lieux"}

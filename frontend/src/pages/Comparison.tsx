@@ -122,47 +122,47 @@ export default function Comparison() {
   }, [dataA, dataB])
 
   return (
-    <div className="space-y-8 pb-10">
+    <div className="space-y-6 pb-10 md:space-y-8">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Comparaison Mensuelle</h1>
+        <h1 className="text-2xl font-bold tracking-tight md:text-3xl">Comparaison Mensuelle</h1>
         <p className="text-slate-500 mt-1">Comparez vos revenus et dépenses entre deux périodes.</p>
       </div>
 
-      <div className="flex flex-wrap items-center gap-4 bg-white p-4 rounded-2xl border shadow-sm">
-        <div className="flex items-center gap-3">
-          <Badge className="bg-slate-900">Période A</Badge>
+      <div className="flex flex-col gap-3 rounded-2xl border bg-white p-4 shadow-sm md:flex-row md:flex-wrap md:items-center md:gap-4">
+        <div className="grid grid-cols-[1fr_6.5rem] items-center gap-2 md:flex md:gap-3">
+          <Badge className="col-span-2 w-fit bg-slate-900">Période A</Badge>
           <Select value={monthA} onValueChange={setMonthA}>
-            <SelectTrigger className="w-[130px]"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="h-11 w-full text-base md:h-10 md:w-[130px] md:text-sm"><SelectValue /></SelectTrigger>
             <SelectContent>{months.map((m, i) => <SelectItem key={i+1} value={String(i+1)}>{m}</SelectItem>)}</SelectContent>
           </Select>
           <Select value={yearA} onValueChange={setYearA}>
-            <SelectTrigger className="w-[100px]"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="h-11 w-full text-base md:h-10 md:w-[100px] md:text-sm"><SelectValue /></SelectTrigger>
             <SelectContent>{[2024, 2025, 2026].map(y => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}</SelectContent>
           </Select>
         </div>
 
-        <div className="flex items-center justify-center w-10">
-          <ArrowRight className="text-slate-300" />
+        <div className="flex w-10 items-center justify-center self-center">
+          <ArrowRight className="rotate-90 text-slate-300 md:rotate-0" />
         </div>
 
-        <div className="flex items-center gap-3">
-          <Badge variant="outline" className="border-slate-300 text-slate-500">Période B</Badge>
+        <div className="grid grid-cols-[1fr_6.5rem] items-center gap-2 md:flex md:gap-3">
+          <Badge variant="outline" className="col-span-2 w-fit border-slate-300 text-slate-500">Période B</Badge>
           <Select value={monthB} onValueChange={setMonthB}>
-            <SelectTrigger className="w-[130px]"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="h-11 w-full text-base md:h-10 md:w-[130px] md:text-sm"><SelectValue /></SelectTrigger>
             <SelectContent>{months.map((m, i) => <SelectItem key={i+1} value={String(i+1)}>{m}</SelectItem>)}</SelectContent>
           </Select>
           <Select value={yearB} onValueChange={setYearB}>
-            <SelectTrigger className="w-[100px]"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="h-11 w-full text-base md:h-10 md:w-[100px] md:text-sm"><SelectValue /></SelectTrigger>
             <SelectContent>{[2024, 2025, 2026].map(y => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}</SelectContent>
           </Select>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-6 [&>*:last-child]:col-span-2 md:[&>*:last-child]:col-span-1">
         <Card>
-          <CardHeader className="pb-2"><CardDescription>Écart Revenus</CardDescription></CardHeader>
-          <CardContent>
-            <CardTitle className="text-2xl font-bold">
+          <CardHeader className="p-4 pb-2 md:p-6 md:pb-2"><CardDescription>Écart Revenus</CardDescription></CardHeader>
+          <CardContent className="p-4 pt-0 md:p-6 md:pt-0">
+            <CardTitle className="whitespace-nowrap text-xl font-bold tabular-nums md:text-2xl">
               <span className="amount-blur">
                 {dataA && dataB ? formatCurrency(dataA.revenus_totaux - dataB.revenus_totaux) : "-"}
               </span>
@@ -182,9 +182,9 @@ export default function Comparison() {
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="pb-2"><CardDescription>Écart Dépenses</CardDescription></CardHeader>
-          <CardContent>
-            <CardTitle className="text-2xl font-bold">
+          <CardHeader className="p-4 pb-2 md:p-6 md:pb-2"><CardDescription>Écart Dépenses</CardDescription></CardHeader>
+          <CardContent className="p-4 pt-0 md:p-6 md:pt-0">
+            <CardTitle className="whitespace-nowrap text-xl font-bold tabular-nums md:text-2xl">
               <span className="amount-blur">
                 {dataA && dataB ? formatCurrency(dataA.depenses_totales - dataB.depenses_totales) : "-"}
               </span>
@@ -204,9 +204,9 @@ export default function Comparison() {
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="pb-2"><CardDescription>Écart Épargne</CardDescription></CardHeader>
-          <CardContent>
-            <CardTitle className="text-2xl font-bold">
+          <CardHeader className="p-4 pb-2 md:p-6 md:pb-2"><CardDescription>Écart Épargne</CardDescription></CardHeader>
+          <CardContent className="p-4 pt-0 md:p-6 md:pt-0">
+            <CardTitle className="whitespace-nowrap text-xl font-bold tabular-nums md:text-2xl">
               <span className="amount-blur">
                 {dataA && dataB ? formatCurrency(dataA.revenus_apres_depenses - dataB.revenus_apres_depenses) : "-"}
               </span>
@@ -228,12 +228,43 @@ export default function Comparison() {
       </div>
 
       <Card>
-        <CardHeader>
+        <CardHeader className="p-4 md:p-6">
           <CardTitle>Détail par catégorie</CardTitle>
           <CardDescription>Variation des dépenses entre les deux périodes.</CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
+        <CardContent className="p-4 pt-0 md:p-6 md:pt-0">
+          <ul className="divide-y divide-slate-100 md:hidden">
+            {comparisonRows.map((row, idx) => (
+              <li key={idx} className="space-y-1.5 py-3">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex min-w-0 items-center gap-2 font-medium">
+                    <div className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: row.color || "#cbd5e1" }} />
+                    <span className="truncate">{row.name}</span>
+                  </div>
+                  <div className={`flex shrink-0 items-center gap-1 whitespace-nowrap font-bold tabular-nums ${row.diff > 0 ? "text-rose-600" : row.diff < 0 ? "text-emerald-600" : "text-slate-400"}`}>
+                    {row.diff > 0 ? <ArrowUpRight className="h-3.5 w-3.5" /> : row.diff < 0 ? <ArrowDownRight className="h-3.5 w-3.5" /> : <Minus className="h-3.5 w-3.5" />}
+                    <span className="amount-blur">{formatCurrency(Math.abs(row.diff))}</span>
+                    <span className="ml-1 text-xs">{row.diffPct > 0 ? "+" : ""}{row.diffPct.toFixed(1)}%</span>
+                  </div>
+                </div>
+                <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 text-xs text-slate-500">
+                  <span className="min-w-0">
+                    <span className="block truncate">{months[parseInt(monthB, 10) - 1] || "B"} {yearB}</span>
+                    <span className="amount-blur block whitespace-nowrap font-semibold tabular-nums text-slate-700">{formatCurrency(row.valB)}</span>
+                  </span>
+                  <ArrowRight className="h-3 w-3 text-slate-300" />
+                  <span className="min-w-0 text-right">
+                    <span className="block truncate">{months[parseInt(monthA, 10) - 1] || "A"} {yearA}</span>
+                    <span className="amount-blur block whitespace-nowrap font-semibold tabular-nums text-slate-700">{formatCurrency(row.valA)}</span>
+                  </span>
+                </div>
+              </li>
+            ))}
+            {comparisonRows.length === 0 && !loading && (
+              <li className="py-10 text-center text-slate-400">Sélectionnez deux périodes pour comparer.</li>
+            )}
+          </ul>
+          <div className="hidden overflow-x-auto md:block">
             <Table>
               <TableHeader>
                 <TableRow>

@@ -24,6 +24,7 @@ import {
 import { SankeyFlow } from "@/components/analytics/SankeyFlow"
 import { formatCurrency } from "@/lib/utils"
 import { IconComponent } from "../IconComponent"
+import { useIsMobile } from "@/hooks/useIsMobile"
 
 const COLORS = ["#3b82f6", "#10b981", "#6366f1", "#8b5cf6", "#ec4899", "#f43f5e", "#f97316", "#f59e0b", "#64748b"]
 
@@ -42,6 +43,7 @@ export function OverviewTab({
   tagTotals,
   patrimoineAllocation
 }: OverviewTabProps) {
+  const isMobile = useIsMobile()
   const [groupBy, setGroupBy] = useState<"account" | "category" | "mixed" | "institution">("mixed")
 
   const flatItems = useMemo(() => {
@@ -220,55 +222,55 @@ export function OverviewTab({
   const chartDataKey = groupBy === "category" || groupBy === "institution" ? "value" : "balance_eur"
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-5 md:space-y-8">
       <Card className="shadow-sm border-slate-100 overflow-hidden">
-        <CardHeader className="bg-slate-50/50 border-b pb-4">
+        <CardHeader className="bg-slate-50/50 border-b p-4 pb-3 md:p-6 md:pb-4">
           <CardTitle className="text-lg">Flux Financiers</CardTitle>
           <CardDescription>Visualisation des revenus vers les dépenses et l'épargne.</CardDescription>
         </CardHeader>
-        <CardContent className="p-6">
+        <CardContent className="p-3 md:p-6">
           <SankeyFlow data={sankeyData} currency={displayCurrency} />
         </CardContent>
       </Card>
 
       <Card className="shadow-sm border-slate-100 overflow-hidden">
-        <CardHeader className="bg-slate-50/50 border-b pb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <CardHeader className="bg-slate-50/50 border-b p-4 pb-3 md:p-6 md:pb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:gap-4">
           <div>
             <CardTitle className="text-lg">Répartition du Patrimoine</CardTitle>
             <CardDescription>
               Distribution de vos actifs sur l'ensemble de vos comptes actifs.
             </CardDescription>
           </div>
-          <div className="flex flex-wrap items-center gap-4 self-start md:self-auto">
+          <div className="flex min-w-0 flex-wrap items-center gap-3 md:gap-4 self-stretch md:self-auto">
             {/* View Mode Toggle */}
-            <Tabs value={groupBy} onValueChange={(v) => setGroupBy(v as any)} className="w-auto">
-              <TabsList className="bg-slate-100 border border-slate-200/50 p-1 rounded-xl">
+            <Tabs value={groupBy} onValueChange={(v) => setGroupBy(v as any)} className="w-full md:w-auto min-w-0">
+              <TabsList className="bg-slate-100 border border-slate-200/50 p-1 rounded-xl w-full md:w-auto overflow-x-auto justify-start [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                 <TabsTrigger value="category" className="rounded-lg text-xs font-semibold px-3 py-1">Par Catégorie</TabsTrigger>
                 <TabsTrigger value="mixed" className="rounded-lg text-xs font-semibold px-3 py-1">Mixte</TabsTrigger>
                 <TabsTrigger value="account" className="rounded-lg text-xs font-semibold px-3 py-1">Par Compte</TabsTrigger>
                 <TabsTrigger value="institution" className="rounded-lg text-xs font-semibold px-3 py-1">Par Établissement</TabsTrigger>
               </TabsList>
             </Tabs>
-            <span className="text-sm font-semibold text-slate-500 bg-slate-100/80 px-3 py-1 rounded-lg">
+            <span className="text-sm font-semibold text-slate-500 bg-slate-100/80 px-3 py-1 rounded-lg whitespace-nowrap">
               Total : <span className="amount-blur text-slate-900 font-bold">{formatCurrency(patrimoineAllocation?.total_patrimoine || 0, "EUR")}</span>
             </span>
           </div>
         </CardHeader>
-        <CardContent className="p-6">
+        <CardContent className="p-4 md:p-6">
           {(!patrimoineAllocation || !patrimoineAllocation.items || patrimoineAllocation.items.length === 0) ? (
             <div className="text-center py-8 text-slate-400">Aucune donnée de patrimoine disponible.</div>
           ) : (
-            <div className="grid gap-8 lg:grid-cols-12 items-center">
+            <div className="grid grid-cols-1 gap-4 md:gap-8 lg:grid-cols-12 items-center">
               {/* Camembert (PieChart) */}
-              <div className="lg:col-span-5 h-[300px] flex items-center justify-center relative">
+              <div className="lg:col-span-5 h-[240px] md:h-[300px] flex items-center justify-center relative">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
                     <Pie
                       data={chartData}
                       cx="50%"
                       cy="50%"
-                      innerRadius={75}
-                      outerRadius={100}
+                      innerRadius={isMobile ? 62 : 75}
+                      outerRadius={isMobile ? 85 : 100}
                       paddingAngle={3}
                       dataKey={chartDataKey}
                       nameKey="name"
@@ -286,14 +288,14 @@ export function OverviewTab({
                 {/* Center Text (Total) */}
                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                   <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Patrimoine</span>
-                  <span className="text-lg font-black text-slate-800 amount-blur">
+                  <span className="text-base md:text-lg font-black text-slate-800 amount-blur">
                     {formatCurrency(patrimoineAllocation.total_patrimoine, "EUR")}
                   </span>
                 </div>
               </div>
 
               {/* Grouped, Mixed or Flat Details List */}
-              <div className="lg:col-span-7 space-y-4 max-h-[300px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-slate-200">
+              <div className="lg:col-span-7 min-w-0 space-y-4 md:max-h-[300px] md:overflow-y-auto md:pr-2 scrollbar-thin scrollbar-thumb-slate-200">
                 {groupBy === "category" ? (
                   Object.entries(groupedItems).map(([type, group]: [string, any]) => {
                     if (group.items.length === 0) return null;
@@ -306,10 +308,10 @@ export function OverviewTab({
                       <div key={type} className="space-y-2">
                         {/* Group Header */}
                         <div className="flex items-center justify-between border-b border-slate-100 pb-1.5 px-1 bg-slate-50/30">
-                          <span className="text-xs font-black tracking-wider text-slate-500 uppercase">
+                          <span className="min-w-0 truncate text-xs font-black tracking-wider text-slate-500 uppercase">
                             {catLabel}
                           </span>
-                          <div className="text-right">
+                          <div className="shrink-0 whitespace-nowrap pl-2 text-right">
                             <span className="text-xs font-extrabold text-slate-700 amount-blur">
                               {formatCurrency(group.total_eur, "EUR")}
                             </span>
@@ -326,13 +328,13 @@ export function OverviewTab({
                               key={`${item.account_id}-${item.account_name}`} 
                               className="flex items-center justify-between p-2.5 rounded-xl border border-slate-100 hover:border-slate-200 hover:bg-slate-50/50 transition-all group/item"
                             >
-                              <div className="flex items-center gap-2.5">
+                              <div className="flex min-w-0 items-center gap-2.5">
                                 <div 
                                   className="h-2 w-2 rounded-full flex-shrink-0" 
                                   style={{ backgroundColor: catColor }} 
                                 />
-                                <div>
-                                  <span className="font-bold text-slate-800 text-sm group-hover/item:text-slate-900 transition-colors">
+                                <div className="min-w-0">
+                                  <span className="block truncate font-bold text-slate-800 text-sm group-hover/item:text-slate-900 transition-colors">
                                     {item.account_name}
                                   </span>
                                   {item.currency !== "EUR" && (
@@ -342,7 +344,7 @@ export function OverviewTab({
                                   )}
                                 </div>
                               </div>
-                              <div className="text-right">
+                              <div className="shrink-0 whitespace-nowrap text-right pl-2">
                                 <span className="font-bold text-sm text-slate-900 block amount-blur">
                                   {formatCurrency(item.balance_eur, "EUR")}
                                 </span>
@@ -363,10 +365,10 @@ export function OverviewTab({
                       <div key={group.name} className="space-y-2">
                         {/* Group Header */}
                         <div className="flex items-center justify-between border-b border-slate-100 pb-1.5 px-1 bg-slate-50/30">
-                          <span className="text-xs font-black tracking-wider text-slate-500 uppercase">
+                          <span className="min-w-0 truncate text-xs font-black tracking-wider text-slate-500 uppercase">
                             {group.name}
                           </span>
-                          <div className="text-right">
+                          <div className="shrink-0 whitespace-nowrap pl-2 text-right">
                             <span className="text-xs font-extrabold text-slate-700 amount-blur">
                               {formatCurrency(group.value, "EUR")}
                             </span>
@@ -383,13 +385,13 @@ export function OverviewTab({
                               key={`${item.account_id}-${item.account_name}`} 
                               className="flex items-center justify-between p-2.5 rounded-xl border border-slate-100 hover:border-slate-200 hover:bg-slate-50/50 transition-all group/item"
                             >
-                              <div className="flex items-center gap-2.5">
+                              <div className="flex min-w-0 items-center gap-2.5">
                                 <div 
                                   className="h-2 w-2 rounded-full flex-shrink-0" 
                                   style={{ backgroundColor: group.color }} 
                                 />
-                                <div>
-                                  <span className="font-bold text-slate-800 text-sm group-hover/item:text-slate-900 transition-colors">
+                                <div className="min-w-0">
+                                  <span className="block truncate font-bold text-slate-800 text-sm group-hover/item:text-slate-900 transition-colors">
                                     {item.account_name}
                                   </span>
                                   {item.currency !== "EUR" && (
@@ -399,7 +401,7 @@ export function OverviewTab({
                                   )}
                                 </div>
                               </div>
-                              <div className="text-right">
+                              <div className="shrink-0 whitespace-nowrap text-right pl-2">
                                 <span className="font-bold text-sm text-slate-900 block amount-blur">
                                   {formatCurrency(item.balance_eur, "EUR")}
                                 </span>
@@ -419,13 +421,13 @@ export function OverviewTab({
                       key={item.id} 
                       className="flex items-center justify-between p-3 rounded-xl border border-slate-100 hover:border-slate-200 hover:bg-slate-50/50 transition-all group/item"
                     >
-                      <div className="flex items-center gap-3">
+                      <div className="flex min-w-0 items-center gap-3">
                         <div 
                           className="h-3 w-3 rounded-full flex-shrink-0" 
                           style={{ backgroundColor: item.color }} 
                         />
-                        <div>
-                          <span className="font-bold text-slate-800 text-sm group-hover/item:text-slate-900 transition-colors">
+                        <div className="min-w-0">
+                          <span className="block truncate font-bold text-slate-800 text-sm group-hover/item:text-slate-900 transition-colors">
                             {item.name}
                           </span>
                           <div className="flex items-center gap-2 mt-0.5">
@@ -440,7 +442,7 @@ export function OverviewTab({
                           </div>
                         </div>
                       </div>
-                      <div className="text-right">
+                      <div className="shrink-0 whitespace-nowrap text-right pl-2">
                         <span className="font-bold text-sm text-slate-900 block amount-blur">
                           {formatCurrency(item.balance_eur, "EUR")}
                         </span>
@@ -456,13 +458,13 @@ export function OverviewTab({
                       key={item.id} 
                       className="flex items-center justify-between p-3 rounded-xl border border-slate-100 hover:border-slate-200 hover:bg-slate-50/50 transition-all group/item"
                     >
-                      <div className="flex items-center gap-3">
+                      <div className="flex min-w-0 items-center gap-3">
                         <div 
                           className="h-3 w-3 rounded-full flex-shrink-0" 
                           style={{ backgroundColor: item.color }} 
                         />
-                        <div>
-                          <span className="font-bold text-slate-800 text-sm group-hover/item:text-slate-900 transition-colors">
+                        <div className="min-w-0">
+                          <span className="block truncate font-bold text-slate-800 text-sm group-hover/item:text-slate-900 transition-colors">
                             {item.name}
                           </span>
                           <div className="flex items-center gap-2 mt-0.5">
@@ -477,7 +479,7 @@ export function OverviewTab({
                           </div>
                         </div>
                       </div>
-                      <div className="text-right">
+                      <div className="shrink-0 whitespace-nowrap text-right pl-2">
                         <span className="font-bold text-sm text-slate-900 block amount-blur">
                           {formatCurrency(item.balance_eur, "EUR")}
                         </span>
@@ -494,20 +496,20 @@ export function OverviewTab({
         </CardContent>
       </Card>
 
-      <div className="grid gap-8 lg:grid-cols-12">
+      <div className="grid grid-cols-1 gap-5 md:gap-8 lg:grid-cols-12">
         <Card className="lg:col-span-8 shadow-sm border-slate-100 overflow-hidden">
-          <CardHeader className="bg-slate-50/50 border-b pb-4">
+          <CardHeader className="bg-slate-50/50 border-b p-4 pb-3 md:p-6 md:pb-4">
             <CardTitle className="text-lg">Dépenses par catégorie</CardTitle>
             <CardDescription>Où va votre argent ce mois-ci ?</CardDescription>
           </CardHeader>
-          <CardContent className="p-0 sm:p-6 h-[400px]">
+          <CardContent className="p-2 sm:p-6" style={{ height: isMobile ? Math.max(220, expensesByCategory.length * 34 + 30) : 400 }}>
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={expensesByCategory} layout="vertical" margin={{ top: 40, right: 40, left: 40, bottom: 20 }}>
+              <BarChart data={expensesByCategory} layout="vertical" margin={isMobile ? { top: 8, right: 16, left: 0, bottom: 8 } : { top: 40, right: 40, left: 40, bottom: 20 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                 <XAxis type="number" hide />
-                <YAxis dataKey="category.name" type="category" width={100} axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} />
+                <YAxis dataKey="category.name" type="category" width={isMobile ? 92 : 100} axisLine={false} tickLine={false} tick={{ fontSize: isMobile ? 11 : 12, fill: '#64748b' }} />
                 <Tooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} formatter={(v: number) => formatCurrency(v, displayCurrency)} />
-                <Bar dataKey="total" radius={[0, 4, 4, 0]} barSize={20}>
+                <Bar dataKey="total" radius={[0, 4, 4, 0]} barSize={isMobile ? 16 : 20}>
                   {expensesByCategory.map((item, i) => (
                     <Cell key={i} fill={item.category.color || COLORS[i % COLORS.length]} />
                   ))}
@@ -530,12 +532,12 @@ export function OverviewTab({
         </Card>
 
         <Card className="lg:col-span-4 shadow-sm border-slate-100 overflow-hidden">
-          <CardHeader className="bg-slate-50/50 border-b pb-4">
+          <CardHeader className="bg-slate-50/50 border-b p-4 pb-3 md:p-6 md:pb-4">
             <CardTitle className="text-lg">Répartition</CardTitle>
             <CardDescription>Poids des catégories.</CardDescription>
           </CardHeader>
-          <CardContent className="p-6 flex flex-col items-center">
-            <div className="h-[250px] w-full">
+          <CardContent className="p-4 md:p-6 flex flex-col items-center">
+            <div className="h-[220px] md:h-[250px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart margin={{ top: 20, right: 20, left: 20, bottom: 20 }}>
                   <Pie data={expensesByCategory} cx="50%" cy="50%" innerRadius={60} outerRadius={80} paddingAngle={4} dataKey="total" nameKey="category.name">
@@ -545,11 +547,11 @@ export function OverviewTab({
                 </PieChart>
               </ResponsiveContainer>
             </div>
-            <div className="w-full space-y-3 mt-4">
+            <div className="w-full space-y-3 mt-2 md:mt-4">
                {expensesByCategory.slice(0, 4).map((item, i) => (
                  <div key={i} className="flex justify-between text-sm">
-                   <span className="text-slate-500 flex items-center gap-2">
-                     <div className="h-4 w-4 rounded-lg flex items-center justify-center" style={{ backgroundColor: item.category.color || COLORS[i % COLORS.length] }}>
+                   <span className="min-w-0 truncate text-slate-500 flex items-center gap-2">
+                     <div className="h-4 w-4 shrink-0 rounded-lg flex items-center justify-center" style={{ backgroundColor: item.category.color || COLORS[i % COLORS.length] }}>
                        <IconComponent name={item.category.icon} className="h-2 w-2 text-white" />
                      </div>
                      {item.category.name}
@@ -565,16 +567,16 @@ export function OverviewTab({
       </div>
 
       {tagTotals.length > 0 && (
-        <Card className="shadow-sm border-slate-100 overflow-hidden mt-8">
-          <CardHeader className="bg-slate-50/50 border-b pb-4 flex flex-row items-center justify-between">
+        <Card className="shadow-sm border-slate-100 overflow-hidden md:mt-8">
+          <CardHeader className="bg-slate-50/50 border-b p-4 pb-3 md:p-6 md:pb-4 flex flex-row items-center justify-between">
             <div>
               <CardTitle className="text-lg">Projets & Contextes (Tags)</CardTitle>
               <CardDescription>Dépenses transverses sur la période.</CardDescription>
             </div>
             <Tag className="h-5 w-5 text-slate-400" />
           </CardHeader>
-          <CardContent className="p-6">
-            <div className="flex flex-wrap gap-4">
+          <CardContent className="p-4 md:p-6">
+            <div className="flex flex-wrap gap-2 md:gap-4">
               {tagTotals.map((t) => (
                 <div key={t.id} className="flex items-center gap-3 p-3 px-4 bg-white border border-slate-200 rounded-full shadow-sm hover:border-slate-300 transition-colors group">
                   <div className="h-3 w-3 rounded-full" style={{ backgroundColor: t.color || "#64748b" }} />

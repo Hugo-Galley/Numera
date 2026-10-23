@@ -22,10 +22,12 @@ const MONTHS = [
 
 function Headline({ label, value, children }: { label: string; value: string; children?: React.ReactNode }) {
   return (
-    <div>
-      <div className="text-xs font-medium text-slate-500">{label}</div>
-      <div className="amount-blur text-2xl font-black text-slate-900">{value}</div>
-      <div className="min-h-[1rem]">{children}</div>
+    <div className="flex items-center justify-between gap-3 sm:flex-col sm:items-stretch sm:justify-start sm:gap-0">
+      <div className="min-w-0 sm:contents">
+        <div className="text-xs font-medium text-slate-500">{label}</div>
+        <div className="min-h-[1rem] sm:order-3">{children}</div>
+      </div>
+      <div className="amount-blur whitespace-nowrap text-xl font-black tabular-nums text-slate-900 sm:order-2 sm:text-2xl">{value}</div>
     </div>
   )
 }
@@ -86,19 +88,19 @@ export default function IntelligentReport() {
   const reviewLink = `/month/revue?year=${date.year}&month=${date.month}`
 
   return (
-    <div className="mx-auto max-w-4xl space-y-8 pb-12">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+    <div className="mx-auto max-w-4xl space-y-6 pb-12 md:space-y-8">
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-2xl font-black tracking-tight text-slate-900">Bilan du mois</h1>
           <div className="mt-1">
             {closure ? (
-              <Link to={reviewLink} className="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-600 hover:underline">
+              <Link to={reviewLink} className="inline-flex min-h-8 items-center gap-1.5 text-xs font-medium text-emerald-600 hover:underline md:min-h-0">
                 <CheckCircle2 className="h-3.5 w-3.5" />
                 Mois clôturé
                 {closure.unresolved_count > 0 && ` · ${closure.unresolved_count} point(s) non résolus`}
               </Link>
             ) : (
-              <Link to={reviewLink} className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-slate-900 hover:underline">
+              <Link to={reviewLink} className="inline-flex min-h-8 items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-slate-900 hover:underline md:min-h-0">
                 <ClipboardCheck className="h-3.5 w-3.5" />
                 Revue de fin de mois à faire
               </Link>
@@ -106,18 +108,18 @@ export default function IntelligentReport() {
           </div>
         </div>
         <div className="no-print flex items-center gap-2">
-          <div className="flex items-center rounded-xl border border-slate-200 bg-white p-1 shadow-sm">
-            <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => changeMonth(-1)} disabled={loading}>
+          <div className="flex flex-1 items-center justify-between rounded-xl border border-slate-200 bg-white p-1 shadow-sm">
+            <Button variant="ghost" size="icon" className="h-11 w-11 md:h-9 md:w-9" onClick={() => changeMonth(-1)} aria-label="Mois précédent" disabled={loading}>
               <ChevronLeft className="h-5 w-5" />
             </Button>
-            <span className="min-w-[150px] text-center text-sm font-bold">
+            <span className="min-w-[150px] flex-1 text-center md:flex-none text-sm font-bold">
               {MONTHS[date.month - 1]} {date.year}
             </span>
-            <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => changeMonth(1)} disabled={loading}>
+            <Button variant="ghost" size="icon" className="h-11 w-11 md:h-9 md:w-9" onClick={() => changeMonth(1)} aria-label="Mois suivant" disabled={loading}>
               <ChevronRight className="h-5 w-5" />
             </Button>
           </div>
-          <Button variant="outline" size="icon" className="h-11 w-11" onClick={() => window.print()} title="Exporter en PDF">
+          <Button variant="outline" size="icon" className="hidden h-11 w-11 md:inline-flex" onClick={() => window.print()} title="Exporter en PDF">
             <Printer className="h-4 w-4" />
           </Button>
         </div>
@@ -138,7 +140,7 @@ export default function IntelligentReport() {
       ) : (
         <div className={`space-y-8 transition-opacity ${loading ? "opacity-60" : ""}`}>
           <Card>
-            <CardContent className="grid grid-cols-1 gap-6 p-5 sm:grid-cols-3">
+            <CardContent className="grid grid-cols-1 gap-4 divide-y divide-slate-100 p-5 sm:grid-cols-3 sm:gap-6 sm:divide-y-0 [&>div:not(:first-child)]:pt-4 sm:[&>div:not(:first-child)]:pt-0">
               <Headline label="Revenus" value={formatCurrency(data.income)}>
                 <Delta diff={data.comparison.income_diff} pct={data.comparison.income_diff_pct} upIsBad={false} />
               </Headline>

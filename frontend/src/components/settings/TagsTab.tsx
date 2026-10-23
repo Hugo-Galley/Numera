@@ -119,27 +119,27 @@ export function TagsTab() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 md:space-y-8 [&_input]:text-base md:[&_input]:text-sm">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900">Gestion des tags</h2>
+          <h2 className="text-xl md:text-2xl font-bold text-slate-900">Gestion des tags</h2>
           <p className="text-slate-500 text-sm mt-1">Utilisez les tags pour suivre des projets ou contextes transverses.</p>
         </div>
         
         <Dialog open={newOpen} onOpenChange={setNewOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-slate-900 text-white hover:bg-slate-800 shadow-lg w-full sm:w-auto">
+            <Button className="bg-slate-900 text-white hover:bg-slate-800 shadow-lg w-full sm:w-auto h-11 sm:h-10">
               <Plus className="h-4 w-4 mr-2" /> Nouveau tag
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
+          <DialogContent className="[&_input]:text-base md:[&_input]:text-sm sm:max-w-[425px]">
             <DialogHeader>
               <DialogTitle className="text-2xl font-bold">Nouveau tag</DialogTitle>
               <DialogDescription>
                 Créez un tag personnalisé pour vos transactions.
               </DialogDescription>
             </DialogHeader>
-            <div className="grid gap-6 py-4">
+            <div className="grid gap-5 py-2 sm:gap-6 sm:py-4">
               <div className="grid gap-2">
                 <Label htmlFor="new-tag-name" className="text-xs font-bold uppercase tracking-wider text-slate-500">Nom</Label>
                 <Input 
@@ -159,7 +159,7 @@ export function TagsTab() {
                       key={opt.name}
                       type="button"
                       onClick={() => setNewColor(opt.value)}
-                      className={`h-8 w-8 rounded-full border-4 transition-all ${newColor === opt.value ? 'border-slate-300 scale-110' : 'border-transparent hover:scale-105'}`}
+                      className={`h-10 w-10 sm:h-8 sm:w-8 rounded-full border-4 transition-all ${newColor === opt.value ? 'border-slate-300 scale-110' : 'border-transparent hover:scale-105'}`}
                       style={{ backgroundColor: opt.value }}
                       title={opt.name}
                     />
@@ -177,9 +177,9 @@ export function TagsTab() {
                 </Badge>
               </div>
             </div>
-            <DialogFooter>
-              <Button variant="ghost" onClick={() => setNewOpen(false)}>Annuler</Button>
-              <Button onClick={handleAddTag} className="bg-slate-900 text-white shadow-lg">Créer le tag</Button>
+            <DialogFooter className="gap-2 sm:gap-0">
+              <Button variant="ghost" className="h-11 sm:h-10" onClick={() => setNewOpen(false)}>Annuler</Button>
+              <Button onClick={handleAddTag} className="h-11 sm:h-10 bg-slate-900 text-white shadow-lg">Créer le tag</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -192,19 +192,19 @@ export function TagsTab() {
           {tags.map((tag) => (
             <Card key={tag.id} className="group hover:border-slate-300 transition-all shadow-sm border-slate-100 overflow-hidden">
               <CardContent className="p-0">
-                <div className="p-4 flex items-center justify-between gap-4">
+                <div className="p-3 pl-4 flex items-center justify-between gap-4 md:p-4">
                   <Badge 
-                    className="px-3 py-1.5 font-bold shadow-sm border-none truncate max-w-[150px]"
+                    className="px-3 py-1.5 font-bold shadow-sm border-none truncate max-w-[200px] sm:max-w-[150px]"
                     style={{ backgroundColor: tag.color || "#64748b" }}
                   >
                     <Tag className="h-3.5 w-3.5 mr-2" />
                     {tag.name}
                   </Badge>
-                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Button variant="ghost" size="sm" onClick={() => handleEditClick(tag)} className="h-8 w-8 p-0 text-slate-500 hover:text-slate-900">
+                  <div className="flex shrink-0 gap-1 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                    <Button variant="ghost" size="sm" onClick={() => handleEditClick(tag)} className="h-10 w-10 md:h-8 md:w-8 p-0 text-slate-500 hover:text-slate-900">
                       <Pencil className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="sm" onClick={() => handleDeleteTag(tag.id)} className="h-8 w-8 p-0 text-rose-500 hover:text-rose-600 hover:bg-rose-50">
+                    <Button variant="ghost" size="sm" onClick={() => handleDeleteTag(tag.id)} className="h-10 w-10 md:h-8 md:w-8 p-0 text-rose-500 hover:text-rose-600 hover:bg-rose-50">
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
@@ -224,12 +224,12 @@ export function TagsTab() {
 
       {/* Edit Dialog */}
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="[&_input]:text-base md:[&_input]:text-sm sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold">Modifier le tag</DialogTitle>
             <DialogDescription>Mettez à jour les informations de votre tag.</DialogDescription>
           </DialogHeader>
-          <div className="grid gap-6 py-4">
+          <div className="grid gap-5 py-2 sm:gap-6 sm:py-4">
             <div className="grid gap-2">
               <Label htmlFor="edit-tag-name" className="text-xs font-bold uppercase tracking-wider text-slate-500">Nom</Label>
               <Input 
@@ -248,7 +248,7 @@ export function TagsTab() {
                     key={opt.name}
                     type="button"
                     onClick={() => setEditColor(opt.value)}
-                    className={`h-8 w-8 rounded-full border-4 transition-all ${editColor === opt.value ? 'border-slate-300 scale-110' : 'border-transparent hover:scale-105'}`}
+                    className={`h-10 w-10 sm:h-8 sm:w-8 rounded-full border-4 transition-all ${editColor === opt.value ? 'border-slate-300 scale-110' : 'border-transparent hover:scale-105'}`}
                     style={{ backgroundColor: opt.value }}
                     title={opt.name}
                   />
@@ -266,9 +266,9 @@ export function TagsTab() {
               </Badge>
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setEditOpen(false)}>Annuler</Button>
-            <Button onClick={handleUpdateTag} className="bg-slate-900 text-white shadow-lg">Enregistrer les modifications</Button>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="ghost" className="h-11 sm:h-10" onClick={() => setEditOpen(false)}>Annuler</Button>
+            <Button onClick={handleUpdateTag} className="h-11 sm:h-10 bg-slate-900 text-white shadow-lg">Enregistrer les modifications</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

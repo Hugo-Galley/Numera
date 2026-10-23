@@ -386,10 +386,10 @@ export function WealthSimulator({ initialCapitalDefault = 10000 }: WealthSimulat
 
   return (
     <Card className="w-full border-slate-200 shadow-sm">
-      <CardHeader className="pb-4 border-b border-slate-100 bg-slate-50/50">
+      <CardHeader className="p-4 pb-3 md:p-6 md:pb-4 border-b border-slate-100 bg-slate-50/50">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex items-center gap-2.5">
-            <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg">
+          <div className="flex min-w-0 items-center gap-2.5">
+            <div className="shrink-0 p-2 bg-indigo-50 text-indigo-600 rounded-lg">
               <TrendingUp className="h-5 w-5" />
             </div>
             <div>
@@ -408,15 +408,15 @@ export function WealthSimulator({ initialCapitalDefault = 10000 }: WealthSimulat
       </CardHeader>
 
       <Tabs defaultValue="base" className="w-full">
-        <CardContent className="pt-6 space-y-6">
+        <CardContent className="p-4 pt-4 md:p-6 md:pt-6 space-y-6">
           
           {/* 1. CHOIX DE PARAMETRES EN HAUT (TabsList) */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
-            <TabsList className="bg-slate-100 p-1 rounded-lg shrink-0 flex flex-wrap gap-0.5">
-              <TabsTrigger value="base" className="text-xs py-1.5 px-3">Général</TabsTrigger>
-              <TabsTrigger value="allocation" className="text-xs py-1.5 px-3">Allocation d'Actifs</TabsTrigger>
-              <TabsTrigger value="advanced" className="text-xs py-1.5 px-3">Fiscalité & Risque</TabsTrigger>
-              <TabsTrigger value="events" className="text-xs py-1.5 px-3 relative">
+            <TabsList className="bg-slate-100 p-1 rounded-lg shrink-0 flex w-full md:w-auto justify-start overflow-x-auto flex-nowrap gap-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              <TabsTrigger value="base" className="text-xs py-2.5 md:py-1.5 px-3 whitespace-nowrap">Général</TabsTrigger>
+              <TabsTrigger value="allocation" className="text-xs py-2.5 md:py-1.5 px-3 whitespace-nowrap">Allocation d'Actifs</TabsTrigger>
+              <TabsTrigger value="advanced" className="text-xs py-2.5 md:py-1.5 px-3 whitespace-nowrap">Fiscalité & Risque</TabsTrigger>
+              <TabsTrigger value="events" className="text-xs py-2.5 md:py-1.5 px-3 relative whitespace-nowrap">
                 Événements de Vie
                 {activeEventsCount > 0 && (
                   <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-indigo-600 text-[9px] font-bold text-white">
@@ -447,7 +447,7 @@ export function WealthSimulator({ initialCapitalDefault = 10000 }: WealthSimulat
                 
                 {/* CONTENU ONGLET 1: GENERAL */}
                 <TabsContent value="base" className="space-y-4 m-0 outline-none">
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="initial_capital" className="flex items-center gap-1.5 text-xs font-semibold text-slate-700">
                         <Coins className="h-3.5 w-3.5 text-slate-400" />
@@ -458,7 +458,7 @@ export function WealthSimulator({ initialCapitalDefault = 10000 }: WealthSimulat
                         type="number"
                         value={params.initial_capital}
                         onChange={(e) => setParams({ ...params, initial_capital: Number(e.target.value) })}
-                        className="h-9 bg-white"
+                        className="h-11 md:h-9 text-base md:text-sm bg-white"
                       />
                     </div>
                     <div className="space-y-2">
@@ -471,12 +471,12 @@ export function WealthSimulator({ initialCapitalDefault = 10000 }: WealthSimulat
                         type="number"
                         value={params.monthly_contribution}
                         onChange={(e) => setParams({ ...params, monthly_contribution: Number(e.target.value) })}
-                        className="h-9 bg-white"
+                        className="h-11 md:h-9 text-base md:text-sm bg-white"
                       />
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="years" className="flex items-center gap-1.5 text-xs font-semibold text-slate-700">
                         <Clock className="h-3.5 w-3.5 text-slate-400" />
@@ -489,7 +489,7 @@ export function WealthSimulator({ initialCapitalDefault = 10000 }: WealthSimulat
                         max={50}
                         value={params.years}
                         onChange={(e) => setParams({ ...params, years: Number(e.target.value) })}
-                        className="h-9 bg-white"
+                        className="h-11 md:h-9 text-base md:text-sm bg-white"
                       />
                     </div>
                     <div className="space-y-2">
@@ -509,7 +509,7 @@ export function WealthSimulator({ initialCapitalDefault = 10000 }: WealthSimulat
                         disabled={useAllocation}
                         value={useAllocation ? computedReturn : params.annual_return_pct}
                         onChange={(e) => setParams({ ...params, annual_return_pct: Number(e.target.value) })}
-                        className="h-9 bg-white"
+                        className="h-11 md:h-9 text-base md:text-sm bg-white"
                       />
                     </div>
                   </div>
@@ -535,10 +535,10 @@ export function WealthSimulator({ initialCapitalDefault = 10000 }: WealthSimulat
                       <div className="space-y-1">
                         <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Presets d'allocations</span>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-1.5">
-                          <button type="button" onClick={() => handlePresetAllocation("balanced_60_40")} className="text-[10px] font-semibold py-1 px-1.5 border rounded bg-white hover:bg-slate-50 transition-colors text-slate-700 text-center truncate">60/40 Portefeuille</button>
-                          <button type="button" onClick={() => handlePresetAllocation("all_actions")} className="text-[10px] font-semibold py-1 px-1.5 border rounded bg-white hover:bg-slate-50 transition-colors text-slate-700 text-center truncate">100% Actions</button>
-                          <button type="button" onClick={() => handlePresetAllocation("all_weather")} className="text-[10px] font-semibold py-1 px-1.5 border rounded bg-white hover:bg-slate-50 transition-colors text-slate-700 text-center truncate">All-Weather</button>
-                          <button type="button" onClick={() => handlePresetAllocation("crypto_tilted")} className="text-[10px] font-semibold py-1 px-1.5 border rounded bg-white hover:bg-slate-50 transition-colors text-slate-700 text-center truncate">Crypto Tilted</button>
+                          <button type="button" onClick={() => handlePresetAllocation("balanced_60_40")} className="text-[11px] md:text-[10px] font-semibold py-2.5 md:py-1 px-1.5 border rounded bg-white hover:bg-slate-50 transition-colors text-slate-700 text-center truncate">60/40 Portefeuille</button>
+                          <button type="button" onClick={() => handlePresetAllocation("all_actions")} className="text-[11px] md:text-[10px] font-semibold py-2.5 md:py-1 px-1.5 border rounded bg-white hover:bg-slate-50 transition-colors text-slate-700 text-center truncate">100% Actions</button>
+                          <button type="button" onClick={() => handlePresetAllocation("all_weather")} className="text-[11px] md:text-[10px] font-semibold py-2.5 md:py-1 px-1.5 border rounded bg-white hover:bg-slate-50 transition-colors text-slate-700 text-center truncate">All-Weather</button>
+                          <button type="button" onClick={() => handlePresetAllocation("crypto_tilted")} className="text-[11px] md:text-[10px] font-semibold py-2.5 md:py-1 px-1.5 border rounded bg-white hover:bg-slate-50 transition-colors text-slate-700 text-center truncate">Crypto Tilted</button>
                         </div>
                       </div>
 
@@ -553,7 +553,7 @@ export function WealthSimulator({ initialCapitalDefault = 10000 }: WealthSimulat
                                 <button
                                   type="button"
                                   onClick={() => setEditingAsset(item)}
-                                  className="p-1 hover:bg-slate-100 rounded text-slate-500 hover:text-slate-800 transition-colors"
+                                  className="p-2.5 md:p-1 -m-1.5 md:m-0 hover:bg-slate-100 rounded text-slate-500 hover:text-slate-800 transition-colors"
                                   title="Modifier les hypothèses de cet actif"
                                 >
                                   <Pencil className="h-3 w-3" />
@@ -625,14 +625,14 @@ export function WealthSimulator({ initialCapitalDefault = 10000 }: WealthSimulat
                       disabled={useAllocation}
                       value={useAllocation ? computedVolatility : params.volatility_pct}
                       onChange={(e) => setParams({ ...params, volatility_pct: Number(e.target.value) })}
-                      className="h-9 bg-white"
+                      className="h-11 md:h-9 text-base md:text-sm bg-white"
                     />
                     <p className="text-[10px] text-slate-400 leading-normal">
                       Une volatilité supérieure à 0% déclenche une simulation de Monte Carlo avec 1000 tirages mensuels aléatoires.
                     </p>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="inflation_rate_pct" className="flex items-center gap-1.5 text-xs font-semibold text-slate-700">
                         <TrendingDown className="h-3.5 w-3.5 text-slate-400" />
@@ -644,7 +644,7 @@ export function WealthSimulator({ initialCapitalDefault = 10000 }: WealthSimulat
                         step="0.1"
                         value={params.inflation_rate_pct}
                         onChange={(e) => setParams({ ...params, inflation_rate_pct: Number(e.target.value) })}
-                        className="h-9 bg-white"
+                        className="h-11 md:h-9 text-base md:text-sm bg-white"
                       />
                     </div>
                     <div className="space-y-2">
@@ -658,13 +658,13 @@ export function WealthSimulator({ initialCapitalDefault = 10000 }: WealthSimulat
                         step="0.5"
                         value={params.contribution_indexation_pct}
                         onChange={(e) => setParams({ ...params, contribution_indexation_pct: Number(e.target.value) })}
-                        className="h-9 bg-white"
+                        className="h-11 md:h-9 text-base md:text-sm bg-white"
                       />
                     </div>
                   </div>
 
                   <div className="border-t border-slate-200 pt-3 space-y-3">
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="tax_rate_pct" className="flex items-center gap-1.5 text-xs font-semibold text-slate-700">
                           <Scale className="h-3.5 w-3.5 text-slate-400" />
@@ -676,7 +676,7 @@ export function WealthSimulator({ initialCapitalDefault = 10000 }: WealthSimulat
                           step="1"
                           value={params.tax_rate_pct}
                           onChange={(e) => setParams({ ...params, tax_rate_pct: Number(e.target.value) })}
-                          className="h-9 bg-white"
+                          className="h-11 md:h-9 text-base md:text-sm bg-white"
                         />
                       </div>
                       <div className="space-y-2">
@@ -687,7 +687,7 @@ export function WealthSimulator({ initialCapitalDefault = 10000 }: WealthSimulat
                           id="tax_deferred"
                           value={params.tax_deferred ? "true" : "false"}
                           onChange={(e) => setParams({ ...params, tax_deferred: e.target.value === "true" })}
-                          className="flex h-9 w-full rounded-md border border-slate-200 bg-white px-3 py-1 text-xs shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-950"
+                          className="flex h-11 md:h-9 w-full rounded-md border border-slate-200 bg-white px-3 py-1 text-base md:text-xs shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-950"
                         >
                           <option value="true">Capitalisation (PEA / Assur-vie)</option>
                           <option value="false">Prélèvement Annuel (Compte-titres)</option>
@@ -712,7 +712,7 @@ export function WealthSimulator({ initialCapitalDefault = 10000 }: WealthSimulat
                           placeholder="Achat voiture, Achat RP..."
                           value={newEvent.label}
                           onChange={(e) => setNewEvent({ ...newEvent, label: e.target.value })}
-                          className="h-8 text-xs bg-slate-50/50"
+                          className="h-10 md:h-8 text-base md:text-xs bg-slate-50/50"
                         />
                       </div>
                       <div className="space-y-1">
@@ -723,7 +723,7 @@ export function WealthSimulator({ initialCapitalDefault = 10000 }: WealthSimulat
                           max={params.years}
                           value={newEvent.year}
                           onChange={(e) => setNewEvent({ ...newEvent, year: Math.min(Number(e.target.value), params.years) })}
-                          className="h-8 text-xs bg-slate-50/50"
+                          className="h-10 md:h-8 text-base md:text-xs bg-slate-50/50"
                         />
                       </div>
                     </div>
@@ -736,13 +736,13 @@ export function WealthSimulator({ initialCapitalDefault = 10000 }: WealthSimulat
                           placeholder="Ex: -25000"
                           value={newEvent.amount}
                           onChange={(e) => setNewEvent({ ...newEvent, amount: Number(e.target.value) })}
-                          className="h-8 text-xs bg-slate-50/50"
+                          className="h-10 md:h-8 text-base md:text-xs bg-slate-50/50"
                         />
                       </div>
                       <button
                         type="button"
                         onClick={handleAddEvent}
-                        className="bg-indigo-600 text-white rounded px-3 py-1.5 text-xs font-semibold hover:bg-indigo-700 h-8 flex items-center gap-1 shrink-0"
+                        className="bg-indigo-600 text-white rounded px-3 py-1.5 text-xs font-semibold hover:bg-indigo-700 h-10 md:h-8 flex items-center gap-1 shrink-0"
                       >
                         Ajouter
                       </button>
@@ -962,7 +962,7 @@ export function WealthSimulator({ initialCapitalDefault = 10000 }: WealthSimulat
               </div>
 
               {/* GRAPHIQUE RECHARTS PRINCIPAL */}
-              <div className="h-[360px] w-full bg-white rounded-xl border border-slate-50 p-2 shadow-inner">
+              <div className="h-[260px] md:h-[360px] w-full bg-white rounded-xl border border-slate-50 p-2 shadow-inner">
                 <ResponsiveContainer width="100%" height="100%">
                   {isVolatile && showMonteCarlo ? (
                     <LineChart data={data?.items || []} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
@@ -1109,12 +1109,12 @@ export function WealthSimulator({ initialCapitalDefault = 10000 }: WealthSimulat
                   id="edit-name"
                   value={editingAsset.name}
                   onChange={(e) => setEditingAsset({ ...editingAsset, name: e.target.value })}
-                  className="h-9 text-xs"
+                  className="h-11 md:h-9 text-base md:text-xs"
                   placeholder="Ex: Actions ETF World, Assurance-vie..."
                 />
               </div>
               
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <Label htmlFor="edit-return" className="text-xs font-semibold text-slate-700">Rendement Moyen (%)</Label>
                   <Input
@@ -1123,7 +1123,7 @@ export function WealthSimulator({ initialCapitalDefault = 10000 }: WealthSimulat
                     step="0.1"
                     value={editingAsset.expectedReturn}
                     onChange={(e) => setEditingAsset({ ...editingAsset, expectedReturn: Number(e.target.value) })}
-                    className="h-9 text-xs"
+                    className="h-11 md:h-9 text-base md:text-xs"
                   />
                 </div>
                 <div className="space-y-1">
@@ -1134,7 +1134,7 @@ export function WealthSimulator({ initialCapitalDefault = 10000 }: WealthSimulat
                     step="0.5"
                     value={editingAsset.volatility}
                     onChange={(e) => setEditingAsset({ ...editingAsset, volatility: Number(e.target.value) })}
-                    className="h-9 text-xs"
+                    className="h-11 md:h-9 text-base md:text-xs"
                   />
                 </div>
               </div>
@@ -1144,7 +1144,7 @@ export function WealthSimulator({ initialCapitalDefault = 10000 }: WealthSimulat
               <button
                 type="button"
                 onClick={() => setEditingAsset(null)}
-                className="border border-slate-200 rounded px-3 py-1.5 text-xs font-semibold hover:bg-slate-50 text-slate-705 h-9 transition-colors"
+                className="border border-slate-200 rounded px-3 py-1.5 text-xs font-semibold hover:bg-slate-50 text-slate-705 h-11 md:h-9 transition-colors"
               >
                 Annuler
               </button>
@@ -1159,7 +1159,7 @@ export function WealthSimulator({ initialCapitalDefault = 10000 }: WealthSimulat
                   setEditingAsset(null)
                   toast.success("Actif mis à jour")
                 }}
-                className="bg-indigo-600 text-white rounded px-4 py-1.5 text-xs font-semibold hover:bg-indigo-700 h-9 transition-colors"
+                className="bg-indigo-600 text-white rounded px-4 py-1.5 text-xs font-semibold hover:bg-indigo-700 h-11 md:h-9 transition-colors"
               >
                 Enregistrer
               </button>

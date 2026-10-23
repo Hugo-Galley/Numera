@@ -91,12 +91,12 @@ export function CustomEtfModal({
                 placeholder="Ex: 0P0001HI7F.F ou CW8.PA"
                 value={ticker}
                 onChange={(e) => setTicker(e.target.value)}
-                className="h-8 text-xs font-mono uppercase"
+                className="h-11 text-base font-mono uppercase sm:h-8 sm:text-xs"
                 required
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div className="space-y-1">
                 <Label htmlFor="etf-name" className="text-xs">Nom (optionnel)</Label>
                 <Input
@@ -104,7 +104,7 @@ export function CustomEtfModal({
                   placeholder="Ex: Amundi Prime Global"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="h-8 text-xs"
+                  className="h-11 text-base sm:h-8 sm:text-xs"
                 />
               </div>
               <div className="space-y-1">
@@ -114,21 +114,21 @@ export function CustomEtfModal({
                   placeholder="Ex: FR0014001FD5"
                   value={isin}
                   onChange={(e) => setIsin(e.target.value)}
-                  className="h-8 text-xs font-mono uppercase"
+                  className="h-11 text-base font-mono uppercase sm:h-8 sm:text-xs"
                 />
               </div>
             </div>
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="outline" size="sm" onClick={() => onOpenChange(false)} disabled={analyzing}>
+            <Button type="button" variant="outline" size="sm" className="h-11 sm:h-8" onClick={() => onOpenChange(false)} disabled={analyzing}>
               Annuler
             </Button>
             <Button
               type="submit"
               size="sm"
               disabled={analyzing || !ticker.trim()}
-              className="gap-2 bg-slate-900 hover:bg-slate-800 text-white shadow-sm"
+              className="h-11 gap-2 bg-slate-900 text-white shadow-sm hover:bg-slate-800 sm:h-8"
             >
               <Globe className="h-3.5 w-3.5" />
               {analyzing ? "Récupération..." : "Créer depuis Yahoo"}

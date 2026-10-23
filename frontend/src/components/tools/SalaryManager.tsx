@@ -262,11 +262,11 @@ export function SalaryManager() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-6">
             <div className="space-y-2">
               <Label>Salaire net après primes (€)</Label>
               <Input 
-                type="number" 
+                type="number" inputMode="decimal" className="h-11 text-base md:h-9 md:text-sm" 
                 value={config.net_salary} 
                 onChange={e => setConfig({...config, net_salary: parseFloat(e.target.value) || 0})}
               />
@@ -274,7 +274,7 @@ export function SalaryManager() {
             <div className="space-y-2">
               <Label>Valeur ticket restaurant (€)</Label>
               <Input 
-                type="number" 
+                type="number" inputMode="decimal" className="h-11 text-base md:h-9 md:text-sm" 
                 step="0.01"
                 value={config.ticket_value} 
                 onChange={e => setConfig({...config, ticket_value: parseFloat(e.target.value) || 0})}
@@ -283,7 +283,7 @@ export function SalaryManager() {
             <div className="space-y-2">
               <Label>Part salarié TR (€)</Label>
               <Input 
-                type="number" 
+                type="number" inputMode="decimal" className="h-11 text-base md:h-9 md:text-sm" 
                 step="0.01"
                 value={config.ticket_employee_share} 
                 onChange={e => setConfig({...config, ticket_employee_share: parseFloat(e.target.value) || 0})}
@@ -293,7 +293,7 @@ export function SalaryManager() {
             <div className="space-y-2">
               <Label>Compte de versement Salaire *</Label>
               <Select value={config.salary_account_id.toString()} onValueChange={v => setConfig({...config, salary_account_id: Number(v)})}>
-                <SelectTrigger><SelectValue placeholder="Sélectionner..." /></SelectTrigger>
+                <SelectTrigger className="h-11 md:h-9"><SelectValue placeholder="Sélectionner..." /></SelectTrigger>
                 <SelectContent>
                   {accounts.map(a => <SelectItem key={a.id} value={a.id.toString()}>{a.name}</SelectItem>)}
                 </SelectContent>
@@ -302,7 +302,7 @@ export function SalaryManager() {
             <div className="space-y-2">
               <Label>Catégorie Salaire</Label>
               <Select value={config.salary_category_id ? config.salary_category_id.toString() : "none"} onValueChange={v => setConfig({...config, salary_category_id: v === "none" ? "" : parseInt(v)})}>
-                <SelectTrigger><SelectValue placeholder="Aucune catégorie" /></SelectTrigger>
+                <SelectTrigger className="h-11 md:h-9"><SelectValue placeholder="Aucune catégorie" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">Aucune catégorie</SelectItem>
                   {categories.map(c => <SelectItem key={c.id} value={c.id.toString()}>{c.name}</SelectItem>)}
@@ -311,7 +311,7 @@ export function SalaryManager() {
             </div>
             
             <div className="flex items-end">
-              <Button onClick={handleSaveConfig} disabled={saving} className="w-full">
+              <Button onClick={handleSaveConfig} disabled={saving} className="h-11 w-full md:h-9">
                 {saving ? "Enregistrement..." : <><Save className="mr-2 h-4 w-4" /> Sauvegarder</>}
               </Button>
             </div>
@@ -322,8 +322,8 @@ export function SalaryManager() {
       {config.id && <WorkTimeSettings />}
 
       {config.id && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
+          <div className="lg:col-span-2 min-w-0">
             <TelecommutingCalendar 
               currentDate={currentDate}
               onDateChange={setCurrentDate}
@@ -337,7 +337,7 @@ export function SalaryManager() {
           <div className="lg:col-span-1">
             <Card className="h-full flex flex-col shadow-md">
               <CardHeader className="border-b pb-4">
-                <CardTitle className="text-lg flex justify-between items-center">
+                <CardTitle className="text-lg flex flex-wrap gap-x-3 justify-between items-center">
                   <span className="flex items-center gap-2">
                     <Wallet className="h-5 w-5 text-primary" />
                     Résumé du mois
@@ -361,12 +361,12 @@ export function SalaryManager() {
                         <span className="font-medium">{config.net_salary.toFixed(2)} €</span>
                       </div>
                       <div className="flex justify-between items-center mb-3">
-                        <span className="text-muted-foreground">Déduction TR ({nbTickets} × {config.ticket_employee_share.toFixed(2)}€)</span>
-                        <span className="text-destructive font-medium">- {deduction.toFixed(2)} €</span>
+                        <span className="min-w-0 text-muted-foreground">Déduction TR ({nbTickets} × {config.ticket_employee_share.toFixed(2)}€)</span>
+                        <span className="text-destructive font-medium whitespace-nowrap tabular-nums">- {deduction.toFixed(2)} €</span>
                       </div>
                       <div className="border-t pt-3 flex justify-between items-center">
                         <span className="font-bold">Total versé</span>
-                        <span className="font-black text-xl text-emerald-600 dark:text-emerald-400">{realSalary.toFixed(2)} €</span>
+                        <span className="font-black text-xl text-emerald-600 dark:text-emerald-400 whitespace-nowrap tabular-nums">{realSalary.toFixed(2)} €</span>
                       </div>
                     </div>
                   </div>
@@ -382,21 +382,21 @@ export function SalaryManager() {
                       </p>
                       <div className="flex justify-between items-center">
                         <span className="text-muted-foreground">Tickets crédités ({nbTickets} × {config.ticket_value.toFixed(2)}€)</span>
-                        <span className="font-black text-xl text-amber-500 dark:text-amber-400">+ {creditTR.toFixed(2)} €</span>
+                        <span className="font-black text-xl text-amber-500 dark:text-amber-400 whitespace-nowrap tabular-nums">+ {creditTR.toFixed(2)} €</span>
                       </div>
                     </div>
                   </div>
                   
                 </div>
 
-                <div className="mt-8 pt-6 border-t">
+                <div className="mt-6 pt-5 md:mt-8 md:pt-6 border-t">
                   {isGenerated ? (
                     <div className="flex flex-col gap-3">
                       <div className="bg-emerald-100 border border-emerald-200 text-emerald-700 dark:bg-emerald-500/10 dark:border-emerald-500/20 dark:text-emerald-400 p-4 rounded-xl flex items-center justify-center gap-2 font-medium shadow-sm">
                         <CheckCircle2 className="h-5 w-5" />
                         Mois validé (Planifié)
                       </div>
-                      <Button variant="outline" className="w-full" onClick={handleReset}>
+                      <Button variant="outline" className="h-11 w-full md:h-9" onClick={handleReset}>
                         Réinitialiser ce mois
                       </Button>
                     </div>

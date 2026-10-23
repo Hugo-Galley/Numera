@@ -38,10 +38,10 @@ export function BudgetPeriodCard() {
         </CardDescription>
       </CardHeader>
       <CardContent className="flex items-center justify-between gap-4">
-        <div className="text-sm text-slate-600">
+        <div className="min-w-0 text-sm text-slate-600">
           {salaryMode ? "Mois de paie" : "Mois civil"}
           {salaryMode && formatPeriodRange(period) && (
-            <span className="ml-2 text-slate-400">Période en cours : {formatPeriodRange(period)}</span>
+            <span className="block text-slate-400 sm:ml-2 sm:inline">Période en cours : {formatPeriodRange(period)}</span>
           )}
         </div>
         <Switch checked={salaryMode} disabled={saving || !period} onCheckedChange={toggle} />
