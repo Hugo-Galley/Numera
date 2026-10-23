@@ -172,6 +172,42 @@ export function Sidebar({ className, onItemClick, hideBrand }: { className?: str
           <Search className="h-4 w-4" />
         </Button>
       </div>
+      {hideBrand ? (
+        // Menu mobile (feuille du bas) : un menu déroulant s'y superposerait à une 2e couche modale, on liste les actions à plat
+        <div className="border-t p-3 pb-4">
+          <div className="flex items-center gap-3 px-3 pb-2">
+            <div className="h-8 w-8 rounded-full bg-slate-900 flex items-center justify-center text-white text-xs font-bold overflow-hidden">
+              {profilePicture ? <img src={profilePicture} alt={username || ""} className="h-full w-full object-cover" /> : initials}
+            </div>
+            <span className="truncate text-sm font-medium text-slate-900">{username || "Utilisateur"}</span>
+          </div>
+          {[
+            { name: "Paramètres généraux", href: "/settings", icon: Settings },
+            { name: "Profil & Compte", href: "/settings?tab=account", icon: User },
+          ].map((item) => (
+            <NavLink
+              key={item.href}
+              to={item.href}
+              onClick={onItemClick}
+              className="flex min-h-11 items-center rounded-md px-3 text-sm font-medium text-slate-600 active:bg-slate-100"
+            >
+              <item.icon className="mr-3 h-5 w-5" aria-hidden="true" />
+              {item.name}
+            </NavLink>
+          ))}
+          <button
+            type="button"
+            onClick={() => {
+              onItemClick?.()
+              logout()
+            }}
+            className="flex min-h-11 w-full items-center rounded-md px-3 text-sm font-medium text-red-600 active:bg-red-50"
+          >
+            <LogOut className="mr-3 h-5 w-5" aria-hidden="true" />
+            Se déconnecter
+          </button>
+        </div>
+      ) : (
       <div className="border-t p-4">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -212,6 +248,7 @@ export function Sidebar({ className, onItemClick, hideBrand }: { className?: str
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+      )}
     </div>
   )
 }
