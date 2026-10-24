@@ -223,16 +223,22 @@ def set_telecommuting_days(
 
     month_label = f"{year}-{month:02d}"
 
-    # Delete existing for this month
+    # Tout est validé avant d'effacer l'existant : un refus ne doit rien modifier
+    dates = sorted(set(data.dates))  # un jour en double ne compte qu'une fois
+    for d in dates:
+        if (d.year, d.month) != (year, month):
+            raise HTTPException(status_code=422, detail=f"Date {d} hors du mois {month_label}")
+        if d.weekday() >= 5:  # 5=Sat, 6=Sun
+            raise HTTPException(status_code=400, detail=f"Date {d} is a weekend")
+    if config.net_salary - len(dates) * config.ticket_employee_share <= 0:
+        raise HTTPException(
+            status_code=422, detail="La déduction des tickets dépasse le salaire net de ce mois"
+        )
+
     db.query(TelecommutingDay).filter(
         TelecommutingDay.salary_config_id == config.id,
         TelecommutingDay.month_label == month_label,
     ).delete()
-
-    # Check if a date falls on weekend
-    for d in data.dates:
-        if d.weekday() >= 5:  # 5=Sat, 6=Sun
-            raise HTTPException(status_code=400, detail=f"Date {d} is a weekend")
 
     # Add new
     new_days = [
@@ -241,7 +247,7 @@ def set_telecommuting_days(
             date=d,
             month_label=month_label,
         )
-        for d in data.dates
+        for d in dates
     ]
     db.add_all(new_days)
 
@@ -252,7 +258,7 @@ def set_telecommuting_days(
     ).first()
 
     if month_record and month_record.is_generated:
-        nb_tickets = len(data.dates)
+        nb_tickets = len(dates)
         ticket_deduction = nb_tickets * config.ticket_employee_share
         real_salary = config.net_salary - ticket_deduction
 
