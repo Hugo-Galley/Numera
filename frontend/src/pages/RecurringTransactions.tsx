@@ -1,3 +1,4 @@
+import { safeStorage } from "@/lib/storage"
 import { toNaiveLocal } from "@/lib/dates"
 import { lazy, Suspense, useEffect, useState } from "react"
 import { useSearchParams } from "react-router-dom"
@@ -153,11 +154,11 @@ export default function RecurringTransactions() {
   const [loading, setLoading] = useState(true)
   // Les deux vues se recoupent : on n'en affiche qu'une (réglage mémorisé dans le navigateur)
   const [recurringView, setRecurringView] = useState<"analysis" | "list">(() => {
-    try { return localStorage.getItem("recurring-view") === "list" ? "list" : "analysis" } catch { return "analysis" }
+    try { return safeStorage.getItem("recurring-view") === "list" ? "list" : "analysis" } catch { return "analysis" }
   })
   const changeRecurringView = (view: "analysis" | "list") => {
     setRecurringView(view)
-    try { localStorage.setItem("recurring-view", view) } catch { /* stockage indisponible */ }
+    try { safeStorage.setItem("recurring-view", view) } catch { /* stockage indisponible */ }
   }
   // L'onglet actif vit dans l'URL (?tab=) : les raccourcis (Omnibox, ancienne adresse /calendar)
   // changent d'onglet même quand la page est déjà ouverte

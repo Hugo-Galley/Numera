@@ -1,3 +1,4 @@
+import { safeStorage } from "@/lib/storage"
 import React, { createContext, useContext, useState, useEffect } from "react"
 import { startPrivacyScanner } from "@/lib/privacyScanner"
 
@@ -15,21 +16,21 @@ const UIContext = createContext<UIContextType | undefined>(undefined)
 export function UIProvider({ children }: { children: React.ReactNode }) {
   const [isSearchOpen, setSearchOpen] = useState(false)
   const [isPrivacyMode, setIsPrivacyMode] = useState<boolean>(() => {
-    const saved = localStorage.getItem("privacy-mode")
+    const saved = safeStorage.getItem("privacy-mode")
     return saved === "true"
   })
 
   // Comptes titres : n'afficher que le titre et le nombre de parts (pas de PRU, cours, valeurs)
   const [hideHoldingValues, setHideHoldingValues] = useState<boolean>(() => {
-    return localStorage.getItem("hide-holding-values") === "true"
+    return safeStorage.getItem("hide-holding-values") === "true"
   })
 
   useEffect(() => {
-    localStorage.setItem("hide-holding-values", String(hideHoldingValues))
+    safeStorage.setItem("hide-holding-values", String(hideHoldingValues))
   }, [hideHoldingValues])
 
   useEffect(() => {
-    localStorage.setItem("privacy-mode", String(isPrivacyMode))
+    safeStorage.setItem("privacy-mode", String(isPrivacyMode))
     if (!isPrivacyMode) {
       document.body.classList.remove("privacy-enabled")
       return

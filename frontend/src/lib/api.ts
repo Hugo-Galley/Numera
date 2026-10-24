@@ -1,3 +1,4 @@
+import { safeStorage } from "@/lib/storage"
 import { getTokenExpiry } from "@/lib/utils"
 
 // Dev (vite, port 5173) : API directe sur :8001. Sinon (build servi par nginx, y compris sur
@@ -23,7 +24,7 @@ export const TOKEN_REFRESHED_EVENT = "numera:token-refreshed"
 let pendingRefresh: Promise<void> | null = null
 
 async function refreshTokenIfNeeded(): Promise<void> {
-  const token = localStorage.getItem("token")
+  const token = safeStorage.getItem("token")
   const expiry = token ? getTokenExpiry(token) : null
   if (!token || !expiry || expiry <= Date.now() || expiry - Date.now() > REFRESH_MARGIN_MS) return
   if (!pendingRefresh) {
@@ -31,7 +32,7 @@ async function refreshTokenIfNeeded(): Promise<void> {
       .then(async (response) => {
         if (!response.ok) return  // session trop ancienne : le jeton expirera normalement
         const { access_token } = await response.json()
-        localStorage.setItem("token", access_token)
+        safeStorage.setItem("token", access_token)
         window.dispatchEvent(new CustomEvent(TOKEN_REFRESHED_EVENT, { detail: access_token }))
       })
       .catch(() => {})
@@ -42,9 +43,29 @@ async function refreshTokenIfNeeded(): Promise<void> {
   await pendingRefresh
 }
 
+/** Message lisible pour l'utilisateur à partir d'une réponse d'erreur (jamais « [object Object] »). */
+function formatErrorMessage(response: Response, errorData: any): string {
+  const detail = errorData?.detail
+  if (typeof detail === "string" && detail) return detail
+  if (Array.isArray(detail) && detail.length > 0) {
+    // Erreurs de validation FastAPI : « champ : message »
+    return detail
+      .map((d: any) => {
+        const field = Array.isArray(d?.loc) ? d.loc.filter((p: any) => p !== "body" && p !== "query").join(".") : ""
+        const text = d?.msg || (typeof d === "string" ? d : JSON.stringify(d))
+        return field ? `${field} : ${text}` : text
+      })
+      .join(" ; ")
+  }
+  if (detail && typeof detail === "object") return detail.message || detail.detail || "Requête refusée"
+  if (typeof errorData?.message === "string" && errorData.message) return errorData.message
+  if (response.status >= 500) return `Erreur du serveur (${response.status})`
+  return response.statusText || "Une erreur est survenue"
+}
+
 async function request(endpoint: string, options?: RequestInit): Promise<Response> {
   if (!endpoint.startsWith("/auth/")) await refreshTokenIfNeeded()
-  const token = localStorage.getItem("token")
+  const token = safeStorage.getItem("token")
   // Pour FormData, le navigateur fixe lui-même Content-Type (boundary multipart)
   const isFormData = typeof FormData !== "undefined" && options?.body instanceof FormData
 
@@ -63,29 +84,23 @@ async function request(endpoint: string, options?: RequestInit): Promise<Respons
   }
 
   if (response.status === 401 || (response.status === 403 && endpoint !== "/auth/token")) {
-    localStorage.removeItem("token")
-    if (typeof window !== "undefined" && window.location.pathname !== "/login") {
-      window.location.href = "/login"
+    const body = await response.clone().json().catch(() => null)
+    // 403 : seuls les jetons de session invalides déconnectent (« User not authorized ») ;
+    // un 403 métier (ex. jeton MCP en lecture seule) doit s'afficher comme une erreur ordinaire.
+    const isSessionProblem = response.status === 401 || body?.detail === "User not authorized"
+    if (isSessionProblem) {
+      safeStorage.removeItem("token")
+      if (typeof window !== "undefined" && window.location.pathname !== "/login") {
+        const back = encodeURIComponent(window.location.pathname + window.location.search)
+        window.location.href = `/login?from=${back}`
+      }
+      throw new ApiError(response.status, "Session expirée")
     }
-    throw new ApiError(response.status, "Session expirée")
   }
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({ detail: response.statusText }))
-    let errorMessage = "Une erreur est survenue"
-    
-    if (typeof errorData?.detail === "string") {
-      errorMessage = errorData.detail
-    } else if (Array.isArray(errorData?.detail)) {
-      // Format FastAPI 422 validation errors cleanly
-      errorMessage = errorData.detail.map((d: any) => d.msg || JSON.stringify(d)).join(", ")
-    } else if (errorData?.message) {
-      errorMessage = errorData.message
-    } else if (response.statusText) {
-      errorMessage = response.statusText
-    }
-
-    throw new ApiError(response.status, errorMessage, errorData?.detail)
+    const errorData = await response.json().catch(() => null)
+    throw new ApiError(response.status, formatErrorMessage(response, errorData), errorData?.detail)
   }
 
   return response

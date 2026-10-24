@@ -1,3 +1,4 @@
+import { safeStorage } from "@/lib/storage"
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { ClipboardCheck } from "lucide-react"
@@ -18,7 +19,7 @@ import type { MonthClosureSummary, MonthReview } from "@/types/monthReview"
 // Confort par appareil : le stockage peut être indisponible, la pop-up fonctionne sans.
 function readStorage(key: string): string | null {
   try {
-    return localStorage.getItem(key)
+    return safeStorage.getItem(key)
   } catch {
     return null
   }
@@ -26,7 +27,7 @@ function readStorage(key: string): string | null {
 
 function writeStorage(key: string, value: string) {
   try {
-    localStorage.setItem(key, value)
+    safeStorage.setItem(key, value)
   } catch {
     /* stockage indisponible : la pop-up reviendra, sans conséquence */
   }

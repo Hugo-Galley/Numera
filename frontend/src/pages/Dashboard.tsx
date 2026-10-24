@@ -1,3 +1,4 @@
+import { safeStorage } from "@/lib/storage"
 import { useState, useCallback, useEffect } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { api } from "@/lib/api"
@@ -34,7 +35,7 @@ export default function Dashboard() {
   // principal rechargeait tout le tableau de bord et empêchait de rester sur « Tous les comptes ».)
   const [selectedAccountId, setSelectedAccountIdState] = useState<string>(() => {
     try {
-      return localStorage.getItem("dashboard-account") || "all"
+      return safeStorage.getItem("dashboard-account") || "all"
     } catch {
       return "all"
     }
@@ -42,7 +43,7 @@ export default function Dashboard() {
   const setSelectedAccountId = useCallback((id: string) => {
     setSelectedAccountIdState(id)
     try {
-      localStorage.setItem("dashboard-account", id)
+      safeStorage.setItem("dashboard-account", id)
     } catch {
       // stockage indisponible (navigation privée) : le choix vaut pour la session
     }

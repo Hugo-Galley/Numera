@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { useNavigate, useLocation } from "react-router-dom"
+import { Navigate, useNavigate, useLocation, useSearchParams } from "react-router-dom"
 import { useAuth } from "@/providers/AuthProvider"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -14,11 +14,17 @@ export default function Login() {
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
-  const { login } = useAuth()
+  const { login, isAuthenticated } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
+  const [searchParams] = useSearchParams()
 
-  const from = (location.state as any)?.from?.pathname || "/"
+  // Retour après connexion : état du routeur (ProtectedRoute) ou ?from= (session expirée en cours de route).
+  // Seuls les chemins internes sont acceptés (pas de redirection vers un site externe).
+  const stateFrom = (location.state as any)?.from
+  const queryFrom = searchParams.get("from")
+  const candidate = stateFrom ? `${stateFrom.pathname}${stateFrom.search || ""}` : queryFrom
+  const from = candidate && candidate.startsWith("/") && !candidate.startsWith("//") && !candidate.startsWith("/login") ? candidate : "/"
   const [passkeyAvailable, setPasskeyAvailable] = useState(false)
 
   useEffect(() => {
@@ -28,6 +34,8 @@ export default function Login() {
       .then((d) => setPasskeyAvailable(!!d.available))
       .catch(() => {})
   }, [])
+
+  if (isAuthenticated) return <Navigate to={from} replace />
 
   const handlePasskey = async () => {
     setLoading(true)
@@ -60,8 +68,10 @@ export default function Login() {
       })
 
       if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.detail || "Identifiants incorrects")
+        const error = await response.json().catch(() => null)
+        const detail = error?.detail
+        if (response.status === 429) throw new Error("Trop de tentatives. Réessayez dans quelques minutes.")
+        throw new Error(typeof detail === "string" && detail ? detail : "Identifiants incorrects")
       }
 
       const data = await response.json()
@@ -94,8 +104,7 @@ export default function Login() {
                 autoComplete="username"
                 autoCapitalize="none"
                 autoCorrect="off"
-                className="h-12 text-base sm:h-10 sm:text-sm"
-                placeholder="admin"
+                className="h-12 text-base sm:h-10 lg:text-sm"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
@@ -107,7 +116,7 @@ export default function Login() {
                 id="password"
                 type="password"
                 autoComplete="current-password"
-                className="h-12 text-base sm:h-10 sm:text-sm"
+                className="h-12 text-base sm:h-10 lg:text-sm"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -115,11 +124,11 @@ export default function Login() {
             </div>
           </CardContent>
           <CardFooter className="flex-col gap-3">
-            <Button className="h-12 w-full text-base sm:h-10 sm:text-sm" type="submit" disabled={loading}>
+            <Button className="h-12 w-full text-base sm:h-10 lg:text-sm" type="submit" disabled={loading}>
               {loading ? "Connexion..." : "Se connecter"}
             </Button>
             {passkeyAvailable && (
-              <Button type="button" variant="outline" className="h-12 w-full text-base sm:h-10 sm:text-sm" onClick={handlePasskey} disabled={loading}>
+              <Button type="button" variant="outline" className="h-12 w-full text-base sm:h-10 lg:text-sm" onClick={handlePasskey} disabled={loading}>
                 <Fingerprint className="mr-2 h-4 w-4" />
                 Face ID / Touch ID
               </Button>

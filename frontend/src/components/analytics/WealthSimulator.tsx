@@ -1,3 +1,4 @@
+import { safeStorage } from "@/lib/storage"
 import { useState, useEffect } from "react"
 import { 
   TrendingUp, 
@@ -88,7 +89,7 @@ const defaultAssetClasses: AssetClass[] = [
 export function WealthSimulator({ initialCapitalDefault = 10000 }: WealthSimulatorProps) {
   // Load initial params from localStorage if available, else fall back to defaults
   const [params, setParams] = useState(() => {
-    const saved = localStorage.getItem("numera_wealth_sim_params")
+    const saved = safeStorage.getItem("numera_wealth_sim_params")
     if (saved) {
       try {
         const parsed = JSON.parse(saved)
@@ -112,7 +113,7 @@ export function WealthSimulator({ initialCapitalDefault = 10000 }: WealthSimulat
   })
 
   const [events, setEvents] = useState<LifeEvent[]>(() => {
-    const saved = localStorage.getItem("numera_wealth_sim_events")
+    const saved = safeStorage.getItem("numera_wealth_sim_events")
     if (saved) {
       try { return JSON.parse(saved) } catch {}
     }
@@ -127,11 +128,11 @@ export function WealthSimulator({ initialCapitalDefault = 10000 }: WealthSimulat
 
   // Asset Allocation State
   const [useAllocation, setUseAllocation] = useState(() => {
-    return localStorage.getItem("numera_wealth_sim_use_alloc") === "true"
+    return safeStorage.getItem("numera_wealth_sim_use_alloc") === "true"
   })
 
   const [assetClasses, setAssetClasses] = useState<AssetClass[]>(() => {
-    const saved = localStorage.getItem("numera_wealth_sim_asset_classes")
+    const saved = safeStorage.getItem("numera_wealth_sim_asset_classes")
     if (saved) {
       try { return JSON.parse(saved) } catch {}
     }
@@ -157,19 +158,19 @@ export function WealthSimulator({ initialCapitalDefault = 10000 }: WealthSimulat
 
   // Sync to local storage
   useEffect(() => {
-    localStorage.setItem("numera_wealth_sim_params", JSON.stringify(params))
+    safeStorage.setItem("numera_wealth_sim_params", JSON.stringify(params))
   }, [params])
 
   useEffect(() => {
-    localStorage.setItem("numera_wealth_sim_events", JSON.stringify(events))
+    safeStorage.setItem("numera_wealth_sim_events", JSON.stringify(events))
   }, [events])
 
   useEffect(() => {
-    localStorage.setItem("numera_wealth_sim_use_alloc", String(useAllocation))
+    safeStorage.setItem("numera_wealth_sim_use_alloc", String(useAllocation))
   }, [useAllocation])
 
   useEffect(() => {
-    localStorage.setItem("numera_wealth_sim_asset_classes", JSON.stringify(assetClasses))
+    safeStorage.setItem("numera_wealth_sim_asset_classes", JSON.stringify(assetClasses))
   }, [assetClasses])
 
   // Sync initialCapitalDefault if it changes from parent

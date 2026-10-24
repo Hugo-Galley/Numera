@@ -1,3 +1,4 @@
+import { safeStorage } from "@/lib/storage"
 import React, { createContext, useContext, useState, useEffect } from "react"
 import { isTokenExpired } from "@/lib/utils"
 import { API_BASE, TOKEN_REFRESHED_EVENT } from "@/lib/api"
@@ -34,9 +35,9 @@ function getUsernameFromToken(token: string | null): string | null {
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [token, setToken] = useState<string | null>(() => {
-    const savedToken = localStorage.getItem("token")
+    const savedToken = safeStorage.getItem("token")
     if (savedToken && isTokenExpired(savedToken)) {
-      localStorage.removeItem("token")
+      safeStorage.removeItem("token")
       return null
     }
     return savedToken
@@ -91,12 +92,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [token])
 
   const login = (newToken: string) => {
-    localStorage.setItem("token", newToken)
+    safeStorage.setItem("token", newToken)
     setToken(newToken)
   }
 
   const logout = () => {
-    localStorage.removeItem("token")
+    safeStorage.removeItem("token")
     setToken(null)
     setProfile(null)
   }
