@@ -1,4 +1,6 @@
 """Lot 1 de l'audit (R1, R6, R7, B1, B3, B7, B12) : entrées invalides rejetées sans rien écrire."""
+from datetime import datetime
+
 import pytest
 from sqlalchemy.orm import Session
 
@@ -192,3 +194,27 @@ def test_patch_null_on_required_column_is_not_500(client, db_session, account, p
     r = client.patch(f"{path}/{target}", json=body)
     assert r.status_code in (200, 400, 422)
     db_session.rollback()
+
+
+# --- B15 : fuseaux ------------------------------------------------------------------------
+
+def test_date_with_offset_is_converted_to_naive_utc(client, db_session, account):
+    # 23:30 à UTC−5 le 28/02 = 04:30 UTC le 01/03 : le mois change, l'offset ne doit pas être ignoré
+    r = client.post("/transactions", json=_tx(account.id, date="2026-02-28T23:30:00-05:00"))
+    assert r.status_code in (200, 201)
+    db_session.expire_all()
+    tx = db_session.query(Transaction).one()
+    assert tx.date == datetime(2026, 3, 1, 4, 30)
+
+
+def test_naive_date_is_kept_as_is(client, db_session, account):
+    client.post("/transactions", json=_tx(account.id, date="2026-02-28T23:30:00"))
+    db_session.expire_all()
+    assert db_session.query(Transaction).one().date == datetime(2026, 2, 28, 23, 30)
+
+
+def test_update_date_with_offset_is_converted(client, db_session, account):
+    tx_id = client.post("/transactions", json=_tx(account.id)).json()["id"]
+    assert client.patch(f"/transactions/{tx_id}", json={"date": "2026-03-10T10:00:00+02:00"}).status_code == 200
+    db_session.expire_all()
+    assert db_session.get(Transaction, tx_id).date == datetime(2026, 3, 10, 8, 0)

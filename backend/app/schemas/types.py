@@ -25,6 +25,7 @@ def _check_date_range(value: datetime) -> datetime:
     return value
 
 
-BoundedDatetime = Annotated[datetime, AfterValidator(_check_date_range)]
+# Date saisie : bornée, et un fuseau éventuel est converti en UTC naïf (jamais tronqué : 23:30−05:00 change de mois)
+BoundedDatetime = Annotated[datetime, AfterValidator(_check_date_range), AfterValidator(to_naive_utc)]
 
-BoundedNaiveUTCDatetime = Annotated[datetime, AfterValidator(_check_date_range), AfterValidator(to_naive_utc)]
+BoundedNaiveUTCDatetime = BoundedDatetime

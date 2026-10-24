@@ -110,7 +110,7 @@ class TransferCandidate(BaseModel):
 
 class TransferCounterpartCreate(BaseModel):
     account_id: int
-    date: datetime | None = None
+    date: BoundedDatetime | None = None
     amount: Amount | None = None  # devise du compte de destination
 
 

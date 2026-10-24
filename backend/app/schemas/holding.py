@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, Field
-from app.schemas.types import Amount, Quantity
+from app.schemas.types import Amount, BoundedDatetime, Quantity
 
 
 class PortfolioHoldingBase(BaseModel):
@@ -70,7 +70,7 @@ class BaselineHoldingItem(BaseModel):
 
 class BaselineInventoryRequest(BaseModel):
     account_id: int
-    date: Optional[datetime] = None
+    date: Optional[BoundedDatetime] = None
     holdings: List[BaselineHoldingItem]
 
 
