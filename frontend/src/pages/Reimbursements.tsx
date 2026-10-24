@@ -9,7 +9,10 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { api, ApiError } from "@/lib/api"
-import { formatCurrency } from "@/lib/utils"
+import { formatCurrency, parsePositiveAmount } from "@/lib/utils"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import type { Claim, ReimbursementSummary } from "@/types/reimbursements"
 import type { AccountLite } from "@/types/transfers"
 import { useConfirm } from "@/providers/ConfirmProvider"
@@ -50,17 +53,26 @@ export default function Reimbursements() {
 
   const accountName = (id: number) => accounts.find((a) => a.id === id)?.name ?? "Compte inconnu"
 
-  async function editExpected(claim: Claim) {
-    const value = prompt(`Montant attendu de ${claim.debtor} (déjà reçu : ${claim.received})`, String(claim.expected_amount))
-    if (value === null) return
-    const amount = parseFloat(value.replace(",", "."))
-    if (!(amount > 0)) {
-      toast.error("Montant invalide")
+  // Édition du montant attendu : un dialogue (jamais window.prompt, bloquant et sans formatage)
+  const [editingClaim, setEditingClaim] = useState<Claim | null>(null)
+  const [editValue, setEditValue] = useState("")
+
+  function editExpected(claim: Claim) {
+    setEditingClaim(claim)
+    setEditValue(String(claim.expected_amount))
+  }
+
+  async function saveExpected() {
+    if (!editingClaim) return
+    const amount = parsePositiveAmount(editValue)
+    if (amount === null) {
+      toast.error("Le montant doit être un nombre supérieur à 0")
       return
     }
     try {
-      await api.patch(`/reimbursements/claims/${claim.id}`, { expected_amount: amount })
+      await api.patch(`/reimbursements/claims/${editingClaim.id}`, { expected_amount: amount })
       toast.success("Créance modifiée")
+      setEditingClaim(null)
       load()
     } catch (e) {
       toast.error(e instanceof ApiError && e.message ? e.message : "Échec de la modification")
@@ -185,6 +197,32 @@ export default function Reimbursements() {
           })}
         </div>
       )}
+
+      <Dialog open={editingClaim !== null} onOpenChange={(open) => !open && setEditingClaim(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Montant attendu de {editingClaim?.debtor}</DialogTitle>
+            <DialogDescription>
+              Déjà reçu : {formatCurrency(editingClaim?.received ?? 0)}. Le montant attendu ne peut pas être inférieur.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="expected-amount">Montant attendu</Label>
+            <Input
+              id="expected-amount"
+              inputMode="decimal"
+              value={editValue}
+              onChange={(e) => setEditValue(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && saveExpected()}
+              autoFocus
+            />
+          </div>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="ghost" onClick={() => setEditingClaim(null)}>Annuler</Button>
+            <Button onClick={saveExpected}>Enregistrer</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <ClaimCandidatesDialog
         claim={linking}

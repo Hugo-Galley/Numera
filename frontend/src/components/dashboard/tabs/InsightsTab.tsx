@@ -10,6 +10,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { formatCurrency } from "@/lib/utils"
+import { toast } from "sonner"
 import { apiFetch } from "@/lib/api"
 
 interface InsightsTabProps {
@@ -28,6 +29,9 @@ export function InsightsTab({ insights }: InsightsTabProps) {
       })
     } catch (err) {
       console.error('Failed to dismiss insight permanently', err)
+      // Rejet optimiste annulé : l'insight revient et l'utilisateur est prévenu
+      setDismissedTitles(prev => prev.filter(t => t !== title))
+      toast.error("Impossible de masquer cet insight")
     }
   }
 

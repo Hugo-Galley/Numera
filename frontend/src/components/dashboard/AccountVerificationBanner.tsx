@@ -1,7 +1,9 @@
 import { useState } from "react"
 import { AlertCircle, CheckCircle2, ArrowRight, ChevronDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { toast } from "sonner"
 import { api } from "@/lib/api"
+import { errorMessage } from "@/lib/utils"
 import { useNavigate } from "react-router-dom"
 
 interface Account {
@@ -25,14 +27,16 @@ export function AccountVerificationBanner({
   const [open, setOpen] = useState(false)
 
   const now = new Date()
-  const daysDiff = (dateStr: string) => {
-    const d = new Date(dateStr)
+  // null = jamais vérifié (date absente ou illisible) : affiché tel quel, pas « il y a 20 000 jours »
+  const daysDiff = (dateStr: string | null | undefined): number | null => {
+    const d = dateStr ? new Date(dateStr) : null
+    if (!d || Number.isNaN(d.getTime())) return null
     const diffTime = Math.abs(now.getTime() - d.getTime())
     return Math.floor(diffTime / (1000 * 60 * 60 * 24))
   }
 
   const unverifiedAccounts = accounts.filter(
-    a => a.active && daysDiff(a.last_verified_at) >= 15
+    a => a.active && (daysDiff(a.last_verified_at) ?? Infinity) >= 15
   )
 
   if (unverifiedAccounts.length === 0) return null
@@ -44,6 +48,7 @@ export function AccountVerificationBanner({
       onAccountVerified()
     } catch (e) {
       console.error(e)
+      toast.error(errorMessage(e, "Impossible de valider le compte"))
     } finally {
       setVerifying(null)
     }
@@ -75,7 +80,7 @@ export function AccountVerificationBanner({
               <div>
                 <p className="font-medium text-amber-900">{acc.name}</p>
                 <p className="text-xs text-amber-700 opacity-80">
-                  Dernière maj: il y a {daysDiff(acc.last_verified_at)} jours
+                  {daysDiff(acc.last_verified_at) === null ? "Jamais vérifié" : `Dernière maj: il y a ${daysDiff(acc.last_verified_at)} jours`}
                 </p>
               </div>
               

@@ -24,7 +24,9 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { useUI } from "@/providers/UIProvider"
@@ -61,6 +63,7 @@ export function Omnibox() {
   const [accounts, setAccounts] = useState<any[]>([])
   const [transactions, setTransactions] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
+  const [searchFailed, setSearchFailed] = useState(false)
   const [activeIndex, setActiveIndex] = useState(0)
   const scrollRef = useRef<HTMLDivElement>(null)
   // Mobile : plein écran, calé sur la zone réellement visible (clavier virtuel ouvert)
@@ -93,6 +96,8 @@ export function Omnibox() {
     if (!query || query.length < 2) {
       setTransactions([])
       setActiveIndex(0)
+      setLoading(false)  // sinon le spinner d'une recherche interrompue restait affiché
+      setSearchFailed(false)
       return
     }
 
@@ -100,6 +105,7 @@ export function Omnibox() {
     const timer = setTimeout(async () => {
       try {
         setLoading(true)
+        setSearchFailed(false)
         const data = await api.get<any[]>(`/transactions?search=${encodeURIComponent(query)}&limit=10`)
         if (isCurrent) {
           setTransactions(data || [])
@@ -108,6 +114,8 @@ export function Omnibox() {
       } catch (error) {
         if (isCurrent) {
           console.error("Failed to search transactions", error)
+          setTransactions([])
+          setSearchFailed(true)
         }
       } finally {
         if (isCurrent) {
@@ -182,6 +190,8 @@ export function Omnibox() {
         onKeyDown={handleKeyDown}
       >
         <DialogHeader className="px-4 py-3 pr-12 border-b flex flex-row items-center gap-3 shrink-0 sm:py-4 sm:pr-4">
+          <DialogTitle className="sr-only">Recherche</DialogTitle>
+          <DialogDescription className="sr-only">Rechercher un compte, une vue ou une transaction</DialogDescription>
           <Search className="h-5 w-5 text-slate-400 shrink-0" />
           <Input
             placeholder="Rechercher un compte, une vue, un commerçant..."
@@ -323,11 +333,12 @@ export function Omnibox() {
                         </div>
                       </div>
                       <div className="shrink-0 text-right">
+                        {/* Le montant est toujours positif en base : le sens vient du type */}
                         <span className={cn(
                           "whitespace-nowrap text-sm font-bold tabular-nums",
-                          tx.amount < 0 ? "text-rose-600" : "text-emerald-600"
+                          tx.type === "Sortie" ? "text-rose-600" : tx.type === "Solde Initial" ? "text-slate-600" : "text-emerald-600"
                         )}>
-                          {isPrivacyMode ? "****" : formatCurrency(tx.amount, tx.currency)}
+                          {isPrivacyMode ? "****" : `${tx.type === "Sortie" ? "- " : tx.type === "Solde Initial" ? "" : "+ "}${formatCurrency(tx.amount, tx.currency)}`}
                         </span>
                       </div>
                     </button>
@@ -341,7 +352,7 @@ export function Omnibox() {
                 <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-slate-50 mb-3 text-slate-300">
                    <Search className="h-6 w-6" />
                 </div>
-                <p className="text-slate-500 font-medium">Aucun résultat pour "{query}"</p>
+                <p className="text-slate-500 font-medium">{searchFailed ? "La recherche est momentanément indisponible." : `Aucun résultat pour "${query}"`}</p>
                 <p className="text-xs text-slate-400 mt-1">Essayez un autre mot-clé ou vérifiez l'orthographe.</p>
               </div>
             )}

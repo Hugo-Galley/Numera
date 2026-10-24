@@ -98,6 +98,11 @@ export default function Settings() {
   const { hideHoldingValues, setHideHoldingValues } = useUI()
   const defaultTab = searchParams.get("tab") || "categories"
   const [activeTab, setActiveTab] = useState(defaultTab)
+  // Lien interne vers un autre onglet alors que la page est déjà ouverte (Omnibox, menu) : suivre ?tab=
+  useEffect(() => {
+    const tab = searchParams.get("tab")
+    if (tab) setActiveTab(tab)
+  }, [searchParams])
   const tabsListRef = useRef<HTMLDivElement>(null)
 
   // Garde l'onglet actif visible dans la liste défilante (mobile)
