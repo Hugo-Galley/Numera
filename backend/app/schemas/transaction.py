@@ -3,18 +3,19 @@ from pydantic import BaseModel, Field
 from app.schemas.category import CategoryRead
 from app.schemas.tag import TagRead
 from app.schemas.merchant import MerchantRead
+from app.schemas.types import AmountOrZero, Amount, BoundedDatetime
 
 
 class TransactionBase(BaseModel):
     account_id: int
-    date: datetime
+    date: BoundedDatetime
     type: str
     merchant: str = Field(min_length=1, max_length=120)
     merchant_id: int | None = None
     category_id: int | None = None
-    amount: float = Field(ge=0)
+    amount: AmountOrZero
     currency: str = "EUR"
-    original_amount: float | None = None
+    original_amount: AmountOrZero | None = None
     note: str | None = None
     is_recurring: bool = False
     recurring_transaction_id: int | None = None
@@ -32,12 +33,12 @@ class TransactionCreate(TransactionBase):
 
 
 class TransactionUpdate(BaseModel):
-    date: datetime | None = None
+    date: BoundedDatetime | None = None
     type: str | None = None
-    merchant: str | None = None
+    merchant: str | None = Field(default=None, min_length=1, max_length=120)
     merchant_id: int | None = None
     category_id: int | None = None
-    amount: float | None = None
+    amount: AmountOrZero | None = None
     currency: str | None = None
     note: str | None = None
     is_recurring: bool | None = None
@@ -110,7 +111,7 @@ class TransferCandidate(BaseModel):
 class TransferCounterpartCreate(BaseModel):
     account_id: int
     date: datetime | None = None
-    amount: float | None = Field(default=None, gt=0)  # devise du compte de destination
+    amount: Amount | None = None  # devise du compte de destination
 
 
 class TransferCounterpartRead(BaseModel):

@@ -2,23 +2,25 @@ from datetime import datetime
 
 from pydantic import BaseModel, Field
 
+from app.schemas.types import Amount
+
 
 class ClaimCreate(BaseModel):
     transaction_id: int
     debtor: str = Field(min_length=1, max_length=120)
-    expected_amount: float = Field(gt=0)
+    expected_amount: Amount
     note: str | None = Field(default=None, max_length=255)
 
 
 class ClaimUpdate(BaseModel):
     debtor: str | None = Field(default=None, min_length=1, max_length=120)
-    expected_amount: float | None = Field(default=None, gt=0)
+    expected_amount: Amount | None = None
     note: str | None = Field(default=None, max_length=255)
 
 
 class AllocationCreate(BaseModel):
     entree_id: int
-    amount: float | None = Field(default=None, gt=0)
+    amount: Amount | None = None
 
 
 class ExpenseRef(BaseModel):

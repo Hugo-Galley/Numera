@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, Field
+from app.schemas.types import Amount, Quantity
 
 
 class PortfolioHoldingBase(BaseModel):
@@ -8,8 +9,8 @@ class PortfolioHoldingBase(BaseModel):
     ticker: str
     isin: Optional[str] = None
     asset_name: str
-    quantity: float = Field(ge=0)
-    buy_price_avg: Optional[float] = Field(default=None, ge=0)
+    quantity: Quantity
+    buy_price_avg: Optional[Quantity] = None
     currency: str = "EUR"
     etf_profile_id: Optional[int] = None
 
@@ -22,8 +23,8 @@ class PortfolioHoldingUpdate(BaseModel):
     ticker: Optional[str] = None
     isin: Optional[str] = None
     asset_name: Optional[str] = None
-    quantity: Optional[float] = Field(default=None, ge=0)
-    buy_price_avg: Optional[float] = Field(default=None, ge=0)
+    quantity: Optional[Quantity] = None
+    buy_price_avg: Optional[Quantity] = None
     currency: Optional[str] = None
     etf_profile_id: Optional[int] = None
     pays_dividends: Optional[bool] = None
@@ -61,8 +62,8 @@ class BaselineHoldingItem(BaseModel):
     ticker: str
     asset_name: str
     isin: Optional[str] = None
-    quantity: float = Field(ge=0)
-    buy_price_avg: Optional[float] = None
+    quantity: Quantity
+    buy_price_avg: Optional[Quantity] = None
     currency: str = "EUR"
     etf_profile_id: Optional[int] = None
 
@@ -91,7 +92,7 @@ class CostEstimateRead(BaseModel):
 
 class ApplyCostLine(BaseModel):
     ticker: str
-    buy_price_avg: float = Field(gt=0)
+    buy_price_avg: Amount
 
 
 class ApplyCostsRequest(BaseModel):

@@ -3,8 +3,11 @@ import time
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Depends, Request
+from fastapi.encoders import jsonable_encoder
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.exc import IntegrityError
 
 from app.api.auth import router as auth_router
 from app.api.passkeys import router as passkeys_router
@@ -131,6 +134,25 @@ async def currency_conversion_error_handler(_: Request, exc: CurrencyConversionE
     return JSONResponse(status_code=422, content={"detail": str(exc)})
 
 
+@app.exception_handler(RequestValidationError)
+async def validation_error_handler(_: Request, exc: RequestValidationError):
+    # `input`/`ctx` retirés : une valeur Infinity/NaN fautive rendrait la réponse 422 non sérialisable
+    errors = [{k: v for k, v in err.items() if k not in ("input", "ctx")} for err in exc.errors()]
+    return JSONResponse(status_code=422, content={"detail": jsonable_encoder(errors)})
+
+
+@app.exception_handler(IntegrityError)
+async def integrity_error_handler(_: Request, exc: IntegrityError):
+    # FK inexistante, NOT NULL, unicité : une entrée invalide, pas une panne serveur (audit R6/B7)
+    logger.warning("IntegrityError: %s", exc.orig)
+    return JSONResponse(status_code=422, content={"detail": "Données invalides ou référence inexistante"})
+
+
+@app.exception_handler(OverflowError)
+async def overflow_error_handler(_: Request, exc: OverflowError):
+    return JSONResponse(status_code=422, content={"detail": "Valeur numérique hors limites"})
+
+
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
     start_time = time.time()
@@ -154,7 +176,9 @@ async def log_requests(request: Request, call_next):
             f"error={str(e)} duration={process_time:.2f}ms", 
             exc_info=True
         )
-        raise e
+        # Réponse JSON ici (sous CORSMiddleware) : un 500 laissé à Starlette n'aurait pas
+        # d'en-têtes CORS et le navigateur le présenterait comme une erreur réseau (audit R5).
+        return JSONResponse(status_code=500, content={"detail": "Erreur interne du serveur"})
 
 app.add_middleware(
     CORSMiddleware,

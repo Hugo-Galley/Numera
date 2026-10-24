@@ -2,8 +2,13 @@ import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 
 export function formatCurrency(value: number | null | undefined, currencyCode: string = "EUR") {
-  const safeValue = value || 0
-  return new Intl.NumberFormat("fr-FR", { style: "currency", currency: currencyCode }).format(safeValue)
+  const safeValue = Number.isFinite(value) ? (value as number) : 0
+  try {
+    return new Intl.NumberFormat("fr-FR", { style: "currency", currency: currencyCode || "EUR" }).format(safeValue)
+  } catch {
+    // Code devise invalide (RangeError) : ne jamais faire planter le rendu pour un libellé
+    return new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(safeValue)
+  }
 }
 
 export function cn(...inputs: ClassValue[]) {

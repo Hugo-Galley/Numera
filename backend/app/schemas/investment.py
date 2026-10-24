@@ -1,26 +1,27 @@
 from pydantic import BaseModel, Field
 
 from app.core.time import NaiveUTCDatetime
+from app.schemas.types import Amount, AmountOrZero, BoundedNaiveUTCDatetime, Quantity
 
 
 class InvestmentTransactionBase(BaseModel):
     account_id: int
-    date: NaiveUTCDatetime
+    date: BoundedNaiveUTCDatetime
     type: str
-    amount: float = Field(gt=0)
+    amount: Amount
     currency: str = "EUR"
-    original_amount: float | None = None
+    original_amount: AmountOrZero | None = None
     note: str | None = None
     asset_class: str | None = None
     sector: str | None = None
     geographic_zone: str | None = None
     ticker: str | None = None
     isin: str | None = None
-    quantity: float | None = None
-    unit_price: float | None = None
+    quantity: Quantity | None = None
+    unit_price: Quantity | None = None
     price_currency: str | None = None
-    fees: float | None = Field(default=None, ge=0)
-    withholding_tax: float | None = Field(default=None, ge=0)
+    fees: AmountOrZero | None = None
+    withholding_tax: AmountOrZero | None = None
     reinvested: bool = False
     etf_profile_id: int | None = None
     is_transfer: bool = False
@@ -40,9 +41,9 @@ class InvestmentTransactionRead(InvestmentTransactionBase):
 
 
 class InvestmentTransactionUpdate(BaseModel):
-    date: NaiveUTCDatetime | None = None
+    date: BoundedNaiveUTCDatetime | None = None
     type: str | None = None
-    amount: float | None = Field(default=None, gt=0)
+    amount: Amount | None = None
     currency: str | None = None
     note: str | None = None
     asset_class: str | None = None
@@ -50,11 +51,11 @@ class InvestmentTransactionUpdate(BaseModel):
     geographic_zone: str | None = None
     ticker: str | None = None
     isin: str | None = None
-    quantity: float | None = None
-    unit_price: float | None = None
+    quantity: Quantity | None = None
+    unit_price: Quantity | None = None
     price_currency: str | None = None
-    fees: float | None = Field(default=None, ge=0)
-    withholding_tax: float | None = Field(default=None, ge=0)
+    fees: AmountOrZero | None = None
+    withholding_tax: AmountOrZero | None = None
     reinvested: bool | None = None
     etf_profile_id: int | None = None
     is_transfer: bool | None = None

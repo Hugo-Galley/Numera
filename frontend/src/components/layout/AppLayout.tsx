@@ -1,5 +1,5 @@
 import { Suspense, useRef } from "react"
-import { Outlet } from "react-router-dom"
+import { Outlet, useLocation } from "react-router-dom"
 import { Sidebar } from "./Sidebar"
 import { Omnibox } from "./Omnibox"
 import { Toaster } from "@/components/ui/sonner"
@@ -9,11 +9,13 @@ import { MobileNav } from "./MobileNav"
 import { useUI } from "@/providers/UIProvider"
 import { WorkTimeProvider } from "@/providers/WorkTimeProvider"
 import { PageLoader } from "./PageLoader"
+import { ErrorBoundary } from "./ErrorBoundary"
 import { PwaExtras } from "./PwaExtras"
 
 export function AppLayout() {
   const { isPrivacyMode, togglePrivacyMode, setSearchOpen } = useUI()
   const mainRef = useRef<HTMLElement>(null)
+  const { pathname } = useLocation()
 
   return (
     <WorkTimeProvider>
@@ -41,9 +43,12 @@ export function AppLayout() {
         <main ref={mainRef} className="flex-1 overscroll-y-contain min-w-0 overflow-y-auto overflow-x-hidden pb-[calc(4rem+env(safe-area-inset-bottom)*0.45)] md:pb-0">
           <div className="container mx-auto p-4 md:p-8 max-w-7xl">
             {/* Le menu reste affiché pendant le chargement d'une page */}
-            <Suspense fallback={<PageLoader />}>
-              <Outlet />
-            </Suspense>
+            {/* key : naviguer vers une autre page réinitialise l'erreur affichée */}
+            <ErrorBoundary key={pathname}>
+              <Suspense fallback={<PageLoader />}>
+                <Outlet />
+              </Suspense>
+            </ErrorBoundary>
           </div>
         </main>
         <PwaExtras scrollRef={mainRef} />

@@ -1,3 +1,4 @@
+import math
 import csv
 import io
 import json
@@ -22,6 +23,8 @@ from app.core.transfers import auto_link_transfers
 from app.core.logging import get_logger
 
 logger = get_logger(__name__)
+
+from app.schemas.types import MAX_AMOUNT
 
 router = APIRouter(prefix="/import", tags=["import"])
 
@@ -241,6 +244,11 @@ async def commit_import(
             merchant = (row.get("Commercant") or "").strip() or "Inconnu"
             csv_category_name = (row.get("Categorie") or "").strip()
             amount = _parse_amount(row.get("Montant") or "0")
+            if not math.isfinite(amount) or amount >= MAX_AMOUNT:
+                errors += 1
+                if len(error_samples) < 10:
+                    error_samples.append(f"Invalid amount at {row.get('Date')} / {row.get('Montant')}")
+                continue
             if amount <= 0:
                 errors += 1
                 if len(error_samples) < 10:

@@ -1,10 +1,12 @@
 from datetime import date
 from pydantic import BaseModel, Field
 
+from app.schemas.types import Amount
+
 
 class SavingsGoalBase(BaseModel):
     name: str = Field(min_length=1, max_length=120)
-    target_amount: float = Field(gt=0)
+    target_amount: Amount
     keyword: str | None = Field(None, max_length=50)
     icon: str | None = None
     color: str | None = None
@@ -19,7 +21,7 @@ class SavingsGoalCreate(SavingsGoalBase):
 
 class SavingsGoalUpdate(BaseModel):
     name: str | None = Field(None, min_length=1, max_length=120)
-    target_amount: float | None = Field(None, gt=0)
+    target_amount: Amount | None = None
     keyword: str | None = Field(None, max_length=50)
     icon: str | None = None
     color: str | None = None

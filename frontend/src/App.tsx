@@ -6,6 +6,7 @@ import { AuthProvider } from "@/providers/AuthProvider"
 import { ConfirmProvider } from "@/providers/ConfirmProvider"
 import { ProtectedRoute } from "@/components/layout/ProtectedRoute"
 import { PageLoader } from "@/components/layout/PageLoader"
+import { ErrorBoundary } from "@/components/layout/ErrorBoundary"
 import { RedirectKeepingSearch } from "@/components/layout/RedirectKeepingSearch"
 
 // Une page = un fichier JS chargé à la demande (le bundle unique pesait 1,7 Mo)
@@ -29,6 +30,7 @@ const MonthHub = lazy(() => import("@/pages/MonthHub"))
 
 export function App() {
   return (
+    <ErrorBoundary fullPage>
     <UIProvider>
       <AuthProvider>
         <ConfirmProvider>
@@ -74,5 +76,6 @@ export function App() {
         </ConfirmProvider>
       </AuthProvider>
     </UIProvider>
+    </ErrorBoundary>
   )
 }

@@ -1,7 +1,9 @@
 from datetime import datetime
+from typing import Annotated, Literal
 import re
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 from app.schemas.category import CategoryRead
+from app.schemas.types import Amount, Quantity, BoundedDatetime
 
 LOGO_REF_RE = re.compile(r"^(si:[a-z0-9]{1,60}|file:[0-9a-f]{16}\.png)$")
 
@@ -12,6 +14,20 @@ def _check_logo(v: str | None) -> str | None:
     return v
 
 
+# Types bancaires + types d'investissement (compte titres ou achat programmé)
+RecurringType = Literal[
+    "Entree", "Sortie", "Interets",
+    "versement", "retrait", "achat", "vente", "dividende",
+]
+RecurringFrequency = Literal["daily", "weekly", "monthly", "quarterly", "yearly"]
+Month = Annotated[int, Field(ge=1, le=12)]
+
+
+def _check_period(start: datetime | None, end: datetime | None) -> None:
+    if start is not None and end is not None and end < start:
+        raise ValueError("end_date doit être postérieure à start_date")
+
+
 class RecurringTransactionBase(BaseModel):
     account_id: int
     name: str = Field(min_length=1, max_length=120)
@@ -19,7 +35,7 @@ class RecurringTransactionBase(BaseModel):
     amount: float = Field(ge=0)
     currency: str = "EUR"
     category_id: int | None = None
-    frequency: str  # monthly, weekly, quarterly, yearly
+    frequency: str  # daily, weekly, monthly, quarterly, yearly
     day_of_month: int | None = None
     excluded_months: list[int] | None = None  # Months (1-12) to skip
     start_date: datetime
@@ -42,21 +58,36 @@ class RecurringTransactionBase(BaseModel):
 
     _validate_logo = field_validator("logo")(_check_logo)
 
+
 class RecurringTransactionCreate(RecurringTransactionBase):
-    pass
+    # Entrées strictes ; la lecture (Base) reste tolérante pour d'anciennes lignes.
+    type: RecurringType
+    amount: Amount
+    frequency: RecurringFrequency
+    day_of_month: int | None = Field(default=None, ge=1, le=31)
+    excluded_months: list[Month] | None = None
+    start_date: BoundedDatetime
+    end_date: BoundedDatetime | None = None
+    quantity: Quantity | None = None
+    unit_price: Quantity | None = None
+
+    @model_validator(mode="after")
+    def _validate_period(self):
+        _check_period(self.start_date, self.end_date)
+        return self
 
 class RecurringTransactionUpdate(BaseModel):
     account_id: int | None = None
-    name: str | None = None
-    type: str | None = None
-    amount: float | None = None
+    name: str | None = Field(default=None, min_length=1, max_length=120)
+    type: RecurringType | None = None
+    amount: Amount | None = None
     currency: str | None = None
     category_id: int | None = None
-    frequency: str | None = None
-    day_of_month: int | None = None
-    excluded_months: list[int] | None = None
-    start_date: datetime | None = None
-    end_date: datetime | None = None
+    frequency: RecurringFrequency | None = None
+    day_of_month: int | None = Field(default=None, ge=1, le=31)
+    excluded_months: list[Month] | None = None
+    start_date: BoundedDatetime | None = None
+    end_date: BoundedDatetime | None = None
     last_generated_date: datetime | None = None
     is_active: bool | None = None
     auto_generate: bool | None = None
@@ -68,8 +99,8 @@ class RecurringTransactionUpdate(BaseModel):
     geographic_zone: str | None = None
     ticker: str | None = None
     isin: str | None = None
-    quantity: float | None = None
-    unit_price: float | None = None
+    quantity: Quantity | None = None
+    unit_price: Quantity | None = None
     etf_profile_id: int | None = None
     logo: str | None = None
 

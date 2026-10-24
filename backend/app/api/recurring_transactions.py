@@ -7,6 +7,9 @@ from app.models.account import Account
 from app.models.recurring_transaction import RecurringTransaction
 from app.schemas.recurring_transaction import RecurringTransactionCreate, RecurringTransactionRead, RecurringTransactionUpdate
 from app.core.recurring import generate_recurring_transactions
+from app.core.logging import get_logger
+
+logger = get_logger(__name__)
 
 router = APIRouter(prefix="/recurring-transactions", tags=["recurring-transactions"])
 
@@ -37,6 +40,17 @@ async def trigger_generation(db: Session = Depends(get_db)) -> int:
     """Manually trigger the generation of recurring transactions."""
     return await generate_recurring_transactions(db)
 
+_NOT_NULL_FIELDS = (
+    "account_id", "name", "type", "amount", "currency", "frequency",
+    "start_date", "is_active", "auto_generate",
+)
+
+
+def _require_account(db: Session, account_id: int) -> None:
+    if db.get(Account, account_id) is None:
+        raise HTTPException(status_code=404, detail="Account not found")
+
+
 @router.get("/", response_model=list[RecurringTransactionRead])
 async def read_recurring_transactions(
     db: Session = Depends(get_db),
@@ -54,6 +68,7 @@ async def create_recurring_transaction(
     db: Session = Depends(get_db),
     recurring_tx_in: RecurringTransactionCreate,
 ) -> Any:
+    _require_account(db, recurring_tx_in.account_id)
     data = recurring_tx_in.model_dump()
     # Convert list[int] to CSV string for DB storage
     if data.get("excluded_months") is not None:
@@ -72,7 +87,9 @@ async def create_recurring_transaction(
             await generate_recurring_transactions(db)
             db.refresh(recurring_tx)
         except Exception:
-            pass
+            # La récurrence est créée ; la génération sera rejouée par la tâche de fond.
+            db.rollback()
+            logger.exception("Génération immédiate échouée pour la récurrence %s", recurring_tx.id)
 
     return recurring_tx
 
@@ -88,6 +105,16 @@ async def update_recurring_transaction(
         raise HTTPException(status_code=404, detail="Recurring transaction not found")
     
     update_data = recurring_tx_in.model_dump(exclude_unset=True)
+    # Colonnes NOT NULL : un `null` explicite est ignoré plutôt que de provoquer un 500
+    for field in _NOT_NULL_FIELDS:
+        if update_data.get(field, 0) is None:
+            del update_data[field]
+    if "account_id" in update_data:
+        _require_account(db, update_data["account_id"])
+    start = update_data.get("start_date", recurring_tx.start_date)
+    end = update_data.get("end_date", recurring_tx.end_date)
+    if start and end and end < start:
+        raise HTTPException(status_code=422, detail="end_date doit être postérieure à start_date")
     # Convert list[int] to CSV string for DB storage
     if "excluded_months" in update_data:
         if update_data["excluded_months"] is not None:
@@ -114,7 +141,9 @@ async def update_recurring_transaction(
             await generate_recurring_transactions(db)
             db.refresh(recurring_tx)
         except Exception:
-            pass
+            # La récurrence est créée ; la génération sera rejouée par la tâche de fond.
+            db.rollback()
+            logger.exception("Génération immédiate échouée pour la récurrence %s", recurring_tx.id)
 
     return recurring_tx
 
