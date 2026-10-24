@@ -1,3 +1,4 @@
+import { ErrorState } from "@/components/layout/ErrorState"
 import { useCallback, useEffect, useState } from "react"
 import { useSearchParams } from "react-router-dom"
 import { ChevronLeft, ChevronRight, ClipboardCheck } from "lucide-react"
@@ -41,16 +42,20 @@ export default function MonthReview() {
 
   const [review, setReview] = useState<MonthReviewData | null>(null)
   const [loading, setLoading] = useState(true)
+  const [loadFailed, setLoadFailed] = useState(false)
   const [step, setStep] = useState(0)
   const [highlight, setHighlight] = useState("")
   const [busy, setBusy] = useState(false)
 
   const load = useCallback(async () => {
+    setLoadFailed(false)
     try {
       const data = await api.get<MonthReviewData>(`/month-review?year=${year}&month=${month}`)
       setReview(data)
       setHighlight((current) => current || data.closure?.highlight || "")
     } catch {
+      setReview(null)  // pas l'ancien mois sous le nouveau libellé
+      setLoadFailed(true)
       toast.error("Impossible de charger la revue du mois")
     }
   }, [year, month])
@@ -149,7 +154,9 @@ export default function MonthReview() {
         })}
       </div>
 
-      {loading || !review ? (
+      {loadFailed && !loading ? (
+        <ErrorState message="La revue du mois n'a pas pu être chargée." onRetry={() => { setLoading(true); load().finally(() => setLoading(false)) }} />
+      ) : loading || !review ? (
         <Skeleton className="h-64 w-full" />
       ) : (
         <>

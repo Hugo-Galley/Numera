@@ -1,3 +1,4 @@
+import { toast } from "sonner"
 import { useState, useEffect } from "react"
 import { api } from "@/lib/api"
 import { WealthSimulator } from "@/components/analytics/WealthSimulator"
@@ -16,6 +17,7 @@ export default function Tools() {
         setTotalValue(basic.total_current_value || 0)
       } catch (error) {
         console.error("Erreur lors du chargement de l'allocation", error)
+        toast.error("Impossible de charger l'allocation du patrimoine")
       } finally {
         setLoading(false)
       }

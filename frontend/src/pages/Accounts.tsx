@@ -135,6 +135,7 @@ export default function Accounts() {
       if (data) setSuggestions(data)
     } catch (error) {
       console.error("Error loading suggestions:", error)
+      toast.error("Impossible de charger les suggestions d'allocation")
     }
   }
 

@@ -71,6 +71,7 @@ export function RulesTab() {
       setCategories(cats)
     } catch (error) {
       console.error("Failed to load rules", error)
+      toast.error("Impossible de charger les règles")
     } finally {
       setLoading(false)
     }

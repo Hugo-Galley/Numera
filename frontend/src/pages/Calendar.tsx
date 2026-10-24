@@ -1,3 +1,4 @@
+import { ErrorState } from "@/components/layout/ErrorState"
 import { useState, useEffect } from "react"
 import { 
   ChevronLeft, 
@@ -71,6 +72,8 @@ export default function Calendar({ embedded = false }: { embedded?: boolean }) {
   const [date, setDate] = useState(new Date())
   const [data, setData] = useState<CalendarData | null>(null)
   const [loading, setLoading] = useState(true)
+  const [loadFailed, setLoadFailed] = useState(false)
+  const [reloadToken, setReloadToken] = useState(0)
   const [accounts, setAccounts] = useState<Account[]>([])
   const [selectedAccountId, setSelectedAccountId] = useState<string>("all")
   const [selectedDay, setSelectedDay] = useState<string | null>(null)
@@ -86,26 +89,37 @@ export default function Calendar({ embedded = false }: { embedded?: boolean }) {
         setAccounts(accs)
       } catch (error) {
         console.error("Failed to fetch accounts", error)
+        toast.error("Impossible de charger les comptes")
       }
     }
     fetchAccounts()
   }, [])
 
   useEffect(() => {
+    let cancelled = false
     const fetchData = async () => {
       setLoading(true)
+      setLoadFailed(false)
+      setData(null)
       try {
         const query = `month=${month}&year=${year}${selectedAccountId !== "all" ? `&account_id=${selectedAccountId}` : ""}`
         const res = await api.get<CalendarData>(`/analytics/calendar?${query}`)
-        setData(res)
+        if (!cancelled) setData(res)
       } catch (error) {
         console.error("Failed to fetch calendar data", error)
+        if (!cancelled) {
+          setLoadFailed(true)
+          toast.error("Impossible de charger le calendrier")
+        }
       } finally {
-        setLoading(false)
+        if (!cancelled) setLoading(false)
       }
     }
     fetchData()
-  }, [month, year, selectedAccountId])
+    return () => {
+      cancelled = true
+    }
+  }, [month, year, selectedAccountId, reloadToken])
 
   const nextMonth = () => setDate(new Date(year, month, 1))
   const prevMonth = () => setDate(new Date(year, month - 2, 1))
@@ -245,6 +259,9 @@ export default function Calendar({ embedded = false }: { embedded?: boolean }) {
         </div>
       </div>
 
+      {loadFailed && (
+        <ErrorState message="Le calendrier n'a pas pu être chargé." onRetry={() => setReloadToken(t => t + 1)} />
+      )}
       <Card className="border-slate-200 shadow-sm overflow-hidden">
         <div className="grid grid-cols-7 bg-slate-50 border-b text-center py-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">
           {["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"].map(d => (

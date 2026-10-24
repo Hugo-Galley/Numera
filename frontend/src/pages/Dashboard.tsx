@@ -1,6 +1,7 @@
 import { safeStorage } from "@/lib/storage"
 import { useState, useCallback, useEffect } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { toast } from "sonner"
 import { api } from "@/lib/api"
 import { useDashboardData } from "@/components/dashboard/useDashboardData"
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader"
@@ -12,6 +13,7 @@ import { BudgetsTab } from "@/components/dashboard/tabs/BudgetsTab"
 import { MerchantsTab } from "@/components/dashboard/tabs/MerchantsTab"
 import { SubscriptionsTab } from "@/components/dashboard/tabs/SubscriptionsTab"
 import { HistoryTab } from "@/components/dashboard/tabs/HistoryTab"
+import { ErrorState } from "@/components/layout/ErrorState"
 import { AccountVerificationBanner } from "@/components/dashboard/AccountVerificationBanner"
 import { MonthReviewPopup } from "@/components/month-review/MonthReviewPopup"
 import { fetchCurrentBudgetMonth, formatPeriodRange, useBudgetPeriod } from "@/lib/budgetPeriod"
@@ -21,15 +23,19 @@ export default function Dashboard() {
   const [year, setYear] = useState(new Date().getFullYear())
   const [accounts, setAccounts] = useState<any[]>([])
   const period = useBudgetPeriod(year, month)
+  // Le premier chargement attend le mois budgétaire (sinon deux lots de requêtes : mois civil, puis mois de paie)
+  const [monthResolved, setMonthResolved] = useState(false)
 
   // Mois de paie : le mois affiché au départ est celui du dernier salaire reçu, pas le mois civil.
   useEffect(() => {
-    fetchCurrentBudgetMonth().then(current => {
-      if (current) {
-        setMonth(current.month)
-        setYear(current.year)
-      }
-    })
+    fetchCurrentBudgetMonth()
+      .then(current => {
+        if (current) {
+          setMonth(current.month)
+          setYear(current.year)
+        }
+      })
+      .finally(() => setMonthResolved(true))
   }, [])
   // Vue globale par défaut, puis le dernier choix de l'utilisateur. (Basculer d'office sur le compte
   // principal rechargeait tout le tableau de bord et empêchait de rester sur « Tous les comptes ».)
@@ -60,6 +66,7 @@ export default function Dashboard() {
       )
     } catch (error) {
       console.error("Failed to load accounts", error)
+      toast.error("Impossible de charger la liste des comptes.")
     }
   }, [])
 
@@ -80,8 +87,10 @@ export default function Dashboard() {
     insights,
     sankeyData,
     projection,
-    tagTotals
-  } = useDashboardData(selectedAccountId, month, year)
+    tagTotals,
+    failedCount,
+    reload,
+  } = useDashboardData(selectedAccountId, month, year, monthResolved)
 
   const selectedAccount = accounts.find(a => String(a.id) === selectedAccountId)
   const displayCurrency = selectedAccount?.currency || "EUR"
@@ -104,6 +113,13 @@ export default function Dashboard() {
         accounts={accounts} 
         onAccountVerified={fetchAccounts} 
       />
+
+      {failedCount > 0 && (
+        <ErrorState
+          message={`${failedCount} bloc(s) du tableau de bord n'ont pas pu être chargés.`}
+          onRetry={reload}
+        />
+      )}
 
       <DashboardKPIs 
         selectedAccountId={selectedAccountId}

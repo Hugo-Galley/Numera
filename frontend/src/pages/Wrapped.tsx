@@ -1,3 +1,5 @@
+import { toast } from "sonner"
+import { ErrorState } from "@/components/layout/ErrorState"
 import { useCallback, useEffect, useState, type ReactNode } from "react"
 import { useSearchParams } from "react-router-dom"
 import { Gift, Play, Receipt, Store, TrendingUp, Repeat, CalendarRange } from "lucide-react"
@@ -46,6 +48,7 @@ export default function Wrapped() {
   const year = Number(params.get("year")) || new Date().getFullYear()
   const [report, setReport] = useState<WrappedReport | null>(null)
   const [loading, setLoading] = useState(true)
+  const [loadFailed, setLoadFailed] = useState(false)
   const [storyOpen, setStoryOpen] = useState(false)
   const { workTime } = useWorkTime()
   const hoursPerDay = workTime?.work_hours_per_day ?? 7
@@ -59,11 +62,14 @@ export default function Wrapped() {
 
   const load = useCallback(async () => {
     setLoading(true)
+    setLoadFailed(false)
+    setReport(null)
     try {
       setReport(await api.get<WrappedReport>(`/analytics/wrapped?year=${year}`))
     } catch (error) {
       console.error("Erreur lors du chargement du bilan annuel", error)
-      setReport(null)
+      setLoadFailed(true)
+      toast.error("Impossible de charger le bilan annuel")
     } finally {
       setLoading(false)
     }
@@ -108,6 +114,8 @@ export default function Wrapped() {
           </div>
           <Skeleton className="h-72 w-full" />
         </div>
+      ) : loadFailed ? (
+        <ErrorState message="Le bilan annuel n'a pas pu être chargé." onRetry={load} />
       ) : !report || !report.has_data ? (
         <Card>
           <CardContent className="flex flex-col items-center gap-3 py-16 text-center">

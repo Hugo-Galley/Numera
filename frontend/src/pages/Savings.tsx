@@ -1,3 +1,4 @@
+import { ErrorState } from "@/components/layout/ErrorState"
 import { useEffect, useState, useMemo } from "react"
 import { formatAmountWithShare } from "@/lib/utils"
 import { Link } from "react-router-dom"
@@ -84,6 +85,7 @@ export default function Savings() {
   const [accounts, setAccounts] = useState<any[]>([])
   const [categories, setCategories] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadFailed, setLoadFailed] = useState(false)
   
   const [month, setMonth] = useState<string>(String(new Date().getMonth() + 1))
   const [year, setYear] = useState<string>(String(new Date().getFullYear()))
@@ -104,6 +106,7 @@ export default function Savings() {
 
   const loadData = async () => {
     setLoading(true)
+    setLoadFailed(false)
     try {
       const queryParams = period === "monthly" 
         ? `month=${month}&year=${year}`
@@ -128,6 +131,8 @@ export default function Savings() {
       setCategories(cats)
     } catch (error) {
       console.error("Failed to load savings data", error)
+      setLoadFailed(true)
+      toast.error("Impossible de charger les données d'épargne")
     } finally {
       setLoading(false)
     }
@@ -272,7 +277,9 @@ export default function Savings() {
         </div>
       </div>
 
-      {loading ? (
+      {loadFailed && !loading ? (
+        <ErrorState message="Les données d'épargne n'ont pas pu être chargées." onRetry={() => { setLoadFailed(false); loadData() }} />
+      ) : loading ? (
         <div className="flex items-center justify-center h-[400px]">
            <div className="flex flex-col items-center gap-4">
              <div className="h-10 w-10 border-4 border-slate-200 border-t-slate-900 rounded-full animate-spin" />

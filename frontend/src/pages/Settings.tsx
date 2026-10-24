@@ -161,6 +161,7 @@ export default function Settings() {
       setSelectedAccounts(activeAccounts.map(a => a.id))
     } catch (error) {
       console.error("Erreur chargement comptes", error)
+      toast.error("Impossible de charger les comptes")
     }
   }
 

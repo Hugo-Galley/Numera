@@ -2,7 +2,9 @@ import { useState, useEffect } from "react"
 import { format, isSameDay } from "date-fns"
 import { fr } from "date-fns/locale"
 import { Save, Wallet, Download, CheckCircle2, Building } from "lucide-react"
-import { api } from "@/lib/api"
+import { api, ApiError } from "@/lib/api"
+import { formatCurrency } from "@/lib/utils"
+import { ErrorState } from "@/components/layout/ErrorState"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -35,10 +37,22 @@ interface Category {
   name: string
 }
 
+interface MonthSummary {
+  net_salary: number
+  tt_days_count: number
+  ticket_deduction: number
+  real_salary: number
+  ticket_credit: number
+}
+
 export function SalaryManager() {
   const { refresh: refreshWorkTime } = useWorkTime()
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  // Chargement de la configuration : une erreur n'est PAS « pas de config » (un enregistrement écraserait la vraie)
+  const [configError, setConfigError] = useState(false)
+  const [monthLoadFailed, setMonthLoadFailed] = useState(false)
+  const [summary, setSummary] = useState<MonthSummary | null>(null)
   const [generating, setGenerating] = useState(false)
   
   const [accounts, setAccounts] = useState<Account[]>([])
@@ -68,6 +82,7 @@ export function SalaryManager() {
   }, [currentDate, config.id])
 
   async function loadInitialData() {
+    setConfigError(false)
     try {
       const [accRes, catRes] = await Promise.all([
         api.get("/accounts"),
@@ -88,16 +103,20 @@ export function SalaryManager() {
           })
         }
       } catch (e) {
-        // No config yet, normal
+        // Seul un 404 signifie « pas encore de configuration » ; toute autre erreur bloque l'édition
+        if (!(e instanceof ApiError && e.status === 404)) throw e
       }
     } catch (error) {
       console.error("Failed to load initial data", error)
+      setConfigError(true)
+      toast.error("Impossible de charger la configuration du salaire")
     } finally {
       setLoading(false)
     }
   }
 
   async function loadMonthData(date: Date) {
+    setMonthLoadFailed(false)
     try {
       const year = date.getFullYear()
       const month = date.getMonth() + 1
@@ -109,11 +128,15 @@ export function SalaryManager() {
         setSalaryDate(null)
       }
       setIsGenerated(summary.is_generated)
+      setSummary(summary)
       
       const days = await api.get(`/salary/telecommuting/${year}/${month}`)
       setTtDays(days.map((d: any) => new Date(d.date)))
     } catch (error) {
       console.error("Failed to load month data", error)
+      toast.error("Impossible de charger les données du mois")
+      setMonthLoadFailed(true)
+      setSummary(null)
       setSalaryDate(null)
       setTtDays([])
       setIsGenerated(false)
@@ -161,7 +184,7 @@ export function SalaryManager() {
   }
 
   const handleToggleDay = async (date: Date) => {
-    if (!config.id || isGenerated) return
+    if (!config.id || isGenerated || monthLoadFailed) return
 
     const year = currentDate.getFullYear()
     const month = currentDate.getMonth() + 1
@@ -244,10 +267,12 @@ export function SalaryManager() {
     return <div className="flex justify-center p-8"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>
   }
 
-  const nbTickets = ttDays.length
-  const deduction = nbTickets * config.ticket_employee_share
-  const realSalary = config.net_salary - deduction
-  const creditTR = nbTickets * config.ticket_value
+  if (configError) {
+    return <ErrorState message="La configuration du salaire n'a pas pu être chargée. Rien n'est modifié." onRetry={loadInitialData} />
+  }
+
+  // Montants calculés par le backend (core/salary.py) : jamais recalculés ici
+  const nbTickets = summary?.tt_days_count ?? 0
 
   return (
     <div className="space-y-6">
@@ -358,15 +383,15 @@ export function SalaryManager() {
                     <div className="bg-muted/50 border rounded-xl p-4 text-sm shadow-inner">
                       <div className="flex justify-between items-center mb-2">
                         <span className="text-muted-foreground">Salaire net après primes</span>
-                        <span className="font-medium">{config.net_salary.toFixed(2)} €</span>
+                        <span className="font-medium">{summary ? formatCurrency(summary.net_salary) : "—"}</span>
                       </div>
                       <div className="flex justify-between items-center mb-3">
-                        <span className="min-w-0 text-muted-foreground">Déduction TR ({nbTickets} × {config.ticket_employee_share.toFixed(2)}€)</span>
-                        <span className="text-destructive font-medium whitespace-nowrap tabular-nums">- {deduction.toFixed(2)} €</span>
+                        <span className="min-w-0 text-muted-foreground">Déduction TR ({nbTickets} × {formatCurrency(config.ticket_employee_share)})</span>
+                        <span className="text-destructive font-medium whitespace-nowrap tabular-nums">- {summary ? formatCurrency(summary.ticket_deduction) : "—"}</span>
                       </div>
                       <div className="border-t pt-3 flex justify-between items-center">
                         <span className="font-bold">Total versé</span>
-                        <span className="font-black text-xl text-emerald-600 dark:text-emerald-400 whitespace-nowrap tabular-nums">{realSalary.toFixed(2)} €</span>
+                        <span className="font-black text-xl text-emerald-600 dark:text-emerald-400 whitespace-nowrap tabular-nums">{summary ? formatCurrency(summary.real_salary) : "—"}</span>
                       </div>
                     </div>
                   </div>
@@ -381,8 +406,8 @@ export function SalaryManager() {
                         Ce montant n'est pas suivi comme transaction
                       </p>
                       <div className="flex justify-between items-center">
-                        <span className="text-muted-foreground">Tickets crédités ({nbTickets} × {config.ticket_value.toFixed(2)}€)</span>
-                        <span className="font-black text-xl text-amber-500 dark:text-amber-400 whitespace-nowrap tabular-nums">+ {creditTR.toFixed(2)} €</span>
+                        <span className="text-muted-foreground">Tickets crédités ({nbTickets} × {formatCurrency(config.ticket_value)})</span>
+                        <span className="font-black text-xl text-amber-500 dark:text-amber-400 whitespace-nowrap tabular-nums">+ {summary ? formatCurrency(summary.ticket_credit) : "—"}</span>
                       </div>
                     </div>
                   </div>
@@ -404,7 +429,7 @@ export function SalaryManager() {
                     <Button 
                       className="w-full h-12 text-base font-bold shadow-lg transition-transform hover:scale-[1.02]" 
                       onClick={handleGenerate}
-                      disabled={generating || !salaryDate}
+                      disabled={generating || !salaryDate || monthLoadFailed}
                     >
                       {generating ? "Génération..." : <><Download className="mr-2 h-5 w-5" /> Générer les transactions</>}
                     </Button>

@@ -1,7 +1,17 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
+import { toast } from "sonner"
 import { api } from "@/lib/api"
 
-export function useDashboardData(selectedAccountId: string, month: number, year: number) {
+/**
+ * Charge toutes les données du tableau de bord pour un mois et un compte.
+ *
+ * - Une réponse arrivée après un changement de mois/compte est ignorée (sinon l'ancien mois
+ *   écrasait le nouveau) et les données précédentes sont vidées dès le changement.
+ * - Un échec n'empêche pas les autres blocs de se charger ; il est signalé une seule fois
+ *   (`failedCount` + toast) et `reload()` relance tout.
+ * - `enabled` permet d'attendre que le mois budgétaire soit connu avant la première charge.
+ */
+export function useDashboardData(selectedAccountId: string, month: number, year: number, enabled = true) {
   const [analytics, setAnalytics] = useState<any>(null)
   const [expensesByCategory, setExpensesByCategory] = useState<any[]>([])
   const [kpiHistory, setKpiHistory] = useState<any[]>([])
@@ -15,42 +25,74 @@ export function useDashboardData(selectedAccountId: string, month: number, year:
   const [sankeyData, setSankeyData] = useState<any>(null)
   const [projection, setProjection] = useState<any>(null)
   const [tagTotals, setTagTotals] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [failedCount, setFailedCount] = useState(0)
+  const [reloadToken, setReloadToken] = useState(0)
+
+  const reload = useCallback(() => setReloadToken(t => t + 1), [])
 
   useEffect(() => {
-    async function loadData() {
-      const accId = selectedAccountId === "all" ? null : selectedAccountId
-      const accParam = accId ? `&account_id=${accId}` : ""
+    if (!enabled) return
+    let cancelled = false
 
-      const safeLoad = async (url: string, setter: (data: any) => void) => {
-        try {
-          const data = await api.get<any>(url)
-          setter(data)
-        } catch (e: any) {
-          console.error(`Error loading ${url}:`, e)
-          if (e.message === "An error occurred") {
-             console.warn(`Endpoint ${url} returned a generic 500 error. Check backend logs.`)
-          }
-        }
+    // Données du mois précédent : on ne les laisse pas sous le libellé du nouveau mois
+    setAnalytics(null)
+    setExpensesByCategory([])
+    setKpiHistory([])
+    setTopMerchants([])
+    setSubscriptions(null)
+    setSalarySeries([])
+    setBurnRateSeries([])
+    setPatrimoineAllocation(null)
+    setBudgetAlerts([])
+    setInsights(null)
+    setSankeyData(null)
+    setProjection(null)
+    setTagTotals([])
+    setFailedCount(0)
+    setLoading(true)
+
+    const accId = selectedAccountId === "all" ? null : selectedAccountId
+    const accParam = accId ? `&account_id=${accId}` : ""
+    let failed = 0
+
+    const safeLoad = async (url: string, setter: (data: any) => void) => {
+      try {
+        const data = await api.get<any>(url)
+        if (!cancelled) setter(data)
+      } catch (e: any) {
+        console.error(`Error loading ${url}:`, e)
+        failed += 1
       }
+    }
 
-      safeLoad(`/analytics/budget?month=${month}&year=${year}${accParam}`, setAnalytics)
-      safeLoad(`/analytics/expenses-by-category?month=${month}&year=${year}${accParam}`, (d) => setExpensesByCategory(d?.items || []))
-      safeLoad(`/analytics/kpi-history?months_count=6${accParam}`, setKpiHistory)
-      safeLoad(`/analytics/top-merchants?month=${month}&year=${year}${accParam}`, (d) => setTopMerchants(d?.items || []))
-      safeLoad(`/analytics/subscriptions?month=${month}&year=${year}${accParam}`, setSubscriptions)
+    Promise.all([
+      safeLoad(`/analytics/budget?month=${month}&year=${year}${accParam}`, setAnalytics),
+      safeLoad(`/analytics/expenses-by-category?month=${month}&year=${year}${accParam}`, (d) => setExpensesByCategory(d?.items || [])),
+      safeLoad(`/analytics/kpi-history?months_count=6${accParam}`, setKpiHistory),
+      safeLoad(`/analytics/top-merchants?month=${month}&year=${year}${accParam}`, (d) => setTopMerchants(d?.items || [])),
+      safeLoad(`/analytics/subscriptions?month=${month}&year=${year}${accParam}`, setSubscriptions),
       safeLoad(`/analytics/timeseries?year=${year}${accParam}`, (d) => {
         setSalarySeries(d?.salary_series || [])
         setBurnRateSeries(d?.monthly_flows || [])
-      })
-      safeLoad("/analytics/patrimoine-allocation", setPatrimoineAllocation)
-      safeLoad(`/analytics/budget-alerts?month=${month}&year=${year}${accParam}`, setBudgetAlerts)
-      safeLoad(`/analytics/insights?month=${month}&year=${year}${accParam}`, setInsights)
-      safeLoad(`/analytics/sankey?month=${month}&year=${year}${accParam}`, setSankeyData)
-      safeLoad(`/analytics/cashflow-projection?days=60${accId ? `&account_id=${accId}` : ""}`, setProjection)
-      safeLoad(`/analytics/tags?month=${month}&year=${year}${accParam}`, setTagTotals)
+      }),
+      safeLoad("/analytics/patrimoine-allocation", setPatrimoineAllocation),
+      safeLoad(`/analytics/budget-alerts?month=${month}&year=${year}${accParam}`, setBudgetAlerts),
+      safeLoad(`/analytics/insights?month=${month}&year=${year}${accParam}`, setInsights),
+      safeLoad(`/analytics/sankey?month=${month}&year=${year}${accParam}`, setSankeyData),
+      safeLoad(`/analytics/cashflow-projection?days=60${accId ? `&account_id=${accId}` : ""}`, setProjection),
+      safeLoad(`/analytics/tags?month=${month}&year=${year}${accParam}`, setTagTotals),
+    ]).then(() => {
+      if (cancelled) return
+      setLoading(false)
+      setFailedCount(failed)
+      if (failed > 0) toast.error("Certaines données du tableau de bord n'ont pas pu être chargées.")
+    })
+
+    return () => {
+      cancelled = true
     }
-    loadData()
-  }, [month, year, selectedAccountId])
+  }, [month, year, selectedAccountId, enabled, reloadToken])
 
   return {
     analytics,
@@ -65,6 +107,9 @@ export function useDashboardData(selectedAccountId: string, month: number, year:
     insights,
     sankeyData,
     projection,
-    tagTotals
+    tagTotals,
+    loading,
+    failedCount,
+    reload,
   }
 }

@@ -1,3 +1,4 @@
+import { toast } from "sonner"
 import React, { createContext, useCallback, useContext, useEffect, useState } from "react"
 import { api } from "@/lib/api"
 
@@ -25,6 +26,7 @@ export function WorkTimeProvider({ children }: { children: React.ReactNode }) {
       setWorkTime(await api.get<WorkTime>("/salary/work-time"))
     } catch (error) {
       console.error("Erreur lors du chargement du taux horaire", error)
+      toast.error("Impossible de charger le taux horaire (prix en heures de travail indisponible)")
     }
   }, [])
 

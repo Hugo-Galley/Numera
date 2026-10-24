@@ -57,6 +57,8 @@ export default function Comparison() {
 
   const loadComparisonData = async () => {
     setLoading(true)
+    setDataA(null)  // jamais l'ancienne période sous le nouveau libellé
+    setDataB(null)
     try {
       const [resA, resB, catA, catB] = await Promise.all([
         api.get<any>(`/analytics/budget?month=${monthA}&year=${yearA}`),
