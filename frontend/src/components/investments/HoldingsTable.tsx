@@ -18,7 +18,7 @@ import { CostEstimateDialog } from "./CostEstimateDialog"
 import { api } from "@/lib/api"
 import { toast } from "sonner"
 import { CompanyLogo } from "@/components/ui/CompanyLogo"
-import { cn } from "@/lib/utils"
+import { cn, formatCurrency } from "@/lib/utils"
 import { useUI } from "@/providers/UIProvider"
 import { useConfirm } from "@/providers/ConfirmProvider"
 
@@ -99,10 +99,6 @@ export function HoldingsTable({
     } finally {
       setDecomposingId(null)
     }
-  }
-
-  const formatCurrency = (val: number) => {
-    return new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(val)
   }
 
   const totalValue = filteredHoldings.reduce((acc, h) => acc + (h.current_value_eur || 0), 0)

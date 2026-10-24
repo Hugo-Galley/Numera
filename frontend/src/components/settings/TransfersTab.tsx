@@ -302,7 +302,7 @@ export function TransfersTab() {
                   <Button variant="ghost" size="sm" className="h-10 w-10 p-0 text-slate-400 md:h-8 md:w-8 hover:bg-indigo-50 hover:text-indigo-600" onClick={() => openEdit(rule)} aria-label="Modifier la règle">
                     <Pencil className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" size="sm" className="h-10 w-10 p-0 text-slate-400 md:h-8 md:w-8 hover:bg-red-50 hover:text-red-600" onClick={() => deleteRule(rule)}>
+                  <Button aria-label="Supprimer" variant="ghost" size="sm" className="h-10 w-10 p-0 text-slate-400 md:h-8 md:w-8 hover:bg-red-50 hover:text-red-600" onClick={() => deleteRule(rule)}>
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
@@ -445,7 +445,7 @@ export function TransfersTab() {
                   </div>
                   <div className="flex shrink-0 flex-col items-end md:flex-row md:items-center md:gap-4">
                     <span className="whitespace-nowrap font-bold tabular-nums text-slate-700 amount-blur">{formatCurrency(tx.amount, tx.currency)}</span>
-                    <Button variant="ghost" size="sm" className="h-10 w-10 p-0 text-slate-400 md:h-8 md:w-8 hover:bg-red-50 hover:text-red-600" onClick={() => handleUnlink(tx.id)}>
+                    <Button aria-label="Délier" variant="ghost" size="sm" className="h-10 w-10 p-0 text-slate-400 md:h-8 md:w-8 hover:bg-red-50 hover:text-red-600" onClick={() => handleUnlink(tx.id)}>
                       <Unlink className="h-4 w-4" />
                     </Button>
                   </div>

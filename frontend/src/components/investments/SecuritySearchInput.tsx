@@ -1,3 +1,4 @@
+import { formatCurrency } from "@/lib/utils"
 import React, { useState, useEffect, useRef } from "react"
 import { api } from "@/lib/api"
 import { Input } from "@/components/ui/input"
@@ -291,7 +292,7 @@ export function SecuritySearchInput({
                     {validationInfo.price_eur != null && (
                       <>
                         <span>•</span>
-                        <span>Cours : {validationInfo.price_eur.toFixed(2)} €</span>
+                        <span>Cours : {formatCurrency(validationInfo.price_eur)}</span>
                       </>
                     )}
                   </div>

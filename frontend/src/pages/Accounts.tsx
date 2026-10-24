@@ -877,7 +877,7 @@ export default function Accounts() {
                     <TableRow key={account.id}>
                       <TableCell className="font-medium">
                         <div className="flex items-center gap-2">
-                          <Button 
+                          <Button aria-label="Favori" 
                             variant="ghost" 
                             size="icon" 
                             className={`h-6 w-6 ${account.is_main ? 'text-amber-500 hover:text-amber-600' : 'text-slate-300 hover:text-amber-500'}`}
@@ -932,7 +932,7 @@ export default function Accounts() {
                                 Voir détails <ArrowRight className="ml-2 h-4 w-4" />
                               </Link>
                             </Button>
-                            <Button
+                            <Button aria-label="Supprimer"
                               variant="ghost"
                               size="icon"
                               className="text-rose-600 hover:text-rose-700"

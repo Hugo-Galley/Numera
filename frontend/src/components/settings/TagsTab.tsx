@@ -201,10 +201,10 @@ export function TagsTab() {
                     {tag.name}
                   </Badge>
                   <div className="flex shrink-0 gap-1 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
-                    <Button variant="ghost" size="sm" onClick={() => handleEditClick(tag)} className="h-10 w-10 md:h-8 md:w-8 p-0 text-slate-500 hover:text-slate-900">
+                    <Button aria-label="Modifier" variant="ghost" size="sm" onClick={() => handleEditClick(tag)} className="h-10 w-10 md:h-8 md:w-8 p-0 text-slate-500 hover:text-slate-900">
                       <Pencil className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="sm" onClick={() => handleDeleteTag(tag.id)} className="h-10 w-10 md:h-8 md:w-8 p-0 text-rose-500 hover:text-rose-600 hover:bg-rose-50">
+                    <Button aria-label="Supprimer" variant="ghost" size="sm" onClick={() => handleDeleteTag(tag.id)} className="h-10 w-10 md:h-8 md:w-8 p-0 text-rose-500 hover:text-rose-600 hover:bg-rose-50">
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>

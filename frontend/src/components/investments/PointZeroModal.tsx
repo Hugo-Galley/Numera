@@ -1,3 +1,4 @@
+import { formatCurrency } from "@/lib/utils"
 import { useState, useEffect } from "react"
 import { api } from "@/lib/api"
 import {
@@ -507,7 +508,7 @@ export function PointZeroModal({
                             </span>
                             {row.currency !== "EUR" && row.current_price_eur && (
                               <span className="text-[10px] text-slate-400 font-mono">
-                                (~{row.current_price_eur.toFixed(2)} €)
+                                (~{formatCurrency(row.current_price_eur)})
                               </span>
                             )}
                           </div>
@@ -533,7 +534,7 @@ export function PointZeroModal({
                       </div>
 
                       <div className="col-span-1 text-center">
-                        <Button
+                        <Button aria-label="Supprimer"
                           type="button"
                           variant="ghost"
                           size="icon"

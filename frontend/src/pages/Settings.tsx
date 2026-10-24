@@ -371,6 +371,8 @@ export default function Settings() {
                           <button
                             key={iconName}
                             type="button"
+                            aria-label={`Icône ${iconName}`}
+                            aria-pressed={newCatIcon === iconName}
                             onClick={() => setNewCatIcon(iconName)}
                             className={`p-3 sm:p-2 rounded-lg flex items-center justify-center transition-all ${newCatIcon === iconName ? 'bg-slate-900 text-white' : 'hover:bg-slate-200 text-slate-500'}`}
                           >
@@ -486,10 +488,10 @@ export default function Settings() {
                     <div className="hidden md:flex px-4 py-3 bg-slate-50/50 border-t justify-between items-center md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                       <p className="text-[10px] text-slate-400 font-medium">ID: #{cat.id}</p>
                       <div className="flex gap-1">
-                        <Button variant="ghost" size="sm" onClick={() => handleEditClick(cat)} className="h-10 w-10 md:h-8 md:w-8 p-0 text-slate-500 hover:text-slate-900">
+                        <Button aria-label="Modifier" variant="ghost" size="sm" onClick={() => handleEditClick(cat)} className="h-10 w-10 md:h-8 md:w-8 p-0 text-slate-500 hover:text-slate-900">
                           <Pencil className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="sm" onClick={() => handleDeleteCategory(cat.id)} className="h-10 w-10 md:h-8 md:w-8 p-0 text-rose-500 hover:text-rose-600 hover:bg-rose-50">
+                        <Button aria-label="Supprimer" variant="ghost" size="sm" onClick={() => handleDeleteCategory(cat.id)} className="h-10 w-10 md:h-8 md:w-8 p-0 text-rose-500 hover:text-rose-600 hover:bg-rose-50">
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
@@ -553,6 +555,8 @@ export default function Settings() {
                         <button
                           key={iconName}
                           type="button"
+                          aria-label={`Icône ${iconName}`}
+                          aria-pressed={editCatIcon === iconName}
                           onClick={() => setEditCatIcon(iconName)}
                           className={`p-3 sm:p-2 rounded-lg flex items-center justify-center transition-all ${editCatIcon === iconName ? 'bg-slate-900 text-white' : 'hover:bg-slate-200 text-slate-500'}`}
                         >

@@ -356,10 +356,10 @@ export function MerchantsTab() {
                         </div>
                       </div>
                       <div className="flex shrink-0 gap-1 md:gap-2 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
-                        <Button variant="ghost" size="sm" onClick={() => handleEditClick(m)} className="h-10 w-10 md:h-8 md:w-8 p-0 text-slate-500 hover:text-slate-900">
+                        <Button aria-label="Modifier" variant="ghost" size="sm" onClick={() => handleEditClick(m)} className="h-10 w-10 md:h-8 md:w-8 p-0 text-slate-500 hover:text-slate-900">
                           <Pencil className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="sm" onClick={() => handleDeleteMerchant(m.id)} className="h-10 w-10 md:h-8 md:w-8 p-0 text-rose-500 hover:text-rose-600 hover:bg-rose-50">
+                        <Button aria-label="Supprimer" variant="ghost" size="sm" onClick={() => handleDeleteMerchant(m.id)} className="h-10 w-10 md:h-8 md:w-8 p-0 text-rose-500 hover:text-rose-600 hover:bg-rose-50">
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
@@ -393,6 +393,7 @@ export function MerchantsTab() {
                     <p className="text-[10px] text-slate-500">{s.count} occurrences</p>
                   </div>
                   <Button 
+                    aria-label="Créer un marchand à partir de ce libellé"
                     size="sm" 
                     variant="ghost" 
                     className="h-10 w-10 md:h-7 md:w-7 p-0 text-amber-600 hover:text-amber-700 hover:bg-amber-100"
@@ -472,7 +473,7 @@ export function MerchantsTab() {
                 {editingMerchant?.aliases.map(a => (
                   <Badge key={a.id} className="bg-white text-slate-700 border-slate-200 shadow-sm flex items-center gap-2 pr-1 h-9 sm:h-7">
                     {a.label}
-                    <button 
+                    <button aria-label="Fermer" 
                       onClick={() => handleRemoveAlias(a.id)}
                       className="h-7 w-7 sm:h-5 sm:w-5 rounded-md hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-rose-500 transition-colors"
                     >
@@ -493,7 +494,7 @@ export function MerchantsTab() {
                   onChange={(e) => setNewAliasLabel(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleAddAlias()}
                 />
-                <Button size="sm" onClick={handleAddAlias} variant="secondary" className="h-11 w-11 px-3 sm:h-9 sm:w-auto">
+                <Button aria-label="Ajouter" size="sm" onClick={handleAddAlias} variant="secondary" className="h-11 w-11 px-3 sm:h-9 sm:w-auto">
                   <Plus className="h-4 w-4" />
                 </Button>
               </div>

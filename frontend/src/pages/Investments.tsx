@@ -48,7 +48,7 @@ import { AllocationTreemap } from "@/components/analytics/AllocationTreemap"
 import { CompositionField, CompositionSource, DiversityScannerResponse } from "@/types/diversity"
 import { CompanyLogo } from "@/components/ui/CompanyLogo"
 import { useIsMobile } from "@/hooks/useIsMobile"
-import { formatAmountWithShare } from "@/lib/utils"
+import { formatAmountWithShare, formatCurrency, formatRate } from "@/lib/utils"
 
 const COMPOSITION_FIELDS: { key: CompositionField; label: string }[] = [
   { key: "sectors", label: "Secteurs" },
@@ -110,10 +110,6 @@ const [loading, setLoading] = useState(true)
     }
     loadData()
   }, [])
-
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(value)
-  }
 
   const handleAccountClick = (accountId: number) => {
     navigate(`/accounts/${accountId}`)
@@ -183,7 +179,7 @@ const [loading, setLoading] = useState(true)
               </span>
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              {(allocation?.total_performance_pct || 0).toFixed(2)}% de rendement total
+              {formatRate(allocation?.total_performance_pct || 0)} de rendement total
             </p>
           </CardContent>
         </Card>
@@ -318,7 +314,7 @@ const [loading, setLoading] = useState(true)
                       ) : (
                         <span className={`amount-blur font-medium whitespace-nowrap ${item.gain_eur >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
                           {item.gain_eur >= 0 ? "+" : ""}{formatCurrency(item.gain_eur)}
-                          {item.performance_pct != null && ` (${item.performance_pct >= 0 ? "+" : ""}${item.performance_pct.toFixed(2)} %)`}
+                          {item.performance_pct != null && ` (${formatRate(item.performance_pct, 2, true)})`}
                         </span>
                       )}
                     </div>

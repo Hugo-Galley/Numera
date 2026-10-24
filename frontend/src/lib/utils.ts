@@ -1,13 +1,17 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 
-export function formatCurrency(value: number | null | undefined, currencyCode: string = "EUR") {
+export function formatCurrency(
+  value: number | null | undefined,
+  currencyCode: string = "EUR",
+  options: Intl.NumberFormatOptions = {}
+) {
   const safeValue = Number.isFinite(value) ? (value as number) : 0
   try {
-    return new Intl.NumberFormat("fr-FR", { style: "currency", currency: currencyCode || "EUR" }).format(safeValue)
+    return new Intl.NumberFormat("fr-FR", { style: "currency", currency: currencyCode || "EUR", ...options }).format(safeValue)
   } catch {
     // Code devise invalide (RangeError) : ne jamais faire planter le rendu pour un libellé
-    return new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(safeValue)
+    return new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", ...options }).format(safeValue)
   }
 }
 
@@ -23,6 +27,13 @@ export function formatAmountWithShare(value: number, total: number, currencyCode
   const amount = formatCurrency(value, currencyCode)
   const share = formatPercent(value, total)
   return share ? `${amount} (${share})` : amount
+}
+
+/** Pourcentage à la française : « 12,35 % » (virgule décimale, espace insécable). */
+export function formatRate(value: number | null | undefined, digits = 2, withSign = false) {
+  if (value === null || value === undefined || !Number.isFinite(value)) return "-"
+  const text = new Intl.NumberFormat("fr-FR", { minimumFractionDigits: digits, maximumFractionDigits: digits }).format(value)
+  return `${withSign && value >= 0 ? "+" : ""}${text}\u00a0%`
 }
 
 export function cn(...inputs: ClassValue[]) {

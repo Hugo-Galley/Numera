@@ -86,7 +86,7 @@ import { Calendar } from "@/components/ui/calendar"
 import { toast } from "sonner"
 import { format } from "date-fns"
 import { fr } from "date-fns/locale"
-import { cn, frequencyLabel } from "@/lib/utils"
+import { cn, frequencyLabel, formatCurrency } from "@/lib/utils"
 import { COUNTRIES } from "@/lib/countries"
 import { SalaryManager } from "@/components/tools/SalaryManager"
 import { LogoPicker } from "@/components/ui/LogoPicker"
@@ -469,10 +469,6 @@ export default function RecurringTransactions() {
     }
   }
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(value || 0)
-  }
-
   const safeFormat = (dateStr: string | null | undefined, formatStr: string) => {
     if (!dateStr) return "-"
     try {
@@ -744,10 +740,10 @@ export default function RecurringTransactions() {
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-1">
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-slate-900" onClick={() => handleOpenEdit(tx)}>
+                            <Button aria-label="Modifier" variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-slate-900" onClick={() => handleOpenEdit(tx)}>
                               <Pencil className="h-4 w-4" />
                             </Button>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-red-600" onClick={() => handleDelete(tx.id)}>
+                            <Button aria-label="Supprimer" variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-red-600" onClick={() => handleDelete(tx.id)}>
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </div>

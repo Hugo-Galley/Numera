@@ -251,7 +251,7 @@ export function RulesTab() {
                     </div>
                   </div>
                   <div className="flex shrink-0 items-center gap-2">
-                    <Button variant="ghost" size="sm" className="h-10 w-10 md:h-8 md:w-8 p-0 text-slate-400 hover:text-red-600 hover:bg-red-50" onClick={() => handleDelete(rule.id)}>
+                    <Button aria-label="Supprimer" variant="ghost" size="sm" className="h-10 w-10 md:h-8 md:w-8 p-0 text-slate-400 hover:text-red-600 hover:bg-red-50" onClick={() => handleDelete(rule.id)}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>

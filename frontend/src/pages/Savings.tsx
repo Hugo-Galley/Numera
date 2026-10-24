@@ -1,7 +1,7 @@
 import { useSubmit } from "@/hooks/useSubmit"
 import { ErrorState } from "@/components/layout/ErrorState"
 import { useEffect, useState, useMemo } from "react"
-import { formatAmountWithShare } from "@/lib/utils"
+import { formatAmountWithShare, formatCurrency } from "@/lib/utils"
 import { Link } from "react-router-dom"
 import { 
   PiggyBank, 
@@ -201,10 +201,6 @@ export default function Savings() {
       category_id: goal.category_id ? String(goal.category_id) : "none"
     })
     setIsDialogOpen(true)
-  }
-
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(value)
   }
 
   // Montant + part du total des composantes positives ; pas de part pour une valeur négative.

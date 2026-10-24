@@ -1,3 +1,4 @@
+import { formatCurrency } from "@/lib/utils"
 import { useState, useEffect, useMemo } from "react"
 import { 
   BarChart3, 
@@ -90,10 +91,6 @@ export default function Comparison() {
   useEffect(() => {
     loadComparisonData()
   }, [monthA, yearA, monthB, yearB])
-
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(value)
-  }
 
   const comparisonRows = useMemo(() => {
     const catsA = dataA?.categories || []

@@ -267,7 +267,7 @@ function TransactionEditor({
 
         <div className="flex justify-end gap-2 border-t pt-3">
           {onDeleted && (
-            <Button type="button" variant="outline" size="icon" onClick={remove} disabled={saving} className="h-11 w-11 text-rose-500 hover:bg-rose-50 hover:text-rose-600">
+            <Button aria-label="Supprimer" type="button" variant="outline" size="icon" onClick={remove} disabled={saving} className="h-11 w-11 text-rose-500 hover:bg-rose-50 hover:text-rose-600">
               <Trash2 className="h-4 w-4" />
             </Button>
           )}
@@ -360,7 +360,7 @@ function TransactionEditor({
 
           <div className="flex shrink-0 gap-2">
             {onDeleted && (
-              <Button type="button" variant="outline" size="icon" onClick={remove} disabled={saving} className="h-9 w-9 text-rose-500 hover:bg-rose-50 hover:text-rose-600">
+              <Button aria-label="Supprimer" type="button" variant="outline" size="icon" onClick={remove} disabled={saving} className="h-9 w-9 text-rose-500 hover:bg-rose-50 hover:text-rose-600">
                 <Trash2 className="h-4 w-4" />
               </Button>
             )}

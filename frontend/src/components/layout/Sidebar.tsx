@@ -163,7 +163,7 @@ export function Sidebar({ className, onItemClick, hideBrand }: { className?: str
             </>
           )}
         </Button>
-        <Button
+        <Button aria-label="Rechercher"
           variant="outline"
           size="sm"
           className="px-3 text-slate-600 border-slate-200"

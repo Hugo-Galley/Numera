@@ -1,5 +1,5 @@
 import { useSubmit } from "@/hooks/useSubmit"
-import { errorMessage, parsePositiveAmount } from "@/lib/utils"
+import { errorMessage, formatCurrency as formatCurrencyShared, parsePositiveAmount, formatRate } from "@/lib/utils"
 import { endOfDayParam, nowLocalInput, startOfDayParam, toInputValue, toNaiveLocal, todayLocal } from "@/lib/dates"
 import { useState, useEffect, useMemo, useRef } from "react"
 import { AccountLogo } from "@/components/ui/AccountLogo"
@@ -1022,15 +1022,7 @@ export default function AccountDetail() {
   })
 
   // -- Memos --
-  const formatValue = (value: number | null | undefined, currencyCode: string = "EUR") => {
-    const safeValue = value || 0
-    const safeCurrency = (currencyCode && currencyCode.length === 3) ? currencyCode.toUpperCase() : "EUR"
-    try {
-      return new Intl.NumberFormat("fr-FR", { style: "currency", currency: safeCurrency }).format(safeValue)
-    } catch (e) {
-      return new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(safeValue)
-    }
-  }
+  const formatValue = (value: number | null | undefined, currencyCode: string = "EUR") => formatCurrencyShared(value, currencyCode)
 
   const formatCurrency = (value: number) => {
     return formatValue(value, account?.currency || "EUR")
@@ -1698,7 +1690,7 @@ export default function AccountDetail() {
                 className="h-8 min-w-0 flex-1 border-none bg-transparent p-0 text-base font-medium shadow-none focus-visible:ring-0 sm:w-[120px] sm:flex-none sm:text-xs" 
               />
               {(dateStart || dateEnd) && (
-                <Button 
+                <Button aria-label="Ajouter" 
                   variant="ghost" 
                   size="icon" 
                   onClick={() => { setDateStart(""); setDateEnd(""); }} 
@@ -1804,7 +1796,7 @@ export default function AccountDetail() {
               </CardHeader>
               <CardContent>
                 <CardTitle className={`text-2xl font-bold ${(investmentData?.totals?.performance_pct || 0) >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
-                  {investmentData?.totals?.performance_pct?.toFixed(2)}%
+                  {formatRate(investmentData?.totals?.performance_pct)}
                 </CardTitle>
                 <p className="text-xs text-slate-400 mt-2">Rendement global</p>
               </CardContent>
@@ -2459,12 +2451,12 @@ export default function AccountDetail() {
                        <TableCell className="text-right">
                           {tx.is_regular ? (
                             <div className="flex items-center justify-end gap-1">
-                              <Button variant="ghost" size="sm" onClick={() => handleDeleteTransaction(tx.id)} className="h-8 w-8 p-0 text-rose-500"><Trash2 className="h-3 w-3" /></Button>
+                              <Button aria-label="Supprimer" variant="ghost" size="sm" onClick={() => handleDeleteTransaction(tx.id)} className="h-8 w-8 p-0 text-rose-500"><Trash2 className="h-3 w-3" /></Button>
                             </div>
                           ) : (
                             <div className="flex items-center justify-end gap-1">
-                              <Button variant="ghost" size="sm" onClick={() => handleEditInvTransaction(tx)} className="h-8 w-8 p-0"><Pencil className="h-3 w-3" /></Button>
-                              <Button variant="ghost" size="sm" onClick={() => handleDeleteInvTransaction(tx.id)} className="h-8 w-8 p-0 text-rose-500"><Trash2 className="h-3 w-3" /></Button>
+                              <Button aria-label="Modifier" variant="ghost" size="sm" onClick={() => handleEditInvTransaction(tx)} className="h-8 w-8 p-0"><Pencil className="h-3 w-3" /></Button>
+                              <Button aria-label="Supprimer" variant="ghost" size="sm" onClick={() => handleDeleteInvTransaction(tx.id)} className="h-8 w-8 p-0 text-rose-500"><Trash2 className="h-3 w-3" /></Button>
                             </div>
                           )}
                        </TableCell>
@@ -2508,8 +2500,8 @@ export default function AccountDetail() {
                        </TableCell>
                        <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-1">
-                            <Button variant="ghost" size="sm" onClick={() => handleEditSnapshot(snap)} className="h-8 w-8 p-0"><Pencil className="h-3 w-3" /></Button>
-                            <Button variant="ghost" size="sm" onClick={() => handleDeleteSnapshot(snap.id)} className="h-8 w-8 p-0 text-rose-500"><Trash2 className="h-3 w-3" /></Button>
+                            <Button aria-label="Modifier" variant="ghost" size="sm" onClick={() => handleEditSnapshot(snap)} className="h-8 w-8 p-0"><Pencil className="h-3 w-3" /></Button>
+                            <Button aria-label="Supprimer" variant="ghost" size="sm" onClick={() => handleDeleteSnapshot(snap.id)} className="h-8 w-8 p-0 text-rose-500"><Trash2 className="h-3 w-3" /></Button>
                           </div>
                        </TableCell>
                      </TableRow>
@@ -2565,7 +2557,7 @@ export default function AccountDetail() {
 
           <Separator orientation="vertical" className="hidden h-6 bg-slate-700 md:block" />
 
-          <Button 
+          <Button aria-label="Fermer" 
             size="sm" 
             variant="ghost" 
             className="h-10 w-10 text-slate-400 hover:text-white p-2 md:h-9 md:w-auto"

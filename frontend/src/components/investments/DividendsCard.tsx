@@ -4,7 +4,7 @@ import { Coins, Link2 } from "lucide-react"
 import { toast } from "sonner"
 
 import { api } from "@/lib/api"
-import { formatCurrency } from "@/lib/utils"
+import { formatCurrency, formatRate } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -63,7 +63,7 @@ const monthLabel = (key: string) => {
   return new Date(year, month - 1, 1).toLocaleDateString("fr-FR", { month: "short", year: "2-digit" })
 }
 
-const pct = (value: number | null) => (value === null ? "-" : `${value.toFixed(2)} %`)
+const pct = (value: number | null) => formatRate(value)
 
 export function DividendsCard({ accountId, reloadKey, onChanged }: DividendsCardProps) {
   const [data, setData] = useState<DividendSummary | null>(null)

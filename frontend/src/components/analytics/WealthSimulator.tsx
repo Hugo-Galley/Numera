@@ -1,3 +1,4 @@
+import { formatCurrency as formatCurrencyBase } from "@/lib/utils"
 import { safeStorage } from "@/lib/storage"
 import { useState, useEffect } from "react"
 import { 
@@ -223,13 +224,7 @@ export function WealthSimulator({ initialCapitalDefault = 10000 }: WealthSimulat
     return () => clearTimeout(timeoutId)
   }, [params, events, useAllocation, assetClasses, totalAlloc, computedReturn, computedVolatility])
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("fr-FR", { 
-      style: "currency", 
-      currency: "EUR",
-      maximumFractionDigits: 0
-    }).format(value)
-  }
+  const formatCurrency = (value: number) => formatCurrencyBase(value, "EUR", { maximumFractionDigits: 0 })
 
   const handleAddEvent = () => {
     if (!newEvent.label.trim()) {
@@ -770,7 +765,7 @@ export function WealthSimulator({ initialCapitalDefault = 10000 }: WealthSimulat
                               <span className={`font-bold ${ev.amount >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
                                 {ev.amount >= 0 ? "+" : ""}{formatCurrency(ev.amount)}
                               </span>
-                              <button
+                              <button aria-label="Supprimer"
                                 type="button"
                                 onClick={() => handleRemoveEvent(index)}
                                 className="text-slate-400 hover:text-rose-650 opacity-0 group-hover:opacity-100 transition-opacity"

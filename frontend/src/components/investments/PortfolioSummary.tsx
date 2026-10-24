@@ -3,7 +3,7 @@ import { AlertTriangle, CheckCircle2, Scale } from "lucide-react"
 import { toast } from "sonner"
 
 import { api } from "@/lib/api"
-import { formatCurrency } from "@/lib/utils"
+import { formatCurrency, formatRate } from "@/lib/utils"
 import type { PortfolioRead } from "@/types/portfolio"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -18,7 +18,7 @@ interface PortfolioSummaryProps {
 
 const signed = (value: number) => `${value >= 0 ? "+" : ""}${formatCurrency(value)}`
 const tone = (value: number | null) => (value === null ? "text-slate-900" : value >= 0 ? "text-emerald-600" : "text-rose-600")
-const pct = (value: number | null) => (value === null ? "-" : `${value >= 0 ? "+" : ""}${value.toFixed(2)} %`)
+const pct = (value: number | null) => formatRate(value, 2, true)
 
 export function PortfolioSummary({ accountId, reloadKey }: PortfolioSummaryProps) {
   const [data, setData] = useState<PortfolioRead | null>(null)
