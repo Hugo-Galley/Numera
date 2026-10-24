@@ -62,6 +62,7 @@ def calc_diff(curr: float, prev: float) -> tuple[float, float]:
     return round(diff, 2), round(pct, 2)
 
 from .utils import (
+    income_criterion,
     net_amount,
     NET_AMOUNT,
     _tx_sample,
@@ -338,29 +339,12 @@ async def _calculate_money_flow_data(month: int, year: int, db: Session, account
     # We re-implement a lean version here or call budget_analytics with type filter if supported.
     # To be precise and follow user instruction: we only want cash flowing INTO checking accounts.
     
-    income_query = (
-        db.query(Account.currency, func.sum(NET_AMOUNT).label("total"))
-        .join(Account, Transaction.account_id == Account.id)
-        .filter(Transaction.date >= start, Transaction.date < end)
-        .filter(Transaction.type.in_(["Entree", "Interets"]))  # Solde Initial = base du solde, pas un revenu
-        .filter(Transaction.is_transfer == False)
-    )
-    
-    if account_id:
-        income_query = income_query.filter(Transaction.account_id == account_id)
-    else:
-        # Focus on CHECKING accounts only
-        income_query = income_query.filter(Account.type == "courant")
-        tr_accounts = _get_ticket_restaurant_account_ids(db)
-        if tr_accounts:
-            income_query = income_query.filter(Transaction.account_id.notin_(tr_accounts))
-        
-    income_rows = income_query.group_by(Account.currency).all()
-    income = sum(row.total / rates.get(row.currency, 1.0) for row in income_rows)
-    
+    # Définition unique du revenu : celle du budget (courant, ou catégorie « revenu » ailleurs, dividendes inclus)
+    income = float((await budget_analytics(month=month, year=year, account_id=account_id, db=db))["revenus_totaux"])
+
     # 2. Expenses (Sortie, is_transfer=False) from CHECKING accounts
     tx_query = (
-        db.query(Transaction, Category.name.label("cat_name"))
+        db.query(Transaction, Category.name.label("cat_name"), Account.currency.label("acc_currency"))
         .join(Account, Transaction.account_id == Account.id)
         .outerjoin(Category, Transaction.category_id == Category.id)
         .filter(Transaction.date >= start, Transaction.date < end)
@@ -370,7 +354,7 @@ async def _calculate_money_flow_data(month: int, year: int, db: Session, account
     if account_id:
         tx_query = tx_query.filter(Transaction.account_id == account_id)
     else:
-        tx_query = tx_query.filter(Account.type == "courant")
+        tx_query = tx_query.filter(Account.type.in_(["courant", "epargne"]))
         tr_accounts = _get_ticket_restaurant_account_ids(db)
         if tr_accounts:
             tx_query = tx_query.filter(Transaction.account_id.notin_(tr_accounts))
@@ -391,7 +375,8 @@ async def _calculate_money_flow_data(month: int, year: int, db: Session, account
         tx = row.Transaction
         cat_name = row.cat_name or "Sans catégorie"
         
-        amount_eur = net_amount(tx) / rates.get(tx.currency, 1.0)
+        # `amount` est déjà dans la devise du compte : convertir avec celle-ci, pas la devise de saisie
+        amount_eur = net_amount(tx) / rates.get(row.acc_currency, 1.0)
         
         if tx.type == "Sortie":
             if cat_name in ["Epargne", "Épargne"]:
@@ -507,6 +492,11 @@ async def sankey_analytics(
     )
     if account_id:
         exp_query = exp_query.filter(Transaction.account_id == account_id)
+    else:
+        exp_query = exp_query.filter(Account.type.in_(["courant", "epargne"]))
+        tr_accounts = _get_ticket_restaurant_account_ids(db)
+        if tr_accounts:
+            exp_query = exp_query.filter(Transaction.account_id.notin_(tr_accounts))
 
     exp_rows = exp_query.group_by(Category.id, Account.currency).all()
 
@@ -536,6 +526,11 @@ async def sankey_analytics(
     )
     if account_id:
         inc_query = inc_query.filter(Transaction.account_id == account_id)
+    else:
+        inc_query = inc_query.filter(Account.type.in_(["courant", "epargne"]), income_criterion(db))
+        tr_accounts = _get_ticket_restaurant_account_ids(db)
+        if tr_accounts:
+            inc_query = inc_query.filter(Transaction.account_id.notin_(tr_accounts))
 
     inc_rows = inc_query.group_by(Category.id, Account.currency).all()
 

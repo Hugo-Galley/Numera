@@ -1,9 +1,11 @@
 from datetime import datetime
+from sqlalchemy import and_, or_
 from sqlalchemy.orm import Session
 
 from app.core.logging import get_logger
 from app.models.account import Account
 from app.models.balance_snapshot import BalanceSnapshot
+from app.models.category import Category
 from app.models.transaction import Transaction
 from app.schemas.transaction import TransactionRead
 
@@ -12,6 +14,25 @@ logger = get_logger(__name__)
 # Montant « économique » : brut moins la part remboursée (Sortie) ou affectée à une créance (Entree).
 # Les KPI de revenus/dépenses l'utilisent ; les flux de trésorerie (soldes, calendrier) restent en brut.
 NET_AMOUNT = Transaction.amount - Transaction.reimbursement_offset
+
+
+def income_criterion(db: Session):
+    """Ce qui compte comme revenu en vue globale (la requête doit être jointe à `Account`).
+
+    - une entrée sur un compte courant ;
+    - une entrée sur un autre compte (livret…) seulement si sa catégorie est de type « revenu »
+      (marquage explicite) : un dépôt non lié n'est pas un revenu ;
+    - les intérêts (type `Interets`), de nature explicite.
+    `Solde Initial` n'en fait jamais partie. Les virements internes sont exclus à part (`is_transfer`).
+    """
+    revenue_categories = db.query(Category.id).filter(Category.type == "revenu")
+    return or_(
+        Transaction.type == "Interets",
+        and_(
+            Transaction.type == "Entree",
+            or_(Account.type == "courant", Transaction.category_id.in_(revenue_categories)),
+        ),
+    )
 
 
 def budget_versement_ids(db: Session):

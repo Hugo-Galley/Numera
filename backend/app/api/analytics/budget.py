@@ -57,6 +57,7 @@ logger = get_logger(__name__)
 router = APIRouter()
 
 from .utils import (
+    income_criterion,
     NET_AMOUNT,
     budget_versement_ids,
     _tx_sample,
@@ -77,6 +78,8 @@ async def budget_analytics(
 ):
     if account_id is not None and db.get(Account, account_id) is None:
         raise HTTPException(status_code=404, detail="Account not found")
+    if bool(month) != bool(year):
+        raise HTTPException(status_code=422, detail="month et year doivent être fournis ensemble")
     try:
         start = None
         end = datetime.now()
@@ -90,10 +93,8 @@ async def budget_analytics(
         tr_accounts = _get_ticket_restaurant_account_ids(db)
 
         # Get income grouped by account currency
+        # Solde Initial n'est jamais un revenu (base du solde), y compris sur « tout le temps »
         revenus_query_filter = ["Entree", "Interets"]
-        if not month or not year:
-            # Only include Solde Initial when looking at "All time"
-            revenus_query_filter.append("Solde Initial")
 
         revenus_by_curr = db.query(
             Account.currency,
@@ -103,8 +104,10 @@ async def budget_analytics(
             Transaction.is_transfer == False
         )
         if not account_id:
-            # Global view: include both checking and savings accounts
-            revenus_by_curr = revenus_by_curr.filter(Account.type.in_(["courant", "epargne"]))
+            # Vue globale : revenu au sens de income_criterion (courant, ou catégorie « revenu » ailleurs)
+            revenus_by_curr = revenus_by_curr.filter(
+                Account.type.in_(["courant", "epargne"]), income_criterion(db)
+            )
             if tr_accounts:
                 revenus_by_curr = revenus_by_curr.filter(Transaction.account_id.notin_(tr_accounts))
         else:
@@ -455,7 +458,7 @@ async def budget_analytics(
             # We need to re-query without currency conversion
             revenus_query = (
                 db.query(func.coalesce(func.sum(NET_AMOUNT), 0.0))
-                .filter(Transaction.account_id == account_id, Transaction.type.in_(["Entree", "Solde Initial"]), Transaction.is_transfer == False)
+                .filter(Transaction.account_id == account_id, Transaction.type.in_(["Entree", "Interets"]), Transaction.is_transfer == False)
             )
             if start:
                 revenus_query = revenus_query.filter(Transaction.date >= start)
@@ -517,21 +520,19 @@ async def budget_analytics(
             investments += float(itx_inv_q.scalar() or 0.0)
 
             remaining = revenus - depenses
-            savings_rate = (remaining / revenus * 100.0) if revenus > 0 else 0.0
-            real_depenses = depenses - investments
-            
-            # Robust calculation of days for burn_rate
+            # Compte titres : un versement est une entrée du compte, pas une dépense à retrancher
+            real_depenses = depenses if acc_obj.type in INVESTMENT_ACCOUNT_TYPES else depenses - investments
+            # Mêmes formules que la vue globale : taux plafonné, burn rate sur les jours écoulés
+            savings_rate = max(min((revenus - real_depenses) / revenus * 100.0, 100.0), -100.0) if revenus > 0 else 0.0
+            burn_rate = max(real_depenses, 0.0) / max(days, 1)
+
+            interets_query = (
+                db.query(func.coalesce(func.sum(NET_AMOUNT), 0.0))
+                .filter(Transaction.account_id == account_id, Transaction.type == "Interets", Transaction.is_transfer == False)
+            )
             if start:
-                days_count = (end - start).days
-            else:
-                earliest = db.query(func.min(Transaction.date)).filter(Transaction.account_id == account_id).scalar()
-                if earliest:
-                    days_count = max((end - earliest).days, 1)
-                else:
-                    days_count = 1
-            
-            burn_rate = real_depenses / days_count if days_count > 0 else 0.0
-            interets = 0.0 # Simplified for single account view
+                interets_query = interets_query.filter(Transaction.date >= start)
+            interets = float(interets_query.filter(Transaction.date < end).scalar() or 0.0)
 
 
 

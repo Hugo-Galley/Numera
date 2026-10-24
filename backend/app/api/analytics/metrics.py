@@ -54,6 +54,7 @@ logger = get_logger(__name__)
 router = APIRouter()
 
 from .utils import (
+    income_criterion,
     NET_AMOUNT,
     budget_versement_ids,
     _tx_sample,
@@ -397,6 +398,8 @@ async def kpi_history(
     )
     if not account_id:
         tx_query = tx_query.filter(Account.type.in_(["courant", "epargne"]))
+        # Une entrée n'est un revenu que selon income_criterion ; les sorties restent toutes comptées
+        tx_query = tx_query.filter(or_(Transaction.type == "Sortie", income_criterion(db)))
         if tr_accounts:
             tx_query = tx_query.filter(Transaction.account_id.notin_(tr_accounts))
     else:
@@ -593,6 +596,7 @@ async def timeseries_analytics(
             Transaction.date >= start,
             Transaction.date < end,
             Transaction.type.in_(["Entree", "Interets"]),
+            Transaction.is_transfer == False,  # un virement interne n'est ni un revenu ni une dépense
         )
         
         expense_by_curr = db.query(
@@ -602,13 +606,14 @@ async def timeseries_analytics(
             Transaction.date >= start,
             Transaction.date < end,
             Transaction.type == "Sortie",
+            Transaction.is_transfer == False,
         )
 
         if account_id is not None:
             income_by_curr = income_by_curr.filter(Transaction.account_id == account_id)
             expense_by_curr = expense_by_curr.filter(Transaction.account_id == account_id)
         else:
-            income_by_curr = income_by_curr.filter(Account.type.in_(["courant", "epargne"]))
+            income_by_curr = income_by_curr.filter(Account.type.in_(["courant", "epargne"]), income_criterion(db))
             expense_by_curr = expense_by_curr.filter(Account.type.in_(["courant", "epargne"]))
             if tr_accounts:
                 income_by_curr = income_by_curr.filter(Transaction.account_id.notin_(tr_accounts))

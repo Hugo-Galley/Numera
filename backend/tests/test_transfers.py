@@ -82,7 +82,9 @@ def test_transfer_detection_and_linking(client: TestClient, db_session: Session)
     assert response.status_code == 200
     data = response.json()
     assert data["depenses_totales"] == 500.0
-    assert data["revenus_totaux"] == 500.0
+    # Un dépôt non lié sur un compte épargne n'est pas un revenu (seul un compte courant, ou une
+    # catégorie de type « revenu », en crée un) ; la sortie, elle, redevient une dépense.
+    assert data["revenus_totaux"] == 0.0
 
 def test_investment_transfer_and_ignore(client: TestClient, db_session: Session):
     from app.models.investment_transaction import InvestmentTransaction
