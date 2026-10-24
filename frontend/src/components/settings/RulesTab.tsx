@@ -53,7 +53,7 @@ export function RulesTab() {
     pattern: "",
     category_id: "",
     merchant_name: "",
-    transaction_type: "Sortie",
+    transaction_type: "none", // "none" = ne change pas le type de la transaction
     priority: 0
   })
 
@@ -81,7 +81,8 @@ export function RulesTab() {
     try {
       await api.post("/categorization-rules/", {
         ...newRule,
-        category_id: newRule.category_id ? parseInt(newRule.category_id) : null
+        category_id: newRule.category_id ? parseInt(newRule.category_id) : null,
+        transaction_type: newRule.transaction_type === "none" ? null : newRule.transaction_type,
       })
       toast.success("Règle créée avec succès")
       setIsAddOpen(false)
@@ -89,7 +90,7 @@ export function RulesTab() {
         pattern: "",
         category_id: "",
         merchant_name: "",
-        transaction_type: "Sortie",
+        transaction_type: "none", // "none" = ne change pas le type de la transaction
         priority: 0
       })
       loadData()
@@ -190,8 +191,9 @@ export function RulesTab() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="Sortie">Sortie</SelectItem>
-                          <SelectItem value="Entree">Entrée</SelectItem>
+                          <SelectItem value="none">Aucun changement</SelectItem>
+                          <SelectItem value="Sortie">Forcer en Sortie</SelectItem>
+                          <SelectItem value="Entree">Forcer en Entrée</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -236,6 +238,11 @@ export function RulesTab() {
                           <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 border-slate-200">
                              <div className="h-1.5 w-1.5 rounded-full mr-1.5" style={{ backgroundColor: category.color }} />
                              {category.name}
+                          </Badge>
+                        )}
+                        {rule.transaction_type && (
+                          <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 border-amber-200 text-amber-700">
+                            Type → {rule.transaction_type === "Entree" ? "Entrée" : rule.transaction_type}
                           </Badge>
                         )}
                         <span className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">Priorité: {rule.priority}</span>

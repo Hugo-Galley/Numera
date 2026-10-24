@@ -30,6 +30,10 @@ def update_rule(rule_id: int, payload: CategorizationRuleUpdate, db: Session = D
         raise HTTPException(status_code=404, detail="Rule not found")
     
     data = payload.model_dump(exclude_unset=True)
+    if data.get("pattern", "") is None:  # colonne NOT NULL : un `null` explicite est ignoré
+        del data["pattern"]
+    if data.get("priority", 0) is None:
+        del data["priority"]
     for key, value in data.items():
         setattr(rule, key, value)
     
@@ -47,22 +51,32 @@ def delete_rule(rule_id: int, db: Session = Depends(get_db)):
 
 @router.post("/apply-all", status_code=200)
 def apply_rules_to_transactions(db: Session = Depends(get_db)):
-    """Apply all rules to existing transactions that don't have a category or match patterns."""
+    """Applique les règles aux transactions existantes.
+
+    Une catégorie déjà posée n'est jamais écrasée ; les « Solde Initial » et les virements internes
+    ne sont pas touchés. Changements et recalcul des soldes sont validés ensemble (rollback sinon).
+    """
     rules = db.query(CategorizationRule).order_by(CategorizationRule.priority.desc()).all()
     if not rules:
         return {"modified_count": 0}
 
-    transactions = db.query(Transaction).all()
-    
+    transactions = (
+        db.query(Transaction)
+        .filter(Transaction.type != "Solde Initial", Transaction.is_transfer == False)  # noqa: E712
+        .all()
+    )
+
     modified_count = 0
     affected_balance_account_ids = set()
 
     for tx in transactions:
         for rule in rules:
-            pattern = rule.pattern.lower()
+            pattern = rule.pattern.strip().lower()
+            if not pattern:
+                continue
             if pattern in (tx.merchant or "").lower() or pattern in (tx.note or "").lower():
                 tx_changed = False
-                if rule.category_id and tx.category_id != rule.category_id:
+                if rule.category_id and tx.category_id is None:
                     tx.category_id = rule.category_id
                     tx_changed = True
                 # Une transaction qui porte des remboursements garde son type (cf. core/reimbursements.py)
@@ -73,16 +87,19 @@ def apply_rules_to_transactions(db: Session = Depends(get_db)):
                 if rule.merchant_name and tx.merchant != rule.merchant_name:
                     tx.merchant = rule.merchant_name
                     tx_changed = True
-                
+
                 if tx_changed:
                     modified_count += 1
-                break # Only apply first matching rule by priority
-                
-    db.commit()
+                break  # Only apply first matching rule by priority
 
-    if affected_balance_account_ids:
+    try:
+        db.flush()
         from app.api.transactions import recalculate_running_balances
         for acc_id in affected_balance_account_ids:
             recalculate_running_balances(db, acc_id)
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
 
     return {"modified_count": modified_count}
