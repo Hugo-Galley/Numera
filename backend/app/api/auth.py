@@ -99,7 +99,14 @@ def refresh_access_token(
     par `SESSION_MAX_HOURS` depuis la connexion par mot de passe (`auth_time`). Jamais pour un jeton MCP.
     """
     payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-    auth_time = int(payload.get("auth_time") or time.time())
+    # Sans auth_time, la durée totale de la session ne serait pas bornée : pas de renouvellement
+    if not payload.get("auth_time"):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Session expirée, reconnectez-vous",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    auth_time = int(payload["auth_time"])
     if time.time() - auth_time > settings.SESSION_MAX_HOURS * 3600:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

@@ -18,6 +18,7 @@ Complète le `CLAUDE.md` racine. Procédures pas-à-pas : skill `numera-backend`
 - Les endpoints sont majoritairement **synchrones** (`def`) ; `async def` seulement quand on appelle du code async (`convert_amount`, `get_exchange_rates`, `market_data`, `etf_analyzer`, génération récurrente).
 - N+1 : relations en `lazy="selectin"` sur les modèles ; sinon `joinedload`/`selectinload` pour les listes.
 - Dates : `app.core.time.utcnow_naive` (datetimes naïfs UTC en base).
+- `tests/test_migrations.py` exige que `alembic upgrade head` produise exactement le schéma des modèles (`compare_metadata == []`) : tout changement de modèle sans migration fait échouer la suite. La révision `a9c1e4d7b2f6` rattrape les écarts historiques et ne fait rien sur une base créée par `create_all`.
 - Schéma modifié → `cd backend && alembic revision --autogenerate -m "..."`, relire la migration, la committer. Les migrations s'appliquent seules au démarrage.
 
 ## Finance

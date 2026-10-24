@@ -23,7 +23,7 @@ prod-down:
 	docker compose --env-file .env -f docker-compose.prod.yml down
 
 backend-install:
-	python3 -m venv .venv && . .venv/bin/activate && pip install -r backend/requirements.txt
+	python3 -m venv .venv && . .venv/bin/activate && pip install -r backend/requirements-dev.txt
 
 frontend-install:
 	cd frontend && npm install

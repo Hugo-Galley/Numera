@@ -23,9 +23,18 @@ class LoginRateLimiter:
                 self._attempts.pop(key, None)
             return True
 
+    def _purge(self, now: float) -> None:
+        """Oublie les clés dont la fenêtre ou le blocage est écoulé (sinon un identifiant unique par
+        tentative fait grossir la mémoire sans limite)."""
+        for key in [k for k, q in self._attempts.items() if not q or q[-1] <= now - self.window_seconds]:
+            self._attempts.pop(key, None)
+        for key in [k for k, until in self._locked_until.items() if until <= now]:
+            self._locked_until.pop(key, None)
+
     def record_failure(self, key: str) -> None:
         now = monotonic()
         with self._lock:
+            self._purge(now)
             attempts = self._attempts.setdefault(key, deque())
             while attempts and attempts[0] <= now - self.window_seconds:
                 attempts.popleft()

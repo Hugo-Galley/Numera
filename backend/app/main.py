@@ -125,7 +125,14 @@ async def lifespan(_: FastAPI):
 
 
 
-app = FastAPI(title=settings.app_name, lifespan=lifespan)
+def docs_kwargs(app_env: str) -> dict:
+    """En production, ni Swagger ni ReDoc ni le schéma OpenAPI ne sont servis (surface inutile et bavarde)."""
+    if app_env == "prod":
+        return {"docs_url": None, "redoc_url": None, "openapi_url": None}
+    return {}
+
+
+app = FastAPI(title=settings.app_name, lifespan=lifespan, **docs_kwargs(settings.app_env))
 
 
 @app.exception_handler(CurrencyConversionError)

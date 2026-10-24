@@ -12,9 +12,9 @@ services:
       - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:8082}
     volumes:
       - ./backend/data:/app/data
-    # Le backend n'est joignable que via nginx : on lui fait confiance pour X-Forwarded-For
-    # (sinon le rate-limit du login voit l'IP du proxy et un attaquant peut verrouiller le compte admin)
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8001 --proxy-headers --forwarded-allow-ips=*
+    # Le backend n'est joignable que via nginx (réseau privé Docker) : seul ce réseau est cru pour
+    # X-Forwarded-For, et nginx écrase l'en-tête avec l'IP cliente réelle (cf. frontend/nginx.conf)
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8001 --proxy-headers --forwarded-allow-ips=127.0.0.1,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
       interval: 10s

@@ -52,10 +52,17 @@ def get_current_user(
 
     try:
         payload = jwt.decode(
-            token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
+            token,
+            settings.SECRET_KEY,
+            algorithms=[settings.ALGORITHM],
+            options={"require": ["exp", "sub"]},  # un jeton sans expiration ne serait jamais périmé
         )
         token_data = payload.get("sub")
         if token_data is None:
+            raise credentials_exception
+        # Un changement de mot de passe invalide les sessions ouvertes avant lui
+        valid_after = int(get_setting(db, "auth_valid_after", "0") or 0)
+        if int(payload.get("auth_time") or 0) < valid_after:
             raise credentials_exception
     except (jwt.PyJWTError, ValidationError):
         raise credentials_exception

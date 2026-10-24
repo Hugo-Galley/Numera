@@ -45,3 +45,11 @@ La procédure a été validée le 5 juin 2026 :
 3. Suppression de la base factice.
 4. Exécution de `restore.py`.
 5. Vérification de l'intégrité des données restaurées.
+
+
+## Garanties de `restore.py`
+
+- La sauvegarde est déchiffrée et vérifiée (`PRAGMA integrity_check`) dans un fichier temporaire **avant** toute écriture : une mauvaise clé ou un fichier corrompu laisse la base actuelle intacte.
+- La base remplacée est conservée à côté (`<destination>.pre-restore-<horodatage>`), puis le remplacement est atomique.
+- Le script sort avec un code non nul en cas d'échec.
+- Arrêtez le backend avant de restaurer (`docker compose stop backend`). Les logos (`backend/data/logos`) ne sont pas inclus dans les sauvegardes.

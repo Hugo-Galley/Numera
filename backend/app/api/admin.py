@@ -1,3 +1,4 @@
+import time
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -70,6 +71,8 @@ def update_admin_profile(
         set_setting(db, "admin_username", profile_in.username)
     if profile_in.password:
         set_setting(db, "admin_password_hash", security.get_password_hash(profile_in.password))
+        # Les sessions ouvertes avant ce changement ne sont plus valides (un jeton volé ne survit pas)
+        set_setting(db, "auth_valid_after", str(int(time.time())))
     if profile_in.profile_picture_url is not None:
         set_setting(db, "profile_picture_url", profile_in.profile_picture_url)
     if profile_in.mcp_enabled is not None:
