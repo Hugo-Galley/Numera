@@ -80,8 +80,8 @@ def test_missing_salary_does_not_stretch_period(db_session: Session, setup):
     _tx(db_session, courant, datetime(2026, 12, 26), "Entree", 2000.0, "Salaire")
     db_session.commit()
     assert budget_period.period_bounds(db_session, 2026, 10) == (datetime(2026, 9, 26), datetime(2026, 10, 26))
-    # Le mois sans salaire retombe sur le mois civil
-    assert budget_period.period_bounds(db_session, 2026, 11) == (datetime(2026, 11, 1), datetime(2026, 12, 1))
+    # Le mois sans salaire démarre où la période précédente s'arrête (aucun jour sans période, audit A1)
+    assert budget_period.period_bounds(db_session, 2026, 11) == (datetime(2026, 10, 26), datetime(2026, 11, 26))
 
 
 def test_salary_imported_with_employer_label_is_detected_by_category(db_session: Session):
@@ -93,3 +93,56 @@ def test_salary_imported_with_employer_label_is_detected_by_category(db_session:
     _tx(db_session, courant, datetime(2026, 3, 26), "Entree", 1240.0, "Axa", category_id=cat.id)
     db_session.commit()
     assert budget_period.period_bounds(db_session, 2026, 4)[0] == datetime(2026, 3, 26)
+
+
+# --- Audit A1 : aucun jour ne doit rester sans période -----------------------------------
+
+def _gap_setup(db: Session, salary_days: list[datetime], expenses: list[tuple[datetime, float]]) -> None:
+    courant = Account(name="Courant", type="courant", currency="EUR", active=True)
+    db.add(courant)
+    db.commit()
+    db.add(SalaryConfig(salary_account_id=courant.id, net_salary=2000.0))
+    for day in salary_days:
+        _tx(db, courant, day, "Entree", 2000.0, "Salaire")
+    for day, amount in expenses:
+        _tx(db, courant, day, "Sortie", amount, "Carrefour")
+    db.commit()
+
+
+def test_month_without_salary_covers_the_whole_gap(client: TestClient, db_session: Session):
+    # Pas de salaire en février : le trou 25/02 → 25/03 doit former le mois de mars
+    _gap_setup(
+        db_session,
+        [datetime(2026, 1, 25), datetime(2026, 3, 25), datetime(2026, 4, 25)],
+        [(datetime(2026, 2, 27), 100.0), (datetime(2026, 3, 10), 50.0)],
+    )
+    start, end = budget_period.period_bounds(db_session, 2026, 3)
+    assert start <= datetime(2026, 2, 27) and end > datetime(2026, 3, 10)
+    march = client.get("/analytics/budget", params={"month": 3, "year": 2026}).json()
+    assert march["depenses_totales"] == 150.0
+
+
+def test_every_day_belongs_to_exactly_one_period(db_session: Session):
+    _gap_setup(
+        db_session,
+        [datetime(2026, 1, 25), datetime(2026, 3, 25), datetime(2026, 4, 25)],
+        [],
+    )
+    periods = budget_period.build_periods(db_session)
+    for before, after in zip(periods, periods[1:]):
+        assert before.end == after.start, (before, after)
+    assert len({(p.year, p.month) for p in periods}) == len(periods)
+
+
+def test_second_salary_in_same_financed_month_keeps_coverage(client: TestClient, db_session: Session):
+    # Deux salaires (25/01 et 10/02) financent février ; les jours entre 10/02 et 25/02 ne doivent pas disparaître
+    _gap_setup(
+        db_session,
+        [datetime(2026, 1, 25), datetime(2026, 2, 10), datetime(2026, 2, 25)],
+        [(datetime(2026, 2, 20), 70.0)],
+    )
+    periods = budget_period.build_periods(db_session)
+    for before, after in zip(periods, periods[1:]):
+        assert before.end == after.start, (before, after)
+    feb = client.get("/analytics/budget", params={"month": 2, "year": 2026}).json()
+    assert feb["depenses_totales"] == 70.0

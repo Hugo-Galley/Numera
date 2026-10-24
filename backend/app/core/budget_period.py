@@ -142,11 +142,43 @@ def build_periods(db: Session) -> list[Period]:
             if end < tomorrow <= start + timedelta(days=OPEN_PERIOD_MAX_DAYS):
                 end = tomorrow
         year, month = _label_for(start)
-        # Deux salaires qui financent le même mois : on garde le premier.
+        # Deux salaires qui financent le même mois : on garde le premier, qui absorbe la fenêtre du second.
         if periods and (periods[-1].year, periods[-1].month) == (year, month):
+            last = periods[-1]
+            periods[-1] = Period(last.year, last.month, last.start, end)
             continue
         periods.append(Period(year, month, start, end))
-    return periods
+    return _fill_gaps(periods)
+
+
+def _fill_gaps(periods: list[Period]) -> list[Period]:
+    """Comble les trous entre deux périodes de paie (salaire manquant) par des mois sans salaire.
+
+    Chaque jour appartient ainsi à exactement une période : sans cela, les dépenses d'un mois
+    sans salaire disparaissaient des KPI (audit A1).
+    """
+    filled: list[Period] = []
+    for index, period in enumerate(periods):
+        filled.append(period)
+        if index + 1 >= len(periods):
+            break
+        following = periods[index + 1]
+        cursor = period.end
+        year, month = period.year, period.month
+        while cursor < following.start:
+            month += 1
+            if month > 12:
+                year, month = year + 1, 1
+            if (year, month) >= (following.year, following.month):
+                # Plus de mois libre avant la période suivante : le dernier mois absorbe le reste
+                filled[-1] = Period(filled[-1].year, filled[-1].month, filled[-1].start, following.start)
+                break
+            end = _add_month(cursor)
+            if (following.start - end).days < MIN_PERIOD_DAYS:
+                end = following.start  # reste trop court pour un mois à lui seul
+            filled.append(Period(year, month, cursor, end))
+            cursor = end
+    return filled
 
 
 def period_bounds(db: Session, year: int, month: int) -> tuple[datetime, datetime]:
