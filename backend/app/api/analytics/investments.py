@@ -8,6 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import case, func, or_
 from sqlalchemy.orm import Session
 
+from app.core.budget_period import period_bounds
 from app.core.currency import get_exchange_rates, convert_amount
 from app.db.session import get_db
 from app.models.account import Account
@@ -91,8 +92,8 @@ async def investments_analytics(
     start_date = None
     end_date = datetime.now()
     if month and year:
-        start_date = datetime(year, month, 1)
-        end_date = datetime(year + (1 if month == 12 else 0), 1 if month == 12 else month + 1, 1)
+        # Fenêtre du mois budgétaire (mois de paie en mode « salaire »), comme les autres KPI mensuels
+        start_date, end_date = period_bounds(db, year, month)
 
     latest_snapshots_subquery = (
         db.query(
@@ -116,11 +117,12 @@ async def investments_analytics(
     )
 
     latest_values_rows = (
-        db.query(BalanceSnapshot.account_id, BalanceSnapshot.current_value)
+        db.query(BalanceSnapshot.account_id, BalanceSnapshot.current_value, BalanceSnapshot.date)
         .join(latest_snapshots_ids, BalanceSnapshot.id == latest_snapshots_ids.c.max_id)
         .all()
     )
     latest_values = {row.account_id: float(row.current_value or 0.0) for row in latest_values_rows}
+    latest_value_dates = {row.account_id: row.date for row in latest_values_rows}
 
     # Fallback for accounts without snapshots
     for acc in investment_accounts:
@@ -133,10 +135,13 @@ async def investments_analytics(
             )
             if last_tx:
                 latest_values[acc.id] = float(last_tx.running_balance)
+                latest_value_dates[acc.id] = last_tx.date
 
     items = []
     total_net_invested_eur = 0.0
     total_current_value_eur = 0.0
+    total_gain_eur = 0.0
+    total_gain_base_eur = 0.0  # capital des comptes dont le gain est calculable
     
     for account in investment_accounts:
         # Sur toute la période, un compte titres est valorisé par ses positions × cours (les snapshots ne servent qu'au rapprochement)
@@ -144,6 +149,9 @@ async def investments_analytics(
             p = await compute_portfolio(db, account, history=False)
             total_net_invested_eur += p["net_invested_eur"]
             total_current_value_eur += p["value_eur"]
+            if p["performance_pct"] is not None:
+                total_gain_eur += p["gain_eur"]
+                total_gain_base_eur += p["net_invested_eur"]
             items.append(
                 {
                     "account_id": account.id,
@@ -156,6 +164,7 @@ async def investments_analytics(
                     "performance_pct": p["performance_pct"] or 0.0,
                     "currency": account.currency,
                     "value_source": "positions",
+                    "value_stale": False,
                     "xirr_pct": p["xirr_pct"],
                     "unrealized_eur": p["unrealized_eur"],
                     "realized_eur": p["realized_eur"],
@@ -168,18 +177,29 @@ async def investments_analytics(
         net_invested_eur = flows["net_invested_target"]
         
         raw_current_value = latest_values.get(account.id)
-        if raw_current_value is not None:
-            current_value_eur = raw_current_value / rates.get(account.currency, 1.0)
+        value_date = latest_value_dates.get(account.id)
+        current_value_eur = (
+            raw_current_value / rates.get(account.currency, 1.0) if raw_current_value is not None else 0.0
+        )
+
+        # Sur un mois, le gain n'a de sens que si la valeur est postérieure au dernier flux de la période :
+        # un relevé plus ancien que le versement ferait passer ce versement pour une perte.
+        last_flow = flows.get("last_flow_date")
+        value_stale = raw_current_value is None or (
+            start_date is not None and last_flow is not None and (value_date is None or value_date < last_flow)
+        )
+        if value_stale:
+            gain_eur = None
+            performance_pct = None
         else:
-            # Fallback: use net invested as current value if no snapshots exist
-            current_value_eur = net_invested_eur
-        
-        gain_eur = current_value_eur - net_invested_eur
-        performance_pct = (gain_eur / net_invested_eur * 100.0) if net_invested_eur > 0 else 0.0
+            gain_eur = current_value_eur - net_invested_eur
+            performance_pct = (gain_eur / net_invested_eur * 100.0) if net_invested_eur > 0 else 0.0
+            total_gain_eur += gain_eur
+            total_gain_base_eur += max(net_invested_eur, 0.0)
 
         total_net_invested_eur += net_invested_eur
         total_current_value_eur += current_value_eur
-        
+
         display_verse = flows["total_verse_target"]
 
         items.append(
@@ -190,15 +210,16 @@ async def investments_analytics(
                 "total_retire": round(flows["total_retire_target"], 2),
                 "net_invested": round(net_invested_eur, 2),
                 "current_value": round(current_value_eur, 2),
-                "gain_eur": round(gain_eur, 2),
-                "performance_pct": round(performance_pct, 2),
+                "gain_eur": round(gain_eur, 2) if gain_eur is not None else None,
+                "performance_pct": round(performance_pct, 2) if performance_pct is not None else None,
                 "currency": account.currency,
-                "value_source": "snapshot",
+                "value_source": "snapshot" if raw_current_value is not None else "none",
+                "value_stale": value_stale,
             }
         )
 
-    total_gain_eur = total_current_value_eur - total_net_invested_eur
-    total_performance_pct = (total_gain_eur / total_net_invested_eur * 100.0) if total_net_invested_eur > 0 else 0.0
+    # Le gain total ne compte que les comptes évaluables (un compte sans valeur récente n'est pas une perte)
+    total_performance_pct = (total_gain_eur / total_gain_base_eur * 100.0) if total_gain_base_eur > 0 else 0.0
     return {
         "total_net_invested": round(total_net_invested_eur, 2),
         "total_current_value": round(total_current_value_eur, 2),
@@ -262,6 +283,7 @@ async def _calculate_investment_flows(db: Session, account: Account, end_date: d
     
     total_verse_target = 0.0
     total_retire_target = 0.0
+    last_flow_date: Optional[datetime] = None
 
     # Fetch flows
     itx_query = db.query(InvestmentTransaction).filter(InvestmentTransaction.account_id == account.id, InvestmentTransaction.date <= end_date)
@@ -276,8 +298,10 @@ async def _calculate_investment_flows(db: Session, account: Account, end_date: d
         amount_target = await convert_amount(tx.original_amount, tx.currency, target_currency, date=tx.date.date(), db=db)
         if tx.type == "versement":
             total_verse_target += amount_target
+            last_flow_date = max(last_flow_date, tx.date) if last_flow_date else tx.date
         elif tx.type == "retrait":
             total_retire_target += amount_target
+            last_flow_date = max(last_flow_date, tx.date) if last_flow_date else tx.date
             
     # Regular Transactions
     rtx_query = db.query(Transaction).outerjoin(Category, Transaction.category_id == Category.id).filter(Transaction.account_id == account.id, Transaction.date <= end_date)
@@ -322,6 +346,7 @@ async def _calculate_investment_flows(db: Session, account: Account, end_date: d
         "baseline_date": baseline_date,
         "total_verse_target": total_verse_target,
         "total_retire_target": total_retire_target,
+        "last_flow_date": last_flow_date,
         "net_invested_target": baseline_val_target + total_verse_target - total_retire_target
     }
 

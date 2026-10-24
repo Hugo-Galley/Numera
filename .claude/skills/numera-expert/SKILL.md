@@ -18,6 +18,13 @@ Les règles critiques courtes sont dans le `CLAUDE.md` racine ; ce skill détail
 - Valeur d'un compte titres (PEA/CTO/crypto) = positions × cours + espèces (`core/portfolio.py`, `GET /analytics/portfolio[/{id}]`) ; assurance-vie et comptes sans position = dernier snapshot. **Source unique** pour la valeur courante : `core/portfolio.py::positions_values_eur`, utilisée par `patrimoine-allocation`, `budget` (période en cours, assurances-vie incluses dans `patrimoine_net_total`) et `investments-allocation` ; les mois passés gardent le dernier relevé daté. Les snapshots servent au rapprochement (écart > 2 % → Centre d'Actions). Plus-value latente avec effet de change, plus-value réalisée par année (base de la 2074), XIRR et TWR sont calculés côté backend.
 - Cours : stockés dans `security_prices` (une clôture par ticker et par jour), le dernier cours connu sert de repli (`stale`) si Yahoo ne répond pas.
 
+## Revenu et patrimoine (définitions uniques)
+
+- **Revenu** : `income_criterion(db)` (`api/analytics/utils.py`, requête jointe à `Account`) = entrée sur un compte `courant`, ou entrée dont la catégorie est de type `revenu` (marquage explicite d'un revenu arrivé ailleurs), ou `Interets`. `Solde Initial` et virements internes jamais. Le money-flow reprend le `revenus_totaux` du budget ; le Sankey, le timeseries et `kpi-history` appliquent le même critère. Un dépôt non lié sur un livret n'est donc pas un revenu.
+- **Périmètre des flux** (revenus/dépenses, répartition par catégorie, top marchands, Sankey) : comptes `courant` et `epargne` hors tickets restaurant ; `expenses-by-category` ajoute un bloc « Sans catégorie » pour que son total égale `depenses_totales`.
+- **Patrimoine** : `core/wealth.py::account_values(db, accounts, at=None)` → valeur par compte (positions × cours pour un compte titres valorisé ainsi ; sinon relevé ; pour courant/épargne/autres le plus récent entre relevé et dernier solde ; rien = 0). Utilisé par `patrimoine-allocation`, `investments-allocation(-advanced)` et `budget.patrimoine_net_total` (tous les comptes actifs, y compris l'ancien type `bank`).
+- **Mois de paie** : `build_periods` comble les trous (mois sans salaire = fenêtre propre, second salaire d'un même mois absorbé) pour que chaque jour appartienne à une période.
+
 ## Virements internes
 
 Un virement est un couple **1 pour 1** : une `Sortie` et une `Entree` (ou un `versement` d'investissement) sur deux comptes différents (`is_transfer`, `linked_transaction_id` / `linked_investment_transaction_id`). Un lien ne change aucun montant. Les « dépenses réelles », les revenus et le taux d'épargne excluent ces lignes (`api/analytics/metrics.py`, `budget.py`). Toute la logique est dans `core/transfers.py` :

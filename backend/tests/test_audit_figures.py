@@ -219,3 +219,48 @@ def test_wealth_totals_agree_across_endpoints_and_include_every_account_type(cli
     advanced = client.get("/analytics/investments-allocation-advanced").json()
     summary = client.get("/analytics/investments-allocation").json()
     assert advanced["total_value_eur"] == summary["total_current_value"] == 2000.0
+
+
+# --- A7 : gain d'un mois ------------------------------------------------------------------
+
+def test_month_gain_is_not_computed_when_valuation_predates_the_deposit(client, db_session):
+    from app.models.balance_snapshot import BalanceSnapshot
+    from app.models.investment_transaction import InvestmentTransaction
+
+    pea = Account(name="PEA", type="investissement", currency="EUR", active=True)
+    db_session.add(pea)
+    db_session.commit()
+    db_session.add(BalanceSnapshot(account_id=pea.id, date=datetime(2026, 5, 19), current_value=1761.93))
+    db_session.add(InvestmentTransaction(
+        account_id=pea.id, date=datetime(2026, 10, 15), type="versement", amount=400.0,
+        original_amount=400.0, currency="EUR",
+    ))
+    db_session.commit()
+
+    data = client.get("/analytics/investments", params={"month": 10, "year": 2026}).json()
+    item = data["items"][0]
+    assert item["value_stale"] is True
+    assert item["gain_eur"] is None and item["performance_pct"] is None
+    assert data["total_gain_eur"] == 0.0  # un compte non évaluable n'est pas compté comme une perte
+
+
+def test_month_gain_is_computed_when_a_recent_valuation_exists(client, db_session):
+    from app.models.balance_snapshot import BalanceSnapshot
+    from app.models.investment_transaction import InvestmentTransaction
+
+    pea = Account(name="PEA", type="investissement", currency="EUR", active=True)
+    db_session.add(pea)
+    db_session.commit()
+    db_session.add_all([
+        BalanceSnapshot(account_id=pea.id, date=datetime(2026, 9, 20), current_value=1000.0),
+        BalanceSnapshot(account_id=pea.id, date=datetime(2026, 10, 28), current_value=1450.0),
+    ])
+    db_session.add(InvestmentTransaction(
+        account_id=pea.id, date=datetime(2026, 10, 15), type="versement", amount=400.0,
+        original_amount=400.0, currency="EUR",
+    ))
+    db_session.commit()
+
+    item = client.get("/analytics/investments", params={"month": 10, "year": 2026}).json()["items"][0]
+    assert item["value_stale"] is False
+    assert item["gain_eur"] == 50.0  # 1450 − (1000 + 400)

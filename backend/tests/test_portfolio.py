@@ -412,3 +412,23 @@ def test_assurance_vie_can_opt_into_positions(client, db_session):
     account_id = _setup(client, db_session, account_type="assurance_vie")
     assert client.patch(f"/accounts/{account_id}", json={"valuation_mode": "positions"}).status_code == 200
     assert _portfolio(client, account_id)["value_source"] != "snapshot"
+
+
+def test_deposits_far_above_inventory_value_make_performance_unreliable(client, db_session):
+    """Audit A8 : 13 versements antérieurs à l'inventaire gonflaient le capital investi (gain de −46 %)."""
+    account_id = _setup(client, db_session, quantity=1, pru=100.0)  # inventaire ≈ 100 € à J-200
+    for days_ago in (320, 300, 280):
+        _tx(client, account_id, "versement", 500.0, days_ago=days_ago)
+
+    p = _portfolio(client, account_id)
+    assert any("antérieurs à l'inventaire" in w for w in p["warnings"])
+    assert p["xirr_pct"] is None
+    assert p["performance_pct"] is None
+
+
+def test_deposits_in_line_with_inventory_keep_performance(client, db_session):
+    account_id = _setup(client, db_session, quantity=10, pru=100.0)  # inventaire ≈ 1000 €
+    _tx(client, account_id, "versement", 100.0, days_ago=320)
+
+    p = _portfolio(client, account_id)
+    assert not any("antérieurs à l'inventaire" in w for w in p["warnings"])

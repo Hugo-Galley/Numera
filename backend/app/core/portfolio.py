@@ -41,6 +41,10 @@ FEE_KEYWORDS = ("achat", "frais", "commission", "tax")
 
 # ── Fonctions pures ────────────────────────────────────────────────────────────
 
+# Versements antérieurs à l'inventaire : au-delà de ce multiple de la valeur d'ouverture, la performance est douteuse
+PRE_INVENTORY_RATIO = 2.0
+
+
 def xirr(flows: list[tuple[date_type, float]]) -> float | None:
     """Taux de rendement annualisé pondéré par les montants (flux < 0 : argent investi, > 0 : récupéré).
 
@@ -426,6 +430,20 @@ async def compute_portfolio(db: Session, account: Account, *, fetch: bool = True
     net_invested = reference_value + external_total
     gain = value - net_invested
     performance_pct = gain / net_invested * 100.0 if net_invested > 0 else None
+
+    # Versements antérieurs à l'inventaire sans Point Zéro valorisé : ils sont comptés dans le capital
+    # investi alors que la valeur ne contient que l'inventaire et ce qui suit → gain et XIRR aberrants.
+    performance_unreliable = False
+    if reference is None and baseline_date is not None:
+        before_inventory = sum(e.external for e in flow_events if e.date <= baseline_date)
+        if before_inventory > PRE_INVENTORY_RATIO * max(opening_value, 1.0):
+            performance_unreliable = True
+            performance_pct = None
+            warnings.append(
+                f"Versements antérieurs à l'inventaire ({before_inventory:,.0f} {currency}) très supérieurs à sa "
+                f"valeur d'ouverture ({opening_value:,.0f} {currency}) : performance non calculée. "
+                "Définissez un Point Zéro valorisé pour la fiabiliser."
+            )
     if cash < -0.01 * max(value, 1.0):
         warnings.append("Espèces négatives : il manque probablement un versement ou une vente dans l'historique.")
 
@@ -570,7 +588,7 @@ async def compute_portfolio(db: Session, account: Account, *, fetch: bool = True
         xirr_flows.append((reference_date.date(), -reference_value))
     xirr_flows += [(e.date.date(), -e.external) for e in flow_events]
     xirr_flows.append((today_day, value))
-    xirr_value = xirr(xirr_flows) if valued_by_positions else None
+    xirr_value = xirr(xirr_flows) if valued_by_positions and not performance_unreliable else None
     first_flow_day = min((d for d, _ in xirr_flows), default=today_day)
     period_days = (today_day - first_flow_day).days
 
@@ -601,6 +619,7 @@ async def compute_portfolio(db: Session, account: Account, *, fetch: bool = True
         "gain_eur": round(eur(gain), 2),
         "performance_pct": round(performance_pct, 2) if performance_pct is not None else None,
         "xirr_pct": round(xirr_value * 100.0, 2) if xirr_value is not None else None,
+        "performance_unreliable": performance_unreliable,
         "twr_pct": round(twr_value * 100.0, 2) if twr_value is not None else None,
         "period_days": period_days,
         "unrealized_eur": round(unrealized_eur, 2) if unrealized_cost_eur else None,

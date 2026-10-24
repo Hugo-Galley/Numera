@@ -310,10 +310,16 @@ const [loading, setLoading] = useState(true)
                     </div>
                     <div className="flex flex-wrap justify-between gap-x-2 text-xs text-muted-foreground pl-5.5">
                       <span className="amount-blur font-medium whitespace-nowrap">{formatCurrency(item.current_value)}</span>
-                      <span className={`amount-blur font-medium whitespace-nowrap ${item.gain_eur >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
-                        {item.gain_eur >= 0 ? "+" : ""}{formatCurrency(item.gain_eur)}
-                        {item.performance_pct != null && ` (${item.performance_pct >= 0 ? "+" : ""}${item.performance_pct.toFixed(2)} %)`}
-                      </span>
+                      {item.gain_eur == null ? (
+                        <span className="font-medium whitespace-nowrap text-amber-600" title="Aucune valorisation postérieure aux derniers flux de la période">
+                          Valeur à actualiser
+                        </span>
+                      ) : (
+                        <span className={`amount-blur font-medium whitespace-nowrap ${item.gain_eur >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
+                          {item.gain_eur >= 0 ? "+" : ""}{formatCurrency(item.gain_eur)}
+                          {item.performance_pct != null && ` (${item.performance_pct >= 0 ? "+" : ""}${item.performance_pct.toFixed(2)} %)`}
+                        </span>
+                      )}
                     </div>
                   </div>
                 ))}
