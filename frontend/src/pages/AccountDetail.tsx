@@ -1,3 +1,5 @@
+import { useSubmit } from "@/hooks/useSubmit"
+import { errorMessage, parsePositiveAmount } from "@/lib/utils"
 import { endOfDayParam, nowLocalInput, startOfDayParam, toInputValue, toNaiveLocal, todayLocal } from "@/lib/dates"
 import { useState, useEffect, useMemo } from "react"
 import { AccountLogo } from "@/components/ui/AccountLogo"
@@ -539,7 +541,7 @@ export default function AccountDetail() {
       setTransactions(txData)
       setHasMoreTx(txData.length === limit)
     } catch (error) {
-      toast.error("Erreur lors de la recherche")
+      toast.error(errorMessage(error, "Erreur lors de la recherche"))
     }
   }
 
@@ -552,7 +554,7 @@ export default function AccountDetail() {
       setTransactions(prev => [...prev, ...more])
       setHasMoreTx(more.length === TX_PAGE_SIZE)
     } catch (error) {
-      toast.error("Erreur lors du chargement des transactions")
+      toast.error(errorMessage(error, "Erreur lors du chargement des transactions"))
     } finally {
       setLoadingMoreTx(false)
     }
@@ -612,7 +614,7 @@ export default function AccountDetail() {
         setTagTotals(tagTotalsData)
       }
     } catch (error) {
-      toast.error("Erreur lors du chargement des données")
+      toast.error(errorMessage(error, "Erreur lors du chargement des données"))
     } finally {
       setLoading(false)
     }
@@ -653,7 +655,7 @@ export default function AccountDetail() {
     setTxCustomColor("#0f172a")
   }
 
-  const handleCreateTransaction = async () => {
+  const [handleCreateTransaction, handleCreateTransactionBusy] = useSubmit(async () => {
     let merchant = txMerchant
     if (txType === "Solde Initial" && !merchant) {
       merchant = "Solde Initial"
@@ -663,8 +665,9 @@ export default function AccountDetail() {
       toast.error("Veuillez saisir un commerçant ou un libellé")
       return
     }
-    if (!txAmount) {
-      toast.error("Veuillez saisir un montant")
+    // Un Solde Initial peut valoir 0 ; toute autre opération doit avoir un montant strictement positif
+    if (parsePositiveAmount(txAmount) === null && !(txType === "Solde Initial" && Number(txAmount) === 0 && txAmount !== "")) {
+      toast.error("Le montant doit être un nombre supérieur à 0")
       return
     }
 
@@ -692,9 +695,9 @@ export default function AccountDetail() {
     } catch (error: any) {
       toast.error(error.message || "Erreur lors de l'ajout")
     }
-  }
+  })
 
-  const handleUpdateTransaction = async () => {
+  const [handleUpdateTransaction, handleUpdateTransactionBusy] = useSubmit(async () => {
     if (!editTxId) return
     
     let merchant = txMerchant
@@ -706,8 +709,9 @@ export default function AccountDetail() {
       toast.error("Veuillez saisir un commerçant ou un libellé")
       return
     }
-    if (!txAmount) {
-      toast.error("Veuillez saisir un montant")
+    // Un Solde Initial peut valoir 0 ; toute autre opération doit avoir un montant strictement positif
+    if (parsePositiveAmount(txAmount) === null && !(txType === "Solde Initial" && Number(txAmount) === 0 && txAmount !== "")) {
+      toast.error("Le montant doit être un nombre supérieur à 0")
       return
     }
 
@@ -734,7 +738,7 @@ export default function AccountDetail() {
     } catch (error: any) {
       toast.error(error.message || "Erreur lors de la modification")
     }
-  }
+  })
 
   const handleEditTransaction = (tx: Transaction) => {
     setEditTxId(tx.id)
@@ -784,7 +788,7 @@ export default function AccountDetail() {
     setInvTxZone("")
   }
 
-  const handleCreateInvestmentTransaction = async () => {
+  const [handleCreateInvestmentTransaction, handleCreateInvestmentTransactionBusy] = useSubmit(async () => {
     if (!invTxAmount && (!invTxQuantity || !invTxUnitPrice)) {
       toast.error("Veuillez saisir un montant ou un nombre de parts")
       return
@@ -837,7 +841,7 @@ export default function AccountDetail() {
     } catch (error: any) {
       toast.error(error.message || "Erreur lors de l'enregistrement")
     }
-  }
+  })
 
   const handleEditInvTransaction = (tx: any) => {
     setEditInvTxId(tx.id)
@@ -888,8 +892,11 @@ export default function AccountDetail() {
     setSnapNote("")
   }
 
-  const handleCreateSnapshot = async () => {
-    if (!snapValue) return
+  const [handleCreateSnapshot, handleCreateSnapshotBusy] = useSubmit(async () => {
+    if (snapValue === "" || !Number.isFinite(Number(String(snapValue).replace(",", "."))) || Number(String(snapValue).replace(",", ".")) < 0) {
+      toast.error("Saisissez une valeur valide (nombre positif ou nul)")
+      return
+    }
     try {
       const payload = {
         account_id: Number(id),
@@ -911,9 +918,9 @@ export default function AccountDetail() {
       resetSnapForm()
       await loadData()
     } catch (error) {
-      toast.error("Erreur lors de l'enregistrement")
+      toast.error(errorMessage(error, "Erreur lors de l'enregistrement"))
     }
-  }
+  })
 
   const handleEditSnapshot = (snap: any) => {
     setEditSnapId(snap.id)
@@ -930,11 +937,11 @@ export default function AccountDetail() {
       toast.success("Snapshot supprimé")
       await loadData()
     } catch (error) {
-      toast.error("Erreur lors de la suppression")
+      toast.error(errorMessage(error, "Erreur lors de la suppression"))
     }
   }
 
-  const handleBulkUpdate = async () => {
+  const [handleBulkUpdate] = useSubmit(async () => {
     try {
       const payload: any = { ids: selectedIds }
       if (bulkCategory !== "keep") {
@@ -953,9 +960,9 @@ export default function AccountDetail() {
       setIsBulkEditDialogOpen(false)
       await loadData()
     } catch (error) {
-      toast.error("Erreur lors de la mise à jour groupée")
+      toast.error(errorMessage(error, "Erreur lors de la mise à jour groupée"))
     }
-  }
+  })
 
   // -- Handlers (Zero Point) --
   const resetZeroForm = () => {
@@ -964,8 +971,11 @@ export default function AccountDetail() {
     setZeroNote("")
   }
 
-  const handleSetZeroPoint = async () => {
-    if (!zeroValue) return
+  const [handleSetZeroPoint, handleSetZeroPointBusy] = useSubmit(async () => {
+    if (zeroValue === "" || !Number.isFinite(Number(String(zeroValue).replace(",", "."))) || Number(String(zeroValue).replace(",", ".")) < 0) {
+      toast.error("Saisissez une valeur d'ouverture valide (nombre positif ou nul)")
+      return
+    }
     try {
       const payload = {
         account_id: Number(id),
@@ -979,9 +989,9 @@ export default function AccountDetail() {
       resetZeroForm()
       await loadData()
     } catch (error) {
-      toast.error("Erreur lors de la définition du point zéro")
+      toast.error(errorMessage(error, "Erreur lors de la définition du point zéro"))
     }
-  }
+  })
 
   // -- Memos --
   const formatValue = (value: number | null | undefined, currencyCode: string = "EUR") => {
@@ -1311,7 +1321,7 @@ export default function AccountDetail() {
                         </div>
                       </div>
                     </div>
-                    <DialogFooter><Button variant="ghost" onClick={() => { setTxOpen(false); resetTxForm(); }}>Annuler</Button><Button onClick={editTxId ? handleUpdateTransaction : handleCreateTransaction} className="bg-slate-900 text-white shadow-lg">Enregistrer</Button></DialogFooter>
+                    <DialogFooter><Button variant="ghost" onClick={() => { setTxOpen(false); resetTxForm(); }}>Annuler</Button><Button onClick={editTxId ? () => handleUpdateTransaction() : () => handleCreateTransaction()} disabled={handleCreateTransactionBusy || handleUpdateTransactionBusy} className="bg-slate-900 text-white shadow-lg">{handleCreateTransactionBusy || handleUpdateTransactionBusy ? "Enregistrement…" : "Enregistrer"}</Button></DialogFooter>
                   </DialogContent>
                 </Dialog>
               ) : (
@@ -1546,7 +1556,7 @@ export default function AccountDetail() {
                       </div>
                       <DialogFooter>
                         <Button variant="ghost" onClick={() => { setInvTxOpen(false); resetInvTxForm(); }}>Annuler</Button>
-                        <Button onClick={handleCreateInvestmentTransaction} className="bg-slate-900 text-white shadow-lg">Confirmer</Button>
+                        <Button onClick={() => handleCreateInvestmentTransaction()} disabled={handleCreateInvestmentTransactionBusy} className="bg-slate-900 text-white shadow-lg">{handleCreateInvestmentTransactionBusy ? "Enregistrement…" : "Confirmer"}</Button>
                       </DialogFooter>
                     </DialogContent>
                   </Dialog>
@@ -1578,7 +1588,7 @@ export default function AccountDetail() {
                       </div>
                       <DialogFooter>
                         <Button variant="ghost" onClick={() => { setSnapOpen(false); resetSnapForm(); }}>Annuler</Button>
-                        <Button onClick={handleCreateSnapshot} className="bg-slate-900 text-white shadow-lg">Mettre à jour</Button>
+                        <Button onClick={() => handleCreateSnapshot()} disabled={handleCreateSnapshotBusy} className="bg-slate-900 text-white shadow-lg">{handleCreateSnapshotBusy ? "Enregistrement…" : "Mettre à jour"}</Button>
                       </DialogFooter>
                     </DialogContent>
                   </Dialog>
@@ -1612,7 +1622,7 @@ export default function AccountDetail() {
                       </div>
                       <DialogFooter>
                         <Button variant="ghost" onClick={() => { setZeroOpen(false); resetZeroForm(); }}>Annuler</Button>
-                        <Button onClick={handleSetZeroPoint} className="bg-rose-600 text-white hover:bg-rose-700 shadow-lg">Réinitialiser la base</Button>
+                        <Button onClick={() => handleSetZeroPoint()} disabled={handleSetZeroPointBusy} className="bg-rose-600 text-white hover:bg-rose-700 shadow-lg">{handleSetZeroPointBusy ? "Enregistrement…" : "Réinitialiser la base"}</Button>
                       </DialogFooter>
                     </DialogContent>
                   </Dialog>

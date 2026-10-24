@@ -69,3 +69,16 @@ const FREQUENCY_LABELS: Record<string, string> = {
 export function frequencyLabel(frequency: string): string {
   return FREQUENCY_LABELS[frequency] ?? frequency
 }
+
+
+/** Message d'une erreur d'API (ou de repli) : le détail renvoyé par le serveur plutôt qu'un texte générique. */
+export function errorMessage(error: unknown, fallback: string): string {
+  return error instanceof Error && error.message ? error.message : fallback
+}
+
+/** Montant saisi (virgule ou point) → nombre strictement positif, sinon `null`. */
+export function parsePositiveAmount(value: string | number | null | undefined): number | null {
+  if (value === null || value === undefined || value === "") return null
+  const n = typeof value === "number" ? value : Number(String(value).replace(",", ".").replace(/\s/g, ""))
+  return Number.isFinite(n) && n > 0 ? n : null
+}

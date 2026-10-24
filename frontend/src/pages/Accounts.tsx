@@ -1,3 +1,4 @@
+import { useSubmit } from "@/hooks/useSubmit"
 import { useEffect, useState, useMemo } from "react"
 import { Link } from "react-router-dom"
 import {
@@ -176,8 +177,11 @@ export default function Accounts() {
     loadSuggestions()
   }, [])
 
-  const handleCreateAccount = async () => {
-    if (!newName) return
+  const [handleCreateAccount, handleCreateAccountBusy] = useSubmit(async () => {
+    if (!newName.trim()) {
+      toast.error("Le nom du compte est requis")
+      return
+    }
     try {
       await api.post("/accounts", { 
         name: newName, 
@@ -213,9 +217,9 @@ export default function Accounts() {
     } catch (error) {
       toast.error("Erreur lors de la création du compte")
     }
-  }
+  })
 
-  const handleUpdateAccount = async () => {
+  const [handleUpdateAccount, handleUpdateAccountBusy] = useSubmit(async () => {
     if (!editingAccount) return
     try {
       await api.patch(`/accounts/${editingAccount.id}`, { 
@@ -247,7 +251,7 @@ export default function Accounts() {
     } catch (error) {
       toast.error("Erreur lors de la mise à jour")
     }
-  }
+  })
 
   const handleDeleteAccount = async (accountId: number) => {
     try {
@@ -509,7 +513,7 @@ export default function Accounts() {
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Annuler</Button>
-              <Button onClick={handleCreateAccount} className="bg-slate-900 text-white">Créer</Button>
+              <Button onClick={() => handleCreateAccount()} disabled={handleCreateAccountBusy} className="bg-slate-900 text-white">{handleCreateAccountBusy ? "Création…" : "Créer"}</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -742,7 +746,7 @@ export default function Accounts() {
           )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>Annuler</Button>
-            <Button onClick={handleUpdateAccount} className="bg-slate-900 text-white">Enregistrer</Button>
+            <Button onClick={() => handleUpdateAccount()} disabled={handleUpdateAccountBusy} className="bg-slate-900 text-white">{handleUpdateAccountBusy ? "Enregistrement…" : "Enregistrer"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

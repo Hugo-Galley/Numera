@@ -1,3 +1,4 @@
+import { useSubmit } from "@/hooks/useSubmit"
 import { ErrorState } from "@/components/layout/ErrorState"
 import { useState, useEffect } from "react"
 import { 
@@ -156,7 +157,7 @@ export default function Calendar({ embedded = false }: { embedded?: boolean }) {
     setIsDayDetailOpen(true)
   }
 
-  const handleValidate = async (ev: CalendarEvent) => {
+  const [handleValidate, validating] = useSubmit(async (ev: CalendarEvent) => {
     if (!ev.recurring_id || !selectedDay) return
     
     try {
@@ -216,7 +217,7 @@ export default function Calendar({ embedded = false }: { embedded?: boolean }) {
       console.error("Failed to validate transaction", error)
       toast.error("Erreur lors de la validation")
     }
-  }
+  })
 
   const selectedDayEvents = selectedDay 
     ? data?.events.filter(e => e.date.startsWith(selectedDay)) || []
@@ -482,6 +483,7 @@ export default function Calendar({ embedded = false }: { embedded?: boolean }) {
                             variant="ghost" 
                             className="h-9 md:h-6 text-xs md:text-[10px] gap-1 px-2 md:px-1.5 hover:bg-emerald-50 hover:text-emerald-700"
                             onClick={() => handleValidate(ev)}
+                            disabled={validating}
                           >
                             <CheckCircle2 className="h-3 w-3" />
                             Valider

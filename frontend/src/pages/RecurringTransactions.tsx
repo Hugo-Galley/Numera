@@ -1,3 +1,4 @@
+import { useSubmit } from "@/hooks/useSubmit"
 import { safeStorage } from "@/lib/storage"
 import { toNaiveLocal } from "@/lib/dates"
 import { lazy, Suspense, useEffect, useState } from "react"
@@ -338,7 +339,7 @@ export default function RecurringTransactions() {
     setIsFormOpen(true)
   }
 
-  const handleSubmit = async () => {
+  const [handleSubmit, handleSubmitBusy] = useSubmit(async () => {
     if (!formData.name || !formData.amount || !formData.account_id) {
       toast.error("Veuillez remplir les champs obligatoires")
       return
@@ -380,7 +381,7 @@ export default function RecurringTransactions() {
       console.error("Error saving recurring tx:", error)
       toast.error("Erreur lors de l'enregistrement")
     }
-  }
+  })
 
   const handleDelete = async (id: number) => {
     if (!(await confirm("Êtes-vous sûr de vouloir supprimer cette récurrence ?"))) return
@@ -394,7 +395,7 @@ export default function RecurringTransactions() {
     }
   }
 
-  const handleTrigger = async () => {
+  const [handleTrigger, handleTriggerBusy] = useSubmit(async () => {
     try {
       const count = await api.post<number>("/recurring-transactions/trigger", {})
       toast.success(`${count} transaction(s) générée(s)`)
@@ -403,7 +404,7 @@ export default function RecurringTransactions() {
       console.error("Error triggering generation:", error)
       toast.error("Erreur lors de la génération")
     }
-  }
+  })
 
   const toggleActive = async (tx: RecurringTransaction) => {
     try {
@@ -509,7 +510,7 @@ export default function RecurringTransactions() {
               Liste
             </Button>
           </div>
-          <Button variant="outline" onClick={handleTrigger} className="h-11 gap-2 px-3 md:h-9">
+          <Button variant="outline" onClick={() => handleTrigger()} disabled={handleTriggerBusy} className="h-11 gap-2 px-3 md:h-9">
             <Play className="h-4 w-4" />
             Lancer la génération
           </Button>
@@ -1516,7 +1517,7 @@ export default function RecurringTransactions() {
 
           <DialogFooter>
             <Button variant="outline" className="h-11 sm:h-10" onClick={() => setIsFormOpen(false)}>Annuler</Button>
-            <Button className="h-11 sm:h-10" onClick={handleSubmit}>Enregistrer</Button>
+            <Button className="h-11 sm:h-10" onClick={() => handleSubmit()} disabled={handleSubmitBusy}>{handleSubmitBusy ? "Enregistrement…" : "Enregistrer"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

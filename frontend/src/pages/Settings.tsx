@@ -1,3 +1,4 @@
+import { useSubmit } from "@/hooks/useSubmit"
 import { useState, useEffect, useRef } from "react"
 import { useSearchParams } from "react-router-dom"
 import { 
@@ -170,7 +171,7 @@ export default function Settings() {
     loadAccounts()
   }, [])
 
-  const handleAddCategory = async () => {
+  const [handleAddCategory, handleAddCategoryBusy] = useSubmit(async () => {
     if (!newCatName) return
     try {
       await api.post("/categories", {
@@ -195,7 +196,7 @@ export default function Settings() {
     } catch (error) {
       toast.error("Erreur lors de l'ajout")
     }
-  }
+  })
 
   const handleEditClick = (cat: Category) => {
     setEditingCat(cat)
@@ -209,7 +210,7 @@ export default function Settings() {
     setEditOpen(true)
   }
 
-  const handleUpdateCategory = async () => {
+  const [handleUpdateCategory, handleUpdateCategoryBusy] = useSubmit(async () => {
     if (!editingCat || !editCatName) return
     try {
       await api.patch(`/categories/${editingCat.id}`, {
@@ -227,7 +228,7 @@ export default function Settings() {
     } catch (error) {
       toast.error("Erreur lors de la mise à jour")
     }
-  }
+  })
 
   const handleDeleteCategory = async (categoryId: number) => {
     if (!(await confirm("Supprimer cette catégorie ? Les transactions associées n'auront plus de catégorie."))) return
@@ -430,7 +431,7 @@ export default function Settings() {
                 </div>
                 <DialogFooter className="gap-2 sm:gap-0">
                   <Button variant="ghost" className="h-11 sm:h-10" onClick={() => setNewOpen(false)}>Annuler</Button>
-                  <Button onClick={handleAddCategory} className="h-11 bg-slate-900 text-white shadow-lg sm:h-10">Créer la catégorie</Button>
+                  <Button onClick={() => handleAddCategory()} disabled={handleAddCategoryBusy} className="h-11 bg-slate-900 text-white shadow-lg sm:h-10">Créer la catégorie</Button>
                 </DialogFooter>
               </DialogContent>
             </Dialog>
@@ -612,7 +613,7 @@ export default function Settings() {
               </div>
               <DialogFooter className="gap-2 sm:gap-0">
                 <Button variant="ghost" className="h-11 sm:h-10" onClick={() => setEditOpen(false)}>Annuler</Button>
-                <Button onClick={handleUpdateCategory} className="h-11 bg-slate-900 text-white shadow-lg sm:h-10">Enregistrer les modifications</Button>
+                <Button onClick={() => handleUpdateCategory()} disabled={handleUpdateCategoryBusy} className="h-11 bg-slate-900 text-white shadow-lg sm:h-10">Enregistrer les modifications</Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>

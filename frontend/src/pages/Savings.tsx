@@ -1,3 +1,4 @@
+import { useSubmit } from "@/hooks/useSubmit"
 import { ErrorState } from "@/components/layout/ErrorState"
 import { useEffect, useState, useMemo } from "react"
 import { formatAmountWithShare } from "@/lib/utils"
@@ -142,7 +143,7 @@ export default function Savings() {
     loadData()
   }, [month, year, period])
 
-  const handleCreateOrUpdateGoal = async () => {
+  const [handleCreateOrUpdateGoal, handleCreateOrUpdateGoalBusy] = useSubmit(async () => {
     if (!goalForm.name || !goalForm.target_amount) {
       toast.error("Veuillez remplir les champs obligatoires (Nom et Montant)")
       return
@@ -175,7 +176,7 @@ export default function Savings() {
       console.error("Error saving goal:", error)
       toast.error("Une erreur est survenue lors de l'enregistrement")
     }
-  }
+  })
 
   const handleDeleteGoal = async (id: number) => {
     if (!(await confirm("Supprimer cet objectif ?"))) return
@@ -628,7 +629,7 @@ export default function Savings() {
                     </div>
                   </div>
                   <DialogFooter>
-                    <Button onClick={handleCreateOrUpdateGoal} className="h-11 w-full rounded-xl sm:h-10">
+                    <Button onClick={() => handleCreateOrUpdateGoal()} disabled={handleCreateOrUpdateGoalBusy} className="h-11 w-full rounded-xl sm:h-10">
                       {editingGoal ? "Mettre à jour" : "Créer l'objectif"}
                     </Button>
                   </DialogFooter>
