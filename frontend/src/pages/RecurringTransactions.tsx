@@ -150,20 +150,29 @@ export default function RecurringTransactions() {
     geographic_zones: string[]
   }>({ asset_classes: [], sectors: [], geographic_zones: [] })
   const [loading, setLoading] = useState(true)
+  // Les deux vues se recoupent : on n'en affiche qu'une (réglage mémorisé dans le navigateur)
+  const [recurringView, setRecurringView] = useState<"analysis" | "list">(() => {
+    try { return localStorage.getItem("recurring-view") === "list" ? "list" : "analysis" } catch { return "analysis" }
+  })
+  const changeRecurringView = (view: "analysis" | "list") => {
+    setRecurringView(view)
+    try { localStorage.setItem("recurring-view", view) } catch { /* stockage indisponible */ }
+  }
   // L'onglet actif vit dans l'URL (?tab=) : les raccourcis (Omnibox, ancienne adresse /calendar)
   // changent d'onglet même quand la page est déjà ouverte
   const [searchParams, setSearchParams] = useSearchParams()
   const requestedTab = searchParams.get("tab")
-  const activeTab = requestedTab === "subscriptions" || requestedTab === "salary" || requestedTab === "calendar"
+  const mainTab = recurringView === "list" ? "recurring" : "subscriptions"
+  const activeTab = requestedTab === "salary" || requestedTab === "calendar"
     ? requestedTab
-    : "recurring"
+    : mainTab
   const setActiveTab = (tab: string) => {
     setSearchParams((params) => {
       params.set("tab", tab)
       return params
     }, { replace: true })
   }
-  const [subTab, setSubTab] = useState<"subscriptions" | "investments">("subscriptions")
+  const [subTab, setSubTab] = useState<"subscriptions" | "investments" | "other">("subscriptions")
   const [flowSub, setFlowSub] = useState<any>(null)
   
   // Dialogs
@@ -225,17 +234,13 @@ export default function RecurringTransactions() {
   }, [selectedAccount, accountIsInvestment, formData.type, formData.ticker])
 
   const allSubs = subsData?.subscriptions || []
-  const activeSubs = allSubs.filter((s: any) => {
-    if (!s.is_recurring_entity) return false
-    const isInv = s.category_name === "Investissement" || s.category_name === "Epargne"
-    return subTab === "investments" ? isInv : !isInv
-  })
-  
-  const potentialSubs = allSubs.filter((s: any) => {
-    if (s.is_recurring_entity) return false
-    const isInv = s.category_name === "Investissement" || s.category_name === "Epargne"
-    return subTab === "investments" ? isInv : !isInv
-  })
+  // Investissement/Épargne d'abord, puis « autres » (salaire…, tout ce qui n'est pas une sortie), le reste = abonnements
+  const subKind = (s: any): "subscriptions" | "investments" | "other" => {
+    if (s.category_name === "Investissement" || s.category_name === "Epargne") return "investments"
+    return (s.flow_type || "Sortie") === "Sortie" ? "subscriptions" : "other"
+  }
+  const activeSubs = allSubs.filter((s: any) => s.is_recurring_entity && subKind(s) === subTab)
+  const potentialSubs = allSubs.filter((s: any) => !s.is_recurring_entity && subKind(s) === subTab)
 
   const loadData = async () => {
     setLoading(true)
@@ -244,7 +249,7 @@ export default function RecurringTransactions() {
         api.get<RecurringTransaction[]>("/recurring-transactions/"),
         api.get<Account[]>("/accounts"),
         api.get<Category[]>("/categories"),
-        api.get<any>("/analytics/subscriptions"),
+        api.get<any>("/analytics/subscriptions?include_other=true"),
         api.get<any>("/analytics/asset-allocation/suggestions")
       ])
       setRecurringTxs(txsData || [])
@@ -484,6 +489,24 @@ export default function RecurringTransactions() {
           <p className="text-slate-500">Récurrences, abonnements, calendrier des flux et salaire.</p>
         </div>
         <div className="grid grid-cols-2 gap-2 sm:flex">
+          <div className="col-span-2 flex items-center gap-1 rounded-xl bg-slate-100 p-1 sm:col-span-1" role="group" aria-label="Vue des récurrences">
+            <Button
+              variant={recurringView === "analysis" ? "white" : "ghost"}
+              size="sm"
+              className={`h-9 flex-1 rounded-lg px-3 text-xs font-bold ${recurringView === "analysis" ? "shadow-sm" : "text-slate-500 hover:text-slate-900"}`}
+              onClick={() => changeRecurringView("analysis")}
+            >
+              Analyse
+            </Button>
+            <Button
+              variant={recurringView === "list" ? "white" : "ghost"}
+              size="sm"
+              className={`h-9 flex-1 rounded-lg px-3 text-xs font-bold ${recurringView === "list" ? "shadow-sm" : "text-slate-500 hover:text-slate-900"}`}
+              onClick={() => changeRecurringView("list")}
+            >
+              Liste
+            </Button>
+          </div>
           <Button variant="outline" onClick={handleTrigger} className="h-11 gap-2 px-3 md:h-9">
             <Play className="h-4 w-4" />
             Lancer la génération
@@ -498,14 +521,17 @@ export default function RecurringTransactions() {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <div className="-mx-4 overflow-x-auto px-4 md:mx-0 md:overflow-visible md:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <TabsList className="bg-slate-100 p-1 w-max min-w-full md:w-auto md:min-w-0 h-11 md:h-auto">
-          <TabsTrigger value="recurring" className="rounded-lg gap-2">
-            <Repeat className="h-4 w-4" />
-            <span className="md:hidden">Récurrences</span><span className="hidden md:inline">Liste des Récurrences</span>
-          </TabsTrigger>
-          <TabsTrigger value="subscriptions" className="rounded-lg gap-2">
-            <CreditCard className="h-4 w-4" />
-            <span className="md:hidden">Abonnements</span><span className="hidden md:inline">Analyse Abonnements</span>
-          </TabsTrigger>
+          {recurringView === "list" ? (
+            <TabsTrigger value="recurring" className="rounded-lg gap-2">
+              <Repeat className="h-4 w-4" />
+              <span className="md:hidden">Récurrences</span><span className="hidden md:inline">Liste des Récurrences</span>
+            </TabsTrigger>
+          ) : (
+            <TabsTrigger value="subscriptions" className="rounded-lg gap-2">
+              <CreditCard className="h-4 w-4" />
+              <span className="md:hidden">Récurrences</span><span className="hidden md:inline">Analyse Récurrences</span>
+            </TabsTrigger>
+          )}
           <TabsTrigger value="calendar" className="rounded-lg gap-2">
             <CalendarDays className="h-4 w-4" />
             Calendrier
@@ -752,6 +778,14 @@ export default function RecurringTransactions() {
                >
                  Investissements
                </Button>
+               <Button 
+                variant={subTab === "other" ? "white" : "ghost"} 
+                size="sm" 
+                className={`rounded-lg font-bold text-xs px-4 ${subTab === "other" ? "shadow-sm" : "text-slate-500 hover:text-slate-900"}`}
+                onClick={() => setSubTab("other")}
+               >
+                 Autres récurrences
+               </Button>
              </div>
              
              <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">
@@ -763,7 +797,7 @@ export default function RecurringTransactions() {
              <Card className="shadow-sm border-slate-100">
                <CardHeader className="pb-2">
                  <CardDescription className="font-medium text-slate-500">
-                    {subTab === "subscriptions" ? "Coût Mensuel Total" : "Versement Mensuel"}
+                    {subTab === "subscriptions" ? "Coût Mensuel Total" : subTab === "other" ? "Flux Mensuel" : "Versement Mensuel"}
                  </CardDescription>
                </CardHeader>
                <CardContent>
@@ -771,7 +805,7 @@ export default function RecurringTransactions() {
                    {formatCurrency(activeSubs.reduce((acc: number, s: any) => acc + s.monthly_cost, 0))}
                  </CardTitle>
                  <p className="text-xs text-slate-400 mt-1">
-                   {subTab === "subscriptions" ? "Prélevé automatiquement chaque mois" : "Moyenne mensuelle investie"}
+                   {subTab === "subscriptions" ? "Prélevé automatiquement chaque mois" : subTab === "other" ? "Moyenne mensuelle des flux récurrents" : "Moyenne mensuelle investie"}
                  </p>
                </CardContent>
              </Card>
@@ -779,7 +813,7 @@ export default function RecurringTransactions() {
              <Card className="shadow-sm border-slate-100">
                <CardHeader className="pb-2">
                  <CardDescription className="font-medium text-slate-500">
-                   {subTab === "subscriptions" ? "Impact Annuel" : "Total Annuel Projeté"}
+                   {subTab === "subscriptions" ? "Impact Annuel" : subTab === "other" ? "Total Annuel" : "Total Annuel Projeté"}
                  </CardDescription>
                </CardHeader>
                <CardContent>
@@ -787,7 +821,7 @@ export default function RecurringTransactions() {
                    {formatCurrency(activeSubs.reduce((acc: number, s: any) => acc + s.annual_cost, 0))}
                  </CardTitle>
                  <p className="text-xs text-slate-400 mt-1">
-                   {subTab === "subscriptions" ? "Budget total sur 12 mois" : "Objectif d'investissement annuel"}
+                   {subTab === "subscriptions" ? "Budget total sur 12 mois" : subTab === "other" ? "Projection sur 12 mois" : "Objectif d'investissement annuel"}
                  </p>
                </CardContent>
              </Card>
@@ -795,7 +829,7 @@ export default function RecurringTransactions() {
              <Card className="shadow-sm border-slate-100 col-span-2 md:col-span-1">
                <CardHeader className="pb-2">
                  <CardDescription className="font-medium text-slate-500">
-                   {subTab === "subscriptions" ? "Services actifs" : "Plans d'investissement"}
+                   {subTab === "subscriptions" ? "Services actifs" : subTab === "other" ? "Récurrences actives" : "Plans d'investissement"}
                  </CardDescription>
                </CardHeader>
                <CardContent>
@@ -808,11 +842,11 @@ export default function RecurringTransactions() {
            </div>
 
            <div className="grid gap-6 lg:gap-8 lg:grid-cols-12">
-             <div className="lg:col-span-8 space-y-6">
+             <div className={`${subTab === "other" ? "lg:col-span-12" : "lg:col-span-8"} space-y-6`}>
                 <Card className="shadow-sm border-slate-100 overflow-hidden">
                   <CardHeader className="border-b bg-slate-50/30">
                     <CardTitle className="text-lg">
-                      {subTab === "subscriptions" ? "Abonnements confirmés" : "Investissements programmés"}
+                      {subTab === "subscriptions" ? "Abonnements confirmés" : subTab === "other" ? "Autres récurrences" : "Investissements programmés"}
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="p-0">
@@ -858,7 +892,7 @@ export default function RecurringTransactions() {
                               <div>
                                 <p className="text-base md:text-lg font-black text-slate-900 whitespace-nowrap tabular-nums">{formatCurrency(sub.amount)}</p>
                                 <p className="text-[10px] font-bold text-slate-400 text-right whitespace-nowrap">
-                                  {subTab === "subscriptions" ? `${formatCurrency(sub.monthly_cost)}/mois` : "Versé"}
+                                  {subTab === "subscriptions" ? `${formatCurrency(sub.monthly_cost)}/mois` : subTab === "other" ? `${formatCurrency(sub.monthly_cost)}/mois` : "Versé"}
                                 </p>
                               </div>
                             </div>
@@ -927,7 +961,7 @@ export default function RecurringTransactions() {
                 )}
              </div>
 
-             <div className="lg:col-span-4 space-y-6">
+             {subTab !== "other" && <div className="lg:col-span-4 space-y-6">
                 <Card className="shadow-sm border-slate-100">
                   <CardHeader className="bg-slate-50/50 border-b pb-4">
                     <CardTitle className="text-lg flex items-center gap-2">
@@ -961,7 +995,7 @@ export default function RecurringTransactions() {
                     </div>
                   </CardContent>
                 </Card>
-             </div>
+             </div>}
            </div>
         </TabsContent>
         

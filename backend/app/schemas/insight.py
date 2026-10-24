@@ -100,6 +100,7 @@ class SubscriptionInsight(BaseModel):
     is_recurring_entity: bool
     status: str  # "active", "potential", "changed"
     logo: Optional[str] = None
+    flow_type: str = "Sortie"  # type de la récurrence (Sortie, Entree, versement…)
 
 
 class SubscriptionIgnore(BaseModel):

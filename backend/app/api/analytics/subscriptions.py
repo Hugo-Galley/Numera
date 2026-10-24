@@ -65,15 +65,20 @@ from .utils import (
 @router.get("/subscriptions", response_model=SubscriptionsResponse)
 async def get_subscriptions_analytics(
     account_id: int | None = Query(default=None),
+    include_other: bool = Query(default=False),
     db: Session = Depends(get_db),
 ):
     """
     Analyzes subscriptions and fixed charges.
+    include_other : ajoute les récurrences qui ne sont pas des sorties (salaire, etc.),
+    marquées par flow_type ; elles sont exclues des totaux.
     """
     subscriptions: List[SubscriptionInsight] = []
     
     # 1. Explicit recurring transactions
-    recur_query = db.query(RecurringTransaction).filter(RecurringTransaction.type == "Sortie")
+    recur_query = db.query(RecurringTransaction)
+    if not include_other:
+        recur_query = recur_query.filter(RecurringTransaction.type == "Sortie")
     if account_id:
         recur_query = recur_query.filter(RecurringTransaction.account_id == account_id)
     
@@ -117,6 +122,7 @@ async def get_subscriptions_analytics(
             is_recurring_entity=True,
             status="active" if rd.is_active else "paused",
             logo=rd.logo,
+            flow_type=rd.type,
         ))
 
     # 2. Detect potential subscriptions (Repeated transactions same merchant + same amount)
@@ -157,8 +163,9 @@ async def get_subscriptions_analytics(
             status="potential"
         ))
 
-    total_monthly = sum(s.monthly_cost for s in subscriptions)
-    total_annual = sum(s.annual_cost for s in subscriptions)
+    outflows = [s for s in subscriptions if s.flow_type == "Sortie"]
+    total_monthly = sum(s.monthly_cost for s in outflows)
+    total_annual = sum(s.annual_cost for s in outflows)
 
     return SubscriptionsResponse(
         subscriptions=subscriptions,

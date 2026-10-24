@@ -101,7 +101,7 @@ Routes dans `frontend/src/App.tsx`:
 - `/tax`: Fiscalité (plafonds PEA/PER/Livret A/Livret Jeune, blocage 5 ans du PEE, dates clés PEA/AV, récap annuel CTO 2DC/3VG/3VH).
 - `/investments`: vue globale investissements.
 - `/month` (`MonthHub.tsx`, sous-routes) : `/month/bilan` (rapport mensuel, `MonthlyReport.tsx`), `/month/revue` (revue de fin de mois, `MonthReview.tsx`, `?year=&month=`), `/month/comparaison` (`Comparison.tsx`). Anciennes adresses `/report`, `/month-review`, `/comparison` redirigées avec leurs paramètres (`RedirectKeepingSearch`).
-- `/recurring` « Échéances » : onglets `?tab=` recurring | subscriptions | calendar (`Calendar.tsx` en mode `embedded`) | salary (`SalaryManager`, salaire et télétravail). `/calendar` redirige vers `?tab=calendar`.
+- `/recurring` « Échéances » : un seul des onglets `recurring` (Liste) ou `subscriptions` (Analyse Récurrences : Abonnements / Investissements / Autres récurrences dont le salaire, via `GET /analytics/subscriptions?include_other=true`) selon le sélecteur Analyse/Liste (localStorage `recurring-view`, défaut Analyse) ; puis `?tab=` calendar (`Calendar.tsx` en mode `embedded`) | salary (`SalaryManager`, salaire et télétravail). `/calendar` redirige vers `?tab=calendar`.
 - `/audit`: Centre d'Actions (audit d'integrite, alertes budget, suggestions de regles) — voir `docs/ACTION_CENTER.md`.
 - `/tools` « Simulateur » : prévision simple (`WealthForecast`, « dans N ans » + « et si j'épargne +X ») avec bouton « Mode avancé » vers le simulateur complet (`WealthSimulator`).
 - `/settings`: configuration, import CSV, gestion des virements, règles d'auto-catégorisation, tags, gestion des marchands canoniques et actions admin.
