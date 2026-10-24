@@ -17,6 +17,16 @@ Le système utilise un script Python `backend/scripts/backup.py` qui peut être 
 PYTHONPATH=backend python3 backend/scripts/backup.py
 ```
 
+## Envoi automatique vers GitHub
+
+Après chaque sauvegarde (toutes les 24 h via le conteneur `backup`), `backend/scripts/git_sync.py` pousse les fichiers `.enc` vers un dépôt GitHub **privé et dédié** (jamais le dépôt du code, qui est public). Seules les sauvegardes chiffrées sont envoyées : sans `BACKUP_KEY`, rien ne part.
+
+1. Créer un dépôt privé vide (ex. `numera-backups`).
+2. Créer un token fine-grained limité à ce dépôt, permission *Contents : Read and write*.
+3. Renseigner dans `.env` : `GITHUB_BACKUP_REPO=Hugo-Galley/numera-backups` et `GITHUB_BACKUP_TOKEN=...`, puis `docker compose up -d --build backup`.
+
+Le dépôt reflète le dossier local (même rétention `RETENTION_DAYS`, l'historique git garde les anciennes versions). Un échec d'envoi sort en code 2 sans annuler la sauvegarde locale. **Conservez `BACKUP_KEY` ailleurs** (gestionnaire de mots de passe) : sans elle, les sauvegardes GitHub sont illisibles.
+
 ## Restauration
 
 Pour restaurer une sauvegarde, utilisez le script `backend/scripts/restore.py`.

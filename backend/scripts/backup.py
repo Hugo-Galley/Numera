@@ -109,4 +109,11 @@ if __name__ == "__main__":
         logging.error(f"Backup failed: {exc}")
         sys.exit(1)
     cleanup_old_backups()
+    try:
+        from git_sync import sync_backups
+        sync_backups()
+    except Exception as exc:
+        # Le backup local est bon ; l'envoi distant échoue visiblement sans l'annuler.
+        logging.error(f"GitHub sync failed: {exc}")
+        sys.exit(2)
     logging.info("Backup process completed.")
