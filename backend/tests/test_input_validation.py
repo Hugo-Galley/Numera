@@ -133,3 +133,62 @@ def test_import_csv_rejects_non_finite_or_huge_amounts(client, db_session, accou
     amounts = [t.amount for t in db_session.query(Transaction).all()]
     assert amounts == [2.5]
     assert client.get("/accounts").status_code == 200
+
+
+# --- R6 / R7 : paramètres invalides → 4xx, jamais 500 ---------------------------------------
+
+def test_budget_unknown_account_is_404(client):
+    assert client.get("/analytics/budget?account_id=9999&month=3&year=2026").status_code == 404
+    assert client.get("/analytics/monthly-report?account_id=9999&month=3&year=2026").status_code == 404
+
+
+@pytest.mark.parametrize("month", [0, 13])
+def test_budget_alerts_rejects_invalid_month(client, month):
+    assert client.get(f"/analytics/budget-alerts?year=2026&month={month}").status_code == 422
+
+
+def test_import_binary_file_is_422(client, account):
+    files = {"file": ("x.csv", b"\x00\x01\x02Date;Type\x00\xff\xfe", "text/csv")}
+    r = client.post("/import/preview", data={"account_id": str(account.id)}, files=files)
+    assert r.status_code == 422
+    r = client.post("/import/commit", data={"account_id": str(account.id)}, files=files)
+    assert r.status_code == 422
+
+
+def test_import_oversize_file_is_413(client, account):
+    big = b"Date;Type;Commercant;Categorie;Montant\n" + b"a" * (10 * 1024 * 1024 + 1)
+    files = {"file": ("big.csv", big, "text/csv")}
+    r = client.post("/import/preview", data={"account_id": str(account.id)}, files=files)
+    assert r.status_code == 413
+
+
+@pytest.mark.parametrize("size", ["-1", "0", "100000"])
+def test_import_preview_sample_size_bounded(client, account, size):
+    csv_bytes = b"Date;Mois;Type;Commercant;Categorie;Montant\n03/01/2026 00:00;Janvier;Sortie;KFC;Nourriture;5,00\n"
+    files = {"file": ("x.csv", csv_bytes, "text/csv")}
+    ok = client.post("/import/preview", data={"account_id": str(account.id), "sample_size": "20"}, files=files)
+    assert ok.status_code == 200  # garde-fou : le fichier est valide, seule la taille d'échantillon change
+    r = client.post("/import/preview", data={"account_id": str(account.id), "sample_size": size}, files=files)
+    assert r.status_code == 422
+
+
+def test_passkey_state_without_challenge_is_400(client):
+    import jwt
+    from app.core.config import settings
+
+    state = jwt.encode({"purpose": "login"}, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+    r = client.post("/auth/passkey/login/verify", json={"state": state, "credential": {}})
+    assert r.status_code in (400, 422)
+
+
+@pytest.mark.parametrize(
+    "path,body",
+    [("/accounts", {"name": None}), ("/categories", {"name": None})],
+)
+def test_patch_null_on_required_column_is_not_500(client, db_session, account, path, body):
+    # Création d'une catégorie pour cibler un id valide
+    cat = client.post("/categories", json={"name": "Test", "type": "Sortie"})
+    target = account.id if path == "/accounts" else cat.json().get("id", 1)
+    r = client.patch(f"{path}/{target}", json=body)
+    assert r.status_code in (200, 400, 422)
+    db_session.rollback()

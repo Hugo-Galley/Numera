@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy import text
@@ -5,7 +7,9 @@ from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user, require_interactive_session
 from app.core import security
+from app.core.backup import snapshot_database
 from app.core.config import settings
+from app.core.logging import get_logger
 from app.core.mcp_tokens import generate_token, hash_token
 from app.core.migrations import run_migrations
 from app.core.seeds import seed_default_categories
@@ -19,7 +23,16 @@ from app.schemas.admin import AdminProfile, AdminProfileUpdate, McpTokenCreate, 
 # la base, ni se créer d'autres tokens.
 router = APIRouter(prefix="/admin", tags=["admin"], dependencies=[Depends(require_interactive_session)])
 
+logger = get_logger(__name__)
+
 MIN_PASSWORD_LENGTH = 8
+
+
+def _require_current_password(db: Session, password: str | None) -> None:
+    """400 (jamais 401/403 : le client API déconnecte sur ces codes) si le mot de passe est absent ou faux."""
+    current_hash = get_setting(db, "admin_password_hash", settings.ADMIN_PASSWORD_HASH)
+    if not password or not security.verify_password(password, current_hash):
+        raise HTTPException(status_code=400, detail="Mot de passe actuel incorrect")
 
 
 @router.get("/profile", response_model=AdminProfile)
@@ -71,6 +84,7 @@ def list_mcp_tokens(db: Session = Depends(get_db)):
 
 @router.post("/mcp-tokens", response_model=McpTokenCreated, status_code=201)
 def create_mcp_token(payload: McpTokenCreate, db: Session = Depends(get_db)):
+    _require_current_password(db, payload.current_password)
     token = generate_token()
     record = McpToken(name=payload.name.strip(), token_hash=hash_token(token), token_prefix=token[:8])
     db.add(record)
@@ -91,6 +105,7 @@ def revoke_mcp_token(token_id: int, db: Session = Depends(get_db)):
 class ResetDatabaseRequest(BaseModel):
     confirm: bool = False
     confirmation_code: str | None = None
+    current_password: str | None = None
 
 
 @router.post("/reset-database")
@@ -103,6 +118,17 @@ def reset_database(
         raise HTTPException(status_code=400, detail="Confirmation required")
     if payload.confirmation_code != "EFFACER":
         raise HTTPException(status_code=400, detail="Invalid confirmation code. Please type 'EFFACER' to confirm.")
+    _require_current_password(db, payload.current_password)
+
+    # Filet de sécurité : instantané de la base avant de tout effacer
+    db_file = engine.url.database
+    if engine.url.get_backend_name() == "sqlite" and db_file and Path(db_file).exists():
+        try:
+            backup = snapshot_database(db_file, Path(db_file).resolve().parent / "backups", prefix="pre-reset")
+            logger.info("Instantané avant reset : %s", backup.name)
+        except Exception:
+            logger.exception("Instantané avant reset impossible : reset annulé")
+            raise HTTPException(status_code=500, detail="Sauvegarde préalable impossible, réinitialisation annulée")
 
     db.close()
     with engine.connect() as connection:

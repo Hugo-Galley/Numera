@@ -139,6 +139,7 @@ export default function Settings() {
   // -- System State --
   const [resetOpen, setResetOpen] = useState(false)
   const [resetConfirmText, setResetConfirmText] = useState("")
+  const [resetPassword, setResetPassword] = useState("")
 
   const loadCategories = async () => {
     try {
@@ -793,23 +794,33 @@ export default function Settings() {
                             placeholder="Tapez EFFACER ici..."
                             className="bg-rose-50 border-rose-200 focus-visible:ring-rose-500 font-bold text-center"
                           />
+                          <Input
+                            type="password"
+                            autoComplete="current-password"
+                            value={resetPassword}
+                            onChange={(e) => setResetPassword(e.target.value)}
+                            placeholder="Mot de passe actuel"
+                            aria-label="Mot de passe actuel"
+                          />
+                          <p className="text-xs text-slate-500">Un instantané de la base est enregistré avant l'effacement.</p>
                         </div>
                         <DialogFooter className="gap-2 sm:gap-0">
-                          <Button variant="ghost" className="h-11 sm:h-10" onClick={() => { setResetOpen(false); setResetConfirmText(""); }}>Annuler</Button>
+                          <Button variant="ghost" className="h-11 sm:h-10" onClick={() => { setResetOpen(false); setResetConfirmText(""); setResetPassword(""); }}>Annuler</Button>
                           <Button
                             variant="destructive"
                             className="h-11 sm:h-10"
-                            disabled={resetConfirmText !== "EFFACER"}
+                            disabled={resetConfirmText !== "EFFACER" || !resetPassword}
                             onClick={async () => {
                               try {
                                 await api.post("/admin/reset-database", { 
                                   confirm: true,
-                                  confirmation_code: resetConfirmText
+                                  confirmation_code: resetConfirmText,
+                                  current_password: resetPassword
                                 })
                                 toast.success("Base réinitialisée avec succès")
                                 window.location.reload()
                               } catch (error) {
-                                toast.error("Erreur lors de la réinitialisation")
+                                toast.error(error instanceof Error ? error.message : "Erreur lors de la réinitialisation")
                               }
                             }}
                           >

@@ -10,7 +10,7 @@ from app.models.mcp_token import McpToken
 
 
 def _create_token(client: TestClient, name: str = "Claude Code") -> dict:
-    response = client.post("/admin/mcp-tokens", json={"name": name})
+    response = client.post("/admin/mcp-tokens", json={"name": name, "current_password": "admin"})
     assert response.status_code == 201
     return response.json()
 

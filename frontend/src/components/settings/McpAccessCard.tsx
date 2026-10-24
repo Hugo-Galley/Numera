@@ -68,6 +68,7 @@ export function McpAccessCard() {
   const [enabled, setEnabled] = useState(true)
   const [tokens, setTokens] = useState<McpToken[] | null>(null)
   const [name, setName] = useState("Claude Code")
+  const [password, setPassword] = useState("")
   const [creating, setCreating] = useState(false)
   const [created, setCreated] = useState<McpTokenCreated | null>(null)
   const [toRevoke, setToRevoke] = useState<McpToken | null>(null)
@@ -106,11 +107,12 @@ export function McpAccessCard() {
 
   const createToken = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!name.trim()) return
+    if (!name.trim() || !password) return
     setCreating(true)
     try {
-      const token = await api.post<McpTokenCreated>("/admin/mcp-tokens", { name: name.trim() })
+      const token = await api.post<McpTokenCreated>("/admin/mcp-tokens", { name: name.trim(), current_password: password })
       setCreated(token)
+      setPassword("")
       setClient(name.toLowerCase().includes("desktop") ? "claude-desktop" : "claude-code")
       await loadTokens()
     } catch (error) {
@@ -187,11 +189,19 @@ export function McpAccessCard() {
               placeholder="Ex. Claude Desktop — MacBook"
               maxLength={100}
             />
-            <Button type="submit" disabled={creating || !name.trim()} className="h-11 gap-2 shrink-0 sm:h-10">
+            <Button type="submit" disabled={creating || !name.trim() || !password} className="h-11 gap-2 shrink-0 sm:h-10">
               <KeyRound className="h-4 w-4" />
               {creating ? "Génération..." : "Générer un token"}
             </Button>
           </div>
+          <Input
+            type="password"
+            autoComplete="current-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Mot de passe actuel (requis)"
+            aria-label="Mot de passe actuel"
+          />
         </form>
 
         {created && (

@@ -86,7 +86,7 @@ docker-compose.prod.yml, Makefile, setup.sh, install.sh
 - `salary.py`: configuration de salaire, jours de télétravail (TT) et génération des transactions associées.
 - `work_time.py`: taux horaire net = `net_salary × 12 ÷ (work_days_per_year × work_hours_per_day)` (218 j × 7 h par défaut), base du prix en heures de travail.
 - `merchants.py`: gestion des marchands canoniques et de leurs alias de normalisation.
-- `admin.py`: profil admin (nom/mot de passe, `mcp_enabled`, stockes dans `system_settings`), tokens MCP (`GET`/`POST /admin/mcp-tokens`, `DELETE /admin/mcp-tokens/{id}` ; le token en clair n'est renvoyé qu'à la création) et reset database.
+- `admin.py`: profil admin (nom/mot de passe, `mcp_enabled`, stockes dans `system_settings`), tokens MCP (`GET`/`POST /admin/mcp-tokens`, `DELETE /admin/mcp-tokens/{id}` ; le token en clair n'est renvoyé qu'à la création ; la création exige `current_password`) et reset database (exige `current_password`, écrit un instantané `data/backups/pre-reset_*.db` avant d'effacer).
 - `health.py`: healthcheck public.
 
 ## Frontend

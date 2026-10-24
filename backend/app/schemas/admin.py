@@ -19,6 +19,8 @@ class AdminProfileUpdate(BaseModel):
 
 class McpTokenCreate(BaseModel):
     name: str = Field(min_length=1, max_length=100)
+    # Obligatoire : un token MCP donne un accès durable en lecture à toutes les données
+    current_password: Optional[str] = None
 
 
 class McpTokenRead(BaseModel):

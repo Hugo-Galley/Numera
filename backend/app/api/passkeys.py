@@ -106,6 +106,8 @@ def _read_challenge(state: str, purpose: str) -> bytes:
         raise HTTPException(status_code=400, detail="Défi expiré ou invalide")
     if payload.get("purpose") != purpose:
         raise HTTPException(status_code=400, detail="Défi invalide")
+    if not payload.get("ch"):
+        raise HTTPException(status_code=400, detail="Défi invalide")
     return base64url_to_bytes(payload["ch"])
 
 

@@ -141,6 +141,21 @@ def _parse_amount(value: str) -> float:
     return float(raw)
 
 
+MAX_UPLOAD_BYTES = 10 * 1024 * 1024
+
+
+async def _read_upload(file: UploadFile) -> bytes:
+    """Lit le fichier par blocs et refuse (413) au-delà de MAX_UPLOAD_BYTES, sans tout charger en mémoire."""
+    chunks: list[bytes] = []
+    total = 0
+    while chunk := await file.read(1024 * 1024):
+        total += len(chunk)
+        if total > MAX_UPLOAD_BYTES:
+            raise HTTPException(status_code=413, detail="Fichier trop volumineux (10 Mo maximum)")
+        chunks.append(chunk)
+    return b"".join(chunks)
+
+
 @router.get("/logs")
 async def get_import_logs(limit: int = 10, db: Session = Depends(get_db)):
     logs = db.query(ImportLog).order_by(ImportLog.created_at.desc()).limit(limit).all()
@@ -150,10 +165,10 @@ async def get_import_logs(limit: int = 10, db: Session = Depends(get_db)):
 @router.post("/preview")
 async def preview_import(
     file: UploadFile = File(...),
-    sample_size: int = Form(default=20),
+    sample_size: int = Form(default=20, ge=1, le=200),
     db: Session = Depends(get_db),
 ):
-    rows, delimiter, raw_headers = _parse_csv(await file.read())
+    rows, delimiter, raw_headers = _parse_csv(await _read_upload(file))
     category_names = {c.name for c in db.query(Category).all()}
     unknown = sorted({(row.get("Categorie") or "").strip() for row in rows if (row.get("Categorie") or "").strip() and (row.get("Categorie") or "").strip() not in category_names})
 
@@ -199,7 +214,7 @@ async def commit_import(
         except Exception:
             raise HTTPException(status_code=422, detail="Invalid category_mapping JSON")
 
-    rows, delimiter, raw_headers = _parse_csv(await file.read())
+    rows, delimiter, raw_headers = _parse_csv(await _read_upload(file))
     imported = 0
     skipped = 0
     errors = 0

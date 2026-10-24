@@ -1,5 +1,4 @@
 import calendar
-import traceback
 from datetime import date, datetime, timedelta
 
 from typing import Any, Dict, List, Literal, Optional, Tuple
@@ -76,6 +75,8 @@ async def budget_analytics(
     account_id: int | None = Query(default=None),
     db: Session = Depends(get_db),
 ):
+    if account_id is not None and db.get(Account, account_id) is None:
+        raise HTTPException(status_code=404, detail="Account not found")
     try:
         start = None
         end = datetime.now()
@@ -551,10 +552,12 @@ async def budget_analytics(
             "epargne_total": round(float(savings_total), 2),
             "solde_actuel": round(float(solde_actuel), 2),
         }
-    except Exception as e:
-        print(f"ERROR in budget_analytics: {e}")
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
+    except HTTPException:
+        raise
+    except Exception:
+        # Détail volontairement absent de la réponse : il reste dans les logs
+        logger.exception("Erreur dans budget_analytics")
+        raise HTTPException(status_code=500, detail="Erreur interne lors du calcul du budget")
 
 
 RESILIENCE_WINDOW_MONTHS = 6
@@ -599,8 +602,8 @@ async def resilience(
 
 @router.get("/budget-alerts", response_model=list[BudgetAlert])
 async def budget_alerts(
-    year: int = Query(...),
-    month: int = Query(...),
+    year: int = Query(..., ge=2000, le=2200),
+    month: int = Query(..., ge=1, le=12),
     account_id: int | None = Query(default=None),
     db: Session = Depends(get_db),
 ):

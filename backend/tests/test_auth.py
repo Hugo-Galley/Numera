@@ -195,6 +195,6 @@ def test_refresh_needs_a_valid_session_token(real_auth_client: TestClient):
 
 
 def test_refresh_is_refused_to_mcp_tokens(client: TestClient):
-    token = client.post("/admin/mcp-tokens", json={"name": "Claude"}).json()["token"]
+    token = client.post("/admin/mcp-tokens", json={"name": "Claude", "current_password": "admin"}).json()["token"]
     response = client.post("/auth/refresh", headers={"Authorization": f"Bearer {token}"})
     assert response.status_code == 403
