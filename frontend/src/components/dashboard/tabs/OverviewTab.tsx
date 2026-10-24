@@ -23,7 +23,7 @@ import {
   ReferenceLine
 } from "recharts"
 import { SankeyFlow } from "@/components/analytics/SankeyFlow"
-import { formatCurrency } from "@/lib/utils"
+import { formatCurrency, formatAmountWithShare } from "@/lib/utils"
 import { IconComponent } from "../IconComponent"
 import { useIsMobile } from "@/hooks/useIsMobile"
 
@@ -294,7 +294,7 @@ export function OverviewTab({
                     </Pie>
                     <Tooltip 
                       contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} 
-                      formatter={(v: number) => formatCurrency(v, "EUR")} 
+                      formatter={(v: number) => formatAmountWithShare(v, chartData.reduce((s: number, i: any) => s + (Number(i[chartDataKey]) || 0), 0), "EUR")} 
                     />
                   </PieChart>
                 </ResponsiveContainer>
@@ -523,7 +523,7 @@ export function OverviewTab({
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                 <XAxis type="number" hide />
                 <YAxis dataKey="category.name" type="category" width={isMobile ? 92 : 100} axisLine={false} tickLine={false} tick={{ fontSize: isMobile ? 11 : 12, fill: '#64748b' }} />
-                <Tooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} formatter={(v: number) => formatCurrency(v, displayCurrency)} />
+                <Tooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} formatter={(v: number) => formatAmountWithShare(v, expensesByCategory.reduce((s, i) => s + (i.total || 0), 0), displayCurrency)} />
                 <Bar dataKey="total" radius={[0, 4, 4, 0]} barSize={isMobile ? 16 : 20}>
                   {expensesByCategory.map((item, i) => (
                     <Cell key={i} fill={item.category.color || COLORS[i % COLORS.length]} />
@@ -558,7 +558,7 @@ export function OverviewTab({
                   <Pie data={expensesByCategory} cx="50%" cy="50%" innerRadius={60} outerRadius={80} paddingAngle={4} dataKey="total" nameKey="category.name">
                     {expensesByCategory.map((item, i) => <Cell key={i} fill={item.category.color || COLORS[i % COLORS.length]} />)}
                   </Pie>
-                  <Tooltip contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} formatter={(v: number) => formatCurrency(v, displayCurrency)} />
+                  <Tooltip contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} formatter={(v: number) => formatAmountWithShare(v, expensesByCategory.reduce((s, i) => s + (i.total || 0), 0), displayCurrency)} />
                 </PieChart>
               </ResponsiveContainer>
             </div>

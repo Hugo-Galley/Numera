@@ -11,6 +11,20 @@ export function formatCurrency(value: number | null | undefined, currencyCode: s
   }
 }
 
+/** Part de `value` dans `total`, ex. « 12,3 % » (chaîne vide si le total est nul). */
+export function formatPercent(value: number, total: number) {
+  if (!Number.isFinite(value) || !Number.isFinite(total) || total <= 0) return ""
+  const pct = (value / total) * 100
+  return `${pct.toLocaleString("fr-FR", { maximumFractionDigits: pct < 10 ? 1 : 0 })} %`
+}
+
+/** Montant formaté suivi de sa part du total : « 1 234,00 € (12 %) ». */
+export function formatAmountWithShare(value: number, total: number, currencyCode: string = "EUR") {
+  const amount = formatCurrency(value, currencyCode)
+  const share = formatPercent(value, total)
+  return share ? `${amount} (${share})` : amount
+}
+
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }

@@ -48,6 +48,7 @@ import { AllocationTreemap } from "@/components/analytics/AllocationTreemap"
 import { CompositionField, CompositionSource, DiversityScannerResponse } from "@/types/diversity"
 import { CompanyLogo } from "@/components/ui/CompanyLogo"
 import { useIsMobile } from "@/hooks/useIsMobile"
+import { formatAmountWithShare } from "@/lib/utils"
 
 const COMPOSITION_FIELDS: { key: CompositionField; label: string }[] = [
   { key: "sectors", label: "Secteurs" },
@@ -268,7 +269,7 @@ const [loading, setLoading] = useState(true)
                       ))}
                     </Pie>
                     <Tooltip 
-                      formatter={(value: number, name: string) => [formatCurrency(value), name]}
+                      formatter={(value: number, name: string) => [formatAmountWithShare(value, chartData.reduce((s: number, i: any) => s + (i.value || 0), 0)), name]}
                       contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }}
                     />
                   </PieChart>
@@ -430,7 +431,7 @@ const [loading, setLoading] = useState(true)
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} className="hover:opacity-80 transition-opacity" />
                       ))}
                     </Pie>
-                    <Tooltip formatter={(value: number) => formatCurrency(value)} />
+                    <Tooltip formatter={(value: number) => formatAmountWithShare(value, (advancedAllocation?.by_asset_class || []).reduce((s: number, i: any) => s + (i.value || 0), 0))} />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
@@ -489,7 +490,7 @@ const [loading, setLoading] = useState(true)
                               <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} className="hover:opacity-80 transition-opacity" />
                             ))}
                           </Pie>
-                          <Tooltip formatter={(value: number) => formatCurrency(value)} />
+                          <Tooltip formatter={(value: number) => formatAmountWithShare(value, sectorData.reduce((s: number, i: any) => s + (i.value || 0), 0))} />
                         </PieChart>
                       </ResponsiveContainer>
                     </div>

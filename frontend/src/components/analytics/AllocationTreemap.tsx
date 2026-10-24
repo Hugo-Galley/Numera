@@ -1,5 +1,6 @@
 import React from 'react';
 import { Treemap, ResponsiveContainer, Tooltip } from 'recharts';
+import { formatAmountWithShare } from '@/lib/utils';
 
 interface AllocationItem {
   name: string;
@@ -104,7 +105,7 @@ export const AllocationTreemap: React.FC<AllocationTreemapProps> = ({ data, onIt
           }}
         >
           <Tooltip 
-            formatter={(value: number, name: string) => [new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(value), name]}
+            formatter={(value: number, name: string) => [formatAmountWithShare(value, data.reduce((sum, i) => sum + (i.value || 0), 0)), name]}
             contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }}
           />
         </Treemap>

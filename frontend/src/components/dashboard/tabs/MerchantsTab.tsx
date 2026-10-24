@@ -6,7 +6,7 @@ import {
   CardTitle,
   CardDescription
 } from "@/components/ui/card"
-import { formatCurrency } from "@/lib/utils"
+import { formatAmountWithShare } from "@/lib/utils"
 import { formatWorkDuration } from "@/components/ui/work-hours"
 import { useIsMobile } from "@/hooks/useIsMobile"
 import { useWorkTime } from "@/providers/WorkTimeProvider"
@@ -30,7 +30,7 @@ export function MerchantsTab({ topMerchants, displayCurrency }: MerchantsTabProp
   const { workTime } = useWorkTime()
   const rate = displayCurrency === "EUR" ? workTime?.hourly_rate : null
   const formatTooltip = (v: number) => {
-    const amount = formatCurrency(v, displayCurrency)
+    const amount = formatAmountWithShare(v, topMerchants.reduce((s: number, m: any) => s + (m.total || 0), 0), displayCurrency)
     return rate ? `${amount} (≈ ${formatWorkDuration(v / rate, workTime!.work_hours_per_day)} de travail)` : amount
   }
 
