@@ -451,7 +451,7 @@ export function WealthSimulator({ initialCapitalDefault = 10000 }: WealthSimulat
                       </Label>
                       <Input
                         id="initial_capital"
-                        type="number"
+                        type="number" inputMode="decimal"
                         value={params.initial_capital}
                         onChange={(e) => setParams({ ...params, initial_capital: Number(e.target.value) })}
                         className="h-11 md:h-9 text-base md:text-sm bg-white"
@@ -464,7 +464,7 @@ export function WealthSimulator({ initialCapitalDefault = 10000 }: WealthSimulat
                       </Label>
                       <Input
                         id="monthly_contribution"
-                        type="number"
+                        type="number" inputMode="decimal"
                         value={params.monthly_contribution}
                         onChange={(e) => setParams({ ...params, monthly_contribution: Number(e.target.value) })}
                         className="h-11 md:h-9 text-base md:text-sm bg-white"
@@ -480,7 +480,7 @@ export function WealthSimulator({ initialCapitalDefault = 10000 }: WealthSimulat
                       </Label>
                       <Input
                         id="years"
-                        type="number"
+                        type="number" inputMode="decimal"
                         min={1}
                         max={50}
                         value={params.years}
@@ -500,7 +500,7 @@ export function WealthSimulator({ initialCapitalDefault = 10000 }: WealthSimulat
                       </Label>
                       <Input
                         id="annual_return_pct"
-                        type="number"
+                        type="number" inputMode="decimal"
                         step="0.1"
                         disabled={useAllocation}
                         value={useAllocation ? computedReturn : params.annual_return_pct}
@@ -616,7 +616,7 @@ export function WealthSimulator({ initialCapitalDefault = 10000 }: WealthSimulat
                     </Label>
                     <Input
                       id="volatility_pct"
-                      type="number"
+                      type="number" inputMode="decimal"
                       step="0.5"
                       disabled={useAllocation}
                       value={useAllocation ? computedVolatility : params.volatility_pct}
@@ -636,7 +636,7 @@ export function WealthSimulator({ initialCapitalDefault = 10000 }: WealthSimulat
                       </Label>
                       <Input
                         id="inflation_rate_pct"
-                        type="number"
+                        type="number" inputMode="decimal"
                         step="0.1"
                         value={params.inflation_rate_pct}
                         onChange={(e) => setParams({ ...params, inflation_rate_pct: Number(e.target.value) })}
@@ -650,7 +650,7 @@ export function WealthSimulator({ initialCapitalDefault = 10000 }: WealthSimulat
                       </Label>
                       <Input
                         id="contribution_indexation_pct"
-                        type="number"
+                        type="number" inputMode="decimal"
                         step="0.5"
                         value={params.contribution_indexation_pct}
                         onChange={(e) => setParams({ ...params, contribution_indexation_pct: Number(e.target.value) })}
@@ -668,7 +668,7 @@ export function WealthSimulator({ initialCapitalDefault = 10000 }: WealthSimulat
                         </Label>
                         <Input
                           id="tax_rate_pct"
-                          type="number"
+                          type="number" inputMode="decimal"
                           step="1"
                           value={params.tax_rate_pct}
                           onChange={(e) => setParams({ ...params, tax_rate_pct: Number(e.target.value) })}
@@ -714,7 +714,7 @@ export function WealthSimulator({ initialCapitalDefault = 10000 }: WealthSimulat
                       <div className="space-y-1">
                         <Label className="text-[10px]">Année</Label>
                         <Input
-                          type="number"
+                          type="number" inputMode="decimal"
                           min={1}
                           max={params.years}
                           value={newEvent.year}
@@ -728,7 +728,7 @@ export function WealthSimulator({ initialCapitalDefault = 10000 }: WealthSimulat
                       <div className="space-y-1 flex-1">
                         <Label className="text-[10px]">Montant (€) (négatif = dépense)</Label>
                         <Input
-                          type="number"
+                          type="number" inputMode="decimal"
                           placeholder="Ex: -25000"
                           value={newEvent.amount}
                           onChange={(e) => setNewEvent({ ...newEvent, amount: Number(e.target.value) })}
@@ -1115,7 +1115,7 @@ export function WealthSimulator({ initialCapitalDefault = 10000 }: WealthSimulat
                   <Label htmlFor="edit-return" className="text-xs font-semibold text-slate-700">Rendement Moyen (%)</Label>
                   <Input
                     id="edit-return"
-                    type="number"
+                    type="number" inputMode="decimal"
                     step="0.1"
                     value={editingAsset.expectedReturn}
                     onChange={(e) => setEditingAsset({ ...editingAsset, expectedReturn: Number(e.target.value) })}
@@ -1126,7 +1126,7 @@ export function WealthSimulator({ initialCapitalDefault = 10000 }: WealthSimulat
                   <Label htmlFor="edit-volatility" className="text-xs font-semibold text-slate-700">Volatilité (%)</Label>
                   <Input
                     id="edit-volatility"
-                    type="number"
+                    type="number" inputMode="decimal"
                     step="0.5"
                     value={editingAsset.volatility}
                     onChange={(e) => setEditingAsset({ ...editingAsset, volatility: Number(e.target.value) })}

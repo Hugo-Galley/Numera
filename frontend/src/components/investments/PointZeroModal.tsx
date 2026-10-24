@@ -519,7 +519,7 @@ export function PointZeroModal({
 
                       <div className="col-span-2 text-right">
                         <Input
-                          type="number"
+                          type="number" inputMode="decimal"
                           step="any"
                           min="0"
                           placeholder="0"

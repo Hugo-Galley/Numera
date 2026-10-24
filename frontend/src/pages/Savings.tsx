@@ -548,7 +548,7 @@ export default function Savings() {
                         <Label htmlFor="target">Montant cible (€)</Label>
                         <Input 
                           id="target" 
-                          type="number" 
+                          type="number" inputMode="decimal" 
                           placeholder="5000" 
                           value={goalForm.target_amount}
                           onChange={(e) => setGoalForm({ ...goalForm, target_amount: e.target.value })}

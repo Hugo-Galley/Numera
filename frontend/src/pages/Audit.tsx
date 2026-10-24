@@ -170,7 +170,7 @@ function TransactionEditor({
   }
 
   async function remove() {
-    if (!(await confirm("Supprimer cette transaction ?"))) return
+    if (!(await confirm(`Supprimer la transaction « ${tx.merchant} » de ${formatCurrency(tx.amount)} ?`))) return
     setSaving(true)
     try {
       await api.delete(`/transactions/${tx.id}`)
@@ -255,7 +255,7 @@ function TransactionEditor({
           <div>
             <p className="mb-1 text-xs font-medium text-slate-500">Montant</p>
             <Input
-              type="number"
+              type="number" inputMode="decimal"
               min="0"
               step="0.01"
               value={draft.amount}
@@ -336,7 +336,7 @@ function TransactionEditor({
           <div className="w-[100px] shrink-0">
             <div className="relative">
               <Input
-                type="number"
+                type="number" inputMode="decimal"
                 min="0"
                 step="0.01"
                 value={draft.amount}

@@ -57,11 +57,11 @@ export function WorkTimeSettings() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-end">
           <div className="space-y-2">
             <Label>Jours travaillés par an</Label>
-            <Input type="number" min={1} max={366} value={days} onChange={e => setDays(e.target.value)} />
+            <Input type="number" inputMode="decimal" min={1} max={366} value={days} onChange={e => setDays(e.target.value)} />
           </div>
           <div className="space-y-2">
             <Label>Heures par jour</Label>
-            <Input type="number" min={0.5} max={24} step="0.5" value={hours} onChange={e => setHours(e.target.value)} />
+            <Input type="number" inputMode="decimal" min={0.5} max={24} step="0.5" value={hours} onChange={e => setHours(e.target.value)} />
           </div>
           <div className="space-y-1">
             <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Taux horaire net</p>

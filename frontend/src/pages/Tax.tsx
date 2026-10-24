@@ -264,7 +264,7 @@ export default function Tax() {
               <Label htmlFor="tax-income">Revenus professionnels de l'année précédente (€)</Label>
               <Input
                 id="tax-income"
-                type="number"
+                type="number" inputMode="decimal"
                 min={0}
                 value={draft.prior_year_pro_income}
                 onChange={(e) => setDraft({ ...draft, prior_year_pro_income: Number(e.target.value) || 0 })}
@@ -284,7 +284,7 @@ export default function Tax() {
               <Label htmlFor="tax-gross">Salaire brut annuel (€), pour le plafond du PEE</Label>
               <Input
                 id="tax-gross"
-                type="number"
+                type="number" inputMode="decimal"
                 min={0}
                 value={draft.gross_annual_salary}
                 onChange={(e) => setDraft({ ...draft, gross_annual_salary: Number(e.target.value) || 0 })}

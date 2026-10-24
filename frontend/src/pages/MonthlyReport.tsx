@@ -43,14 +43,24 @@ export default function IntelligentReport() {
     return { month: d.getMonth() + 1, year: d.getFullYear() }
   })
 
+  // Le premier chargement attend le mois budgétaire (sinon deux chargements : mois civil, puis mois de paie)
+  const [ready, setReady] = useState(false)
+  const [latest, setLatest] = useState<{ month: number; year: number } | null>(null)
+
   // Mois de paie : on ouvre le mois du dernier salaire reçu.
   useEffect(() => {
-    fetchCurrentBudgetMonth().then(current => {
-      if (current) setDate({ month: current.month, year: current.year })
-    })
+    fetchCurrentBudgetMonth()
+      .then(current => {
+        if (current) {
+          setDate({ month: current.month, year: current.year })
+          setLatest({ month: current.month, year: current.year })
+        }
+      })
+      .finally(() => setReady(true))
   }, [])
 
   useEffect(() => {
+    if (!ready) return
     let cancelled = false
     async function load() {
       setLoading(true)
@@ -76,11 +86,17 @@ export default function IntelligentReport() {
     return () => {
       cancelled = true
     }
-  }, [date])
+  }, [date, ready])
+
+  // Pas de rapport pour un mois à venir : on s'arrête au mois budgétaire en cours
+  const now = new Date()
+  const latestIndex = latest ? latest.year * 12 + latest.month : now.getFullYear() * 12 + now.getMonth() + 1
+  const atLatest = date.year * 12 + date.month >= latestIndex
 
   const changeMonth = (delta: number) =>
     setDate(({ month, year }) => {
       const idx = year * 12 + (month - 1) + delta
+      if (idx + 1 > latestIndex) return { month, year }
       return { month: (idx % 12) + 1, year: Math.floor(idx / 12) }
     })
 
@@ -115,7 +131,7 @@ export default function IntelligentReport() {
             <span className="min-w-[150px] flex-1 text-center md:flex-none text-sm font-bold">
               {MONTHS[date.month - 1]} {date.year}
             </span>
-            <Button variant="ghost" size="icon" className="h-11 w-11 md:h-9 md:w-9" onClick={() => changeMonth(1)} aria-label="Mois suivant" disabled={loading}>
+            <Button variant="ghost" size="icon" className="h-11 w-11 md:h-9 md:w-9" onClick={() => changeMonth(1)} aria-label="Mois suivant" disabled={loading || atLatest}>
               <ChevronRight className="h-5 w-5" />
             </Button>
           </div>

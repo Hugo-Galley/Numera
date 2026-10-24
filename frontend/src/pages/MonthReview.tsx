@@ -37,8 +37,14 @@ export default function MonthReview() {
       }
     })
   }, [])
-  const year = Number(params.get("year")) || fallback.year
-  const month = Number(params.get("month")) || fallback.month
+  // Paramètres d'URL invalides (month=13, year=abc) : retour au dernier mois terminé
+  const rawYear = Number(params.get("year"))
+  const rawMonth = Number(params.get("month"))
+  const year = Number.isInteger(rawYear) && rawYear >= 2000 && rawYear <= 2200 ? rawYear : fallback.year
+  const month = Number.isInteger(rawMonth) && rawMonth >= 1 && rawMonth <= 12 ? rawMonth : fallback.month
+  // Dernier mois consultable : le mois en cours (celui qui suit le dernier mois terminé)
+  const latestIndex = fallback.year * 12 + fallback.month + 1
+  const atLatest = year * 12 + month >= latestIndex
 
   const [review, setReview] = useState<MonthReviewData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -68,6 +74,7 @@ export default function MonthReview() {
 
   function go(delta: number) {
     const d = new Date(year, month - 1 + delta, 1)
+    if (d.getFullYear() * 12 + d.getMonth() + 1 > latestIndex) return
     setParams({ year: String(d.getFullYear()), month: String(d.getMonth() + 1) })
     setStep(0)
   }
@@ -128,7 +135,7 @@ export default function MonthReview() {
             <ChevronLeft className="h-4 w-4" />
           </Button>
           <span className="min-w-36 flex-1 text-center font-semibold capitalize md:flex-none">{label}</span>
-          <Button variant="outline" size="icon" className="h-11 w-11 md:h-10 md:w-10" onClick={() => go(1)} aria-label="Mois suivant">
+          <Button variant="outline" size="icon" className="h-11 w-11 md:h-10 md:w-10" onClick={() => go(1)} aria-label="Mois suivant" disabled={atLatest}>
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>

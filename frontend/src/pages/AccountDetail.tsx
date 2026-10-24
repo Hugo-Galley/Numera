@@ -786,7 +786,9 @@ export default function AccountDetail() {
   }
 
   const handleDeleteTransaction = async (txId: number) => {
-    if (!(await confirm("Supprimer cette transaction ?"))) return
+    const target = transactions.find((t) => t.id === txId)
+    const detail = target ? ` « ${target.merchant} » de ${formatCurrency(target.amount)} (${toInputValue(target.date).slice(0, 10).split("-").reverse().join("/")})` : ""
+    if (!(await confirm(`Supprimer la transaction${detail} ?`))) return
     try {
       await api.delete(`/transactions/${txId}`)
       toast.success("Transaction supprimée")
@@ -1253,7 +1255,7 @@ export default function AccountDetail() {
                       <div className="grid grid-cols-2 gap-4">
                         <div className="grid gap-2">
                           <Label htmlFor="amount" className="text-xs uppercase tracking-wider font-bold text-slate-500">Montant</Label>
-                          <Input id="amount" type="number" min={0.01} step="0.01" value={txAmount} onChange={(e) => setTxAmount(e.target.value)} placeholder="0.00" className="bg-slate-50 border-slate-200 font-bold" />
+                          <Input id="amount" type="number" inputMode="decimal" min={0.01} step="0.01" value={txAmount} onChange={(e) => setTxAmount(e.target.value)} placeholder="0.00" className="bg-slate-50 border-slate-200 font-bold" />
                         </div>
                         <div className="grid gap-2">
                           <Label htmlFor="currency" className="text-xs uppercase tracking-wider font-bold text-slate-500">Devise</Label>
@@ -1381,7 +1383,7 @@ export default function AccountDetail() {
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                           <div className="grid gap-2">
                             <Label htmlFor="ival" className="text-xs uppercase tracking-wider font-bold text-slate-500">Montant</Label>
-                            <Input id="ival" type="number" step="0.01" value={invTxAmount} onChange={(e) => setInvTxAmount(e.target.value)} placeholder="0.00" className="bg-slate-50 border-slate-200 font-bold text-lg" />
+                            <Input id="ival" type="number" inputMode="decimal" step="0.01" value={invTxAmount} onChange={(e) => setInvTxAmount(e.target.value)} placeholder="0.00" className="bg-slate-50 border-slate-200 font-bold text-lg" />
                           </div>
                           <div className="grid gap-2">
                             <Label htmlFor="icurrency" className="text-xs uppercase tracking-wider font-bold text-slate-500">Devise</Label>
@@ -1440,7 +1442,7 @@ export default function AccountDetail() {
                             <div className="grid gap-1">
                               <Label className="text-xs font-medium">{invTxType === "dividende" ? "Parts reçues (si réinvesti)" : "Nb de parts"}</Label>
                               <Input
-                                type="number"
+                                type="number" inputMode="decimal"
                                 step="any"
                                 min="0"
                                 placeholder="Ex: 2"
@@ -1459,7 +1461,7 @@ export default function AccountDetail() {
                             <div className="grid gap-1">
                               <Label className="text-xs font-medium">Prix unitaire</Label>
                               <Input
-                                type="number"
+                                type="number" inputMode="decimal"
                                 step="any"
                                 min="0"
                                 placeholder="Cours..."
@@ -1482,7 +1484,7 @@ export default function AccountDetail() {
                               <div className="grid gap-1">
                                 <Label className="text-xs font-medium">Retenue à la source ({invTxCurrency}, optionnel)</Label>
                                 <Input
-                                  type="number"
+                                  type="number" inputMode="decimal"
                                   step="any"
                                   min="0"
                                   placeholder="0.00"
@@ -1508,7 +1510,7 @@ export default function AccountDetail() {
                             <div className="grid gap-1">
                               <Label className="text-xs font-medium">Frais de courtage ({invTxCurrency})</Label>
                               <Input
-                                type="number"
+                                type="number" inputMode="decimal"
                                 step="any"
                                 min="0"
                                 placeholder="0.00"
@@ -1599,7 +1601,7 @@ export default function AccountDetail() {
                         </div>
                         <div className="grid gap-2">
                           <Label htmlFor="sval" className="text-xs uppercase tracking-wider font-bold text-slate-500">Valeur Actuelle ({account?.currency || "EUR"})</Label>
-                          <Input id="sval" type="number" step="0.01" value={snapValue} onChange={(e) => setSnapValue(e.target.value)} placeholder="0.00" className="bg-slate-50 border-slate-200 font-bold text-lg" />
+                          <Input id="sval" type="number" inputMode="decimal" step="0.01" value={snapValue} onChange={(e) => setSnapValue(e.target.value)} placeholder="0.00" className="bg-slate-50 border-slate-200 font-bold text-lg" />
                         </div>
                         <div className="grid gap-2">
                           <Label htmlFor="snote" className="text-xs uppercase tracking-wider font-bold text-slate-500">Note (Optionnel)</Label>
@@ -1633,7 +1635,7 @@ export default function AccountDetail() {
                         </div>
                         <div className="grid gap-2">
                           <Label htmlFor="zval" className="text-xs uppercase tracking-wider font-bold text-slate-500">Valeur de référence ({account?.currency || "EUR"})</Label>
-                          <Input id="zval" type="number" step="0.01" value={zeroValue} onChange={(e) => setZeroValue(e.target.value)} placeholder="0.00" className="bg-slate-50 border-slate-200 font-bold text-lg" />
+                          <Input id="zval" type="number" inputMode="decimal" step="0.01" value={zeroValue} onChange={(e) => setZeroValue(e.target.value)} placeholder="0.00" className="bg-slate-50 border-slate-200 font-bold text-lg" />
                         </div>
                         <div className="grid gap-2">
                           <Label htmlFor="znote" className="text-xs uppercase tracking-wider font-bold text-slate-500">Motif du reset</Label>

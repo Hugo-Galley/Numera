@@ -121,7 +121,7 @@ export function WealthForecast() {
               </Button>
             ))}
             <Input
-              type="number"
+              type="number" inputMode="decimal"
               className="h-10 w-28 md:h-9"
               placeholder="Autre"
               value={EXTRA_PRESETS.includes(extra) ? "" : extra}

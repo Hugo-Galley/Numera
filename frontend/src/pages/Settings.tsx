@@ -404,7 +404,7 @@ export default function Settings() {
                       <Label htmlFor="new-monthly-limit" className="text-xs font-bold uppercase tracking-wider text-slate-500">Limite mensuelle (€)</Label>
                       <Input
                         id="new-monthly-limit"
-                        type="number"
+                        type="number" inputMode="decimal"
                         min="0"
                         placeholder="Ex: 200"
                         value={newMonthlyLimit}
@@ -416,7 +416,7 @@ export default function Settings() {
                       <Label htmlFor="new-annual-limit" className="text-xs font-bold uppercase tracking-wider text-slate-500">Limite annuelle (€)</Label>
                       <Input
                         id="new-annual-limit"
-                        type="number"
+                        type="number" inputMode="decimal"
                         min="0"
                         placeholder="Ex: 2400"
                         value={newAnnualLimit}
@@ -588,7 +588,7 @@ export default function Settings() {
                     <Label htmlFor="edit-monthly-limit" className="text-xs font-bold uppercase tracking-wider text-slate-500">Limite mensuelle (€)</Label>
                     <Input
                       id="edit-monthly-limit"
-                      type="number"
+                      type="number" inputMode="decimal"
                       min="0"
                       placeholder="Ex: 200"
                       value={editMonthlyLimit}
@@ -600,7 +600,7 @@ export default function Settings() {
                     <Label htmlFor="edit-annual-limit" className="text-xs font-bold uppercase tracking-wider text-slate-500">Limite annuelle (€)</Label>
                     <Input
                       id="edit-annual-limit"
-                      type="number"
+                      type="number" inputMode="decimal"
                       min="0"
                       placeholder="Ex: 2400"
                       value={editAnnualLimit}

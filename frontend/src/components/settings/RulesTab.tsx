@@ -201,7 +201,7 @@ export function RulesTab() {
                     <div className="space-y-2">
                       <label className="text-sm font-bold">Priorité</label>
                       <Input 
-                        type="number" 
+                        type="number" inputMode="decimal" 
                         value={newRule.priority}
                         onChange={e => setNewRule({...newRule, priority: parseInt(e.target.value) || 0})}
                       />

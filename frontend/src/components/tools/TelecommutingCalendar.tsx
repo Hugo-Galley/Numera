@@ -84,6 +84,8 @@ export function TelecommutingCalendar({
                     selected={salaryDate || undefined}
                     onSelect={(d) => d && onSalaryDateChange(d)}
                     defaultMonth={currentDate}
+                    locale={fr}
+                    weekStartsOn={1}
                   />
                 </PopoverContent>
               </Popover>

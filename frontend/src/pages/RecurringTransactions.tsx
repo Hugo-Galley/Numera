@@ -1077,7 +1077,7 @@ export default function RecurringTransactions() {
                 <Label htmlFor="amount">Montant</Label>
                 <Input
                   id="amount"
-                  type="number"
+                  type="number" inputMode="decimal"
                   step="0.01"
                   value={formData.amount}
                   onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
@@ -1182,7 +1182,7 @@ export default function RecurringTransactions() {
                         <Label htmlFor="quantity" className="text-xs text-slate-600 font-medium">Nb de parts fixe</Label>
                         <Input
                           id="quantity"
-                          type="number"
+                          type="number" inputMode="decimal"
                           step="any"
                           min="0"
                           placeholder="Ex: 1.5 (Laisser vide pour auto)"
@@ -1198,7 +1198,7 @@ export default function RecurringTransactions() {
                         <Label htmlFor="unit_price" className="text-xs text-slate-600 font-medium">Cours indicatif (€)</Label>
                         <Input
                           id="unit_price"
-                          type="number"
+                          type="number" inputMode="decimal"
                           step="any"
                           min="0"
                           placeholder="Cours indicatif..."
@@ -1338,7 +1338,7 @@ export default function RecurringTransactions() {
                     <Label htmlFor="transfer_credit_day">Arrivée sur le compte destination (jour du mois)</Label>
                     <Input
                       id="transfer_credit_day"
-                      type="number"
+                      type="number" inputMode="decimal"
                       min="1"
                       max="31"
                       placeholder="Le jour même"
@@ -1377,7 +1377,7 @@ export default function RecurringTransactions() {
                 <Label htmlFor="day_of_month">Jour du mois</Label>
                 <Input
                   id="day_of_month"
-                  type="number"
+                  type="number" inputMode="decimal"
                   min="1"
                   max="31"
                   value={formData.day_of_month}

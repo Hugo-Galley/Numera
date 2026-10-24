@@ -27,6 +27,7 @@ const Audit = lazy(() => import("@/pages/Audit"))
 const Tools = lazy(() => import("@/pages/Tools"))
 const Tax = lazy(() => import("@/pages/Tax"))
 const MonthHub = lazy(() => import("@/pages/MonthHub"))
+const NotFound = lazy(() => import("@/pages/NotFound"))
 
 export function App() {
   return (
@@ -68,7 +69,7 @@ export function App() {
               <Route path="/tools" element={<Tools />} />
               <Route path="/tax" element={<Tax />} />
               <Route path="/settings" element={<Settings />} />
-              <Route path="*" element={<Navigate to="/" replace />} />
+              <Route path="*" element={<NotFound />} />
             </Route>
           </Routes>
           </Suspense>

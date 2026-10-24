@@ -289,7 +289,8 @@ export default function Accounts() {
       case "epargne": return "Épargne"
       case "investissement": return "Investissement"
       case "assurance_vie": return "Assurance-Vie"
-      default: return type
+      case "bank": return "Compte bancaire"
+      default: return type ? type.charAt(0).toUpperCase() + type.slice(1) : "Autre"
     }
   }
 
@@ -372,7 +373,7 @@ export default function Accounts() {
                     <Label htmlFor="fonds_euros_pct">Fonds Euros (%)</Label>
                     <Input 
                       id="fonds_euros_pct" 
-                      type="number"
+                      type="number" inputMode="decimal"
                       min="0"
                       max="100"
                       placeholder="Ex: 60" 
@@ -391,7 +392,7 @@ export default function Accounts() {
                     <Label htmlFor="fonds_investis_pct">Fonds Investis (%)</Label>
                     <Input 
                       id="fonds_investis_pct" 
-                      type="number"
+                      type="number" inputMode="decimal"
                       min="0"
                       max="100"
                       placeholder="Ex: 40" 
@@ -592,7 +593,7 @@ export default function Accounts() {
                     <Label htmlFor="edit-fonds_euros_pct">Fonds Euros (%)</Label>
                     <Input 
                       id="edit-fonds_euros_pct" 
-                      type="number"
+                      type="number" inputMode="decimal"
                       min="0"
                       max="100"
                       placeholder="Ex: 60" 
@@ -613,7 +614,7 @@ export default function Accounts() {
                     <Label htmlFor="edit-fonds_investis_pct">Fonds Investis (%)</Label>
                     <Input 
                       id="edit-fonds_investis_pct" 
-                      type="number"
+                      type="number" inputMode="decimal"
                       min="0"
                       max="100"
                       placeholder="Ex: 40" 

@@ -419,7 +419,7 @@ export function SalaryManager() {
                     <div className="flex flex-col gap-3">
                       <div className="bg-emerald-100 border border-emerald-200 text-emerald-700 dark:bg-emerald-500/10 dark:border-emerald-500/20 dark:text-emerald-400 p-4 rounded-xl flex items-center justify-center gap-2 font-medium shadow-sm">
                         <CheckCircle2 className="h-5 w-5" />
-                        Mois validé (Planifié)
+                        Salaire du mois généré
                       </div>
                       <Button variant="outline" className="h-11 w-full md:h-9" onClick={handleReset}>
                         Réinitialiser ce mois
