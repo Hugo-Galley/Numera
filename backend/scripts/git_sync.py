@@ -6,6 +6,7 @@ Variables d'environnement :
 - `BACKUP_KEY` : obligatoire, seuls les fichiers `.enc` sont envoyés (jamais de base en clair sur GitHub).
 """
 import base64
+import datetime
 import logging
 import os
 import shutil
@@ -17,6 +18,7 @@ REPO = os.getenv("GITHUB_BACKUP_REPO", "").strip()
 TOKEN = os.getenv("GITHUB_BACKUP_TOKEN", "").strip()
 WORK_DIR = BACKUP_DIR / ".git-sync"
 BRANCH = "main"
+KEEP_DAYS = int(os.getenv("GITHUB_BACKUP_KEEP_DAYS", "30"))
 
 
 def _git(*args: str, cwd: Path | None = None) -> str:
@@ -52,6 +54,17 @@ def _prepare_clone() -> None:
         pass
 
 
+def _select_for_github(files: list[Path]) -> dict[str, Path]:
+    """Une sauvegarde par jour (la dernière), sur KEEP_DAYS jours : `AAAA-MM/<fichier>` -> source locale."""
+    cutoff = (datetime.date.today() - datetime.timedelta(days=KEEP_DAYS)).strftime("%Y%m%d")
+    latest_per_day: dict[str, Path] = {}
+    for path in sorted(files):  # le nom contient l'horodatage : l'ordre alphabétique est chronologique
+        day = path.name.split("_")[2]
+        if day >= cutoff:
+            latest_per_day[day] = path
+    return {f"{day[:4]}-{day[4:6]}/{path.name}": path for day, path in latest_per_day.items()}
+
+
 def sync_backups() -> bool:
     """Reflète les sauvegardes chiffrées locales dans le dépôt GitHub. False si désactivé."""
     if not REPO:
@@ -63,10 +76,11 @@ def sync_backups() -> bool:
         raise RuntimeError("Aucune sauvegarde chiffrée à envoyer (BACKUP_KEY configurée ?)")
 
     _prepare_clone()
-    for old in WORK_DIR.glob("suivi_budget_*.db.enc"):
-        old.unlink()  # même rétention que le dossier local
-    for path in encrypted:
-        shutil.copy2(path, WORK_DIR / path.name)
+    for old in WORK_DIR.glob("**/suivi_budget_*.db.enc"):
+        old.unlink()
+    for rel, path in _select_for_github(encrypted).items():
+        (WORK_DIR / rel).parent.mkdir(exist_ok=True)
+        shutil.copy2(path, WORK_DIR / rel)
 
     _git("add", "-A", cwd=WORK_DIR)
     if not _git("status", "--porcelain", cwd=WORK_DIR).strip():

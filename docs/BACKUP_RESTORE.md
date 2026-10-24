@@ -27,7 +27,7 @@ Après chaque sauvegarde (toutes les 24 h via le conteneur `backup`), `backend/s
 2. Créer un token fine-grained limité à ce dépôt, permission *Contents : Read and write*.
 3. Renseigner dans `.env` : `GITHUB_BACKUP_REPO=Hugo-Galley/numera-backups` et `GITHUB_BACKUP_TOKEN=...`, puis `docker compose up -d --build backup`.
 
-Le dépôt reflète le dossier local (même rétention `RETENTION_DAYS`, l'historique git garde les anciennes versions). Un échec d'envoi sort en code 2 sans annuler la sauvegarde locale. **Conservez `BACKUP_KEY` ailleurs** (gestionnaire de mots de passe) : sans elle, les sauvegardes GitHub sont illisibles.
+Le dépôt garde **une sauvegarde par jour** (la dernière du jour), rangée par mois (`2026-10/…`), sur `GITHUB_BACKUP_KEEP_DAYS` jours (30 par défaut) ; l'historique git conserve les anciennes versions. Un échec d'envoi sort en code 2 sans annuler la sauvegarde locale. **Conservez `BACKUP_KEY` ailleurs** (gestionnaire de mots de passe) : sans elle, les sauvegardes GitHub sont illisibles.
 
 ## Restauration
 
