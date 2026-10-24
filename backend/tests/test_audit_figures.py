@@ -188,3 +188,34 @@ def test_subscription_costs_are_converted_to_eur(client, db_session, world, monk
     db_session.commit()
     sub = next(s for s in client.get("/analytics/subscriptions").json()["subscriptions"] if s["name"] == "Service US")
     assert sub["monthly_cost"] == round(10.8 / usd, 2)
+
+
+# --- A10 : un seul patrimoine ------------------------------------------------------------
+
+def test_wealth_totals_agree_across_endpoints_and_include_every_account_type(client, db_session):
+    from app.models.balance_snapshot import BalanceSnapshot
+
+    db = db_session
+    courant = Account(name="Courant", type="courant", currency="EUR", active=True)
+    livret = Account(name="Livret", type="epargne", currency="EUR", active=True)
+    bank = Account(name="Ancien compte", type="bank", currency="EUR", active=True)
+    pea = Account(name="PEA", type="investissement", currency="EUR", active=True)
+    ledger = Account(name="Ledger", type="investissement", currency="EUR", active=True)  # aucune valorisation
+    closed = Account(name="Clos", type="courant", currency="EUR", active=False)
+    db.add_all([courant, livret, bank, pea, ledger, closed])
+    db.commit()
+    for acc, balance in ((courant, 1500.0), (livret, 10000.0), (bank, 85.88), (closed, 999.0)):
+        tx = _tx(db, acc, datetime(2026, 5, 2), "Entree", balance, "Depot")
+        tx.running_balance = balance
+    db.add(BalanceSnapshot(account_id=pea.id, date=datetime(2026, 5, 3), current_value=2000.0))
+    db.commit()
+
+    expected = 1500.0 + 10000.0 + 85.88 + 2000.0  # compte inactif exclu, compte « bank » inclus
+    patrimoine = client.get("/analytics/patrimoine-allocation").json()
+    assert patrimoine["total_patrimoine"] == expected
+    budget = client.get("/analytics/budget").json()
+    assert budget["patrimoine_net_total"] == expected
+
+    advanced = client.get("/analytics/investments-allocation-advanced").json()
+    summary = client.get("/analytics/investments-allocation").json()
+    assert advanced["total_value_eur"] == summary["total_current_value"] == 2000.0

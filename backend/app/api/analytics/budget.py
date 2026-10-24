@@ -56,6 +56,7 @@ logger = get_logger(__name__)
 
 router = APIRouter()
 
+from app.core.wealth import account_values, active_accounts
 from .utils import (
     income_criterion,
     NET_AMOUNT,
@@ -364,6 +365,17 @@ async def budget_analytics(
                 
                 investment_value += val / rates.get(acc.currency, 1.0)
 
+        # Vue globale : le patrimoine vient du calculateur unique (tous les comptes actifs, tous types)
+        other_bal = 0.0
+        global_values = None
+        if not account_id:
+            wealth_accounts = active_accounts(db)
+            global_values = await account_values(db, wealth_accounts, end if not is_current_period else None)
+            account_by_id = {a.id: a for a in wealth_accounts}
+            investment_value = sum(
+                v.value_eur for i, v in global_values.items() if account_by_id[i].type in INVESTMENT_ACCOUNT_TYPES
+            )
+
         # 2. Checking / Savings balances
         # We use a subquery to get the latest transaction (max date, then max ID) for each account
         account_last_tx = (
@@ -439,7 +451,14 @@ async def budget_analytics(
 
         # If we have savings accounts, use savings_total (snapshot-aware) instead of savings_bal_from_tx
         if not account_id:
-            solde_actuel = checking_bal + savings_total + investment_value
+            checking_bal = sum(v.value_eur for i, v in global_values.items() if account_by_id[i].type == "courant")
+            savings_total = sum(v.value_eur for i, v in global_values.items() if account_by_id[i].type == "epargne")
+            other_bal = sum(
+                v.value_eur
+                for i, v in global_values.items()
+                if account_by_id[i].type not in ("courant", "epargne", *INVESTMENT_ACCOUNT_TYPES)
+            )
+            solde_actuel = checking_bal + savings_total + investment_value + other_bal
         else:
             acc_obj = db.query(Account).filter(Account.id == account_id).first()
             if acc_obj.type in INVESTMENT_ACCOUNT_TYPES:
@@ -549,7 +568,7 @@ async def budget_analytics(
             "revenus_apres_depenses": round(float(remaining), 2),
             "taux_epargne": round(float(savings_rate), 2),
             "burn_rate": round(float(burn_rate), 2),
-            "patrimoine_net_total": round(float(checking_bal + savings_total + investment_value), 2),
+            "patrimoine_net_total": round(float(checking_bal + savings_total + investment_value + other_bal), 2),
             "epargne_total": round(float(savings_total), 2),
             "solde_actuel": round(float(solde_actuel), 2),
         }

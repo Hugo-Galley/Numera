@@ -48,6 +48,7 @@ from app.models.recurring_transaction import RecurringTransaction
 from app.core.finance import get_recurring_occurrences
 from app.core.holdings import replay_account
 from app.core.portfolio import compute_portfolio, only_transfer_legs, positions_values_eur, uses_positions
+from app.core.wealth import account_values, active_accounts
 from app.core.logging import get_logger
 from app.schemas.transaction import TransactionRead
 
@@ -602,48 +603,8 @@ async def investments_allocation(account_id: int | None = Query(default=None), d
         query = query.filter(Account.id == account_id)
     
     investment_accounts = query.all()
-    rates = await get_exchange_rates("EUR")
     now = datetime.now()
-    
-    latest_snapshots_subquery = (
-        db.query(
-            BalanceSnapshot.account_id.label("account_id"),
-            func.max(BalanceSnapshot.date).label("max_date"),
-        )
-        .filter(BalanceSnapshot.date <= now)
-        .group_by(BalanceSnapshot.account_id)
-        .subquery()
-    )
-
-    latest_snapshots_ids = (
-        db.query(func.max(BalanceSnapshot.id).label("max_id"))
-        .join(
-            latest_snapshots_subquery,
-            (BalanceSnapshot.account_id == latest_snapshots_subquery.c.account_id)
-            & (BalanceSnapshot.date == latest_snapshots_subquery.c.max_date),
-        )
-        .group_by(BalanceSnapshot.account_id)
-        .subquery()
-    )
-
-    latest_values_rows = (
-        db.query(BalanceSnapshot.account_id, BalanceSnapshot.current_value)
-        .join(latest_snapshots_ids, BalanceSnapshot.id == latest_snapshots_ids.c.max_id)
-        .all()
-    )
-    current_by_account = {row.account_id: float(row.current_value or 0.0) for row in latest_values_rows}
-    
-    # Fallback for accounts without snapshots: use last running_balance from Transaction table
-    for acc in investment_accounts:
-        if acc.id not in current_by_account:
-            last_tx = (
-                db.query(Transaction)
-                .filter(Transaction.account_id == acc.id, Transaction.date <= now)
-                .order_by(Transaction.date.desc(), Transaction.id.desc())
-                .first()
-            )
-            if last_tx:
-                current_by_account[acc.id] = float(last_tx.running_balance)
+    values = await account_values(db, investment_accounts)
 
     total_current_value_eur = 0.0
     total_net_invested_eur = 0.0
@@ -673,14 +634,8 @@ async def investments_allocation(account_id: int | None = Query(default=None), d
         net_invested_eur = flows["net_invested_target"]
         total_net_invested_eur += net_invested_eur
 
-        raw_value = current_by_account.get(acc.id)
-        if raw_value is not None:
-            # Current value converted with latest rates
-            value_eur = raw_value / rates.get(acc.currency, 1.0)
-        else:
-            # Fallback: use net invested as current value
-            value_eur = net_invested_eur
-            
+        # Même valeur que le patrimoine (relevé, sinon solde) ; sans valorisation : 0, jamais le capital investi
+        value_eur = values[acc.id].value_eur
         total_current_value_eur += value_eur
 
         items.append(
@@ -691,7 +646,7 @@ async def investments_allocation(account_id: int | None = Query(default=None), d
                 "net_invested": round(net_invested_eur, 2),
                 "gain_eur": round(value_eur - net_invested_eur, 2),
                 "currency": acc.currency,
-                "value_source": "snapshot",
+                "value_source": values[acc.id].source,
             }
         )
 
@@ -722,48 +677,7 @@ async def investments_allocation_advanced(db: Session = Depends(get_db)):
     Returns advanced asset allocation: by asset class, sector and geographic zone.
     """
     investment_accounts = db.query(Account).filter(Account.type.in_(["investissement", "assurance_vie"]), Account.active.is_(True)).all()
-    rates = await get_exchange_rates("EUR")
-    now = datetime.now()
-    
-    latest_snapshots_subquery = (
-        db.query(
-            BalanceSnapshot.account_id.label("account_id"),
-            func.max(BalanceSnapshot.date).label("max_date"),
-        )
-        .filter(BalanceSnapshot.date <= now)
-        .group_by(BalanceSnapshot.account_id)
-        .subquery()
-    )
-
-    latest_snapshots_ids = (
-        db.query(func.max(BalanceSnapshot.id).label("max_id"))
-        .join(
-            latest_snapshots_subquery,
-            (BalanceSnapshot.account_id == latest_snapshots_subquery.c.account_id)
-            & (BalanceSnapshot.date == latest_snapshots_subquery.c.max_date),
-        )
-        .group_by(BalanceSnapshot.account_id)
-        .subquery()
-    )
-
-    latest_values_rows = (
-        db.query(BalanceSnapshot.account_id, BalanceSnapshot.current_value)
-        .join(latest_snapshots_ids, BalanceSnapshot.id == latest_snapshots_ids.c.max_id)
-        .all()
-    )
-    current_by_account = {row.account_id: float(row.current_value or 0.0) for row in latest_values_rows}
-    
-    # Fallback for accounts without snapshots
-    for acc in investment_accounts:
-        if acc.id not in current_by_account:
-            last_tx = (
-                db.query(Transaction)
-                .filter(Transaction.account_id == acc.id, Transaction.date <= now)
-                .order_by(Transaction.date.desc(), Transaction.id.desc())
-                .first()
-            )
-            if last_tx:
-                current_by_account[acc.id] = float(last_tx.running_balance)
+    values = await account_values(db, investment_accounts)
 
     # Aggregations
     # Structure: { "Category Name": { "value": 0.0, "items": { account_id: { name: "", value: 0.0 } } } }
@@ -785,8 +699,7 @@ async def investments_allocation_advanced(db: Session = Depends(get_db)):
         agg_dict[cat_name]["items"][acc_id]["value"] += val
 
     for acc in investment_accounts:
-        raw_val = current_by_account.get(acc.id, 0.0)
-        val_eur = raw_val / rates.get(acc.currency, 1.0)
+        val_eur = values[acc.id].value_eur
         total_value_eur += val_eur
 
         txs_with_allocation = db.query(InvestmentTransaction).filter(
@@ -852,83 +765,15 @@ async def patrimoine_allocation(db: Session = Depends(get_db)):
     """
     Returns the distribution of active wealth (all accounts: courant, epargne, investissement).
     """
-    accounts = db.query(Account).filter(Account.active.is_(True)).all()
-    rates = await get_exchange_rates("EUR")
-    now = datetime.now()
-    
-    # Pre-fetch latest snapshots for all accounts to optimize queries
-    latest_snapshots_subquery = (
-        db.query(
-            BalanceSnapshot.account_id.label("account_id"),
-            func.max(BalanceSnapshot.date).label("max_date"),
-        )
-        .filter(BalanceSnapshot.date <= now)
-        .group_by(BalanceSnapshot.account_id)
-        .subquery()
-    )
-
-    latest_snapshots_ids = (
-        db.query(func.max(BalanceSnapshot.id).label("max_id"))
-        .join(
-            latest_snapshots_subquery,
-            (BalanceSnapshot.account_id == latest_snapshots_subquery.c.account_id)
-            & (BalanceSnapshot.date == latest_snapshots_subquery.c.max_date),
-        )
-        .group_by(BalanceSnapshot.account_id)
-        .subquery()
-    )
-
-    latest_snapshots_rows = (
-        db.query(BalanceSnapshot.account_id, BalanceSnapshot.current_value)
-        .join(latest_snapshots_ids, BalanceSnapshot.id == latest_snapshots_ids.c.max_id)
-        .all()
-    )
-    current_by_snapshot = {row.account_id: float(row.current_value or 0.0) for row in latest_snapshots_rows}
-
-    # Pre-fetch latest transaction running balance for all accounts to optimize queries
-    account_last_tx = (
-        db.query(
-            Transaction.account_id.label("account_id"),
-            func.max(Transaction.date).label("max_date"),
-        )
-        .filter(Transaction.date <= now)
-        .group_by(Transaction.account_id)
-        .subquery()
-    )
-
-    latest_tx_ids = (
-        db.query(func.max(Transaction.id).label("max_id"))
-        .join(
-            account_last_tx,
-            (Transaction.account_id == account_last_tx.c.account_id) & (Transaction.date == account_last_tx.c.max_date),
-        )
-        .group_by(Transaction.account_id)
-        .subquery()
-    )
-
-    latest_tx_rows = (
-        db.query(Transaction.account_id, Transaction.running_balance)
-        .join(latest_tx_ids, Transaction.id == latest_tx_ids.c.max_id)
-        .all()
-    )
-    current_by_tx = {row.account_id: float(row.running_balance or 0.0) for row in latest_tx_rows}
-
-    # Comptes titres : même valeur que la page Investissements (positions × cours), pas le dernier relevé
-    positions_values = await positions_values_eur(db, accounts)
+    accounts = active_accounts(db)
+    values = await account_values(db, accounts)
 
     total_patrimoine_eur = 0.0
     items = []
 
     for acc in accounts:
-        val = 0.0
-        if acc.id in positions_values:
-            val = positions_values[acc.id] * rates.get(acc.currency, 1.0)
-        elif acc.id in current_by_snapshot:
-            val = current_by_snapshot[acc.id]
-        elif acc.id in current_by_tx:
-            val = current_by_tx[acc.id]
-
-        val_eur = val / rates.get(acc.currency, 1.0)
+        val = values[acc.id].value
+        val_eur = values[acc.id].value_eur
         total_patrimoine_eur += val_eur
         
         if acc.type == "assurance_vie":
