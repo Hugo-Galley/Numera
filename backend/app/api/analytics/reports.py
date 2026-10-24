@@ -269,7 +269,12 @@ async def get_monthly_report(
     prev_cat_totals = {item["category"]["id"]: item["total"] for item in prev_cat_data["items"]}
     top_categories = []
     # Sort items by total descending
-    sorted_items = sorted(cat_data["items"], key=lambda x: x["total"], reverse=True)
+    # Investissement / Epargne ne sont pas des postes de consommation (comme dans le bilan annuel)
+    sorted_items = sorted(
+        (i for i in cat_data["items"] if i["category"]["name"] not in ("Investissement", "Epargne")),
+        key=lambda x: x["total"],
+        reverse=True,
+    )
     for item in sorted_items[:8]:
         top_categories.append({
             "name": item["category"]["name"],

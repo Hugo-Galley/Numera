@@ -106,3 +106,36 @@ def test_kpi_history_matches_budget(client, world):
     march = next(h for h in history if h["month"] == 3 and h["year"] == 2026)
     assert march["revenus"] == EXPECTED_INCOME
     assert march["depenses"] == 300.0
+
+
+def test_expenses_by_category_total_matches_budget_with_uncategorized_bucket(client, db_session, world):
+    _tx(db_session, world["courant"], MARCH, "Sortie", 30.0, "Inconnu")  # sans catégorie
+    _tx(db_session, world["bank"], MARCH, "Sortie", 77.0, "Hors périmètre")  # compte hors flux
+    db_session.commit()
+    budget = client.get("/analytics/budget", params={"month": 3, "year": 2026}).json()
+    data = client.get("/analytics/expenses-by-category", params={"month": 3, "year": 2026}).json()
+    assert data["total"] == budget["depenses_totales"] == 330.0
+    names = {item["category"]["name"] for item in data["items"]}
+    assert "Sans catégorie" in names
+
+
+def test_top_merchants_excludes_savings_and_out_of_scope_accounts(client, db_session, world):
+    epargne = Category(name="Epargne", type="depense")
+    db_session.add(epargne)
+    db_session.commit()
+    _tx(db_session, world["courant"], MARCH, "Sortie", 500.0, "VIR INST MOI", category_id=epargne.id)
+    _tx(db_session, world["bank"], MARCH, "Sortie", 900.0, "Hors périmètre")
+    db_session.commit()
+    items = client.get("/analytics/top-merchants", params={"month": 3, "year": 2026, "limit": 50}).json()["items"]
+    names = {i["merchant"] for i in items}
+    assert names == {"Carrefour"}
+
+
+def test_monthly_report_top_categories_exclude_investment_and_savings(client, db_session, world):
+    invest = Category(name="Investissement", type="depense")
+    db_session.add(invest)
+    db_session.commit()
+    _tx(db_session, world["courant"], MARCH, "Sortie", 512.0, "Versement PEA", category_id=invest.id)
+    db_session.commit()
+    report = client.get("/analytics/monthly-report", params={"month": 3, "year": 2026}).json()
+    assert "Investissement" not in {c["name"] for c in report["top_categories"]}

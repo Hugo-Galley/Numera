@@ -5,6 +5,8 @@ from datetime import date, datetime, timedelta
 from typing import Any, Dict, List, Optional, Tuple
 from pydantic import BaseModel
 from fastapi import APIRouter, Depends, HTTPException, Query
+from types import SimpleNamespace
+
 from sqlalchemy import case, func, or_
 from sqlalchemy.orm import Session
 
@@ -134,6 +136,11 @@ async def tags_analytics(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+UNCATEGORIZED = SimpleNamespace(
+    id=None, name="Sans catégorie", icon=None, color="#94a3b8", monthly_limit=None, annual_limit=None
+)
+
+
 @router.get("/expenses-by-category")
 async def expenses_by_category(
     month: int = Query(ge=1, le=12),
@@ -151,7 +158,7 @@ async def expenses_by_category(
             func.coalesce(func.sum(NET_AMOUNT), 0.0).label("total"),
         )
         .join(Account, Transaction.account_id == Account.id)
-        .join(Category, Transaction.category_id == Category.id)
+        .outerjoin(Category, Transaction.category_id == Category.id)
         .filter(
             Transaction.date >= start,
             Transaction.date < end,
@@ -162,18 +169,21 @@ async def expenses_by_category(
     if account_id:
         query = query.filter(Transaction.account_id == account_id)
     else:
+        # Même périmètre que le budget : le total de la répartition doit égaler `depenses_totales`
+        query = query.filter(Account.type.in_(["courant", "epargne"]))
         tr_accounts = _get_ticket_restaurant_account_ids(db)
         if tr_accounts:
             query = query.filter(Transaction.account_id.notin_(tr_accounts))
     
     rows = query.group_by(Category.id, Account.currency).all()
 
-    # Aggregate by category after conversion
+    # Aggregate by category after conversion ; les dépenses sans catégorie forment un bloc à part
     category_totals = {}
     for row in rows:
-        cat_id = row.Category.id
+        category = row.Category or UNCATEGORIZED
+        cat_id = category.id
         if cat_id not in category_totals:
-            category_totals[cat_id] = {"category": row.Category, "total_eur": 0.0}
+            category_totals[cat_id] = {"category": category, "total_eur": 0.0}
         
         val_eur = row.total / rates.get(row.currency, 1.0)
         category_totals[cat_id]["total_eur"] += val_eur
@@ -261,12 +271,13 @@ async def top_merchants(
             Transaction.date < end,
             Transaction.type == "Sortie",
             Transaction.is_transfer == False,
-            func.coalesce(Category.name, "") != "Investissement"
+            func.coalesce(Category.name, "").notin_(["Investissement", "Epargne"]),
         )
     )
     if account_id:
         query = query.filter(Transaction.account_id == account_id)
     else:
+        query = query.filter(Account.type.in_(["courant", "epargne"]))
         tr_accounts = _get_ticket_restaurant_account_ids(db)
         if tr_accounts:
             query = query.filter(Transaction.account_id.notin_(tr_accounts))
