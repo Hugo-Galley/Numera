@@ -58,6 +58,7 @@ def create_account(payload: AccountCreate, db: Session = Depends(get_db)):
         sector=payload.sector,
         geographic_zone=payload.geographic_zone,
         institution=payload.institution,
+        logo=payload.logo,
         is_main=payload.is_main,
         fonds_euros_pct=payload.fonds_euros_pct,
         fonds_investis_pct=payload.fonds_investis_pct,

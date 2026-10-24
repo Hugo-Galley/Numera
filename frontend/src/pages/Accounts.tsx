@@ -49,6 +49,8 @@ import {
 } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
+import { LogoPicker } from "@/components/ui/LogoPicker"
+import { AccountLogo, invalidateAccountLogos } from "@/components/ui/AccountLogo"
 
 type Account = {
   id: number
@@ -60,6 +62,7 @@ type Account = {
   sector?: string
   geographic_zone?: string
   institution?: string
+  logo?: string | null
   is_main?: boolean
   fonds_euros_pct?: number
   fonds_investis_pct?: number
@@ -91,6 +94,7 @@ export default function Accounts() {
   const [newType, setNewType] = useState<string>("courant")
   const [newCurrency, setNewCurrency] = useState<string>("EUR")
   const [newInstitution, setNewInstitution] = useState("")
+  const [newLogo, setNewLogo] = useState<string | null>(null)
   const [newAssetClass, setNewAssetClass] = useState("")
   const [newSector, setNewSector] = useState("")
   const [newZone, setNewZone] = useState("")
@@ -179,6 +183,7 @@ export default function Accounts() {
         type: newType, 
         currency: newCurrency,
         institution: newInstitution || null,
+        logo: newLogo,
         asset_class: newType === "investissement" ? newAssetClass : null,
         sector: newType === "investissement" ? newSector : null,
         geographic_zone: newType === "investissement" ? newZone : null,
@@ -188,11 +193,13 @@ export default function Accounts() {
         fonds_euros_pct: newType === "assurance_vie" ? (newEurosPct ? parseFloat(newEurosPct) : 0) : null,
         fonds_investis_pct: newType === "assurance_vie" ? (newInvestisPct ? parseFloat(newInvestisPct) : 0) : null
       })
+      invalidateAccountLogos()
       toast.success("Compte créé avec succès")
       setIsDialogOpen(false)
       setNewName("")
       setNewCurrency("EUR")
       setNewInstitution("")
+      setNewLogo(null)
       setNewAssetClass("")
       setNewSector("")
       setNewZone("")
@@ -215,6 +222,7 @@ export default function Accounts() {
         type: editingAccount.type, 
         currency: editingAccount.currency,
         institution: editingAccount.institution || null,
+        logo: editingAccount.logo || null,
         asset_class: editingAccount.type === "investissement" ? editingAccount.asset_class : null,
         sector: editingAccount.type === "investissement" ? editingAccount.sector : null,
         geographic_zone: editingAccount.type === "investissement" ? editingAccount.geographic_zone : null,
@@ -224,7 +232,14 @@ export default function Accounts() {
         fonds_euros_pct: editingAccount.type === "assurance_vie" ? (editingAccount.fonds_euros_pct !== undefined && editingAccount.fonds_euros_pct !== null ? editingAccount.fonds_euros_pct : 0) : null,
         fonds_investis_pct: editingAccount.type === "assurance_vie" ? (editingAccount.fonds_investis_pct !== undefined && editingAccount.fonds_investis_pct !== null ? editingAccount.fonds_investis_pct : 0) : null
       })
-      toast.success("Compte mis à jour")
+      // Même banque : on applique le logo aux autres comptes qui n'en ont pas encore.
+      const inst = editingAccount.institution?.trim().toLowerCase()
+      const siblings = editingAccount.logo && inst
+        ? accounts.filter((x) => x.id !== editingAccount.id && !x.logo && x.institution?.trim().toLowerCase() === inst)
+        : []
+      await Promise.all(siblings.map((x) => api.patch(`/accounts/${x.id}`, { logo: editingAccount.logo })))
+      invalidateAccountLogos()
+      toast.success(siblings.length ? `Compte mis à jour (logo appliqué à ${siblings.length} autre(s) compte(s))` : "Compte mis à jour")
       setIsEditDialogOpen(false)
       setEditingAccount(null)
       loadAccounts()
@@ -326,6 +341,10 @@ export default function Accounts() {
                   <option value="Revolut" />
                   <option value="N26" />
                 </datalist>
+              </div>
+              <div className="grid gap-2">
+                <Label>Logo de la banque</Label>
+                <LogoPicker value={newLogo} onChange={setNewLogo} suggestFor={newInstitution || newName} />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="type">Type de compte</Label>
@@ -537,6 +556,14 @@ export default function Accounts() {
                 </datalist>
               </div>
               <div className="grid gap-2">
+                <Label>Logo de la banque</Label>
+                <LogoPicker
+                  value={editingAccount.logo || null}
+                  onChange={(logo) => setEditingAccount({...editingAccount, logo})}
+                  suggestFor={editingAccount.institution || editingAccount.name}
+                />
+              </div>
+              <div className="grid gap-2">
                 <Label htmlFor="edit-type">Type de compte</Label>
                 <Select 
                   value={editingAccount.type} 
@@ -744,7 +771,10 @@ export default function Accounts() {
                       <Star className={`h-5 w-5 ${account.is_main ? 'fill-current' : ''}`} />
                     </Button>
                     <Link to={`/accounts/${account.id}`} className="min-w-0 flex-1 py-1">
-                      <p className="break-words font-semibold leading-tight">{account.name}</p>
+                      <p className="flex items-center gap-2 break-words font-semibold leading-tight">
+                        <AccountLogo accountId={account.id} logo={account.logo ?? null} className="h-6 w-6" />
+                        {account.name}
+                      </p>
                       <div className="mt-1 flex flex-wrap items-center gap-x-2 text-sm text-muted-foreground">
                         {getTypeIcon(account.type)}
                         <span>{getTypeLabel(account.type)}</span>
@@ -850,6 +880,7 @@ export default function Accounts() {
                           >
                             <Star className={`h-4 w-4 ${account.is_main ? 'fill-current' : ''}`} />
                           </Button>
+                          <AccountLogo accountId={account.id} logo={account.logo ?? null} className="h-6 w-6" />
                           {account.name}
                         </div>
                       </TableCell>

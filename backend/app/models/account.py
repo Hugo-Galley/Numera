@@ -25,6 +25,7 @@ class Account(Base):
 
     # Institution / Bank (e.g. BRED, SG, Boursorama...)
     institution: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    logo: Mapped[str | None] = mapped_column(String(64), nullable=True)  # "si:<slug>" (Simple Icons) ou "file:<hash>.png" (favicon local)
 
     # Assurance Vie split
     fonds_euros_pct: Mapped[float | None] = mapped_column(Float, nullable=True)

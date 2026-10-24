@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react"
+import { AccountLogo } from "@/components/ui/AccountLogo"
 import { useParams, Link } from "react-router-dom"
 import { 
   ArrowLeft, 
@@ -248,6 +249,7 @@ type Account = {
   balance?: number
   id: number
   name: string
+  logo?: string | null
   type: "courant" | "epargne" | "investissement" | "assurance_vie"
   currency: string
   fonds_euros_pct?: number
@@ -1149,9 +1151,13 @@ export default function AccountDetail() {
           
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex items-center gap-3 sm:gap-4">
-              <div className="hidden h-14 w-14 shrink-0 bg-slate-900 rounded-2xl sm:flex items-center justify-center text-white shadow-lg">
-                <Wallet className="h-7 w-7" />
-              </div>
+              {account.logo ? (
+                <AccountLogo accountId={account.id} logo={account.logo} className="hidden h-14 w-14 rounded-2xl sm:flex" />
+              ) : (
+                <div className="hidden h-14 w-14 shrink-0 bg-slate-900 rounded-2xl sm:flex items-center justify-center text-white shadow-lg">
+                  <Wallet className="h-7 w-7" />
+                </div>
+              )}
               <div>
                 <div className="flex flex-wrap items-center gap-2">
                   <h1 className="break-words text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">{account.name}</h1>

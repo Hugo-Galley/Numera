@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom"
+import { AccountLogo } from "@/components/ui/AccountLogo"
 import { Star } from "lucide-react"
 import { 
   Select, 
@@ -57,7 +58,9 @@ export function DashboardHeader({
           <SelectContent>
             <SelectItem value="all">Tous les comptes</SelectItem>
             {accounts.filter((acc) => acc.active).map((acc) => (
-              <SelectItem key={acc.id} value={String(acc.id)}>{acc.name}</SelectItem>
+              <SelectItem key={acc.id} value={String(acc.id)}>
+                <span className="flex items-center gap-2"><AccountLogo accountId={acc.id} className="h-5 w-5" />{acc.name}</span>
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>

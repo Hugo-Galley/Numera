@@ -1,7 +1,9 @@
 from datetime import date, datetime
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
+
+from app.schemas.recurring_transaction import _check_logo
 
 
 TaxWrapper = Literal["pea", "per", "cto", "assurance_vie", "livret_a", "livret_jeune", "pee"]
@@ -18,12 +20,15 @@ class AccountBase(BaseModel):
     sector: str | None = None
     geographic_zone: str | None = None
     institution: str | None = None
+    logo: str | None = None
     is_main: bool = False
     fonds_euros_pct: float | None = None
     fonds_investis_pct: float | None = None
     valuation_mode: Literal["positions", "snapshot"] = "positions"
     tax_wrapper: TaxWrapper | None = None
     opened_at: date | None = None
+
+    _validate_logo = field_validator("logo")(_check_logo)
 
 
 class AccountCreate(AccountBase):
@@ -41,12 +46,15 @@ class AccountUpdate(BaseModel):
     sector: str | None = None
     geographic_zone: str | None = None
     institution: str | None = None
+    logo: str | None = None
     is_main: bool | None = None
     fonds_euros_pct: float | None = None
     fonds_investis_pct: float | None = None
     valuation_mode: Literal["positions", "snapshot"] | None = None
     tax_wrapper: TaxWrapper | None = None
     opened_at: date | None = None
+
+    _validate_logo = field_validator("logo")(_check_logo)
 
 
 class AccountRead(AccountBase):
