@@ -8,6 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import case, func, or_
 from sqlalchemy.orm import Session
 
+from app.core.budget_period import period_bounds
 from app.core.currency import get_exchange_rates, convert_amount
 from app.db.session import get_db
 from app.models.account import Account
@@ -62,6 +63,17 @@ from .utils import (
 )
 
 
+# Multiplicateurs (coût mensuel, coût annuel) par fréquence de récurrence
+MONTHS_PER_PERIOD_FACTOR = {
+    "daily": {"monthly": 30.0, "annual": 365.0},
+    "weekly": {"monthly": 4.33, "annual": 52.0},
+    "monthly": {"monthly": 1.0, "annual": 12.0},
+    "quarterly": {"monthly": 1 / 3, "annual": 4.0},
+    "yearly": {"monthly": 1 / 12, "annual": 1.0},
+    "annual": {"monthly": 1 / 12, "annual": 1.0},  # ancien libellé
+}
+
+
 @router.get("/subscriptions", response_model=SubscriptionsResponse)
 async def get_subscriptions_analytics(
     account_id: int | None = Query(default=None),
@@ -82,22 +94,17 @@ async def get_subscriptions_analytics(
     if account_id:
         recur_query = recur_query.filter(RecurringTransaction.account_id == account_id)
     
+    rates = await get_exchange_rates("EUR")
     recurring_defs = recur_query.all()
     for rd in recurring_defs:
-        monthly_cost = 0.0
-        annual_cost = 0.0
-        if rd.frequency == "monthly":
-            monthly_cost = float(rd.amount)
-            annual_cost = float(rd.amount) * 12
-        elif rd.frequency == "annual":
-            monthly_cost = float(rd.amount) / 12
-            annual_cost = float(rd.amount)
-        elif rd.frequency == "weekly":
-            monthly_cost = float(rd.amount) * 4.33
-            annual_cost = float(rd.amount) * 52
-        elif rd.frequency == "quarterly":
-            monthly_cost = float(rd.amount) / 3
-            annual_cost = float(rd.amount) * 4
+        # Coût mensuel/annuel en EUR : le montant d'une récurrence est dans sa propre devise
+        rate = rates.get(rd.currency or "EUR", 1.0) or 1.0
+        factor = MONTHS_PER_PERIOD_FACTOR.get(rd.frequency)
+        monthly_cost = float(rd.amount) * factor["monthly"] / rate if factor else 0.0
+        annual_cost = float(rd.amount) * factor["annual"] / rate if factor else 0.0
+        is_savings_flow = bool(rd.transfer_to_account_id) or (
+            rd.category is not None and rd.category.name in ("Investissement", "Epargne")
+        )
 
         # Find last occurrence in real transactions
         last_tx = db.query(Transaction).filter(
@@ -123,6 +130,7 @@ async def get_subscriptions_analytics(
             status="active" if rd.is_active else "paused",
             logo=rd.logo,
             flow_type=rd.type,
+            counts_in_total=bool(rd.is_active) and not is_savings_flow,
         ))
 
     # 2. Detect potential subscriptions (Repeated transactions same merchant + same amount)
@@ -163,7 +171,7 @@ async def get_subscriptions_analytics(
             status="potential"
         ))
 
-    outflows = [s for s in subscriptions if s.flow_type == "Sortie"]
+    outflows = [s for s in subscriptions if s.flow_type == "Sortie" and s.counts_in_total]
     total_monthly = sum(s.monthly_cost for s in outflows)
     total_annual = sum(s.annual_cost for s in outflows)
 
@@ -193,8 +201,7 @@ async def ignore_subscription_detection(
 
 
 async def get_subscription_total_for_period(month: int, year: int, db: Session) -> float:
-    start = datetime(year, month, 1)
-    end = datetime(year + (1 if month == 12 else 0), 1 if month == 12 else month + 1, 1)
+    start, end = period_bounds(db, year, month)
     rates = await get_exchange_rates("EUR")
 
     tr_accounts = _get_ticket_restaurant_account_ids(db)

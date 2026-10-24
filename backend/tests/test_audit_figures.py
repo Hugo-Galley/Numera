@@ -139,3 +139,52 @@ def test_monthly_report_top_categories_exclude_investment_and_savings(client, db
     db_session.commit()
     report = client.get("/analytics/monthly-report", params={"month": 3, "year": 2026}).json()
     assert "Investissement" not in {c["name"] for c in report["top_categories"]}
+
+
+# --- A9 : abonnements ---------------------------------------------------------------------
+
+def _recurring(db, account, name, amount, frequency="monthly", **kw):
+    from app.models.recurring_transaction import RecurringTransaction
+
+    rd = RecurringTransaction(
+        account_id=account.id, name=name, type="Sortie", amount=amount, currency=kw.pop("currency", "EUR"),
+        frequency=frequency, day_of_month=5, start_date=datetime(2026, 1, 1), is_active=kw.pop("is_active", True),
+        **kw,
+    )
+    db.add(rd)
+    return rd
+
+
+def test_subscription_totals_only_count_real_active_subscriptions(client, db_session, world):
+    invest = Category(name="Investissement", type="depense")
+    db_session.add(invest)
+    db_session.commit()
+    c = world["courant"]
+    _recurring(db_session, c, "Netflix", 10.0)
+    _recurring(db_session, c, "Assurance", 120.0, frequency="yearly")  # 10 €/mois
+    _recurring(db_session, c, "Salle", 20.0, is_active=False)  # en pause
+    _recurring(db_session, c, "Alimentation PEA", 400.0, category_id=invest.id)
+    _recurring(db_session, c, "Vers livret", 150.0, transfer_to_account_id=world["livret"].id)
+    db_session.commit()
+
+    data = client.get("/analytics/subscriptions").json()
+    assert data["total_monthly"] == 20.0
+    assert data["total_annual"] == 240.0
+    by_name = {s["name"]: s for s in data["subscriptions"]}
+    assert by_name["Assurance"]["monthly_cost"] == 10.0
+    assert by_name["Assurance"]["annual_cost"] == 120.0
+    assert by_name["Salle"]["counts_in_total"] is False
+    assert by_name["Alimentation PEA"]["counts_in_total"] is False
+    assert by_name["Vers livret"]["counts_in_total"] is False
+
+
+def test_subscription_costs_are_converted_to_eur(client, db_session, world, monkeypatch):
+    async def fake_rates(base="EUR"):
+        return {"EUR": 1.0, "USD": 1.08}
+
+    monkeypatch.setattr("app.api.analytics.subscriptions.get_exchange_rates", fake_rates)
+    usd = 1.08
+    _recurring(db_session, world["courant"], "Service US", 10.8, currency="USD")
+    db_session.commit()
+    sub = next(s for s in client.get("/analytics/subscriptions").json()["subscriptions"] if s["name"] == "Service US")
+    assert sub["monthly_cost"] == round(10.8 / usd, 2)

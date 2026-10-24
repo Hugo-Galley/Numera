@@ -101,6 +101,9 @@ class SubscriptionInsight(BaseModel):
     status: str  # "active", "potential", "changed"
     logo: Optional[str] = None
     flow_type: str = "Sortie"  # type de la récurrence (Sortie, Entree, versement…)
+    # Faux pour une récurrence en pause, un virement ou une alimentation d'épargne/d'investissement :
+    # elle reste listée mais n'entre pas dans les totaux d'abonnements.
+    counts_in_total: bool = True
 
 
 class SubscriptionIgnore(BaseModel):
