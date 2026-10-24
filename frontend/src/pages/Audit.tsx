@@ -28,6 +28,7 @@ import { Progress } from "@/components/ui/progress"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { useConfirm } from "@/providers/ConfirmProvider"
+import { toInputValue, toNaiveLocal } from "@/lib/dates"
 
 interface Category {
   id: number
@@ -110,12 +111,7 @@ const actionTypeIcon = {
   merchant: ShoppingBag,
 }
 
-function toDateTimeLocal(value: string) {
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return ""
-  const offsetDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000)
-  return offsetDate.toISOString().slice(0, 16)
-}
+const toDateTimeLocal = toInputValue
 
 function sampleLabel(sample: Record<string, any>) {
   if (sample.sortie && sample.entree) {
@@ -157,7 +153,7 @@ function TransactionEditor({
     setSaving(true)
     try {
       const saved = await api.patch<Transaction>(`/transactions/${tx.id}`, {
-        date: draft.date ? new Date(draft.date).toISOString() : undefined,
+        date: draft.date ? toNaiveLocal(draft.date) : undefined,
         type: draft.type,
         merchant: draft.merchant.trim(),
         category_id: draft.category_id === "none" ? null : Number(draft.category_id),

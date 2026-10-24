@@ -27,6 +27,7 @@ import {
 import { Link } from "react-router-dom"
 import { toast } from "sonner"
 import { CompanyLogo } from "@/components/ui/CompanyLogo"
+import { toNaiveLocal } from "@/lib/dates"
 
 interface CalendarEvent {
   id: string | number
@@ -164,7 +165,7 @@ export default function Calendar({ embedded = false }: { embedded?: boolean }) {
 
         await api.post("/investment-transactions", {
           account_id: account.id,
-          date: new Date(ev.date).toISOString(),
+          date: toNaiveLocal(ev.date),
           type: invType,
           amount: ev.amount,
           currency: ev.currency,
@@ -181,7 +182,7 @@ export default function Calendar({ embedded = false }: { embedded?: boolean }) {
       } else {
         await api.post("/transactions", {
           account_id: account.id,
-          date: new Date(ev.date).toISOString(),
+          date: toNaiveLocal(ev.date),
           type: ev.type,
           merchant: ev.name,
           amount: ev.amount,

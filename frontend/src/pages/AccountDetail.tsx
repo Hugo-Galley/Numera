@@ -1,3 +1,4 @@
+import { endOfDayParam, nowLocalInput, startOfDayParam, toInputValue, toNaiveLocal, todayLocal } from "@/lib/dates"
 import { useState, useEffect, useMemo } from "react"
 import { AccountLogo } from "@/components/ui/AccountLogo"
 import { useParams, Link } from "react-router-dom"
@@ -462,7 +463,7 @@ export default function AccountDetail() {
   // -- Transaction Form State --
   const [txOpen, setTxOpen] = useState(false)
   const [editTxId, setEditTxId] = useState<number | null>(null)
-  const [txDate, setTxDate] = useState(() => new Date().toISOString().slice(0, 16))
+  const [txDate, setTxDate] = useState(() => nowLocalInput())
   const [txType, setTxType] = useState("Sortie")
   const [txMerchant, setTxMerchant] = useState("")
   const [txAmount, setTxAmount] = useState("")
@@ -478,14 +479,14 @@ export default function AccountDetail() {
   // -- Snapshot Form State --
   const [snapOpen, setSnapOpen] = useState(false)
   const [editSnapId, setEditSnapId] = useState<number | null>(null)
-  const [snapDate, setSnapDate] = useState(() => new Date().toISOString().slice(0, 10))
+  const [snapDate, setSnapDate] = useState(() => todayLocal())
   const [snapValue, setSnapValue] = useState("")
   const [snapNote, setSnapNote] = useState("")
 
   // -- Investment Flux Form State --
   const [invTxOpen, setInvTxOpen] = useState(false)
   const [editInvTxId, setEditInvTxId] = useState<number | null>(null)
-  const [invTxDate, setInvTxDate] = useState(() => new Date().toISOString().slice(0, 16))
+  const [invTxDate, setInvTxDate] = useState(() => nowLocalInput())
   const [invTxType, setInvTxType] = useState<"versement" | "retrait" | "dividende" | "achat" | "vente" | "frais">("versement")
   const [invTxAmount, setInvTxAmount] = useState("")
   const [invTxCurrency, setInvTxCurrency] = useState("EUR")
@@ -508,7 +509,7 @@ export default function AccountDetail() {
 
   // -- Zero Point Form State --
   const [zeroOpen, setZeroOpen] = useState(false)
-  const [zeroDate, setZeroDate] = useState(() => new Date().toISOString().slice(0, 10))
+  const [zeroDate, setZeroDate] = useState(() => todayLocal())
   const [zeroValue, setZeroValue] = useState("")
   const [zeroNote, setZeroNote] = useState("")
 
@@ -518,8 +519,8 @@ export default function AccountDetail() {
     if (filterType !== "all") params.append("type", filterType)
     if (filterCategory !== "all") params.append("category_id", filterCategory)
     if (filterMerchant !== "all") params.append("merchant", filterMerchant)
-    if (dateStart) params.append("start_date", new Date(dateStart).toISOString())
-    if (dateEnd) params.append("end_date", new Date(dateEnd).toISOString())
+    if (dateStart) params.append("start_date", startOfDayParam(dateStart))
+    if (dateEnd) params.append("end_date", endOfDayParam(dateEnd))
     if (filterTags.length > 0) {
       filterTags.forEach(tid => params.append("tag_ids", String(tid)))
     }
@@ -638,7 +639,7 @@ export default function AccountDetail() {
   // -- Handlers (Current Account) --
   const resetTxForm = () => {
     setEditTxId(null)
-    setTxDate(new Date().toISOString().slice(0, 16))
+    setTxDate(nowLocalInput())
     setTxType("Sortie")
     setTxMerchant("")
     setTxAmount("")
@@ -670,7 +671,7 @@ export default function AccountDetail() {
     try {
       const payload = {
         account_id: Number(id),
-        date: new Date(txDate).toISOString(),
+        date: toNaiveLocal(txDate),
         type: txType,
         merchant: merchant,
         category_id: txCategoryId && txCategoryId !== "none" ? Number(txCategoryId) : null,
@@ -712,7 +713,7 @@ export default function AccountDetail() {
 
     try {
       const payload: any = {
-        date: new Date(txDate).toISOString(),
+        date: toNaiveLocal(txDate),
         type: txType,
         merchant: merchant,
         category_id: txCategoryId && txCategoryId !== "none" ? Number(txCategoryId) : null,
@@ -737,7 +738,7 @@ export default function AccountDetail() {
 
   const handleEditTransaction = (tx: Transaction) => {
     setEditTxId(tx.id)
-    setTxDate(tx.date.slice(0, 16))
+    setTxDate(toInputValue(tx.date))
     setTxType(tx.type)
     setTxMerchant(tx.merchant)
     setTxAmount(String(tx.original_amount || tx.amount))
@@ -766,7 +767,7 @@ export default function AccountDetail() {
   // -- Handlers (Investment Flux) --
   const resetInvTxForm = () => {
     setEditInvTxId(null)
-    setInvTxDate(new Date().toISOString().slice(0, 16))
+    setInvTxDate(nowLocalInput())
     setInvTxType("versement")
     setInvTxAmount("")
     setInvTxCurrency(account?.currency || "EUR")
@@ -803,7 +804,7 @@ export default function AccountDetail() {
 
       const payload = {
         account_id: Number(id),
-        date: new Date(invTxDate).toISOString(),
+        date: toNaiveLocal(invTxDate),
         type: invTxType,
         amount: calculatedAmount,
         currency: invTxCurrency,
@@ -840,7 +841,7 @@ export default function AccountDetail() {
 
   const handleEditInvTransaction = (tx: any) => {
     setEditInvTxId(tx.id)
-    setInvTxDate(tx.date.slice(0, 16))
+    setInvTxDate(toInputValue(tx.date))
     setInvTxType(tx.type)
     setInvTxAmount(String(tx.original_amount || tx.amount))
     setInvTxCurrency(tx.currency || account?.currency || "EUR")
@@ -882,7 +883,7 @@ export default function AccountDetail() {
   // -- Handlers (Snapshots) --
   const resetSnapForm = () => {
     setEditSnapId(null)
-    setSnapDate(new Date().toISOString().slice(0, 10))
+    setSnapDate(todayLocal())
     setSnapValue("")
     setSnapNote("")
   }
@@ -958,7 +959,7 @@ export default function AccountDetail() {
 
   // -- Handlers (Zero Point) --
   const resetZeroForm = () => {
-    setZeroDate(new Date().toISOString().slice(0, 10))
+    setZeroDate(todayLocal())
     setZeroValue("")
     setZeroNote("")
   }
@@ -968,7 +969,7 @@ export default function AccountDetail() {
     try {
       const payload = {
         account_id: Number(id),
-        date: new Date(zeroDate).toISOString(),
+        date: toNaiveLocal(zeroDate),
         current_value: Number(zeroValue),
         note: zeroNote || null
       }
@@ -1058,8 +1059,8 @@ export default function AccountDetail() {
   useEffect(() => {
     if (!id) return
     const params = new URLSearchParams({ account_id: id })
-    if (dateStart) params.append("start_date", new Date(dateStart).toISOString())
-    if (dateEnd) params.append("end_date", new Date(dateEnd).toISOString())
+    if (dateStart) params.append("start_date", startOfDayParam(dateStart))
+    if (dateEnd) params.append("end_date", endOfDayParam(dateEnd))
     api.get<typeof flowSummary>(`/analytics/account-flow-summary?${params.toString()}`)
       .then(setFlowSummary)
       .catch(() => setFlowSummary(null))

@@ -1,3 +1,4 @@
+import { toNaiveLocal } from "@/lib/dates"
 import { lazy, Suspense, useEffect, useState } from "react"
 import { useSearchParams } from "react-router-dom"
 import {
@@ -352,7 +353,7 @@ export default function RecurringTransactions() {
       transfer_credit_day: hasTransfer && formData.transfer_credit_day ? parseInt(formData.transfer_credit_day) : null,
       day_of_month: parseInt(formData.day_of_month),
       excluded_months: formData.frequency === "monthly" && formData.excluded_months.length > 0 ? formData.excluded_months : null,
-      start_date: new Date(formData.start_date).toISOString(),
+      start_date: toNaiveLocal(formData.start_date),
       asset_class: formData.asset_class || null,
       sector: formData.sector || null,
       geographic_zone: formData.geographic_zone || null,
