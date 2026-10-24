@@ -69,7 +69,7 @@ function Node({ title, subtitle, logo, name, ticker, isin, tone }: {
 
 function Link({ label }: { label?: string }) {
   return (
-    <div className="flex min-w-8 flex-1 flex-col items-center gap-1 pb-8">
+    <div className="flex h-16 min-w-8 flex-1 flex-col items-center justify-center gap-1 md:h-20">
       {label && <span className="whitespace-nowrap text-[10px] font-black text-indigo-600 amount-blur">{label}</span>}
       <div className="relative flex w-full items-center">
         <div className="h-0.5 w-full border-t-2 border-dashed border-indigo-300" />
@@ -122,7 +122,7 @@ export function InvestmentFlowDialog({ recurring, accounts, nextOccurrence, onCl
                 </p>
               </div>
 
-              <div className="flex items-start justify-center gap-1 overflow-x-auto">
+              <div className="flex items-start justify-center gap-1 overflow-x-auto px-2 pb-1 pt-2">
                 {!startsOnInvestment && accountNode(source, "rose")}
                 {!startsOnInvestment && <Link label={formatCurrency(recurring.amount, recurring.currency)} />}
                 {accountNode(dest ?? (startsOnInvestment ? source : undefined), "indigo")}
