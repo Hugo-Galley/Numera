@@ -43,6 +43,8 @@ FEE_KEYWORDS = ("achat", "frais", "commission", "tax")
 
 # Versements antérieurs à l'inventaire : au-delà de ce multiple de la valeur d'ouverture, la performance est douteuse
 PRE_INVENTORY_RATIO = 2.0
+# En dessous de cette durée, le rendement annualisé (XIRR) n'est pas calculé
+MIN_XIRR_DAYS = 30
 
 
 def xirr(flows: list[tuple[date_type, float]]) -> float | None:
@@ -588,9 +590,14 @@ async def compute_portfolio(db: Session, account: Account, *, fetch: bool = True
         xirr_flows.append((reference_date.date(), -reference_value))
     xirr_flows += [(e.date.date(), -e.external) for e in flow_events]
     xirr_flows.append((today_day, value))
-    xirr_value = xirr(xirr_flows) if valued_by_positions and not performance_unreliable else None
     first_flow_day = min((d for d, _ in xirr_flows), default=today_day)
     period_days = (today_day - first_flow_day).days
+    # Annualiser une période de quelques jours produit des valeurs absurdes (« 49950 % ») : pas de XIRR
+    xirr_value = (
+        xirr(xirr_flows)
+        if valued_by_positions and not performance_unreliable and period_days >= MIN_XIRR_DAYS
+        else None
+    )
 
     latest_snapshot = (
         db.query(BalanceSnapshot)

@@ -432,3 +432,20 @@ def test_deposits_in_line_with_inventory_keep_performance(client, db_session):
 
     p = _portfolio(client, account_id)
     assert not any("antérieurs à l'inventaire" in w for w in p["warnings"])
+
+
+def test_xirr_is_not_annualized_over_a_very_short_period(client, db_session):
+    """Audit U7 : un rendement annualisé sur quelques jours donnait « 49950 % »."""
+    account_id = client.post(
+        "/accounts", json={"name": "CTO", "type": "investissement", "currency": "EUR", "color": None}
+    ).json()["id"]
+    resp = client.post("/holdings/baseline", json={
+        "account_id": account_id, "date": _iso(2),
+        "holdings": [{"ticker": "CW8.PA", "asset_name": "MSCI World", "quantity": 10, "buy_price_avg": 100.0, "currency": "EUR"}],
+    })
+    assert resp.status_code == 200, resp.text
+    _prices(db_session, "CW8.PA", (2, 100.0), (0, 101.0))
+
+    p = _portfolio(client, account_id)
+    assert p["period_days"] < 30
+    assert p["xirr_pct"] is None  # annualiser quelques jours n'a pas de sens
