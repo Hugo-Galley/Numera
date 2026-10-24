@@ -9,9 +9,15 @@ services:
       - SECRET_KEY=${SECRET_KEY}
       - ADMIN_USERNAME=${ADMIN_USERNAME:-admin}
       - ADMIN_PASSWORD_HASH=${ADMIN_PASSWORD_HASH}
+      - DB_PATH=/app/data/suivi_budget.db
+      - BACKUP_DIR=/app/backups
+      - BACKUP_KEY=${BACKUP_KEY}
+      - GITHUB_BACKUP_REPO=${GITHUB_BACKUP_REPO:-}
+      - GITHUB_BACKUP_TOKEN=${GITHUB_BACKUP_TOKEN:-}
     volumes:
       - ../backend:/app
       - ../backend/data:/app/data
+      - ../backups:/app/backups
     ports:
       - "127.0.0.1:8001:8001"
     command: uvicorn app.main:app --host 0.0.0.0 --port 8001 --reload

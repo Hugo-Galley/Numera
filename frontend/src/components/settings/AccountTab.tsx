@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { toast } from "sonner"
 import { McpAccessCard } from "./McpAccessCard"
 import { PasskeyCard } from "./PasskeyCard"
+import { BackupCard } from "./BackupCard"
 import { BudgetPeriodCard } from "./BudgetPeriodCard"
 import {
   Dialog,
@@ -212,6 +213,8 @@ export function AccountTab() {
       <PasskeyCard />
 
       <McpAccessCard />
+
+      <BackupCard />
 
       <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
         <DialogContent>

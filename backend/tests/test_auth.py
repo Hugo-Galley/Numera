@@ -198,3 +198,25 @@ def test_refresh_is_refused_to_mcp_tokens(client: TestClient):
     token = client.post("/admin/mcp-tokens", json={"name": "Claude", "current_password": "admin"}).json()["token"]
     response = client.post("/auth/refresh", headers={"Authorization": f"Bearer {token}"})
     assert response.status_code == 403
+
+
+def test_manual_backup_endpoint(client: TestClient, monkeypatch, tmp_path):
+    import subprocess
+    from app.api import admin
+
+    def fake_run(cmd, **kwargs):
+        return subprocess.CompletedProcess(cmd, 0, "", "")
+
+    monkeypatch.setattr(admin.subprocess, "run", fake_run)
+    monkeypatch.delenv("GITHUB_BACKUP_REPO", raising=False)
+    res = client.post("/admin/backup/run")
+    assert res.status_code == 200
+    assert res.json() == {"ok": True, "github": False}
+
+    monkeypatch.setattr(
+        admin.subprocess, "run",
+        lambda cmd, **kw: subprocess.CompletedProcess(cmd, 2, "", "2026 - ERROR - GitHub sync failed: boom"),
+    )
+    res = client.post("/admin/backup/run")
+    assert res.status_code == 500
+    assert res.json()["detail"] == "GitHub sync failed: boom"

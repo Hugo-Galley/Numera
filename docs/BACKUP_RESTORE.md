@@ -19,6 +19,8 @@ PYTHONPATH=backend python3 backend/scripts/backup.py
 
 ## Envoi automatique vers GitHub
 
+Le bouton « Sauvegarder maintenant » (Réglages → Compte) lance la même chaîne à la demande (`POST /admin/backup/run`) et affiche une popin à la fin.
+
 Après chaque sauvegarde (toutes les 24 h via le conteneur `backup`), `backend/scripts/git_sync.py` pousse les fichiers `.enc` vers un dépôt GitHub **privé et dédié** (jamais le dépôt du code, qui est public). Seules les sauvegardes chiffrées sont envoyées : sans `BACKUP_KEY`, rien ne part.
 
 1. Créer un dépôt privé vide (ex. `numera-backups`).

@@ -10,8 +10,14 @@ services:
       - ADMIN_USERNAME=${ADMIN_USERNAME:-admin}
       - ADMIN_PASSWORD_HASH=${ADMIN_PASSWORD_HASH}
       - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:8082}
+      - DB_PATH=/app/data/suivi_budget.db
+      - BACKUP_DIR=/app/backups
+      - BACKUP_KEY=${BACKUP_KEY}
+      - GITHUB_BACKUP_REPO=${GITHUB_BACKUP_REPO:-}
+      - GITHUB_BACKUP_TOKEN=${GITHUB_BACKUP_TOKEN:-}
     volumes:
       - ./backend/data:/app/data
+      - ./backups:/app/backups
     # Le backend n'est joignable que via nginx (réseau privé Docker) : seul ce réseau est cru pour
     # X-Forwarded-For, et nginx écrase l'en-tête avec l'IP cliente réelle (cf. frontend/nginx.conf)
     command: uvicorn app.main:app --host 0.0.0.0 --port 8001 --proxy-headers --forwarded-allow-ips=127.0.0.1,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16

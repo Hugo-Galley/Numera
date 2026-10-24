@@ -1,3 +1,6 @@
+import os
+import subprocess
+import sys
 import time
 from pathlib import Path
 
@@ -150,3 +153,25 @@ def reset_database(
         seed_db.close()
 
     return {"status": "ok"}
+
+
+BACKUP_SCRIPT = Path(__file__).resolve().parents[2] / "scripts" / "backup.py"
+BACKUP_TIMEOUT_SECONDS = 180
+
+
+@router.post("/backup/run")
+def run_backup_now(current_user: str = Depends(get_current_user)):
+    """Lance `scripts/backup.py` (sauvegarde chiffrée + envoi GitHub si configuré) et attend la fin."""
+    try:
+        result = subprocess.run(
+            [sys.executable, str(BACKUP_SCRIPT)], capture_output=True, text=True, timeout=BACKUP_TIMEOUT_SECONDS
+        )
+    except subprocess.TimeoutExpired:
+        raise HTTPException(status_code=504, detail="La sauvegarde a dépassé le délai imparti")
+    if result.returncode != 0:
+        errors = [line for line in result.stderr.splitlines() if "ERROR" in line]
+        detail = errors[-1].split("ERROR - ", 1)[-1] if errors else "Échec de la sauvegarde"
+        logger.error("Sauvegarde manuelle en échec (code %s) : %s", result.returncode, detail)
+        # 500 et non 401/403 : le client API déconnecte sur ces codes
+        raise HTTPException(status_code=500, detail=detail)
+    return {"ok": True, "github": bool(os.getenv("GITHUB_BACKUP_REPO", "").strip())}
