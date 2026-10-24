@@ -324,6 +324,10 @@ async def create_transaction(payload: TransactionCreate, db: Session = Depends(g
         running_balance=0.0, # Will be recalculated
         note=payload.note,
         is_exceptional=payload.is_exceptional and transaction_type == "Sortie",
+        merchant_id=payload.merchant_id,
+        is_recurring=payload.is_recurring,
+        custom_icon=payload.custom_icon,
+        custom_color=payload.custom_color,
     )
 
     if payload.tag_ids:
@@ -383,6 +387,8 @@ async def bulk_update_transactions(payload: TransactionBulkUpdate, db: Session =
             tx.type = bulk_type
         if payload.merchant is not None:
             tx.merchant = payload.merchant
+        if payload.merchant_id is not None:
+            tx.merchant_id = payload.merchant_id
         if payload.tag_ids is not None:
             tx.tags = tags
         affected_account_ids.add(tx.account_id)

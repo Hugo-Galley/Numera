@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import select, func, or_
 
 from app.api import deps
+from app.models.category import Category
 from app.models.merchant import Merchant, MerchantAlias
 from app.models.transaction import Transaction
 from app.schemas import merchant as merchant_schemas
@@ -11,11 +12,24 @@ from app.db.session import SessionLocal
 
 router = APIRouter(prefix="/merchants", tags=["merchants"])
 
+
+def _link_matching_transactions(db: Session, merchant_id: int, labels: List[str]) -> int:
+    """Rattache au marchand les transactions encore non normalisées dont le libellé bancaire est un de ses alias."""
+    if not labels:
+        return 0
+    result = db.execute(
+        Transaction.__table__.update()
+        .where(Transaction.merchant.in_(labels))
+        .where(Transaction.merchant_id == None)  # noqa: E711
+        .values(merchant_id=merchant_id)
+    )
+    return result.rowcount
+
 @router.get("", response_model=List[merchant_schemas.MerchantRead])
 def get_merchants(
     db: Session = Depends(deps.get_db),
-    skip: int = 0,
-    limit: int = 100,
+    skip: int = Query(default=0, ge=0),
+    limit: int = Query(default=1000, ge=1, le=5000),
     search: Optional[str] = None
 ):
     query = select(Merchant)
@@ -33,8 +47,11 @@ def create_merchant(
     # Check if merchant already exists
     existing = db.scalar(select(Merchant).where(Merchant.name == merchant_in.name))
     if existing:
-        raise HTTPException(status_code=400, detail="Merchant already exists")
-    
+        raise HTTPException(status_code=409, detail="Un marchand porte déjà ce nom")
+    taken = db.scalars(select(MerchantAlias.label).where(MerchantAlias.label.in_(merchant_in.aliases or []))).all()
+    if taken:
+        raise HTTPException(status_code=409, detail=f"Alias déjà utilisé : {', '.join(taken)}")
+
     merchant = Merchant(
         name=merchant_in.name,
         category_id=merchant_in.category_id,
@@ -48,7 +65,9 @@ def create_merchant(
     for label in merchant_in.aliases:
         alias = MerchantAlias(merchant_id=merchant.id, label=label)
         db.add(alias)
-    
+
+    # Un marchand créé s'applique tout de suite aux libellés déjà importés
+    _link_matching_transactions(db, merchant.id, merchant_in.aliases or [])
     db.commit()
     db.refresh(merchant)
     return merchant
@@ -74,6 +93,11 @@ def update_merchant(
         raise HTTPException(status_code=404, detail="Merchant not found")
     
     update_data = merchant_in.model_dump(exclude_unset=True)
+    if update_data.get("name", "") is None:  # colonne NOT NULL : un `null` explicite est ignoré
+        del update_data["name"]
+    new_name = update_data.get("name")
+    if new_name and new_name != merchant.name and db.scalar(select(Merchant.id).where(Merchant.name == new_name)):
+        raise HTTPException(status_code=409, detail="Un marchand porte déjà ce nom")
     for field, value in update_data.items():
         setattr(merchant, field, value)
     
@@ -107,10 +131,11 @@ def add_alias(
     # Check if alias already exists
     existing = db.scalar(select(MerchantAlias).where(MerchantAlias.label == alias_in.label))
     if existing:
-        raise HTTPException(status_code=400, detail="Alias already exists")
-    
+        raise HTTPException(status_code=409, detail="Cet alias existe déjà")
+
     alias = MerchantAlias(merchant_id=merchant_id, label=alias_in.label)
     db.add(alias)
+    _link_matching_transactions(db, merchant_id, [alias_in.label])
     db.commit()
     db.refresh(alias)
     return alias
@@ -160,9 +185,13 @@ def get_unnormalized_merchant_labels(
     """
     Find merchant labels in transactions that are not yet normalized.
     """
+    # Les flux internes (virements, alimentations d'épargne/investissement) ne sont pas des marchands
     query = (
         select(Transaction.merchant, func.count(Transaction.id).label("count"))
+        .outerjoin(Category, Transaction.category_id == Category.id)
         .where(Transaction.merchant_id == None)
+        .where(Transaction.is_transfer == False)
+        .where(func.coalesce(Category.name, "").notin_(["Investissement", "Epargne"]))
         .group_by(Transaction.merchant)
         .having(func.count(Transaction.id) >= min_count)
         .order_by(func.count(Transaction.id).desc())

@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from "react"
+import { formatAmountWithShare } from "@/lib/utils"
 import { Link } from "react-router-dom"
 import { 
   PiggyBank, 
@@ -200,6 +201,13 @@ export default function Savings() {
     return new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(value)
   }
 
+  // Montant + part du total des composantes positives ; pas de part pour une valeur négative.
+  const shareLabel = (v: number, payload: any, keys: string[]) => {
+    if (v <= 0) return formatCurrency(v)
+    const total = keys.reduce((s, k) => s + Math.max(0, Number(payload?.[k]) || 0), 0)
+    return formatAmountWithShare(v, total)
+  }
+
   const savingsRate = analytics?.taux_epargne || 0
   const hasIncome = (analytics?.revenus_totaux ?? 0) >= 1
   
@@ -391,7 +399,7 @@ export default function Savings() {
                         }]} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
                           <XAxis type="number" hide />
                           <YAxis dataKey="name" type="category" hide />
-                          <Tooltip cursor={{fill: 'transparent'}} formatter={(v: number) => formatCurrency(v)} contentStyle={{ fontSize: '12px', borderRadius: '8px', border: 'none', boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} />
+                          <Tooltip cursor={{fill: 'transparent'}} formatter={(v: number, _n: string, item: any) => shareLabel(v, item?.payload, ['Cash', 'Investissements'])} contentStyle={{ fontSize: '12px', borderRadius: '8px', border: 'none', boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} />
                           <ReferenceLine x={0} stroke="#e2e8f0" />
                           <Bar dataKey="Cash" stackId="a" fill={(analytics?.revenus_apres_depenses || 0) >= 0 ? "#94a3b8" : "#f43f5e"} radius={[4, 4, 4, 4]} barSize={12} />
                           <Bar dataKey="Investissements" stackId="a" fill="#0f172a" radius={[4, 4, 4, 4]} barSize={12} />
@@ -454,7 +462,7 @@ export default function Savings() {
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                       <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} dy={10} interval="preserveStartEnd" minTickGap={12} />
                       <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} tickFormatter={(v) => `${v}€`} />
-                      <Tooltip cursor={{ fill: '#f8fafc' }} formatter={(v: number) => formatCurrency(v)} contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} />
+                      <Tooltip cursor={{ fill: '#f8fafc' }} formatter={(v: number, _n: string, item: any) => shareLabel(v, item?.payload, ['cash_flow', 'investissements', 'interets'])} contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} />
                       <Legend verticalAlign="top" height={36} wrapperStyle={{ fontSize: '12px', paddingBottom: '20px' }}/>
                       <Bar dataKey="cash_flow" name="Cash Restant" stackId="a" fill="#94a3b8" radius={[0, 0, 0, 0]} maxBarSize={40} />
                       <Bar dataKey="investissements" name="Investissements" stackId="a" fill="#0f172a" radius={[0, 0, 0, 0]} maxBarSize={40} />

@@ -67,7 +67,11 @@ Un seul `is_zero_point` par compte investissement (`POST /balance-snapshots/set-
 
 ## Import / export CSV
 
-Colonnes obligatoires : `Date, Mois, Type, Commercant, Categorie, Montant` (aliases d'en-têtes dans `HEADER_ALIASES`). `POST /import/preview` (aucune écriture) puis `POST /import/commit` ; idempotent sur `(account_id, date, amount, merchant, type)` ; `imports_log` ; recalcul final des soldes. Export : `GET /export/transactions.csv` (format Numbers).
+Colonnes indispensables : `Date`, `Commercant`, `Montant` (aliases d'en-têtes dans `HEADER_ALIASES`) ; `Type`, `Categorie`, `Mois`, `Note` facultatives. Montant : le séparateur décimal est le dernier de « , » / « . » (1,234.50 = 1.234,50) ; un montant signé est accepté : `Type` explicite prioritaire, sinon négatif = Sortie, positif = Entrée (le montant stocké est toujours positif). Un `Solde Initial` à 0 est accepté, pas les autres montants nuls. `POST /import/preview` (aucune écriture ; renvoie `invalid_rows`, `warnings` et, par ligne, `line` + `error`) puis `POST /import/commit` (renvoie `error_details` = `[{line, reason}]` en français ; lignes vides ignorées) ; idempotent sur `(account_id, date, amount, merchant, type)`, doublon détecté **avant** toute création de catégorie ; fichier ≤ 10 Mo ; `imports_log` ; recalcul final des soldes. Export : `GET /export/transactions.csv` (format Numbers).
+
+## Marchands
+
+Créer un marchand avec alias, ou ajouter un alias, rattache aussitôt les transactions non normalisées dont le libellé bancaire est cet alias (`merchants._link_matching_transactions`). Nom et alias non vides, uniques (409 sinon). Les suggestions de normalisation ignorent les virements et les catégories Investissement/Epargne.
 
 ## Centre d'Actions (`/analytics/actions`, page `Audit.tsx`)
 

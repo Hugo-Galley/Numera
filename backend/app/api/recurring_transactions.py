@@ -54,8 +54,8 @@ def _require_account(db: Session, account_id: int) -> None:
 @router.get("/", response_model=list[RecurringTransactionRead])
 async def read_recurring_transactions(
     db: Session = Depends(get_db),
-    skip: int = 0,
-    limit: int = 100,
+    skip: int = Query(default=0, ge=0),
+    limit: int = Query(default=1000, ge=1, le=5000),  # défaut large : une troncature silencieuse masquait des lignes
     trigger: bool = Query(default=False)
 ) -> Any:
     if trigger:

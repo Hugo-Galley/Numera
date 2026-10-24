@@ -53,6 +53,8 @@ type Category = {
 type PreviewData = {
   filename: string
   total_rows: number
+  invalid_rows: number
+  warnings: string[]
   delimiter: string
   preview: any[]
   unknown_categories: string[]
@@ -110,6 +112,7 @@ export function ImportTab() {
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0]
+    e.target.value = "" // permet de re-sélectionner le même fichier après correction
     if (!selectedFile) return
     setFile(selectedFile)
     setPreview(null)
@@ -251,6 +254,18 @@ export function ImportTab() {
                  <span className="text-sm text-slate-500 font-medium">Séparateur</span>
                  <code className="bg-slate-100 px-2 py-1 rounded text-xs font-bold">"{preview.delimiter}"</code>
                </div>
+               {preview.invalid_rows > 0 && (
+                 <div className="flex justify-between items-center">
+                   <span className="text-sm text-rose-600 font-medium">Lignes invalides (ignorées)</span>
+                   <Badge variant="destructive" className="font-bold">{preview.invalid_rows}</Badge>
+                 </div>
+               )}
+               {preview.warnings?.map((w, i) => (
+                 <div key={i} className="flex items-start gap-2 rounded-lg bg-amber-50 p-3 text-xs text-amber-800">
+                   <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                   <span>{w}</span>
+                 </div>
+               ))}
                {preview.unknown_categories.length > 0 && (
                  <div className="space-y-4 pt-4 border-t">
                    <div className="flex items-center gap-2 text-amber-600">
@@ -291,9 +306,13 @@ export function ImportTab() {
             <CardHeader className="border-b border-emerald-100 bg-emerald-50/50">
               <div className="flex items-center gap-2 text-emerald-600">
                 <CheckCircle2 className="h-5 w-5" />
-                <CardTitle className="text-lg">Importation réussie</CardTitle>
+                <CardTitle className="text-lg">
+                  {result.imported === 0 && result.errors > 0 ? "Aucune ligne importée" : result.errors > 0 ? "Importation partielle" : "Importation réussie"}
+                </CardTitle>
               </div>
-              <CardDescription className="text-emerald-600/70">Les données ont été traitées avec succès.</CardDescription>
+              <CardDescription className="text-emerald-600/70">
+                {result.errors > 0 ? "Certaines lignes n'ont pas pu être importées (détail ci-dessous)." : "Les données ont été traitées avec succès."}
+              </CardDescription>
             </CardHeader>
             <CardContent className="p-4 sm:p-6 grid gap-3 sm:gap-4 grid-cols-3">
               <div className="bg-white p-3 sm:p-4 rounded-2xl border border-emerald-100 shadow-sm">
@@ -308,6 +327,16 @@ export function ImportTab() {
                 <p className="text-[10px] uppercase font-black text-slate-400 tracking-widest">Erreurs</p>
                 <p className="text-2xl sm:text-3xl font-extrabold text-rose-500 mt-1">{result.errors}</p>
               </div>
+              {result.error_details?.length > 0 && (
+                <ul className="col-span-3 space-y-1 rounded-2xl border border-rose-100 bg-white p-3 text-xs text-slate-700">
+                  {result.error_details.map((d: { line: number; reason: string }, i: number) => (
+                    <li key={i}><span className="font-bold text-rose-500">Ligne {d.line}</span> — {d.reason}</li>
+                  ))}
+                  {result.errors > result.error_details.length && (
+                    <li className="text-slate-400">… et {result.errors - result.error_details.length} autre(s)</li>
+                  )}
+                </ul>
+              )}
             </CardContent>
           </Card>
         ) : preview ? (
@@ -319,9 +348,10 @@ export function ImportTab() {
             <CardContent className="p-0">
               <ul className="divide-y divide-slate-100 md:hidden">
                 {preview.preview.map((row, i) => (
-                  <li key={i} className="flex items-center justify-between gap-3 px-4 py-3">
+                  <li key={i} className={`flex items-center justify-between gap-3 px-4 py-3 ${row.error ? "bg-rose-50" : ""}`}>
                     <div className="min-w-0">
                       <p className="truncate text-sm font-bold text-slate-900">{row.Commercant}</p>
+                      {row.error && <p className="text-xs font-medium text-rose-600">Ligne {row.line} : {row.error}</p>}
                       <p className="mt-0.5 flex items-center gap-2 text-xs text-slate-500">
                         <span>{row.Date}</span>
                         <Badge variant="outline" className="h-5 max-w-[10rem] truncate border-slate-200 py-0 text-[10px] font-bold text-slate-600">{row.Categorie}</Badge>
@@ -336,6 +366,7 @@ export function ImportTab() {
                   <TableHeader>
                     <TableRow className="bg-slate-50/50 hover:bg-slate-50/50 border-b border-slate-100">
                       <TableHead className="text-[10px] uppercase font-black tracking-widest text-slate-400">Date</TableHead>
+                      <TableHead className="text-[10px] uppercase font-black tracking-widest text-slate-400">Type</TableHead>
                       <TableHead className="text-[10px] uppercase font-black tracking-widest text-slate-400">Commerçant</TableHead>
                       <TableHead className="text-[10px] uppercase font-black tracking-widest text-slate-400">Catégorie</TableHead>
                       <TableHead className="text-right text-[10px] uppercase font-black tracking-widest text-slate-400">Montant</TableHead>
@@ -343,9 +374,13 @@ export function ImportTab() {
                   </TableHeader>
                   <TableBody>
                     {preview.preview.map((row, i) => (
-                      <TableRow key={i} className="hover:bg-slate-50/30 border-b border-slate-50 transition-colors">
+                      <TableRow key={i} className={`border-b border-slate-50 transition-colors ${row.error ? "bg-rose-50 hover:bg-rose-50" : "hover:bg-slate-50/30"}`}>
                         <TableCell className="text-xs text-slate-500 font-medium">{row.Date}</TableCell>
-                        <TableCell className="font-bold text-xs text-slate-900">{row.Commercant}</TableCell>
+                        <TableCell className="text-xs text-slate-500 font-medium">{row.Type}</TableCell>
+                        <TableCell className="font-bold text-xs text-slate-900">
+                          {row.Commercant}
+                          {row.error && <span className="block font-medium text-rose-600">Ligne {row.line} : {row.error}</span>}
+                        </TableCell>
                         <TableCell>
                           <Badge variant="outline" className="text-[10px] font-bold py-0 h-5 border-slate-200 text-slate-600">
                             {row.Categorie}

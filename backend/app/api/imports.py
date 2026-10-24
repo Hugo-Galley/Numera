@@ -4,6 +4,7 @@ import io
 import json
 import unicodedata
 from collections import Counter
+from dataclasses import dataclass
 from datetime import datetime
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
@@ -29,6 +30,9 @@ from app.schemas.types import MAX_AMOUNT
 router = APIRouter(prefix="/import", tags=["import"])
 
 REQUIRED_COLUMNS = ["Date", "Mois", "Type", "Commercant", "Categorie", "Montant", "Solde Compte", "Note"]
+# Seules ces colonnes sont indispensables : « Mois » est recalculé depuis la date, « Type » se déduit du
+# signe du montant, « Categorie » est facultative.
+MANDATORY_COLUMNS = ["Date", "Commercant", "Montant"]
 
 HEADER_ALIASES = {
     "date": "Date",
@@ -79,13 +83,19 @@ def _read_csv_with_detected_delimiter(content: str) -> tuple[list[dict[str, str]
         delimiter = ","
 
     reader = csv.DictReader(io.StringIO(content), delimiter=delimiter)
-    rows = list(reader)
+    rows = []
+    for row in reader:
+        row["_line"] = str(reader.line_num)  # numéro de ligne du fichier (1 = en-têtes)
+        rows.append(row)
     return rows, delimiter, reader.fieldnames or []
 
 
 def _canonicalize_row(raw_row: dict[str, str]) -> dict[str, str]:
     canonical: dict[str, str] = {key: "" for key in REQUIRED_COLUMNS}
+    canonical["_line"] = str(raw_row.get("_line", ""))
     for raw_key, raw_value in raw_row.items():
+        if raw_key == "_line":
+            continue
         normalized_key = _normalize_header(raw_key or "")
         canonical_key = HEADER_ALIASES.get(normalized_key)
         if canonical_key:
@@ -101,13 +111,17 @@ def _parse_csv(file_bytes: bytes) -> tuple[list[dict[str, str]], str, list[str]]
         content = file_bytes.decode("cp1252", errors="replace")
     rows, delimiter, raw_headers = _read_csv_with_detected_delimiter(content)
     if not raw_headers:
-        raise HTTPException(status_code=422, detail="Empty CSV file")
+        raise HTTPException(status_code=422, detail="Fichier CSV vide")
 
     canonical_rows = [_canonicalize_row(row) for row in rows]
     available = {k for row in canonical_rows for k, v in row.items() if (v or "").strip() != ""}
-    missing = [col for col in REQUIRED_COLUMNS if col not in available and col not in ["Solde Compte", "Note"]]
+    missing = [col for col in MANDATORY_COLUMNS if col not in available]
     if missing:
-        raise HTTPException(status_code=422, detail=f"Missing columns after normalization: {', '.join(missing)}")
+        raise HTTPException(
+            status_code=422,
+            detail=f"Colonnes manquantes dans le fichier : {', '.join(missing)}. "
+            "Colonnes attendues : Date, Commercant, Montant (Type, Categorie, Mois et Note sont facultatives).",
+        )
     return canonical_rows, delimiter, raw_headers
 
 
@@ -130,15 +144,87 @@ def _parse_date(value: str) -> datetime:
 
 
 def _parse_amount(value: str) -> float:
+    """Montant avec signe éventuel. Le séparateur décimal est le dernier des deux quand « , » et « . »
+    sont présents (1,234.50 et 1.234,50 valent tous deux 1234,5) ; seul, « , » est décimal ; « . » aussi,
+    sauf répété (1.234.567 = milliers)."""
     raw = (value or "").strip()
-    raw = raw.replace("€", "").replace(" ", "")
-    raw = raw.replace("\u202f", "").replace("\xa0", "")
+    raw = raw.replace("€", "").replace("\u202f", "").replace("\xa0", "").replace(" ", "")
     if "," in raw and "." in raw:
+        decimal = "," if raw.rfind(",") > raw.rfind(".") else "."
+        thousands = "." if decimal == "," else ","
+        raw = raw.replace(thousands, "").replace(decimal, ".")
+    elif "," in raw:
+        raw = raw.replace(",", ".") if raw.count(",") == 1 else raw.replace(",", "")
+    elif raw.count(".") > 1:
         raw = raw.replace(".", "")
-        raw = raw.replace(",", ".")
-    else:
-        raw = raw.replace(",", ".")
     return float(raw)
+
+
+class ImportRowError(ValueError):
+    """Ligne inexploitable ; le message (en français) est montré à l'utilisateur."""
+
+
+@dataclass
+class ParsedRow:
+    line: int
+    date: datetime
+    type: str
+    merchant: str
+    category_name: str
+    amount: float  # toujours positif
+    note: str
+
+
+def _is_blank(row: dict[str, str]) -> bool:
+    return not any((v or "").strip() for k, v in row.items() if k != "_line")
+
+
+def _parse_row(row: dict[str, str]) -> ParsedRow:
+    """Valide une ligne (date, montant, type) ; lève ImportRowError avec un motif lisible."""
+    line = int(row.get("_line") or 0)
+    raw_date = (row.get("Date") or "").strip()
+    try:
+        dt = _parse_date(raw_date)
+    except ValueError:
+        raise ImportRowError(f"Date invalide « {raw_date} » (formats acceptés : JJ/MM/AAAA, AAAA-MM-JJ)") from None
+
+    raw_amount = (row.get("Montant") or "").strip()
+    try:
+        signed = _parse_amount(raw_amount)
+    except ValueError:
+        raise ImportRowError(f"Montant invalide « {raw_amount} »") from None
+    if not math.isfinite(signed) or abs(signed) >= MAX_AMOUNT:
+        raise ImportRowError(f"Montant hors limites « {raw_amount} »")
+
+    raw_type = (row.get("Type") or "").strip()
+    if raw_type:
+        try:
+            tx_type = normalize_transaction_type(raw_type)
+        except ValueError:
+            raise ImportRowError(f"Type inconnu « {raw_type} » (Entree, Sortie, Interets ou Solde Initial)") from None
+    elif signed < 0:
+        tx_type = "Sortie"
+    elif signed > 0:
+        tx_type = "Entree"
+    else:
+        raise ImportRowError("Type absent et montant nul : impossible de déduire le sens")
+
+    amount = abs(signed)
+    if amount == 0 and tx_type != "Solde Initial":
+        raise ImportRowError("Montant nul")
+
+    if not 1900 <= dt.year < 2200:
+        raise ImportRowError(f"Date hors de la plage 1900-2200 « {raw_date} »")
+
+    return ParsedRow(
+        line=line,
+        date=dt,
+        type=tx_type,
+        merchant=(row.get("Commercant") or "").strip() or "Inconnu",
+        category_name=(row.get("Categorie") or "").strip(),
+        amount=amount,
+        note=row.get("Note") or "",
+    )
 
 
 MAX_UPLOAD_BYTES = 10 * 1024 * 1024
@@ -172,21 +258,46 @@ async def preview_import(
     category_names = {c.name for c in db.query(Category).all()}
     unknown = sorted({(row.get("Categorie") or "").strip() for row in rows if (row.get("Categorie") or "").strip() and (row.get("Categorie") or "").strip() not in category_names})
 
+    rows = [r for r in rows if not _is_blank(r)]
     preview_rows = []
-    for row in rows[:sample_size]:
-        preview_rows.append(
-            {
-                "Date": row.get("Date"),
-                "Type": row.get("Type"),
-                "Commercant": row.get("Commercant"),
-                "Categorie": row.get("Categorie"),
-                "Montant": row.get("Montant"),
-            }
+    invalid_rows = 0
+    repeated: Counter = Counter()
+    for index, row in enumerate(rows):
+        try:
+            parsed = _parse_row(row)
+            error = None
+            repeated[(parsed.date, round(parsed.amount, 4), parsed.merchant, parsed.type)] += 1
+        except ImportRowError as exc:
+            parsed, error = None, str(exc)
+            invalid_rows += 1
+        if index < sample_size:
+            preview_rows.append(
+                {
+                    "line": int(row.get("_line") or 0),
+                    "Date": row.get("Date"),
+                    "Type": parsed.type if parsed else row.get("Type"),
+                    "Commercant": row.get("Commercant"),
+                    "Categorie": row.get("Categorie"),
+                    "Montant": row.get("Montant"),
+                    "error": error,
+                }
+            )
+
+    warnings: list[str] = []
+    if not any((r.get("Type") or "").strip() for r in rows):
+        warnings.append("Colonne Type absente : le sens est déduit du signe du montant (négatif = Sortie).")
+    repeated_in_file = sum(count - 1 for count in repeated.values() if count > 1)
+    if repeated_in_file:
+        warnings.append(
+            f"{repeated_in_file} ligne(s) identique(s) à une autre du fichier : elles seront toutes importées "
+            "(deux achats identiques le même jour sont légitimes)."
         )
 
     return {
         "filename": file.filename,
         "total_rows": len(rows),
+        "invalid_rows": invalid_rows,
+        "warnings": warnings,
         "delimiter": delimiter,
         "raw_headers": raw_headers,
         "preview": preview_rows,
@@ -252,23 +363,28 @@ async def commit_import(
         is not None
     )
 
+    error_details: list[dict] = []
+
+    def _record_error(line: int, reason: str) -> None:
+        nonlocal errors
+        errors += 1
+        if len(error_details) < 50:
+            error_details.append({"line": line, "reason": reason})
+        if len(error_samples) < 10:
+            error_samples.append(f"Ligne {line} : {reason}")
+
     for row in rows:
+        if _is_blank(row):
+            continue  # ligne vide ou « ;;;; » : ni importée ni comptée en erreur
+        line = int(row.get("_line") or 0)
         try:
-            dt = _parse_date(row["Date"])
-            tx_type = normalize_transaction_type(row["Type"])
-            merchant = (row.get("Commercant") or "").strip() or "Inconnu"
-            csv_category_name = (row.get("Categorie") or "").strip()
-            amount = _parse_amount(row.get("Montant") or "0")
-            if not math.isfinite(amount) or amount >= MAX_AMOUNT:
-                errors += 1
-                if len(error_samples) < 10:
-                    error_samples.append(f"Invalid amount at {row.get('Date')} / {row.get('Montant')}")
-                continue
-            if amount <= 0:
-                errors += 1
-                if len(error_samples) < 10:
-                    error_samples.append(f"Invalid amount <= 0 at {row.get('Date')} / {row.get('Montant')}")
-                continue
+            parsed = _parse_row(row)
+        except ImportRowError as exc:
+            _record_error(line, str(exc))
+            continue
+        try:
+            dt, tx_type, merchant, amount = parsed.date, parsed.type, parsed.merchant, parsed.amount
+            csv_category_name = parsed.category_name
 
             category_id = None
 
@@ -280,10 +396,20 @@ async def commit_import(
                     if rule.category_id:
                         category_id = rule.category_id
                     if rule.transaction_type:
-                        tx_type = rule.transaction_type
+                        try:
+                            tx_type = normalize_transaction_type(rule.transaction_type)
+                        except ValueError:
+                            pass  # règle ancienne au type invalide : ignorée plutôt que de corrompre la ligne
                     if rule.merchant_name:
                         merchant = rule.merchant_name
                     break
+
+            # Doublon : détecté avant toute création de catégorie (un fichier 100 % doublons ne crée rien)
+            tx_key = (dt, round(float(amount), 4), merchant, tx_type)
+            seen_in_file[tx_key] += 1
+            if seen_in_file[tx_key] <= existing_counts[tx_key]:
+                skipped += 1
+                continue
 
             if not category_id and csv_category_name:
                 # 1. Check if we have a manual mapping for this CSV category
@@ -318,16 +444,10 @@ async def commit_import(
                         created_categories += 1
                     category_id = category.id if category else None
 
-            tx_key = (dt, round(float(amount), 4), merchant, tx_type)
-            seen_in_file[tx_key] += 1
-            if seen_in_file[tx_key] <= existing_counts[tx_key]:
-                skipped += 1
-                continue
-
             if tx_type == "Solde Initial":
                 # Un seul Solde Initial par compte (il remet le solde à zéro à sa date)
                 if has_initial_balance:
-                    raise ValueError(f"A Solde Initial already exists for this account ({row.get('Date')})")
+                    raise ValueError(f"Un Solde Initial existe déjà pour ce compte ({row.get('Date')})")
                 has_initial_balance = True
 
             running_balance = apply_transaction_to_balance(running_balance, tx_type, amount)
@@ -342,14 +462,12 @@ async def commit_import(
                 currency=account.currency,
                 original_amount=amount,
                 running_balance=running_balance,
-                note=row.get("Note") or "Imported CSV",
+                note=parsed.note or "Imported CSV",
             )
             db.add(tx)
             imported += 1
         except Exception as exc:
-            errors += 1
-            if len(error_samples) < 10:
-                error_samples.append(str(exc))
+            _record_error(line, str(exc))
 
     summary = {
         "filename": file.filename,
@@ -358,6 +476,7 @@ async def commit_import(
         "delimiter": delimiter,
         "raw_headers": raw_headers,
         "error_samples": error_samples,
+        "error_details": error_details,
     }
     db.add(
         ImportLog(
@@ -386,4 +505,5 @@ async def commit_import(
         "errors": errors,
         "created_categories": created_categories,
         "error_samples": error_samples,
+        "error_details": error_details,
     }
