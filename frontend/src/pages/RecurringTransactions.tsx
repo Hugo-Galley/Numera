@@ -87,6 +87,7 @@ import { cn, frequencyLabel } from "@/lib/utils"
 import { COUNTRIES } from "@/lib/countries"
 import { SalaryManager } from "@/components/tools/SalaryManager"
 import { LogoPicker } from "@/components/ui/LogoPicker"
+import { InvestmentFlowDialog } from "@/components/recurring/InvestmentFlowDialog"
 import { useConfirm } from "@/providers/ConfirmProvider"
 
 type Category = {
@@ -100,6 +101,8 @@ type Account = {
   name: string
   currency: string
   type: "courant" | "epargne" | "investissement"
+  institution?: string | null
+  logo?: string | null
 }
 
 type RecurringTransaction = {
@@ -161,6 +164,7 @@ export default function RecurringTransactions() {
     }, { replace: true })
   }
   const [subTab, setSubTab] = useState<"subscriptions" | "investments">("subscriptions")
+  const [flowSub, setFlowSub] = useState<any>(null)
   
   // Dialogs
   const [isFormOpen, setIsFormOpen] = useState(false)
@@ -820,7 +824,11 @@ export default function RecurringTransactions() {
                         </div>
                       ) : (
                         activeSubs.map((sub: any, i: number) => (
-                          <div key={i} className="p-4 flex items-center justify-between gap-3 hover:bg-slate-50 transition-colors group">
+                          <div
+                            key={i}
+                            className={`p-4 flex items-center justify-between gap-3 hover:bg-slate-50 transition-colors group ${subTab === "investments" ? "cursor-pointer" : ""}`}
+                            onClick={subTab === "investments" ? () => setFlowSub(sub) : undefined}
+                          >
                             <div className="flex items-center gap-3 md:gap-4 min-w-0">
                               <CompanyLogo
                                 ticker={sub.ticker}
@@ -970,6 +978,12 @@ export default function RecurringTransactions() {
       </Tabs>
 
       {/* Form Dialog */}
+      <InvestmentFlowDialog
+        recurring={flowSub ? (recurringTxs.find((r) => r.name === flowSub.name && Math.abs(r.amount - flowSub.amount) < 0.005) ?? recurringTxs.find((r) => r.name === flowSub.name) ?? null) : null}
+        accounts={accounts}
+        nextOccurrence={flowSub?.next_occurrence}
+        onClose={() => setFlowSub(null)}
+      />
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
         <DialogContent className="max-w-md max-h-[calc(100dvh-2*max(1rem,env(safe-area-inset-top)))] overflow-y-auto max-sm:[&_input]:text-base max-sm:[&_textarea]:text-base">
           <DialogHeader>
