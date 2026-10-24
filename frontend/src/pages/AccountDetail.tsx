@@ -1,7 +1,7 @@
 import { useSubmit } from "@/hooks/useSubmit"
 import { errorMessage, parsePositiveAmount } from "@/lib/utils"
 import { endOfDayParam, nowLocalInput, startOfDayParam, toInputValue, toNaiveLocal, todayLocal } from "@/lib/dates"
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo, useRef } from "react"
 import { AccountLogo } from "@/components/ui/AccountLogo"
 import { useParams, Link } from "react-router-dom"
 import { 
@@ -532,16 +532,35 @@ export default function AccountDetail() {
     return params
   }
 
-  const loadTransactions = async () => {
+  // Numéro de la dernière requête de liste : une réponse arrivée après une autre plus récente est ignorée
+  const txRequestId = useRef(0)
+  const [txLoading, setTxLoading] = useState(false)
+
+  const loadTransactions = async (opts?: { reset?: boolean }) => {
     if (!id) return
+    const requestId = ++txRequestId.current
+    setTxLoading(true)
     try {
-      // Garder les pages déjà chargées après une modification (l'API plafonne à 1000)
-      const limit = Math.min(Math.max(TX_PAGE_SIZE, transactions.length), 1000)
+      // Garder les pages déjà chargées après une modification (l'API plafonne à 1000) ;
+      // un changement de filtre repart de la première page
+      const limit = opts?.reset ? TX_PAGE_SIZE : Math.min(Math.max(TX_PAGE_SIZE, transactions.length), 1000)
       const txData = await api.get<Transaction[]>(`/transactions?${buildTransactionParams(0, limit).toString()}`)
+      if (requestId !== txRequestId.current) return
       setTransactions(txData)
       setHasMoreTx(txData.length === limit)
     } catch (error) {
-      toast.error(errorMessage(error, "Erreur lors de la recherche"))
+      if (requestId === txRequestId.current) toast.error(errorMessage(error, "Erreur lors de la recherche"))
+    } finally {
+      if (requestId === txRequestId.current) setTxLoading(false)
+    }
+  }
+
+  const loadTagTotals = async () => {
+    if (!id) return
+    try {
+      setTagTotals(await api.get<any[]>(`/analytics/tags?account_id=${id}${dateStart ? `&start_date=${dateStart}` : ""}${dateEnd ? `&end_date=${dateEnd}` : ""}`))
+    } catch (error) {
+      toast.error(errorMessage(error, "Erreur lors du chargement des tags"))
     }
   }
 
@@ -572,9 +591,10 @@ export default function AccountDetail() {
     setTransferTx(tx)
   }
 
-  const loadData = async () => {
+  // `quiet` : rechargement après une modification, sans remplacer la page par un spinner
+  const loadData = async (opts?: { quiet?: boolean }) => {
     if (!id) return
-    setLoading(true)
+    if (!opts?.quiet) setLoading(true)
     try {
       const [accData, merchantsData, suggestionsData] = await Promise.all([
         api.get<Account>(`/accounts/${id}`),
@@ -627,16 +647,24 @@ export default function AccountDetail() {
     return () => clearTimeout(timer)
   }, [search])
 
+  // Chargement complet : au changement de compte seulement
   useEffect(() => {
     loadData()
-  }, [id, filterType, filterCategory, filterMerchant, filterTags, dateStart, dateEnd])
+  }, [id])
 
-  // Reload only transactions when search changes (avoid full page reload)
+  // Un changement de filtre ou de recherche ne recharge que la liste (et les totaux par tag) :
+  // la page, ses dialogues, le défilement et les filtres restent en place
   useEffect(() => {
     if (account && account.type !== "investissement" && account.type !== "assurance_vie") {
-      loadTransactions()
+      loadTransactions({ reset: true })
     }
-  }, [debouncedSearch])
+  }, [debouncedSearch, filterType, filterCategory, filterMerchant, filterTags, dateStart, dateEnd])
+
+  useEffect(() => {
+    if (account && account.type !== "investissement" && account.type !== "assurance_vie") {
+      loadTagTotals()
+    }
+  }, [dateStart, dateEnd])
 
   // -- Handlers (Current Account) --
   const resetTxForm = () => {
@@ -691,7 +719,7 @@ export default function AccountDetail() {
       toast.success("Transaction ajoutée")
       setTxOpen(false)
       resetTxForm()
-      await loadData()
+      await loadData({ quiet: true })
     } catch (error: any) {
       toast.error(error.message || "Erreur lors de l'ajout")
     }
@@ -734,7 +762,7 @@ export default function AccountDetail() {
       toast.success("Transaction modifiée")
       setTxOpen(false)
       resetTxForm()
-      await loadData()
+      await loadData({ quiet: true })
     } catch (error: any) {
       toast.error(error.message || "Erreur lors de la modification")
     }
@@ -762,7 +790,7 @@ export default function AccountDetail() {
     try {
       await api.delete(`/transactions/${txId}`)
       toast.success("Transaction supprimée")
-      await loadData()
+      await loadData({ quiet: true })
     } catch (error: any) {
       toast.error(error?.message || "Erreur lors de la suppression")
     }
@@ -837,7 +865,7 @@ export default function AccountDetail() {
       
       setInvTxOpen(false)
       resetInvTxForm()
-      await loadData()
+      await loadData({ quiet: true })
     } catch (error: any) {
       toast.error(error.message || "Erreur lors de l'enregistrement")
     }
@@ -878,7 +906,7 @@ export default function AccountDetail() {
     try {
       await api.delete(`/investment-transactions/${txId}`)
       toast.success("Flux supprimé")
-      await loadData()
+      await loadData({ quiet: true })
     } catch (error: any) {
       toast.error(error?.message || "Erreur lors de la suppression")
     }
@@ -916,7 +944,7 @@ export default function AccountDetail() {
       
       setSnapOpen(false)
       resetSnapForm()
-      await loadData()
+      await loadData({ quiet: true })
     } catch (error) {
       toast.error(errorMessage(error, "Erreur lors de l'enregistrement"))
     }
@@ -935,7 +963,7 @@ export default function AccountDetail() {
     try {
       await api.delete(`/balance-snapshots/${snapId}`)
       toast.success("Snapshot supprimé")
-      await loadData()
+      await loadData({ quiet: true })
     } catch (error) {
       toast.error(errorMessage(error, "Erreur lors de la suppression"))
     }
@@ -958,7 +986,7 @@ export default function AccountDetail() {
       toast.success(`${selectedIds.length} transactions mises à jour`)
       setSelectedIds([])
       setIsBulkEditDialogOpen(false)
-      await loadData()
+      await loadData({ quiet: true })
     } catch (error) {
       toast.error(errorMessage(error, "Erreur lors de la mise à jour groupée"))
     }
@@ -987,7 +1015,7 @@ export default function AccountDetail() {
       toast.success("Nouveau point zéro défini")
       setZeroOpen(false)
       resetZeroForm()
-      await loadData()
+      await loadData({ quiet: true })
     } catch (error) {
       toast.error(errorMessage(error, "Erreur lors de la définition du point zéro"))
     }
@@ -2013,7 +2041,7 @@ export default function AccountDetail() {
             </div>
           </div>
 
-          <div className="space-y-2 md:hidden">
+          <div className={`space-y-2 md:hidden transition-opacity ${txLoading ? "opacity-50" : ""}`}>
             {filteredTransactions.length > 0 && (
               <label className="flex min-h-11 items-center gap-3 px-1 text-sm text-slate-500">
                 <Checkbox
@@ -2095,7 +2123,7 @@ export default function AccountDetail() {
             })}
           </div>
 
-          <Card className="hidden shadow-sm border-slate-100 overflow-hidden md:block">
+          <Card className={`hidden shadow-sm border-slate-100 overflow-hidden md:block transition-opacity ${txLoading ? "opacity-50" : ""}`}>
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader className="bg-slate-50/50">
@@ -2307,7 +2335,7 @@ export default function AccountDetail() {
                       try {
                         await api.patch(`/accounts/${account.id}`, { valuation_mode: mode })
                         toast.success(mode === "snapshot" ? "Valorisation par relevés" : "Valorisation par positions")
-                        loadData()
+                        loadData({ quiet: true })
                       } catch (err: any) {
                         toast.error(err?.message || "Impossible de changer la valorisation")
                       }
@@ -2523,7 +2551,7 @@ export default function AccountDetail() {
                     await api.post("/transactions/bulk-delete", { ids: selectedIds })
                     toast.success(`${selectedIds.length} transactions supprimées`)
                     setSelectedIds([])
-                    await loadData()
+                    await loadData({ quiet: true })
                   } catch (e) {
                     toast.error("Erreur lors de la suppression groupée")
                   }
