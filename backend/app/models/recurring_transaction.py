@@ -37,6 +37,9 @@ class RecurringTransaction(Base):
     isin: Mapped[str | None] = mapped_column(String(20), index=True, nullable=True)
     quantity: Mapped[float | None] = mapped_column(Float, nullable=True)
     unit_price: Mapped[float | None] = mapped_column(Float, nullable=True)
+    # Achat programmé en parts entières (PEA, plans d'épargne du courtier) : quantité arrondie à l'entier
+    # inférieur, montant investi = parts × cours ; le reliquat reste en espèces chez le courtier.
+    whole_shares: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0", nullable=False)
     etf_profile_id: Mapped[int | None] = mapped_column(ForeignKey("etf_profiles.id", ondelete="SET NULL"), nullable=True, index=True)
 
     account: Mapped["Account"] = relationship("Account", foreign_keys=[account_id])

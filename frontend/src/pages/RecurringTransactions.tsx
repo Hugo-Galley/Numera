@@ -134,6 +134,7 @@ type RecurringTransaction = {
   isin?: string | null
   quantity?: number | null
   unit_price?: number | null
+  whole_shares?: boolean
   etf_profile_id?: number | null
   logo?: string | null
   category?: Category
@@ -208,6 +209,7 @@ export default function RecurringTransactions() {
     isin: "",
     quantity: "",
     unit_price: "",
+    whole_shares: false,
     etf_profile_id: null as number | null,
     logo: null as string | null,
   })
@@ -300,6 +302,7 @@ export default function RecurringTransactions() {
       isin: "",
       quantity: "",
       unit_price: "",
+      whole_shares: false,
       etf_profile_id: null,
       logo: null,
     })
@@ -333,6 +336,7 @@ export default function RecurringTransactions() {
       isin: tx.isin || "",
       quantity: tx.quantity != null ? tx.quantity.toString() : "",
       unit_price: tx.unit_price != null ? tx.unit_price.toString() : "",
+      whole_shares: Boolean(tx.whole_shares),
       etf_profile_id: tx.etf_profile_id || null,
       logo: tx.logo || null,
     })
@@ -363,6 +367,7 @@ export default function RecurringTransactions() {
       isin: formData.isin ? formData.isin.trim().toUpperCase() : null,
       quantity: formData.quantity ? parseFloat(formData.quantity) : null,
       unit_price: formData.unit_price ? parseFloat(formData.unit_price) : null,
+      whole_shares: Boolean(formData.ticker) && !formData.quantity && formData.whole_shares,
       etf_profile_id: formData.etf_profile_id || null,
       logo: formData.logo || null,
     }
@@ -448,6 +453,7 @@ export default function RecurringTransactions() {
       isin: "",
       quantity: "",
       unit_price: "",
+      whole_shares: false,
       etf_profile_id: null,
       logo: null,
     })
@@ -1153,6 +1159,20 @@ export default function RecurringTransactions() {
                       </div>
                     )}
                   </div>
+
+                  {!formData.quantity && (
+                    <label className="flex items-start gap-2 p-2.5 rounded-xl border border-slate-200/80 bg-white cursor-pointer">
+                      <Checkbox
+                        checked={formData.whole_shares}
+                        onCheckedChange={(v) => setFormData(prev => ({ ...prev, whole_shares: v === true }))}
+                        className="mt-0.5 rounded-md h-4 w-4"
+                      />
+                      <span className="text-[11px] leading-relaxed text-slate-700">
+                        <span className="font-semibold text-slate-900">Parts entières (PEA)</span>
+                        {" "}: arrondit à l'entier inférieur et n'investit que le coût des parts. Le reliquat reste en espèces chez le courtier.
+                      </span>
+                    </label>
+                  )}
 
                   <div className="flex items-center justify-between pt-0.5">
                     <button
