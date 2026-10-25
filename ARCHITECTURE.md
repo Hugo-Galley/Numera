@@ -238,7 +238,7 @@ Un point zéro sert de base de performance pour un compte.
 - `GET /analytics/budget-alerts`
 - `GET /analytics/insights`
 - `GET /analytics/wealth-simulation` (mode avancé : Monte Carlo, événements, fiscalité)
-- `GET /analytics/wealth-forecast` (prévision simple : patrimoine total + épargne moyenne 12 mois, rendement pondéré par type de compte, `years`, `extra_monthly`, surcharges `monthly_savings` / `annual_return_pct` ; la réponse détaille les mois et soldes par type utilisés)
+- `GET /analytics/wealth-forecast` (prévision simple : patrimoine total + épargne moyenne 12 mois, rendement des comptes investissement = XIRR constaté (`/analytics/portfolio`), autres comptes 0 %, aucun taux codé en dur, `years`, `extra_monthly`, surcharges `monthly_savings` / `investment_return_pct` / `savings_return_pct` ; la réponse détaille les mois et soldes par type utilisés)
 - `GET /analytics/sankey`
 - `GET /analytics/money-flow`
 - `GET /analytics/monthly-report` (inclut `exceptional_expenses`, `real_expenses_excl_exceptional`, `savings_excl_exceptional`, `savings_rate_excl_exceptional`, `burn_rate_excl_exceptional`; `top_categories` : 8 premières catégories avec `prev_total`, total du mois précédent)

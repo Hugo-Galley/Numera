@@ -163,6 +163,7 @@ class WealthForecastReturnItem(BaseModel):
     type: str
     balance: float
     rate_pct: float
+    source: str  # observed | manual | none
 
 
 class WealthForecastResponse(BaseModel):
@@ -177,9 +178,8 @@ class WealthForecastResponse(BaseModel):
     gain_from_extra: float
     points: List[WealthForecastPoint]
     computed_monthly_savings: float = 0.0
-    computed_return_pct: float = 0.0
+    observed_investment_return_pct: Optional[float] = None
     savings_overridden: bool = False
-    return_overridden: bool = False
     savings_months: List[WealthForecastSavingsMonth] = []
     return_breakdown: List[WealthForecastReturnItem] = []
 

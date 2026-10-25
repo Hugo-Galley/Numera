@@ -857,23 +857,20 @@ async def patrimoine_allocation(db: Session = Depends(get_db)):
     }
 
 
-# Rendement annuel supposé par type de compte pour la prévision simple (en %)
-FORECAST_RETURN_BY_TYPE = {"courant": 0.0, "epargne": 3.0, "investissement": 6.5}
-
-
 @router.get("/wealth-forecast", response_model=WealthForecastResponse)
 async def wealth_forecast(
     years: int = Query(default=10, ge=1, le=50),
     extra_monthly: float = Query(default=0.0, ge=-100000, le=100000),
     monthly_savings: Optional[float] = Query(default=None, ge=-100000, le=100000),
-    annual_return_pct: Optional[float] = Query(default=None, ge=-50, le=100),
+    investment_return_pct: Optional[float] = Query(default=None, ge=-50, le=100),
+    savings_return_pct: Optional[float] = Query(default=None, ge=-50, le=100),
     db: Session = Depends(get_db),
 ):
     """
     Prévision simple du patrimoine : patrimoine actuel (tous comptes actifs) + épargne mensuelle
-    moyenne des 12 derniers mois complets, rendement pondéré par type de compte.
+    moyenne des 12 derniers mois complets, rendement des comptes d'investissement = XIRR constaté (modifiable), autres comptes à 0 % sauf saisie.
     `extra_monthly` ajoute un effort d'épargne hypothétique pour comparer.
-    `monthly_savings` et `annual_return_pct` remplacent les valeurs calculées ; la réponse détaille
+    `monthly_savings`, `investment_return_pct` et `savings_return_pct` remplacent les valeurs calculées ; la réponse détaille
     les mois et les soldes par type qui ont servi au calcul.
     """
     from .metrics import kpi_history
@@ -881,23 +878,39 @@ async def wealth_forecast(
     allocation = await patrimoine_allocation(db)
     current_wealth = float(allocation["total_patrimoine"])
 
-    weighted = 0.0
-    positive_total = 0.0
-    balance_by_type: dict = {}
+    from .portfolio import portfolio_overview
+
+    try:
+        observed_pct = (await portfolio_overview(db)).xirr_pct
+    except Exception:
+        logger.warning("wealth_forecast: XIRR constaté indisponible", exc_info=True)
+        observed_pct = None
+
+    invest_balance = 0.0
+    other_balance = 0.0
     for item in allocation["items"]:
         bal = float(item["balance_eur"])
         if bal <= 0:
             continue
-        positive_total += bal
-        weighted += bal * FORECAST_RETURN_BY_TYPE.get(item["type"], 0.0)
-        balance_by_type[item["type"]] = balance_by_type.get(item["type"], 0.0) + bal
-    computed_return = weighted / positive_total if positive_total > 0 else 0.0
+        if item["type"] == "investissement":
+            invest_balance += bal
+        else:
+            other_balance += bal
+    invest_rate = investment_return_pct if investment_return_pct is not None else (observed_pct or 0.0)
+    other_rate = savings_return_pct if savings_return_pct is not None else 0.0
+    positive_total = invest_balance + other_balance
+    computed_return = (invest_balance * invest_rate + other_balance * other_rate) / positive_total if positive_total > 0 else 0.0
+    annual_return_pct = computed_return
     return_breakdown = [
-        WealthForecastReturnItem(type=t, balance=round(b, 2), rate_pct=FORECAST_RETURN_BY_TYPE.get(t, 0.0))
-        for t, b in sorted(balance_by_type.items(), key=lambda kv: kv[1], reverse=True)
+        WealthForecastReturnItem(
+            type="investissement", balance=round(invest_balance, 2), rate_pct=round(invest_rate, 2),
+            source="manual" if investment_return_pct is not None else ("observed" if observed_pct is not None else "none"),
+        ),
+        WealthForecastReturnItem(
+            type="autres", balance=round(other_balance, 2), rate_pct=round(other_rate, 2),
+            source="manual" if savings_return_pct is not None else "none",
+        ),
     ]
-    request_return_override = annual_return_pct is not None
-    annual_return_pct = computed_return if annual_return_pct is None else annual_return_pct
 
     history = await kpi_history(months_count=13, account_id=None, db=db)
     now = datetime.now()
@@ -944,9 +957,8 @@ async def wealth_forecast(
             for y in range(years + 1)
         ],
         computed_monthly_savings=round(computed_savings, 2),
-        computed_return_pct=round(computed_return, 2),
+        observed_investment_return_pct=observed_pct,
         savings_overridden=monthly_savings is not None,
-        return_overridden=request_return_override,
         savings_months=savings_months,
         return_breakdown=return_breakdown,
     )

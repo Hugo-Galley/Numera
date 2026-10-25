@@ -34,19 +34,18 @@ interface ReturnItem {
   type: string
   balance: number
   rate_pct: number
+  source: "observed" | "manual" | "none"
 }
 
 const TYPE_LABELS: Record<string, string> = {
-  courant: "Comptes courants",
-  epargne: "Épargne",
-  investissement: "Investissement",
+  investissement: "Comptes d'investissement",
+  autres: "Courant et épargne",
 }
 
 interface Forecast {
   computed_monthly_savings: number
-  computed_return_pct: number
+  observed_investment_return_pct: number | null
   savings_overridden: boolean
-  return_overridden: boolean
   savings_months: SavingsMonth[]
   return_breakdown: ReturnItem[]
   current_wealth: number
@@ -68,7 +67,8 @@ export function WealthForecast() {
   const [years, setYears] = useState(10)
   const [extra, setExtra] = useState(0)
   const [savingsInput, setSavingsInput] = useState("")
-  const [returnInput, setReturnInput] = useState("")
+  const [investInput, setInvestInput] = useState("")
+  const [otherInput, setOtherInput] = useState("")
   const [data, setData] = useState<Forecast | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
@@ -79,7 +79,8 @@ export function WealthForecast() {
       try {
         const qs = new URLSearchParams({ years: String(years), extra_monthly: String(extra) })
         if (savingsInput.trim() !== "" && !Number.isNaN(Number(savingsInput))) qs.set("monthly_savings", savingsInput)
-        if (returnInput.trim() !== "" && !Number.isNaN(Number(returnInput))) qs.set("annual_return_pct", returnInput)
+        if (investInput.trim() !== "" && !Number.isNaN(Number(investInput))) qs.set("investment_return_pct", investInput)
+        if (otherInput.trim() !== "" && !Number.isNaN(Number(otherInput))) qs.set("savings_return_pct", otherInput)
         const res = await api.get<Forecast>(`/analytics/wealth-forecast?${qs.toString()}`)
         if (!cancelled) {
           setData(res)
@@ -95,7 +96,7 @@ export function WealthForecast() {
       cancelled = true
       clearTimeout(timer)
     }
-  }, [years, extra, savingsInput, returnInput])
+  }, [years, extra, savingsInput, investInput, otherInput])
 
   if (loading && !data) return <Skeleton className="h-[480px] w-full rounded-xl" />
   if (error || !data) {
@@ -133,7 +134,7 @@ export function WealthForecast() {
                   ? ` (revenus − dépenses, moyenne sur ${data.months_used} mois)`
                   : ""}
               , avec un rendement de <b>{data.annual_return_pct.toFixed(1)} %</b> par an
-              {data.return_overridden ? " (valeur saisie)" : " (hypothèse par type de compte)"}. Détail plus bas.
+              {data.return_breakdown.some((r) => r.source === "manual") ? " (en partie saisi)" : " (rendement constaté sur tes investissements)"}. Détail plus bas.
             </span>
           </p>
           {data.avg_monthly_savings < 0 && (
@@ -234,36 +235,40 @@ export function WealthForecast() {
           </div>
 
           <div className="space-y-2">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-sm font-medium text-slate-700">Rendement annuel :</span>
-              <Input
-                type="number" inputMode="decimal"
-                className="h-10 w-28 md:h-9"
-                placeholder={data.computed_return_pct.toFixed(1)}
-                value={returnInput}
-                onChange={(e) => setReturnInput(e.target.value)}
-              />
-              <span className="text-sm text-slate-500">%</span>
-              {data.return_overridden && (
-                <Button size="sm" variant="ghost" onClick={() => setReturnInput("")}>
-                  Revenir au calcul ({data.computed_return_pct.toFixed(1)} %)
-                </Button>
-              )}
-            </div>
+            <p className="text-sm font-medium text-slate-700">Rendement annuel</p>
+            {data.return_breakdown.map((r) => {
+              const isInvest = r.type === "investissement"
+              const value = isInvest ? investInput : otherInput
+              const setValue = isInvest ? setInvestInput : setOtherInput
+              return (
+                <div key={r.type} className="flex flex-wrap items-center gap-2 text-sm">
+                  <span className="w-44 text-slate-700">{TYPE_LABELS[r.type] ?? r.type}</span>
+                  <span className="w-24 text-xs tabular-nums text-slate-500 amount-blur">
+                    {formatCurrency(r.balance, "EUR")}
+                  </span>
+                  <Input
+                    type="number" inputMode="decimal"
+                    className="h-10 w-24 md:h-9"
+                    placeholder={r.rate_pct.toFixed(1)}
+                    value={value}
+                    onChange={(e) => setValue(e.target.value)}
+                  />
+                  <span className="text-slate-500">%</span>
+                  {r.source === "manual" ? (
+                    <Button size="sm" variant="ghost" onClick={() => setValue("")}>
+                      Revenir à {isInvest && data.observed_investment_return_pct !== null ? `${data.observed_investment_return_pct.toFixed(1)} % constaté` : "0 %"}
+                    </Button>
+                  ) : (
+                    <span className="text-xs text-slate-400">{r.source === "observed" ? "constaté" : "aucune donnée, 0 %"}</span>
+                  )}
+                </div>
+              )
+            })}
             <p className="text-xs text-slate-500">
-              Hypothèse fixe par type de compte (pas ton rendement réel passé), pondérée par les soldes actuels.
+              Investissement : rendement annualisé (XIRR) réellement constaté sur tes comptes titres valorisés par
+              positions, appliqué à tous tes comptes d'investissement. Courant et épargne : 0 % tant que tu n'en saisis
+              pas un. Moyenne pondérée par les soldes : {data.annual_return_pct.toFixed(1)} %.
             </p>
-            <table className="w-full text-xs tabular-nums">
-              <tbody className="amount-blur">
-                {data.return_breakdown.map((r) => (
-                  <tr key={r.type} className="border-t border-slate-100">
-                    <td className="py-1 pr-3">{TYPE_LABELS[r.type] ?? r.type}</td>
-                    <td className="py-1 pr-3 text-right">{formatCurrency(r.balance, "EUR")}</td>
-                    <td className="py-1 text-right font-semibold">{r.rate_pct.toFixed(1)} %</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
           </div>
         </CardContent>
       </Card>

@@ -22,23 +22,37 @@ def test_forecast_empty_database(client):
     assert len(data["points"]) == 11
 
 
-def test_forecast_weighted_return_and_growth(client, db_session):
+def test_forecast_manual_rates_and_growth(client, db_session):
     _account_with_value(db_session, "Livret", "epargne", 5000)
     _account_with_value(db_session, "PEA", "investissement", 5000)
 
-    data = client.get("/analytics/wealth-forecast", params={"years": 10}).json()
+    data = client.get(
+        "/analytics/wealth-forecast", params={"years": 10, "investment_return_pct": 6, "savings_return_pct": 2}
+    ).json()
 
     assert data["current_wealth"] == 10000
-    assert data["annual_return_pct"] == pytest.approx(4.75)
-    assert data["final_base"] == pytest.approx(10000 * 1.0475 ** 10, rel=1e-3)
-    assert data["points"][0]["base"] == 10000
+    assert data["annual_return_pct"] == pytest.approx(4.0)
+    assert data["final_base"] == pytest.approx(10000 * 1.04 ** 10, rel=1e-3)
     assert data["gain_from_extra"] == 0
+    assert {i["type"]: i["source"] for i in data["return_breakdown"]} == {"investissement": "manual", "autres": "manual"}
+
+
+def test_forecast_no_hardcoded_rate_without_history(client, db_session):
+    _account_with_value(db_session, "PEA", "investissement", 5000)
+
+    data = client.get("/analytics/wealth-forecast").json()
+
+    assert data["annual_return_pct"] == 0
+    assert data["observed_investment_return_pct"] is None
+    assert data["return_breakdown"][0]["source"] == "none"
 
 
 def test_forecast_extra_monthly_adds_gain(client, db_session):
     _account_with_value(db_session, "Livret", "epargne", 1000)
 
-    data = client.get("/analytics/wealth-forecast", params={"years": 5, "extra_monthly": 100}).json()
+    data = client.get(
+        "/analytics/wealth-forecast", params={"years": 5, "extra_monthly": 100, "savings_return_pct": 3}
+    ).json()
 
     assert data["final_boosted"] > data["final_base"]
     # 100 €/mois pendant 60 mois, plus les intérêts à 3 %
@@ -75,12 +89,11 @@ def test_forecast_overrides_and_breakdown(client, db_session):
     _account_with_value(db_session, "PEA", "investissement", 5000)
 
     data = client.get(
-        "/analytics/wealth-forecast", params={"years": 1, "monthly_savings": 1000, "annual_return_pct": 0}
+        "/analytics/wealth-forecast",
+        params={"years": 1, "monthly_savings": 1000, "investment_return_pct": 0, "savings_return_pct": 0},
     ).json()
     assert data["avg_monthly_savings"] == 1000
     assert data["savings_overridden"] is True
-    assert data["return_overridden"] is True
     assert data["annual_return_pct"] == 0
-    assert data["computed_return_pct"] == pytest.approx(4.75)
     assert data["final_base"] == pytest.approx(22000, abs=1)
-    assert {i["type"]: i["rate_pct"] for i in data["return_breakdown"]} == {"epargne": 3.0, "investissement": 6.5}
+    assert {i["type"]: i["balance"] for i in data["return_breakdown"]} == {"investissement": 5000, "autres": 5000}
