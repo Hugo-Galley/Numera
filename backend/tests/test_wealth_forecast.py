@@ -68,3 +68,19 @@ def test_forecast_uses_average_savings_of_completed_months(client, db_session):
 
     assert data["months_used"] == 3
     assert data["avg_monthly_savings"] == pytest.approx(500.0)
+
+
+def test_forecast_overrides_and_breakdown(client, db_session):
+    _account_with_value(db_session, "Livret", "epargne", 5000)
+    _account_with_value(db_session, "PEA", "investissement", 5000)
+
+    data = client.get(
+        "/analytics/wealth-forecast", params={"years": 1, "monthly_savings": 1000, "annual_return_pct": 0}
+    ).json()
+    assert data["avg_monthly_savings"] == 1000
+    assert data["savings_overridden"] is True
+    assert data["return_overridden"] is True
+    assert data["annual_return_pct"] == 0
+    assert data["computed_return_pct"] == pytest.approx(4.75)
+    assert data["final_base"] == pytest.approx(22000, abs=1)
+    assert {i["type"]: i["rate_pct"] for i in data["return_breakdown"]} == {"epargne": 3.0, "investissement": 6.5}

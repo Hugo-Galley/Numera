@@ -805,16 +805,28 @@ def get_cashflow_projection(months: int = 3) -> str:
 
 
 @mcp.tool()
-def get_wealth_forecast(years: int = 10, extra_monthly: float = 0.0) -> str:
+def get_wealth_forecast(
+    years: int = 10,
+    extra_monthly: float = 0.0,
+    monthly_savings: float | None = None,
+    annual_return_pct: float | None = None,
+) -> str:
     """Prévision simple du patrimoine : patrimoine actuel + épargne mensuelle moyenne des 12 derniers mois,
     rendement pondéré par type de compte. Compare le rythme actuel à un effort d'épargne supplémentaire.
 
     Args:
         years: Horizon en années (défaut 10)
         extra_monthly: Épargne mensuelle supplémentaire hypothétique en € (défaut 0)
+        monthly_savings: Remplace l'épargne mensuelle moyenne calculée (optionnel)
+        annual_return_pct: Remplace le rendement annuel calculé (optionnel)
     """
     try:
-        resp = api.get("/analytics/wealth-forecast", params={"years": years, "extra_monthly": extra_monthly})
+        params: dict = {"years": years, "extra_monthly": extra_monthly}
+        if monthly_savings is not None:
+            params["monthly_savings"] = monthly_savings
+        if annual_return_pct is not None:
+            params["annual_return_pct"] = annual_return_pct
+        resp = api.get("/analytics/wealth-forecast", params=params)
         error = handle_response(resp)
         if error:
             return error

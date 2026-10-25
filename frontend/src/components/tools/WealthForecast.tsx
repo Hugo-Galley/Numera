@@ -23,7 +23,32 @@ interface ForecastPoint {
   boosted: number
 }
 
+interface SavingsMonth {
+  label: string
+  revenus: number
+  depenses_reelles: number
+  epargne_flow: number
+}
+
+interface ReturnItem {
+  type: string
+  balance: number
+  rate_pct: number
+}
+
+const TYPE_LABELS: Record<string, string> = {
+  courant: "Comptes courants",
+  epargne: "Épargne",
+  investissement: "Investissement",
+}
+
 interface Forecast {
+  computed_monthly_savings: number
+  computed_return_pct: number
+  savings_overridden: boolean
+  return_overridden: boolean
+  savings_months: SavingsMonth[]
+  return_breakdown: ReturnItem[]
   current_wealth: number
   avg_monthly_savings: number
   months_used: number
@@ -42,6 +67,8 @@ const EXTRA_PRESETS = [0, 50, 100, 200]
 export function WealthForecast() {
   const [years, setYears] = useState(10)
   const [extra, setExtra] = useState(0)
+  const [savingsInput, setSavingsInput] = useState("")
+  const [returnInput, setReturnInput] = useState("")
   const [data, setData] = useState<Forecast | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
@@ -50,7 +77,10 @@ export function WealthForecast() {
     let cancelled = false
     const timer = setTimeout(async () => {
       try {
-        const res = await api.get<Forecast>(`/analytics/wealth-forecast?years=${years}&extra_monthly=${extra}`)
+        const qs = new URLSearchParams({ years: String(years), extra_monthly: String(extra) })
+        if (savingsInput.trim() !== "" && !Number.isNaN(Number(savingsInput))) qs.set("monthly_savings", savingsInput)
+        if (returnInput.trim() !== "" && !Number.isNaN(Number(returnInput))) qs.set("annual_return_pct", returnInput)
+        const res = await api.get<Forecast>(`/analytics/wealth-forecast?${qs.toString()}`)
         if (!cancelled) {
           setData(res)
           setError(false)
@@ -65,7 +95,7 @@ export function WealthForecast() {
       cancelled = true
       clearTimeout(timer)
     }
-  }, [years, extra])
+  }, [years, extra, savingsInput, returnInput])
 
   if (loading && !data) return <Skeleton className="h-[480px] w-full rounded-xl" />
   if (error || !data) {
@@ -97,8 +127,13 @@ export function WealthForecast() {
             <span>
               Tu pars de <b className="amount-blur">{formatCurrency(data.current_wealth, "EUR")}</b>, tu épargnes en
               moyenne <b className="amount-blur">{formatCurrency(data.avg_monthly_savings, "EUR")}</b> par mois
-              {data.months_used > 0 ? ` (sur ${data.months_used} derniers mois)` : ""}, avec un rendement d'environ{" "}
-              <b>{data.annual_return_pct.toFixed(1)} %</b> par an selon la répartition de ton patrimoine.
+              {data.savings_overridden
+                ? " (valeur saisie)"
+                : data.months_used > 0
+                  ? ` (revenus − dépenses, moyenne sur ${data.months_used} mois)`
+                  : ""}
+              , avec un rendement de <b>{data.annual_return_pct.toFixed(1)} %</b> par an
+              {data.return_overridden ? " (valeur saisie)" : " (hypothèse par type de compte)"}. Détail plus bas.
             </span>
           </p>
           {data.avg_monthly_savings < 0 && (
@@ -137,6 +172,98 @@ export function WealthForecast() {
                 {h} ans
               </Button>
             ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="shadow-sm border-slate-100">
+        <CardHeader>
+          <CardTitle className="text-lg">Comment c'est calculé</CardTitle>
+          <CardDescription>
+            Chaque mois : patrimoine × (1 + rendement mensuel) + épargne mensuelle, répété sur {data.years} ans. Modifie
+            les deux hypothèses ci-dessous pour les remplacer.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="space-y-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-sm font-medium text-slate-700">Épargne mensuelle :</span>
+              <Input
+                type="number" inputMode="decimal"
+                className="h-10 w-28 md:h-9"
+                placeholder={String(Math.round(data.computed_monthly_savings))}
+                value={savingsInput}
+                onChange={(e) => setSavingsInput(e.target.value)}
+              />
+              <span className="text-sm text-slate-500">€/mois</span>
+              {data.savings_overridden && (
+                <Button size="sm" variant="ghost" onClick={() => setSavingsInput("")}>
+                  Revenir au calcul ({formatCurrency(data.computed_monthly_savings, "EUR")})
+                </Button>
+              )}
+            </div>
+            <p className="text-xs text-slate-500">
+              Calcul automatique = revenus − dépenses réelles (hors versements vers l'épargne et les investissements),
+              moyenne sur {data.months_used} mois. Ce n'est pas la somme que tu verses sur tes comptes : c'est ce qu'il
+              te reste en fin de mois.
+            </p>
+            {data.savings_months.length > 0 && (
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs tabular-nums">
+                  <thead>
+                    <tr className="text-left text-slate-500">
+                      <th className="py-1 pr-3 font-medium">Mois</th>
+                      <th className="py-1 pr-3 text-right font-medium">Revenus</th>
+                      <th className="py-1 pr-3 text-right font-medium">Dépenses réelles</th>
+                      <th className="py-1 text-right font-medium">Reste</th>
+                    </tr>
+                  </thead>
+                  <tbody className="amount-blur">
+                    {data.savings_months.map((m) => (
+                      <tr key={m.label} className="border-t border-slate-100">
+                        <td className="py-1 pr-3">{m.label}</td>
+                        <td className="py-1 pr-3 text-right">{formatCurrency(m.revenus, "EUR")}</td>
+                        <td className="py-1 pr-3 text-right">{formatCurrency(m.depenses_reelles, "EUR")}</td>
+                        <td className="py-1 text-right font-semibold">{formatCurrency(m.epargne_flow, "EUR")}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-sm font-medium text-slate-700">Rendement annuel :</span>
+              <Input
+                type="number" inputMode="decimal"
+                className="h-10 w-28 md:h-9"
+                placeholder={data.computed_return_pct.toFixed(1)}
+                value={returnInput}
+                onChange={(e) => setReturnInput(e.target.value)}
+              />
+              <span className="text-sm text-slate-500">%</span>
+              {data.return_overridden && (
+                <Button size="sm" variant="ghost" onClick={() => setReturnInput("")}>
+                  Revenir au calcul ({data.computed_return_pct.toFixed(1)} %)
+                </Button>
+              )}
+            </div>
+            <p className="text-xs text-slate-500">
+              Hypothèse fixe par type de compte (pas ton rendement réel passé), pondérée par les soldes actuels.
+            </p>
+            <table className="w-full text-xs tabular-nums">
+              <tbody className="amount-blur">
+                {data.return_breakdown.map((r) => (
+                  <tr key={r.type} className="border-t border-slate-100">
+                    <td className="py-1 pr-3">{TYPE_LABELS[r.type] ?? r.type}</td>
+                    <td className="py-1 pr-3 text-right">{formatCurrency(r.balance, "EUR")}</td>
+                    <td className="py-1 text-right font-semibold">{r.rate_pct.toFixed(1)} %</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </CardContent>
       </Card>

@@ -152,6 +152,19 @@ class WealthForecastPoint(BaseModel):
     boosted: float
 
 
+class WealthForecastSavingsMonth(BaseModel):
+    label: str
+    revenus: float
+    depenses_reelles: float
+    epargne_flow: float
+
+
+class WealthForecastReturnItem(BaseModel):
+    type: str
+    balance: float
+    rate_pct: float
+
+
 class WealthForecastResponse(BaseModel):
     current_wealth: float
     avg_monthly_savings: float
@@ -163,6 +176,12 @@ class WealthForecastResponse(BaseModel):
     final_boosted: float
     gain_from_extra: float
     points: List[WealthForecastPoint]
+    computed_monthly_savings: float = 0.0
+    computed_return_pct: float = 0.0
+    savings_overridden: bool = False
+    return_overridden: bool = False
+    savings_months: List[WealthForecastSavingsMonth] = []
+    return_breakdown: List[WealthForecastReturnItem] = []
 
 
 class MoneyFlowItem(BaseModel):

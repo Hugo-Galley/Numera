@@ -32,6 +32,8 @@ from app.schemas.insight import (
     WealthSimulationPoint,
     WealthForecastResponse,
     WealthForecastPoint,
+    WealthForecastReturnItem,
+    WealthForecastSavingsMonth,
     MoneyFlowReport,
     MoneyFlowBlock,
     MoneyFlowItem,
@@ -863,12 +865,16 @@ FORECAST_RETURN_BY_TYPE = {"courant": 0.0, "epargne": 3.0, "investissement": 6.5
 async def wealth_forecast(
     years: int = Query(default=10, ge=1, le=50),
     extra_monthly: float = Query(default=0.0, ge=-100000, le=100000),
+    monthly_savings: Optional[float] = Query(default=None, ge=-100000, le=100000),
+    annual_return_pct: Optional[float] = Query(default=None, ge=-50, le=100),
     db: Session = Depends(get_db),
 ):
     """
     Prévision simple du patrimoine : patrimoine actuel (tous comptes actifs) + épargne mensuelle
     moyenne des 12 derniers mois complets, rendement pondéré par type de compte.
     `extra_monthly` ajoute un effort d'épargne hypothétique pour comparer.
+    `monthly_savings` et `annual_return_pct` remplacent les valeurs calculées ; la réponse détaille
+    les mois et les soldes par type qui ont servi au calcul.
     """
     from .metrics import kpi_history
 
@@ -877,19 +883,37 @@ async def wealth_forecast(
 
     weighted = 0.0
     positive_total = 0.0
+    balance_by_type: dict = {}
     for item in allocation["items"]:
         bal = float(item["balance_eur"])
         if bal <= 0:
             continue
         positive_total += bal
         weighted += bal * FORECAST_RETURN_BY_TYPE.get(item["type"], 0.0)
-    annual_return_pct = weighted / positive_total if positive_total > 0 else 0.0
+        balance_by_type[item["type"]] = balance_by_type.get(item["type"], 0.0) + bal
+    computed_return = weighted / positive_total if positive_total > 0 else 0.0
+    return_breakdown = [
+        WealthForecastReturnItem(type=t, balance=round(b, 2), rate_pct=FORECAST_RETURN_BY_TYPE.get(t, 0.0))
+        for t, b in sorted(balance_by_type.items(), key=lambda kv: kv[1], reverse=True)
+    ]
+    request_return_override = annual_return_pct is not None
+    annual_return_pct = computed_return if annual_return_pct is None else annual_return_pct
 
     history = await kpi_history(months_count=13, account_id=None, db=db)
     now = datetime.now()
     completed = [r for r in history if not (r["year"] == now.year and r["month"] == now.month)]
     rows = completed[-12:] if completed else history
-    avg_savings = sum(float(r["epargne_flow"]) for r in rows) / len(rows) if rows else 0.0
+    computed_savings = sum(float(r["epargne_flow"]) for r in rows) / len(rows) if rows else 0.0
+    avg_savings = computed_savings if monthly_savings is None else monthly_savings
+    savings_months = [
+        WealthForecastSavingsMonth(
+            label=r["label"],
+            revenus=round(float(r["revenus"]), 2),
+            depenses_reelles=round(float(r["revenus"]) - float(r["epargne_flow"]), 2),
+            epargne_flow=round(float(r["epargne_flow"]), 2),
+        )
+        for r in rows
+    ]
 
     monthly_rate = (1 + annual_return_pct / 100.0) ** (1 / 12) - 1
 
@@ -919,6 +943,12 @@ async def wealth_forecast(
             WealthForecastPoint(year=y, base=round(base[y], 2), boosted=round(boosted[y], 2))
             for y in range(years + 1)
         ],
+        computed_monthly_savings=round(computed_savings, 2),
+        computed_return_pct=round(computed_return, 2),
+        savings_overridden=monthly_savings is not None,
+        return_overridden=request_return_override,
+        savings_months=savings_months,
+        return_breakdown=return_breakdown,
     )
 
 
