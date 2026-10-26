@@ -103,7 +103,7 @@ export function NotificationsTab() {
           <Bell className="h-5 w-5" /> Notifications
         </h2>
         <p className="text-sm text-muted-foreground">
-          Les nouvelles alertes du Centre d'Actions (budget, hausse d'abonnement, compte à vérifier…) arrivent sur ton téléphone, une seule fois chacune. Vérification toutes les heures.
+          Les nouvelles alertes du Centre d'Actions (budget, hausse d'abonnement, compte à vérifier…) arrivent sur votre téléphone, une seule fois chacune. Vérification toutes les heures.
         </p>
       </div>
 
@@ -112,7 +112,7 @@ export function NotificationsTab() {
           <CardHeader>
             <CardTitle className="text-base">ntfy</CardTitle>
             <CardDescription>
-              Installe l'app ntfy, abonne-toi à un sujet difficile à deviner, puis renseigne-le ici. Tu peux aussi utiliser ton propre serveur ntfy.
+              Installez l'app ntfy, abonnez-vous à un sujet difficile à deviner, puis renseignez-le ici. Vous pouvez aussi utiliser votre propre serveur ntfy.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -139,7 +139,7 @@ export function NotificationsTab() {
           <CardHeader>
             <CardTitle className="text-base">Telegram</CardTitle>
             <CardDescription>
-              Crée un bot avec @BotFather, envoie-lui un message, puis renseigne son jeton et ton identifiant de conversation (chat id).
+              Créez un bot avec @BotFather, envoyez-lui un message, puis renseignez son jeton et votre identifiant de conversation (chat id).
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -191,7 +191,7 @@ export function NotificationsTab() {
             onChange={(v) => set("hide_amounts", v)}
           />
           <div className="grid gap-2">
-            <Label htmlFor="notify-url">Adresse de ton instance Numera (facultatif)</Label>
+            <Label htmlFor="notify-url">Adresse de votre instance Numera (facultatif)</Label>
             <Input id="notify-url" value={draft.public_url} onChange={(e) => set("public_url", e.target.value)} placeholder="https://numera.mondomaine.fr" />
             <p className="text-xs text-muted-foreground">Rend les notifications cliquables vers la bonne page.</p>
           </div>

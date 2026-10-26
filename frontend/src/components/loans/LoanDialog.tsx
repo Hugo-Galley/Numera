@@ -59,11 +59,11 @@ function fromLoan(loan: LoanSummary): FormState {
     institution: loan.institution ?? "",
     logo: loan.logo,
     kind: loan.kind,
-    principal: String(loan.principal),
-    annual_rate_pct: String(loan.annual_rate_pct),
-    duration_years: String(Math.round((loan.duration_months / 12) * 100) / 100),
+    principal: String(loan.principal).replace(".", ","),
+    annual_rate_pct: String(loan.annual_rate_pct).replace(".", ","),
+    duration_years: String(Math.round((loan.duration_months / 12) * 100) / 100).replace(".", ","),
     start_date: loan.start_date,
-    insurance_monthly: loan.insurance_monthly ? String(loan.insurance_monthly) : "",
+    insurance_monthly: loan.insurance_monthly ? String(loan.insurance_monthly).replace(".", ",") : "",
   }
 }
 

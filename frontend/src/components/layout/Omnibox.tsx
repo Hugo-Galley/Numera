@@ -149,6 +149,9 @@ export function Omnibox() {
     }
   }
 
+  // `type` sert au routage des résultats : le sens de la transaction (Entree, Sortie…) est gardé dans `txType`
+  const asTransactionResult = (tx: any) => ({ ...tx, type: 'transaction', txType: tx.type })
+
   const filteredNavigation = NAVIGATION.filter((item) =>
     item.name.toLowerCase().includes(query.toLowerCase())
   ).map(item => ({ ...item, type: 'nav' }))
@@ -180,7 +183,7 @@ export function Omnibox() {
     ...filteredAccounts,
     ...quickResults,
     ...filteredActions,
-    ...transactions.map(tx => ({ ...tx, type: 'transaction' }))
+    ...transactions.map(asTransactionResult)
   ]
 
   function openNewTransaction(params: Record<string, string> = {}) {
@@ -195,7 +198,10 @@ export function Omnibox() {
     if (result.type === 'nav') navigate(result.href)
     else if (result.type === 'account') navigate(`/accounts/${result.id}`)
     // La transaction s'ouvre directement en modification dans son compte
-    else if (result.type === 'transaction') navigate(`/accounts/${result.account_id}`, { state: { openTransaction: result } })
+    else if (result.type === 'transaction') {
+      const { txType, ...tx } = result
+      navigate(`/accounts/${result.account_id}`, { state: { openTransaction: { ...tx, type: txType } } })
+    }
     else if (result.type === 'action') result.run()
     else if (result.type === 'quick') {
       openNewTransaction({ type: result.entryType, amount: String(result.amount), merchant: result.merchant })
@@ -432,7 +438,7 @@ export function Omnibox() {
                     <button
                       key={tx.id}
                       id={`result-${resultIdx}`}
-                      onClick={() => handleSelect(tx)}
+                      onClick={() => handleSelect(asTransactionResult(tx))}
                       onMouseEnter={() => setActiveIndex(resultIdx)}
                       className={cn(
                         "group w-full flex min-h-12 items-center justify-between gap-2 px-3 py-2 rounded-xl transition-colors text-left outline-none",

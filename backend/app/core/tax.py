@@ -217,33 +217,33 @@ def allocation_advice(cards: list[dict], months_of_expenses: float | None, tmi_p
 
     if months_of_expenses is None or months_of_expenses < PRECAUTION_TARGET_MONTHS:
         if months_of_expenses is None:
-            situation = f"Constituez d'abord {PRECAUTION_MIN_MONTHS} à {PRECAUTION_TARGET_MONTHS} mois de dépenses d'épargne de précaution"
+            situation = f"Constitue d'abord {PRECAUTION_MIN_MONTHS} à {PRECAUTION_TARGET_MONTHS} mois de dépenses d'épargne de précaution"
         elif months_of_expenses < PRECAUTION_MIN_MONTHS:
-            situation = f"Votre épargne de précaution couvre {_fr(months_of_expenses)} mois de dépenses, sous le minimum de {PRECAUTION_MIN_MONTHS} mois"
+            situation = f"Ton épargne de précaution couvre {_fr(months_of_expenses)} mois de dépenses, sous le minimum de {PRECAUTION_MIN_MONTHS} mois"
         else:
-            situation = f"Votre épargne de précaution couvre {_fr(months_of_expenses)} mois de dépenses, l'objectif est {PRECAUTION_TARGET_MONTHS} mois"
+            situation = f"Ton épargne de précaution couvre {_fr(months_of_expenses)} mois de dépenses, l'objectif est {PRECAUTION_TARGET_MONTHS} mois"
         livret = next((card for kind in _LIVRET_ORDER if (card := with_room(kind))), None)
         has_livret = any(kind in by_kind for kind in _LIVRET_ORDER)
         if livret:
-            add(livret["kind"], livret, f"{situation} : versez sur votre {_LIVRET_NAMES[livret['kind']]}, disponible à tout moment et sans impôt.")
+            add(livret["kind"], livret, f"{situation} : verse sur ton {_LIVRET_NAMES[livret['kind']]}, disponible à tout moment et sans impôt.")
         elif not has_livret:
-            add("livret_a", None, f"{situation} : ouvrez un livret réglementé (LEP si vous y avez droit, sinon Livret A).", "Livret A à ouvrir")
+            add("livret_a", None, f"{situation} : ouvre un livret réglementé (LEP si tu y as droit, sinon Livret A).", "Livret A à ouvrir")
 
     pea = with_room("pea")
     if pea:
         add("pea", pea, "Actions sur le long terme : le PEA est exonéré d'impôt sur les gains après 5 ans (hors prélèvements sociaux).")
     elif "pea" not in by_kind:
-        add("pea", None, "Ouvrez un PEA, même avec un petit versement, pour lancer le compteur des 5 ans de fiscalité avantageuse.", "PEA à ouvrir")
+        add("pea", None, "Ouvre un PEA, même avec un petit versement, pour lancer le compteur des 5 ans de fiscalité avantageuse.", "PEA à ouvrir")
 
     if tmi_pct is not None and tmi_pct >= PER_MIN_TMI_PCT:
         per = with_room("per")
         if per:
-            add("per", per, f"Avec une tranche à {tmi_pct:.0f} %, chaque versement au PER réduit votre impôt (argent bloqué jusqu'à la retraite).")
+            add("per", per, f"Avec une tranche à {tmi_pct:.0f} %, chaque versement au PER réduit ton impôt (argent bloqué jusqu'à la retraite).")
         elif "per" not in by_kind:
-            add("per", None, f"Avec une tranche à {tmi_pct:.0f} %, un PER réduirait votre impôt (argent bloqué jusqu'à la retraite).", "PER à ouvrir")
+            add("per", None, f"Avec une tranche à {tmi_pct:.0f} %, un PER réduirait ton impôt (argent bloqué jusqu'à la retraite).", "PER à ouvrir")
 
     if "assurance_vie" not in by_kind:
-        add("assurance_vie", None, "Ouvrez une assurance-vie pour prendre date : la fiscalité s'allège après 8 ans.", "Assurance-vie à ouvrir")
+        add("assurance_vie", None, "Ouvre une assurance-vie pour prendre date : la fiscalité s'allège après 8 ans.", "Assurance-vie à ouvrir")
     else:
         cto = (by_kind.get("cto") or [None])[0]
         add("cto", cto, "Enveloppes avantageuses remplies ou ouvertes : le compte-titres n'a pas de plafond.", None if cto else "Compte-titres")
