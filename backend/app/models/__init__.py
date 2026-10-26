@@ -25,6 +25,7 @@ from app.models.reimbursement import ReimbursementAllocation, ReimbursementClaim
 from app.models.month_closure import MonthClosure
 from app.models.transaction_split import TransactionSplit
 from app.models.provision import Provision
+from app.models.financial_event import FinancialEvent
 
 __all__ = [
     "Account",
@@ -54,4 +55,5 @@ __all__ = [
     "MonthClosure",
     "TransactionSplit",
     "Provision",
+    "FinancialEvent",
 ]

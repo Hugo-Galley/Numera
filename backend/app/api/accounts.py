@@ -6,7 +6,17 @@ from app.db.session import get_db
 from app.models.account import Account
 from app.models.balance_snapshot import BalanceSnapshot
 from app.models.transaction import Transaction
-from app.schemas.account import AccountCreate, AccountRead, AccountUpdate
+from app.core import reconciliation
+from app.core.time import utcnow_naive
+from app.schemas.account import (
+    AccountCreate,
+    AccountRead,
+    AccountUpdate,
+    ReconcileHint,
+    ReconcileRequest,
+    ReconcileResult,
+    ReconcileTransaction,
+)
 
 router = APIRouter(prefix="/accounts", tags=["accounts"])
 
@@ -97,7 +107,6 @@ def update_account(account_id: int, payload: AccountUpdate, db: Session = Depend
 
 @router.post("/{account_id}/verify", response_model=AccountRead)
 def verify_account(account_id: int, db: Session = Depends(get_db)):
-    from app.core.time import utcnow_naive
     account = db.query(Account).filter(Account.id == account_id).first()
     if not account:
         raise api_error(404, "account_not_found", "Account not found", {"account_id": account_id})
@@ -106,6 +115,49 @@ def verify_account(account_id: int, db: Session = Depends(get_db)):
     db.refresh(account)
     account.balance = _get_balance_for_account(db, account.id)
     return account
+
+
+@router.post("/{account_id}/reconcile", response_model=ReconcileResult)
+def reconcile_account(account_id: int, payload: ReconcileRequest, db: Session = Depends(get_db)):
+    """Compare le solde affiché par la banque à celui de Numera et propose les causes d'un écart.
+
+    Lecture seule, sauf : un écart nul marque le compte vérifié (comme « Rien n'a bougé »).
+    """
+    account = db.query(Account).filter(Account.id == account_id).first()
+    if not account:
+        raise api_error(404, "account_not_found", "Account not found", {"account_id": account_id})
+    currency = account.currency or "EUR"
+    result = reconciliation.reconcile(db, account_id, payload.date, payload.bank_balance, currency)
+    if result.matches:
+        account.last_verified_at = utcnow_naive()
+        db.commit()
+    return ReconcileResult(
+        account_id=account_id,
+        date=payload.date,
+        currency=currency,
+        bank_balance=round(payload.bank_balance, 2),
+        numera_balance=result.numera_balance,
+        gap=result.gap,
+        matches=result.matches,
+        verified=result.matches,
+        hints=[
+            ReconcileHint(
+                kind=h.kind,
+                message=h.message,
+                transactions=[
+                    ReconcileTransaction(
+                        id=tx.id,
+                        date=tx.date.date().isoformat(),
+                        merchant=tx.merchant,
+                        type=tx.type,
+                        amount=round(float(tx.amount), 2),
+                    )
+                    for tx in h.transactions
+                ],
+            )
+            for h in result.hints
+        ],
+    )
 
 
 @router.delete("/{account_id}", status_code=204)

@@ -1,5 +1,6 @@
 import { useState } from "react"
-import { AlertCircle, CheckCircle2, ArrowRight, ChevronDown } from "lucide-react"
+import { AlertCircle, CheckCircle2, ArrowRight, ChevronDown, Scale } from "lucide-react"
+import { ReconcileDialog } from "@/components/accounts/ReconcileDialog"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
 import { api } from "@/lib/api"
@@ -12,6 +13,7 @@ interface Account {
   type: string
   last_verified_at: string
   active: boolean
+  currency?: string
 }
 
 export function AccountVerificationBanner({
@@ -25,6 +27,7 @@ export function AccountVerificationBanner({
   const [verifying, setVerifying] = useState<number | null>(null)
   // Replié par défaut : la liste dépliée occupait la moitié du tableau de bord
   const [open, setOpen] = useState(false)
+  const [reconciling, setReconciling] = useState<Account | null>(null)
 
   const now = new Date()
   // null = jamais vérifié (date absente ou illisible) : affiché tel quel, pas « il y a 20 000 jours »
@@ -78,7 +81,7 @@ export function AccountVerificationBanner({
           {unverifiedAccounts.map(acc => (
             <div key={acc.id} className="bg-white/60 p-3 rounded-lg border border-amber-200/50 flex flex-col justify-between space-y-3">
               <div>
-                <p className="font-medium text-amber-900">{acc.name}</p>
+                <button type="button" onClick={() => navigate(`/accounts/${acc.id}`)} className="font-medium text-amber-900 hover:underline text-left">{acc.name}</button>
                 <p className="text-xs text-amber-700 opacity-80">
                   {daysDiff(acc.last_verified_at) === null ? "Jamais vérifié" : `Dernière maj: il y a ${daysDiff(acc.last_verified_at)} jours`}
                 </p>
@@ -107,13 +110,14 @@ export function AccountVerificationBanner({
                       <CheckCircle2 className="mr-1.5 h-3 w-3" />
                       Rien n'a bougé
                     </Button>
-                    <Button 
-                      size="sm" 
-                      variant="ghost" 
+                    <Button
+                      size="sm"
+                      variant="ghost"
                       className="flex-1 hover:bg-amber-100 hover:text-amber-900 text-amber-800 h-10 md:h-8 text-xs px-2"
-                      onClick={() => navigate(`/accounts/${acc.id}`)}
+                      onClick={() => setReconciling(acc)}
                     >
-                      Aller au compte
+                      <Scale className="mr-1.5 h-3 w-3" />
+                      Saisir le solde
                     </Button>
                   </>
                 )}
@@ -122,6 +126,12 @@ export function AccountVerificationBanner({
           ))}
         </div>
       </div>}
+      <ReconcileDialog
+        account={reconciling ? { id: reconciling.id, name: reconciling.name, currency: reconciling.currency ?? "EUR" } : null}
+        open={reconciling !== null}
+        onOpenChange={(o) => { if (!o) setReconciling(null) }}
+        onVerified={onAccountVerified}
+      />
     </div>
   )
 }

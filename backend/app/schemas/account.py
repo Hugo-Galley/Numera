@@ -66,3 +66,34 @@ class AccountRead(AccountBase):
     balance: float = 0.0
 
     model_config = {"from_attributes": True}
+
+
+class ReconcileRequest(BaseModel):
+    date: date
+    bank_balance: float = Field(gt=-1e12, lt=1e12, allow_inf_nan=False)  # peut être négatif (découvert)
+
+
+class ReconcileTransaction(BaseModel):
+    id: int
+    date: str
+    merchant: str
+    type: str
+    amount: float  # devise du compte
+
+
+class ReconcileHint(BaseModel):
+    kind: str  # duplicate | extra_or_missing | wrong_sign | missing
+    message: str
+    transactions: list[ReconcileTransaction] = []
+
+
+class ReconcileResult(BaseModel):
+    account_id: int
+    date: date
+    currency: str
+    bank_balance: float
+    numera_balance: float
+    gap: float  # banque − Numera
+    matches: bool
+    verified: bool  # écart nul : compte marqué vérifié
+    hints: list[ReconcileHint]

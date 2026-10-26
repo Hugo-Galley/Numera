@@ -77,6 +77,9 @@ Pour ajouter un nouveau type d'action :
 ### Action « salaire absent » (`type: audit`, `severity: high`)
 - `missing-salary-{YYYY-MM}` (dernier mois manquant) : config de salaire active, mois des 3 derniers (et pas avant la création de la config) dont le jour de paie est passé, sans `SalaryMonth` et sans entrée de type salaire (marchand ou catégorie « Salaire… », ou `salary_category_id`) sur le compte de salaire. Jour de paie = celui du dernier `SalaryMonth`, sinon le 28. Rien n'est généré automatiquement (montant ou emploi peuvent avoir changé). `action_type: link` vers `/recurring?tab=salary`. Logique : `core/salary.py::find_missing_salary_months`.
 
+### Action « hausse de prix » (`type: subscription`, `severity: medium`)
+- `subscription-price-{account_id}-{clé}-{date}` : un abonnement ou prélèvement régulier a augmenté (détection `core/subscription_prices.py::detect_price_changes`, mêmes données que `price_changes` de `/analytics/subscriptions`). La date de la hausse fait partie de l'id : une hausse écartée ne revient pas, une nouvelle hausse si. `action_type: link` vers `/recurring?tab=subscriptions`. Les transactions `is_subscription_ignored` et les virements sont exclus.
+
 ### Pièges à éviter
 - **Doubles appels** : Ne pas rafraîchir la liste complète (`loadActions`) trop souvent ; privilégier le rafraîchissement ciblé si possible.
 - **IDs stables** : L'ID de l'action doit être déterministe (ex: `suggest-rule-{merchant}`) pour permettre au frontend de garder l'état local si nécessaire.

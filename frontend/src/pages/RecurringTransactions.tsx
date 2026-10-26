@@ -1,4 +1,5 @@
 import { useSubmit } from "@/hooks/useSubmit"
+import { PriceChangesNotice } from "@/components/recurring/PriceChangesNotice"
 import { safeStorage } from "@/lib/storage"
 import { toNaiveLocal } from "@/lib/dates"
 import { lazy, Suspense, useEffect, useState } from "react"
@@ -765,6 +766,7 @@ export default function RecurringTransactions() {
         </TabsContent>
 
         <TabsContent value="subscriptions" className="space-y-6 md:space-y-8">
+           <PriceChangesNotice changes={subsData?.price_changes} />
            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
              <div className="scroll-fade-x flex max-w-full items-center gap-1 overflow-x-auto p-1 bg-slate-100 rounded-xl w-fit [scrollbar-width:none] [&::-webkit-scrollbar]:hidden [&>button]:shrink-0">
                <Button 

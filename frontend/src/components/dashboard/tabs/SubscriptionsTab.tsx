@@ -1,4 +1,5 @@
 import { Briefcase } from "lucide-react"
+import { PriceChangesNotice } from "@/components/recurring/PriceChangesNotice"
 import { 
   Card, 
   CardContent, 
@@ -55,6 +56,7 @@ export function SubscriptionsTab({ subscriptions, displayCurrency }: Subscriptio
           )}
         </CardHeader>
         <CardContent className="p-3 md:p-6">
+          <PriceChangesNotice changes={subscriptions?.price_changes} className="mb-4" />
           <div className="space-y-2 md:space-y-4">
             {items.map((sub: any, i: number) => (
               <div key={i} className="flex min-h-14 items-center justify-between gap-3 p-3 md:p-4 border rounded-xl hover:bg-slate-50 transition-colors">

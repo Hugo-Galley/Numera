@@ -36,6 +36,7 @@ from app.api.transfer_rules import router as transfer_rules_router
 from app.api.reimbursements import router as reimbursements_router
 from app.api.month_review import router as month_review_router
 from app.api.provisions import router as provisions_router
+from app.api.financial_events import router as financial_events_router
 from app.api.analytics.diversity import router as diversity_router
 from app.api.deps import get_current_user
 from app.core.config import settings
@@ -228,6 +229,7 @@ protected_routers = [
     month_review_router,
     logos_router,
     provisions_router,
+    financial_events_router,
 ]
 
 for router in protected_routers:

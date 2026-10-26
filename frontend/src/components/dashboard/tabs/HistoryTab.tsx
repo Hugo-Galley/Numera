@@ -1,5 +1,6 @@
 import { History as HistoryIcon, Activity, Layers, Flag } from "lucide-react"
-import type { Milestone } from "@/components/dashboard/useDashboardData"
+import type { FinancialEvent, Milestone } from "@/components/dashboard/useDashboardData"
+import { DecisionJournal } from "@/components/dashboard/DecisionJournal"
 import { 
   Card, 
   CardContent, 
@@ -32,6 +33,17 @@ interface HistoryTabProps {
   salarySeries: any[]
   displayCurrency: string
   milestones: Milestone[]
+  events: FinancialEvent[]
+  onEventsChanged: () => void
+  accounts: { id: number; name: string; active?: boolean }[]
+}
+
+interface Marker {
+  key: string
+  label: string  // « m/aaaa », comme les points de kpi-history
+  sortKey: string
+  period: string
+  text: string
 }
 
 export function HistoryTab({
@@ -39,14 +51,37 @@ export function HistoryTab({
   burnRateSeries,
   salarySeries,
   displayCurrency,
-  milestones
+  milestones,
+  events,
+  onEventsChanged,
+  accounts
 }: HistoryTabProps) {
-  // Jalons visibles : mois présents sur la courbe (libellé « m/aaaa » de kpi-history)
+  // Jalons visibles : faits marquants des mois clôturés + journal des décisions, sur les mois présents
+  // sur la courbe (libellé « m/aaaa » de kpi-history ; une décision est rangée dans son mois civil)
   const shownLabels = new Set(kpiHistory.map((p: any) => p.label))
-  const visibleMilestones = milestones
-    .map((m) => ({ ...m, label: `${m.month}/${m.year}` }))
+  const markers: Marker[] = [
+    ...milestones.map((m) => ({
+      key: `closure-${m.year}-${m.month}`,
+      label: `${m.month}/${m.year}`,
+      sortKey: `${m.year}-${String(m.month).padStart(2, "0")}-00`,
+      period: `${SHORT_MONTHS[m.month - 1]} ${m.year}`,
+      text: m.highlight ?? "",
+    })),
+    ...events.map((e) => {
+      const [y, mo, d] = e.date.split("-").map(Number)
+      return {
+        key: `event-${e.id}`,
+        label: `${mo}/${y}`,
+        sortKey: e.date,
+        period: `${d} ${SHORT_MONTHS[mo - 1]} ${y}`,
+        text: e.title,
+      }
+    }),
+  ]
+  const visibleMilestones = markers
     .filter((m) => shownLabels.has(m.label))
-    .sort((a, b) => a.year * 12 + a.month - (b.year * 12 + b.month))
+    .sort((a, b) => a.sortKey.localeCompare(b.sortKey))
+  const markerLabels = Array.from(new Set(visibleMilestones.map((m) => m.label)))
   const isMobile = useIsMobile()
   const margin = isMobile ? { top: 8, right: 12, left: 0, bottom: 4 } : { top: 40, right: 30, left: 20, bottom: 20 }
   const yWidth = isMobile ? 48 : undefined
@@ -75,10 +110,10 @@ export function HistoryTab({
               <Legend verticalAlign={isMobile ? "bottom" : "top"} height={36} wrapperStyle={isMobile ? { fontSize: 12 } : undefined}/>
               <Area type="monotone" dataKey="revenus" name="Revenus" stroke="#10b981" fill="url(#colorRev)" strokeWidth={3} />
               <Area type="monotone" dataKey="depenses_reelles" name="Dépenses réelles" stroke="#f43f5e" fill="url(#colorDep)" strokeWidth={3} />
-              {visibleMilestones.map((m) => (
+              {markerLabels.map((label) => (
                 <ReferenceLine
-                  key={m.label}
-                  x={m.label}
+                  key={label}
+                  x={label}
                   stroke="#f59e0b"
                   strokeDasharray="4 3"
                   label={{ value: "⚑", position: "top", fill: "#d97706", fontSize: 14 }}
@@ -90,10 +125,10 @@ export function HistoryTab({
         {visibleMilestones.length > 0 && (
           <ul className="space-y-1.5 border-t px-4 py-3 md:px-6">
             {visibleMilestones.map((m) => (
-              <li key={m.label} className="flex gap-2 text-sm">
+              <li key={m.key} className="flex gap-2 text-sm">
                 <Flag className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-500" />
-                <span className="shrink-0 font-semibold tabular-nums text-slate-700">{SHORT_MONTHS[m.month - 1]} {m.year}</span>
-                <span className="text-slate-500">{m.highlight}</span>
+                <span className="shrink-0 font-semibold tabular-nums text-slate-700">{m.period}</span>
+                <span className="text-slate-500">{m.text}</span>
               </li>
             ))}
           </ul>
@@ -153,6 +188,7 @@ export function HistoryTab({
           </ResponsiveContainer>
         </CardContent>
       </Card>
+      <DecisionJournal events={events} accounts={accounts} onChanged={onEventsChanged} />
     </div>
   )
 }

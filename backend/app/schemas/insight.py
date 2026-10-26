@@ -112,10 +112,25 @@ class SubscriptionIgnore(BaseModel):
     amount: float
 
 
+class SubscriptionPriceChange(BaseModel):
+    id: str  # identifiant stable, repris par le Centre d'Actions
+    name: str
+    account_id: int
+    currency: str  # devise du compte
+    frequency: str  # monthly | quarterly | yearly
+    old_amount: float
+    new_amount: float
+    delta: float
+    delta_pct: float
+    annual_impact: float  # surcoût sur un an, devise du compte
+    changed_on: str
+
+
 class SubscriptionsResponse(BaseModel):
     subscriptions: List[SubscriptionInsight]
     total_monthly: float
     total_annual: float
+    price_changes: List[SubscriptionPriceChange] = Field(default_factory=list)
 
 
 class WealthSimulationPoint(BaseModel):

@@ -79,7 +79,7 @@ Application locale de finance personnelle qui remplace un tableur Numbers et ajo
 - Comparaison entre l'allocation cible définie par classe d'actifs, secteur ou zone géographique et l'allocation réelle actuelle.
 - Suggestion d'orientation pour le prochain versement d'investissement afin de rééquilibrer le portefeuille.
 
-#### Historique des Décisions Financières *(en partie : faits marquants de la revue de mois affichés sur l'historique du Dashboard)*
+#### Historique des Décisions Financières *(réalisé : table `financial_events`, carte « Journal des décisions » et repères ⚑ de l'onglet Historique du Dashboard, avec les faits marquants de la revue de mois)*
 *Conserver le contexte des événements marquants sur les graphiques temporels.*
 - **Comportement attendu** :
   - Ajout de notes datées (ex: résiliation d'abonnement, hausse d'épargne, achat immobilier, changement d'allocation).
@@ -123,6 +123,12 @@ Ordre de réalisation : 1 puis 2 en premier, le reste au fil de l'eau. Pas de no
 6. Projection d'indépendance financière (FIRE) sur les données réelles *(réalisé : `GET /analytics/fire`, carte de la page Simulateur)*.
 7. Garanties et justificatifs : pièce jointe par transaction, date de fin de garantie, rappel.
 8. Bilan annuel « Wrapped » (taux d'épargne, plus gros poste, évolution du patrimoine, abonnements résiliés) *(réalisé : page `/wrapped` avec story plein écran, `GET /analytics/wrapped`, comparaison N-1 sur la même période)*.
+
+## Idées retenues (fin octobre 2026)
+
+- Rapprochement avec le solde de la banque *(réalisé : `POST /accounts/{id}/reconcile`, bouton « Rapprocher » et « Saisir le solde » de la bannière)*.
+- Alerte de hausse de prix des abonnements *(réalisé : `price_changes` de `/analytics/subscriptions`, Centre d'Actions)*.
+- Saisie rapide depuis l'Omnibox : reportée.
 
 ## Critères de Livraison Généraux
 - Les calculs financiers sensibles s'effectuent côté backend.

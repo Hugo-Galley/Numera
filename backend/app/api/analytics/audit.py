@@ -896,6 +896,37 @@ async def get_action_center(db: Session = Depends(get_db)):
                     metadata={"account_id": account.id, **latest},
                 ))
 
+        # --- 4b. Hausses de prix des abonnements ---
+        try:
+            from app.core.subscription_prices import detect_price_changes
+            from .subscriptions import price_change_id
+
+            freq_label = {"monthly": "mois", "quarterly": "trimestre", "yearly": "an"}
+            for change in detect_price_changes(db):
+                actions.append(ActionItem(
+                    id=price_change_id(change),
+                    type="subscription",
+                    severity="medium",
+                    title=f"Hausse de prix : {change.name}",
+                    description=(
+                        f"Passé de {change.old_amount:.2f} à {change.new_amount:.2f} {change.currency} "
+                        f"par {freq_label.get(change.frequency, 'échéance')} le {change.changed_on.strftime('%d/%m/%Y')} "
+                        f"({change.delta_pct:+.1f} %), soit {change.annual_impact:.2f} {change.currency} de plus par an. "
+                        "Toujours utile à ce prix ?"
+                    ),
+                    action_label="Voir les abonnements",
+                    action_url="/recurring?tab=subscriptions",
+                    action_type="link",
+                    metadata={
+                        "account_id": change.account_id,
+                        "old_amount": change.old_amount,
+                        "new_amount": change.new_amount,
+                        "annual_impact": change.annual_impact,
+                    },
+                ))
+        except Exception as exc:  # une règle d'audit ne doit jamais casser le Centre d'Actions
+            logger.warning(f"Subscription price check skipped: {exc}")
+
         # --- 5. Summary & Sort ---
         # Safe sort: defaults to 3 (lowest) if severity is unexpected
         actions.sort(key=lambda x: {"high": 0, "medium": 1, "low": 2}.get(x.severity, 3))

@@ -80,6 +80,8 @@ export default function Dashboard() {
     expensesByCategory,
     kpiHistory,
     milestones,
+    events,
+    reloadEvents,
     topMerchants,
     subscriptions,
     salarySeries,
@@ -182,6 +184,9 @@ export default function Dashboard() {
           <HistoryTab 
             kpiHistory={kpiHistory}
             milestones={milestones}
+            events={events}
+            onEventsChanged={reloadEvents}
+            accounts={accounts}
             burnRateSeries={burnRateSeries}
             salarySeries={salarySeries}
             displayCurrency={displayCurrency}

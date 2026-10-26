@@ -6,6 +6,7 @@ import { AccountLogo } from "@/components/ui/AccountLogo"
 import { useParams, Link } from "react-router-dom"
 import { 
   ArrowLeft, 
+  Scale,
   ArrowRightLeft,
   Plus, 
   Filter, 
@@ -167,6 +168,7 @@ import {
 } from "lucide-react"
 import { api } from "@/lib/api"
 import { TransferLinkDialog } from "@/components/transfers/TransferLinkDialog"
+import { ReconcileDialog } from "@/components/accounts/ReconcileDialog"
 import { ReimbursementDialog } from "@/components/reimbursements/ReimbursementDialog"
 import { SplitTransactionDialog, type SplitPart } from "@/components/transactions/SplitTransactionDialog"
 import type { AccountLite } from "@/types/transfers"
@@ -333,6 +335,7 @@ export default function AccountDetail() {
   // -- Data State --
   const [account, setAccount] = useState<Account | null>(null)
   const [transferTx, setTransferTx] = useState<Transaction | null>(null)
+  const [reconcileOpen, setReconcileOpen] = useState(false)
   const [reimbursementTx, setReimbursementTx] = useState<Transaction | null>(null)
   const [splitTx, setSplitTx] = useState<Transaction | null>(null)
   const [allAccounts, setAllAccounts] = useState<AccountLite[]>([])
@@ -1217,6 +1220,10 @@ export default function AccountDetail() {
 
             <div className="flex flex-wrap items-center gap-2 max-sm:[&>button]:h-11 max-sm:[&>button]:flex-1">
               {!isInvestment ? (
+                <>
+                <Button variant="outline" className="h-11 w-full sm:h-10 sm:w-auto" onClick={() => setReconcileOpen(true)}>
+                  <Scale className="h-4 w-4 mr-2" /> Rapprocher
+                </Button>
                 <Dialog open={txOpen} onOpenChange={(open) => { if (!open) { setTxOpen(false); resetTxForm(); } else { setTxOpen(true); } }}>
                   <DialogTrigger asChild>
                     <Button className="h-11 w-full bg-slate-900 text-white shadow-md hover:bg-slate-800 sm:h-10 sm:w-auto">
@@ -1359,6 +1366,7 @@ export default function AccountDetail() {
                     <DialogFooter><Button variant="ghost" onClick={() => { setTxOpen(false); resetTxForm(); }}>Annuler</Button><Button onClick={editTxId ? () => handleUpdateTransaction() : () => handleCreateTransaction()} disabled={handleCreateTransactionBusy || handleUpdateTransactionBusy} className="bg-slate-900 text-white shadow-lg">{handleCreateTransactionBusy || handleUpdateTransactionBusy ? "Enregistrement…" : "Enregistrer"}</Button></DialogFooter>
                   </DialogContent>
                 </Dialog>
+                </>
               ) : (
                 <>
                   <Dialog open={invTxOpen} onOpenChange={(open) => { if (!open) { setInvTxOpen(false); resetInvTxForm(); } else { setInvTxOpen(true); } }}>
@@ -2705,6 +2713,12 @@ export default function AccountDetail() {
         onDone={loadTransactions}
       />
 
+      <ReconcileDialog
+        account={account}
+        open={reconcileOpen}
+        onOpenChange={setReconcileOpen}
+        onVerified={() => loadData({ quiet: true })}
+      />
       <TransferLinkDialog
         open={transferTx !== null}
         onOpenChange={(o) => !o && setTransferTx(null)}

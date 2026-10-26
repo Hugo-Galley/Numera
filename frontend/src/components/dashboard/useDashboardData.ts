@@ -8,6 +8,16 @@ export interface Milestone {
   highlight: string | null
 }
 
+/** Entrée du journal des décisions (`/financial-events`) */
+export interface FinancialEvent {
+  id: number
+  date: string
+  title: string
+  note: string | null
+  account_id: number | null
+  account_name: string | null
+}
+
 /**
  * Charge toutes les données du tableau de bord pour un mois et un compte.
  *
@@ -22,6 +32,7 @@ export function useDashboardData(selectedAccountId: string, month: number, year:
   const [expensesByCategory, setExpensesByCategory] = useState<any[]>([])
   const [kpiHistory, setKpiHistory] = useState<any[]>([])
   const [milestones, setMilestones] = useState<Milestone[]>([])
+  const [events, setEvents] = useState<FinancialEvent[]>([])
   const [topMerchants, setTopMerchants] = useState<any[]>([])
   const [subscriptions, setSubscriptions] = useState<any>(null)
   const [salarySeries, setSalarySeries] = useState<any[]>([])
@@ -37,6 +48,14 @@ export function useDashboardData(selectedAccountId: string, month: number, year:
   const [reloadToken, setReloadToken] = useState(0)
 
   const reload = useCallback(() => setReloadToken(t => t + 1), [])
+  // Après un ajout/une modification dans le journal : seul le journal est rechargé
+  const reloadEvents = useCallback(async () => {
+    try {
+      setEvents(await api.get<FinancialEvent[]>("/financial-events"))
+    } catch (e) {
+      console.error("Error loading /financial-events:", e)
+    }
+  }, [])
 
   useEffect(() => {
     if (!enabled) return
@@ -91,6 +110,8 @@ export function useDashboardData(selectedAccountId: string, month: number, year:
       safeLoad(`/analytics/tags?month=${month}&year=${year}${accParam}`, setTagTotals),
       // Faits marquants notés à la clôture des mois : jalons des courbes historiques
       safeLoad("/month-review/closures", (d: Milestone[]) => setMilestones((d || []).filter((c) => c.highlight))),
+      // Journal des décisions : repères sur les mêmes courbes
+      safeLoad("/financial-events", (d: FinancialEvent[]) => setEvents(d || [])),
     ]).then(() => {
       if (cancelled) return
       setLoading(false)
@@ -108,6 +129,8 @@ export function useDashboardData(selectedAccountId: string, month: number, year:
     expensesByCategory,
     kpiHistory,
     milestones,
+    events,
+    reloadEvents,
     topMerchants,
     subscriptions,
     salarySeries,

@@ -904,6 +904,38 @@ def list_provisions() -> str:
 
 
 @mcp.tool()
+def list_financial_events(start: str | None = None, end: str | None = None) -> str:
+    """Journal des décisions financières (résiliation, hausse d'épargne, changement d'allocation…),
+    du plus récent au plus ancien. Sert à expliquer un changement visible sur les courbes.
+
+    Args:
+        start: Date de début incluse (AAAA-MM-JJ, optionnel)
+        end: Date de fin incluse (AAAA-MM-JJ, optionnel)
+    """
+    try:
+        params = {k: v for k, v in {"start": start, "end": end}.items() if v}
+        resp = api.get("/financial-events", params=params)
+        error = handle_response(resp)
+        if error:
+            return error
+        events = resp.json()
+        if not events:
+            return "Aucune décision notée dans le journal."
+        simplified = [
+            {
+                "date": e["date"],
+                "decision": e["title"],
+                "note": e["note"] or "—",
+                "compte": e["account_name"] or "—",
+            }
+            for e in events
+        ]
+        return f"📓 {len(simplified)} décision(s) :\n\n" + format_table(simplified)
+    except Exception as e:
+        return f"❌ Erreur : {e}"
+
+
+@mcp.tool()
 def get_portfolio(account_id: int | None = None) -> str:
     """Valeur calculée (positions × cours + espèces), plus-values, XIRR/TWR et rapprochement.
 

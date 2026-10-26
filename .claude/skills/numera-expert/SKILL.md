@@ -83,9 +83,17 @@ Créer un marchand avec alias, ou ajouter un alias, rattache aussitôt les trans
 
 Agrège : audit d'intégrité (`/analytics/audit`, issues avec `id` stable : `uncategorized-expenses`, `missing-merchants`, `unnormalized-merchants`, `duplicate-transactions`, `missing-initial-balances`, `stale-investment-snapshots`, `unused-categories`, `unmatched-transfers`), alertes budget (`/analytics/budget-alerts`) et suggestions de règles. `ActionItem.action_type` pilote la modale côté frontend (`link`, `modal_categorize`, `modal_rule`, `modal_snapshot`, `modal_merchant`). Les éléments écartés sont persistés (`POST /analytics/actions/dismiss`, `dismissed_insights`). Ajouter une action : voir `docs/ACTION_CENTER.md`.
 
-## Vérification de compte
+## Vérification et rapprochement de compte
 
-`accounts.last_verified_at` est mis à jour uniquement par `POST /accounts/{id}/verify` (bouton de `AccountVerificationBanner`).
+`accounts.last_verified_at` est mis à jour par `POST /accounts/{id}/verify` (« Rien n'a bougé » de `AccountVerificationBanner`) ou par `POST /accounts/{id}/reconcile` quand le solde saisi par l'utilisateur égale (± 0,01) le `running_balance` de fin de journée. Sinon le rapprochement (`core/reconciliation.py`, lecture seule, 60 jours avant la date) propose des pistes : doublon (même libellé, sens et montant à ≤ 3 j), ligne dont le montant égale l'écart, ligne dont l'inversion de sens comble l'écart, sinon transaction manquante. Rien n'est corrigé automatiquement.
+
+## Hausses de prix des abonnements
+
+`core/subscription_prices.py::detect_price_changes` : séries de sorties régulières (récurrence, sinon marchand canonique, sinon libellé, par compte), cadence mensuelle / trimestrielle / annuelle, hausse ≥ 0,10 et ≥ 1 % face à un montant précédent stable. Exposé dans `price_changes` de `/analytics/subscriptions` et au Centre d'Actions. Une baisse n'est pas signalée.
+
+## Journal des décisions
+
+Table `financial_events` (`/financial-events`) : notes datées sans effet sur aucun calcul, repères ⚑ sur la courbe de l'onglet Historique avec les faits marquants des clôtures (`month_closures.highlight`). Rangées dans leur mois civil (le libellé de `kpi-history` peut suivre le mois de paie).
 
 ## Fiscalité et enveloppes (`/tax`, page `Tax.tsx`)
 
