@@ -47,5 +47,5 @@ Voir `docs/ACTION_CENTER.md` ; `ActionItem.id` doit être déterministe.
 - `db.execute(text(...))` sauf nécessité de performance.
 - Logique métier dans les modèles.
 - Logger/retourner `SECRET_KEY`, hash de mot de passe, JWT.
-- Appels réseau sortants autres que Frankfurter / Yahoo Finance ; toute nouvelle dépendance externe doit être discutée (principe local-first).
+- Appels réseau sortants autres que Frankfurter / Yahoo Finance / canaux de notification activés par l'utilisateur (ntfy, Telegram) ; toute nouvelle dépendance externe doit être discutée (principe local-first).
 - Modifier la base `*.db` directement ou la committer.

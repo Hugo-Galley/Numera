@@ -19,7 +19,8 @@ import {
   ShoppingBag,
   Layers,
   Archive,
-  ArchiveRestore
+  ArchiveRestore,
+  Bell,
 } from "lucide-react"
 import { IconComponent, ICON_OPTIONS } from "@/components/dashboard/IconComponent"
 import { api } from "@/lib/api"
@@ -28,6 +29,7 @@ import { TransfersTab } from "@/components/settings/TransfersTab"
 import { TagsTab } from "@/components/settings/TagsTab"
 import { MerchantsTab } from "@/components/settings/MerchantsTab"
 import { AccountTab } from "@/components/settings/AccountTab"
+import { NotificationsTab } from "@/components/settings/NotificationsTab"
 import { Button } from "@/components/ui/button"
 import { 
   Card, 
@@ -313,6 +315,9 @@ export default function Settings() {
             </TabsTrigger>
             <TabsTrigger value="import" className="h-10 shrink-0 rounded-lg px-4 sm:h-auto sm:px-6">
               <Upload className="h-4 w-4 mr-2" /> Importation
+            </TabsTrigger>
+            <TabsTrigger value="notifications" className="h-10 shrink-0 rounded-lg px-4 sm:h-auto sm:px-6">
+              <Bell className="h-4 w-4 mr-2" /> Notifications
             </TabsTrigger>
             <TabsTrigger value="system" className="h-10 shrink-0 rounded-lg px-4 sm:h-auto sm:px-6">
               <SettingsIcon className="h-4 w-4 mr-2" /> Système
@@ -681,6 +686,10 @@ export default function Settings() {
             <h2 className="text-xl md:text-2xl font-bold text-slate-900">Importation de données</h2>
           </div>
           <ImportTab />
+        </TabsContent>
+
+        <TabsContent value="notifications">
+          <NotificationsTab />
         </TabsContent>
 
         <TabsContent value="system" className="space-y-8">

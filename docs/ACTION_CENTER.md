@@ -14,6 +14,10 @@ Le Centre d'Actions centralise trois types de flux :
 - **Modèle de données** : Utilise les schémas Pydantic `ActionItem` et `ActionCenterResponse` dans `backend/app/schemas/insight.py`.
 - **Logique** : Agrégation de fonctions de calcul existantes (`budget_alerts`, `data_audit`) et de nouvelles requêtes (suggestions de règles).
 
+### Notifications push
+- `core/notifications.py::run_notifications`, appelée par la tâche horaire : envoie vers ntfy et/ou Telegram les actions dont la sévérité atteint le minimum choisi (`notify.min_severity`, `medium` par défaut) et dont l'empreinte (`id|title|description`) n'est pas dans `notification_log`. Un `ActionItem.id` déterministe et une description qui reflète l'état (ex. « 104 % du budget ») sont donc nécessaires : changer la description renvoie l'alerte.
+- Première activation : actions existantes marquées connues, un seul message de bienvenue. Plus de 5 nouvelles actions → un message groupé. Résumé le dimanche après 18 h (une fois par semaine ISO). Un canal en échec n'est jamais marqué envoyé.
+
 ### Frontend
 - **Page** : `frontend/src/pages/Audit.tsx`, route `/audit` (Centre d'actions).
 - **Composants clés** : 

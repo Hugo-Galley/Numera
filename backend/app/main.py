@@ -38,6 +38,7 @@ from app.api.month_review import router as month_review_router
 from app.api.provisions import router as provisions_router
 from app.api.financial_events import router as financial_events_router
 from app.api.loans import router as loans_router
+from app.api.notifications import router as notifications_router
 from app.api.analytics.diversity import router as diversity_router
 from app.api.deps import get_current_user
 from app.core.config import settings
@@ -47,6 +48,7 @@ from app.core.seeds import seed_all
 from app.db.session import SessionLocal
 from app.core.logging import setup_logging, get_logger
 from app.core.etf_analyzer import refresh_held_etf_profiles
+from app.core.notifications import run_notifications
 from app.core.market_data import refresh_held_prices
 from app.core.recurring import generate_recurring_transactions
 from app.core.salary import check_and_generate_pending_salaries
@@ -72,6 +74,8 @@ async def recurring_transactions_task():
                 await refresh_held_prices(db)
                 # Composition des ETF détenus (Yahoo), au plus une fois par semaine et par profil
                 await refresh_held_etf_profiles(db)
+                # Alertes du Centre d'Actions et résumé hebdo vers ntfy / Telegram (si activés)
+                await run_notifications(db)
             finally:
                 db.close()
         except Exception as e:
@@ -232,6 +236,7 @@ protected_routers = [
     provisions_router,
     financial_events_router,
     loans_router,
+    notifications_router,
 ]
 
 for router in protected_routers:

@@ -21,6 +21,7 @@ import {
   Repeat,
   CalendarDays,
   Calculator,
+  Bell,
   Plus,
   Zap,
   EyeOff,
@@ -61,6 +62,7 @@ const NAVIGATION = [
   { name: "Remboursements", href: "/reimbursements", icon: HandCoins },
   { name: "Simulateur", href: "/tools", icon: Calculator },
   { name: "Importation", href: "/settings?tab=import", icon: Upload },
+  { name: "Notifications (ntfy, Telegram)", href: "/settings?tab=notifications", icon: Bell },
   { name: "Paramètres", href: "/settings", icon: Settings },
 ]
 

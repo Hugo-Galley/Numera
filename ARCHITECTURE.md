@@ -60,7 +60,7 @@ docker-compose.prod.yml, Makefile, setup.sh, install.sh
 - `backend/app/main.py` cree l'application FastAPI.
 - Au startup, `run_migrations()` lance Alembic sauf en environnement `test`.
 - `seed_all()` insere les categories par defaut et les profils ETF systeme sauf en `test`.
-- Une tache de fond (`recurring_transactions_task`, toutes les heures, 1er passage apres 10 s) genere les transactions recurrentes et les salaires en attente.
+- Une tache de fond (`recurring_transactions_task`, toutes les heures, 1er passage apres 10 s) genere les transactions recurrentes et les salaires en attente, actualise cours et compositions d'ETF, puis envoie les notifications push (`core/notifications.py::run_notifications`).
 - `GET /health` et `POST /auth/token` sont publics.
 - Les autres routeurs sont inclus avec `Depends(get_current_user)` : JWT de session, ou token MCP (`core/mcp_tokens.py` : empreinte SHA-256 dans `mcp_tokens`, refusé si révoqué, si `mcp_enabled` est faux ou pour toute méthode autre que `GET`/`HEAD`). Le router `/admin` ajoute `require_interactive_session` : 403 pour un token MCP.
 
@@ -88,6 +88,7 @@ docker-compose.prod.yml, Makefile, setup.sh, install.sh
 - `work_time.py`: taux horaire net = `net_salary × 12 ÷ (work_days_per_year × work_hours_per_day)` (218 j × 7 h par défaut), base du prix en heures de travail.
 - `merchants.py`: gestion des marchands canoniques et de leurs alias de normalisation.
 - `admin.py`: profil admin (nom/mot de passe, `mcp_enabled`, stockes dans `system_settings`), tokens MCP (`GET`/`POST /admin/mcp-tokens`, `DELETE /admin/mcp-tokens/{id}` ; le token en clair n'est renvoyé qu'à la création ; la création exige `current_password`) et reset database (exige `current_password`, écrit un instantané `data/backups/pre-reset_*.db` avant d'effacer).
+- `notifications.py`: réglages des notifications push (`GET`/`PUT /notifications/settings`, jetons masqués `••••` + 4 derniers caractères ; un jeton renvoyé masqué n'écrase pas la valeur) et `POST /notifications/test` (`channel` = `ntfy|telegram`, 400 si incomplet, 502 si l'envoi échoue). Envoi : `core/notifications.py`.
 - `health.py`: healthcheck public.
 
 ## Frontend
@@ -106,7 +107,7 @@ Routes dans `frontend/src/App.tsx`:
 - `/recurring` « Échéances » : un seul des onglets `recurring` (Liste) ou `subscriptions` (Analyse Récurrences : Abonnements / Investissements / Autres récurrences dont le salaire, via `GET /analytics/subscriptions?include_other=true`) selon le sélecteur Analyse/Liste (localStorage `recurring-view`, défaut Analyse) ; puis `?tab=` calendar (`Calendar.tsx` en mode `embedded`) | salary (`SalaryManager`, salaire et télétravail). `/calendar` redirige vers `?tab=calendar`.
 - `/audit`: Centre d'Actions (audit d'integrite, alertes budget, suggestions de regles) — voir `docs/ACTION_CENTER.md`.
 - `/tools` « Simulateur » : prévision simple (`WealthForecast`, « dans N ans » + « et si j'épargne +X ») avec bouton « Mode avancé » vers le simulateur complet (`WealthSimulator`).
-- `/settings`: configuration, import CSV, gestion des virements, règles d'auto-catégorisation, tags, gestion des marchands canoniques et actions admin.
+- `/settings`: configuration, notifications push (`?tab=notifications`, `components/settings/NotificationsTab`), import CSV, gestion des virements, règles d'auto-catégorisation, tags, gestion des marchands canoniques et actions admin.
 
 Principes:
 
@@ -175,6 +176,7 @@ Un point zéro sert de base de performance pour un compte.
 - `loan_prepayments`: remboursements anticipés effectués (`loan_id` CASCADE, `date`, `amount`, `mode` = `reduce_duration` garde la mensualité, `reduce_payment` la recalcule sur la durée restante), appliqués après la dernière échéance de date ≤ `date`.
 - `financial_events`: journal des décisions (`date`, `title` ≤ 200, `note` ≤ 1000, `account_id` facultatif SET NULL). Note de contexte sans effet sur les calculs, affichée comme repère ⚑ (dans son mois civil) avec les faits marquants des clôtures sur la courbe « Flux de trésorerie » de l'onglet Historique du Dashboard, et gérée par la carte `components/dashboard/DecisionJournal`.
 - `provisions`: grosses dépenses périodiques (`name`, `amount` EUR par échéance, `interval_months`, `due_date` = échéance de référence, `category_id` pour retrouver le paiement réel, `account_id` = compte de mise de côté, `note`, `active`). Purement prévisionnel, aucune transaction créée. Calcul `core/provisions.py` : prochaine/précédente échéance, `target_now` = montant × temps écoulé depuis l'échéance précédente, `monthly_needed` = (montant − constitué) ÷ mois restants ; constitution = solde du compte rattaché (`core/wealth.py::account_values`) réparti entre ses provisions au prorata de leur cible ; `behind` si constitué < cible − 1 € ; `last_payment` = plus grosse dépense de la catégorie à ±60 j de l'échéance précédente.
+- `notification_log`: alertes déjà notifiées (`fingerprint` SHA-256 unique de `id|titre|description` de l'`ActionItem`, `action_id`, `channel` = canaux ayant reçu ou `init`, `sent_at`). Réglages dans `system_settings` (`notify.*` : canaux, sévérité minimale, résumé hebdo, masquage des montants, URL publique, `notify.initialized`, `notify.last_digest_week`).
 - `transaction_tags`: table d'association many-to-many (`transaction_id`, `tag_id`).
 - `merchants`: marchands canoniques (`id`, `name`, `category_id`, `icon`, `color`).
 - `merchant_aliases`: alias et libellés bancaires d'origine associés aux marchands canoniques (`id`, `merchant_id`, `label`).

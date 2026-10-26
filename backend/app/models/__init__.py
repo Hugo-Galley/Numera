@@ -27,6 +27,7 @@ from app.models.transaction_split import TransactionSplit
 from app.models.provision import Provision
 from app.models.financial_event import FinancialEvent
 from app.models.loan import Loan, LoanPrepayment
+from app.models.notification_log import NotificationLog
 
 __all__ = [
     "Account",
@@ -59,4 +60,5 @@ __all__ = [
     "FinancialEvent",
     "Loan",
     "LoanPrepayment",
+    "NotificationLog",
 ]
