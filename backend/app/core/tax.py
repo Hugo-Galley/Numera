@@ -85,6 +85,19 @@ def livret_jeune_status(balance: float, rules: TaxRules) -> dict:
     return _blank(current=balance, ceiling=rules.livret_jeune_ceiling, remaining=remaining, used_pct=used_pct, alerts=alerts)
 
 
+def ldds_status(balance: float, rules: TaxRules) -> dict:
+    remaining, used_pct = _room(balance, rules.ldds_ceiling)
+    alerts = [_CAPITALISED_INTEREST_ALERT.format(name="LDDS")] if balance > rules.ldds_ceiling else []
+    return _blank(current=balance, ceiling=rules.ldds_ceiling, remaining=remaining, used_pct=used_pct, alerts=alerts)
+
+
+def lep_status(balance: float, rules: TaxRules) -> dict:
+    remaining, used_pct = _room(balance, rules.lep_ceiling)
+    alerts = [_CAPITALISED_INTEREST_ALERT.format(name="LEP")] if balance > rules.lep_ceiling else []
+    alerts.append("Le LEP est réservé aux foyers sous un plafond de revenus : à revérifier chaque année (non contrôlé ici).")
+    return _blank(current=balance, ceiling=rules.lep_ceiling, remaining=remaining, used_pct=used_pct, alerts=alerts)
+
+
 class PeeLot(NamedTuple):
     """Un versement au PEE ; `employer` = abondement de l'employeur (hors plafond des versements volontaires)."""
 
@@ -152,6 +165,8 @@ _WRAPPER_PATTERNS: list[tuple[str, str]] = [
     (r"\bcto\b|compte titres?", "cto"),
     (r"assurance vie|\bav\b", "assurance_vie"),
     (r"livret jeune", "livret_jeune"),
+    (r"\bldds\b|livret (de )?developpement durable", "ldds"),
+    (r"\blep\b|livret (d )?epargne populaire", "lep"),
     (r"livret a\b", "livret_a"),
 ]
 
@@ -167,3 +182,69 @@ def guess_tax_wrapper(name: str, account_type: str | None = None) -> str | None:
         if re.search(pattern, text):
             return kind
     return "assurance_vie" if account_type == "assurance_vie" else None
+
+
+# Livrets réglementés, du plus intéressant au moins intéressant (le LEP rapporte le plus, le Livret Jeune est plafonné bas)
+_LIVRET_ORDER = ("lep", "livret_a", "ldds", "livret_jeune")
+_LIVRET_NAMES = {"lep": "LEP", "livret_a": "Livret A", "ldds": "LDDS", "livret_jeune": "Livret Jeune"}
+PRECAUTION_MIN_MONTHS = 3
+PRECAUTION_TARGET_MONTHS = 6
+PER_MIN_TMI_PCT = 30
+
+
+def _fr(value: float) -> str:
+    return f"{value:.1f}".replace(".", ",")
+
+
+def allocation_advice(cards: list[dict], months_of_expenses: float | None, tmi_pct: float | None) -> list[dict]:
+    """Ordre de remplissage conseillé : précaution sur livret, PEA, PER si TMI ≥ 30 %, assurance-vie, CTO.
+
+    `cards` : cartes d'enveloppes (`kind`, `account_id`, `account_name`, `remaining`). Une étape sans compte
+    existant propose d'en ouvrir un (`account_id = None`). Règle fixe et explicable, aucun taux codé en dur.
+    """
+    by_kind: dict[str, list[dict]] = {}
+    for card in cards:
+        by_kind.setdefault(card["kind"], []).append(card)
+    with_room = lambda kind: next((c for c in by_kind.get(kind, []) if (c.get("remaining") or 0) > 0), None)  # noqa: E731
+    steps: list[dict] = []
+
+    def add(kind: str, card: dict | None, reason: str, name: str | None = None) -> None:
+        steps.append({
+            "rank": len(steps) + 1, "kind": kind, "account_id": card["account_id"] if card else None,
+            "account_name": card["account_name"] if card else name, "reason": reason,
+            "remaining": card.get("remaining") if card else None,
+        })
+
+    if months_of_expenses is None or months_of_expenses < PRECAUTION_TARGET_MONTHS:
+        if months_of_expenses is None:
+            situation = f"Constituez d'abord {PRECAUTION_MIN_MONTHS} à {PRECAUTION_TARGET_MONTHS} mois de dépenses d'épargne de précaution"
+        elif months_of_expenses < PRECAUTION_MIN_MONTHS:
+            situation = f"Votre épargne de précaution couvre {_fr(months_of_expenses)} mois de dépenses, sous le minimum de {PRECAUTION_MIN_MONTHS} mois"
+        else:
+            situation = f"Votre épargne de précaution couvre {_fr(months_of_expenses)} mois de dépenses, l'objectif est {PRECAUTION_TARGET_MONTHS} mois"
+        livret = next((card for kind in _LIVRET_ORDER if (card := with_room(kind))), None)
+        has_livret = any(kind in by_kind for kind in _LIVRET_ORDER)
+        if livret:
+            add(livret["kind"], livret, f"{situation} : versez sur votre {_LIVRET_NAMES[livret['kind']]}, disponible à tout moment et sans impôt.")
+        elif not has_livret:
+            add("livret_a", None, f"{situation} : ouvrez un livret réglementé (LEP si vous y avez droit, sinon Livret A).", "Livret A à ouvrir")
+
+    pea = with_room("pea")
+    if pea:
+        add("pea", pea, "Actions sur le long terme : le PEA est exonéré d'impôt sur les gains après 5 ans (hors prélèvements sociaux).")
+    elif "pea" not in by_kind:
+        add("pea", None, "Ouvrez un PEA, même avec un petit versement, pour lancer le compteur des 5 ans de fiscalité avantageuse.", "PEA à ouvrir")
+
+    if tmi_pct is not None and tmi_pct >= PER_MIN_TMI_PCT:
+        per = with_room("per")
+        if per:
+            add("per", per, f"Avec une tranche à {tmi_pct:.0f} %, chaque versement au PER réduit votre impôt (argent bloqué jusqu'à la retraite).")
+        elif "per" not in by_kind:
+            add("per", None, f"Avec une tranche à {tmi_pct:.0f} %, un PER réduirait votre impôt (argent bloqué jusqu'à la retraite).", "PER à ouvrir")
+
+    if "assurance_vie" not in by_kind:
+        add("assurance_vie", None, "Ouvrez une assurance-vie pour prendre date : la fiscalité s'allège après 8 ans.", "Assurance-vie à ouvrir")
+    else:
+        cto = (by_kind.get("cto") or [None])[0]
+        add("cto", cto, "Enveloppes avantageuses remplies ou ouvertes : le compte-titres n'a pas de plafond.", None if cto else "Compte-titres")
+    return steps

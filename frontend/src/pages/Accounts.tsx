@@ -75,7 +75,7 @@ type Account = {
   fonds_euros_pct?: number
   fonds_investis_pct?: number
   valuation_mode?: "positions" | "snapshot"
-  tax_wrapper?: "pea" | "per" | "cto" | "assurance_vie" | "livret_a" | "livret_jeune" | "pee" | null
+  tax_wrapper?: "pea" | "per" | "cto" | "assurance_vie" | "livret_a" | "livret_jeune" | "pee" | "ldds" | "lep" | null
   opened_at?: string | null
   balance?: number
 }
@@ -87,6 +87,8 @@ const TAX_WRAPPERS = [
   { value: "assurance_vie", label: "Assurance-vie" },
   { value: "livret_a", label: "Livret A" },
   { value: "livret_jeune", label: "Livret Jeune" },
+  { value: "ldds", label: "LDDS" },
+  { value: "lep", label: "LEP" },
   { value: "pee", label: "PEE" },
 ] as const
 

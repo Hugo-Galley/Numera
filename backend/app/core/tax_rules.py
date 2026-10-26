@@ -13,6 +13,8 @@ Sources :
 - Livret A : 22 950 EUR (hors intérêts capitalisés) ; PEA : 150 000 EUR de versements ;
   assurance-vie : abattement de 4 600 EUR (seul) / 9 200 EUR (couple) sur les gains de rachats après 8 ans.
 - Livret Jeune : 1 600 EUR de versements, intérêts capitalisés exclus (economie.gouv.fr).
+- LDDS : 12 000 EUR ; LEP : 10 000 EUR, réservé aux foyers sous un plafond de revenus fiscal (service-public.fr),
+  intérêts capitalisés autorisés à dépasser les deux plafonds.
 - PEE : versements volontaires <= 25 % de la rémunération brute annuelle ; chaque versement indisponible 5 ans
   (sauf cas de déblocage anticipé) ; abondement employeur <= 8 % du PASS (3 844,80 EUR en 2026), non suivi ici.
 """
@@ -34,6 +36,8 @@ class TaxRules:
     pee_lock_years: int           # indisponibilité de chaque versement au PEE
     pfu_rate_dividends: float     # PFU sur les dividendes perçus dans l'année (12,8 % + prélèvements sociaux à la source)
     pfu_rate_gains: float         # PFU sur les plus-values de cession de l'année (12,8 % + prélèvements sociaux)
+    ldds_ceiling: float = 12_000.0  # plafond de dépôts du LDDS (hors intérêts capitalisés)
+    lep_ceiling: float = 10_000.0   # plafond de dépôts du LEP (hors intérêts capitalisés)
 
 
 RULES_BY_YEAR: dict[int, TaxRules] = {

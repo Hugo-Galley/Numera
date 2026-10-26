@@ -31,7 +31,7 @@ def test_account_keeps_tax_wrapper_and_opening_date(client):
 
 
 def test_account_rejects_unknown_wrapper(client):
-    resp = client.post("/accounts", json={"name": "X", "type": "investissement", "currency": "EUR", "tax_wrapper": "lep"})
+    resp = client.post("/accounts", json={"name": "X", "type": "investissement", "currency": "EUR", "tax_wrapper": "pel"})
     assert resp.status_code == 422
 
 

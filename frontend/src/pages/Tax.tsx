@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
 import { toast } from "sonner"
-import { AlertTriangle, CheckCircle2, FileText, Landmark, Settings2 } from "lucide-react"
+import { AlertTriangle, CheckCircle2, Compass, FileText, Landmark, Settings2 } from "lucide-react"
 import { api } from "@/lib/api"
 import { formatCurrency, formatRate } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Skeleton } from "@/components/ui/skeleton"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
-type Kind = "pea" | "per" | "cto" | "assurance_vie" | "livret_a" | "livret_jeune" | "pee"
+type Kind = "pea" | "per" | "cto" | "assurance_vie" | "livret_a" | "livret_jeune" | "pee" | "ldds" | "lep"
 
 interface WrapperCard {
   kind: Kind
@@ -48,11 +48,22 @@ interface WrapperSuggestion {
   kind: Kind
 }
 
+interface AllocationAdvice {
+  rank: number
+  kind: Kind
+  account_id: number | null
+  account_name: string | null
+  reason: string
+  remaining: number | null
+}
+
 interface TaxOverview {
   year: number
   settings: TaxSettings
   wrappers: WrapperCard[]
   suggestions: WrapperSuggestion[]
+  allocation_advice: AllocationAdvice[]
+  precaution_months: number | null
 }
 
 interface CtoYearRow {
@@ -87,6 +98,8 @@ const KIND_LABELS: Record<Kind, string> = {
   livret_a: "Livret A",
   livret_jeune: "Livret Jeune",
   pee: "PEE",
+  ldds: "LDDS",
+  lep: "LEP",
 }
 
 const TMI_OPTIONS = [0, 11, 30, 41, 45]
@@ -230,6 +243,7 @@ export default function Tax() {
 
   const cards = (overview?.wrappers ?? []).filter((w) => w.kind !== "cto")
   const suggestions = overview?.suggestions ?? []
+  const advice = overview?.allocation_advice ?? []
   const years = Array.from({ length: 6 }, (_, i) => currentYear - i)
 
   return (
@@ -293,6 +307,41 @@ export default function Tax() {
             <div className="md:col-span-3">
               <Button className="h-11 w-full sm:h-10 sm:w-auto" onClick={saveSettings}>Enregistrer</Button>
             </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {advice.length > 0 && (
+        <Card className="border-emerald-200 bg-emerald-50/40 dark:border-emerald-900 dark:bg-emerald-950/30">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Compass className="h-4 w-4 text-emerald-600" /> Où placer ton prochain euro
+            </CardTitle>
+            <CardDescription>
+              Ordre de remplissage conseillé selon tes plafonds restants
+              {overview?.precaution_months != null && <> et ton épargne de précaution ({overview.precaution_months.toLocaleString("fr-FR", { maximumFractionDigits: 1 })} mois de dépenses)</>}.
+              Règle générale, pas un conseil personnalisé.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ol className="space-y-3">
+              {advice.map((step) => (
+                <li key={step.rank} className="flex gap-3">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-sm font-bold text-white">{step.rank}</span>
+                  <div className="min-w-0 text-sm">
+                    <p className="font-semibold text-slate-900 dark:text-slate-100">
+                      {step.account_id ? (
+                        <Link to={`/accounts/${step.account_id}`} className="hover:underline">{step.account_name}</Link>
+                      ) : (step.account_name ?? KIND_LABELS[step.kind])}
+                      {step.remaining != null && step.remaining > 0 && (
+                        <span className="ml-2 font-normal text-muted-foreground">· encore <Money value={step.remaining} /> de place</span>
+                      )}
+                    </p>
+                    <p className="text-slate-600 dark:text-slate-400">{step.reason}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
           </CardContent>
         </Card>
       )}

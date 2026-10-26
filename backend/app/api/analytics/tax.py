@@ -6,13 +6,25 @@ from sqlalchemy.orm import Session
 from app.api.accounts import _get_balance_for_account
 from app.core.dividends import load_dividends_eur
 from app.core.holdings import replay_account
-from app.core.tax import PeeLot, av_status, guess_tax_wrapper, livret_a_status, livret_jeune_status, pea_status, pee_status, per_status
+from app.core.tax import (
+    PeeLot,
+    allocation_advice,
+    av_status,
+    guess_tax_wrapper,
+    ldds_status,
+    lep_status,
+    livret_a_status,
+    livret_jeune_status,
+    pea_status,
+    pee_status,
+    per_status,
+)
 from app.core.tax_rules import rules_for
 from app.db.system_settings import get_setting, set_setting
 from app.models.account import Account
 from app.models.balance_snapshot import BalanceSnapshot
 from app.models.investment_transaction import InvestmentTransaction
-from app.schemas.tax import AnnualReport, CtoYearRow, TaxOverview, TaxSettings, TaxSettingsUpdate, WrapperCard, WrapperSuggestion
+from app.schemas.tax import AllocationAdvice, AnnualReport, CtoYearRow, TaxOverview, TaxSettings, TaxSettingsUpdate, WrapperCard, WrapperSuggestion
 
 SETTING_KEYS = {
     "tmi_pct": "tax_tmi_pct",
@@ -67,7 +79,8 @@ def _partial_history_alert(db: Session, account: Account) -> str | None:
     return None
 
 
-def build_overview(db: Session, today: date) -> TaxOverview:
+def build_overview(db: Session, today: date, precaution_months: float | None = None) -> TaxOverview:
+    """Cartes par enveloppe + ordre de remplissage conseillé (`precaution_months` = mois de dépenses couverts)."""
     rules = rules_for(today.year)
     settings = load_tax_settings(db)
     accounts = (
@@ -100,6 +113,10 @@ def build_overview(db: Session, today: date) -> TaxOverview:
             status = livret_a_status(_get_balance_for_account(db, account.id), rules)
         elif kind == "livret_jeune":
             status = livret_jeune_status(_get_balance_for_account(db, account.id), rules)
+        elif kind == "ldds":
+            status = ldds_status(_get_balance_for_account(db, account.id), rules)
+        elif kind == "lep":
+            status = lep_status(_get_balance_for_account(db, account.id), rules)
         elif kind == "pee":
             lots = [
                 PeeLot(t.date.date(), t.amount, "abondement" in (t.note or "").lower())
@@ -125,7 +142,11 @@ def build_overview(db: Session, today: date) -> TaxOverview:
         for a in db.query(Account).filter(Account.tax_wrapper.is_(None), Account.active.is_(True)).order_by(Account.id).all()
         if (kind := guess_tax_wrapper(a.name, a.type))
     ]
-    return TaxOverview(year=today.year, settings=settings, wrappers=cards, suggestions=suggestions)
+    advice = allocation_advice([card.model_dump() for card in cards], precaution_months, settings.tmi_pct)
+    return TaxOverview(
+        year=today.year, settings=settings, wrappers=cards, suggestions=suggestions,
+        allocation_advice=[AllocationAdvice(**step) for step in advice], precaution_months=precaution_months,
+    )
 
 
 async def build_annual_report(db: Session, year: int) -> AnnualReport:

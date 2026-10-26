@@ -20,7 +20,7 @@ class TaxSettingsUpdate(BaseModel):
 
 
 class WrapperCard(BaseModel):
-    kind: Literal["pea", "per", "cto", "assurance_vie", "livret_a", "livret_jeune", "pee"]
+    kind: Literal["pea", "per", "cto", "assurance_vie", "livret_a", "livret_jeune", "pee", "ldds", "lep"]
     account_id: int
     account_name: str
     opened_at: str | None = None
@@ -44,7 +44,17 @@ class WrapperSuggestion(BaseModel):
     """Compte actif sans enveloppe dont le nom évoque une enveloppe connue."""
     account_id: int
     account_name: str
-    kind: Literal["pea", "per", "cto", "assurance_vie", "livret_a", "livret_jeune", "pee"]
+    kind: Literal["pea", "per", "cto", "assurance_vie", "livret_a", "livret_jeune", "pee", "ldds", "lep"]
+
+
+class AllocationAdvice(BaseModel):
+    """Étape de l'ordre de remplissage conseillé ; `account_id = None` = enveloppe à ouvrir."""
+    rank: int
+    kind: Literal["pea", "per", "cto", "assurance_vie", "livret_a", "livret_jeune", "ldds", "lep"]
+    account_id: int | None = None
+    account_name: str | None = None
+    reason: str
+    remaining: float | None = None
 
 
 class TaxOverview(BaseModel):
@@ -52,6 +62,8 @@ class TaxOverview(BaseModel):
     settings: TaxSettings
     wrappers: list[WrapperCard]
     suggestions: list[WrapperSuggestion] = []
+    allocation_advice: list[AllocationAdvice] = []
+    precaution_months: float | None = None
 
 
 class CtoYearRow(BaseModel):

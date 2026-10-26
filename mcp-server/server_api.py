@@ -1244,7 +1244,13 @@ def get_tax_overview() -> str:
             }
             for w in data["wrappers"]
         ]
-        return f"🏛️ Fiscalité {data['year']} — {len(rows)} enveloppe(s) :\n\n" + format_table(rows)
+        text = f"🏛️ Fiscalité {data['year']} — {len(rows)} enveloppe(s) :\n\n" + format_table(rows)
+        advice = data.get("allocation_advice") or []
+        if advice:
+            text += "\n\n🧭 Où placer le prochain euro (ordre conseillé) :\n" + "\n".join(
+                f"{a['rank']}. {a['account_name'] or a['kind']} — {a['reason']}" for a in advice
+            )
+        return text
     except Exception as e:
         return f"❌ Erreur : {e}"
 
