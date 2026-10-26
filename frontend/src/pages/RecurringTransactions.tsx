@@ -253,7 +253,7 @@ export default function RecurringTransactions() {
       const [txsData, accountsData, categoriesData, sData, suggestionsData] = await Promise.all([
         api.get<RecurringTransaction[]>("/recurring-transactions/"),
         api.get<Account[]>("/accounts"),
-        api.get<Category[]>("/categories"),
+        api.get<Category[]>("/categories?include_archived=false"),
         api.get<any>("/analytics/subscriptions?include_other=true"),
         api.get<any>("/analytics/asset-allocation/suggestions")
       ])

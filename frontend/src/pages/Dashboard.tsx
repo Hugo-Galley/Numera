@@ -16,6 +16,7 @@ import { HistoryTab } from "@/components/dashboard/tabs/HistoryTab"
 import { ErrorState } from "@/components/layout/ErrorState"
 import { AccountVerificationBanner } from "@/components/dashboard/AccountVerificationBanner"
 import { MonthReviewPopup } from "@/components/month-review/MonthReviewPopup"
+import type { DrilldownScope } from "@/hooks/useDrilldown"
 import { fetchCurrentBudgetMonth, formatPeriodRange, useBudgetPeriod } from "@/lib/budgetPeriod"
 
 export default function Dashboard() {
@@ -78,6 +79,7 @@ export default function Dashboard() {
     analytics,
     expensesByCategory,
     kpiHistory,
+    milestones,
     topMerchants,
     subscriptions,
     salarySeries,
@@ -93,6 +95,7 @@ export default function Dashboard() {
   } = useDashboardData(selectedAccountId, month, year, monthResolved)
 
   const selectedAccount = accounts.find(a => String(a.id) === selectedAccountId)
+  const drilldownScope: DrilldownScope = { month, year, accountId: selectedAccountId === "all" ? null : Number(selectedAccountId) }
   const displayCurrency = selectedAccount?.currency || "EUR"
 
   return (
@@ -161,15 +164,16 @@ export default function Dashboard() {
             displayCurrency={displayCurrency}
             tagTotals={tagTotals}
             patrimoineAllocation={patrimoineAllocation}
+            drilldownScope={drilldownScope}
           />
         </TabsContent>
 
         <TabsContent value="budgets">
-          <BudgetsTab budgetAlerts={budgetAlerts} />
+          <BudgetsTab budgetAlerts={budgetAlerts} drilldownScope={drilldownScope} />
         </TabsContent>
 
         <TabsContent value="spending" className="space-y-5 md:space-y-8">
-          <MerchantsTab topMerchants={topMerchants} displayCurrency={displayCurrency} />
+          <MerchantsTab topMerchants={topMerchants} displayCurrency={displayCurrency} drilldownScope={drilldownScope} />
           <SubscriptionsTab subscriptions={subscriptions} displayCurrency={displayCurrency} />
         </TabsContent>
 
@@ -177,6 +181,7 @@ export default function Dashboard() {
           <InsightsTab insights={insights} />
           <HistoryTab 
             kpiHistory={kpiHistory}
+            milestones={milestones}
             burnRateSeries={burnRateSeries}
             salarySeries={salarySeries}
             displayCurrency={displayCurrency}

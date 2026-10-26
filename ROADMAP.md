@@ -20,7 +20,7 @@ Application locale de finance personnelle qui remplace un tableur Numbers et ajo
   - Alertes préventives de dépassement par catégorie budgétaire.
   - Affichage des projections sur le dashboard et le calendrier financier.
 
-### 2. Drill-Down Interactif depuis les Graphiques
+### 2. Drill-Down Interactif depuis les Graphiques *(réalisé : panneau `DrilldownSheet`, filtres `?dd_*` dans l'URL, Dashboard, Sankey, bilan mensuel et Comparaison)*
 *Rendre les représentations visuelles actionnables.*
 - **Objectifs** :
   - Clic sur une catégorie/marchand -> redirection vers la liste des transactions filtrées.
@@ -34,7 +34,7 @@ Application locale de finance personnelle qui remplace un tableur Numbers et ajo
 
 ### P1 - Fonctionnalités Produit
 
-#### Grosses Dépenses Annuelles
+#### Grosses Dépenses Annuelles *(réalisé : provisions, page Épargne)*
 *Lisser mentalement les dépenses lourdes mais peu fréquentes (impôts, assurances, vacances).*
 - **Comportement attendu** :
   - Déclaration d'une dépense annuelle/ponctuelle avec date cible.
@@ -64,7 +64,7 @@ Application locale de finance personnelle qui remplace un tableur Numbers et ajo
 - **Notes d'implémentation** :
   - Étendre le pipeline existant sans altérer le support du format CSV de Numbers. Maintenir l'idempotence.
 
-#### Archivage Intelligent
+#### Archivage Intelligent *(réalisé pour comptes, catégories et tags ; marchands non)*
 *Masquer les éléments obsolètes ou peu utilisés pour réduire le bruit visuel.*
 - **Comportement attendu** :
   - Archivage des comptes fermés, catégories obsolètes, marchands ou tags inutilisés.
@@ -79,7 +79,7 @@ Application locale de finance personnelle qui remplace un tableur Numbers et ajo
 - Comparaison entre l'allocation cible définie par classe d'actifs, secteur ou zone géographique et l'allocation réelle actuelle.
 - Suggestion d'orientation pour le prochain versement d'investissement afin de rééquilibrer le portefeuille.
 
-#### Historique des Décisions Financières
+#### Historique des Décisions Financières *(en partie : faits marquants de la revue de mois affichés sur l'historique du Dashboard)*
 *Conserver le contexte des événements marquants sur les graphiques temporels.*
 - **Comportement attendu** :
   - Ajout de notes datées (ex: résiliation d'abonnement, hausse d'épargne, achat immobilier, changement d'allocation).
@@ -117,10 +117,10 @@ Ordre de réalisation : 1 puis 2 en premier, le reste au fil de l'eau. Pas de no
 
 1. **Fiscalité et enveloppes françaises** *(en cours de cadrage)* : plafonds (PEA 150 k€, Livret A 22 950 €, LDDS 12 000 €) avec place restante, dates clés (5 ans PEA, 8 ans AV, abattement 4 600 €), récap fiscal annuel (dividendes, plus-values réalisées du CTO, par case de déclaration).
 2. **Remboursements et dépenses avancées** *(réalisé : page Remboursements, KPI nets)* : lier une `Sortie` à un ou plusieurs remboursements qui la compensent, KPI nets, liste de « ce qu'on me doit ».
-3. Découper une transaction entre plusieurs catégories.
+3. Découper une transaction entre plusieurs catégories *(réalisé : `PUT /transactions/{id}/splits`, menu « Découper » de la page compte)*.
 4. Revue de fin de mois guidée *(réalisé : page `/month-review`, pop-up du Dashboard, drapeau « dépense exceptionnelle »)* : catégoriser, valider les soldes, comparer au budget, noter un fait marquant, clôturer.
 5. Prix en heures de travail (à partir du salaire net et des jours travaillés) *(réalisé : `GET/PATCH /salary/work-time`, affichage sur les dépenses, abonnements et top marchands, réglages dans le gestionnaire de salaire)*.
-6. Projection d'indépendance financière (FIRE) sur les données réelles, en extension du `WealthSimulator`.
+6. Projection d'indépendance financière (FIRE) sur les données réelles *(réalisé : `GET /analytics/fire`, carte de la page Simulateur)*.
 7. Garanties et justificatifs : pièce jointe par transaction, date de fin de garantie, rappel.
 8. Bilan annuel « Wrapped » (taux d'épargne, plus gros poste, évolution du patrimoine, abonnements résiliés) *(réalisé : page `/wrapped` avec story plein écran, `GET /analytics/wrapped`, comparaison N-1 sur la même période)*.
 

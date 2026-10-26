@@ -75,6 +75,11 @@ def test_sankey_flow_nodes_grouping_and_sorting(client, db_session):
     assert "Cadeaux" in node_names
     assert "Sortie" in node_names
     assert "Nourriture" in node_names
+    # Les nœuds de catégorie portent leur id (drill-down), pas les groupes ni le Budget
+    by_name = {n["name"]: n for n in nodes}
+    assert by_name["Nourriture"]["category_id"] == cat_nourriture.id
+    assert by_name["Transports"]["category_id"] == cat_transport.id
+    assert "category_id" not in by_name["Fixe"] and "category_id" not in by_name["Budget"]
 
     # Check relative positioning of grouped categories.
     # Group "Fixe" is larger (214.0) than Group "Loisirs" (156.0).

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { Plus, Tag, Pencil, Trash2, Palette } from "lucide-react"
+import { Plus, Tag, Pencil, Trash2, Palette, Archive, ArchiveRestore } from "lucide-react"
 import { api } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -22,6 +22,7 @@ type TagType = {
   id: number
   name: string
   color: string | null
+  archived?: boolean
 }
 
 const COLOR_OPTIONS = [
@@ -107,6 +108,16 @@ export function TagsTab() {
     }
   }
 
+  const handleToggleArchiveTag = async (tag: TagType) => {
+    try {
+      await api.patch(`/tags/${tag.id}`, { archived: !tag.archived })
+      toast.success(tag.archived ? "Tag réactivé" : "Tag archivé : masqué des sélecteurs, transactions inchangées")
+      loadTags()
+    } catch (error) {
+      toast.error("Erreur lors de l'archivage")
+    }
+  }
+
   const handleDeleteTag = async (tagId: number) => {
     if (!(await confirm("Supprimer ce tag ? Il sera retiré de toutes les transactions."))) return
     try {
@@ -189,8 +200,8 @@ export function TagsTab() {
         <div className="text-center py-20 text-slate-400">Chargement de vos tags...</div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {tags.map((tag) => (
-            <Card key={tag.id} className="group hover:border-slate-300 transition-all shadow-sm border-slate-100 overflow-hidden">
+          {[...tags].sort((a, b) => Number(!!a.archived) - Number(!!b.archived)).map((tag) => (
+            <Card key={tag.id} className={`group hover:border-slate-300 transition-all shadow-sm border-slate-100 overflow-hidden ${tag.archived ? "opacity-60" : ""}`}>
               <CardContent className="p-0">
                 <div className="p-3 pl-4 flex items-center justify-between gap-4 md:p-4">
                   <Badge 
@@ -203,6 +214,9 @@ export function TagsTab() {
                   <div className="flex shrink-0 gap-1 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                     <Button aria-label="Modifier" variant="ghost" size="sm" onClick={() => handleEditClick(tag)} className="h-10 w-10 md:h-8 md:w-8 p-0 text-slate-500 hover:text-slate-900">
                       <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button aria-label={tag.archived ? "Réactiver" : "Archiver"} title={tag.archived ? "Réactiver" : "Archiver"} variant="ghost" size="sm" onClick={() => handleToggleArchiveTag(tag)} className="h-10 w-10 md:h-8 md:w-8 p-0 text-slate-500 hover:text-slate-900">
+                      {tag.archived ? <ArchiveRestore className="h-4 w-4" /> : <Archive className="h-4 w-4" />}
                     </Button>
                     <Button aria-label="Supprimer" variant="ghost" size="sm" onClick={() => handleDeleteTag(tag.id)} className="h-10 w-10 md:h-8 md:w-8 p-0 text-rose-500 hover:text-rose-600 hover:bg-rose-50">
                       <Trash2 className="h-4 w-4" />

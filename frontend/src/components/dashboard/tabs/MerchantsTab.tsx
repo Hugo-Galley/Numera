@@ -10,6 +10,7 @@ import { formatAmountWithShare } from "@/lib/utils"
 import { formatWorkDuration } from "@/components/ui/work-hours"
 import { useIsMobile } from "@/hooks/useIsMobile"
 import { useWorkTime } from "@/providers/WorkTimeProvider"
+import { useDrilldown, type DrilldownScope } from "@/hooks/useDrilldown"
 import {
   ResponsiveContainer,
   BarChart,
@@ -23,10 +24,12 @@ import {
 interface MerchantsTabProps {
   topMerchants: any[]
   displayCurrency: string
+  drilldownScope: DrilldownScope
 }
 
-export function MerchantsTab({ topMerchants, displayCurrency }: MerchantsTabProps) {
+export function MerchantsTab({ topMerchants, displayCurrency, drilldownScope }: MerchantsTabProps) {
   const isMobile = useIsMobile()
+  const { openDrilldown } = useDrilldown()
   const { workTime } = useWorkTime()
   const rate = displayCurrency === "EUR" ? workTime?.hourly_rate : null
   const formatTooltip = (v: number) => {
@@ -50,7 +53,17 @@ export function MerchantsTab({ topMerchants, displayCurrency }: MerchantsTabProp
             <XAxis type="number" hide />
             <YAxis dataKey="merchant" type="category" width={isMobile ? 104 : 150} axisLine={false} tickLine={false} tick={{ fontSize: isMobile ? 11 : 12, fontWeight: 500, fill: '#64748b' }} tickFormatter={(v: string) => (isMobile && v.length > 16 ? `${v.slice(0, 15)}…` : v)} />
             <Tooltip cursor={{ fill: '#f8fafc' }} formatter={formatTooltip} contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} />
-            <Bar dataKey="total" fill="#0f172a" radius={[0, 4, 4, 0]} barSize={isMobile ? 18 : 30} />
+            <Bar
+              dataKey="total"
+              fill="#0f172a"
+              radius={[0, 4, 4, 0]}
+              barSize={isMobile ? 18 : 30}
+              className="cursor-pointer"
+              onClick={(data: any) => {
+                const merchant = (data?.payload ?? data)?.merchant
+                if (merchant) openDrilldown({ ...drilldownScope, label: merchant, merchantName: merchant })
+              }}
+            />
           </BarChart>
         </ResponsiveContainer>
       </CardContent>

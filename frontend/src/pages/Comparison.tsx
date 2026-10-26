@@ -10,6 +10,7 @@ import {
   ArrowRight
 } from "lucide-react"
 import { api } from "@/lib/api"
+import { useDrilldown } from "@/hooks/useDrilldown"
 import { 
   Card, 
   CardContent, 
@@ -38,6 +39,19 @@ import { toast } from "sonner"
 
 export default function Comparison() {
   const [loading, setLoading] = useState(false)
+  const { openDrilldown } = useDrilldown()
+  // Montant cliquable : transactions de la catégorie sur la période correspondante (A ou B)
+  const amountButton = (row: { name: string; id: number | null }, value: number, month: string, year: string, className = "") => (
+    <button
+      type="button"
+      title="Voir les transactions"
+      disabled={value <= 0}
+      onClick={() => openDrilldown({ month: Number(month), year: Number(year), label: row.name, categoryId: row.id })}
+      className={`amount-blur rounded tabular-nums underline-offset-2 enabled:hover:underline disabled:cursor-default ${className}`}
+    >
+      {formatCurrency(value)}
+    </button>
+  )
   
   // Period A (Base)
   const [monthA, setMonthA] = useState(String(new Date().getMonth() + 1))
@@ -112,6 +126,7 @@ export default function Comparison() {
 
       return {
         name: catName,
+        id: (catA?.category?.id ?? catB?.category?.id ?? null) as number | null,
         color: catA?.category?.color || catB?.category?.color,
         valA,
         valB,
@@ -230,7 +245,7 @@ export default function Comparison() {
       <Card>
         <CardHeader className="p-4 md:p-6">
           <CardTitle>Détail par catégorie</CardTitle>
-          <CardDescription>Variation des dépenses entre les deux périodes.</CardDescription>
+          <CardDescription>Variation des dépenses entre les deux périodes. Cliquez sur un montant pour voir ses transactions.</CardDescription>
         </CardHeader>
         <CardContent className="p-4 pt-0 md:p-6 md:pt-0">
           <ul className="divide-y divide-slate-100 md:hidden">
@@ -250,12 +265,12 @@ export default function Comparison() {
                 <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 text-xs text-slate-500">
                   <span className="min-w-0">
                     <span className="block truncate">{months[parseInt(monthB, 10) - 1] || "B"} {yearB}</span>
-                    <span className="amount-blur block whitespace-nowrap font-semibold tabular-nums text-slate-700">{formatCurrency(row.valB)}</span>
+                    {amountButton(row, row.valB, monthB, yearB, "block min-h-10 whitespace-nowrap font-semibold text-slate-700")}
                   </span>
                   <ArrowRight className="h-3 w-3 text-slate-300" />
                   <span className="min-w-0 text-right">
                     <span className="block truncate">{months[parseInt(monthA, 10) - 1] || "A"} {yearA}</span>
-                    <span className="amount-blur block whitespace-nowrap font-semibold tabular-nums text-slate-700">{formatCurrency(row.valA)}</span>
+                    {amountButton(row, row.valA, monthA, yearA, "ml-auto block min-h-10 whitespace-nowrap font-semibold text-slate-700")}
                   </span>
                 </div>
               </li>
@@ -284,8 +299,8 @@ export default function Comparison() {
                         {row.name}
                       </div>
                     </TableCell>
-                    <TableCell className="text-right"><span className="amount-blur">{formatCurrency(row.valB)}</span></TableCell>
-                    <TableCell className="text-right"><span className="amount-blur">{formatCurrency(row.valA)}</span></TableCell>
+                    <TableCell className="text-right">{amountButton(row, row.valB, monthB, yearB)}</TableCell>
+                    <TableCell className="text-right">{amountButton(row, row.valA, monthA, yearA)}</TableCell>
                     <TableCell className={`text-right font-bold ${row.diff > 0 ? "text-rose-600" : row.diff < 0 ? "text-emerald-600" : "text-slate-400"}`}>
                       <div className="flex items-center justify-end gap-1">
                         {row.diff > 0 ? <ArrowUpRight className="h-3 w-3" /> : row.diff < 0 ? <ArrowDownRight className="h-3 w-3" /> : <Minus className="h-3 w-3" />}

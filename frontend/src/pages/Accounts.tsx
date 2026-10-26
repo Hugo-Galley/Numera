@@ -11,9 +11,10 @@ import {
   ArrowRight,
   ArrowUp,
   ArrowDown,
-  Trash2,
   Star,
-  Shield
+  Shield,
+  Archive,
+  ArchiveRestore
 } from "lucide-react"
 import { api } from "@/lib/api"
 import { Button } from "@/components/ui/button"
@@ -52,6 +53,7 @@ import {
 } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
+import { useConfirm } from "@/providers/ConfirmProvider"
 import { LogoPicker } from "@/components/ui/LogoPicker"
 import { AccountLogo, invalidateAccountLogos } from "@/components/ui/AccountLogo"
 
@@ -115,12 +117,17 @@ export default function Accounts() {
     geographic_zones: string[]
   }>({ asset_classes: [], sectors: [], geographic_zones: [] })
 
+  const confirm = useConfirm()
+  const [archivedAccounts, setArchivedAccounts] = useState<Account[]>([])
+  const [showArchived, setShowArchived] = useState(false)
+
   const loadAccounts = async () => {
     setLoading(true)
     try {
       const data = await api.get<Account[]>("/accounts")
       if (data && Array.isArray(data)) {
         setAccounts(data.filter((account) => account && account.active))
+        setArchivedAccounts(data.filter((account) => account && !account.active))
       } else {
         setAccounts([])
       }
@@ -258,13 +265,25 @@ export default function Accounts() {
     }
   })
 
+  // DELETE /accounts/{id} archive le compte (active = false) : l'historique reste dans les analyses passées
   const handleDeleteAccount = async (accountId: number) => {
+    if (!(await confirm("Archiver ce compte ? Il disparaît des listes et du patrimoine ; son historique est conservé et vous pourrez le réactiver."))) return
     try {
       await api.delete(`/accounts/${accountId}`)
-      toast.success("Compte supprimé")
+      toast.success("Compte archivé")
       loadAccounts()
     } catch (error) {
-      toast.error("Erreur lors de la suppression du compte")
+      toast.error("Erreur lors de l'archivage du compte")
+    }
+  }
+
+  const handleRestoreAccount = async (accountId: number) => {
+    try {
+      await api.patch(`/accounts/${accountId}`, { active: true })
+      toast.success("Compte réactivé")
+      loadAccounts()
+    } catch (error) {
+      toast.error("Erreur lors de la réactivation du compte")
     }
   }
 
@@ -815,11 +834,11 @@ export default function Accounts() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      aria-label="Supprimer"
+                      aria-label="Archiver" title="Archiver"
                       className="h-10 w-10 text-rose-600 hover:text-rose-700"
                       onClick={() => handleDeleteAccount(account.id)}
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Archive className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
@@ -935,13 +954,13 @@ export default function Accounts() {
                                 Voir détails <ArrowRight className="ml-2 h-4 w-4" />
                               </Link>
                             </Button>
-                            <Button aria-label="Supprimer"
+                            <Button aria-label="Archiver" title="Archiver"
                               variant="ghost"
                               size="icon"
                               className="text-rose-600 hover:text-rose-700"
                               onClick={() => handleDeleteAccount(account.id)}
                             >
-                              <Trash2 className="h-4 w-4" />
+                              <Archive className="h-4 w-4" />
                             </Button>
                           </div>
                         </TableCell>
@@ -953,6 +972,38 @@ export default function Accounts() {
           </div>
         </CardContent>
       </Card>
+
+      {archivedAccounts.length > 0 && (
+        <div className="space-y-3">
+          <Button variant="ghost" size="sm" className="text-slate-500" onClick={() => setShowArchived((v) => !v)}>
+            <Archive className="mr-2 h-4 w-4" />
+            {showArchived ? "Masquer les comptes archivés" : `Comptes archivés (${archivedAccounts.length})`}
+          </Button>
+          {showArchived && (
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {archivedAccounts.map((account) => (
+                <Card key={account.id} className="shadow-sm opacity-75">
+                  <CardContent className="flex items-center justify-between gap-3 p-4">
+                    <div className="min-w-0">
+                      <p className="truncate font-semibold text-slate-900">{account.name}</p>
+                      <p className="text-xs text-slate-500">{account.institution || account.type} · {account.currency}</p>
+                    </div>
+                    <div className="flex shrink-0 gap-1">
+                      <Button variant="ghost" size="sm" className="h-10 md:h-8" asChild>
+                        <Link to={`/accounts/${account.id}`}>Historique</Link>
+                      </Button>
+                      <Button variant="outline" size="sm" className="h-10 md:h-8" onClick={() => handleRestoreAccount(account.id)}>
+                        <ArchiveRestore className="mr-1 h-4 w-4" />
+                        Réactiver
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }

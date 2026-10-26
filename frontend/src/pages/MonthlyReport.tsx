@@ -177,7 +177,7 @@ export default function IntelligentReport() {
             </CardContent>
           </Card>
 
-          <SpendingSection data={data} />
+          <SpendingSection data={data} month={date.month} year={date.year} />
           <BudgetSection lines={budget} />
           <SavingsSection data={data} />
           <WatchSection insights={data.insights} />

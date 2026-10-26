@@ -3,6 +3,7 @@ import { useState, useEffect } from "react"
 import { api } from "@/lib/api"
 import { WealthSimulator } from "@/components/analytics/WealthSimulator"
 import { WealthForecast } from "@/components/tools/WealthForecast"
+import { FireProjection } from "@/components/tools/FireProjection"
 import { Button } from "@/components/ui/button"
 
 export default function Tools() {
@@ -41,7 +42,10 @@ export default function Tools() {
           </div>
         )
       ) : (
-        <WealthForecast />
+        <>
+          <WealthForecast />
+          <FireProjection />
+        </>
       )}
 
       <div className="flex justify-center">

@@ -3,6 +3,7 @@ import { IconComponent } from "@/components/dashboard/IconComponent"
 import { formatCurrency, formatRate } from "@/lib/utils"
 import { Delta } from "./Delta"
 import type { MonthlyReportData } from "./types"
+import { useDrilldown } from "@/hooks/useDrilldown"
 
 const PARTS = [
   { key: "fixed_charges", label: "Charges fixes", bar: "bg-slate-700" },
@@ -12,7 +13,8 @@ const PARTS = [
   { key: "remainder", label: "Reste", bar: "bg-slate-200" },
 ] as const
 
-export function SpendingSection({ data }: { data: MonthlyReportData }) {
+export function SpendingSection({ data, month, year }: { data: MonthlyReportData; month: number; year: number }) {
+  const { openDrilldown } = useDrilldown()
   const flow = data.money_flow
   const parts = flow
     ? PARTS.map((p) => ({ ...p, block: flow[p.key] })).filter((p) => p.block.amount > 0)
@@ -71,7 +73,15 @@ export function SpendingSection({ data }: { data: MonthlyReportData }) {
             ) : (
               <ul className="divide-y divide-slate-100">
                 {data.top_categories.map((c) => (
-                  <li key={c.name} className="flex min-h-12 items-center gap-3 py-2.5">
+                  <li
+                    key={c.name}
+                    role="button"
+                    tabIndex={0}
+                    title="Voir les transactions"
+                    onClick={() => openDrilldown({ month, year, label: c.name, categoryId: c.id ?? null })}
+                    onKeyDown={(e) => e.key === "Enter" && openDrilldown({ month, year, label: c.name, categoryId: c.id ?? null })}
+                    className="flex min-h-12 cursor-pointer items-center gap-3 rounded-lg py-2.5 hover:bg-slate-50"
+                  >
                     <span
                       className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
                       style={{ backgroundColor: `${c.color}1f`, color: c.color }}

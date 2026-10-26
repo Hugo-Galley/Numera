@@ -1,4 +1,4 @@
-from sqlalchemy import Column, ForeignKey, Integer, String, Table
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Table
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -17,6 +17,8 @@ class Tag(Base):
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     name: Mapped[str] = mapped_column(String(50), unique=True, index=True, nullable=False)
     color: Mapped[str | None] = mapped_column(String(7), nullable=True)  # Hex color
+    # Archivé : masqué des sélecteurs, les transactions gardent le tag
+    archived: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0", nullable=False)
 
     transactions: Mapped[list["Transaction"]] = relationship(
         "Transaction",

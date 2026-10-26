@@ -1,11 +1,14 @@
 import { formatCurrency } from "@/lib/utils"
 import { IconComponent } from "../IconComponent"
+import { useDrilldown, type DrilldownScope } from "@/hooks/useDrilldown"
 
 interface BudgetsTabProps {
   budgetAlerts: any[]
+  drilldownScope: DrilldownScope
 }
 
-export function BudgetsTab({ budgetAlerts }: BudgetsTabProps) {
+export function BudgetsTab({ budgetAlerts, drilldownScope }: BudgetsTabProps) {
+  const { openDrilldown } = useDrilldown()
   return (
     <div className="space-y-4 md:space-y-6">
       <div className="flex flex-col gap-1 md:gap-2">
@@ -28,7 +31,12 @@ export function BudgetsTab({ budgetAlerts }: BudgetsTabProps) {
           return (
             <div
               key={alert.category_id}
-              className={`p-4 md:p-5 rounded-2xl border flex flex-col gap-3 md:gap-4 transition-all shadow-sm ${
+              role="button"
+              tabIndex={0}
+              title="Voir les transactions"
+              onClick={() => openDrilldown({ ...drilldownScope, label: alert.category_name, categoryId: alert.category_id })}
+              onKeyDown={(e) => e.key === "Enter" && openDrilldown({ ...drilldownScope, label: alert.category_name, categoryId: alert.category_id })}
+              className={`cursor-pointer p-4 md:p-5 rounded-2xl border flex flex-col gap-3 md:gap-4 transition-all shadow-sm ${
                 isOver 
                   ? "bg-rose-50 border-rose-200" 
                   : isWarning 

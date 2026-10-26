@@ -108,6 +108,7 @@ def link_pair(db: Session, sortie: Transaction, other: Leg, kind: str, origin: s
         sortie.linked_investment_transaction_id = other.id
     other.linked_transaction_id = sortie.id
 
+    sortie.splits = []  # un virement interne n'est pas une dépense : son découpage n'a plus de sens
     for leg in (sortie, other):
         leg.is_transfer = True
         leg.link_origin = origin

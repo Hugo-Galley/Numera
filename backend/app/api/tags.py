@@ -8,8 +8,11 @@ from app.schemas.tag import TagCreate, TagRead, TagUpdate
 router = APIRouter(prefix="/tags", tags=["tags"])
 
 @router.get("", response_model=list[TagRead])
-def list_tags(db: Session = Depends(get_db)):
-    return db.query(Tag).order_by(Tag.name.asc()).all()
+def list_tags(include_archived: bool = Query(default=True), db: Session = Depends(get_db)):
+    query = db.query(Tag)
+    if not include_archived:
+        query = query.filter(Tag.archived.is_(False))
+    return query.order_by(Tag.name.asc()).all()
 
 @router.post("", response_model=TagRead, status_code=201)
 def create_tag(payload: TagCreate, db: Session = Depends(get_db)):
@@ -30,6 +33,8 @@ def update_tag(tag_id: int, payload: TagUpdate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Tag not found")
     
     update_data = payload.model_dump(exclude_unset=True)
+    if update_data.get("archived", True) is None:
+        update_data.pop("archived")
     if "name" in update_data:
         existing = db.query(Tag).filter(Tag.name == update_data["name"], Tag.id != tag_id).first()
         if existing:

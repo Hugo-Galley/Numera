@@ -1,5 +1,6 @@
 import { useSubmit } from "@/hooks/useSubmit"
 import { ErrorState } from "@/components/layout/ErrorState"
+import { ProvisionsSection } from "@/components/savings/ProvisionsSection"
 import { useEffect, useState, useMemo } from "react"
 import { formatAmountWithShare, formatCurrency, formatRate } from "@/lib/utils"
 import { Link } from "react-router-dom"
@@ -119,7 +120,7 @@ export default function Savings() {
         api.get<any[]>("/analytics/kpi-history?months_count=12"),
         api.get<any[]>("/goals"),
         api.get<any[]>("/accounts"),
-        api.get<any[]>("/categories"),
+        api.get<any[]>("/categories?include_archived=false"),
         api.get<Resilience>(period === "monthly"
           ? `/analytics/resilience?month=${month}&year=${year}`
           : `/analytics/resilience?month=${now.getMonth() + 1}&year=${now.getFullYear()}`),
@@ -504,6 +505,8 @@ export default function Savings() {
               </Card>
             </div>
           </section>
+
+          <ProvisionsSection />
 
           {/* SECTION 3 : OBJECTIFS */}
           <section className="space-y-4 md:space-y-6">

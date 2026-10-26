@@ -267,3 +267,35 @@ class ActionCenterSummary(BaseModel):
 class ActionCenterResponse(BaseModel):
     summary: ActionCenterSummary
     actions: List[ActionItem]
+
+
+class FireScenario(BaseModel):
+    label: str
+    monthly_savings: float
+    annual_expenses: float
+    years_to_fi: float | None
+
+
+class FirePoint(BaseModel):
+    year: int
+    wealth: float  # euros d'aujourd'hui (rendement réel)
+    target: float
+
+
+class FireResponse(BaseModel):
+    current_wealth: float
+    annual_expenses: float  # dépenses réelles moyennes × 12 (ou saisie)
+    expenses_overridden: bool
+    withdrawal_rate_pct: float
+    target: float  # patrimoine nécessaire = dépenses annuelles ÷ taux de retrait
+    progress_pct: float
+    monthly_savings: float
+    savings_overridden: bool
+    nominal_return_pct: float
+    inflation_pct: float
+    real_return_pct: float
+    months_used: int
+    years_to_fi: float | None  # None : objectif non atteint en 80 ans
+    fi_year: int | None
+    points: list[FirePoint]
+    scenarios: list[FireScenario]

@@ -71,6 +71,27 @@ class TransactionBulkUpdate(BaseModel):
     tag_ids: list[int] | None = None
 
 
+class TransactionSplitItem(BaseModel):
+    category_id: int
+    amount: Amount
+    note: str | None = Field(default=None, max_length=255)
+
+
+class TransactionSplitsUpdate(BaseModel):
+    """Liste vide = annuler le découpage."""
+    items: list[TransactionSplitItem]
+
+
+class TransactionSplitRead(BaseModel):
+    id: int
+    category_id: int | None = None
+    amount: float
+    note: str | None = None
+    category: CategoryRead | None = None
+
+    model_config = {"from_attributes": True}
+
+
 class TransactionRead(TransactionBase):
     id: int
     month_label: str
@@ -91,6 +112,7 @@ class TransactionRead(TransactionBase):
     category: CategoryRead | None = None
     merchant_obj: MerchantRead | None = Field(None, alias="merchant_obj")
     tags: list[TagRead] = []
+    splits: list[TransactionSplitRead] = []
 
     model_config = {"from_attributes": True, "populate_by_name": True}
 

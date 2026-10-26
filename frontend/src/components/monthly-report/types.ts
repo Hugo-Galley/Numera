@@ -23,6 +23,7 @@ export interface MoneyFlow {
 }
 
 export interface ReportCategory {
+  id: number | null
   name: string
   total: number
   prev_total: number

@@ -23,6 +23,8 @@ from app.models.security_price import SecurityPrice
 from app.models.mcp_token import McpToken
 from app.models.reimbursement import ReimbursementAllocation, ReimbursementClaim
 from app.models.month_closure import MonthClosure
+from app.models.transaction_split import TransactionSplit
+from app.models.provision import Provision
 
 __all__ = [
     "Account",
@@ -50,4 +52,6 @@ __all__ = [
     "ReimbursementClaim",
     "ReimbursementAllocation",
     "MonthClosure",
+    "TransactionSplit",
+    "Provision",
 ]

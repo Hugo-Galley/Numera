@@ -89,7 +89,7 @@ export function ImportTab() {
     try {
       const [accs, cats, logs] = await Promise.all([
         api.get<Account[]>("/accounts"),
-        api.get<Category[]>("/categories"),
+        api.get<Category[]>("/categories?include_archived=false"),
         api.get<ImportLog[]>("/import/logs")
       ])
       

@@ -1,4 +1,5 @@
 import calendar
+import math
 import traceback
 from datetime import date, datetime, timedelta
 
@@ -31,6 +32,9 @@ from app.schemas.insight import (
     WealthSimulationResponse,
     WealthSimulationPoint,
     WealthForecastResponse,
+    FirePoint,
+    FireResponse,
+    FireScenario,
     WealthForecastPoint,
     WealthForecastReturnItem,
     WealthForecastSavingsMonth,
@@ -988,6 +992,101 @@ async def wealth_forecast(
         savings_overridden=monthly_savings is not None,
         savings_months=savings_months,
         return_breakdown=return_breakdown,
+    )
+
+
+FIRE_MAX_YEARS = 80
+
+
+def _months_to_target(wealth: float, monthly: float, monthly_rate: float, target: float) -> int | None:
+    """Mois avant que le patrimoine (euros constants) atteigne la cible, None au-delà de FIRE_MAX_YEARS."""
+    if wealth >= target:
+        return 0
+    for month in range(1, FIRE_MAX_YEARS * 12 + 1):
+        wealth = wealth * (1 + monthly_rate) + monthly
+        if wealth >= target:
+            return month
+    return None
+
+
+@router.get("/fire", response_model=FireResponse)
+async def fire_projection(
+    withdrawal_rate_pct: float = Query(default=4.0, gt=0, le=20),
+    inflation_pct: float = Query(default=2.0, ge=-5, le=20),
+    return_pct: Optional[float] = Query(default=None, ge=-50, le=100),
+    monthly_savings: Optional[float] = Query(default=None, ge=-100000, le=100000),
+    annual_expenses: Optional[float] = Query(default=None, gt=0, le=10_000_000),
+    db: Session = Depends(get_db),
+):
+    """Indépendance financière sur les données réelles.
+
+    Cible = dépenses annuelles ÷ taux de retrait (règle des 4 % par défaut). Dépenses = dépenses réelles
+    moyennes des mois de `wealth-forecast` (même fenêtre de 12 mois complets) × 12 ; épargne mensuelle
+    et rendement nominal = ceux de `wealth-forecast`. La projection est en euros d'aujourd'hui :
+    rendement réel = (1 + nominal) / (1 + inflation) − 1, cible constante.
+    Chaque paramètre peut être remplacé ; les scénarios montrent l'effet d'un effort supplémentaire.
+    """
+    forecast = await wealth_forecast(
+        years=1, extra_monthly=0.0, monthly_savings=monthly_savings,
+        investment_return_pct=None, savings_return_pct=None, db=db,
+    )
+    months = forecast.savings_months
+    computed_expenses = sum(m.depenses_reelles for m in months) / len(months) * 12 if months else 0.0
+    expenses = annual_expenses if annual_expenses is not None else computed_expenses
+    nominal = return_pct if return_pct is not None else forecast.annual_return_pct
+    real = ((1 + nominal / 100.0) / (1 + inflation_pct / 100.0) - 1) * 100.0
+    monthly_rate = (1 + real / 100.0) ** (1 / 12) - 1
+    savings = forecast.avg_monthly_savings
+    wealth = forecast.current_wealth
+
+    def target_for(annual: float) -> float:
+        return annual / (withdrawal_rate_pct / 100.0)
+
+    def years_for(monthly: float, annual: float) -> float | None:
+        if annual <= 0:
+            return 0.0
+        months_needed = _months_to_target(wealth, monthly, monthly_rate, target_for(annual))
+        return None if months_needed is None else round(months_needed / 12.0, 1)
+
+    target = target_for(expenses)
+    years_to_fi = years_for(savings, expenses)
+
+    horizon = min(int(math.ceil(years_to_fi)) + 2 if years_to_fi is not None else 40, FIRE_MAX_YEARS)
+    points = []
+    value = wealth
+    for year in range(horizon + 1):
+        points.append(FirePoint(year=datetime.now().year + year, wealth=round(value, 2), target=round(target, 2)))
+        for _ in range(12):
+            value = value * (1 + monthly_rate) + savings
+
+    scenarios = [
+        FireScenario(label=label, monthly_savings=round(m, 2), annual_expenses=round(a, 2), years_to_fi=years_for(m, a))
+        for label, m, a in (
+            ("Actuel", savings, expenses),
+            ("+100 €/mois", savings + 100, expenses),
+            ("+250 €/mois", savings + 250, expenses),
+            ("+500 €/mois", savings + 500, expenses),
+            ("Dépenses −10 %", savings + expenses * 0.10 / 12, expenses * 0.90),
+        )
+    ]
+
+    return FireResponse(
+        current_wealth=round(wealth, 2),
+        annual_expenses=round(expenses, 2),
+        expenses_overridden=annual_expenses is not None,
+        withdrawal_rate_pct=withdrawal_rate_pct,
+        target=round(target, 2),
+        progress_pct=round(min(wealth / target * 100.0, 100.0), 1) if target > 0 else 100.0,
+        monthly_savings=round(savings, 2),
+        savings_overridden=monthly_savings is not None,
+        nominal_return_pct=round(nominal, 2),
+        inflation_pct=inflation_pct,
+        real_return_pct=round(real, 2),
+        months_used=forecast.months_used,
+        years_to_fi=years_to_fi,
+        fi_year=datetime.now().year + int(math.ceil(years_to_fi)) if years_to_fi is not None else None,
+        points=points,
+        scenarios=scenarios,
     )
 
 

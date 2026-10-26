@@ -9,6 +9,7 @@ class CategoryBase(BaseModel):
     group: str | None = None
     monthly_limit: float | None = None
     annual_limit: float | None = None
+    archived: bool = False
 
 
 class CategoryCreate(CategoryBase):
@@ -16,6 +17,7 @@ class CategoryCreate(CategoryBase):
 
 
 class CategoryUpdate(BaseModel):
+    archived: bool | None = None
     name: str | None = Field(default=None, min_length=1, max_length=120)
     type: str | None = None
     icon: str | None = None

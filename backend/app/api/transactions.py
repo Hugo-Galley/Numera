@@ -1,15 +1,16 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import and_, or_
+from sqlalchemy import and_, func, or_
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 
 from app.core import reimbursements as remb
+from app.core.splits import check_split_compatible, set_splits
 from app.core.transfers import auto_link_transfers, candidates_for, create_counterpart, find_pairs, link_pair, release_partner, unlink_pair
 from app.core.finance import apply_transaction_to_balance, month_label_from_date, normalize_transaction_type
 from app.db.session import get_db
 from app.models.account import Account
 from app.models.transaction import Transaction
-from app.schemas.transaction import TransferCandidate, TransferCounterpartCreate, TransferCounterpartRead, TransactionCreate, TransactionRead, TransactionUpdate, TransactionBulkDelete, TransactionBulkDeleteResult, TransactionBulkUpdate
+from app.schemas.transaction import TransferCandidate, TransferCounterpartCreate, TransferCounterpartRead, TransactionCreate, TransactionRead, TransactionUpdate, TransactionBulkDelete, TransactionBulkDeleteResult, TransactionBulkUpdate, TransactionSplitsUpdate
 
 router = APIRouter(prefix="/transactions", tags=["transactions"])
 
@@ -79,6 +80,10 @@ def list_transactions(
     is_transfer: bool | None = Query(default=None),
     tag_ids: list[int] | None = Query(default=None),
     search: str | None = Query(default=None),
+    uncategorized: bool = Query(default=False),
+    merchant_name: str | None = Query(default=None, description="Nom canonique exact (marchand normalisé, sinon libellé)"),
+    period: bool = Query(default=False, description="month/year = mois de paie (comme les analytics) au lieu du mois civil"),
+    budget_scope: bool = Query(default=False, description="Périmètre des flux du budget : courant/épargne hors tickets restaurant"),
     skip: int = Query(default=0, ge=0),
     limit: int = Query(default=100, ge=1, le=1000),
     db: Session = Depends(get_db),
@@ -87,7 +92,10 @@ def list_transactions(
     if account_id is not None:
         query = query.filter(Transaction.account_id == account_id)
     if category_id is not None:
-        query = query.filter(Transaction.category_id == category_id)
+        # Une dépense découpée apparaît sous chacune des catégories de ses parts
+        from app.models.transaction_split import TransactionSplit
+        split_tx_ids = db.query(TransactionSplit.transaction_id).filter(TransactionSplit.category_id == category_id)
+        query = query.filter(or_(Transaction.category_id == category_id, Transaction.id.in_(split_tx_ids)))
     if type is not None:
         query = query.filter(Transaction.type == type)
     if merchant is not None:
@@ -116,9 +124,26 @@ def list_transactions(
                 Category.name.ilike(search_filter),
             )
         )
+    if uncategorized:
+        query = query.filter(Transaction.category_id.is_(None))
+    if merchant_name is not None:
+        from app.models.merchant import Merchant
+        query = query.outerjoin(Merchant, Transaction.merchant_id == Merchant.id).filter(
+            func.coalesce(Merchant.name, Transaction.merchant) == merchant_name
+        )
+    if budget_scope:
+        from app.api.analytics.utils import _get_ticket_restaurant_account_ids
+        query = query.join(Account, Transaction.account_id == Account.id).filter(Account.type.in_(["courant", "epargne"]))
+        tr_accounts = _get_ticket_restaurant_account_ids(db)
+        if tr_accounts:
+            query = query.filter(Transaction.account_id.notin_(tr_accounts))
     if month is not None and year is not None:
-        start = datetime(year, month, 1)
-        end = datetime(year + (1 if month == 12 else 0), 1 if month == 12 else month + 1, 1)
+        if period:
+            from app.core.budget_period import period_bounds
+            start, end = period_bounds(db, year, month)
+        else:
+            start = datetime(year, month, 1)
+            end = datetime(year + (1 if month == 12 else 0), 1 if month == 12 else month + 1, 1)
         query = query.filter(and_(
             Transaction.date >= start,
             Transaction.date < end,
@@ -372,6 +397,7 @@ async def bulk_update_transactions(payload: TransactionBulkUpdate, db: Session =
     if bulk_type is not None:
         for tx in transactions:
             remb.check_transaction_change(db, tx, bulk_type, tx.amount, False)
+            check_split_compatible(tx, bulk_type, tx.amount, tx.is_transfer)
 
     tags = []
     if payload.tag_ids is not None:
@@ -381,6 +407,7 @@ async def bulk_update_transactions(payload: TransactionBulkUpdate, db: Session =
     for tx in transactions:
         if payload.category_id is not None:
             tx.category_id = payload.category_id
+            tx.splits = []  # recatégoriser en masse remplace le découpage
         if payload.is_recurring is not None:
             tx.is_recurring = payload.is_recurring
         if bulk_type is not None:
@@ -421,6 +448,18 @@ def bulk_delete_transactions(payload: TransactionBulkDelete, db: Session = Depen
     for account_id in affected_account_ids:
         recalculate_running_balances(db, account_id)
     return TransactionBulkDeleteResult(deleted=len(transactions))
+
+
+@router.put("/{transaction_id}/splits", response_model=TransactionRead)
+def update_transaction_splits(transaction_id: int, payload: TransactionSplitsUpdate, db: Session = Depends(get_db)):
+    """Découpe une dépense entre plusieurs catégories (liste vide = annuler le découpage)."""
+    transaction = db.query(Transaction).filter(Transaction.id == transaction_id).first()
+    if not transaction:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+    set_splits(db, transaction, payload.items)
+    db.commit()
+    db.refresh(transaction)
+    return transaction
 
 
 @router.patch("/{transaction_id}", response_model=TransactionRead)
@@ -487,6 +526,15 @@ async def update_transaction(transaction_id: int, payload: TransactionUpdate, db
         update_data.get("amount", transaction.amount),
         bool(update_data.get("is_transfer")),
     )
+
+    check_split_compatible(
+        transaction,
+        update_data.get("type", transaction.type),
+        update_data.get("amount", transaction.amount),
+        bool(update_data.get("is_transfer", transaction.is_transfer)),
+    )
+    if transaction.splits and "category_id" in update_data and update_data["category_id"] != transaction.category_id:
+        transaction.splits = []  # choisir une seule catégorie annule le découpage
 
     # La colonne n'est pas nullable : un `null` explicite équivaut à « ne pas modifier »
     if update_data.get("is_exceptional", True) is None:

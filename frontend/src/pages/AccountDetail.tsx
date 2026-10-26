@@ -161,12 +161,14 @@ import {
   Wrench,
   Check,
   HandCoins,
+  Split,
   X,
   MoreHorizontal,
 } from "lucide-react"
 import { api } from "@/lib/api"
 import { TransferLinkDialog } from "@/components/transfers/TransferLinkDialog"
 import { ReimbursementDialog } from "@/components/reimbursements/ReimbursementDialog"
+import { SplitTransactionDialog, type SplitPart } from "@/components/transactions/SplitTransactionDialog"
 import type { AccountLite } from "@/types/transfers"
 import { IconComponent } from "@/components/dashboard/IconComponent"
 import { COUNTRIES } from "@/lib/countries"
@@ -264,14 +266,17 @@ type Account = {
 type Category = {
   id: number
   name: string
+  type?: string
   icon?: string
   color?: string
+  archived?: boolean
 }
 
 type TagType = {
   id: number
   name: string
   color: string | null
+  archived?: boolean
 }
 
 type Transaction = {
@@ -303,6 +308,7 @@ type Transaction = {
   reimbursement_offset?: number
   reimbursement_expected?: number
   has_claims?: boolean
+  splits?: (SplitPart & { category?: Category | null })[]
 }
 
 const getMerchantIcon = (merchantName: string) => {
@@ -328,6 +334,7 @@ export default function AccountDetail() {
   const [account, setAccount] = useState<Account | null>(null)
   const [transferTx, setTransferTx] = useState<Transaction | null>(null)
   const [reimbursementTx, setReimbursementTx] = useState<Transaction | null>(null)
+  const [splitTx, setSplitTx] = useState<Transaction | null>(null)
   const [allAccounts, setAllAccounts] = useState<AccountLite[]>([])
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [hasMoreTx, setHasMoreTx] = useState(false)
@@ -1136,6 +1143,12 @@ export default function AccountDetail() {
               {tx.type === "Sortie" ? "On me doit…" : "Affecter à une créance…"}
             </DropdownMenuItem>
           )}
+          {tx.type === "Sortie" && !tx.is_transfer && (
+            <DropdownMenuItem onClick={() => setSplitTx(tx)}>
+              <Split className="mr-2 h-4 w-4" />
+              {tx.splits?.length ? "Modifier le découpage…" : "Découper entre catégories…"}
+            </DropdownMenuItem>
+          )}
           {(tx.type === "Sortie" || tx.type === "Entree") && (
             <DropdownMenuItem onClick={() => openTransferDialog(tx)}>
               <ArrowRightLeft className="mr-2 h-4 w-4" />
@@ -1277,7 +1290,7 @@ export default function AccountDetail() {
                           <SelectTrigger id="category" className="bg-slate-50 border-slate-200"><SelectValue placeholder="Choisir..." /></SelectTrigger>
                           <SelectContent>
                             <SelectItem value="none">Aucune</SelectItem>
-                            {categories.map((cat) => <SelectItem key={cat.id} value={String(cat.id)}>{cat.name}</SelectItem>)}
+                            {categories.filter((cat) => !cat.archived || String(cat.id) === txCategoryId).map((cat) => <SelectItem key={cat.id} value={String(cat.id)}>{cat.name}</SelectItem>)}
                           </SelectContent>
                         </Select>
                       </div>
@@ -1286,7 +1299,7 @@ export default function AccountDetail() {
                         <div className="grid gap-2">
                           <Label className="text-xs uppercase tracking-wider font-bold text-slate-500">Tags</Label>
                           <div className="flex flex-wrap gap-2 p-3 bg-slate-50 rounded-xl border border-slate-200">
-                            {availableTags.map((tag) => (
+                            {availableTags.filter((tag) => !tag.archived || txTagIds.includes(tag.id)).map((tag) => (
                               <div key={tag.id} className="flex items-center space-x-2">
                                 <Checkbox 
                                   id={`tag-${tag.id}`} 
@@ -2084,7 +2097,7 @@ export default function AccountDetail() {
                             <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded" style={{ backgroundColor: tx.category?.color || "#cbd5e1" }}>
                               <IconComponent name={tx.category?.icon} className="h-2.5 w-2.5 text-white" />
                             </span>
-                            <span>{tx.category?.name || "Sans catégorie"}</span>
+                            <span>{tx.splits?.length ? `Découpée · ${tx.splits.map((p: any) => p.category?.name ?? "?").join(", ")}` : tx.category?.name || "Sans catégorie"}</span>
                           </>
                         )}
                       </div>
@@ -2226,7 +2239,10 @@ export default function AccountDetail() {
                           <div className="h-6 w-6 rounded-md flex items-center justify-center" style={{ backgroundColor: tx.category?.color || "#f1f5f9" }}>
                             <IconComponent name={tx.category?.icon} className="h-3.5 w-3.5 text-white" />
                           </div>
-                          <span className="text-sm font-medium text-slate-600">{tx.category?.name || "Sans catégorie"}</span>
+                          <span className="text-sm font-medium text-slate-600" title={tx.splits?.length ? tx.splits.map((p: any) => `${p.category?.name ?? "?"} : ${formatCurrency(p.amount)}`).join("\n") : undefined}>
+                            {tx.category?.name || "Sans catégorie"}
+                            {tx.splits?.length ? <span className="ml-1 inline-flex items-center gap-0.5 text-xs text-slate-400"><Split className="h-3 w-3" />+{tx.splits.length - 1}</span> : null}
+                          </span>
                         </div>
                       )}
                     </TableCell>
@@ -2590,7 +2606,7 @@ export default function AccountDetail() {
                 <SelectContent>
                   <SelectItem value="keep">Ne pas changer</SelectItem>
                   <SelectItem value="none">Aucune catégorie</SelectItem>
-                  {categories.map((cat) => (
+                  {categories.filter((cat) => !cat.archived).map((cat) => (
                     <SelectItem key={cat.id} value={String(cat.id)}>
                       <div className="flex items-center gap-2">
                         <div className="h-3 w-3 rounded-full" style={{ backgroundColor: cat.color || "#cbd5e1" }} />
@@ -2632,7 +2648,7 @@ export default function AccountDetail() {
 
               {bulkTagAction === "replace" && (
                 <div className="flex flex-wrap gap-2 p-3 bg-slate-50 rounded-xl border border-slate-200">
-                  {availableTags.map((tag) => (
+                  {availableTags.filter((tag) => !tag.archived).map((tag) => (
                     <div key={tag.id} className="flex items-center space-x-2">
                       <Checkbox 
                         id={`bulk-tag-${tag.id}`} 
@@ -2678,6 +2694,14 @@ export default function AccountDetail() {
         open={reimbursementTx !== null}
         onOpenChange={(o) => !o && setReimbursementTx(null)}
         transaction={reimbursementTx}
+        onDone={loadTransactions}
+      />
+
+      <SplitTransactionDialog
+        open={splitTx !== null}
+        onOpenChange={(o) => !o && setSplitTx(null)}
+        transaction={splitTx}
+        categories={categories}
         onDone={loadTransactions}
       />
 

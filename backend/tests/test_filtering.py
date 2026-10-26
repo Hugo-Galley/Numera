@@ -126,3 +126,37 @@ def test_account_history_beyond_default_limit_is_reachable_page_by_page(client: 
     assert len(page1) == 200
     assert len(page2) == 50
     assert len({tx["id"] for tx in page1 + page2}) == 250
+
+
+def test_drilldown_filters_match_analytics_scope(client, db_session):
+    from datetime import datetime as dt
+
+    from app.core.finance import month_label_from_date
+    from app.models.account import Account
+    from app.models.merchant import Merchant
+    from app.models.transaction import Transaction
+
+    courant = Account(name="Courant", type="courant", currency="EUR", active=True)
+    pea = Account(name="PEA", type="investissement", currency="EUR", active=True)
+    carrefour = Merchant(name="Carrefour")
+    db_session.add_all([courant, pea, carrefour])
+    db_session.commit()
+
+    def tx(account, merchant, merchant_id=None):
+        d = dt(2025, 10, 5)
+        t = Transaction(
+            account_id=account.id, date=d, month_label=month_label_from_date(d), type="Sortie", merchant=merchant,
+            merchant_id=merchant_id, amount=10.0, original_amount=10.0, currency="EUR", running_balance=0.0,
+        )
+        db_session.add(t)
+        db_session.commit()
+        return t
+
+    a = tx(courant, "CARREFOUR MARKET 123", carrefour.id)
+    tx(pea, "FRAIS")
+    params = {"month": 10, "year": 2025, "period": True, "budget_scope": True}
+
+    ids = [t["id"] for t in client.get("/transactions", params={**params, "uncategorized": True}).json()]
+    assert ids == [a.id]  # le PEA est hors périmètre budget
+    ids = [t["id"] for t in client.get("/transactions", params={**params, "merchant_name": "Carrefour"}).json()]
+    assert ids == [a.id]

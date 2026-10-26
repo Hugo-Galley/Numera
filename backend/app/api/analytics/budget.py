@@ -58,6 +58,7 @@ router = APIRouter()
 
 from app.core.wealth import account_values, active_accounts
 from .utils import (
+    category_lines,
     income_criterion,
     NET_AMOUNT,
     budget_versement_ids,
@@ -645,9 +646,12 @@ async def budget_alerts(
     start_year = datetime(year, 1, 1)
     end_year = datetime(year + 1, 1, 1)
 
-    # Monthly spending per category in EUR
+    # Monthly spending per category in EUR (dépenses découpées : une ligne par part)
+    lines = category_lines()
     monthly_query = (
-        db.query(Transaction.category_id, Account.currency, func.sum(NET_AMOUNT))
+        db.query(lines.c.category_id, Account.currency, func.sum(lines.c.net_amount))
+        .select_from(Transaction)
+        .join(lines, lines.c.transaction_id == Transaction.id)
         .join(Account, Transaction.account_id == Account.id)
         .filter(
             Transaction.type == "Sortie",
@@ -662,7 +666,7 @@ async def budget_alerts(
         if tr_accounts:
             monthly_query = monthly_query.filter(Transaction.account_id.notin_(tr_accounts))
 
-    monthly_rows = monthly_query.group_by(Transaction.category_id, Account.currency).all()
+    monthly_rows = monthly_query.group_by(lines.c.category_id, Account.currency).all()
 
     monthly_spent_map = {}
     for cat_id, curr, amount in monthly_rows:
@@ -672,7 +676,9 @@ async def budget_alerts(
 
     # Annual spending per category in EUR
     annual_query = (
-        db.query(Transaction.category_id, Account.currency, func.sum(NET_AMOUNT))
+        db.query(lines.c.category_id, Account.currency, func.sum(lines.c.net_amount))
+        .select_from(Transaction)
+        .join(lines, lines.c.transaction_id == Transaction.id)
         .join(Account, Transaction.account_id == Account.id)
         .filter(
             Transaction.type == "Sortie",
@@ -687,7 +693,7 @@ async def budget_alerts(
         if tr_accounts:
             annual_query = annual_query.filter(Transaction.account_id.notin_(tr_accounts))
 
-    annual_rows = annual_query.group_by(Transaction.category_id, Account.currency).all()    
+    annual_rows = annual_query.group_by(lines.c.category_id, Account.currency).all()    
     annual_spent_map = {}
     for cat_id, curr, amount in annual_rows:
         if cat_id not in annual_spent_map:

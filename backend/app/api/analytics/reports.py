@@ -62,6 +62,7 @@ def calc_diff(curr: float, prev: float) -> tuple[float, float]:
     return round(diff, 2), round(pct, 2)
 
 from .utils import (
+    category_lines,
     budget_versement_ids,
     opening_balances_eur,
     income_criterion,
@@ -290,6 +291,7 @@ async def get_monthly_report(
     )
     for item in sorted_items[:8]:
         top_categories.append({
+            "id": item["category"]["id"],
             "name": item["category"]["name"],
             "total": item["total"],
             "icon": item["category"]["icon"],
@@ -413,8 +415,14 @@ async def _calculate_money_flow_data(month: int, year: int, db: Session, account
                 top_fixed_map[key] = top_fixed_map.get(key, 0) + amount_eur
             else:
                 variable_expenses += amount_eur
-                key = cat_name
-                top_variable_map[key] = top_variable_map.get(key, 0) + amount_eur
+                # Dépense découpée : chaque part va à sa catégorie, remboursement réparti au prorata
+                shares = (
+                    [(part.category.name if part.category else "Sans catégorie", part.amount / tx.amount) for part in tx.splits]
+                    if tx.splits and tx.amount
+                    else [(cat_name, 1.0)]
+                )
+                for key, ratio in shares:
+                    top_variable_map[key] = top_variable_map.get(key, 0) + amount_eur * ratio
                 
     # 3. Versements alimentés par un virement interne lié : la sortie du courant est un virement
     # (is_transfer, donc absente ci-dessus) mais l'argent a bien quitté le budget. Mêmes versements
@@ -510,14 +518,17 @@ async def sankey_analytics(
     budget_data = await budget_analytics(month=month, year=year, account_id=account_id, db=db)
     
     # 2. Fetch all expenses by category (excluding internal transfers/savings/investments)
+    lines = category_lines()
     exp_query = (
         db.query(
             Category,
             Account.currency,
-            func.coalesce(func.sum(NET_AMOUNT), 0.0).label("total"),
+            func.coalesce(func.sum(lines.c.net_amount), 0.0).label("total"),
         )
+        .select_from(Transaction)
+        .join(lines, lines.c.transaction_id == Transaction.id)
         .join(Account, Transaction.account_id == Account.id)
-        .join(Category, Transaction.category_id == Category.id)
+        .join(Category, lines.c.category_id == Category.id)
         .filter(
             Transaction.date >= start,
             Transaction.date < end,
@@ -602,9 +613,12 @@ async def sankey_analytics(
     nodes = []
     links = []
 
-    def add_node(name, color=None):
+    def add_node(name, color=None, category_id=None):
         idx = len(nodes)
-        nodes.append({"name": name, "color": color})
+        node = {"name": name, "color": color}
+        if category_id is not None:
+            node["category_id"] = category_id  # nœud de catégorie de dépense : cliquable (drill-down)
+        nodes.append(node)
         return idx
 
     # Aggregator Node
@@ -647,7 +661,7 @@ async def sankey_analytics(
         total = data["total"]
         if total <= 0: continue
 
-        item = {"name": cat.name, "color": cat.color, "total": total}
+        item = {"name": cat.name, "color": cat.color, "total": total, "id": cat.id}
         if cat.group:
             if cat.group not in grouped_expenses:
                 grouped_expenses[cat.group] = []
@@ -686,7 +700,7 @@ async def sankey_analytics(
     for g_name in sorted_groups:
         g_idx = group_node_indices[g_name]
         for item in grouped_expenses[g_name]:
-            cat_idx = add_node(item["name"], item["color"])
+            cat_idx = add_node(item["name"], item["color"], item["id"])
             links.append({
                 "source": g_idx,
                 "target": cat_idx,
@@ -696,7 +710,7 @@ async def sankey_analytics(
 
     # Add ungrouped categories (connected directly to Budget)
     for item in ungrouped_expenses:
-        cat_idx = add_node(item["name"], item["color"])
+        cat_idx = add_node(item["name"], item["color"], item["id"])
         links.append({
             "source": total_revenus_idx,
             "target": cat_idx,

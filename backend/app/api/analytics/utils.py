@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import and_, func, or_
+from sqlalchemy import and_, func, literal_column, or_, select, union_all
 from sqlalchemy.orm import Session
 
 from app.core.logging import get_logger
@@ -7,6 +7,7 @@ from app.models.account import Account
 from app.models.balance_snapshot import BalanceSnapshot
 from app.models.category import Category
 from app.models.transaction import Transaction
+from app.models.transaction_split import TransactionSplit
 from app.schemas.transaction import TransactionRead
 
 logger = get_logger(__name__)
@@ -14,6 +15,34 @@ logger = get_logger(__name__)
 # Montant « économique » : brut moins la part remboursée (Sortie) ou affectée à une créance (Entree).
 # Les KPI de revenus/dépenses l'utilisent ; les flux de trésorerie (soldes, calendrier) restent en brut.
 NET_AMOUNT = Transaction.amount - Transaction.reimbursement_offset
+
+
+def category_lines():
+    """Montants nets par (transaction, catégorie), parts de découpage déployées.
+
+    Une transaction sans découpage donne une ligne (sa catégorie, NET_AMOUNT) ; une dépense
+    découpée donne une ligne par part, la part remboursée étant répartie au prorata.
+    Joindre sur `transaction_id` et grouper sur `category_id` à la place de `Transaction.category_id`
+    pour toute répartition par catégorie : la somme des lignes égale la somme des NET_AMOUNT.
+    """
+    split_tx_ids = select(TransactionSplit.transaction_id)
+    whole = select(
+        Transaction.id.label("transaction_id"),
+        Transaction.category_id.label("category_id"),
+        NET_AMOUNT.label("net_amount"),
+    ).where(Transaction.id.notin_(split_tx_ids))
+    parts = (
+        select(
+            TransactionSplit.transaction_id.label("transaction_id"),
+            TransactionSplit.category_id.label("category_id"),
+            (
+                TransactionSplit.amount
+                * (literal_column("1.0") - Transaction.reimbursement_offset / Transaction.amount)
+            ).label("net_amount"),
+        )
+        .join(Transaction, Transaction.id == TransactionSplit.transaction_id)
+    )
+    return union_all(whole, parts).subquery("category_lines")
 
 
 def income_criterion(db: Session):

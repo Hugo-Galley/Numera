@@ -56,6 +56,7 @@ logger = get_logger(__name__)
 router = APIRouter()
 
 from .utils import (
+    category_lines,
     income_criterion,
     NET_AMOUNT,
     budget_versement_ids,
@@ -151,14 +152,17 @@ async def expenses_by_category(
     start, end = period_bounds(db, year, month)
     rates = await get_exchange_rates("EUR")
 
+    lines = category_lines()
     query = (
         db.query(
             Category,
             Account.currency,
-            func.coalesce(func.sum(NET_AMOUNT), 0.0).label("total"),
+            func.coalesce(func.sum(lines.c.net_amount), 0.0).label("total"),
         )
+        .select_from(Transaction)
+        .join(lines, lines.c.transaction_id == Transaction.id)
         .join(Account, Transaction.account_id == Account.id)
-        .outerjoin(Category, Transaction.category_id == Category.id)
+        .outerjoin(Category, lines.c.category_id == Category.id)
         .filter(
             Transaction.date >= start,
             Transaction.date < end,

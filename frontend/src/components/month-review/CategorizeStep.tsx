@@ -24,7 +24,7 @@ export function CategorizeStep({
 
   useEffect(() => {
     // L'étape ne traite que des dépenses : pas de Salaire ni de Dividendes dans la liste
-    api.get<CategoryOption[]>("/categories")
+    api.get<CategoryOption[]>("/categories?include_archived=false")
       .then((all) => setCategories(all.filter((c) => c.type !== "revenu")))
       .catch(() => setCategories([]))
   }, [])

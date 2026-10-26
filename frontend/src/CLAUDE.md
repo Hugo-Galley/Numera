@@ -24,7 +24,7 @@ Complète le `CLAUDE.md` racine. Procédures : skill `numera-frontend`. Le front
 - Confirmation avant une action destructive : `const confirm = useConfirm()` (`providers/ConfirmProvider`) puis `if (!(await confirm("…"))) return` ; jamais `window.confirm()` / `alert()`.
 - Chargements : une page qui change de mois/compte ignore les réponses obsolètes (drapeau `cancelled` ou numéro de requête) et vide ses données avant de recharger ; `errorMessage(error, repli)` (`lib/utils`) affiche le détail du serveur.
 - Retours utilisateur : `toast.success` / `toast.error` (`sonner`) après chaque mutation ; `Skeleton` pendant le chargement ; état vide avec icône + action.
-- Icônes `lucide-react`. Graphiques `recharts` (palette Slate / Emerald / Rose / Amber ; tooltips et légendes obligatoires ; éléments cliquables pour drill-down quand une vue filtrée existe). Sankey/treemap dans `components/analytics`.
+- Icônes `lucide-react`. Graphiques `recharts` (palette Slate / Emerald / Rose / Amber ; tooltips et légendes obligatoires ; éléments cliquables pour drill-down : `useDrilldown().openDrilldown({month, year, label, categoryId | merchantName, accountId})` ouvre le panneau `components/transactions/DrilldownSheet` monté dans `AppLayout`, filtres portés par l'URL `?dd_*`). Sankey/treemap dans `components/analytics`.
 - Formulaires : `react-hook-form` + `zod` (+ `@hookform/resolvers`) avec `components/ui/form`.
 - Mobile (375 px) : toute nouvelle page ou composant suit `docs/MOBILE.md` (navigation `MobileNav`, cartes sous `md`, champs 16 px, cibles 40 px). Le bureau (≥ md) ne doit pas changer.
 - Nouvelle fonctionnalité navigable → l'ajouter à la Sidebar et à l'Omnibox (⌘K).

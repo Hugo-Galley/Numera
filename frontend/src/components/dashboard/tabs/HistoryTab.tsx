@@ -1,4 +1,5 @@
-import { History as HistoryIcon, Activity, Layers } from "lucide-react"
+import { History as HistoryIcon, Activity, Layers, Flag } from "lucide-react"
+import type { Milestone } from "@/components/dashboard/useDashboardData"
 import { 
   Card, 
   CardContent, 
@@ -18,7 +19,8 @@ import {
   Tooltip,
   Legend,
   LineChart,
-  Line
+  Line,
+  ReferenceLine
 } from "recharts"
 
 // Abréviations usuelles : « juin » et « juil. » se distinguent (les 3 premières lettres donnaient « Jui » deux fois)
@@ -29,14 +31,22 @@ interface HistoryTabProps {
   burnRateSeries: any[]
   salarySeries: any[]
   displayCurrency: string
+  milestones: Milestone[]
 }
 
 export function HistoryTab({
   kpiHistory,
   burnRateSeries,
   salarySeries,
-  displayCurrency
+  displayCurrency,
+  milestones
 }: HistoryTabProps) {
+  // Jalons visibles : mois présents sur la courbe (libellé « m/aaaa » de kpi-history)
+  const shownLabels = new Set(kpiHistory.map((p: any) => p.label))
+  const visibleMilestones = milestones
+    .map((m) => ({ ...m, label: `${m.month}/${m.year}` }))
+    .filter((m) => shownLabels.has(m.label))
+    .sort((a, b) => a.year * 12 + a.month - (b.year * 12 + b.month))
   const isMobile = useIsMobile()
   const margin = isMobile ? { top: 8, right: 12, left: 0, bottom: 4 } : { top: 40, right: 30, left: 20, bottom: 20 }
   const yWidth = isMobile ? 48 : undefined
@@ -65,9 +75,29 @@ export function HistoryTab({
               <Legend verticalAlign={isMobile ? "bottom" : "top"} height={36} wrapperStyle={isMobile ? { fontSize: 12 } : undefined}/>
               <Area type="monotone" dataKey="revenus" name="Revenus" stroke="#10b981" fill="url(#colorRev)" strokeWidth={3} />
               <Area type="monotone" dataKey="depenses_reelles" name="Dépenses réelles" stroke="#f43f5e" fill="url(#colorDep)" strokeWidth={3} />
+              {visibleMilestones.map((m) => (
+                <ReferenceLine
+                  key={m.label}
+                  x={m.label}
+                  stroke="#f59e0b"
+                  strokeDasharray="4 3"
+                  label={{ value: "⚑", position: "top", fill: "#d97706", fontSize: 14 }}
+                />
+              ))}
             </AreaChart>
           </ResponsiveContainer>
         </CardContent>
+        {visibleMilestones.length > 0 && (
+          <ul className="space-y-1.5 border-t px-4 py-3 md:px-6">
+            {visibleMilestones.map((m) => (
+              <li key={m.label} className="flex gap-2 text-sm">
+                <Flag className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-500" />
+                <span className="shrink-0 font-semibold tabular-nums text-slate-700">{SHORT_MONTHS[m.month - 1]} {m.year}</span>
+                <span className="text-slate-500">{m.highlight}</span>
+              </li>
+            ))}
+          </ul>
+        )}
       </Card>
 
       <Card className="shadow-sm border-slate-100 overflow-hidden">

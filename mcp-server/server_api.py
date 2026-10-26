@@ -842,6 +842,68 @@ def get_wealth_forecast(
 
 
 @mcp.tool()
+def get_fire_projection(
+    withdrawal_rate_pct: float = 4.0,
+    inflation_pct: float = 2.0,
+    return_pct: float | None = None,
+    monthly_savings: float | None = None,
+    annual_expenses: float | None = None,
+) -> str:
+    """Indépendance financière : patrimoine cible = dépenses annuelles ÷ taux de retrait, années pour l'atteindre
+    au rythme d'épargne réel (en euros d'aujourd'hui), et scénarios (+100/+250/+500 €/mois, dépenses −10 %).
+
+    Args:
+        withdrawal_rate_pct: Taux de retrait annuel (défaut 4, règle des 4 %)
+        inflation_pct: Inflation annuelle retranchée du rendement (défaut 2)
+        return_pct: Remplace le rendement nominal constaté (optionnel)
+        monthly_savings: Remplace l'épargne mensuelle moyenne (optionnel)
+        annual_expenses: Remplace les dépenses annuelles réelles (optionnel)
+    """
+    try:
+        params: dict = {"withdrawal_rate_pct": withdrawal_rate_pct, "inflation_pct": inflation_pct}
+        if return_pct is not None:
+            params["return_pct"] = return_pct
+        if monthly_savings is not None:
+            params["monthly_savings"] = monthly_savings
+        if annual_expenses is not None:
+            params["annual_expenses"] = annual_expenses
+        resp = api.get("/analytics/fire", params=params)
+        error = handle_response(resp)
+        if error:
+            return error
+        return f"🔥 Indépendance financière :\n\n{serialize(resp.json())}"
+    except Exception as e:
+        return f"❌ Erreur : {e}"
+
+
+@mcp.tool()
+def list_provisions() -> str:
+    """Provisions pour grosses dépenses périodiques (taxe foncière, assurance…) : prochaine échéance,
+    effort mensuel, ce qui devrait déjà être de côté, constitution réelle sur le compte rattaché et statut."""
+    try:
+        resp = api.get("/provisions")
+        error = handle_response(resp)
+        if error:
+            return error
+        simplified = [
+            {
+                "id": p["id"],
+                "name": p["name"],
+                "montant": p["amount"],
+                "echeance": p["next_due"],
+                "mensuel_requis": p["monthly_needed"],
+                "cible_aujourdhui": p["target_now"],
+                "constitue": p["funded"] if p["funded"] is not None else "—",
+                "statut": p["status"],
+            }
+            for p in resp.json()
+        ]
+        return f"📅 {len(simplified)} provision(s) :\n\n" + format_table(simplified)
+    except Exception as e:
+        return f"❌ Erreur : {e}"
+
+
+@mcp.tool()
 def get_portfolio(account_id: int | None = None) -> str:
     """Valeur calculée (positions × cours + espèces), plus-values, XIRR/TWR et rapprochement.
 

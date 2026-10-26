@@ -8,6 +8,7 @@ interface SankeyNode {
   name: string;
   color?: string | null;
   value?: number;
+  category_id?: number;
 }
 
 interface SankeyLink {
@@ -25,6 +26,8 @@ interface SankeyData {
 interface SankeyFlowProps {
   data: SankeyData;
   currency?: string;
+  /** Clic sur un nœud de catégorie de dépense (drill-down vers les transactions) */
+  onCategoryClick?: (categoryId: number, name: string) => void;
 }
 
 // Layout maison (au lieu du <Sankey> de recharts) : recharts envoie tous les nœuds terminaux
@@ -205,7 +208,7 @@ interface TooltipState {
   value: number;
 }
 
-export function SankeyFlow({ data, currency = "EUR" }: SankeyFlowProps) {
+export function SankeyFlow({ data, currency = "EUR", onCategoryClick }: SankeyFlowProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
   const [tooltip, setTooltip] = useState<TooltipState | null>(null);
@@ -306,7 +309,18 @@ export function SankeyFlow({ data, currency = "EUR" }: SankeyFlowProps) {
                 key={nd.index}
                 onMouseMove={(e) => showTooltip(e, nd.name, nd.value)}
                 onMouseLeave={hideTooltip}
+                {...(onCategoryClick && data.nodes[nd.index]?.category_id != null
+                  ? {
+                      role: "button",
+                      className: "cursor-pointer",
+                      onClick: () => onCategoryClick(data.nodes[nd.index].category_id!, nd.name),
+                    }
+                  : {})}
               >
+                {/* Zone de clic élargie : la barre d'une petite catégorie ne fait que quelques pixels */}
+                {onCategoryClick && data.nodes[nd.index]?.category_id != null && (
+                  <rect x={nd.x - 4} y={Math.min(nd.y, cy - 16)} width={NODE_WIDTH + 100} height={Math.max(nd.height, 32)} fill="transparent" />
+                )}
                 <rect x={nd.x} y={nd.y} width={NODE_WIDTH} height={nd.height} fill={nd.color} />
                 {/* Halo blanc pour rester lisible quand le libellé passe sur les flux sortants */}
                 <text

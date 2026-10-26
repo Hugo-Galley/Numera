@@ -86,7 +86,7 @@ export function SalaryManager() {
     try {
       const [accRes, catRes] = await Promise.all([
         api.get("/accounts"),
-        api.get("/categories")
+        api.get("/categories?include_archived=false")
       ])
       setAccounts(accRes)
       setCategories(catRes)

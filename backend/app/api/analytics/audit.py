@@ -285,6 +285,7 @@ def data_audit(db: Session = Depends(get_db)):
     unused_categories = (
         db.query(Category)
         .outerjoin(Transaction, Transaction.category_id == Category.id)
+        .filter(Category.archived.is_(False))
         .group_by(Category.id)
         .having(func.count(Transaction.id) == 0)
         .order_by(Category.name.asc())
@@ -297,9 +298,9 @@ def data_audit(db: Session = Depends(get_db)):
             type="cleanup",
             severity="low",
             title="Categories inutilisees",
-            description="Ces categories ajoutent du bruit dans les formulaires et les filtres.",
+            description="Ces categories ajoutent du bruit dans les formulaires et les filtres : archivez-les (historique conserve) ou supprimez-les.",
             count=len(unused_categories),
-            action_label="Gerer les categories",
+            action_label="Archiver ou supprimer",
             action_url="/settings",
             samples=[{"id": cat.id, "name": cat.name, "type": cat.type} for cat in unused_categories[:8]],
         ))

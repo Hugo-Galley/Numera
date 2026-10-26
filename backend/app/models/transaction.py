@@ -49,6 +49,9 @@ class Transaction(Base):
     linked_investment_transaction: Mapped["InvestmentTransaction"] = relationship("InvestmentTransaction", lazy="selectin", post_update=True, foreign_keys=[linked_investment_transaction_id])
     merchant_obj: Mapped["Merchant"] = relationship("Merchant", lazy="selectin")
     tags: Mapped[list["Tag"]] = relationship("Tag", secondary=transaction_tags, back_populates="transactions", lazy="selectin")
+    splits: Mapped[list["TransactionSplit"]] = relationship(
+        "TransactionSplit", lazy="selectin", cascade="all, delete-orphan", order_by="TransactionSplit.id"
+    )
     claims: Mapped[list["ReimbursementClaim"]] = relationship(
         "ReimbursementClaim", lazy="selectin", viewonly=True
     )

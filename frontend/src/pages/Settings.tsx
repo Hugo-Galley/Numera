@@ -17,7 +17,9 @@ import {
   Filter,
   User,
   ShoppingBag,
-  Layers
+  Layers,
+  Archive,
+  ArchiveRestore
 } from "lucide-react"
 import { IconComponent, ICON_OPTIONS } from "@/components/dashboard/IconComponent"
 import { api } from "@/lib/api"
@@ -84,6 +86,7 @@ type Category = {
   group?: string | null
   monthly_limit?: number | null
   annual_limit?: number | null
+  archived?: boolean
 }
 
 type Account = {
@@ -235,6 +238,18 @@ export default function Settings() {
       toast.error("Erreur lors de la mise à jour")
     }
   })
+
+  const [showArchivedCats, setShowArchivedCats] = useState(false)
+
+  const handleToggleArchiveCategory = async (cat: Category) => {
+    try {
+      await api.patch(`/categories/${cat.id}`, { archived: !cat.archived })
+      toast.success(cat.archived ? "Catégorie réactivée" : "Catégorie archivée : masquée des sélecteurs, historique conservé")
+      loadCategories()
+    } catch (error) {
+      toast.error("Erreur lors de l'archivage")
+    }
+  }
 
   const handleDeleteCategory = async (categoryId: number) => {
     if (!(await confirm("Supprimer cette catégorie ? Les transactions associées n'auront plus de catégorie."))) return
@@ -448,9 +463,10 @@ export default function Settings() {
           {loading ? (
              <div className="text-center py-20 text-slate-400">Chargement de vos catégories...</div>
           ) : (
+            <>
             <div className="grid gap-3 md:gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {categories.map((cat) => (
-                <Card key={cat.id} className="group hover:border-slate-300 transition-all shadow-sm border-slate-100 overflow-hidden">
+              {categories.filter((cat) => showArchivedCats || !cat.archived).map((cat) => (
+                <Card key={cat.id} className={`group hover:border-slate-300 transition-all shadow-sm border-slate-100 overflow-hidden ${cat.archived ? "opacity-60" : ""}`}>
                   <CardContent className="p-0">
                     <div className="p-3 pl-4 md:p-4 flex items-center gap-3 md:gap-4">
                       <div className="h-12 w-12 shrink-0 rounded-2xl flex items-center justify-center shadow-sm" style={{ backgroundColor: cat.color || "#f1f5f9" }}>
@@ -476,10 +492,14 @@ export default function Settings() {
                         {cat.monthly_limit != null && (
                           <p className="text-[10px] text-amber-600 font-semibold mt-0.5">{cat.monthly_limit}€/mois</p>
                         )}
+                        {cat.archived && <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Archivée</p>}
                       </div>
                       <div className="flex shrink-0 gap-0 md:hidden">
                         <Button variant="ghost" size="sm" onClick={() => handleEditClick(cat)} aria-label="Modifier" className="h-10 w-10 p-0 text-slate-500">
                           <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => handleToggleArchiveCategory(cat)} aria-label={cat.archived ? "Réactiver" : "Archiver"} title={cat.archived ? "Réactiver" : "Archiver"} className="h-10 w-10 p-0 text-slate-500">
+                          {cat.archived ? <ArchiveRestore className="h-4 w-4" /> : <Archive className="h-4 w-4" />}
                         </Button>
                         <Button variant="ghost" size="sm" onClick={() => handleDeleteCategory(cat.id)} aria-label="Supprimer" className="h-10 w-10 p-0 text-rose-500 hover:bg-rose-50">
                           <Trash2 className="h-4 w-4" />
@@ -492,6 +512,9 @@ export default function Settings() {
                         <Button aria-label="Modifier" variant="ghost" size="sm" onClick={() => handleEditClick(cat)} className="h-10 w-10 md:h-8 md:w-8 p-0 text-slate-500 hover:text-slate-900">
                           <Pencil className="h-4 w-4" />
                         </Button>
+                        <Button aria-label={cat.archived ? "Réactiver" : "Archiver"} title={cat.archived ? "Réactiver" : "Archiver"} variant="ghost" size="sm" onClick={() => handleToggleArchiveCategory(cat)} className="h-10 w-10 md:h-8 md:w-8 p-0 text-slate-500 hover:text-slate-900">
+                          {cat.archived ? <ArchiveRestore className="h-4 w-4" /> : <Archive className="h-4 w-4" />}
+                        </Button>
                         <Button aria-label="Supprimer" variant="ghost" size="sm" onClick={() => handleDeleteCategory(cat.id)} className="h-10 w-10 md:h-8 md:w-8 p-0 text-rose-500 hover:text-rose-600 hover:bg-rose-50">
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -501,6 +524,13 @@ export default function Settings() {
                 </Card>
               ))}
             </div>
+            {categories.some((cat) => cat.archived) && (
+              <Button variant="ghost" size="sm" className="text-slate-500" onClick={() => setShowArchivedCats((v) => !v)}>
+                <Archive className="mr-2 h-4 w-4" />
+                {showArchivedCats ? "Masquer les catégories archivées" : `Afficher les catégories archivées (${categories.filter((cat) => cat.archived).length})`}
+              </Button>
+            )}
+            </>
           )}
 
           {/* Edit Dialog */}

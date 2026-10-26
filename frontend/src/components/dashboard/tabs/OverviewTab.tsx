@@ -1,3 +1,4 @@
+import { useDrilldown, type DrilldownScope } from "@/hooks/useDrilldown"
 import { useState, useMemo } from "react"
 import { AccountLogo } from "@/components/ui/AccountLogo"
 import { 
@@ -35,6 +36,7 @@ interface OverviewTabProps {
   displayCurrency: string
   tagTotals: any[]
   patrimoineAllocation: any
+  drilldownScope: DrilldownScope
 }
 
 export function OverviewTab({
@@ -42,9 +44,13 @@ export function OverviewTab({
   expensesByCategory,
   displayCurrency,
   tagTotals,
-  patrimoineAllocation
+  patrimoineAllocation,
+  drilldownScope
 }: OverviewTabProps) {
   const isMobile = useIsMobile()
+  const { openDrilldown } = useDrilldown()
+  const openCategory = (item: any) =>
+    item?.category && openDrilldown({ ...drilldownScope, label: item.category.name, categoryId: item.category.id ?? null })
   const [groupBy, setGroupBy] = useState<"account" | "category" | "mixed" | "institution">("mixed")
 
   const flatItems = useMemo(() => {
@@ -227,7 +233,7 @@ export function OverviewTab({
       <Card className="shadow-sm border-slate-100 overflow-hidden">
         <CardHeader className="bg-slate-50/50 border-b p-4 pb-3 md:p-6 md:pb-4">
           <CardTitle className="text-lg">Flux Financiers</CardTitle>
-          <CardDescription>Visualisation des revenus vers les dépenses et l'épargne.</CardDescription>
+          <CardDescription>Visualisation des revenus vers les dépenses et l'épargne. Cliquez sur une catégorie pour voir ses transactions.</CardDescription>
         </CardHeader>
         <CardContent className="p-3 md:p-6">
           {isMobile ? (
@@ -235,13 +241,13 @@ export function OverviewTab({
             <div>
               <div className="-mx-1 overflow-x-auto overscroll-x-contain pb-2">
                 <div className="min-w-[640px]">
-                  <SankeyFlow data={sankeyData} currency={displayCurrency} />
+                  <SankeyFlow data={sankeyData} currency={displayCurrency} onCategoryClick={(categoryId, label) => openDrilldown({ ...drilldownScope, label, categoryId })} />
                 </div>
               </div>
               <p className="mt-1 text-center text-xs text-slate-400">Faites glisser pour voir tout le diagramme →</p>
             </div>
           ) : (
-            <SankeyFlow data={sankeyData} currency={displayCurrency} />
+            <SankeyFlow data={sankeyData} currency={displayCurrency} onCategoryClick={(categoryId, label) => openDrilldown({ ...drilldownScope, label, categoryId })} />
           )}
         </CardContent>
       </Card>
@@ -515,7 +521,7 @@ export function OverviewTab({
         <Card className="lg:col-span-8 shadow-sm border-slate-100 overflow-hidden">
           <CardHeader className="bg-slate-50/50 border-b p-4 pb-3 md:p-6 md:pb-4">
             <CardTitle className="text-lg">Dépenses par catégorie</CardTitle>
-            <CardDescription>Où va votre argent ce mois-ci ?</CardDescription>
+            <CardDescription>Où va votre argent ce mois-ci ? Cliquez sur une barre pour voir les transactions.</CardDescription>
           </CardHeader>
           <CardContent className="p-2 sm:p-6" style={{ height: isMobile ? Math.max(220, expensesByCategory.length * 34 + 30) : 400 }}>
             <ResponsiveContainer width="100%" height="100%">
@@ -524,7 +530,7 @@ export function OverviewTab({
                 <XAxis type="number" hide />
                 <YAxis dataKey="category.name" type="category" width={isMobile ? 92 : 100} axisLine={false} tickLine={false} tick={{ fontSize: isMobile ? 11 : 12, fill: '#64748b' }} />
                 <Tooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} formatter={(v: number) => formatAmountWithShare(v, expensesByCategory.reduce((s, i) => s + (i.total || 0), 0), displayCurrency)} />
-                <Bar dataKey="total" radius={[0, 4, 4, 0]} barSize={isMobile ? 16 : 20}>
+                <Bar dataKey="total" radius={[0, 4, 4, 0]} barSize={isMobile ? 16 : 20} className="cursor-pointer" onClick={(data: any) => openCategory(data?.payload ?? data)}>
                   {expensesByCategory.map((item, i) => (
                     <Cell key={i} fill={item.category.color || COLORS[i % COLORS.length]} />
                   ))}

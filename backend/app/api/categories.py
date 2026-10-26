@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from app.core.errors import api_error
@@ -11,8 +11,11 @@ router = APIRouter(prefix="/categories", tags=["categories"])
 
 
 @router.get("", response_model=list[CategoryRead])
-def list_categories(db: Session = Depends(get_db)):
-    return db.query(Category).order_by(Category.name.asc()).all()
+def list_categories(include_archived: bool = Query(default=True), db: Session = Depends(get_db)):
+    query = db.query(Category)
+    if not include_archived:
+        query = query.filter(Category.archived.is_(False))
+    return query.order_by(Category.name.asc()).all()
 
 
 @router.post("", response_model=CategoryRead, status_code=201)
@@ -47,6 +50,8 @@ def update_category(category_id: int, payload: CategoryUpdate, db: Session = Dep
         if existing:
             raise api_error(409, "category_already_exists", "Category already exists", {"name": data["name"]})
 
+    if data.get("archived", True) is None:
+        data.pop("archived")  # colonne non nullable : `null` = ne pas modifier
     for key, value in data.items():
         setattr(category, key, value)
 

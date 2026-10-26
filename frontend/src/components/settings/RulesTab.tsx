@@ -65,7 +65,7 @@ export function RulesTab() {
     try {
       const [r, cats] = await Promise.all([
         api.get<any[]>("/categorization-rules/"),
-        api.get<any[]>("/categories")
+        api.get<any[]>("/categories?include_archived=false")
       ])
       setRules(r)
       setCategories(cats)

@@ -1,4 +1,4 @@
-from sqlalchemy import String
+from sqlalchemy import Boolean, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base
@@ -15,3 +15,5 @@ class Category(Base):
     monthly_limit: Mapped[float | None] = mapped_column(nullable=True)
     annual_limit: Mapped[float | None] = mapped_column(nullable=True)
     group: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    # Archivée : masquée des sélecteurs, historique et analytics inchangés
+    archived: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0", nullable=False)

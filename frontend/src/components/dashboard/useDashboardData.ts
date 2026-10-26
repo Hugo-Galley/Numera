@@ -2,6 +2,12 @@ import { useState, useEffect, useCallback } from "react"
 import { toast } from "sonner"
 import { api } from "@/lib/api"
 
+export interface Milestone {
+  year: number
+  month: number
+  highlight: string | null
+}
+
 /**
  * Charge toutes les données du tableau de bord pour un mois et un compte.
  *
@@ -15,6 +21,7 @@ export function useDashboardData(selectedAccountId: string, month: number, year:
   const [analytics, setAnalytics] = useState<any>(null)
   const [expensesByCategory, setExpensesByCategory] = useState<any[]>([])
   const [kpiHistory, setKpiHistory] = useState<any[]>([])
+  const [milestones, setMilestones] = useState<Milestone[]>([])
   const [topMerchants, setTopMerchants] = useState<any[]>([])
   const [subscriptions, setSubscriptions] = useState<any>(null)
   const [salarySeries, setSalarySeries] = useState<any[]>([])
@@ -82,6 +89,8 @@ export function useDashboardData(selectedAccountId: string, month: number, year:
       safeLoad(`/analytics/sankey?month=${month}&year=${year}${accParam}`, setSankeyData),
       safeLoad(`/analytics/cashflow-projection?days=60${accId ? `&account_id=${accId}` : ""}`, setProjection),
       safeLoad(`/analytics/tags?month=${month}&year=${year}${accParam}`, setTagTotals),
+      // Faits marquants notés à la clôture des mois : jalons des courbes historiques
+      safeLoad("/month-review/closures", (d: Milestone[]) => setMilestones((d || []).filter((c) => c.highlight))),
     ]).then(() => {
       if (cancelled) return
       setLoading(false)
@@ -98,6 +107,7 @@ export function useDashboardData(selectedAccountId: string, month: number, year:
     analytics,
     expensesByCategory,
     kpiHistory,
+    milestones,
     topMerchants,
     subscriptions,
     salarySeries,

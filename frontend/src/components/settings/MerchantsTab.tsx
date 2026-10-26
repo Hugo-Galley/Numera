@@ -103,7 +103,7 @@ export function MerchantsTab() {
     try {
       const [merchantsData, categoriesData, suggestionsData] = await Promise.all([
         api.get<Merchant[]>("/merchants"),
-        api.get<Category[]>("/categories"),
+        api.get<Category[]>("/categories?include_archived=false"),
         api.get<Suggestion[]>("/merchants/suggestions/unnormalized?min_count=5")
       ])
       setMerchants(merchantsData)

@@ -124,13 +124,13 @@ Types connus: `courant`, `epargne`, `investissement`, `assurance_vie` (`AccountT
 
 ### `categories`
 
-Champs: `id`, `name`, `icon`, `color`, `type`, `monthly_limit`, `annual_limit`, `group`.
+Champs: `id`, `name`, `icon`, `color`, `type`, `monthly_limit`, `annual_limit`, `group`, `archived` (masquée des sélecteurs via `GET /categories?include_archived=false`, historique et analytics inchangés).
 
 `name` est unique. Les limites alimentent les alertes budget.
 
 ### `transactions`
 
-Champs: `id`, `account_id`, `date`, `month_label`, `type`, `merchant`, `merchant_id`, `category_id`, `amount`, `currency`, `original_amount`, `running_balance`, `note`, `is_recurring`, `recurring_transaction_id`, `is_subscription_ignored`, `custom_icon`, `custom_color`, `is_transfer`, `is_transfer_ignored`, `is_duplicate_ignored`, `linked_transaction_id`, `linked_investment_transaction_id`, `link_origin` (`manual` | `rule` | `recurring`), `transfer_rule_id`, `reimbursement_offset` (total remboursé pour une Sortie, total affecté pour une Entree ; maintenu par `core/reimbursements.py`). `is_exceptional` (dépense hors norme : reste dans les totaux et les soldes, isolée dans la lecture « hors exceptionnel » de la revue de mois).
+Champs: `id`, `account_id`, `date`, `month_label`, `type`, `merchant`, `merchant_id`, `category_id`, `amount`, `currency`, `original_amount`, `running_balance`, `note`, `is_recurring`, `recurring_transaction_id`, `is_subscription_ignored`, `custom_icon`, `custom_color`, `is_transfer`, `is_transfer_ignored`, `is_duplicate_ignored`, `linked_transaction_id`, `linked_investment_transaction_id`, `link_origin` (`manual` | `rule` | `recurring`), `transfer_rule_id`, `reimbursement_offset` (total remboursé pour une Sortie, total affecté pour une Entree ; maintenu par `core/reimbursements.py`). `is_exceptional` (dépense hors norme : reste dans les totaux et les soldes, isolée dans la lecture « hors exceptionnel » de la revue de mois). `splits` : parts de découpage (`transaction_splits`).
 
 `amount` est le montant converti dans la devise du compte. `original_amount` et `currency` gardent la saisie d'origine. Les champs de liaison permettent de connecter des virements internes ou de rattacher une transaction à sa règle récurrente génératrice.
 
@@ -166,7 +166,9 @@ Un point zéro sert de base de performance pour un compte.
 - `transfer_rules`: règles de virement interne (`source_account_id`, `dest_account_id`, `pattern` sur marchand/note de la sortie, `amount`, `amount_tolerance_pct`, `day_tolerance`, `is_active`). Moteur : `core/transfers.py`.
 - `reimbursement_claims` (créance : `transaction_id` → Sortie, `debtor`, `expected_amount`, `note`) et `reimbursement_allocations` (`claim_id`, `entree_transaction_id`, `amount`, unique par couple). Moteur : `core/reimbursements.py` ; les KPI utilisent `NET_AMOUNT = amount − reimbursement_offset` (`api/analytics/utils.py`).
 - `month_closures` (revue de fin de mois : `year` + `month` uniques ensemble, `closed_at`, `highlight`, photo `tx_count` / `income` / `expenses` / `unresolved_count`, plus `fingerprint` : totaux entrées/sorties par devise de compte en JSON, sans conversion). Marqueur non bloquant ; « modifié depuis la clôture » = `tx_count` ou `fingerprint` différents du recalcul (comparaison exacte, insensible aux taux de change). Logique : `core/month_review.py`, route : `api/month_review.py`.
-- `tags`: tags transversaux personnalisés (`id`, `name`, `color`).
+- `tags`: tags transversaux personnalisés (`id`, `name`, `color`, `archived`).
+- `transaction_splits`: découpage d'une `Sortie` hors virement entre catégories (`transaction_id` CASCADE, `category_id`, `amount`, `note`) ; somme des parts = montant, aucune part Investissement/Epargne ni catégorie `revenu`, la transaction prend la catégorie de la plus grosse part. Logique : `core/splits.py`. Seules les répartitions par catégorie lisent les parts via `api/analytics/utils.py::category_lines` (`expenses-by-category`, `budget-alerts`, `sankey`, `money-flow` variable, provisions, filtre `category_id` de `/transactions`) ; totaux, soldes et dépenses réelles inchangés. Changer type/montant d'une transaction découpée → 400 ; changer sa catégorie, la recatégoriser en masse ou la lier en virement annule le découpage.
+- `provisions`: grosses dépenses périodiques (`name`, `amount` EUR par échéance, `interval_months`, `due_date` = échéance de référence, `category_id` pour retrouver le paiement réel, `account_id` = compte de mise de côté, `note`, `active`). Purement prévisionnel, aucune transaction créée. Calcul `core/provisions.py` : prochaine/précédente échéance, `target_now` = montant × temps écoulé depuis l'échéance précédente, `monthly_needed` = (montant − constitué) ÷ mois restants ; constitution = solde du compte rattaché (`core/wealth.py::account_values`) réparti entre ses provisions au prorata de leur cible ; `behind` si constitué < cible − 1 € ; `last_payment` = plus grosse dépense de la catégorie à ±60 j de l'échéance précédente.
 - `transaction_tags`: table d'association many-to-many (`transaction_id`, `tag_id`).
 - `merchants`: marchands canoniques (`id`, `name`, `category_id`, `icon`, `color`).
 - `merchant_aliases`: alias et libellés bancaires d'origine associés aux marchands canoniques (`id`, `merchant_id`, `label`).
@@ -191,6 +193,7 @@ Un point zéro sert de base de performance pour un compte.
 - `/investment-transactions`
 - `/balance-snapshots`
 - `/goals`
+- `/provisions` : `GET` (liste avec état calculé), `GET /summary` (total mensuel, échéances à 90 j, écart par compte rattaché), `POST`, `PATCH /{id}`, `DELETE /{id}`
 - `/categorization-rules`
 - `/recurring-transactions` (+ `POST /trigger`) ; `transfer_to_account_id` en fait une récurrence « virement » (sortie + entrée liées à chaque échéance) ; `transfer_credit_day` (1-31, optionnel) diffère l'arrivée : la sortie porte `transactions.transfer_credit_due` (premier jour `transfer_credit_day` à partir du débit) et l'entrée n'est créée qu'à cette date par la tâche de fond (jamais si la sortie a été liée ou déliée entre-temps) ; `whole_shares` (achat de titres sans quantité fixe) : quantité arrondie à l'entier inférieur et montant du versement = parts × cours (le reliquat reste chez le courtier, la sortie bancaire garde le montant prévu) ; `logo` optionnel (`si:<slug>` Simple Icons ou `file:<hash>.png` favicon local), repris par `TransactionRead.recurring_logo` et par les événements de `/analytics/calendar` (`logo`)
 - `/logos` : `GET /search?q=` (catalogue Simple Icons embarqué `app/assets/simple_icons/`, CC0), `POST /from-domain` (télécharge une fois le favicon d'un domaine via le service favicon de Google, stocké dans `data/logos/`, réglage `logos_dir`) ; `GET /logos/img/{ref}` est **public** (lecture seule, référence validée par regex) car une balise `<img>` n'envoie pas le JWT
@@ -198,7 +201,8 @@ Un point zéro sert de base de performance pour un compte.
 - `/reimbursements` : `GET /claims?status=open|settled|all&debtor=`, `GET /summary`, `POST /claims`, `PATCH|DELETE /claims/{id}`, `GET /claims/{id}/candidates`, `POST /claims/{id}/allocations`, `DELETE /allocations/{id}`, `GET /entries/{entree_id}/claims`
 - `/month-review` : `GET ?year=&month=` (étapes catégoriser, soldes, budget + statut de clôture + `modified_since_close`), `POST /close` (`year`, `month`, `highlight`, idempotent), `DELETE ?year=&month=` (rouvrir, 204), `GET /closures`
 - `/transactions/potential-transfers[?months=&days_tolerance=&amount_tolerance_pct=]` (suggestions ; par défaut tout l'historique, ±5 j, ±1 %), `GET /transactions/{id}/transfer-candidates` (liaison manuelle), `POST /transactions/{id}/transfer-counterpart`, `link/{other_id}`, `unlink`, `ignore[?other_id=]`
-- `/tags`
+- `/tags` (`GET ?include_archived=false` masque les archivés)
+- `PUT /transactions/{id}/splits` (`{items:[{category_id, amount, note}]}`, liste vide = annuler) ; `GET /transactions` accepte aussi `uncategorized`, `merchant_name` (nom canonique exact), `period=true` (month/year = mois de paie) et `budget_scope=true` (courant/épargne hors tickets restaurant) : filtres du panneau de drill-down des graphiques
 - `/merchants` (+ aliases, `auto-normalize`, `suggestions/unnormalized`)
 - `/holdings`, `/etf-profiles`, `/market` (search, validate, quote)
 - `/tax` (`GET /tax/overview`, `GET`/`PATCH /tax/settings`, `GET /tax/annual-report?year=`) : calculs dans `api/analytics/tax.py`, règles chiffrées par année dans `core/tax_rules.py` (valeurs à vérifier), calculs purs dans `core/tax.py` ; `overview.suggestions` = comptes actifs sans enveloppe dont le nom en évoque une (`core/tax.py::guess_tax_wrapper`), proposés sur la page sans rien enregistrer d'office
@@ -239,7 +243,8 @@ Un point zéro sert de base de performance pour un compte.
 - `GET /analytics/insights`
 - `GET /analytics/wealth-simulation` (mode avancé : Monte Carlo, événements, fiscalité)
 - `GET /analytics/wealth-forecast` (prévision simple : patrimoine total + épargne moyenne 12 mois (hors mois de tête sans dépense, avant le début du suivi), XIRR constaté (`/analytics/portfolio`) appliqué aux seuls comptes valorisés par positions sur lesquels il est mesuré (`investissement`), comptes d'investissement suivis par relevé à 0 % (`investissement_non_mesure`) sauf `investment_return_pct` qui s'applique à tous, autres comptes 0 %, aucun taux codé en dur, `years`, `extra_monthly`, surcharges `monthly_savings` / `investment_return_pct` / `savings_return_pct` ; la réponse détaille les mois et soldes par type utilisés)
-- `GET /analytics/sankey` (nœud Budget équilibré : Investissements = `investissements_du_mois`, Épargne = entrées − dépenses catégorisées − investissements, Déficit sinon)
+- `GET /analytics/fire` (indépendance financière : cible = dépenses annuelles ÷ `withdrawal_rate_pct` (4 par défaut), dépenses réelles moyennes et épargne des mois de `wealth-forecast`, rendement nominal de `wealth-forecast` moins `inflation_pct` (2 par défaut) → projection en euros constants, `years_to_fi` (`null` au-delà de 80 ans), scénarios +100/+250/+500 €/mois et dépenses −10 % ; surcharges `return_pct`, `monthly_savings`, `annual_expenses`)
+- `GET /analytics/sankey` (les nœuds de catégorie de dépense portent `category_id`, cliquables vers le panneau de drill-down ; nœud Budget équilibré : Investissements = `investissements_du_mois`, Épargne = entrées − dépenses catégorisées − investissements, Déficit sinon)
 - `GET /analytics/money-flow` (vue globale : `investments` inclut les versements liés à un virement interne, comme `investissements_du_mois`)
 - `GET /analytics/monthly-report` (`net_worth_change` hors soldes initiaux saisis dans le mois ; inclut `exceptional_expenses`, `real_expenses_excl_exceptional`, `savings_excl_exceptional`, `savings_rate_excl_exceptional`, `burn_rate_excl_exceptional`; `top_categories` : 8 premières catégories avec `prev_total`, total du mois précédent)
 

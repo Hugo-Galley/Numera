@@ -553,7 +553,7 @@ export default function ActionCenter() {
     try {
       const [result, categoryRows, accountRows] = await Promise.all([
         api.get<ActionCenterData>("/analytics/actions"),
-        api.get<Category[]>("/categories"),
+        api.get<Category[]>("/categories?include_archived=false"),
         api.get<Account[]>("/accounts"),
       ])
       setData(result)

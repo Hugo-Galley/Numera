@@ -11,6 +11,7 @@ import { WorkTimeProvider } from "@/providers/WorkTimeProvider"
 import { PageLoader } from "./PageLoader"
 import { ErrorBoundary } from "./ErrorBoundary"
 import { PwaExtras } from "./PwaExtras"
+import { DrilldownSheet } from "@/components/transactions/DrilldownSheet"
 
 export function AppLayout() {
   const { isPrivacyMode, togglePrivacyMode, setSearchOpen } = useUI()
@@ -54,6 +55,7 @@ export function AppLayout() {
         <PwaExtras scrollRef={mainRef} />
         <MobileNav />
         <Omnibox />
+        <DrilldownSheet />
         <Toaster />
       </div>
     </WorkTimeProvider>
