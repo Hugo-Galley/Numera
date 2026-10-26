@@ -185,8 +185,8 @@ async def get_intelligent_insights(
     all_txs = large_tx_query.all()
     for tx, curr in all_txs:
         val_eur = net_amount(tx) / rates.get(curr, 1.0)
-        # Exclude internal transfers or investments already tracked
-        if tx.category and tx.category.name == "Investissement":
+        # Exclude internal transfers or investments already tracked (même règle que les abonnements)
+        if tx.category and tx.category.name in ("Investissement", "Epargne"):
             continue
             
         threshold = max(revenus * 0.1, 500.0)

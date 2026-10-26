@@ -464,11 +464,14 @@ def get_budget_summary(month: int | None = None, year: int | None = None, accoun
     """Résumé budget complet : revenus, dépenses par catégorie, soldes des comptes.
 
     Args:
-        month: Mois (1-12, optionnel, défaut: mois en cours)
-        year: Année (optionnel, défaut: année en cours)
+        month: Mois (1-12, optionnel, défaut: mois budgétaire en cours)
+        year: Année (optionnel, défaut: année du mois en cours)
         account_id: Filtrer par compte (optionnel)
     """
     try:
+        # Sans mois ni année, l'API renvoie le cumul depuis le début : on demande le mois en cours
+        if month is None and year is None:
+            year, month = _current_budget_month()
         params: dict[str, Any] = {}
         if month is not None:
             params["month"] = month
@@ -632,15 +635,13 @@ def get_monthly_report(month: int | None = None, year: int | None = None) -> str
     """Rapport mensuel complet avec comparaison au mois précédent.
 
     Args:
-        month: Mois (1-12, optionnel, défaut: mois en cours)
-        year: Année (optionnel, défaut: année en cours)
+        month: Mois (1-12, optionnel, défaut: mois budgétaire en cours)
+        year: Année (optionnel, défaut: année du mois en cours)
     """
     try:
-        params: dict[str, Any] = {}
-        if month is not None:
-            params["month"] = month
-        if year is not None:
-            params["year"] = year
+        # L'API exige mois et année
+        current_year, current_month = _current_budget_month()
+        params: dict[str, Any] = {"month": month or current_month, "year": year or current_year}
 
         resp = api.get("/analytics/monthly-report", params=params)
         error = handle_response(resp)
@@ -776,7 +777,7 @@ def get_kpi_history(months: int = 6) -> str:
         months: Nombre de mois d'historique (défaut 6)
     """
     try:
-        resp = api.get("/analytics/kpi-history", params={"months": min(months, 24)})
+        resp = api.get("/analytics/kpi-history", params={"months_count": max(1, min(months, 24))})
         error = handle_response(resp)
         if error:
             return error

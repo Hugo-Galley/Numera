@@ -39,6 +39,7 @@ interface ReturnItem {
 
 const TYPE_LABELS: Record<string, string> = {
   investissement: "Comptes d'investissement",
+  investissement_non_mesure: "Investissements sans rendement mesuré",
   autres: "Courant et épargne",
 }
 
@@ -237,7 +238,7 @@ export function WealthForecast() {
           <div className="space-y-2">
             <p className="text-sm font-medium text-slate-700">Rendement annuel</p>
             {data.return_breakdown.map((r) => {
-              const isInvest = r.type === "investissement"
+              const isInvest = r.type.startsWith("investissement")
               const value = isInvest ? investInput : otherInput
               const setValue = isInvest ? setInvestInput : setOtherInput
               return (
@@ -266,8 +267,9 @@ export function WealthForecast() {
             })}
             <p className="text-xs text-slate-500">
               Investissement : rendement annualisé (XIRR) réellement constaté sur tes comptes titres valorisés par
-              positions, appliqué à tous tes comptes d'investissement. Courant et épargne : 0 % tant que tu n'en saisis
-              pas un. Moyenne pondérée par les soldes : {data.annual_return_pct.toFixed(1)} %.
+              positions, appliqué à ces seuls comptes ; les autres (suivis par relevé) restent à 0 % faute de mesure.
+              Un taux saisi s'applique à tous tes comptes d'investissement. Courant et épargne : 0 % tant que tu n'en
+              saisis pas un. Moyenne pondérée par les soldes : {data.annual_return_pct.toFixed(1)} %.
             </p>
           </div>
         </CardContent>

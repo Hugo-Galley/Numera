@@ -90,3 +90,25 @@ def test_no_anomaly_when_under_threshold(client, db_session):
     
     anomalies = [i for i in data["insights"] if i["type"] == "anomaly" and "Alerte catégorie" in i["title"]]
     assert len(anomalies) == 0
+
+
+def test_large_savings_transfer_is_not_an_isolated_expense(client, db_session):
+    """Un virement catégorisé Epargne (ex. vers Revolut) n'est pas une « grosse dépense isolée »."""
+    acc = Account(name="Courant", type="courant", currency="EUR", active=True)
+    savings = Category(name="Epargne", type="depense")
+    food = Category(name="Nourriture", type="depense")
+    db_session.add_all([acc, savings, food])
+    db_session.commit()
+    for merchant, cat, amount in (("Revolut", savings, 600.0), ("Electro", food, 700.0)):
+        db_session.add(Transaction(
+            account_id=acc.id, date=datetime(2026, 5, 15), month_label="May 2026", type="Sortie",
+            merchant=merchant, category_id=cat.id, amount=amount, original_amount=amount,
+            currency="EUR", running_balance=0.0,
+        ))
+    db_session.commit()
+
+    data = client.get("/analytics/insights", params={"month": 5, "year": 2026}).json()
+
+    flagged = [i["description"] for i in data["insights"] if i["title"] == "Grosse dépense isolée"]
+    assert len(flagged) == 1
+    assert "Electro" in flagged[0]

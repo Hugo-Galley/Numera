@@ -868,7 +868,8 @@ async def wealth_forecast(
 ):
     """
     Prévision simple du patrimoine : patrimoine actuel (tous comptes actifs) + épargne mensuelle
-    moyenne des 12 derniers mois complets, rendement des comptes d'investissement = XIRR constaté (modifiable), autres comptes à 0 % sauf saisie.
+    moyenne des 12 derniers mois complets (hors mois de tête sans dépense, avant le début du suivi), rendement des comptes
+    valorisés par positions = XIRR constaté sur ces mêmes comptes (modifiable), autres comptes à 0 % sauf saisie.
     `extra_monthly` ajoute un effort d'épargne hypothétique pour comparer.
     `monthly_savings`, `investment_return_pct` et `savings_return_pct` remplacent les valeurs calculées ; la réponse détaille
     les mois et les soldes par type qui ont servi au calcul.
@@ -881,41 +882,67 @@ async def wealth_forecast(
     from .portfolio import portfolio_overview
 
     try:
-        observed_pct = (await portfolio_overview(db)).xirr_pct
+        overview = await portfolio_overview(db)
+        observed_pct = overview.xirr_pct
+        measured_ids = {a.account_id for a in overview.accounts}
     except Exception:
         logger.warning("wealth_forecast: XIRR constaté indisponible", exc_info=True)
         observed_pct = None
+        measured_ids = set()
 
-    invest_balance = 0.0
+    # Le XIRR n'est mesuré que sur les comptes valorisés par positions : il ne s'applique qu'à eux.
+    # Les autres comptes d'investissement (snapshot) restent à 0 % tant qu'aucun taux n'est saisi.
+    measured_balance = 0.0
+    unmeasured_balance = 0.0
     other_balance = 0.0
     for item in allocation["items"]:
         bal = float(item["balance_eur"])
         if bal <= 0:
             continue
-        if item["type"] == "investissement":
-            invest_balance += bal
-        else:
+        if item["type"] != "investissement":
             other_balance += bal
-    invest_rate = investment_return_pct if investment_return_pct is not None else (observed_pct or 0.0)
+        elif item["account_id"] in measured_ids:
+            measured_balance += bal
+        else:
+            unmeasured_balance += bal
+    invest_balance = measured_balance + unmeasured_balance
     other_rate = savings_return_pct if savings_return_pct is not None else 0.0
+    other_item = WealthForecastReturnItem(
+        type="autres", balance=round(other_balance, 2), rate_pct=round(other_rate, 2),
+        source="manual" if savings_return_pct is not None else "none",
+    )
+    if investment_return_pct is not None:
+        invest_items = [WealthForecastReturnItem(
+            type="investissement", balance=round(invest_balance, 2), rate_pct=round(investment_return_pct, 2), source="manual",
+        )]
+    elif observed_pct is None:
+        invest_items = [WealthForecastReturnItem(
+            type="investissement", balance=round(invest_balance, 2), rate_pct=0.0, source="none",
+        )]
+    else:
+        invest_items = [WealthForecastReturnItem(
+            type="investissement", balance=round(measured_balance, 2), rate_pct=round(observed_pct, 2), source="observed",
+        )]
+        if unmeasured_balance > 0:
+            invest_items.append(WealthForecastReturnItem(
+                type="investissement_non_mesure", balance=round(unmeasured_balance, 2), rate_pct=0.0, source="none",
+            ))
+    return_breakdown = invest_items + [other_item]
     positive_total = invest_balance + other_balance
-    computed_return = (invest_balance * invest_rate + other_balance * other_rate) / positive_total if positive_total > 0 else 0.0
-    annual_return_pct = computed_return
-    return_breakdown = [
-        WealthForecastReturnItem(
-            type="investissement", balance=round(invest_balance, 2), rate_pct=round(invest_rate, 2),
-            source="manual" if investment_return_pct is not None else ("observed" if observed_pct is not None else "none"),
-        ),
-        WealthForecastReturnItem(
-            type="autres", balance=round(other_balance, 2), rate_pct=round(other_rate, 2),
-            source="manual" if savings_return_pct is not None else "none",
-        ),
-    ]
+    weighted = sum(i.balance * i.rate_pct for i in return_breakdown)
+    annual_return_pct = weighted / positive_total if positive_total > 0 else 0.0
 
     history = await kpi_history(months_count=13, account_id=None, db=db)
     now = datetime.now()
     completed = [r for r in history if not (r["year"] == now.year and r["month"] == now.month)]
     rows = completed[-12:] if completed else history
+    # Mois de tête sans aucune dépense réelle = avant le début du suivi (seuls des intérêts d'épargne) :
+    # ils tireraient la moyenne vers zéro.
+    first_active = next(
+        (i for i, r in enumerate(rows) if float(r["revenus"]) - float(r["epargne_flow"]) > 0.005), None
+    )
+    if first_active:
+        rows = rows[first_active:]
     computed_savings = sum(float(r["epargne_flow"]) for r in rows) / len(rows) if rows else 0.0
     avg_savings = computed_savings if monthly_savings is None else monthly_savings
     savings_months = [
