@@ -88,7 +88,7 @@ docker-compose.prod.yml, Makefile, setup.sh, install.sh
 - `work_time.py`: taux horaire net = `net_salary × 12 ÷ (work_days_per_year × work_hours_per_day)` (218 j × 7 h par défaut), base du prix en heures de travail.
 - `merchants.py`: gestion des marchands canoniques et de leurs alias de normalisation.
 - `admin.py`: profil admin (nom/mot de passe, `mcp_enabled`, stockes dans `system_settings`), tokens MCP (`GET`/`POST /admin/mcp-tokens`, `DELETE /admin/mcp-tokens/{id}` ; le token en clair n'est renvoyé qu'à la création ; la création exige `current_password`) et reset database (exige `current_password`, écrit un instantané `data/backups/pre-reset_*.db` avant d'effacer).
-- `notifications.py`: réglages des notifications push (`GET`/`PUT /notifications/settings`, jetons masqués `••••` + 4 derniers caractères ; un jeton renvoyé masqué n'écrase pas la valeur) et `POST /notifications/test` (`channel` = `ntfy|telegram`, 400 si incomplet, 502 si l'envoi échoue). Envoi : `core/notifications.py`.
+- `notifications.py`: réglages des notifications push (`GET`/`PUT /notifications/settings`, jetons masqués `••••` + 4 derniers caractères ; un jeton renvoyé masqué n'écrase pas la valeur) et `POST /notifications/test` (`channel` = `ntfy|telegram`, 400 si incomplet, 502 si l'envoi échoue). Interdit aux tokens MCP (`require_interactive_session`). Envoi : `core/notifications.py`.
 - `health.py`: healthcheck public.
 
 ## Frontend
@@ -124,7 +124,7 @@ Principes:
 
 Champs principaux: `id`, `name`, `type`, `currency`, `created_at`, `active`, `color`, `asset_class`, `sector`, `geographic_zone`, `institution`, `logo` (réf. `si:<slug>` ou `file:<hash>.png`, même système que les récurrences), `fonds_euros_pct`, `fonds_investis_pct` (assurance-vie), `is_main`, `last_verified_at`, `tax_wrapper` (`pea`, `per`, `cto`, `assurance_vie`, `livret_a`, `livret_jeune`, `pee`, `ldds`, `lep`, nullable) et `opened_at` (date d'ouverture) pour la page Fiscalité. La suppression API est logique (`active=False`).
 
-Types connus: `courant`, `epargne`, `investissement`, `assurance_vie` (`AccountType` dans `schemas/account.py`, imposé en création/modification), plus `credit`, créé et modifié uniquement via `/loans`. Un compte `credit` n'a pas de transactions : sa valeur est −capital restant dû (`core/wealth.py`), donc tous les totaux de patrimoine sont nets ; les filtres KPI `type in (courant, epargne)` l'excluent des revenus/dépenses.
+Types connus: `courant`, `epargne`, `investissement`, `assurance_vie` (`AccountType` dans `schemas/account.py`, imposé en création/modification), plus `credit`, créé et modifié uniquement via `/loans`. Un compte `credit` n'a pas de transactions : sa valeur est −capital restant dû (`core/wealth.py`), 0 avant le déblocage (un mois avant la première échéance), donc tous les totaux de patrimoine sont nets ; les filtres KPI `type in (courant, epargne)` l'excluent des revenus/dépenses.
 
 ### `categories`
 

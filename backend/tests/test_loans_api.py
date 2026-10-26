@@ -140,3 +140,13 @@ def test_invalid_loan_rejected(client):
         "name": "X", "kind": "auto", "principal": 1000, "annual_rate_pct": 3, "duration_months": 0,
         "start_date": "2025-01-01",
     }).status_code == 422
+
+
+def test_no_debt_before_disbursement(client, db_session):
+    """Les mois d'avant le crédit ne portent aucune dette (le CRD complet n'existe qu'à partir du déblocage)."""
+    loan = _create(client, start_date="2026-06-05")
+    account = db_session.get(Account, loan["account_id"])
+    before = asyncio.run(account_values(db_session, [account], datetime(2025, 12, 31)))
+    assert before[account.id].value_eur == 0
+    disbursed = asyncio.run(account_values(db_session, [account], datetime(2026, 5, 10)))
+    assert disbursed[account.id].value_eur == pytest.approx(-200_000)

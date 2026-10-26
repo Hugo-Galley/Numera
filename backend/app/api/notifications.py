@@ -3,6 +3,7 @@ from dataclasses import asdict
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from app.api.deps import require_interactive_session
 from app.core import notifications
 from app.db.session import get_db
 from app.schemas.notification import (
@@ -12,7 +13,8 @@ from app.schemas.notification import (
     NotificationTestResult,
 )
 
-router = APIRouter(prefix="/notifications", tags=["notifications"])
+# Sujet ntfy et chat Telegram permettent d'écrire sur le canal : jamais accessibles avec un token MCP
+router = APIRouter(prefix="/notifications", tags=["notifications"], dependencies=[Depends(require_interactive_session)])
 
 
 def _read(settings: notifications.NotificationSettings) -> NotificationSettingsRead:

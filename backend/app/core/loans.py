@@ -150,11 +150,16 @@ def terms_of(loan: "Loan") -> tuple[LoanTerms, list[Prepayment]]:
 
 
 def loan_remaining(db: Session, account_id: int, at: date) -> float | None:
-    """Capital restant dû du prêt d'un compte `credit`, ou None si le compte n'a pas de prêt."""
+    """Capital restant dû du prêt d'un compte `credit`, ou None si le compte n'a pas de prêt.
+
+    Avant le déblocage (pris un mois avant la première échéance) la dette n'existe pas encore : 0.
+    """
     from app.models.loan import Loan
 
     loan = db.query(Loan).filter(Loan.account_id == account_id).first()
     if loan is None:
         return None
+    if at < add_months(loan.start_date, -1):
+        return 0.0
     terms, prepayments = terms_of(loan)
     return remaining_principal(terms, prepayments, at)

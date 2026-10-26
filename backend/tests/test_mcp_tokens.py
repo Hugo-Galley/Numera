@@ -93,3 +93,11 @@ def test_token_is_read_only(client: TestClient, db_session: Session):
     assert client.delete("/transactions/1", headers=headers).status_code == 403
     assert client.patch("/transactions/bulk", json={}, headers=headers).status_code == 403
     assert client.get("/categories", headers=headers).status_code == 200
+
+
+def test_token_cannot_read_notification_settings(client: TestClient):
+    """Les réglages de notification (sujet ntfy, chat Telegram) ne sont pas exposés au MCP."""
+    token = _create_token(client)["token"]
+    _as_real_auth()
+    headers = {"Authorization": f"Bearer {token}"}
+    assert client.get("/notifications/settings", headers=headers).status_code == 403
