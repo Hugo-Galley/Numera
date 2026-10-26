@@ -97,9 +97,10 @@ Routes dans `frontend/src/App.tsx`:
 - `/login`: authentification.
 - `/`: dashboard, 5 onglets : Aperçu (`OverviewTab`), Budgets, Dépenses (`MerchantsTab` + `SubscriptionsTab`), Analyse (`InsightsTab` + `HistoryTab`), Projections. Vue « Tous les comptes » par défaut, dernier compte choisi mémorisé (`localStorage`).
 - `/accounts`: liste des comptes (incluant la bannière de validation périodique).
-- `/accounts/:id`: détail compte courant/épargne/investissement.
+- `/accounts/:id`: détail compte courant/épargne/investissement ; un compte `credit` affiche `components/loans/LoanView` (résumé, courbe du capital restant dû, tableau d'amortissement par année, simulateur de remboursement anticipé). `?new=tx&type=&amount=&merchant=` ouvre le formulaire de transaction pré-rempli, `state.openTransaction` ouvre une transaction en modification (⌘K).
+- `/accounts?new=loan` ouvre le formulaire « Ajouter un crédit » (`components/loans/LoanDialog`).
 - `/savings`: objectifs d'épargne.
-- `/tax`: Fiscalité (plafonds PEA/PER/Livret A/Livret Jeune, blocage 5 ans du PEE, dates clés PEA/AV, récap annuel CTO 2DC/3VG/3VH).
+- `/tax`: Fiscalité (carte « Où placer ton prochain euro », plafonds PEA/PER/Livret A/LDDS/LEP/Livret Jeune, blocage 5 ans du PEE, dates clés PEA/AV, récap annuel CTO 2DC/3VG/3VH).
 - `/investments`: vue globale investissements.
 - `/month` (`MonthHub.tsx`, sous-routes) : `/month/bilan` (rapport mensuel, `MonthlyReport.tsx`), `/month/revue` (revue de fin de mois, `MonthReview.tsx`, `?year=&month=`), `/month/comparaison` (`Comparison.tsx`). Anciennes adresses `/report`, `/month-review`, `/comparison` redirigées avec leurs paramètres (`RedirectKeepingSearch`).
 - `/recurring` « Échéances » : un seul des onglets `recurring` (Liste) ou `subscriptions` (Analyse Récurrences : Abonnements / Investissements / Autres récurrences dont le salaire, via `GET /analytics/subscriptions?include_other=true`) selon le sélecteur Analyse/Liste (localStorage `recurring-view`, défaut Analyse) ; puis `?tab=` calendar (`Calendar.tsx` en mode `embedded`) | salary (`SalaryManager`, salaire et télétravail). `/calendar` redirige vers `?tab=calendar`.
@@ -112,6 +113,7 @@ Principes:
 - `AuthProvider` gere le token et l'etat de connexion.
 - `ProtectedRoute` bloque les pages applicatives sans token.
 - `UIProvider` porte l'etat UI global, dont le mode confidentialite.
+- Omnibox (⌘K, `components/layout/Omnibox.tsx`) : navigation, comptes, recherche de transactions (ouverture directe en modification), actions (nouvelle transaction, import CSV, revue du mois, mode confidentialité, ajouter un crédit) et saisie rapide `lib/quickEntry.ts` (`12,50 boulangerie` = dépense, `+1200 prime` = revenu) qui ouvre le formulaire pré-rempli sur le compte principal, jamais d'enregistrement direct.
 - `apiFetch()` centralise les appels JSON et redirige vers `/login` en cas de `401` (ou `403` hors `/auth/token`). `API_BASE` = `http://localhost:8001` sur localhost, `/api` ailleurs.
 - Les uploads CSV n'utilisent pas `apiFetch()` pour laisser le navigateur definir le multipart boundary ; ils passent par `api.upload()` qui ajoute le Bearer sans `Content-Type`. Les exports utilisent `api.download()`.
 

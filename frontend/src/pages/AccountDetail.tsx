@@ -3,7 +3,7 @@ import { errorMessage, formatCurrency as formatCurrencyShared, parsePositiveAmou
 import { endOfDayParam, nowLocalInput, startOfDayParam, toInputValue, toNaiveLocal, todayLocal } from "@/lib/dates"
 import { useState, useEffect, useMemo, useRef } from "react"
 import { AccountLogo } from "@/components/ui/AccountLogo"
-import { useParams, Link } from "react-router-dom"
+import { useParams, Link, useLocation, useNavigate, useSearchParams } from "react-router-dom"
 import { LoanView } from "@/components/loans/LoanView"
 import { 
   ArrowLeft, 
@@ -795,6 +795,30 @@ export default function AccountDetail() {
     setTxCustomColor(tx.custom_color || "#0f172a")
     setTxOpen(true)
   }
+
+  // Ouverture depuis ⌘K : saisie rapide (?new=tx&type=&amount=&merchant=) ou transaction trouvée (state)
+  const location = useLocation()
+  const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  useEffect(() => {
+    if (!account) return
+    const openTransaction = (location.state as { openTransaction?: Transaction } | null)?.openTransaction
+    if (openTransaction && openTransaction.account_id === account.id) {
+      handleEditTransaction(openTransaction)
+    } else if (searchParams.get("new") === "tx") {
+      resetTxForm()
+      const type = searchParams.get("type")
+      if (type === "Sortie" || type === "Entree") setTxType(type)
+      setTxAmount(searchParams.get("amount") ?? "")
+      setTxMerchant(searchParams.get("merchant") ?? "")
+      setTxCurrency(account.currency || "EUR")
+      setTxOpen(true)
+    } else {
+      return
+    }
+    navigate(location.pathname, { replace: true, state: null })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [account?.id, location.key])
 
   const handleDeleteTransaction = async (txId: number) => {
     const target = transactions.find((t) => t.id === txId)

@@ -21,7 +21,14 @@ import {
   Repeat,
   CalendarDays,
   Calculator,
+  Plus,
+  Zap,
+  EyeOff,
+  Landmark as LandmarkIcon,
+  ClipboardList,
 } from "lucide-react"
+import { toast } from "sonner"
+import { parseQuickEntry } from "@/lib/quickEntry"
 import {
   Dialog,
   DialogContent,
@@ -59,7 +66,7 @@ const NAVIGATION = [
 
 export function Omnibox() {
   const navigate = useNavigate()
-  const { isSearchOpen, setSearchOpen, isPrivacyMode } = useUI()
+  const { isSearchOpen, setSearchOpen, isPrivacyMode, togglePrivacyMode } = useUI()
   const [query, setQuery] = useState("")
   const [accounts, setAccounts] = useState<any[]>([])
   const [transactions, setTransactions] = useState<any[]>([])
@@ -148,16 +155,49 @@ export function Omnibox() {
     acc.name.toLowerCase().includes(query.toLowerCase())
   ).map(acc => ({ ...acc, type: 'account' }))
 
+  // Compte des saisies rapides : compte principal, sinon premier compte courant actif
+  const mainAccount = accounts.find((a) => a.active && a.is_main) ?? accounts.find((a) => a.active && a.type === "courant")
+  const quickEntry = parseQuickEntry(query)
+  const quickResults = quickEntry
+    ? [{ amount: quickEntry.amount, merchant: quickEntry.merchant, entryType: quickEntry.type, type: 'quick' }]
+    : []
+
+  const ACTIONS = [
+    { id: "new-tx", name: "Nouvelle transaction", hint: mainAccount?.name, icon: Plus, run: () => openNewTransaction() },
+    { id: "import", name: "Importer un relevé CSV", icon: Upload, run: () => navigate("/settings?tab=import") },
+    { id: "review", name: "Démarrer la revue du mois", icon: ClipboardList, run: () => navigate("/month/revue") },
+    { id: "privacy", name: isPrivacyMode ? "Afficher les montants" : "Masquer les montants (mode confidentialité)", icon: EyeOff, run: () => togglePrivacyMode() },
+    { id: "loan", name: "Ajouter un crédit", icon: LandmarkIcon, run: () => navigate("/accounts?new=loan") },
+  ]
+  const filteredActions = ACTIONS.filter((action) =>
+    action.name.toLowerCase().includes(query.toLowerCase())
+  ).map(action => ({ ...action, type: 'action' }))
+
   const results = [
     ...filteredNavigation,
     ...filteredAccounts,
+    ...quickResults,
+    ...filteredActions,
     ...transactions.map(tx => ({ ...tx, type: 'transaction' }))
   ]
+
+  function openNewTransaction(params: Record<string, string> = {}) {
+    if (!mainAccount) {
+      toast.error("Aucun compte courant actif pour enregistrer la transaction")
+      return
+    }
+    navigate(`/accounts/${mainAccount.id}?${new URLSearchParams({ new: "tx", ...params }).toString()}`)
+  }
 
   const handleSelect = (result: any) => {
     if (result.type === 'nav') navigate(result.href)
     else if (result.type === 'account') navigate(`/accounts/${result.id}`)
-    else if (result.type === 'transaction') navigate(`/accounts/${result.account_id}`)
+    // La transaction s'ouvre directement en modification dans son compte
+    else if (result.type === 'transaction') navigate(`/accounts/${result.account_id}`, { state: { openTransaction: result } })
+    else if (result.type === 'action') result.run()
+    else if (result.type === 'quick') {
+      openNewTransaction({ type: result.entryType, amount: String(result.amount), merchant: result.merchant })
+    }
     setSearchOpen(false)
   }
 
@@ -195,7 +235,7 @@ export function Omnibox() {
           <DialogDescription className="sr-only">Rechercher un compte, une vue ou une transaction</DialogDescription>
           <Search className="h-5 w-5 text-slate-400 shrink-0" />
           <Input
-            placeholder="Rechercher un compte, une vue, un commerçant..."
+            placeholder="Rechercher, ou saisir « 12,50 boulangerie »…"
             className="border-none shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 text-lg p-0 h-11 sm:h-10"
             inputMode="search"
             enterKeyHint="search"
@@ -296,13 +336,95 @@ export function Omnibox() {
               </div>
             )}
 
+            {quickResults.length > 0 && (
+              <div className="mb-4">
+                <h3 className="px-3 py-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                  Saisie rapide
+                </h3>
+                {quickResults.map((entry) => {
+                  const resultIdx = filteredNavigation.length + filteredAccounts.length
+                  const isActive = activeIndex === resultIdx
+                  const isIncome = entry.entryType === "Entree"
+                  return (
+                    <button
+                      key="quick-entry"
+                      id={`result-${resultIdx}`}
+                      onClick={() => handleSelect(entry)}
+                      onMouseEnter={() => setActiveIndex(resultIdx)}
+                      className={cn(
+                        "group w-full flex min-h-12 items-center justify-between gap-2 px-3 py-2 rounded-xl transition-colors text-left outline-none",
+                        isActive ? "bg-slate-100" : "hover:bg-slate-50"
+                      )}
+                    >
+                      <div className="flex min-w-0 items-center gap-3">
+                        <div className={cn(
+                          "h-8 w-8 shrink-0 rounded-lg flex items-center justify-center transition-colors",
+                          isIncome ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"
+                        )}>
+                          <Zap className="h-4 w-4" />
+                        </div>
+                        <div className="flex min-w-0 flex-col">
+                          <span className="truncate font-medium text-slate-900">
+                            {isIncome ? "Ajouter un revenu" : "Ajouter une dépense"} de {formatCurrency(entry.amount)}
+                            {entry.merchant && <> · {entry.merchant}</>}
+                          </span>
+                          <span className="text-[10px] text-slate-400">
+                            {mainAccount ? `Sur ${mainAccount.name}, à vérifier avant d'enregistrer` : "Aucun compte courant actif"}
+                          </span>
+                        </div>
+                      </div>
+                      <ArrowRight className={cn("h-4 w-4 text-slate-300 transition-all", isActive ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-2")} />
+                    </button>
+                  )
+                })}
+              </div>
+            )}
+
+            {filteredActions.length > 0 && (
+              <div className="mb-4">
+                <h3 className="px-3 py-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                  Actions
+                </h3>
+                {filteredActions.map((action, idx) => {
+                  const resultIdx = filteredNavigation.length + filteredAccounts.length + quickResults.length + idx
+                  const isActive = activeIndex === resultIdx
+                  return (
+                    <button
+                      key={action.id}
+                      id={`result-${resultIdx}`}
+                      onClick={() => handleSelect(action)}
+                      onMouseEnter={() => setActiveIndex(resultIdx)}
+                      className={cn(
+                        "group w-full flex min-h-12 items-center justify-between gap-2 px-3 py-2 rounded-xl transition-colors text-left outline-none",
+                        isActive ? "bg-slate-100" : "hover:bg-slate-50"
+                      )}
+                    >
+                      <div className="flex min-w-0 items-center gap-3">
+                        <div className={cn(
+                          "h-8 w-8 shrink-0 rounded-lg flex items-center justify-center transition-colors",
+                          isActive ? "bg-white text-slate-900 shadow-sm" : "bg-slate-100 text-slate-600"
+                        )}>
+                          <action.icon className="h-4 w-4" />
+                        </div>
+                        <div className="flex min-w-0 flex-col">
+                          <span className="truncate font-medium text-slate-900">{action.name}</span>
+                          {action.hint && <span className="text-[10px] text-slate-400">{action.hint}</span>}
+                        </div>
+                      </div>
+                      <ArrowRight className={cn("h-4 w-4 text-slate-300 transition-all", isActive ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-2")} />
+                    </button>
+                  )
+                })}
+              </div>
+            )}
+
             {transactions.length > 0 && (
               <div className="mb-2">
                 <h3 className="px-3 py-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
                   Transactions récentes
                 </h3>
                 {transactions.map((tx, idx) => {
-                  const resultIdx = filteredNavigation.length + filteredAccounts.length + idx
+                  const resultIdx = filteredNavigation.length + filteredAccounts.length + quickResults.length + filteredActions.length + idx
                   const isActive = activeIndex === resultIdx
                   return (
                     <button
