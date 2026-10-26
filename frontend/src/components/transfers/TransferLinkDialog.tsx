@@ -15,7 +15,7 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
 import { api } from "@/lib/api"
-import { formatCurrency } from "@/lib/utils"
+import { formatCurrency, formatRate } from "@/lib/utils"
 import type { AccountLite, TransferCandidate } from "@/types/transfers"
 
 interface Props {
@@ -143,7 +143,7 @@ export function TransferLinkDialog({ open, onOpenChange, transaction, accounts, 
                 <p className="text-xs text-slate-500">
                   {accountName(c.account_id)} · {format(new Date(c.date), "dd/MM/yyyy")}
                   {c.day_gap > 0 && <span className="ml-1 text-slate-400">({c.day_gap} j d'écart)</span>}
-                  {c.amount_gap_pct > 0.001 && <span className="ml-1 text-amber-600">({c.amount_gap_pct.toFixed(1)} % d'écart)</span>}
+                  {c.amount_gap_pct > 0.001 && <span className="ml-1 text-amber-600">({formatRate(c.amount_gap_pct, 1)} d'écart)</span>}
                 </p>
               </div>
               <div className="flex items-center justify-between gap-3">

@@ -85,9 +85,10 @@ interface IssueDetails {
   transfer_pairs?: Array<{ sortie: Transaction; entree: Transaction }>
 }
 
+// Mêmes mots que les compteurs du haut (« Priorité haute / moyenne », « Suggestions »)
 const severityLabel = {
-  high: "Critique",
-  medium: "Important",
+  high: "Priorité haute",
+  medium: "Priorité moyenne",
   low: "Suggestion",
 }
 

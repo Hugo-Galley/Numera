@@ -101,7 +101,7 @@ export function PortfolioSummary({ accountId, reloadKey }: PortfolioSummaryProps
           <Kpi label="Frais" value={formatCurrency(data.fees_eur)} hint="Frais de tenue et courtage" />
           <Kpi
             label="XIRR · TWR"
-            value={`${data.xirr_pct === null ? "-" : `${data.xirr_pct.toFixed(1)} %`} · ${data.twr_pct === null ? "-" : `${data.twr_pct.toFixed(1)} %`}`}
+            value={`${formatRate(data.xirr_pct, 1)} · ${formatRate(data.twr_pct, 1)}`}
             hint={shortPeriod ? `Annualisé sur ${data.period_days} j : à relativiser` : "Rendement annualisé · hors effet des versements"}
           />
         </div>

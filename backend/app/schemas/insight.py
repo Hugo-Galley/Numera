@@ -22,6 +22,7 @@ class Insight(BaseModel):
     description: str
     severity: str  # "low", "medium", "high"
     value: Optional[float] = None
+    unit: str = "€"  # unité de `value` : « € », « % » ou « mois »
     category_id: Optional[int] = None
 
 
@@ -98,7 +99,7 @@ class SubscriptionInsight(BaseModel):
     last_occurrence: Optional[str]
     next_occurrence: Optional[str]
     is_recurring_entity: bool
-    status: str  # "active", "potential", "changed"
+    status: str  # "active", "lapsed" (plus prélevée depuis 2 périodes), "paused", "potential"
     logo: Optional[str] = None
     flow_type: str = "Sortie"  # type de la récurrence (Sortie, Entree, versement…)
     # Faux pour une récurrence en pause, un virement ou une alimentation d'épargne/d'investissement :

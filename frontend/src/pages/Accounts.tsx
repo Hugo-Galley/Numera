@@ -1,4 +1,6 @@
 import { useSubmit } from "@/hooks/useSubmit"
+import { accountTypeLabel } from "@/lib/labels"
+import { formatCurrency, formatRate } from "@/lib/utils"
 import { useEffect, useState, useMemo } from "react"
 import { Link } from "react-router-dom"
 import {
@@ -70,6 +72,7 @@ type Account = {
   valuation_mode?: "positions" | "snapshot"
   tax_wrapper?: "pea" | "per" | "cto" | "assurance_vie" | "livret_a" | "livret_jeune" | "pee" | null
   opened_at?: string | null
+  balance?: number
 }
 
 const TAX_WRAPPERS = [
@@ -153,6 +156,8 @@ export default function Accounts() {
     if (!accounts || !Array.isArray(accounts)) return []
     return [...accounts].sort((a, b) => {
       if (!a || !b) return 0
+      // Le compte principal (étoile) reste en tête, quel que soit le tri
+      if (!!a.is_main !== !!b.is_main) return a.is_main ? -1 : 1
       let comparison = 0
       switch (sortField) {
         case "name":
@@ -283,16 +288,7 @@ export default function Accounts() {
     }
   }
 
-  const getTypeLabel = (type: string) => {
-    switch (type) {
-      case "courant": return "Compte Courant"
-      case "epargne": return "Épargne"
-      case "investissement": return "Investissement"
-      case "assurance_vie": return "Assurance-Vie"
-      case "bank": return "Compte bancaire"
-      default: return type ? type.charAt(0).toUpperCase() + type.slice(1) : "Autre"
-    }
-  }
+  const getTypeLabel = accountTypeLabel
 
   const CURRENCIES = ["EUR", "USD", "GBP", "CHF", "JPY", "CAD", "AUD"]
 
@@ -786,20 +782,22 @@ export default function Accounts() {
                         <span>{getTypeLabel(account.type)}</span>
                         <span>· {account.currency}</span>
                       </div>
+                      <p className="mt-1 font-semibold tabular-nums amount-blur">{formatCurrency(account.balance ?? 0, account.currency)}</p>
                     </Link>
                     <Badge variant={account.active ? "outline" : "secondary"} className="mt-2 shrink-0">
                       {account.active ? "Actif" : "Inactif"}
                     </Badge>
                   </div>
                   <div className="mt-2 flex flex-wrap items-center gap-2 pl-1">
-                    {account.institution && (
+                    {/* Établissement masqué quand il répète le nom du compte (« Boursorama / Boursorama ») */}
+                    {account.institution && account.institution.trim().toLowerCase() !== account.name.trim().toLowerCase() && (
                       <Badge variant="secondary" className="bg-slate-50 font-semibold text-slate-700 border-slate-200">
                         {account.institution}
                       </Badge>
                     )}
                     {account.type === "assurance_vie" && (account.fonds_euros_pct != null || account.fonds_investis_pct != null) && (
                       <Badge variant="secondary" className="bg-slate-100 font-medium text-slate-700">
-                        Euro : {account.fonds_euros_pct || 0}% / Investi : {account.fonds_investis_pct || 0}%
+                        Euro : {formatRate(account.fonds_euros_pct || 0, 1)} / Investi : {formatRate(account.fonds_investis_pct || 0, 1)}
                       </Badge>
                     )}
                   </div>
@@ -856,6 +854,7 @@ export default function Accounts() {
                       {sortField === "currency" && (sortOrder === "asc" ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />)}
                     </div>
                   </TableHead>
+                  <TableHead className="text-right">Solde</TableHead>
                   <TableHead>Statut</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -863,13 +862,13 @@ export default function Accounts() {
               <TableBody>
                 {loading ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                       Chargement...
                     </TableCell>
                   </TableRow>
                 ) : sortedAccounts.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                       Aucun compte trouvé.
                     </TableCell>
                   </TableRow>
@@ -905,12 +904,15 @@ export default function Accounts() {
                           <span className="capitalize">{getTypeLabel(account.type)}</span>
                           {account.type === "assurance_vie" && (account.fonds_euros_pct !== undefined && account.fonds_euros_pct !== null || account.fonds_investis_pct !== undefined && account.fonds_investis_pct !== null) && (
                             <Badge variant="secondary" className="ml-2 font-medium bg-slate-100 text-slate-700">
-                              Euro : {account.fonds_euros_pct || 0}% / Investi : {account.fonds_investis_pct || 0}%
+                              Euro : {formatRate(account.fonds_euros_pct || 0, 1)} / Investi : {formatRate(account.fonds_investis_pct || 0, 1)}
                             </Badge>
                           )}
                         </div>
                       </TableCell>
                       <TableCell>{account.currency}</TableCell>
+                      <TableCell className="text-right font-semibold tabular-nums whitespace-nowrap amount-blur">
+                        {formatCurrency(account.balance ?? 0, account.currency)}
+                      </TableCell>
                       <TableCell>
                         <Badge variant={account.active ? "outline" : "secondary"}>
                           {account.active ? "Actif" : "Inactif"}

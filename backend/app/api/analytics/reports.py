@@ -44,7 +44,7 @@ from app.models.balance_snapshot import BalanceSnapshot
 from app.models.investment_transaction import InvestmentTransaction
 from app.models.transaction import Transaction
 from app.models.recurring_transaction import RecurringTransaction
-from app.core.finance import get_recurring_occurrences
+from app.core.finance import get_recurring_occurrences, is_lapsed
 from app.core.logging import get_logger
 from app.core.month_review import exceptional_expenses, month_bounds, savings_basis, without_exceptional
 from app.schemas.transaction import TransactionRead
@@ -62,6 +62,8 @@ def calc_diff(curr: float, prev: float) -> tuple[float, float]:
     return round(diff, 2), round(pct, 2)
 
 from .utils import (
+    budget_versement_ids,
+    opening_balances_eur,
     income_criterion,
     net_amount,
     NET_AMOUNT,
@@ -89,6 +91,7 @@ async def get_cashflow_projection(
 
     # 1. Current balance
     current_bal = 0.0
+    counted_ids: set[int] = set()  # comptes dont le solde est dans `current_bal`
     if account_id:
         acc = db.query(Account).filter(Account.id == account_id).first()
         if not acc:
@@ -115,6 +118,7 @@ async def get_cashflow_projection(
             )
             if last_tx:
                 current_bal += float(last_tx.running_balance) / rates.get(acc.currency, 1.0)
+                counted_ids.add(acc.id)
 
     # 2. Collect future occurrences
     projected_events_list: List[ProjectionEvent] = []
@@ -130,6 +134,15 @@ async def get_cashflow_projection(
     recurring_defs = recur_query.all()
     
     for rd in recurring_defs:
+        # Vue globale : un virement vers un compte déjà compté dans le solde ne change pas le total
+        if not account_id and rd.transfer_to_account_id in counted_ids:
+            continue
+        # Récurrence plus prélevée depuis deux périodes (abonnement arrêté sans être désactivé)
+        last_occ = (
+            db.query(func.max(Transaction.date)).filter(Transaction.recurring_transaction_id == rd.id).scalar()
+        )
+        if is_lapsed(rd.frequency, last_occ, now):
+            continue
         occurrences = get_recurring_occurrences(rd, now, end_date)
         for occ in occurrences:
             is_income = rd.type in ["Entree", "Interets", "versement", "dividende"]
@@ -296,6 +309,10 @@ async def get_monthly_report(
     
     # Net worth change
     nw_change = current_budget["patrimoine_net_total"] - prev_budget["patrimoine_net_total"]
+    if account_id is None:
+        # Un compte ouvert dans le mois n'est pas un gain : son solde initial est retranché
+        period_start, period_end = period_bounds(db, year, month)
+        nw_change -= opening_balances_eur(db, period_start, period_end, await get_exchange_rates("EUR"))
 
     # 7. Money Flow (Integrated)
     flow_data = await get_money_flow(month=month, year=year, account_id=account_id, db=db)
@@ -399,10 +416,25 @@ async def _calculate_money_flow_data(month: int, year: int, db: Session, account
                 key = cat_name
                 top_variable_map[key] = top_variable_map.get(key, 0) + amount_eur
                 
-    # 3. Investment Transactions
-    # We REMOVE the direct query to InvestmentTransaction because for the "Checking Account" perspective,
-    # these flows are already captured as 'Sortie' (Transferts) in the Transactions table of the checking account.
-    # Including them again would double count the outflows.
+    # 3. Versements alimentés par un virement interne lié : la sortie du courant est un virement
+    # (is_transfer, donc absente ci-dessus) mais l'argent a bien quitté le budget. Mêmes versements
+    # que `investissements_du_mois` de budget_analytics, sans double compte avec les sorties catégorisées.
+    if not account_id:
+        versements = (
+            db.query(InvestmentTransaction.amount, Account.currency, Account.name)
+            .join(Account, InvestmentTransaction.account_id == Account.id)
+            .filter(
+                InvestmentTransaction.type == "versement",
+                InvestmentTransaction.date >= start,
+                InvestmentTransaction.date < end,
+                InvestmentTransaction.id.in_(budget_versement_ids(db)),
+            )
+            .all()
+        )
+        for amount, currency, account_name in versements:
+            amount_eur = float(amount) / rates.get(currency, 1.0)
+            investments += amount_eur
+            top_investments_map[account_name] = top_investments_map.get(account_name, 0) + amount_eur
     
     remainder = income - (fixed_charges + variable_expenses + savings + investments)
     
@@ -592,8 +624,10 @@ async def sankey_analytics(
         inv_idx = add_node("Investissements", "#6366f1")
         links.append({"source": total_revenus_idx, "target": inv_idx, "value": round(invest_total, 2), "color": "#6366f1"})
 
-    # Savings "Group"
-    savings_total = budget_data["revenus_apres_depenses"]
+    # Savings "Group" : ce qui reste une fois dépenses et investissements sortis, calculé sur les mêmes
+    # flux que le diagramme pour que le nœud Budget soit équilibré (entrées = sorties)
+    spent_total = sum(data["total"] for data in cat_expenses.values() if data["total"] > 0)
+    savings_total = total_income - spent_total - max(invest_total, 0.0)
     if savings_total > 0:
         sav_idx = add_node("Épargne", "#10b981")
         links.append({"source": total_revenus_idx, "target": sav_idx, "value": round(savings_total, 2), "color": "#10b981"})

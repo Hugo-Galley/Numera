@@ -130,3 +130,21 @@ def test_wrapped_empty_and_future_year(client: TestClient):
     assert data["has_data"] is False
     assert data["biggest_expense"] is None
     assert client.get("/analytics/wrapped", params={"year": datetime.now().year + 1}).status_code == 400
+
+
+def test_wrapped_skips_comparison_with_nearly_empty_previous_year(client: TestClient, db_session: Session):
+    """Suivi commencé fin 2024 : comparer 2025 à deux mois de 2024 donnerait des « +1 000 % »."""
+    courant = Account(name="Courant", type="courant", currency="EUR", active=True)
+    db_session.add(courant)
+    db_session.commit()
+    _tx(db_session, courant, datetime(2024, 12, 20), "Interets", 2.0, "Intérêts")
+    _tx(db_session, courant, datetime(2024, 12, 21), "Sortie", 10.0, "Café")
+    for month in range(1, 13):
+        _tx(db_session, courant, datetime(2025, month, 25), "Entree", 2000.0, "Salaire")
+        _tx(db_session, courant, datetime(2025, month, 3), "Sortie", 800.0, "Loyer")
+    db_session.commit()
+
+    data = client.get("/analytics/wrapped", params={"year": 2025}).json()
+
+    assert 2024 in data["available_years"]
+    assert data["previous"] is None

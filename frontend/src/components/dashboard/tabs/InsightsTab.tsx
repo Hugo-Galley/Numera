@@ -13,6 +13,13 @@ import { formatCurrency } from "@/lib/utils"
 import { toast } from "sonner"
 import { apiFetch } from "@/lib/api"
 
+/** Valeur d'un indicateur avec son unité, à la française : « 1 480,99 € », « 64,3 % », « 19,1 mois ». */
+function formatValue(value: number, unit?: string) {
+  if (unit === "€" || !unit) return formatCurrency(value)
+  const text = value.toLocaleString("fr-FR", { maximumFractionDigits: 1 })
+  return `${text}\u00a0${unit}`
+}
+
 interface InsightsTabProps {
   insights: any
 }
@@ -87,7 +94,7 @@ export function InsightsTab({ insights }: InsightsTabProps) {
               <div key={i} className="bg-slate-800/50 p-3 rounded-2xl border border-slate-700/50">
                 <p className="text-[10px] uppercase font-black text-slate-500 tracking-wider mb-1">{m.name}</p>
                 <p className="text-sm font-bold flex items-center justify-between">
-                  {m.value}{m.unit}
+                  {formatValue(m.value, m.unit)}
                   <span className={`h-1.5 w-1.5 rounded-full ${m.status === 'good' ? 'bg-emerald-400' : m.status === 'warning' ? 'bg-amber-400' : 'bg-rose-400'}`} />
                 </p>
               </div>
@@ -119,7 +126,7 @@ export function InsightsTab({ insights }: InsightsTabProps) {
                       <CardDescription className="text-slate-600 mt-1">{insight.description}</CardDescription>
                       {insight.value && (
                         <Badge variant="outline" className={`mt-2 md:hidden whitespace-nowrap ${insight.type === 'anomaly' ? 'text-amber-700 bg-amber-50' : 'text-emerald-700 bg-emerald-50'}`}>
-                          {insight.type === 'anomaly' ? `+${formatCurrency(insight.value)}` : insight.unit === '%' ? `${insight.value}%` : formatCurrency(insight.value)}
+                          {insight.type === 'anomaly' ? `+${formatCurrency(insight.value)}` : formatValue(insight.value, insight.unit)}
                         </Badge>
                       )}
                     </div>
@@ -127,7 +134,7 @@ export function InsightsTab({ insights }: InsightsTabProps) {
                   <div className="flex shrink-0 items-center gap-3">
                     {insight.value && (
                       <Badge variant="outline" className={`hidden md:inline-flex whitespace-nowrap ${insight.type === 'anomaly' ? 'text-amber-700 bg-amber-50' : 'text-emerald-700 bg-emerald-50'}`}>
-                        {insight.type === 'anomaly' ? `+${formatCurrency(insight.value)}` : insight.unit === '%' ? `${insight.value}%` : formatCurrency(insight.value)}
+                        {insight.type === 'anomaly' ? `+${formatCurrency(insight.value)}` : formatValue(insight.value, insight.unit)}
                       </Badge>
                     )}
                     <Button

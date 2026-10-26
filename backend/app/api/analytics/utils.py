@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import and_, or_
+from sqlalchemy import and_, func, or_
 from sqlalchemy.orm import Session
 
 from app.core.logging import get_logger
@@ -47,6 +47,27 @@ def budget_versement_ids(db: Session):
         Transaction.is_transfer == True,
         Transaction.linked_investment_transaction_id.isnot(None),
     )
+
+
+def opening_balances_eur(db: Session, start: datetime, end: datetime, rates: dict[str, float]) -> float:
+    """Soldes initiaux saisis dans [start, end) sur les comptes actifs, en EUR.
+
+    Ouvrir (ou commencer à suivre) un compte fait apparaître son solde dans le patrimoine
+    sans que ce soit un gain : on le retranche des variations de patrimoine.
+    """
+    rows = (
+        db.query(Account.currency, func.coalesce(func.sum(Transaction.amount), 0.0))
+        .join(Account, Transaction.account_id == Account.id)
+        .filter(
+            Transaction.type == "Solde Initial",
+            Transaction.date >= start,
+            Transaction.date < end,
+            Account.active.is_(True),
+        )
+        .group_by(Account.currency)
+        .all()
+    )
+    return float(sum(total / rates.get(currency, 1.0) for currency, total in rows))
 
 
 def net_amount(tx: Transaction) -> float:

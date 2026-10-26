@@ -3,7 +3,7 @@ import { Link } from "react-router-dom"
 import { toast } from "sonner"
 import { AlertTriangle, CheckCircle2, FileText, Landmark, Settings2 } from "lucide-react"
 import { api } from "@/lib/api"
-import { formatCurrency } from "@/lib/utils"
+import { formatCurrency, formatRate } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -119,7 +119,7 @@ function WrapperCardView({ card }: { card: WrapperCard }) {
             <Gauge pct={card.used_pct ?? 0} />
             <div className="flex flex-wrap justify-between gap-x-3">
               <span><Money value={card.current} /> sur <Money value={card.ceiling} /></span>
-              <span className="text-slate-500">{(card.used_pct ?? 0).toFixed(1)} %</span>
+              <span className="text-slate-500">{formatRate(card.used_pct ?? 0, 1)}</span>
             </div>
             <div className="text-slate-600 dark:text-slate-300">
               Place restante : <strong><Money value={card.remaining ?? 0} /></strong>
@@ -131,7 +131,7 @@ function WrapperCardView({ card }: { card: WrapperCard }) {
             {card.milestone_reached && <CheckCircle2 className="h-4 w-4 text-emerald-600" />}
             {card.age_years !== null ? (
               <span>
-                Ancienneté : {card.age_years.toFixed(1)} an(s) / {card.milestone_years} ans
+                Ancienneté : {card.age_years.toLocaleString("fr-FR", { maximumFractionDigits: 1 })} an(s) / {card.milestone_years} ans
                 {card.milestone_reached ? " — atteint" : ""}
               </span>
             ) : (
@@ -414,7 +414,7 @@ export default function Tax() {
                 <div><dt className="text-slate-500">Case 3VH (moins-values)</dt><dd className="text-lg font-semibold"><Money value={report.box_3vh} /></dd></div>
                 <div className="col-span-2 lg:col-span-1">
                   <dt className="text-slate-500">
-                    Impôt estimé (PFU {(report.pfu_rate_dividends * 100).toFixed(1)} % dividendes, {(report.pfu_rate_gains * 100).toFixed(1)} % plus-values)
+                    Impôt estimé (PFU {formatRate(report.pfu_rate_dividends * 100, 1)} dividendes, {formatRate(report.pfu_rate_gains * 100, 1)} plus-values)
                   </dt>
                   <dd className="text-lg font-semibold"><Money value={report.estimated_pfu_eur} /></dd>
                 </div>

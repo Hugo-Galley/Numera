@@ -1832,7 +1832,7 @@ export default function AccountDetail() {
               <CardContent>
                 <CardTitle className={`text-2xl font-bold ${stats?.monthlyVariation === null || stats?.monthlyVariation === undefined ? "text-slate-500" : stats.monthlyVariation >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
                   {stats?.monthlyVariation !== null && stats?.monthlyVariation !== undefined
-                    ? `${stats.monthlyVariation >= 0 ? "+" : ""}${stats.monthlyVariation.toFixed(1)}%`
+                    ? formatRate(stats.monthlyVariation, 1, true)
                     : "—"}
                 </CardTitle>
                 <p className="text-xs text-slate-400 mt-2">vs mois précédent</p>

@@ -74,9 +74,9 @@ export function DashboardKPIs({
         </CardHeader>
         <CardContent className="p-3 pt-0 sm:p-6 sm:pt-0">
           <CardTitle className="text-xl sm:text-2xl font-bold whitespace-nowrap tabular-nums">
-            <span className="amount-blur">{formatCurrency(analytics?.depenses_totales || 0, displayCurrency)}</span>
+            <span className="amount-blur">{formatCurrency((selectedAccountId === "all" ? analytics?.depenses_reelles : analytics?.depenses_totales) || 0, displayCurrency)}</span>
           </CardTitle>
-          <Sparkline data={kpiHistory} dataKey="depenses" color="#f43f5e" />
+          <Sparkline data={kpiHistory} dataKey={selectedAccountId === "all" ? "depenses_reelles" : "depenses"} color="#f43f5e" />
           <p className="hidden sm:block text-[10px] text-slate-400 mt-2 uppercase tracking-wider font-bold">Tendance 6 mois</p>
         </CardContent>
       </Card>
@@ -93,7 +93,7 @@ export function DashboardKPIs({
         <CardContent className="p-3 pt-0 sm:p-6 sm:pt-0">
           <CardTitle className="text-xl sm:text-2xl font-bold whitespace-nowrap tabular-nums">
             <span className="amount-blur">
-              {formatCurrency(selectedAccountId === "all" ? analytics?.revenus_apres_depenses : analytics?.solde_actuel, displayCurrency)}
+              {formatCurrency(selectedAccountId === "all" ? analytics?.epargne_realisee : analytics?.solde_actuel, displayCurrency)}
             </span>
           </CardTitle>
           <Sparkline data={kpiHistory} dataKey="epargne_flow" color="#3b82f6" />

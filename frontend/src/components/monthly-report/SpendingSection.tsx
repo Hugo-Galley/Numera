@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { IconComponent } from "@/components/dashboard/IconComponent"
-import { formatCurrency } from "@/lib/utils"
+import { formatCurrency, formatRate } from "@/lib/utils"
 import { Delta } from "./Delta"
 import type { MonthlyReportData } from "./types"
 
@@ -46,7 +46,7 @@ export function SpendingSection({ data }: { data: MonthlyReportData }) {
                     </div>
                     <div className="amount-blur text-sm font-bold">{formatCurrency(p.block.amount)}</div>
                     {flow.remainder.amount >= 0 && (
-                      <div className="text-[11px] text-slate-400">{p.block.percentage}% des revenus</div>
+                      <div className="text-[11px] text-slate-400">{formatRate(p.block.percentage, 1)} des revenus</div>
                     )}
                   </div>
                 ))}

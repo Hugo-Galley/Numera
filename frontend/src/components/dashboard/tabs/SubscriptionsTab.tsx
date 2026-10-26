@@ -33,8 +33,10 @@ export function SubscriptionsTab({ subscriptions, displayCurrency }: Subscriptio
     return !isInv && sub.status !== "paused"
   })
 
-  // Calculate the total of the remaining items
-  const total = items.reduce((acc: number, item: any) => acc + (item.monthly_cost || 0), 0)
+  // Total des abonnements encore prélevés (une récurrence « lapsed » n'est plus débitée depuis deux périodes)
+  const total = items
+    .filter((item: any) => item.status !== "lapsed")
+    .reduce((acc: number, item: any) => acc + (item.monthly_cost || 0), 0)
 
   return (
     <div className="grid grid-cols-1 gap-5 md:gap-8 lg:grid-cols-2">
@@ -44,7 +46,7 @@ export function SubscriptionsTab({ subscriptions, displayCurrency }: Subscriptio
             <Briefcase className="h-5 w-5 text-slate-400" />
             <CardTitle className="text-lg">Abonnements Mensuels</CardTitle>
           </div>
-          <CardDescription>Total ce mois: <span className="text-slate-900 font-bold amount-blur">{formatCurrency(total, displayCurrency)}</span></CardDescription>
+          <CardDescription>Coût mensuel moyen : <span className="text-slate-900 font-bold amount-blur">{formatCurrency(total, displayCurrency)}</span></CardDescription>
           {displayCurrency === "EUR" && (
             <div className="flex flex-wrap gap-x-3 text-xs text-slate-500">
               <WorkHours amount={total} className="text-xs" />
@@ -63,6 +65,11 @@ export function SubscriptionsTab({ subscriptions, displayCurrency }: Subscriptio
                     {sub.status === "potential" && (
                       <span className="text-[9px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider">
                         Détecté
+                      </span>
+                    )}
+                    {sub.status === "lapsed" && (
+                      <span className="text-[9px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider">
+                        Plus prélevé ?
                       </span>
                     )}
                   </div>

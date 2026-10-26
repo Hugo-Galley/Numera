@@ -1,5 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card"
-import { formatCurrency } from "@/lib/utils"
+import { formatCurrency, formatRate } from "@/lib/utils"
 import type { MonthlyReportData } from "./types"
 
 function Figure({ label, value, hint, tone }: { label: string; value: string; hint?: string; tone?: string }) {
@@ -24,9 +24,9 @@ export function SavingsSection({ data }: { data: MonthlyReportData }) {
           {flow && <Figure label="Investi" value={formatCurrency(flow.investments.amount)} />}
           <Figure
             label="Taux d'épargne"
-            value={`${data.savings_rate.toFixed(1)} %`}
+            value={formatRate(data.savings_rate, 1)}
             hint={hasExceptional
-              ? `${data.savings_rate_excl_exceptional.toFixed(1)} % hors exceptionnel`
+              ? `${formatRate(data.savings_rate_excl_exceptional, 1)} hors exceptionnel`
               : "part des revenus non dépensée"}
           />
           <Figure

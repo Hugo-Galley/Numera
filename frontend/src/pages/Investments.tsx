@@ -62,7 +62,8 @@ const SOURCE_LABELS: Record<CompositionSource, { label: string; className: strin
   manual: { label: "Saisie", className: "bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700" },
 }
 
-const COLORS = ["#000000", "#4b5563", "#9ca3af", "#d1d5db", "#e5e7eb", "#f3f4f6", "#f8fafc"]
+// Monochrome, mais chaque teinte reste lisible sur fond blanc (les gris très clairs disparaissaient)
+const COLORS = ["#0f172a", "#334155", "#475569", "#64748b", "#7c8ba1", "#94a3b8", "#b6c0cc"]
 
 export default function Investments() {
   const navigate = useNavigate()
@@ -203,7 +204,7 @@ const [loading, setLoading] = useState(true)
             </CardHeader>
             <CardContent>
               <div className="flex items-baseline gap-2">
-                <span className="text-2xl font-bold md:text-3xl">{diversity.score}</span>
+                <span className="text-2xl font-bold md:text-3xl">{Number(diversity.score).toLocaleString("fr-FR", { maximumFractionDigits: 1 })}</span>
                 <span className="text-sm text-muted-foreground">/100</span>
               </div>
               <p className="text-xs text-muted-foreground mt-1">{diversity.score_label}</p>
@@ -303,7 +304,7 @@ const [loading, setLoading] = useState(true)
                           )}
                         </span>
                       </div>
-                      <span className="font-bold text-sm text-slate-700 shrink-0 tabular-nums">{item.percentage?.toFixed(1) || 0}%</span>
+                      <span className="font-bold text-sm text-slate-700 shrink-0 tabular-nums">{formatRate(item.percentage || 0, 1)}</span>
                     </div>
                     <div className="flex flex-wrap justify-between gap-x-2 text-xs text-muted-foreground pl-5.5">
                       <span className="amount-blur font-medium whitespace-nowrap">{formatCurrency(item.current_value)}</span>
@@ -500,7 +501,7 @@ const [loading, setLoading] = useState(true)
                             <div className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
                             <span className="truncate max-w-[200px] md:max-w-[150px]">{item.name}</span>
                           </div>
-                          <span className="font-bold shrink-0">{typeof item.percentage === 'number' ? item.percentage.toFixed(1) : item.percentage}%</span>
+                          <span className="font-bold shrink-0">{typeof item.percentage === 'number' ? formatRate(item.percentage, 1) : `${item.percentage}\u00a0%`}</span>
                         </div>
                       ))}
                     </div>
@@ -624,7 +625,7 @@ const [loading, setLoading] = useState(true)
                                   </div>
                                   <div className="flex justify-between items-center text-slate-900 font-bold">
                                     <span>Apport total :</span>
-                                    <span>{formatCurrency(d.total)} ({d.pct.toFixed(1)}%)</span>
+                                    <span>{formatCurrency(d.total)} ({formatRate(d.pct, 1)})</span>
                                   </div>
                                   <div className="text-[11px] text-muted-foreground space-y-0.5 pt-1 border-t">
                                     <div className="flex justify-between">
@@ -759,7 +760,7 @@ const [loading, setLoading] = useState(true)
               >
                 <div className="flex min-w-0 flex-col">
                   <span className="font-medium text-sm break-words group-hover:text-slate-600 transition-colors">{item.account_name || "Compte sans nom"}</span>
-                  <span className="text-xs text-muted-foreground">{typeof item.percentage_of_group === 'number' ? `${item.percentage_of_group.toFixed(1)}%` : `${item.percentage_of_group || 0}%`} du groupe</span>
+                  <span className="text-xs text-muted-foreground">{formatRate(Number(item.percentage_of_group) || 0, 1)} du groupe</span>
                 </div>
                 <div className="shrink-0 text-right">
                   <span className="whitespace-nowrap font-bold text-sm tabular-nums amount-blur">{formatCurrency(item.value)}</span>

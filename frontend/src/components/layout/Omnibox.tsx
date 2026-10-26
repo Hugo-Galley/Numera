@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react"
+import { accountTypeLabel } from "@/lib/labels"
 import { useNavigate } from "react-router-dom"
 import { 
   HandCoins,
@@ -280,7 +281,7 @@ export function Omnibox() {
                         </div>
                         <div className="flex min-w-0 flex-col">
                           <span className="truncate font-medium text-slate-900">{acc.name}</span>
-                          <span className="text-[10px] text-slate-400 uppercase font-bold tracking-tight">{acc.type}</span>
+                          <span className="text-[10px] text-slate-400 uppercase font-bold tracking-tight">{accountTypeLabel(acc.type)}</span>
                         </div>
                       </div>
                       <Badge variant="outline" className={cn(

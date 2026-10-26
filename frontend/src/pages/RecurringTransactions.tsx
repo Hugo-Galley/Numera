@@ -518,7 +518,7 @@ export default function RecurringTransactions() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <div className="-mx-4 overflow-x-auto px-4 md:mx-0 md:overflow-visible md:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="scroll-fade-x -mx-4 overflow-x-auto px-4 md:mx-0 md:overflow-visible md:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <TabsList className="bg-slate-100 p-1 w-max min-w-full md:w-auto md:min-w-0 h-11 md:h-auto">
           {recurringView === "list" ? (
             <TabsTrigger value="recurring" className="rounded-lg gap-2">
@@ -760,7 +760,7 @@ export default function RecurringTransactions() {
 
         <TabsContent value="subscriptions" className="space-y-6 md:space-y-8">
            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-             <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-xl w-fit">
+             <div className="scroll-fade-x flex max-w-full items-center gap-1 overflow-x-auto p-1 bg-slate-100 rounded-xl w-fit [scrollbar-width:none] [&::-webkit-scrollbar]:hidden [&>button]:shrink-0">
                <Button 
                 variant={subTab === "subscriptions" ? "white" : "ghost"} 
                 size="sm" 
@@ -833,7 +833,7 @@ export default function RecurringTransactions() {
                </CardHeader>
                <CardContent>
                  <CardTitle className="text-2xl md:text-3xl font-bold text-slate-900">
-                   {activeSubs.length}
+                   {activeSubs.filter((s: any) => s.status !== "lapsed").length}
                  </CardTitle>
                  <p className="text-xs text-slate-400 mt-1">{potentialSubs.length} détections en attente</p>
                </CardContent>
@@ -872,7 +872,11 @@ export default function RecurringTransactions() {
                               <div className="min-w-0">
                                 <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
                                   <p className="font-bold text-slate-900 break-words">{sub.name}</p>
-                                  <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-none text-[9px] h-4 px-1.5 font-black uppercase">Certifié</Badge>
+                                  {sub.status === "lapsed" ? (
+                                    <Badge title="Aucun prélèvement depuis plus de deux échéances : à désactiver si l'abonnement est arrêté" className="bg-slate-100 text-slate-600 hover:bg-slate-100 border-none text-[9px] h-4 px-1.5 font-black uppercase">Plus prélevé ?</Badge>
+                                  ) : (
+                                    <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-none text-[9px] h-4 px-1.5 font-black uppercase">Certifié</Badge>
+                                  )}
                                 </div>
                                 <div className="flex flex-wrap items-center gap-x-2 mt-0.5">
                                   <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">{sub.category_name}</span>

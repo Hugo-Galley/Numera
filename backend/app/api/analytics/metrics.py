@@ -554,6 +554,7 @@ async def kpi_history(
             "revenus": round(float(rev), 2),
             "interets": round(float(inte), 2),
             "depenses": round(float(dep), 2),
+            "depenses_reelles": round(float(real_dep), 2),
             "investissements": round(float(inv), 2),
             "epargne": round(float(epargne_total), 2),
             "epargne_flow": round(float(rev - real_dep), 2),

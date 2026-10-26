@@ -11,7 +11,7 @@ import {
   Legend,
 } from "recharts"
 import { api } from "@/lib/api"
-import { formatCurrency } from "@/lib/utils"
+import { formatCurrency, formatRate } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -134,7 +134,7 @@ export function WealthForecast() {
                 : data.months_used > 0
                   ? ` (revenus − dépenses, moyenne sur ${data.months_used} mois)`
                   : ""}
-              , avec un rendement de <b>{data.annual_return_pct.toFixed(1)} %</b> par an
+              , avec un rendement de <b>{formatRate(data.annual_return_pct, 1)}</b> par an
               {data.return_breakdown.some((r) => r.source === "manual") ? " (en partie saisi)" : " (rendement constaté sur tes investissements)"}. Détail plus bas.
             </span>
           </p>
@@ -257,7 +257,7 @@ export function WealthForecast() {
                   <span className="text-slate-500">%</span>
                   {r.source === "manual" ? (
                     <Button size="sm" variant="ghost" onClick={() => setValue("")}>
-                      Revenir à {isInvest && data.observed_investment_return_pct !== null ? `${data.observed_investment_return_pct.toFixed(1)} % constaté` : "0 %"}
+                      Revenir à {isInvest && data.observed_investment_return_pct !== null ? `${formatRate(data.observed_investment_return_pct, 1)} constaté` : "0 %"}
                     </Button>
                   ) : (
                     <span className="text-xs text-slate-400">{r.source === "observed" ? "constaté" : "aucune donnée, 0 %"}</span>
@@ -269,7 +269,7 @@ export function WealthForecast() {
               Investissement : rendement annualisé (XIRR) réellement constaté sur tes comptes titres valorisés par
               positions, appliqué à ces seuls comptes ; les autres (suivis par relevé) restent à 0 % faute de mesure.
               Un taux saisi s'applique à tous tes comptes d'investissement. Courant et épargne : 0 % tant que tu n'en
-              saisis pas un. Moyenne pondérée par les soldes : {data.annual_return_pct.toFixed(1)} %.
+              saisis pas un. Moyenne pondérée par les soldes : {formatRate(data.annual_return_pct, 1)}.
             </p>
           </div>
         </CardContent>

@@ -3,7 +3,7 @@ import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { api } from "@/lib/api"
-import { formatCurrency } from "@/lib/utils"
+import { formatCurrency, formatRate } from "@/lib/utils"
 import type { ReviewBudget } from "@/types/monthReview"
 
 function Row({ label, value, extra }: { label: string; value: string; extra?: string }) {
@@ -57,8 +57,8 @@ export function BudgetStep({ budget, onChanged }: { budget: ReviewBudget; onChan
           />
           <Row
             label="Taux d'épargne"
-            value={`${budget.savings_rate.toFixed(1)} %`}
-            extra={hasExceptional ? `${budget.savings_rate_excl_exceptional.toFixed(1)} % hors exceptionnelles` : undefined}
+            value={formatRate(budget.savings_rate, 1)}
+            extra={hasExceptional ? `${formatRate(budget.savings_rate_excl_exceptional, 1)} hors exceptionnelles` : undefined}
           />
           <Row
             label="Burn rate (par jour)"

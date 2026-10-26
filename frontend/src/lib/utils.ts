@@ -6,7 +6,8 @@ export function formatCurrency(
   currencyCode: string = "EUR",
   options: Intl.NumberFormatOptions = {}
 ) {
-  const safeValue = Number.isFinite(value) ? (value as number) : 0
+  // Un montant qui s'arrondit à zéro (-0, -0,001) s'affiche « 0,00 € », jamais « -0,00 € »
+  const safeValue = Number.isFinite(value) && Math.abs(value as number) >= 0.005 ? (value as number) : 0
   try {
     return new Intl.NumberFormat("fr-FR", { style: "currency", currency: currencyCode || "EUR", ...options }).format(safeValue)
   } catch {

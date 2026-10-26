@@ -18,7 +18,7 @@ import { CostEstimateDialog } from "./CostEstimateDialog"
 import { api } from "@/lib/api"
 import { toast } from "sonner"
 import { CompanyLogo } from "@/components/ui/CompanyLogo"
-import { cn, formatCurrency } from "@/lib/utils"
+import { cn, formatCurrency, formatRate } from "@/lib/utils"
 import { useUI } from "@/providers/UIProvider"
 import { useConfirm } from "@/providers/ConfirmProvider"
 
@@ -346,7 +346,7 @@ export function HoldingsTable({
                                 <div className="amount-blur whitespace-nowrap text-sm">
                                   {h.gain_eur >= 0 ? "+" : ""}{formatCurrency(h.gain_eur)}
                                 </div>
-                                <div className="text-xs">({h.gain_eur >= 0 ? "+" : ""}{h.gain_pct}%)</div>
+                                <div className="text-xs">({formatRate(h.gain_pct, 2, true)})</div>
                               </div>
                             )}
                           </div>
@@ -358,7 +358,7 @@ export function HoldingsTable({
                             </div>
                             <div>
                               <dt className="text-slate-500">Poids</dt>
-                              <dd className="font-mono text-sm font-medium tabular-nums">{weightPct.toFixed(1)}%</dd>
+                              <dd className="font-mono text-sm font-medium tabular-nums">{formatRate(weightPct, 1)}</dd>
                             </div>
                             <div>
                               <dt className="text-slate-500">Cours actuel</dt>
@@ -439,7 +439,7 @@ export function HoldingsTable({
                                 <dt className="text-slate-500">Rendement total</dt>
                                 <dd className={cn("font-mono text-sm font-semibold tabular-nums", h.total_return_eur >= 0 ? "text-emerald-600" : "text-rose-600")}>
                                   <span className="amount-blur whitespace-nowrap">{h.total_return_eur >= 0 ? "+" : ""}{formatCurrency(h.total_return_eur)}</span>{" "}
-                                  <span className="text-xs">({h.total_return_eur >= 0 ? "+" : ""}{h.total_return_pct}%)</span>
+                                  <span className="text-xs">({formatRate(h.total_return_pct, 2, true)})</span>
                                 </dd>
                               </div>
                             )}
@@ -632,7 +632,7 @@ export function HoldingsTable({
                                   {h.gain_eur >= 0 ? "+" : ""}{formatCurrency(h.gain_eur)}
                                 </span>
                                 <span className={`text-[11px] font-medium ${h.gain_eur >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
-                                  ({h.gain_eur >= 0 ? "+" : ""}{h.gain_pct}%)
+                                  ({formatRate(h.gain_pct, 2, true)})
                                 </span>
                               </div>
                             ) : (
@@ -660,7 +660,7 @@ export function HoldingsTable({
                                   {h.total_return_eur >= 0 ? "+" : ""}{formatCurrency(h.total_return_eur)}
                                 </span>
                                 <span className={`text-[11px] font-medium ${h.total_return_eur >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
-                                  ({h.total_return_eur >= 0 ? "+" : ""}{h.total_return_pct}%)
+                                  ({formatRate(h.total_return_pct, 2, true)})
                                 </span>
                               </div>
                             ) : (
@@ -669,7 +669,7 @@ export function HoldingsTable({
                           </TableCell>
 
                           <TableCell className="text-right font-mono text-xs text-slate-500 font-medium">
-                            {weightPct.toFixed(1)}%
+                            {formatRate(weightPct, 1)}
                           </TableCell>
                           </>
                         )}

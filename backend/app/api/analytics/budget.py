@@ -556,6 +556,7 @@ async def budget_analytics(
 
 
 
+        saved = remaining if account_id else revenus - real_depenses
         return {
             "month": month,
             "year": year,
@@ -566,6 +567,10 @@ async def budget_analytics(
             "depenses_reelles": round(float(real_depenses), 2),
             "investissements_du_mois": round(float(investments), 2),
             "revenus_apres_depenses": round(float(remaining), 2),
+            # Vue globale : épargné = revenus − dépenses réelles (numérateur du taux d'épargne), dont
+            # `reste_tresorerie` = ce qui reste une fois tous les investissements du mois sortis
+            "epargne_realisee": round(float(saved), 2),
+            "reste_tresorerie": round(float(saved - (0.0 if account_id else investments)), 2),
             "taux_epargne": round(float(savings_rate), 2),
             "burn_rate": round(float(burn_rate), 2),
             "patrimoine_net_total": round(float(checking_bal + savings_total + investment_value + other_bal), 2),

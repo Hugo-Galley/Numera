@@ -213,9 +213,9 @@ Un point zéro sert de base de performance pour un compte.
 
 ### Analytics
 
-- `GET /analytics/budget`
+- `GET /analytics/budget` (vue globale : `epargne_realisee` = revenus − dépenses réelles, numérateur du taux d'épargne ; `reste_tresorerie` = `epargne_realisee` − `investissements_du_mois` (versements liés inclus) ; `revenus_apres_depenses` reste revenus − `depenses_totales`)
 - `GET /analytics/actions`, `POST /analytics/actions/dismiss`, `GET /analytics/audit`, `GET /analytics/audit/{issue_id}`
-- `GET /analytics/cashflow-projection`, `GET /analytics/calendar`, `GET /analytics/patrimoine-allocation`
+- `GET /analytics/cashflow-projection` (vue globale : ignore les récurrences de virement vers un compte déjà compté dans le solde et les récurrences « lapsed »), `GET /analytics/calendar`, `GET /analytics/patrimoine-allocation`
 - `GET /analytics/asset-allocation/suggestions`, `GET /analytics/diversity-scanner`
 - `POST /analytics/insights/dismiss`, `POST /analytics/subscriptions/ignore`, `GET /analytics/tags`
 - `GET /analytics/expenses-by-category`
@@ -226,9 +226,9 @@ Un point zéro sert de base de performance pour un compte.
 - `GET /analytics/portfolio` (vue globale EUR) et `GET /analytics/portfolio/{account_id}` : valeur calculée, espèces, montant investi, plus-value latente (+ effet de change par ligne), plus-value réalisée par année, dividendes, frais, XIRR, TWR, courbe reconstituée, rapprochement avec les snapshots
 - `GET /analytics/investments/{account_id}`
 - `GET /analytics/investments/{account_id}/performance-history`
-- `GET /analytics/subscriptions`
-- `GET /analytics/wrapped?year=` (bilan annuel, `api/analytics/wrapped.py` : agrège mois par mois `budget`, `expenses-by-category` (hors Investissement/Epargne) et `top-merchants` ; année en cours arrêtée au mois courant, `previous` = N-1 sur la même période ; abonnements = récurrences `Sortie` hors virement et hors épargne/investissement, nouveaux = 1re échéance dans l'année, arrêtés = récurrence close dont la dernière échéance tombe dans l'année ; heures de travail au taux horaire actuel)
-- `GET /analytics/kpi-history` (mêmes règles que `budget` : virements internes exclus, seuls les versements liés à un virement comptent comme investis ; `taux_epargne` borné à ±100, `null` sans revenu)
+- `GET /analytics/subscriptions` (`status` : `active`, `lapsed` = active mais aucune occurrence depuis plus de deux périodes + 7 j (`core/finance.py::is_lapsed`, hors totaux), `paused`, `potential` ; `next_occurrence` cherchée sur 400 jours)
+- `GET /analytics/wrapped?year=` (bilan annuel, `api/analytics/wrapped.py` : agrège mois par mois `budget`, `expenses-by-category` (hors Investissement/Epargne) et `top-merchants` ; année en cours arrêtée au mois courant, `previous` = N-1 sur la même période, seulement si N-1 a des dépenses sur au moins la moitié des mois comparés ; variation de patrimoine hors soldes initiaux saisis dans l'année ; abonnements = récurrences `Sortie` hors virement et hors épargne/investissement, nouveaux = 1re échéance dans l'année, arrêtés = récurrence close (ou « lapsed » à la fin de la période) dont la dernière échéance tombe dans l'année ; heures de travail au taux horaire actuel)
+- `GET /analytics/kpi-history` (mêmes règles que `budget` : virements internes exclus, seuls les versements liés à un virement comptent comme investis ; `taux_epargne` borné à ±100, `null` sans revenu ; `depenses` inclut les sorties catégorisées Investissement/Epargne, `depenses_reelles` non)
 - `GET /analytics/budget-period[?year=&month=]` et `PUT` (`{"mode": "civil"|"salary"}`) : mois budgétaire en cours et fenêtre (`start`, `end` inclus) du mois demandé. Mois de paie (réglage `budget_month_mode`, défaut `salary`) : chaque salaire reçu (transaction `Entree` du compte salaire dont le libellé commence par « Salaire », ou de récurrence salaire, ou de catégorie « Salaire ») ouvre une période qui dure jusqu'au salaire suivant et porte le nom du mois qu'elle finance (salaire du 25 août → « septembre »). Logique unique dans `core/budget_period.py` (`period_bounds`, `period_key_expr`, `current_period`) ; branchée sur `budget`, `budget-alerts`, `expenses-by-category`, `top-merchants`, `tags`, `kpi-history`, `timeseries`, `monthly-report`, `money-flow`, `sankey`, `insights`, `/month-review`. Sans salaire détecté : mois civil. Salaire manquant (écart > 45 j) : le trou entre deux périodes forme un mois « sans salaire » (`_fill_gaps`), aucun jour n'est hors période. Hors périmètre (restent en mois civil) : soldes, calendrier, cashflow-projection, investissements, fiscalité, `/wrapped` (forcé civil par `civil_months()`)
 - `GET /analytics/resilience?month=&year=` (mois d'autonomie = épargne liquide ÷ dépenses réelles moyennes des 6 derniers mois complets ; aussi utilisé par le « fonds de sécurité » du score de santé)
 - `GET /analytics/account-flow-summary` (flux net du mois, variation, dépense moyenne d'un compte ; virements exclus)
@@ -239,9 +239,9 @@ Un point zéro sert de base de performance pour un compte.
 - `GET /analytics/insights`
 - `GET /analytics/wealth-simulation` (mode avancé : Monte Carlo, événements, fiscalité)
 - `GET /analytics/wealth-forecast` (prévision simple : patrimoine total + épargne moyenne 12 mois (hors mois de tête sans dépense, avant le début du suivi), XIRR constaté (`/analytics/portfolio`) appliqué aux seuls comptes valorisés par positions sur lesquels il est mesuré (`investissement`), comptes d'investissement suivis par relevé à 0 % (`investissement_non_mesure`) sauf `investment_return_pct` qui s'applique à tous, autres comptes 0 %, aucun taux codé en dur, `years`, `extra_monthly`, surcharges `monthly_savings` / `investment_return_pct` / `savings_return_pct` ; la réponse détaille les mois et soldes par type utilisés)
-- `GET /analytics/sankey`
-- `GET /analytics/money-flow`
-- `GET /analytics/monthly-report` (inclut `exceptional_expenses`, `real_expenses_excl_exceptional`, `savings_excl_exceptional`, `savings_rate_excl_exceptional`, `burn_rate_excl_exceptional`; `top_categories` : 8 premières catégories avec `prev_total`, total du mois précédent)
+- `GET /analytics/sankey` (nœud Budget équilibré : Investissements = `investissements_du_mois`, Épargne = entrées − dépenses catégorisées − investissements, Déficit sinon)
+- `GET /analytics/money-flow` (vue globale : `investments` inclut les versements liés à un virement interne, comme `investissements_du_mois`)
+- `GET /analytics/monthly-report` (`net_worth_change` hors soldes initiaux saisis dans le mois ; inclut `exceptional_expenses`, `real_expenses_excl_exceptional`, `savings_excl_exceptional`, `savings_rate_excl_exceptional`, `burn_rate_excl_exceptional`; `top_categories` : 8 premières catégories avec `prev_total`, total du mois précédent)
 
 ## Regles De Calcul
 

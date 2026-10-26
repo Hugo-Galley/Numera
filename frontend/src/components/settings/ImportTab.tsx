@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react"
+import { accountTypeLabel } from "@/lib/labels"
 import { 
   Upload, 
   FileText, 
@@ -190,7 +191,7 @@ export function ImportTab() {
                 <SelectContent>
                   {accounts.map((acc) => (
                     <SelectItem key={acc.id} value={String(acc.id)}>
-                      {acc.name} ({acc.type})
+                      {acc.name} ({accountTypeLabel(acc.type)})
                     </SelectItem>
                   ))}
                 </SelectContent>

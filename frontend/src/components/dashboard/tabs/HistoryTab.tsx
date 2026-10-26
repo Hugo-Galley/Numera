@@ -21,10 +21,8 @@ import {
   Line
 } from "recharts"
 
-const months = [
-  "Janvier", "Février", "Mars", "Avril", "Mai", "Juin", 
-  "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"
-]
+// Abréviations usuelles : « juin » et « juil. » se distinguent (les 3 premières lettres donnaient « Jui » deux fois)
+const SHORT_MONTHS = ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."]
 
 interface HistoryTabProps {
   kpiHistory: any[]
@@ -66,7 +64,7 @@ export function HistoryTab({
               <Tooltip contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} />
               <Legend verticalAlign={isMobile ? "bottom" : "top"} height={36} wrapperStyle={isMobile ? { fontSize: 12 } : undefined}/>
               <Area type="monotone" dataKey="revenus" name="Revenus" stroke="#10b981" fill="url(#colorRev)" strokeWidth={3} />
-              <Area type="monotone" dataKey="depenses" name="Dépenses" stroke="#f43f5e" fill="url(#colorDep)" strokeWidth={3} />
+              <Area type="monotone" dataKey="depenses_reelles" name="Dépenses réelles" stroke="#f43f5e" fill="url(#colorDep)" strokeWidth={3} />
             </AreaChart>
           </ResponsiveContainer>
         </CardContent>
@@ -88,7 +86,7 @@ export function HistoryTab({
                 dataKey="month" 
                 axisLine={false} 
                 tickLine={false} 
-                tickFormatter={(v) => months[v-1]?.substring(0, 3) || v} 
+                tickFormatter={(v) => SHORT_MONTHS[v-1] || v} 
                 tick={{ fontSize: axisFont, fill: '#64748b' }} 
               />
               <YAxis width={yWidth} axisLine={false} tickLine={false} tick={{ fontSize: axisFont, fill: '#64748b' }} tickFormatter={(v) => `${v}${displayCurrency === 'EUR' ? '€' : displayCurrency}`} />
@@ -115,7 +113,7 @@ export function HistoryTab({
                 dataKey="month" 
                 axisLine={false} 
                 tickLine={false} 
-                tickFormatter={(v) => months[v-1]?.substring(0, 3) || v} 
+                tickFormatter={(v) => SHORT_MONTHS[v-1] || v} 
                 tick={{ fontSize: axisFont, fill: '#64748b' }} 
               />
               <YAxis width={yWidth} axisLine={false} tickLine={false} tick={{ fontSize: axisFont, fill: '#64748b' }} tickFormatter={(v) => `${v}${displayCurrency === 'EUR' ? '€' : displayCurrency}`} />

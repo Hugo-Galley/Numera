@@ -23,7 +23,7 @@ import {
   ReferenceLine
 } from "recharts"
 import { SankeyFlow } from "@/components/analytics/SankeyFlow"
-import { formatCurrency, formatAmountWithShare } from "@/lib/utils"
+import { formatCurrency, formatAmountWithShare, formatRate } from "@/lib/utils"
 import { IconComponent } from "../IconComponent"
 import { useIsMobile } from "@/hooks/useIsMobile"
 
@@ -329,7 +329,7 @@ export function OverviewTab({
                               {formatCurrency(group.total_eur, "EUR")}
                             </span>
                             <span className="text-[10px] text-slate-400 font-semibold ml-2">
-                              {catPercentage}%
+                              {formatRate(Number(catPercentage), 1)}
                             </span>
                           </div>
                         </div>
@@ -363,7 +363,7 @@ export function OverviewTab({
                                   {formatCurrency(item.balance_eur, "EUR")}
                                 </span>
                                 <span className="text-[10px] font-medium text-slate-400">
-                                  {((item.balance_eur / totalPatrimoine) * 100).toFixed(1)}%
+                                  {formatRate((item.balance_eur / totalPatrimoine) * 100, 1)}
                                 </span>
                               </div>
                             </div>
@@ -387,7 +387,7 @@ export function OverviewTab({
                               {formatCurrency(group.value, "EUR")}
                             </span>
                             <span className="text-[10px] text-slate-400 font-semibold ml-2">
-                              {group.percentage}%
+                              {formatRate(group.percentage, 1)}
                             </span>
                           </div>
                         </div>
@@ -421,7 +421,7 @@ export function OverviewTab({
                                   {formatCurrency(item.balance_eur, "EUR")}
                                 </span>
                                 <span className="text-[10px] font-medium text-slate-400">
-                                  {((item.balance_eur / totalPatrimoine) * 100).toFixed(1)}%
+                                  {formatRate((item.balance_eur / totalPatrimoine) * 100, 1)}
                                 </span>
                               </div>
                             </div>
@@ -462,7 +462,7 @@ export function OverviewTab({
                           {formatCurrency(item.balance_eur, "EUR")}
                         </span>
                         <span className="text-[11px] font-medium text-slate-400">
-                          {item.percentage}%
+                          {formatRate(item.percentage, 1)}
                         </span>
                       </div>
                     </div>
@@ -499,7 +499,7 @@ export function OverviewTab({
                           {formatCurrency(item.balance_eur, "EUR")}
                         </span>
                         <span className="text-[11px] font-medium text-slate-400">
-                          {item.percentage}%
+                          {formatRate(item.percentage, 1)}
                         </span>
                       </div>
                     </div>
@@ -572,7 +572,7 @@ export function OverviewTab({
                      {item.category.name}
                    </span>
                    <span className="font-bold">
-                     <span className="amount-blur">{item.percentage}%</span>
+                     <span className="amount-blur">{formatRate(item.percentage, 1)}</span>
                    </span>
                  </div>
                ))}

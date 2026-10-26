@@ -44,7 +44,7 @@ from app.models.balance_snapshot import BalanceSnapshot
 from app.models.investment_transaction import InvestmentTransaction
 from app.models.transaction import Transaction
 from app.models.recurring_transaction import RecurringTransaction
-from app.core.finance import get_recurring_occurrences
+from app.core.finance import get_recurring_occurrences, is_lapsed
 from app.core.logging import get_logger
 from app.schemas.transaction import TransactionRead
 
@@ -113,9 +113,10 @@ async def get_subscriptions_analytics(
         
         last_occ = last_tx.date.isoformat() if last_tx else None
         
-        # Next occurrence
-        next_occs = get_recurring_occurrences(rd, datetime.now(), datetime.now() + timedelta(days=60))
+        # Next occurrence (sur un peu plus d'un an : une récurrence annuelle a aussi sa prochaine date)
+        next_occs = get_recurring_occurrences(rd, datetime.now(), datetime.now() + timedelta(days=400))
         next_occ = next_occs[0].isoformat() if next_occs else None
+        lapsed = bool(rd.is_active) and is_lapsed(rd.frequency, last_tx.date if last_tx else None, datetime.now())
 
         subscriptions.append(SubscriptionInsight(
             name=rd.name,
@@ -127,10 +128,11 @@ async def get_subscriptions_analytics(
             last_occurrence=last_occ,
             next_occurrence=next_occ,
             is_recurring_entity=True,
-            status="active" if rd.is_active else "paused",
+            status=("lapsed" if lapsed else "active") if rd.is_active else "paused",
             logo=rd.logo,
             flow_type=rd.type,
-            counts_in_total=bool(rd.is_active) and not is_savings_flow,
+            # Plus prélevée depuis deux périodes : affichée à part, hors des totaux
+            counts_in_total=bool(rd.is_active) and not lapsed and not is_savings_flow,
         ))
 
     # 2. Detect potential subscriptions (Repeated transactions same merchant + same amount)

@@ -232,7 +232,8 @@ export function SankeyFlow({ data, currency = "EUR" }: SankeyFlowProps) {
   if (isEmpty) {
     return (
       <div className="flex items-center justify-center h-[200px] text-slate-400">
-        Pas assez de données pour générer le diagramme de flux.
+        {/* `data` vaut null tant que l'API n'a pas répondu : ce n'est pas encore « pas de données » */}
+        {data ? "Pas assez de données pour générer le diagramme de flux." : "Chargement du diagramme…"}
       </div>
     );
   }

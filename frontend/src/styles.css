@@ -103,3 +103,11 @@ body.privacy-enabled textarea.privacy-masked:focus {
     -webkit-touch-callout: default;
   }
 }
+
+/* Barre d'onglets qui défile au doigt : un fondu à droite indique qu'il reste des onglets (mobile) */
+@media (max-width: 767px) {
+  .scroll-fade-x {
+    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
+    mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
+  }
+}

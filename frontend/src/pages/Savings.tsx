@@ -1,7 +1,7 @@
 import { useSubmit } from "@/hooks/useSubmit"
 import { ErrorState } from "@/components/layout/ErrorState"
 import { useEffect, useState, useMemo } from "react"
-import { formatAmountWithShare, formatCurrency } from "@/lib/utils"
+import { formatAmountWithShare, formatCurrency, formatRate } from "@/lib/utils"
 import { Link } from "react-router-dom"
 import { 
   PiggyBank, 
@@ -334,7 +334,7 @@ export default function Savings() {
                 <CardContent className="p-4 pt-0 md:p-6 md:pt-0">
                   <CardTitle className={`text-2xl sm:text-3xl font-bold ${hasIncome ? getRateColor(savingsRate) : "text-slate-400"}`}>
                     {/* Le backend borne le taux à ±100 % : afficher « −100 % » ferait croire à une valeur exacte */}
-                    {!hasIncome ? "—" : savingsRate <= -100 ? "≤ −100 %" : `${savingsRate} %`}
+                    {!hasIncome ? "—" : savingsRate <= -100 ? "≤ −100 %" : formatRate(savingsRate, 1)}
                   </CardTitle>
                   {!hasIncome && <p className="text-xs text-slate-500 mt-1">Aucun revenu sur la période</p>}
                   <div className="mt-2 flex items-center gap-2">
@@ -358,7 +358,7 @@ export default function Savings() {
                 </CardHeader>
                 <CardContent className="p-4 pt-0 md:p-6 md:pt-0">
                   <CardTitle className="text-2xl sm:text-3xl font-bold text-slate-900">
-                    {resilience?.months != null ? `${resilience.months} mois` : "—"}
+                    {resilience?.months != null ? `${resilience.months.toLocaleString("fr-FR", { maximumFractionDigits: 1 })} mois` : "—"}
                   </CardTitle>
                   <p className="text-xs text-slate-500 mt-2">
                     {resilience?.months != null
@@ -388,7 +388,7 @@ export default function Savings() {
                       <div>
                         <p className="text-sm font-medium text-slate-500">Flux d'Épargne {period === "all-time" ? "Total" : "Mensuel"}</p>
                         <p className="whitespace-nowrap text-2xl font-bold tabular-nums text-slate-900">
-                          {formatCurrency((analytics?.revenus_apres_depenses || 0) + (analytics?.investissements_du_mois || 0))}
+                          {formatCurrency(analytics?.epargne_realisee || 0)}
                         </p>
                       </div>
                     </div>
@@ -398,14 +398,14 @@ export default function Savings() {
                       <ResponsiveContainer width="100%" height="100%">
                         <BarChart layout="vertical" data={[{
                           name: 'Flux',
-                          Cash: analytics?.revenus_apres_depenses || 0,
+                          Cash: analytics?.reste_tresorerie || 0,
                           Investissements: analytics?.investissements_du_mois || 0
                         }]} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
                           <XAxis type="number" hide />
                           <YAxis dataKey="name" type="category" hide />
                           <Tooltip cursor={{fill: 'transparent'}} formatter={(v: number, _n: string, item: any) => shareLabel(v, item?.payload, ['Cash', 'Investissements'])} contentStyle={{ fontSize: '12px', borderRadius: '8px', border: 'none', boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} />
                           <ReferenceLine x={0} stroke="#e2e8f0" />
-                          <Bar dataKey="Cash" stackId="a" fill={(analytics?.revenus_apres_depenses || 0) >= 0 ? "#94a3b8" : "#f43f5e"} radius={[4, 4, 4, 4]} barSize={12} />
+                          <Bar dataKey="Cash" stackId="a" fill={(analytics?.reste_tresorerie || 0) >= 0 ? "#94a3b8" : "#f43f5e"} radius={[4, 4, 4, 4]} barSize={12} />
                           <Bar dataKey="Investissements" stackId="a" fill="#0f172a" radius={[4, 4, 4, 4]} barSize={12} />
                         </BarChart>
                       </ResponsiveContainer>
@@ -413,10 +413,10 @@ export default function Savings() {
                     <div className="flex justify-between items-center">
                       <div>
                         <div className="flex items-center gap-1.5">
-                          <div className={`w-2 h-2 rounded-full ${(analytics?.revenus_apres_depenses || 0) >= 0 ? 'bg-slate-400' : 'bg-rose-500'}`} />
-                          <p className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Cash disponible</p>
+                          <div className={`w-2 h-2 rounded-full ${(analytics?.reste_tresorerie || 0) >= 0 ? 'bg-slate-400' : 'bg-rose-500'}`} />
+                          <p className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Reste en trésorerie</p>
                         </div>
-                        <p className="font-semibold text-slate-700 text-sm mt-0.5">{formatCurrency(analytics?.revenus_apres_depenses || 0)}</p>
+                        <p className="font-semibold text-slate-700 text-sm mt-0.5">{formatCurrency(analytics?.reste_tresorerie || 0)}</p>
                       </div>
                       <div className="text-right">
                         <div className="flex items-center justify-end gap-1.5">
@@ -496,7 +496,7 @@ export default function Savings() {
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                       <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} dy={10} interval="preserveStartEnd" minTickGap={12} />
                       <YAxis domain={[-100, 100]} axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} tickFormatter={(v) => `${v}%`} />
-                      <Tooltip formatter={(v: number) => [`${v}%`, "Taux"]} contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} />
+                      <Tooltip formatter={(v: number) => [formatRate(v, 1), "Taux"]} contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} />
                       <Area type="monotone" dataKey="rate" stroke="#3b82f6" fillOpacity={1} fill="url(#colorRate)" strokeWidth={3} dot={{ r: 4, fill: "#3b82f6", strokeWidth: 2, stroke: "#fff" }} activeDot={{ r: 6 }} />
                     </AreaChart>
                   </ResponsiveContainer>

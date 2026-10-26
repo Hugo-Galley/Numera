@@ -1,4 +1,5 @@
 import { useSubmit } from "@/hooks/useSubmit"
+import { categoryTypeLabel } from "@/lib/labels"
 import { useState, useEffect, useRef } from "react"
 import { useSearchParams } from "react-router-dom"
 import { 
@@ -276,7 +277,7 @@ export default function Settings() {
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <div className="-mx-4 px-4 md:mx-0 md:px-0">
-          <TabsList ref={tabsListRef} className="bg-slate-100 p-1 rounded-xl mb-4 sm:mb-8 flex h-12 w-full justify-start gap-1 sm:inline-flex sm:h-10 sm:w-auto [ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <TabsList ref={tabsListRef} className="scroll-fade-x bg-slate-100 p-1 rounded-xl mb-4 sm:mb-8 flex h-12 w-full justify-start gap-1 sm:inline-flex sm:h-10 sm:w-auto [ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             <TabsTrigger value="account" className="h-10 shrink-0 rounded-lg px-4 sm:h-auto sm:px-6">
               <User className="h-4 w-4 mr-2" /> Compte
             </TabsTrigger>
@@ -464,7 +465,7 @@ export default function Settings() {
                             ${cat.type === 'revenu' ? 'text-emerald-500' : ''}
                             ${cat.type === 'neutre' ? 'text-slate-400' : ''}
                           `}>
-                            {cat.type}
+                            {categoryTypeLabel(cat.type)}
                           </Badge>
                           {cat.group && (
                             <Badge variant="secondary" className="text-[9px] h-4 px-1 bg-slate-100 text-slate-500 border-none font-bold">

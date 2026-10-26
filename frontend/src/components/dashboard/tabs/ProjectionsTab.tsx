@@ -167,13 +167,19 @@ export function ProjectionsTab({ projection, displayCurrency }: ProjectionsTabPr
               </CardHeader>
               <CardContent className="space-y-4 p-4 pt-0 md:p-6 md:pt-0">
                 <p className="text-sm text-slate-600 leading-relaxed">
-                  Votre solde devrait rester **positif** sur toute la période projetée. 
+                  {(projection?.low_point || 0) >= 0 ? (
+                    <>Votre solde devrait rester <strong>positif</strong> sur toute la période projetée. </>
+                  ) : (
+                    <>Votre solde passerait <strong className="text-rose-600">sous zéro</strong> sur la période projetée. </>
+                  )}
                   Le point bas est estimé à <span className="font-bold text-slate-900 amount-blur">{formatCurrency(projection?.low_point || 0, displayCurrency)}</span>.
                 </p>
-                <div className="p-4 bg-white rounded-xl border border-blue-100 shadow-sm">
-                   <p className="text-xs font-bold text-blue-800 uppercase mb-2">Conseil</p>
-                   <p className="text-sm text-slate-700">Vous avez un excédent de trésorerie prévu de <span className="font-bold">{formatCurrency((projection?.projected_balance || 0) - (projection?.current_balance || 0), displayCurrency)}</span>. Envisagez un versement complémentaire vers votre compte d'épargne.</p>
-                </div>
+                {(projection?.projected_balance || 0) > (projection?.current_balance || 0) && (
+                  <div className="p-4 bg-white rounded-xl border border-blue-100 shadow-sm">
+                     <p className="text-xs font-bold text-blue-800 uppercase mb-2">Conseil</p>
+                     <p className="text-sm text-slate-700">Vous avez un excédent de trésorerie prévu de <span className="font-bold amount-blur">{formatCurrency((projection?.projected_balance || 0) - (projection?.current_balance || 0), displayCurrency)}</span>. Envisagez un versement complémentaire vers votre compte d'épargne.</p>
+                  </div>
+                )}
               </CardContent>
             </Card>
          </div>

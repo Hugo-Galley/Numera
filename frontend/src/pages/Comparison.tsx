@@ -1,4 +1,4 @@
-import { formatCurrency } from "@/lib/utils"
+import { formatCurrency, formatRate } from "@/lib/utils"
 import { useState, useEffect, useMemo } from "react"
 import { 
   BarChart3, 
@@ -70,14 +70,14 @@ export default function Comparison() {
       
       setDataA({ 
         revenus_totaux: resA?.revenus_totaux || 0,
-        depenses_totales: resA?.depenses_totales || 0,
-        revenus_apres_depenses: resA?.revenus_apres_depenses || 0,
+        depenses_totales: resA?.depenses_reelles || 0,
+        revenus_apres_depenses: resA?.epargne_realisee || 0,
         categories: catA?.items || [] 
       })
       setDataB({ 
         revenus_totaux: resB?.revenus_totaux || 0,
-        depenses_totales: resB?.depenses_totales || 0,
-        revenus_apres_depenses: resB?.revenus_apres_depenses || 0,
+        depenses_totales: resB?.depenses_reelles || 0,
+        revenus_apres_depenses: resB?.epargne_realisee || 0,
         categories: catB?.items || [] 
       })
     } catch (error) {
@@ -107,7 +107,8 @@ export default function Comparison() {
       const valA = catA?.total || 0
       const valB = catB?.total || 0
       const diff = valA - valB
-      const diffPct = valB !== 0 ? (diff / valB) * 100 : 0
+      // Sans montant sur la période B, une variation en % n'a pas de sens : « nouveau »
+      const diffPct = valB !== 0 ? (diff / valB) * 100 : null
 
       return {
         name: catName,
@@ -174,7 +175,7 @@ export default function Comparison() {
                   <ArrowDownRight className="h-4 w-4 text-rose-500" />
                 )}
                 <span className={`text-xs font-bold ${(dataA.revenus_totaux - dataB.revenus_totaux) >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
-                  {dataB.revenus_totaux !== 0 ? (((dataA.revenus_totaux - dataB.revenus_totaux) / dataB.revenus_totaux) * 100).toFixed(1) : 0}%
+                  {dataB.revenus_totaux !== 0 ? formatRate(((dataA.revenus_totaux - dataB.revenus_totaux) / dataB.revenus_totaux) * 100, 1) : "—"}
                 </span>
               </div>
             )}
@@ -196,7 +197,7 @@ export default function Comparison() {
                   <ArrowUpRight className="h-4 w-4 text-rose-500" />
                 )}
                 <span className={`text-xs font-bold ${(dataA.depenses_totales - dataB.depenses_totales) <= 0 ? "text-emerald-600" : "text-rose-600"}`}>
-                  {dataB.depenses_totales !== 0 ? (((dataA.depenses_totales - dataB.depenses_totales) / dataB.depenses_totales) * 100).toFixed(1) : 0}%
+                  {dataB.depenses_totales !== 0 ? formatRate(((dataA.depenses_totales - dataB.depenses_totales) / dataB.depenses_totales) * 100, 1) : "—"}
                 </span>
               </div>
             )}
@@ -243,7 +244,7 @@ export default function Comparison() {
                   <div className={`flex shrink-0 items-center gap-1 whitespace-nowrap font-bold tabular-nums ${row.diff > 0 ? "text-rose-600" : row.diff < 0 ? "text-emerald-600" : "text-slate-400"}`}>
                     {row.diff > 0 ? <ArrowUpRight className="h-3.5 w-3.5" /> : row.diff < 0 ? <ArrowDownRight className="h-3.5 w-3.5" /> : <Minus className="h-3.5 w-3.5" />}
                     <span className="amount-blur">{formatCurrency(Math.abs(row.diff))}</span>
-                    <span className="ml-1 text-xs">{row.diffPct > 0 ? "+" : ""}{row.diffPct.toFixed(1)}%</span>
+                    <span className="ml-1 text-xs">{row.diffPct === null ? (row.diff > 0 ? "nouveau" : "—") : formatRate(row.diffPct, 1, row.diffPct > 0)}</span>
                   </div>
                 </div>
                 <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 text-xs text-slate-500">
@@ -292,7 +293,7 @@ export default function Comparison() {
                       </div>
                     </TableCell>
                     <TableCell className={`text-right text-xs font-bold ${row.diff > 0 ? "text-rose-500" : row.diff < 0 ? "text-emerald-500" : "text-slate-400"}`}>
-                      {row.diffPct > 0 ? "+" : ""}{row.diffPct.toFixed(1)}%
+                      {row.diffPct === null ? (row.diff > 0 ? "nouveau" : "—") : formatRate(row.diffPct, 1, row.diffPct > 0)}
                     </TableCell>
                   </TableRow>
                 ))}

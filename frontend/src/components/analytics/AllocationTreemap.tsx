@@ -1,6 +1,6 @@
 import React from 'react';
 import { Treemap, ResponsiveContainer, Tooltip } from 'recharts';
-import { formatAmountWithShare } from '@/lib/utils';
+import { formatAmountWithShare, formatRate } from '@/lib/utils';
 
 interface AllocationItem {
   name: string;
@@ -33,6 +33,13 @@ const CustomizedContent = (props: any) => {
   if (depth !== 2) return null;
   if (width <= 0 || height <= 0) return null;
 
+  // Légende « nom • % » si elle tient dans la case, sinon le % seul, sinon rien (jamais de texte qui déborde)
+  const captionSize = width > 120 ? 12 : 10;
+  const fits = (text: string) => text.length * captionSize * 0.6 <= width - 12;
+  const full = `${name} • ${formatRate(percentage, 1)}`;
+  const short = formatRate(percentage, 1);
+  const caption = fits(full) ? full : fits(short) ? short : null;
+
   return (
     <g className="cursor-pointer transition-opacity hover:opacity-90">
       <rect
@@ -62,17 +69,17 @@ const CustomizedContent = (props: any) => {
           {new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(value)}
         </text>
       )}
-      {width > 60 && height > 50 && (
+      {caption && height > 50 && (
         <text
           x={x + width / 2}
           y={y + height / 2 + 15}
           textAnchor="middle"
           fill="#fff"
           fillOpacity={0.9}
-          fontSize={width > 120 ? 12 : 10}
+          fontSize={captionSize}
           className="pointer-events-none select-none"
         >
-          {name} • {percentage} %
+          {caption}
         </text>
       )}
     </g>

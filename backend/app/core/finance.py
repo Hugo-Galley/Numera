@@ -129,3 +129,20 @@ def get_recurring_occurrences(
             break # Unknown frequency
             
     return occurrences
+
+
+# Durée d'une période par fréquence, en jours (borne haute)
+PERIOD_DAYS = {"daily": 1, "weekly": 7, "monthly": 31, "quarterly": 92, "yearly": 366, "annual": 366}
+
+
+def is_lapsed(frequency: str, last_occurrence, today) -> bool:
+    """Récurrence active mais plus prélevée : aucune occurrence depuis plus de deux périodes (+ 7 jours de marge).
+
+    Sans aucune occurrence rattachée, on ne conclut rien (récurrence jamais liée, ou toute nouvelle).
+    """
+    if last_occurrence is None:
+        return False
+    days = PERIOD_DAYS.get(frequency, 31)
+    last_day = last_occurrence.date() if hasattr(last_occurrence, "date") else last_occurrence
+    today_day = today.date() if hasattr(today, "date") else today
+    return (today_day - last_day).days > 2 * days + 7

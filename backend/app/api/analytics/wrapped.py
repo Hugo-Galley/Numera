@@ -11,6 +11,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.core.currency import get_exchange_rates
+from app.core.finance import is_lapsed
 from app.core.work_time import load_work_time
 from app.db.session import get_db
 from app.models.account import Account
@@ -32,7 +33,7 @@ from app.schemas.wrapped import (
 from app.core.budget_period import civil_months
 from .budget import budget_analytics
 from .metrics import expenses_by_category, top_merchants
-from .utils import NET_AMOUNT, _get_ticket_restaurant_account_ids
+from .utils import NET_AMOUNT, _get_ticket_restaurant_account_ids, opening_balances_eur
 
 router = APIRouter()
 
@@ -144,7 +145,8 @@ async def _totals(db: Session, year: int, last_month: int, rates: dict[str, floa
         dividends=round(dividends, 2),
         net_worth_start=round(net_worth_start, 2),
         net_worth_end=round(net_worth_end, 2),
-        net_worth_change=round(net_worth_end - net_worth_start, 2),
+        # Les soldes initiaux des comptes ouverts dans l'année ne sont pas un gain
+        net_worth_change=round(net_worth_end - net_worth_start - opening_balances_eur(db, start, end, rates), 2),
         subscriptions_cost=round(subscriptions_cost, 2),
         expense_count=expense_count,
     )
@@ -244,7 +246,12 @@ def _subscription_changes(
         )
         if start <= row.first < end:
             new.append(item)
-        closed = not rd.is_active or (rd.end_date is not None and rd.end_date < now)
+        closed = (
+            not rd.is_active
+            or (rd.end_date is not None and rd.end_date < now)
+            # plus prélevé depuis deux périodes, jugé à la fin de la période analysée
+            or is_lapsed(rd.frequency, row.last, min(end, now))
+        )
         if closed and start <= row.last < end:
             stopped.append(item)
     new.sort(key=lambda s: s.monthly_cost, reverse=True)
@@ -288,7 +295,11 @@ async def _build_wrapped(year: int, db: Session) -> WrappedReport:
 
     previous = None
     if year - 1 in available_years:
-        prev_totals, _ = await _totals(db, year - 1, last_month, rates)
+        prev_totals, prev_months = await _totals(db, year - 1, last_month, rates)
+    # Comparer à une année presque vide (suivi commencé en cours d'année) donne des « +124 000 % » :
+    # il faut des dépenses sur au moins la moitié des mois comparés
+    prev_active = [m for m in prev_months if m.real_expenses > 0] if year - 1 in available_years else []
+    if prev_active and len(prev_active) * 2 >= max(len(active_months), 1):
         previous = WrappedComparison(
             year=year - 1,
             totals=prev_totals,
@@ -315,7 +326,9 @@ async def _build_wrapped(year: int, db: Session) -> WrappedReport:
         biggest_expense=_biggest_expense(db, year, last_month, rates, hourly_rate),
         hourly_rate=hourly_rate,
         real_expenses_work_hours=_hours(totals.real_expenses, hourly_rate),
-        net_worth_change_pct=_pct_change(totals.net_worth_end, totals.net_worth_start),
+        net_worth_change_pct=(
+            round(totals.net_worth_change / totals.net_worth_start * 100.0, 1) if totals.net_worth_start > 0 else None
+        ),
         new_subscriptions=new_subs,
         stopped_subscriptions=stopped_subs,
         stopped_subscriptions_yearly_saving=round(sum(s.monthly_cost for s in stopped_subs) * 12, 2),

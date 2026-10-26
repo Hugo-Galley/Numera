@@ -53,6 +53,12 @@ from .metrics import expenses_by_category
 
 logger = get_logger(__name__)
 
+
+
+def _eur(value: float) -> str:
+    """Montant à la française pour les textes : « 1 234,56 € »."""
+    return f"{value:,.2f}".replace(",", "\u202f").replace(".", ",") + "\u00a0€"
+
 router = APIRouter()
 
 from .utils import (
@@ -162,7 +168,7 @@ async def get_intelligent_insights(
         insights.append(Insight(
             type="anomaly",
             title="Hausse des abonnements",
-            description=f"Vos abonnements ont augmenté de {round(diff, 2)}€ par rapport au mois dernier.",
+            description=f"Vos abonnements ont augmenté de {_eur(diff)} par rapport au mois dernier.",
             severity="medium",
             value=diff
         ))
@@ -194,7 +200,7 @@ async def get_intelligent_insights(
             insights.append(Insight(
                 type="anomaly",
                 title="Grosse dépense isolée",
-                description=f"La transaction '{tx.merchant}' de {round(val_eur, 2)}€ est exceptionnellement élevée.",
+                description=f"La transaction '{tx.merchant}' de {_eur(val_eur)} est exceptionnellement élevée.",
                 severity="high" if val_eur > revenus * 0.3 else "medium",
                 value=val_eur
             ))
@@ -232,9 +238,10 @@ async def get_intelligent_insights(
                 insights.append(Insight(
                     type="anomaly",
                     title=f"Alerte catégorie : {cat_obj.name}",
-                    description=f"Vos dépenses en '{cat_obj.name}' ({round(current_total, 2)}€) sont plus de 2x supérieures à votre moyenne habituelle ({round(avg, 2)}€).",
+                    description=f"Vos dépenses en '{cat_obj.name}' ({_eur(current_total)}) sont plus de 2x supérieures à votre moyenne habituelle ({_eur(avg)}).",
                     severity="medium",
-                    value=current_total
+                    value=current_total,
+                    category_id=cat_obj.id,
                 ))
 
     # 4. Positive Insights
@@ -242,9 +249,10 @@ async def get_intelligent_insights(
         insights.append(Insight(
             type="positive",
             title="Excellent taux d'épargne",
-            description="Félicitations ! Vous épargnez plus de 30% de vos revenus ce mois-ci.",
+            description="Félicitations ! Vous épargnez plus de 30 % de vos revenus ce mois-ci.",
             severity="low",
-            value=savings_rate
+            value=savings_rate,
+            unit="%",
         ))
     
     if runway_months > 12:
@@ -253,7 +261,8 @@ async def get_intelligent_insights(
             title="Sérénité financière",
             description="Votre fonds de sécurité couvre plus d'un an de dépenses. Vous êtes très bien protégé.",
             severity="low",
-            value=runway_months
+            value=runway_months,
+            unit="mois",
         ))
 
     from app.models.dismissed_insight import DismissedInsight
