@@ -53,6 +53,7 @@ class RecurringTransactionBase(BaseModel):
     isin: str | None = None
     quantity: float | None = None
     unit_price: float | None = None
+    whole_shares: bool = False
     etf_profile_id: int | None = None
     logo: str | None = None
 
@@ -101,6 +102,7 @@ class RecurringTransactionUpdate(BaseModel):
     isin: str | None = None
     quantity: Quantity | None = None
     unit_price: Quantity | None = None
+    whole_shares: bool | None = None
     etf_profile_id: int | None = None
     logo: str | None = None
 

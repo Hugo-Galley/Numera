@@ -1,4 +1,5 @@
 import calendar
+import math
 from datetime import date, datetime
 from sqlalchemy.orm import Session
 from app.models.account import Account
@@ -34,15 +35,20 @@ async def _market_price(db: Session, ticker: str, day: date) -> tuple[float, str
 
 async def _size_trade(
     db: Session, rd: RecurringTransaction, account_currency: str, amount: float, currency: str, occ: datetime
-) -> tuple[float | None, float | None, str | None]:
-    """Quantité, prix unitaire et devise du prix d'un achat récurrent de `amount` (devise du compte).
+) -> tuple[float | None, float | None, str | None, float | None]:
+    """Quantité, prix unitaire, devise du prix et montant réellement investi d'un achat récurrent de `amount`.
 
     Quantité et prix fixés dans la règle : repris tels quels. Sinon le prix vient du cours de clôture
-    à la date de l'échéance (devise de cotation) et la quantité = montant ÷ prix.
+    à la date de l'échéance (devise de cotation) et la quantité = montant ÷ prix. Avec `whole_shares`,
+    la quantité est arrondie à l'entier inférieur : le montant investi (4e valeur, devise du compte)
+    devient parts × cours, le reliquat reste en espèces chez le courtier (si le montant ne couvre pas une
+    part entière, la quantité reste fractionnaire). Ce montant vaut None quand
+    la règle n'impose pas de parts entières (ou si la taille de l'achat est inconnue).
     """
     unit_price = rd.unit_price
     quantity = rd.quantity
     price_currency = currency if unit_price else None  # prix fixé dans la règle : devise de la règle
+    invested: float | None = None
 
     if rd.ticker and (not quantity or quantity <= 0 or not unit_price):
         market = await _market_price(db, rd.ticker.upper().strip(), occ.date())
@@ -55,13 +61,19 @@ async def _size_trade(
             price_in_account = await convert_amount(
                 unit_price, price_currency or account_currency, account_currency, date=occ.date(), db=db
             )
-            quantity = round(amount / price_in_account, 6)
+            whole = math.floor(amount / price_in_account + 1e-9)
+            if rd.whole_shares and whole >= 1:
+                quantity = float(whole)
+                invested = round(quantity * price_in_account, 2)
+            else:
+                # Montant inférieur au prix d'une part : on garde la quantité fractionnaire plutôt qu'un achat nul
+                quantity = round(amount / price_in_account, 6)
         except CurrencyConversionError as exc:
             logger.warning(f"Recurring tx {rd.id}: cannot size the trade ({exc})")
     elif quantity and (not unit_price or unit_price <= 0) and amount > 0:
         unit_price = round(amount / quantity, 4)
         price_currency = account_currency
-    return quantity, unit_price, price_currency
+    return quantity, unit_price, price_currency, invested
 
 
 def transfer_credit_date(debit: datetime, credit_day: int | None) -> datetime:
@@ -89,7 +101,9 @@ async def _transfer_credit(
     trade = None
     if rd.ticker and dest.type == "investissement":
         leg_amount = transfer_amount if transfer_amount is not None else amount
-        qty, price, price_cur = await _size_trade(db, rd, dest.currency, leg_amount, currency, when)
+        qty, price, price_cur, invested = await _size_trade(db, rd, dest.currency, leg_amount, currency, when)
+        if invested is not None:
+            transfer_amount = invested  # parts entières : seul le coût des parts arrive en versement
         trade = {
             "ticker": rd.ticker.upper().strip(),
             "isin": rd.isin.upper().strip() if rd.isin else None,
@@ -234,17 +248,22 @@ async def generate_recurring_transactions(db: Session) -> int:
                 inv_type = "versement" if inv_type == "sortie" else "retrait"
 
             if is_inv and inv_type in ["versement", "retrait", "dividende"]:
-                effective_quantity, effective_unit_price, price_currency = await _size_trade(
+                effective_quantity, effective_unit_price, price_currency, invested = await _size_trade(
                     db, rd, account.currency, converted_amount, currency, occ
                 )
+                tx_amount, tx_original = converted_amount, original_amount
+                if invested is not None:
+                    # Parts entières : le montant suit le coût des parts (original_amount au prorata)
+                    tx_original = round(original_amount * invested / converted_amount, 2) if converted_amount else invested
+                    tx_amount = invested
 
                 new_tx = InvestmentTransaction(
                     account_id=rd.account_id,
                     date=occ,
                     type=inv_type,
-                    amount=converted_amount,
+                    amount=tx_amount,
                     currency=currency,
-                    original_amount=original_amount,
+                    original_amount=tx_original,
                     note=note,
                     asset_class=rd.asset_class,
                     sector=rd.sector,
