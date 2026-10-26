@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { TrendingUp, Info } from "lucide-react"
+import { TrendingUp, ChevronDown } from "lucide-react"
 import {
   ResponsiveContainer,
   LineChart,
@@ -11,7 +11,7 @@ import {
   Legend,
 } from "recharts"
 import { api } from "@/lib/api"
-import { formatCurrency, formatRate } from "@/lib/utils"
+import { cn, formatCurrency, formatRate } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -62,6 +62,20 @@ interface Forecast {
 }
 
 const HORIZONS = [5, 10, 20]
+
+function Step({ n, title, children }: { n: number; title: string; children: React.ReactNode }) {
+  return (
+    <section className="flex gap-3">
+      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-50 text-xs font-bold text-blue-600">
+        {n}
+      </span>
+      <div className="min-w-0 flex-1 space-y-3 text-sm text-slate-600">
+        <p className="font-semibold text-slate-900">{title}</p>
+        {children}
+      </div>
+    </section>
+  )
+}
 const EXTRA_PRESETS = [0, 50, 100, 200]
 
 export function WealthForecast() {
@@ -73,6 +87,8 @@ export function WealthForecast() {
   const [data, setData] = useState<Forecast | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
+  const [showMethod, setShowMethod] = useState(false)
+  const [showMonths, setShowMonths] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -124,20 +140,28 @@ export function WealthForecast() {
           )}
         </CardHeader>
         <CardContent className="space-y-4">
-          <p className="text-sm text-slate-500 flex items-start gap-2">
-            <Info className="h-4 w-4 mt-0.5 shrink-0" />
-            <span>
-              Tu pars de <b className="amount-blur">{formatCurrency(data.current_wealth, "EUR")}</b>, tu épargnes en
-              moyenne <b className="amount-blur">{formatCurrency(data.avg_monthly_savings, "EUR")}</b> par mois
-              {data.savings_overridden
-                ? " (valeur saisie)"
-                : data.months_used > 0
-                  ? ` (revenus − dépenses, moyenne sur ${data.months_used} mois)`
-                  : ""}
-              , avec un rendement de <b>{formatRate(data.annual_return_pct, 1)}</b> par an
-              {data.return_breakdown.some((r) => r.source === "manual") ? " (en partie saisi)" : " (rendement constaté sur tes investissements)"}. Détail plus bas.
-            </span>
-          </p>
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+            <div className="rounded-lg bg-slate-50 px-3 py-2">
+              <p className="text-xs text-slate-500">Tu pars de</p>
+              <p className="font-bold tabular-nums text-slate-900 amount-blur">{formatCurrency(data.current_wealth, "EUR")}</p>
+            </div>
+            <div className="rounded-lg bg-slate-50 px-3 py-2">
+              <p className="text-xs text-slate-500">Tu mets de côté{data.savings_overridden ? " (saisi)" : ""}</p>
+              <p className="font-bold tabular-nums text-slate-900 amount-blur">
+                {formatCurrency(data.avg_monthly_savings, "EUR")}
+                <span className="text-xs font-normal text-slate-500"> /mois</span>
+              </p>
+            </div>
+            <div className="rounded-lg bg-slate-50 px-3 py-2">
+              <p className="text-xs text-slate-500">
+                Ton argent rapporte{data.return_breakdown.some((r) => r.source === "manual") ? " (en partie saisi)" : ""}
+              </p>
+              <p className="font-bold tabular-nums text-slate-900 amount-blur">
+                {formatRate(data.annual_return_pct, 1)}
+                <span className="text-xs font-normal text-slate-500"> /an</span>
+              </p>
+            </div>
+          </div>
           {data.avg_monthly_savings < 0 && (
             <p className="text-sm font-medium text-amber-600">
               Tu dépenses plus que tu ne gagnes en moyenne : le patrimoine diminue dans cette prévision.
@@ -180,103 +204,6 @@ export function WealthForecast() {
 
       <Card className="shadow-sm border-slate-100">
         <CardHeader>
-          <CardTitle className="text-lg">Comment c'est calculé</CardTitle>
-          <CardDescription>
-            Chaque mois : patrimoine × (1 + rendement mensuel) + épargne mensuelle, répété sur {data.years} ans. Modifie
-            les deux hypothèses ci-dessous pour les remplacer.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="space-y-2">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-sm font-medium text-slate-700">Épargne mensuelle :</span>
-              <Input
-                type="number" inputMode="decimal"
-                className="h-10 w-28 md:h-9"
-                placeholder={String(Math.round(data.computed_monthly_savings))}
-                value={savingsInput}
-                onChange={(e) => setSavingsInput(e.target.value)}
-              />
-              <span className="text-sm text-slate-500">€/mois</span>
-              {data.savings_overridden && (
-                <Button size="sm" variant="ghost" onClick={() => setSavingsInput("")}>
-                  Revenir au calcul ({formatCurrency(data.computed_monthly_savings, "EUR")})
-                </Button>
-              )}
-            </div>
-            <p className="text-xs text-slate-500">
-              Calcul automatique = revenus − dépenses réelles (hors versements vers l'épargne et les investissements),
-              moyenne sur {data.months_used} mois. Ce n'est pas la somme que tu verses sur tes comptes : c'est ce qu'il
-              te reste en fin de mois.
-            </p>
-            {data.savings_months.length > 0 && (
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs tabular-nums">
-                  <thead>
-                    <tr className="text-left text-slate-500">
-                      <th className="py-1 pr-3 font-medium">Mois</th>
-                      <th className="py-1 pr-3 text-right font-medium">Revenus</th>
-                      <th className="py-1 pr-3 text-right font-medium">Dépenses réelles</th>
-                      <th className="py-1 text-right font-medium">Reste</th>
-                    </tr>
-                  </thead>
-                  <tbody className="amount-blur">
-                    {data.savings_months.map((m) => (
-                      <tr key={m.label} className="border-t border-slate-100">
-                        <td className="py-1 pr-3">{m.label}</td>
-                        <td className="py-1 pr-3 text-right">{formatCurrency(m.revenus, "EUR")}</td>
-                        <td className="py-1 pr-3 text-right">{formatCurrency(m.depenses_reelles, "EUR")}</td>
-                        <td className="py-1 text-right font-semibold">{formatCurrency(m.epargne_flow, "EUR")}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <p className="text-sm font-medium text-slate-700">Rendement annuel</p>
-            {data.return_breakdown.map((r) => {
-              const isInvest = r.type.startsWith("investissement")
-              const value = isInvest ? investInput : otherInput
-              const setValue = isInvest ? setInvestInput : setOtherInput
-              return (
-                <div key={r.type} className="flex flex-wrap items-center gap-2 text-sm">
-                  <span className="w-44 text-slate-700">{TYPE_LABELS[r.type] ?? r.type}</span>
-                  <span className="w-24 text-xs tabular-nums text-slate-500 amount-blur">
-                    {formatCurrency(r.balance, "EUR")}
-                  </span>
-                  <Input
-                    type="number" inputMode="decimal"
-                    className="h-10 w-24 md:h-9"
-                    placeholder={r.rate_pct.toFixed(1)}
-                    value={value}
-                    onChange={(e) => setValue(e.target.value)}
-                  />
-                  <span className="text-slate-500">%</span>
-                  {r.source === "manual" ? (
-                    <Button size="sm" variant="ghost" onClick={() => setValue("")}>
-                      Revenir à {isInvest && data.observed_investment_return_pct !== null ? `${formatRate(data.observed_investment_return_pct, 1)} constaté` : "0 %"}
-                    </Button>
-                  ) : (
-                    <span className="text-xs text-slate-400">{r.source === "observed" ? "constaté" : "aucune donnée, 0 %"}</span>
-                  )}
-                </div>
-              )
-            })}
-            <p className="text-xs text-slate-500">
-              Investissement : rendement annualisé (XIRR) réellement constaté sur tes comptes titres valorisés par
-              positions, appliqué à ces seuls comptes ; les autres (suivis par relevé) restent à 0 % faute de mesure.
-              Un taux saisi s'applique à tous tes comptes d'investissement. Courant et épargne : 0 % tant que tu n'en
-              saisis pas un. Moyenne pondérée par les soldes : {formatRate(data.annual_return_pct, 1)}.
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card className="shadow-sm border-slate-100">
-        <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
             <TrendingUp className="h-5 w-5 text-blue-500" /> Évolution prévue
           </CardTitle>
@@ -304,6 +231,146 @@ export function WealthForecast() {
             </LineChart>
           </ResponsiveContainer>
         </CardContent>
+      </Card>
+
+      <Card className="shadow-sm border-slate-100">
+        <button
+          type="button"
+          className="flex w-full items-center justify-between gap-3 p-6 text-left"
+          onClick={() => setShowMethod((v) => !v)}
+          aria-expanded={showMethod}
+        >
+          <div className="space-y-1">
+            <p className="text-lg font-semibold text-slate-900">Comment c'est calculé</p>
+            <p className="text-sm text-slate-500">Les 3 hypothèses de la prévision, et comment les modifier.</p>
+          </div>
+          <ChevronDown className={cn("h-5 w-5 shrink-0 text-slate-400 transition-transform", showMethod && "rotate-180")} />
+        </button>
+        {showMethod && (
+          <CardContent className="space-y-6 pt-0">
+            <Step n={1} title="Ton point de départ">
+              <p>
+                Ce que valent tous tes comptes aujourd'hui (courant, épargne et investissements) :{" "}
+                <b className="text-slate-900 amount-blur">{formatCurrency(data.current_wealth, "EUR")}</b>.
+              </p>
+            </Step>
+
+            <Step n={2} title="Ce que tu mets de côté chaque mois">
+              <p>
+                C'est ce qu'il te reste en fin de mois : <b>revenus − dépenses</b>. Les virements vers ton épargne ou
+                tes investissements ne sont pas des dépenses (l'argent reste à toi), ils ne sont donc pas retirés.
+                {data.months_used > 0 && <> Moyenne des {data.months_used} derniers mois.</>}
+              </p>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-slate-700">Montant utilisé :</span>
+                <Input
+                  type="number" inputMode="decimal"
+                  className="h-10 w-28 md:h-9"
+                  placeholder={String(Math.round(data.computed_monthly_savings))}
+                  value={savingsInput}
+                  onChange={(e) => setSavingsInput(e.target.value)}
+                />
+                <span className="text-slate-500">€/mois</span>
+                {data.savings_overridden ? (
+                  <Button size="sm" variant="ghost" onClick={() => setSavingsInput("")}>
+                    Revenir au calcul ({formatCurrency(data.computed_monthly_savings, "EUR")})
+                  </Button>
+                ) : (
+                  <span className="text-xs text-slate-400">calculé automatiquement, saisis un montant pour le remplacer</span>
+                )}
+              </div>
+              {data.savings_months.length > 0 && (
+                <>
+                  <button
+                    type="button"
+                    className="text-xs font-medium text-blue-600 hover:underline"
+                    onClick={() => setShowMonths((v) => !v)}
+                  >
+                    {showMonths ? "Masquer le détail mois par mois" : "Voir le détail mois par mois"}
+                  </button>
+                  {showMonths && (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-xs tabular-nums">
+                        <thead>
+                          <tr className="text-left text-slate-500">
+                            <th className="py-1 pr-3 font-medium">Mois</th>
+                            <th className="py-1 pr-3 text-right font-medium">Revenus</th>
+                            <th className="py-1 pr-3 text-right font-medium">Dépenses</th>
+                            <th className="py-1 text-right font-medium">Reste</th>
+                          </tr>
+                        </thead>
+                        <tbody className="amount-blur">
+                          {data.savings_months.map((m) => (
+                            <tr key={m.label} className="border-t border-slate-100">
+                              <td className="py-1 pr-3">{m.label}</td>
+                              <td className="py-1 pr-3 text-right">{formatCurrency(m.revenus, "EUR")}</td>
+                              <td className="py-1 pr-3 text-right">{formatCurrency(m.depenses_reelles, "EUR")}</td>
+                              <td className="py-1 text-right font-semibold">{formatCurrency(m.epargne_flow, "EUR")}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </>
+              )}
+            </Step>
+
+            <Step n={3} title="Ce que ton argent rapporte chaque année">
+              <p>
+                Chaque groupe de comptes a son propre taux. Pour tes investissements, c'est la performance réellement
+                mesurée sur tes comptes titres. Là où rien n'est mesurable (courant, épargne, comptes suivis par
+                simple relevé), on compte 0 % : saisis un taux si tu veux en tenir compte.
+              </p>
+              <div className="divide-y divide-slate-100 rounded-lg border border-slate-100">
+                {data.return_breakdown.map((r) => {
+                  const isInvest = r.type.startsWith("investissement")
+                  const value = isInvest ? investInput : otherInput
+                  const setValue = isInvest ? setInvestInput : setOtherInput
+                  return (
+                    <div key={r.type} className="flex flex-wrap items-center gap-x-3 gap-y-2 px-3 py-2">
+                      <div className="min-w-0 flex-1 basis-40">
+                        <p className="text-slate-700">{TYPE_LABELS[r.type] ?? r.type}</p>
+                        <p className="text-xs tabular-nums text-slate-400">
+                          <span className="amount-blur">{formatCurrency(r.balance, "EUR")}</span>
+                          {" · "}
+                          {r.source === "manual" ? "taux saisi" : r.source === "observed" ? "taux mesuré" : "non mesuré"}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          type="number" inputMode="decimal"
+                          className="h-10 w-20 md:h-9"
+                          placeholder={r.rate_pct.toFixed(1)}
+                          value={value}
+                          onChange={(e) => setValue(e.target.value)}
+                        />
+                        <span className="text-slate-500">%/an</span>
+                        {r.source === "manual" && (
+                          <Button size="sm" variant="ghost" onClick={() => setValue("")}>
+                            Revenir à {isInvest && data.observed_investment_return_pct !== null ? formatRate(data.observed_investment_return_pct, 1) : "0 %"}
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+              <p>
+                Taux global retenu : <b className="text-slate-900">{formatRate(data.annual_return_pct, 1)}</b> par an
+                (les comptes les plus gros pèsent le plus).
+              </p>
+            </Step>
+
+            <div className="rounded-lg bg-slate-50 p-3 text-sm text-slate-600">
+              <p className="font-medium text-slate-700">Ensuite, mois après mois</p>
+              <p>
+                On part du point de départ, on ajoute ce que ton argent a rapporté, puis ce que tu mets de côté
+                {boostedShown ? ` (+${data.extra_monthly} € pour la courbe verte)` : ""}. On répète pendant {data.years} ans.
+              </p>
+            </div>
+          </CardContent>
+        )}
       </Card>
     </div>
   )
