@@ -795,16 +795,22 @@ async def investments_allocation_advanced(db: Session = Depends(get_db)):
 async def patrimoine_allocation(db: Session = Depends(get_db)):
     """
     Returns the distribution of active wealth (all accounts: courant, epargne, investissement).
+    Les crédits sont exclus des items et du total brut : `total_debts_eur` (capital restant dû) et `net_patrimoine_eur`.
     """
     accounts = active_accounts(db)
     values = await account_values(db, accounts)
 
     total_patrimoine_eur = 0.0
+    total_debts_eur = 0.0
     items = []
 
     for acc in accounts:
         val = values[acc.id].value
         val_eur = values[acc.id].value_eur
+        if acc.type == "credit":
+            # Dette : hors camembert (valeur négative), déduite dans le patrimoine net
+            total_debts_eur -= val_eur
+            continue
         total_patrimoine_eur += val_eur
         
         if acc.type == "assurance_vie":
@@ -857,6 +863,8 @@ async def patrimoine_allocation(db: Session = Depends(get_db)):
     
     return {
         "total_patrimoine": round(total_patrimoine_eur, 2),
+        "total_debts_eur": round(total_debts_eur, 2),
+        "net_patrimoine_eur": round(total_patrimoine_eur - total_debts_eur, 2),
         "items": items
     }
 

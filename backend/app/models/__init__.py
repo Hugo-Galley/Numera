@@ -26,6 +26,7 @@ from app.models.month_closure import MonthClosure
 from app.models.transaction_split import TransactionSplit
 from app.models.provision import Provision
 from app.models.financial_event import FinancialEvent
+from app.models.loan import Loan, LoanPrepayment
 
 __all__ = [
     "Account",
@@ -56,4 +57,6 @@ __all__ = [
     "TransactionSplit",
     "Provision",
     "FinancialEvent",
+    "Loan",
+    "LoanPrepayment",
 ]

@@ -2,7 +2,7 @@ import { useSubmit } from "@/hooks/useSubmit"
 import { accountTypeLabel } from "@/lib/labels"
 import { formatCurrency, formatRate } from "@/lib/utils"
 import { useEffect, useState, useMemo } from "react"
-import { Link } from "react-router-dom"
+import { Link, useSearchParams } from "react-router-dom"
 import {
   Plus,
   Wallet,
@@ -14,7 +14,8 @@ import {
   Star,
   Shield,
   Archive,
-  ArchiveRestore
+  ArchiveRestore,
+  Landmark,
 } from "lucide-react"
 import { api } from "@/lib/api"
 import { Button } from "@/components/ui/button"
@@ -56,11 +57,13 @@ import { toast } from "sonner"
 import { useConfirm } from "@/providers/ConfirmProvider"
 import { LogoPicker } from "@/components/ui/LogoPicker"
 import { AccountLogo, invalidateAccountLogos } from "@/components/ui/AccountLogo"
+import { LoanDialog } from "@/components/loans/LoanDialog"
+import type { LoanSummary } from "@/components/loans/types"
 
 type Account = {
   id: number
   name: string
-  type: "courant" | "epargne" | "investissement" | "assurance_vie"
+  type: "courant" | "epargne" | "investissement" | "assurance_vie" | "credit"
   currency: string
   active: boolean
   asset_class?: string
@@ -118,6 +121,33 @@ export default function Accounts() {
   }>({ asset_classes: [], sectors: [], geographic_zones: [] })
 
   const confirm = useConfirm()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const [loanDialogOpen, setLoanDialogOpen] = useState(false)
+  const [editingLoan, setEditingLoan] = useState<LoanSummary | null>(null)
+
+  // ⌘K « Ajouter un crédit » : /accounts?new=loan
+  useEffect(() => {
+    if (searchParams.get("new") !== "loan") return
+    setEditingLoan(null)
+    setLoanDialogOpen(true)
+    searchParams.delete("new")
+    setSearchParams(searchParams, { replace: true })
+  }, [searchParams, setSearchParams])
+
+  // Un compte crédit se modifie avec son prêt (le formulaire de compte refuserait le type `credit`)
+  const openEdit = async (account: Account) => {
+    if (account.type !== "credit") {
+      setEditingAccount(account)
+      setIsEditDialogOpen(true)
+      return
+    }
+    try {
+      setEditingLoan(await api.get<LoanSummary>(`/loans/by-account/${account.id}`))
+      setLoanDialogOpen(true)
+    } catch (error) {
+      toast.error("Impossible de charger ce crédit")
+    }
+  }
   const [archivedAccounts, setArchivedAccounts] = useState<Account[]>([])
   const [showArchived, setShowArchived] = useState(false)
 
@@ -303,6 +333,7 @@ export default function Accounts() {
       case "epargne": return <PiggyBank className="h-4 w-4" />
       case "investissement": return <TrendingUp className="h-4 w-4" />
       case "assurance_vie": return <Shield className="h-4 w-4" />
+      case "credit": return <Landmark className="h-4 w-4" />
       default: return <Wallet className="h-4 w-4" />
     }
   }
@@ -318,6 +349,11 @@ export default function Accounts() {
           <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Comptes</h1>
           <p className="text-muted-foreground">Gérez vos différents comptes bancaires et d'investissement.</p>
         </div>
+        <div className="flex flex-col gap-2 sm:flex-row">
+        <Button variant="outline" className="w-full sm:w-auto" onClick={() => { setEditingLoan(null); setLoanDialogOpen(true) }}>
+          <Landmark className="mr-2 h-4 w-4" /> Ajouter un crédit
+        </Button>
+        <LoanDialog open={loanDialogOpen} onOpenChange={setLoanDialogOpen} loan={editingLoan} onSaved={() => loadAccounts()} />
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button className="bg-slate-900 text-white hover:bg-slate-800 w-full sm:w-auto">
@@ -533,6 +569,7 @@ export default function Accounts() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       {/* Edit Dialog */}
@@ -827,7 +864,7 @@ export default function Accounts() {
                     <Button
                       variant="outline"
                       className="h-10"
-                      onClick={() => { setEditingAccount(account); setIsEditDialogOpen(true) }}
+                      onClick={() => openEdit(account)}
                     >
                       Modifier
                     </Button>
@@ -942,10 +979,7 @@ export default function Accounts() {
                             <Button 
                               variant="outline" 
                               size="sm"
-                              onClick={() => {
-                                setEditingAccount(account)
-                                setIsEditDialogOpen(true)
-                              }}
+                              onClick={() => openEdit(account)}
                             >
                               Modifier
                             </Button>

@@ -10,6 +10,7 @@ TaxWrapper = Literal["pea", "per", "cto", "assurance_vie", "livret_a", "livret_j
 # Types reconnus par les calculs ; un type inconnu (ex. « bank ») était classé au hasard selon les vues.
 # La lecture reste en `str` pour ne pas casser d'anciens comptes déjà enregistrés avec un autre type.
 AccountType = Literal["courant", "epargne", "investissement", "assurance_vie"]
+# Les comptes `credit` se créent et se modifient via `/loans` (compte + prêt ensemble), jamais via `/accounts`.
 
 
 class AccountBase(BaseModel):

@@ -6,7 +6,7 @@ Le point d'entrée `server.py` est un **dispatcher** qui lance l'un des deux ser
 
 | Mode | Fichier | Fonctionnement | Outils |
 |------|---------|----------------|--------|
-| **API proxy** | `server_api.py` | Appelle l'API FastAPI avec un **token MCP** généré dans Numera. Reprend les KPI calculés par le backend. Recommandé, et seul mode du `docker-compose.prod.yml` (exposé sur `/mcp`). | 45 outils, 4 ressources, 6 prompts |
+| **API proxy** | `server_api.py` | Appelle l'API FastAPI avec un **token MCP** généré dans Numera. Reprend les KPI calculés par le backend. Recommandé, et seul mode du `docker-compose.prod.yml` (exposé sur `/mcp`). | 47 outils, 4 ressources, 6 prompts |
 | **SQLite direct** | `server_sqlite.py` | Lit la base SQLite (connexion `mode=ro`). Installation locale, **stdio uniquement**. | 20 outils, 5 ressources, 3 prompts |
 
 ### Choix du mode

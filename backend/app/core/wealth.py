@@ -5,6 +5,7 @@ Règle de repli :
 - compte d'investissement / assurance-vie → dernier relevé (snapshot) daté au plus tard à `at` ;
 - autre compte (courant, épargne, ancien type…) → le plus récent entre un relevé et la dernière
   opération (solde courant) ;
+- compte `credit` → −capital restant dû de son prêt à la date (`core/loans.py`), dette déduite du patrimoine ;
 - à défaut → dernier solde courant, sinon 0 (`source = "none"`, jamais de valeur inventée).
 Tout compte actif compte dans le patrimoine, quel que soit son type.
 """
@@ -16,6 +17,7 @@ from datetime import date, datetime
 from sqlalchemy.orm import Session
 
 from app.core.currency import get_exchange_rates
+from app.core.loans import loan_remaining
 from app.core.portfolio import positions_values_eur
 from app.models.account import Account
 from app.models.balance_snapshot import BalanceSnapshot
@@ -66,6 +68,11 @@ async def account_values(
     values: dict[int, AccountValue] = {}
     for acc in accounts:
         rate = rates.get(acc.currency, 1.0) or 1.0
+        if acc.type == "credit":
+            remaining = loan_remaining(db, acc.id, at.date())
+            if remaining is not None:
+                values[acc.id] = AccountValue(-remaining, -remaining / rate, "loan")
+                continue
         if acc.id in positions:
             eur = positions[acc.id]
             values[acc.id] = AccountValue(eur * rate, eur, "positions")

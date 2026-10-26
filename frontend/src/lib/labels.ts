@@ -6,6 +6,7 @@ export function accountTypeLabel(type: string | null | undefined) {
     case "epargne": return "Épargne"
     case "investissement": return "Investissement"
     case "assurance_vie": return "Assurance-Vie"
+    case "credit": return "Crédit"
     case "bank": return "Compte bancaire"
     default: return type ? type.charAt(0).toUpperCase() + type.slice(1) : "Autre"
   }

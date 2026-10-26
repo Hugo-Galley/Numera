@@ -1,3 +1,5 @@
+from datetime import date
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
@@ -7,6 +9,7 @@ from app.models.account import Account
 from app.models.balance_snapshot import BalanceSnapshot
 from app.models.transaction import Transaction
 from app.core import reconciliation
+from app.core.loans import loan_remaining
 from app.core.time import utcnow_naive
 from app.schemas.account import (
     AccountCreate,
@@ -22,7 +25,13 @@ router = APIRouter(prefix="/accounts", tags=["accounts"])
 
 
 def _get_balance_for_account(db: Session, account_id: int) -> float:
-    """Solde = source la plus récente entre le dernier snapshot et la dernière transaction."""
+    """Solde = source la plus récente entre le dernier snapshot et la dernière transaction.
+
+    Compte `credit` : −capital restant dû de son prêt à ce jour.
+    """
+    remaining = loan_remaining(db, account_id, date.today())
+    if remaining is not None:
+        return -remaining
     latest_snap = db.query(BalanceSnapshot).filter(
         BalanceSnapshot.account_id == account_id
     ).order_by(BalanceSnapshot.date.desc(), BalanceSnapshot.id.desc()).first()

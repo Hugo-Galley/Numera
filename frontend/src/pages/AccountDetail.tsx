@@ -4,6 +4,7 @@ import { endOfDayParam, nowLocalInput, startOfDayParam, toInputValue, toNaiveLoc
 import { useState, useEffect, useMemo, useRef } from "react"
 import { AccountLogo } from "@/components/ui/AccountLogo"
 import { useParams, Link } from "react-router-dom"
+import { LoanView } from "@/components/loans/LoanView"
 import { 
   ArrowLeft, 
   Scale,
@@ -257,7 +258,7 @@ type Account = {
   id: number
   name: string
   logo?: string | null
-  type: "courant" | "epargne" | "investissement" | "assurance_vie"
+  type: "courant" | "epargne" | "investissement" | "assurance_vie" | "credit"
   currency: string
   fonds_euros_pct?: number
   fonds_investis_pct?: number
@@ -1181,6 +1182,8 @@ export default function AccountDetail() {
   )
   
   if (!account) return <div>Compte non trouvé</div>
+  // Un compte crédit n'a pas d'opérations : échéancier, capital restant dû et simulateur
+  if (account.type === "credit") return <LoanView accountId={account.id} />
 
   const isInvestment = account.type === "investissement" || account.type === "assurance_vie"
   const currentBalance = isInvestment 

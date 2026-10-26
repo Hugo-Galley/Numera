@@ -936,6 +936,58 @@ def list_financial_events(start: str | None = None, end: str | None = None) -> s
 
 
 @mcp.tool()
+def list_loans() -> str:
+    """Crédits en cours : mensualité (hors assurance), capital restant dû (déduit du patrimoine net),
+    part remboursée, date de fin, coût total des intérêts et de l'assurance."""
+    try:
+        resp = api.get("/loans")
+        error = handle_response(resp)
+        if error:
+            return error
+        loans = resp.json()
+        if not loans:
+            return "Aucun crédit enregistré."
+        simplified = [
+            {
+                "id": l["id"],
+                "crédit": l["name"],
+                "type": l["kind"],
+                "taux": f"{l['annual_rate_pct']} %",
+                "mensualité": l["monthly_payment"],
+                "restant_dû": l["remaining_principal"],
+                "remboursé": f"{l['repaid_pct']} %",
+                "fin": l["end_date"],
+                "coût_total": l["total_cost"],
+            }
+            for l in loans
+        ]
+        return f"🏦 {len(simplified)} crédit(s) :\n\n" + format_table(simplified)
+    except Exception as e:
+        return f"❌ Erreur : {e}"
+
+
+@mcp.tool()
+def get_loan_schedule(loan_id: int, year: int | None = None) -> str:
+    """Tableau d'amortissement d'un crédit (échéance, intérêts, capital, assurance, capital restant dû).
+
+    Args:
+        loan_id: Identifiant du crédit (voir list_loans)
+        year: Ne garder que les échéances de cette année (optionnel)
+    """
+    try:
+        resp = api.get(f"/loans/{loan_id}/schedule")
+        error = handle_response(resp)
+        if error:
+            return error
+        rows = [r for r in resp.json() if year is None or r["date"].startswith(str(year))]
+        if not rows:
+            return "Aucune échéance pour cette période."
+        return f"📅 {len(rows)} échéance(s) :\n\n" + format_table(rows)
+    except Exception as e:
+        return f"❌ Erreur : {e}"
+
+
+@mcp.tool()
 def get_portfolio(account_id: int | None = None) -> str:
     """Valeur calculée (positions × cours + espèces), plus-values, XIRR/TWR et rapprochement.
 
