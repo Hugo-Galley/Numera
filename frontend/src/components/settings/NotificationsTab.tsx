@@ -70,19 +70,25 @@ export function NotificationsTab() {
   const set = <K extends keyof NotificationSettings>(key: K, value: NotificationSettings[K]) =>
     setDraft((d) => (d ? { ...d, [key]: value } : d))
 
-  const [handleSave, saving] = useSubmit(async () => {
-    if (!draft) return
+  const persist = async (): Promise<boolean> => {
+    if (!draft) return false
     try {
       const saved = await api.put<NotificationSettings>("/notifications/settings", draft)
       setSettings(saved)
       setDraft(saved)
       toast.success("Réglages des notifications enregistrés")
+      return true
     } catch (error) {
       toast.error(errorMessage(error, "Enregistrement impossible"))
+      return false
     }
-  })
+  }
 
+  const [handleSave, saving] = useSubmit(persist)
+
+  // Le test lit les réglages en base : on enregistre d'abord les modifications en cours
   const [handleTest, testing] = useSubmit(async (channel: "ntfy" | "telegram") => {
+    if (dirty && !(await persist())) return
     try {
       await api.post("/notifications/test", { channel })
       toast.success(`Message de test envoyé sur ${channel === "ntfy" ? "ntfy" : "Telegram"}`)
@@ -91,10 +97,14 @@ export function NotificationsTab() {
     }
   })
 
+  const dirty = JSON.stringify(draft) !== JSON.stringify(settings)
+
   if (failed) return <ErrorState message="Impossible de charger les réglages des notifications." onRetry={load} />
   if (!draft || !settings) return <Skeleton className="h-96" />
 
-  const dirty = JSON.stringify(draft) !== JSON.stringify(settings)
+  const busy = testing || saving
+  const ntfyReady = !!draft.ntfy_topic.trim()
+  const telegramReady = !!draft.telegram_bot_token.trim() && !!draft.telegram_chat_id.trim()
 
   return (
     <div className="space-y-6">
@@ -129,9 +139,10 @@ export function NotificationsTab() {
               <Label htmlFor="ntfy-token">Jeton d'accès (facultatif)</Label>
               <Input id="ntfy-token" type="password" value={draft.ntfy_token} onChange={(e) => set("ntfy_token", e.target.value)} autoComplete="off" />
             </div>
-            <Button variant="outline" className="h-10" disabled={testing || dirty || !settings.ntfy_topic} onClick={() => handleTest("ntfy")}>
-              <Send className="mr-2 h-4 w-4" /> Envoyer un test
+            <Button variant="outline" className="h-10" disabled={busy || !ntfyReady} onClick={() => handleTest("ntfy")}>
+              <Send className="mr-2 h-4 w-4" /> {dirty ? "Enregistrer et tester" : "Envoyer un test"}
             </Button>
+            {!ntfyReady && <p className="text-xs text-muted-foreground">Renseignez un sujet pour envoyer un test.</p>}
           </CardContent>
         </Card>
 
@@ -155,11 +166,12 @@ export function NotificationsTab() {
             <Button
               variant="outline"
               className="h-10"
-              disabled={testing || dirty || !settings.telegram_bot_token || !settings.telegram_chat_id}
+              disabled={busy || !telegramReady}
               onClick={() => handleTest("telegram")}
             >
-              <Send className="mr-2 h-4 w-4" /> Envoyer un test
+              <Send className="mr-2 h-4 w-4" /> {dirty ? "Enregistrer et tester" : "Envoyer un test"}
             </Button>
+            {!telegramReady && <p className="text-xs text-muted-foreground">Renseignez le jeton du bot et le chat id pour envoyer un test.</p>}
           </CardContent>
         </Card>
       </div>
