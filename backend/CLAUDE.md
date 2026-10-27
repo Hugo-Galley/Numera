@@ -39,6 +39,7 @@ Complète le `CLAUDE.md` racine. Procédures pas-à-pas : skill `numera-backend`
 
 - Un seul admin : `ADMIN_USERNAME` + `ADMIN_PASSWORD_HASH` (bcrypt), surchargeables via `PUT /admin/profile` (stocké dans `system_settings`). JWT HS256, durée `ACCESS_TOKEN_EXPIRE_MINUTES` (60).
 - `POST /auth/token` protégé par `LoginRateLimiter` (`core/login_rate_limit.py`, 5 tentatives / 15 min par défaut).
+- Double authentification TOTP (`api/totp.py`) : si active, `POST /auth/token` ne renvoie qu'un `mfa_token` ; la session s'obtient via `POST /auth/totp/login`. Pas exigée pour la passkey.
 - `config.py` refuse une `SECRET_KEY` placeholder ou < 32 caractères dans **tous** les environnements sauf `test` ; en `APP_ENV=prod` il refuse aussi hash admin placeholder et CORS `*`.
 - Changer l'identifiant ou le mot de passe via `PUT /admin/profile` exige `current_password` (400 sinon, jamais 401/403 : le client API déconnecte sur ces codes) ; mot de passe ≥ 8 caractères.
 - JWT : PyJWT (`jwt`), HS256. `POST /auth/refresh` renouvelle un jeton de session encore valide (jamais un jeton MCP) en gardant `auth_time` ; refusé (401) au-delà de `SESSION_MAX_HOURS` (12 h) depuis la connexion. Le front l'appelle quand il reste moins de 15 min (`lib/api.ts`).

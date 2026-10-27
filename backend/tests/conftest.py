@@ -18,6 +18,7 @@ from app.api.deps import get_db as get_db_deps
 from app.api.deps import get_current_user
 from app.main import app
 from app.api.auth import login_rate_limiter
+from app.api.totp import totp_rate_limiter
 from app import models # noqa: F401
 
 
@@ -41,6 +42,7 @@ def db_session(tmp_path) -> Generator[Session, None, None]:
 @pytest.fixture()
 def client(db_session: Session) -> Generator[TestClient, None, None]:
     login_rate_limiter.clear()
+    totp_rate_limiter.clear()
     def override_get_db() -> Generator[Session, None, None]:
         yield db_session
     

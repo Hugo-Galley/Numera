@@ -13,6 +13,7 @@ from app.core.mcp_tokens import is_mcp_token
 from app.core.logging import get_logger
 from app.core.login_rate_limit import LoginRateLimiter
 from app.api.deps import get_current_user, optional_oauth2, require_interactive_session
+from app.api.totp import create_mfa_token, is_enabled as totp_enabled
 from app.db.session import get_db
 from app.db.system_settings import get_setting
 
@@ -69,6 +70,10 @@ def login_access_token(
         )
     
     login_rate_limiter.reset(key)
+    # Double authentification active : pas encore de session, seulement un jeton pour l'étape du code
+    if totp_enabled(db):
+        logger.info("Password accepted, TOTP code required")
+        return {"mfa_required": True, "mfa_token": create_mfa_token(form_data.username), "token_type": "mfa"}
     logger.info("Successful login")
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     return {

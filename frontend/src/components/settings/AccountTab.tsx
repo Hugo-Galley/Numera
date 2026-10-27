@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { toast } from "sonner"
 import { McpAccessCard } from "./McpAccessCard"
 import { PasskeyCard } from "./PasskeyCard"
+import { TotpCard } from "./TotpCard"
 import { BackupCard } from "./BackupCard"
 import { BudgetPeriodCard } from "./BudgetPeriodCard"
 import {
@@ -211,6 +212,8 @@ export function AccountTab() {
       <BudgetPeriodCard />
 
       <PasskeyCard />
+
+      <TotpCard />
 
       <McpAccessCard />
 
