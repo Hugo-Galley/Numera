@@ -27,12 +27,15 @@
   }
 
   .dark {
+    /* Contrôles natifs (sélecteur de date, barres de défilement, listes <select>) en sombre */
+    color-scheme: dark;
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
     /* Cartes et menus un cran au-dessus du fond (comme bg-white en sombre, cf. theme-colors.css) */
     --card: 222.2 47.4% 11.2%;
     --card-foreground: 210 40% 98%;
-    --popover: 222.2 47.4% 11.2%;
+    /* Menus et infobulles encore un cran au-dessus des cartes, sinon ils s'y fondent */
+    --popover: 217.2 32.6% 17.5%;
     --popover-foreground: 210 40% 98%;
     --primary: 210 40% 98%;
     --primary-foreground: 222.2 47.4% 11.2%;
@@ -44,8 +47,9 @@
     --accent-foreground: 210 40% 98%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
+    /* = slate-200 en sombre (theme-colors.css) : bordures shadcn et border-slate-200 identiques */
+    --border: 215 28.6% 22%;
+    --input: 215 28.6% 22%;
     --ring: 212.7 26.8% 83.9%;
   }
 }
@@ -155,10 +159,53 @@ body.privacy-enabled textarea.privacy-masked:focus {
 .dark svg [fill="white" i] { fill: rgb(var(--c-white)); }
 .dark svg [stroke="white" i] { stroke: rgb(var(--c-white)); }
 .dark svg [stop-color="white" i] { stop-color: rgb(var(--c-white)); }
-.dark .recharts-default-tooltip {
-  background-color: rgb(var(--c-white)) !important;
-  border-color: rgb(var(--c-slate-200)) !important;
+.dark svg [fill="#000" i], .dark svg [fill="#000000" i], .dark svg [fill="black" i] { fill: rgb(var(--c-slate-900)); }
+.dark svg [stroke="#000" i], .dark svg [stroke="#000000" i], .dark svg [stroke="black" i] { stroke: rgb(var(--c-slate-900)); }
+
+/* Infobulles des graphiques (par défaut ou `content` personnalisé) : en sombre, bg-white vaut la couleur des cartes
+   et l'ombre ne se voit pas ; on les surélève (fond popover + bordure) pour qu'elles se détachent. */
+.dark .recharts-tooltip-wrapper > div {
+  background-color: hsl(var(--popover)) !important;
+  border: 1px solid rgb(var(--c-slate-300)) !important;
+  box-shadow: 0 10px 25px -5px rgb(0 0 0 / 0.6) !important;
 }
 .dark .recharts-default-tooltip .recharts-tooltip-label {
   color: rgb(var(--c-slate-900));
+}
+/* Le libellé d'une série reprend sa couleur (bleu-500, rose-500…), un peu sombre sur ce fond : on l'éclaircit */
+.dark .recharts-tooltip-item {
+  filter: brightness(1.35);
+}
+/* Séries tracées en ardoise foncée : leur couleur est posée en style inline sur la ligne de l'infobulle */
+.dark .recharts-tooltip-item[style*="rgb(15, 23, 42)"],
+.dark .recharts-tooltip-item[style*="rgb(30, 41, 59)"],
+.dark .recharts-tooltip-item[style*="rgb(51, 65, 85)"],
+.dark .recharts-tooltip-item[style*="rgb(0, 0, 0)"] {
+  color: rgb(var(--c-slate-800)) !important;
+}
+.dark .recharts-tooltip-item[style*="rgb(71, 85, 105)"],
+.dark .recharts-tooltip-item[style*="rgb(100, 116, 139)"] {
+  color: rgb(var(--c-slate-600)) !important;
+}
+/* Légendes : même rebranchement pour le libellé des séries ardoise */
+.dark .recharts-legend-item-text[style*="rgb(15, 23, 42)"],
+.dark .recharts-legend-item-text[style*="rgb(0, 0, 0)"] {
+  color: rgb(var(--c-slate-800)) !important;
+}
+
+/* Pastilles à fond de couleur fixe en style inline (couleur choisie de catégorie, tag, marchand…) : ce fond ne
+   s'inverse pas, donc le texte/icône text-white posé dessus doit rester blanc. Un fond inline en var(--c-…) suit
+   le thème et garde le comportement normal. */
+.dark [style*="background-color"]:not([style*="var("]).text-white,
+.dark [style*="background-color"]:not([style*="var("]) .text-white {
+  color: #fff;
+}
+
+/* Îlot sombre (cf. theme-colors.css) : en mode sombre il se détache par une teinte un peu plus claire */
+.dark .theme-island.bg-slate-900,
+.dark .theme-island.bg-slate-950 {
+  background-color: rgb(30 41 59);
+}
+.dark .theme-island {
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.08);
 }

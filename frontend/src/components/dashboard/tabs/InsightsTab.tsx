@@ -48,7 +48,7 @@ export function InsightsTab({ insights }: InsightsTabProps) {
 
   return (
     <div className="grid grid-cols-1 gap-5 md:gap-8 lg:grid-cols-12">
-      <Card className="lg:col-span-4 shadow-sm border-slate-100 overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 text-white">
+      <Card className="theme-island lg:col-span-4 shadow-sm border-slate-100 overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 text-white">
         <CardHeader className="pb-2">
           <CardTitle className="text-lg flex items-center gap-2">
             <HeartPulse className="h-5 w-5 text-emerald-400" />
@@ -92,7 +92,7 @@ export function InsightsTab({ insights }: InsightsTabProps) {
           <div className="grid grid-cols-2 gap-3 md:gap-4 w-full mt-6 md:mt-10">
             {insights?.health_score?.metrics.map((m: any, i: number) => (
               <div key={i} className="bg-slate-800/50 p-3 rounded-2xl border border-slate-700/50">
-                <p className="text-[10px] uppercase font-black text-slate-500 tracking-wider mb-1">{m.name}</p>
+                <p className="text-[10px] uppercase font-black text-slate-400 tracking-wider mb-1">{m.name}</p>
                 <p className="text-sm font-bold flex items-center justify-between">
                   {formatValue(m.value, m.unit)}
                   <span className={`h-1.5 w-1.5 rounded-full ${m.status === 'good' ? 'bg-emerald-400' : m.status === 'warning' ? 'bg-amber-400' : 'bg-rose-400'}`} />

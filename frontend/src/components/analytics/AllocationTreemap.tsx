@@ -96,7 +96,7 @@ export const AllocationTreemap: React.FC<AllocationTreemapProps> = ({ data, onIt
   }
 
   return (
-    <div className="w-full h-[300px] md:h-[400px] bg-slate-900 rounded-xl overflow-hidden">
+    <div className="theme-island w-full h-[300px] md:h-[400px] bg-slate-900 rounded-xl overflow-hidden">
       <ResponsiveContainer width="100%" height="100%">
         <Treemap
           data={[{ name: 'root', children: data }]}

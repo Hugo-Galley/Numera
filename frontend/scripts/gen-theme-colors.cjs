@@ -12,7 +12,7 @@ const hex = (h) => {
 const shades = ["50", "100", "200", "300", "400", "500", "600", "700", "800", "900", "950"]
 const palettes = ["slate", "gray", "red", "orange", "amber", "yellow", "lime", "green", "emerald", "teal", "cyan", "sky", "blue", "indigo", "violet", "purple", "fuchsia", "pink", "rose"]
 const slateDark = {
-  50: "#020617", 100: "#1e293b", 200: "#283548", 300: "#475569", 400: "#7c8ba1", 500: "#94a3b8",
+  50: "#020617", 100: "#1e293b", 200: "#283548", 300: "#475569", 400: "#8696ab", 500: "#94a3b8",
   600: "#cbd5e1", 700: "#e2e8f0", 800: "#f1f5f9", 900: "#f8fafc", 950: "#ffffff",
 }
 
@@ -30,8 +30,11 @@ dark += `    --c-white: ${hex("#0f172a")};\n`
 
 const css = `/* Généré par scripts/gen-theme-colors.cjs : palettes Tailwind en variables CSS (cf. tailwind.config.js).
    En sombre (.dark), chaque échelle est inversée (50 <-> 950, 100 <-> 900…) et l'ardoise est ajustée :
-   bg-white, text-slate-900, bg-emerald-50… basculent seules. Ne pas ajouter de variantes dark: sur ces couleurs. */
-:root {
+   bg-white, text-slate-900, bg-emerald-50… basculent seules. Ne pas ajouter de variantes dark: sur ces couleurs.
+   .theme-island : îlot volontairement sombre (carte héros bg-slate-900 text-white, story Wrapped…) qui garde
+   la palette claire en sombre, sinon il deviendrait blanc avec un texte secondaire illisible. */
+:root,
+.dark .theme-island {
 ${light}}
 
 .dark {

@@ -155,7 +155,7 @@ const [loading, setLoading] = useState(true)
 
       {/* KPI Section */}
       <div className={`grid gap-3 grid-cols-2 md:gap-4 ${diversity ? "md:grid-cols-4" : "md:grid-cols-3"}`}>
-        <Card className="col-span-2 bg-slate-900 text-white shadow-md border-slate-800 md:col-span-1">
+        <Card className="theme-island col-span-2 bg-slate-900 text-white shadow-md border-slate-800 md:col-span-1">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-slate-300">Valeur Totale</CardTitle>
             <TrendingUp className="h-4 w-4 text-slate-400" />
@@ -527,7 +527,7 @@ const [loading, setLoading] = useState(true)
               </div>
               <div className="flex items-center gap-3 text-xs text-muted-foreground">
                 <span className="flex items-center gap-1.5">
-                  <span className="h-2.5 w-2.5 rounded-sm bg-black" /> Direct
+                  <span className="h-2.5 w-2.5 rounded-sm bg-slate-900" /> Direct
                 </span>
                 <span className="flex items-center gap-1.5">
                   <span className="h-2.5 w-2.5 rounded-sm bg-slate-400" /> Via ETFs
@@ -630,7 +630,7 @@ const [loading, setLoading] = useState(true)
                                   <div className="text-[11px] text-muted-foreground space-y-0.5 pt-1 border-t">
                                     <div className="flex justify-between">
                                       <span className="flex items-center gap-1.5">
-                                        <span className="h-2 w-2 rounded-full bg-black shrink-0" /> Détenu en direct :
+                                        <span className="h-2 w-2 rounded-full bg-slate-900 shrink-0" /> Détenu en direct :
                                       </span>
                                       <span className="font-medium text-slate-700">{formatCurrency(d.direct)}</span>
                                     </div>

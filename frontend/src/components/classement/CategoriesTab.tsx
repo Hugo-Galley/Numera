@@ -290,7 +290,7 @@ export function CategoriesTab() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-4 p-4 bg-slate-900 rounded-2xl text-white">
+              <div className="theme-island flex items-center gap-4 p-4 bg-slate-900 rounded-2xl text-white">
                 <div className="h-10 w-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: newCatColor }}>
                   <IconComponent name={newCatIcon} className="h-6 w-6 text-white" />
                 </div>
@@ -317,7 +317,7 @@ export function CategoriesTab() {
             <Card key={cat.id} className={`group hover:border-slate-300 transition-all shadow-sm border-slate-100 overflow-hidden ${cat.archived ? "opacity-60" : ""}`}>
               <CardContent className="p-0">
                 <div className="p-3 pl-4 md:p-4 flex items-center gap-3 md:gap-4">
-                  <div className="h-12 w-12 shrink-0 rounded-2xl flex items-center justify-center shadow-sm" style={{ backgroundColor: cat.color || "#f1f5f9" }}>
+                  <div className="h-12 w-12 shrink-0 rounded-2xl flex items-center justify-center shadow-sm" style={{ backgroundColor: cat.color || "#64748b" }}>
                     <IconComponent name={cat.icon} className="h-6 w-6 text-white" />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -489,7 +489,7 @@ export function CategoriesTab() {
               </div>
             </div>
 
-            <div className="flex items-center gap-4 p-4 bg-slate-900 rounded-2xl text-white">
+            <div className="theme-island flex items-center gap-4 p-4 bg-slate-900 rounded-2xl text-white">
               <div className="h-10 w-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: editCatColor }}>
                 <IconComponent name={editCatIcon} className="h-6 w-6 text-white" />
               </div>

@@ -8,6 +8,7 @@ import {
   ZoomableGroup
 } from "react-simple-maps";
 import { scaleLinear } from "d3-scale";
+import { useUI } from "@/providers/UIProvider";
 
 const geoUrl = "https://unpkg.com/world-atlas@2.0.2/countries-110m.json";
 
@@ -19,14 +20,17 @@ const WorldMap: React.FC<WorldMapProps> = ({ data }) => {
   const [position, setPosition] = useState({ coordinates: [0, 0], zoom: 1 });
   const [hoveredCountry, setHoveredCountry] = useState<{ name: string; value: number; percentage: number; x: number; y: number } | null>(null);
 
+  const { theme } = useUI();
   const colorScale = useMemo(() => {
     const values = data.map((d) => d.value);
     const maxValue = Math.max(...values, 1);
+    // d3 interpole des couleurs résolues (pas de variables CSS) : en sombre, du fond vers un indigo clair
+    const dark = theme === "dark" || (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
 
     return scaleLinear<string>()
       .domain([0, 0.001, maxValue])
-      .range(["#f1f5f9", "#818cf8", "#1e1b4b"]);
-  }, [data]);
+      .range(dark ? ["#1e293b", "#6366f1", "#e0e7ff"] : ["#f1f5f9", "#818cf8", "#1e1b4b"]);
+  }, [data, theme]);
 
   const countryDataMap = useMemo(() => {
     const map: Record<string, { value: number; percentage: number; displayName: string }> = {};
@@ -162,7 +166,7 @@ const WorldMap: React.FC<WorldMapProps> = ({ data }) => {
                     onMouseLeave={() => setHoveredCountry(null)}
                     style={{
                       default: { outline: "none", transition: "all 250ms" },
-                      hover: { fill: d ? "#4338ca" : "#cbd5e1", outline: "none", cursor: d ? "pointer" : "default" },
+                      hover: { fill: d ? "rgb(var(--c-indigo-700))" : "rgb(var(--c-slate-300))", outline: "none", cursor: d ? "pointer" : "default" },
                       pressed: { outline: "none" }
                     }}
                   />
@@ -176,7 +180,7 @@ const WorldMap: React.FC<WorldMapProps> = ({ data }) => {
       {/* Custom Tooltip */}
       {hoveredCountry && (
         <div 
-          className="fixed z-[9999] pointer-events-none bg-slate-900 text-white p-3 rounded-lg shadow-2xl border border-slate-700 transform -translate-x-1/2 -translate-y-[calc(100%+10px)]"
+          className="theme-island fixed z-[9999] pointer-events-none bg-slate-900 text-white p-3 rounded-lg shadow-2xl border border-slate-700 transform -translate-x-1/2 -translate-y-[calc(100%+10px)]"
           style={{ left: hoveredCountry.x, top: hoveredCountry.y }}
         >
           <div className="space-y-1 min-w-[150px]">
@@ -216,7 +220,7 @@ const WorldMap: React.FC<WorldMapProps> = ({ data }) => {
       {/* Legend */}
       <div className="absolute bottom-4 left-4 p-2 bg-white/80 backdrop-blur-sm rounded-lg border border-slate-200 text-[10px] text-slate-500 shadow-sm">
         <div className="flex items-center gap-2 mb-1">
-          <div className="w-24 h-1.5 bg-gradient-to-r from-[#f1f5f9] via-[#818cf8] to-[#1e1b4b] rounded-full border border-slate-200" />
+          <div className="w-24 h-1.5 bg-gradient-to-r from-slate-100 via-indigo-400 to-indigo-950 rounded-full border border-slate-200" />
         </div>
         <div className="flex justify-between px-0.5 font-medium">
           <span>0</span>

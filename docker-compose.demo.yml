@@ -1,7 +1,7 @@
 # Instance de démonstration publique (make demo) : données fictives régénérées chaque jour,
 # base séparée (backend/data-demo/demo.db), aucune donnée réelle n'y est jamais chargée.
 # Projet Compose distinct (-p numera-demo) : tourne à côté de l'instance de prod sans la toucher.
-# Exposée sur 127.0.0.1:8083 ; le tunnel / reverse proxy publie ce port (ex. demo-budget.galleyhugo.com).
+# Exposée sur 127.0.0.1:8090 ; le tunnel / reverse proxy publie ce port (ex. demo-budget.galleyhugo.com).
 services:
   backend:
     build:
@@ -48,7 +48,7 @@ services:
       dockerfile: Dockerfile.prod
     container_name: numera-demo-frontend
     ports:
-      - "127.0.0.1:8083:80"
+      - "127.0.0.1:8090:80"
     depends_on:
       - backend
       - mcp-server

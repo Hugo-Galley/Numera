@@ -126,7 +126,7 @@ export default function Wrapped() {
         </Card>
       ) : (
         <>
-          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900 p-5 text-white shadow-md sm:p-8">
+          <div className="theme-island relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900 p-5 text-white shadow-md sm:p-8">
             <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
               <div className="space-y-1">
                 <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/60">{period}</p>

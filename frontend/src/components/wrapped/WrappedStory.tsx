@@ -330,7 +330,7 @@ export function WrappedStory({ report, onClose }: WrappedStoryProps) {
   const slide = slides[index]
 
   return (
-    <div className={cn("fixed inset-0 z-50 flex h-dvh flex-col overflow-hidden bg-gradient-to-br transition-colors duration-500", slide.tone)}>
+    <div className={cn("theme-island fixed inset-0 z-50 flex h-dvh flex-col overflow-hidden bg-gradient-to-br transition-colors duration-500", slide.tone)}>
       <div className="flex items-center gap-1.5 px-4 pt-[max(1rem,env(safe-area-inset-top))] sm:px-8">
         {slides.map((s, i) => (
           <button

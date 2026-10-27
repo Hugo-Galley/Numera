@@ -178,9 +178,9 @@ export function TagsTab() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-4 p-4 bg-slate-900 rounded-2xl text-white">
+              <div className="theme-island flex items-center gap-4 p-4 bg-slate-900 rounded-2xl text-white">
                 <Badge 
-                  className="px-3 py-1 font-bold shadow-sm border-none"
+                  className="px-3 py-1 font-bold shadow-sm border-none text-white"
                   style={{ backgroundColor: newColor }}
                 >
                   <Tag className="h-3 w-3 mr-1.5" />
@@ -205,7 +205,7 @@ export function TagsTab() {
               <CardContent className="p-0">
                 <div className="p-3 pl-4 flex items-center justify-between gap-4 md:p-4">
                   <Badge 
-                    className="px-3 py-1.5 font-bold shadow-sm border-none truncate max-w-[200px] sm:max-w-[150px]"
+                    className="px-3 py-1.5 font-bold shadow-sm border-none text-white truncate max-w-[200px] sm:max-w-[150px]"
                     style={{ backgroundColor: tag.color || "#64748b" }}
                   >
                     <Tag className="h-3.5 w-3.5 mr-2" />
@@ -270,9 +270,9 @@ export function TagsTab() {
               </div>
             </div>
 
-            <div className="flex items-center gap-4 p-4 bg-slate-900 rounded-2xl text-white">
+            <div className="theme-island flex items-center gap-4 p-4 bg-slate-900 rounded-2xl text-white">
               <Badge 
-                className="px-3 py-1 font-bold shadow-sm border-none"
+                className="px-3 py-1 font-bold shadow-sm border-none text-white"
                 style={{ backgroundColor: editColor }}
               >
                 <Tag className="h-3 w-3 mr-1.5" />

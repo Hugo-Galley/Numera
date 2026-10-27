@@ -22,7 +22,7 @@ prod:
 prod-down:
 	docker compose --env-file .env -f docker-compose.prod.yml down
 
-# Instance de démonstration publique (données fictives, base séparée, port 8083)
+# Instance de démonstration publique (données fictives, base séparée, port 8090)
 demo:
 	docker compose --env-file .env -p numera-demo -f docker-compose.demo.yml up -d --build
 

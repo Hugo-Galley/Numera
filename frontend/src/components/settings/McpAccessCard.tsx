@@ -52,7 +52,7 @@ function CopyBlock({ value, label }: { value: string; label: string }) {
   }
   return (
     <div className="flex items-start gap-2">
-      <pre className="flex-1 min-w-0 p-2.5 bg-slate-900 text-slate-100 rounded overflow-x-auto text-[11px] leading-relaxed font-mono whitespace-pre-wrap break-all">
+      <pre className="theme-island flex-1 min-w-0 p-2.5 bg-slate-900 text-slate-100 rounded overflow-x-auto text-[11px] leading-relaxed font-mono whitespace-pre-wrap break-all">
         {value}
       </pre>
       <Button type="button" variant="outline" size="sm" className="shrink-0 h-10 w-10 p-0 sm:h-8 sm:w-8" onClick={copy} aria-label={`Copier ${label}`}>

@@ -295,7 +295,7 @@ export default function Savings() {
             </div>
             
             <div className="grid gap-3 grid-cols-2 md:gap-6 lg:grid-cols-4">
-              <Card className="col-span-2 shadow-sm border-slate-200 bg-slate-900 md:col-span-1 text-white hover:shadow-md transition-shadow">
+              <Card className="theme-island col-span-2 shadow-sm border-slate-200 bg-slate-900 md:col-span-1 text-white hover:shadow-md transition-shadow">
                 <CardHeader className="pb-2 flex flex-row items-center justify-between gap-2 space-y-0 p-4 md:p-6 md:pb-2">
                   <CardDescription className="font-medium text-slate-300">Patrimoine Net Total</CardDescription>
                   <div className="h-10 w-10 bg-white/10 rounded-xl flex items-center justify-center">
@@ -643,7 +643,7 @@ export default function Savings() {
                     <div className="flex min-w-0 flex-1 gap-3 md:gap-4">
                       <div 
                         className="h-12 w-12 rounded-2xl flex items-center justify-center text-white shadow-lg shrink-0"
-                        style={{ backgroundColor: goal.color || "#0f172a" }}
+                        style={{ backgroundColor: goal.color || "rgb(var(--c-slate-900))" }}
                       >
                         <Target className="h-6 w-6" />
                       </div>
@@ -697,7 +697,7 @@ export default function Savings() {
                           className="h-full transition-all duration-1000 rounded-full"
                           style={{ 
                             width: `${Math.min(100, goal.percentage)}%`,
-                            backgroundColor: goal.color || "#0f172a"
+                            backgroundColor: goal.color || "rgb(var(--c-slate-900))"
                           }}
                         />
                       </div>

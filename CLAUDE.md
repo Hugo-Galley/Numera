@@ -34,7 +34,7 @@ make prod                  # docker-compose.prod.yml
 make test                  # pytest backend (backend/venv si présent, sinon python3.12/3.11 ; PYTHON=... pour forcer)
 make validate              # tests backend + build frontend
 make backend-seed-demo     # données de démo (backend/data/demo.db, jamais la vraie base)
-make demo / demo-down      # instance de démo publique (docker-compose.demo.yml, port 8083, demo/demo)
+make demo / demo-down      # instance de démo publique (docker-compose.demo.yml, port 8090, demo/demo)
 make backup-now            # backup dans le conteneur
 
 # Dev local

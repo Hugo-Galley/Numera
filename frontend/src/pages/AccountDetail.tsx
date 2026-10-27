@@ -1233,7 +1233,7 @@ export default function AccountDetail() {
               {account.logo ? (
                 <AccountLogo accountId={account.id} logo={account.logo} className="hidden h-14 w-14 rounded-2xl sm:flex" />
               ) : (
-                <div className="hidden h-14 w-14 shrink-0 bg-slate-900 rounded-2xl sm:flex items-center justify-center text-white shadow-lg">
+                <div className="theme-island hidden h-14 w-14 shrink-0 bg-slate-900 rounded-2xl sm:flex items-center justify-center text-white shadow-lg">
                   <Wallet className="h-7 w-7" />
                 </div>
               )}
@@ -1762,7 +1762,7 @@ export default function AccountDetail() {
 
       {/* Account KPIs : 2 colonnes compactes sur mobile pour que la liste ne soit pas repoussée de deux écrans */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 max-sm:[&_.text-2xl]:text-lg max-sm:[&_p.text-xs]:hidden">
-        <Card className="col-span-2 lg:col-span-1 border-none shadow-md bg-slate-900 text-white">
+        <Card className="theme-island col-span-2 lg:col-span-1 border-none shadow-md bg-slate-900 text-white">
           <CardHeader className="pb-2">
             <CardDescription className="text-slate-400 font-medium">Solde Actuel</CardDescription>
             <CardTitle className="text-3xl font-bold">{formatCurrency(currentBalance || 0)}</CardTitle>
