@@ -7,8 +7,9 @@ import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/componen
 import { Label } from "@/components/ui/label"
 import { API_BASE } from "@/lib/api"
 import { toast } from "sonner"
-import { Fingerprint, ShieldCheck } from "lucide-react"
+import { Fingerprint, FlaskConical, ShieldCheck } from "lucide-react"
 import { loginWithPasskey, passkeySupported } from "@/lib/passkey"
+import { DEMO_CREDENTIALS, useDemoMode } from "@/hooks/useDemoMode"
 
 export default function Login() {
   const [username, setUsername] = useState("")
@@ -29,6 +30,13 @@ export default function Login() {
   const candidate = stateFrom ? `${stateFrom.pathname}${stateFrom.search || ""}` : queryFrom
   const from = candidate && candidate.startsWith("/") && !candidate.startsWith("//") && !candidate.startsWith("/login") ? candidate : "/"
   const [passkeyAvailable, setPasskeyAvailable] = useState(false)
+  const isDemo = useDemoMode()
+
+  useEffect(() => {
+    if (!isDemo) return
+    setUsername(DEMO_CREDENTIALS.username)
+    setPassword(DEMO_CREDENTIALS.password)
+  }, [isDemo])
 
   useEffect(() => {
     if (!passkeySupported()) return
@@ -169,6 +177,15 @@ export default function Login() {
           <p className="text-sm text-muted-foreground">
             Saisis tes identifiants pour te connecter
           </p>
+          {isDemo && (
+            <div className="mt-3 flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 p-3 text-left text-sm text-amber-900">
+              <FlaskConical className="mt-0.5 h-4 w-4 shrink-0" />
+              <p>
+                Instance de démonstration : données fictives, remises à zéro chaque jour. Identifiants
+                <span className="font-semibold"> {DEMO_CREDENTIALS.username} / {DEMO_CREDENTIALS.password}</span> (déjà remplis).
+              </p>
+            </div>
+          )}
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
@@ -201,7 +218,7 @@ export default function Login() {
           </CardContent>
           <CardFooter className="flex-col gap-3">
             <Button className="h-12 w-full text-base sm:h-10 lg:text-sm" type="submit" disabled={loading}>
-              {loading ? "Connexion..." : "Se connecter"}
+              {loading ? "Connexion..." : isDemo ? "Entrer dans la démo" : "Se connecter"}
             </Button>
             {passkeyAvailable && (
               <Button type="button" variant="outline" className="h-12 w-full text-base sm:h-10 lg:text-sm" onClick={handlePasskey} disabled={loading}>

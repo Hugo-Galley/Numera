@@ -6,6 +6,7 @@ from urllib.parse import quote
 from typing import Any, Dict, List, Optional
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.core.logging import get_logger
 from app.core.currency import get_exchange_rates
 from app.models.etf_profile import EtfProfile
@@ -210,6 +211,35 @@ def _to_eur(price: float, currency: str, rates: Dict[str, float]) -> Optional[fl
     return price / rate
 
 
+def _demo_stored_quote(db: Optional[Session], sym: str) -> Optional[Dict[str, Any]]:
+    from app.db.session import SessionLocal
+
+    session = db or SessionLocal()
+    try:
+        last = (
+            session.query(SecurityPrice)
+            .filter(SecurityPrice.ticker == sym, SecurityPrice.source == "demo")
+            .order_by(SecurityPrice.date.desc())
+            .first()
+        )
+    finally:
+        if db is None:
+            session.close()
+    if last is None:
+        return None
+    return {
+        "symbol": sym,
+        "name": sym,
+        "price": round(last.close, 4),
+        "currency": last.currency,
+        "price_eur": round(last.close, 4),
+        "type": "ETF",
+        "price_date": last.date.isoformat(),
+        "stale": False,
+        "expires_at": datetime.now() + timedelta(minutes=5),
+    }
+
+
 async def get_market_quotes(symbols: List[str], db: Optional[Session] = None) -> Dict[str, Dict[str, Any]]:
     """
     Cours actuels d'une liste de tickers, avec conversion en EUR (cache mémoire 1 h).
@@ -225,6 +255,11 @@ async def get_market_quotes(symbols: List[str], db: Optional[Session] = None) ->
     for s in symbols:
         sym = s.strip().upper()
         if not sym:
+            continue
+        # Démo : les titres du jeu fictif gardent leurs cours générés (un cours réel casserait la courbe)
+        demo_price = _demo_stored_quote(db, sym) if settings.DEMO_MODE else None
+        if demo_price is not None:
+            output[sym] = demo_price
             continue
         cached = _QUOTES_CACHE.get(sym)
         if cached and cached.get("expires_at", now) > now:

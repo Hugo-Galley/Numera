@@ -183,6 +183,14 @@ Pour arrêter la production :
 make prod-down
 ```
 
+#### Instance de démonstration publique
+Une seconde instance, totalement séparée de la prod (projet Compose `numera-demo`, base `backend/data-demo/demo.db`), sert une démo avec des données fictives régénérées chaque jour :
+```bash
+make demo        # démarre sur 127.0.0.1:8083
+make demo-down
+```
+Prérequis dans `.env` : `DEMO_SECRET_KEY` (distincte de `SECRET_KEY`, `openssl rand -hex 32`) et, si le domaine diffère, `DEMO_CORS_ORIGINS`. Publier ensuite le port 8083 sur le domaine voulu (tunnel / reverse proxy, ex. `demo-budget.galleyhugo.com` → `http://localhost:8083`). Identifiants publics : `demo` / `demo`, affichés sur la page de connexion. Changement d'identifiants, 2FA, passkeys, jetons MCP, sauvegardes et notifications y sont désactivés (403). Pour régénérer la démo en local : `make backend-seed-demo` (écrit dans `backend/data/demo.db`).
+
 ---
 
 ## 6. Sauvegardes & Restauration

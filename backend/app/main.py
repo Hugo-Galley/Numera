@@ -44,6 +44,7 @@ from app.api.analytics.diversity import router as diversity_router
 from app.api.deps import get_current_user
 from app.core.config import settings
 from app.core.currency import CurrencyConversionError
+from app.core.demo import ensure_demo_data, is_blocked_in_demo
 from app.core.migrations import run_migrations
 from app.core.seeds import seed_all
 from app.db.session import SessionLocal
@@ -69,14 +70,18 @@ async def recurring_transactions_task():
         try:
             db = SessionLocal()
             try:
-                await generate_recurring_transactions(db)
-                check_and_generate_pending_salaries(db)
-                # Cours des titres détenus enregistrés en base (historique de valorisation)
-                await refresh_held_prices(db)
-                # Composition des ETF détenus (Yahoo), au plus une fois par semaine et par profil
-                await refresh_held_etf_profiles(db)
-                # Alertes du Centre d'Actions et résumé hebdo vers ntfy / Telegram (si activés)
-                await run_notifications(db)
+                if settings.DEMO_MODE:
+                    # Démo publique : régénération quotidienne, ni cours réels ni notifications
+                    await ensure_demo_data(db)
+                else:
+                    await generate_recurring_transactions(db)
+                    check_and_generate_pending_salaries(db)
+                    # Cours des titres détenus enregistrés en base (historique de valorisation)
+                    await refresh_held_prices(db)
+                    # Composition des ETF détenus (Yahoo), au plus une fois par semaine et par profil
+                    await refresh_held_etf_profiles(db)
+                    # Alertes du Centre d'Actions et résumé hebdo vers ntfy / Telegram (si activés)
+                    await run_notifications(db)
             finally:
                 db.close()
         except Exception as e:
@@ -113,6 +118,8 @@ async def lifespan(_: FastAPI):
         try:
             logger.info("DEBUG: Seeding database (categories, ETF presets)...")
             seed_all(db)
+            if settings.DEMO_MODE:
+                await ensure_demo_data(db)
             logger.info("DEBUG: Seeding completed.")
         finally:
             db.close()
@@ -166,6 +173,14 @@ async def integrity_error_handler(_: Request, exc: IntegrityError):
 @app.exception_handler(OverflowError)
 async def overflow_error_handler(_: Request, exc: OverflowError):
     return JSONResponse(status_code=422, content={"detail": "Valeur numérique hors limites"})
+
+
+@app.middleware("http")
+async def demo_guard(request: Request, call_next):
+    if settings.DEMO_MODE and is_blocked_in_demo(request.method, request.url.path):
+        # 403 avec un détail métier : le client n'y voit pas une session expirée (cf. lib/api.ts)
+        return JSONResponse(status_code=403, content={"detail": "Action désactivée sur l'instance de démonstration"})
+    return await call_next(request)
 
 
 @app.middleware("http")

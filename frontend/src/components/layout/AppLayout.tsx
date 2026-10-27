@@ -4,7 +4,7 @@ import { Sidebar } from "./Sidebar"
 import { Omnibox } from "./Omnibox"
 import { Toaster } from "@/components/ui/sonner"
 import { Button } from "@/components/ui/button"
-import { CreditCard, Eye, EyeOff, Search } from "lucide-react"
+import { CreditCard, Eye, EyeOff, FlaskConical, Search } from "lucide-react"
 import { MobileNav } from "./MobileNav"
 import { useUI } from "@/providers/UIProvider"
 import { useAuth } from "@/providers/AuthProvider"
@@ -13,6 +13,7 @@ import { PageLoader } from "./PageLoader"
 import { ErrorBoundary } from "./ErrorBoundary"
 import { PwaExtras } from "./PwaExtras"
 import { DrilldownSheet } from "@/components/transactions/DrilldownSheet"
+import { useDemoMode } from "@/hooks/useDemoMode"
 
 // « Ouvrir montants masqués » (Paramètres → Général) : appliqué une seule fois par ouverture de l'app
 let privacyOnStartChecked = false
@@ -20,6 +21,7 @@ let privacyOnStartChecked = false
 export function AppLayout() {
   const { isPrivacyMode, togglePrivacyMode, setPrivacyMode, setSearchOpen } = useUI()
   const { profile } = useAuth()
+  const isDemo = useDemoMode()
 
   useEffect(() => {
     if (!profile || privacyOnStartChecked) return
@@ -53,6 +55,12 @@ export function AppLayout() {
 
         {/* Main Content */}
         <main ref={mainRef} className="flex-1 overscroll-y-contain min-w-0 overflow-y-auto overflow-x-hidden pb-[calc(4rem+env(safe-area-inset-bottom)*0.45)] md:pb-0">
+          {isDemo && (
+            <div className="flex items-center justify-center gap-2 border-b border-amber-200 bg-amber-50 px-4 py-1.5 text-xs font-medium text-amber-900">
+              <FlaskConical className="h-3.5 w-3.5 shrink-0" />
+              <span>Démo — données fictives, remises à zéro chaque jour</span>
+            </div>
+          )}
           <div className="container mx-auto p-4 md:p-8 max-w-7xl">
             {/* Le menu reste affiché pendant le chargement d'une page */}
             {/* key : naviguer vers une autre page réinitialise l'erreur affichée */}

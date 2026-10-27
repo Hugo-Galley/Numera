@@ -32,11 +32,17 @@ class Settings(BaseSettings):
     LOGIN_MAX_ATTEMPTS: int = 5
     LOGIN_WINDOW_SECONDS: int = 900
     LOGIN_LOCKOUT_SECONDS: int = 900
+    # Instance de démonstration publique : données fictives régénérées chaque jour, réglages sensibles
+    # bloqués, aucun appel aux données de marché (cf. core/demo.py)
+    DEMO_MODE: bool = False
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     @model_validator(mode="after")
     def validate_production_security(self) -> "Settings":
+        # Le mode démo efface la base chaque jour : il ne doit jamais tourner sur la vraie base
+        if self.DEMO_MODE and "demo" not in self.database_url.rsplit("/", 1)[-1]:
+            raise ValueError("DEMO_MODE requires a dedicated database whose file name contains 'demo'")
         if self.app_env == "test":
             return self
         # Une clé vide/placeholder permet de forger des JWT : refusé dans tous les environnements

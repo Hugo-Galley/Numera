@@ -1,0 +1,55 @@
+# Instance de démonstration publique (make demo) : données fictives régénérées chaque jour,
+# base séparée (backend/data-demo/demo.db), aucune donnée réelle n'y est jamais chargée.
+# Projet Compose distinct (-p numera-demo) : tourne à côté de l'instance de prod sans la toucher.
+# Exposée sur 127.0.0.1:8083 ; le tunnel / reverse proxy publie ce port (ex. demo-budget.galleyhugo.com).
+services:
+  backend:
+    build:
+      context: ./backend
+    container_name: numera-demo-backend
+    environment:
+      - APP_ENV=prod
+      - DEMO_MODE=true
+      - DATABASE_URL=sqlite:////app/data/demo.db
+      # Clé distincte de la prod : un jeton de l'une n'est jamais accepté par l'autre
+      - SECRET_KEY=${DEMO_SECRET_KEY:?DEMO_SECRET_KEY manquant dans .env (openssl rand -hex 32)}
+      # Identifiants publics demo / demo (affichés sur la page de connexion)
+      - ADMIN_USERNAME=demo
+      - ADMIN_PASSWORD_HASH=$$2b$$12$$Slulk5dFY3RpgWFs21zh/OM9HTmvhxXQwruKFT5dAxZv7WxH6mUmm
+      - CORS_ORIGINS=${DEMO_CORS_ORIGINS:-https://demo-budget.galleyhugo.com}
+    volumes:
+      - ./backend/data-demo:/app/data
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8001 --proxy-headers --forwarded-allow-ips=127.0.0.1,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: always
+
+  # nginx (frontend/nginx.conf) référence l'hôte mcp-server : sans lui il refuse de démarrer
+  mcp-server:
+    build:
+      context: ./mcp-server
+    container_name: numera-demo-mcp
+    environment:
+      - MCP_MODE=api
+      - MCP_API_URL=http://backend:8001
+      - MCP_TRANSPORT=streamable-http
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: always
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+    container_name: numera-demo-frontend
+    ports:
+      - "127.0.0.1:8083:80"
+    depends_on:
+      - backend
+      - mcp-server
+    restart: always
