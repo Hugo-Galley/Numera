@@ -11,6 +11,7 @@ from app.core import security
 from app.core.config import settings
 from app.core.mcp_tokens import is_mcp_token
 from app.core.logging import get_logger
+from app.core.login_events import record_login
 from app.core.login_rate_limit import LoginRateLimiter
 from app.api.deps import get_current_user, optional_oauth2, require_interactive_session
 from app.api.totp import create_mfa_token, is_enabled as totp_enabled
@@ -44,6 +45,7 @@ def login_access_token(
     key = _client_key(request, form_data.username)
     if not login_rate_limiter.is_allowed(key):
         logger.warning("Login temporarily blocked due to repeated failed attempts")
+        record_login(db, request, "password", False, "rate_limited")
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
             detail="Too many login attempts. Try again later.",
@@ -63,6 +65,7 @@ def login_access_token(
     if not username_valid or not password_valid:
         login_rate_limiter.record_failure(key)
         logger.warning("Failed login attempt: invalid credentials")
+        record_login(db, request, "password", False, "invalid_password")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
@@ -75,6 +78,7 @@ def login_access_token(
         logger.info("Password accepted, TOTP code required")
         return {"mfa_required": True, "mfa_token": create_mfa_token(form_data.username), "token_type": "mfa"}
     logger.info("Successful login")
+    record_login(db, request, "password", True)
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     return {
         "access_token": security.create_access_token(

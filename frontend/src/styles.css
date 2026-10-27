@@ -29,9 +29,10 @@
   .dark {
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
+    /* Cartes et menus un cran au-dessus du fond (comme bg-white en sombre, cf. theme-colors.css) */
+    --card: 222.2 47.4% 11.2%;
     --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
+    --popover: 222.2 47.4% 11.2%;
     --popover-foreground: 210 40% 98%;
     --primary: 210 40% 98%;
     --primary-foreground: 222.2 47.4% 11.2%;
@@ -110,4 +111,54 @@ body.privacy-enabled textarea.privacy-masked:focus {
     -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
     mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
   }
+}
+
+/* Mode sombre des graphiques : les couleurs neutres sont écrites en dur dans les attributs SVG (Recharts,
+   Sankey…) ; une règle CSS l'emporte sur un attribut de présentation, on les rebranche donc sur la palette
+   ardoise (inversée en sombre, cf. theme-colors.css). Les couleurs de séries (émeraude, rose…) restent. */
+.dark svg [fill="#0f172a" i] { fill: rgb(var(--c-slate-900)); }
+.dark svg [stroke="#0f172a" i] { stroke: rgb(var(--c-slate-900)); }
+.dark svg [stop-color="#0f172a" i] { stop-color: rgb(var(--c-slate-900)); }
+.dark svg [fill="#1e293b" i] { fill: rgb(var(--c-slate-800)); }
+.dark svg [stroke="#1e293b" i] { stroke: rgb(var(--c-slate-800)); }
+.dark svg [stop-color="#1e293b" i] { stop-color: rgb(var(--c-slate-800)); }
+.dark svg [fill="#334155" i] { fill: rgb(var(--c-slate-700)); }
+.dark svg [stroke="#334155" i] { stroke: rgb(var(--c-slate-700)); }
+.dark svg [stop-color="#334155" i] { stop-color: rgb(var(--c-slate-700)); }
+.dark svg [fill="#475569" i] { fill: rgb(var(--c-slate-600)); }
+.dark svg [stroke="#475569" i] { stroke: rgb(var(--c-slate-600)); }
+.dark svg [stop-color="#475569" i] { stop-color: rgb(var(--c-slate-600)); }
+.dark svg [fill="#64748b" i] { fill: rgb(var(--c-slate-500)); }
+.dark svg [stroke="#64748b" i] { stroke: rgb(var(--c-slate-500)); }
+.dark svg [stop-color="#64748b" i] { stop-color: rgb(var(--c-slate-500)); }
+.dark svg [fill="#94a3b8" i] { fill: rgb(var(--c-slate-400)); }
+.dark svg [stroke="#94a3b8" i] { stroke: rgb(var(--c-slate-400)); }
+.dark svg [stop-color="#94a3b8" i] { stop-color: rgb(var(--c-slate-400)); }
+.dark svg [fill="#cbd5e1" i] { fill: rgb(var(--c-slate-300)); }
+.dark svg [stroke="#cbd5e1" i] { stroke: rgb(var(--c-slate-300)); }
+.dark svg [stop-color="#cbd5e1" i] { stop-color: rgb(var(--c-slate-300)); }
+.dark svg [fill="#e2e8f0" i] { fill: rgb(var(--c-slate-200)); }
+.dark svg [stroke="#e2e8f0" i] { stroke: rgb(var(--c-slate-200)); }
+.dark svg [stop-color="#e2e8f0" i] { stop-color: rgb(var(--c-slate-200)); }
+.dark svg [fill="#f1f5f9" i] { fill: rgb(var(--c-slate-100)); }
+.dark svg [stroke="#f1f5f9" i] { stroke: rgb(var(--c-slate-100)); }
+.dark svg [stop-color="#f1f5f9" i] { stop-color: rgb(var(--c-slate-100)); }
+.dark svg [fill="#f8fafc" i] { fill: rgb(var(--c-slate-50)); }
+.dark svg [stroke="#f8fafc" i] { stroke: rgb(var(--c-slate-50)); }
+.dark svg [stop-color="#f8fafc" i] { stop-color: rgb(var(--c-slate-50)); }
+.dark svg [fill="#fff" i] { fill: rgb(var(--c-white)); }
+.dark svg [stroke="#fff" i] { stroke: rgb(var(--c-white)); }
+.dark svg [stop-color="#fff" i] { stop-color: rgb(var(--c-white)); }
+.dark svg [fill="#ffffff" i] { fill: rgb(var(--c-white)); }
+.dark svg [stroke="#ffffff" i] { stroke: rgb(var(--c-white)); }
+.dark svg [stop-color="#ffffff" i] { stop-color: rgb(var(--c-white)); }
+.dark svg [fill="white" i] { fill: rgb(var(--c-white)); }
+.dark svg [stroke="white" i] { stroke: rgb(var(--c-white)); }
+.dark svg [stop-color="white" i] { stop-color: rgb(var(--c-white)); }
+.dark .recharts-default-tooltip {
+  background-color: rgb(var(--c-white)) !important;
+  border-color: rgb(var(--c-slate-200)) !important;
+}
+.dark .recharts-default-tooltip .recharts-tooltip-label {
+  color: rgb(var(--c-slate-900));
 }

@@ -19,7 +19,9 @@ PYTHONPATH=backend python3 backend/scripts/backup.py
 
 ## Envoi automatique vers GitHub
 
-Le bouton « Sauvegarder maintenant » (Réglages → Compte) lance la même chaîne à la demande (`POST /admin/backup/run`) et affiche une popin à la fin.
+Le bouton « Sauvegarder maintenant » (Paramètres → Données) lance la même chaîne à la demande (`POST /admin/backup/run`, `BACKUP_TRIGGER=manual`) et affiche une popin à la fin.
+
+Chaque exécution de `backup.py` met à jour `BACKUP_DIR/status.json` (dernière tentative, dernière réussite, dernière réussite automatique, dernière erreur, dernier envoi GitHub ou son erreur). L'API le lit avec les fichiers `suivi_budget_*` (`GET /admin/backup/status`) : la carte Sauvegarde l'affiche et le Centre d'actions lève « Sauvegarde en retard » (aucune sauvegarde depuis 2 jours) ou « Dernière sauvegarde en échec ». Sans aucune sauvegarde ni `status.json` (dev local), rien n'est signalé.
 
 Après chaque sauvegarde (toutes les 24 h via le conteneur `backup`), `backend/scripts/git_sync.py` pousse les fichiers `.enc` vers un dépôt GitHub **privé et dédié** (jamais le dépôt du code, qui est public). Seules les sauvegardes chiffrées sont envoyées : sans `BACKUP_KEY`, rien ne part.
 

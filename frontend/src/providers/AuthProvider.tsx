@@ -7,6 +7,7 @@ interface UserProfile {
   username: string
   profile_picture_url: string | null
   mcp_enabled: boolean
+  privacy_on_start: boolean
 }
 
 interface AuthContextType {

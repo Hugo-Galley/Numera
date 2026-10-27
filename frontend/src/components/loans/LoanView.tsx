@@ -37,7 +37,7 @@ const toNumber = (value: string) => Number(value.replace(",", ".").replace(/\s/g
 
 function Stat({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return (
-    <div className="rounded-xl border bg-white p-4 dark:bg-slate-900">
+    <div className="rounded-xl border bg-white p-4">
       <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
       <p className="mt-1 text-xl font-bold tabular-nums">{value}</p>
       {hint && <p className="mt-0.5 text-xs text-muted-foreground">{hint}</p>}
@@ -243,11 +243,11 @@ export function LoanView({ accountId }: { accountId: number }) {
             </Button>
           </div>
           {simulation && (
-            <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm dark:border-emerald-900 dark:bg-emerald-950/40">
-              <p className="text-base font-semibold text-emerald-800 dark:text-emerald-300">
+            <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm">
+              <p className="text-base font-semibold text-emerald-800">
                 {formatCurrency(simulation.interest_saved)} d'intérêts économisés
               </p>
-              <ul className="mt-2 space-y-1 text-slate-700 dark:text-slate-300">
+              <ul className="mt-2 space-y-1 text-slate-700">
                 {simMode === "reduce_duration" ? (
                   <li>Fin du crédit le {formatDateFr(simulation.new_end_date)}, soit {formatMonths(simulation.months_saved)} plus tôt.</li>
                 ) : (
@@ -306,7 +306,7 @@ export function LoanView({ accountId }: { accountId: number }) {
                   })
                   const sum = (key: "payment" | "interest" | "principal") => rows.reduce((acc, r) => acc + r[key], 0)
                   return [
-                    <TableRow key={year} className="cursor-pointer bg-slate-50 font-semibold hover:bg-slate-100 dark:bg-slate-900" onClick={toggle}>
+                    <TableRow key={year} className="cursor-pointer bg-slate-50 font-semibold hover:bg-slate-100" onClick={toggle}>
                       <TableCell>
                         <span className="flex items-center gap-1">
                           {open ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}

@@ -391,7 +391,7 @@ export function SalaryManager() {
                       </div>
                       <div className="border-t pt-3 flex justify-between items-center">
                         <span className="font-bold">Total versé</span>
-                        <span className="font-black text-xl text-emerald-600 dark:text-emerald-400 whitespace-nowrap tabular-nums">{summary ? formatCurrency(summary.real_salary) : "—"}</span>
+                        <span className="font-black text-xl text-emerald-600 whitespace-nowrap tabular-nums">{summary ? formatCurrency(summary.real_salary) : "—"}</span>
                       </div>
                     </div>
                   </div>
@@ -407,7 +407,7 @@ export function SalaryManager() {
                       </p>
                       <div className="flex justify-between items-center">
                         <span className="text-muted-foreground">Tickets crédités ({nbTickets} × {formatCurrency(config.ticket_value)})</span>
-                        <span className="font-black text-xl text-amber-500 dark:text-amber-400 whitespace-nowrap tabular-nums">+ {summary ? formatCurrency(summary.ticket_credit) : "—"}</span>
+                        <span className="font-black text-xl text-amber-500 whitespace-nowrap tabular-nums">+ {summary ? formatCurrency(summary.ticket_credit) : "—"}</span>
                       </div>
                     </div>
                   </div>
@@ -417,7 +417,7 @@ export function SalaryManager() {
                 <div className="mt-6 pt-5 md:mt-8 md:pt-6 border-t">
                   {isGenerated ? (
                     <div className="flex flex-col gap-3">
-                      <div className="bg-emerald-100 border border-emerald-200 text-emerald-700 dark:bg-emerald-500/10 dark:border-emerald-500/20 dark:text-emerald-400 p-4 rounded-xl flex items-center justify-center gap-2 font-medium shadow-sm">
+                      <div className="bg-emerald-100 border border-emerald-200 text-emerald-700 p-4 rounded-xl flex items-center justify-center gap-2 font-medium shadow-sm">
                         <CheckCircle2 className="h-5 w-5" />
                         Salaire du mois généré
                       </div>

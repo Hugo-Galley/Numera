@@ -205,8 +205,8 @@ export function McpAccessCard() {
         </form>
 
         {created && (
-          <div className="rounded-md border border-amber-200 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-900 p-4 space-y-3">
-            <p className="flex items-center gap-2 text-sm font-semibold text-amber-900 dark:text-amber-200">
+          <div className="rounded-md border border-amber-200 bg-amber-50 p-4 space-y-3">
+            <p className="flex items-center gap-2 text-sm font-semibold text-amber-900">
               <TriangleAlert className="h-4 w-4" />
               Copiez-le maintenant : ce token ne sera plus affiché.
             </p>
@@ -226,32 +226,32 @@ export function McpAccessCard() {
             </div>
             {client === "claude-code" ? (
               <div className="space-y-1.5">
-                <p className="text-xs font-medium text-slate-700 dark:text-slate-300">
+                <p className="text-xs font-medium text-slate-700">
                   Dans un terminal, ajoutez Numera à Claude Code :
                 </p>
                 <CopyBlock value={command} label="Commande" />
-                <p className="text-xs text-slate-600 dark:text-slate-400">
+                <p className="text-xs text-slate-600">
                   Vérifiez ensuite avec <code>claude mcp list</code>.
                 </p>
               </div>
             ) : (
               <div className="space-y-1.5">
-                <p className="text-xs font-medium text-slate-700 dark:text-slate-300">
+                <p className="text-xs font-medium text-slate-700">
                   Claude Desktop → Réglages → Développeur → Modifier la configuration, puis fusionnez ce bloc dans{" "}
                   <code>claude_desktop_config.json</code> :
                 </p>
                 <CopyBlock value={desktopConfig} label="Configuration" />
-                <p className="text-xs text-slate-600 dark:text-slate-400">
+                <p className="text-xs text-slate-600">
                   Node.js doit être installé (le pont <code>mcp-remote</code> transmet le token). Redémarrez ensuite
                   Claude Desktop.
                 </p>
               </div>
             )}
             <div className="space-y-1.5">
-              <p className="text-xs font-medium text-slate-700 dark:text-slate-300">Token seul :</p>
+              <p className="text-xs font-medium text-slate-700">Token seul :</p>
               <CopyBlock value={created.token} label="Token" />
             </div>
-            <p className="text-xs text-slate-600 dark:text-slate-400">
+            <p className="text-xs text-slate-600">
               Serveur MCP : <code>{mcpUrl}</code>
             </p>
             <Button type="button" variant="outline" className="h-11 w-full sm:h-9 sm:w-auto" onClick={() => setCreated(null)}>

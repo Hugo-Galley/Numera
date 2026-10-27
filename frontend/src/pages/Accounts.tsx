@@ -829,7 +829,7 @@ export default function Accounts() {
               <p className="py-8 text-center text-muted-foreground">Aucun compte trouvé.</p>
             ) : (
               sortedAccounts.map((account) => (
-                <div key={account.id} className="rounded-xl border bg-white p-3 dark:bg-slate-900">
+                <div key={account.id} className="rounded-xl border bg-white p-3">
                   <div className="flex items-start gap-1">
                     <Button
                       variant="ghost"

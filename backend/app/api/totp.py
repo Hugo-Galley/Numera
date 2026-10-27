@@ -17,6 +17,7 @@ from app.api.deps import get_current_user, require_interactive_session
 from app.core import security, totp
 from app.core.config import settings
 from app.core.logging import get_logger
+from app.core.login_events import record_login
 from app.core.login_rate_limit import LoginRateLimiter
 from app.db.session import get_db
 from app.db.system_settings import get_setting, set_setting
@@ -209,6 +210,7 @@ def totp_login(body: TotpLoginBody, request: Request, db: Session = Depends(get_
     client_host = request.client.host if request.client else "unknown"
     key = f"{client_host}:totp"
     if not totp_rate_limiter.is_allowed(key):
+        record_login(db, request, "password_totp", False, "rate_limited")
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
             detail="Too many login attempts. Try again later.",
@@ -220,8 +222,10 @@ def totp_login(body: TotpLoginBody, request: Request, db: Session = Depends(get_
     if not check_second_factor(db, body.code):
         totp_rate_limiter.record_failure(key)
         logger.warning("Failed login attempt: invalid TOTP code")
+        record_login(db, request, "password_totp", False, "invalid_totp")
         raise HTTPException(status_code=401, detail="Code incorrect")
     totp_rate_limiter.reset(key)
     logger.info("Successful login (password + TOTP)")
+    record_login(db, request, "password_totp", True)
     token = security.create_access_token(username, expires_delta=timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES))
     return AccessToken(access_token=token, token_type="bearer")

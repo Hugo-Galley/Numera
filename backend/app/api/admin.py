@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user, require_interactive_session
 from app.core import security
-from app.core.backup import snapshot_database
+from app.core.backup import backup_status, snapshot_database
 from app.core.config import settings
 from app.core.logging import get_logger
 from app.core.mcp_tokens import generate_token, hash_token
@@ -20,8 +20,17 @@ from app.core.seeds import seed_default_categories
 from app.db.base import Base
 from app.db.session import SessionLocal, engine, get_db
 from app.db.system_settings import get_setting, set_setting
+from app.models.login_event import LoginEvent
 from app.models.mcp_token import McpToken
-from app.schemas.admin import AdminProfile, AdminProfileUpdate, McpTokenCreate, McpTokenCreated, McpTokenRead
+from app.schemas.admin import (
+    AdminProfile,
+    AdminProfileUpdate,
+    BackupStatus,
+    LoginEventRead,
+    McpTokenCreate,
+    McpTokenCreated,
+    McpTokenRead,
+)
 
 # Les tokens MCP n'ont pas accès à /admin : un agent ne peut ni changer le mot de passe, ni vider
 # la base, ni se créer d'autres tokens.
@@ -48,6 +57,7 @@ def get_admin_profile(
         username=get_setting(db, "admin_username", settings.ADMIN_USERNAME),
         profile_picture_url=get_setting(db, "profile_picture_url"),
         mcp_enabled=get_setting(db, "mcp_enabled", "true").lower() == "true",
+        privacy_on_start=get_setting(db, "ui.privacy_on_start", "false").lower() == "true",
     )
 
 
@@ -80,7 +90,23 @@ def update_admin_profile(
         set_setting(db, "profile_picture_url", profile_in.profile_picture_url)
     if profile_in.mcp_enabled is not None:
         set_setting(db, "mcp_enabled", "true" if profile_in.mcp_enabled else "false")
+    if profile_in.privacy_on_start is not None:
+        set_setting(db, "ui.privacy_on_start", "true" if profile_in.privacy_on_start else "false")
     return get_admin_profile(db, current_user)
+
+
+@router.get("/login-events", response_model=list[LoginEventRead])
+def list_login_events(limit: int = 50, db: Session = Depends(get_db)):
+    """Dernières tentatives de connexion, réussies ou non (les plus récentes d'abord)."""
+    return db.query(LoginEvent).order_by(LoginEvent.id.desc()).limit(max(1, min(limit, 200))).all()
+
+
+@router.post("/logout-all")
+def logout_all_sessions(db: Session = Depends(get_db)):
+    """Invalide toutes les sessions ouvertes, y compris celle-ci (les tokens MCP ne sont pas concernés)."""
+    set_setting(db, "auth_valid_after", str(int(time.time()) + 1))
+    logger.info("Toutes les sessions ont été déconnectées")
+    return {"ok": True}
 
 
 @router.get("/mcp-tokens", response_model=list[McpTokenRead])
@@ -164,7 +190,11 @@ def run_backup_now(current_user: str = Depends(get_current_user)):
     """Lance `scripts/backup.py` (sauvegarde chiffrée + envoi GitHub si configuré) et attend la fin."""
     try:
         result = subprocess.run(
-            [sys.executable, str(BACKUP_SCRIPT)], capture_output=True, text=True, timeout=BACKUP_TIMEOUT_SECONDS
+            [sys.executable, str(BACKUP_SCRIPT)],
+            capture_output=True,
+            text=True,
+            timeout=BACKUP_TIMEOUT_SECONDS,
+            env={**os.environ, "BACKUP_TRIGGER": "manual"},
         )
     except subprocess.TimeoutExpired:
         raise HTTPException(status_code=504, detail="La sauvegarde a dépassé le délai imparti")
@@ -175,3 +205,9 @@ def run_backup_now(current_user: str = Depends(get_current_user)):
         # 500 et non 401/403 : le client API déconnecte sur ces codes
         raise HTTPException(status_code=500, detail=detail)
     return {"ok": True, "github": bool(os.getenv("GITHUB_BACKUP_REPO", "").strip())}
+
+
+@router.get("/backup/status", response_model=BackupStatus)
+def get_backup_status():
+    """Dernière sauvegarde, envoi GitHub et retard éventuel (lus dans BACKUP_DIR)."""
+    return backup_status()

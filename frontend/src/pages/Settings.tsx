@@ -9,6 +9,7 @@ import { DangerZoneCard } from "@/components/settings/DangerZoneCard"
 import { DisplayCard } from "@/components/settings/DisplayCard"
 import { ExportCard } from "@/components/settings/ExportCard"
 import { ImportHistoryCard } from "@/components/settings/ImportHistoryCard"
+import { LoginActivityCard } from "@/components/settings/LoginActivityCard"
 import { McpAccessCard } from "@/components/settings/McpAccessCard"
 import { NotificationsTab } from "@/components/settings/NotificationsTab"
 import { PasskeyCard } from "@/components/settings/PasskeyCard"
@@ -106,6 +107,7 @@ export default function Settings() {
                 <PasskeyCard />
                 <TotpCard />
                 <McpAccessCard />
+                <LoginActivityCard />
               </>
             )}
             {value === "data" && (

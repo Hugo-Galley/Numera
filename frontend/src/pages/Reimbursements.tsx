@@ -116,11 +116,11 @@ export default function Reimbursements() {
             onClick={() => setDebtor(debtor === d.debtor ? null : d.debtor)}
             className={`min-h-11 min-w-0 rounded-xl border p-3 text-left shadow-sm transition-colors md:p-4 ${
               debtor === d.debtor
-                ? "border-emerald-300 bg-emerald-50 dark:bg-emerald-950"
-                : "border-slate-100 bg-white hover:border-emerald-200 dark:bg-slate-900"
+                ? "border-emerald-300 bg-emerald-50"
+                : "border-slate-100 bg-white hover:border-emerald-200"
             }`}
           >
-            <p className="break-words font-bold text-slate-900 dark:text-slate-100 md:truncate">{d.debtor}</p>
+            <p className="break-words font-bold text-slate-900 md:truncate">{d.debtor}</p>
             <p className="text-sm text-slate-500">
               <span className="amount-blur font-semibold">{formatCurrency(d.due)}</span> · {d.claims} créance{d.claims > 1 ? "s" : ""}
             </p>
@@ -149,7 +149,7 @@ export default function Reimbursements() {
           {[0, 1, 2].map((i) => <Skeleton key={i} className="h-20 w-full rounded-xl" />)}
         </div>
       ) : claims.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-6 md:p-12 text-center text-sm text-slate-400 dark:bg-slate-900">
+        <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-6 md:p-12 text-center text-sm text-slate-400">
           <HandCoins className="mx-auto mb-3 h-8 w-8 text-slate-300" />
           {status === "open"
             ? "Personne ne vous doit rien. Déclarez une créance depuis une dépense (icône « On me doit » dans le détail d'un compte)."
@@ -163,12 +163,12 @@ export default function Reimbursements() {
               <Card key={c.id} className="border-slate-100 shadow-sm">
                 <CardContent className="flex flex-col gap-3 p-4 md:flex-row md:items-center md:justify-between">
                   <div className="min-w-0 flex-1 space-y-1">
-                    <p className="font-bold text-slate-900 dark:text-slate-100">{c.debtor}</p>
+                    <p className="font-bold text-slate-900">{c.debtor}</p>
                     <p className="break-words text-xs text-slate-500 md:truncate">
                       {format(new Date(c.expense.date), "dd/MM/yyyy")} · {c.expense.label} · {accountName(c.expense.account_id)} ·{" "}
                       <span className="amount-blur">{formatCurrency(c.expense.amount, c.currency)}</span>
                     </p>
-                    <div className="h-1.5 w-full max-w-sm overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+                    <div className="h-1.5 w-full max-w-sm overflow-hidden rounded-full bg-slate-100">
                       <div className="h-full rounded-full bg-emerald-500" style={{ width: `${pct}%` }} />
                     </div>
                     <p className="text-xs text-slate-500">
@@ -177,7 +177,7 @@ export default function Reimbursements() {
                     </p>
                   </div>
                   <div className="flex flex-wrap items-center gap-2 md:gap-3">
-                    <span className="order-first w-full whitespace-nowrap md:w-auto text-left text-lg font-black tabular-nums text-slate-900 dark:text-slate-100 amount-blur md:order-none md:text-right">{formatCurrency(c.remaining, c.currency)}</span>
+                    <span className="order-first w-full whitespace-nowrap md:w-auto text-left text-lg font-black tabular-nums text-slate-900 amount-blur md:order-none md:text-right">{formatCurrency(c.remaining, c.currency)}</span>
                     {c.remaining > 0 && (
                       <Button size="sm" className="h-10 flex-1 gap-2 md:h-9 md:flex-none" onClick={() => setLinking(c)}>
                         <Link className="h-4 w-4" />

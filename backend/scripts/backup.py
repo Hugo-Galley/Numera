@@ -1,6 +1,7 @@
 import os
 import sqlite3
 import datetime
+import json
 import logging
 import sys
 from cryptography.fernet import Fernet
@@ -14,6 +15,11 @@ BACKUP_KEY = os.getenv("BACKUP_KEY")
 APP_ENV = os.getenv("APP_ENV", "dev")
 
 INSECURE_BACKUP_KEYS = {"", "generate-a-fernet-key-using-python"}
+
+# Lu par l'API (`GET /admin/backup/status`) pour l'état affiché dans Paramètres → Données
+STATUS_FILE = Path(BACKUP_DIR) / "status.json"
+# auto (conteneur `backup`, toutes les 24 h) ou manual (bouton « Sauvegarder maintenant »)
+TRIGGER = os.getenv("BACKUP_TRIGGER", "auto")
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -43,8 +49,26 @@ def _snapshot_database(dest: str) -> None:
         raise RuntimeError(f"Backup integrity check failed: {result}")
 
 
-def create_backup() -> bool:
-    """Crée un backup. Retourne True en cas de succès, lève une exception sinon."""
+def write_status(**fields) -> None:
+    """Fusionne `fields` dans status.json, sans jamais faire échouer la sauvegarde."""
+    try:
+        status = json.loads(STATUS_FILE.read_text()) if STATUS_FILE.exists() else {}
+    except (OSError, ValueError):
+        status = {}
+    status.update(fields)
+    try:
+        STATUS_FILE.parent.mkdir(parents=True, exist_ok=True)
+        STATUS_FILE.write_text(json.dumps(status, indent=2))
+    except OSError as exc:
+        logging.warning(f"Could not write backup status: {exc}")
+
+
+def _now_iso() -> str:
+    return datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds")
+
+
+def create_backup() -> str:
+    """Crée un backup et renvoie son chemin ; lève une exception en cas d'échec."""
     if APP_ENV == "prod" and BACKUP_KEY in INSECURE_BACKUP_KEYS:
         raise RuntimeError("BACKUP_KEY must be configured in production")
     if not os.path.exists(DB_PATH):
@@ -80,7 +104,7 @@ def create_backup() -> bool:
     finally:
         if temp_path and os.path.exists(temp_path):
             os.remove(temp_path)
-    return True
+    return final_path
 
 
 def cleanup_old_backups() -> None:
@@ -101,19 +125,27 @@ def cleanup_old_backups() -> None:
 
 if __name__ == "__main__":
     logging.info("Starting backup process...")
+    write_status(last_attempt_at=_now_iso(), last_trigger=TRIGGER)
     try:
-        create_backup()
+        final_path = create_backup()
     except Exception as exc:
         # Échec visible (code de sortie != 0) et AUCUN nettoyage : on ne supprime pas
         # les anciens backups tant qu'on n'est pas sûr d'en avoir un récent valide.
         logging.error(f"Backup failed: {exc}")
+        write_status(last_error=str(exc)[:300], last_error_at=_now_iso())
         sys.exit(1)
+    success = {"last_success_at": _now_iso(), "last_file": Path(final_path).name, "last_error": None}
+    if TRIGGER == "auto":
+        success["last_auto_success_at"] = success["last_success_at"]
+    write_status(**success)
     cleanup_old_backups()
     try:
         from git_sync import sync_backups
-        sync_backups()
+        if sync_backups():
+            write_status(github_last_sync_at=_now_iso(), github_error=None)
     except Exception as exc:
         # Le backup local est bon ; l'envoi distant échoue visiblement sans l'annuler.
         logging.error(f"GitHub sync failed: {exc}")
+        write_status(github_error=str(exc)[:300], github_error_at=_now_iso())
         sys.exit(2)
     logging.info("Backup process completed.")

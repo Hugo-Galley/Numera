@@ -1,4 +1,4 @@
-import { Suspense, useRef } from "react"
+import { Suspense, useEffect, useRef } from "react"
 import { Outlet, useLocation } from "react-router-dom"
 import { Sidebar } from "./Sidebar"
 import { Omnibox } from "./Omnibox"
@@ -7,14 +7,25 @@ import { Button } from "@/components/ui/button"
 import { CreditCard, Eye, EyeOff, Search } from "lucide-react"
 import { MobileNav } from "./MobileNav"
 import { useUI } from "@/providers/UIProvider"
+import { useAuth } from "@/providers/AuthProvider"
 import { WorkTimeProvider } from "@/providers/WorkTimeProvider"
 import { PageLoader } from "./PageLoader"
 import { ErrorBoundary } from "./ErrorBoundary"
 import { PwaExtras } from "./PwaExtras"
 import { DrilldownSheet } from "@/components/transactions/DrilldownSheet"
 
+// « Ouvrir montants masqués » (Paramètres → Général) : appliqué une seule fois par ouverture de l'app
+let privacyOnStartChecked = false
+
 export function AppLayout() {
-  const { isPrivacyMode, togglePrivacyMode, setSearchOpen } = useUI()
+  const { isPrivacyMode, togglePrivacyMode, setPrivacyMode, setSearchOpen } = useUI()
+  const { profile } = useAuth()
+
+  useEffect(() => {
+    if (!profile || privacyOnStartChecked) return
+    privacyOnStartChecked = true
+    if (profile.privacy_on_start) setPrivacyMode(true)
+  }, [profile, setPrivacyMode])
   const mainRef = useRef<HTMLElement>(null)
   const { pathname } = useLocation()
 

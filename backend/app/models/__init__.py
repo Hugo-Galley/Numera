@@ -28,6 +28,7 @@ from app.models.provision import Provision
 from app.models.financial_event import FinancialEvent
 from app.models.loan import Loan, LoanPrepayment
 from app.models.notification_log import NotificationLog
+from app.models.login_event import LoginEvent
 
 __all__ = [
     "Account",
@@ -52,6 +53,7 @@ __all__ = [
     "HoldingBaselineItem",
     "SecurityPrice",
     "McpToken",
+    "LoginEvent",
     "ReimbursementClaim",
     "ReimbursementAllocation",
     "MonthClosure",

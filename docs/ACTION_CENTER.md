@@ -84,6 +84,9 @@ Pour ajouter un nouveau type d'action :
 ### Action « hausse de prix » (`type: subscription`, `severity: medium`)
 - `subscription-price-{account_id}-{clé}-{date}` : un abonnement ou prélèvement régulier a augmenté (détection `core/subscription_prices.py::detect_price_changes`, mêmes données que `price_changes` de `/analytics/subscriptions`). La date de la hausse fait partie de l'id : une hausse écartée ne revient pas, une nouvelle hausse si. `action_type: link` vers `/recurring?tab=subscriptions`. Les transactions `is_subscription_ignored` et les virements sont exclus.
 
+### Action « sauvegarde » (`type: audit`, `severity: high`)
+`backup-failing-<AAAAMMJJ de la dernière sauvegarde>` : aucune sauvegarde depuis 2 jours ou dernière tentative en échec (`core/backup.py::backup_status`). L'id change avec la sauvegarde suivante, masquer l'alerte ne la fait donc pas taire pour toujours. Rien tant que les sauvegardes ne sont pas en place.
+
 ### Pièges à éviter
 - **Doubles appels** : Ne pas rafraîchir la liste complète (`loadActions`) trop souvent ; privilégier le rafraîchissement ciblé si possible.
 - **IDs stables** : L'ID de l'action doit être déterministe (ex: `suggest-rule-{merchant}`) pour permettre au frontend de garder l'état local si nécessaire.

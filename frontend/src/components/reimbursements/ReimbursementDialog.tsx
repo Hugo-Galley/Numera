@@ -212,7 +212,7 @@ export function ReimbursementDialog({ open, onOpenChange, transaction, onDone }:
               </Button>
             </div>
             {claims.length === 0 && (
-              <div className="flex flex-wrap items-end gap-2 rounded-xl bg-slate-50 p-3 dark:bg-slate-900">
+              <div className="flex flex-wrap items-end gap-2 rounded-xl bg-slate-50 p-3">
                 <div className="grid gap-1">
                   <Label htmlFor="claim-split">Partager à parts égales entre (vous compris)</Label>
                   <Input id="claim-split" inputMode="numeric" className="h-10 w-24 text-base sm:h-9 sm:text-sm" value={splitCount} onChange={(e) => setSplitCount(e.target.value)} />
@@ -230,7 +230,7 @@ export function ReimbursementDialog({ open, onOpenChange, transaction, onDone }:
               Disponible : <span className="amount-blur font-semibold">{formatCurrency(entry?.available ?? 0, transaction.currency)}</span>
             </p>
             {entry?.allocations.map((a) => (
-              <div key={a.id} className="flex items-center justify-between gap-2 rounded-lg bg-emerald-50 px-3 py-2 text-sm dark:bg-emerald-950">
+              <div key={a.id} className="flex items-center justify-between gap-2 rounded-lg bg-emerald-50 px-3 py-2 text-sm">
                 <span>
                   Affecté à {a.debtor} : <span className="amount-blur font-semibold">{formatCurrency(a.amount, transaction.currency)}</span>
                 </span>
@@ -241,7 +241,7 @@ export function ReimbursementDialog({ open, onOpenChange, transaction, onDone }:
               {entry?.open_claims.map((c) => (
                 <div key={c.id} className="flex flex-col gap-2 p-3 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
                   <div className="min-w-0">
-                    <p className="font-semibold text-slate-900 dark:text-slate-100">{c.debtor}</p>
+                    <p className="font-semibold text-slate-900">{c.debtor}</p>
                     <p className="break-words text-xs text-slate-500 sm:truncate">
                       {format(new Date(c.expense.date), "dd/MM/yyyy")} · {c.expense.label} · reste{" "}
                       <span className="amount-blur">{formatCurrency(c.remaining, c.currency)}</span>

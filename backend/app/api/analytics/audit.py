@@ -10,6 +10,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import case, func, or_
 from sqlalchemy.orm import Session
 
+from app.core.backup import backup_status
 from app.core.currency import get_exchange_rates, convert_amount
 from app.db.session import get_db
 from app.models.account import Account
@@ -926,6 +927,30 @@ async def get_action_center(db: Session = Depends(get_db)):
                 ))
         except Exception as exc:  # une règle d'audit ne doit jamais casser le Centre d'Actions
             logger.warning(f"Subscription price check skipped: {exc}")
+
+        # --- 4bis. Sauvegardes : en retard ou en échec (seulement si elles sont en place) ---
+        try:
+            backup = backup_status()
+            if backup["configured"] and (backup["stale"] or backup["last_error"]):
+                last = backup["last_backup_at"]
+                when = last.astimezone().strftime("%d/%m/%Y") if last else "jamais"
+                description = (
+                    f"Dernière sauvegarde réussie : {when}."
+                    + (f" Dernière erreur : {backup['last_error']}" if backup["last_error"] else "")
+                )
+                actions.append(ActionItem(
+                    # L'id change avec la dernière sauvegarde : masquer l'alerte ne la fait pas taire pour toujours
+                    id=f"backup-failing-{last.strftime('%Y%m%d') if last else 'never'}",
+                    type="audit",
+                    severity="high",
+                    title="Sauvegarde en retard" if backup["stale"] else "Dernière sauvegarde en échec",
+                    description=description,
+                    action_label="Voir les sauvegardes",
+                    action_url="/settings?tab=data",
+                    action_type="link",
+                ))
+        except Exception as exc:  # une règle d'audit ne doit jamais casser le Centre d'Actions
+            logger.warning(f"Backup status check skipped: {exc}")
 
         # --- 5. Summary & Sort ---
         # Safe sort: defaults to 3 (lowest) if severity is unexpected

@@ -9,7 +9,7 @@ Conventions techniques : `frontend/src/CLAUDE.md` (à lire d'abord).
 
 ## Identité visuelle
 
-Esthétique sobre « entreprise légère », Tailwind + shadcn. Palette : Slate (neutre), Emerald (revenus, gains), Rose (dépenses, pertes), Amber (alertes), primaire bleu/slate profond (`--primary`). Titres et valeurs KPI en `font-black`. Contenu principal centré en `max-w-7xl`, espacements `gap-4`/`gap-6`, `space-y-4`. Thèmes clair/sombre via `UIProvider`.
+Esthétique sobre « entreprise légère », Tailwind + shadcn. Palette : Slate (neutre), Emerald (revenus, gains), Rose (dépenses, pertes), Amber (alertes), primaire bleu/slate profond (`--primary`). Titres et valeurs KPI en `font-black`. Contenu principal centré en `max-w-7xl`, espacements `gap-4`/`gap-6`, `space-y-4`. Thèmes clair/sombre via `UIProvider` : palettes inversées par variables CSS, donc pas de variantes `dark:` (voir `frontend/src/CLAUDE.md`).
 
 ## Présentation des données financières
 

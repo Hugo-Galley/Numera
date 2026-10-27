@@ -33,6 +33,7 @@ from app.api.deps import get_current_user, require_interactive_session
 from app.core import security
 from app.core.config import settings
 from app.core.logging import get_logger
+from app.core.login_events import record_login
 from app.db.session import get_db
 from app.db.system_settings import get_setting, set_setting
 
@@ -211,6 +212,7 @@ def login_options(request: Request, db: Session = Depends(get_db)) -> dict:
 def login_verify(body: LoginVerifyBody, request: Request, db: Session = Depends(get_db)) -> dict:
     key = _client_key(request, "passkey")
     if not login_rate_limiter.is_allowed(key):
+        record_login(db, request, "passkey", False, "rate_limited")
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
             detail="Too many login attempts. Try again later.",
@@ -223,6 +225,7 @@ def login_verify(body: LoginVerifyBody, request: Request, db: Session = Depends(
     stored = next((c for c in credentials if c["id"] == body.credential.get("id")), None)
     if stored is None:
         login_rate_limiter.record_failure(key)
+        record_login(db, request, "passkey", False, "invalid_passkey")
         raise HTTPException(status_code=401, detail="Passkey inconnue")
     try:
         verified = verify_authentication_response(
@@ -237,6 +240,7 @@ def login_verify(body: LoginVerifyBody, request: Request, db: Session = Depends(
     except InvalidAuthenticationResponse as exc:
         login_rate_limiter.record_failure(key)
         logger.warning("Passkey login refused: %s", exc)
+        record_login(db, request, "passkey", False, "invalid_passkey")
         raise HTTPException(status_code=401, detail="Connexion par passkey refusée")
 
     stored["sign_count"] = verified.new_sign_count
@@ -244,6 +248,7 @@ def login_verify(body: LoginVerifyBody, request: Request, db: Session = Depends(
     _save(db, credentials)
     login_rate_limiter.reset(key)
     logger.info("Successful passkey login")
+    record_login(db, request, "passkey", True)
     token = security.create_access_token(
         _admin_username(db), expires_delta=timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     )

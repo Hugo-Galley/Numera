@@ -111,7 +111,7 @@ function Money({ value }: { value: number }) {
 function Gauge({ pct }: { pct: number }) {
   const color = pct > 100 ? "bg-rose-500" : pct > 90 ? "bg-amber-500" : "bg-emerald-500"
   return (
-    <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+    <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100">
       <div className={`h-full rounded-full ${color}`} style={{ width: `${Math.min(pct, 100)}%` }} />
     </div>
   )
@@ -134,7 +134,7 @@ function WrapperCardView({ card }: { card: WrapperCard }) {
               <span><Money value={card.current} /> sur <Money value={card.ceiling} /></span>
               <span className="text-slate-500">{formatRate(card.used_pct ?? 0, 1)}</span>
             </div>
-            <div className="text-slate-600 dark:text-slate-300">
+            <div className="text-slate-600">
               Place restante : <strong><Money value={card.remaining ?? 0} /></strong>
             </div>
           </div>
@@ -171,7 +171,7 @@ function WrapperCardView({ card }: { card: WrapperCard }) {
           </div>
         )}
         {card.alerts.map((alert) => (
-          <div key={alert} className="flex items-start gap-2 rounded-md bg-amber-50 p-2 text-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
+          <div key={alert} className="flex items-start gap-2 rounded-md bg-amber-50 p-2 text-amber-800">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
             <span>{alert}</span>
           </div>
@@ -312,7 +312,7 @@ export default function Tax() {
       )}
 
       {advice.length > 0 && (
-        <Card className="border-emerald-200 bg-emerald-50/40 dark:border-emerald-900 dark:bg-emerald-950/30">
+        <Card className="border-emerald-200 bg-emerald-50/40">
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-base">
               <Compass className="h-4 w-4 text-emerald-600" /> Où placer ton prochain euro
@@ -329,7 +329,7 @@ export default function Tax() {
                 <li key={step.rank} className="flex gap-3">
                   <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-sm font-bold text-white">{step.rank}</span>
                   <div className="min-w-0 text-sm">
-                    <p className="font-semibold text-slate-900 dark:text-slate-100">
+                    <p className="font-semibold text-slate-900">
                       {step.account_id ? (
                         <Link to={`/accounts/${step.account_id}`} className="hover:underline">{step.account_name}</Link>
                       ) : (step.account_name ?? KIND_LABELS[step.kind])}
@@ -337,7 +337,7 @@ export default function Tax() {
                         <span className="ml-2 font-normal text-muted-foreground">· encore <Money value={step.remaining} /> de place</span>
                       )}
                     </p>
-                    <p className="text-slate-600 dark:text-slate-400">{step.reason}</p>
+                    <p className="text-slate-600">{step.reason}</p>
                   </div>
                 </li>
               ))}
@@ -376,7 +376,7 @@ export default function Tax() {
           <Card>
             <CardContent className="flex flex-col items-center gap-3 py-10 text-center">
               <Landmark className="h-8 w-8 text-slate-400" />
-              <p className="text-sm text-slate-600 dark:text-slate-300">
+              <p className="text-sm text-slate-600">
                 Aucun compte n'a d'enveloppe fiscale. Renseigne l'enveloppe dans les paramètres d'un compte.
               </p>
               <Button asChild variant="outline" className="h-11 w-full sm:h-10 sm:w-auto"><Link to="/accounts">Aller aux comptes</Link></Button>
@@ -404,7 +404,7 @@ export default function Tax() {
           <Skeleton className="h-40" />
         ) : report.accounts.length === 0 ? (
           <Card>
-            <CardContent className="py-8 text-center text-sm text-slate-600 dark:text-slate-300">
+            <CardContent className="py-8 text-center text-sm text-slate-600">
               Aucun compte CTO configuré.
             </CardContent>
           </Card>
@@ -412,7 +412,7 @@ export default function Tax() {
           <Card>
             <CardContent className="space-y-4 pt-6">
               {report.warnings.map((warning) => (
-                <div key={warning} className="flex items-start gap-2 rounded-md bg-amber-50 p-2 text-sm text-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
+                <div key={warning} className="flex items-start gap-2 rounded-md bg-amber-50 p-2 text-sm text-amber-800">
                   <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
                   <span>{warning}</span>
                 </div>
