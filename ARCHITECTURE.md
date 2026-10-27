@@ -12,7 +12,7 @@ Decrire l'architecture actuelle du depot pour permettre a un humain ou a un agen
 - Auth: mono-admin JWT, routes metier protegees ; tokens MCP (`nmr_…`) acceptés à la place du JWT en lecture seule (`GET`), jamais sur `/admin`.
 - Orchestration: `infra/docker-compose.yml` (dev : `backend`, `frontend`, `backup`) ; `docker-compose.prod.yml` (prod : + `mcp-server` en streamable-http ; frontend Nginx publié sur `127.0.0.1:8082`, proxy `/api/` → `backend:8001` et `/mcp` → `mcp-server:8100`).
 - Services externes (seuls appels sortants) : Frankfurter (taux de change) et Yahoo Finance (recherche/cotations de titres, profils ETF).
-- Serveur MCP dans `mcp-server/`, en lecture seule, connecté à Claude Code / Claude Desktop par token généré dans Paramètres → Compte (voir `mcp-server/README.md`).
+- Serveur MCP dans `mcp-server/`, en lecture seule, connecté à Claude Code / Claude Desktop par token généré dans Paramètres → Sécurité (voir `mcp-server/README.md`).
 
 Flux principal:
 
@@ -40,7 +40,7 @@ backend/
   tests/                pytest backend (85 tests)
 frontend/
   src/
-    components/         layout, ui (shadcn), dashboard (+ tabs/), investments, settings, tools, analytics
+    components/         layout, ui (shadcn), dashboard (+ tabs/), investments, settings, classement, import, audit, tools, analytics
     lib/                apiFetch, utils, countries
     types/              types partages (diversity.ts)
     lib/                apiFetch, utils, countries
@@ -98,17 +98,18 @@ Routes dans `frontend/src/App.tsx`:
 
 - `/login`: authentification.
 - `/`: dashboard, 5 onglets : Aperçu (`OverviewTab`), Budgets, Dépenses (`MerchantsTab` + `SubscriptionsTab`), Analyse (`InsightsTab` + `HistoryTab`), Projections. Vue « Tous les comptes » par défaut, dernier compte choisi mémorisé (`localStorage`).
-- `/accounts`: liste des comptes (incluant la bannière de validation périodique).
-- `/accounts/:id`: détail compte courant/épargne/investissement ; un compte `credit` affiche `components/loans/LoanView` (résumé, courbe du capital restant dû, tableau d'amortissement par année, simulateur de remboursement anticipé). `?new=tx&type=&amount=&merchant=` ouvre le formulaire de transaction pré-rempli, `state.openTransaction` ouvre une transaction en modification (⌘K).
+- `/accounts`: liste des comptes (incluant la bannière de validation périodique). `?import=1` ouvre l'import CSV (`components/import/ImportDialog`, sans compte présélectionné ; ⌘K et ancien `/settings?tab=import`).
+- `/accounts/:id`: détail compte courant/épargne/investissement ; un compte `credit` affiche `components/loans/LoanView` (résumé, courbe du capital restant dû, tableau d'amortissement par année, simulateur de remboursement anticipé). `?new=tx&type=&amount=&merchant=` ouvre le formulaire de transaction pré-rempli, `state.openTransaction` ouvre une transaction en modification (⌘K). Bouton « Importer » : import CSV dans ce compte (`ImportDialog` → `ImportFlow`).
 - `/accounts?new=loan` ouvre le formulaire « Ajouter un crédit » (`components/loans/LoanDialog`).
 - `/savings`: objectifs d'épargne.
 - `/tax`: Fiscalité (carte « Où placer ton prochain euro », plafonds PEA/PER/Livret A/LDDS/LEP/Livret Jeune, blocage 5 ans du PEE, dates clés PEA/AV, récap annuel CTO 2DC/3VG/3VH).
 - `/investments`: vue globale investissements.
 - `/month` (`MonthHub.tsx`, sous-routes) : `/month/bilan` (rapport mensuel, `MonthlyReport.tsx`), `/month/revue` (revue de fin de mois, `MonthReview.tsx`, `?year=&month=`), `/month/comparaison` (`Comparison.tsx`). Anciennes adresses `/report`, `/month-review`, `/comparison` redirigées avec leurs paramètres (`RedirectKeepingSearch`).
 - `/recurring` « Échéances » : un seul des onglets `recurring` (Liste) ou `subscriptions` (Analyse Récurrences : Abonnements / Investissements / Autres récurrences dont le salaire, via `GET /analytics/subscriptions?include_other=true`) selon le sélecteur Analyse/Liste (localStorage `recurring-view`, défaut Analyse) ; puis `?tab=` calendar (`Calendar.tsx` en mode `embedded`) | salary (`SalaryManager`, salaire et télétravail). `/calendar` redirige vers `?tab=calendar`.
-- `/audit`: Centre d'Actions (audit d'integrite, alertes budget, suggestions de regles) — voir `docs/ACTION_CENTER.md`.
+- `/audit`: Centre d'Actions (audit d'integrite, alertes budget, suggestions de regles) — voir `docs/ACTION_CENTER.md`. `?vue=virements` : revue des virements internes (`components/audit/TransferReview` : suggestions à lier/ignorer, virements liés à délier).
+- `/classement` (groupe Gestion) : onglets `?tab=` categories | tags | merchants | rules (règles d'auto-catégorisation + règles de virement `TransferRulesSection`), composants dans `components/classement/`.
 - `/tools` « Simulateur » : prévision simple (`WealthForecast`, « dans N ans » + « et si j'épargne +X ») avec bouton « Mode avancé » vers le simulateur complet (`WealthSimulator`).
-- `/settings`: configuration, notifications push (`?tab=notifications`, `components/settings/NotificationsTab`), import CSV, gestion des virements, règles d'auto-catégorisation, tags, gestion des marchands canoniques et actions admin.
+- `/settings`: 4 onglets `?tab=` : general (affichage, découpage des mois), notifications (ntfy/Telegram), security (profil et mot de passe, passkey, TOTP, accès MCP), data (sauvegarde, export CSV, historique des imports, réinitialisation). Les anciens onglets redirigent : account → security, system → data, categories/tags/merchants/rules → `/classement`, transferts → `/audit?vue=virements`, import → `/accounts?import=1`.
 
 Principes:
 

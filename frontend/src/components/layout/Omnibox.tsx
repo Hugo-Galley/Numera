@@ -9,7 +9,8 @@ import {
   TrendingUp, 
   PiggyBank, 
   ArrowLeftRight, 
-  Upload, 
+  Upload,
+  Tags,
   Settings,
   Receipt,
   ArrowRight,
@@ -61,7 +62,11 @@ const NAVIGATION = [
   { name: "Salaire", href: "/recurring?tab=salary", icon: Wallet },
   { name: "Remboursements", href: "/reimbursements", icon: HandCoins },
   { name: "Simulateur", href: "/tools", icon: Calculator },
-  { name: "Importation", href: "/settings?tab=import", icon: Upload },
+  { name: "Classement : catégories", href: "/classement?tab=categories", icon: Tags },
+  { name: "Classement : tags", href: "/classement?tab=tags", icon: Tags },
+  { name: "Classement : marchands", href: "/classement?tab=merchants", icon: Tags },
+  { name: "Classement : règles (catégorisation, virements)", href: "/classement?tab=rules", icon: Tags },
+  { name: "Virements internes (suggestions, liés)", href: "/audit?vue=virements", icon: ArrowLeftRight },
   { name: "Notifications (ntfy, Telegram)", href: "/settings?tab=notifications", icon: Bell },
   { name: "Paramètres", href: "/settings", icon: Settings },
 ]
@@ -169,7 +174,7 @@ export function Omnibox() {
 
   const ACTIONS = [
     { id: "new-tx", name: "Nouvelle transaction", hint: mainAccount?.name, icon: Plus, run: () => openNewTransaction() },
-    { id: "import", name: "Importer un relevé CSV", icon: Upload, run: () => navigate("/settings?tab=import") },
+    { id: "import", name: "Importer un relevé CSV", icon: Upload, run: () => navigate("/accounts?import=1") },
     { id: "review", name: "Démarrer la revue du mois", icon: ClipboardList, run: () => navigate("/month/revue") },
     { id: "privacy", name: isPrivacyMode ? "Afficher les montants" : "Masquer les montants (mode confidentialité)", icon: EyeOff, run: () => togglePrivacyMode() },
     { id: "loan", name: "Ajouter un crédit", icon: LandmarkIcon, run: () => navigate("/accounts?new=loan") },

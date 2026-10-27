@@ -172,7 +172,7 @@ def data_audit(db: Session = Depends(get_db)):
             description="Certains marchands fréquents ne sont pas encore reliés à un marchand canonique.",
             count=unnormalized_merchant_count,
             action_label="Normaliser",
-            action_url="/settings?tab=merchants",
+            action_url="/classement?tab=merchants",
             samples=[{"merchant": r.merchant, "count": r.count} for r in unnormalized_merchant_query.limit(5).all()],
         ))
 
@@ -301,7 +301,7 @@ def data_audit(db: Session = Depends(get_db)):
             description="Ces categories ajoutent du bruit dans les formulaires et les filtres : archivez-les (historique conserve) ou supprimez-les.",
             count=len(unused_categories),
             action_label="Archiver ou supprimer",
-            action_url="/settings",
+            action_url="/classement?tab=categories",
             samples=[{"id": cat.id, "name": cat.name, "type": cat.type} for cat in unused_categories[:8]],
         ))
 
@@ -355,7 +355,7 @@ def data_audit(db: Session = Depends(get_db)):
             description="Ces mouvements ressemblent a des virements entre comptes et peuvent fausser les depenses s'ils ne sont pas rapproches.",
             count=possible_transfer_count,
             action_label="Rapprocher",
-            action_url="/settings?tab=transfers",
+            action_url="/audit?vue=virements",
             samples=transfer_samples,
         ))
 
@@ -673,7 +673,7 @@ async def get_action_center(db: Session = Depends(get_db)):
                 title="Transferts non rapprochés",
                 description=f"{possible_transfer_count} virements internes potentiels ont été détectés.",
                 action_label="Rapprocher",
-                action_url="/settings?tab=transfers",
+                action_url="/audit?vue=virements",
                 action_type="link",
                 metadata={"issue_id": "unmatched-transfers"}
             ))
@@ -777,7 +777,7 @@ async def get_action_center(db: Session = Depends(get_db)):
                     f"(sur {stats['total']}). Une règle les catégoriserait, ainsi que les prochains imports."
                 ),
                 action_label="Créer la règle",
-                action_url="/settings?tab=rules",
+                action_url="/classement?tab=rules",
                 action_type="modal_rule",
                 metadata={"merchant": merchant, "suggested_category_id": suggested_cat_id}
             ))
@@ -813,7 +813,7 @@ async def get_action_center(db: Session = Depends(get_db)):
                     f"{total} transactions. Les regrouper sous un marchand canonique ?"
                 ),
                 action_label="Normaliser",
-                action_url="/settings?tab=merchants",
+                action_url="/classement?tab=merchants",
                 action_type="modal_merchant",
                 metadata={"merchant": main_label, "count": total, "variants": [l for l, _ in labels]}
             ))

@@ -15,6 +15,7 @@ const Accounts = lazy(() => import("@/pages/Accounts"))
 const AccountDetail = lazy(() => import("@/pages/AccountDetail"))
 const Investments = lazy(() => import("@/pages/Investments"))
 const Settings = lazy(() => import("@/pages/Settings"))
+const Classement = lazy(() => import("@/pages/Classement"))
 const Savings = lazy(() => import("@/pages/Savings"))
 const Comparison = lazy(() => import("@/pages/Comparison"))
 const IntelligentReport = lazy(() => import("@/pages/MonthlyReport"))
@@ -68,6 +69,7 @@ export function App() {
               <Route path="/audit" element={<Audit />} />
               <Route path="/tools" element={<Tools />} />
               <Route path="/tax" element={<Tax />} />
+              <Route path="/classement" element={<Classement />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="*" element={<NotFound />} />
             </Route>

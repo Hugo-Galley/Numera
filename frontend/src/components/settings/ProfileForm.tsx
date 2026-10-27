@@ -7,11 +7,6 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { toast } from "sonner"
-import { McpAccessCard } from "./McpAccessCard"
-import { PasskeyCard } from "./PasskeyCard"
-import { TotpCard } from "./TotpCard"
-import { BackupCard } from "./BackupCard"
-import { BudgetPeriodCard } from "./BudgetPeriodCard"
 import {
   Dialog,
   DialogContent,
@@ -21,7 +16,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 
-export function AccountTab() {
+export function ProfileForm() {
   const { profile, refreshProfile } = useAuth()
   const [loading, setLoading] = useState(false)
   const [showConfirmDialog, setShowConfirmDialog] = useState(false)
@@ -156,7 +151,7 @@ export function AccountTab() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Lock className="h-5 w-5" />
-              Sécurité
+              Mot de passe
             </CardTitle>
             <CardDescription>
               Laissez vide pour conserver le mot de passe actuel.
@@ -208,16 +203,6 @@ export function AccountTab() {
           </Button>
         </div>
       </form>
-
-      <BudgetPeriodCard />
-
-      <PasskeyCard />
-
-      <TotpCard />
-
-      <McpAccessCard />
-
-      <BackupCard />
 
       <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
         <DialogContent>

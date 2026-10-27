@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { Bell, Send } from "lucide-react"
+import { Send } from "lucide-react"
 import { toast } from "sonner"
 
 import { ErrorState } from "@/components/layout/ErrorState"
@@ -109,9 +109,6 @@ export function NotificationsTab() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="flex items-center gap-2 text-xl font-bold text-slate-900 md:text-2xl dark:text-slate-100">
-          <Bell className="h-5 w-5" /> Notifications
-        </h2>
         <p className="text-sm text-muted-foreground">
           Les nouvelles alertes du Centre d'Actions (budget, hausse d'abonnement, compte à vérifier…) arrivent sur votre téléphone, une seule fois chacune. Vérification toutes les heures.
         </p>

@@ -58,6 +58,7 @@ import { useConfirm } from "@/providers/ConfirmProvider"
 import { LogoPicker } from "@/components/ui/LogoPicker"
 import { AccountLogo, invalidateAccountLogos } from "@/components/ui/AccountLogo"
 import { LoanDialog } from "@/components/loans/LoanDialog"
+import { ImportDialog } from "@/components/import/ImportDialog"
 import type { LoanSummary } from "@/components/loans/types"
 
 type Account = {
@@ -125,7 +126,16 @@ export default function Accounts() {
   const confirm = useConfirm()
   const [searchParams, setSearchParams] = useSearchParams()
   const [loanDialogOpen, setLoanDialogOpen] = useState(false)
+  const [importOpen, setImportOpen] = useState(false)
   const [editingLoan, setEditingLoan] = useState<LoanSummary | null>(null)
+
+  // ⌘K « Importer un relevé » (et anciens liens /settings?tab=import) : /accounts?import=1
+  useEffect(() => {
+    if (searchParams.get("import") !== "1") return
+    setImportOpen(true)
+    searchParams.delete("import")
+    setSearchParams(searchParams, { replace: true })
+  }, [searchParams, setSearchParams])
 
   // ⌘K « Ajouter un crédit » : /accounts?new=loan
   useEffect(() => {
@@ -1040,6 +1050,8 @@ export default function Accounts() {
           )}
         </div>
       )}
+
+      <ImportDialog open={importOpen} onOpenChange={setImportOpen} onImported={loadAccounts} />
     </div>
   )
 }

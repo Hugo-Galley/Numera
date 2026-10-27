@@ -16,7 +16,7 @@ import {
   ShieldCheck,
   Calculator,
   Landmark,
-  User,
+  Tags,
   ClipboardCheck,
   Gift,
 } from "lucide-react"
@@ -34,7 +34,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
-// 11 entrées en 3 groupes toujours ouverts : Bilan, Revue et Comparaison sont des onglets de « Mois »,
+// 12 entrées en 3 groupes toujours ouverts : Bilan, Revue et Comparaison sont des onglets de « Mois »,
 // le calendrier et le salaire des onglets d'« Échéances ».
 const navigationGroups = [
   {
@@ -60,6 +60,7 @@ const navigationGroups = [
     items: [
       { name: "Échéances", href: "/recurring", icon: Repeat },
       { name: "Remboursements", href: "/reimbursements", icon: HandCoins },
+      { name: "Classement", href: "/classement", icon: Tags },
       { name: "Simulateur", href: "/tools", icon: Calculator },
     ]
   }
@@ -182,8 +183,7 @@ export function Sidebar({ className, onItemClick, hideBrand }: { className?: str
             <span className="truncate text-sm font-medium text-slate-900">{username || "Utilisateur"}</span>
           </div>
           {[
-            { name: "Paramètres généraux", href: "/settings", icon: Settings },
-            { name: "Profil & Compte", href: "/settings?tab=account", icon: User },
+            { name: "Paramètres", href: "/settings", icon: Settings },
           ].map((item) => (
             <NavLink
               key={item.href}
@@ -231,13 +231,7 @@ export function Sidebar({ className, onItemClick, hideBrand }: { className?: str
             <NavLink to="/settings">
               <DropdownMenuItem className="cursor-pointer">
                 <Settings className="mr-2 h-4 w-4" />
-                <span>Paramètres généraux</span>
-              </DropdownMenuItem>
-            </NavLink>
-            <NavLink to="/settings?tab=account">
-              <DropdownMenuItem className="cursor-pointer">
-                <User className="mr-2 h-4 w-4" />
-                <span>Profil & Compte</span>
+                <span>Paramètres</span>
               </DropdownMenuItem>
             </NavLink>
             <DropdownMenuSeparator />

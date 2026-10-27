@@ -166,7 +166,7 @@ Numera embarque un serveur [MCP](https://modelcontextprotocol.io). Une fois bran
 > *« Fais-moi le bilan de septembre. »*<br>
 > *« Mon portefeuille est-il trop concentré sur les États-Unis ? »*
 
-Claude répond à partir des mêmes chiffres que l'appli. Pour le connecter, allez dans **Paramètres → Compte → Claude (MCP)**, générez un token et lancez la commande affichée :
+Claude répond à partir des mêmes chiffres que l'appli. Pour le connecter, allez dans **Paramètres → Sécurité → Claude (MCP)**, générez un token et lancez la commande affichée :
 
 ```bash
 claude mcp add --transport http --scope user numera https://votre-domaine/mcp \

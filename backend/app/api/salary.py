@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.api.deps import get_db
 from app.core.finance import month_label_from_date
-from app.core.salary import generate_salary_transactions
+from app.core.salary import generate_salary_transactions, is_salary_recorded
 from app.core.work_time import load_work_time, save_work_time
 from app.models.recurring_transaction import RecurringTransaction
 from app.models.salary_config import SalaryConfig
@@ -324,7 +324,8 @@ def get_month_summary(
         "ticket_deduction": ticket_deduction,
         "real_salary": real_salary,
         "ticket_credit": ticket_credit,
-        "is_generated": month_record.is_generated if month_record else False,
+        # Un drapeau sans transaction derrière ne compte pas : le mois redevient générable
+        "is_generated": bool(month_record and month_record.is_generated and is_salary_recorded(db, config, month_record)),
     }
 
 
@@ -348,7 +349,7 @@ def trigger_generation(
             status_code=400, detail="Salary date not configured for this month"
         )
 
-    if month_record.is_generated:
+    if month_record.is_generated and is_salary_recorded(db, config, month_record):
         raise HTTPException(status_code=400, detail="Already generated for this month")
 
     # Saisie à l'avance : rien n'est créé avant la date de paie, la tâche de fond

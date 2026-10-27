@@ -56,7 +56,7 @@ Le point d'entrée `server.py` est un **dispatcher** qui lance l'un des deux ser
 
 En production, `docker-compose.prod.yml` lance `mcp-server` (mode API, transport `streamable-http`, sans état) ; Nginx l'expose sur `https://<domaine>/mcp`. Aucun port publié, aucun secret dans le conteneur.
 
-1. Numera → **Paramètres → Compte → Claude (MCP)** → **Générer un token** (`nmr_…`, affiché une seule fois).
+1. Numera → **Paramètres → Sécurité → Claude (MCP)** → **Générer un token** (`nmr_…`, affiché une seule fois).
 2. Lancer la commande affichée :
    ```bash
    claude mcp add --transport http --scope user numera https://<domaine>/mcp \

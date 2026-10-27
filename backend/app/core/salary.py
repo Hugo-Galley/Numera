@@ -1,5 +1,5 @@
 import calendar
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
@@ -20,7 +20,12 @@ def generate_salary_transactions(
 ) -> bool:
     """Generate salary transaction for a given month. Idempotent — will not create duplicates."""
     if month_record.is_generated:
-        return False
+        if is_salary_recorded(db, config, month_record):
+            return False
+        # Drapeau resté à vrai alors que la transaction a disparu (supprimée à la main, générée
+        # en avance puis effacée) : sans ce contrôle le mois n'était plus jamais généré.
+        logger.warning(f"Salary for {month_label} marked generated but no salary transaction found, regenerating")
+        month_record.is_generated = False
 
     # IDEMPOTENCE GUARD: Check if a transaction already exists for this month
     if config.salary_recurring_id:
@@ -136,16 +141,26 @@ def _has_salary_entry(db: Session, config: SalaryConfig, year: int, month: int) 
     ).first() is not None
 
 
-def check_and_generate_pending_salaries(db: Session) -> int:
-    """Auto-generate salary transactions for months whose salary_date has passed."""
+def is_salary_recorded(db: Session, config: SalaryConfig, month_record: SalaryMonth) -> bool:
+    """Une entrée de salaire existe sur le compte de salaire, le mois civil de la date de paie."""
+    return _has_salary_entry(db, config, month_record.salary_date.year, month_record.salary_date.month)
+
+
+def check_and_generate_pending_salaries(db: Session, today: date | None = None) -> int:
+    """Auto-generate salary transactions for months whose salary_date has passed.
+
+    Les mois récents déjà marqués générés sont revus aussi : generate_salary_transactions
+    regénère ceux dont la transaction manque. Pas au-delà de 31 jours, pour ne pas ressusciter
+    un salaire effacé volontairement il y a longtemps.
+    """
     config = db.query(SalaryConfig).filter(SalaryConfig.is_active == True).first()
     if not config:
         return 0
 
-    today = date.today()
+    today = today or date.today()
     pending_months = db.query(SalaryMonth).filter(
         SalaryMonth.salary_config_id == config.id,
-        SalaryMonth.is_generated == False,
+        or_(SalaryMonth.is_generated == False, SalaryMonth.salary_date >= today - timedelta(days=31)),
         SalaryMonth.salary_date <= today,
     ).all()
 

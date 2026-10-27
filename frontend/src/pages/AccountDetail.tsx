@@ -8,6 +8,7 @@ import { LoanView } from "@/components/loans/LoanView"
 import { 
   ArrowLeft, 
   Scale,
+  Upload,
   ArrowRightLeft,
   Plus, 
   Filter, 
@@ -170,6 +171,7 @@ import {
 import { api } from "@/lib/api"
 import { TransferLinkDialog } from "@/components/transfers/TransferLinkDialog"
 import { ReconcileDialog } from "@/components/accounts/ReconcileDialog"
+import { ImportDialog } from "@/components/import/ImportDialog"
 import { ReimbursementDialog } from "@/components/reimbursements/ReimbursementDialog"
 import { SplitTransactionDialog, type SplitPart } from "@/components/transactions/SplitTransactionDialog"
 import type { AccountLite } from "@/types/transfers"
@@ -337,6 +339,7 @@ export default function AccountDetail() {
   const [account, setAccount] = useState<Account | null>(null)
   const [transferTx, setTransferTx] = useState<Transaction | null>(null)
   const [reconcileOpen, setReconcileOpen] = useState(false)
+  const [importOpen, setImportOpen] = useState(false)
   const [reimbursementTx, setReimbursementTx] = useState<Transaction | null>(null)
   const [splitTx, setSplitTx] = useState<Transaction | null>(null)
   const [allAccounts, setAllAccounts] = useState<AccountLite[]>([])
@@ -1250,6 +1253,9 @@ export default function AccountDetail() {
                 <>
                 <Button variant="outline" className="h-11 w-full sm:h-10 sm:w-auto" onClick={() => setReconcileOpen(true)}>
                   <Scale className="h-4 w-4 mr-2" /> Rapprocher
+                </Button>
+                <Button variant="outline" className="h-11 w-full sm:h-10 sm:w-auto" onClick={() => setImportOpen(true)}>
+                  <Upload className="h-4 w-4 mr-2" /> Importer
                 </Button>
                 <Dialog open={txOpen} onOpenChange={(open) => { if (!open) { setTxOpen(false); resetTxForm(); } else { setTxOpen(true); } }}>
                   <DialogTrigger asChild>
@@ -2740,6 +2746,12 @@ export default function AccountDetail() {
         onDone={loadTransactions}
       />
 
+      <ImportDialog
+        open={importOpen}
+        onOpenChange={setImportOpen}
+        accountId={account.id}
+        onImported={() => loadData({ quiet: true })}
+      />
       <ReconcileDialog
         account={account}
         open={reconcileOpen}

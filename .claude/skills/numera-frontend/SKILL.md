@@ -37,8 +37,10 @@ Créer `components/dashboard/tabs/<Nom>Tab.tsx` (onglets actuels : Overview, His
 ## Pages à connaître
 
 - `Tools.tsx` : gestion du salaire (`SalaryManager`) et calendrier de télétravail (`TelecommutingCalendar`).
-- `Settings.tsx` : onglets dans `components/settings/` (compte, import, marchands, règles, tags, virements).
-- `Audit.tsx` : Centre d'Actions (voir `docs/ACTION_CENTER.md`).
+- `Settings.tsx` : vrais réglages seulement, 4 onglets (Général, Notifications, Sécurité, Données), cartes dans `components/settings/`. Ce qui se manipule souvent n'y va pas.
+- `Classement.tsx` (`/classement`, groupe Gestion) : catégories, tags, marchands, règles (`components/classement/`).
+- Import CSV : `components/import/ImportFlow` dans `ImportDialog`, ouvert depuis la page d'un compte (ou `/accounts?import=1`).
+- `Audit.tsx` : Centre d'Actions (voir `docs/ACTION_CENTER.md`) ; `?vue=virements` = revue des virements internes (`components/audit/TransferReview`).
 - `Accounts.tsx` : liste des comptes avec `AccountVerificationBanner` (met à jour `last_verified_at`).
 - `Investments.tsx` : vue globale, `HoldingsTable`, `DiversityScanner`, `PointZeroModal`, `CustomEtfModal`, `SecuritySearchInput`.
 

@@ -9,7 +9,7 @@ Architecture :
   [Client local] ←stdio→ [MCP Server] ←HTTP→ [API]
 
 Sécurité :
-  - Authentification par token MCP généré dans Numera (Paramètres → Compte), jamais par mot de passe
+  - Authentification par token MCP généré dans Numera (Paramètres → Sécurité), jamais par mot de passe
   - HTTP : le token du client (`Authorization: Bearer nmr_…`) est validé par le backend
     (`server_auth.py`) puis transmis tel quel à chaque appel API
   - stdio : token lu dans MCP_API_TOKEN
@@ -48,7 +48,7 @@ HTTP_TRANSPORTS = ("sse", "streamable-http")
 API_TOKEN = os.environ.get("MCP_API_TOKEN")
 if TRANSPORT not in HTTP_TRANSPORTS and not API_TOKEN:
     raise ValueError(
-        "MCP_API_TOKEN doit être défini en transport stdio : générez un token dans Numera (Paramètres → Compte)"
+        "MCP_API_TOKEN doit être défini en transport stdio : générez un token dans Numera (Paramètres → Sécurité)"
     )
 
 # Logging (sur stderr pour ne pas interférer avec stdio)

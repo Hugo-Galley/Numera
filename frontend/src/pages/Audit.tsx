@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from "react"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, useSearchParams } from "react-router-dom"
 import {
   AlertTriangle,
   ArrowRight,
+  ArrowRightLeft,
   CheckCircle2,
   Database,
   Link2,
@@ -29,6 +30,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { useConfirm } from "@/providers/ConfirmProvider"
 import { toInputValue, toNaiveLocal } from "@/lib/dates"
+import { TransferReview } from "@/components/audit/TransferReview"
 
 interface Category {
   id: number
@@ -536,6 +538,9 @@ function MerchantCreatorModal({
 
 export default function ActionCenter() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  // ?vue=virements : revue des virements internes (suggestions à lier, virements déjà liés)
+  const view = searchParams.get("vue")
   const [data, setData] = useState<ActionCenterData | null>(null)
   const [categories, setCategories] = useState<Category[]>([])
   const [accounts, setAccounts] = useState<Account[]>([])
@@ -698,8 +703,29 @@ export default function ActionCenter() {
   }
 
   useEffect(() => {
-    loadActions()
-  }, [])
+    if (!view) loadActions()
+  }, [view])
+
+  if (view === "virements") {
+    return (
+      <div className="space-y-6">
+        <Button variant="ghost" size="sm" onClick={() => navigate("/audit")} className="-ml-2 h-10 px-2 text-slate-500 md:h-8">
+          <ArrowRight className="mr-2 h-4 w-4 rotate-180" />
+          Retour au centre d'actions
+        </Button>
+        <div>
+          <div className="mb-1 flex items-center gap-2">
+            <ArrowRightLeft className="h-5 w-5 text-slate-700" />
+            <h1 className="text-xl font-semibold text-slate-900">Virements internes</h1>
+          </div>
+          <p className="text-sm text-slate-500">
+            Rapproche les mouvements entre tes comptes pour qu'ils ne comptent ni en revenus ni en dépenses.
+          </p>
+        </div>
+        <TransferReview />
+      </div>
+    )
+  }
 
   if (loading) {
     return (
@@ -879,10 +905,16 @@ export default function ActionCenter() {
             Une liste centralisée des tâches pour maintenir vos finances propres et sous contrôle.
           </p>
         </div>
-        <Button onClick={loadActions} variant="outline" className="h-11 gap-2 md:h-10">
-          <RefreshCw className="h-4 w-4" />
-          Actualiser
-        </Button>
+        <div className="grid grid-cols-2 gap-2 md:flex">
+          <Button onClick={() => navigate("/audit?vue=virements")} variant="outline" className="h-11 gap-2 md:h-10">
+            <ArrowRightLeft className="h-4 w-4" />
+            Virements internes
+          </Button>
+          <Button onClick={loadActions} variant="outline" className="h-11 gap-2 md:h-10">
+            <RefreshCw className="h-4 w-4" />
+            Actualiser
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-3 gap-2 sm:flex sm:flex-wrap sm:gap-4">
