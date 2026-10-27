@@ -12,11 +12,11 @@ import { ImportHistoryCard } from "@/components/settings/ImportHistoryCard"
 import { McpAccessCard } from "@/components/settings/McpAccessCard"
 import { NotificationsTab } from "@/components/settings/NotificationsTab"
 import { PasskeyCard } from "@/components/settings/PasskeyCard"
-import { ProfileForm } from "@/components/settings/ProfileForm"
+import { PasswordCard, ProfileInfoCard } from "@/components/settings/ProfileForm"
 import { TotpCard } from "@/components/settings/TotpCard"
 
 const TABS = [
-  { value: "general", label: "Général", icon: SlidersHorizontal, intro: "Comment l'application se comporte." },
+  { value: "general", label: "Général", icon: SlidersHorizontal, intro: "Ton profil et le comportement de l'application." },
   { value: "notifications", label: "Notifications", icon: Bell, intro: "Ce qu'elle t'envoie sur ton téléphone." },
   { value: "security", label: "Sécurité", icon: ShieldCheck, intro: "Qui peut accéder à tes données, et comment." },
   { value: "data", label: "Données", icon: Database, intro: "Sauvegarder, exporter ou effacer tes données." },
@@ -94,6 +94,7 @@ export default function Settings() {
             {value !== "notifications" && <p className="text-sm text-slate-500">{intro}</p>}
             {value === "general" && (
               <>
+                <ProfileInfoCard />
                 <DisplayCard />
                 <BudgetPeriodCard />
               </>
@@ -101,7 +102,7 @@ export default function Settings() {
             {value === "notifications" && <NotificationsTab />}
             {value === "security" && (
               <>
-                <ProfileForm />
+                <PasswordCard />
                 <PasskeyCard />
                 <TotpCard />
                 <McpAccessCard />
