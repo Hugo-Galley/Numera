@@ -1,14 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import and_, func, or_
 from sqlalchemy.orm import Session
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from app.services import reimbursements as remb
 from app.services.splits import check_split_compatible, set_splits
-from app.services.transfers import auto_link_transfers, candidates_for, create_counterpart, find_pairs, link_pair, release_partner, unlink_pair
+from app.services.transfers import auto_link_transfers, create_counterpart, link_pair, release_partner, unlink_pair
 from app.core.finance import month_label_from_date, normalize_transaction_type
 from app.db.session import get_db
-from app.repositories.analytics.common import ticket_restaurant_account_ids
+from app.repositories.transactions import TransactionFilters
+from app.services import transactions as service
 from app.services.balances import recalculate_running_balances
 from app.models.account import Account
 from app.models.transaction import Transaction
@@ -41,13 +41,7 @@ def validate_solde_initial(
 
 @router.get("/merchants", response_model=list[str])
 def list_merchants(db: Session = Depends(get_db)):
-    merchants = (
-        db.query(Transaction.merchant)
-        .distinct()
-        .order_by(Transaction.merchant.asc())
-        .all()
-    )
-    return [m[0] for m in merchants if m[0]]
+    return service.list_merchants(db)
 
 
 @router.get("", response_model=list[TransactionRead])
@@ -73,68 +67,13 @@ def list_transactions(
     limit: int = Query(default=100, ge=1, le=1000),
     db: Session = Depends(get_db),
 ):
-    query = db.query(Transaction)
-    if account_id is not None:
-        query = query.filter(Transaction.account_id == account_id)
-    if category_id is not None:
-        # Une dépense découpée apparaît sous chacune des catégories de ses parts
-        from app.models.transaction_split import TransactionSplit
-        split_tx_ids = db.query(TransactionSplit.transaction_id).filter(TransactionSplit.category_id == category_id)
-        query = query.filter(or_(Transaction.category_id == category_id, Transaction.id.in_(split_tx_ids)))
-    if type is not None:
-        query = query.filter(Transaction.type == type)
-    if merchant is not None:
-        query = query.filter(Transaction.merchant.ilike(f"%{merchant}%"))
-    if min_amount is not None:
-        query = query.filter(Transaction.amount >= min_amount)
-    if max_amount is not None:
-        query = query.filter(Transaction.amount <= max_amount)
-    if start_date is not None:
-        query = query.filter(Transaction.date >= start_date)
-    if end_date is not None:
-        query = query.filter(Transaction.date <= end_date)
-    if is_transfer is not None:
-        query = query.filter(Transaction.is_transfer == is_transfer)
-    if tag_ids:
-        from app.models.tag import Tag
-        query = query.join(Transaction.tags).filter(Tag.id.in_(tag_ids))
-    if search:
-        search_filter = f"%{search}%"
-        from app.models.category import Category
-        query = query.outerjoin(Category, Transaction.category_id == Category.id).filter(
-            or_(
-                Transaction.merchant.ilike(search_filter),
-                Transaction.note.ilike(search_filter),
-                Transaction.type.ilike(search_filter),
-                Category.name.ilike(search_filter),
-            )
-        )
-    if uncategorized:
-        query = query.filter(Transaction.category_id.is_(None))
-    if merchant_name is not None:
-        from app.models.merchant import Merchant
-        query = query.outerjoin(Merchant, Transaction.merchant_id == Merchant.id).filter(
-            func.coalesce(Merchant.name, Transaction.merchant) == merchant_name
-        )
-    if budget_scope:
-        query = query.join(Account, Transaction.account_id == Account.id).filter(Account.type.in_(["courant", "epargne"]))
-        tr_accounts = ticket_restaurant_account_ids(db)
-        if tr_accounts:
-            query = query.filter(Transaction.account_id.notin_(tr_accounts))
-    if month is not None and year is not None:
-        if period:
-            from app.core.budget_period import period_bounds
-            start, end = period_bounds(db, year, month)
-        else:
-            start = datetime(year, month, 1)
-            end = datetime(year + (1 if month == 12 else 0), 1 if month == 12 else month + 1, 1)
-        query = query.filter(and_(
-            Transaction.date >= start,
-            Transaction.date < end,
-        ))
-    
-    # Order by date desc for better UX in lists, unless searching for specific time range
-    return query.order_by(Transaction.date.desc(), Transaction.id.desc()).offset(skip).limit(limit).all()
+    filters = TransactionFilters(
+        account_id=account_id, category_id=category_id, type=type, merchant=merchant, month=month, year=year,
+        min_amount=min_amount, max_amount=max_amount, start_date=start_date, end_date=end_date,
+        is_transfer=is_transfer, tag_ids=tag_ids, search=search, uncategorized=uncategorized,
+        merchant_name=merchant_name, period=period, budget_scope=budget_scope,
+    )
+    return service.list_transactions(db, filters, skip, limit)
 
 
 @router.get("/potential-transfers")
@@ -144,28 +83,8 @@ async def find_potential_transfers(
     months: int = Query(default=0, ge=0, le=240, description="0 = tout l'historique"),
     db: Session = Depends(get_db)
 ):
-    """
-    Suggestions de virements internes : une Sortie et une Entree (ou un versement d'investissement)
-    de comptes différents, au montant et à la date proches. Appariement 1 pour 1 global : une entrée
-    n'est jamais proposée pour deux sorties ; les égalités parfaites sont marquées `ambiguous`.
-    """
-    pairs = await find_pairs(
-        db,
-        day_tolerance=days_tolerance,
-        amount_tolerance_pct=amount_tolerance_pct,
-        months=months or None,
-    )
-    return [
-        {
-            "sortie": p.sortie,
-            "entree": p.entree,
-            "type": p.kind,
-            "confidence": "high" if p.amount_gap_pct < 0.001 and not p.ambiguous else "medium",
-            "ambiguous": p.ambiguous,
-            "day_gap": p.day_gap,
-        }
-        for p in pairs
-    ]
+    """Suggestions de virements internes (appariement 1 pour 1, égalités marquées `ambiguous`)."""
+    return await service.find_potential_transfers(db, days_tolerance, amount_tolerance_pct, months)
 
 
 @router.get("/{transaction_id}/transfer-candidates", response_model=list[TransferCandidate])
@@ -177,10 +96,7 @@ async def transfer_candidates(
     db: Session = Depends(get_db),
 ):
     """Candidates classées pour relier cette ligne à un virement interne (liaison manuelle)."""
-    tx = db.query(Transaction).filter(Transaction.id == transaction_id).first()
-    if not tx:
-        raise HTTPException(status_code=404, detail="Transaction not found")
-    return await candidates_for(db, tx, days=days, amount_tolerance_pct=amount_tolerance_pct, account_id=account_id)
+    return await service.transfer_candidates(db, transaction_id, days, amount_tolerance_pct, account_id)
 
 
 @router.post("/{transaction_id}/transfer-counterpart", response_model=TransferCounterpartRead, status_code=201)

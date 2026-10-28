@@ -32,7 +32,6 @@
   "backend/app/controllers/salary.py": 453,
   "backend/app/controllers/salary.py::reset_generation": 83,
   "backend/app/controllers/transactions.py": 552,
-  "backend/app/controllers/transactions.py::list_transactions": 84,
   "backend/app/controllers/transactions.py::update_transaction": 85,
   "backend/app/core/demo.py": 439,
   "backend/app/core/finance.py::get_recurring_occurrences": 86,
