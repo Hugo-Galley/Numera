@@ -33,7 +33,7 @@ class Settings(BaseSettings):
     LOGIN_WINDOW_SECONDS: int = 900
     LOGIN_LOCKOUT_SECONDS: int = 900
     # Instance de démonstration publique : données fictives régénérées chaque jour, réglages sensibles
-    # bloqués, aucun appel aux données de marché (cf. core/demo.py)
+    # bloqués, aucun appel aux données de marché (cf. services/demo/)
     DEMO_MODE: bool = False
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")

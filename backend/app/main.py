@@ -45,9 +45,9 @@ from app.controllers.deps import get_current_user
 from app.core.config import settings
 from app.core.currency import CurrencyConversionError
 from app.core.errors import DomainError
-from app.core.demo import ensure_demo_data, is_blocked_in_demo
+from app.services.demo import ensure_demo_data, is_blocked_in_demo
 from app.core.migrations import run_migrations
-from app.core.seeds import seed_all
+from app.services.seeds import seed_all
 from app.db.session import SessionLocal
 from app.core.logging import setup_logging, get_logger
 from app.core.etf_analyzer import refresh_held_etf_profiles

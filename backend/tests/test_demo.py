@@ -5,7 +5,7 @@ import pytest
 from pydantic import ValidationError
 
 from app.core.config import Settings, settings
-from app.core.demo import DEMO_STAMP_KEY, ensure_demo_data, generate_demo_data, is_blocked_in_demo, wipe_database
+from app.services.demo import DEMO_STAMP_KEY, ensure_demo_data, generate_demo_data, is_blocked_in_demo, wipe_database
 from app.domain.finance import apply_transaction_to_balance
 from app.models.account import Account
 from app.models.investment_transaction import InvestmentTransaction
