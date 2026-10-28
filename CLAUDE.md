@@ -47,7 +47,7 @@ cd frontend && npm run typecheck    # tsc seul
 # Un seul test
 cd backend && PYTHONPATH=. python3.11 -m pytest tests/test_tags.py -v   # PYTHONPATH=. requis
 cd backend && PYTHONPATH=. python3.11 -m pytest tests/test_tags.py::test_name -v
-cd backend && PYTHONPATH=. python3.11 -m pytest tests -q     # suite complète : ~745 tests, ~1 min 30
+cd backend && PYTHONPATH=. python3.11 -m pytest tests -q     # suite complète : ~840 tests, ~1 min 40
 
 # Mot de passe admin (hash à mettre dans ADMIN_PASSWORD_HASH ; doubler les $ dans docker-compose)
 python scripts/change_password.py <mot-de-passe>
