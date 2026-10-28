@@ -25,8 +25,6 @@
   "backend/app/controllers/analytics/reports.py::sankey_analytics": 221,
   "backend/app/controllers/analytics/subscriptions.py::get_subscriptions_analytics": 108,
   "backend/app/controllers/exports.py::export_transactions_csv": 99,
-  "backend/app/controllers/imports.py": 509,
-  "backend/app/controllers/imports.py::commit_import": 201,
   "backend/app/controllers/investment_transactions.py::create_investment_transaction": 83,
   "backend/app/controllers/investment_transactions.py::update_investment_transaction": 95,
   "backend/app/controllers/salary.py": 453,

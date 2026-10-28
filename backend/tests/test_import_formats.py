@@ -1,7 +1,7 @@
 """Lot 4 de l'audit : formats d'import (B4, B5, B11) et retour d'erreurs ligne par ligne (U1)."""
 import pytest
 
-from app.controllers.imports import _parse_amount
+from app.domain.csv_import import parse_amount as _parse_amount
 from app.models.account import Account
 from app.models.category import Category
 from app.models.transaction import Transaction
