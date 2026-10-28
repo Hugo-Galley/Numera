@@ -2,6 +2,10 @@ from collections import deque
 from threading import Lock
 from time import monotonic
 
+from fastapi import Request
+
+from app.core.config import settings
+
 
 class LoginRateLimiter:
     def __init__(self, max_attempts: int, window_seconds: int, lockout_seconds: int):
@@ -52,3 +56,22 @@ class LoginRateLimiter:
         with self._lock:
             self._attempts.clear()
             self._locked_until.clear()
+
+
+def client_key(request: Request, username: str) -> str:
+    client_host = request.client.host if request.client else "unknown"
+    return f"{client_host}:{username.casefold()}"
+
+
+login_rate_limiter = LoginRateLimiter(
+    max_attempts=settings.LOGIN_MAX_ATTEMPTS,
+    window_seconds=settings.LOGIN_WINDOW_SECONDS,
+    lockout_seconds=settings.LOGIN_LOCKOUT_SECONDS,
+)
+
+# Compteur distinct du mot de passe : deviner le code après un mot de passe valide reste borné
+totp_rate_limiter = LoginRateLimiter(
+    max_attempts=settings.LOGIN_MAX_ATTEMPTS,
+    window_seconds=settings.LOGIN_WINDOW_SECONDS,
+    lockout_seconds=settings.LOGIN_LOCKOUT_SECONDS,
+)

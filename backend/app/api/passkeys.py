@@ -28,7 +28,7 @@ from webauthn.helpers.structs import (
     UserVerificationRequirement,
 )
 
-from app.api.auth import _client_key, login_rate_limiter
+from app.core.login_rate_limit import client_key, login_rate_limiter
 from app.api.deps import get_current_user, require_interactive_session
 from app.core import security
 from app.core.config import settings
@@ -210,7 +210,7 @@ def login_options(request: Request, db: Session = Depends(get_db)) -> dict:
 
 @router.post("/login/verify")
 def login_verify(body: LoginVerifyBody, request: Request, db: Session = Depends(get_db)) -> dict:
-    key = _client_key(request, "passkey")
+    key = client_key(request, "passkey")
     if not login_rate_limiter.is_allowed(key):
         record_login(db, request, "passkey", False, "rate_limited")
         raise HTTPException(

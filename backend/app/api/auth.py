@@ -12,25 +12,15 @@ from app.core.config import settings
 from app.core.mcp_tokens import is_mcp_token
 from app.core.logging import get_logger
 from app.core.login_events import record_login
-from app.core.login_rate_limit import LoginRateLimiter
+from app.core.login_rate_limit import client_key, login_rate_limiter
 from app.api.deps import get_current_user, optional_oauth2, require_interactive_session
-from app.api.totp import create_mfa_token, is_enabled as totp_enabled
+from app.core.totp import create_mfa_token, is_enabled as totp_enabled
 from app.db.session import get_db
 from app.db.system_settings import get_setting
 
 logger = get_logger(__name__)
 
 router = APIRouter(prefix="/auth", tags=["auth"])
-login_rate_limiter = LoginRateLimiter(
-    max_attempts=settings.LOGIN_MAX_ATTEMPTS,
-    window_seconds=settings.LOGIN_WINDOW_SECONDS,
-    lockout_seconds=settings.LOGIN_LOCKOUT_SECONDS,
-)
-
-
-def _client_key(request: Request, username: str) -> str:
-    client_host = request.client.host if request.client else "unknown"
-    return f"{client_host}:{username.casefold()}"
 
 
 @router.post("/token")
@@ -42,7 +32,7 @@ def login_access_token(
     """
     OAuth2 compatible token login, get an access token for future requests
     """
-    key = _client_key(request, form_data.username)
+    key = client_key(request, form_data.username)
     if not login_rate_limiter.is_allowed(key):
         logger.warning("Login temporarily blocked due to repeated failed attempts")
         record_login(db, request, "password", False, "rate_limited")

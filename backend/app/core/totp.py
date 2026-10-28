@@ -8,15 +8,23 @@ import hmac
 import secrets
 import struct
 import time
+from datetime import datetime, timedelta, timezone
 from urllib.parse import quote, urlencode
 
+import jwt
 import segno
+from sqlalchemy.orm import Session
+
+from app.core.config import settings
+from app.db.system_settings import get_setting
 
 PERIOD = 30
 DIGITS = 6
 # Tolérance d'un pas de part et d'autre (horloge du téléphone légèrement décalée)
 VALID_WINDOW = 1
 ISSUER = "Numera"
+SECRET_KEY_SETTING = "totp_secret"
+MFA_TOKEN_TTL_SECONDS = 300
 
 
 def generate_secret() -> str:
@@ -79,3 +87,16 @@ def hash_recovery_code(code: str) -> str:
 
 def normalize_recovery_code(code: str) -> str:
     return "".join(ch for ch in code.lower() if ch.isalnum())
+
+
+def is_enabled(db: Session) -> bool:
+    return bool(get_setting(db, SECRET_KEY_SETTING))
+
+
+def create_mfa_token(username: str) -> str:
+    now = datetime.now(timezone.utc)
+    return jwt.encode(
+        {"purpose": "totp", "u": username, "iat": now, "exp": now + timedelta(seconds=MFA_TOKEN_TTL_SECONDS)},
+        settings.SECRET_KEY,
+        algorithm=settings.ALGORITHM,
+    )

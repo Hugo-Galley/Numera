@@ -6,7 +6,7 @@ de secours sont stockés dans `system_settings`. Entre le mot de passe et le cod
 jeton signé à courte durée (`purpose=totp`, sans `sub` : `get_current_user` le refuse).
 """
 import json
-from datetime import datetime, timedelta, timezone
+from datetime import timedelta
 
 import jwt
 from fastapi import APIRouter, Depends, HTTPException, Request, status
@@ -18,7 +18,8 @@ from app.core import security, totp
 from app.core.config import settings
 from app.core.logging import get_logger
 from app.core.login_events import record_login
-from app.core.login_rate_limit import LoginRateLimiter
+from app.core.login_rate_limit import totp_rate_limiter
+from app.core.totp import SECRET_KEY_SETTING, is_enabled
 from app.db.session import get_db
 from app.db.system_settings import get_setting, set_setting
 
@@ -26,18 +27,9 @@ logger = get_logger(__name__)
 
 router = APIRouter(prefix="/auth/totp", tags=["auth"])
 
-SECRET_KEY_SETTING = "totp_secret"
 PENDING_KEY_SETTING = "totp_pending_secret"
 LAST_STEP_SETTING = "totp_last_step"
 RECOVERY_SETTING = "totp_recovery_codes"
-MFA_TOKEN_TTL_SECONDS = 300
-
-# Compteur distinct du mot de passe : deviner le code après un mot de passe valide reste borné
-totp_rate_limiter = LoginRateLimiter(
-    max_attempts=settings.LOGIN_MAX_ATTEMPTS,
-    window_seconds=settings.LOGIN_WINDOW_SECONDS,
-    lockout_seconds=settings.LOGIN_LOCKOUT_SECONDS,
-)
 
 
 class TotpStatus(BaseModel):
@@ -76,19 +68,6 @@ class TotpLoginBody(BaseModel):
 class AccessToken(BaseModel):
     access_token: str
     token_type: str
-
-
-def is_enabled(db: Session) -> bool:
-    return bool(get_setting(db, SECRET_KEY_SETTING))
-
-
-def create_mfa_token(username: str) -> str:
-    now = datetime.now(timezone.utc)
-    return jwt.encode(
-        {"purpose": "totp", "u": username, "iat": now, "exp": now + timedelta(seconds=MFA_TOKEN_TTL_SECONDS)},
-        settings.SECRET_KEY,
-        algorithm=settings.ALGORITHM,
-    )
 
 
 def _read_mfa_token(db: Session, token: str) -> str:
