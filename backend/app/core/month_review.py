@@ -1,17 +1,15 @@
-"""Logique de la revue de fin de mois : bornes, étape 1, top dépenses, lecture « hors exceptionnel ».
-
-Les imports de `app.api.analytics.utils` sont différés dans les fonctions : `app/api/analytics/__init__`
-charge `reports.py`, qui importe ce module ; un import au niveau du module créerait un cycle.
-"""
+"""Logique de la revue de fin de mois : bornes, étape 1, top dépenses, lecture « hors exceptionnel »."""
 from datetime import datetime
 
 from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 
 from app.core.budget_period import period_bounds
+from app.domain.transactions import net_amount
 from app.models.account import Account
 from app.models.category import Category
 from app.models.transaction import Transaction
+from app.repositories.analytics.common import NET_AMOUNT, ticket_restaurant_account_ids
 
 # Même liste que budget_analytics : ces catégories ne sont pas de la consommation
 INVESTMENT_CATEGORIES = ["Investissement", "Epargne"]
@@ -31,7 +29,6 @@ def exceptional_expenses(
     account_id: int | None = None,
 ) -> float:
     """Dépenses nettes marquées exceptionnelles, hors catégories d'investissement (déjà exclues des dépenses réelles)."""
-    from app.api.analytics.utils import NET_AMOUNT, _get_ticket_restaurant_account_ids
 
     query = (
         db.query(Account.currency, func.coalesce(func.sum(NET_AMOUNT), 0.0))
@@ -50,7 +47,7 @@ def exceptional_expenses(
         query = query.filter(Transaction.account_id == account_id)
     else:
         query = query.filter(Account.type.in_(["courant", "epargne"]))
-        tr_accounts = _get_ticket_restaurant_account_ids(db)
+        tr_accounts = ticket_restaurant_account_ids(db)
         if tr_accounts:
             query = query.filter(Transaction.account_id.notin_(tr_accounts))
     rows = query.group_by(Account.currency).all()
@@ -90,7 +87,6 @@ def without_exceptional(budget: dict, exceptional: float, account_scope: bool = 
 
 
 def _review_tx(tx: Transaction) -> dict:
-    from app.api.analytics.utils import net_amount
 
     return {
         "id": tx.id,
@@ -108,7 +104,6 @@ def tx_count(db: Session, start: datetime, end: datetime) -> int:
 
 def categorize_step(db: Session, start: datetime, end: datetime) -> dict:
     """Étape 1 : dépenses du mois sans catégorie (mêmes filtres que l'audit, bornés au mois)."""
-    from app.api.analytics.utils import NET_AMOUNT
 
     def scoped(query):
         return query.filter(
@@ -128,7 +123,6 @@ def categorize_step(db: Session, start: datetime, end: datetime) -> dict:
 
 def top_expenses(db: Session, start: datetime, end: datetime) -> list[dict]:
     """Plus grosses dépenses nettes du mois (hors virements et investissement), à marquer exceptionnelles."""
-    from app.api.analytics.utils import NET_AMOUNT, _get_ticket_restaurant_account_ids
 
     query = (
         db.query(Transaction)
@@ -143,7 +137,7 @@ def top_expenses(db: Session, start: datetime, end: datetime) -> list[dict]:
             or_(Category.name.is_(None), Category.name.notin_(INVESTMENT_CATEGORIES)),
         )
     )
-    tr_accounts = _get_ticket_restaurant_account_ids(db)
+    tr_accounts = ticket_restaurant_account_ids(db)
     if tr_accounts:
         query = query.filter(Transaction.account_id.notin_(tr_accounts))
     rows = query.order_by(NET_AMOUNT.desc(), Transaction.id.asc()).limit(TOP_EXPENSES_LIMIT).all()
@@ -152,7 +146,6 @@ def top_expenses(db: Session, start: datetime, end: datetime) -> list[dict]:
 
 def month_fingerprint(db: Session, start: datetime, end: datetime) -> dict[str, dict[str, float]]:
     """Totaux nets du mois par devise de compte (entrées / sorties), sans conversion : insensibles aux taux de change."""
-    from app.api.analytics.utils import NET_AMOUNT
 
     rows = (
         db.query(Account.currency, Transaction.type, func.coalesce(func.sum(NET_AMOUNT), 0.0))

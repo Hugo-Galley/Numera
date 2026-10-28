@@ -64,13 +64,12 @@ logger = get_logger(__name__)
 
 router = APIRouter()
 
-from .utils import (
-    _tx_sample,
-    _tx_read,
-    _savings_account_ids,
-    _savings_events_by_account,
-    _savings_total_at,
-    _get_ticket_restaurant_account_ids,
+from app.domain.transactions import tx_sample, tx_read
+from app.repositories.analytics.common import (
+    savings_account_ids,
+    savings_events_by_account,
+    savings_total_at,
+    ticket_restaurant_account_ids,
 )
 
 

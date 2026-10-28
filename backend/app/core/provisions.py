@@ -20,6 +20,7 @@ from app.core.wealth import account_values
 from app.models.account import Account
 from app.models.provision import Provision
 from app.models.transaction import Transaction
+from app.repositories.analytics.common import category_lines
 
 # Fenêtre autour de l'échéance précédente pour retrouver le paiement réel
 PAYMENT_WINDOW_DAYS = 60
@@ -88,8 +89,6 @@ async def _last_payment(db: Session, p: Provision, around: date, rates: dict[str
     """Plus grosse dépense de la catégorie près de l'échéance précédente (parts de découpage comprises)."""
     if p.category_id is None:
         return None
-    from app.api.analytics.utils import category_lines
-
     lines = category_lines()
     start = datetime.combine(around - timedelta(days=PAYMENT_WINDOW_DAYS), datetime.min.time())
     end = datetime.combine(around + timedelta(days=PAYMENT_WINDOW_DAYS + 1), datetime.min.time())

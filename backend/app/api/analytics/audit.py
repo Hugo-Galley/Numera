@@ -57,13 +57,12 @@ logger = get_logger(__name__)
 
 router = APIRouter()
 
-from .utils import (
-    _tx_sample,
-    _tx_read,
-    _savings_account_ids,
-    _savings_events_by_account,
-    _savings_total_at,
-    _get_ticket_restaurant_account_ids,
+from app.domain.transactions import tx_sample, tx_read
+from app.repositories.analytics.common import (
+    savings_account_ids,
+    savings_events_by_account,
+    savings_total_at,
+    ticket_restaurant_account_ids,
 )
 
 
@@ -124,7 +123,7 @@ def data_audit(db: Session = Depends(get_db)):
     )
     uncategorized_count = uncategorized_query.count()
     if uncategorized_count:
-        samples = [_tx_sample(tx) for tx in uncategorized_query.limit(5).all()]
+        samples = [tx_sample(tx) for tx in uncategorized_query.limit(5).all()]
         issues.append(DataAuditIssue(
             id="uncategorized-expenses",
             type="categorization",
@@ -153,7 +152,7 @@ def data_audit(db: Session = Depends(get_db)):
             count=missing_merchant_count,
             action_label="Voir les transactions",
             action_url="/accounts",
-            samples=[_tx_sample(tx) for tx in missing_merchant_query.limit(5).all()],
+            samples=[tx_sample(tx) for tx in missing_merchant_query.limit(5).all()],
         ))
 
     unnormalized_merchant_query = (
@@ -344,8 +343,8 @@ def data_audit(db: Session = Depends(get_db)):
             possible_transfer_count += 1
             if len(transfer_samples) < 5:
                 transfer_samples.append({
-                    "sortie": _tx_sample(sortie),
-                    "entree": _tx_sample(match),
+                    "sortie": tx_sample(sortie),
+                    "entree": tx_sample(match),
                 })
     if possible_transfer_count:
         issues.append(DataAuditIssue(
@@ -372,7 +371,7 @@ def data_audit(db: Session = Depends(get_db)):
             count=len(unallocated),
             action_label="Affecter",
             action_url="/reimbursements",
-            samples=[_tx_sample(t) for t in unallocated[:5]],
+            samples=[tx_sample(t) for t in unallocated[:5]],
         ))
 
     high_count = sum(1 for issue in issues if issue.severity == "high")
@@ -407,7 +406,7 @@ def data_audit_issue_details(issue_id: str, db: Session = Depends(get_db)):
             .limit(500)
             .all()
         )
-        return {"issue_id": issue_id, "transactions": [_tx_read(tx) for tx in transactions]}
+        return {"issue_id": issue_id, "transactions": [tx_read(tx) for tx in transactions]}
 
     if issue_id == "missing-merchants":
         transactions = (
@@ -417,7 +416,7 @@ def data_audit_issue_details(issue_id: str, db: Session = Depends(get_db)):
             .limit(500)
             .all()
         )
-        return {"issue_id": issue_id, "transactions": [_tx_read(tx) for tx in transactions]}
+        return {"issue_id": issue_id, "transactions": [tx_read(tx) for tx in transactions]}
 
     if issue_id == "duplicate-transactions":
         duplicate_groups = (
@@ -462,7 +461,7 @@ def data_audit_issue_details(issue_id: str, db: Session = Depends(get_db)):
             groups.append({
                 "key": f"{row.account_id}-{row.date.isoformat()}-{row.type}-{row.merchant}-{row.amount}-{row.currency}",
                 "count": int(row.count),
-                "transactions": [_tx_read(tx) for tx in transactions],
+                "transactions": [tx_read(tx) for tx in transactions],
             })
         return {"issue_id": issue_id, "duplicate_groups": groups}
 
@@ -509,7 +508,7 @@ def data_audit_issue_details(issue_id: str, db: Session = Depends(get_db)):
                 if key in seen:
                     continue
                 seen.add(key)
-                pairs.append({"sortie": _tx_read(sortie), "entree": _tx_read(match)})
+                pairs.append({"sortie": tx_read(sortie), "entree": tx_read(match)})
                 if len(pairs) >= 100:
                     return {"issue_id": issue_id, "transfer_pairs": pairs}
         return {"issue_id": issue_id, "transfer_pairs": pairs}
@@ -517,7 +516,7 @@ def data_audit_issue_details(issue_id: str, db: Session = Depends(get_db)):
     if issue_id == "unallocated-reimbursements":
         query = _unallocated_reimbursements_query(db, datetime.now())
         transactions = query.limit(200).all() if query is not None else []
-        return {"issue_id": issue_id, "transactions": [_tx_read(tx) for tx in transactions]}
+        return {"issue_id": issue_id, "transactions": [tx_read(tx) for tx in transactions]}
 
     raise HTTPException(status_code=404, detail="Audit issue not found or not editable")
 
@@ -551,7 +550,7 @@ async def get_action_center(db: Session = Depends(get_db)):
                 action_label="Catégoriser",
                 action_url="/audit", # Pointing to the audit/actions page
                 action_type="modal_categorize",
-                samples=[_tx_sample(tx) for tx in uncategorized_query.limit(5).all()],
+                samples=[tx_sample(tx) for tx in uncategorized_query.limit(5).all()],
                 metadata={"issue_id": "uncategorized-expenses"}
             ))
 
@@ -692,7 +691,7 @@ async def get_action_center(db: Session = Depends(get_db)):
                 action_label="Affecter",
                 action_url="/reimbursements",
                 action_type="link",
-                samples=[_tx_sample(tx) for tx in unallocated_query.limit(5).all()],
+                samples=[tx_sample(tx) for tx in unallocated_query.limit(5).all()],
                 metadata={"issue_id": "unallocated-reimbursements"}
             ))
 

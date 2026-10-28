@@ -8,6 +8,7 @@ from app.core.splits import check_split_compatible, set_splits
 from app.core.transfers import auto_link_transfers, candidates_for, create_counterpart, find_pairs, link_pair, release_partner, unlink_pair
 from app.core.finance import month_label_from_date, normalize_transaction_type
 from app.db.session import get_db
+from app.repositories.analytics.common import ticket_restaurant_account_ids
 from app.services.balances import recalculate_running_balances
 from app.models.account import Account
 from app.models.transaction import Transaction
@@ -116,9 +117,8 @@ def list_transactions(
             func.coalesce(Merchant.name, Transaction.merchant) == merchant_name
         )
     if budget_scope:
-        from app.api.analytics.utils import _get_ticket_restaurant_account_ids
         query = query.join(Account, Transaction.account_id == Account.id).filter(Account.type.in_(["courant", "epargne"]))
-        tr_accounts = _get_ticket_restaurant_account_ids(db)
+        tr_accounts = ticket_restaurant_account_ids(db)
         if tr_accounts:
             query = query.filter(Transaction.account_id.notin_(tr_accounts))
     if month is not None and year is not None:

@@ -1,3 +1,4 @@
+"""Requêtes et expressions SQL partagées par les analytics."""
 from datetime import datetime
 from sqlalchemy import and_, func, literal_column, or_, select, union_all
 from sqlalchemy.orm import Session
@@ -8,7 +9,6 @@ from app.models.balance_snapshot import BalanceSnapshot
 from app.models.category import Category
 from app.models.transaction import Transaction
 from app.models.transaction_split import TransactionSplit
-from app.schemas.transaction import TransactionRead
 
 logger = get_logger(__name__)
 
@@ -99,31 +99,11 @@ def opening_balances_eur(db: Session, start: datetime, end: datetime, rates: dic
     return float(sum(total / rates.get(currency, 1.0) for currency, total in rows))
 
 
-def net_amount(tx: Transaction) -> float:
-    return float(tx.amount) - float(tx.reimbursement_offset or 0.0)
-
-
-def _tx_sample(tx: Transaction) -> dict:
-    return {
-        "id": tx.id,
-        "account_id": tx.account_id,
-        "date": tx.date.date().isoformat() if hasattr(tx.date, "date") else str(tx.date),
-        "merchant": tx.merchant,
-        "type": tx.type,
-        "amount": round(float(tx.amount), 2),
-        "currency": tx.currency,
-    }
-
-
-def _tx_read(tx: Transaction) -> dict:
-    return TransactionRead.model_validate(tx).model_dump(mode="json")
-
-
-def _savings_account_ids(db: Session) -> list[int]:
+def savings_account_ids(db: Session) -> list[int]:
     return [acc.id for acc in db.query(Account).filter(Account.type == "epargne", Account.active.is_(True)).all()]
 
 
-def _savings_events_by_account(db: Session, account_ids: list[int], end_date: datetime) -> dict[int, list[tuple[datetime, int, float]]]:
+def savings_events_by_account(db: Session, account_ids: list[int], end_date: datetime) -> dict[int, list[tuple[datetime, int, float]]]:
     events: dict[int, list[tuple[datetime, int, float]]] = {acc_id: [] for acc_id in account_ids}
     if not account_ids:
         return events
@@ -152,15 +132,15 @@ def _savings_events_by_account(db: Session, account_ids: list[int], end_date: da
     return events
 
 
-def _savings_total_at(db: Session, account_ids: list[int], end_date: datetime) -> float:
-    events = _savings_events_by_account(db, account_ids, end_date)
+def savings_total_at(db: Session, account_ids: list[int], end_date: datetime) -> float:
+    events = savings_events_by_account(db, account_ids, end_date)
     total = 0.0
     for items in events.values():
         total += items[-1][2] if items else 0.0
     return total
 
 
-def _get_ticket_restaurant_account_ids(db: Session) -> set[int]:
+def ticket_restaurant_account_ids(db: Session) -> set[int]:
     from app.models.salary_config import SalaryConfig
     ticket_account_ids = set()
     try:

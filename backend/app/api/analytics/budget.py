@@ -57,17 +57,16 @@ logger = get_logger(__name__)
 router = APIRouter()
 
 from app.core.wealth import account_values, active_accounts
-from .utils import (
+from app.domain.transactions import tx_sample, tx_read
+from app.repositories.analytics.common import (
     category_lines,
     income_criterion,
     NET_AMOUNT,
     budget_versement_ids,
-    _tx_sample,
-    _tx_read,
-    _savings_account_ids,
-    _savings_events_by_account,
-    _savings_total_at,
-    _get_ticket_restaurant_account_ids,
+    savings_account_ids,
+    savings_events_by_account,
+    savings_total_at,
+    ticket_restaurant_account_ids,
 )
 
 
@@ -92,7 +91,7 @@ async def budget_analytics(
             start, end = period_bounds(db, year, month)
 
         # Get ticket restaurant accounts to exclude from global views
-        tr_accounts = _get_ticket_restaurant_account_ids(db)
+        tr_accounts = ticket_restaurant_account_ids(db)
 
         # Get income grouped by account currency
         # Solde Initial n'est jamais un revenu (base du solde), y compris sur « tout le temps »
@@ -430,16 +429,16 @@ async def budget_analytics(
 
         # For savings accounts, we prefer the Snapshot-based calculation if available
         # because it might include value updates not present in transactions.
-        savings_account_ids = _savings_account_ids(db)
+        savings_ids = savings_account_ids(db)
         if account_id:
-            savings_account_ids = [account_id] if account_id in savings_account_ids else []
+            savings_ids = [account_id] if account_id in savings_ids else []
 
         savings_account_map = {
             acc.id: acc
-            for acc in db.query(Account).filter(Account.id.in_(savings_account_ids)).all()
-        } if savings_account_ids else {}
+            for acc in db.query(Account).filter(Account.id.in_(savings_ids)).all()
+        } if savings_ids else {}
 
-        events = _savings_events_by_account(db, savings_account_ids, end)
+        events = savings_events_by_account(db, savings_ids, end)
         savings_total = 0.0
         for acc_id, items in events.items():
             if items:
@@ -641,7 +640,7 @@ async def budget_alerts(
         return []
 
     rates = await get_exchange_rates("EUR")
-    tr_accounts = _get_ticket_restaurant_account_ids(db)
+    tr_accounts = ticket_restaurant_account_ids(db)
     start_month, end_month = period_bounds(db, year, month)
     start_year = datetime(year, 1, 1)
     end_year = datetime(year + 1, 1, 1)

@@ -33,7 +33,7 @@ from app.schemas.wrapped import (
 from app.core.budget_period import civil_months
 from .budget import budget_analytics
 from .metrics import expenses_by_category, top_merchants
-from .utils import NET_AMOUNT, _get_ticket_restaurant_account_ids, opening_balances_eur
+from app.repositories.analytics.common import NET_AMOUNT, ticket_restaurant_account_ids, opening_balances_eur
 
 router = APIRouter()
 
@@ -71,7 +71,7 @@ def _expense_query(db: Session, start: datetime, end: datetime):
             Account.type.in_(["courant", "epargne"]),
         )
     )
-    tr_accounts = _get_ticket_restaurant_account_ids(db)
+    tr_accounts = ticket_restaurant_account_ids(db)
     if tr_accounts:
         query = query.filter(Transaction.account_id.notin_(tr_accounts))
     return query

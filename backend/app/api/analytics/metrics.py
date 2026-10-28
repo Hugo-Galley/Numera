@@ -55,17 +55,16 @@ logger = get_logger(__name__)
 
 router = APIRouter()
 
-from .utils import (
+from app.domain.transactions import tx_sample, tx_read
+from app.repositories.analytics.common import (
     category_lines,
     income_criterion,
     NET_AMOUNT,
     budget_versement_ids,
-    _tx_sample,
-    _tx_read,
-    _savings_account_ids,
-    _savings_events_by_account,
-    _savings_total_at,
-    _get_ticket_restaurant_account_ids,
+    savings_account_ids,
+    savings_events_by_account,
+    savings_total_at,
+    ticket_restaurant_account_ids,
 )
 
 
@@ -108,7 +107,7 @@ async def tags_analytics(
             query = query.filter(Transaction.account_id == account_id)
         else:
             query = query.filter(Account.type.in_(["courant", "epargne"]))
-            tr_accounts = _get_ticket_restaurant_account_ids(db)
+            tr_accounts = ticket_restaurant_account_ids(db)
             if tr_accounts:
                 query = query.filter(Transaction.account_id.notin_(tr_accounts))
 
@@ -175,7 +174,7 @@ async def expenses_by_category(
     else:
         # Même périmètre que le budget : le total de la répartition doit égaler `depenses_totales`
         query = query.filter(Account.type.in_(["courant", "epargne"]))
-        tr_accounts = _get_ticket_restaurant_account_ids(db)
+        tr_accounts = ticket_restaurant_account_ids(db)
         if tr_accounts:
             query = query.filter(Transaction.account_id.notin_(tr_accounts))
     
@@ -282,7 +281,7 @@ async def top_merchants(
         query = query.filter(Transaction.account_id == account_id)
     else:
         query = query.filter(Account.type.in_(["courant", "epargne"]))
-        tr_accounts = _get_ticket_restaurant_account_ids(db)
+        tr_accounts = ticket_restaurant_account_ids(db)
         if tr_accounts:
             query = query.filter(Transaction.account_id.notin_(tr_accounts))
     
@@ -372,17 +371,17 @@ async def kpi_history(
 ):
     # Returns history of KPIs for sparklines
     now = datetime.now()
-    savings_account_ids = _savings_account_ids(db)
+    savings_ids = savings_account_ids(db)
     if account_id:
-        savings_account_ids = [account_id] if account_id in savings_account_ids else []
+        savings_ids = [account_id] if account_id in savings_ids else []
     
     savings_account_map = {
         acc.id: acc
-        for acc in db.query(Account).filter(Account.id.in_(savings_account_ids)).all()
-    } if savings_account_ids else {}
+        for acc in db.query(Account).filter(Account.id.in_(savings_ids)).all()
+    } if savings_ids else {}
     base_currency = "EUR"
     rates = await get_exchange_rates(base_currency)
-    tr_accounts = _get_ticket_restaurant_account_ids(db)
+    tr_accounts = ticket_restaurant_account_ids(db)
 
     # Find the earliest transaction date to avoid showing empty future or past months
     earliest_tx_query = db.query(func.min(Transaction.date))
@@ -518,7 +517,7 @@ async def kpi_history(
         inte_map[m_lbl] = inte_map.get(m_lbl, 0.0) + amount_eur
 
     # 5. Preload savings events for all savings accounts up to overall_end
-    all_savings_events = _savings_events_by_account(db, savings_account_ids, overall_end) if savings_account_ids else {}
+    all_savings_events = savings_events_by_account(db, savings_ids, overall_end) if savings_ids else {}
 
     for y, m in history_months:
         start, end = period_bounds(db, y, m)
@@ -595,7 +594,7 @@ async def timeseries_analytics(
         }
 
     rates = await get_exchange_rates("EUR")
-    tr_accounts = _get_ticket_restaurant_account_ids(db)
+    tr_accounts = ticket_restaurant_account_ids(db)
 
     for month in range(1, 13):
         start, end = period_bounds(db, year, month)
@@ -762,7 +761,7 @@ async def calendar_analytics(
         InvestmentTransaction.date < end_month
     )
     
-    tr_accounts = _get_ticket_restaurant_account_ids(db)
+    tr_accounts = ticket_restaurant_account_ids(db)
     if account_id:
         tx_query = tx_query.filter(Transaction.account_id == account_id)
         inv_tx_query = inv_tx_query.filter(InvestmentTransaction.account_id == account_id)

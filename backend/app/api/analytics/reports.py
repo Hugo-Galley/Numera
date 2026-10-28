@@ -61,19 +61,17 @@ def calc_diff(curr: float, prev: float) -> tuple[float, float]:
     pct = (diff / abs(prev) * 100.0) if prev != 0 else 0.0
     return round(diff, 2), round(pct, 2)
 
-from .utils import (
+from app.domain.transactions import net_amount, tx_sample, tx_read
+from app.repositories.analytics.common import (
     category_lines,
     budget_versement_ids,
     opening_balances_eur,
     income_criterion,
-    net_amount,
     NET_AMOUNT,
-    _tx_sample,
-    _tx_read,
-    _savings_account_ids,
-    _savings_events_by_account,
-    _savings_total_at,
-    _get_ticket_restaurant_account_ids,
+    savings_account_ids,
+    savings_events_by_account,
+    savings_total_at,
+    ticket_restaurant_account_ids,
 )
 
 
@@ -107,7 +105,7 @@ async def get_cashflow_projection(
             current_bal = float(last_tx.running_balance)
     else:
         active_accounts = db.query(Account).filter(Account.active == True).all()
-        tr_accounts = _get_ticket_restaurant_account_ids(db)
+        tr_accounts = ticket_restaurant_account_ids(db)
         for acc in active_accounts:
             if tr_accounts and acc.id in tr_accounts:
                 continue
@@ -128,7 +126,7 @@ async def get_cashflow_projection(
     if account_id:
         recur_query = recur_query.filter(RecurringTransaction.account_id == account_id)
     else:
-        tr_accounts = _get_ticket_restaurant_account_ids(db)
+        tr_accounts = ticket_restaurant_account_ids(db)
         if tr_accounts:
             recur_query = recur_query.filter(RecurringTransaction.account_id.notin_(tr_accounts))
     
@@ -379,7 +377,7 @@ async def _calculate_money_flow_data(month: int, year: int, db: Session, account
         tx_query = tx_query.filter(Transaction.account_id == account_id)
     else:
         tx_query = tx_query.filter(Account.type.in_(["courant", "epargne"]))
-        tr_accounts = _get_ticket_restaurant_account_ids(db)
+        tr_accounts = ticket_restaurant_account_ids(db)
         if tr_accounts:
             tx_query = tx_query.filter(Transaction.account_id.notin_(tr_accounts))
         
@@ -542,7 +540,7 @@ async def sankey_analytics(
         exp_query = exp_query.filter(Transaction.account_id == account_id)
     else:
         exp_query = exp_query.filter(Account.type.in_(["courant", "epargne"]))
-        tr_accounts = _get_ticket_restaurant_account_ids(db)
+        tr_accounts = ticket_restaurant_account_ids(db)
         if tr_accounts:
             exp_query = exp_query.filter(Transaction.account_id.notin_(tr_accounts))
 
@@ -576,7 +574,7 @@ async def sankey_analytics(
         inc_query = inc_query.filter(Transaction.account_id == account_id)
     else:
         inc_query = inc_query.filter(Account.type.in_(["courant", "epargne"]), income_criterion(db))
-        tr_accounts = _get_ticket_restaurant_account_ids(db)
+        tr_accounts = ticket_restaurant_account_ids(db)
         if tr_accounts:
             inc_query = inc_query.filter(Transaction.account_id.notin_(tr_accounts))
 
