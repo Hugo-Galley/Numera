@@ -48,3 +48,19 @@ class InternalError(DomainError):
     """Échec inattendu d'un calcul : 500 avec un `detail` JSON (comme l'ancienne HTTPException 500)."""
 
     status_code = 500
+
+
+class InvalidOperationError(DomainError):
+    """Opération refusée par une règle métier, renvoyée en 400 (jamais 401/403 : le client déconnecte)."""
+
+    status_code = 400
+
+
+class ExternalServiceError(DomainError):
+    """Service externe injoignable ou en erreur (Yahoo, ntfy, Telegram…)."""
+
+    status_code = 502
+
+
+class ExternalTimeoutError(DomainError):
+    status_code = 504

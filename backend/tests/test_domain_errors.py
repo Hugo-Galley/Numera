@@ -54,3 +54,21 @@ def test_internal_error_keeps_json_detail():
 
     assert _handle(InternalError("Erreur interne lors du calcul du budget")) == (
         500, {"detail": "Erreur interne lors du calcul du budget"})
+
+
+def test_invalid_operation_is_400():
+    from app.core.errors import InvalidOperationError
+
+    assert _handle(InvalidOperationError("Tag name already exists")) == (400, {"detail": "Tag name already exists"})
+
+
+def test_external_service_is_502():
+    from app.core.errors import ExternalServiceError
+
+    assert _handle(ExternalServiceError("Yahoo Finance est injoignable"))[0] == 502
+
+
+def test_external_timeout_is_504():
+    from app.core.errors import ExternalTimeoutError
+
+    assert _handle(ExternalTimeoutError("délai dépassé"))[0] == 504

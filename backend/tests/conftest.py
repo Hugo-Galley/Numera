@@ -1,6 +1,7 @@
 import os
 from collections.abc import Generator
 
+import httpx
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, event
@@ -19,6 +20,17 @@ from app.controllers.deps import get_current_user
 from app.main import app
 from app.core.login_rate_limit import login_rate_limiter, totp_rate_limiter
 from app import models # noqa: F401
+
+
+def _network_forbidden(*args, **kwargs):
+    raise RuntimeError("Réseau interdit en test : patcher l'appel externe")
+
+
+@pytest.fixture(autouse=True)
+def block_network(monkeypatch):
+    """Un appel externe non remplacé échoue au lieu de dépendre de la connexion (httpx.MockTransport reste permis)."""
+    monkeypatch.setattr(httpx.HTTPTransport, "handle_request", _network_forbidden)
+    monkeypatch.setattr(httpx.AsyncHTTPTransport, "handle_async_request", _network_forbidden)
 
 
 @pytest.fixture()
