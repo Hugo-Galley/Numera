@@ -4,7 +4,7 @@ COMPOSE_FILE=infra/docker-compose.yml
 # (Python 3.14 est incompatible avec pydantic-core). Surchargeable : make test PYTHON=...
 PYTHON ?= $(shell if [ -x $(CURDIR)/backend/venv/bin/python ]; then echo $(CURDIR)/backend/venv/bin/python; else command -v python3.12 || command -v python3.11; fi)
 
-.PHONY: setup dev down prod prod-down demo demo-down backend-install frontend-install backend-seed-demo test validate backup-now backup-restore
+.PHONY: setup dev down prod prod-down demo demo-down backend-install frontend-install backend-seed-demo test check-size validate backup-now backup-restore
 
 setup:
 	chmod +x setup.sh
@@ -45,7 +45,10 @@ test:
 frontend-build:
 	cd frontend && npm run build
 
-validate: test frontend-build
+check-size:
+	python3 scripts/check_code_size.py
+
+validate: check-size test frontend-build
 	@echo "Validation complete: Backend tests passed and Frontend builds successfully."
 
 backup-now:
