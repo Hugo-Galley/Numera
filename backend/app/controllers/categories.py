@@ -1,104 +1,28 @@
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
-from app.core.errors import api_error
 from app.db.session import get_db
-from app.models.category import Category
-from app.models.transaction import Transaction
 from app.schemas.category import CategoryCreate, CategoryRead, CategoryUpdate
+from app.services import categories as service
 
 router = APIRouter(prefix="/categories", tags=["categories"])
 
 
 @router.get("", response_model=list[CategoryRead])
 def list_categories(include_archived: bool = Query(default=True), db: Session = Depends(get_db)):
-    query = db.query(Category)
-    if not include_archived:
-        query = query.filter(Category.archived.is_(False))
-    return query.order_by(Category.name.asc()).all()
+    return service.list_categories(db, include_archived)
 
 
 @router.post("", response_model=CategoryRead, status_code=201)
 def create_category(payload: CategoryCreate, db: Session = Depends(get_db)):
-    existing = db.query(Category).filter(Category.name == payload.name).first()
-    if existing:
-        raise api_error(409, "category_already_exists", "Category already exists", {"name": payload.name})
-    category = Category(
-        name=payload.name,
-        type=payload.type,
-        icon=payload.icon,
-        color=payload.color,
-        group=payload.group,
-        monthly_limit=payload.monthly_limit,
-        annual_limit=payload.annual_limit,
-    )
-    db.add(category)
-    db.commit()
-    db.refresh(category)
-    return category
+    return service.create_category(db, payload)
 
 
 @router.patch("/{category_id}", response_model=CategoryRead)
 def update_category(category_id: int, payload: CategoryUpdate, db: Session = Depends(get_db)):
-    category = db.query(Category).filter(Category.id == category_id).first()
-    if not category:
-        raise api_error(404, "category_not_found", "Category not found", {"category_id": category_id})
-
-    data = payload.model_dump(exclude_unset=True)
-    if "name" in data and data["name"] != category.name:
-        existing = db.query(Category).filter(Category.name == data["name"]).first()
-        if existing:
-            raise api_error(409, "category_already_exists", "Category already exists", {"name": data["name"]})
-
-    if data.get("archived", True) is None:
-        data.pop("archived")  # colonne non nullable : `null` = ne pas modifier
-    for key, value in data.items():
-        setattr(category, key, value)
-
-    db.commit()
-    db.refresh(category)
-    return category
+    return service.update_category(db, category_id, payload)
 
 
 @router.delete("/{category_id}", status_code=204)
 def delete_category(category_id: int, db: Session = Depends(get_db)):
-    category = db.query(Category).filter(Category.id == category_id).first()
-    if not category:
-        raise api_error(404, "category_not_found", "Category not found", {"category_id": category_id})
-    
-    # Nullify references in transactions and other linked entities
-    db.query(Transaction).filter(Transaction.category_id == category_id).update(
-        {Transaction.category_id: None}, 
-        synchronize_session=False
-    )
-    from app.models.savings_goal import SavingsGoal
-    db.query(SavingsGoal).filter(SavingsGoal.category_id == category_id).update(
-        {SavingsGoal.category_id: None},
-        synchronize_session=False
-    )
-    from app.models.categorization_rule import CategorizationRule
-    db.query(CategorizationRule).filter(CategorizationRule.category_id == category_id).update(
-        {CategorizationRule.category_id: None},
-        synchronize_session=False
-    )
-    from app.models.recurring_transaction import RecurringTransaction
-    db.query(RecurringTransaction).filter(RecurringTransaction.category_id == category_id).update(
-        {RecurringTransaction.category_id: None},
-        synchronize_session=False
-    )
-    from app.models.merchant import Merchant
-    db.query(Merchant).filter(Merchant.category_id == category_id).update(
-        {Merchant.category_id: None},
-        synchronize_session=False
-    )
-    
-    from app.models.salary_config import SalaryConfig
-    db.query(SalaryConfig).filter(SalaryConfig.salary_category_id == category_id).update(
-        {SalaryConfig.salary_category_id: None}, synchronize_session=False
-    )
-    db.query(SalaryConfig).filter(SalaryConfig.ticket_category_id == category_id).update(
-        {SalaryConfig.ticket_category_id: None}, synchronize_session=False
-    )
-
-    db.delete(category)
-    db.commit()
+    service.delete_category(db, category_id)
