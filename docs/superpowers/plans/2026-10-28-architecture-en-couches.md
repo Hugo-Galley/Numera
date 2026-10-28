@@ -275,8 +275,7 @@ def test_layers_match_baseline():
 5. Docs dans le même commit.
 
 ### Phase 2 — Domaines d'écriture
-Du plus simple au plus risqué : `categories`, `tags`, `merchants`, `categorization_rules`, `transfer_rules`, `savings_goals`, `balance_snapshots`, `financial_events`, `loans`, `provisions`, `reimbursements` → `transactions` (fin du commit dans `recalculate_running_balances` : il passe en `flush` et le service appelant commit) → `imports` → `recurring_transactions` → `salary` → `month_review` → `investment_transactions`, `holdings`, `etf_profiles`, `market`, `admin`, `exports`, `notifications`.
-En parallèle, vider `core/` du métier : `finance`, `tax_rules`, `work_time`, les calculs de `loans`/`provisions` → `domain/` ; `salary`, `recurring`, `transfers`, `reimbursements`, `month_review`, `budget_period`, `reconciliation`, `splits`, `dividends`, `subscription_prices`, `wealth`, `demo`, `seeds*` → `services/` ; `market_data`, `currency` (partie Frankfurter), `notifications` (envoi), `logos`, `backup` → `integrations/`. Classement à confirmer fichier par fichier à l'ouverture de la phase.
+Plan détaillé : `docs/superpowers/plans/2026-10-28-phase-2-domaines-ecriture.md` (17 tâches). Périmètre : routers d'écriture côté budget et administration, et les modules `core/` qui leur appartiennent (`transfers`, `loans`, `provisions`, `reimbursements`, `splits`, `recurring`, `finance`, `salary`, `work_time`, `month_review`, `reconciliation`, `demo`, `seeds`, `notifications`, `currency`, `logos`, `backup`). Le passage de `recalculate_running_balances` en `flush` y est traité (tâche 14). Les domaines d'écriture côté investissement sont reportés en phase 4.
 
 ### Phase 3 — Analytics
 `services/analytics/` + `repositories/analytics/` + `domain/` ; plus aucune fonction > 80 lignes.
@@ -287,7 +286,7 @@ En parallèle, vider `core/` du métier : `finance`, `tax_rules`, `work_time`, l
 Le router `api/analytics/` garde ses chemins et son package.
 
 ### Phase 4 — Portefeuille
-`core/portfolio.py` → `domain/performance.py` (`xirr`, `twr`), `services/portfolio/` (`PriceBook`, `FxBook`, `cash_events`, `compute_portfolio` découpé par étape), puis `core/holdings.py`, `core/etf_analyzer.py`.
+Routers `investment_transactions`, `holdings`, `etf_profiles`, `market` (reportés de la phase 2) ; `core/seeds_etf.py`. `core/portfolio.py` → `domain/performance.py` (`xirr`, `twr`), `services/portfolio/` (`PriceBook`, `FxBook`, `cash_events`, `compute_portfolio` découpé par étape), puis `core/holdings.py`, `core/etf_analyzer.py`.
 
 ### Phase 5 — Frontend
 Ordre par taille : `AccountDetail` (2 773), `RecurringTransactions` (1 548), `WealthSimulator` (1 169), `Accounts` (1 057), `Audit` (1 030), `Investments`, `Savings`, `HoldingsTable`, `OverviewTab`, `PointZeroModal`, `Calendar`, `MerchantsTab`, `CategoriesTab`, `Omnibox`, `Tax`, `SalaryManager`, `ImportFlow`.
