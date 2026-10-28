@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Présentation
 
-Application web **self-hosted** de suivi budget et investissement (« Numera » / « Suivi Budget »), usage personnel mono-utilisateur. Remplace un tableur Numbers. Données locales (SQLite) ; seules appelées en externe : Frankfurter (taux de change), les données de marché (`core/market_data.py`) et, si l'utilisateur les active, ntfy / Telegram pour les notifications (`core/notifications.py`).
+Application web **self-hosted** de suivi budget et investissement (« Numera » / « Suivi Budget »), usage personnel mono-utilisateur. Remplace un tableur Numbers. Données locales (SQLite) ; seules appelées en externe : Frankfurter (taux de change), les données de marché (`core/market_data.py`) et, si l'utilisateur les active, ntfy / Telegram pour les notifications (`services/notifications.py (canaux : integrations/notifications.py)`).
 
 Stack : React 18 + Vite + TypeScript + Tailwind + Recharts (frontend) · FastAPI + SQLAlchemy 2 + Alembic + Pydantic v2 (backend) · SQLite (`backend/data/suivi_budget.db`) · Docker Compose.
 

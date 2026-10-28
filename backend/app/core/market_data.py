@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.core.logging import get_logger
-from app.core.currency import get_exchange_rates
+from app.integrations.currency import get_exchange_rates
 from app.models.etf_profile import EtfProfile
 from app.models.investment_transaction import InvestmentTransaction
 from app.models.security_price import SecurityPrice

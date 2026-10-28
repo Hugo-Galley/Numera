@@ -10,7 +10,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from app.core.currency import get_exchange_rates
+from app.integrations.currency import get_exchange_rates
 from app.domain.finance import is_lapsed
 from app.services.work_time import load_work_time
 from app.db.session import get_db

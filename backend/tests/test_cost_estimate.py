@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 
 import pytest
 
-import app.core.currency as currency_mod
+import app.integrations.currency as currency_mod
 import app.core.market_data as market_data
 from app.models.portfolio_holding import PortfolioHolding
 

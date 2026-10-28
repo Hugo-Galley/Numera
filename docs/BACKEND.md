@@ -84,7 +84,7 @@ Au démarrage de l'application (événement `lifespan` configuré dans [backend/
   - L'application supporte nativement les transactions en devises étrangères (USD, GBP, CHF, etc.).
   - Le taux de change de référence est l'**EUR**. Les conversions s'effectuent via l'API publique Frankfurter.
   - Les taux courants sont mis en cache mémoire pendant 6 heures. Les taux historiques sont mis en cache de manière prévisible dans la table SQL `historical_exchange_rates`.
-  - En cas d'indisponibilité réseau, le système bascule sur des taux de secours (fallback offline) codés en dur dans [backend/app/core/currency.py](file:///Users/hugogalley/DEV/numera/backend/app/core/currency.py).
+  - En cas d'indisponibilité réseau, le système bascule sur des taux de secours (fallback offline) codés en dur dans [backend/app/integrations/currency.py](file:///Users/hugogalley/DEV/numera/backend/app/integrations/currency.py).
 - **Auto-catégorisation & Normalisation** :
   - Le moteur de catégorisation automatique applique des motifs textuels basés sur les marchands via la table `categorization_rules`.
   - Les alias de commerçants sont normalisés à l'aide des tables `merchants` et `merchant_aliases` afin de nettoyer les libellés bancaires bruts (par exemple, mapper `INTERMARCHE PARIS 15` et `INTERMARCHE LYON` vers le marchand canonique `Intermarché`).

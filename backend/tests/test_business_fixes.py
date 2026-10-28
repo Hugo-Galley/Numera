@@ -4,7 +4,7 @@ from datetime import datetime
 
 import pytest
 
-from app.core import currency as currency_module
+from app.integrations import currency as currency_module
 from app.models.account import Account
 from app.models.balance_snapshot import BalanceSnapshot
 from app.models.investment_transaction import InvestmentTransaction
@@ -256,7 +256,7 @@ def test_holding_gain_converts_cost_basis_to_eur(client, db_session, monkeypatch
         return {"EUR": 1.0, "USD": 2.0}[currency]
 
     import app.controllers.holdings as holdings_api
-    import app.core.currency as currency_mod
+    import app.integrations.currency as currency_mod
 
     monkeypatch.setattr(holdings_api, "get_exchange_rates", fake_rates)
     monkeypatch.setattr(holdings_api, "get_market_quotes", fake_quotes)

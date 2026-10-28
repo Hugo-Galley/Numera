@@ -3,7 +3,7 @@ from datetime import datetime
 import httpx
 import pytest
 
-from app.core import logos
+from app.integrations import logos
 from app.models.account import Account
 from app.models.recurring_transaction import RecurringTransaction
 

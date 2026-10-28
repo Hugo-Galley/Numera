@@ -16,7 +16,7 @@ from datetime import date, datetime
 
 from sqlalchemy.orm import Session
 
-from app.core.currency import get_exchange_rates
+from app.integrations.currency import get_exchange_rates
 from app.services.loans import loan_remaining
 from app.core.portfolio import positions_values_eur
 from app.models.account import Account

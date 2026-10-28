@@ -175,7 +175,7 @@ async def create_investment_transaction(payload: InvestmentTransactionCreate, db
         )
 
     # Handle currency conversion
-    from app.core.currency import convert_amount
+    from app.integrations.currency import convert_amount
     
     original_amount = payload.amount
     currency = payload.currency or account.currency
@@ -282,7 +282,7 @@ async def update_investment_transaction(transaction_id: int, payload: Investment
 
     # Handle currency conversion if amount or currency or date changed
     if "amount" in data or "currency" in data or "date" in data:
-        from app.core.currency import convert_amount
+        from app.integrations.currency import convert_amount
         
         original_amount = data.get("amount", tx.original_amount)
         currency = data.get("currency", tx.currency)

@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from typing import List
 from sqlalchemy import func
 from sqlalchemy.orm import Session
-from app.core.currency import get_exchange_rates
+from app.integrations.currency import get_exchange_rates
 from app.models.account import Account
 from app.schemas.insight import CashflowProjection, ProjectionPoint, ProjectionEvent
 from app.models.transaction import Transaction

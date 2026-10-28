@@ -12,7 +12,7 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.core import security
-from app.core.backup import backup_status, snapshot_database
+from app.integrations.backup import backup_status, snapshot_database
 from app.core.config import settings
 from app.core.errors import BusinessRuleError, ExternalTimeoutError, InternalError, InvalidOperationError, NotFoundError
 from app.core.logging import get_logger

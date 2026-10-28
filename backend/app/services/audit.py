@@ -4,7 +4,7 @@ import unicodedata
 from datetime import date, datetime, timedelta
 from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
-from app.core.backup import backup_status
+from app.integrations.backup import backup_status
 from app.models.account import Account
 from app.models.category import Category
 from app.models.categorization_rule import CategorizationRule

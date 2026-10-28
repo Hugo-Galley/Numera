@@ -2,7 +2,7 @@ from datetime import date
 
 from sqlalchemy.orm import Session
 
-from app.core.currency import get_exchange_rates
+from app.integrations.currency import get_exchange_rates
 from app.core.errors import NotFoundError
 from app.domain.savings_goals import goal_status, percentage, signed_total_eur
 from app.models.savings_goal import SavingsGoal as SavingsGoalModel

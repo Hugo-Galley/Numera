@@ -3,7 +3,7 @@ from datetime import date, datetime, timedelta
 
 import pytest
 
-import app.core.currency as currency_mod
+import app.integrations.currency as currency_mod
 import app.core.market_data as market_data
 from app.core.portfolio import twr, xirr
 from app.models.balance_snapshot import BalanceSnapshot

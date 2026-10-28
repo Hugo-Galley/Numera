@@ -15,7 +15,7 @@ from datetime import date as date_type, datetime, timedelta
 
 from sqlalchemy.orm import Session
 
-from app.core.currency import CurrencyConversionError, convert_amount, get_exchange_rates
+from app.integrations.currency import CurrencyConversionError, convert_amount, get_exchange_rates
 from app.core.dividends import load_dividends_eur
 from app.core.holdings import EPSILON, Replay, is_trade, replay_account
 from app.core.logging import get_logger

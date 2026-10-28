@@ -3,7 +3,7 @@ import sqlite3
 
 import pytest
 
-from app.core.backup import snapshot_database
+from app.integrations.backup import snapshot_database
 from app.models.account import Account
 from app.models.mcp_token import McpToken
 

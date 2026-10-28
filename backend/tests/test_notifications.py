@@ -6,7 +6,8 @@ from datetime import datetime
 import httpx
 import pytest
 
-import app.core.notifications as notif
+import app.integrations.notifications as channels
+import app.services.notifications as notif
 from app.db.system_settings import get_setting, set_setting
 from app.models.notification_log import NotificationLog
 from app.schemas.insight import ActionItem
@@ -157,7 +158,7 @@ def test_ntfy_channel_request():
         seen["json"] = json.loads(request.content)
         return httpx.Response(200)
 
-    channel = notif.NtfyChannel("https://ntfy.example.org/", "numera-x", "tk_abcd", transport=httpx.MockTransport(handler))
+    channel = channels.NtfyChannel("https://ntfy.example.org/", "numera-x", "tk_abcd", transport=httpx.MockTransport(handler))
     asyncio.run(channel.send("Budget dépassé", "Restos à 104 %", "high", "https://n.example/audit"))
     assert seen["url"] == "https://ntfy.example.org/"
     assert seen["auth"] == "Bearer tk_abcd"
@@ -173,7 +174,7 @@ def test_telegram_channel_request():
         seen["json"] = json.loads(request.content)
         return httpx.Response(200, json={"ok": True})
 
-    channel = notif.TelegramChannel("123:ABC", "42", transport=httpx.MockTransport(handler))
+    channel = channels.TelegramChannel("123:ABC", "42", transport=httpx.MockTransport(handler))
     asyncio.run(channel.send("Titre", "Corps", "default", None))
     assert seen["url"] == "https://api.telegram.org/bot123:ABC/sendMessage"
     assert seen["json"]["chat_id"] == "42"
@@ -181,7 +182,7 @@ def test_telegram_channel_request():
 
 
 def test_channel_http_error_raises():
-    channel = notif.NtfyChannel("https://ntfy.sh", "t", None, transport=httpx.MockTransport(lambda r: httpx.Response(401)))
+    channel = channels.NtfyChannel("https://ntfy.sh", "t", None, transport=httpx.MockTransport(lambda r: httpx.Response(401)))
     with pytest.raises(httpx.HTTPStatusError):
         asyncio.run(channel.send("a", "b"))
 

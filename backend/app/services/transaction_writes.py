@@ -6,7 +6,7 @@ from datetime import datetime
 
 from sqlalchemy.orm import Session
 
-from app.core import currency as currency_module
+from app.integrations import currency as currency_module
 from app.core.errors import BusinessRuleError, NotFoundError
 from app.domain.finance import month_label_from_date, normalize_transaction_type
 from app.core.time import utcnow_naive

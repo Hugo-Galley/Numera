@@ -3,7 +3,7 @@ from datetime import date, datetime, timedelta
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 from app.core.budget_period import period_bounds
-from app.core.currency import get_exchange_rates
+from app.integrations.currency import get_exchange_rates
 from app.models.account import Account
 from app.models.category import Category
 from app.schemas.category import BudgetAlert

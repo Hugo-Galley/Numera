@@ -19,7 +19,7 @@ from datetime import datetime
 
 from sqlalchemy.orm import Session
 
-from app.core.currency import CurrencyConversionError, convert_amount
+from app.integrations.currency import CurrencyConversionError, convert_amount
 from app.core.logging import get_logger
 from app.models.account import Account
 from app.models.holding_baseline_item import HoldingBaselineItem

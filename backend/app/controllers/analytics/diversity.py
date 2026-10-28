@@ -5,7 +5,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.core.logging import get_logger
-from app.core.currency import get_exchange_rates
+from app.integrations.currency import get_exchange_rates
 from app.core.etf_analyzer import load_sources
 from app.core.market_data import get_market_quotes, _match_etf_profile
 from app.db.session import get_db

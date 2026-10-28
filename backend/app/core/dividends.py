@@ -13,7 +13,7 @@ from datetime import date as date_type, datetime, timedelta
 
 from sqlalchemy.orm import Session
 
-from app.core.currency import CurrencyConversionError, convert_amount
+from app.integrations.currency import CurrencyConversionError, convert_amount
 from app.core.logging import get_logger
 from app.core.market_data import extract_asset_clean_name
 from app.models.account import Account

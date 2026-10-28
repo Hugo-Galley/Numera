@@ -43,7 +43,7 @@ from app.controllers.notifications import router as notifications_router
 from app.controllers.analytics.diversity import router as diversity_router
 from app.controllers.deps import get_current_user
 from app.core.config import settings
-from app.core.currency import CurrencyConversionError
+from app.integrations.currency import CurrencyConversionError
 from app.core.errors import DomainError
 from app.services.demo import ensure_demo_data, is_blocked_in_demo
 from app.core.migrations import run_migrations
@@ -51,7 +51,7 @@ from app.services.seeds import seed_all
 from app.db.session import SessionLocal
 from app.core.logging import setup_logging, get_logger
 from app.core.etf_analyzer import refresh_held_etf_profiles
-from app.core.notifications import run_notifications
+from app.services.notifications import run_notifications
 from app.core.market_data import refresh_held_prices
 from app.services.recurring import generate_recurring_transactions
 from app.services.salary_generation import check_and_generate_pending_salaries

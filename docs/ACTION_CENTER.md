@@ -15,7 +15,7 @@ Le Centre d'Actions centralise trois types de flux :
 - **Logique** : Agrégation de fonctions de calcul existantes (`budget_alerts`, `data_audit`) et de nouvelles requêtes (suggestions de règles).
 
 ### Notifications push
-- `core/notifications.py::run_notifications`, appelée par la tâche horaire : envoie vers ntfy et/ou Telegram les actions dont la sévérité atteint le minimum choisi (`notify.min_severity`, `medium` par défaut) et dont l'empreinte (`id|title|description`) n'est pas dans `notification_log`. Un `ActionItem.id` déterministe et une description qui reflète l'état (ex. « 104 % du budget ») sont donc nécessaires : changer la description renvoie l'alerte.
+- `services/notifications.py (canaux : integrations/notifications.py)::run_notifications`, appelée par la tâche horaire : envoie vers ntfy et/ou Telegram les actions dont la sévérité atteint le minimum choisi (`notify.min_severity`, `medium` par défaut) et dont l'empreinte (`id|title|description`) n'est pas dans `notification_log`. Un `ActionItem.id` déterministe et une description qui reflète l'état (ex. « 104 % du budget ») sont donc nécessaires : changer la description renvoie l'alerte.
 - Première activation : actions existantes marquées connues, un seul message de bienvenue. Plus de 5 nouvelles actions → un message groupé. Résumé le dimanche après 18 h (une fois par semaine ISO). Un canal en échec n'est jamais marqué envoyé.
 
 ### Frontend
@@ -85,7 +85,7 @@ Pour ajouter un nouveau type d'action :
 - `subscription-price-{account_id}-{clé}-{date}` : un abonnement ou prélèvement régulier a augmenté (détection `core/subscription_prices.py::detect_price_changes`, mêmes données que `price_changes` de `/analytics/subscriptions`). La date de la hausse fait partie de l'id : une hausse écartée ne revient pas, une nouvelle hausse si. `action_type: link` vers `/recurring?tab=subscriptions`. Les transactions `is_subscription_ignored` et les virements sont exclus.
 
 ### Action « sauvegarde » (`type: audit`, `severity: high`)
-`backup-failing-<AAAAMMJJ de la dernière sauvegarde>` : aucune sauvegarde depuis 2 jours ou dernière tentative en échec (`core/backup.py::backup_status`). L'id change avec la sauvegarde suivante, masquer l'alerte ne la fait donc pas taire pour toujours. Rien tant que les sauvegardes ne sont pas en place.
+`backup-failing-<AAAAMMJJ de la dernière sauvegarde>` : aucune sauvegarde depuis 2 jours ou dernière tentative en échec (`integrations/backup.py::backup_status`). L'id change avec la sauvegarde suivante, masquer l'alerte ne la fait donc pas taire pour toujours. Rien tant que les sauvegardes ne sont pas en place.
 
 ### Pièges à éviter
 - **Doubles appels** : Ne pas rafraîchir la liste complète (`loadActions`) trop souvent ; privilégier le rafraîchissement ciblé si possible.

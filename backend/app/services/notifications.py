@@ -13,14 +13,14 @@ from __future__ import annotations
 
 import hashlib
 import re
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
-from typing import Protocol
 
-import httpx
 from sqlalchemy.orm import Session
 
+from app.core.errors import ExternalServiceError, InvalidOperationError
 from app.core.logging import get_logger
+from app.integrations.notifications import DEFAULT_NTFY_SERVER, Channel, NtfyChannel, TelegramChannel, send_all
 from app.services.analytics.budget import compute_budget
 from app.services.analytics.cashflow import compute_cashflow_projection
 from app.services.audit import compute_action_center
@@ -30,10 +30,7 @@ from app.schemas.insight import ActionItem
 
 logger = get_logger(__name__)
 
-DEFAULT_NTFY_SERVER = "https://ntfy.sh"
-HTTP_TIMEOUT_S = 10.0
 SEVERITY_RANK = {"low": 0, "medium": 1, "high": 2}
-NTFY_PRIORITY = {"low": 2, "default": 3, "medium": 3, "high": 4}
 GROUP_THRESHOLD = 5
 DIGEST_WEEKDAY = 6  # dimanche
 DIGEST_HOUR = 18
@@ -105,49 +102,6 @@ def save_settings(db: Session, update: dict) -> NotificationSettings:
     return load_settings(db)
 
 
-class Channel(Protocol):
-    name: str
-
-    async def send(self, title: str, body: str, priority: str = "default", url: str | None = None) -> None: ...
-
-
-class NtfyChannel:
-    """Publication JSON sur la racine du serveur (UTF-8 sans souci, contrairement aux en-têtes HTTP)."""
-
-    name = "ntfy"
-
-    def __init__(self, server: str, topic: str, token: str | None, transport: httpx.AsyncBaseTransport | None = None):
-        self.server = (server or DEFAULT_NTFY_SERVER).rstrip("/") + "/"
-        self.topic = topic
-        self.token = token
-        self.transport = transport
-
-    async def send(self, title: str, body: str, priority: str = "default", url: str | None = None) -> None:
-        payload: dict = {"topic": self.topic, "title": title, "message": body, "priority": NTFY_PRIORITY.get(priority, 3)}
-        if url:
-            payload["click"] = url
-        headers = {"Authorization": f"Bearer {self.token}"} if self.token else {}
-        async with httpx.AsyncClient(timeout=HTTP_TIMEOUT_S, transport=self.transport) as client:
-            response = await client.post(self.server, json=payload, headers=headers)
-            response.raise_for_status()
-
-
-class TelegramChannel:
-    name = "telegram"
-
-    def __init__(self, bot_token: str, chat_id: str, transport: httpx.AsyncBaseTransport | None = None):
-        self.bot_token = bot_token
-        self.chat_id = chat_id
-        self.transport = transport
-
-    async def send(self, title: str, body: str, priority: str = "default", url: str | None = None) -> None:
-        text = f"{title}\n\n{body}" + (f"\n{url}" if url else "")
-        payload = {"chat_id": self.chat_id, "text": text, "disable_web_page_preview": True}
-        async with httpx.AsyncClient(timeout=HTTP_TIMEOUT_S, transport=self.transport) as client:
-            response = await client.post(f"https://api.telegram.org/bot{self.bot_token}/sendMessage", json=payload)
-            response.raise_for_status()
-
-
 def build_channel(db: Session, name: str) -> Channel | None:
     """Canal configuré (activé ou non), ou None s'il manque un paramètre obligatoire."""
     settings = load_settings(db)
@@ -162,18 +116,6 @@ def enabled_channels(db: Session) -> list[Channel]:
     settings = load_settings(db)
     names = [name for name, on in (("ntfy", settings.ntfy_enabled), ("telegram", settings.telegram_enabled)) if on]
     return [channel for name in names if (channel := build_channel(db, name))]
-
-
-async def send_all(channels: list[Channel], title: str, body: str, priority: str = "default", url: str | None = None) -> list[str]:
-    """Envoie sur chaque canal ; renvoie les noms des canaux qui ont reçu le message."""
-    delivered = []
-    for channel in channels:
-        try:
-            await channel.send(title, body, priority, url)
-            delivered.append(channel.name)
-        except Exception as exc:  # canal injoignable, jeton refusé… : on journalise et on continue
-            logger.warning(f"Notification via {channel.name} failed: {type(exc).__name__}: {exc}")
-    return delivered
 
 
 _AMOUNT = re.compile(r"\d{1,3}(?:[   .]\d{3})+(?:,\d+)?|\d+(?:[.,]\d+)?(?=\s?(?:€|EUR|\$|£|CHF))")
@@ -299,3 +241,30 @@ async def send_weekly_digest(db: Session, now: datetime) -> bool:
         return False
     set_setting(db, LAST_DIGEST_KEY, week)
     return True
+
+
+def masked_settings(settings: NotificationSettings) -> dict:
+    """Réglages lisibles par le client : jetons masqués (•••• + 4 derniers caractères)."""
+    data = asdict(settings)
+    for field in SECRET_FIELDS:
+        data[field] = mask_secret(data[field])
+    return data
+
+
+def get_notification_settings(db: Session) -> dict:
+    return masked_settings(load_settings(db))
+
+
+def update_notification_settings(db: Session, update: dict) -> dict:
+    return masked_settings(save_settings(db, update))
+
+
+async def send_test_notification(db: Session, payload) -> dict:
+    """Message d'essai sur un canal configuré, même désactivé (pour valider les réglages avant de l'activer)."""
+    channel = build_channel(db, payload.channel)
+    if channel is None:
+        raise InvalidOperationError("Canal incomplet : renseignez ses paramètres puis enregistrez.")
+    delivered = await send_all([channel], "Test Numera", "Les notifications fonctionnent.", "default")
+    if not delivered:
+        raise ExternalServiceError("Envoi impossible : vérifiez l'adresse, le sujet ou le jeton.")
+    return {"channel": payload.channel, "delivered": True}

@@ -11,7 +11,7 @@ from datetime import date, datetime, timedelta
 from sqlalchemy.orm import Session
 
 from app.core import market_data
-from app.core.currency import CurrencyConversionError, convert_amount
+from app.integrations.currency import CurrencyConversionError, convert_amount
 from app.core.holdings import rebuild_holdings
 from app.core.logging import get_logger
 from app.domain.finance import get_recurring_occurrences, month_label_from_date
