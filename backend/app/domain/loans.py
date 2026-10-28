@@ -1,6 +1,6 @@
 """Crédits : échéancier à mensualité constante, capital restant dû, remboursements anticipés.
 
-Fonctions pures (aucune session) sauf `terms_of` / `loan_remaining`, qui lisent le prêt d'un compte `credit`.
+Fonctions pures (aucune session) ; `terms_of` lit un prêt déjà chargé. `loan_remaining` (requête) : `services/loans.py`.
 - Mensualité hors assurance : `m = P·r / (1 − (1+r)^−n)`, `r = taux annuel / 12` ; taux nul → `P / n`.
 - Échéance n à `start_date + (n − 1) mois` (jour borné à la fin du mois), arrondie au centime par ligne ;
   la dernière ligne solde le capital restant.
@@ -13,8 +13,6 @@ import calendar
 from dataclasses import dataclass
 from datetime import date
 from typing import TYPE_CHECKING, Literal
-
-from sqlalchemy.orm import Session
 
 if TYPE_CHECKING:
     from app.models.loan import Loan
@@ -147,19 +145,3 @@ def terms_of(loan: "Loan") -> tuple[LoanTerms, list[Prepayment]]:
         start_date=loan.start_date, insurance_monthly=loan.insurance_monthly or 0.0,
     )
     return terms, [Prepayment(p.date, p.amount, p.mode) for p in loan.prepayments]  # type: ignore[arg-type]
-
-
-def loan_remaining(db: Session, account_id: int, at: date) -> float | None:
-    """Capital restant dû du prêt d'un compte `credit`, ou None si le compte n'a pas de prêt.
-
-    Avant le déblocage (pris un mois avant la première échéance) la dette n'existe pas encore : 0.
-    """
-    from app.models.loan import Loan
-
-    loan = db.query(Loan).filter(Loan.account_id == account_id).first()
-    if loan is None:
-        return None
-    if at < add_months(loan.start_date, -1):
-        return 0.0
-    terms, prepayments = terms_of(loan)
-    return remaining_principal(terms, prepayments, at)

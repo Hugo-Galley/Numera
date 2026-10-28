@@ -2,7 +2,7 @@ from datetime import date
 
 import pytest
 
-from app.core.loans import (
+from app.domain.loans import (
     LoanTerms,
     Prepayment,
     build_schedule,

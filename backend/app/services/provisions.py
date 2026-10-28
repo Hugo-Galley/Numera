@@ -12,15 +12,14 @@ import math
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta
 
-from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.core.currency import get_exchange_rates
 from app.core.wealth import account_values
-from app.models.account import Account
+from app.core.errors import NotFoundError
 from app.models.provision import Provision
-from app.models.transaction import Transaction
-from app.repositories.analytics.common import category_lines
+from app.repositories import provisions as repo
+from app.schemas.provision import ProvisionCreate, ProvisionUpdate
 
 # Fenêtre autour de l'échéance précédente pour retrouver le paiement réel
 PAYMENT_WINDOW_DAYS = 60
@@ -89,23 +88,9 @@ async def _last_payment(db: Session, p: Provision, around: date, rates: dict[str
     """Plus grosse dépense de la catégorie près de l'échéance précédente (parts de découpage comprises)."""
     if p.category_id is None:
         return None
-    lines = category_lines()
     start = datetime.combine(around - timedelta(days=PAYMENT_WINDOW_DAYS), datetime.min.time())
     end = datetime.combine(around + timedelta(days=PAYMENT_WINDOW_DAYS + 1), datetime.min.time())
-    rows = (
-        db.query(Transaction.date, Account.currency, lines.c.net_amount)
-        .select_from(Transaction)
-        .join(lines, lines.c.transaction_id == Transaction.id)
-        .join(Account, Transaction.account_id == Account.id)
-        .filter(
-            lines.c.category_id == p.category_id,
-            Transaction.type == "Sortie",
-            Transaction.is_transfer == False,  # noqa: E712
-            Transaction.date >= start,
-            Transaction.date < end,
-        )
-        .all()
-    )
+    rows = repo.category_expenses_between(db, p.category_id, start, end)
     if not rows:
         return None
     best = max(rows, key=lambda r: r.net_amount / rates.get(r.currency, 1.0))
@@ -122,7 +107,7 @@ async def compute_states(db: Session, provisions: list[Provision], today: date |
     for st in states:
         if st.provision.active and st.provision.account_id is not None:
             tracked.setdefault(st.provision.account_id, []).append(st)
-    accounts = db.query(Account).filter(Account.id.in_(tracked.keys())).all() if tracked else []
+    accounts = repo.accounts_in(db, tracked.keys()) if tracked else []
     values = await account_values(db, accounts) if accounts else {}
     for account_id, group in tracked.items():
         balance = values[account_id].value_eur if account_id in values else 0.0
@@ -177,7 +162,7 @@ def to_read(st: ProvisionState) -> dict:
 
 async def summary(db: Session, today: date | None = None) -> dict:
     today = today or date.today()
-    provisions = db.query(Provision).filter(Provision.active.is_(True)).all()
+    provisions = repo.list_active(db)
     states = await compute_states(db, provisions, today)
 
     accounts: dict[int, dict] = {}
@@ -191,7 +176,7 @@ async def summary(db: Session, today: date | None = None) -> dict:
         acc["target_now"] += st.target_now
         acc["funded"] += st.funded
     if accounts:
-        acc_rows = db.query(Account).filter(Account.id.in_(accounts.keys())).all()
+        acc_rows = repo.accounts_in(db, accounts.keys())
         values = await account_values(db, acc_rows)
         for account_id, acc in accounts.items():
             acc["balance"] = round(values[account_id].value_eur if account_id in values else 0.0, 2)
@@ -208,3 +193,58 @@ async def summary(db: Session, today: date | None = None) -> dict:
         "accounts": list(accounts.values()),
         "behind_count": sum(1 for st in states if st.status == "behind"),
     }
+
+
+def _check_refs(db: Session, category_id: int | None, account_id: int | None) -> None:
+    if category_id is not None and not repo.category_exists(db, category_id):
+        raise NotFoundError("Catégorie introuvable")
+    if account_id is not None and not repo.account_exists(db, account_id):
+        raise NotFoundError("Compte introuvable")
+
+
+def _require(db: Session, provision_id: int) -> Provision:
+    provision = repo.get(db, provision_id)
+    if provision is None:
+        raise NotFoundError("Provision introuvable")
+    return provision
+
+
+async def _read(db: Session, provision: Provision) -> dict:
+    return to_read((await compute_states(db, [provision]))[0])
+
+
+async def list_provisions(db: Session) -> list[dict]:
+    states = await compute_states(db, repo.list_ordered(db))
+    return [to_read(st) for st in sorted(states, key=lambda st: (not st.provision.active, st.next_due))]
+
+
+async def provisions_summary(db: Session) -> dict:
+    return await summary(db)
+
+
+async def create_provision(db: Session, payload: ProvisionCreate) -> dict:
+    _check_refs(db, payload.category_id, payload.account_id)
+    provision = Provision(**payload.model_dump())
+    repo.add(db, provision)
+    db.commit()
+    db.refresh(provision)
+    return await _read(db, provision)
+
+
+async def update_provision(db: Session, provision_id: int, payload: ProvisionUpdate) -> dict:
+    provision = _require(db, provision_id)
+    data = payload.model_dump(exclude_unset=True)
+    _check_refs(db, data.get("category_id"), data.get("account_id"))
+    for field in ("name", "amount", "interval_months", "due_date", "active"):
+        if field in data and data[field] is None:
+            data.pop(field)  # colonnes non nullables : `null` = ne pas modifier
+    for field, value in data.items():
+        setattr(provision, field, value)
+    db.commit()
+    db.refresh(provision)
+    return await _read(db, provision)
+
+
+def delete_provision(db: Session, provision_id: int) -> None:
+    repo.delete(db, _require(db, provision_id))
+    db.commit()
