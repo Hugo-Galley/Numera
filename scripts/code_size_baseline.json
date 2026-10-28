@@ -29,8 +29,6 @@
   "backend/app/controllers/investment_transactions.py::update_investment_transaction": 95,
   "backend/app/controllers/salary.py": 453,
   "backend/app/controllers/salary.py::reset_generation": 83,
-  "backend/app/controllers/transactions.py": 552,
-  "backend/app/controllers/transactions.py::update_transaction": 85,
   "backend/app/core/demo.py": 439,
   "backend/app/core/finance.py::get_recurring_occurrences": 86,
   "backend/app/core/holdings.py::estimate_baseline_costs": 94,

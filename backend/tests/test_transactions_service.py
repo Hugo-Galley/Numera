@@ -77,3 +77,59 @@ def test_unknown_transaction_candidates_is_not_found(db_session):
 
     with pytest.raises(NotFoundError, match="Transaction not found"):
         asyncio.run(service.transfer_candidates(db_session, 999, days=15, amount_tolerance_pct=5.0, account_id=None))
+
+
+# --- Écriture -----------------------------------------------------------------------------------
+
+import asyncio  # noqa: E402
+
+from app.core.errors import BusinessRuleError, InvalidOperationError  # noqa: E402
+from app.schemas.transaction import TransactionBulkDelete, TransactionCreate, TransactionUpdate  # noqa: E402
+from app.services import transaction_links as links  # noqa: E402
+from app.services import transaction_writes as writes  # noqa: E402
+
+
+def _create(db, account, type_, amount, date):
+    return asyncio.run(writes.create_transaction(db, TransactionCreate(
+        account_id=account.id, date=date, type=type_, merchant="x", amount=amount, currency="EUR")))
+
+
+def test_second_initial_balance_is_rejected(db_session):
+    account = _account(db_session, "Courant")
+    _create(db_session, account, "Solde Initial", 100.0, datetime(2026, 1, 1))
+    with pytest.raises(BusinessRuleError, match="A Solde Initial already exists for this account"):
+        _create(db_session, account, "Solde Initial", 50.0, datetime(2025, 1, 1))
+
+
+def test_update_amount_recalculates_following_balances(db_session):
+    account = _account(db_session, "Courant")
+    _create(db_session, account, "Solde Initial", 100.0, datetime(2026, 1, 1))
+    first = _create(db_session, account, "Sortie", 10.0, datetime(2026, 1, 2))
+    second = _create(db_session, account, "Sortie", 5.0, datetime(2026, 1, 3))
+    asyncio.run(writes.update_transaction(db_session, first.id, TransactionUpdate(amount=30.0)))
+    db_session.refresh(second)
+    assert second.running_balance == 65.0
+
+
+def test_bulk_delete_recalculates_each_account(db_session):
+    a, b = _account(db_session, "A"), _account(db_session, "B")
+    keep_a = _create(db_session, a, "Entree", 100.0, datetime(2026, 1, 1))
+    drop_a = _create(db_session, a, "Sortie", 10.0, datetime(2026, 1, 2))
+    last_a = _create(db_session, a, "Sortie", 1.0, datetime(2026, 1, 3))
+    _create(db_session, b, "Entree", 50.0, datetime(2026, 1, 1))
+    drop_b = _create(db_session, b, "Sortie", 20.0, datetime(2026, 1, 2))
+    result = writes.bulk_delete_transactions(db_session, TransactionBulkDelete(ids=[drop_a.id, drop_b.id]))
+    assert result.deleted == 2
+    db_session.refresh(last_a)
+    assert last_a.running_balance == 99.0 and keep_a.running_balance == 100.0
+
+
+def test_linking_reimbursed_transaction_is_invalid_operation(db_session):
+    from app.services import reimbursements as remb
+
+    a, b = _account(db_session, "A"), _account(db_session, "B")
+    sortie = _create(db_session, a, "Sortie", 40.0, datetime(2026, 1, 2))
+    entree = _create(db_session, b, "Entree", 40.0, datetime(2026, 1, 2))
+    remb.create_claim(db_session, sortie.id, "Denis", 20.0)
+    with pytest.raises(InvalidOperationError, match="remboursements ne peut pas être un virement interne"):
+        links.link_transactions(db_session, sortie.id, entree.id, "regular")

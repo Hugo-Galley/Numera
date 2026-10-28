@@ -114,3 +114,43 @@ def filtered(db: Session, f: TransactionFilters, skip: int, limit: int) -> list[
     query = _join_filters(db, query, f)
     query = _month_filter(db, query, f)
     return query.order_by(Transaction.date.desc(), Transaction.id.desc()).offset(skip).limit(limit).all()
+
+
+def get_many(db: Session, ids: list[int]) -> list[Transaction]:
+    return db.query(Transaction).filter(Transaction.id.in_(ids)).all()
+
+
+def get_investment(db: Session, investment_transaction_id: int):
+    from app.models.investment_transaction import InvestmentTransaction
+
+    return db.query(InvestmentTransaction).filter(InvestmentTransaction.id == investment_transaction_id).first()
+
+
+def tags_by_ids(db: Session, tag_ids: list[int]) -> list[Tag]:
+    return db.query(Tag).filter(Tag.id.in_(tag_ids)).all()
+
+
+def other_initial_balance(db: Session, account_id: int, exclude_id: int | None) -> Transaction | None:
+    return db.query(Transaction).filter(
+        Transaction.account_id == account_id,
+        Transaction.type == "Solde Initial",
+        Transaction.id != (exclude_id or -1),
+    ).first()
+
+
+def earliest_other(db: Session, account_id: int, exclude_id: int | None) -> Transaction | None:
+    return (
+        db.query(Transaction)
+        .filter(Transaction.account_id == account_id, Transaction.id != (exclude_id or -1))
+        .order_by(Transaction.date.asc(), Transaction.id.asc())
+        .first()
+    )
+
+
+def add(db: Session, tx: Transaction) -> None:
+    db.add(tx)
+    db.flush()
+
+
+def delete(db: Session, tx: Transaction) -> None:
+    db.delete(tx)
