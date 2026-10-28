@@ -54,7 +54,7 @@ from app.core.etf_analyzer import refresh_held_etf_profiles
 from app.core.notifications import run_notifications
 from app.core.market_data import refresh_held_prices
 from app.services.recurring import generate_recurring_transactions
-from app.core.salary import check_and_generate_pending_salaries
+from app.services.salary_generation import check_and_generate_pending_salaries
 from app import models  # noqa: F401
 
 # Initialize logging

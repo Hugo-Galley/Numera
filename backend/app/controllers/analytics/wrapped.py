@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 
 from app.core.currency import get_exchange_rates
 from app.domain.finance import is_lapsed
-from app.core.work_time import load_work_time
+from app.services.work_time import load_work_time
 from app.db.session import get_db
 from app.models.account import Account
 from app.models.category import Category

@@ -11,6 +11,7 @@ from app.models.transaction import Transaction
 from app.models.recurring_transaction import RecurringTransaction
 from app.services.balances import recalculate_running_balances
 from app.core.logging import get_logger
+from app.domain.salary import salary_amount, salary_note
 
 logger = get_logger(__name__)
 
@@ -49,8 +50,7 @@ def generate_salary_transactions(
     ).count()
 
     nb_tickets = tt_days
-    ticket_deduction = nb_tickets * config.ticket_employee_share
-    real_salary = config.net_salary - ticket_deduction
+    real_salary = salary_amount(config.net_salary, nb_tickets, config.ticket_employee_share)
 
     # Create salary transaction ONLY (no TR transaction — TR is informational only)
     tx_salary = Transaction(
@@ -64,7 +64,7 @@ def generate_salary_transactions(
         original_amount=real_salary,
         currency="EUR",
         running_balance=0.0,
-        note=f"Net: {config.net_salary:.2f}\u20ac - TR({nb_tickets}\u00d7{config.ticket_employee_share:.2f}\u20ac): {real_salary:.2f}\u20ac",
+        note=salary_note(config.net_salary, nb_tickets, config.ticket_employee_share, real_salary),
         is_recurring=True,
         recurring_transaction_id=config.salary_recurring_id,
     )

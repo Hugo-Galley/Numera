@@ -156,7 +156,7 @@ async def compute_action_center(db: Session) -> ActionCenterResponse:
             ))
 
         # 1.4 Salaire attendu absent (mois non renseigné dans le gestionnaire de salaire)
-        from app.core.salary import find_missing_salary_months
+        from app.services.salary_generation import find_missing_salary_months
         missing_salary_months = find_missing_salary_months(db, now.date())
         if missing_salary_months:
             labels = ", ".join(month_name(label) for label in missing_salary_months)

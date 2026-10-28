@@ -75,7 +75,7 @@ Au démarrage de l'application (événement `lifespan` configuré dans [backend/
 2. **Peuplement par défaut (Seeding)** : Les catégories fondamentales et les profils ETF système sont insérés s'ils sont absents via `seed_all()` dans [backend/app/core/seeds.py](file:///Users/hugogalley/DEV/numera/backend/app/core/seeds.py).
 3. **Tâche récurrente asynchrone** : Une boucle asynchrone permanente (`recurring_transactions_task`) est lancée en tâche de fond. Elle s'exécute toutes les heures pour :
    - Générer automatiquement les instances de transactions récurrentes (abonnements, charges fixes) définies par l'utilisateur (`backend/app/services/recurring.py`).
-   - Vérifier et générer les transactions liées aux salaires configurés et jours de télétravail déclarés ([backend/app/core/salary.py](file:///Users/hugogalley/DEV/numera/backend/app/core/salary.py)).
+   - Vérifier et générer les transactions liées aux salaires configurés et jours de télétravail déclarés (`backend/app/services/salary_generation.py`).
 
 ### Règles Métier Majeures
 
