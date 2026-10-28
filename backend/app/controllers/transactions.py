@@ -3,8 +3,8 @@ from sqlalchemy import and_, func, or_
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 
-from app.core import reimbursements as remb
-from app.core.splits import check_split_compatible, set_splits
+from app.services import reimbursements as remb
+from app.services.splits import check_split_compatible, set_splits
 from app.services.transfers import auto_link_transfers, candidates_for, create_counterpart, find_pairs, link_pair, release_partner, unlink_pair
 from app.core.finance import month_label_from_date, normalize_transaction_type
 from app.db.session import get_db

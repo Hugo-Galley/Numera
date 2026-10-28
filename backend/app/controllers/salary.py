@@ -271,7 +271,7 @@ def set_telecommuting_days(
             Transaction.month_label == month_label,
         ).first()
         if tx_salary:
-            from app.core import reimbursements as remb
+            from app.services import reimbursements as remb
             remb.check_transaction_change(db, tx_salary, tx_salary.type, real_salary, False)
             tx_salary.amount = real_salary
             tx_salary.original_amount = real_salary
@@ -395,7 +395,7 @@ def reset_generation(
 
     # Les remboursements affectés aux transactions supprimées libèrent leurs créances : on resynchronise
     # l'autre côté après la suppression en masse (les FK en cascade suppriment créances et affectations)
-    from app.core import reimbursements as remb
+    from app.services import reimbursements as remb
     recurring_ids = [i for i in (config.salary_recurring_id, config.ticket_recurring_id) if i]
     doomed = db.query(Transaction).filter(
         Transaction.month_label.in_(both_labels),

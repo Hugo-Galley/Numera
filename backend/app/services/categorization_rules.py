@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 
-from app.core import reimbursements as remb
+from app.services import reimbursements as remb
 from app.core.errors import NotFoundError
 from app.models.categorization_rule import CategorizationRule
 from app.models.transaction import Transaction
@@ -53,7 +53,7 @@ def _apply_rule(db: Session, tx: Transaction, rule: CategorizationRule) -> tuple
     if rule.category_id and tx.category_id is None:
         tx.category_id = rule.category_id
         changed = True
-    # Une transaction qui porte des remboursements garde son type (cf. core/reimbursements.py)
+    # Une transaction qui porte des remboursements garde son type (cf. services/reimbursements.py)
     if rule.transaction_type and tx.type != rule.transaction_type and not remb.has_reimbursement(db, tx.id):
         tx.type = rule.transaction_type
         changed = balance_changed = True

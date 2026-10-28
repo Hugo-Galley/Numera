@@ -38,7 +38,7 @@ class Transaction(Base):
     # Virement récurrent à arrivée différée : date à laquelle créditer la destination (None une fois crédité)
     transfer_credit_due: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     merchant_id: Mapped[int | None] = mapped_column(ForeignKey("merchants.id", ondelete="SET NULL"), nullable=True, index=True)
-    # Total remboursé (Sortie) ou affecté à des créances (Entree) ; maintenu par core/reimbursements.py
+    # Total remboursé (Sortie) ou affecté à des créances (Entree) ; maintenu par services/reimbursements.py
     reimbursement_offset: Mapped[float] = mapped_column(Float, default=0.0, server_default="0", nullable=False)
     # Dépense hors norme (achat ponctuel) : reste dans les totaux, isolée dans la lecture « hors exceptionnel »
     is_exceptional: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0", nullable=False)

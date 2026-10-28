@@ -1,10 +1,10 @@
 from datetime import datetime
 
 import pytest
-from fastapi import HTTPException
+from app.core.errors import InvalidOperationError
 from sqlalchemy.orm import Session
 
-from app.core import reimbursements as remb
+from app.services import reimbursements as remb
 from app.core.finance import month_label_from_date
 from app.models.account import Account
 from app.models.transaction import Transaction
@@ -70,7 +70,7 @@ def test_one_transfer_split_over_two_claims(db_session, resto):
     remb.allocate(db_session, c2, entree.id)
     db_session.refresh(entree)
     assert entree.reimbursement_offset == 50.0
-    with pytest.raises(HTTPException) as exc:
+    with pytest.raises(InvalidOperationError) as exc:
         remb.allocate(db_session, c2, entree.id, 25.0)
     assert exc.value.status_code == 400
 
@@ -99,11 +99,11 @@ def test_rules_are_enforced(db_session, resto):
         lambda: remb.allocate(db_session, claim, entree.id, 31.0),          # > attendu
     ]
     for case in cases:
-        with pytest.raises(HTTPException) as exc:
+        with pytest.raises(InvalidOperationError) as exc:
             case()
         assert exc.value.status_code == 400
     remb.allocate(db_session, claim, entree.id, 20.0)
-    with pytest.raises(HTTPException):
+    with pytest.raises(InvalidOperationError):
         remb.update_claim(db_session, claim, {"expected_amount": 15.0})     # < reçu
     remb.update_claim(db_session, claim, {"expected_amount": 20.0, "debtor": "Denis M."})
     assert claim.expected_amount == 20.0 and claim.debtor == "Denis M."
@@ -113,7 +113,7 @@ def test_transfer_cannot_be_used(db_session, resto):
     main, sortie = resto
     sortie.is_transfer = True
     db_session.commit()
-    with pytest.raises(HTTPException):
+    with pytest.raises(InvalidOperationError):
         remb.create_claim(db_session, sortie.id, "Denis", 30.0)
 
 

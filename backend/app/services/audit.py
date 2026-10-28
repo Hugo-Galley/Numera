@@ -12,7 +12,7 @@ from app.schemas.insight import ActionCenterResponse, ActionCenterSummary, Actio
 from app.models.balance_snapshot import BalanceSnapshot
 from app.models.investment_transaction import InvestmentTransaction
 from app.models.transaction import Transaction
-from app.core import reimbursements as remb
+from app.services import reimbursements as remb
 from app.core.logging import get_logger
 from app.models.reimbursement import ReimbursementClaim
 from app.domain.transactions import tx_sample

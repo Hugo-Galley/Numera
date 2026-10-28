@@ -2,7 +2,7 @@ from datetime import datetime
 
 from sqlalchemy.orm import Session
 
-from app.core import reimbursements as remb
+from app.services import reimbursements as remb
 from app.core.finance import month_label_from_date
 from app.models.account import Account
 from app.models.reimbursement import ReimbursementClaim

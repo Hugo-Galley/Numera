@@ -2,17 +2,19 @@
 
 Seule porte d'entrée pour créer, modifier ou supprimer créances et affectations. Chaque mutation
 recalcule `transactions.reimbursement_offset` des transactions touchées (`sync_offsets`), que les KPI
-retranchent du montant (`api/analytics/utils.py::NET_AMOUNT`). Aucun montant bancaire n'est modifié.
+retranchent du montant (`repositories/analytics/common.py::NET_AMOUNT`). Aucun montant bancaire n'est modifié.
 """
 from datetime import timedelta
 
-from fastapi import HTTPException
-from sqlalchemy import func, select, union
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
+from app.core.errors import InvalidOperationError, NotFoundError
 from app.models.account import Account
 from app.models.reimbursement import ReimbursementAllocation, ReimbursementClaim
 from app.models.transaction import Transaction
+from app.repositories import reimbursements as repo
+from app.schemas.reimbursement import AllocationCreate, ClaimCreate, ClaimUpdate
 
 EPS = 0.005
 CANDIDATE_DAYS_BEFORE = 7
@@ -25,14 +27,28 @@ def cents(value: float | None) -> float:
 
 
 def _refuse(detail: str) -> None:
-    raise HTTPException(status_code=400, detail=detail)
+    raise InvalidOperationError(detail)
 
 
-def _get_tx(db: Session, tx_id: int) -> Transaction:
+def get_transaction(db: Session, tx_id: int) -> Transaction:
     tx = db.get(Transaction, tx_id)
     if tx is None:
-        raise HTTPException(status_code=404, detail="Transaction introuvable")
+        raise NotFoundError("Transaction introuvable")
     return tx
+
+
+def require_claim(db: Session, claim_id: int) -> ReimbursementClaim:
+    claim = repo.get_claim(db, claim_id)
+    if not claim:
+        raise NotFoundError("Créance introuvable")
+    return claim
+
+
+def require_allocation(db: Session, allocation_id: int) -> ReimbursementAllocation:
+    allocation = repo.get_allocation(db, allocation_id)
+    if not allocation:
+        raise NotFoundError("Affectation introuvable")
+    return allocation
 
 
 def account_currency(db: Session, tx: Transaction) -> str:
@@ -41,36 +57,19 @@ def account_currency(db: Session, tx: Transaction) -> str:
 
 
 def claim_received(db: Session, claim_id: int) -> float:
-    total = db.query(func.coalesce(func.sum(ReimbursementAllocation.amount), 0.0)).filter(
-        ReimbursementAllocation.claim_id == claim_id
-    ).scalar()
-    return cents(total)
+    return cents(repo.claim_received_total(db, claim_id))
 
 
 def entree_allocated(db: Session, entree_id: int) -> float:
-    total = db.query(func.coalesce(func.sum(ReimbursementAllocation.amount), 0.0)).filter(
-        ReimbursementAllocation.entree_transaction_id == entree_id
-    ).scalar()
-    return cents(total)
+    return cents(repo.entree_allocated_total(db, entree_id))
 
 
 def sortie_expected(db: Session, sortie_id: int, exclude_claim_id: int | None = None) -> float:
-    q = db.query(func.coalesce(func.sum(ReimbursementClaim.expected_amount), 0.0)).filter(
-        ReimbursementClaim.transaction_id == sortie_id
-    )
-    if exclude_claim_id is not None:
-        q = q.filter(ReimbursementClaim.id != exclude_claim_id)
-    return cents(q.scalar())
+    return cents(repo.sortie_expected_total(db, sortie_id, exclude_claim_id))
 
 
 def sortie_received(db: Session, sortie_id: int) -> float:
-    total = (
-        db.query(func.coalesce(func.sum(ReimbursementAllocation.amount), 0.0))
-        .join(ReimbursementClaim, ReimbursementAllocation.claim_id == ReimbursementClaim.id)
-        .filter(ReimbursementClaim.transaction_id == sortie_id)
-        .scalar()
-    )
-    return cents(total)
+    return cents(repo.sortie_received_total(db, sortie_id))
 
 
 def sync_offsets(db: Session, tx_ids: set[int]) -> None:
@@ -90,17 +89,7 @@ def sync_offsets(db: Session, tx_ids: set[int]) -> None:
 
 def has_reimbursement(db: Session, tx_id: int) -> bool:
     """La transaction porte une créance ou une affectation (elle ne peut plus être un virement)."""
-    if db.query(ReimbursementClaim.id).filter(ReimbursementClaim.transaction_id == tx_id).first():
-        return True
-    return db.query(ReimbursementAllocation.id).filter(ReimbursementAllocation.entree_transaction_id == tx_id).first() is not None
-
-
-def locked_transaction_ids():
-    """Sous-requête des transactions portant une créance ou une affectation (exclues des virements)."""
-    return union(
-        select(ReimbursementClaim.transaction_id),
-        select(ReimbursementAllocation.entree_transaction_id),
-    )
+    return repo.has_reimbursement(db, tx_id)
 
 
 def check_transaction_change(db: Session, tx: Transaction, new_type: str, new_amount: float, sets_transfer: bool) -> None:
@@ -133,7 +122,7 @@ def detach_before_delete(db: Session, tx: Transaction) -> set[int]:
 
 
 def create_claim(db: Session, transaction_id: int, debtor: str, expected_amount: float, note: str | None = None) -> ReimbursementClaim:
-    sortie = _get_tx(db, transaction_id)
+    sortie = get_transaction(db, transaction_id)
     if sortie.type != "Sortie":
         _refuse("Une créance ne peut porter que sur une dépense (Sortie)")
     if sortie.is_transfer:
@@ -157,7 +146,7 @@ def update_claim(db: Session, claim: ReimbursementClaim, data: dict) -> Reimburs
             _refuse("Le montant attendu doit être positif")
         if expected < claim_received(db, claim.id) - EPS:
             _refuse("Le montant attendu ne peut pas être inférieur au montant déjà reçu : retirez d'abord des remboursements")
-        sortie = _get_tx(db, claim.transaction_id)
+        sortie = get_transaction(db, claim.transaction_id)
         if sortie_expected(db, sortie.id, exclude_claim_id=claim.id) + expected > cents(sortie.amount) + EPS:
             _refuse("Le total des créances dépasse le montant de la dépense")
         claim.expected_amount = expected
@@ -178,12 +167,12 @@ def delete_claim(db: Session, claim: ReimbursementClaim) -> None:
 
 
 def allocate(db: Session, claim: ReimbursementClaim, entree_id: int, amount: float | None = None) -> ReimbursementAllocation:
-    entree = _get_tx(db, entree_id)
+    entree = get_transaction(db, entree_id)
     if entree.type != "Entree":
         _refuse("Seule une entrée (Entree) peut rembourser une créance")
     if entree.is_transfer:
         _refuse("Un virement interne ne peut pas servir de remboursement")
-    sortie = _get_tx(db, claim.transaction_id)
+    sortie = get_transaction(db, claim.transaction_id)
     if account_currency(db, entree) != account_currency(db, sortie):
         _refuse("La dépense et le remboursement doivent être dans la même devise")
 
@@ -336,3 +325,19 @@ def claims_for_entree(db: Session, entree: Transaction) -> dict:
             {"id": a.id, "claim_id": a.claim_id, "amount": cents(a.amount), "debtor": a.claim.debtor} for a in allocations
         ],
     }
+
+
+def create_claim_view(db: Session, payload: ClaimCreate) -> dict:
+    claim = create_claim(db, payload.transaction_id, payload.debtor, payload.expected_amount, payload.note)
+    return claim_view(db, claim)
+
+
+def update_claim_view(db: Session, claim_id: int, payload: ClaimUpdate) -> dict:
+    claim = update_claim(db, require_claim(db, claim_id), payload.model_dump(exclude_unset=True))
+    return claim_view(db, claim)
+
+
+def allocate_view(db: Session, claim_id: int, payload: AllocationCreate) -> dict:
+    claim = require_claim(db, claim_id)
+    allocate(db, claim, payload.entree_id, payload.amount)
+    return claim_view(db, claim)

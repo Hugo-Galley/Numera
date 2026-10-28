@@ -2,7 +2,7 @@ from datetime import datetime
 
 from sqlalchemy.orm import Session
 
-from app.core.reimbursements import locked_transaction_ids
+from app.repositories.reimbursements import locked_transaction_ids
 from app.models.account import Account
 from app.models.investment_transaction import InvestmentTransaction
 from app.models.transaction import Transaction
