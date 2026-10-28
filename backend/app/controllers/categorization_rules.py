@@ -1,105 +1,36 @@
-from typing import Any, List
-from fastapi import APIRouter, Depends, HTTPException, Query
+from typing import List
+
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.controllers.deps import get_db
-from app.core import reimbursements as remb
-from app.models.categorization_rule import CategorizationRule
-from app.models.transaction import Transaction
 from app.schemas.categorization_rule import CategorizationRuleCreate, CategorizationRuleRead, CategorizationRuleUpdate
-from app.core.finance import normalize_transaction_type
+from app.services import categorization_rules as service
 
 router = APIRouter(prefix="/categorization-rules", tags=["categorization-rules"])
 
+
 @router.get("/", response_model=List[CategorizationRuleRead])
 def list_rules(db: Session = Depends(get_db)):
-    return db.query(CategorizationRule).order_by(CategorizationRule.priority.desc(), CategorizationRule.id.desc()).all()
+    return service.list_rules(db)
+
 
 @router.post("/", response_model=CategorizationRuleRead, status_code=201)
 def create_rule(payload: CategorizationRuleCreate, db: Session = Depends(get_db)):
-    rule = CategorizationRule(**payload.model_dump())
-    db.add(rule)
-    db.commit()
-    db.refresh(rule)
-    return rule
+    return service.create_rule(db, payload)
+
 
 @router.patch("/{rule_id}", response_model=CategorizationRuleRead)
 def update_rule(rule_id: int, payload: CategorizationRuleUpdate, db: Session = Depends(get_db)):
-    rule = db.query(CategorizationRule).filter(CategorizationRule.id == rule_id).first()
-    if not rule:
-        raise HTTPException(status_code=404, detail="Rule not found")
-    
-    data = payload.model_dump(exclude_unset=True)
-    if data.get("pattern", "") is None:  # colonne NOT NULL : un `null` explicite est ignoré
-        del data["pattern"]
-    if data.get("priority", 0) is None:
-        del data["priority"]
-    for key, value in data.items():
-        setattr(rule, key, value)
-    
-    db.commit()
-    db.refresh(rule)
-    return rule
+    return service.update_rule(db, rule_id, payload)
+
 
 @router.delete("/{rule_id}", status_code=204)
 def delete_rule(rule_id: int, db: Session = Depends(get_db)):
-    rule = db.query(CategorizationRule).filter(CategorizationRule.id == rule_id).first()
-    if not rule:
-        raise HTTPException(status_code=404, detail="Rule not found")
-    db.delete(rule)
-    db.commit()
+    service.delete_rule(db, rule_id)
+
 
 @router.post("/apply-all", status_code=200)
 def apply_rules_to_transactions(db: Session = Depends(get_db)):
-    """Applique les règles aux transactions existantes.
-
-    Une catégorie déjà posée n'est jamais écrasée ; les « Solde Initial » et les virements internes
-    ne sont pas touchés. Changements et recalcul des soldes sont validés ensemble (rollback sinon).
-    """
-    rules = db.query(CategorizationRule).order_by(CategorizationRule.priority.desc()).all()
-    if not rules:
-        return {"modified_count": 0}
-
-    transactions = (
-        db.query(Transaction)
-        .filter(Transaction.type != "Solde Initial", Transaction.is_transfer == False)  # noqa: E712
-        .all()
-    )
-
-    modified_count = 0
-    affected_balance_account_ids = set()
-
-    for tx in transactions:
-        for rule in rules:
-            pattern = rule.pattern.strip().lower()
-            if not pattern:
-                continue
-            if pattern in (tx.merchant or "").lower() or pattern in (tx.note or "").lower():
-                tx_changed = False
-                if rule.category_id and tx.category_id is None:
-                    tx.category_id = rule.category_id
-                    tx_changed = True
-                # Une transaction qui porte des remboursements garde son type (cf. core/reimbursements.py)
-                if rule.transaction_type and tx.type != rule.transaction_type and not remb.has_reimbursement(db, tx.id):
-                    tx.type = rule.transaction_type
-                    tx_changed = True
-                    affected_balance_account_ids.add(tx.account_id)
-                if rule.merchant_name and tx.merchant != rule.merchant_name:
-                    tx.merchant = rule.merchant_name
-                    tx_changed = True
-
-                if tx_changed:
-                    modified_count += 1
-                break  # Only apply first matching rule by priority
-
-    try:
-        db.flush()
-        from app.services.balances import recalculate_running_balances
-        for acc_id in affected_balance_account_ids:
-            recalculate_running_balances(db, acc_id)
-        db.commit()
-    except Exception:
-        db.rollback()
-        raise
-
-    return {"modified_count": modified_count}
+    """Applique les règles aux transactions existantes (catégorie jamais écrasée, soldes recalculés)."""
+    return service.apply_rules_to_transactions(db)
