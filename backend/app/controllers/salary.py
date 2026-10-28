@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import and_, or_
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_db
+from app.controllers.deps import get_db
 from app.core.finance import month_label_from_date
 from app.core.salary import generate_salary_transactions, is_salary_recorded
 from app.core.work_time import load_work_time, save_work_time

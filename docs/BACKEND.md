@@ -58,8 +58,8 @@ backend/
 ```mermaid
 graph TD
     Client[Client Frontend React] -->|HTTPS Requests + JWT| API[FastAPI Gateway app/main.py]
-    API -->|Validation & Security Depends| Auth[Security Middleware app/api/deps.py]
-    API -->|Routing| Controllers[API Routers app/api/*]
+    API -->|Validation & Security Depends| Auth[Security Middleware app/controllers/deps.py]
+    API -->|Routing| Controllers[API Routers app/controllers/*]
     Controllers -->|Read/Write SessionLocal| DB[(SQLite Database backend/data/suivi_budget.db)]
     Controllers -->|Business Logic| Core[Financial Core app/core/*]
     Core -->|Live Rates Fetch| Frankfurter[Frankfurter API]
@@ -100,7 +100,7 @@ L'application implémente un système d'authentification simple mais robuste :
   python3 scripts/change_password.py "votre_mot_de_passe"   # depuis la racine du dépôt
   ```
 - **JWT (JSON Web Tokens)** : Lors de la connexion (`POST /auth/token`), un token JWT signé en `HS256` avec la clé `SECRET_KEY` est généré. Sa validité est fixée à **60 minutes** (configurable via `ACCESS_TOKEN_EXPIRE_MINUTES` dans [backend/app/core/config.py](file:///Users/hugogalley/DEV/numera/backend/app/core/config.py)).
-- **Dépendance de Sécurité** : Toutes les routes métier incluent la dépendance `Depends(get_current_user)` (`app/api/deps.py`) qui valide le jeton (`401` si invalide/expiré, `403` si le `sub` ne correspond pas à l'admin courant). `POST /auth/token` est limité par `LoginRateLimiter` (5 échecs / 15 min par défaut, configurable via `LOGIN_*`). Le nom et le hash du mot de passe peuvent aussi être modifiés depuis l'UI (`PUT /admin/profile`, stockés dans `system_settings` et prioritaires sur le `.env`).
+- **Dépendance de Sécurité** : Toutes les routes métier incluent la dépendance `Depends(get_current_user)` (`app/controllers/deps.py`) qui valide le jeton (`401` si invalide/expiré, `403` si le `sub` ne correspond pas à l'admin courant). `POST /auth/token` est limité par `LoginRateLimiter` (5 échecs / 15 min par défaut, configurable via `LOGIN_*`). Le nom et le hash du mot de passe peuvent aussi être modifiés depuis l'UI (`PUT /admin/profile`, stockés dans `system_settings` et prioritaires sur le `.env`).
 
 ---
 

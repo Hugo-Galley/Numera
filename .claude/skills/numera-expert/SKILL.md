@@ -28,7 +28,7 @@ Les règles critiques courtes sont dans le `CLAUDE.md` racine ; ce skill détail
 
 ## Virements internes
 
-Un virement est un couple **1 pour 1** : une `Sortie` et une `Entree` (ou un `versement` d'investissement) sur deux comptes différents (`is_transfer`, `linked_transaction_id` / `linked_investment_transaction_id`). Un lien ne change aucun montant. Les « dépenses réelles », les revenus et le taux d'épargne excluent ces lignes (`api/analytics/metrics.py`, `budget.py`). Toute la logique est dans `core/transfers.py` :
+Un virement est un couple **1 pour 1** : une `Sortie` et une `Entree` (ou un `versement` d'investissement) sur deux comptes différents (`is_transfer`, `linked_transaction_id` / `linked_investment_transaction_id`). Un lien ne change aucun montant. Les « dépenses réelles », les revenus et le taux d'épargne excluent ces lignes (`controllers/analytics/metrics.py`, `budget.py`). Toute la logique est dans `core/transfers.py` :
 
 - `link_pair` / `unlink_pair` : seule porte d'entrée pour lier ou délier (endpoints `POST /transactions/{id}/link/{other_id}`, `.../unlink`). `link_origin` = `manual` | `rule` | `recurring` ; `transfer_rule_id` = règle à l'origine.
 - **Délier un lien `rule` ou `recurring`** marque les deux lignes `is_transfer_ignored`, sinon la règle les relierait aussitôt. Un lien manuel délié n'est pas ignoré.
@@ -54,7 +54,7 @@ Une `Sortie` porte des **créances** (`reimbursement_claims` : débiteur libre, 
 
 ## Point zéro et performance
 
-Un seul `is_zero_point` par compte investissement (`POST /balance-snapshots/set-zero-point`). Performance : compte titres = valeur calculée (positions × cours + espèces, `core/portfolio.py`) − montant investi ; assurance-vie = dernier snapshot − base point zéro − flux (`api/analytics/investments.py`). Allocation avancée et scanner de diversification utilisent les `etf_profiles` (pays/secteurs/top holdings en JSON texte). Secteurs et top 10 viennent de Yahoo (actualisation hebdomadaire) ; les pays ne sont jamais fournis par Yahoo (préréglage des profils système ou saisie). Aucune composition n'est devinée : un champ inconnu reste vide et sa part est comptée en « Non renseigné ».
+Un seul `is_zero_point` par compte investissement (`POST /balance-snapshots/set-zero-point`). Performance : compte titres = valeur calculée (positions × cours + espèces, `core/portfolio.py`) − montant investi ; assurance-vie = dernier snapshot − base point zéro − flux (`controllers/analytics/investments.py`). Allocation avancée et scanner de diversification utilisent les `etf_profiles` (pays/secteurs/top holdings en JSON texte). Secteurs et top 10 viennent de Yahoo (actualisation hebdomadaire) ; les pays ne sont jamais fournis par Yahoo (préréglage des profils système ou saisie). Aucune composition n'est devinée : un champ inconnu reste vide et sa part est comptée en « Non renseigné ».
 
 ## Marchands et catégorisation
 
@@ -120,7 +120,7 @@ Table `financial_events` (`/financial-events`) : notes datées sans effet sur au
 ## « Investi du mois » (budget)
 `investissements_du_mois` (vue globale) = sorties catégorisées `Investissement`/`Epargne` non virement **+ versements liés à un virement interne** (`utils.budget_versement_ids`). Un versement sans virement lié (rapatriement d'un contrat, solde initial, intéressement) n'est pas de l'argent prélevé sur les revenus : il est exclu, y compris de la catégorie virtuelle « Investissement » (`expenses-by-category`, `budget-alerts`). `depenses_reelles` ne retranche que les sorties catégorisées, jamais les versements (absents de `depenses`). Vue par compte inchangée (les versements y sont les flux du compte).
 
-## Bilan annuel (`/wrapped`, `api/analytics/wrapped.py`)
+## Bilan annuel (`/wrapped`, `controllers/analytics/wrapped.py`)
 Somme des chiffres officiels mensuels (`compute_budget`, `expenses_by_category`, `top_merchants`) pour rester identique au Dashboard. Année en cours = janvier → mois courant, comparée à N-1 sur la même période (`previous`, seulement si N-1 a des transactions). Taux d'épargne annuel = (revenus − dépenses réelles) ÷ revenus ; patrimoine début = `patrimoine_net_total` de décembre N-1. Postes : hors Investissement/Epargne. Abonnements : récurrences `Sortie` sans `transfer_to_account_id` ni catégorie épargne/investissement ; coût = échéances réelles de l'année (montant net). Heures de travail au taux horaire actuel (pas historique).
 
 ## Services externes

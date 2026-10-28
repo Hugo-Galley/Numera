@@ -3,7 +3,7 @@ from dataclasses import asdict
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from app.api.deps import require_interactive_session
+from app.controllers.deps import require_interactive_session
 from app.core import notifications
 from app.db.session import get_db
 from app.schemas.notification import (

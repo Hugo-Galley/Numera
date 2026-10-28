@@ -14,8 +14,8 @@ settings.ADMIN_PASSWORD_HASH = security.get_password_hash("admin")
 
 from app.db.base import Base
 from app.db.session import enable_sqlite_foreign_keys, get_db as get_db_session
-from app.api.deps import get_db as get_db_deps
-from app.api.deps import get_current_user
+from app.controllers.deps import get_db as get_db_deps
+from app.controllers.deps import get_current_user
 from app.main import app
 from app.core.login_rate_limit import login_rate_limiter, totp_rate_limiter
 from app import models # noqa: F401

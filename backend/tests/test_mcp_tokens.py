@@ -2,7 +2,7 @@
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_user
+from app.controllers.deps import get_current_user
 from app.core.mcp_tokens import hash_token
 from app.main import app
 from app.models.category import Category

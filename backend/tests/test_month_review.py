@@ -271,7 +271,7 @@ def test_small_correction_is_detected_as_modification(client, october):
 
 def test_exchange_rate_drift_does_not_flag_modification(client, db_session, monkeypatch):
     import app.services.analytics.budget as budget_mod
-    import app.api.month_review as router_mod
+    import app.controllers.month_review as router_mod
 
     eur = _courant(db_session)
     usd = Account(name="USD", type="courant", currency="USD", active=True)

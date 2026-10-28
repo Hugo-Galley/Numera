@@ -15,15 +15,18 @@ Architecture **en couches pragmatique**, pas de Clean Architecture stricte : les
 
 ### Couches backend (`backend/app/`)
 
+Le dossier des routers s'appelait `api/` jusqu'au 28/10/2026 (renommé en `controllers/`, phase 2 tâche 1).
+
+
 | Couche | Rôle | Peut importer | Ne doit pas importer |
 |---|---|---|---|
-| `api/` | Controllers : HTTP, `Depends`, `Query`, schéma → réponse. Pas de `db.query`, pas de `commit`. | services, schemas, `api.deps`, core | un autre module `api.*` (sauf `api.deps` et les sous-routers de son propre package) |
-| `services/` | Cas d'usage : orchestration, **transaction (commit)**, appels repositories + domain + integrations. Lève des erreurs métier (`app.core.errors`). | repositories, domain, integrations, models, schemas, core | `app.api`, `fastapi` |
-| `repositories/` | Accès aux données : requêtes SQLAlchemy, agrégats SQL. Pas de règle métier, pas de `commit` (`flush` autorisé). | models, db, core | `app.api`, `app.services`, `app.integrations`, `fastapi` |
-| `domain/` | Calculs purs (solde, salaire net, XIRR/TWR, KPI, revenu…). Aucune Session. | models (comme types), schemas, core | `app.api`, `app.services`, `app.repositories`, `app.integrations`, `app.db`, `sqlalchemy.orm`, `fastapi` |
-| `integrations/` | Appels externes : Frankfurter, données de marché, ntfy/Telegram, logos, backup. | models, schemas, core, db | `app.api`, `app.services`, `app.repositories` |
-| `core/` | Transverse : config, security, logging, errors, time, rate limit, mcp_tokens. **Pendant la migration**, couche héritée qui contient encore du métier : seule interdiction `app.api`. Règle durcie en fin de migration (n'importe plus que core). | — | `app.api` (puis tout sauf core) |
-| `models/`, `schemas/`, `db/` | Inchangés. | — | `app.api`, `app.services`, `app.repositories`, `app.integrations` |
+| `controllers/` | Controllers : HTTP, `Depends`, `Query`, schéma → réponse. Pas de `db.query`, pas de `commit`. | services, schemas, `controllers.deps`, core | un autre module `controllers.*` (sauf `controllers.deps` et les sous-routers de son propre package) |
+| `services/` | Cas d'usage : orchestration, **transaction (commit)**, appels repositories + domain + integrations. Lève des erreurs métier (`app.core.errors`). | repositories, domain, integrations, models, schemas, core | `app.controllers`, `fastapi` |
+| `repositories/` | Accès aux données : requêtes SQLAlchemy, agrégats SQL. Pas de règle métier, pas de `commit` (`flush` autorisé). | models, db, core | `app.controllers`, `app.services`, `app.integrations`, `fastapi` |
+| `domain/` | Calculs purs (solde, salaire net, XIRR/TWR, KPI, revenu…). Aucune Session. | models (comme types), schemas, core | `app.controllers`, `app.services`, `app.repositories`, `app.integrations`, `app.db`, `sqlalchemy.orm`, `fastapi` |
+| `integrations/` | Appels externes : Frankfurter, données de marché, ntfy/Telegram, logos, backup. | models, schemas, core, db | `app.controllers`, `app.services`, `app.repositories` |
+| `core/` | Transverse : config, security, logging, errors, time, rate limit, mcp_tokens. **Pendant la migration**, couche héritée qui contient encore du métier : seule interdiction `app.controllers`. Règle durcie en fin de migration (n'importe plus que core). | — | `app.controllers` (puis tout sauf core) |
+| `models/`, `schemas/`, `db/` | Inchangés. | — | `app.controllers`, `app.services`, `app.repositories`, `app.integrations` |
 
 Analytics : côté lecture dédié, `repositories/analytics/` (requêtes d'agrégat) + `services/analytics/` (assemblage) + `domain/` (formules). Pas de repository par entité pour les KPI.
 

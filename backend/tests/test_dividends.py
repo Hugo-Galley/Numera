@@ -189,7 +189,7 @@ def test_link_existing_dividends_by_label(client, db_session):
 # ─── Agrégats ───────────────────────────────────────────────────────────────
 
 def test_dividend_summary_converts_to_eur_and_computes_yields(client, monkeypatch):
-    import app.api.analytics.dividends as dividends_api
+    import app.controllers.analytics.dividends as dividends_api
 
     async def fake_quotes(symbols, db=None):
         return {s.upper(): {"price": 200.0, "price_eur": 200.0} for s in symbols}
@@ -223,7 +223,7 @@ def test_dividend_summary_converts_to_eur_and_computes_yields(client, monkeypatc
 
 
 def test_holdings_show_dividends_and_total_return(client, monkeypatch):
-    import app.api.holdings as holdings_api
+    import app.controllers.holdings as holdings_api
 
     async def fake_quotes(symbols, db=None):
         return {s.upper(): {"price": 120.0, "price_eur": 120.0, "type": "ETF", "currency": "EUR", "stale": False} for s in symbols}

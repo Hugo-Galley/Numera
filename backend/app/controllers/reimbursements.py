@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_db
+from app.controllers.deps import get_db
 from app.core import reimbursements as remb
 from app.models.reimbursement import ReimbursementAllocation, ReimbursementClaim
 from app.models.transaction import Transaction

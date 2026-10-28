@@ -76,7 +76,7 @@ def test_cors_allows_only_configured_origins(client: TestClient):
 
 def test_invalid_token_returns_401(client: TestClient):
     from app.main import app
-    from app.api.deps import get_current_user
+    from app.controllers.deps import get_current_user
     
     app.dependency_overrides.pop(get_current_user, None)
     try:
@@ -91,7 +91,7 @@ def test_invalid_token_returns_401(client: TestClient):
 
 @pytest.fixture()
 def real_auth_client(client: TestClient):
-    from app.api.deps import get_current_user
+    from app.controllers.deps import get_current_user
     from app.main import app
 
     app.dependency_overrides.pop(get_current_user, None)
@@ -202,7 +202,7 @@ def test_refresh_is_refused_to_mcp_tokens(client: TestClient):
 
 def test_manual_backup_endpoint(client: TestClient, monkeypatch, tmp_path):
     import subprocess
-    from app.api import admin
+    from app.controllers import admin
 
     def fake_run(cmd, **kwargs):
         return subprocess.CompletedProcess(cmd, 0, "", "")

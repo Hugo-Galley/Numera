@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.services.accounts import account_balance
 from app.services.analytics.budget import compute_budget, compute_budget_alerts
-from app.api.deps import get_db
+from app.controllers.deps import get_db
 from app.core.currency import get_exchange_rates
 from app.core.month_review import (
     categorize_step,

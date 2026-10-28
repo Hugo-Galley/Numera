@@ -55,7 +55,7 @@ def test_logout_all_invalidates_existing_sessions(client, db_session):
     from fastapi import HTTPException
     from starlette.requests import Request
 
-    from app.api import deps
+    from app.controllers import deps
     from app.core import security
 
     request = Request({"type": "http", "method": "GET", "headers": []})

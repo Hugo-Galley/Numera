@@ -57,8 +57,8 @@ python scripts/change_password.py <mot-de-passe>
 
 ### Backend (`backend/app/`)
 - `main.py` : lifespan (migrations Alembic + seed), middleware de logs, CORS via `settings.cors_origins` (pas `*`). Les routers sont dans la liste `protected_routers` et reçoivent tous `Depends(get_current_user)` (JWT) ; seuls `health` et `auth` sont publics. **Un nouveau router doit être ajouté à cette liste.**
-- **Architecture en couches** (migration en cours, cf. `ARCHITECTURE.md` § Couches backend) : `api/` (controllers) → `services/` (cas d'usage, commit, erreurs métier `core/errors.py`) → `repositories/` (requêtes) / `domain/` (calculs purs) / `integrations/` (appels externes). Règles d'import vérifiées par `tests/test_architecture.py`, tailles par `scripts/check_code_size.py` (baselines à cliquet : ne jamais les augmenter). Modèle à suivre : `accounts`. Code déplacé : supprimé de l'ancien emplacement, sans ré-export.
-- `api/` : un router par domaine (accounts, transactions, imports, holdings, market, etf_profiles, diversity, salary, merchants, …). `api/analytics/` est un **package** (metrics, budget, investments, insights, reports, subscriptions, audit, diversity) ; budget, Centre d'Actions et projection de trésorerie sont calculés dans `services/analytics/` et `services/audit.py`, les requêtes partagées dans `repositories/analytics/common.py`.
+- **Architecture en couches** (migration en cours, cf. `ARCHITECTURE.md` § Couches backend) : `controllers/` (controllers) → `services/` (cas d'usage, commit, erreurs métier `core/errors.py`) → `repositories/` (requêtes) / `domain/` (calculs purs) / `integrations/` (appels externes). Règles d'import vérifiées par `tests/test_architecture.py`, tailles par `scripts/check_code_size.py` (baselines à cliquet : ne jamais les augmenter). Modèle à suivre : `accounts`. Code déplacé : supprimé de l'ancien emplacement, sans ré-export.
+- `controllers/` : un router par domaine (accounts, transactions, imports, holdings, market, etf_profiles, diversity, salary, merchants, …). `controllers/analytics/` est un **package** (metrics, budget, investments, insights, reports, subscriptions, audit, diversity) ; budget, Centre d'Actions et projection de trésorerie sont calculés dans `services/analytics/` et `services/audit.py`, les requêtes partagées dans `repositories/analytics/common.py`.
 - `core/` : `config.py` (pydantic-settings, validation stricte des secrets en `APP_ENV=prod`), `security.py` + `login_rate_limit.py` (auth mono-utilisateur `ADMIN_USERNAME`/`ADMIN_PASSWORD_HASH` ; limiteurs `login_rate_limiter` / `totp_rate_limiter`), `errors.py` (erreurs métier), `finance.py` (soldes, `normalize_transaction_type`), `currency.py`, `recurring.py`, `salary.py`, `market_data.py`, `etf_analyzer.py`, `seeds*.py`, `migrations.py`.
 - `models/` (SQLAlchemy 2 `Mapped`/`mapped_column`), `schemas/` (Pydantic, `from_attributes=True`), `db/session.py`. Schéma modifié → nouvelle migration Alembic dans `backend/alembic/versions/`.
 - Tests (`backend/tests/`) : `conftest.py` fixe `APP_ENV=test`, mot de passe admin `admin`, DB SQLite temporaire par test et override de `get_db`/`get_current_user`. Vérifier l'effet en base, pas seulement le code HTTP.
@@ -75,12 +75,12 @@ python scripts/change_password.py <mot-de-passe>
 - `accounts.type` : `courant`, `epargne`, `investissement`, `assurance_vie` (validé à la création/modification ; un ancien type inconnu reste lisible).
 - `transactions.type` : `Entree`, `Sortie`, `Interets`, `Solde Initial` (base du solde, exclue des KPI revenus/dépenses).
 - `investment_transactions.type` : `versement`, `retrait`, `achat`, `vente`, `frais`, `dividende` (dividende non compté dans le montant investi). Valeur d'un compte titres = positions × cours + espèces (`core/portfolio.py`).
-- Positions titres : `portfolio_holding` / `api/holdings.py` ; profils ETF : `etf_profile`.
+- Positions titres : `portfolio_holding` / `controllers/holdings.py` ; profils ETF : `etf_profile`.
 
 ## Règles métier critiques
 
 1. Montants **toujours positifs** ; le sens est porté par `type`.
-2. **KPI calculés côté backend uniquement** (`api/analytics/`), jamais côté frontend.
+2. **KPI calculés côté backend uniquement** (`controllers/analytics/`), jamais côté frontend.
 3. `running_balance` recalculé intégralement après toute création/modification/suppression (`recalculate_running_balances` dans `services/balances.py`).
 4. Import CSV **idempotent** : doublon = `(account_id, date, amount, merchant, type)`. Le commit insère avec un solde courant partant de la dernière transaction, puis appelle `recalculate_running_balances` si au moins une ligne est importée (les soldes sont donc corrects même pour des données antérieures).
 5. Un seul `is_zero_point = True` par compte investissement.

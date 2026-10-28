@@ -9,7 +9,7 @@ from pydantic import BaseModel
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_user, require_interactive_session
+from app.controllers.deps import get_current_user, require_interactive_session
 from app.core import security
 from app.core.backup import backup_status, snapshot_database
 from app.core.config import settings

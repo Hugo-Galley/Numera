@@ -134,7 +134,7 @@ def test_forecast_observed_return_only_applies_to_measured_accounts(client, db_s
     """Le XIRR mesuré sur les comptes à positions n'est pas étendu aux comptes suivis par relevé."""
     from types import SimpleNamespace
 
-    from app.api.analytics import portfolio
+    from app.controllers.analytics import portfolio
 
     measured = _account_with_value(db_session, "CTO", "investissement", 2000)
     _account_with_value(db_session, "PEA", "investissement", 8000)

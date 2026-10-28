@@ -6,7 +6,7 @@ import jwt
 import pytest
 from fastapi.testclient import TestClient
 
-from app.api.deps import get_current_user
+from app.controllers.deps import get_current_user
 from app.core import login_rate_limit, security
 from app.core.config import settings
 from app.core.login_rate_limit import LoginRateLimiter

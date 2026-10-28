@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 from sqlalchemy import select, func, or_
 
-from app.api import deps
+from app.controllers import deps
 from app.models.category import Category
 from app.models.merchant import Merchant, MerchantAlias
 from app.models.transaction import Transaction

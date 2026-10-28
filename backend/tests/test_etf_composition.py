@@ -129,7 +129,7 @@ def test_refresh_held_only_touches_held_profiles(client: TestClient, db_session:
 
 
 def test_diversity_puts_uncovered_weight_in_non_renseigne(client: TestClient, db_session: Session, monkeypatch):
-    from app.api.analytics import diversity
+    from app.controllers.analytics import diversity
 
     async def fake_quotes(symbols, db=None):
         return {s.upper(): {"price_eur": 100.0, "type": "ETF"} for s in symbols}

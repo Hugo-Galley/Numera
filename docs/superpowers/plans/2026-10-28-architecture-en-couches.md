@@ -283,7 +283,7 @@ Plan détaillé : `docs/superpowers/plans/2026-10-28-phase-2-domaines-ecriture.m
 - Centre d'Actions : `services/audit/rules/<règle>.py`, chaque règle exposant `def detect(ctx: AuditContext) -> list[ActionItem]`, et un registre qui les agrège (`docs/ACTION_CENTER.md` mis à jour).
 - `investments.py` → `summary`, `performance`, `allocation`, `projections` (forecast, FIRE, simulation).
 - Puis `metrics`, `reports`, `insights`, `wrapped`, `diversity`, `subscriptions`, `dividends`.
-Le router `api/analytics/` garde ses chemins et son package.
+Le router `controllers/analytics/` garde ses chemins et son package.
 
 ### Phase 4 — Portefeuille
 Routers `investment_transactions`, `holdings`, `etf_profiles`, `market` (reportés de la phase 2) ; `core/seeds_etf.py`. `core/portfolio.py` → `domain/performance.py` (`xirr`, `twr`), `services/portfolio/` (`PriceBook`, `FxBook`, `cash_events`, `compute_portfolio` découpé par étape), puis `core/holdings.py`, `core/etf_analyzer.py`.

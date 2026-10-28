@@ -29,7 +29,7 @@ from webauthn.helpers.structs import (
 )
 
 from app.core.login_rate_limit import client_key, login_rate_limiter
-from app.api.deps import get_current_user, require_interactive_session
+from app.controllers.deps import get_current_user, require_interactive_session
 from app.core import security
 from app.core.config import settings
 from app.core.logging import get_logger

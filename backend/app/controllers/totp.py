@@ -13,7 +13,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_user, require_interactive_session
+from app.controllers.deps import get_current_user, require_interactive_session
 from app.core import security, totp
 from app.core.config import settings
 from app.core.logging import get_logger

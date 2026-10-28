@@ -11,7 +11,7 @@ Conventions et pièges : `backend/CLAUDE.md` (à lire d'abord). Règles métier 
 
 1. Schémas `Create` / `Update` / `Read` dans `app/schemas/<domaine>.py` (`ConfigDict(from_attributes=True)` sur `Read`).
 2. Requêtes dans `app/repositories/<domaine>.py` (sans `commit`), logique dans `app/services/<domaine>.py` (commit, erreurs `NotFoundError`/`BusinessRuleError`/`ConflictError` de `app.core.errors`, jamais `HTTPException`), calcul pur dans `app/domain/`. Modèle : `accounts`.
-3. Endpoint dans `app/api/<domaine>.py` : `response_model`, `db: Session = Depends(get_db)`, une ligne qui appelle le service. Pas de `Depends(get_current_user)` à ajouter : le router est déjà protégé dans `main.py`.
+3. Endpoint dans `app/controllers/<domaine>.py` : `response_model`, `db: Session = Depends(get_db)`, une ligne qui appelle le service. Pas de `Depends(get_current_user)` à ajouter : le router est déjà protégé dans `main.py`.
 4. Mutation de transactions → `recalculate_running_balances(db, account_id)` (`app.services.balances`), pour chaque compte touché.
 5. Ordre des routes FastAPI : déclarer les chemins fixes (`/bulk`, `/merchants`, `/potential-transfers`, `/auto-normalize`) **avant** `/{id}`.
 6. Tests : service (`db_session`, sans HTTP) et route (`client`) dans `backend/tests/test_<domaine>.py`. `tests/test_architecture.py` et `scripts/check_code_size.py` doivent rester verts.
@@ -19,7 +19,7 @@ Conventions et pièges : `backend/CLAUDE.md` (à lire d'abord). Règles métier 
 
 ## Ajouter un nouveau router
 
-Créer `app/api/<nom>.py` (`APIRouter(prefix="/<nom>", tags=[...])`), l'importer dans `app/main.py` **et** l'ajouter à `protected_routers`. Sans ça la route n'existe pas / ou n'est pas protégée.
+Créer `app/controllers/<nom>.py` (`APIRouter(prefix="/<nom>", tags=[...])`), l'importer dans `app/main.py` **et** l'ajouter à `protected_routers`. Sans ça la route n'existe pas / ou n'est pas protégée.
 
 ## Modifier le schéma de base
 
@@ -30,7 +30,7 @@ Créer `app/api/<nom>.py` (`APIRouter(prefix="/<nom>", tags=[...])`), l'importer
 
 ## Ajouter un KPI / graphe
 
-1. Calcul dans `app/services/analytics/` (nouveau KPI) ou le module adapté de `app/api/analytics/` (non encore migré) ; requêtes partagées : `app/repositories/analytics/common.py` (`NET_AMOUNT`, `income_criterion`, `category_lines`…), calculs purs : `app/domain/`. Appeler un autre KPI via son service (`compute_budget`…), jamais via une fonction de route. Ne jamais déplacer le calcul côté frontend.
+1. Calcul dans `app/services/analytics/` (nouveau KPI) ou le module adapté de `app/controllers/analytics/` (non encore migré) ; requêtes partagées : `app/repositories/analytics/common.py` (`NET_AMOUNT`, `income_criterion`, `category_lines`…), calculs purs : `app/domain/`. Appeler un autre KPI via son service (`compute_budget`…), jamais via une fonction de route. Ne jamais déplacer le calcul côté frontend.
 2. Schéma de réponse dans `app/schemas/insight.py` (ou `investment.py`) et `response_model`.
 3. Respecter : exclusion de `Solde Initial` des revenus/dépenses, exclusion des transferts internes pour les « dépenses réelles », filtres `account_id` / `month` / `year` cohérents avec les endpoints voisins.
 4. Test dans `tests/` (cf. `test_import_and_analytics.py`, `test_money_flow.py`, `test_sankey.py`), puis consommer l'endpoint dans le frontend.

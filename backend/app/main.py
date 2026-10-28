@@ -9,39 +9,39 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.exc import IntegrityError
 
-from app.api.auth import router as auth_router
-from app.api.passkeys import router as passkeys_router
-from app.api.totp import router as totp_router
-from app.api.accounts import router as accounts_router
-from app.api.analytics import router as analytics_router
-from app.api.admin import router as admin_router
-from app.api.balance_snapshots import router as balance_snapshots_router
-from app.api.categories import router as categories_router
-from app.api.exports import router as exports_router
-from app.api.health import router as health_router
-from app.api.imports import router as imports_router
-from app.api.investment_transactions import router as investment_transactions_router
-from app.api.transactions import router as transactions_router
-from app.api.recurring_transactions import router as recurring_transactions_router
-from app.api.logos import router as logos_router, public_router as logos_public_router
-from app.api.savings_goals import router as savings_goals_router
-from app.api.categorization_rules import router as categorization_rules_router
-from app.api.merchants import router as merchants_router
-from app.api.tags import router as tags_router
-from app.api.salary import router as salary_router
-from app.api.market import router as market_router
-from app.api.etf_profiles import router as etf_profiles_router
-from app.api.holdings import router as holdings_router
-from app.api.tax import router as tax_router
-from app.api.transfer_rules import router as transfer_rules_router
-from app.api.reimbursements import router as reimbursements_router
-from app.api.month_review import router as month_review_router
-from app.api.provisions import router as provisions_router
-from app.api.financial_events import router as financial_events_router
-from app.api.loans import router as loans_router
-from app.api.notifications import router as notifications_router
-from app.api.analytics.diversity import router as diversity_router
-from app.api.deps import get_current_user
+from app.controllers.auth import router as auth_router
+from app.controllers.passkeys import router as passkeys_router
+from app.controllers.totp import router as totp_router
+from app.controllers.accounts import router as accounts_router
+from app.controllers.analytics import router as analytics_router
+from app.controllers.admin import router as admin_router
+from app.controllers.balance_snapshots import router as balance_snapshots_router
+from app.controllers.categories import router as categories_router
+from app.controllers.exports import router as exports_router
+from app.controllers.health import router as health_router
+from app.controllers.imports import router as imports_router
+from app.controllers.investment_transactions import router as investment_transactions_router
+from app.controllers.transactions import router as transactions_router
+from app.controllers.recurring_transactions import router as recurring_transactions_router
+from app.controllers.logos import router as logos_router, public_router as logos_public_router
+from app.controllers.savings_goals import router as savings_goals_router
+from app.controllers.categorization_rules import router as categorization_rules_router
+from app.controllers.merchants import router as merchants_router
+from app.controllers.tags import router as tags_router
+from app.controllers.salary import router as salary_router
+from app.controllers.market import router as market_router
+from app.controllers.etf_profiles import router as etf_profiles_router
+from app.controllers.holdings import router as holdings_router
+from app.controllers.tax import router as tax_router
+from app.controllers.transfer_rules import router as transfer_rules_router
+from app.controllers.reimbursements import router as reimbursements_router
+from app.controllers.month_review import router as month_review_router
+from app.controllers.provisions import router as provisions_router
+from app.controllers.financial_events import router as financial_events_router
+from app.controllers.loans import router as loans_router
+from app.controllers.notifications import router as notifications_router
+from app.controllers.analytics.diversity import router as diversity_router
+from app.controllers.deps import get_current_user
 from app.core.config import settings
 from app.core.currency import CurrencyConversionError
 from app.core.errors import DomainError

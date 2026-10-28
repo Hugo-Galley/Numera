@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_db
+from app.controllers.deps import get_db
 from app.core.transfers import Pair, apply_rules
 from app.models.account import Account
 from app.models.transfer_rule import TransferRule
