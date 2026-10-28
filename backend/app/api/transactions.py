@@ -6,30 +6,14 @@ from datetime import datetime, timedelta
 from app.core import reimbursements as remb
 from app.core.splits import check_split_compatible, set_splits
 from app.core.transfers import auto_link_transfers, candidates_for, create_counterpart, find_pairs, link_pair, release_partner, unlink_pair
-from app.core.finance import apply_transaction_to_balance, month_label_from_date, normalize_transaction_type
+from app.core.finance import month_label_from_date, normalize_transaction_type
 from app.db.session import get_db
+from app.services.balances import recalculate_running_balances
 from app.models.account import Account
 from app.models.transaction import Transaction
 from app.schemas.transaction import TransferCandidate, TransferCounterpartCreate, TransferCounterpartRead, TransactionCreate, TransactionRead, TransactionUpdate, TransactionBulkDelete, TransactionBulkDeleteResult, TransactionBulkUpdate, TransactionSplitsUpdate
 
 router = APIRouter(prefix="/transactions", tags=["transactions"])
-
-
-def recalculate_running_balances(db: Session, account_id: int):
-    """Recalculate running balances for all transactions of an account in chronological order."""
-    transactions = (
-        db.query(Transaction)
-        .filter(Transaction.account_id == account_id)
-        .order_by(Transaction.date.asc(), Transaction.id.asc())
-        .all()
-    )
-    
-    current_balance = 0.0
-    for tx in transactions:
-        current_balance = apply_transaction_to_balance(current_balance, tx.type, tx.amount)
-        tx.running_balance = current_balance
-    
-    db.commit()
 
 
 def validate_solde_initial(

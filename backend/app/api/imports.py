@@ -18,7 +18,7 @@ from app.models.category import Category
 from app.models.categorization_rule import CategorizationRule
 from app.models.import_log import ImportLog
 from app.models.transaction import Transaction
-from app.api.transactions import recalculate_running_balances
+from app.services.balances import recalculate_running_balances
 from app.core.transfers import auto_link_transfers
 
 from app.core.logging import get_logger

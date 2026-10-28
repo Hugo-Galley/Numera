@@ -4,7 +4,7 @@ from datetime import datetime
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
-from app.api.accounts import _get_balance_for_account
+from app.services.accounts import account_balance
 from app.api.analytics.budget import budget_alerts, budget_analytics
 from app.api.deps import get_db
 from app.core.currency import get_exchange_rates
@@ -36,7 +36,7 @@ def _accounts_step(db: Session, end: datetime) -> dict:
             "id": acc.id,
             "name": acc.name,
             "currency": acc.currency,
-            "balance": round(_get_balance_for_account(db, acc.id), 2),
+            "balance": round(account_balance(db, acc.id), 2),
             "last_verified_at": acc.last_verified_at,
             "verified_since_month_end": acc.last_verified_at >= reference,
         }

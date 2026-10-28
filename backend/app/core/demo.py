@@ -13,7 +13,7 @@ from datetime import date, datetime, timedelta
 
 from sqlalchemy.orm import Session
 
-from app.api.transactions import recalculate_running_balances
+from app.services.balances import recalculate_running_balances
 from app.core.finance import month_label_from_date
 from app.core.holdings import rebuild_holdings
 from app.core.logging import get_logger

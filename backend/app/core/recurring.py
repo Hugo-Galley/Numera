@@ -339,7 +339,7 @@ async def generate_recurring_transactions(db: Session) -> int:
 
     if generated_count > 0:
         # Recalculate balances
-        from app.api.transactions import recalculate_running_balances
+        from app.services.balances import recalculate_running_balances
         for acc_id in affected_account_ids:
             recalculate_running_balances(db, acc_id)
         await auto_link_transfers(db)

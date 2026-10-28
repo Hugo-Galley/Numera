@@ -3,7 +3,7 @@ from datetime import date, datetime
 
 from sqlalchemy.orm import Session
 
-from app.api.accounts import _get_balance_for_account
+from app.services.accounts import account_balance
 from app.core.dividends import load_dividends_eur
 from app.core.holdings import replay_account
 from app.core.tax import (
@@ -110,13 +110,13 @@ def build_overview(db: Session, today: date, precaution_months: float | None = N
             status = per_status(versements, settings.prior_year_pro_income, settings.tmi_pct, rules)
             name = " + ".join(a.name for a in per_accounts)
         elif kind == "livret_a":
-            status = livret_a_status(_get_balance_for_account(db, account.id), rules)
+            status = livret_a_status(account_balance(db, account.id), rules)
         elif kind == "livret_jeune":
-            status = livret_jeune_status(_get_balance_for_account(db, account.id), rules)
+            status = livret_jeune_status(account_balance(db, account.id), rules)
         elif kind == "ldds":
-            status = ldds_status(_get_balance_for_account(db, account.id), rules)
+            status = ldds_status(account_balance(db, account.id), rules)
         elif kind == "lep":
-            status = lep_status(_get_balance_for_account(db, account.id), rules)
+            status = lep_status(account_balance(db, account.id), rules)
         elif kind == "pee":
             lots = [
                 PeeLot(t.date.date(), t.amount, "abondement" in (t.note or "").lower())

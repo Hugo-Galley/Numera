@@ -9,7 +9,7 @@ from app.models.salary_month import SalaryMonth
 from app.models.telecommuting_day import TelecommutingDay
 from app.models.transaction import Transaction
 from app.models.recurring_transaction import RecurringTransaction
-from app.api.transactions import recalculate_running_balances
+from app.services.balances import recalculate_running_balances
 from app.core.logging import get_logger
 
 logger = get_logger(__name__)

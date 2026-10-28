@@ -262,7 +262,7 @@ def set_telecommuting_days(
         ticket_deduction = nb_tickets * config.ticket_employee_share
         real_salary = config.net_salary - ticket_deduction
 
-        from app.api.transactions import recalculate_running_balances
+        from app.services.balances import recalculate_running_balances
         from app.models.transaction import Transaction
 
         # Update salary transaction only (TR transactions no longer exist)
@@ -440,7 +440,7 @@ def reset_generation(
     db.commit()
 
     # Recalculate balances
-    from app.api.transactions import recalculate_running_balances
+    from app.services.balances import recalculate_running_balances
 
     if config.salary_account_id:
         recalculate_running_balances(db, config.salary_account_id)

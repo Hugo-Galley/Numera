@@ -94,7 +94,7 @@ def apply_rules_to_transactions(db: Session = Depends(get_db)):
 
     try:
         db.flush()
-        from app.api.transactions import recalculate_running_balances
+        from app.services.balances import recalculate_running_balances
         for acc_id in affected_balance_account_ids:
             recalculate_running_balances(db, acc_id)
         db.commit()
