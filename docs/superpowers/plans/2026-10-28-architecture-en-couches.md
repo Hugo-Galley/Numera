@@ -278,15 +278,10 @@ def test_layers_match_baseline():
 Plan détaillé : `docs/superpowers/plans/2026-10-28-phase-2-domaines-ecriture.md` (18 tâches). Tâche 1 : le dossier `api/` devient `controllers/` (demande de l'utilisateur). Périmètre : routers d'écriture côté budget et administration, et les modules `core/` qui leur appartiennent (`transfers`, `loans`, `provisions`, `reimbursements`, `splits`, `recurring`, `finance`, `salary`, `work_time`, `month_review`, `reconciliation`, `demo`, `seeds`, `notifications`, `currency`, `logos`, `backup`). Le passage de `recalculate_running_balances` en `flush` y est traité (tâche 15). Les domaines d'écriture côté investissement sont reportés en phase 4.
 
 ### Phase 3 — Analytics
-`services/analytics/` + `repositories/analytics/` + `domain/` ; plus aucune fonction > 80 lignes.
-- `budget` : `compute_budget` découpé en revenus / dépenses / enveloppes / résilience.
-- Centre d'Actions : `services/audit/rules/<règle>.py`, chaque règle exposant `def detect(ctx: AuditContext) -> list[ActionItem]`, et un registre qui les agrège (`docs/ACTION_CENTER.md` mis à jour).
-- `investments.py` → `summary`, `performance`, `allocation`, `projections` (forecast, FIRE, simulation).
-- Puis `metrics`, `reports`, `insights`, `wrapped`, `diversity`, `subscriptions`, `dividends`.
-Le router `controllers/analytics/` garde ses chemins et son package.
+Plan détaillé, autonome (reprise dans une nouvelle conversation, section 0) : `docs/superpowers/plans/2026-10-28-phase-3-analytics.md` (10 tâches). Filet de sécurité : instantanés JSON de toutes les routes analytics sur les données de démo à date figée (`freezegun`), identiques après chaque tâche. Périmètre : budget, Centre d'Actions (registre de règles `services/audit/rules/`), métriques, rapports/Sankey/trésorerie, insights, abonnements, bilan annuel, investissements et projections, fiscalité ; `core/wealth`, `budget_period`, `subscription_prices`, `tax`, `tax_rules`. Les routes `analytics/portfolio`, `dividends`, `diversity` passent en phase 4.
 
 ### Phase 4 — Portefeuille
-Routers `investment_transactions`, `holdings`, `etf_profiles`, `market` (reportés de la phase 2) ; `core/seeds_etf.py`. `core/portfolio.py` → `domain/performance.py` (`xirr`, `twr`), `services/portfolio/` (`PriceBook`, `FxBook`, `cash_events`, `compute_portfolio` découpé par étape), puis `core/holdings.py`, `core/etf_analyzer.py`.
+Routers `investment_transactions`, `holdings`, `etf_profiles`, `market` (reportés de la phase 2), `analytics/portfolio`, `analytics/dividends`, `analytics/diversity` (reportés de la phase 3) ; `core/seeds_etf.py`. `core/portfolio.py` → `domain/performance.py` (`xirr`, `twr`), `services/portfolio/` (`PriceBook`, `FxBook`, `cash_events`, `compute_portfolio` découpé par étape), puis `core/holdings.py`, `core/etf_analyzer.py`.
 
 ### Phase 5 — Frontend
 Ordre par taille : `AccountDetail` (2 773), `RecurringTransactions` (1 548), `WealthSimulator` (1 169), `Accounts` (1 057), `Audit` (1 030), `Investments`, `Savings`, `HoldingsTable`, `OverviewTab`, `PointZeroModal`, `Calendar`, `MerchantsTab`, `CategoriesTab`, `Omnibox`, `Tax`, `SalaryManager`, `ImportFlow`.
