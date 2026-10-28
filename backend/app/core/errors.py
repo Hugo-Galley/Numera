@@ -10,3 +10,35 @@ def api_error(status_code: int, code: str, detail: str, context: dict | None = N
             "context": context or {},
         },
     )
+
+
+class DomainError(Exception):
+    """Erreur métier levée par un service ; traduite en HTTP par `domain_error_handler` (main.py).
+
+    Sans `code`, le corps est `{"detail": detail}` ; avec, il prend la forme de `api_error`.
+    """
+
+    status_code = 400
+
+    def __init__(self, detail: str, code: str | None = None, context: dict | None = None):
+        super().__init__(detail)
+        self.detail = detail
+        self.code = code
+        self.context = context
+
+    def to_content(self) -> dict:
+        if self.code is None:
+            return {"detail": self.detail}
+        return {"detail": {"code": self.code, "detail": self.detail, "context": self.context or {}}}
+
+
+class NotFoundError(DomainError):
+    status_code = 404
+
+
+class BusinessRuleError(DomainError):
+    status_code = 422
+
+
+class ConflictError(DomainError):
+    status_code = 409

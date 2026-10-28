@@ -44,6 +44,7 @@ from app.api.analytics.diversity import router as diversity_router
 from app.api.deps import get_current_user
 from app.core.config import settings
 from app.core.currency import CurrencyConversionError
+from app.core.errors import DomainError
 from app.core.demo import ensure_demo_data, is_blocked_in_demo
 from app.core.migrations import run_migrations
 from app.core.seeds import seed_all
@@ -148,6 +149,11 @@ def docs_kwargs(app_env: str) -> dict:
 
 
 app = FastAPI(title=settings.app_name, lifespan=lifespan, **docs_kwargs(settings.app_env))
+
+
+@app.exception_handler(DomainError)
+async def domain_error_handler(_: Request, exc: DomainError):
+    return JSONResponse(status_code=exc.status_code, content=exc.to_content())
 
 
 @app.exception_handler(CurrencyConversionError)
