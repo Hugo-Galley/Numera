@@ -1,149 +1,44 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from app.core.errors import api_error
 from app.db.session import get_db
-from app.services.accounts import account_balance
-from app.models.account import Account
-from app.core import reconciliation
-from app.core.time import utcnow_naive
-from app.schemas.account import (
-    AccountCreate,
-    AccountRead,
-    AccountUpdate,
-    ReconcileHint,
-    ReconcileRequest,
-    ReconcileResult,
-    ReconcileTransaction,
-)
+from app.schemas.account import AccountCreate, AccountRead, AccountUpdate, ReconcileRequest, ReconcileResult
+from app.services import accounts as service
 
 router = APIRouter(prefix="/accounts", tags=["accounts"])
 
 
 @router.get("", response_model=list[AccountRead])
 def list_accounts(db: Session = Depends(get_db)):
-    accounts = db.query(Account).order_by(Account.id.asc()).all()
-    for acc in accounts:
-        acc.balance = account_balance(db, acc.id)
-    return accounts
+    return service.list_accounts(db)
 
 
 @router.get("/{account_id}", response_model=AccountRead)
 def get_account(account_id: int, db: Session = Depends(get_db)):
-    account = db.query(Account).filter(Account.id == account_id).first()
-    if not account:
-        raise api_error(404, "account_not_found", "Account not found", {"account_id": account_id})
-    account.balance = account_balance(db, account.id)
-    return account
+    return service.get_account(db, account_id)
 
 
 @router.post("", response_model=AccountRead, status_code=201)
 def create_account(payload: AccountCreate, db: Session = Depends(get_db)):
-    account = Account(
-        name=payload.name,
-        type=payload.type,
-        currency=payload.currency,
-        color=payload.color,
-        asset_class=payload.asset_class,
-        sector=payload.sector,
-        geographic_zone=payload.geographic_zone,
-        institution=payload.institution,
-        logo=payload.logo,
-        is_main=payload.is_main,
-        fonds_euros_pct=payload.fonds_euros_pct,
-        fonds_investis_pct=payload.fonds_investis_pct,
-        tax_wrapper=payload.tax_wrapper,
-        opened_at=payload.opened_at,
-        # assurance-vie : relevés par défaut tant que le mode n'est pas choisi explicitement
-        valuation_mode=payload.valuation_mode if "valuation_mode" in payload.model_fields_set or payload.type != "assurance_vie" else "snapshot",
-    )
-    db.add(account)
-    db.commit()
-    db.refresh(account)
-    account.balance = 0.0
-    return account
+    return service.create_account(db, payload)
 
 
 @router.patch("/{account_id}", response_model=AccountRead)
 def update_account(account_id: int, payload: AccountUpdate, db: Session = Depends(get_db)):
-    account = db.query(Account).filter(Account.id == account_id).first()
-    if not account:
-        raise api_error(404, "account_not_found", "Account not found", {"account_id": account_id})
-
-    data = payload.model_dump(exclude_unset=True)
-    
-    if data.get("is_main") is True:
-        db.query(Account).filter(Account.id != account_id).update({"is_main": False})
-
-    for key, value in data.items():
-        setattr(account, key, value)
-
-
-    db.commit()
-    db.refresh(account)
-    account.balance = account_balance(db, account.id)
-    return account
+    return service.update_account(db, account_id, payload)
 
 
 @router.post("/{account_id}/verify", response_model=AccountRead)
 def verify_account(account_id: int, db: Session = Depends(get_db)):
-    account = db.query(Account).filter(Account.id == account_id).first()
-    if not account:
-        raise api_error(404, "account_not_found", "Account not found", {"account_id": account_id})
-    account.last_verified_at = utcnow_naive()
-    db.commit()
-    db.refresh(account)
-    account.balance = account_balance(db, account.id)
-    return account
+    return service.verify_account(db, account_id)
 
 
 @router.post("/{account_id}/reconcile", response_model=ReconcileResult)
 def reconcile_account(account_id: int, payload: ReconcileRequest, db: Session = Depends(get_db)):
-    """Compare le solde affiché par la banque à celui de Numera et propose les causes d'un écart.
-
-    Lecture seule, sauf : un écart nul marque le compte vérifié (comme « Rien n'a bougé »).
-    """
-    account = db.query(Account).filter(Account.id == account_id).first()
-    if not account:
-        raise api_error(404, "account_not_found", "Account not found", {"account_id": account_id})
-    currency = account.currency or "EUR"
-    result = reconciliation.reconcile(db, account_id, payload.date, payload.bank_balance, currency)
-    if result.matches:
-        account.last_verified_at = utcnow_naive()
-        db.commit()
-    return ReconcileResult(
-        account_id=account_id,
-        date=payload.date,
-        currency=currency,
-        bank_balance=round(payload.bank_balance, 2),
-        numera_balance=result.numera_balance,
-        gap=result.gap,
-        matches=result.matches,
-        verified=result.matches,
-        hints=[
-            ReconcileHint(
-                kind=h.kind,
-                message=h.message,
-                transactions=[
-                    ReconcileTransaction(
-                        id=tx.id,
-                        date=tx.date.date().isoformat(),
-                        merchant=tx.merchant,
-                        type=tx.type,
-                        amount=round(float(tx.amount), 2),
-                    )
-                    for tx in h.transactions
-                ],
-            )
-            for h in result.hints
-        ],
-    )
+    """Compare le solde affiché par la banque à celui de Numera et propose les causes d'un écart."""
+    return service.reconcile_account(db, account_id, payload)
 
 
 @router.delete("/{account_id}", status_code=204)
 def archive_account(account_id: int, db: Session = Depends(get_db)):
-    account = db.query(Account).filter(Account.id == account_id).first()
-    if not account:
-        raise api_error(404, "account_not_found", "Account not found", {"account_id": account_id})
-    account.active = False
-    db.commit()
+    service.archive_account(db, account_id)

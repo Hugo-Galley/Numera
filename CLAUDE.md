@@ -47,7 +47,7 @@ cd frontend && npm run typecheck    # tsc seul
 # Un seul test
 cd backend && PYTHONPATH=. python3.11 -m pytest tests/test_tags.py -v   # PYTHONPATH=. requis
 cd backend && PYTHONPATH=. python3.11 -m pytest tests/test_tags.py::test_name -v
-cd backend && PYTHONPATH=. python3.11 -m pytest tests -q     # suite complète : 366 tests, ~30 s
+cd backend && PYTHONPATH=. python3.11 -m pytest tests -q     # suite complète : ~745 tests, ~1 min 30
 
 # Mot de passe admin (hash à mettre dans ADMIN_PASSWORD_HASH ; doubler les $ dans docker-compose)
 python scripts/change_password.py <mot-de-passe>
@@ -57,8 +57,9 @@ python scripts/change_password.py <mot-de-passe>
 
 ### Backend (`backend/app/`)
 - `main.py` : lifespan (migrations Alembic + seed), middleware de logs, CORS via `settings.cors_origins` (pas `*`). Les routers sont dans la liste `protected_routers` et reçoivent tous `Depends(get_current_user)` (JWT) ; seuls `health` et `auth` sont publics. **Un nouveau router doit être ajouté à cette liste.**
-- `api/` : un router par domaine (accounts, transactions, imports, holdings, market, etf_profiles, diversity, salary, merchants, …). `api/analytics/` est un **package** (metrics, budget, investments, insights, reports, subscriptions, audit, diversity, utils) : tous les KPI/agrégats/Sankey/projections y sont calculés.
-- `core/` : `config.py` (pydantic-settings, validation stricte des secrets en `APP_ENV=prod`), `security.py` + `login_rate_limit.py` (auth mono-utilisateur `ADMIN_USERNAME`/`ADMIN_PASSWORD_HASH`), `finance.py` (soldes, `normalize_transaction_type`), `currency.py`, `recurring.py`, `salary.py`, `market_data.py`, `etf_analyzer.py`, `seeds*.py`, `migrations.py`.
+- **Architecture en couches** (migration en cours, cf. `ARCHITECTURE.md` § Couches backend) : `api/` (controllers) → `services/` (cas d'usage, commit, erreurs métier `core/errors.py`) → `repositories/` (requêtes) / `domain/` (calculs purs) / `integrations/` (appels externes). Règles d'import vérifiées par `tests/test_architecture.py`, tailles par `scripts/check_code_size.py` (baselines à cliquet : ne jamais les augmenter). Modèle à suivre : `accounts`. Code déplacé : supprimé de l'ancien emplacement, sans ré-export.
+- `api/` : un router par domaine (accounts, transactions, imports, holdings, market, etf_profiles, diversity, salary, merchants, …). `api/analytics/` est un **package** (metrics, budget, investments, insights, reports, subscriptions, audit, diversity) ; budget, Centre d'Actions et projection de trésorerie sont calculés dans `services/analytics/` et `services/audit.py`, les requêtes partagées dans `repositories/analytics/common.py`.
+- `core/` : `config.py` (pydantic-settings, validation stricte des secrets en `APP_ENV=prod`), `security.py` + `login_rate_limit.py` (auth mono-utilisateur `ADMIN_USERNAME`/`ADMIN_PASSWORD_HASH` ; limiteurs `login_rate_limiter` / `totp_rate_limiter`), `errors.py` (erreurs métier), `finance.py` (soldes, `normalize_transaction_type`), `currency.py`, `recurring.py`, `salary.py`, `market_data.py`, `etf_analyzer.py`, `seeds*.py`, `migrations.py`.
 - `models/` (SQLAlchemy 2 `Mapped`/`mapped_column`), `schemas/` (Pydantic, `from_attributes=True`), `db/session.py`. Schéma modifié → nouvelle migration Alembic dans `backend/alembic/versions/`.
 - Tests (`backend/tests/`) : `conftest.py` fixe `APP_ENV=test`, mot de passe admin `admin`, DB SQLite temporaire par test et override de `get_db`/`get_current_user`. Vérifier l'effet en base, pas seulement le code HTTP.
 
@@ -80,7 +81,7 @@ python scripts/change_password.py <mot-de-passe>
 
 1. Montants **toujours positifs** ; le sens est porté par `type`.
 2. **KPI calculés côté backend uniquement** (`api/analytics/`), jamais côté frontend.
-3. `running_balance` recalculé intégralement après toute création/modification/suppression (`recalculate_running_balances` dans `api/transactions.py`).
+3. `running_balance` recalculé intégralement après toute création/modification/suppression (`recalculate_running_balances` dans `services/balances.py`).
 4. Import CSV **idempotent** : doublon = `(account_id, date, amount, merchant, type)`. Le commit insère avec un solde courant partant de la dernière transaction, puis appelle `recalculate_running_balances` si au moins une ligne est importée (les soldes sont donc corrects même pour des données antérieures).
 5. Un seul `is_zero_point = True` par compte investissement.
 6. Salaire (`core/salary.py`) : **une seule** transaction `Entree` « Salaire » = `net_salary − (nb jours TT × ticket_employee_share)`, rattachée à la récurrence salaire. Les tickets restaurant sont informatifs, aucune transaction TR n'est créée. Génération idempotente (`SalaryMonth.is_generated`).
@@ -89,7 +90,7 @@ python scripts/change_password.py <mot-de-passe>
 9. `normalize_transaction_type()` mappe `"type"` → `"Solde Initial"` volontairement (export Numbers).
 10. Revue de fin de mois (`/month-review`) : clôturer = **marquer**, jamais verrouiller ; `transactions.is_exceptional` reste dans les totaux officiels et les soldes, seules les lectures « hors exceptionnel » (rapport mensuel, revue) l'isolent.
 
-11. **Revenu** = entrées sur un compte `courant` (+ intérêts) ; une entrée sur un autre compte n'en est un que si sa catégorie est de type `revenu` (`income_criterion`, `api/analytics/utils.py`). Même définition dans budget, money-flow, Sankey, kpi-history, timeseries. **Patrimoine** = tous les comptes actifs, tous types, via `core/wealth.py::account_values` (source unique).
+11. **Revenu** = entrées sur un compte `courant` (+ intérêts) ; une entrée sur un autre compte n'en est un que si sa catégorie est de type `revenu` (`income_criterion`, `repositories/analytics/common.py`). Même définition dans budget, money-flow, Sankey, kpi-history, timeseries. **Patrimoine** = tous les comptes actifs, tous types, via `core/wealth.py::account_values` (source unique).
 
 Pipeline import : détection du délimiteur (`,` `;` `\t`) → en-têtes normalisés via `HEADER_ALIASES` → mapping catégories (manuel puis auto-création si `create_missing_categories=True`) → détection doublons → insert + log dans `imports_log`.
 

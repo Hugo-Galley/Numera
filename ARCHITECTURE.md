@@ -29,15 +29,19 @@ Flux principal:
 backend/
   alembic/              migrations
   app/
-    api/                endpoints REST
-    core/               config, finance, currency, errors, migrations, security, logging,
-                        login_rate_limit, recurring, salary, market_data, etf_analyzer, seeds*
+    api/                controllers REST (routers)
+    services/           cas d'usage (accounts, balances, audit, tax, analytics/{budget,cashflow})
+    repositories/       requetes SQLAlchemy (accounts, analytics/common)
+    domain/             calculs purs (transactions)
+    integrations/       appels externes (a peupler)
+    core/               transverse (config, errors, security, logging, login_rate_limit, totp) et
+                        metier herite : finance, currency, recurring, salary, market_data, etf_analyzer, seeds*
     db/                 session SQLAlchemy, system_settings (get_setting/set_setting)
     models/             modeles ORM
     schemas/            schemas Pydantic
   data/                 SQLite dev
   scripts/              backup, backup_scheduler, restore, seed_demo, backfill
-  tests/                pytest backend (85 tests)
+  tests/                pytest backend (~745 tests, ~1 min 30)
 frontend/
   src/
     components/         layout, ui (shadcn), dashboard (+ tabs/), investments, settings, classement, import, audit, tools, analytics
@@ -52,6 +56,21 @@ infra/
   docker-compose.yml (dev)
 docker-compose.prod.yml, Makefile, setup.sh, install.sh
 ```
+
+## Couches backend
+
+Architecture en couches, migrée progressivement (plan : `docs/superpowers/plans/2026-10-28-architecture-en-couches.md`, conception : `docs/superpowers/specs/2026-10-28-architecture-en-couches-design.md`). Domaine modèle : `accounts` (`api/accounts.py` → `services/accounts.py` → `repositories/accounts.py`).
+
+| Couche | Rôle | N'importe pas |
+|---|---|---|
+| `api/` | Controllers : HTTP, `Depends`, `Query`, appel d'un service. Ni `db.query` ni `commit` (cible ; routers non migrés en cours). | un autre module `api.*` (sauf `api.deps` et son propre package) |
+| `services/` | Cas d'usage : orchestration, **commit**, erreurs métier (`NotFoundError`, `BusinessRuleError`, `ConflictError`, `InternalError` de `core/errors.py`, traduites en HTTP par `main.py` avec le même corps qu'`api_error`). | `app.api`, `fastapi` |
+| `repositories/` | Requêtes SQLAlchemy (`repositories/analytics/common.py` : `NET_AMOUNT`, `income_criterion`, `category_lines`…). Jamais de `commit` (`flush` permis). | `app.api`, `app.services`, `app.integrations`, `fastapi` |
+| `domain/` | Calculs purs, sans Session (`domain/transactions.py` : `net_amount`, `tx_sample`, `tx_read`). | `app.api`, `app.services`, `app.repositories`, `app.integrations`, `app.db`, `sqlalchemy.orm`, `fastapi` |
+| `integrations/` | Appels externes (Frankfurter, Yahoo, ntfy/Telegram…), à peupler. | `app.api`, `app.services`, `app.repositories` |
+| `core/` | Transverse (config, sécurité, logs, erreurs, rate limit, TOTP) et, pendant la migration, métier hérité. | `app.api` |
+
+Garde-fous (cliquet, les baselines ne font que diminuer) : `backend/tests/test_architecture.py` + `architecture_baseline.txt` (règles ci-dessus, imports locaux compris, imports vers un module `app.*` introuvable, `commit()` dans `repositories/`) ; `scripts/check_code_size.py` + `scripts/code_size_baseline.json` (plafonds 400 lignes par fichier Python, 80 par fonction, 350 par fichier TS/TSX hors `components/ui`), lancé par `make check-size` / `make validate` et par pytest.
 
 ## Backend
 
@@ -70,7 +89,7 @@ docker-compose.prod.yml, Makefile, setup.sh, install.sh
 - `auth.py`: login OAuth2 password et génération JWT ; `POST /auth/refresh` (renouvellement glissant d'un jeton de session valide, durée totale bornée par `SESSION_MAX_HOURS` via le claim `auth_time`, refusé aux jetons MCP) ; `GET /auth/whoami` (validation des identifiants, utilisé par le serveur MCP).
 - `passkeys.py`: connexion WebAuthn (Face ID / Touch ID) en plus du mot de passe. `GET /auth/passkey/available` (public), `POST /auth/passkey/login/{options,verify}` (public, même limiteur de tentatives que le mot de passe), `GET/DELETE /auth/passkey` et `POST /auth/passkey/register/{options,verify}` (session interactive). Credentials en JSON dans `system_settings` (`webauthn_credentials`), défi dans un JWT signé de 5 min ; l'en-tête `Origin` doit figurer dans `CORS_ORIGINS` ou avoir le nom d'hôte de la requête (Host / X-Forwarded-Host) ; le RP ID en est le nom d'hôte.
 - `totp.py` : double authentification TOTP (RFC 6238, Google Authenticator), exigée **uniquement après le mot de passe** (la passkey reste un facteur suffisant). Si elle est active, `POST /auth/token` renvoie `{mfa_required, mfa_token, token_type: "mfa"}` (JWT 5 min `purpose=totp`, sans `sub`, invalidé par un changement de mot de passe) au lieu d'une session ; `POST /auth/totp/login` (public, limiteur dédié) l'échange avec un code ou un code de secours contre la session. `GET /auth/totp/status`, `POST /auth/totp/{setup (mot de passe), enable (premier code), disable (mot de passe + code), recovery-codes (code)}` (session interactive). Stockage `system_settings` : `totp_secret`, `totp_pending_secret`, `totp_last_step` (anti-rejeu), `totp_recovery_codes` (10 empreintes SHA-256, usage unique). Calcul dans `core/totp.py`, QR code SVG via `segno`.
-- `accounts.py`: CRUD comptes, suppression logique par `active=False`. Le solde d'un compte `credit` vaut −capital restant dû.
+- `accounts.py`: CRUD comptes, suppression logique par `active=False` (logique dans `services/accounts.py`, requêtes dans `repositories/accounts.py`). Solde affiché : `services/accounts.py::account_balance` (dernier relevé ou dernier `running_balance`, le plus récent des deux) ; un compte `credit` vaut −capital restant dû.
 - `loans.py`: crédits (`/loans`). Un crédit = un compte `credit` + une ligne `loans`, créés et supprimés ensemble. Échéancier, capital restant dû et simulation de remboursement anticipé calculés par `core/loans.py` (fonctions pures).
 - `categories.py`: CRUD catégories avec limites mensuelles/annuelles.
 - `transactions.py`: CRUD transactions, recherche marchands, bulk update, suppression groupée (`POST /transactions/bulk-delete`, une seule transaction SQL puis un recalcul par compte), recalcul soldes.
@@ -78,7 +97,7 @@ docker-compose.prod.yml, Makefile, setup.sh, install.sh
 - `balance_snapshots.py`: snapshots de valeur et définition de point zéro.
 - `imports.py`: preview/commit CSV Numbers.
 - `exports.py`: export CSV compatible Numbers.
-- `analytics/` (package, prefixe `/analytics`): `metrics` (tags, depenses par categorie, top marchands, kpi-history, timeseries, calendar), `budget` (budget, budget-alerts, resilience), `investments` (investissements, performance, allocations, patrimoine, simulation), `reports` (cashflow-projection, monthly-report, money-flow, sankey), `subscriptions`, `insights`, `audit` (audit + Centre d'Actions `/actions`), `diversity` (scanner de diversification), `dividends` (dividendes en EUR : totaux, par mois / année / titre, rendements), `portfolio` (valeur calculée, plus-values, XIRR/TWR, rapprochement), `utils` (dont `income_criterion`, définition unique du revenu). Valeur d'un compte / patrimoine : `core/wealth.py`.
+- `analytics/` (package, prefixe `/analytics`): `metrics` (tags, depenses par categorie, top marchands, kpi-history, timeseries, calendar), `budget` (budget, budget-alerts, resilience : calculs dans `services/analytics/budget.py`), `investments` (investissements, performance, allocations, patrimoine, simulation), `reports` (cashflow-projection via `services/analytics/cashflow.py`, monthly-report, money-flow, sankey), `subscriptions`, `insights`, `audit` (audit + Centre d'Actions `/actions`, calculé par `services/audit.py::compute_action_center`), `diversity` (scanner de diversification), `dividends` (dividendes en EUR : totaux, par mois / année / titre, rendements), `portfolio` (valeur calculée, plus-values, XIRR/TWR, rapprochement) ; requêtes partagées dans `repositories/analytics/common.py` (dont `income_criterion`, définition unique du revenu). Valeur d'un compte / patrimoine : `core/wealth.py`.
 - `holdings.py`: positions titres (`portfolio_holdings`, lecture seule hors métadonnées), inventaire Point Zéro (`POST /holdings/baseline` avec `date` optionnelle ; `POST`/`PUT`/`DELETE /holdings` éditent une ligne d'inventaire), suggestions depuis les notes. Chaque position porte `price_date` / `price_stale`.
 - `market.py`: recherche, validation et cotation de titres (Yahoo Finance).
 - `etf_profiles.py`: profils ETF (pays/secteurs/top holdings). Composition récupérée sur Yahoo Finance (`quoteSummary`, module `topHoldings` : secteurs + top 10, jamais les pays) : `POST /etf-profiles/auto-decompose` (création), `POST /etf-profiles/{id}/refresh` (502 si Yahoo injoignable), `POST /etf-profiles/refresh-held` (tous les profils détenus). La tâche de fond actualise les profils détenus au plus une fois par semaine.
@@ -172,10 +191,10 @@ Un point zéro sert de base de performance pour un compte.
 - `categorization_rules`: règles d'auto-catégorisation locale basées sur des patterns de commerçants (`id`, `pattern`, `category_id`, `transaction_type`, `merchant_name`, `priority`).
 - `recurring_transactions`: définitions d'abonnements/charges fixes récurrentes (`id`, `account_id`, `name`, `type`, `amount`, `currency`, `category_id`, `frequency`, `day_of_month`, `start_date`, `end_date`, `excluded_months`, `last_generated_date`, `is_active`, `auto_generate`, `note`, `transfer_to_account_id`, `transfer_credit_day`, `asset_class`, `sector`, `geographic_zone`, `ticker`, `isin`, `quantity`, `unit_price`, `whole_shares`, `etf_profile_id`).
 - `transfer_rules`: règles de virement interne (`source_account_id`, `dest_account_id`, `pattern` sur marchand/note de la sortie, `amount`, `amount_tolerance_pct`, `day_tolerance`, `is_active`). Moteur : `core/transfers.py`.
-- `reimbursement_claims` (créance : `transaction_id` → Sortie, `debtor`, `expected_amount`, `note`) et `reimbursement_allocations` (`claim_id`, `entree_transaction_id`, `amount`, unique par couple). Moteur : `core/reimbursements.py` ; les KPI utilisent `NET_AMOUNT = amount − reimbursement_offset` (`api/analytics/utils.py`).
+- `reimbursement_claims` (créance : `transaction_id` → Sortie, `debtor`, `expected_amount`, `note`) et `reimbursement_allocations` (`claim_id`, `entree_transaction_id`, `amount`, unique par couple). Moteur : `core/reimbursements.py` ; les KPI utilisent `NET_AMOUNT = amount − reimbursement_offset` (`repositories/analytics/common.py`).
 - `month_closures` (revue de fin de mois : `year` + `month` uniques ensemble, `closed_at`, `highlight`, photo `tx_count` / `income` / `expenses` / `unresolved_count`, plus `fingerprint` : totaux entrées/sorties par devise de compte en JSON, sans conversion). Marqueur non bloquant ; « modifié depuis la clôture » = `tx_count` ou `fingerprint` différents du recalcul (comparaison exacte, insensible aux taux de change). Logique : `core/month_review.py`, route : `api/month_review.py`.
 - `tags`: tags transversaux personnalisés (`id`, `name`, `color`, `archived`).
-- `transaction_splits`: découpage d'une `Sortie` hors virement entre catégories (`transaction_id` CASCADE, `category_id`, `amount`, `note`) ; somme des parts = montant, aucune part Investissement/Epargne ni catégorie `revenu`, la transaction prend la catégorie de la plus grosse part. Logique : `core/splits.py`. Seules les répartitions par catégorie lisent les parts via `api/analytics/utils.py::category_lines` (`expenses-by-category`, `budget-alerts`, `sankey`, `money-flow` variable, provisions, filtre `category_id` de `/transactions`) ; totaux, soldes et dépenses réelles inchangés. Changer type/montant d'une transaction découpée → 400 ; changer sa catégorie, la recatégoriser en masse ou la lier en virement annule le découpage.
+- `transaction_splits`: découpage d'une `Sortie` hors virement entre catégories (`transaction_id` CASCADE, `category_id`, `amount`, `note`) ; somme des parts = montant, aucune part Investissement/Epargne ni catégorie `revenu`, la transaction prend la catégorie de la plus grosse part. Logique : `core/splits.py`. Seules les répartitions par catégorie lisent les parts via `repositories/analytics/common.py::category_lines` (`expenses-by-category`, `budget-alerts`, `sankey`, `money-flow` variable, provisions, filtre `category_id` de `/transactions`) ; totaux, soldes et dépenses réelles inchangés. Changer type/montant d'une transaction découpée → 400 ; changer sa catégorie, la recatégoriser en masse ou la lier en virement annule le découpage.
 - `loans`: paramètres d'un crédit (`account_id` unique CASCADE vers un compte `credit`, `kind` = `immobilier|auto|consommation|etudiant|autre`, `principal`, `annual_rate_pct`, `duration_months`, `start_date` = date de la 1re échéance, `insurance_monthly`). Mensualité constante hors assurance, échéance n à `start_date + (n−1) mois`, arrondi au centime par ligne, dernière ligne soldant le reste.
 - `loan_prepayments`: remboursements anticipés effectués (`loan_id` CASCADE, `date`, `amount`, `mode` = `reduce_duration` garde la mensualité, `reduce_payment` la recalcule sur la durée restante), appliqués après la dernière échéance de date ≤ `date`.
 - `financial_events`: journal des décisions (`date`, `title` ≤ 200, `note` ≤ 1000, `account_id` facultatif SET NULL). Note de contexte sans effet sur les calculs, affichée comme repère ⚑ (dans son mois civil) avec les faits marquants des clôtures sur la courbe « Flux de trésorerie » de l'onglet Historique du Dashboard, et gérée par la carte `components/dashboard/DecisionJournal`.
@@ -219,7 +238,7 @@ Un point zéro sert de base de performance pour un compte.
 - `PUT /transactions/{id}/splits` (`{items:[{category_id, amount, note}]}`, liste vide = annuler) ; `GET /transactions` accepte aussi `uncategorized`, `merchant_name` (nom canonique exact), `period=true` (month/year = mois de paie) et `budget_scope=true` (courant/épargne hors tickets restaurant) : filtres du panneau de drill-down des graphiques
 - `/merchants` (+ aliases, `auto-normalize`, `suggestions/unnormalized`)
 - `/holdings`, `/etf-profiles`, `/market` (search, validate, quote)
-- `/tax` (`GET /tax/overview`, `GET`/`PATCH /tax/settings`, `GET /tax/annual-report?year=`) : calculs dans `api/analytics/tax.py`, règles chiffrées par année dans `core/tax_rules.py` (valeurs à vérifier), calculs purs dans `core/tax.py` ; `overview.suggestions` = comptes actifs sans enveloppe dont le nom en évoque une (`core/tax.py::guess_tax_wrapper`), proposés sur la page sans rien enregistrer d'office ; `overview.allocation_advice` = ordre de remplissage conseillé (`core/tax.py::allocation_advice`, règle fixe : épargne de précaution < 6 mois de dépenses (`compute_resilience`) → premier livret avec de la place parmi LEP, Livret A, LDDS, Livret Jeune ; PEA avec de la place ou à ouvrir ; PER si TMI ≥ 30 % ; assurance-vie à ouvrir sinon CTO), `overview.precaution_months` ; plafonds LDDS 12 000 € et LEP 10 000 € (rappel de la condition de revenus, non vérifiée)
+- `/tax` (`GET /tax/overview`, `GET`/`PATCH /tax/settings`, `GET /tax/annual-report?year=`) : calculs dans `services/tax.py`, règles chiffrées par année dans `core/tax_rules.py` (valeurs à vérifier), calculs purs dans `core/tax.py` ; `overview.suggestions` = comptes actifs sans enveloppe dont le nom en évoque une (`core/tax.py::guess_tax_wrapper`), proposés sur la page sans rien enregistrer d'office ; `overview.allocation_advice` = ordre de remplissage conseillé (`core/tax.py::allocation_advice`, règle fixe : épargne de précaution < 6 mois de dépenses (`compute_resilience`) → premier livret avec de la place parmi LEP, Livret A, LDDS, Livret Jeune ; PEA avec de la place ou à ouvrir ; PER si TMI ≥ 30 % ; assurance-vie à ouvrir sinon CTO), `overview.precaution_months` ; plafonds LDDS 12 000 € et LEP 10 000 € (rappel de la condition de revenus, non vérifiée)
 - `/salary` (config, months, telecommuting, summary, generate, work-time : taux horaire net pour le prix en heures de travail, réglages `work_days_per_year` / `work_hours_per_day` dans `system_settings`)
 - `/admin` (profile, mcp-tokens, reset-database) — interdit aux tokens MCP
 

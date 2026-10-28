@@ -79,7 +79,7 @@ Au démarrage de l'application (événement `lifespan` configuré dans [backend/
 
 ### Règles Métier Majeures
 
-- **Calcul du Solde Cumulé (Running Balance)** : Contrairement à d'autres architectures, le solde cumulé à un instant T (`running_balance`) est stocké directement sur chaque transaction financière. Lors de l'ajout, modification ou suppression d'une transaction, le backend recalcule récursivement et chronologiquement les soldes cumulés du compte concerné via `recalculate_running_balances` ([backend/app/api/transactions.py](file:///Users/hugogalley/DEV/numera/backend/app/api/transactions.py), appelée aussi par l'import CSV et la génération de salaire) afin de garantir l'intégrité absolue des graphiques temporels.
+- **Calcul du Solde Cumulé (Running Balance)** : Contrairement à d'autres architectures, le solde cumulé à un instant T (`running_balance`) est stocké directement sur chaque transaction financière. Lors de l'ajout, modification ou suppression d'une transaction, le backend recalcule récursivement et chronologiquement les soldes cumulés du compte concerné via `recalculate_running_balances` (`backend/app/services/balances.py`, appelée aussi par l'import CSV et la génération de salaire) afin de garantir l'intégrité absolue des graphiques temporels.
 - **Gestion Multidevises** :
   - L'application supporte nativement les transactions en devises étrangères (USD, GBP, CHF, etc.).
   - Le taux de change de référence est l'**EUR**. Les conversions s'effectuent via l'API publique Frankfurter.

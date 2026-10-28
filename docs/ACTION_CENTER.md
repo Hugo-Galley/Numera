@@ -67,7 +67,7 @@ L'endpoint `/actions` effectue plusieurs scans de la base de données.
 ### Ajout d'une nouvelle action
 Pour ajouter un nouveau type d'action :
 1.  Choisissez un `action_type` (chaîne libre dans `ActionItem`, schéma `insight.py` : `link`, `modal_categorize`, `modal_rule`, `modal_snapshot`, `modal_merchant`).
-2.  Implémentez la détection dans `get_action_center` (`backend/app/api/analytics/audit.py`). Les actions écartées sont filtrées via `dismissed_insights` (`POST /analytics/actions/dismiss`).
+2.  Implémentez la détection dans `compute_action_center` (`backend/app/services/audit.py` ; la route `/analytics/actions` de `api/analytics/audit.py` ne fait que l'appeler). Les actions écartées sont filtrées via `dismissed_insights` (`POST /analytics/actions/dismiss`).
 3.  Si une modale spécifique est requise, ajoutez-la dans `Audit.tsx` et gérez le `action_type`.
 
 ### Actions « dividendes » (`type: investments`)
