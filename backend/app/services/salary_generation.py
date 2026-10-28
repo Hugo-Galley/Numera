@@ -78,6 +78,7 @@ def generate_salary_transactions(
 
     # Recalculate balances for salary account only
     recalculate_running_balances(db, config.salary_account_id)
+    db.commit()
 
     logger.info(f"Generated salary transaction for {month_label}")
     return True

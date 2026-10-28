@@ -308,6 +308,7 @@ async def generate_recurring_transactions(db: Session) -> int:
     if run.generated > 0:
         for acc_id in run.accounts:
             recalculate_running_balances(db, acc_id)
+        db.commit()
         await auto_link_transfers(db)
         logger.info(f"Generated {run.generated} recurring transactions")
     return run.generated

@@ -248,6 +248,7 @@ async def commit_import(db: Session, account_id: int, read_content: Callable[[],
     if run.imported > 0:
         logger.info(f"Recalculating running balances for account_id={account_id}")
         recalculate_running_balances(db, account_id)
+        db.commit()
         await auto_link_transfers(db)
 
     logger.info(

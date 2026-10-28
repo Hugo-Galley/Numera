@@ -5,7 +5,7 @@ from app.models.transaction import Transaction
 
 
 def recalculate_running_balances(db: Session, account_id: int):
-    """Recalculate running balances for all transactions of an account in chronological order."""
+    """Recalcule les soldes courants du compte par ordre chronologique. Ne commit pas : l'appelant porte la transaction."""
     transactions = (
         db.query(Transaction)
         .filter(Transaction.account_id == account_id)
@@ -17,5 +17,4 @@ def recalculate_running_balances(db: Session, account_id: int):
     for tx in transactions:
         current_balance = apply_transaction_to_balance(current_balance, tx.type, tx.amount)
         tx.running_balance = current_balance
-    
-    db.commit()
+    db.flush()

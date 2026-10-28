@@ -82,6 +82,7 @@ async def create_transaction(db: Session, payload: TransactionCreate) -> Transac
     db.commit()
 
     recalculate_running_balances(db, payload.account_id)
+    db.commit()
     await auto_link_transfers(db)
     db.refresh(transaction)
     return transaction
@@ -129,6 +130,7 @@ async def bulk_update_transactions(db: Session, payload: TransactionBulkUpdate) 
     db.commit()
     for account_id in affected_account_ids:
         recalculate_running_balances(db, account_id)
+    db.commit()
 
 
 def _delete(db: Session, transactions: list[Transaction]) -> None:
@@ -154,6 +156,7 @@ def bulk_delete_transactions(db: Session, payload: TransactionBulkDelete) -> Tra
     _delete(db, transactions)
     for account_id in affected_account_ids:
         recalculate_running_balances(db, account_id)
+    db.commit()
     return TransactionBulkDeleteResult(deleted=len(transactions))
 
 
@@ -162,6 +165,7 @@ def delete_transaction(db: Session, transaction_id: int) -> None:
     account_id = transaction.account_id
     _delete(db, [transaction])
     recalculate_running_balances(db, account_id)
+    db.commit()
 
 
 def update_transaction_splits(db: Session, transaction_id: int, payload: TransactionSplitsUpdate) -> Transaction:
@@ -223,6 +227,7 @@ async def update_transaction(db: Session, transaction_id: int, payload: Transact
 
     db.commit()
     recalculate_running_balances(db, transaction.account_id)
+    db.commit()
     await auto_link_transfers(db)
     db.refresh(transaction)
     return transaction

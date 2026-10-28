@@ -165,6 +165,7 @@ def set_telecommuting_days(db: Session, year: int, month: int, data: Telecommuti
     db.commit()
     if tx_salary:
         recalculate_running_balances(db, tx_salary.account_id)
+        db.commit()
     return {"status": "ok"}
 
 
@@ -231,4 +232,5 @@ def reset_generation(db: Session, year: int, month: int) -> dict:
         recalculate_running_balances(db, config.salary_account_id)
     if config.ticket_account_id and config.ticket_account_id != config.salary_account_id:
         recalculate_running_balances(db, config.ticket_account_id)
+    db.commit()
     return {"status": "ok"}

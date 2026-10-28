@@ -31,6 +31,7 @@ async def create_transfer_counterpart(db: Session, transaction_id: int, payload:
     db.commit()
     if kind == "regular":
         recalculate_running_balances(db, dest.id)
+        db.commit()
     return TransferCounterpartRead(id=leg.id, type=kind)
 
 
