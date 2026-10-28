@@ -18,7 +18,7 @@ from app.schemas.insight import (
 from app.models.investment_transaction import InvestmentTransaction
 from app.models.transaction import Transaction
 from app.core.logging import get_logger
-from app.core.month_review import exceptional_expenses, month_bounds, savings_basis, without_exceptional
+from app.services.month_review import exceptional_expenses, month_bounds, savings_basis, without_exceptional
 from app.services.analytics.budget import compute_budget
 from app.services.analytics.cashflow import compute_cashflow_projection
 from .insights import get_intelligent_insights

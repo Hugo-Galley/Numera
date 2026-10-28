@@ -86,7 +86,7 @@ Agrège : audit d'intégrité (`/analytics/audit`, issues avec `id` stable : `un
 
 ## Vérification et rapprochement de compte
 
-`accounts.last_verified_at` est mis à jour par `POST /accounts/{id}/verify` (« Rien n'a bougé » de `AccountVerificationBanner`) ou par `POST /accounts/{id}/reconcile` quand le solde saisi par l'utilisateur égale (± 0,01) le `running_balance` de fin de journée. Sinon le rapprochement (`core/reconciliation.py`, lecture seule, 60 jours avant la date) propose des pistes : doublon (même libellé, sens et montant à ≤ 3 j), ligne dont le montant égale l'écart, ligne dont l'inversion de sens comble l'écart, sinon transaction manquante. Rien n'est corrigé automatiquement.
+`accounts.last_verified_at` est mis à jour par `POST /accounts/{id}/verify` (« Rien n'a bougé » de `AccountVerificationBanner`) ou par `POST /accounts/{id}/reconcile` quand le solde saisi par l'utilisateur égale (± 0,01) le `running_balance` de fin de journée. Sinon le rapprochement (`services/reconciliation.py`, lecture seule, 60 jours avant la date) propose des pistes : doublon (même libellé, sens et montant à ≤ 3 j), ligne dont le montant égale l'écart, ligne dont l'inversion de sens comble l'écart, sinon transaction manquante. Rien n'est corrigé automatiquement.
 
 ## Hausses de prix des abonnements
 
@@ -115,7 +115,7 @@ Table `financial_events` (`/financial-events`) : notes datées sans effet sur au
 - L'étape « catégoriser » est bornée au mois (le Centre d'Actions `/analytics/actions` est global : ne pas le réutiliser tel quel).
 
 ## Taux d'épargne et résilience
-`savings` (rapport mensuel, revue de mois) = `core/month_review.py::savings_basis` = revenus − dépenses réelles en vue globale : même numérateur que `taux_epargne`. Résilience (`budget.py::compute_resilience`, `GET /analytics/resilience`) = épargne liquide ÷ dépenses réelles moyennes des 6 derniers mois **complets** (jamais le mois en cours) ; le « fonds de sécurité » du score de santé (vue globale) l'utilise.
+`savings` (rapport mensuel, revue de mois) = `services/month_review.py::savings_basis` = revenus − dépenses réelles en vue globale : même numérateur que `taux_epargne`. Résilience (`services/analytics/budget.py::compute_resilience`, `GET /analytics/resilience`) = épargne liquide ÷ dépenses réelles moyennes des 6 derniers mois **complets** (jamais le mois en cours) ; le « fonds de sécurité » du score de santé (vue globale) l'utilise.
 
 ## « Investi du mois » (budget)
 `investissements_du_mois` (vue globale) = sorties catégorisées `Investissement`/`Epargne` non virement **+ versements liés à un virement interne** (`utils.budget_versement_ids`). Un versement sans virement lié (rapatriement d'un contrat, solde initial, intéressement) n'est pas de l'argent prélevé sur les revenus : il est exclu, y compris de la catégorie virtuelle « Investissement » (`expenses-by-category`, `budget-alerts`). `depenses_reelles` ne retranche que les sorties catégorisées, jamais les versements (absents de `depenses`). Vue par compte inchangée (les versements y sont les flux du compte).

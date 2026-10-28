@@ -11,6 +11,7 @@ from datetime import date, datetime, timedelta
 from sqlalchemy.orm import Session
 
 from app.models.transaction import Transaction
+from app.repositories import reconciliation as repo
 
 # Écart toléré (arrondis) et fenêtre de recherche des causes avant la date du relevé
 TOLERANCE = 0.01
@@ -41,12 +42,7 @@ def _close(a: float, b: float) -> bool:
 def balance_at(db: Session, account_id: int, day: date) -> float:
     """Solde de Numera à la fin du jour `day` (dernier `running_balance` connu, 0 sans transaction)."""
     end = datetime.combine(day + timedelta(days=1), datetime.min.time())
-    last = (
-        db.query(Transaction)
-        .filter(Transaction.account_id == account_id, Transaction.date < end)
-        .order_by(Transaction.date.desc(), Transaction.id.desc())
-        .first()
-    )
+    last = repo.last_before(db, account_id, end)
     return round(float(last.running_balance), 2) if last else 0.0
 
 
@@ -63,42 +59,26 @@ def _fmt(amount: float, currency: str) -> str:
     return f"{abs(amount):,.2f} {currency}".replace(",", " ").replace(".", ",")
 
 
-def reconcile(db: Session, account_id: int, day: date, bank_balance: float, currency: str) -> Reconciliation:
-    numera = balance_at(db, account_id, day)
-    gap = round(bank_balance - numera, 2)
-    if _close(gap, 0):
-        return Reconciliation(numera_balance=numera, gap=0.0, matches=True, hints=[])
-
-    end = datetime.combine(day + timedelta(days=1), datetime.min.time())
-    start = end - timedelta(days=WINDOW_DAYS + 1)
-    window = (
-        db.query(Transaction)
-        .filter(
-            Transaction.account_id == account_id,
-            Transaction.date >= start,
-            Transaction.date < end,
-            Transaction.type != "Solde Initial",
-        )
-        .order_by(Transaction.date.desc(), Transaction.id.desc())
-        .all()
+def _is_duplicate(tx: Transaction, other: Transaction) -> bool:
+    return (
+        other.type == tx.type
+        and _close(float(other.amount), float(tx.amount))
+        and (other.merchant or "").strip().lower() == (tx.merchant or "").strip().lower()
+        and abs((tx.date - other.date).days) <= DUPLICATE_MAX_DAYS
     )
-    hints: list[Hint] = []
 
-    # 1. Doublons probables : même sens, montant et libellé à quelques jours d'écart. Retirer
-    #    le doublon change le solde de -effet ; il n'explique l'écart que si le sens correspond.
-    seen: set[int] = set()
+
+def _duplicate_hints(window: list[Transaction], gap: float, currency: str, seen: set[int]) -> list[Hint]:
+    """Doublons probables : même sens, montant et libellé à quelques jours d'écart. Retirer le doublon
+    change le solde de -effet ; il n'explique l'écart que si le sens correspond."""
+    hints: list[Hint] = []
     for i, tx in enumerate(window):
         if tx.id in seen or tx.is_duplicate_ignored:
             continue
         for other in window[i + 1:]:
             if other.id in seen or other.is_duplicate_ignored:
                 continue
-            if (
-                other.type == tx.type
-                and _close(float(other.amount), float(tx.amount))
-                and (other.merchant or "").strip().lower() == (tx.merchant or "").strip().lower()
-                and abs((tx.date - other.date).days) <= DUPLICATE_MAX_DAYS
-            ):
+            if _is_duplicate(tx, other):
                 effect = _signed_effect(tx)
                 explains = _close(-effect, gap)
                 if explains or (effect != 0 and (-effect) * gap > 0):
@@ -112,13 +92,16 @@ def reconcile(db: Session, account_id: int, day: date, bank_balance: float, curr
                         transactions=[tx, other],
                     ))
                 break
+    return hints
 
-    # 2. Une ligne dont le montant égale l'écart : en trop chez Numera (ou pas encore passée à la banque)
+
+def _single_line_hints(window: list[Transaction], gap: float, currency: str, seen: set[int]) -> list[Hint]:
+    """Une ligne dont le montant égale l'écart (en trop, ou pas encore passée à la banque), puis une ligne
+    saisie dans le mauvais sens (elle décale le solde de deux fois son montant)."""
+    hints: list[Hint] = []
     for tx in window:
-        if tx.id in seen:
-            continue
         effect = _signed_effect(tx)
-        if effect and _close(-effect, gap):
+        if tx.id not in seen and effect and _close(-effect, gap):
             seen.add(tx.id)
             hints.append(Hint(
                 kind="extra_or_missing",
@@ -128,13 +111,9 @@ def reconcile(db: Session, account_id: int, day: date, bank_balance: float, curr
                 ),
                 transactions=[tx],
             ))
-
-    # 3. Sens inversé : une Sortie saisie en Entrée (ou l'inverse) décale le solde de deux fois son montant
     for tx in window:
-        if tx.id in seen:
-            continue
         effect = _signed_effect(tx)
-        if effect and _close(-2 * effect, gap):
+        if tx.id not in seen and effect and _close(-2 * effect, gap):
             seen.add(tx.id)
             hints.append(Hint(
                 kind="wrong_sign",
@@ -144,16 +123,30 @@ def reconcile(db: Session, account_id: int, day: date, bank_balance: float, curr
                 ),
                 transactions=[tx],
             ))
+    return hints
 
-    # 4. Repli : sans piste, l'écart est probablement une transaction absente de Numera
-    if not hints:
-        kind_label = "une entrée" if gap > 0 else "une dépense"
-        hints.append(Hint(
-            kind="missing",
-            message=(
-                f"Aucune ligne n'explique l'écart : il manque probablement {kind_label} de "
-                f"{_fmt(gap, currency)} (ou plusieurs) avant le {day.strftime('%d/%m/%Y')}."
-            ),
-        ))
 
-    return Reconciliation(numera_balance=numera, gap=gap, matches=False, hints=hints)
+def _missing_hint(gap: float, currency: str, day: date) -> Hint:
+    """Repli : sans piste, l'écart est probablement une transaction absente de Numera."""
+    kind_label = "une entrée" if gap > 0 else "une dépense"
+    return Hint(
+        kind="missing",
+        message=(
+            f"Aucune ligne n'explique l'écart : il manque probablement {kind_label} de "
+            f"{_fmt(gap, currency)} (ou plusieurs) avant le {day.strftime('%d/%m/%Y')}."
+        ),
+    )
+
+
+def reconcile(db: Session, account_id: int, day: date, bank_balance: float, currency: str) -> Reconciliation:
+    numera = balance_at(db, account_id, day)
+    gap = round(bank_balance - numera, 2)
+    if _close(gap, 0):
+        return Reconciliation(numera_balance=numera, gap=0.0, matches=True, hints=[])
+
+    end = datetime.combine(day + timedelta(days=1), datetime.min.time())
+    window = repo.window(db, account_id, end - timedelta(days=WINDOW_DAYS + 1), end)
+    seen: set[int] = set()
+    hints = _duplicate_hints(window, gap, currency, seen)
+    hints += _single_line_hints(window, gap, currency, seen)
+    return Reconciliation(numera_balance=numera, gap=gap, matches=False, hints=hints or [_missing_hint(gap, currency, day)])

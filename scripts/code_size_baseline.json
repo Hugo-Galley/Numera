@@ -35,7 +35,6 @@
   "backend/app/core/market_data.py::search_market_assets": 86,
   "backend/app/core/portfolio.py": 670,
   "backend/app/core/portfolio.py::compute_portfolio": 395,
-  "backend/app/core/reconciliation.py::reconcile": 94,
   "backend/app/core/seeds_etf.py": 445,
   "backend/app/core/subscription_prices.py::detect_price_changes": 85,
   "backend/app/services/analytics/budget.py": 703,

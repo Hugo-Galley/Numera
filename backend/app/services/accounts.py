@@ -2,7 +2,7 @@ from datetime import date
 
 from sqlalchemy.orm import Session
 
-from app.core import reconciliation
+from app.services import reconciliation
 from app.core.errors import NotFoundError
 from app.services.loans import loan_remaining
 from app.core.time import utcnow_naive
