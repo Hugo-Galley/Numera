@@ -87,7 +87,7 @@ def test_deferred_transfer_credits_later_once_arrival_day_passes(db_session: Ses
 
 
 def test_deleted_deferred_credit_is_not_created_again(db_session: Session):
-    from app.core.transfers import release_partner
+    from app.services.transfers import release_partner
 
     main, livret = accounts(db_session)
     deferred_rule(db_session, main, livret)
@@ -106,7 +106,7 @@ def test_deleted_deferred_credit_is_not_created_again(db_session: Session):
 
 
 def test_deferred_credit_skipped_when_linked_meanwhile(db_session: Session):
-    from app.core.transfers import link_pair
+    from app.services.transfers import link_pair
 
     main, livret = accounts(db_session)
     rd = deferred_rule(db_session, main, livret)

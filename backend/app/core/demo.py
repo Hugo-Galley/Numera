@@ -18,7 +18,7 @@ from app.core.finance import month_label_from_date
 from app.core.holdings import rebuild_holdings
 from app.core.logging import get_logger
 from app.core.seeds import seed_all
-from app.core.transfers import link_pair
+from app.services.transfers import link_pair
 from app.db.base import Base
 from app.models.account import Account
 from app.models.balance_snapshot import BalanceSnapshot

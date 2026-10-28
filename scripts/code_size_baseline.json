@@ -48,8 +48,6 @@
   "backend/app/core/recurring.py::generate_recurring_transactions": 188,
   "backend/app/core/seeds_etf.py": 445,
   "backend/app/core/subscription_prices.py::detect_price_changes": 85,
-  "backend/app/core/transfers.py": 401,
-  "backend/app/core/transfers.py::find_pairs": 115,
   "backend/app/services/analytics/budget.py": 703,
   "backend/app/services/analytics/budget.py::compute_budget": 506,
   "backend/app/services/analytics/budget.py::compute_budget_alerts": 133,

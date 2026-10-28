@@ -10,7 +10,7 @@ from app.core.finance import get_recurring_occurrences, month_label_from_date
 from app.core.currency import CurrencyConversionError, convert_amount
 from app.core import market_data
 from app.core.holdings import rebuild_holdings
-from app.core.transfers import auto_link_transfers, create_counterpart
+from app.services.transfers import auto_link_transfers, create_counterpart
 from app.core.logging import get_logger
 
 logger = get_logger(__name__)

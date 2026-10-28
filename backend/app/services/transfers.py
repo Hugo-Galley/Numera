@@ -3,8 +3,6 @@
 Un virement est un couple 1 pour 1 : une `Sortie` et une `Entree` (ou un `versement` d'investissement)
 sur deux comptes différents. Un lien ne modifie aucun montant.
 """
-from collections import defaultdict
-from dataclasses import dataclass
 from datetime import datetime, timedelta
 
 from sqlalchemy.orm import Session
@@ -12,12 +10,12 @@ from sqlalchemy.orm import Session
 from app.core import currency as currency_module
 from app.core.finance import month_label_from_date
 from app.core.logging import get_logger
-from app.core.reimbursements import locked_transaction_ids
 from app.core.time import utcnow_naive
+from app.domain.transfers import Leg, Pair, match_pairs, matches_pattern
 from app.models.account import Account
 from app.models.investment_transaction import InvestmentTransaction
 from app.models.transaction import Transaction
-from app.models.transfer_rule import TransferRule
+from app.repositories import transfers as repo
 
 logger = get_logger(__name__)
 
@@ -25,26 +23,15 @@ logger = get_logger(__name__)
 AUTO_ORIGINS = ("rule", "recurring")
 EVENT_MONTHS = 3  # fenêtre des rapprochements déclenchés par un événement (import, saisie…)
 
-Leg = Transaction | InvestmentTransaction
+async def _eur_converter(accounts: dict[int, Account]):
+    """Convertisseur montant -> EUR selon la devise du compte (taux courants)."""
+    rates = await currency_module.get_exchange_rates("EUR")
 
+    def to_eur(value: float, account_id: int) -> float:
+        currency = accounts[account_id].currency if account_id in accounts else "EUR"
+        return value / rates.get(currency, 1.0)
 
-@dataclass
-class Pair:
-    sortie: Transaction
-    entree: Leg
-    kind: str  # "regular" | "investment"
-    day_gap: int
-    amount_gap_pct: float
-    ambiguous: bool = False
-    rule_id: int | None = None
-
-    @property
-    def key(self) -> tuple[int, float]:
-        return (self.day_gap, self.amount_gap_pct)
-
-    @property
-    def entree_key(self) -> tuple[str, int]:
-        return (self.kind, self.entree.id)
+    return to_eur
 
 
 def _clear(leg: Leg, ignore: bool) -> None:
@@ -115,13 +102,6 @@ def link_pair(db: Session, sortie: Transaction, other: Leg, kind: str, origin: s
         leg.transfer_rule_id = rule_id
 
 
-def _matches_pattern(tx: Transaction, pattern: str | None) -> bool:
-    if not pattern:
-        return True
-    needle = pattern.lower()
-    return needle in (tx.merchant or "").lower() or needle in (tx.note or "").lower()
-
-
 async def find_pairs(
     db: Session,
     *,
@@ -140,115 +120,35 @@ async def find_pairs(
     proche d'abord : une entrée ne sert jamais deux sorties. Quand plusieurs arêtes ont exactement
     le même écart, elles sont toutes renvoyées avec `ambiguous=True` (à confirmer à la main).
     """
-    accounts = {a.id: a for a in db.query(Account).all()}
-    rates = await currency_module.get_exchange_rates("EUR")
+    accounts = repo.accounts_by_id(db)
+    to_eur = await _eur_converter(accounts)
+    since = utcnow_naive() - timedelta(days=30 * months) if months else None
 
-    def to_eur(value: float, account_id: int) -> float:
-        currency = accounts[account_id].currency if account_id in accounts else "EUR"
-        return value / rates.get(currency, 1.0)
-
-    since = None
-    if months:
-        since = utcnow_naive() - timedelta(days=30 * months)
-
-    sorties_q = db.query(Transaction).filter(
-        Transaction.type == "Sortie",
-        Transaction.is_transfer.is_(False),
-        Transaction.is_transfer_ignored.is_(False),
-        Transaction.linked_transaction_id.is_(None),
-        Transaction.linked_investment_transaction_id.is_(None),
-        Transaction.id.notin_(locked_transaction_ids()),
-    )
-    if source_account_id is not None:
-        sorties_q = sorties_q.filter(Transaction.account_id == source_account_id)
-    if since:
-        sorties_q = sorties_q.filter(Transaction.date >= since)
-    sorties = [s for s in sorties_q.all() if _matches_pattern(s, pattern)]
+    sorties = [s for s in repo.unlinked_sorties(db, source_account_id, since) if matches_pattern(s, pattern)]
     if amount is not None:
         sorties = [s for s in sorties if abs(s.amount - amount) / max(abs(amount), 1.0) * 100.0 <= amount_tolerance_pct]
 
     dest = accounts.get(dest_account_id) if dest_account_id is not None else None
-    want_regular = dest is None or dest.type != "investissement"
-    want_investment = dest is None or dest.type == "investissement"
     date_floor = since - timedelta(days=day_tolerance) if since else None
+    entrees: list[tuple[str, Leg]] = []
+    if dest is None or dest.type != "investissement":
+        entrees += [("regular", e) for e in repo.unlinked_entrees(db, dest_account_id, date_floor)]
+    if dest is None or dest.type == "investissement":
+        entrees += [("investment", e) for e in repo.unlinked_versements(db, dest_account_id, date_floor)]
 
-    buckets: dict[int, list[tuple[str, Leg]]] = defaultdict(list)
-    if want_regular:
-        q = db.query(Transaction).filter(
-            Transaction.type == "Entree",
-            Transaction.is_transfer.is_(False),
-            Transaction.is_transfer_ignored.is_(False),
-            Transaction.linked_transaction_id.is_(None),
-            Transaction.id.notin_(locked_transaction_ids()),
-        )
-        if dest_account_id is not None:
-            q = q.filter(Transaction.account_id == dest_account_id)
-        if date_floor:
-            q = q.filter(Transaction.date >= date_floor)
-        for e in q.all():
-            buckets[e.date.toordinal()].append(("regular", e))
-    if want_investment:
-        q = db.query(InvestmentTransaction).filter(
-            InvestmentTransaction.type == "versement",
-            InvestmentTransaction.is_transfer.is_(False),
-            InvestmentTransaction.is_transfer_ignored.is_(False),
-            InvestmentTransaction.linked_transaction_id.is_(None),
-        )
-        if dest_account_id is not None:
-            q = q.filter(InvestmentTransaction.account_id == dest_account_id)
-        if date_floor:
-            q = q.filter(InvestmentTransaction.date >= date_floor)
-        for e in q.all():
-            buckets[e.date.toordinal()].append(("investment", e))
-
-    edges: list[Pair] = []
-    for s in sorties:
-        s_eur = to_eur(s.amount, s.account_id)
-        base = s.date.toordinal()
-        for delta in range(-day_tolerance, day_tolerance + 1):
-            for kind, e in buckets.get(base + delta, []):
-                if e.account_id == s.account_id:
-                    continue
-                gap = abs(to_eur(e.amount, e.account_id) - s_eur) / max(s_eur, 1.0) * 100.0
-                if gap <= amount_tolerance_pct:
-                    edges.append(Pair(s, e, kind, abs(delta), gap, rule_id=rule_id))
-
-    edges.sort(key=lambda p: (p.day_gap, p.amount_gap_pct, p.sortie.id, p.entree.id))
-    by_sortie: dict[int, list[Pair]] = defaultdict(list)
-    by_entree: dict[tuple[str, int], list[Pair]] = defaultdict(list)
-    for p in edges:
-        by_sortie[p.sortie.id].append(p)
-        by_entree[p.entree_key].append(p)
-
-    used_s: set[int] = set()
-    used_e: set[tuple[str, int]] = set()
-    result: list[Pair] = []
-    for p in edges:
-        if p.sortie.id in used_s or p.entree_key in used_e:
-            continue
-        rivals = [
-            q for q in by_sortie[p.sortie.id] + by_entree[p.entree_key]
-            if q is not p and q.key == p.key and q.sortie.id not in used_s and q.entree_key not in used_e
-        ]
-        group = [p, *rivals]
-        for q in group:
-            q.ambiguous = bool(rivals)
-            used_s.add(q.sortie.id)
-            used_e.add(q.entree_key)
-            result.append(q)
-    return result
+    return match_pairs(
+        sorties, entrees, to_eur,
+        day_tolerance=day_tolerance, amount_tolerance_pct=amount_tolerance_pct, rule_id=rule_id,
+    )
 
 
 async def apply_rules(
     db: Session, *, rule_ids: list[int] | None = None, dry_run: bool = False, months: int | None = None
 ) -> list[Pair]:
     """Lie automatiquement les couples sans ambiguïté trouvés par les règles actives."""
-    q = db.query(TransferRule).filter(TransferRule.is_active.is_(True))
-    if rule_ids:
-        q = q.filter(TransferRule.id.in_(rule_ids))
     linked: list[Pair] = []
     seen_sorties: set[int] = set()
-    for rule in q.order_by(TransferRule.id).all():
+    for rule in repo.active_rules(db, rule_ids):
         pairs = await find_pairs(
             db,
             source_account_id=rule.source_account_id,
@@ -348,15 +248,9 @@ async def candidates_for(
     Chaque candidate porte `sortie_id` / `other_id` / `type`, directement utilisables avec
     `POST /transactions/{sortie_id}/link/{other_id}?type=`.
     """
-    accounts = {a.id: a for a in db.query(Account).all()}
-    rates = await currency_module.get_exchange_rates("EUR")
-
-    def to_eur(value: float, acc_id: int) -> float:
-        currency = accounts[acc_id].currency if acc_id in accounts else "EUR"
-        return value / rates.get(currency, 1.0)
-
+    to_eur = await _eur_converter(repo.accounts_by_id(db))
     reference = to_eur(tx.amount, tx.account_id)
-    if db.query(Transaction.id).filter(Transaction.id == tx.id, Transaction.id.in_(locked_transaction_ids())).first():
+    if repo.is_locked(db, tx.id):
         return []
     low = tx.date - timedelta(days=days)
     high = tx.date + timedelta(days=days, hours=23, minutes=59)
@@ -369,15 +263,7 @@ async def candidates_for(
     else:
         return []
     for model, type_, kind in wanted:
-        q = db.query(model).filter(
-            model.type == type_, model.is_transfer.is_(False),
-            model.account_id != tx.account_id, model.date >= low, model.date <= high,
-        )
-        if account_id is not None:
-            q = q.filter(model.account_id == account_id)
-        if model is Transaction:
-            q = q.filter(Transaction.id.notin_(locked_transaction_ids()))
-        rows.extend((kind, leg) for leg in q.all())
+        rows.extend((kind, leg) for leg in repo.legs_near(db, model, type_, tx.account_id, low, high, account_id))
 
     out = []
     for kind, leg in rows:
