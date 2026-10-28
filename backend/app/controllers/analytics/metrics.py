@@ -46,7 +46,7 @@ from app.models.balance_snapshot import BalanceSnapshot
 from app.models.investment_transaction import InvestmentTransaction
 from app.models.transaction import Transaction
 from app.models.recurring_transaction import RecurringTransaction
-from app.core.finance import get_recurring_occurrences
+from app.domain.finance import get_recurring_occurrences
 from app.core.logging import get_logger
 from app.schemas.transaction import TransactionRead
 
@@ -807,7 +807,7 @@ async def calendar_analytics(
             from app.models.salary_config import SalaryConfig
             from app.models.salary_month import SalaryMonth
             from app.models.telecommuting_day import TelecommutingDay
-            from app.core.finance import month_label_from_date
+            from app.domain.finance import month_label_from_date
             
             salary_config = db.query(SalaryConfig).filter(
                 (SalaryConfig.salary_recurring_id == rd.id) | 

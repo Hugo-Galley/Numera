@@ -5,7 +5,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
 from app.core import budget_period
-from app.core.finance import month_label_from_date
+from app.domain.finance import month_label_from_date
 from app.models.account import Account
 from app.models.category import Category
 from app.models.salary_config import SalaryConfig

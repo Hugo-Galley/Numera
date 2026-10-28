@@ -5,7 +5,7 @@ from app.core.errors import InvalidOperationError
 from sqlalchemy.orm import Session
 
 from app.services import reimbursements as remb
-from app.core.finance import month_label_from_date
+from app.domain.finance import month_label_from_date
 from app.models.account import Account
 from app.models.transaction import Transaction
 

@@ -6,7 +6,7 @@ from datetime import datetime, date, timedelta
 from app.models.account import Account
 from app.models.category import Category
 from app.models.transaction import Transaction
-from app.core.finance import month_label_from_date
+from app.domain.finance import month_label_from_date
 
 def test_bulk_update_transactions(client: TestClient, db_session: Session):
     # Setup: Account, Category, Transactions

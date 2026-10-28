@@ -131,7 +131,7 @@ def test_account_history_beyond_default_limit_is_reachable_page_by_page(client: 
 def test_drilldown_filters_match_analytics_scope(client, db_session):
     from datetime import datetime as dt
 
-    from app.core.finance import month_label_from_date
+    from app.domain.finance import month_label_from_date
     from app.models.account import Account
     from app.models.merchant import Merchant
     from app.models.transaction import Transaction

@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from app.core import currency as currency_module
 from app.core.errors import BusinessRuleError, NotFoundError
-from app.core.finance import month_label_from_date, normalize_transaction_type
+from app.domain.finance import month_label_from_date, normalize_transaction_type
 from app.core.time import utcnow_naive
 from app.models.account import Account
 from app.models.transaction import Transaction

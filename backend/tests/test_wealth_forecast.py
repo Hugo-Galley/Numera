@@ -61,7 +61,7 @@ def test_forecast_extra_monthly_adds_gain(client, db_session):
 
 
 def test_forecast_uses_average_savings_of_completed_months(client, db_session):
-    from app.core.finance import month_label_from_date
+    from app.domain.finance import month_label_from_date
     from app.models.transaction import Transaction
 
     acc = Account(name="Courant", type="courant", currency="EUR", active=True)
@@ -101,7 +101,7 @@ def test_forecast_overrides_and_breakdown(client, db_session):
 
 def test_forecast_ignores_leading_months_without_expenses(client, db_session):
     """Les mois avant le début du suivi (seulement des intérêts) ne tirent pas la moyenne vers zéro."""
-    from app.core.finance import month_label_from_date
+    from app.domain.finance import month_label_from_date
     from app.models.transaction import Transaction
 
     acc = Account(name="Courant", type="courant", currency="EUR", active=True)

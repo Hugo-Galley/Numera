@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from app.models.account import Account
 from app.models.transaction import Transaction
 from app.models.recurring_transaction import RecurringTransaction
-from app.core.finance import month_label_from_date
+from app.domain.finance import month_label_from_date
 
 def test_cashflow_projection(client: TestClient, db_session: Session):
     # Setup: Account with balance

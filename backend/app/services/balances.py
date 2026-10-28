@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 
-from app.core.finance import apply_transaction_to_balance
+from app.domain.finance import apply_transaction_to_balance
 from app.models.transaction import Transaction
 
 

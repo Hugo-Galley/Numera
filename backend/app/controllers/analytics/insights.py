@@ -44,7 +44,7 @@ from app.models.balance_snapshot import BalanceSnapshot
 from app.models.investment_transaction import InvestmentTransaction
 from app.models.transaction import Transaction
 from app.models.recurring_transaction import RecurringTransaction
-from app.core.finance import get_recurring_occurrences
+from app.domain.finance import get_recurring_occurrences
 from app.core.logging import get_logger
 from app.schemas.transaction import TransactionRead
 from app.services.analytics.budget import compute_budget, compute_budget_alerts, compute_resilience

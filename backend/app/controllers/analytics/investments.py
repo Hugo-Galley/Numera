@@ -52,7 +52,7 @@ from app.models.balance_snapshot import BalanceSnapshot
 from app.models.investment_transaction import InvestmentTransaction
 from app.models.transaction import Transaction
 from app.models.recurring_transaction import RecurringTransaction
-from app.core.finance import get_recurring_occurrences
+from app.domain.finance import get_recurring_occurrences
 from app.core.holdings import replay_account
 from app.core.portfolio import compute_portfolio, only_transfer_legs, positions_values_eur, uses_positions
 from app.core.wealth import account_values, active_accounts

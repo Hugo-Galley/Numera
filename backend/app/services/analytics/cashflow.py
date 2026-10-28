@@ -8,7 +8,7 @@ from app.models.account import Account
 from app.schemas.insight import CashflowProjection, ProjectionPoint, ProjectionEvent
 from app.models.transaction import Transaction
 from app.models.recurring_transaction import RecurringTransaction
-from app.core.finance import get_recurring_occurrences, is_lapsed
+from app.domain.finance import get_recurring_occurrences, is_lapsed
 from app.core.logging import get_logger
 from app.repositories.analytics.common import ticket_restaurant_account_ids
 from app.core.errors import NotFoundError
@@ -88,7 +88,7 @@ async def compute_cashflow_projection(db: Session, days: int = 30, account_id: i
             from app.models.salary_config import SalaryConfig
             from app.models.salary_month import SalaryMonth
             from app.models.telecommuting_day import TelecommutingDay
-            from app.core.finance import month_label_from_date
+            from app.domain.finance import month_label_from_date
             
             salary_config = db.query(SalaryConfig).filter(
                 (SalaryConfig.salary_recurring_id == rd.id) | 

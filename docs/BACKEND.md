@@ -74,7 +74,7 @@ Au démarrage de l'application (événement `lifespan` configuré dans [backend/
 1. **Migrations automatiques** : Si `APP_ENV` n'est pas configuré sur `test`, Alembic est exécuté automatiquement via `run_migrations()` dans [backend/app/core/migrations.py](file:///Users/hugogalley/DEV/numera/backend/app/core/migrations.py) pour mettre à jour la structure de la base de données.
 2. **Peuplement par défaut (Seeding)** : Les catégories fondamentales et les profils ETF système sont insérés s'ils sont absents via `seed_all()` dans [backend/app/core/seeds.py](file:///Users/hugogalley/DEV/numera/backend/app/core/seeds.py).
 3. **Tâche récurrente asynchrone** : Une boucle asynchrone permanente (`recurring_transactions_task`) est lancée en tâche de fond. Elle s'exécute toutes les heures pour :
-   - Générer automatiquement les instances de transactions récurrentes (abonnements, charges fixes) définies par l'utilisateur ([backend/app/core/recurring.py](file:///Users/hugogalley/DEV/numera/backend/app/core/recurring.py)).
+   - Générer automatiquement les instances de transactions récurrentes (abonnements, charges fixes) définies par l'utilisateur (`backend/app/services/recurring.py`).
    - Vérifier et générer les transactions liées aux salaires configurés et jours de télétravail déclarés ([backend/app/core/salary.py](file:///Users/hugogalley/DEV/numera/backend/app/core/salary.py)).
 
 ### Règles Métier Majeures

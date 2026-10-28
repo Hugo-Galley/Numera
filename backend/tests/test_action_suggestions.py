@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 
-from app.core.finance import month_label_from_date
+from app.domain.finance import month_label_from_date
 from app.models.account import Account
 from app.models.category import Category
 from app.models.recurring_transaction import RecurringTransaction

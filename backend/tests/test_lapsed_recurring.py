@@ -1,7 +1,7 @@
 """Récurrences actives mais plus prélevées, échéance annuelle et virements internes dans la projection."""
 from datetime import datetime, timedelta
 
-from app.core.finance import is_lapsed, month_label_from_date
+from app.domain.finance import is_lapsed, month_label_from_date
 from app.models.account import Account
 from app.models.category import Category
 from app.models.recurring_transaction import RecurringTransaction

@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field, field_validator
 from typing import Optional
 
-from app.core.finance import normalize_transaction_type
+from app.domain.finance import normalize_transaction_type
 
 
 def _check_pattern(value: Optional[str]) -> Optional[str]:

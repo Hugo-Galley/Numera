@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 
 from sqlalchemy.orm import Session
 
-from app.core.recurring import generate_recurring_transactions, transfer_credit_date
+from app.services.recurring import generate_recurring_transactions, transfer_credit_date
 from app.models.account import Account
 from app.models.investment_transaction import InvestmentTransaction
 from app.models.recurring_transaction import RecurringTransaction

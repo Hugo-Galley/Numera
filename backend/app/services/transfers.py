@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 
 from app.core import currency as currency_module
-from app.core.finance import month_label_from_date
+from app.domain.finance import month_label_from_date
 from app.core.logging import get_logger
 from app.core.time import utcnow_naive
 from app.domain.transfers import Leg, Pair, match_pairs, matches_pattern

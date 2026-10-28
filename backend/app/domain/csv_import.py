@@ -11,7 +11,7 @@ from dataclasses import dataclass
 from datetime import datetime
 
 from app.core.errors import BusinessRuleError
-from app.core.finance import normalize_transaction_type
+from app.domain.finance import normalize_transaction_type
 from app.schemas.types import MAX_AMOUNT
 
 REQUIRED_COLUMNS = ["Date", "Mois", "Type", "Commercant", "Categorie", "Montant", "Solde Compte", "Note"]

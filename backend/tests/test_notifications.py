@@ -244,7 +244,7 @@ def test_real_action_center_runs(db_session, channel):
 
 def test_digest_body_sections_all_computed(db_session, monkeypatch):
     """Les sections du résumé avalent leurs erreurs : vérifier qu'aucune n'est sautée."""
-    from app.core.finance import month_label_from_date
+    from app.domain.finance import month_label_from_date
     from app.models.account import Account
     from app.models.transaction import Transaction
 

@@ -12,7 +12,7 @@ from dataclasses import dataclass, field
 from sqlalchemy.orm import Session
 
 from app.core.errors import BusinessRuleError, NotFoundError
-from app.core.finance import apply_transaction_to_balance, month_label_from_date
+from app.domain.finance import apply_transaction_to_balance, month_label_from_date
 from app.core.logging import get_logger
 from app.domain.csv_import import (
     ImportRowError, ParsedRow, apply_import_rules, duplicate_key, is_blank, parse_csv, parse_row,

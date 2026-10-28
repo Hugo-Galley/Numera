@@ -2,7 +2,7 @@
 from datetime import datetime
 from unittest.mock import MagicMock
 
-from app.core.finance import get_recurring_occurrences
+from app.domain.finance import get_recurring_occurrences
 
 
 def _rule(**kwargs):

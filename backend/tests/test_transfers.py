@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.models.account import Account
 from app.models.transaction import Transaction
-from app.core.finance import month_label_from_date
+from app.domain.finance import month_label_from_date
 
 def test_transfer_detection_and_linking(client: TestClient, db_session: Session):
     # 1. Create two accounts
