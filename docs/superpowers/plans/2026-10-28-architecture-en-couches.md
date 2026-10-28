@@ -275,7 +275,7 @@ def test_layers_match_baseline():
 5. Docs dans le même commit.
 
 ### Phase 2 — Domaines d'écriture
-Plan détaillé : `docs/superpowers/plans/2026-10-28-phase-2-domaines-ecriture.md` (17 tâches). Périmètre : routers d'écriture côté budget et administration, et les modules `core/` qui leur appartiennent (`transfers`, `loans`, `provisions`, `reimbursements`, `splits`, `recurring`, `finance`, `salary`, `work_time`, `month_review`, `reconciliation`, `demo`, `seeds`, `notifications`, `currency`, `logos`, `backup`). Le passage de `recalculate_running_balances` en `flush` y est traité (tâche 14). Les domaines d'écriture côté investissement sont reportés en phase 4.
+Plan détaillé : `docs/superpowers/plans/2026-10-28-phase-2-domaines-ecriture.md` (18 tâches). Tâche 1 : le dossier `api/` devient `controllers/` (demande de l'utilisateur). Périmètre : routers d'écriture côté budget et administration, et les modules `core/` qui leur appartiennent (`transfers`, `loans`, `provisions`, `reimbursements`, `splits`, `recurring`, `finance`, `salary`, `work_time`, `month_review`, `reconciliation`, `demo`, `seeds`, `notifications`, `currency`, `logos`, `backup`). Le passage de `recalculate_running_balances` en `flush` y est traité (tâche 15). Les domaines d'écriture côté investissement sont reportés en phase 4.
 
 ### Phase 3 — Analytics
 `services/analytics/` + `repositories/analytics/` + `domain/` ; plus aucune fonction > 80 lignes.

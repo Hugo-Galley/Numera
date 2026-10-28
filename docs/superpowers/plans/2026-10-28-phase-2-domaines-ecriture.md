@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Migrer les routers d'écriture côté budget (référentiels, transactions, import, récurrences, salaire, revue de mois, administration) vers `api → services → repositories / domain / integrations`, vider `core/` du métier qui leur appartient, et faire repasser tous ces fichiers et fonctions sous les plafonds.
+**Goal:** Renommer `api/` en `controllers/`, puis migrer les routers d'écriture côté budget (référentiels, transactions, import, récurrences, salaire, revue de mois, administration) vers `controllers → services → repositories / domain / integrations`, vider `core/` du métier qui leur appartient, et faire repasser tous ces fichiers et fonctions sous les plafonds.
 
-**Architecture:** Même recette que `accounts` (phase 1) appliquée domaine par domaine, du plus simple au plus risqué. Les modules `core/` liés à un domaine sont déplacés (`git mv`) dans la tâche de ce domaine. La frontière de transaction de `recalculate_running_balances` (commit → flush) ne bouge qu'à la tâche 14, une fois tous ses appelants devenus des services.
+**Architecture:** Même recette que `accounts` (phase 1) appliquée domaine par domaine, du plus simple au plus risqué. Les modules `core/` liés à un domaine sont déplacés (`git mv`) dans la tâche de ce domaine. La frontière de transaction de `recalculate_running_balances` (commit → flush) ne bouge qu'à la tâche 15, une fois tous ses appelants devenus des services.
 
 **Tech Stack:** FastAPI, SQLAlchemy 2, Pydantic v2, pytest (Python 3.11).
 
@@ -27,42 +27,63 @@ Ruling (plan maître) : les domaines d'écriture côté investissement passent e
 - Plafonds : fichier Python 400 lignes, fonction 80 lignes. **En fin de tâche, toute entrée des deux baselines appartenant aux fichiers de la tâche a disparu** (la cible n'est plus « ne pas grossir » mais « sous le plafond »). Seule exception : un module `core/` déplacé à l'identique dans une tâche qui ne le découpe pas renomme sa clé de baseline sans changer la valeur.
 - `tests/architecture_baseline.txt` reste **vide**.
 - Code déplacé : supprimé de l'ancien emplacement, sans ré-export ; tous les importeurs mis à jour (absolus, relatifs, imports locaux, tests). Module `core/` déplacé : `git mv` puis édition, pour garder l'historique.
-- **Patchs de test** : quand une fonction qui appelle un nom remplacé par un test (`monkeypatch.setattr(<module>, "<nom>", …)`) change de module, le test patche le nouveau module. Après la tâche 1, un patch devenu sans effet se voit : le réseau réel est bloqué.
+- **Patchs de test** : quand une fonction qui appelle un nom remplacé par un test (`monkeypatch.setattr(<module>, "<nom>", …)`) change de module, le test patche le nouveau module. Après la tâche 2, un patch devenu sans effet se voit : le réseau réel est bloqué.
 
 ### Correspondance des erreurs (routers → services)
 
 | Aujourd'hui | Dans un service |
 |---|---|
 | `HTTPException(404)` / `api_error(404, code, …)` | `NotFoundError(detail[, code, context])` |
-| 400 | `InvalidOperationError` (nouvelle, tâche 1) |
+| 400 | `InvalidOperationError` (nouvelle, tâche 2) |
 | 409 | `ConflictError` |
 | 422 | `BusinessRuleError` |
 | 500 | `InternalError` |
-| 502 | `ExternalServiceError` (nouvelle, tâche 1) |
-| 504 | `ExternalTimeoutError` (nouvelle, tâche 1) |
-| 401, 403, 413, 429 | **restent dans `api/`** (authentification, taille d'upload, limiteur : préoccupations HTTP) |
+| 502 | `ExternalServiceError` (nouvelle, tâche 2) |
+| 504 | `ExternalTimeoutError` (nouvelle, tâche 2) |
+| 401, 403, 413, 429 | **restent dans `controllers/`** (authentification, taille d'upload, limiteur : préoccupations HTTP) |
 
 Un `api_error(status, code, detail, context)` devient la classe correspondante avec `code=` et `context=` : corps identique.
 
-### Recette d'un router (s'applique aux tâches 2 à 13 et 15)
+### Recette d'un router (s'applique aux tâches 3 à 14 et 16)
 
 1. **Repository** `app/repositories/<domaine>.py` : une fonction par requête (`get(db, id)`, `list_…(db, …)`, `add(db, obj)` = `db.add` + `flush`, `delete(db, obj)`, requêtes nommées par leur intention). Jamais de `commit`.
 2. **Service** `app/services/<domaine>.py` : une fonction par route, **même nom que la fonction de route**, signature `(db: Session, <paramètres de la route hors db>)`, typée ; elle valide, appelle les repositories, `commit`, et renvoie le même objet que la route renvoyait. Helpers privés de router (`_check_…`, `_read`, `_get`) : dans le service.
 3. **Router** : chaque route = sa signature + `return service.<nom>(db, …)` (ou `await`). Aucun import de `app.models`, aucun `db.query` / `commit`. Les en-têtes et codes HTTP (`status_code=201/204`, `Retry-After`, lecture d'`UploadFile`) restent dans le router.
 4. **Tests de service** dans `backend/tests/test_<domaine>_service.py` (fixture `db_session`, sans HTTP) : au minimum les tests nommés dans la tâche, plus un test par erreur métier du domaine (`pytest.raises(<Classe>)`, message identique).
-5. Vérifier : `grep -nE "db\.(query|add|commit|delete|get)|from app\.models" backend/app/api/<domaine>.py` → aucun résultat ; suite complète verte ; `make check-size` vert ; entrées de baseline du domaine retirées ; docs (`ARCHITECTURE.md` § Modules API, `backend/CLAUDE.md`, skills) mises à jour si un emplacement cité change.
+5. Vérifier : `grep -nE "db\.(query|add|commit|delete|get)|from app\.models" backend/app/controllers/<domaine>.py` → aucun résultat ; suite complète verte ; `make check-size` vert ; entrées de baseline du domaine retirées ; docs (`ARCHITECTURE.md` § Modules API, `backend/CLAUDE.md`, skills) mises à jour si un emplacement cité change.
 
 ## Review Focus
 
-- **Patch devenu sans effet** : un test qui remplace `get_market_quotes`, `get_exchange_rates` ou `get_historical_rate` dans l'ancien module laisse le code déplacé appeler le vrai service. La tâche 1 bloque le réseau en test pour que ce cas échoue bruyamment, au lieu de passer ou d'échouer au hasard selon la connexion.
-- **Import CSV idempotent** (règle métier 4) : le découpage de `commit_import` (201 lignes) ne doit changer ni la détection de doublons `(account_id, date, amount, merchant, type)`, ni le solde de départ, ni l'appel final à `recalculate_running_balances`. Test de caractérisation dans la tâche 9, avant découpage.
-- **Frontière de transaction** : à la tâche 14, `recalculate_running_balances` cesse de commiter ; un appelant qui oubliait de commiter après perdrait les soldes. Chaque appelant est listé dans la tâche 14, avec un test qui relit les soldes dans une **nouvelle** session.
-- **Salaire idempotent** (règle métier 6) : regénérer un mois déjà généré ne crée pas de deuxième « Salaire ». Test dans la tâche 12, avant découpage de `reset_generation` et `set_telecommuting_days`.
-- **Suppressions en cascade manuelles** : `delete_category` remet à `NULL` six références avant de supprimer ; le déplacement vers le repository doit les garder toutes. Test dans la tâche 2.
+- **Patch devenu sans effet** : un test qui remplace `get_market_quotes`, `get_exchange_rates` ou `get_historical_rate` dans l'ancien module laisse le code déplacé appeler le vrai service. La tâche 2 bloque le réseau en test pour que ce cas échoue bruyamment, au lieu de passer ou d'échouer au hasard selon la connexion.
+- **Import CSV idempotent** (règle métier 4) : le découpage de `commit_import` (201 lignes) ne doit changer ni la détection de doublons `(account_id, date, amount, merchant, type)`, ni le solde de départ, ni l'appel final à `recalculate_running_balances`. Test de caractérisation dans la tâche 10, avant découpage.
+- **Frontière de transaction** : à la tâche 15, `recalculate_running_balances` cesse de commiter ; un appelant qui oubliait de commiter après perdrait les soldes. Chaque appelant est listé dans la tâche 15, avec un test qui relit les soldes dans une **nouvelle** session.
+- **Salaire idempotent** (règle métier 6) : regénérer un mois déjà généré ne crée pas de deuxième « Salaire ». Test dans la tâche 13, avant découpage de `reset_generation` et `set_telecommuting_days`.
+- **Suppressions en cascade manuelles** : `delete_category` remet à `NULL` six références avant de supprimer ; le déplacement vers le repository doit les garder toutes. Test dans la tâche 3.
 
 ---
 
-### Task 1 : Garde-fous de la phase 2
+### Task 1 : Renommer `api/` en `controllers/`
+
+Demande de l'utilisateur (transmise par la session « Architecture refactoring avec clean archi ») : le dossier des routers porte le nom de sa couche. Fait en premier, pour que toutes les migrations suivantes écrivent directement dans `controllers/`.
+
+**Files:**
+- `git mv backend/app/api backend/app/controllers` (même structure interne : `controllers/accounts.py`, `controllers/analytics/…`, `controllers/deps.py` ; `backend/app/api/nodes.json` suit le déplacement, sa suppression reste un point à part). La variable `router = APIRouter(...)` ne change pas.
+- Modify : `backend/app/main.py` ; tous les imports `app.api…` (absolus, relatifs, locaux dans les fonctions) dans `backend/app` ; tests (`conftest.py` : `get_db as get_db_deps`, `get_current_user` ; imports `app.api…` ; modules patchés `holdings_api`, `dividends_api` (`test_dividends.py`), `holdings_api` (`test_business_fixes.py`), `router_mod` (`test_month_review.py`), `diversity` (`test_etf_composition.py`), `portfolio` (`test_wealth_forecast.py`), `calc_diff` (`test_import_and_analytics.py`)).
+- Modify : `backend/tests/test_architecture.py` et `architecture_baseline.txt` (toujours vide).
+- Docs : `ARCHITECTURE.md` (§ Couches backend, arborescence, § Modules API), `CLAUDE.md` racine, `backend/CLAUDE.md`, `.claude/skills/numera-backend/SKILL.md`, `.claude/skills/numera-expert/SKILL.md`, `docs/ACTION_CENTER.md`, `docs/BACKEND.md`, la spec `docs/superpowers/specs/2026-10-28-architecture-en-couches-design.md` et le plan maître (« `api/` » → « `controllers/` »).
+
+**Interfaces:**
+- Produces : package `app.controllers` (ex-`app.api`), `app.controllers.deps.get_db` / `get_current_user` / `optional_oauth2` / `require_interactive_session`, `app.controllers.analytics.router`.
+- `test_architecture.py` : chaque `app.api` devient `app.controllers` dans `FORBIDDEN` (services, repositories, domain, integrations, core, models, schemas, db) ; la règle spéciale vise `app.controllers.X`, avec les mêmes exceptions (`app.controllers.deps`, sous-modules du même package).
+- Aucun chemin HTTP ne change : préfixes `APIRouter(prefix=…)` intacts, frontend et serveur MCP inchangés.
+
+- [ ] **Step 1 : Adapter les tests d'architecture** : renommer `test_api_may_import_deps_and_own_package_only` en `test_controllers_may_import_deps_and_own_package_only` (arbre temporaire sous `app/controllers/…`, violation attendue `app/controllers/month_review.py -> app.controllers.accounts`) ; ajouter `test_services_may_not_import_controllers` (`app/services/s.py` qui importe `app.controllers.deps` → violation). Les lancer → FAIL (règles encore écrites pour `app.api`).
+- [ ] **Step 2 : Renommer** : `git mv`, puis remplacer `app.api` par `app.controllers` dans `backend/app` et `backend/tests` (imports `from app.api`, `import app.api… as …`, `from app import api` s'il existe) ; mettre `FORBIDDEN` et `_api_violation` (renommée `_controllers_violation`) à jour.
+- [ ] **Step 3 : Vérifier** — `grep -rn "app\.api\b\|app/api/" backend mcp-server infra Makefile` → aucun résultat ; `APP_ENV=test PYTHONPATH=. python3.11 -c "import app.main"` ; suite complète verte ; `make check-size` (les clés de baseline `backend/app/api/…` deviennent `backend/app/controllers/…`, valeurs inchangées : régénérer puis vérifier que seules les clés ont changé) ; `architecture_baseline.txt` vide ; chemins HTTP identiques : comparer `sorted(r.path for r in app.routes)` avant et après le renommage.
+- [ ] **Step 4 : Docs** : remplacer « `api/` » par « `controllers/` » dans les fichiers listés (hors historique des plans des phases déjà exécutées, qui reste tel quel) ; `grep -rn "app/api\|app\.api\|\bapi/" --include=*.md` ne renvoie plus que des chemins HTTP ou de l'historique.
+- [ ] **Step 5 : Commit** — `refactor: le dossier des routers devient controllers/`
+
+### Task 2 : Garde-fous de la phase 2
 
 **Files:**
 - Modify: `backend/tests/conftest.py`
@@ -81,9 +102,9 @@ Un `api_error(status, code, detail, context)` devient la classe correspondante a
 - [ ] **Step 4 : Suite complète.** Un test qui échoue avec « Réseau interdit » dépendait du réseau réel : patcher l'appel externe dans ce test (fonction factice comme les tests voisins), sans toucher au code applicatif. Ledger : une ligne par test corrigé.
 - [ ] **Step 5 : Commit** — `test: réseau bloqué en test + erreurs métier 400/502/504`
 
-### Task 2 : Catégories et tags
+### Task 3 : Catégories et tags
 
-**Files:** Create `app/repositories/{categories,tags}.py`, `app/services/{categories,tags}.py`, `tests/test_categories_service.py`, `tests/test_tags_service.py` ; Modify `app/api/{categories,tags}.py`.
+**Files:** Create `app/repositories/{categories,tags}.py`, `app/services/{categories,tags}.py`, `tests/test_categories_service.py`, `tests/test_tags_service.py` ; Modify `app/controllers/{categories,tags}.py`.
 
 **Interfaces:**
 - `services.categories` : `list_categories(db, include_archived: bool) -> list[Category]`, `create_category(db, payload: CategoryCreate) -> Category`, `update_category(db, category_id: int, payload: CategoryUpdate) -> Category`, `delete_category(db, category_id: int) -> None`.
@@ -99,9 +120,9 @@ Un `api_error(status, code, detail, context)` devient la classe correspondante a
 - [ ] **Step 4 : Vérifier** (recette, étape 5).
 - [ ] **Step 5 : Commit** — `refactor(categories, tags): router/service/repository`
 
-### Task 3 : Marchands et règles de catégorisation
+### Task 4 : Marchands et règles de catégorisation
 
-**Files:** Create `app/repositories/{merchants,categorization_rules}.py`, `app/services/{merchants,categorization_rules}.py`, `tests/test_merchants_service.py` ; Modify `app/api/{merchants,categorization_rules}.py`.
+**Files:** Create `app/repositories/{merchants,categorization_rules}.py`, `app/services/{merchants,categorization_rules}.py`, `tests/test_merchants_service.py` ; Modify `app/controllers/{merchants,categorization_rules}.py`.
 
 **Interfaces:**
 - `services.merchants` : `get_merchants(db, skip, limit, search)`, `create_merchant(db, merchant_in)`, `get_merchant(db, merchant_id)`, `update_merchant(db, merchant_id, merchant_in)`, `delete_merchant(db, merchant_id)`, `add_alias(db, merchant_id, alias_in)`, `remove_alias(db, alias_id)`, `auto_normalize_transactions(db)`, `get_unnormalized_merchant_labels(db, min_count)` ; `_link_matching_transactions` devient `link_matching_transactions(db, merchant) -> int` (public : `auto_normalize` et `create_merchant` l'utilisent).
@@ -113,9 +134,9 @@ Un `api_error(status, code, detail, context)` devient la classe correspondante a
 - [ ] **Step 4 : Vérifier.**
 - [ ] **Step 5 : Commit** — `refactor(merchants, categorization_rules): router/service/repository`
 
-### Task 4 : Virements internes (règles et moteur)
+### Task 5 : Virements internes (règles et moteur)
 
-**Files:** `git mv app/core/transfers.py app/services/transfers.py` ; Create `app/repositories/transfers.py`, `app/services/transfer_rules.py`, `app/repositories/transfer_rules.py`, `tests/test_transfer_rules_service.py` ; Modify `app/api/transfer_rules.py` et tous les importeurs de `app.core.transfers` (`api/transactions.py`, `api/imports.py`, `core/recurring.py`, tests `test_transfers.py`, `test_transfer_engine.py`, …).
+**Files:** `git mv app/core/transfers.py app/services/transfers.py` ; Create `app/repositories/transfers.py`, `app/services/transfer_rules.py`, `app/repositories/transfer_rules.py`, `tests/test_transfer_rules_service.py` ; Modify `app/controllers/transfer_rules.py` et tous les importeurs de `app.core.transfers` (`controllers/transactions.py`, `controllers/imports.py`, `core/recurring.py`, tests `test_transfers.py`, `test_transfer_engine.py`, …).
 
 **Interfaces:**
 - `services.transfers` garde ses noms publics (`auto_link_transfers`, `candidates_for`, `create_counterpart`, `find_pairs`, `link_pair`, `release_partner`, `unlink_pair`, `apply_rules`). Ses requêtes passent dans `repositories.transfers`.
@@ -128,7 +149,7 @@ Un `api_error(status, code, detail, context)` devient la classe correspondante a
 - [ ] **Step 4 : Vérifier** — entrées `core/transfers.py` et `::find_pairs` absentes de la baseline de taille.
 - [ ] **Step 5 : Commit** — `refactor(transfers): moteur et règles de virements dans services/, appariement pur dans domain/`
 
-### Task 5 : Objectifs d'épargne, relevés de solde, événements financiers
+### Task 6 : Objectifs d'épargne, relevés de solde, événements financiers
 
 **Files:** Create `app/repositories/{savings_goals,balance_snapshots,financial_events}.py`, `app/services/{savings_goals,balance_snapshots,financial_events}.py`, `tests/test_balance_snapshots_service.py` ; Modify les trois routers.
 
@@ -143,9 +164,9 @@ Un `api_error(status, code, detail, context)` devient la classe correspondante a
 - [ ] **Step 4 : Vérifier** — `savings_goals.py::list_goals` absente de la baseline.
 - [ ] **Step 5 : Commit** — `refactor(savings_goals, balance_snapshots, financial_events): router/service/repository`
 
-### Task 6 : Crédits et provisions
+### Task 7 : Crédits et provisions
 
-**Files:** `git mv app/core/loans.py app/domain/loans.py` ; `git mv app/core/provisions.py app/services/provisions.py` ; Create `app/services/loans.py`, `app/repositories/{loans,provisions}.py`, `tests/test_loans_service.py` ; Modify `app/api/{loans,provisions}.py`, `app/services/accounts.py`, `tests/test_loans_core.py`, `tests/test_provisions.py`.
+**Files:** `git mv app/core/loans.py app/domain/loans.py` ; `git mv app/core/provisions.py app/services/provisions.py` ; Create `app/services/loans.py`, `app/repositories/{loans,provisions}.py`, `tests/test_loans_service.py` ; Modify `app/controllers/{loans,provisions}.py`, `app/services/accounts.py`, `tests/test_loans_core.py`, `tests/test_provisions.py`.
 
 **Interfaces:**
 - `domain.loans` : uniquement les fonctions pures actuelles (`add_months`, `terms_of`, échéancier, simulation). `loan_remaining(db, account_id, at)` (requête) part dans `services.loans`.
@@ -159,14 +180,14 @@ Un `api_error(status, code, detail, context)` devient la classe correspondante a
 - [ ] **Step 4 : Vérifier** — `domain/loans.py` passe le test d'architecture (aucune `Session`).
 - [ ] **Step 5 : Commit** — `refactor(loans, provisions): calculs de crédit dans domain/, cas d'usage dans services/`
 
-### Task 7 : Remboursements et découpages
+### Task 8 : Remboursements et découpages
 
-**Files:** `git mv app/core/reimbursements.py app/services/reimbursements.py` ; `git mv app/core/splits.py app/services/splits.py` ; Create `app/repositories/reimbursements.py`, `tests/test_splits_service.py` ; Modify `app/api/reimbursements.py` et tous les importeurs de `app.core.reimbursements` (`remb`) et `app.core.splits`.
+**Files:** `git mv app/core/reimbursements.py app/services/reimbursements.py` ; `git mv app/core/splits.py app/services/splits.py` ; Create `app/repositories/reimbursements.py`, `tests/test_splits_service.py` ; Modify `app/controllers/reimbursements.py` et tous les importeurs de `app.core.reimbursements` (`remb`) et `app.core.splits`.
 
 **Interfaces:**
 - `services.reimbursements` et `services.splits` n'importent plus `fastapi` : 400 → `InvalidOperationError`, 404 → `NotFoundError`, messages identiques (`"Seule une dépense (hors virement interne) peut être découpée"`, `"Un découpage compte au moins deux parts"`, `"Annulez le découpage avant de changer le type de cette dépense"`, …).
 - Le helper qui levait `HTTPException(400, detail)` dans `core/reimbursements.py:28` lève `InvalidOperationError(detail)`.
-- Routes de `api/reimbursements.py` : une fonction de service par route (`list_claims`, `reimbursement_summary`, `create_claim`, `update_claim`, `delete_claim`, `claim_candidates`, `allocate`, `remove_allocation`, `entry_claims`).
+- Routes de `controllers/reimbursements.py` : une fonction de service par route (`list_claims`, `reimbursement_summary`, `create_claim`, `update_claim`, `delete_claim`, `claim_candidates`, `allocate`, `remove_allocation`, `entry_claims`).
 
 - [ ] **Step 1 : Tests** : `test_split_of_income_is_invalid_operation` ; `test_split_with_one_part_is_invalid_operation` ; `test_changing_amount_of_split_expense_is_invalid_operation` (messages exacts ci-dessus).
 - [ ] **Step 2 : Les lancer** → FAIL.
@@ -174,9 +195,9 @@ Un `api_error(status, code, detail, context)` devient la classe correspondante a
 - [ ] **Step 4 : Vérifier** — `grep -rn "fastapi" backend/app/services backend/app/core/splits.py` → aucun résultat ; suite verte (`test_transaction_splits.py`, `test_reimbursements.py`, `test_reimbursement_kpis.py`).
 - [ ] **Step 5 : Commit** — `refactor(reimbursements, splits): services sans HTTPException`
 
-### Task 8 : Transactions, lecture
+### Task 9 : Transactions, lecture
 
-**Files:** Create `app/repositories/transactions.py`, `app/services/transactions.py`, `tests/test_transactions_service.py` ; Modify `app/api/transactions.py`.
+**Files:** Create `app/repositories/transactions.py`, `app/services/transactions.py`, `tests/test_transactions_service.py` ; Modify `app/controllers/transactions.py`.
 
 **Interfaces:**
 - `repositories.transactions.filtered_query(db, filters: TransactionFilters)` : construit la requête de `list_transactions` ; `TransactionFilters` = dataclass (dans le repository) avec exactement les 17 filtres de la route (`account_id`, `category_id`, `type`, `merchant`, `month`, `year`, `min_amount`, `max_amount`, `start_date`, `end_date`, `is_transfer`, `tag_ids`, `search`, `uncategorized`, `merchant_name`, `period`, `budget_scope`).
@@ -189,9 +210,9 @@ Un `api_error(status, code, detail, context)` devient la classe correspondante a
 - [ ] **Step 4 : Vérifier** — `transactions.py::list_transactions` absente de la baseline ; suite verte (`test_filtering.py`, `test_transfers.py`).
 - [ ] **Step 5 : Commit** — `refactor(transactions): lecture et filtres dans services/repositories`
 
-### Task 9 : Import CSV
+### Task 10 : Import CSV
 
-**Files:** Create `app/domain/csv_import.py`, `app/services/imports.py`, `app/repositories/imports.py`, `tests/test_csv_import_domain.py` ; Modify `app/api/imports.py`, `tests/test_import_formats.py` (importe `_parse_amount`).
+**Files:** Create `app/domain/csv_import.py`, `app/services/imports.py`, `app/repositories/imports.py`, `tests/test_csv_import_domain.py` ; Modify `app/controllers/imports.py`, `tests/test_import_formats.py` (importe `_parse_amount`).
 
 **Interfaces:**
 - `domain.csv_import` (pur, sans `UploadFile`) : `HEADER_ALIASES`, `normalize_header(h: str) -> str`, `read_csv(text: str) -> tuple[list[str], list[dict]]` (détection `,` `;` `\t`), `canonicalize_row(row: dict) -> dict`, `parse_date(value: str) -> datetime`, `parse_amount(value: str) -> float`, `parse_row(row: dict, …) -> ParsedRow` (dataclass), `duplicate_key(account_id, date, amount, merchant, type) -> tuple`.
@@ -201,12 +222,12 @@ Un `api_error(status, code, detail, context)` devient la classe correspondante a
 - [ ] **Step 1 : Test de caractérisation, avant tout déplacement** (`test_import_and_analytics.py` couvre l'essentiel ; ajouter s'il manque) `test_reimporting_same_file_inserts_nothing` : importer deux fois le même CSV de 3 lignes via `client` → deuxième import `imported == 0`, 3 transactions en base, `running_balance` de la dernière égal au solde attendu. Le lancer : PASS.
 - [ ] **Step 2 : Tests de domaine** : `test_parse_amount_accepts_french_format` (`"1 234,56"` → `1234.56`), `test_parse_amount_accepts_negative_with_minus` (même valeur absolue que le comportement actuel : le lire dans `_parse_amount`), `test_read_csv_detects_semicolon`, `test_normalize_header_maps_aliases` (un alias réel de `HEADER_ALIASES`). Les lancer → FAIL.
 - [ ] **Step 3 : Déplacer, découper, appliquer la recette.**
-- [ ] **Step 4 : Vérifier** — `api/imports.py` et `::commit_import` absentes de la baseline ; suite verte dont le test du step 1.
+- [ ] **Step 4 : Vérifier** — `controllers/imports.py` et `::commit_import` absentes de la baseline ; suite verte dont le test du step 1.
 - [ ] **Step 5 : Commit** — `refactor(imports): analyse CSV pure dans domain/, import en étapes dans services/`
 
-### Task 10 : Transactions, écriture
+### Task 11 : Transactions, écriture
 
-**Files:** Modify `app/services/transactions.py`, `app/repositories/transactions.py`, `app/api/transactions.py`, `tests/test_transactions_service.py`.
+**Files:** Modify `app/services/transactions.py`, `app/repositories/transactions.py`, `app/controllers/transactions.py`, `tests/test_transactions_service.py`.
 
 **Interfaces:**
 - `services.transactions` (écriture) : `create_transaction(db, payload)`, `update_transaction(db, transaction_id, payload)` (85 lignes → sous 80 : `_apply_amount_change`, `_apply_transfer_change`), `delete_transaction`, `bulk_update_transactions`, `bulk_delete_transactions`, `update_transaction_splits`, `create_transfer_counterpart`, `link_transactions`, `ignore_transfer`, `ignore_duplicate`, `unlink_transaction` (toutes async si elles convertissent une devise).
@@ -215,12 +236,12 @@ Un `api_error(status, code, detail, context)` devient la classe correspondante a
 - [ ] **Step 1 : Tests** : `test_second_initial_balance_is_rejected` (`BusinessRuleError("A Solde Initial already exists for this account")`) ; `test_update_amount_recalculates_following_balances` ; `test_bulk_delete_recalculates_each_account_once` (deux comptes touchés → les soldes des deux sont justes).
 - [ ] **Step 2 : Les lancer** → FAIL.
 - [ ] **Step 3 : Recette pour les 11 routes d'écriture.**
-- [ ] **Step 4 : Vérifier** — `api/transactions.py` et `::update_transaction` absentes de la baseline ; `api/transactions.py` < 400 lignes ; suite verte (`test_transaction_*.py`, `test_business_fixes.py`).
+- [ ] **Step 4 : Vérifier** — `controllers/transactions.py` et `::update_transaction` absentes de la baseline ; `controllers/transactions.py` < 400 lignes ; suite verte (`test_transaction_*.py`, `test_business_fixes.py`).
 - [ ] **Step 5 : Commit** — `refactor(transactions): écriture dans services/`
 
-### Task 11 : Récurrences et règles financières pures
+### Task 12 : Récurrences et règles financières pures
 
-**Files:** `git mv app/core/finance.py app/domain/finance.py` ; `git mv app/core/recurring.py app/services/recurring.py` ; Create `app/services/recurring_transactions.py`, `app/repositories/recurring.py`, `tests/test_recurring_service.py` ; Modify `app/api/recurring_transactions.py`, `app/main.py` (tâche de fond), tous les importeurs de `app.core.finance` (17) et `app.core.recurring`.
+**Files:** `git mv app/core/finance.py app/domain/finance.py` ; `git mv app/core/recurring.py app/services/recurring.py` ; Create `app/services/recurring_transactions.py`, `app/repositories/recurring.py`, `tests/test_recurring_service.py` ; Modify `app/controllers/recurring_transactions.py`, `app/main.py` (tâche de fond), tous les importeurs de `app.core.finance` (17) et `app.core.recurring`.
 
 **Interfaces:**
 - `domain.finance` : fonctions pures actuelles (`apply_transaction_to_balance`, `month_label_from_date`, `normalize_transaction_type`, `is_lapsed`, `get_recurring_occurrences` découpée sous 80 lignes).
@@ -233,24 +254,24 @@ Un `api_error(status, code, detail, context)` devient la classe correspondante a
 - [ ] **Step 4 : Vérifier** — `core/recurring.py::generate_recurring_transactions` et `core/finance.py::get_recurring_occurrences` absentes de la baseline ; suite verte (`test_recurring_*.py`, `test_lapsed_recurring.py`).
 - [ ] **Step 5 : Commit** — `refactor(recurring): génération dans services/, règles financières pures dans domain/`
 
-### Task 12 : Salaire et temps de travail
+### Task 13 : Salaire et temps de travail
 
-**Files:** `git mv app/core/salary.py app/services/salary_generation.py` ; `git mv app/core/work_time.py app/domain/work_time.py` (une éventuelle requête part dans `services/salary.py`) ; Create `app/services/salary.py`, `app/repositories/salary.py`, `app/domain/salary.py`, `tests/test_salary_service.py` ; Modify `app/api/salary.py`, `app/main.py`, `tests/test_salary_*.py`, `tests/test_work_time.py`.
+**Files:** `git mv app/core/salary.py app/services/salary_generation.py` ; `git mv app/core/work_time.py app/domain/work_time.py` (une éventuelle requête part dans `services/salary.py`) ; Create `app/services/salary.py`, `app/repositories/salary.py`, `app/domain/salary.py`, `tests/test_salary_service.py` ; Modify `app/controllers/salary.py`, `app/main.py`, `tests/test_salary_*.py`, `tests/test_work_time.py`.
 
 **Interfaces:**
 - `domain.salary.salary_amount(net_salary: float, telework_days: int, ticket_employee_share: float) -> float` = `net_salary − telework_days × ticket_employee_share` (règle métier 6), utilisée par `services.salary_generation`.
 - `services.salary` : une fonction par route du router salaire (`get_salary_config`, `create_salary_config`, `update_salary_config`, `get_work_time`, `update_work_time`, `get_salary_months`, `set_salary_month_date`, `get_telecommuting_days`, `set_telecommuting_days`, `get_month_summary`, `trigger_generation`, `reset_generation`) et `sync_recurring_transactions` ; `reset_generation` (83 lignes) et `set_telecommuting_days` (75) < 80 lignes. 400 → `InvalidOperationError`, 422 → `BusinessRuleError`.
-- `api/salary.py` < 400 lignes.
+- `controllers/salary.py` < 400 lignes.
 
 - [ ] **Step 1 : Tests** : `test_regenerating_salary_month_keeps_single_salary` (générer deux fois le même mois → une seule `Entree` « Salaire » ; caractérisation, PASS attendu) ; `test_salary_amount_subtracts_telework_tickets` (`salary_amount(2500, 10, 4.5) == 2455.0`, FAIL attendu : fonction absente).
 - [ ] **Step 2 : Les lancer.**
 - [ ] **Step 3 : Déplacer, découper, appliquer la recette** ; la tâche de fond importe `services.salary_generation`.
-- [ ] **Step 4 : Vérifier** — `api/salary.py` et `::reset_generation` absentes de la baseline ; suite verte (`test_salary_*.py`, `test_telecommuting_validation.py`, `test_work_time.py`).
+- [ ] **Step 4 : Vérifier** — `controllers/salary.py` et `::reset_generation` absentes de la baseline ; suite verte (`test_salary_*.py`, `test_telecommuting_validation.py`, `test_work_time.py`).
 - [ ] **Step 5 : Commit** — `refactor(salary): router/service/repository, montant du salaire dans domain/`
 
-### Task 13 : Revue de mois et rapprochement bancaire
+### Task 14 : Revue de mois et rapprochement bancaire
 
-**Files:** `git mv app/core/month_review.py app/services/month_review.py` ; `git mv app/core/reconciliation.py app/services/reconciliation.py` ; Create `app/repositories/month_review.py` ; Modify `app/api/month_review.py`, `app/services/accounts.py`, `app/services/analytics/*` et `app/api/analytics/*` qui importent `core.month_review`, `tests/test_month_review.py` (le patch `router_mod` vise le nouveau module qui appelle `get_exchange_rates`).
+**Files:** `git mv app/core/month_review.py app/services/month_review.py` ; `git mv app/core/reconciliation.py app/services/reconciliation.py` ; Create `app/repositories/month_review.py` ; Modify `app/controllers/month_review.py`, `app/services/accounts.py`, `app/services/analytics/*` et `app/controllers/analytics/*` qui importent `core.month_review`, `tests/test_month_review.py` (le patch `router_mod` vise le nouveau module qui appelle `get_exchange_rates`).
 
 **Interfaces:**
 - `services.month_review` : contenu actuel de `core/month_review.py` + `_accounts_step`, `_build_review`, `get_month_review`, `close_month`, `reopen_month`, `list_closures` (règle métier 10 : clôturer = marquer, jamais verrouiller).
@@ -262,7 +283,7 @@ Un `api_error(status, code, detail, context)` devient la classe correspondante a
 - [ ] **Step 4 : Vérifier** — `core/reconciliation.py::reconcile` absente de la baseline ; suite verte (`test_month_review.py`, `test_mcp_month_review_tools.py`, `test_reconciliation.py`, `test_exceptional_flag.py`).
 - [ ] **Step 5 : Commit** — `refactor(month_review, reconciliation): services/`
 
-### Task 14 : Frontière de transaction des soldes
+### Task 15 : Frontière de transaction des soldes
 
 **Files:** Modify `app/services/balances.py` et chacun de ses appelants (à date : `services/transactions.py`, `services/imports.py`, `services/categorization_rules.py`, `services/salary.py`, `services/salary_generation.py`, `services/recurring.py`, `core/demo.py`, tests `test_reconciliation.py`, `test_wrapped.py`) — liste à confirmer par `grep -rn "recalculate_running_balances" backend`.
 - Test: `backend/tests/test_balances_service.py`
@@ -276,9 +297,9 @@ Un `api_error(status, code, detail, context)` devient la classe correspondante a
 - [ ] **Step 4 : Vérifier** — suite complète verte, dont tous les tests du step 1.
 - [ ] **Step 5 : Commit** — `refactor(balances): le recalcul ne commit plus, l'appelant porte la transaction`
 
-### Task 15 : Administration, export, démo, données initiales
+### Task 16 : Administration, export, démo, données initiales
 
-**Files:** `git mv app/core/demo.py app/services/demo/__init__.py` puis découpe ; `git mv app/core/seeds.py app/services/seeds.py` ; Create `app/services/{admin,exports}.py`, `app/repositories/admin.py` ; Modify `app/api/{admin,exports}.py`, `app/main.py` (`ensure_demo_data`, `is_blocked_in_demo`, `seed_all`), `tests/test_demo.py`, `tests/test_sensitive_actions.py`.
+**Files:** `git mv app/core/demo.py app/services/demo/__init__.py` puis découpe ; `git mv app/core/seeds.py app/services/seeds.py` ; Create `app/services/{admin,exports}.py`, `app/repositories/admin.py` ; Modify `app/controllers/{admin,exports}.py`, `app/main.py` (`ensure_demo_data`, `is_blocked_in_demo`, `seed_all`), `tests/test_demo.py`, `tests/test_sensitive_actions.py`.
 
 **Interfaces:**
 - `services/demo/` : `guard.py` (`is_blocked_in_demo(method, path) -> bool`, `DEMO_STAMP_KEY`), `generator.py` (`generate_demo_data(db)` et ses helpers, chaque fichier < 400 lignes, chaque fonction < 80), `__init__.py` (`ensure_demo_data`, `wipe_database`, ré-exports **internes au package** autorisés car c'est l'API publique du package).
@@ -288,12 +309,12 @@ Un `api_error(status, code, detail, context)` devient la classe correspondante a
 - [ ] **Step 1 : Tests** : `test_wrong_current_password_is_400_not_401` (service : `InvalidOperationError`) ; `test_export_neutralizes_formula_injection` (un marchand `=HYPERLINK(...)` sort préfixé, comme `_csv_safe` aujourd'hui) ; `test_demo_guard_blocks_admin_writes` (si absent de `test_demo.py`).
 - [ ] **Step 2 : Les lancer** → FAIL.
 - [ ] **Step 3 : Déplacer, découper, appliquer la recette.**
-- [ ] **Step 4 : Vérifier** — `core/demo.py`, `api/exports.py::export_transactions_csv` absentes de la baseline ; suite verte (`test_demo.py`, `test_sensitive_actions.py`, `test_security_*.py`).
+- [ ] **Step 4 : Vérifier** — `core/demo.py`, `controllers/exports.py::export_transactions_csv` absentes de la baseline ; suite verte (`test_demo.py`, `test_sensitive_actions.py`, `test_security_*.py`).
 - [ ] **Step 5 : Commit** — `refactor(admin, exports, demo): services/ et démo découpée`
 
-### Task 16 : Intégrations externes et notifications
+### Task 17 : Intégrations externes et notifications
 
-**Files:** `git mv app/core/currency.py app/integrations/currency.py` ; `git mv app/core/logos.py app/integrations/logos.py` ; `git mv app/core/backup.py app/integrations/backup.py` ; `git mv app/core/notifications.py app/services/notifications.py` puis extraire `app/integrations/notifications.py` ; Create `app/services/logos.py` si le router `logos` contient de la logique ; Modify `app/api/{notifications,logos}.py`, tous les importeurs de `app.core.currency` (24) / `logos` / `backup` / `notifications`, `app/main.py`, et les tests qui patchent `currency_mod`, `currency_module`, `logos`, `notif`.
+**Files:** `git mv app/core/currency.py app/integrations/currency.py` ; `git mv app/core/logos.py app/integrations/logos.py` ; `git mv app/core/backup.py app/integrations/backup.py` ; `git mv app/core/notifications.py app/services/notifications.py` puis extraire `app/integrations/notifications.py` ; Create `app/services/logos.py` si le router `logos` contient de la logique ; Modify `app/controllers/{notifications,logos}.py`, tous les importeurs de `app.core.currency` (24) / `logos` / `backup` / `notifications`, `app/main.py`, et les tests qui patchent `currency_mod`, `currency_module`, `logos`, `notif`.
 
 **Interfaces:**
 - `integrations.currency` : noms publics inchangés (`get_exchange_rates`, `convert_amount`, `get_historical_rate`, `CurrencyConversionError`, `_rates_cache`, `_cache_expiry`).
@@ -307,7 +328,7 @@ Un `api_error(status, code, detail, context)` devient la classe correspondante a
 - [ ] **Step 4 : Vérifier** — `grep -rn "app.core.\(currency\|logos\|backup\|notifications\)" backend` → aucun résultat ; suite verte sans « Réseau interdit » ; `integrations/` ne dépend ni de `services` ni de `repositories` (test d'architecture).
 - [ ] **Step 5 : Commit** — `refactor: Frankfurter, logos, sauvegardes et canaux de notification dans integrations/`
 
-### Task 17 : Clôture de la phase 2
+### Task 18 : Clôture de la phase 2
 
 **Files:** `ARCHITECTURE.md`, `CLAUDE.md`, `backend/CLAUDE.md`, `.claude/skills/numera-backend/SKILL.md`, `.claude/skills/numera-expert/SKILL.md`, `docs/BACKEND.md`, `docs/superpowers/plans/2026-10-28-architecture-en-couches.md`.
 
