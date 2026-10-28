@@ -240,3 +240,27 @@ def test_test_endpoint_reports_failure(client, monkeypatch):
 def test_real_action_center_runs(db_session, channel):
     """Sans substitution : le calcul réel du Centre d'Actions sur une base vide ne casse rien."""
     assert _run(db_session) == 1  # message de bienvenue, 0 action
+
+
+def test_digest_body_sections_all_computed(db_session, monkeypatch):
+    """Les sections du résumé avalent leurs erreurs : vérifier qu'aucune n'est sautée."""
+    from app.core.finance import month_label_from_date
+    from app.models.account import Account
+    from app.models.transaction import Transaction
+
+    account = Account(name="Courant", type="courant", currency="EUR")
+    db_session.add(account)
+    db_session.flush()
+    now = datetime.now()
+    db_session.add(Transaction(account_id=account.id, date=now.replace(day=1), amount=42.0, type="Sortie",
+                               merchant="Boulangerie", currency="EUR", original_amount=42.0,
+                               month_label=month_label_from_date(now), running_balance=-42.0))
+    db_session.commit()
+    warnings: list[str] = []
+    monkeypatch.setattr(notif.logger, "warning", lambda msg, *a, **k: warnings.append(str(msg)))
+
+    body = asyncio.run(notif._digest_body(db_session, now))
+
+    assert warnings == []
+    assert "Ce mois-ci :" in body
+    assert "Centre d'Actions :" in body

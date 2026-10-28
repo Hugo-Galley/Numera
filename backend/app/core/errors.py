@@ -42,3 +42,9 @@ class BusinessRuleError(DomainError):
 
 class ConflictError(DomainError):
     status_code = 409
+
+
+class InternalError(DomainError):
+    """Échec inattendu d'un calcul : 500 avec un `detail` JSON (comme l'ancienne HTTPException 500)."""
+
+    status_code = 500

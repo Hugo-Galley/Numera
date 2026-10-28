@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from app.services.accounts import account_balance
-from app.api.analytics.budget import budget_alerts, budget_analytics
+from app.services.analytics.budget import compute_budget, compute_budget_alerts
 from app.api.deps import get_db
 from app.core.currency import get_exchange_rates
 from app.core.month_review import (
@@ -49,9 +49,9 @@ async def _build_review(db: Session, year: int, month: int) -> tuple[dict, dict]
     start, end = month_bounds(db, year, month)
     prev_year, prev_month = (year - 1, 12) if month == 1 else (year, month - 1)
 
-    budget = await budget_analytics(month=month, year=year, account_id=None, db=db)
-    previous = await budget_analytics(month=prev_month, year=prev_year, account_id=None, db=db)
-    alerts = await budget_alerts(year=year, month=month, account_id=None, db=db)
+    budget = await compute_budget(month=month, year=year, account_id=None, db=db)
+    previous = await compute_budget(month=prev_month, year=prev_year, account_id=None, db=db)
+    alerts = await compute_budget_alerts(year=year, month=month, account_id=None, db=db)
     rates = await get_exchange_rates("EUR")
 
     categorize = categorize_step(db, start, end)

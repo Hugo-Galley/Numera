@@ -31,7 +31,7 @@ from app.schemas.wrapped import (
 )
 
 from app.core.budget_period import civil_months
-from .budget import budget_analytics
+from app.services.analytics.budget import compute_budget
 from .metrics import expenses_by_category, top_merchants
 from app.repositories.analytics.common import NET_AMOUNT, ticket_restaurant_account_ids, opening_balances_eur
 
@@ -96,12 +96,12 @@ async def _totals(db: Session, year: int, last_month: int, rates: dict[str, floa
     invested = 0.0
     net_worth_end = 0.0
     for month in range(1, last_month + 1):
-        budget = await budget_analytics(month=month, year=year, account_id=None, db=db)
+        budget = await compute_budget(month=month, year=year, account_id=None, db=db)
         income, real = budget["revenus_totaux"], budget["depenses_reelles"]
         months.append(WrappedMonth(month=month, income=income, real_expenses=real, saved=round(income - real, 2)))
         invested += budget["investissements_du_mois"]
         net_worth_end = budget["patrimoine_net_total"]
-    start_budget = await budget_analytics(month=12, year=year - 1, account_id=None, db=db)
+    start_budget = await compute_budget(month=12, year=year - 1, account_id=None, db=db)
     net_worth_start = start_budget["patrimoine_net_total"]
 
     income = sum(m.income for m in months)

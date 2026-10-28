@@ -47,7 +47,7 @@ from app.models.recurring_transaction import RecurringTransaction
 from app.core.finance import get_recurring_occurrences
 from app.core.logging import get_logger
 from app.schemas.transaction import TransactionRead
-from .budget import budget_analytics, budget_alerts, compute_resilience
+from app.services.analytics.budget import compute_budget, compute_budget_alerts, compute_resilience
 from .subscriptions import get_subscription_total_for_period
 from .metrics import expenses_by_category
 
@@ -81,7 +81,7 @@ async def get_intelligent_insights(
     start_month, end_month = period_bounds(db, year, month)
     
     # 1. Fetch current month data for Score
-    budget_data = await budget_analytics(month=month, year=year, account_id=account_id, db=db)
+    budget_data = await compute_budget(month=month, year=year, account_id=account_id, db=db)
     revenus = budget_data["revenus_totaux"]
     depenses_reelles = budget_data["depenses_reelles"]
     epargne_total = budget_data["epargne_total"]

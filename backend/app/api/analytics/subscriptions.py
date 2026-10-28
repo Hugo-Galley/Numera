@@ -46,7 +46,7 @@ from app.models.investment_transaction import InvestmentTransaction
 from app.models.transaction import Transaction
 from app.models.recurring_transaction import RecurringTransaction
 from app.core.finance import get_recurring_occurrences, is_lapsed
-from app.core.subscription_prices import PriceChange, detect_price_changes
+from app.core.subscription_prices import PriceChange, detect_price_changes, price_change_id
 from app.core.logging import get_logger
 from app.schemas.transaction import TransactionRead
 
@@ -184,10 +184,6 @@ async def get_subscriptions_analytics(
         total_annual=round(total_annual, 2),
         price_changes=[price_change_read(c) for c in detect_price_changes(db, account_id=account_id)],
     )
-
-
-def price_change_id(change: PriceChange) -> str:
-    return f"subscription-price-{change.account_id}-{change.key}-{change.changed_on.isoformat()}"
 
 
 def price_change_read(change: PriceChange) -> SubscriptionPriceChange:

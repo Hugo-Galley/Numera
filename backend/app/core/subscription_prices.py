@@ -57,6 +57,10 @@ class PriceChange:
         return round(self.delta * self.per_year, 2)
 
 
+def price_change_id(change: PriceChange) -> str:
+    return f"subscription-price-{change.account_id}-{change.key}-{change.changed_on.isoformat()}"
+
+
 def _cadence(dates: list[datetime]) -> tuple[int, str] | None:
     gaps = [(b - a).days for a, b in zip(dates, dates[1:])]
     if not gaps:

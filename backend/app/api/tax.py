@@ -3,8 +3,8 @@ from datetime import date
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from app.api.analytics.budget import compute_resilience
-from app.api.analytics.tax import build_annual_report, build_overview, load_tax_settings, save_tax_settings
+from app.services.analytics.budget import compute_resilience
+from app.services.tax import build_annual_report, build_overview, load_tax_settings, save_tax_settings
 from app.core.logging import get_logger
 from app.db.session import get_db
 from app.schemas.tax import AnnualReport, TaxOverview, TaxSettings, TaxSettingsUpdate

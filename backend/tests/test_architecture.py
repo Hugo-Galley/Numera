@@ -82,6 +82,8 @@ def violations(app_dir: Path) -> set[str]:
         module = _module_name(path, app_dir)
         rel = f"app/{path.relative_to(app_dir).as_posix()}"
         imported = imported_modules(path, module, app_dir)
+        found.update(f"{rel} -> {imp} (introuvable)" for imp in imported
+                     if _matches(imp, "app") and imp != "app" and not _is_module(imp, app_dir))
         for layer, forbidden in FORBIDDEN.items():
             if _matches(module, layer):
                 found.update(f"{rel} -> {imp}" for imp in imported if any(_matches(imp, f) for f in forbidden))
@@ -128,6 +130,14 @@ def test_api_may_import_deps_and_own_package_only(tmp_path):
 def test_services_may_not_import_fastapi(tmp_path):
     write(tmp_path / "app/services/s.py", "from fastapi import HTTPException\n")
     assert violations(tmp_path / "app") == {"app/services/s.py -> fastapi"}
+
+
+def test_import_of_missing_app_module_is_a_violation(tmp_path):
+    """Un import relatif déplacé tel quel pointe vers un module inexistant (souvent avalé par un except)."""
+    write(tmp_path / "app/services/audit.py", "def f():\n    from .subscriptions import price_change_id\n")
+    write(tmp_path / "app/core/finance.py", "def g():\n    pass\n")
+    write(tmp_path / "app/services/ok.py", "from app.core.finance import g\nfrom app import core\n")
+    assert violations(tmp_path / "app") == {"app/services/audit.py -> app.services.subscriptions (introuvable)"}
 
 
 def test_repository_commit_is_a_violation(tmp_path):

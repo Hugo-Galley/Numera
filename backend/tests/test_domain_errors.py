@@ -47,3 +47,10 @@ def test_domain_error_reaches_client_through_route(client):
         app.router.routes = [r for r in app.router.routes if getattr(r, "path", "") != "/__test_domain_error"]
     assert response.status_code == 404
     assert response.json() == {"detail": "Thing not found"}
+
+
+def test_internal_error_keeps_json_detail():
+    from app.core.errors import InternalError
+
+    assert _handle(InternalError("Erreur interne lors du calcul du budget")) == (
+        500, {"detail": "Erreur interne lors du calcul du budget"})

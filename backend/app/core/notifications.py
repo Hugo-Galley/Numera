@@ -21,6 +21,9 @@ import httpx
 from sqlalchemy.orm import Session
 
 from app.core.logging import get_logger
+from app.services.analytics.budget import compute_budget
+from app.services.analytics.cashflow import compute_cashflow_projection
+from app.services.audit import compute_action_center
 from app.db.system_settings import get_setting, set_setting
 from app.models.notification_log import NotificationLog
 from app.schemas.insight import ActionItem
@@ -186,9 +189,7 @@ def fingerprint(action: ActionItem) -> str:
 
 
 async def current_actions(db: Session) -> list[ActionItem]:
-    from app.api.analytics.audit import get_action_center
-
-    return (await get_action_center(db=db)).actions
+    return (await compute_action_center(db=db)).actions
 
 
 def _link(settings: NotificationSettings, path: str | None) -> str | None:
@@ -257,12 +258,9 @@ def _week_key(now: datetime) -> str:
 
 
 async def _digest_body(db: Session, now: datetime) -> str:
-    from app.api.analytics.budget import budget_analytics
-    from app.api.analytics.reports import get_cashflow_projection
-
     lines: list[str] = []
     try:
-        budget = await budget_analytics(month=now.month, year=now.year, account_id=None, db=db)
+        budget = await compute_budget(month=now.month, year=now.year, account_id=None, db=db)
         lines.append(f"Ce mois-ci : {_eur(budget['depenses_reelles'])} de dépenses réelles, {_eur(budget['revenus_totaux'])} de revenus.")
     except Exception as exc:
         logger.warning(f"Digest budget skipped: {exc}")
@@ -273,7 +271,7 @@ async def _digest_body(db: Session, now: datetime) -> str:
     except Exception as exc:
         logger.warning(f"Digest actions skipped: {exc}")
     try:
-        projection = await get_cashflow_projection(days=7, account_id=None, db=db)
+        projection = await compute_cashflow_projection(days=7, account_id=None, db=db)
         limit = (now + timedelta(days=7)).date().isoformat()
         upcoming = [e for e in projection.events if e.date[:10] <= limit][:5]
         if upcoming:
