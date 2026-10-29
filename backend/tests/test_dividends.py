@@ -224,7 +224,7 @@ def test_dividend_summary_converts_to_eur_and_computes_yields(client, monkeypatc
 
 
 def test_holdings_show_dividends_and_total_return(client, monkeypatch):
-    import app.controllers.holdings as holdings_api
+    import app.services.holdings.enrich as holdings_api
 
     async def fake_quotes(symbols, db=None):
         return {s.upper(): {"price": 120.0, "price_eur": 120.0, "type": "ETF", "currency": "EUR", "stale": False} for s in symbols}

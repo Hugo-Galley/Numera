@@ -255,7 +255,7 @@ def test_holding_gain_converts_cost_basis_to_eur(client, db_session, monkeypatch
     async def fake_historical_rate(db, date, currency, base="EUR"):
         return {"EUR": 1.0, "USD": 2.0}[currency]
 
-    import app.controllers.holdings as holdings_api
+    import app.services.holdings.enrich as holdings_api
     import app.integrations.currency as currency_mod
 
     monkeypatch.setattr(holdings_api, "get_exchange_rates", fake_rates)

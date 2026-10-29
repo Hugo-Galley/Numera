@@ -80,3 +80,29 @@ class CostEstimate:
         if self.quantity <= EPSILON or self.method == "amounts":
             return None
         return (self.bought_quantity - self.sold_quantity) / self.quantity
+
+
+def holding_returns(quantity: float, price_eur: float, cost_basis_eur: float | None, buy_price_avg: float | None,
+                    fx: float | None, dividends_total_eur: float) -> dict:
+    """Valeur, coût de revient, plus-value et rendement total (dividendes compris) d'une position, en EUR.
+
+    Coût de revient : aux taux historiques des achats si connu, sinon PRU converti au taux du jour (`fx`).
+    """
+    value_eur = quantity * price_eur if price_eur > 0 else 0.0
+    invested_eur = cost_basis_eur
+    if invested_eur is None and buy_price_avg and buy_price_avg > 0 and fx:
+        invested_eur = quantity * buy_price_avg / fx
+
+    gain_eur = gain_pct = None
+    if invested_eur is not None and invested_eur > 0 and value_eur > 0:
+        gain_eur = round(value_eur - invested_eur, 2)
+        gain_pct = round((gain_eur / invested_eur) * 100.0, 2)
+
+    total_return_eur = total_return_pct = None
+    if gain_eur is not None:
+        total_return_eur = round(gain_eur + dividends_total_eur, 2)
+        total_return_pct = round(total_return_eur / invested_eur * 100.0, 2)
+    return {
+        "value_eur": value_eur, "invested_eur": invested_eur, "gain_eur": gain_eur, "gain_pct": gain_pct,
+        "total_return_eur": total_return_eur, "total_return_pct": total_return_pct,
+    }
