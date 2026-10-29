@@ -4,7 +4,6 @@ from sqlalchemy.orm import Session
 from app.db.session import get_db
 from app.schemas.insight import CashflowProjection, MonthlyReport, MoneyFlowReport
 from app.services.analytics import reports as service
-from .insights import get_intelligent_insights
 
 router = APIRouter()
 
@@ -26,8 +25,7 @@ async def get_monthly_report(
     db: Session = Depends(get_db),
 ):
     """Rapport mensuel consolidé, comparé au mois précédent, avec insights."""
-    insights_data = await get_intelligent_insights(month=month, year=year, account_id=account_id, db=db)
-    return await service.compute_monthly_report(db, month, year, account_id, insights_data)
+    return await service.compute_monthly_report(db, month, year, account_id)
 
 
 @router.get("/money-flow", response_model=MoneyFlowReport)

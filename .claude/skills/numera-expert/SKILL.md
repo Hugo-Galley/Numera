@@ -120,7 +120,7 @@ Table `financial_events` (`/financial-events`) : notes datées sans effet sur au
 ## « Investi du mois » (budget)
 `investissements_du_mois` (vue globale) = sorties catégorisées `Investissement`/`Epargne` non virement **+ versements liés à un virement interne** (`utils.budget_versement_ids`). Un versement sans virement lié (rapatriement d'un contrat, solde initial, intéressement) n'est pas de l'argent prélevé sur les revenus : il est exclu, y compris de la catégorie virtuelle « Investissement » (`expenses-by-category`, `budget-alerts`). `depenses_reelles` ne retranche que les sorties catégorisées, jamais les versements (absents de `depenses`). Vue par compte inchangée (les versements y sont les flux du compte).
 
-## Bilan annuel (`/wrapped`, `controllers/analytics/wrapped.py`)
+## Bilan annuel (`/wrapped`, `services/analytics/wrapped.py`)
 Somme des chiffres officiels mensuels (`compute_budget`, `expenses_by_category`, `top_merchants`) pour rester identique au Dashboard. Année en cours = janvier → mois courant, comparée à N-1 sur la même période (`previous`, seulement si N-1 a des transactions). Taux d'épargne annuel = (revenus − dépenses réelles) ÷ revenus ; patrimoine début = `patrimoine_net_total` de décembre N-1. Postes : hors Investissement/Epargne. Abonnements : récurrences `Sortie` sans `transfer_to_account_id` ni catégorie épargne/investissement ; coût = échéances réelles de l'année (montant net). Heures de travail au taux horaire actuel (pas historique).
 
 ## Services externes

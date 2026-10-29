@@ -4,20 +4,21 @@ from sqlalchemy.orm import Session
 from app.domain.reports import calc_diff
 from app.integrations.currency import get_exchange_rates
 from app.repositories.analytics.common import opening_balances_eur
-from app.schemas.insight import IntelligentInsights, MonthlyComparison, MonthlyReport
+from app.schemas.insight import MonthlyComparison, MonthlyReport
 from app.services.analytics.budget import compute_budget
+from app.services.analytics.insights import compute_insights
 from app.services.analytics.metrics import compute_expenses_by_category, compute_top_merchants
 from app.services.analytics.reports.money_flow import compute_money_flow
 from app.services.budget_period import period_bounds
 from app.services.month_review import exceptional_expenses, month_bounds, savings_basis, without_exceptional
 
 
-async def compute_monthly_report(db: Session, month: int, year: int, account_id: int | None,
-                                 insights_data: IntelligentInsights) -> MonthlyReport:
+async def compute_monthly_report(db: Session, month: int, year: int, account_id: int | None = None) -> MonthlyReport:
     current_budget = await compute_budget(month=month, year=year, account_id=account_id, db=db)
     prev_month = month - 1 if month > 1 else 12
     prev_year = year if month > 1 else year - 1
     prev_budget = await compute_budget(month=prev_month, year=prev_year, account_id=account_id, db=db)
+    insights_data = await compute_insights(db, month, year, account_id)
 
     top_categories = await _top_categories(db, month, year, prev_month, prev_year, account_id)
     merch_data = await compute_top_merchants(month=month, year=year, limit=5, account_id=account_id, db=db)

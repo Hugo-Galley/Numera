@@ -182,7 +182,7 @@ def test_subscription_costs_are_converted_to_eur(client, db_session, world, monk
     async def fake_rates(base="EUR"):
         return {"EUR": 1.0, "USD": 1.08}
 
-    monkeypatch.setattr("app.controllers.analytics.subscriptions.get_exchange_rates", fake_rates)
+    monkeypatch.setattr("app.services.analytics.subscriptions.get_exchange_rates", fake_rates)
     usd = 1.08
     _recurring(db_session, world["courant"], "Service US", 10.8, currency="USD")
     db_session.commit()
