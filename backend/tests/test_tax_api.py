@@ -256,7 +256,7 @@ def test_annual_report_does_not_fetch_market_quotes(client, db_session, offline_
     async def forbidden(*args, **kwargs):
         raise AssertionError("le récap annuel ne doit pas interroger le marché")
 
-    monkeypatch.setattr("app.core.portfolio.get_market_quotes", forbidden)
+    monkeypatch.setattr("app.services.portfolio.compute.get_market_quotes", forbidden)
     monkeypatch.setattr(market_quotes, "get_market_quotes", forbidden)
     report = client.get(f"/tax/annual-report?year={YEAR}")
     assert report.status_code == 200, report.text

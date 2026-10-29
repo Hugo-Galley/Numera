@@ -1,7 +1,7 @@
 """Valeur d'un compte : source unique pour tous les totaux de patrimoine (audit A10).
 
 Règle de repli :
-- compte titres valorisé par ses positions → positions × cours + espèces (`core/portfolio.py`) ;
+- compte titres valorisé par ses positions → positions × cours + espèces (`services/portfolio/`) ;
 - compte d'investissement / assurance-vie → dernier relevé (snapshot) daté au plus tard à `at` ;
 - autre compte (courant, épargne, ancien type…) → le plus récent entre un relevé et la dernière
   opération (solde courant) ;
@@ -18,7 +18,7 @@ from sqlalchemy.orm import Session
 
 from app.integrations.currency import get_exchange_rates
 from app.services.loans import loan_remaining
-from app.core.portfolio import positions_values_eur
+from app.services.portfolio import positions_values_eur
 from app.models.account import Account
 from app.models.balance_snapshot import BalanceSnapshot
 from app.models.transaction import Transaction

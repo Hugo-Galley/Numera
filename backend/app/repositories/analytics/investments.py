@@ -4,7 +4,7 @@ from datetime import datetime
 from sqlalchemy import func
 from sqlalchemy.orm import Query, Session
 
-from app.core.portfolio import only_transfer_legs
+from app.repositories.portfolio import only_transfer_legs
 from app.models.account import Account
 from app.models.balance_snapshot import BalanceSnapshot
 from app.models.category import Category

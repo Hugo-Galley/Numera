@@ -2,7 +2,9 @@
 from sqlalchemy.orm import Session
 
 from app.services.holdings.replay import replay_account
-from app.core.portfolio import compute_portfolio, uses_positions, xirr
+from app.domain.performance import xirr
+from app.domain.portfolio import uses_positions
+from app.services.portfolio import compute_portfolio
 from app.repositories.analytics import investments as repo
 from app.schemas.portfolio import PortfolioOverview, PortfolioRead
 

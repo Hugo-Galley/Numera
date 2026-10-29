@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from app.core.portfolio import compute_portfolio
+from app.services.portfolio import compute_portfolio
 from app.db.session import get_db
 from app.models.account import Account
 from app.schemas.portfolio import PortfolioOverview, PortfolioRead

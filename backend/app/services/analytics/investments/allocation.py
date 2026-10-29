@@ -4,7 +4,8 @@ from datetime import datetime
 from sqlalchemy.orm import Session
 
 from app.services.holdings.replay import replay_account
-from app.core.portfolio import compute_portfolio, uses_positions
+from app.domain.portfolio import uses_positions
+from app.services.portfolio import compute_portfolio
 from app.domain.investments import AllocationGroups, patrimoine_items
 from app.models.account import Account
 from app.models.investment_transaction import InvestmentTransaction

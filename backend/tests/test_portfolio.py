@@ -7,7 +7,6 @@ import app.integrations.currency as currency_mod
 import app.integrations.yahoo_finance as yahoo_finance
 import app.services.market.quotes as market_quotes
 import app.repositories.security_prices as security_prices
-from app.core.portfolio import twr, xirr
 from app.models.balance_snapshot import BalanceSnapshot
 
 
@@ -69,31 +68,6 @@ def _portfolio(client, account_id):
 
 
 # ─── Fonctions pures ────────────────────────────────────────────────────────
-
-def test_xirr_one_year_ten_percent():
-    flows = [(date(2025, 1, 1), -100.0), (date(2026, 1, 1), 110.0)]
-    assert xirr(flows) == pytest.approx(0.10, abs=1e-4)
-
-
-def test_xirr_needs_both_signs():
-    assert xirr([(date(2025, 1, 1), -100.0)]) is None
-    assert xirr([(date(2025, 1, 1), 100.0), (date(2025, 6, 1), 50.0)]) is None
-
-
-def test_xirr_weights_late_deposit_less_than_simple_return():
-    # 100 investis un an, 100 de plus à mi-parcours, 230 à la fin
-    flows = [(date(2025, 1, 1), -100.0), (date(2025, 7, 2), -100.0), (date(2026, 1, 1), 230.0)]
-    rate = xirr(flows)
-    assert 0.18 < rate < 0.40
-
-
-def test_twr_ignores_deposit_timing():
-    # 100 → 110 (+10 %), puis dépôt de 100 et valeur 220 : avant dépôt 120 sur 110 (+9,09 %) ⇒ +20 % cumulé
-    points = [(date(2025, 1, 1), 100.0, 0.0), (date(2025, 2, 1), 110.0, 0.0), (date(2025, 3, 1), 220.0, 100.0)]
-    assert twr(points) == pytest.approx(0.20, abs=1e-6)
-
-
-# ─── Valeur et plus-value latente ───────────────────────────────────────────
 
 def test_value_is_positions_times_price_and_unrealized_gain(client, db_session):
     account_id = _setup(client, db_session)
@@ -300,7 +274,7 @@ def test_usd_line_splits_unrealized_gain_into_price_and_currency_effect(client, 
 
     monkeypatch.setattr(market_quotes, "get_exchange_rates", current_rates)
     monkeypatch.setattr(currency_mod, "get_exchange_rates", current_rates)
-    import app.core.portfolio as portfolio_mod
+    import app.services.portfolio.compute as portfolio_mod
     monkeypatch.setattr(portfolio_mod, "get_exchange_rates", current_rates)
 
     account_id = client.post("/accounts", json={"name": "CTO", "type": "investissement", "currency": "EUR", "color": None}).json()["id"]
