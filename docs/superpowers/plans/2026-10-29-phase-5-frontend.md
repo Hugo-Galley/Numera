@@ -27,8 +27,8 @@ si le budget le permet. Commits directement sur main, sans push.
 
 ### État (mis à jour à chaque tâche)
 
-- **Fait** : tâches 1 à 3 (`AccountDetail`, `RecurringTransactions`, `WealthSimulator`), un commit « refactor(frontend): découpe de … » chacune. Baseline : **18 entrées**.
-- **Prochaine tâche** : tâche 4 (`Accounts`).
+- **Fait** : tâches 1 à 4 (`AccountDetail`, `RecurringTransactions`, `WealthSimulator`, `Accounts`), un commit « refactor(frontend): découpe de … » chacune. Baseline : **17 entrées**.
+- **Prochaine tâche** : tâche 5 (`Audit`).
 - Aucune tâche entamée à moitié.
 
 ### Conventions de l'utilisateur (sans redemander)
@@ -121,7 +121,9 @@ Fait. `components/analytics/WealthSimulator/` : `index.tsx` (export nommé `Weal
 
 Dossier `components/analytics/WealthSimulator/`. Écran : `/tools` (et tout autre consommateur : `grep -rn WealthSimulator frontend/src`). Le simulateur Monte-Carlo est aléatoire avec volatilité : comparer avec volatilité nulle ou ne comparer que les champs déterministes.
 
-### Task 4: `pages/Accounts.tsx` (1 057)
+### Task 4: `pages/Accounts.tsx` (1 057) ✅
+
+Fait. `pages/Accounts/` : `index.tsx` (en-tête, crédit, archivés, import), `types.ts`, hooks `useAccounts.ts`, `useAccountsState.ts` (dont les effets `?import=1` / `?new=loan`), `useAccountsActions.tsx` ; composants `CreateAccountDialog`, `EditAccountDialog`, `AccountsList`. Plus gros fichier : 241 lignes. Vérifié : texte, requêtes, boutons ; création ×2 (vide), édition pré-remplie (courant, assurance-vie), crédit, `?import=1` ouvre l'import et nettoie l'URL.
 
 Écrans : `/accounts`, `/accounts?import=1` (dialogue d'import), bannière de vérification.
 
