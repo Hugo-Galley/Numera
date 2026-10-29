@@ -27,9 +27,8 @@ si le budget le permet. Commits directement sur main, sans push.
 
 ### État (mis à jour à chaque tâche)
 
-- **Fait** : tâches 1 à 7 (`AccountDetail`, `RecurringTransactions`, `WealthSimulator`, `Accounts`, `Audit`, `Investments` + `Savings`, `HoldingsTable` + `PointZeroModal`), un commit « refactor(frontend): découpe de … » par fichier. Baseline : **12 entrées**.
-- **Fait aussi** : tâches 8 (`OverviewTab`) et 9 (`Calendar`, `MerchantsTab`, `CategoriesTab`, `Omnibox`). Baseline : **5 entrées**.
-- **Prochaine tâche** : tâche 10, suite (`ImportFlow`, puis `ProvisionsSection`).
+- **Fait** : tâches 1 à 11 (les 21 fichiers), un commit « refactor(frontend): … » par fichier. Baseline de taille **vide** (`{}`).
+- **Prochaine tâche** : tâche 12 (appels typés `lib/api/<domaine>.ts`, `make validate`, documentation).
 - Aucune tâche entamée à moitié.
 
 ### Conventions de l'utilisateur (sans redemander)
@@ -172,12 +171,13 @@ Un commit par fichier. ImportFlow : aller jusqu'à l'aperçu d'un CSV **sans val
 - [x] `ImportFlow` : `components/import/ImportFlow/` (export et props inchangés) : `index.tsx`, `types.ts`, hooks `useImportFlow.ts` (reçoit les props) / `useImportState.ts` ; composants `ImportSettingsCard`, `CategoryMappingCard`, `ImportResultCard`, `ImportPreviewCard`. Plus gros fichier : 99 lignes. Vérifié par `/accounts?import=1` : dialogue, choix du compte, CSV de test → `/import/preview` 200 et aperçu identique, **sans valider l'import**.
 - [x] `ProvisionsSection` : la carte d'une provision (`ProvisionCard`, `StatusBadge`), le type `Provision`, `INTERVALS`, `intervalLabel` et `formatDay` sortis dans `components/savings/ProvisionCard.tsx` (générateur `extract.py`) ; `ProvisionsSection.tsx` : 273 lignes. Vérifié sur `/savings` contre l'original rebranché temporairement : texte, boutons, HTML identiques.
 
-### Task 11: `components/tools/WealthForecast.tsx` (377), `components/wrapped/WrappedStory.tsx` (373), `components/analytics/SankeyFlow.tsx` (371)
+### Task 11: `components/tools/WealthForecast.tsx` (377), `components/wrapped/WrappedStory.tsx` (373), `components/analytics/SankeyFlow.tsx` (371) ✅
 
 Petits dépassements : souvent un sous-composant ou un utilitaire à sortir suffit. Un commit par fichier.
 
 - [x] `WealthForecast` : une seule grosse fonction, donc dossier `components/tools/WealthForecast/` (export inchangé) : `index.tsx` (retours anticipés, contexte « vue » `WealthForecastView` avec `data` non nul, `boostedShown`, `final`), `types.ts`, `forecastParts.tsx` (`HORIZONS`, `Step`, `EXTRA_PRESETS`), hooks `useWealthForecast.ts` / `useForecastData.ts` ; composants `ForecastSummaryCard`, `ForecastChartCard`, `ForecastMethodCard`. Plus gros fichier : 150 lignes. Vérifié sur `/tools` contre l'original rebranché temporairement. `splitlib.py` : `hooks(..., view=(nom, champs))` et marqueur `[Composant, indent, "view"]`.
 - [x] `WrappedStory` : la construction des diapositives (`buildSlides`, type `Slide`) et les petits composants de texte (`Eyebrow`, `Big`, `Sub`) sortis dans `components/wrapped/wrappedSlides.tsx` ; `WrappedStory.tsx` : 86 lignes. Vérifié sur `/wrapped` : récap et 11 diapositives de la story identiques (flèches, Échap).
+- [x] `SankeyFlow` : le calcul de mise en page (`computeLayout`, constantes, types de nœuds et de liens) sorti dans `components/analytics/sankeyLayout.ts` ; `SankeyFlow.tsx` : 182 lignes. Vérifié sur `/` contre l'original rebranché temporairement : texte identique.
 
 ### Task 12: appels typés `lib/api/<domaine>.ts` et clôture
 
