@@ -18,7 +18,7 @@ Complète le `CLAUDE.md` racine. Procédures pas-à-pas : skill `numera-backend`
 ## Règles de code
 
 - Typer arguments et retours. Logger : `from app.core.logging import get_logger; logger = get_logger(__name__)` (jamais de `print`, jamais de JWT/hash/secret dans les logs).
-- Erreurs : dans un service, lever `NotFoundError` / `BusinessRuleError` (422) / `ConflictError` / `InternalError` (`app.core.errors`, `code` + `context` optionnels pour une erreur structurée) ; jamais d'`HTTPException` hors de `controllers/`. Routers non migrés : `api_error(status, code, detail, context)` ou `HTTPException` (400 règle métier, 401/403 auth, 404 introuvable).
+- Erreurs : dans un service, lever `NotFoundError` / `BusinessRuleError` (422) / `ConflictError` / `InternalError` (`app.core.errors`, `code` + `context` optionnels pour une erreur structurée) ; jamais d'`HTTPException` hors de `controllers/`. `HTTPException` reste réservée aux controllers pour 401/403 (auth), 413 et 429.
 - Modèles : `Mapped` / `mapped_column`, index sur `account_id`, `date`, `merchant`, FK. Pas de logique métier dans les modèles → `app/services/` (ou `app/domain/` si calcul pur).
 - Schémas : `Create` / `Update` / `Read` séparés, `ConfigDict(from_attributes=True)` sur les `Read`, `response_model` sur chaque endpoint (pas de `dict` brut).
 - Les endpoints sont majoritairement **synchrones** (`def`) ; `async def` seulement quand on appelle du code async (`convert_amount`, `get_exchange_rates`, `services/investissement/market`, `services/investissement/etf_profiles`, génération récurrente).

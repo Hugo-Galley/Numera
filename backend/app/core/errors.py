@@ -1,21 +1,7 @@
-from fastapi import HTTPException
-
-
-def api_error(status_code: int, code: str, detail: str, context: dict | None = None) -> HTTPException:
-    return HTTPException(
-        status_code=status_code,
-        detail={
-            "code": code,
-            "detail": detail,
-            "context": context or {},
-        },
-    )
-
-
 class DomainError(Exception):
     """Erreur métier levée par un service ; traduite en HTTP par `domain_error_handler` (main.py).
 
-    Sans `code`, le corps est `{"detail": detail}` ; avec, il prend la forme de `api_error`.
+    Sans `code`, le corps est `{"detail": detail}` ; avec, `{"detail": {"code", "detail", "context"}}`.
     """
 
     status_code = 400

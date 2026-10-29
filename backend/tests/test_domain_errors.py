@@ -16,7 +16,7 @@ def test_not_found_keeps_plain_detail():
     assert _handle(NotFoundError("Account not found")) == (404, {"detail": "Account not found"})
 
 
-def test_business_rule_with_code_matches_api_error_shape():
+def test_business_rule_with_code_gives_structured_shape():
     status, body = _handle(BusinessRuleError("x", code="invalid_type", context={"a": 1}))
     assert status == 422
     assert body == {"detail": {"code": "invalid_type", "detail": "x", "context": {"a": 1}}}
