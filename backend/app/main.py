@@ -37,6 +37,7 @@ from app.controllers.budget.transfer_rules import router as transfer_rules_route
 from app.controllers.budget.reimbursements import router as reimbursements_router
 from app.controllers.budget.month_review import router as month_review_router
 from app.controllers.budget.provisions import router as provisions_router
+from app.controllers.budget.benefits import router as benefits_router
 from app.controllers.comptes.financial_events import router as financial_events_router
 from app.controllers.comptes.loans import router as loans_router
 from app.controllers.systeme.notifications import router as notifications_router
@@ -257,6 +258,7 @@ protected_routers = [
     month_review_router,
     logos_router,
     provisions_router,
+    benefits_router,
     financial_events_router,
     loans_router,
     notifications_router,

@@ -59,7 +59,7 @@ const NAVIGATION = [
   { name: "Fiscalité", href: "/tax", icon: Landmark },
   { name: "Échéances (récurrences)", href: "/recurring", icon: Repeat },
   { name: "Calendrier", href: "/recurring?tab=calendar", icon: CalendarDays },
-  { name: "Salaire", href: "/recurring?tab=salary", icon: Wallet },
+  { name: "Salaire et aides (CAF, prime d'activité, APL)", href: "/recurring?tab=salary", icon: Wallet },
   { name: "Remboursements", href: "/reimbursements", icon: HandCoins },
   { name: "Simulateur", href: "/tools", icon: Calculator },
   { name: "Classement : catégories", href: "/classement?tab=categories", icon: Tags },

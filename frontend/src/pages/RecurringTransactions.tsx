@@ -89,7 +89,7 @@ import { format } from "date-fns"
 import { fr } from "date-fns/locale"
 import { cn, frequencyLabel, formatCurrency } from "@/lib/utils"
 import { COUNTRIES } from "@/lib/countries"
-import { SalaryManager } from "@/components/tools/SalaryManager"
+import { IncomeTab } from "@/components/recurring/IncomeTab"
 import { LogoPicker } from "@/components/ui/LogoPicker"
 import { InvestmentFlowDialog } from "@/components/recurring/InvestmentFlowDialog"
 import { useConfirm } from "@/providers/ConfirmProvider"
@@ -179,7 +179,6 @@ export default function RecurringTransactions() {
   }
   const [subTab, setSubTab] = useState<"subscriptions" | "investments" | "other">("subscriptions")
   const [flowSub, setFlowSub] = useState<any>(null)
-  
   // Dialogs
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [editingTx, setEditingTx] = useState<RecurringTransaction | null>(null)
@@ -429,7 +428,6 @@ export default function RecurringTransactions() {
   const handleOpenValidate = (potential: any, isInvest: boolean = false) => {
     setEditingTx(null)
     setIsIrregularSubmenuOpen(false)
-    
     let acc = accounts[0]
     if (isInvest) {
       const invAcc = accounts.find(a => a.type === "investissement")
@@ -549,7 +547,7 @@ export default function RecurringTransactions() {
           </TabsTrigger>
           <TabsTrigger value="salary" className="rounded-lg gap-2">
             <Wallet className="h-4 w-4" />
-            <span className="md:hidden">Salaire</span><span className="hidden md:inline">Salaire & Avantages</span>
+            <span className="md:hidden">Salaire</span><span className="hidden md:inline">Salaire & Aides</span>
           </TabsTrigger>
         </TabsList>
         </div>
@@ -799,7 +797,6 @@ export default function RecurringTransactions() {
                  Autres récurrences
                </Button>
              </div>
-             
              <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">
                {activeSubs.length} Confirmés • {potentialSubs.length} Potentiels
              </div>
@@ -1014,7 +1011,6 @@ export default function RecurringTransactions() {
              </div>}
            </div>
         </TabsContent>
-        
         <TabsContent value="calendar" className="space-y-6">
           {/* Ex-page /calendar : chargée seulement quand l'onglet est ouvert */}
           <Suspense fallback={<PageLoader />}>
@@ -1023,7 +1019,7 @@ export default function RecurringTransactions() {
         </TabsContent>
 
         <TabsContent value="salary" className="space-y-6">
-          <SalaryManager />
+          <IncomeTab />
         </TabsContent>
       </Tabs>
 
@@ -1530,7 +1526,6 @@ export default function RecurringTransactions() {
                 onCheckedChange={(checked: any) => setFormData({ ...formData, auto_generate: !!checked })}
               />
             </div>
-            
             <div className="grid gap-2">
               <Label htmlFor="note">Note</Label>
               <Input

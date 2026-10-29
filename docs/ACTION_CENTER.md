@@ -81,6 +81,12 @@ Pour ajouter un nouveau type d'action :
 ### Action « salaire absent » (`type: audit`, `severity: high`)
 - `missing-salary-{YYYY-MM}` (dernier mois manquant) : config de salaire active, mois des 3 derniers (et pas avant la création de la config) dont le jour de paie est passé, sans `SalaryMonth` et sans entrée de type salaire (marchand ou catégorie « Salaire… », ou `salary_category_id`) sur le compte de salaire. Jour de paie = celui du dernier `SalaryMonth`, sinon le 28. Rien n'est généré automatiquement (montant ou emploi peuvent avoir changé). `action_type: link` vers `/recurring?tab=salary`. Logique : `services/budget/salary_generation.py::find_missing_salary_months`.
 
+### Actions « aides perçues » (`type: audit`)
+- `benefit-declaration-{id}-{date}` : déclaration périodique (prime d'activité : trimestrielle) dans 7 jours ou moins (`medium`), en retard (`high`, le titre change, donc une seule nouvelle notification). « Déclaration faite » (`POST /benefits/{id}/declared`) avance l'échéance et change l'id.
+- `benefit-late-{id}-{AAAA-MM}` (`medium`) : aucun versement 5 jours après la date habituelle.
+- `benefit-amount-{id}-{date du versement}` (`low`) : dernier versement différent du montant attendu (> 1 € et > 5 %).
+Toutes pointent vers `/recurring?tab=salary&vue=aides`. Logique : `services/budget/benefits.py`, règle `services/audit/rules/benefits.py`.
+
 ### Action « hausse de prix » (`type: subscription`, `severity: medium`)
 - `subscription-price-{account_id}-{clé}-{date}` : un abonnement ou prélèvement régulier a augmenté (détection `services/budget/subscription_prices.py::detect_price_changes` (détection d'une série : `domain/subscription_prices.py::series_change`), mêmes données que `price_changes` de `/analytics/subscriptions`). La date de la hausse fait partie de l'id : une hausse écartée ne revient pas, une nouvelle hausse si. `action_type: link` vers `/recurring?tab=subscriptions`. Les transactions `is_subscription_ignored` et les virements sont exclus.
 

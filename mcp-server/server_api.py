@@ -904,6 +904,33 @@ def list_provisions() -> str:
 
 
 @mcp.tool()
+def list_benefits() -> str:
+    """Aides perçues (prime d'activité, APL…) : organisme, montant attendu, statut du versement du mois
+    (reçue, en attente, non reçue), dernier versement, total reçu dans l'année et prochaine déclaration."""
+    try:
+        resp = api.get("/benefits")
+        error = handle_response(resp)
+        if error:
+            return error
+        simplified = [
+            {
+                "id": b["id"],
+                "name": b["name"],
+                "organisme": b["organization"],
+                "montant_attendu": b["amount"],
+                "statut": b["status"],
+                "dernier_versement": f"{b['last_payment']['amount']} le {b['last_payment']['date']}" if b["last_payment"] else "—",
+                "recu_annee": b["received_this_year"],
+                "prochaine_declaration": b["next_declaration_date"] or "—",
+            }
+            for b in resp.json()
+        ]
+        return f"🤝 {len(simplified)} aide(s) :\n\n" + format_table(simplified)
+    except Exception as e:
+        return f"❌ Erreur : {e}"
+
+
+@mcp.tool()
 def list_financial_events(start: str | None = None, end: str | None = None) -> str:
     """Journal des décisions financières (résiliation, hausse d'épargne, changement d'allocation…),
     du plus récent au plus ancien. Sert à expliquer un changement visible sur les courbes.

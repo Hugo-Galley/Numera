@@ -7,7 +7,8 @@ from app.models.transaction import Transaction
 from datetime import datetime
 
 EXPECTED_ORDER = [
-    "uncategorized", "duplicates", "missing_snapshots", "missing_salary", "unmatched_transfers",
+    "uncategorized", "duplicates", "missing_snapshots", "missing_salary", "benefits",
+    "unmatched_transfers",
     "unallocated_reimbursements", "budget", "rule_suggestions", "merchant_suggestions", "dividends",
     "broker_reconciliation", "subscription_prices", "backups",
 ]

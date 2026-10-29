@@ -25,6 +25,7 @@ from app.models.reimbursement import ReimbursementAllocation, ReimbursementClaim
 from app.models.month_closure import MonthClosure
 from app.models.transaction_split import TransactionSplit
 from app.models.provision import Provision
+from app.models.benefit import Benefit
 from app.models.financial_event import FinancialEvent
 from app.models.loan import Loan, LoanPrepayment
 from app.models.notification_log import NotificationLog
@@ -59,6 +60,7 @@ __all__ = [
     "MonthClosure",
     "TransactionSplit",
     "Provision",
+    "Benefit",
     "FinancialEvent",
     "Loan",
     "LoanPrepayment",

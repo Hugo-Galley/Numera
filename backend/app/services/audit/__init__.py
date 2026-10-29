@@ -19,6 +19,7 @@ from app.services.audit.context import AuditContext, unallocated_reimbursements_
 from app.services.audit.data_audit import compute_data_audit, compute_data_audit_issue
 from app.services.audit.rules import (
     backups,
+    benefits,
     broker_reconciliation,
     budget,
     dividends,
@@ -46,6 +47,7 @@ RULES: list[Rule] = [
     Rule("duplicates", duplicates.detect),
     Rule("missing_snapshots", missing_snapshots.detect),
     Rule("missing_salary", missing_salary.detect),
+    Rule("benefits", benefits.detect),
     Rule("unmatched_transfers", unmatched_transfers.detect),
     Rule("unallocated_reimbursements", unallocated_reimbursements.detect),
     Rule("budget", budget.detect),
