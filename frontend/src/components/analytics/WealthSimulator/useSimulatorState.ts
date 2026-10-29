@@ -1,8 +1,8 @@
-import { api } from "@/lib/api"
 import { safeStorage } from "@/lib/storage"
 import { toast } from "sonner"
 import { useEffect, useState } from "react"
 import { LifeEvent, AssetClass, defaultAssetClasses } from "./types"
+import { getAnalyticsWealthSimulation } from "@/lib/api/analytics"
 
 /** Paramètres (mémorisés dans le navigateur), allocation et appel de la simulation. */
 export function useSimulatorState(p: { initialCapitalDefault: number }) {
@@ -130,7 +130,7 @@ export function useSimulatorState(p: { initialCapitalDefault: number }) {
           events: JSON.stringify(events.filter(e => e.year <= params.years))
         })
 
-        const res = await api.get(`/analytics/wealth-simulation?${queryParams.toString()}`)
+        const res = await getAnalyticsWealthSimulation(`?${queryParams.toString()}`)
         setData(res)
       } catch (error) {
         toast.error("Erreur lors de la simulation")

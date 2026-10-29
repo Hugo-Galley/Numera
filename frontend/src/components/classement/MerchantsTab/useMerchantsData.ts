@@ -1,8 +1,8 @@
-import { api } from "@/lib/api"
 import { toast } from "sonner"
 import { useConfirm } from "@/providers/ConfirmProvider"
 import { useEffect, useState } from "react"
 import { Category, Merchant, Suggestion } from "./types"
+import { deleteMerchantsAliasesById, deleteMerchantsById, getCategories, getMerchants, getMerchantsById, getMerchantsSuggestionsUnnormalized, postMerchants, postMerchantsAliases, postMerchantsAutoNormalize, putMerchantsById } from "@/lib/api/classement"
 
 /** Chargement des marchands, création, modification, alias et normalisation automatique. */
 export function useMerchantsData() {
@@ -32,9 +32,9 @@ export function useMerchantsData() {
     setLoading(true)
     try {
       const [merchantsData, categoriesData, suggestionsData] = await Promise.all([
-        api.get<Merchant[]>("/merchants"),
-        api.get<Category[]>("/categories?include_archived=false"),
-        api.get<Suggestion[]>("/merchants/suggestions/unnormalized?min_count=5")
+        getMerchants<Merchant[]>(),
+        getCategories<Category[]>("?include_archived=false"),
+        getMerchantsSuggestionsUnnormalized<Suggestion[]>("?min_count=5")
       ])
       setMerchants(merchantsData)
       setCategories(categoriesData)
@@ -54,7 +54,7 @@ export function useMerchantsData() {
     if (!newName) return
     const aliases = newAliases.split(",").map(s => s.trim()).filter(s => s.length > 0)
     try {
-      await api.post("/merchants", {
+      await postMerchants({
         name: newName,
         category_id: newCategoryId === "none" ? null : parseInt(newCategoryId),
         color: newColor,
@@ -83,7 +83,7 @@ export function useMerchantsData() {
   const handleUpdateMerchant = async () => {
     if (!editingMerchant || !editName) return
     try {
-      await api.put(`/merchants/${editingMerchant.id}`, {
+      await putMerchantsById(editingMerchant.id, {
         name: editName,
         category_id: editCategoryId === "none" ? null : parseInt(editCategoryId),
         color: editColor
@@ -99,7 +99,7 @@ export function useMerchantsData() {
   const handleDeleteMerchant = async (id: number) => {
     if (!(await confirm("Supprimer ce marchand canonique ?"))) return
     try {
-      await api.delete(`/merchants/${id}`)
+      await deleteMerchantsById(id)
       toast.success("Marchand supprimé")
       loadData()
     } catch (error) {
@@ -110,10 +110,10 @@ export function useMerchantsData() {
   const handleAddAlias = async () => {
     if (!editingMerchant || !newAliasLabel) return
     try {
-      await api.post(`/merchants/${editingMerchant.id}/aliases`, { label: newAliasLabel })
+      await postMerchantsAliases(editingMerchant.id, { label: newAliasLabel })
       setNewAliasLabel("")
       // Refresh current editing merchant aliases
-      const updated = await api.get<Merchant>(`/merchants/${editingMerchant.id}`)
+      const updated = await getMerchantsById<Merchant>(editingMerchant.id)
       setEditingMerchant(updated)
       // Also update in list to avoid extra reload
       setMerchants(merchants.map(m => m.id === updated.id ? updated : m))
@@ -125,7 +125,7 @@ export function useMerchantsData() {
 
   const handleRemoveAlias = async (aliasId: number) => {
     try {
-      await api.delete(`/merchants/aliases/${aliasId}`)
+      await deleteMerchantsAliasesById(aliasId)
       if (editingMerchant) {
         const updatedAliases = editingMerchant.aliases.filter(a => a.id !== aliasId)
         setEditingMerchant({ ...editingMerchant, aliases: updatedAliases })
@@ -139,7 +139,7 @@ export function useMerchantsData() {
 
   const handleAutoNormalize = async () => {
     try {
-      const result = await api.post<{ normalized_count: number }>("/merchants/auto-normalize", {})
+      const result = await postMerchantsAutoNormalize<{ normalized_count: number }>({})
       toast.success(`${result.normalized_count} transactions normalisées`)
       loadData()
     } catch (error) {

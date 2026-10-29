@@ -1,6 +1,5 @@
 import { type AccountLite } from "@/types/transfers"
 import { PortfolioHolding } from "@/types/diversity"
-import { api } from "@/lib/api"
 import { endOfDayParam, startOfDayParam } from "@/lib/dates"
 import { errorMessage } from "@/lib/utils"
 import { toast } from "sonner"
@@ -8,6 +7,11 @@ import { useEffect, useRef, useState } from "react"
 import { Account, Category, TagType, Transaction, TX_PAGE_SIZE } from "./types"
 import type { useAccountDetailState } from "./useAccountDetailState"
 import type { useAccountForms } from "./useAccountForms"
+import { getAccounts, getAccountsById } from "@/lib/api/accounts"
+import { getAnalyticsAssetAllocationSuggestions, getAnalyticsInvestmentsById, getAnalyticsInvestmentsPerformanceHistory, getAnalyticsTags, getAnalyticsTimeseries } from "@/lib/api/analytics"
+import { getCategories, getTags } from "@/lib/api/classement"
+import { getHoldings } from "@/lib/api/investments"
+import { getTransactions, getTransactionsMerchants } from "@/lib/api/transactions"
 
 /** Chargement du compte et de ses listes (complet au changement de compte, liste seule au changement de filtre). */
 export function useAccountDetailData(p: ReturnType<typeof useAccountDetailState> & ReturnType<typeof useAccountForms>) {
@@ -41,7 +45,7 @@ export function useAccountDetailData(p: ReturnType<typeof useAccountDetailState>
       // Garder les pages déjà chargées après une modification (l'API plafonne à 1000) ;
       // un changement de filtre repart de la première page
       const limit = opts?.reset ? TX_PAGE_SIZE : Math.min(Math.max(TX_PAGE_SIZE, transactions.length), 1000)
-      const txData = await api.get<Transaction[]>(`/transactions?${buildTransactionParams(0, limit).toString()}`)
+      const txData = await getTransactions<Transaction[]>(`?${buildTransactionParams(0, limit).toString()}`)
       if (requestId !== txRequestId.current) return
       setTransactions(txData)
       setHasMoreTx(txData.length === limit)
@@ -55,7 +59,7 @@ export function useAccountDetailData(p: ReturnType<typeof useAccountDetailState>
   const loadTagTotals = async () => {
     if (!id) return
     try {
-      setTagTotals(await api.get<any[]>(`/analytics/tags?account_id=${id}${dateStart ? `&start_date=${dateStart}` : ""}${dateEnd ? `&end_date=${dateEnd}` : ""}`))
+      setTagTotals(await getAnalyticsTags<any[]>(`?account_id=${id}${dateStart ? `&start_date=${dateStart}` : ""}${dateEnd ? `&end_date=${dateEnd}` : ""}`))
     } catch (error) {
       toast.error(errorMessage(error, "Erreur lors du chargement des tags"))
     }
@@ -66,7 +70,7 @@ export function useAccountDetailData(p: ReturnType<typeof useAccountDetailState>
     setLoadingMoreTx(true)
     try {
       const params = buildTransactionParams(transactions.length)
-      const more = await api.get<Transaction[]>(`/transactions?${params.toString()}`)
+      const more = await getTransactions<Transaction[]>(`?${params.toString()}`)
       setTransactions(prev => [...prev, ...more])
       setHasMoreTx(more.length === TX_PAGE_SIZE)
     } catch (error) {
@@ -79,7 +83,7 @@ export function useAccountDetailData(p: ReturnType<typeof useAccountDetailState>
   const openTransferDialog = async (tx: Transaction) => {
     if (allAccounts.length === 0) {
       try {
-        setAllAccounts(await api.get<AccountLite[]>("/accounts"))
+        setAllAccounts(await getAccounts<AccountLite[]>())
       } catch {
         toast.error("Erreur lors du chargement des comptes")
         return
@@ -94,9 +98,9 @@ export function useAccountDetailData(p: ReturnType<typeof useAccountDetailState>
     if (!opts?.quiet) setLoading(true)
     try {
       const [accData, merchantsData, suggestionsData] = await Promise.all([
-        api.get<Account>(`/accounts/${id}`),
-        api.get<string[]>("/transactions/merchants"),
-        api.get<any>("/analytics/asset-allocation/suggestions")
+        getAccountsById<Account>(id),
+        getTransactionsMerchants<string[]>(),
+        getAnalyticsAssetAllocationSuggestions<any>()
       ])
       setAccount(accData)
       setKnownMerchants(merchantsData)
@@ -106,9 +110,9 @@ export function useAccountDetailData(p: ReturnType<typeof useAccountDetailState>
 
       if (accData.type === "investissement" || accData.type === "assurance_vie") {
         const [invData, perfData, holdingsData] = await Promise.all([
-          api.get<any>(`/analytics/investments/${id}`),
-          api.get<any>(`/analytics/investments/${id}/performance-history`),
-          api.get<PortfolioHolding[]>(`/holdings?account_id=${id}`)
+          getAnalyticsInvestmentsById<any>(id),
+          getAnalyticsInvestmentsPerformanceHistory<any>(id),
+          getHoldings<PortfolioHolding[]>(`?account_id=${id}`)
         ])
         setInvestmentData(invData)
         setPerfHistory(perfData.items || [])
@@ -117,11 +121,11 @@ export function useAccountDetailData(p: ReturnType<typeof useAccountDetailState>
         const params = buildTransactionParams()
 
         const [txData, timeData, catData, tagsData, tagTotalsData] = await Promise.all([
-          api.get<Transaction[]>(`/transactions?${params.toString()}`),
-          api.get<any>(`/analytics/timeseries?account_id=${id}&year=${new Date().getFullYear()}`),
-          api.get<Category[]>("/categories"),
-          api.get<TagType[]>("/tags"),
-          api.get<any[]>(`/analytics/tags?account_id=${id}${dateStart ? `&start_date=${dateStart}` : ""}${dateEnd ? `&end_date=${dateEnd}` : ""}`)
+          getTransactions<Transaction[]>(`?${params.toString()}`),
+          getAnalyticsTimeseries<any>(`?account_id=${id}&year=${new Date().getFullYear()}`),
+          getCategories<Category[]>(),
+          getTags<TagType[]>(),
+          getAnalyticsTags<any[]>(`?account_id=${id}${dateStart ? `&start_date=${dateStart}` : ""}${dateEnd ? `&end_date=${dateEnd}` : ""}`)
         ])
         setTransactions(txData)
         setHasMoreTx(txData.length === TX_PAGE_SIZE)

@@ -1,6 +1,6 @@
-import { api } from "@/lib/api"
 import { useEffect, useState } from "react"
 import { Forecast } from "./types"
+import { getAnalyticsWealthForecast } from "@/lib/api/analytics"
 
 /** Paramètres de la prévision (horizon, épargne en plus, hypothèses) et chargement avec délai. */
 export function useForecastData() {
@@ -23,7 +23,7 @@ export function useForecastData() {
         if (savingsInput.trim() !== "" && !Number.isNaN(Number(savingsInput))) qs.set("monthly_savings", savingsInput)
         if (investInput.trim() !== "" && !Number.isNaN(Number(investInput))) qs.set("investment_return_pct", investInput)
         if (otherInput.trim() !== "" && !Number.isNaN(Number(otherInput))) qs.set("savings_return_pct", otherInput)
-        const res = await api.get<Forecast>(`/analytics/wealth-forecast?${qs.toString()}`)
+        const res = await getAnalyticsWealthForecast<Forecast>(`?${qs.toString()}`)
         if (!cancelled) {
           setData(res)
           setError(false)

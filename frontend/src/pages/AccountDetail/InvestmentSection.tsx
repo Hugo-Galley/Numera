@@ -1,11 +1,11 @@
 import { DividendsCard } from "@/components/investments/DividendsCard"
 import { HoldingsTable } from "@/components/investments/HoldingsTable"
 import { PortfolioSummary } from "@/components/investments/PortfolioSummary"
-import { api } from "@/lib/api"
 import { toast } from "sonner"
 import type { AccountDetailView } from "./useAccountDetail"
 import { InvestmentFlowsCard } from "./InvestmentFlowsCard"
 import { SnapshotsCard } from "./SnapshotsCard"
+import { patchAccountsById } from "@/lib/api/accounts"
 
 /** Section d'un compte d'investissement : positions, synthèse, dividendes, flux et snapshots. */
 export function InvestmentSection({ ctx }: { ctx: AccountDetailView }) {
@@ -40,7 +40,7 @@ export function InvestmentSection({ ctx }: { ctx: AccountDetailView }) {
                     onClick={async () => {
                       if ((account.valuation_mode ?? "positions") === mode) return
                       try {
-                        await api.patch(`/accounts/${account.id}`, { valuation_mode: mode })
+                        await patchAccountsById(account.id, { valuation_mode: mode })
                         toast.success(mode === "snapshot" ? "Valorisation par relevés" : "Valorisation par positions")
                         loadData({ quiet: true })
                       } catch (err: any) {

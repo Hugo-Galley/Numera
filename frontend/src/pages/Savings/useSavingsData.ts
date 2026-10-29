@@ -1,4 +1,3 @@
-import { api } from "@/lib/api"
 import { formatAmountWithShare, formatCurrency } from "@/lib/utils"
 import { toast } from "sonner"
 import { useConfirm } from "@/providers/ConfirmProvider"
@@ -6,6 +5,10 @@ import { useEffect, useState } from "react"
 import { useIsMobile } from "@/hooks/useIsMobile"
 import { useSubmit } from "@/hooks/useSubmit"
 import { GOAL_COLORS, Resilience } from "./types"
+import { getAccounts } from "@/lib/api/accounts"
+import { getAnalyticsBudget, getAnalyticsKpiHistory, getAnalyticsResilience } from "@/lib/api/analytics"
+import { getCategories } from "@/lib/api/classement"
+import { deleteGoalsById, getGoals, patchGoalsById, postGoals } from "@/lib/api/savings"
 
 /** Chargement (période, résilience, historique, objectifs) et actions sur les objectifs d'épargne. */
 export function useSavingsData() {
@@ -47,14 +50,14 @@ export function useSavingsData() {
       
       const now = new Date()
       const [budget, kpiHistory, goalsData, accs, cats, resilienceData] = await Promise.all([
-        api.get<any>(`/analytics/budget?${queryParams}`),
-        api.get<any[]>("/analytics/kpi-history?months_count=12"),
-        api.get<any[]>("/goals"),
-        api.get<any[]>("/accounts"),
-        api.get<any[]>("/categories?include_archived=false"),
-        api.get<Resilience>(period === "monthly"
-          ? `/analytics/resilience?month=${month}&year=${year}`
-          : `/analytics/resilience?month=${now.getMonth() + 1}&year=${now.getFullYear()}`),
+        getAnalyticsBudget<any>(`?${queryParams}`),
+        getAnalyticsKpiHistory<any[]>("?months_count=12"),
+        getGoals<any[]>(),
+        getAccounts<any[]>(),
+        getCategories<any[]>("?include_archived=false"),
+        getAnalyticsResilience<Resilience>(period === "monthly"
+          ? `?month=${month}&year=${year}`
+          : `?month=${now.getMonth() + 1}&year=${now.getFullYear()}`),
       ])
       setAnalytics(budget)
       setResilience(resilienceData)
@@ -94,10 +97,10 @@ export function useSavingsData() {
       }
 
       if (editingGoal) {
-        await api.patch(`/goals/${editingGoal.id}`, payload)
+        await patchGoalsById(editingGoal.id, payload)
         toast.success("Objectif mis à jour")
       } else {
-        await api.post("/goals", payload)
+        await postGoals(payload)
         toast.success("Objectif créé")
       }
       setIsDialogOpen(false)
@@ -113,7 +116,7 @@ export function useSavingsData() {
   const handleDeleteGoal = async (id: number) => {
     if (!(await confirm("Supprimer cet objectif ?"))) return
     try {
-      await api.delete(`/goals/${id}`)
+      await deleteGoalsById(id)
       toast.success("Objectif supprimé")
       loadData()
     } catch (error) {

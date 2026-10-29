@@ -1,9 +1,10 @@
 import { DiversityScannerResponse } from "@/types/diversity"
-import { api } from "@/lib/api"
 import { toast } from "sonner"
 import { useEffect, useState } from "react"
 import { useIsMobile } from "@/hooks/useIsMobile"
 import { useNavigate } from "react-router-dom"
+import { getAnalyticsDiversityScanner, getAnalyticsInvestmentsAllocation, getAnalyticsInvestmentsAllocationAdvanced } from "@/lib/api/analytics"
+import { postEtfProfilesRefreshHeld } from "@/lib/api/investments"
 
 /** Chargement des allocations et du scanner de diversité, drill-down et données du graphique. */
 export function useInvestmentsData() {
@@ -19,8 +20,8 @@ const [loading, setLoading] = useState(true)
   const refreshCompositions = async () => {
     setRefreshingCompositions(true)
     try {
-      const res = await api.post<{ refreshed: number }>("/etf-profiles/refresh-held", {})
-      const div = await api.get<DiversityScannerResponse>("/analytics/diversity-scanner")
+      const res = await postEtfProfilesRefreshHeld<{ refreshed: number }>({})
+      const div = await getAnalyticsDiversityScanner<DiversityScannerResponse>()
       if (div && div.totals.holdings_count > 0) setDiversity(div)
       toast.success(`${res.refreshed} composition${res.refreshed > 1 ? "s" : ""} actualisée${res.refreshed > 1 ? "s" : ""} depuis Yahoo`)
     } catch {
@@ -34,14 +35,14 @@ const [loading, setLoading] = useState(true)
     async function loadData() {
       try {
         const [basic, advanced] = await Promise.all([
-          api.get("/analytics/investments-allocation"),
-          api.get("/analytics/investments-allocation-advanced")
+          getAnalyticsInvestmentsAllocation(),
+          getAnalyticsInvestmentsAllocationAdvanced()
         ])
         setAllocation(basic)
         setAdvancedAllocation(advanced)
         // Load diversity data separately (non-blocking, may have no holdings)
         try {
-          const div = await api.get<DiversityScannerResponse>("/analytics/diversity-scanner")
+          const div = await getAnalyticsDiversityScanner<DiversityScannerResponse>()
           if (div && div.totals.holdings_count > 0) setDiversity(div)
         } catch { /* No holdings yet, that's fine */ }
       } catch (error) {

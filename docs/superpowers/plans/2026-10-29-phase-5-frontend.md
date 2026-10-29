@@ -27,8 +27,8 @@ si le budget le permet. Commits directement sur main, sans push.
 
 ### État (mis à jour à chaque tâche)
 
-- **Fait** : tâches 1 à 11 (les 21 fichiers), un commit « refactor(frontend): … » par fichier. Baseline de taille **vide** (`{}`).
-- **Prochaine tâche** : tâche 12 (appels typés `lib/api/<domaine>.ts`, `make validate`, documentation).
+- **Plan terminé** : tâches 1 à 12. Baseline de taille **vide** (`{}`), appels des dossiers découpés via `lib/api/<domaine>.ts`.
+- Suite possible (hors plan) : migrer vers `lib/api/` les appels `api.*` des fichiers non découpés (Dashboard, Settings, MonthReview…), avec `typed-api.py`.
 - Aucune tâche entamée à moitié.
 
 ### Conventions de l'utilisateur (sans redemander)
@@ -179,7 +179,10 @@ Petits dépassements : souvent un sous-composant ou un utilitaire à sortir suff
 - [x] `WrappedStory` : la construction des diapositives (`buildSlides`, type `Slide`) et les petits composants de texte (`Eyebrow`, `Big`, `Sub`) sortis dans `components/wrapped/wrappedSlides.tsx` ; `WrappedStory.tsx` : 86 lignes. Vérifié sur `/wrapped` : récap et 11 diapositives de la story identiques (flèches, Échap).
 - [x] `SankeyFlow` : le calcul de mise en page (`computeLayout`, constantes, types de nœuds et de liens) sorti dans `components/analytics/sankeyLayout.ts` ; `SankeyFlow.tsx` : 182 lignes. Vérifié sur `/` contre l'original rebranché temporairement : texte identique.
 
-### Task 12: appels typés `lib/api/<domaine>.ts` et clôture
+### Task 12: appels typés `lib/api/<domaine>.ts` et clôture ✅
+
+Fait. `lib/api/{accounts,transactions,classement,recurring,savings,investments,analytics}.ts` + `lib/api/types.ts` (`Id`) : 96 fonctions, une par (méthode, route), nommées d'après la route (`getAccounts`, `patchAccountsById`, `postTransactionsLinkById`…). Les segments `${…}` deviennent des paramètres, `query` est ajouté tel quel : l'URL envoyée est identique caractère pour caractère, le générique `<T>` reste à l'appel (les types de payload restent locaux aux pages). 141 appels réécrits par `typed-api.py` dans les 26 fichiers des dossiers découpés (2 à la main : URL choisie par ternaire dans `useSavingsData`, appel chaîné dans `useTaxData`). Vérifié : relevé réseau trié identique sur 15 écrans (`/`, `/accounts`, `/accounts/1`, `/accounts/3`, `/recurring` et ses onglets calendrier et salaire, `/audit`, `/investments`, `/savings`, `/tax`, `/tools` avancé, `/classement` catégories et marchands), aperçu d'import et recherche Omnibox identiques ; `make validate` vert.
+
 
 - Créer `lib/api/<domaine>.ts` (au-dessus de `lib/api.ts`, qui reste) pour les domaines des pages découpées (`accounts`, `transactions`, `investments`, `recurring`, `analytics`…) : une fonction typée par appel, mêmes URL et paramètres ; remplacer les `api.get(...)` des hooks par ces fonctions. Vérification : relevé réseau identique (URL et ordre).
 - Baseline de taille **vide** ; `make validate` vert.

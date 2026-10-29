@@ -1,4 +1,3 @@
-import { api } from "@/lib/api"
 import { nowLocalInput, toInputValue, toNaiveLocal } from "@/lib/dates"
 import { parsePositiveAmount } from "@/lib/utils"
 import { toast } from "sonner"
@@ -9,6 +8,7 @@ import { Transaction } from "./types"
 import type { useAccountDetailState } from "./useAccountDetailState"
 import type { useAccountForms } from "./useAccountForms"
 import type { useAccountDetailData } from "./useAccountDetailData"
+import { deleteTransactionsById, patchTransactionsById, postTransactions } from "@/lib/api/transactions"
 
 /** Création, modification et suppression des transactions du compte. */
 export function useTransactionActions(p: ReturnType<typeof useAccountDetailState> & ReturnType<typeof useAccountForms> & ReturnType<typeof useAccountDetailData>) {
@@ -61,7 +61,7 @@ export function useTransactionActions(p: ReturnType<typeof useAccountDetailState
         custom_icon: txCustomIcon || null,
         custom_color: txCustomColor || null
       }
-      await api.post("/transactions", payload)
+      await postTransactions(payload)
       toast.success("Transaction ajoutée")
       setTxOpen(false)
       resetTxForm()
@@ -104,7 +104,7 @@ export function useTransactionActions(p: ReturnType<typeof useAccountDetailState
         custom_icon: txCustomIcon || null,
         custom_color: txCustomColor || null
       }
-      await api.patch(`/transactions/${editTxId}`, payload)
+      await patchTransactionsById(editTxId, payload)
       toast.success("Transaction modifiée")
       setTxOpen(false)
       resetTxForm()
@@ -160,7 +160,7 @@ export function useTransactionActions(p: ReturnType<typeof useAccountDetailState
     const detail = target ? ` « ${target.merchant} » de ${formatCurrency(target.amount)} (${toInputValue(target.date).slice(0, 10).split("-").reverse().join("/")})` : ""
     if (!(await confirm(`Supprimer la transaction${detail} ?`))) return
     try {
-      await api.delete(`/transactions/${txId}`)
+      await deleteTransactionsById(txId)
       toast.success("Transaction supprimée")
       await loadData({ quiet: true })
     } catch (error: any) {

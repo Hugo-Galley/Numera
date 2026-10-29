@@ -2,7 +2,6 @@ import { ArrowRightLeft, HandCoins, MoreHorizontal, Pencil, Split, Trash2 } from
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { WorkHours } from "@/components/ui/work-hours"
-import { api } from "@/lib/api"
 import { endOfDayParam, startOfDayParam } from "@/lib/dates"
 import { useEffect, useMemo } from "react"
 import { Transaction } from "./types"
@@ -11,6 +10,7 @@ import type { useAccountForms } from "./useAccountForms"
 import type { useAccountDetailData } from "./useAccountDetailData"
 import type { useTransactionActions } from "./useTransactionActions"
 import type { useInvestmentActions } from "./useInvestmentActions"
+import { getAnalyticsAccountFlowSummary } from "@/lib/api/analytics"
 
 /** Vue de la liste : filtres locaux, tri, statistiques et menu d'actions d'une ligne. */
 export function useTransactionView(p: ReturnType<typeof useAccountDetailState> & ReturnType<typeof useAccountForms> & ReturnType<typeof useAccountDetailData> & ReturnType<typeof useTransactionActions> & ReturnType<typeof useInvestmentActions>) {
@@ -78,7 +78,7 @@ export function useTransactionView(p: ReturnType<typeof useAccountDetailState> &
     const params = new URLSearchParams({ account_id: id })
     if (dateStart) params.append("start_date", startOfDayParam(dateStart))
     if (dateEnd) params.append("end_date", endOfDayParam(dateEnd))
-    api.get<typeof flowSummary>(`/analytics/account-flow-summary?${params.toString()}`)
+    getAnalyticsAccountFlowSummary<typeof flowSummary>(`?${params.toString()}`)
       .then(setFlowSummary)
       .catch(() => setFlowSummary(null))
   }, [id, dateStart, dateEnd, transactions])

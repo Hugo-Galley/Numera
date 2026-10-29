@@ -21,10 +21,10 @@ Esthétique sobre « entreprise légère », Tailwind + shadcn. Palette : Slate 
 
 ## Ajouter une page
 
-1. `src/pages/<Nom>.tsx`.
+1. `src/pages/<Nom>.tsx` ; au-delà de 350 lignes, dossier `src/pages/<Nom>/` : `index.tsx` (composition, retours anticipés), hooks `use<Nom>*.ts` (état, chargement, actions), un composant par section ou dialogue recevant `ctx` (modèle : `pages/AccountDetail/`).
 2. Route dans `App.tsx` (à l'intérieur du bloc `ProtectedRoute`/`AppLayout`).
-3. Entrée dans la Sidebar (`components/layout/Sidebar.tsx`) et dans l'Omnibox (`Omnibox.tsx`, ⌘K) pour qu'elle soit découvrable.
-4. Données via `api.get<T>()` (uploads : `api.upload`, fichiers : `api.download`), jamais de calcul de KPI dans le composant.
+3. Entrée dans la Sidebar (`components/layout/Sidebar.tsx`) et dans l'Omnibox (`components/layout/Omnibox/`, ⌘K) pour qu'elle soit découvrable.
+4. Données via les fonctions de `lib/api/<domaine>.ts` (une par route, ex. `getAccounts<Account[]>()`, `patchAccountsById(id, body)`, `getTransactions<T>("?limit=10")`) ; une route nouvelle y ajoute sa fonction. `api.download` pour les fichiers. Jamais de calcul de KPI dans le composant.
 
 ## Ajouter un onglet au Dashboard
 

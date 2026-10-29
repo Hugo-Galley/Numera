@@ -1,7 +1,8 @@
-import { api } from "@/lib/api"
 import { toast } from "sonner"
 import { useEffect, useState } from "react"
 import { AnnualReport, KIND_LABELS, TaxOverview, TaxSettings, WrapperSuggestion } from "./types"
+import { patchAccountsById } from "@/lib/api/accounts"
+import { getTaxAnnualReport, getTaxOverview, patchTaxSettings } from "@/lib/api/investments"
 
 /** Chargement des enveloppes et du récapitulatif annuel, réglages fiscaux et suggestions. */
 export function useTaxData() {
@@ -16,7 +17,7 @@ export function useTaxData() {
 
   const loadOverview = async () => {
     try {
-      const data = await api.get<TaxOverview>("/tax/overview")
+      const data = await getTaxOverview<TaxOverview>()
       setOverview(data)
       setDraft(data.settings)
     } catch {
@@ -33,8 +34,7 @@ export function useTaxData() {
   useEffect(() => {
     let cancelled = false
     setLoadingReport(true)
-    api
-      .get<AnnualReport>(`/tax/annual-report?year=${year}`)
+    getTaxAnnualReport<AnnualReport>(`?year=${year}`)
       .then((data) => !cancelled && setReport(data))
       .catch(() => !cancelled && toast.error("Impossible de charger le récapitulatif annuel"))
       .finally(() => !cancelled && setLoadingReport(false))
@@ -46,7 +46,7 @@ export function useTaxData() {
   const saveSettings = async () => {
     if (!draft) return
     try {
-      await api.patch("/tax/settings", draft)
+      await patchTaxSettings(draft)
       toast.success("Réglages enregistrés")
       await loadOverview()
     } catch {
@@ -56,7 +56,7 @@ export function useTaxData() {
 
   const applySuggestion = async (s: WrapperSuggestion) => {
     try {
-      await api.patch(`/accounts/${s.account_id}`, { tax_wrapper: s.kind })
+      await patchAccountsById(s.account_id, { tax_wrapper: s.kind })
       toast.success(`${s.account_name} suivi comme ${KIND_LABELS[s.kind]}`)
       await loadOverview()
     } catch {

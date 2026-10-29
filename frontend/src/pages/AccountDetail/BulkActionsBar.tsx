@@ -2,9 +2,9 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Pencil, Trash2, X } from "lucide-react"
 import { Separator } from "@/components/ui/separator"
-import { api } from "@/lib/api"
 import { toast } from "sonner"
 import type { AccountDetailView } from "./useAccountDetail"
+import { postTransactionsBulkDelete } from "@/lib/api/transactions"
 
 /** Barre flottante des actions groupées sur la sélection. */
 export function BulkActionsBar({ ctx }: { ctx: AccountDetailView }) {
@@ -37,7 +37,7 @@ export function BulkActionsBar({ ctx }: { ctx: AccountDetailView }) {
               onClick={async () => {
                 if (await confirm(`Supprimer ${selectedIds.length} transactions ?`)) {
                   try {
-                    await api.post("/transactions/bulk-delete", { ids: selectedIds })
+                    await postTransactionsBulkDelete({ ids: selectedIds })
                     toast.success(`${selectedIds.length} transactions supprimées`)
                     setSelectedIds([])
                     await loadData({ quiet: true })

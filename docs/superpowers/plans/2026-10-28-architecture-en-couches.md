@@ -285,7 +285,7 @@ Plan détaillé : `docs/superpowers/plans/2026-10-29-phase-4-portefeuille.md` (1
 
 ### Phase 5 — Frontend
 
-**État au 29/10/2026** : découpage terminé (tâches 1 à 11 du plan détaillé `docs/superpowers/plans/2026-10-29-phase-5-frontend.md`, un commit par fichier, les 21 fichiers sous le plafond). **Reste** : la tâche 12 (appels typés `lib/api/<domaine>.ts`, environ 130 appels dans les dossiers découpés), à reprendre depuis la section 0 de ce plan.
+**Terminée le 29/10/2026** (plan détaillé `docs/superpowers/plans/2026-10-29-phase-5-frontend.md`) : les 21 fichiers découpés (un commit par fichier), puis les appels des dossiers découpés passés par `lib/api/<domaine>.ts` (96 fonctions, une par route ; requêtes réseau identiques sur 15 écrans).
 
 #### Reprendre la phase 5 dans une nouvelle conversation
 

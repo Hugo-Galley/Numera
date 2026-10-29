@@ -1,7 +1,7 @@
-import { api } from "@/lib/api"
 import { toast } from "sonner"
 import { useEffect, useState } from "react"
 import { BaselineRow, PointZeroModalProps } from "./types"
+import { getHoldings, getHoldingsSuggestions, getMarketQuote, getMarketSearch, postEtfProfilesAutoDecompose, postHoldingsBaseline } from "@/lib/api/investments"
 
 /** Lignes du point zéro : suggestions, recherche de titres, édition et enregistrement. */
 export function usePointZeroState(p: { open: PointZeroModalProps["open"]; onOpenChange: PointZeroModalProps["onOpenChange"]; accountId: PointZeroModalProps["accountId"]; accountName: PointZeroModalProps["accountName"]; onBaselineSaved: PointZeroModalProps["onBaselineSaved"] }) {
@@ -28,7 +28,7 @@ export function usePointZeroState(p: { open: PointZeroModalProps["open"]; onOpen
       setLoadingSuggestions(true)
       try {
         // First check if account already has holdings
-        const existingHoldings = await api.get<any[]>(`/holdings?account_id=${accountId}`)
+        const existingHoldings = await getHoldings<any[]>(`?account_id=${accountId}`)
         if (existingHoldings && existingHoldings.length > 0) {
           setRows(
             existingHoldings.map((h) => ({
@@ -46,12 +46,12 @@ export function usePointZeroState(p: { open: PointZeroModalProps["open"]; onOpen
           )
         } else {
           // No holdings yet: load intelligent suggestions from historical notes
-          const suggs = await api.get<any[]>(`/holdings/suggestions?account_id=${accountId}`)
+          const suggs = await getHoldingsSuggestions<any[]>(`?account_id=${accountId}`)
           if (suggs && suggs.length > 0) {
             const symbols = suggs.map((s) => s.ticker)
             let quotes: any = {}
             try {
-              quotes = await api.get<any>(`/market/quote?symbols=${symbols.join(",")}`)
+              quotes = await getMarketQuote<any>(`?symbols=${symbols.join(",")}`)
             } catch (e) {
               // Ignore quote error on suggestions
             }
@@ -97,7 +97,7 @@ export function usePointZeroState(p: { open: PointZeroModalProps["open"]; onOpen
     const timer = setTimeout(async () => {
       setIsSearching(true)
       try {
-        const results = await api.get<any[]>(`/market/search?q=${encodeURIComponent(searchQuery)}`)
+        const results = await getMarketSearch<any[]>(`?q=${encodeURIComponent(searchQuery)}`)
         setSearchResults(results || [])
         setShowSearchDropdown(true)
       } catch (err) {
@@ -122,7 +122,7 @@ export function usePointZeroState(p: { open: PointZeroModalProps["open"]; onOpen
     let priceEur = undefined
     let price = undefined
     try {
-      const qResp = await api.get<any>(`/market/quote?symbols=${item.symbol}`)
+      const qResp = await getMarketQuote<any>(`?symbols=${item.symbol}`)
       const q = qResp[item.symbol.toUpperCase()]
       if (q) {
         price = q.price
@@ -137,7 +137,7 @@ export function usePointZeroState(p: { open: PointZeroModalProps["open"]; onOpen
     if (isFundOrEtf && !profileId) {
       try {
         const toastId = toast.loading(`Décomposition de ${item.name || item.symbol} en ligne...`)
-        const decomp = await api.post<any>("/etf-profiles/auto-decompose", {
+        const decomp = await postEtfProfilesAutoDecompose<any>({
           symbol: item.symbol,
           name: item.name,
           isin: item.isin,
@@ -189,7 +189,7 @@ export function usePointZeroState(p: { open: PointZeroModalProps["open"]; onOpen
 
     setSaving(true)
     try {
-      await api.post("/holdings/baseline", {
+      await postHoldingsBaseline({
         account_id: accountId,
         holdings: validRows.map((r) => ({
           ticker: r.ticker,

@@ -1,10 +1,14 @@
-import { api } from "@/lib/api"
 import { toNaiveLocal } from "@/lib/dates"
 import { toast } from "sonner"
 import { useEffect, useState } from "react"
 import { useSubmit } from "@/hooks/useSubmit"
 import { useUI } from "@/providers/UIProvider"
 import { Account, CalendarData, CalendarEvent } from "./types"
+import { getAccounts } from "@/lib/api/accounts"
+import { getAnalyticsCalendar } from "@/lib/api/analytics"
+import { postInvestmentTransactions } from "@/lib/api/investments"
+import { getRecurringTransactionsById } from "@/lib/api/recurring"
+import { postTransactions } from "@/lib/api/transactions"
 
 /** Mois affiché, chargement des événements et soldes, sélection d'un jour et validation d'une échéance. */
 export function useCalendarData(p: { embedded: boolean }) {
@@ -26,7 +30,7 @@ export function useCalendarData(p: { embedded: boolean }) {
   useEffect(() => {
     const fetchAccounts = async () => {
       try {
-        const accs = await api.get<Account[]>("/accounts")
+        const accs = await getAccounts<Account[]>()
         setAccounts(accs)
       } catch (error) {
         console.error("Failed to fetch accounts", error)
@@ -44,7 +48,7 @@ export function useCalendarData(p: { embedded: boolean }) {
       setData(null)
       try {
         const query = `month=${month}&year=${year}${selectedAccountId !== "all" ? `&account_id=${selectedAccountId}` : ""}`
-        const res = await api.get<CalendarData>(`/analytics/calendar?${query}`)
+        const res = await getAnalyticsCalendar<CalendarData>(`?${query}`)
         if (!cancelled) setData(res)
       } catch (error) {
         console.error("Failed to fetch calendar data", error)
@@ -102,7 +106,7 @@ export function useCalendarData(p: { embedded: boolean }) {
     
     try {
       // Find the recurring transaction details
-      const recurringTx = await api.get<any>(`/recurring-transactions/${ev.recurring_id}`)
+      const recurringTx = await getRecurringTransactionsById<any>(ev.recurring_id)
       const account = accounts.find(a => a.id === recurringTx.account_id)
       
       if (!account) {
@@ -118,7 +122,7 @@ export function useCalendarData(p: { embedded: boolean }) {
         if (invType === "sortie" || invType === "achat") invType = "versement"
         else if (invType === "entree" || invType === "vente") invType = "retrait"
 
-        await api.post("/investment-transactions", {
+        await postInvestmentTransactions({
           account_id: account.id,
           date: toNaiveLocal(ev.date),
           type: invType,
@@ -135,7 +139,7 @@ export function useCalendarData(p: { embedded: boolean }) {
           etf_profile_id: recurringTx.etf_profile_id,
         })
       } else {
-        await api.post("/transactions", {
+        await postTransactions({
           account_id: account.id,
           date: toNaiveLocal(ev.date),
           type: ev.type,
@@ -151,7 +155,7 @@ export function useCalendarData(p: { embedded: boolean }) {
       toast.success("Transaction validée !")
       // Refresh data
       const query = `month=${month}&year=${year}${selectedAccountId !== "all" ? `&account_id=${selectedAccountId}` : ""}`
-      const res = await api.get<CalendarData>(`/analytics/calendar?${query}`)
+      const res = await getAnalyticsCalendar<CalendarData>(`?${query}`)
       setData(res)
     } catch (error) {
       console.error("Failed to validate transaction", error)

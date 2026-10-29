@@ -1,12 +1,13 @@
 import { Landmark, PiggyBank, Shield, TrendingUp, Wallet } from "lucide-react"
 import { accountTypeLabel } from "@/lib/labels"
-import { api } from "@/lib/api"
 import { invalidateAccountLogos } from "@/components/ui/AccountLogo"
 import { toast } from "sonner"
 import { useEffect, useMemo } from "react"
 import { useSubmit } from "@/hooks/useSubmit"
 import { Account } from "./types"
 import type { useAccountsState } from "./useAccountsState"
+import { deleteAccountsById, getAccounts, patchAccountsById, postAccounts } from "@/lib/api/accounts"
+import { getAnalyticsAssetAllocationSuggestions } from "@/lib/api/analytics"
 
 /** Chargement, tri et actions sur les comptes (création, modification, archivage, compte principal). */
 export function useAccountsActions(p: ReturnType<typeof useAccountsState>) {
@@ -14,7 +15,7 @@ export function useAccountsActions(p: ReturnType<typeof useAccountsState>) {
   const loadAccounts = async () => {
     setLoading(true)
     try {
-      const data = await api.get<Account[]>("/accounts")
+      const data = await getAccounts<Account[]>()
       if (data && Array.isArray(data)) {
         setAccounts(data.filter((account) => account && account.active))
         setArchivedAccounts(data.filter((account) => account && !account.active))
@@ -32,7 +33,7 @@ export function useAccountsActions(p: ReturnType<typeof useAccountsState>) {
 
   const loadSuggestions = async () => {
     try {
-      const data = await api.get<any>("/analytics/asset-allocation/suggestions")
+      const data = await getAnalyticsAssetAllocationSuggestions<any>()
       if (data) setSuggestions(data)
     } catch (error) {
       console.error("Error loading suggestions:", error)
@@ -85,7 +86,7 @@ export function useAccountsActions(p: ReturnType<typeof useAccountsState>) {
       return
     }
     try {
-      await api.post("/accounts", { 
+      await postAccounts({ 
         name: newName, 
         type: newType, 
         currency: newCurrency,
@@ -124,7 +125,7 @@ export function useAccountsActions(p: ReturnType<typeof useAccountsState>) {
   const [handleUpdateAccount, handleUpdateAccountBusy] = useSubmit(async () => {
     if (!editingAccount) return
     try {
-      await api.patch(`/accounts/${editingAccount.id}`, { 
+      await patchAccountsById(editingAccount.id, { 
         name: editingAccount.name, 
         type: editingAccount.type, 
         currency: editingAccount.currency,
@@ -144,7 +145,7 @@ export function useAccountsActions(p: ReturnType<typeof useAccountsState>) {
       const siblings = editingAccount.logo && inst
         ? accounts.filter((x) => x.id !== editingAccount.id && !x.logo && x.institution?.trim().toLowerCase() === inst)
         : []
-      await Promise.all(siblings.map((x) => api.patch(`/accounts/${x.id}`, { logo: editingAccount.logo })))
+      await Promise.all(siblings.map((x) => patchAccountsById(x.id, { logo: editingAccount.logo })))
       invalidateAccountLogos()
       toast.success(siblings.length ? `Compte mis à jour (logo appliqué à ${siblings.length} autre(s) compte(s))` : "Compte mis à jour")
       setIsEditDialogOpen(false)
@@ -159,7 +160,7 @@ export function useAccountsActions(p: ReturnType<typeof useAccountsState>) {
   const handleDeleteAccount = async (accountId: number) => {
     if (!(await confirm("Archiver ce compte ? Il disparaît des listes et du patrimoine ; son historique est conservé et vous pourrez le réactiver."))) return
     try {
-      await api.delete(`/accounts/${accountId}`)
+      await deleteAccountsById(accountId)
       toast.success("Compte archivé")
       loadAccounts()
     } catch (error) {
@@ -169,7 +170,7 @@ export function useAccountsActions(p: ReturnType<typeof useAccountsState>) {
 
   const handleRestoreAccount = async (accountId: number) => {
     try {
-      await api.patch(`/accounts/${accountId}`, { active: true })
+      await patchAccountsById(accountId, { active: true })
       toast.success("Compte réactivé")
       loadAccounts()
     } catch (error) {
@@ -179,7 +180,7 @@ export function useAccountsActions(p: ReturnType<typeof useAccountsState>) {
 
   const handleToggleMain = async (accountId: number, currentIsMain: boolean) => {
     try {
-      await api.patch(`/accounts/${accountId}`, { is_main: !currentIsMain })
+      await patchAccountsById(accountId, { is_main: !currentIsMain })
       toast.success(currentIsMain ? "Compte retiré des favoris" : "Compte défini comme principal")
       loadAccounts()
     } catch (error) {

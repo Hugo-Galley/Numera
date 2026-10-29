@@ -1,9 +1,12 @@
-import { ApiError, api } from "@/lib/api"
+import { ApiError } from "@/lib/api"
 import { format, isSameDay } from "date-fns"
 import { toast } from "sonner"
 import { useEffect, useState } from "react"
 import { useWorkTime } from "@/providers/WorkTimeProvider"
 import { Account, Category, MonthSummary, SalaryConfig } from "./types"
+import { getAccounts } from "@/lib/api/accounts"
+import { getCategories } from "@/lib/api/classement"
+import { deleteSalaryGenerateById, getSalaryConfig, getSalarySummaryById, getSalaryTelecommutingById, postSalaryConfig, postSalaryGenerateById, putSalaryConfig, putSalaryMonthsById, putSalaryTelecommutingById } from "@/lib/api/recurring"
 
 /** Configuration du salaire, mois affiché, jours de télétravail et génération de la transaction. */
 export function useSalaryData() {
@@ -46,14 +49,14 @@ export function useSalaryData() {
     setConfigError(false)
     try {
       const [accRes, catRes] = await Promise.all([
-        api.get("/accounts"),
-        api.get("/categories?include_archived=false")
+        getAccounts(),
+        getCategories("?include_archived=false")
       ])
       setAccounts(accRes)
       setCategories(catRes)
 
       try {
-        const conf = await api.get("/salary/config")
+        const conf = await getSalaryConfig()
         if (conf) {
           setConfig({
             ...conf,
@@ -82,7 +85,7 @@ export function useSalaryData() {
       const year = date.getFullYear()
       const month = date.getMonth() + 1
       
-      const summary = await api.get(`/salary/summary/${year}/${month}`)
+      const summary = await getSalarySummaryById(year, month)
       if (summary.salary_date) {
         setSalaryDate(new Date(summary.salary_date))
       } else {
@@ -91,7 +94,7 @@ export function useSalaryData() {
       setIsGenerated(summary.is_generated)
       setSummary(summary)
       
-      const days = await api.get(`/salary/telecommuting/${year}/${month}`)
+      const days = await getSalaryTelecommutingById(year, month)
       setTtDays(days.map((d: any) => new Date(d.date)))
     } catch (error) {
       console.error("Failed to load month data", error)
@@ -125,8 +128,8 @@ export function useSalaryData() {
       }
 
       const res = config.id 
-        ? await api.put("/salary/config", payload)
-        : await api.post("/salary/config", payload)
+        ? await putSalaryConfig(payload)
+        : await postSalaryConfig(payload)
       setConfig({
         ...res,
         salary_account_id: res.salary_account_id || "",
@@ -162,7 +165,7 @@ export function useSalaryData() {
     setTtDays(newDays)
     
     try {
-      await api.put(`/salary/telecommuting/${year}/${month}`, {
+      await putSalaryTelecommutingById(year, month, {
         dates: newDays.map(d => format(d, "yyyy-MM-dd"))
       })
       loadMonthData(currentDate)
@@ -180,7 +183,7 @@ export function useSalaryData() {
     const month = currentDate.getMonth() + 1
     
     try {
-      await api.put(`/salary/months/${year}/${month}`, {
+      await putSalaryMonthsById(year, month, {
         salary_date: format(date, "yyyy-MM-dd")
       })
     } catch (error) {
@@ -192,7 +195,7 @@ export function useSalaryData() {
     try {
       const year = currentDate.getFullYear()
       const month = currentDate.getMonth() + 1
-      await api.delete(`/salary/generate/${year}/${month}`)
+      await deleteSalaryGenerateById(year, month)
       toast.success("Mois réinitialisé !")
       setIsGenerated(false)
     } catch (error: any) {
@@ -210,7 +213,7 @@ export function useSalaryData() {
     try {
       const year = currentDate.getFullYear()
       const month = currentDate.getMonth() + 1
-      const res = await api.post<{ status: string }>(`/salary/generate/${year}/${month}`)
+      const res = await postSalaryGenerateById<{ status: string }>(year, month)
       if (res?.status === "scheduled") {
         toast.success(`Salaire programmé : la transaction sera créée le ${format(new Date(salaryDate), "dd/MM/yyyy")}`)
       } else {

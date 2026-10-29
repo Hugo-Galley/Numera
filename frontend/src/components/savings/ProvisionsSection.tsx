@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
-import { api } from "@/lib/api"
 import { errorMessage, formatCurrency } from "@/lib/utils"
 import { toast } from "sonner"
 import { todayLocal } from "@/lib/dates"
@@ -15,6 +14,9 @@ import { useCallback, useEffect, useState } from "react"
 import { useConfirm } from "@/providers/ConfirmProvider"
 import { useSubmit } from "@/hooks/useSubmit"
 import { INTERVALS, Provision, ProvisionCard } from "./ProvisionCard"
+import { getAccounts } from "@/lib/api/accounts"
+import { getCategories } from "@/lib/api/classement"
+import { deleteProvisionsById, getProvisions, getProvisionsSummary, patchProvisionsById, postProvisions } from "@/lib/api/savings"
 
 interface ProvisionSummary {
   monthly_total: number
@@ -55,8 +57,8 @@ export function ProvisionsSection() {
   const load = useCallback(async () => {
     try {
       const [list, sum] = await Promise.all([
-        api.get<Provision[]>("/provisions"),
-        api.get<ProvisionSummary>("/provisions/summary"),
+        getProvisions<Provision[]>(),
+        getProvisionsSummary<ProvisionSummary>(),
       ])
       setProvisions(list)
       setSummary(sum)
@@ -70,7 +72,7 @@ export function ProvisionsSection() {
 
   useEffect(() => {
     load()
-    Promise.all([api.get<Option[]>("/categories?include_archived=false"), api.get<Option[]>("/accounts")])
+    Promise.all([getCategories<Option[]>("?include_archived=false"), getAccounts<Option[]>()])
       .then(([cats, accs]) => {
         setCategories(cats.filter((c) => c.type !== "revenu"))
         setAccounts(accs.filter((a) => a.active !== false))
@@ -114,8 +116,8 @@ export function ProvisionsSection() {
       note: form.note.trim() || null,
     }
     try {
-      if (editing) await api.patch(`/provisions/${editing.id}`, payload)
-      else await api.post("/provisions", payload)
+      if (editing) await patchProvisionsById(editing.id, payload)
+      else await postProvisions(payload)
       toast.success(editing ? "Provision mise à jour" : "Provision créée")
       setDialogOpen(false)
       load()
@@ -127,7 +129,7 @@ export function ProvisionsSection() {
   const remove = async (p: Provision) => {
     if (!(await confirm(`Supprimer la provision « ${p.name} » ?`))) return
     try {
-      await api.delete(`/provisions/${p.id}`)
+      await deleteProvisionsById(p.id)
       toast.success("Provision supprimée")
       load()
     } catch (error) {
@@ -137,7 +139,7 @@ export function ProvisionsSection() {
 
   const toggleActive = async (p: Provision) => {
     try {
-      await api.patch(`/provisions/${p.id}`, { active: !p.active })
+      await patchProvisionsById(p.id, { active: !p.active })
       load()
     } catch (error) {
       toast.error(errorMessage(error, "Erreur lors de la mise à jour"))

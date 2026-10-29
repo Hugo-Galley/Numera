@@ -3,13 +3,13 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { RefreshCw, Save, Trash2 } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { api } from "@/lib/api"
 import { formatCurrency } from "@/lib/utils"
 import { toNaiveLocal } from "@/lib/dates"
 import { toast } from "sonner"
 import { useConfirm } from "@/providers/ConfirmProvider"
 import { useState } from "react"
 import { Account, Category, Transaction, toDateTimeLocal } from "./types"
+import { deleteTransactionsById, patchTransactionsById } from "@/lib/api/transactions"
 
 export function TransactionEditor({
   tx,
@@ -40,7 +40,7 @@ export function TransactionEditor({
   async function save() {
     setSaving(true)
     try {
-      const saved = await api.patch<Transaction>(`/transactions/${tx.id}`, {
+      const saved = await patchTransactionsById<Transaction>(tx.id, {
         date: draft.date ? toNaiveLocal(draft.date) : undefined,
         type: draft.type,
         merchant: draft.merchant.trim(),
@@ -61,7 +61,7 @@ export function TransactionEditor({
     if (!(await confirm(`Supprimer la transaction « ${tx.merchant} » de ${formatCurrency(tx.amount)} ?`))) return
     setSaving(true)
     try {
-      await api.delete(`/transactions/${tx.id}`)
+      await deleteTransactionsById(tx.id)
       onDeleted?.(tx.id)
       toast.success("Transaction supprimée")
     } catch (err) {

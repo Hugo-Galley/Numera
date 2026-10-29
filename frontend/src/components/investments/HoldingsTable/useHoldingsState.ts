@@ -1,10 +1,10 @@
 import { PortfolioHolding } from "@/types/diversity"
-import { api } from "@/lib/api"
 import { toast } from "sonner"
 import { useConfirm } from "@/providers/ConfirmProvider"
 import { useMemo, useState } from "react"
 import { useUI } from "@/providers/UIProvider"
 import { HoldingsTableProps, PerfFilter, TypeFilter } from "./types"
+import { deleteHoldingsById, postEtfProfilesAutoDecompose, putHoldingsById } from "@/lib/api/investments"
 
 /** Filtres, édition du prix de revient et actions sur les positions (décomposer, supprimer, dividendes). */
 export function useHoldingsState(p: { accountId: HoldingsTableProps["accountId"]; accountName: HoldingsTableProps["accountName"]; holdings: HoldingsTableProps["holdings"]; onRefresh: HoldingsTableProps["onRefresh"]; onAddDividend: HoldingsTableProps["onAddDividend"] }) {
@@ -48,13 +48,13 @@ export function useHoldingsState(p: { accountId: HoldingsTableProps["accountId"]
     setDecomposingId(h.id)
     const toastId = toast.loading(`Décomposition de ${h.ticker} en ligne...`)
     try {
-      const res = await api.post<any>("/etf-profiles/auto-decompose", {
+      const res = await postEtfProfilesAutoDecompose<any>({
         symbol: h.ticker,
         name: h.asset_name,
         isin: h.isin,
       })
       if (res && res.id) {
-        await api.put(`/holdings/${h.id}`, {
+        await putHoldingsById(h.id, {
           etf_profile_id: res.id,
           is_etf: true,
         })
@@ -75,7 +75,7 @@ export function useHoldingsState(p: { accountId: HoldingsTableProps["accountId"]
   const handleDelete = async (holdingId: number, name: string) => {
     if (!(await confirm(`Supprimer la position sur ${name} ?`))) return
     try {
-      await api.delete(`/holdings/${holdingId}`)
+      await deleteHoldingsById(holdingId)
       toast.success("Position supprimée")
       onRefresh()
     } catch (err: any) {
@@ -85,7 +85,7 @@ export function useHoldingsState(p: { accountId: HoldingsTableProps["accountId"]
 
   const handleTogglePaysDividends = async (h: PortfolioHolding) => {
     try {
-      await api.put(`/holdings/${h.id}`, { pays_dividends: !h.pays_dividends })
+      await putHoldingsById(h.id, { pays_dividends: !h.pays_dividends })
       toast.success(h.pays_dividends ? `${h.ticker} : ne distribue pas` : `${h.ticker} : titre distribuant (rappel si aucun dividende pendant 13 mois)`)
       onRefresh()
     } catch (err: any) {
@@ -106,7 +106,7 @@ export function useHoldingsState(p: { accountId: HoldingsTableProps["accountId"]
     }
     try {
       // Vide = PRU inconnu ; le backend modifie la ligne du Point Zéro puis recalcule les positions
-      await api.put(`/holdings/${h.id}`, { buy_price_avg: costDraft.trim() === "" ? null : value })
+      await putHoldingsById(h.id, { buy_price_avg: costDraft.trim() === "" ? null : value })
       toast.success(`PRU de ${h.ticker} mis à jour`)
       setEditingCostId(null)
       onRefresh()

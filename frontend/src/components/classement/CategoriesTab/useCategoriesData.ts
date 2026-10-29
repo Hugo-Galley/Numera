@@ -1,9 +1,9 @@
-import { api } from "@/lib/api"
 import { toast } from "sonner"
 import { useConfirm } from "@/providers/ConfirmProvider"
 import { useEffect, useState } from "react"
 import { useSubmit } from "@/hooks/useSubmit"
 import { Category } from "./types"
+import { deleteCategoriesById, getCategories, patchCategoriesById, postCategories } from "@/lib/api/classement"
 
 /** Chargement des catégories, création, modification, archivage et suppression. */
 export function useCategoriesData() {
@@ -34,7 +34,7 @@ export function useCategoriesData() {
 
   const loadCategories = async () => {
     try {
-      const data = await api.get<Category[]>("/categories")
+      const data = await getCategories<Category[]>()
       setCategories(data)
     } catch (error) {
       toast.error("Erreur chargement catégories")
@@ -50,7 +50,7 @@ export function useCategoriesData() {
   const [handleAddCategory, handleAddCategoryBusy] = useSubmit(async () => {
     if (!newCatName) return
     try {
-      await api.post("/categories", {
+      await postCategories({
         name: newCatName,
         type: newCatType,
         icon: newCatIcon,
@@ -89,7 +89,7 @@ export function useCategoriesData() {
   const [handleUpdateCategory, handleUpdateCategoryBusy] = useSubmit(async () => {
     if (!editingCat || !editCatName) return
     try {
-      await api.patch(`/categories/${editingCat.id}`, {
+      await patchCategoriesById(editingCat.id, {
         name: editCatName,
         type: editCatType,
         icon: editCatIcon,
@@ -110,7 +110,7 @@ export function useCategoriesData() {
 
   const handleToggleArchiveCategory = async (cat: Category) => {
     try {
-      await api.patch(`/categories/${cat.id}`, { archived: !cat.archived })
+      await patchCategoriesById(cat.id, { archived: !cat.archived })
       toast.success(cat.archived ? "Catégorie réactivée" : "Catégorie archivée : masquée des sélecteurs, historique conservé")
       loadCategories()
     } catch (error) {
@@ -121,7 +121,7 @@ export function useCategoriesData() {
   const handleDeleteCategory = async (categoryId: number) => {
     if (!(await confirm("Supprimer cette catégorie ? Les transactions associées n'auront plus de catégorie."))) return
     try {
-      await api.delete(`/categories/${categoryId}`)
+      await deleteCategoriesById(categoryId)
       toast.success("Catégorie supprimée")
       loadCategories()
     } catch (error) {

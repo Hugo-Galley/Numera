@@ -1,11 +1,12 @@
 import { ClipboardList, EyeOff, Landmark as LandmarkIcon, Plus, Upload } from "lucide-react"
 import React, { useEffect, useRef, useState } from "react"
-import { api } from "@/lib/api"
 import { parseQuickEntry } from "@/lib/quickEntry"
 import { toast } from "sonner"
 import { useNavigate } from "react-router-dom"
 import { useUI } from "@/providers/UIProvider"
 import { NAVIGATION } from "./types"
+import { getAccounts } from "@/lib/api/accounts"
+import { getTransactions } from "@/lib/api/transactions"
 
 /** Recherche (comptes, transactions, saisie rapide), résultats et navigation clavier. */
 export function useOmniboxSearch() {
@@ -58,7 +59,7 @@ export function useOmniboxSearch() {
       try {
         setLoading(true)
         setSearchFailed(false)
-        const data = await api.get<any[]>(`/transactions?search=${encodeURIComponent(query)}&limit=10`)
+        const data = await getTransactions<any[]>(`?search=${encodeURIComponent(query)}&limit=10`)
         if (isCurrent) {
           setTransactions(data || [])
           setActiveIndex(0)
@@ -84,7 +85,7 @@ export function useOmniboxSearch() {
 
   async function loadAccounts() {
     try {
-      const data = await api.get<any[]>("/accounts")
+      const data = await getAccounts<any[]>()
       setAccounts(data || [])
     } catch (error) {
       console.error("Failed to load accounts for search", error)

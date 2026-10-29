@@ -1,5 +1,4 @@
 import { PortfolioHolding } from "@/types/diversity"
-import { api } from "@/lib/api"
 import { errorMessage } from "@/lib/utils"
 import { nowLocalInput, toInputValue, toNaiveLocal, todayLocal } from "@/lib/dates"
 import { toast } from "sonner"
@@ -8,6 +7,9 @@ import type { useAccountDetailState } from "./useAccountDetailState"
 import type { useAccountForms } from "./useAccountForms"
 import type { useAccountDetailData } from "./useAccountDetailData"
 import type { useTransactionActions } from "./useTransactionActions"
+import { deleteBalanceSnapshotsById, patchBalanceSnapshotsById, postBalanceSnapshots, postBalanceSnapshotsSetZeroPoint } from "@/lib/api/accounts"
+import { deleteInvestmentTransactionsById, patchInvestmentTransactionsById, postInvestmentTransactions } from "@/lib/api/investments"
+import { patchTransactionsBulk } from "@/lib/api/transactions"
 
 /** Flux d'investissement, snapshots, modification groupée et point zéro. */
 export function useInvestmentActions(p: ReturnType<typeof useAccountDetailState> & ReturnType<typeof useAccountForms> & ReturnType<typeof useAccountDetailData> & ReturnType<typeof useTransactionActions>) {
@@ -71,10 +73,10 @@ export function useInvestmentActions(p: ReturnType<typeof useAccountDetailState>
       }
       
       if (editInvTxId) {
-        await api.patch(`/investment-transactions/${editInvTxId}`, payload)
+        await patchInvestmentTransactionsById(editInvTxId, payload)
         toast.success("Opération modifiée")
       } else {
-        await api.post("/investment-transactions", payload)
+        await postInvestmentTransactions(payload)
         toast.success("Opération enregistrée")
       }
       
@@ -119,7 +121,7 @@ export function useInvestmentActions(p: ReturnType<typeof useAccountDetailState>
   const handleDeleteInvTransaction = async (txId: number) => {
     if (!(await confirm("Supprimer ce flux ?"))) return
     try {
-      await api.delete(`/investment-transactions/${txId}`)
+      await deleteInvestmentTransactionsById(txId)
       toast.success("Flux supprimé")
       await loadData({ quiet: true })
     } catch (error: any) {
@@ -150,10 +152,10 @@ export function useInvestmentActions(p: ReturnType<typeof useAccountDetailState>
       }
 
       if (editSnapId) {
-        await api.patch(`/balance-snapshots/${editSnapId}`, payload)
+        await patchBalanceSnapshotsById(editSnapId, payload)
         toast.success("Snapshot modifié")
       } else {
-        await api.post("/balance-snapshots", payload)
+        await postBalanceSnapshots(payload)
         toast.success("Snapshot enregistré")
       }
       
@@ -176,7 +178,7 @@ export function useInvestmentActions(p: ReturnType<typeof useAccountDetailState>
   const handleDeleteSnapshot = async (snapId: number) => {
     if (!(await confirm("Supprimer ce snapshot ?"))) return
     try {
-      await api.delete(`/balance-snapshots/${snapId}`)
+      await deleteBalanceSnapshotsById(snapId)
       toast.success("Snapshot supprimé")
       await loadData({ quiet: true })
     } catch (error) {
@@ -197,7 +199,7 @@ export function useInvestmentActions(p: ReturnType<typeof useAccountDetailState>
         payload.tag_ids = bulkTagIds
       }
 
-      await api.patch("/transactions/bulk", payload)
+      await patchTransactionsBulk(payload)
       toast.success(`${selectedIds.length} transactions mises à jour`)
       setSelectedIds([])
       setIsBulkEditDialogOpen(false)
@@ -226,7 +228,7 @@ export function useInvestmentActions(p: ReturnType<typeof useAccountDetailState>
         current_value: Number(zeroValue),
         note: zeroNote || null
       }
-      await api.post("/balance-snapshots/set-zero-point", payload)
+      await postBalanceSnapshotsSetZeroPoint(payload)
       toast.success("Nouveau point zéro défini")
       setZeroOpen(false)
       resetZeroForm()

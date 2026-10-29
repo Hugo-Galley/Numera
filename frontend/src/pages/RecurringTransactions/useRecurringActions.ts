@@ -1,4 +1,3 @@
-import { api } from "@/lib/api"
 import { format } from "date-fns"
 import { formatCurrency } from "@/lib/utils"
 import { fr } from "date-fns/locale"
@@ -9,6 +8,10 @@ import { useSubmit } from "@/hooks/useSubmit"
 import { Category, Account, RecurringTransaction } from "./types"
 import type { useRecurringState } from "./useRecurringState"
 import type { useRecurringForm } from "./useRecurringForm"
+import { getAccounts } from "@/lib/api/accounts"
+import { getAnalyticsAssetAllocationSuggestions, getAnalyticsSubscriptions, postAnalyticsSubscriptionsIgnore } from "@/lib/api/analytics"
+import { getCategories } from "@/lib/api/classement"
+import { deleteRecurringTransactionsById, getRecurringTransactions, patchRecurringTransactionsById, postRecurringTransactions, postRecurringTransactionsTrigger } from "@/lib/api/recurring"
 
 /** Chargement et actions : création, modification, suppression, déclenchement, validation des détections. */
 export function useRecurringActions(p: ReturnType<typeof useRecurringState> & ReturnType<typeof useRecurringForm>) {
@@ -18,11 +21,11 @@ export function useRecurringActions(p: ReturnType<typeof useRecurringState> & Re
     setLoading(true)
     try {
       const [txsData, accountsData, categoriesData, sData, suggestionsData] = await Promise.all([
-        api.get<RecurringTransaction[]>("/recurring-transactions/"),
-        api.get<Account[]>("/accounts"),
-        api.get<Category[]>("/categories?include_archived=false"),
-        api.get<any>("/analytics/subscriptions?include_other=true"),
-        api.get<any>("/analytics/asset-allocation/suggestions")
+        getRecurringTransactions<RecurringTransaction[]>(),
+        getAccounts<Account[]>(),
+        getCategories<Category[]>("?include_archived=false"),
+        getAnalyticsSubscriptions<any>("?include_other=true"),
+        getAnalyticsAssetAllocationSuggestions<any>()
       ])
       setRecurringTxs(txsData || [])
       setAccounts(accountsData?.filter(a => a) || [])
@@ -141,10 +144,10 @@ export function useRecurringActions(p: ReturnType<typeof useRecurringState> & Re
 
     try {
       if (editingTx) {
-        await api.patch(`/recurring-transactions/${editingTx.id}`, payload)
+        await patchRecurringTransactionsById(editingTx.id, payload)
         toast.success("Transaction récurrente mise à jour")
       } else {
-        await api.post("/recurring-transactions/", payload)
+        await postRecurringTransactions(payload)
         toast.success("Transaction récurrente créée")
       }
       setIsFormOpen(false)
@@ -158,7 +161,7 @@ export function useRecurringActions(p: ReturnType<typeof useRecurringState> & Re
   const handleDelete = async (id: number) => {
     if (!(await confirm("Êtes-vous sûr de vouloir supprimer cette récurrence ?"))) return
     try {
-      await api.delete(`/recurring-transactions/${id}`)
+      await deleteRecurringTransactionsById(id)
       toast.success("Transaction récurrente supprimée")
       loadData()
     } catch (error) {
@@ -169,7 +172,7 @@ export function useRecurringActions(p: ReturnType<typeof useRecurringState> & Re
 
   const [handleTrigger, handleTriggerBusy] = useSubmit(async () => {
     try {
-      const count = await api.post<number>("/recurring-transactions/trigger", {})
+      const count = await postRecurringTransactionsTrigger<number>({})
       toast.success(`${count} transaction(s) générée(s)`)
       loadData()
     } catch (error) {
@@ -180,7 +183,7 @@ export function useRecurringActions(p: ReturnType<typeof useRecurringState> & Re
 
   const toggleActive = async (tx: RecurringTransaction) => {
     try {
-      await api.patch(`/recurring-transactions/${tx.id}`, { is_active: !tx.is_active })
+      await patchRecurringTransactionsById(tx.id, { is_active: !tx.is_active })
       loadData()
     } catch (error) {
       toast.error("Erreur lors de la modification")
@@ -229,7 +232,7 @@ export function useRecurringActions(p: ReturnType<typeof useRecurringState> & Re
   const handleIgnoreDetection = async (potential: any) => {
     if (!(await confirm(`Ne plus suggérer "${potential.name}" (${formatCurrency(potential.amount)}) comme abonnement ?`, { title: "Ignorer la suggestion", confirmLabel: "Ne plus suggérer", destructive: false }))) return
     try {
-      await api.post("/analytics/subscriptions/ignore", {
+      await postAnalyticsSubscriptionsIgnore({
         merchant: potential.name,
         amount: potential.amount
       })

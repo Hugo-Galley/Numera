@@ -1,8 +1,11 @@
-import { api } from "@/lib/api"
 import { toast } from "sonner"
 import { useEffect, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import { Account, ActionCenterData, ActionItem, Category, IssueDetails, Transaction } from "./types"
+import { getAccounts } from "@/lib/api/accounts"
+import { getAnalyticsActions, getAnalyticsAuditById, postAnalyticsActionsDismiss } from "@/lib/api/analytics"
+import { getCategories } from "@/lib/api/classement"
+import { postTransactionsIgnore, postTransactionsIgnoreDuplicate, postTransactionsLinkById } from "@/lib/api/transactions"
 
 /** Chargement du Centre d'actions, détail d'un problème et actions (masquer, rapprocher, ignorer). */
 export function useActionCenterData() {
@@ -26,9 +29,9 @@ export function useActionCenterData() {
     setError(null)
     try {
       const [result, categoryRows, accountRows] = await Promise.all([
-        api.get<ActionCenterData>("/analytics/actions"),
-        api.get<Category[]>("/categories?include_archived=false"),
-        api.get<Account[]>("/accounts"),
+        getAnalyticsActions<ActionCenterData>(),
+        getCategories<Category[]>("?include_archived=false"),
+        getAccounts<Account[]>(),
       ])
       setData(result)
       setCategories(categoryRows || [])
@@ -43,7 +46,7 @@ export function useActionCenterData() {
   async function dismissAction(e: React.MouseEvent, actionId: string) {
     e.stopPropagation()
     try {
-      await api.post('/analytics/actions/dismiss', { id: actionId })
+      await postAnalyticsActionsDismiss({ id: actionId })
       setData(prev => prev ? {
         ...prev,
         actions: prev.actions.filter(a => a.id !== actionId)
@@ -79,7 +82,7 @@ export function useActionCenterData() {
 
       setLoadingIssueId(action.id)
       try {
-        const result = await api.get<IssueDetails>(`/analytics/audit/${issueId}`)
+        const result = await getAnalyticsAuditById<IssueDetails>(issueId)
         setDetails((prev) => ({ ...prev, [issueId]: result }))
       } catch (err) {
         toast.error(err instanceof Error ? err.message : "Chargement impossible")
@@ -94,7 +97,7 @@ export function useActionCenterData() {
   const detail = activeIssueId ? details[activeIssueId] : null
 
   async function refreshIssue(issueId: string) {
-    const result = await api.get<IssueDetails>(`/analytics/audit/${issueId}`)
+    const result = await getAnalyticsAuditById<IssueDetails>(issueId)
     setDetails((prev) => ({ ...prev, [issueId]: result }))
     await loadActions()
   }
@@ -143,7 +146,7 @@ export function useActionCenterData() {
 
   async function linkTransfer(sortieId: number, entreeId: number) {
     try {
-      await api.post(`/transactions/${sortieId}/link/${entreeId}?type=regular`, {})
+      await postTransactionsLinkById(sortieId, entreeId, "?type=regular", {})
       toast.success("Transfert rapproché")
       if (activeIssueId) await refreshIssue(activeIssueId)
     } catch (err) {
@@ -153,7 +156,7 @@ export function useActionCenterData() {
 
   async function ignoreTransfer(sortieId: number) {
     try {
-      await api.post(`/transactions/${sortieId}/ignore`, {})
+      await postTransactionsIgnore(sortieId, {})
       toast.success("Suggestion ignorée")
       if (activeIssueId) await refreshIssue(activeIssueId)
     } catch (err) {
@@ -163,7 +166,7 @@ export function useActionCenterData() {
 
   async function ignoreDuplicate(transactions: Transaction[]) {
     try {
-      await Promise.all(transactions.map((tx) => api.post(`/transactions/${tx.id}/ignore-duplicate`, {})))
+      await Promise.all(transactions.map((tx) => postTransactionsIgnoreDuplicate(tx.id, {})))
       toast.success("Doublons ignorés")
       if (activeIssueId) await refreshIssue(activeIssueId)
     } catch (err) {

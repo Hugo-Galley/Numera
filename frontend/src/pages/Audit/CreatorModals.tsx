@@ -3,10 +3,10 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input"
 import { RefreshCw, Save } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { api } from "@/lib/api"
 import { toast } from "sonner"
 import { useState } from "react"
 import { Category } from "./types"
+import { postCategorizationRules, postMerchants, postMerchantsAutoNormalize } from "@/lib/api/classement"
 
 export function RuleCreatorModal({
   merchant,
@@ -30,7 +30,7 @@ export function RuleCreatorModal({
   async function create() {
     setSaving(true)
     try {
-      await api.post("/categorization-rules", {
+      await postCategorizationRules({
         pattern: draft.pattern.trim(),
         category_id: draft.category_id === "none" ? null : Number(draft.category_id),
         priority: 0,
@@ -108,14 +108,14 @@ export function MerchantCreatorModal({
   async function create() {
     setSaving(true)
     try {
-      await api.post("/merchants", {
+      await postMerchants({
         name: draft.name.trim(),
         category_id: draft.category_id === "none" ? null : Number(draft.category_id),
         // Toutes les écritures repérées par le Centre d'actions, pas seulement la plus fréquente
         aliases: variants?.length ? variants : [merchant]
       })
       toast.success("Marchand créé et normalisé")
-      await api.post("/merchants/auto-normalize", {})
+      await postMerchantsAutoNormalize({})
       onCreated()
       onClose()
     } catch (err) {

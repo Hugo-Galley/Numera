@@ -1,10 +1,10 @@
 import { type LoanSummary } from "@/components/loans/types"
-import { api } from "@/lib/api"
 import { toast } from "sonner"
 import { useConfirm } from "@/providers/ConfirmProvider"
 import { useEffect, useState } from "react"
 import { useSearchParams } from "react-router-dom"
 import { Account } from "./types"
+import { getLoansByAccountById } from "@/lib/api/accounts"
 
 /** État de la page : liste, formulaires, dialogues et liens ⌘K (?import=1, ?new=loan). */
 export function useAccountsState() {
@@ -66,7 +66,7 @@ export function useAccountsState() {
       return
     }
     try {
-      setEditingLoan(await api.get<LoanSummary>(`/loans/by-account/${account.id}`))
+      setEditingLoan(await getLoansByAccountById<LoanSummary>(account.id))
       setLoanDialogOpen(true)
     } catch (error) {
       toast.error("Impossible de charger ce crédit")

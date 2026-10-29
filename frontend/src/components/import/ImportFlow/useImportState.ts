@@ -1,7 +1,9 @@
-import { api } from "@/lib/api"
 import { toast } from "sonner"
 import { useEffect, useState } from "react"
 import { Account, Category, ImportFlowProps, PreviewData } from "./types"
+import { getAccounts } from "@/lib/api/accounts"
+import { getCategories } from "@/lib/api/classement"
+import { uploadImportCommit, uploadImportPreview } from "@/lib/api/transactions"
 
 /** Comptes et catégories, fichier choisi, aperçu, correspondance des catégories et import. */
 export function useImportState(p: { accountId: ImportFlowProps["accountId"]; onImported: ImportFlowProps["onImported"] }) {
@@ -20,8 +22,8 @@ export function useImportState(p: { accountId: ImportFlowProps["accountId"]; onI
   const loadInitialData = async () => {
     try {
       const [accs, cats] = await Promise.all([
-        api.get<Account[]>("/accounts"),
-        api.get<Category[]>("/categories?include_archived=false"),
+        getAccounts<Account[]>(),
+        getCategories<Category[]>("?include_archived=false"),
       ])
       
       if (accs && Array.isArray(accs)) {
@@ -53,7 +55,7 @@ export function useImportState(p: { accountId: ImportFlowProps["accountId"]; onI
 
     setLoading(true)
     try {
-      const data = await api.upload<any>("/import/preview", formData)
+      const data = await uploadImportPreview<any>(formData)
       setPreview(data)
       
       // Initialize mapping with default behavior (CREATE)
@@ -80,7 +82,7 @@ export function useImportState(p: { accountId: ImportFlowProps["accountId"]; onI
 
     setImporting(true)
     try {
-      const data = await api.upload<any>("/import/commit", formData)
+      const data = await uploadImportCommit<any>(formData)
       setResult(data)
       toast.success("Import terminé avec succès")
       if (data.imported > 0) onImported?.()
