@@ -28,7 +28,8 @@ si le budget le permet. Commits directement sur main, sans push.
 ### État (mis à jour à chaque tâche)
 
 - **Fait** : tâches 1 à 7 (`AccountDetail`, `RecurringTransactions`, `WealthSimulator`, `Accounts`, `Audit`, `Investments` + `Savings`, `HoldingsTable` + `PointZeroModal`), un commit « refactor(frontend): découpe de … » par fichier. Baseline : **12 entrées**.
-- **Prochaine tâche** : tâche 8 (`OverviewTab`).
+- **Fait aussi** : tâche 8 (`OverviewTab`). Baseline : **11 entrées**.
+- **Prochaine tâche** : tâche 9 (`Calendar`, puis `MerchantsTab`, `CategoriesTab`, `Omnibox`).
 - Aucune tâche entamée à moitié.
 
 ### Conventions de l'utilisateur (sans redemander)
@@ -147,7 +148,9 @@ Deux commits (un par page). `Investments` : modales `PointZeroModal`, `CustomEtf
 - [x] `HoldingsTable` : `components/investments/HoldingsTable/` (export nommé et props inchangés) : `index.tsx`, `types.ts`, hooks `useHoldingsTable.ts` (reçoit les props) / `useHoldingsState.ts` ; composants `HoldingsHeader`, `HoldingsMobileList`, `HoldingsDesktopTable`. Plus gros fichier : 260 lignes. Vérifié sur `/accounts/3` : texte, requêtes, boutons, HTML ; point zéro (valeurs pré-remplies), filtre ETF puis réinitialisation. `splitlib.py` recale les imports relatifs d'origine (`./X` → `../X`).
 - [x] `PointZeroModal` : `components/investments/PointZeroModal/` (export et props inchangés) : `index.tsx`, `types.ts`, hooks `usePointZeroModal.ts` / `usePointZeroState.ts` ; composants `PointZeroSearch`, `PointZeroRows`, `PointZeroFooter`. Plus gros fichier : 217 lignes. Vérifié : ouverture depuis `/accounts/3`, texte et valeurs pré-remplies identiques.
 
-### Task 8: `components/dashboard/tabs/OverviewTab.tsx` (622)
+### Task 8: `components/dashboard/tabs/OverviewTab.tsx` (622) ✅
+
+Fait. `components/dashboard/tabs/OverviewTab/` (export et props inchangés) : `index.tsx`, `types.ts`, hooks `useOverviewTab.ts` / `useOverviewData.ts` (regroupements) ; composants `SankeyCard`, `WealthAllocationCard` (`WealthPie`, `WealthDetails`), `ExpensesCards`, `TagTotalsCard`. Plus gros fichier : 210 lignes. Vérifié sur `/` : texte, requêtes, boutons identiques, texte identique pour les 4 regroupements (catégorie, compte, établissement, mixte). La longueur du HTML de `<main>` varie d'une mesure à l'autre sur le Dashboard (graphiques) : ne pas s'en servir sur cette page.
 
 Écran : `/` onglet Vue d'ensemble (données via `useDashboardData`, inchangé).
 

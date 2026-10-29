@@ -2,7 +2,6 @@
   "frontend/src/components/analytics/SankeyFlow.tsx": 371,
   "frontend/src/components/classement/CategoriesTab.tsx": 510,
   "frontend/src/components/classement/MerchantsTab.tsx": 511,
-  "frontend/src/components/dashboard/tabs/OverviewTab.tsx": 622,
   "frontend/src/components/import/ImportFlow.tsx": 405,
   "frontend/src/components/layout/Omnibox.tsx": 509,
   "frontend/src/components/savings/ProvisionsSection.tsx": 386,
