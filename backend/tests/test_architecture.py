@@ -18,7 +18,8 @@ FORBIDDEN: dict[str, tuple[str, ...]] = {
     "app.repositories": ("app.controllers", "app.services", "app.integrations", "fastapi"),
     "app.domain": ("app.controllers", "app.services", "app.repositories", "app.integrations", "app.db", "sqlalchemy.orm", "fastapi"),
     "app.integrations": ("app.controllers", "app.services", "app.repositories"),
-    "app.core": ("app.controllers",),
+    # core n'importe que core, models et db (transverse).
+    "app.core": ("app.controllers", "app.services", "app.repositories", "app.domain", "app.integrations", "app.schemas"),
     "app.models": _DATA_LAYERS_FORBIDDEN,
     "app.schemas": _DATA_LAYERS_FORBIDDEN,
     "app.db": _DATA_LAYERS_FORBIDDEN,
@@ -62,9 +63,11 @@ def imported_modules(path: Path, module: str, app_dir: Path | None = None) -> se
 def _controllers_violation(module: str, imported: str) -> bool:
     if not _matches(imported, "app.controllers") or imported == "app.controllers.deps":
         return False
-    package = module.rpartition(".")[0]
-    # Un package peut importer ses propres sous-modules (sous-routers, helpers internes).
-    return not (package != "app.controllers" and _matches(imported, package)) and not _matches(imported, module)
+    parts = module.split(".")
+    # Un package de domaine (`app.controllers.<domaine>`) peut importer ses propres modules
+    # (sous-routers, helpers internes), jamais ceux d'un autre domaine.
+    domain = ".".join(parts[:3]) if len(parts) > 3 else None
+    return not (domain and _matches(imported, domain)) and not _matches(imported, module)
 
 
 def _commits(path: Path) -> bool:
@@ -125,6 +128,28 @@ def test_controllers_may_import_deps_and_own_package_only(tmp_path):
     write(tmp_path / "app/controllers/analytics/utils.py", "")
     write(tmp_path / "app/controllers/month_review.py", "from app.controllers import deps\nfrom app.controllers.accounts import a\n")
     assert violations(tmp_path / "app") == {"app/controllers/month_review.py -> app.controllers.accounts"}
+
+
+def test_controllers_may_import_deps_and_own_domain_only(tmp_path):
+    write(tmp_path / "app/controllers/deps.py", "")
+    write(tmp_path / "app/controllers/comptes/accounts.py", "")
+    write(tmp_path / "app/controllers/budget/transactions.py", "")
+    write(tmp_path / "app/controllers/budget/month_review.py",
+          "from app.controllers.deps import get_db\nfrom app.controllers.budget.transactions import t\n"
+          "from app.controllers.comptes.accounts import a\n")
+    write(tmp_path / "app/controllers/budget/salary/config.py", "from app.controllers.budget.transactions import t\n")
+    assert violations(tmp_path / "app") == {"app/controllers/budget/month_review.py -> app.controllers.comptes.accounts"}
+
+
+def test_core_imports_only_core_models_db(tmp_path):
+    write(tmp_path / "app/services/s.py", "")
+    write(tmp_path / "app/schemas/y.py", "")
+    write(tmp_path / "app/models/m.py", "")
+    write(tmp_path / "app/db/session.py", "")
+    write(tmp_path / "app/core/config.py", "")
+    write(tmp_path / "app/core/x.py", "from app.services.s import f\nfrom app.schemas.y import Y\nfrom app.models.m import M\n"
+          "from app.db.session import get_db\nfrom app.core.config import settings\n")
+    assert violations(tmp_path / "app") == {"app/core/x.py -> app.services.s", "app/core/x.py -> app.schemas.y"}
 
 
 def test_services_may_not_import_fastapi(tmp_path):
