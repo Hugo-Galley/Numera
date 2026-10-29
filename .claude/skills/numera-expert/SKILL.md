@@ -115,7 +115,7 @@ Table `financial_events` (`/financial-events`) : notes datées sans effet sur au
 - L'étape « catégoriser » est bornée au mois (le Centre d'Actions `/analytics/actions` est global : ne pas le réutiliser tel quel).
 
 ## Taux d'épargne et résilience
-`savings` (rapport mensuel, revue de mois) = `services/month_review.py::savings_basis` = revenus − dépenses réelles en vue globale : même numérateur que `taux_epargne`. Résilience (`services/analytics/budget.py::compute_resilience`, `GET /analytics/resilience`) = épargne liquide ÷ dépenses réelles moyennes des 6 derniers mois **complets** (jamais le mois en cours) ; le « fonds de sécurité » du score de santé (vue globale) l'utilise.
+`savings` (rapport mensuel, revue de mois) = `services/month_review.py::savings_basis` = revenus − dépenses réelles en vue globale : même numérateur que `taux_epargne`. Résilience (`services/analytics/budget/resilience.py::compute_resilience`, `GET /analytics/resilience`) = épargne liquide ÷ dépenses réelles moyennes des 6 derniers mois **complets** (jamais le mois en cours) ; le « fonds de sécurité » du score de santé (vue globale) l'utilise.
 
 ## « Investi du mois » (budget)
 `investissements_du_mois` (vue globale) = sorties catégorisées `Investissement`/`Epargne` non virement **+ versements liés à un virement interne** (`utils.budget_versement_ids`). Un versement sans virement lié (rapatriement d'un contrat, solde initial, intéressement) n'est pas de l'argent prélevé sur les revenus : il est exclu, y compris de la catégorie virtuelle « Investissement » (`expenses-by-category`, `budget-alerts`). `depenses_reelles` ne retranche que les sorties catégorisées, jamais les versements (absents de `depenses`). Vue par compte inchangée (les versements y sont les flux du compte).

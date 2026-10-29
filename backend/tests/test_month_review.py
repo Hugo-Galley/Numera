@@ -270,7 +270,8 @@ def test_small_correction_is_detected_as_modification(client, october):
 
 
 def test_exchange_rate_drift_does_not_flag_modification(client, db_session, monkeypatch):
-    import app.services.analytics.budget as budget_mod
+    import app.services.analytics.budget.alerts as alerts_mod
+    import app.services.analytics.budget.summary as budget_mod
     import app.services.month_review as router_mod
 
     eur = _courant(db_session)
@@ -286,11 +287,11 @@ def test_exchange_rate_drift_does_not_flag_modification(client, db_session, monk
             return {"EUR": 1.0, "USD": usd_rate}
         return _rates
 
-    for module in (budget_mod, router_mod):
+    for module in (budget_mod, alerts_mod, router_mod):
         monkeypatch.setattr(module, "get_exchange_rates", fixed_rates(1.08))
     assert _close(client).json()["closed"] is True
 
-    for module in (budget_mod, router_mod):
+    for module in (budget_mod, alerts_mod, router_mod):
         monkeypatch.setattr(module, "get_exchange_rates", fixed_rates(1.12))
     assert client.get("/month-review", params=PARAMS).json()["modified_since_close"] is False
 
