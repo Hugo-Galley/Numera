@@ -27,8 +27,8 @@ si le budget le permet. Commits directement sur main, sans push.
 
 ### État (mis à jour à chaque tâche)
 
-- **Fait** : tâche 1 (`AccountDetail`, commit « refactor(frontend): découpe de la page AccountDetail »). Baseline : **20 entrées**.
-- **Prochaine tâche** : tâche 2 (`RecurringTransactions`).
+- **Fait** : tâches 1 (`AccountDetail`) et 2 (`RecurringTransactions`), un commit « refactor(frontend): découpe de … » chacune. Baseline : **19 entrées**.
+- **Prochaine tâche** : tâche 3 (`WealthSimulator`).
 - Aucune tâche entamée à moitié.
 
 ### Conventions de l'utilisateur (sans redemander)
@@ -41,6 +41,7 @@ si le budget le permet. Commits directement sur main, sans push.
 ### Outillage déjà prêt (dans `.superpowers/sdd/2026-10-29-phase-5-frontend/`)
 
 - `run-backend.sh` / `run-frontend.sh` : backend sur une **copie** de `backend/data/demo.db` (`DEMO_MODE=true`, port 8011, `SECRET_KEY` aléatoire, identifiants `demo`/`demo` via un `env.sh` à créer : `ADMIN_USERNAME=demo` + `ADMIN_PASSWORD_HASH` bcrypt de `demo`) et Vite (`VITE_API_BASE=http://localhost:8011`, port 5173). Copier les scripts dans le scratchpad de la session, corriger les chemins, et pointer `.claude/launch.json` dessus **sans committer `launch.json`** (`git checkout -- .claude/launch.json` avant le commit). Démarrer avec `preview_start {name: "backend-demo"}` puis `{name: "frontend"}`. La page de connexion a les champs déjà remplis : cliquer seulement « Entrer dans la démo ».
+- `splitlib.py` : version générique du générateur (classe `Split` : `hooks`, `comp`, `index` ; ignore commentaires et chaînes pour choisir les imports). Une config courte par fichier (ex. `split-recurring.py`, tâche 2) ; la lancer sur une copie du fichier d'origine (`git show HEAD:… > scratchpad`).
 - `split-accountdetail.py` : le générateur utilisé pour la tâche 1. À adapter (plages de lignes) pour chaque gros fichier, il :
   1. lit les imports d'origine et n'émet, dans chaque nouveau fichier, que ceux dont l'identifiant y apparaît (alias `as` et `import type` conservés) ;
   2. découpe le corps du composant en **hooks** sur des blocs contigus, dans l'ordre d'origine ; chaque hook reçoit l'union des retours des hooks précédents (`p: ReturnType<typeof useA> & …`), déstructure ce qu'il utilise et retourne tout ce qu'il déclare ; il signale toute **référence en avant** (un nom utilisé avant le bloc qui le déclare) — la résoudre en déplaçant la déclaration pure (ex. un formateur) dans un bloc antérieur ;
@@ -108,7 +109,9 @@ Chaque tâche suit les mêmes étapes :
 
 Fait. `pages/AccountDetail/` : `index.tsx` (composition, retours anticipés), `types.ts`, hooks `useAccountDetail.ts` (assemblage, types `AccountDetailCtx` / `AccountDetailView`), `useAccountDetailState.ts`, `useAccountForms.ts`, `useAccountDetailData.ts`, `useTransactionActions.ts`, `useInvestmentActions.ts`, `useTransactionView.tsx` ; composants `AccountHeader`, `TransactionDialog`, `InvestmentTxDialog`, `SnapshotDialog`, `ZeroPointDialog`, `FilterBar`, `AccountKpis`, `AccountCharts`, `TransactionsSection` (`TransactionsToolbar`, `TransactionsMobileList`, `TransactionsTable`), `InvestmentSection` (`InvestmentFlowsCard`, `SnapshotsCard`), `BulkActionsBar`, `BulkEditDialog`, `AccountDialogs`. Plus gros fichier : 253 lignes. Vérifié sur les comptes 1 à 4 de la démo (courant, épargne, PEA, assurance-vie) : texte, requêtes et boutons identiques ; 7 dialogues + menu d'actions + édition pré-remplie ; mobile sombre ; confidentialité.
 
-### Task 2: `pages/RecurringTransactions.tsx` (1 548)
+### Task 2: `pages/RecurringTransactions.tsx` (1 548) ✅
+
+Fait. `pages/RecurringTransactions/` : `index.tsx` (onglets, calendrier en `lazy`, `IncomeTab`, `InvestmentFlowDialog`), `types.ts`, hooks `useRecurringTransactions.ts` (assemblage), `useRecurringState.ts`, `useRecurringForm.ts`, `useRecurringActions.ts` ; composants `RecurringHeader`, `RecurringListTab`, `SubscriptionsTab`, `RecurringFormDialog` (`FormMainFields`, `FormSecurityFields`, `FormAmountFields`, `FormScheduleFields`). Plus gros fichier : 262 lignes. Vérifié : vue analyse, vue liste, `?tab=calendar`, `?tab=salary` (texte, requêtes, boutons identiques) ; dialogue création ×2 (vide à la réouverture) et édition pré-remplie ×2 ; mobile sombre, confidentialité.
 
 Écrans : chaque onglet `?tab=` (dont `calendar` et `salary`, qui embarquent `Calendar.tsx` et `SalaryManager` : ne pas les toucher ici). Dossier `pages/RecurringTransactions/`.
 
