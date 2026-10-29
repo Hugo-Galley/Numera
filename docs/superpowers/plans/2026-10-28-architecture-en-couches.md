@@ -310,3 +310,18 @@ Cible : `pages/<Page>/index.tsx` (composition), un composant par section et par 
 
 ### Phase 6 — Nettoyage et durcissement
 Les deux baselines sont vides. `FORBIDDEN["app.core"]` est durci (core n'importe plus que core, models, db). `core/errors.api_error` est remplacé par les `DomainError`. Relecture finale de `ARCHITECTURE.md`, des `CLAUDE.md` et des skills.
+
+**Regroupement par domaine** (demande de l'utilisateur, 29/10/2026) : `controllers/`, `services/` et `repositories/` passent d'une liste plate de fichiers à des sous-packages par domaine, avec la même arborescence dans les trois couches (`domain/` suit s'il y gagne en lisibilité) :
+
+| Package | Contenu |
+|---|---|
+| `budget/` | transactions, catégories, règles de catégorisation, marchands, tags, imports, exports, récurrences, salaire, virements, remboursements, provisions, objectifs d'épargne, revue de mois |
+| `comptes/` | comptes, relevés, rapprochement, crédits, patrimoine (`wealth`) |
+| `investissement/` | opérations, positions, profils ETF, marché, fiscalité, portefeuille (issus de la phase 4) |
+| `analytics/`, `audit/` | déjà en place |
+| `systeme/` | auth, TOTP, passkeys, admin, notifications, logos, santé, démo |
+
+- Fait en phase 6, après la phase 4, pour ne déplacer chaque module qu'une fois ; une tâche dédiée, renommage pur (`git mv` puis édition), sans changement de code.
+- Tous les importeurs mis à jour (absolus, relatifs, locaux, tests, `monkeypatch.setattr`), sans ré-export ; `protected_routers` de `main.py` et `controllers/analytics/__init__.py` mis à jour.
+- `tests/test_architecture.py` : la règle « un controller n'importe pas un autre controller, sauf `controllers.deps` et son propre package » s'applique entre packages de domaine (un controller de `budget/` n'importe pas `comptes/`).
+- Vérification : instantanés analytics identiques, suite complète, `make check-size`, baselines inchangées (clés renommées, valeurs identiques), `ARCHITECTURE.md` (arborescence et § Couches), `CLAUDE.md`, `backend/CLAUDE.md` et skills mis à jour.
