@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.core.errors import BusinessRuleError, InvalidOperationError, NotFoundError
 from app.models.transaction import Transaction
-from app.repositories import accounts as account_repo
+from app.repositories.comptes import accounts as account_repo
 from app.repositories import transactions as repo
 from app.schemas.transaction import TransferCounterpartCreate, TransferCounterpartRead
 from app.services import reimbursements as remb

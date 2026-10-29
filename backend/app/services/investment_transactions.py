@@ -13,7 +13,7 @@ from app.domain.holdings import SELL_TYPES, is_trade
 from app.integrations.currency import convert_amount
 from app.models.account import Account
 from app.models.investment_transaction import InvestmentTransaction
-from app.repositories import accounts as accounts_repo
+from app.repositories.comptes import accounts as accounts_repo
 from app.repositories import investment_transactions as repo
 from app.repositories import portfolio as portfolio_repo
 from app.schemas.investment import InvestmentTransactionCreate, InvestmentTransactionUpdate

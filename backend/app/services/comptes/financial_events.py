@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.core.errors import NotFoundError
 from app.models.financial_event import FinancialEvent
-from app.repositories import financial_events as repo
+from app.repositories.comptes import financial_events as repo
 from app.schemas.financial_event import FinancialEventCreate, FinancialEventRead, FinancialEventUpdate
 
 

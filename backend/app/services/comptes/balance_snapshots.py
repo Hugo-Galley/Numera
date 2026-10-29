@@ -4,7 +4,7 @@ from app.core.errors import BusinessRuleError, NotFoundError
 from app.core.time import utcnow_naive
 from app.models.account import Account
 from app.models.balance_snapshot import BalanceSnapshot
-from app.repositories import balance_snapshots as repo
+from app.repositories.comptes import balance_snapshots as repo
 from app.schemas.investment import BalanceSnapshotCreate, BalanceSnapshotUpdate, SetZeroPointRequest
 
 VALUED_ACCOUNT_TYPES = ("investissement", "assurance_vie")

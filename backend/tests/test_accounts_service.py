@@ -9,7 +9,7 @@ from app.models.account import Account
 from app.models.balance_snapshot import BalanceSnapshot
 from app.models.transaction import Transaction
 from app.schemas.account import AccountUpdate
-from app.services import accounts as service
+from app.services.comptes import accounts as service
 
 
 def _account(db, name="Principal", is_main=False):

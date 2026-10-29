@@ -15,7 +15,7 @@ from datetime import date, datetime, timedelta
 from sqlalchemy.orm import Session
 
 from app.integrations.currency import get_exchange_rates
-from app.services.wealth import account_values
+from app.services.comptes.wealth import account_values
 from app.core.errors import NotFoundError
 from app.models.provision import Provision
 from app.repositories import provisions as repo

@@ -12,10 +12,10 @@ from sqlalchemy.exc import IntegrityError
 from app.controllers.systeme.auth import router as auth_router
 from app.controllers.systeme.passkeys import router as passkeys_router
 from app.controllers.systeme.totp import router as totp_router
-from app.controllers.accounts import router as accounts_router
+from app.controllers.comptes.accounts import router as accounts_router
 from app.controllers.analytics import router as analytics_router
 from app.controllers.systeme.admin import router as admin_router
-from app.controllers.balance_snapshots import router as balance_snapshots_router
+from app.controllers.comptes.balance_snapshots import router as balance_snapshots_router
 from app.controllers.categories import router as categories_router
 from app.controllers.exports import router as exports_router
 from app.controllers.systeme.health import router as health_router
@@ -37,8 +37,8 @@ from app.controllers.transfer_rules import router as transfer_rules_router
 from app.controllers.reimbursements import router as reimbursements_router
 from app.controllers.month_review import router as month_review_router
 from app.controllers.provisions import router as provisions_router
-from app.controllers.financial_events import router as financial_events_router
-from app.controllers.loans import router as loans_router
+from app.controllers.comptes.financial_events import router as financial_events_router
+from app.controllers.comptes.loans import router as loans_router
 from app.controllers.systeme.notifications import router as notifications_router
 from app.controllers.analytics.diversity import router as diversity_router
 from app.controllers.deps import get_current_user

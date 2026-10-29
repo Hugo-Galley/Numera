@@ -7,7 +7,7 @@ from app.core.errors import NotFoundError
 from app.domain.loans import add_months, build_schedule, monthly_payment, remaining_principal, simulate_prepayment, terms_of
 from app.models.account import Account
 from app.models.loan import Loan, LoanPrepayment
-from app.repositories import loans as repo
+from app.repositories.comptes import loans as repo
 from app.schemas.loan import (
     LoanCreate,
     LoanSummary,

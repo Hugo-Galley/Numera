@@ -12,7 +12,7 @@ from app.domain.finance import month_label_from_date, normalize_transaction_type
 from app.core.time import utcnow_naive
 from app.models.account import Account
 from app.models.transaction import Transaction
-from app.repositories import accounts as account_repo
+from app.repositories.comptes import accounts as account_repo
 from app.repositories import transactions as repo
 from app.schemas.transaction import (
     TransactionBulkDelete, TransactionBulkDeleteResult, TransactionBulkUpdate, TransactionCreate,

@@ -21,7 +21,7 @@ from app.models.account import Account
 from app.models.category import Category
 from app.models.import_log import ImportLog
 from app.models.transaction import Transaction
-from app.repositories import accounts as account_repo
+from app.repositories.comptes import accounts as account_repo
 from app.repositories import categorization_rules as rule_repo
 from app.repositories import imports as repo
 from app.services.balances import recalculate_running_balances

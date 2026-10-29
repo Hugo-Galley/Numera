@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.db.session import get_db
 from app.schemas.financial_event import FinancialEventCreate, FinancialEventRead, FinancialEventUpdate
-from app.services import financial_events as service
+from app.services.comptes import financial_events as service
 
 router = APIRouter(prefix="/financial-events", tags=["financial-events"])
 

@@ -10,7 +10,7 @@ from app.core.time import utcnow_naive
 from app.domain.holdings import normalize_ticker
 from app.models.account import Account
 from app.models.holding_baseline_item import HoldingBaselineItem
-from app.repositories import accounts as accounts_repo
+from app.repositories.comptes import accounts as accounts_repo
 from app.repositories import holdings as repo
 from app.schemas.holding import (
     ApplyCostsRequest,

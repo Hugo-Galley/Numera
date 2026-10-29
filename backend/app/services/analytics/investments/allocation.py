@@ -11,7 +11,7 @@ from app.models.account import Account
 from app.models.investment_transaction import InvestmentTransaction
 from app.repositories.analytics import investments as repo
 from app.services.analytics.investments.flows import calculate_investment_flows
-from app.services.wealth import account_values, active_accounts
+from app.services.comptes.wealth import account_values, active_accounts
 
 DEFAULT_CLASSES = ["Actions", "Obligations", "Immobilier", "Liquidités", "Crypto", "Or & Matières Premières", "Private Equity"]
 DEFAULT_SECTORS = ["Tech", "Santé", "Finance", "Energie", "Industrie", "Consommation", "Télécoms", "Luxe", "SaaS", "E-commerce", "Tourisme"]

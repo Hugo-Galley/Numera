@@ -16,7 +16,7 @@ from app.models.transaction import Transaction
 from app.repositories import month_review as repo
 from app.repositories.analytics.common import NET_AMOUNT, ticket_restaurant_account_ids
 from app.schemas.month_review import CloseRequest, ClosureRead
-from app.services.accounts import account_balance
+from app.services.comptes.accounts import account_balance
 from app.services.analytics.budget import compute_budget, compute_budget_alerts
 
 # Même liste que budget_analytics : ces catégories ne sont pas de la consommation

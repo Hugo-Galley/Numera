@@ -11,7 +11,7 @@ from datetime import date, datetime, timedelta
 from sqlalchemy.orm import Session
 
 from app.models.transaction import Transaction
-from app.repositories import reconciliation as repo
+from app.repositories.comptes import reconciliation as repo
 
 # Écart toléré (arrondis) et fenêtre de recherche des causes avant la date du relevé
 TOLERANCE = 0.01

@@ -17,7 +17,7 @@ from app.models.account import Account
 from app.repositories.analytics import budget as repo
 from app.repositories.analytics.common import savings_account_ids, savings_events_by_account, ticket_restaurant_account_ids
 from app.services.budget_period import period_bounds
-from app.services.wealth import account_values, active_accounts
+from app.services.comptes.wealth import account_values, active_accounts
 
 logger = get_logger(__name__)
 

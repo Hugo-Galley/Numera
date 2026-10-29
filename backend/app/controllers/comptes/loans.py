@@ -12,7 +12,7 @@ from app.schemas.loan import (
     SimulationRequest,
     SimulationResult,
 )
-from app.services import loans as service
+from app.services.comptes import loans as service
 
 router = APIRouter(prefix="/loans", tags=["loans"])
 

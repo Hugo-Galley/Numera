@@ -3,7 +3,7 @@ from datetime import date, datetime
 
 from sqlalchemy.orm import Session
 
-from app.services.accounts import account_balance
+from app.services.comptes.accounts import account_balance
 from app.services.analytics.budget import compute_resilience
 from app.core.logging import get_logger
 from app.services.dividends import load_dividends_eur

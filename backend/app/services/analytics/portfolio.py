@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from app.core.errors import BusinessRuleError, NotFoundError
 from app.domain.performance import xirr
 from app.domain.portfolio import uses_positions
-from app.repositories import accounts as accounts_repo
+from app.repositories.comptes import accounts as accounts_repo
 from app.repositories.analytics import investments as repo
 from app.schemas.portfolio import PortfolioOverview, PortfolioRead
 from app.services.holdings.replay import replay_account

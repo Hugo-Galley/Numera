@@ -2,12 +2,12 @@ from datetime import date
 
 from sqlalchemy.orm import Session
 
-from app.services import reconciliation
+from app.services.comptes import reconciliation
 from app.core.errors import NotFoundError
-from app.services.loans import loan_remaining
+from app.services.comptes.loans import loan_remaining
 from app.core.time import utcnow_naive
 from app.models.account import Account
-from app.repositories import accounts as repo
+from app.repositories.comptes import accounts as repo
 from app.schemas.account import (
     AccountCreate,
     AccountUpdate,

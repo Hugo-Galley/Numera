@@ -9,8 +9,8 @@ from app.models.account import Account
 from app.models.balance_snapshot import BalanceSnapshot
 from app.schemas.financial_event import FinancialEventCreate
 from app.schemas.investment import BalanceSnapshotCreate, SetZeroPointRequest
-from app.services import balance_snapshots as snapshot_service
-from app.services import financial_events as event_service
+from app.services.comptes import balance_snapshots as snapshot_service
+from app.services.comptes import financial_events as event_service
 
 
 def _account(db, type_):

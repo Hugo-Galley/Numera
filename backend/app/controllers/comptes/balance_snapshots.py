@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.db.session import get_db
 from app.schemas.investment import BalanceSnapshotCreate, BalanceSnapshotRead, BalanceSnapshotUpdate, SetZeroPointRequest
-from app.services import balance_snapshots as service
+from app.services.comptes import balance_snapshots as service
 
 router = APIRouter(prefix="/balance-snapshots", tags=["balance-snapshots"])
 
