@@ -1,0 +1,26 @@
+{
+ "items": [
+  {
+   "merchant": "Foncia — Loyer",
+   "total": 890.0
+  },
+  {
+   "merchant": "VIR SANS LIEN",
+   "total": 777.0
+  },
+  {
+   "merchant": "Navigo",
+   "total": 86.4
+  },
+  {
+   "merchant": "Decathlon",
+   "total": 85.41
+  },
+  {
+   "merchant": "EDF",
+   "total": 61.0
+  }
+ ],
+ "month": 6,
+ "year": 2026
+}

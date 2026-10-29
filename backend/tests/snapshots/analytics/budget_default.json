@@ -1,0 +1,18 @@
+{
+ "base_currency": "EUR",
+ "burn_rate": 72.61,
+ "depenses_reelles": 40733.1,
+ "depenses_totales": 40733.1,
+ "epargne_realisee": 12595.15,
+ "epargne_total": 10613.8,
+ "interets_totaux": 459.5,
+ "investissements_du_mois": 5700.0,
+ "month": null,
+ "patrimoine_net_total": 37929.17,
+ "reste_tresorerie": 6895.15,
+ "revenus_apres_depenses": 12595.15,
+ "revenus_totaux": 53328.25,
+ "solde_actuel": 37929.17,
+ "taux_epargne": 23.62,
+ "year": null
+}

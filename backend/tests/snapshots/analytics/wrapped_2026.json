@@ -1,0 +1,177 @@
+{
+ "available_years": [
+  2026,
+  2025,
+  2024
+ ],
+ "biggest_expense": {
+  "amount": 890.0,
+  "category": "Logement",
+  "date": "2026-01-02",
+  "merchant": "Foncia — Loyer",
+  "work_hours": 45.3
+ },
+ "has_data": true,
+ "hourly_rate": 19.66,
+ "is_partial": true,
+ "months": [
+  {
+   "income": 2943.12,
+   "month": 1,
+   "real_expenses": 1934.08,
+   "saved": 1009.04
+  },
+  {
+   "income": 2906.87,
+   "month": 2,
+   "real_expenses": 2230.98,
+   "saved": 675.89
+  },
+  {
+   "income": 2927.57,
+   "month": 3,
+   "real_expenses": 2040.69,
+   "saved": 886.88
+  },
+  {
+   "income": 2943.12,
+   "month": 4,
+   "real_expenses": 1771.75,
+   "saved": 1171.37
+  },
+  {
+   "income": 2906.87,
+   "month": 5,
+   "real_expenses": 2084.27,
+   "saved": 822.6
+  },
+  {
+   "income": 30.0,
+   "month": 6,
+   "real_expenses": 2295.34,
+   "saved": -2265.34
+  }
+ ],
+ "months_covered": 6,
+ "most_expensive_month": {
+  "income": 30.0,
+  "month": 6,
+  "real_expenses": 2295.34,
+  "saved": -2265.34
+ },
+ "net_worth_change_pct": 60.4,
+ "new_subscriptions": [],
+ "previous": {
+  "income_change_pct": -21.1,
+  "invested_change_pct": 0.0,
+  "net_worth_change_diff": 9054.61,
+  "real_expenses_change_pct": 4.7,
+  "savings_rate_change_pts": -20.8,
+  "totals": {
+   "dividends": 59.25,
+   "expense_count": 147,
+   "income": 18574.95,
+   "invested": 1800.0,
+   "net_worth_change": 5229.45,
+   "net_worth_end": 22405.57,
+   "net_worth_start": 17176.12,
+   "real_expenses": 11804.18,
+   "saved": 6770.77,
+   "savings_rate": 36.5,
+   "subscriptions_cost": 6911.34
+  },
+  "year": 2025
+ },
+ "real_expenses_work_hours": 628.5,
+ "stopped_subscriptions": [],
+ "stopped_subscriptions_yearly_saving": 0.0,
+ "thriftiest_month": {
+  "income": 2943.12,
+  "month": 4,
+  "real_expenses": 1771.75,
+  "saved": 1171.37
+ },
+ "top_categories": [
+  {
+   "color": null,
+   "icon": null,
+   "name": "Logement",
+   "percentage": 43.2,
+   "total": 5340.0,
+   "work_hours": 271.6
+  },
+  {
+   "color": null,
+   "icon": null,
+   "name": "Nourriture",
+   "percentage": 20.2,
+   "total": 2494.23,
+   "work_hours": 126.9
+  },
+  {
+   "color": null,
+   "icon": null,
+   "name": "Instantané loisirs",
+   "percentage": 7.3,
+   "total": 907.94,
+   "work_hours": 46.2
+  },
+  {
+   "color": null,
+   "icon": null,
+   "name": "Sortie",
+   "percentage": 7.0,
+   "total": 859.11,
+   "work_hours": 43.7
+  },
+  {
+   "color": null,
+   "icon": null,
+   "name": "Transport",
+   "percentage": 6.9,
+   "total": 856.41,
+   "work_hours": 43.6
+  }
+ ],
+ "top_merchants": [
+  {
+   "merchant": "Foncia — Loyer",
+   "total": 5340.0,
+   "work_hours": 271.6
+  },
+  {
+   "merchant": "VIR SANS LIEN",
+   "total": 777.0,
+   "work_hours": 39.5
+  },
+  {
+   "merchant": "Biocoop",
+   "total": 739.7,
+   "work_hours": 37.6
+  },
+  {
+   "merchant": "Carrefour",
+   "total": 539.95,
+   "work_hours": 27.5
+  },
+  {
+   "merchant": "Navigo",
+   "total": 518.4,
+   "work_hours": 26.4
+  }
+ ],
+ "totals": {
+  "dividends": 43.7,
+  "expense_count": 152,
+  "income": 14657.55,
+  "invested": 1800.0,
+  "net_worth_change": 14284.06,
+  "net_worth_end": 37929.17,
+  "net_worth_start": 23645.11,
+  "real_expenses": 12357.11,
+  "saved": 2300.44,
+  "savings_rate": 15.7,
+  "subscriptions_cost": 6859.95
+ },
+ "year": 2026
+}

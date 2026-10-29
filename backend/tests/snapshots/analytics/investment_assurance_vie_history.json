@@ -1,0 +1,164 @@
+{
+ "items": [
+  {
+   "current_value": 8000.0,
+   "date": "2024-12-01T00:00:00",
+   "gain_eur": -8000.0,
+   "is_zero_point": true,
+   "net_invested": 16000.0,
+   "performance_pct": -50.0
+  },
+  {
+   "current_value": 8052.53,
+   "date": "2024-12-31T20:00:00",
+   "gain_eur": -8047.47,
+   "is_zero_point": false,
+   "net_invested": 16100.0,
+   "performance_pct": -49.98
+  },
+  {
+   "current_value": 8209.01,
+   "date": "2025-01-31T20:00:00",
+   "gain_eur": -7990.99,
+   "is_zero_point": false,
+   "net_invested": 16200.0,
+   "performance_pct": -49.33
+  },
+  {
+   "current_value": 8193.13,
+   "date": "2025-02-28T20:00:00",
+   "gain_eur": -8106.87,
+   "is_zero_point": false,
+   "net_invested": 16300.0,
+   "performance_pct": -49.74
+  },
+  {
+   "current_value": 8456.89,
+   "date": "2025-03-31T20:00:00",
+   "gain_eur": -7943.11,
+   "is_zero_point": false,
+   "net_invested": 16400.0,
+   "performance_pct": -48.43
+  },
+  {
+   "current_value": 8698.64,
+   "date": "2025-04-30T20:00:00",
+   "gain_eur": -7801.36,
+   "is_zero_point": false,
+   "net_invested": 16500.0,
+   "performance_pct": -47.28
+  },
+  {
+   "current_value": 8807.28,
+   "date": "2025-05-31T20:00:00",
+   "gain_eur": -7792.72,
+   "is_zero_point": false,
+   "net_invested": 16600.0,
+   "performance_pct": -46.94
+  },
+  {
+   "current_value": 8970.46,
+   "date": "2025-06-30T20:00:00",
+   "gain_eur": -7729.54,
+   "is_zero_point": false,
+   "net_invested": 16700.0,
+   "performance_pct": -46.28
+  },
+  {
+   "current_value": 9165.47,
+   "date": "2025-07-31T20:00:00",
+   "gain_eur": -7634.53,
+   "is_zero_point": false,
+   "net_invested": 16800.0,
+   "performance_pct": -45.44
+  },
+  {
+   "current_value": 9378.94,
+   "date": "2025-08-31T20:00:00",
+   "gain_eur": -7521.06,
+   "is_zero_point": false,
+   "net_invested": 16900.0,
+   "performance_pct": -44.5
+  },
+  {
+   "current_value": 9404.65,
+   "date": "2025-09-30T20:00:00",
+   "gain_eur": -7595.35,
+   "is_zero_point": false,
+   "net_invested": 17000.0,
+   "performance_pct": -44.68
+  },
+  {
+   "current_value": 9461.31,
+   "date": "2025-10-31T20:00:00",
+   "gain_eur": -7638.69,
+   "is_zero_point": false,
+   "net_invested": 17100.0,
+   "performance_pct": -44.67
+  },
+  {
+   "current_value": 9587.53,
+   "date": "2025-11-30T20:00:00",
+   "gain_eur": -7612.47,
+   "is_zero_point": false,
+   "net_invested": 17200.0,
+   "performance_pct": -44.26
+  },
+  {
+   "current_value": 9790.4,
+   "date": "2025-12-31T20:00:00",
+   "gain_eur": -7509.6,
+   "is_zero_point": false,
+   "net_invested": 17300.0,
+   "performance_pct": -43.41
+  },
+  {
+   "current_value": 9901.23,
+   "date": "2026-01-31T20:00:00",
+   "gain_eur": -7498.77,
+   "is_zero_point": false,
+   "net_invested": 17400.0,
+   "performance_pct": -43.1
+  },
+  {
+   "current_value": 9952.74,
+   "date": "2026-02-28T20:00:00",
+   "gain_eur": -7547.26,
+   "is_zero_point": false,
+   "net_invested": 17500.0,
+   "performance_pct": -43.13
+  },
+  {
+   "current_value": 10156.92,
+   "date": "2026-03-31T20:00:00",
+   "gain_eur": -7443.08,
+   "is_zero_point": false,
+   "net_invested": 17600.0,
+   "performance_pct": -42.29
+  },
+  {
+   "current_value": 10273.51,
+   "date": "2026-04-30T20:00:00",
+   "gain_eur": -7426.49,
+   "is_zero_point": false,
+   "net_invested": 17700.0,
+   "performance_pct": -41.96
+  },
+  {
+   "current_value": 10393.65,
+   "date": "2026-05-31T20:00:00",
+   "gain_eur": -7406.35,
+   "is_zero_point": false,
+   "net_invested": 17800.0,
+   "performance_pct": -41.61
+  },
+  {
+   "current_value": 10470.29,
+   "date": "2026-06-15T20:00:00",
+   "gain_eur": -7429.71,
+   "is_zero_point": false,
+   "net_invested": 17900.0,
+   "performance_pct": -41.51
+  }
+ ]
+}

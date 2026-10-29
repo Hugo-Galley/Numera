@@ -1,0 +1,19 @@
+{
+ "items": [
+  {
+   "account_id": 3,
+   "account_name": "PEA",
+   "currency": "EUR",
+   "current_value": 12986.07,
+   "gain_eur": 1286.07,
+   "net_invested": 11700.0,
+   "percentage": 100.0,
+   "performance_pct": 10.99,
+   "value_source": "positions"
+  }
+ ],
+ "total_current_value": 12986.07,
+ "total_gain_eur": 1286.07,
+ "total_net_invested": 11700.0,
+ "total_performance_pct": 10.99
+}

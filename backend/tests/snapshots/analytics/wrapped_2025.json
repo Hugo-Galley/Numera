@@ -1,0 +1,193 @@
+{
+ "available_years": [
+  2026,
+  2025,
+  2024
+ ],
+ "biggest_expense": {
+  "amount": 1499.0,
+  "category": "Achat divers",
+  "date": "2025-09-14",
+  "merchant": "Apple Store",
+  "work_hours": 76.2
+ },
+ "has_data": true,
+ "hourly_rate": 19.66,
+ "is_partial": false,
+ "months": [
+  {
+   "income": 2858.45,
+   "month": 1,
+   "real_expenses": 2079.45,
+   "saved": 779.0
+  },
+  {
+   "income": 2838.7,
+   "month": 2,
+   "real_expenses": 1892.06,
+   "saved": 946.64
+  },
+  {
+   "income": 2838.7,
+   "month": 3,
+   "real_expenses": 1909.96,
+   "saved": 928.74
+  },
+  {
+   "income": 2858.45,
+   "month": 4,
+   "real_expenses": 1890.8,
+   "saved": 967.65
+  },
+  {
+   "income": 2822.2,
+   "month": 5,
+   "real_expenses": 2011.49,
+   "saved": 810.71
+  },
+  {
+   "income": 4358.45,
+   "month": 6,
+   "real_expenses": 2020.42,
+   "saved": 2338.03
+  },
+  {
+   "income": 2822.2,
+   "month": 7,
+   "real_expenses": 2985.4,
+   "saved": -163.2
+  },
+  {
+   "income": 2838.7,
+   "month": 8,
+   "real_expenses": 1971.25,
+   "saved": 867.45
+  },
+  {
+   "income": 2838.7,
+   "month": 9,
+   "real_expenses": 3318.5,
+   "saved": -479.8
+  },
+  {
+   "income": 2858.45,
+   "month": 10,
+   "real_expenses": 1862.07,
+   "saved": 996.38
+  },
+  {
+   "income": 2838.7,
+   "month": 11,
+   "real_expenses": 1919.7,
+   "saved": 919.0
+  },
+  {
+   "income": 2990.6,
+   "month": 12,
+   "real_expenses": 2291.08,
+   "saved": 699.52
+  }
+ ],
+ "months_covered": 12,
+ "most_expensive_month": {
+  "income": 2838.7,
+  "month": 9,
+  "real_expenses": 3318.5,
+  "saved": -479.8
+ },
+ "net_worth_change_pct": 37.7,
+ "new_subscriptions": [],
+ "previous": null,
+ "real_expenses_work_hours": 1330.2,
+ "stopped_subscriptions": [],
+ "stopped_subscriptions_yearly_saving": 0.0,
+ "thriftiest_month": {
+  "income": 2858.45,
+  "month": 10,
+  "real_expenses": 1862.07,
+  "saved": 996.38
+ },
+ "top_categories": [
+  {
+   "color": null,
+   "icon": null,
+   "name": "Logement",
+   "percentage": 40.8,
+   "total": 10680.0,
+   "work_hours": 543.2
+  },
+  {
+   "color": null,
+   "icon": null,
+   "name": "Nourriture",
+   "percentage": 20.0,
+   "total": 5241.39,
+   "work_hours": 266.6
+  },
+  {
+   "color": null,
+   "icon": null,
+   "name": "Sortie",
+   "percentage": 8.1,
+   "total": 2106.43,
+   "work_hours": 107.1
+  },
+  {
+   "color": null,
+   "icon": null,
+   "name": "Transport",
+   "percentage": 6.7,
+   "total": 1756.76,
+   "work_hours": 89.4
+  },
+  {
+   "color": null,
+   "icon": null,
+   "name": "Achat divers",
+   "percentage": 5.7,
+   "total": 1499.0,
+   "work_hours": 76.2
+  }
+ ],
+ "top_merchants": [
+  {
+   "merchant": "Foncia — Loyer",
+   "total": 10680.0,
+   "work_hours": 543.2
+  },
+  {
+   "merchant": "Apple Store",
+   "total": 1499.0,
+   "work_hours": 76.2
+  },
+  {
+   "merchant": "Intermarché",
+   "total": 1495.22,
+   "work_hours": 76.1
+  },
+  {
+   "merchant": "Navigo",
+   "total": 1036.8,
+   "work_hours": 52.7
+  },
+  {
+   "merchant": "EDF",
+   "total": 935.0,
+   "work_hours": 47.6
+  }
+ ],
+ "totals": {
+  "dividends": 79.0,
+  "expense_count": 303,
+  "income": 35762.3,
+  "invested": 3600.0,
+  "net_worth_change": 6468.99,
+  "net_worth_end": 23645.11,
+  "net_worth_start": 17176.12,
+  "real_expenses": 26152.18,
+  "saved": 9610.12,
+  "savings_rate": 26.9,
+  "subscriptions_cost": 13803.68
+ },
+ "year": 2025
+}

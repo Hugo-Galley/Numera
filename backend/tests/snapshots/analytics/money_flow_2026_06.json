@@ -1,0 +1,108 @@
+{
+ "fixed_charges": {
+  "amount": 1082.0,
+  "diff_prev_month": -51.39,
+  "diff_prev_month_pct": -4.5,
+  "percentage": 3606.7
+ },
+ "income": 30.0,
+ "investments": {
+  "amount": 300.0,
+  "diff_prev_month": 0.0,
+  "diff_prev_month_pct": 0.0,
+  "percentage": 1000.0
+ },
+ "month": 6,
+ "remainder": {
+  "amount": -2565.34,
+  "diff_prev_month": -3087.94,
+  "diff_prev_month_pct": -590.9,
+  "percentage": -8551.1
+ },
+ "savings": {
+  "amount": 0.0,
+  "diff_prev_month": 0.0,
+  "diff_prev_month_pct": 0.0,
+  "percentage": 0.0
+ },
+ "top_fixed": [
+  {
+   "amount": 890.0,
+   "category": null,
+   "is_recurring": true,
+   "name": "Foncia — Loyer (Logement)"
+  },
+  {
+   "amount": 86.4,
+   "category": null,
+   "is_recurring": true,
+   "name": "Navigo (Transport)"
+  },
+  {
+   "amount": 61.0,
+   "category": null,
+   "is_recurring": true,
+   "name": "EDF (Énergie)"
+  },
+  {
+   "amount": 19.99,
+   "category": null,
+   "is_recurring": true,
+   "name": "Free Mobile (Abonnement)"
+  },
+  {
+   "amount": 13.49,
+   "category": null,
+   "is_recurring": true,
+   "name": "Netflix (Abonnement)"
+  }
+ ],
+ "top_investments": [
+  {
+   "amount": 300.0,
+   "category": null,
+   "is_recurring": false,
+   "name": "PEA"
+  }
+ ],
+ "top_savings": [],
+ "top_variable": [
+  {
+   "amount": 837.99,
+   "category": null,
+   "is_recurring": false,
+   "name": "Instantané loisirs"
+  },
+  {
+   "amount": 131.14,
+   "category": null,
+   "is_recurring": false,
+   "name": "Shopping"
+  },
+  {
+   "amount": 108.45,
+   "category": null,
+   "is_recurring": false,
+   "name": "Nourriture"
+  },
+  {
+   "amount": 62.33,
+   "category": null,
+   "is_recurring": false,
+   "name": "Sortie"
+  },
+  {
+   "amount": 40.53,
+   "category": null,
+   "is_recurring": false,
+   "name": "Transport"
+  }
+ ],
+ "variable_expenses": {
+  "amount": 1213.34,
+  "diff_prev_month": 262.46,
+  "diff_prev_month_pct": 27.6,
+  "percentage": 4044.5
+ },
+ "year": 2026
+}

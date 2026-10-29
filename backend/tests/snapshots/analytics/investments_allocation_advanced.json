@@ -1,0 +1,66 @@
+{
+ "by_asset_class": [
+  {
+   "items": [
+    {
+     "account_id": 3,
+     "account_name": "PEA",
+     "percentage_of_group": 55.54,
+     "value": 12986.07
+    },
+    {
+     "account_id": 4,
+     "account_name": "Assurance-vie",
+     "percentage_of_group": 44.46,
+     "value": 10393.65
+    }
+   ],
+   "name": "Non classé",
+   "percentage": 100.0,
+   "value": 23379.72
+  }
+ ],
+ "by_geographic_zone": [
+  {
+   "items": [
+    {
+     "account_id": 3,
+     "account_name": "PEA",
+     "percentage_of_group": 55.54,
+     "value": 12986.07
+    },
+    {
+     "account_id": 4,
+     "account_name": "Assurance-vie",
+     "percentage_of_group": 44.46,
+     "value": 10393.65
+    }
+   ],
+   "name": "Non classé",
+   "percentage": 100.0,
+   "value": 23379.72
+  }
+ ],
+ "by_sector": [
+  {
+   "items": [
+    {
+     "account_id": 3,
+     "account_name": "PEA",
+     "percentage_of_group": 55.54,
+     "value": 12986.07
+    },
+    {
+     "account_id": 4,
+     "account_name": "Assurance-vie",
+     "percentage_of_group": 44.46,
+     "value": 10393.65
+    }
+   ],
+   "name": "Non classé",
+   "percentage": 100.0,
+   "value": 23379.72
+  }
+ ],
+ "total_value_eur": 23379.72
+}

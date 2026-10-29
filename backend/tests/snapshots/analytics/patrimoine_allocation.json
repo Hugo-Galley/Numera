@@ -1,0 +1,62 @@
+{
+ "items": [
+  {
+   "account_id": 3,
+   "account_name": "PEA",
+   "balance": 12986.07,
+   "balance_eur": 12986.07,
+   "currency": "EUR",
+   "institution": "Courtier Démo",
+   "logo": null,
+   "percentage": 34.24,
+   "type": "investissement"
+  },
+  {
+   "account_id": 2,
+   "account_name": "Livret A",
+   "balance": 10613.8,
+   "balance_eur": 10613.8,
+   "currency": "EUR",
+   "institution": "Banque Démo",
+   "logo": null,
+   "percentage": 27.98,
+   "type": "epargne"
+  },
+  {
+   "account_id": 4,
+   "account_name": "Assurance-vie - Investi",
+   "balance": 6236.19,
+   "balance_eur": 6236.19,
+   "currency": "EUR",
+   "institution": "Assureur Démo",
+   "logo": null,
+   "percentage": 16.44,
+   "type": "investissement"
+  },
+  {
+   "account_id": 4,
+   "account_name": "Assurance-vie - Fonds Euro",
+   "balance": 4157.46,
+   "balance_eur": 4157.46,
+   "currency": "EUR",
+   "institution": "Assureur Démo",
+   "logo": null,
+   "percentage": 10.96,
+   "type": "epargne"
+  },
+  {
+   "account_id": 1,
+   "account_name": "Compte courant",
+   "balance": 3935.65,
+   "balance_eur": 3935.65,
+   "currency": "EUR",
+   "institution": "Banque Démo",
+   "logo": null,
+   "percentage": 10.38,
+   "type": "courant"
+  }
+ ],
+ "net_patrimoine_eur": 37929.17,
+ "total_debts_eur": 0.0,
+ "total_patrimoine": 37929.17
+}

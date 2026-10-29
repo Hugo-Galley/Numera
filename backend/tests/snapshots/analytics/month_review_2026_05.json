@@ -1,0 +1,235 @@
+{
+ "accounts": {
+  "accounts": [
+   {
+    "balance": 3874.65,
+    "currency": "EUR",
+    "id": 1,
+    "last_verified_at": "2026-06-15T10:00:00",
+    "name": "Compte courant",
+    "verified_since_month_end": true
+   },
+   {
+    "balance": 10613.8,
+    "currency": "EUR",
+    "id": 2,
+    "last_verified_at": "2026-06-15T10:00:00",
+    "name": "Livret A",
+    "verified_since_month_end": true
+   },
+   {
+    "balance": 0.0,
+    "currency": "EUR",
+    "id": 3,
+    "last_verified_at": "2026-06-15T10:00:00",
+    "name": "PEA",
+    "verified_since_month_end": true
+   },
+   {
+    "balance": 10470.29,
+    "currency": "EUR",
+    "id": 4,
+    "last_verified_at": "2026-06-15T10:00:00",
+    "name": "Assurance-vie",
+    "verified_since_month_end": true
+   }
+  ],
+  "unverified_count": 0
+ },
+ "budget": {
+  "alerts": [
+   {
+    "annual_limit": null,
+    "annual_ratio": null,
+    "annual_spent": 2494.23,
+    "category_color": null,
+    "category_icon": null,
+    "category_id": 3,
+    "category_name": "Nourriture",
+    "monthly_limit": 450.0,
+    "monthly_ratio": 1.098689,
+    "monthly_spent": 494.41
+   },
+   {
+    "annual_limit": null,
+    "annual_ratio": null,
+    "annual_spent": 856.41,
+    "category_color": null,
+    "category_icon": null,
+    "category_id": 16,
+    "category_name": "Transport",
+    "monthly_limit": 150.0,
+    "monthly_ratio": 0.8474,
+    "monthly_spent": 127.11
+   },
+   {
+    "annual_limit": null,
+    "annual_ratio": null,
+    "annual_spent": 859.11,
+    "category_color": null,
+    "category_icon": null,
+    "category_id": 4,
+    "category_name": "Sortie",
+    "monthly_limit": 220.0,
+    "monthly_ratio": 0.846727,
+    "monthly_spent": 186.28
+   },
+   {
+    "annual_limit": null,
+    "annual_ratio": null,
+    "annual_spent": 907.94,
+    "category_color": null,
+    "category_icon": null,
+    "category_id": 20,
+    "category_name": "Instantané loisirs",
+    "monthly_limit": 20.0,
+    "monthly_ratio": 0.7995,
+    "monthly_spent": 15.99
+   },
+   {
+    "annual_limit": null,
+    "annual_ratio": null,
+    "annual_spent": 651.43,
+    "category_color": null,
+    "category_icon": null,
+    "category_id": 18,
+    "category_name": "Shopping",
+    "monthly_limit": 150.0,
+    "monthly_ratio": 0.7406,
+    "monthly_spent": 111.09
+   },
+   {
+    "annual_limit": null,
+    "annual_ratio": null,
+    "annual_spent": 267.6,
+    "category_color": null,
+    "category_icon": null,
+    "category_id": 1,
+    "category_name": "Abonnement",
+    "monthly_limit": 80.0,
+    "monthly_ratio": 0.5575,
+    "monthly_spent": 44.6
+   }
+  ],
+  "burn_rate": 67.23,
+  "burn_rate_excl_exceptional": 67.23,
+  "exceptional_expenses": 0.0,
+  "income": 2906.87,
+  "previous_real_expenses": 1771.75,
+  "real_expenses": 2084.27,
+  "real_expenses_excl_exceptional": 2084.27,
+  "savings": 822.6,
+  "savings_excl_exceptional": 822.6,
+  "savings_rate": 28.3,
+  "savings_rate_excl_exceptional": 28.3,
+  "top_expenses": [
+   {
+    "amount": 890.0,
+    "category_name": "Logement",
+    "date": "2026-05-02T12:00:00",
+    "id": 531,
+    "is_exceptional": false,
+    "merchant": "Foncia — Loyer"
+   },
+   {
+    "amount": 92.86,
+    "category_name": "Nourriture",
+    "date": "2026-05-03T11:00:00",
+    "id": 543,
+    "is_exceptional": false,
+    "merchant": "Monoprix"
+   },
+   {
+    "amount": 91.65,
+    "category_name": "Nourriture",
+    "date": "2026-05-07T21:00:00",
+    "id": 551,
+    "is_exceptional": false,
+    "merchant": "Carrefour"
+   },
+   {
+    "amount": 90.0,
+    "category_name": null,
+    "date": "2026-05-20T00:00:00",
+    "id": 608,
+    "is_exceptional": false,
+    "merchant": "RESTAURANT AVANCE"
+   },
+   {
+    "amount": 86.4,
+    "category_name": "Transport",
+    "date": "2026-05-05T12:00:00",
+    "id": 532,
+    "is_exceptional": false,
+    "merchant": "Navigo"
+   },
+   {
+    "amount": 78.01,
+    "category_name": "Nourriture",
+    "date": "2026-05-02T12:00:00",
+    "id": 549,
+    "is_exceptional": false,
+    "merchant": "Biocoop"
+   },
+   {
+    "amount": 61.0,
+    "category_name": "Énergie",
+    "date": "2026-05-15T12:00:00",
+    "id": 536,
+    "is_exceptional": false,
+    "merchant": "EDF"
+   },
+   {
+    "amount": 59.78,
+    "category_name": "Shopping",
+    "date": "2026-05-28T10:00:00",
+    "id": 558,
+    "is_exceptional": false,
+    "merchant": "Leroy Merlin"
+   },
+   {
+    "amount": 54.86,
+    "category_name": "Nourriture",
+    "date": "2026-05-18T11:00:00",
+    "id": 546,
+    "is_exceptional": false,
+    "merchant": "Picard"
+   },
+   {
+    "amount": 53.42,
+    "category_name": "Sortie",
+    "date": "2026-05-26T11:00:00",
+    "id": 553,
+    "is_exceptional": false,
+    "merchant": "Uber Eats"
+   }
+  ]
+ },
+ "categorize": {
+  "count": 2,
+  "items": [
+   {
+    "amount": 90.0,
+    "category_name": null,
+    "date": "2026-05-20T00:00:00",
+    "id": 608,
+    "is_exceptional": false,
+    "merchant": "RESTAURANT AVANCE"
+   },
+   {
+    "amount": 12.4,
+    "category_name": null,
+    "date": "2026-05-07T00:00:00",
+    "id": 604,
+    "is_exceptional": false,
+    "merchant": "BOULANGERIE DUPONT"
+   }
+  ],
+  "total": 102.4
+ },
+ "closed": false,
+ "closure": null,
+ "modified_since_close": false,
+ "month": 5,
+ "year": 2026
+}

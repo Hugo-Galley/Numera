@@ -1,0 +1,2921 @@
+{
+ "account_id": 1,
+ "balance_points": [
+  {
+   "account_id": 1,
+   "date": "2024-12-01T00:00:00",
+   "running_balance": 2400.0
+  },
+  {
+   "account_id": 1,
+   "date": "2024-12-02T12:00:00",
+   "running_balance": 1510.0
+  },
+  {
+   "account_id": 1,
+   "date": "2024-12-02T15:00:00",
+   "running_balance": 1438.15
+  },
+  {
+   "account_id": 1,
+   "date": "2024-12-03T09:00:00",
+   "running_balance": 1238.15
+  },
+  {
+   "account_id": 1,
+   "date": "2024-12-03T09:00:00",
+   "running_balance": 1138.15
+  },
+  {
+   "account_id": 1,
+   "date": "2024-12-03T09:00:00",
+   "running_balance": 838.15
+  },
+  {
+   "account_id": 1,
+   "date": "2024-12-05T09:00:00",
+   "running_balance": 778.21
+  },
+  {
+   "account_id": 1,
+   "date": "2024-12-05T12:00:00",
+   "running_balance": 691.81
+  },
+  {
+   "account_id": 1,
+   "date": "2024-12-07T16:00:00",
+   "running_balance": 601.61
+  },
+  {
+   "account_id": 1,
+   "date": "2024-12-08T12:00:00",
+   "running_balance": 581.62
+  },
+  {
+   "account_id": 1,
+   "date": "2024-12-08T12:00:00",
+   "running_balance": 521.26
+  },
+  {
+   "account_id": 1,
+   "date": "2024-12-10T12:00:00",
+   "running_balance": 507.77
+  },
+  {
+   "account_id": 1,
+   "date": "2024-12-10T12:00:00",
+   "running_balance": 379.01
+  },
+  {
+   "account_id": 1,
+   "date": "2024-12-12T12:00:00",
+   "running_balance": 367.89
+  },
+  {
+   "account_id": 1,
+   "date": "2024-12-15T12:00:00",
+   "running_balance": 249.89
+  },
+  {
+   "account_id": 1,
+   "date": "2024-12-16T12:00:00",
+   "running_balance": 123.93
+  },
+  {
+   "account_id": 1,
+   "date": "2024-12-17T16:00:00",
+   "running_balance": 53.34
+  },
+  {
+   "account_id": 1,
+   "date": "2024-12-18T12:00:00",
+   "running_balance": 23.35
+  },
+  {
+   "account_id": 1,
+   "date": "2024-12-18T20:00:00",
+   "running_balance": -17.93
+  },
+  {
+   "account_id": 1,
+   "date": "2024-12-20T12:00:00",
+   "running_balance": -39.33
+  },
+  {
+   "account_id": 1,
+   "date": "2024-12-21T12:00:00",
+   "running_balance": -90.24
+  },
+  {
+   "account_id": 1,
+   "date": "2024-12-21T13:00:00",
+   "running_balance": -134.59
+  },
+  {
+   "account_id": 1,
+   "date": "2024-12-21T14:00:00",
+   "running_balance": -162.43
+  },
+  {
+   "account_id": 1,
+   "date": "2024-12-22T08:00:00",
+   "running_balance": -233.56
+  },
+  {
+   "account_id": 1,
+   "date": "2024-12-23T09:00:00",
+   "running_balance": -330.46
+  },
+  {
+   "account_id": 1,
+   "date": "2024-12-24T13:00:00",
+   "running_balance": -365.31
+  },
+  {
+   "account_id": 1,
+   "date": "2024-12-26T18:00:00",
+   "running_balance": -397.25
+  },
+  {
+   "account_id": 1,
+   "date": "2024-12-27T12:00:00",
+   "running_balance": 2342.75
+  },
+  {
+   "account_id": 1,
+   "date": "2024-12-27T15:00:00",
+   "running_balance": 2317.53
+  },
+  {
+   "account_id": 1,
+   "date": "2024-12-27T15:00:00",
+   "running_balance": 2255.19
+  },
+  {
+   "account_id": 1,
+   "date": "2025-01-02T12:00:00",
+   "running_balance": 1365.19
+  },
+  {
+   "account_id": 1,
+   "date": "2025-01-02T19:00:00",
+   "running_balance": 1313.88
+  },
+  {
+   "account_id": 1,
+   "date": "2025-01-03T09:00:00",
+   "running_balance": 1113.88
+  },
+  {
+   "account_id": 1,
+   "date": "2025-01-03T09:00:00",
+   "running_balance": 1013.88
+  },
+  {
+   "account_id": 1,
+   "date": "2025-01-03T09:00:00",
+   "running_balance": 713.88
+  },
+  {
+   "account_id": 1,
+   "date": "2025-01-05T12:00:00",
+   "running_balance": 627.48
+  },
+  {
+   "account_id": 1,
+   "date": "2025-01-07T17:00:00",
+   "running_balance": 567.62
+  },
+  {
+   "account_id": 1,
+   "date": "2025-01-08T12:00:00",
+   "running_balance": 547.63
+  },
+  {
+   "account_id": 1,
+   "date": "2025-01-08T12:00:00",
+   "running_balance": 500.04
+  },
+  {
+   "account_id": 1,
+   "date": "2025-01-09T10:00:00",
+   "running_balance": 484.4
+  },
+  {
+   "account_id": 1,
+   "date": "2025-01-10T12:00:00",
+   "running_balance": 470.91
+  },
+  {
+   "account_id": 1,
+   "date": "2025-01-11T12:00:00",
+   "running_balance": 440.91
+  },
+  {
+   "account_id": 1,
+   "date": "2025-01-12T12:00:00",
+   "running_balance": 429.79
+  },
+  {
+   "account_id": 1,
+   "date": "2025-01-13T11:00:00",
+   "running_balance": 401.61
+  },
+  {
+   "account_id": 1,
+   "date": "2025-01-13T21:00:00",
+   "running_balance": 318.21
+  },
+  {
+   "account_id": 1,
+   "date": "2025-01-14T09:00:00",
+   "running_balance": 266.91
+  },
+  {
+   "account_id": 1,
+   "date": "2025-01-14T12:00:00",
+   "running_balance": 283.41
+  },
+  {
+   "account_id": 1,
+   "date": "2025-01-15T12:00:00",
+   "running_balance": 159.41
+  },
+  {
+   "account_id": 1,
+   "date": "2025-01-18T12:00:00",
+   "running_balance": 129.42
+  },
+  {
+   "account_id": 1,
+   "date": "2025-01-18T19:00:00",
+   "running_balance": 78.05
+  },
+  {
+   "account_id": 1,
+   "date": "2025-01-19T12:00:00",
+   "running_balance": -13.68
+  },
+  {
+   "account_id": 1,
+   "date": "2025-01-20T12:00:00",
+   "running_balance": -35.08
+  },
+  {
+   "account_id": 1,
+   "date": "2025-01-20T15:00:00",
+   "running_balance": -68.54
+  },
+  {
+   "account_id": 1,
+   "date": "2025-01-23T12:00:00",
+   "running_balance": -109.76
+  },
+  {
+   "account_id": 1,
+   "date": "2025-01-24T13:00:00",
+   "running_balance": -193.45
+  },
+  {
+   "account_id": 1,
+   "date": "2025-01-25T11:00:00",
+   "running_balance": -286.79
+  },
+  {
+   "account_id": 1,
+   "date": "2025-01-25T21:00:00",
+   "running_balance": -326.82
+  },
+  {
+   "account_id": 1,
+   "date": "2025-01-27T12:00:00",
+   "running_balance": 2495.38
+  },
+  {
+   "account_id": 1,
+   "date": "2025-01-27T18:00:00",
+   "running_balance": 2414.44
+  },
+  {
+   "account_id": 1,
+   "date": "2025-02-01T08:00:00",
+   "running_balance": 2394.24
+  },
+  {
+   "account_id": 1,
+   "date": "2025-02-02T12:00:00",
+   "running_balance": 1504.24
+  },
+  {
+   "account_id": 1,
+   "date": "2025-02-02T12:00:00",
+   "running_balance": 1474.24
+  },
+  {
+   "account_id": 1,
+   "date": "2025-02-03T09:00:00",
+   "running_balance": 1274.24
+  },
+  {
+   "account_id": 1,
+   "date": "2025-02-03T09:00:00",
+   "running_balance": 1174.24
+  },
+  {
+   "account_id": 1,
+   "date": "2025-02-03T09:00:00",
+   "running_balance": 874.24
+  },
+  {
+   "account_id": 1,
+   "date": "2025-02-03T12:00:00",
+   "running_balance": 802.42
+  },
+  {
+   "account_id": 1,
+   "date": "2025-02-03T20:00:00",
+   "running_balance": 773.39
+  },
+  {
+   "account_id": 1,
+   "date": "2025-02-04T21:00:00",
+   "running_balance": 751.14
+  },
+  {
+   "account_id": 1,
+   "date": "2025-02-05T12:00:00",
+   "running_balance": 664.74
+  },
+  {
+   "account_id": 1,
+   "date": "2025-02-05T12:00:00",
+   "running_balance": 681.24
+  },
+  {
+   "account_id": 1,
+   "date": "2025-02-05T20:00:00",
+   "running_balance": 590.21
+  },
+  {
+   "account_id": 1,
+   "date": "2025-02-08T12:00:00",
+   "running_balance": 570.22
+  },
+  {
+   "account_id": 1,
+   "date": "2025-02-09T14:00:00",
+   "running_balance": 557.86
+  },
+  {
+   "account_id": 1,
+   "date": "2025-02-10T12:00:00",
+   "running_balance": 544.37
+  },
+  {
+   "account_id": 1,
+   "date": "2025-02-10T12:00:00",
+   "running_balance": 506.35
+  },
+  {
+   "account_id": 1,
+   "date": "2025-02-12T12:00:00",
+   "running_balance": 495.23
+  },
+  {
+   "account_id": 1,
+   "date": "2025-02-15T12:00:00",
+   "running_balance": 386.23
+  },
+  {
+   "account_id": 1,
+   "date": "2025-02-17T14:00:00",
+   "running_balance": 310.88
+  },
+  {
+   "account_id": 1,
+   "date": "2025-02-18T12:00:00",
+   "running_balance": 280.89
+  },
+  {
+   "account_id": 1,
+   "date": "2025-02-18T16:00:00",
+   "running_balance": 265.17
+  },
+  {
+   "account_id": 1,
+   "date": "2025-02-19T12:00:00",
+   "running_balance": 174.08
+  },
+  {
+   "account_id": 1,
+   "date": "2025-02-20T12:00:00",
+   "running_balance": 152.68
+  },
+  {
+   "account_id": 1,
+   "date": "2025-02-20T18:00:00",
+   "running_balance": 113.87
+  },
+  {
+   "account_id": 1,
+   "date": "2025-02-23T18:00:00",
+   "running_balance": 39.37
+  },
+  {
+   "account_id": 1,
+   "date": "2025-02-25T09:00:00",
+   "running_balance": -18.38
+  },
+  {
+   "account_id": 1,
+   "date": "2025-02-25T16:00:00",
+   "running_balance": -43.19
+  },
+  {
+   "account_id": 1,
+   "date": "2025-02-25T20:00:00",
+   "running_balance": -61.12
+  },
+  {
+   "account_id": 1,
+   "date": "2025-02-27T12:00:00",
+   "running_balance": 2761.08
+  },
+  {
+   "account_id": 1,
+   "date": "2025-03-01T08:00:00",
+   "running_balance": 2739.6
+  },
+  {
+   "account_id": 1,
+   "date": "2025-03-01T16:00:00",
+   "running_balance": 2726.29
+  },
+  {
+   "account_id": 1,
+   "date": "2025-03-02T12:00:00",
+   "running_balance": 1836.29
+  },
+  {
+   "account_id": 1,
+   "date": "2025-03-03T09:00:00",
+   "running_balance": 1636.29
+  },
+  {
+   "account_id": 1,
+   "date": "2025-03-03T09:00:00",
+   "running_balance": 1536.29
+  },
+  {
+   "account_id": 1,
+   "date": "2025-03-03T09:00:00",
+   "running_balance": 1236.29
+  },
+  {
+   "account_id": 1,
+   "date": "2025-03-03T12:00:00",
+   "running_balance": 1147.93
+  },
+  {
+   "account_id": 1,
+   "date": "2025-03-04T10:00:00",
+   "running_balance": 1046.64
+  },
+  {
+   "account_id": 1,
+   "date": "2025-03-05T12:00:00",
+   "running_balance": 960.24
+  },
+  {
+   "account_id": 1,
+   "date": "2025-03-05T12:00:00",
+   "running_balance": 907.68
+  },
+  {
+   "account_id": 1,
+   "date": "2025-03-07T11:00:00",
+   "running_balance": 877.68
+  },
+  {
+   "account_id": 1,
+   "date": "2025-03-07T16:00:00",
+   "running_balance": 835.67
+  },
+  {
+   "account_id": 1,
+   "date": "2025-03-08T08:00:00",
+   "running_balance": 788.92
+  },
+  {
+   "account_id": 1,
+   "date": "2025-03-08T12:00:00",
+   "running_balance": 768.93
+  },
+  {
+   "account_id": 1,
+   "date": "2025-03-08T12:00:00",
+   "running_balance": 754.64
+  },
+  {
+   "account_id": 1,
+   "date": "2025-03-10T12:00:00",
+   "running_balance": 741.15
+  },
+  {
+   "account_id": 1,
+   "date": "2025-03-10T20:00:00",
+   "running_balance": 711.21
+  },
+  {
+   "account_id": 1,
+   "date": "2025-03-12T12:00:00",
+   "running_balance": 700.09
+  },
+  {
+   "account_id": 1,
+   "date": "2025-03-13T09:00:00",
+   "running_balance": 671.74
+  },
+  {
+   "account_id": 1,
+   "date": "2025-03-13T12:00:00",
+   "running_balance": 584.59
+  },
+  {
+   "account_id": 1,
+   "date": "2025-03-15T12:00:00",
+   "running_balance": 523.59
+  },
+  {
+   "account_id": 1,
+   "date": "2025-03-15T15:00:00",
+   "running_balance": 471.3
+  },
+  {
+   "account_id": 1,
+   "date": "2025-03-16T19:00:00",
+   "running_balance": 399.87
+  },
+  {
+   "account_id": 1,
+   "date": "2025-03-18T12:00:00",
+   "running_balance": 369.88
+  },
+  {
+   "account_id": 1,
+   "date": "2025-03-20T12:00:00",
+   "running_balance": 348.48
+  },
+  {
+   "account_id": 1,
+   "date": "2025-03-25T19:00:00",
+   "running_balance": 261.46
+  },
+  {
+   "account_id": 1,
+   "date": "2025-03-26T12:00:00",
+   "running_balance": 251.12
+  },
+  {
+   "account_id": 1,
+   "date": "2025-03-27T12:00:00",
+   "running_balance": 3073.32
+  },
+  {
+   "account_id": 1,
+   "date": "2025-03-29T12:00:00",
+   "running_balance": 3089.82
+  },
+  {
+   "account_id": 1,
+   "date": "2025-04-02T12:00:00",
+   "running_balance": 2199.82
+  },
+  {
+   "account_id": 1,
+   "date": "2025-04-03T09:00:00",
+   "running_balance": 1999.82
+  },
+  {
+   "account_id": 1,
+   "date": "2025-04-03T09:00:00",
+   "running_balance": 1899.82
+  },
+  {
+   "account_id": 1,
+   "date": "2025-04-03T09:00:00",
+   "running_balance": 1599.82
+  },
+  {
+   "account_id": 1,
+   "date": "2025-04-03T11:00:00",
+   "running_balance": 1514.26
+  },
+  {
+   "account_id": 1,
+   "date": "2025-04-04T21:00:00",
+   "running_balance": 1433.68
+  },
+  {
+   "account_id": 1,
+   "date": "2025-04-05T12:00:00",
+   "running_balance": 1347.28
+  },
+  {
+   "account_id": 1,
+   "date": "2025-04-06T16:00:00",
+   "running_balance": 1283.49
+  },
+  {
+   "account_id": 1,
+   "date": "2025-04-07T10:00:00",
+   "running_balance": 1260.76
+  },
+  {
+   "account_id": 1,
+   "date": "2025-04-08T12:00:00",
+   "running_balance": 1240.77
+  },
+  {
+   "account_id": 1,
+   "date": "2025-04-10T12:00:00",
+   "running_balance": 1227.28
+  },
+  {
+   "account_id": 1,
+   "date": "2025-04-11T11:00:00",
+   "running_balance": 1195.82
+  },
+  {
+   "account_id": 1,
+   "date": "2025-04-11T12:00:00",
+   "running_balance": 1162.48
+  },
+  {
+   "account_id": 1,
+   "date": "2025-04-12T12:00:00",
+   "running_balance": 1151.36
+  },
+  {
+   "account_id": 1,
+   "date": "2025-04-13T12:00:00",
+   "running_balance": 1137.66
+  },
+  {
+   "account_id": 1,
+   "date": "2025-04-14T21:00:00",
+   "running_balance": 1091.34
+  },
+  {
+   "account_id": 1,
+   "date": "2025-04-14T21:00:00",
+   "running_balance": 1072.6
+  },
+  {
+   "account_id": 1,
+   "date": "2025-04-15T12:00:00",
+   "running_balance": 1011.6
+  },
+  {
+   "account_id": 1,
+   "date": "2025-04-16T12:00:00",
+   "running_balance": 1028.1
+  },
+  {
+   "account_id": 1,
+   "date": "2025-04-16T15:00:00",
+   "running_balance": 985.5
+  },
+  {
+   "account_id": 1,
+   "date": "2025-04-16T16:00:00",
+   "running_balance": 901.21
+  },
+  {
+   "account_id": 1,
+   "date": "2025-04-18T12:00:00",
+   "running_balance": 871.22
+  },
+  {
+   "account_id": 1,
+   "date": "2025-04-18T12:00:00",
+   "running_balance": 847.57
+  },
+  {
+   "account_id": 1,
+   "date": "2025-04-20T12:00:00",
+   "running_balance": 826.17
+  },
+  {
+   "account_id": 1,
+   "date": "2025-04-20T12:00:00",
+   "running_balance": 799.99
+  },
+  {
+   "account_id": 1,
+   "date": "2025-04-24T17:00:00",
+   "running_balance": 736.98
+  },
+  {
+   "account_id": 1,
+   "date": "2025-04-27T12:00:00",
+   "running_balance": 3559.18
+  },
+  {
+   "account_id": 1,
+   "date": "2025-04-27T15:00:00",
+   "running_balance": 3542.75
+  },
+  {
+   "account_id": 1,
+   "date": "2025-04-27T16:00:00",
+   "running_balance": 3516.3
+  },
+  {
+   "account_id": 1,
+   "date": "2025-04-28T17:00:00",
+   "running_balance": 3437.72
+  },
+  {
+   "account_id": 1,
+   "date": "2025-05-01T19:00:00",
+   "running_balance": 3363.45
+  },
+  {
+   "account_id": 1,
+   "date": "2025-05-02T12:00:00",
+   "running_balance": 2473.45
+  },
+  {
+   "account_id": 1,
+   "date": "2025-05-02T18:00:00",
+   "running_balance": 2450.81
+  },
+  {
+   "account_id": 1,
+   "date": "2025-05-02T19:00:00",
+   "running_balance": 2428.08
+  },
+  {
+   "account_id": 1,
+   "date": "2025-05-03T09:00:00",
+   "running_balance": 2228.08
+  },
+  {
+   "account_id": 1,
+   "date": "2025-05-03T09:00:00",
+   "running_balance": 2128.08
+  },
+  {
+   "account_id": 1,
+   "date": "2025-05-03T09:00:00",
+   "running_balance": 1828.08
+  },
+  {
+   "account_id": 1,
+   "date": "2025-05-04T16:00:00",
+   "running_balance": 1810.54
+  },
+  {
+   "account_id": 1,
+   "date": "2025-05-04T17:00:00",
+   "running_balance": 1753.2
+  },
+  {
+   "account_id": 1,
+   "date": "2025-05-05T10:00:00",
+   "running_balance": 1679.69
+  },
+  {
+   "account_id": 1,
+   "date": "2025-05-05T11:00:00",
+   "running_balance": 1649.13
+  },
+  {
+   "account_id": 1,
+   "date": "2025-05-05T12:00:00",
+   "running_balance": 1562.73
+  },
+  {
+   "account_id": 1,
+   "date": "2025-05-08T12:00:00",
+   "running_balance": 1542.74
+  },
+  {
+   "account_id": 1,
+   "date": "2025-05-10T12:00:00",
+   "running_balance": 1529.25
+  },
+  {
+   "account_id": 1,
+   "date": "2025-05-12T12:00:00",
+   "running_balance": 1518.13
+  },
+  {
+   "account_id": 1,
+   "date": "2025-05-13T19:00:00",
+   "running_balance": 1489.36
+  },
+  {
+   "account_id": 1,
+   "date": "2025-05-14T18:00:00",
+   "running_balance": 1384.51
+  },
+  {
+   "account_id": 1,
+   "date": "2025-05-15T12:00:00",
+   "running_balance": 1323.51
+  },
+  {
+   "account_id": 1,
+   "date": "2025-05-15T20:00:00",
+   "running_balance": 1230.2
+  },
+  {
+   "account_id": 1,
+   "date": "2025-05-17T18:00:00",
+   "running_balance": 1168.11
+  },
+  {
+   "account_id": 1,
+   "date": "2025-05-18T12:00:00",
+   "running_balance": 1138.12
+  },
+  {
+   "account_id": 1,
+   "date": "2025-05-20T12:00:00",
+   "running_balance": 1116.72
+  },
+  {
+   "account_id": 1,
+   "date": "2025-05-21T10:00:00",
+   "running_balance": 1088.95
+  },
+  {
+   "account_id": 1,
+   "date": "2025-05-21T12:00:00",
+   "running_balance": 1068.87
+  },
+  {
+   "account_id": 1,
+   "date": "2025-05-22T12:00:00",
+   "running_balance": 1036.18
+  },
+  {
+   "account_id": 1,
+   "date": "2025-05-22T13:00:00",
+   "running_balance": 969.38
+  },
+  {
+   "account_id": 1,
+   "date": "2025-05-27T12:00:00",
+   "running_balance": 3791.58
+  },
+  {
+   "account_id": 1,
+   "date": "2025-05-27T12:00:00",
+   "running_balance": 3727.46
+  },
+  {
+   "account_id": 1,
+   "date": "2025-05-28T10:00:00",
+   "running_balance": 3648.43
+  },
+  {
+   "account_id": 1,
+   "date": "2025-06-02T12:00:00",
+   "running_balance": 2758.43
+  },
+  {
+   "account_id": 1,
+   "date": "2025-06-03T09:00:00",
+   "running_balance": 2558.43
+  },
+  {
+   "account_id": 1,
+   "date": "2025-06-03T09:00:00",
+   "running_balance": 2458.43
+  },
+  {
+   "account_id": 1,
+   "date": "2025-06-03T09:00:00",
+   "running_balance": 2158.43
+  },
+  {
+   "account_id": 1,
+   "date": "2025-06-04T13:00:00",
+   "running_balance": 2099.73
+  },
+  {
+   "account_id": 1,
+   "date": "2025-06-05T12:00:00",
+   "running_balance": 2013.33
+  },
+  {
+   "account_id": 1,
+   "date": "2025-06-06T14:00:00",
+   "running_balance": 1978.91
+  },
+  {
+   "account_id": 1,
+   "date": "2025-06-06T18:00:00",
+   "running_balance": 1942.4
+  },
+  {
+   "account_id": 1,
+   "date": "2025-06-08T12:00:00",
+   "running_balance": 1922.41
+  },
+  {
+   "account_id": 1,
+   "date": "2025-06-10T12:00:00",
+   "running_balance": 1908.92
+  },
+  {
+   "account_id": 1,
+   "date": "2025-06-11T10:00:00",
+   "running_balance": 1870.89
+  },
+  {
+   "account_id": 1,
+   "date": "2025-06-11T11:00:00",
+   "running_balance": 1850.27
+  },
+  {
+   "account_id": 1,
+   "date": "2025-06-12T12:00:00",
+   "running_balance": 1839.15
+  },
+  {
+   "account_id": 1,
+   "date": "2025-06-13T08:00:00",
+   "running_balance": 1786.04
+  },
+  {
+   "account_id": 1,
+   "date": "2025-06-14T12:00:00",
+   "running_balance": 1730.71
+  },
+  {
+   "account_id": 1,
+   "date": "2025-06-14T19:00:00",
+   "running_balance": 1678.34
+  },
+  {
+   "account_id": 1,
+   "date": "2025-06-15T12:00:00",
+   "running_balance": 1617.34
+  },
+  {
+   "account_id": 1,
+   "date": "2025-06-16T09:00:00",
+   "running_balance": 1511.22
+  },
+  {
+   "account_id": 1,
+   "date": "2025-06-16T20:00:00",
+   "running_balance": 1427.38
+  },
+  {
+   "account_id": 1,
+   "date": "2025-06-16T21:00:00",
+   "running_balance": 1349.59
+  },
+  {
+   "account_id": 1,
+   "date": "2025-06-17T21:00:00",
+   "running_balance": 1324.24
+  },
+  {
+   "account_id": 1,
+   "date": "2025-06-18T12:00:00",
+   "running_balance": 1294.25
+  },
+  {
+   "account_id": 1,
+   "date": "2025-06-18T12:00:00",
+   "running_balance": 1264.25
+  },
+  {
+   "account_id": 1,
+   "date": "2025-06-19T10:00:00",
+   "running_balance": 1197.84
+  },
+  {
+   "account_id": 1,
+   "date": "2025-06-20T12:00:00",
+   "running_balance": 1176.44
+  },
+  {
+   "account_id": 1,
+   "date": "2025-06-21T12:00:00",
+   "running_balance": 1192.94
+  },
+  {
+   "account_id": 1,
+   "date": "2025-06-24T08:00:00",
+   "running_balance": 1135.82
+  },
+  {
+   "account_id": 1,
+   "date": "2025-06-25T17:00:00",
+   "running_balance": 1073.16
+  },
+  {
+   "account_id": 1,
+   "date": "2025-06-27T12:00:00",
+   "running_balance": 3895.36
+  },
+  {
+   "account_id": 1,
+   "date": "2025-06-28T08:00:00",
+   "running_balance": 3866.71
+  },
+  {
+   "account_id": 1,
+   "date": "2025-06-28T12:00:00",
+   "running_balance": 5366.71
+  },
+  {
+   "account_id": 1,
+   "date": "2025-07-02T12:00:00",
+   "running_balance": 4476.71
+  },
+  {
+   "account_id": 1,
+   "date": "2025-07-03T09:00:00",
+   "running_balance": 4276.71
+  },
+  {
+   "account_id": 1,
+   "date": "2025-07-03T09:00:00",
+   "running_balance": 4176.71
+  },
+  {
+   "account_id": 1,
+   "date": "2025-07-03T09:00:00",
+   "running_balance": 3876.71
+  },
+  {
+   "account_id": 1,
+   "date": "2025-07-04T10:00:00",
+   "running_balance": 3837.73
+  },
+  {
+   "account_id": 1,
+   "date": "2025-07-04T16:00:00",
+   "running_balance": 3824.92
+  },
+  {
+   "account_id": 1,
+   "date": "2025-07-05T11:00:00",
+   "running_balance": 3793.3
+  },
+  {
+   "account_id": 1,
+   "date": "2025-07-05T12:00:00",
+   "running_balance": 3706.9
+  },
+  {
+   "account_id": 1,
+   "date": "2025-07-05T14:00:00",
+   "running_balance": 3649.31
+  },
+  {
+   "account_id": 1,
+   "date": "2025-07-06T09:00:00",
+   "running_balance": 3631.18
+  },
+  {
+   "account_id": 1,
+   "date": "2025-07-06T09:00:00",
+   "running_balance": 4431.18
+  },
+  {
+   "account_id": 1,
+   "date": "2025-07-07T08:00:00",
+   "running_balance": 4383.39
+  },
+  {
+   "account_id": 1,
+   "date": "2025-07-07T10:00:00",
+   "running_balance": 4293.55
+  },
+  {
+   "account_id": 1,
+   "date": "2025-07-08T12:00:00",
+   "running_balance": 4273.56
+  },
+  {
+   "account_id": 1,
+   "date": "2025-07-08T12:00:00",
+   "running_balance": 3553.56
+  },
+  {
+   "account_id": 1,
+   "date": "2025-07-08T12:00:00",
+   "running_balance": 3167.56
+  },
+  {
+   "account_id": 1,
+   "date": "2025-07-10T12:00:00",
+   "running_balance": 3154.07
+  },
+  {
+   "account_id": 1,
+   "date": "2025-07-12T12:00:00",
+   "running_balance": 3142.95
+  },
+  {
+   "account_id": 1,
+   "date": "2025-07-12T19:00:00",
+   "running_balance": 3124.81
+  },
+  {
+   "account_id": 1,
+   "date": "2025-07-12T19:00:00",
+   "running_balance": 3079.13
+  },
+  {
+   "account_id": 1,
+   "date": "2025-07-15T12:00:00",
+   "running_balance": 3018.13
+  },
+  {
+   "account_id": 1,
+   "date": "2025-07-15T12:00:00",
+   "running_balance": 2924.13
+  },
+  {
+   "account_id": 1,
+   "date": "2025-07-16T12:00:00",
+   "running_balance": 2841.54
+  },
+  {
+   "account_id": 1,
+   "date": "2025-07-18T12:00:00",
+   "running_balance": 2811.55
+  },
+  {
+   "account_id": 1,
+   "date": "2025-07-20T09:00:00",
+   "running_balance": 2774.25
+  },
+  {
+   "account_id": 1,
+   "date": "2025-07-20T12:00:00",
+   "running_balance": 2752.85
+  },
+  {
+   "account_id": 1,
+   "date": "2025-07-23T19:00:00",
+   "running_balance": 2653.69
+  },
+  {
+   "account_id": 1,
+   "date": "2025-07-24T11:00:00",
+   "running_balance": 2638.66
+  },
+  {
+   "account_id": 1,
+   "date": "2025-07-26T12:00:00",
+   "running_balance": 2581.31
+  },
+  {
+   "account_id": 1,
+   "date": "2025-07-27T12:00:00",
+   "running_balance": 5403.51
+  },
+  {
+   "account_id": 1,
+   "date": "2025-08-02T12:00:00",
+   "running_balance": 4513.51
+  },
+  {
+   "account_id": 1,
+   "date": "2025-08-02T13:00:00",
+   "running_balance": 4440.6
+  },
+  {
+   "account_id": 1,
+   "date": "2025-08-02T19:00:00",
+   "running_balance": 4408.95
+  },
+  {
+   "account_id": 1,
+   "date": "2025-08-03T09:00:00",
+   "running_balance": 4208.95
+  },
+  {
+   "account_id": 1,
+   "date": "2025-08-03T09:00:00",
+   "running_balance": 4108.95
+  },
+  {
+   "account_id": 1,
+   "date": "2025-08-03T09:00:00",
+   "running_balance": 3808.95
+  },
+  {
+   "account_id": 1,
+   "date": "2025-08-05T12:00:00",
+   "running_balance": 3722.55
+  },
+  {
+   "account_id": 1,
+   "date": "2025-08-05T15:00:00",
+   "running_balance": 3693.74
+  },
+  {
+   "account_id": 1,
+   "date": "2025-08-08T12:00:00",
+   "running_balance": 3673.75
+  },
+  {
+   "account_id": 1,
+   "date": "2025-08-08T12:00:00",
+   "running_balance": 3654.42
+  },
+  {
+   "account_id": 1,
+   "date": "2025-08-08T15:00:00",
+   "running_balance": 3633.07
+  },
+  {
+   "account_id": 1,
+   "date": "2025-08-09T14:00:00",
+   "running_balance": 3566.35
+  },
+  {
+   "account_id": 1,
+   "date": "2025-08-10T12:00:00",
+   "running_balance": 3552.86
+  },
+  {
+   "account_id": 1,
+   "date": "2025-08-10T12:00:00",
+   "running_balance": 3505.22
+  },
+  {
+   "account_id": 1,
+   "date": "2025-08-10T14:00:00",
+   "running_balance": 3465.18
+  },
+  {
+   "account_id": 1,
+   "date": "2025-08-11T12:00:00",
+   "running_balance": 3481.68
+  },
+  {
+   "account_id": 1,
+   "date": "2025-08-11T14:00:00",
+   "running_balance": 3456.59
+  },
+  {
+   "account_id": 1,
+   "date": "2025-08-12T12:00:00",
+   "running_balance": 3445.47
+  },
+  {
+   "account_id": 1,
+   "date": "2025-08-12T14:00:00",
+   "running_balance": 3432.98
+  },
+  {
+   "account_id": 1,
+   "date": "2025-08-13T12:00:00",
+   "running_balance": 3409.89
+  },
+  {
+   "account_id": 1,
+   "date": "2025-08-13T13:00:00",
+   "running_balance": 3395.52
+  },
+  {
+   "account_id": 1,
+   "date": "2025-08-13T19:00:00",
+   "running_balance": 3356.27
+  },
+  {
+   "account_id": 1,
+   "date": "2025-08-14T09:00:00",
+   "running_balance": 3274.01
+  },
+  {
+   "account_id": 1,
+   "date": "2025-08-15T11:00:00",
+   "running_balance": 3251.71
+  },
+  {
+   "account_id": 1,
+   "date": "2025-08-15T12:00:00",
+   "running_balance": 3190.71
+  },
+  {
+   "account_id": 1,
+   "date": "2025-08-17T18:00:00",
+   "running_balance": 3147.68
+  },
+  {
+   "account_id": 1,
+   "date": "2025-08-18T08:00:00",
+   "running_balance": 3088.54
+  },
+  {
+   "account_id": 1,
+   "date": "2025-08-18T12:00:00",
+   "running_balance": 3058.55
+  },
+  {
+   "account_id": 1,
+   "date": "2025-08-20T12:00:00",
+   "running_balance": 3037.15
+  },
+  {
+   "account_id": 1,
+   "date": "2025-08-21T20:00:00",
+   "running_balance": 3007.09
+  },
+  {
+   "account_id": 1,
+   "date": "2025-08-26T14:00:00",
+   "running_balance": 2934.94
+  },
+  {
+   "account_id": 1,
+   "date": "2025-08-27T12:00:00",
+   "running_balance": 5757.14
+  },
+  {
+   "account_id": 1,
+   "date": "2025-08-28T12:00:00",
+   "running_balance": 5670.96
+  },
+  {
+   "account_id": 1,
+   "date": "2025-09-01T16:00:00",
+   "running_balance": 5626.85
+  },
+  {
+   "account_id": 1,
+   "date": "2025-09-02T12:00:00",
+   "running_balance": 4736.85
+  },
+  {
+   "account_id": 1,
+   "date": "2025-09-03T09:00:00",
+   "running_balance": 4536.85
+  },
+  {
+   "account_id": 1,
+   "date": "2025-09-03T09:00:00",
+   "running_balance": 4436.85
+  },
+  {
+   "account_id": 1,
+   "date": "2025-09-03T09:00:00",
+   "running_balance": 4136.85
+  },
+  {
+   "account_id": 1,
+   "date": "2025-09-04T17:00:00",
+   "running_balance": 4123.66
+  },
+  {
+   "account_id": 1,
+   "date": "2025-09-05T12:00:00",
+   "running_balance": 4037.26
+  },
+  {
+   "account_id": 1,
+   "date": "2025-09-06T16:00:00",
+   "running_balance": 3998.55
+  },
+  {
+   "account_id": 1,
+   "date": "2025-09-08T12:00:00",
+   "running_balance": 3978.56
+  },
+  {
+   "account_id": 1,
+   "date": "2025-09-08T20:00:00",
+   "running_balance": 3946.75
+  },
+  {
+   "account_id": 1,
+   "date": "2025-09-10T12:00:00",
+   "running_balance": 3933.26
+  },
+  {
+   "account_id": 1,
+   "date": "2025-09-12T12:00:00",
+   "running_balance": 3922.14
+  },
+  {
+   "account_id": 1,
+   "date": "2025-09-14T12:00:00",
+   "running_balance": 2423.14
+  },
+  {
+   "account_id": 1,
+   "date": "2025-09-15T11:00:00",
+   "running_balance": 2384.75
+  },
+  {
+   "account_id": 1,
+   "date": "2025-09-15T12:00:00",
+   "running_balance": 2323.75
+  },
+  {
+   "account_id": 1,
+   "date": "2025-09-16T12:00:00",
+   "running_balance": 2283.24
+  },
+  {
+   "account_id": 1,
+   "date": "2025-09-17T14:00:00",
+   "running_balance": 2193.59
+  },
+  {
+   "account_id": 1,
+   "date": "2025-09-18T10:00:00",
+   "running_balance": 2112.49
+  },
+  {
+   "account_id": 1,
+   "date": "2025-09-18T12:00:00",
+   "running_balance": 2082.5
+  },
+  {
+   "account_id": 1,
+   "date": "2025-09-18T18:00:00",
+   "running_balance": 2051.03
+  },
+  {
+   "account_id": 1,
+   "date": "2025-09-19T14:00:00",
+   "running_balance": 2005.78
+  },
+  {
+   "account_id": 1,
+   "date": "2025-09-20T12:00:00",
+   "running_balance": 1984.38
+  },
+  {
+   "account_id": 1,
+   "date": "2025-09-20T12:00:00",
+   "running_balance": 1954.38
+  },
+  {
+   "account_id": 1,
+   "date": "2025-09-22T20:00:00",
+   "running_balance": 1936.58
+  },
+  {
+   "account_id": 1,
+   "date": "2025-09-23T12:00:00",
+   "running_balance": 1953.08
+  },
+  {
+   "account_id": 1,
+   "date": "2025-09-24T09:00:00",
+   "running_balance": 1912.72
+  },
+  {
+   "account_id": 1,
+   "date": "2025-09-24T15:00:00",
+   "running_balance": 1852.66
+  },
+  {
+   "account_id": 1,
+   "date": "2025-09-27T12:00:00",
+   "running_balance": 4674.86
+  },
+  {
+   "account_id": 1,
+   "date": "2025-09-27T18:00:00",
+   "running_balance": 4626.91
+  },
+  {
+   "account_id": 1,
+   "date": "2025-09-28T12:00:00",
+   "running_balance": 4591.16
+  },
+  {
+   "account_id": 1,
+   "date": "2025-10-02T12:00:00",
+   "running_balance": 3701.16
+  },
+  {
+   "account_id": 1,
+   "date": "2025-10-03T09:00:00",
+   "running_balance": 3501.16
+  },
+  {
+   "account_id": 1,
+   "date": "2025-10-03T09:00:00",
+   "running_balance": 3401.16
+  },
+  {
+   "account_id": 1,
+   "date": "2025-10-03T09:00:00",
+   "running_balance": 3101.16
+  },
+  {
+   "account_id": 1,
+   "date": "2025-10-05T12:00:00",
+   "running_balance": 3014.76
+  },
+  {
+   "account_id": 1,
+   "date": "2025-10-06T12:00:00",
+   "running_balance": 2960.79
+  },
+  {
+   "account_id": 1,
+   "date": "2025-10-06T14:00:00",
+   "running_balance": 2933.7
+  },
+  {
+   "account_id": 1,
+   "date": "2025-10-06T17:00:00",
+   "running_balance": 2897.24
+  },
+  {
+   "account_id": 1,
+   "date": "2025-10-07T15:00:00",
+   "running_balance": 2845.98
+  },
+  {
+   "account_id": 1,
+   "date": "2025-10-07T18:00:00",
+   "running_balance": 2820.2
+  },
+  {
+   "account_id": 1,
+   "date": "2025-10-08T12:00:00",
+   "running_balance": 2800.21
+  },
+  {
+   "account_id": 1,
+   "date": "2025-10-09T21:00:00",
+   "running_balance": 2765.48
+  },
+  {
+   "account_id": 1,
+   "date": "2025-10-10T12:00:00",
+   "running_balance": 2751.99
+  },
+  {
+   "account_id": 1,
+   "date": "2025-10-10T21:00:00",
+   "running_balance": 2680.18
+  },
+  {
+   "account_id": 1,
+   "date": "2025-10-12T12:00:00",
+   "running_balance": 2669.06
+  },
+  {
+   "account_id": 1,
+   "date": "2025-10-13T10:00:00",
+   "running_balance": 2575.94
+  },
+  {
+   "account_id": 1,
+   "date": "2025-10-13T18:00:00",
+   "running_balance": 2541.77
+  },
+  {
+   "account_id": 1,
+   "date": "2025-10-15T09:00:00",
+   "running_balance": 2477.87
+  },
+  {
+   "account_id": 1,
+   "date": "2025-10-15T12:00:00",
+   "running_balance": 2416.87
+  },
+  {
+   "account_id": 1,
+   "date": "2025-10-15T20:00:00",
+   "running_balance": 2377.83
+  },
+  {
+   "account_id": 1,
+   "date": "2025-10-15T21:00:00",
+   "running_balance": 2336.32
+  },
+  {
+   "account_id": 1,
+   "date": "2025-10-16T19:00:00",
+   "running_balance": 2307.28
+  },
+  {
+   "account_id": 1,
+   "date": "2025-10-18T12:00:00",
+   "running_balance": 2277.29
+  },
+  {
+   "account_id": 1,
+   "date": "2025-10-19T11:00:00",
+   "running_balance": 2228.6
+  },
+  {
+   "account_id": 1,
+   "date": "2025-10-19T12:00:00",
+   "running_balance": 2216.93
+  },
+  {
+   "account_id": 1,
+   "date": "2025-10-20T12:00:00",
+   "running_balance": 2195.53
+  },
+  {
+   "account_id": 1,
+   "date": "2025-10-25T12:00:00",
+   "running_balance": 2186.09
+  },
+  {
+   "account_id": 1,
+   "date": "2025-10-26T14:00:00",
+   "running_balance": 2129.09
+  },
+  {
+   "account_id": 1,
+   "date": "2025-10-27T12:00:00",
+   "running_balance": 4951.29
+  },
+  {
+   "account_id": 1,
+   "date": "2025-10-28T12:00:00",
+   "running_balance": 4967.79
+  },
+  {
+   "account_id": 1,
+   "date": "2025-11-02T12:00:00",
+   "running_balance": 4077.79
+  },
+  {
+   "account_id": 1,
+   "date": "2025-11-03T09:00:00",
+   "running_balance": 3877.79
+  },
+  {
+   "account_id": 1,
+   "date": "2025-11-03T09:00:00",
+   "running_balance": 3777.79
+  },
+  {
+   "account_id": 1,
+   "date": "2025-11-03T09:00:00",
+   "running_balance": 3477.79
+  },
+  {
+   "account_id": 1,
+   "date": "2025-11-03T12:00:00",
+   "running_balance": 3448.6
+  },
+  {
+   "account_id": 1,
+   "date": "2025-11-03T17:00:00",
+   "running_balance": 3423.13
+  },
+  {
+   "account_id": 1,
+   "date": "2025-11-04T12:00:00",
+   "running_balance": 3353.97
+  },
+  {
+   "account_id": 1,
+   "date": "2025-11-05T12:00:00",
+   "running_balance": 3267.57
+  },
+  {
+   "account_id": 1,
+   "date": "2025-11-05T17:00:00",
+   "running_balance": 3191.88
+  },
+  {
+   "account_id": 1,
+   "date": "2025-11-06T12:00:00",
+   "running_balance": 3208.38
+  },
+  {
+   "account_id": 1,
+   "date": "2025-11-07T14:00:00",
+   "running_balance": 3165.26
+  },
+  {
+   "account_id": 1,
+   "date": "2025-11-08T12:00:00",
+   "running_balance": 3145.27
+  },
+  {
+   "account_id": 1,
+   "date": "2025-11-09T09:00:00",
+   "running_balance": 3080.73
+  },
+  {
+   "account_id": 1,
+   "date": "2025-11-09T21:00:00",
+   "running_balance": 3068.55
+  },
+  {
+   "account_id": 1,
+   "date": "2025-11-10T12:00:00",
+   "running_balance": 3055.06
+  },
+  {
+   "account_id": 1,
+   "date": "2025-11-11T11:00:00",
+   "running_balance": 2993.24
+  },
+  {
+   "account_id": 1,
+   "date": "2025-11-12T08:00:00",
+   "running_balance": 2927.82
+  },
+  {
+   "account_id": 1,
+   "date": "2025-11-12T12:00:00",
+   "running_balance": 2916.7
+  },
+  {
+   "account_id": 1,
+   "date": "2025-11-12T18:00:00",
+   "running_balance": 2896.58
+  },
+  {
+   "account_id": 1,
+   "date": "2025-11-15T12:00:00",
+   "running_balance": 2800.58
+  },
+  {
+   "account_id": 1,
+   "date": "2025-11-16T14:00:00",
+   "running_balance": 2769.41
+  },
+  {
+   "account_id": 1,
+   "date": "2025-11-16T14:00:00",
+   "running_balance": 2713.87
+  },
+  {
+   "account_id": 1,
+   "date": "2025-11-18T12:00:00",
+   "running_balance": 2683.88
+  },
+  {
+   "account_id": 1,
+   "date": "2025-11-19T21:00:00",
+   "running_balance": 2627.77
+  },
+  {
+   "account_id": 1,
+   "date": "2025-11-20T12:00:00",
+   "running_balance": 2606.37
+  },
+  {
+   "account_id": 1,
+   "date": "2025-11-21T19:00:00",
+   "running_balance": 2581.29
+  },
+  {
+   "account_id": 1,
+   "date": "2025-11-25T18:00:00",
+   "running_balance": 2568.0
+  },
+  {
+   "account_id": 1,
+   "date": "2025-11-25T21:00:00",
+   "running_balance": 2537.1
+  },
+  {
+   "account_id": 1,
+   "date": "2025-11-27T12:00:00",
+   "running_balance": 5359.3
+  },
+  {
+   "account_id": 1,
+   "date": "2025-11-28T19:00:00",
+   "running_balance": 5286.79
+  },
+  {
+   "account_id": 1,
+   "date": "2025-12-02T12:00:00",
+   "running_balance": 4396.79
+  },
+  {
+   "account_id": 1,
+   "date": "2025-12-03T09:00:00",
+   "running_balance": 4196.79
+  },
+  {
+   "account_id": 1,
+   "date": "2025-12-03T09:00:00",
+   "running_balance": 4096.79
+  },
+  {
+   "account_id": 1,
+   "date": "2025-12-03T09:00:00",
+   "running_balance": 4073.37
+  },
+  {
+   "account_id": 1,
+   "date": "2025-12-03T09:00:00",
+   "running_balance": 3773.37
+  },
+  {
+   "account_id": 1,
+   "date": "2025-12-03T17:00:00",
+   "running_balance": 3697.45
+  },
+  {
+   "account_id": 1,
+   "date": "2025-12-04T13:00:00",
+   "running_balance": 3642.33
+  },
+  {
+   "account_id": 1,
+   "date": "2025-12-05T12:00:00",
+   "running_balance": 3555.93
+  },
+  {
+   "account_id": 1,
+   "date": "2025-12-08T12:00:00",
+   "running_balance": 3535.94
+  },
+  {
+   "account_id": 1,
+   "date": "2025-12-08T12:00:00",
+   "running_balance": 3511.96
+  },
+  {
+   "account_id": 1,
+   "date": "2025-12-09T13:00:00",
+   "running_balance": 3464.79
+  },
+  {
+   "account_id": 1,
+   "date": "2025-12-09T19:00:00",
+   "running_balance": 3444.55
+  },
+  {
+   "account_id": 1,
+   "date": "2025-12-10T12:00:00",
+   "running_balance": 3431.06
+  },
+  {
+   "account_id": 1,
+   "date": "2025-12-10T12:00:00",
+   "running_balance": 3371.17
+  },
+  {
+   "account_id": 1,
+   "date": "2025-12-11T12:00:00",
+   "running_balance": 3283.67
+  },
+  {
+   "account_id": 1,
+   "date": "2025-12-12T12:00:00",
+   "running_balance": 3272.55
+  },
+  {
+   "account_id": 1,
+   "date": "2025-12-15T12:00:00",
+   "running_balance": 3154.55
+  },
+  {
+   "account_id": 1,
+   "date": "2025-12-16T12:00:00",
+   "running_balance": 3093.83
+  },
+  {
+   "account_id": 1,
+   "date": "2025-12-18T12:00:00",
+   "running_balance": 3063.84
+  },
+  {
+   "account_id": 1,
+   "date": "2025-12-19T12:00:00",
+   "running_balance": 2992.61
+  },
+  {
+   "account_id": 1,
+   "date": "2025-12-19T21:00:00",
+   "running_balance": 2900.75
+  },
+  {
+   "account_id": 1,
+   "date": "2025-12-20T12:00:00",
+   "running_balance": 2879.35
+  },
+  {
+   "account_id": 1,
+   "date": "2025-12-20T21:00:00",
+   "running_balance": 2823.77
+  },
+  {
+   "account_id": 1,
+   "date": "2025-12-21T08:00:00",
+   "running_balance": 2776.93
+  },
+  {
+   "account_id": 1,
+   "date": "2025-12-21T12:00:00",
+   "running_balance": 2702.51
+  },
+  {
+   "account_id": 1,
+   "date": "2025-12-21T14:00:00",
+   "running_balance": 2612.94
+  },
+  {
+   "account_id": 1,
+   "date": "2025-12-22T17:00:00",
+   "running_balance": 2584.79
+  },
+  {
+   "account_id": 1,
+   "date": "2025-12-24T18:00:00",
+   "running_balance": 2561.41
+  },
+  {
+   "account_id": 1,
+   "date": "2025-12-24T21:00:00",
+   "running_balance": 2496.51
+  },
+  {
+   "account_id": 1,
+   "date": "2025-12-27T12:00:00",
+   "running_balance": 5318.71
+  },
+  {
+   "account_id": 1,
+   "date": "2025-12-27T16:00:00",
+   "running_balance": 5231.7
+  },
+  {
+   "account_id": 1,
+   "date": "2025-12-28T18:00:00",
+   "running_balance": 5217.91
+  },
+  {
+   "account_id": 1,
+   "date": "2026-01-01T09:00:00",
+   "running_balance": 5190.08
+  },
+  {
+   "account_id": 1,
+   "date": "2026-01-01T12:00:00",
+   "running_balance": 5151.14
+  },
+  {
+   "account_id": 1,
+   "date": "2026-01-02T12:00:00",
+   "running_balance": 4261.14
+  },
+  {
+   "account_id": 1,
+   "date": "2026-01-03T09:00:00",
+   "running_balance": 4061.14
+  },
+  {
+   "account_id": 1,
+   "date": "2026-01-03T09:00:00",
+   "running_balance": 3961.14
+  },
+  {
+   "account_id": 1,
+   "date": "2026-01-03T09:00:00",
+   "running_balance": 3661.14
+  },
+  {
+   "account_id": 1,
+   "date": "2026-01-03T12:00:00",
+   "running_balance": 3593.46
+  },
+  {
+   "account_id": 1,
+   "date": "2026-01-05T12:00:00",
+   "running_balance": 3507.06
+  },
+  {
+   "account_id": 1,
+   "date": "2026-01-05T12:00:00",
+   "running_balance": 3453.52
+  },
+  {
+   "account_id": 1,
+   "date": "2026-01-05T12:00:00",
+   "running_balance": 3421.56
+  },
+  {
+   "account_id": 1,
+   "date": "2026-01-06T18:00:00",
+   "running_balance": 3379.73
+  },
+  {
+   "account_id": 1,
+   "date": "2026-01-07T13:00:00",
+   "running_balance": 3344.97
+  },
+  {
+   "account_id": 1,
+   "date": "2026-01-08T12:00:00",
+   "running_balance": 3324.98
+  },
+  {
+   "account_id": 1,
+   "date": "2026-01-09T19:00:00",
+   "running_balance": 3268.37
+  },
+  {
+   "account_id": 1,
+   "date": "2026-01-10T00:00:00",
+   "running_balance": 3254.88
+  },
+  {
+   "account_id": 1,
+   "date": "2026-01-10T09:00:00",
+   "running_balance": 3220.02
+  },
+  {
+   "account_id": 1,
+   "date": "2026-01-10T12:00:00",
+   "running_balance": 3206.53
+  },
+  {
+   "account_id": 1,
+   "date": "2026-01-11T16:00:00",
+   "running_balance": 3182.69
+  },
+  {
+   "account_id": 1,
+   "date": "2026-01-12T12:00:00",
+   "running_balance": 3171.57
+  },
+  {
+   "account_id": 1,
+   "date": "2026-01-12T20:00:00",
+   "running_balance": 3095.88
+  },
+  {
+   "account_id": 1,
+   "date": "2026-01-13T21:00:00",
+   "running_balance": 3049.75
+  },
+  {
+   "account_id": 1,
+   "date": "2026-01-14T12:00:00",
+   "running_balance": 3006.61
+  },
+  {
+   "account_id": 1,
+   "date": "2026-01-15T12:00:00",
+   "running_balance": 2882.61
+  },
+  {
+   "account_id": 1,
+   "date": "2026-01-16T12:00:00",
+   "running_balance": 2868.67
+  },
+  {
+   "account_id": 1,
+   "date": "2026-01-18T12:00:00",
+   "running_balance": 2838.68
+  },
+  {
+   "account_id": 1,
+   "date": "2026-01-19T12:00:00",
+   "running_balance": 2855.18
+  },
+  {
+   "account_id": 1,
+   "date": "2026-01-20T12:00:00",
+   "running_balance": 2833.78
+  },
+  {
+   "account_id": 1,
+   "date": "2026-01-20T18:00:00",
+   "running_balance": 2791.52
+  },
+  {
+   "account_id": 1,
+   "date": "2026-01-24T17:00:00",
+   "running_balance": 2772.63
+  },
+  {
+   "account_id": 1,
+   "date": "2026-01-26T12:00:00",
+   "running_balance": 2700.33
+  },
+  {
+   "account_id": 1,
+   "date": "2026-01-27T12:00:00",
+   "running_balance": 5607.2
+  },
+  {
+   "account_id": 1,
+   "date": "2026-02-02T12:00:00",
+   "running_balance": 4717.2
+  },
+  {
+   "account_id": 1,
+   "date": "2026-02-03T08:00:00",
+   "running_balance": 4665.33
+  },
+  {
+   "account_id": 1,
+   "date": "2026-02-03T09:00:00",
+   "running_balance": 4465.33
+  },
+  {
+   "account_id": 1,
+   "date": "2026-02-03T09:00:00",
+   "running_balance": 4365.33
+  },
+  {
+   "account_id": 1,
+   "date": "2026-02-03T09:00:00",
+   "running_balance": 4065.33
+  },
+  {
+   "account_id": 1,
+   "date": "2026-02-03T19:00:00",
+   "running_balance": 4046.48
+  },
+  {
+   "account_id": 1,
+   "date": "2026-02-04T15:00:00",
+   "running_balance": 4031.7
+  },
+  {
+   "account_id": 1,
+   "date": "2026-02-04T19:00:00",
+   "running_balance": 4013.01
+  },
+  {
+   "account_id": 1,
+   "date": "2026-02-05T12:00:00",
+   "running_balance": 3926.61
+  },
+  {
+   "account_id": 1,
+   "date": "2026-02-06T16:00:00",
+   "running_balance": 3832.23
+  },
+  {
+   "account_id": 1,
+   "date": "2026-02-07T00:00:00",
+   "running_balance": 3819.83
+  },
+  {
+   "account_id": 1,
+   "date": "2026-02-07T16:00:00",
+   "running_balance": 3733.42
+  },
+  {
+   "account_id": 1,
+   "date": "2026-02-08T11:00:00",
+   "running_balance": 3640.34
+  },
+  {
+   "account_id": 1,
+   "date": "2026-02-08T12:00:00",
+   "running_balance": 3620.35
+  },
+  {
+   "account_id": 1,
+   "date": "2026-02-09T12:00:00",
+   "running_balance": 3590.51
+  },
+  {
+   "account_id": 1,
+   "date": "2026-02-10T00:00:00",
+   "running_balance": 3577.02
+  },
+  {
+   "account_id": 1,
+   "date": "2026-02-10T12:00:00",
+   "running_balance": 3563.53
+  },
+  {
+   "account_id": 1,
+   "date": "2026-02-11T13:00:00",
+   "running_balance": 3484.97
+  },
+  {
+   "account_id": 1,
+   "date": "2026-02-12T12:00:00",
+   "running_balance": 3473.85
+  },
+  {
+   "account_id": 1,
+   "date": "2026-02-12T20:00:00",
+   "running_balance": 3428.26
+  },
+  {
+   "account_id": 1,
+   "date": "2026-02-14T11:00:00",
+   "running_balance": 3340.39
+  },
+  {
+   "account_id": 1,
+   "date": "2026-02-14T14:00:00",
+   "running_balance": 3273.53
+  },
+  {
+   "account_id": 1,
+   "date": "2026-02-15T12:00:00",
+   "running_balance": 3164.53
+  },
+  {
+   "account_id": 1,
+   "date": "2026-02-17T17:00:00",
+   "running_balance": 3115.41
+  },
+  {
+   "account_id": 1,
+   "date": "2026-02-18T12:00:00",
+   "running_balance": 3085.42
+  },
+  {
+   "account_id": 1,
+   "date": "2026-02-20T12:00:00",
+   "running_balance": 3064.02
+  },
+  {
+   "account_id": 1,
+   "date": "2026-02-21T12:00:00",
+   "running_balance": 3010.04
+  },
+  {
+   "account_id": 1,
+   "date": "2026-02-21T21:00:00",
+   "running_balance": 2972.57
+  },
+  {
+   "account_id": 1,
+   "date": "2026-02-22T12:00:00",
+   "running_balance": 2915.54
+  },
+  {
+   "account_id": 1,
+   "date": "2026-02-25T16:00:00",
+   "running_balance": 2885.95
+  },
+  {
+   "account_id": 1,
+   "date": "2026-02-26T16:00:00",
+   "running_balance": 2847.03
+  },
+  {
+   "account_id": 1,
+   "date": "2026-02-27T12:00:00",
+   "running_balance": 5753.9
+  },
+  {
+   "account_id": 1,
+   "date": "2026-02-27T21:00:00",
+   "running_balance": 5683.09
+  },
+  {
+   "account_id": 1,
+   "date": "2026-03-02T12:00:00",
+   "running_balance": 4793.09
+  },
+  {
+   "account_id": 1,
+   "date": "2026-03-02T12:00:00",
+   "running_balance": 4763.09
+  },
+  {
+   "account_id": 1,
+   "date": "2026-03-03T09:00:00",
+   "running_balance": 4563.09
+  },
+  {
+   "account_id": 1,
+   "date": "2026-03-03T09:00:00",
+   "running_balance": 4463.09
+  },
+  {
+   "account_id": 1,
+   "date": "2026-03-03T09:00:00",
+   "running_balance": 4163.09
+  },
+  {
+   "account_id": 1,
+   "date": "2026-03-03T12:00:00",
+   "running_balance": 4110.03
+  },
+  {
+   "account_id": 1,
+   "date": "2026-03-03T16:00:00",
+   "running_balance": 4052.02
+  },
+  {
+   "account_id": 1,
+   "date": "2026-03-05T12:00:00",
+   "running_balance": 3965.62
+  },
+  {
+   "account_id": 1,
+   "date": "2026-03-05T12:00:00",
+   "running_balance": 3982.12
+  },
+  {
+   "account_id": 1,
+   "date": "2026-03-07T00:00:00",
+   "running_balance": 3969.72
+  },
+  {
+   "account_id": 1,
+   "date": "2026-03-08T12:00:00",
+   "running_balance": 3949.73
+  },
+  {
+   "account_id": 1,
+   "date": "2026-03-09T14:00:00",
+   "running_balance": 3887.46
+  },
+  {
+   "account_id": 1,
+   "date": "2026-03-10T00:00:00",
+   "running_balance": 3873.97
+  },
+  {
+   "account_id": 1,
+   "date": "2026-03-10T12:00:00",
+   "running_balance": 3860.48
+  },
+  {
+   "account_id": 1,
+   "date": "2026-03-12T12:00:00",
+   "running_balance": 3849.36
+  },
+  {
+   "account_id": 1,
+   "date": "2026-03-12T14:00:00",
+   "running_balance": 3793.61
+  },
+  {
+   "account_id": 1,
+   "date": "2026-03-13T16:00:00",
+   "running_balance": 3736.1
+  },
+  {
+   "account_id": 1,
+   "date": "2026-03-14T13:00:00",
+   "running_balance": 3660.5
+  },
+  {
+   "account_id": 1,
+   "date": "2026-03-14T16:00:00",
+   "running_balance": 3645.79
+  },
+  {
+   "account_id": 1,
+   "date": "2026-03-15T12:00:00",
+   "running_balance": 3584.79
+  },
+  {
+   "account_id": 1,
+   "date": "2026-03-15T18:00:00",
+   "running_balance": 3499.89
+  },
+  {
+   "account_id": 1,
+   "date": "2026-03-18T12:00:00",
+   "running_balance": 3469.9
+  },
+  {
+   "account_id": 1,
+   "date": "2026-03-20T12:00:00",
+   "running_balance": 3448.5
+  },
+  {
+   "account_id": 1,
+   "date": "2026-03-22T18:00:00",
+   "running_balance": 3373.59
+  },
+  {
+   "account_id": 1,
+   "date": "2026-03-24T11:00:00",
+   "running_balance": 3338.49
+  },
+  {
+   "account_id": 1,
+   "date": "2026-03-25T11:00:00",
+   "running_balance": 3271.12
+  },
+  {
+   "account_id": 1,
+   "date": "2026-03-25T15:00:00",
+   "running_balance": 3172.59
+  },
+  {
+   "account_id": 1,
+   "date": "2026-03-25T17:00:00",
+   "running_balance": 3145.35
+  },
+  {
+   "account_id": 1,
+   "date": "2026-03-27T12:00:00",
+   "running_balance": 6052.22
+  },
+  {
+   "account_id": 1,
+   "date": "2026-03-28T19:00:00",
+   "running_balance": 5965.77
+  },
+  {
+   "account_id": 1,
+   "date": "2026-04-02T12:00:00",
+   "running_balance": 5075.77
+  },
+  {
+   "account_id": 1,
+   "date": "2026-04-03T09:00:00",
+   "running_balance": 4875.77
+  },
+  {
+   "account_id": 1,
+   "date": "2026-04-03T09:00:00",
+   "running_balance": 4775.77
+  },
+  {
+   "account_id": 1,
+   "date": "2026-04-03T09:00:00",
+   "running_balance": 4475.77
+  },
+  {
+   "account_id": 1,
+   "date": "2026-04-04T12:00:00",
+   "running_balance": 4421.31
+  },
+  {
+   "account_id": 1,
+   "date": "2026-04-05T12:00:00",
+   "running_balance": 4334.91
+  },
+  {
+   "account_id": 1,
+   "date": "2026-04-05T20:00:00",
+   "running_balance": 4312.7
+  },
+  {
+   "account_id": 1,
+   "date": "2026-04-07T00:00:00",
+   "running_balance": 4300.3
+  },
+  {
+   "account_id": 1,
+   "date": "2026-04-07T12:00:00",
+   "running_balance": 4270.3
+  },
+  {
+   "account_id": 1,
+   "date": "2026-04-07T15:00:00",
+   "running_balance": 4237.79
+  },
+  {
+   "account_id": 1,
+   "date": "2026-04-08T12:00:00",
+   "running_balance": 4217.8
+  },
+  {
+   "account_id": 1,
+   "date": "2026-04-10T00:00:00",
+   "running_balance": 4204.31
+  },
+  {
+   "account_id": 1,
+   "date": "2026-04-10T12:00:00",
+   "running_balance": 4190.82
+  },
+  {
+   "account_id": 1,
+   "date": "2026-04-10T12:00:00",
+   "running_balance": 4207.32
+  },
+  {
+   "account_id": 1,
+   "date": "2026-04-11T12:00:00",
+   "running_balance": 4183.7
+  },
+  {
+   "account_id": 1,
+   "date": "2026-04-11T13:00:00",
+   "running_balance": 4139.46
+  },
+  {
+   "account_id": 1,
+   "date": "2026-04-11T15:00:00",
+   "running_balance": 4098.2
+  },
+  {
+   "account_id": 1,
+   "date": "2026-04-12T12:00:00",
+   "running_balance": 4087.08
+  },
+  {
+   "account_id": 1,
+   "date": "2026-04-13T10:00:00",
+   "running_balance": 4033.97
+  },
+  {
+   "account_id": 1,
+   "date": "2026-04-15T12:00:00",
+   "running_balance": 3972.97
+  },
+  {
+   "account_id": 1,
+   "date": "2026-04-15T20:00:00",
+   "running_balance": 3879.76
+  },
+  {
+   "account_id": 1,
+   "date": "2026-04-17T15:00:00",
+   "running_balance": 3825.17
+  },
+  {
+   "account_id": 1,
+   "date": "2026-04-18T12:00:00",
+   "running_balance": 3795.18
+  },
+  {
+   "account_id": 1,
+   "date": "2026-04-19T21:00:00",
+   "running_balance": 3743.07
+  },
+  {
+   "account_id": 1,
+   "date": "2026-04-19T21:00:00",
+   "running_balance": 3722.81
+  },
+  {
+   "account_id": 1,
+   "date": "2026-04-20T12:00:00",
+   "running_balance": 3701.41
+  },
+  {
+   "account_id": 1,
+   "date": "2026-04-20T16:00:00",
+   "running_balance": 3655.38
+  },
+  {
+   "account_id": 1,
+   "date": "2026-04-27T12:00:00",
+   "running_balance": 6562.25
+  },
+  {
+   "account_id": 1,
+   "date": "2026-04-28T09:00:00",
+   "running_balance": 6517.39
+  },
+  {
+   "account_id": 1,
+   "date": "2026-05-02T12:00:00",
+   "running_balance": 5627.39
+  },
+  {
+   "account_id": 1,
+   "date": "2026-05-02T12:00:00",
+   "running_balance": 5549.38
+  },
+  {
+   "account_id": 1,
+   "date": "2026-05-03T09:00:00",
+   "running_balance": 5349.38
+  },
+  {
+   "account_id": 1,
+   "date": "2026-05-03T09:00:00",
+   "running_balance": 5249.38
+  },
+  {
+   "account_id": 1,
+   "date": "2026-05-03T09:00:00",
+   "running_balance": 4949.38
+  },
+  {
+   "account_id": 1,
+   "date": "2026-05-03T11:00:00",
+   "running_balance": 4856.52
+  },
+  {
+   "account_id": 1,
+   "date": "2026-05-05T12:00:00",
+   "running_balance": 4770.12
+  },
+  {
+   "account_id": 1,
+   "date": "2026-05-05T12:00:00",
+   "running_balance": 4729.41
+  },
+  {
+   "account_id": 1,
+   "date": "2026-05-05T20:00:00",
+   "running_balance": 4704.39
+  },
+  {
+   "account_id": 1,
+   "date": "2026-05-06T12:00:00",
+   "running_balance": 4651.92
+  },
+  {
+   "account_id": 1,
+   "date": "2026-05-06T21:00:00",
+   "running_balance": 4621.61
+  },
+  {
+   "account_id": 1,
+   "date": "2026-05-07T00:00:00",
+   "running_balance": 4609.21
+  },
+  {
+   "account_id": 1,
+   "date": "2026-05-07T09:00:00",
+   "running_balance": 4581.72
+  },
+  {
+   "account_id": 1,
+   "date": "2026-05-07T21:00:00",
+   "running_balance": 4490.07
+  },
+  {
+   "account_id": 1,
+   "date": "2026-05-08T12:00:00",
+   "running_balance": 4470.08
+  },
+  {
+   "account_id": 1,
+   "date": "2026-05-09T20:00:00",
+   "running_balance": 4441.62
+  },
+  {
+   "account_id": 1,
+   "date": "2026-05-10T00:00:00",
+   "running_balance": 4425.63
+  },
+  {
+   "account_id": 1,
+   "date": "2026-05-10T12:00:00",
+   "running_balance": 4412.14
+  },
+  {
+   "account_id": 1,
+   "date": "2026-05-11T10:00:00",
+   "running_balance": 4360.83
+  },
+  {
+   "account_id": 1,
+   "date": "2026-05-12T12:00:00",
+   "running_balance": 4349.71
+  },
+  {
+   "account_id": 1,
+   "date": "2026-05-15T12:00:00",
+   "running_balance": 4288.71
+  },
+  {
+   "account_id": 1,
+   "date": "2026-05-17T19:00:00",
+   "running_balance": 4247.39
+  },
+  {
+   "account_id": 1,
+   "date": "2026-05-18T11:00:00",
+   "running_balance": 4192.53
+  },
+  {
+   "account_id": 1,
+   "date": "2026-05-18T12:00:00",
+   "running_balance": 4162.54
+  },
+  {
+   "account_id": 1,
+   "date": "2026-05-20T00:00:00",
+   "running_balance": 4072.54
+  },
+  {
+   "account_id": 1,
+   "date": "2026-05-20T12:00:00",
+   "running_balance": 4051.14
+  },
+  {
+   "account_id": 1,
+   "date": "2026-05-20T12:00:00",
+   "running_balance": 4002.46
+  },
+  {
+   "account_id": 1,
+   "date": "2026-05-26T11:00:00",
+   "running_balance": 3949.04
+  },
+  {
+   "account_id": 1,
+   "date": "2026-05-27T12:00:00",
+   "running_balance": 6855.91
+  },
+  {
+   "account_id": 1,
+   "date": "2026-05-28T10:00:00",
+   "running_balance": 6796.13
+  },
+  {
+   "account_id": 1,
+   "date": "2026-05-28T20:00:00",
+   "running_balance": 6780.76
+  },
+  {
+   "account_id": 1,
+   "date": "2026-05-28T21:00:00",
+   "running_balance": 6739.99
+  },
+  {
+   "account_id": 1,
+   "date": "2026-06-01T00:00:00",
+   "running_balance": 5962.99
+  },
+  {
+   "account_id": 1,
+   "date": "2026-06-02T09:00:00",
+   "running_balance": 5929.26
+  },
+  {
+   "account_id": 1,
+   "date": "2026-06-02T12:00:00",
+   "running_balance": 5039.26
+  },
+  {
+   "account_id": 1,
+   "date": "2026-06-02T12:00:00",
+   "running_balance": 4998.73
+  },
+  {
+   "account_id": 1,
+   "date": "2026-06-02T16:00:00",
+   "running_balance": 4970.13
+  },
+  {
+   "account_id": 1,
+   "date": "2026-06-03T00:00:00",
+   "running_balance": 5000.13
+  },
+  {
+   "account_id": 1,
+   "date": "2026-06-03T09:00:00",
+   "running_balance": 4800.13
+  },
+  {
+   "account_id": 1,
+   "date": "2026-06-03T09:00:00",
+   "running_balance": 4700.13
+  },
+  {
+   "account_id": 1,
+   "date": "2026-06-03T09:00:00",
+   "running_balance": 4400.13
+  },
+  {
+   "account_id": 1,
+   "date": "2026-06-04T00:00:00",
+   "running_balance": 4355.13
+  },
+  {
+   "account_id": 1,
+   "date": "2026-06-05T12:00:00",
+   "running_balance": 4268.73
+  },
+  {
+   "account_id": 1,
+   "date": "2026-06-06T00:00:00",
+   "running_balance": 4256.33
+  },
+  {
+   "account_id": 1,
+   "date": "2026-06-06T00:00:00",
+   "running_balance": 4243.93
+  },
+  {
+   "account_id": 1,
+   "date": "2026-06-08T12:00:00",
+   "running_balance": 4223.94
+  },
+  {
+   "account_id": 1,
+   "date": "2026-06-09T00:00:00",
+   "running_balance": 4215.84
+  },
+  {
+   "account_id": 1,
+   "date": "2026-06-10T00:00:00",
+   "running_balance": 4199.85
+  },
+  {
+   "account_id": 1,
+   "date": "2026-06-10T12:00:00",
+   "running_balance": 4186.36
+  },
+  {
+   "account_id": 1,
+   "date": "2026-06-11T19:00:00",
+   "running_balance": 4150.24
+  },
+  {
+   "account_id": 1,
+   "date": "2026-06-12T12:00:00",
+   "running_balance": 4139.12
+  },
+  {
+   "account_id": 1,
+   "date": "2026-06-12T18:00:00",
+   "running_balance": 4115.1
+  },
+  {
+   "account_id": 1,
+   "date": "2026-06-13T12:00:00",
+   "running_balance": 4029.69
+  },
+  {
+   "account_id": 1,
+   "date": "2026-06-13T21:00:00",
+   "running_balance": 3981.38
+  },
+  {
+   "account_id": 1,
+   "date": "2026-06-14T09:00:00",
+   "running_balance": 3935.65
+  },
+  {
+   "account_id": 1,
+   "date": "2026-06-15T12:00:00",
+   "running_balance": 3874.65
+  }
+ ],
+ "monthly_flows": [
+  {
+   "burn_rate": 62.39,
+   "expense": 1934.08,
+   "income": 2923.37,
+   "month": 1
+  },
+  {
+   "burn_rate": 79.68,
+   "expense": 2230.98,
+   "income": 2906.87,
+   "month": 2
+  },
+  {
+   "burn_rate": 65.83,
+   "expense": 2040.69,
+   "income": 2923.37,
+   "month": 3
+  },
+  {
+   "burn_rate": 59.06,
+   "expense": 1771.75,
+   "income": 2923.37,
+   "month": 4
+  },
+  {
+   "burn_rate": 67.23,
+   "expense": 2084.27,
+   "income": 2906.87,
+   "month": 5
+  },
+  {
+   "burn_rate": 153.02,
+   "expense": 2295.34,
+   "income": 30.0,
+   "month": 6
+  }
+ ],
+ "salary_series": [
+  {
+   "month": 1,
+   "salary": 2906.87
+  },
+  {
+   "month": 2,
+   "salary": 2906.87
+  },
+  {
+   "month": 3,
+   "salary": 2906.87
+  },
+  {
+   "month": 4,
+   "salary": 2906.87
+  },
+  {
+   "month": 5,
+   "salary": 2906.87
+  }
+ ],
+ "year": 2026
+}

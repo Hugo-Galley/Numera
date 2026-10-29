@@ -1,0 +1,209 @@
+{
+ "annual_return_pct": 3.52,
+ "avg_monthly_savings": 900.0,
+ "computed_monthly_savings": 811.93,
+ "current_wealth": 37929.17,
+ "extra_monthly": 200.0,
+ "final_base": 386737.26,
+ "final_boosted": 455841.36,
+ "gain_from_extra": 69104.1,
+ "months_used": 12,
+ "observed_investment_return_pct": 9.24,
+ "points": [
+  {
+   "base": 37929.17,
+   "boosted": 37929.17,
+   "year": 0
+  },
+  {
+   "base": 50237.59,
+   "boosted": 52676.07,
+   "year": 1
+  },
+  {
+   "base": 62979.32,
+   "boosted": 67942.12,
+   "year": 2
+  },
+  {
+   "base": 76169.6,
+   "boosted": 83745.6,
+   "year": 3
+  },
+  {
+   "base": 89824.23,
+   "boosted": 100105.42,
+   "year": 4
+  },
+  {
+   "base": 103959.55,
+   "boosted": 117041.16,
+   "year": 5
+  },
+  {
+   "base": 118592.5,
+   "boosted": 134573.11,
+   "year": 6
+  },
+  {
+   "base": 133740.57,
+   "boosted": 152722.24,
+   "year": 7
+  },
+  {
+   "base": 149421.92,
+   "boosted": 171510.3,
+   "year": 8
+  },
+  {
+   "base": 165655.31,
+   "boosted": 190959.77,
+   "year": 9
+  },
+  {
+   "base": 182460.18,
+   "boosted": 211093.93,
+   "year": 10
+  },
+  {
+   "base": 199856.64,
+   "boosted": 231936.9,
+   "year": 11
+  },
+  {
+   "base": 217865.53,
+   "boosted": 253513.61,
+   "year": 12
+  },
+  {
+   "base": 236508.4,
+   "boosted": 275849.91,
+   "year": 13
+  },
+  {
+   "base": 255807.56,
+   "boosted": 298972.53,
+   "year": 14
+  },
+  {
+   "base": 275786.13,
+   "boosted": 322909.15,
+   "year": 15
+  },
+  {
+   "base": 296468.02,
+   "boosted": 347688.44,
+   "year": 16
+  },
+  {
+   "base": 317878.0,
+   "boosted": 373340.05,
+   "year": 17
+  },
+  {
+   "base": 340041.68,
+   "boosted": 399894.69,
+   "year": 18
+  },
+  {
+   "base": 362985.62,
+   "boosted": 427384.16,
+   "year": 19
+  },
+  {
+   "base": 386737.26,
+   "boosted": 455841.36,
+   "year": 20
+  }
+ ],
+ "return_breakdown": [
+  {
+   "balance": 19222.26,
+   "rate_pct": 5.0,
+   "source": "manual",
+   "type": "investissement"
+  },
+  {
+   "balance": 18706.91,
+   "rate_pct": 2.0,
+   "source": "manual",
+   "type": "autres"
+  }
+ ],
+ "savings_months": [
+  {
+   "depenses_reelles": 2020.42,
+   "epargne_flow": 2338.03,
+   "label": "6/2025",
+   "revenus": 4358.45
+  },
+  {
+   "depenses_reelles": 2985.4,
+   "epargne_flow": -163.2,
+   "label": "7/2025",
+   "revenus": 2822.2
+  },
+  {
+   "depenses_reelles": 1971.25,
+   "epargne_flow": 867.45,
+   "label": "8/2025",
+   "revenus": 2838.7
+  },
+  {
+   "depenses_reelles": 3318.5,
+   "epargne_flow": -479.8,
+   "label": "9/2025",
+   "revenus": 2838.7
+  },
+  {
+   "depenses_reelles": 1862.07,
+   "epargne_flow": 996.38,
+   "label": "10/2025",
+   "revenus": 2858.45
+  },
+  {
+   "depenses_reelles": 1919.7,
+   "epargne_flow": 919.0,
+   "label": "11/2025",
+   "revenus": 2838.7
+  },
+  {
+   "depenses_reelles": 2291.08,
+   "epargne_flow": 699.52,
+   "label": "12/2025",
+   "revenus": 2990.6
+  },
+  {
+   "depenses_reelles": 1934.08,
+   "epargne_flow": 1009.04,
+   "label": "1/2026",
+   "revenus": 2943.12
+  },
+  {
+   "depenses_reelles": 2230.98,
+   "epargne_flow": 675.89,
+   "label": "2/2026",
+   "revenus": 2906.87
+  },
+  {
+   "depenses_reelles": 2040.69,
+   "epargne_flow": 886.88,
+   "label": "3/2026",
+   "revenus": 2927.57
+  },
+  {
+   "depenses_reelles": 1771.75,
+   "epargne_flow": 1171.37,
+   "label": "4/2026",
+   "revenus": 2943.12
+  },
+  {
+   "depenses_reelles": 2084.27,
+   "epargne_flow": 822.6,
+   "label": "5/2026",
+   "revenus": 2906.87
+  }
+ ],
+ "savings_overridden": true,
+ "years": 20
+}

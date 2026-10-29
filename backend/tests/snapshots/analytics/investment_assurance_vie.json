@@ -1,0 +1,383 @@
+{
+ "account_id": 4,
+ "account_name": "Assurance-vie",
+ "baseline": {
+  "date": "2024-12-01T00:00:00",
+  "value": 8000.0
+ },
+ "currency": "EUR",
+ "totals": {
+  "current_value": 10470.29,
+  "gain_eur": 570.29,
+  "net_invested": 9900.0,
+  "performance_pct": 5.76,
+  "snapshot_value": 10470.29,
+  "total_retire": 0.0,
+  "total_verse": 1900.0,
+  "value_source": "snapshot"
+ },
+ "transactions": [
+  {
+   "amount": 8000.0,
+   "currency": "EUR",
+   "date": "2024-12-01T00:00:00",
+   "id": 597,
+   "is_regular": true,
+   "note": "Solde initial",
+   "original_amount": 8000.0,
+   "type": "versement"
+  },
+  {
+   "amount": 100.0,
+   "currency": "EUR",
+   "date": "2024-12-03T09:00:00",
+   "id": 15,
+   "is_regular": true,
+   "note": "Versement programmé",
+   "original_amount": 100.0,
+   "type": "versement"
+  },
+  {
+   "amount": 100.0,
+   "currency": "EUR",
+   "date": "2025-01-03T09:00:00",
+   "id": 46,
+   "is_regular": true,
+   "note": "Versement programmé",
+   "original_amount": 100.0,
+   "type": "versement"
+  },
+  {
+   "amount": 100.0,
+   "currency": "EUR",
+   "date": "2025-02-03T09:00:00",
+   "id": 76,
+   "is_regular": true,
+   "note": "Versement programmé",
+   "original_amount": 100.0,
+   "type": "versement"
+  },
+  {
+   "amount": 100.0,
+   "currency": "EUR",
+   "date": "2025-03-03T09:00:00",
+   "id": 106,
+   "is_regular": true,
+   "note": "Versement programmé",
+   "original_amount": 100.0,
+   "type": "versement"
+  },
+  {
+   "amount": 100.0,
+   "currency": "EUR",
+   "date": "2025-04-03T09:00:00",
+   "id": 136,
+   "is_regular": true,
+   "note": "Versement programmé",
+   "original_amount": 100.0,
+   "type": "versement"
+  },
+  {
+   "amount": 100.0,
+   "currency": "EUR",
+   "date": "2025-05-03T09:00:00",
+   "id": 167,
+   "is_regular": true,
+   "note": "Versement programmé",
+   "original_amount": 100.0,
+   "type": "versement"
+  },
+  {
+   "amount": 100.0,
+   "currency": "EUR",
+   "date": "2025-06-03T09:00:00",
+   "id": 198,
+   "is_regular": true,
+   "note": "Versement programmé",
+   "original_amount": 100.0,
+   "type": "versement"
+  },
+  {
+   "amount": 100.0,
+   "currency": "EUR",
+   "date": "2025-07-03T09:00:00",
+   "id": 229,
+   "is_regular": true,
+   "note": "Versement programmé",
+   "original_amount": 100.0,
+   "type": "versement"
+  },
+  {
+   "amount": 100.0,
+   "currency": "EUR",
+   "date": "2025-08-03T09:00:00",
+   "id": 261,
+   "is_regular": true,
+   "note": "Versement programmé",
+   "original_amount": 100.0,
+   "type": "versement"
+  },
+  {
+   "amount": 100.0,
+   "currency": "EUR",
+   "date": "2025-09-03T09:00:00",
+   "id": 295,
+   "is_regular": true,
+   "note": "Versement programmé",
+   "original_amount": 100.0,
+   "type": "versement"
+  },
+  {
+   "amount": 100.0,
+   "currency": "EUR",
+   "date": "2025-10-03T09:00:00",
+   "id": 326,
+   "is_regular": true,
+   "note": "Versement programmé",
+   "original_amount": 100.0,
+   "type": "versement"
+  },
+  {
+   "amount": 100.0,
+   "currency": "EUR",
+   "date": "2025-11-03T09:00:00",
+   "id": 357,
+   "is_regular": true,
+   "note": "Versement programmé",
+   "original_amount": 100.0,
+   "type": "versement"
+  },
+  {
+   "amount": 100.0,
+   "currency": "EUR",
+   "date": "2025-12-03T09:00:00",
+   "id": 388,
+   "is_regular": true,
+   "note": "Versement programmé",
+   "original_amount": 100.0,
+   "type": "versement"
+  },
+  {
+   "amount": 100.0,
+   "currency": "EUR",
+   "date": "2026-01-03T09:00:00",
+   "id": 422,
+   "is_regular": true,
+   "note": "Versement programmé",
+   "original_amount": 100.0,
+   "type": "versement"
+  },
+  {
+   "amount": 100.0,
+   "currency": "EUR",
+   "date": "2026-02-03T09:00:00",
+   "id": 453,
+   "is_regular": true,
+   "note": "Versement programmé",
+   "original_amount": 100.0,
+   "type": "versement"
+  },
+  {
+   "amount": 100.0,
+   "currency": "EUR",
+   "date": "2026-03-03T09:00:00",
+   "id": 485,
+   "is_regular": true,
+   "note": "Versement programmé",
+   "original_amount": 100.0,
+   "type": "versement"
+  },
+  {
+   "amount": 100.0,
+   "currency": "EUR",
+   "date": "2026-04-03T09:00:00",
+   "id": 514,
+   "is_regular": true,
+   "note": "Versement programmé",
+   "original_amount": 100.0,
+   "type": "versement"
+  },
+  {
+   "amount": 100.0,
+   "currency": "EUR",
+   "date": "2026-05-03T09:00:00",
+   "id": 542,
+   "is_regular": true,
+   "note": "Versement programmé",
+   "original_amount": 100.0,
+   "type": "versement"
+  },
+  {
+   "amount": 100.0,
+   "currency": "EUR",
+   "date": "2026-06-03T09:00:00",
+   "id": 569,
+   "is_regular": true,
+   "note": "Versement programmé",
+   "original_amount": 100.0,
+   "type": "versement"
+  }
+ ],
+ "value_series": [
+  {
+   "current_value": 8000.0,
+   "current_value_raw": 8000.0,
+   "date": "2024-12-01T00:00:00",
+   "id": 1,
+   "is_zero_point": true,
+   "note": "Point zéro"
+  },
+  {
+   "current_value": 8052.53,
+   "current_value_raw": 8052.53,
+   "date": "2024-12-31T20:00:00",
+   "id": 2,
+   "is_zero_point": false,
+   "note": "Relevé mensuel"
+  },
+  {
+   "current_value": 8209.01,
+   "current_value_raw": 8209.01,
+   "date": "2025-01-31T20:00:00",
+   "id": 3,
+   "is_zero_point": false,
+   "note": "Relevé mensuel"
+  },
+  {
+   "current_value": 8193.13,
+   "current_value_raw": 8193.13,
+   "date": "2025-02-28T20:00:00",
+   "id": 4,
+   "is_zero_point": false,
+   "note": "Relevé mensuel"
+  },
+  {
+   "current_value": 8456.89,
+   "current_value_raw": 8456.89,
+   "date": "2025-03-31T20:00:00",
+   "id": 5,
+   "is_zero_point": false,
+   "note": "Relevé mensuel"
+  },
+  {
+   "current_value": 8698.64,
+   "current_value_raw": 8698.64,
+   "date": "2025-04-30T20:00:00",
+   "id": 6,
+   "is_zero_point": false,
+   "note": "Relevé mensuel"
+  },
+  {
+   "current_value": 8807.28,
+   "current_value_raw": 8807.28,
+   "date": "2025-05-31T20:00:00",
+   "id": 7,
+   "is_zero_point": false,
+   "note": "Relevé mensuel"
+  },
+  {
+   "current_value": 8970.46,
+   "current_value_raw": 8970.46,
+   "date": "2025-06-30T20:00:00",
+   "id": 8,
+   "is_zero_point": false,
+   "note": "Relevé mensuel"
+  },
+  {
+   "current_value": 9165.47,
+   "current_value_raw": 9165.47,
+   "date": "2025-07-31T20:00:00",
+   "id": 9,
+   "is_zero_point": false,
+   "note": "Relevé mensuel"
+  },
+  {
+   "current_value": 9378.94,
+   "current_value_raw": 9378.94,
+   "date": "2025-08-31T20:00:00",
+   "id": 10,
+   "is_zero_point": false,
+   "note": "Relevé mensuel"
+  },
+  {
+   "current_value": 9404.65,
+   "current_value_raw": 9404.65,
+   "date": "2025-09-30T20:00:00",
+   "id": 11,
+   "is_zero_point": false,
+   "note": "Relevé mensuel"
+  },
+  {
+   "current_value": 9461.31,
+   "current_value_raw": 9461.31,
+   "date": "2025-10-31T20:00:00",
+   "id": 12,
+   "is_zero_point": false,
+   "note": "Relevé mensuel"
+  },
+  {
+   "current_value": 9587.53,
+   "current_value_raw": 9587.53,
+   "date": "2025-11-30T20:00:00",
+   "id": 13,
+   "is_zero_point": false,
+   "note": "Relevé mensuel"
+  },
+  {
+   "current_value": 9790.4,
+   "current_value_raw": 9790.4,
+   "date": "2025-12-31T20:00:00",
+   "id": 14,
+   "is_zero_point": false,
+   "note": "Relevé mensuel"
+  },
+  {
+   "current_value": 9901.23,
+   "current_value_raw": 9901.23,
+   "date": "2026-01-31T20:00:00",
+   "id": 15,
+   "is_zero_point": false,
+   "note": "Relevé mensuel"
+  },
+  {
+   "current_value": 9952.74,
+   "current_value_raw": 9952.74,
+   "date": "2026-02-28T20:00:00",
+   "id": 16,
+   "is_zero_point": false,
+   "note": "Relevé mensuel"
+  },
+  {
+   "current_value": 10156.92,
+   "current_value_raw": 10156.92,
+   "date": "2026-03-31T20:00:00",
+   "id": 17,
+   "is_zero_point": false,
+   "note": "Relevé mensuel"
+  },
+  {
+   "current_value": 10273.51,
+   "current_value_raw": 10273.51,
+   "date": "2026-04-30T20:00:00",
+   "id": 18,
+   "is_zero_point": false,
+   "note": "Relevé mensuel"
+  },
+  {
+   "current_value": 10393.65,
+   "current_value_raw": 10393.65,
+   "date": "2026-05-31T20:00:00",
+   "id": 19,
+   "is_zero_point": false,
+   "note": "Relevé mensuel"
+  },
+  {
+   "current_value": 10470.29,
+   "current_value_raw": 10470.29,
+   "date": "2026-06-15T20:00:00",
+   "id": 20,
+   "is_zero_point": false,
+   "note": "Relevé mensuel"
+  }
+ ]
+}

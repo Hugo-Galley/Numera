@@ -1,0 +1,148 @@
+{
+ "links": [
+  {
+   "color": null,
+   "source": 1,
+   "target": 0,
+   "value": 30.0
+  },
+  {
+   "color": "#fecdd3",
+   "source": 2,
+   "target": 0,
+   "value": 2232.44
+  },
+  {
+   "color": "#cbd5e1",
+   "source": 0,
+   "target": 3,
+   "value": 995.6
+  },
+  {
+   "color": "#cbd5e1",
+   "source": 0,
+   "target": 4,
+   "value": 235.38
+  },
+  {
+   "color": "#cbd5e1",
+   "source": 0,
+   "target": 5,
+   "value": 193.47
+  },
+  {
+   "color": null,
+   "source": 3,
+   "target": 6,
+   "value": 890.0
+  },
+  {
+   "color": null,
+   "source": 3,
+   "target": 7,
+   "value": 61.0
+  },
+  {
+   "color": null,
+   "source": 3,
+   "target": 8,
+   "value": 44.6
+  },
+  {
+   "color": null,
+   "source": 4,
+   "target": 9,
+   "value": 126.93
+  },
+  {
+   "color": null,
+   "source": 4,
+   "target": 10,
+   "value": 108.45
+  },
+  {
+   "color": null,
+   "source": 5,
+   "target": 11,
+   "value": 131.14
+  },
+  {
+   "color": null,
+   "source": 5,
+   "target": 12,
+   "value": 62.33
+  },
+  {
+   "color": null,
+   "source": 0,
+   "target": 13,
+   "value": 837.99
+  }
+ ],
+ "nodes": [
+  {
+   "color": "#94a3b8",
+   "name": "Budget"
+  },
+  {
+   "color": null,
+   "name": "Remboursement (recu)"
+  },
+  {
+   "color": "#f43f5e",
+   "name": "Déficit / Trésorerie"
+  },
+  {
+   "color": "#64748b",
+   "name": "Fixe"
+  },
+  {
+   "color": "#64748b",
+   "name": "Vie courante"
+  },
+  {
+   "color": "#64748b",
+   "name": "Loisirs"
+  },
+  {
+   "category_id": 13,
+   "color": null,
+   "name": "Logement"
+  },
+  {
+   "category_id": 14,
+   "color": null,
+   "name": "Énergie"
+  },
+  {
+   "category_id": 1,
+   "color": null,
+   "name": "Abonnement"
+  },
+  {
+   "category_id": 16,
+   "color": null,
+   "name": "Transport"
+  },
+  {
+   "category_id": 3,
+   "color": null,
+   "name": "Nourriture"
+  },
+  {
+   "category_id": 18,
+   "color": null,
+   "name": "Shopping"
+  },
+  {
+   "category_id": 4,
+   "color": null,
+   "name": "Sortie"
+  },
+  {
+   "category_id": 20,
+   "color": null,
+   "name": "Instantané loisirs"
+  }
+ ]
+}

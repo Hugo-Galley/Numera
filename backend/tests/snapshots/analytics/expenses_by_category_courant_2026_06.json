@@ -1,0 +1,115 @@
+{
+ "items": [
+  {
+   "category": {
+    "annual_limit": null,
+    "color": null,
+    "icon": null,
+    "id": 13,
+    "monthly_limit": null,
+    "name": "Logement"
+   },
+   "percentage": 38.77,
+   "total": 890.0
+  },
+  {
+   "category": {
+    "annual_limit": null,
+    "color": null,
+    "icon": null,
+    "id": 20,
+    "monthly_limit": 20.0,
+    "name": "Instantané loisirs"
+   },
+   "percentage": 36.51,
+   "total": 837.99
+  },
+  {
+   "category": {
+    "annual_limit": null,
+    "color": null,
+    "icon": null,
+    "id": 18,
+    "monthly_limit": 150.0,
+    "name": "Shopping"
+   },
+   "percentage": 5.71,
+   "total": 131.14
+  },
+  {
+   "category": {
+    "annual_limit": null,
+    "color": null,
+    "icon": null,
+    "id": 16,
+    "monthly_limit": 150.0,
+    "name": "Transport"
+   },
+   "percentage": 5.53,
+   "total": 126.93
+  },
+  {
+   "category": {
+    "annual_limit": null,
+    "color": null,
+    "icon": null,
+    "id": 3,
+    "monthly_limit": 450.0,
+    "name": "Nourriture"
+   },
+   "percentage": 4.72,
+   "total": 108.45
+  },
+  {
+   "category": {
+    "annual_limit": null,
+    "color": null,
+    "icon": null,
+    "id": 4,
+    "monthly_limit": 220.0,
+    "name": "Sortie"
+   },
+   "percentage": 2.72,
+   "total": 62.33
+  },
+  {
+   "category": {
+    "annual_limit": null,
+    "color": null,
+    "icon": null,
+    "id": 14,
+    "monthly_limit": null,
+    "name": "Énergie"
+   },
+   "percentage": 2.66,
+   "total": 61.0
+  },
+  {
+   "category": {
+    "annual_limit": null,
+    "color": null,
+    "icon": null,
+    "id": 1,
+    "monthly_limit": 80.0,
+    "name": "Abonnement"
+   },
+   "percentage": 1.94,
+   "total": 44.6
+  },
+  {
+   "category": {
+    "annual_limit": null,
+    "color": "#94a3b8",
+    "icon": null,
+    "id": null,
+    "monthly_limit": null,
+    "name": "Sans catégorie"
+   },
+   "percentage": 1.43,
+   "total": 32.9
+  }
+ ],
+ "month": 6,
+ "total": 2295.34,
+ "year": 2026
+}

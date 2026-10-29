@@ -1,0 +1,262 @@
+{
+ "burn_rate": 67.23,
+ "burn_rate_excl_exceptional": 67.23,
+ "comparison": {
+  "expenses_diff": 312.52,
+  "expenses_diff_pct": 17.6,
+  "income_diff": -16.5,
+  "income_diff_pct": -0.6,
+  "savings_diff": -329.02,
+  "savings_diff_pct": -28.6
+ },
+ "exceptional_expenses": 0.0,
+ "expenses": 2084.27,
+ "health_score": {
+  "metrics": [
+   {
+    "max_score": 30.0,
+    "name": "Taux d'Épargne",
+    "score": 30.0,
+    "status": "good",
+    "unit": "%",
+    "value": 28.3
+   },
+   {
+    "max_score": 30.0,
+    "name": "Fonds de Sécurité",
+    "score": 0.0,
+    "status": "critical",
+    "unit": "mois",
+    "value": 0.0
+   },
+   {
+    "max_score": 20.0,
+    "name": "Flux de Trésorerie",
+    "score": 20.0,
+    "status": "good",
+    "unit": "€",
+    "value": 822.6
+   },
+   {
+    "max_score": 20.0,
+    "name": "Ratio d'Investissement",
+    "score": 0.0,
+    "status": "critical",
+    "unit": "%",
+    "value": 0.0
+   }
+  ],
+  "total_score": 50.0
+ },
+ "income": 2906.87,
+ "insights": [
+  {
+   "category_id": null,
+   "description": "La transaction 'Foncia — Loyer' de 890,00 € est exceptionnellement élevée.",
+   "severity": "high",
+   "title": "Grosse dépense isolée",
+   "type": "anomaly",
+   "unit": "€",
+   "value": 890.0
+  }
+ ],
+ "money_flow": {
+  "fixed_charges": {
+   "amount": 1133.39,
+   "diff_prev_month": 0.0,
+   "diff_prev_month_pct": 0.0,
+   "percentage": 39.0
+  },
+  "income": 2906.87,
+  "investments": {
+   "amount": 0.0,
+   "diff_prev_month": 0.0,
+   "diff_prev_month_pct": 0.0,
+   "percentage": 0.0
+  },
+  "month": 5,
+  "remainder": {
+   "amount": 822.6,
+   "diff_prev_month": -329.02,
+   "diff_prev_month_pct": -28.6,
+   "percentage": 28.3
+  },
+  "savings": {
+   "amount": 0.0,
+   "diff_prev_month": 0.0,
+   "diff_prev_month_pct": 0.0,
+   "percentage": 0.0
+  },
+  "top_fixed": [
+   {
+    "amount": 890.0,
+    "category": null,
+    "is_recurring": true,
+    "name": "Foncia — Loyer (Logement)"
+   },
+   {
+    "amount": 86.4,
+    "category": null,
+    "is_recurring": true,
+    "name": "Navigo (Transport)"
+   },
+   {
+    "amount": 61.0,
+    "category": null,
+    "is_recurring": true,
+    "name": "EDF (Énergie)"
+   },
+   {
+    "amount": 29.99,
+    "category": null,
+    "is_recurring": true,
+    "name": "Basic-Fit (Sport)"
+   },
+   {
+    "amount": 21.4,
+    "category": null,
+    "is_recurring": true,
+    "name": "MAIF — Assurance habitation (Assurances)"
+   }
+  ],
+  "top_investments": [],
+  "top_savings": [],
+  "top_variable": [
+   {
+    "amount": 494.41,
+    "category": null,
+    "is_recurring": false,
+    "name": "Nourriture"
+   },
+   {
+    "amount": 186.28,
+    "category": null,
+    "is_recurring": false,
+    "name": "Sortie"
+   },
+   {
+    "amount": 111.09,
+    "category": null,
+    "is_recurring": false,
+    "name": "Shopping"
+   },
+   {
+    "amount": 102.4,
+    "category": null,
+    "is_recurring": false,
+    "name": "Sans catégorie"
+   },
+   {
+    "amount": 40.71,
+    "category": null,
+    "is_recurring": false,
+    "name": "Transport"
+   }
+  ],
+  "variable_expenses": {
+   "amount": 950.88,
+   "diff_prev_month": 312.52,
+   "diff_prev_month_pct": 49.0,
+   "percentage": 32.7
+  },
+  "year": 2026
+ },
+ "month": 5,
+ "net_worth": 5962.99,
+ "net_worth_change": -554.4,
+ "real_expenses": 2084.27,
+ "real_expenses_excl_exceptional": 2084.27,
+ "savings": 822.6,
+ "savings_excl_exceptional": 822.6,
+ "savings_rate": 28.3,
+ "savings_rate_excl_exceptional": 28.3,
+ "top_categories": [
+  {
+   "color": null,
+   "icon": null,
+   "id": 13,
+   "name": "Logement",
+   "prev_total": 890.0,
+   "total": 890.0
+  },
+  {
+   "color": null,
+   "icon": null,
+   "id": 3,
+   "name": "Nourriture",
+   "prev_total": 327.88,
+   "total": 494.41
+  },
+  {
+   "color": null,
+   "icon": null,
+   "id": 4,
+   "name": "Sortie",
+   "prev_total": 131.65,
+   "total": 186.28
+  },
+  {
+   "color": null,
+   "icon": null,
+   "id": 16,
+   "name": "Transport",
+   "prev_total": 164.48,
+   "total": 127.11
+  },
+  {
+   "color": null,
+   "icon": null,
+   "id": 18,
+   "name": "Shopping",
+   "prev_total": 44.86,
+   "total": 111.09
+  },
+  {
+   "color": "#94a3b8",
+   "icon": null,
+   "id": null,
+   "name": "Sans catégorie",
+   "prev_total": 12.4,
+   "total": 102.4
+  },
+  {
+   "color": null,
+   "icon": null,
+   "id": 14,
+   "name": "Énergie",
+   "prev_total": 61.0,
+   "total": 61.0
+  },
+  {
+   "color": null,
+   "icon": null,
+   "id": 1,
+   "name": "Abonnement",
+   "prev_total": 44.6,
+   "total": 44.6
+  }
+ ],
+ "top_merchants": [
+  {
+   "merchant": "Foncia — Loyer",
+   "total": 890.0
+  },
+  {
+   "merchant": "Carrefour",
+   "total": 132.42
+  },
+  {
+   "merchant": "Monoprix",
+   "total": 121.32
+  },
+  {
+   "merchant": "Biocoop",
+   "total": 108.32
+  },
+  {
+   "merchant": "RESTAURANT AVANCE",
+   "total": 90.0
+  }
+ ],
+ "year": 2026
+}

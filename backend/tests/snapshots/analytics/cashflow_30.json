@@ -1,0 +1,260 @@
+{
+ "current_balance": 24388.45,
+ "days": 30,
+ "events": [
+  {
+   "amount": 29.99,
+   "date": "2026-06-18T00:00:00",
+   "is_income": false,
+   "name": "Basic-Fit",
+   "type": "recurring"
+  },
+  {
+   "amount": 21.4,
+   "date": "2026-06-20T00:00:00",
+   "is_income": false,
+   "name": "MAIF — Assurance habitation",
+   "type": "recurring"
+  },
+  {
+   "amount": 2740.0,
+   "date": "2026-06-27T00:00:00",
+   "is_income": true,
+   "name": "Acme Conseil — Salaire",
+   "type": "recurring"
+  },
+  {
+   "amount": 890.0,
+   "date": "2026-07-02T00:00:00",
+   "is_income": false,
+   "name": "Foncia — Loyer",
+   "type": "recurring"
+  },
+  {
+   "amount": 86.4,
+   "date": "2026-07-05T00:00:00",
+   "is_income": false,
+   "name": "Navigo",
+   "type": "recurring"
+  },
+  {
+   "amount": 19.99,
+   "date": "2026-07-08T00:00:00",
+   "is_income": false,
+   "name": "Free Mobile",
+   "type": "recurring"
+  },
+  {
+   "amount": 13.49,
+   "date": "2026-07-10T00:00:00",
+   "is_income": false,
+   "name": "Netflix",
+   "type": "recurring"
+  },
+  {
+   "amount": 11.12,
+   "date": "2026-07-12T00:00:00",
+   "is_income": false,
+   "name": "Spotify",
+   "type": "recurring"
+  },
+  {
+   "amount": 72.0,
+   "date": "2026-07-15T00:00:00",
+   "is_income": false,
+   "name": "EDF",
+   "type": "recurring"
+  }
+ ],
+ "low_point": 24337.06,
+ "low_point_date": "2026-06-20",
+ "points": [
+  {
+   "balance": 24388.45,
+   "change": 0.0,
+   "date": "2026-06-15",
+   "label": null
+  },
+  {
+   "balance": 24388.45,
+   "change": 0.0,
+   "date": "2026-06-16",
+   "label": null
+  },
+  {
+   "balance": 24388.45,
+   "change": 0.0,
+   "date": "2026-06-17",
+   "label": null
+  },
+  {
+   "balance": 24358.46,
+   "change": -29.99,
+   "date": "2026-06-18",
+   "label": null
+  },
+  {
+   "balance": 24358.46,
+   "change": 0.0,
+   "date": "2026-06-19",
+   "label": null
+  },
+  {
+   "balance": 24337.06,
+   "change": -21.4,
+   "date": "2026-06-20",
+   "label": null
+  },
+  {
+   "balance": 24337.06,
+   "change": 0.0,
+   "date": "2026-06-21",
+   "label": null
+  },
+  {
+   "balance": 24337.06,
+   "change": 0.0,
+   "date": "2026-06-22",
+   "label": null
+  },
+  {
+   "balance": 24337.06,
+   "change": 0.0,
+   "date": "2026-06-23",
+   "label": null
+  },
+  {
+   "balance": 24337.06,
+   "change": 0.0,
+   "date": "2026-06-24",
+   "label": null
+  },
+  {
+   "balance": 24337.06,
+   "change": 0.0,
+   "date": "2026-06-25",
+   "label": null
+  },
+  {
+   "balance": 24337.06,
+   "change": 0.0,
+   "date": "2026-06-26",
+   "label": null
+  },
+  {
+   "balance": 27077.06,
+   "change": 2740.0,
+   "date": "2026-06-27",
+   "label": null
+  },
+  {
+   "balance": 27077.06,
+   "change": 0.0,
+   "date": "2026-06-28",
+   "label": null
+  },
+  {
+   "balance": 27077.06,
+   "change": 0.0,
+   "date": "2026-06-29",
+   "label": null
+  },
+  {
+   "balance": 27077.06,
+   "change": 0.0,
+   "date": "2026-06-30",
+   "label": null
+  },
+  {
+   "balance": 27077.06,
+   "change": 0.0,
+   "date": "2026-07-01",
+   "label": null
+  },
+  {
+   "balance": 26187.06,
+   "change": -890.0,
+   "date": "2026-07-02",
+   "label": null
+  },
+  {
+   "balance": 26187.06,
+   "change": 0.0,
+   "date": "2026-07-03",
+   "label": null
+  },
+  {
+   "balance": 26187.06,
+   "change": 0.0,
+   "date": "2026-07-04",
+   "label": null
+  },
+  {
+   "balance": 26100.66,
+   "change": -86.4,
+   "date": "2026-07-05",
+   "label": null
+  },
+  {
+   "balance": 26100.66,
+   "change": 0.0,
+   "date": "2026-07-06",
+   "label": null
+  },
+  {
+   "balance": 26100.66,
+   "change": 0.0,
+   "date": "2026-07-07",
+   "label": null
+  },
+  {
+   "balance": 26080.67,
+   "change": -19.99,
+   "date": "2026-07-08",
+   "label": null
+  },
+  {
+   "balance": 26080.67,
+   "change": 0.0,
+   "date": "2026-07-09",
+   "label": null
+  },
+  {
+   "balance": 26067.18,
+   "change": -13.49,
+   "date": "2026-07-10",
+   "label": null
+  },
+  {
+   "balance": 26067.18,
+   "change": 0.0,
+   "date": "2026-07-11",
+   "label": null
+  },
+  {
+   "balance": 26056.06,
+   "change": -11.12,
+   "date": "2026-07-12",
+   "label": null
+  },
+  {
+   "balance": 26056.06,
+   "change": 0.0,
+   "date": "2026-07-13",
+   "label": null
+  },
+  {
+   "balance": 26056.06,
+   "change": 0.0,
+   "date": "2026-07-14",
+   "label": null
+  },
+  {
+   "balance": 25984.06,
+   "change": -72.0,
+   "date": "2026-07-15",
+   "label": null
+  }
+ ],
+ "projected_balance": 25984.06
+}

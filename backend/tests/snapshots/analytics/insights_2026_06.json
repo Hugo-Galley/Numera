@@ -1,0 +1,59 @@
+{
+ "health_score": {
+  "metrics": [
+   {
+    "max_score": 30.0,
+    "name": "Taux d'Épargne",
+    "score": 0.0,
+    "status": "critical",
+    "unit": "%",
+    "value": -100.0
+   },
+   {
+    "max_score": 30.0,
+    "name": "Fonds de Sécurité",
+    "score": 26.0,
+    "status": "warning",
+    "unit": "mois",
+    "value": 5.2
+   },
+   {
+    "max_score": 20.0,
+    "name": "Flux de Trésorerie",
+    "score": 0.0,
+    "status": "critical",
+    "unit": "€",
+    "value": -2265.34
+   },
+   {
+    "max_score": 20.0,
+    "name": "Ratio d'Investissement",
+    "score": 20.0,
+    "status": "good",
+    "unit": "%",
+    "value": 100.0
+   }
+  ],
+  "total_score": 46.0
+ },
+ "insights": [
+  {
+   "category_id": null,
+   "description": "La transaction 'VIR SANS LIEN' de 777,00 € est exceptionnellement élevée.",
+   "severity": "high",
+   "title": "Grosse dépense isolée",
+   "type": "anomaly",
+   "unit": "€",
+   "value": 777.0
+  },
+  {
+   "category_id": null,
+   "description": "La transaction 'Foncia — Loyer' de 890,00 € est exceptionnellement élevée.",
+   "severity": "high",
+   "title": "Grosse dépense isolée",
+   "type": "anomaly",
+   "unit": "€",
+   "value": 890.0
+  }
+ ]
+}

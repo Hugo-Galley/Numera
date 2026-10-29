@@ -1,0 +1,220 @@
+{
+ "annual_expenses": 30000.0,
+ "current_wealth": 37929.17,
+ "expenses_overridden": true,
+ "fi_year": 2057,
+ "inflation_pct": 2.5,
+ "monthly_savings": 1200.0,
+ "months_used": 12,
+ "nominal_return_pct": 6.0,
+ "points": [
+  {
+   "target": 857142.86,
+   "wealth": 37929.17,
+   "year": 2026
+  },
+  {
+   "target": 857142.86,
+   "wealth": 53848.31,
+   "year": 2027
+  },
+  {
+   "target": 857142.86,
+   "wealth": 70311.03,
+   "year": 2028
+  },
+  {
+   "target": 857142.86,
+   "wealth": 87335.9,
+   "year": 2029
+  },
+  {
+   "target": 857142.86,
+   "wealth": 104942.1,
+   "year": 2030
+  },
+  {
+   "target": 857142.86,
+   "wealth": 123149.49,
+   "year": 2031
+  },
+  {
+   "target": 857142.86,
+   "wealth": 141978.59,
+   "year": 2032
+  },
+  {
+   "target": 857142.86,
+   "wealth": 161450.64,
+   "year": 2033
+  },
+  {
+   "target": 857142.86,
+   "wealth": 181587.59,
+   "year": 2034
+  },
+  {
+   "target": 857142.86,
+   "wealth": 202412.14,
+   "year": 2035
+  },
+  {
+   "target": 857142.86,
+   "wealth": 223947.77,
+   "year": 2036
+  },
+  {
+   "target": 857142.86,
+   "wealth": 246218.77,
+   "year": 2037
+  },
+  {
+   "target": 857142.86,
+   "wealth": 269250.24,
+   "year": 2038
+  },
+  {
+   "target": 857142.86,
+   "wealth": 293068.15,
+   "year": 2039
+  },
+  {
+   "target": 857142.86,
+   "wealth": 317699.36,
+   "year": 2040
+  },
+  {
+   "target": 857142.86,
+   "wealth": 343171.63,
+   "year": 2041
+  },
+  {
+   "target": 857142.86,
+   "wealth": 369513.68,
+   "year": 2042
+  },
+  {
+   "target": 857142.86,
+   "wealth": 396755.22,
+   "year": 2043
+  },
+  {
+   "target": 857142.86,
+   "wealth": 424926.96,
+   "year": 2044
+  },
+  {
+   "target": 857142.86,
+   "wealth": 454060.66,
+   "year": 2045
+  },
+  {
+   "target": 857142.86,
+   "wealth": 484189.17,
+   "year": 2046
+  },
+  {
+   "target": 857142.86,
+   "wealth": 515346.46,
+   "year": 2047
+  },
+  {
+   "target": 857142.86,
+   "wealth": 547567.66,
+   "year": 2048
+  },
+  {
+   "target": 857142.86,
+   "wealth": 580889.09,
+   "year": 2049
+  },
+  {
+   "target": 857142.86,
+   "wealth": 615348.32,
+   "year": 2050
+  },
+  {
+   "target": 857142.86,
+   "wealth": 650984.22,
+   "year": 2051
+  },
+  {
+   "target": 857142.86,
+   "wealth": 687836.95,
+   "year": 2052
+  },
+  {
+   "target": 857142.86,
+   "wealth": 725948.06,
+   "year": 2053
+  },
+  {
+   "target": 857142.86,
+   "wealth": 765360.53,
+   "year": 2054
+  },
+  {
+   "target": 857142.86,
+   "wealth": 806118.79,
+   "year": 2055
+  },
+  {
+   "target": 857142.86,
+   "wealth": 848268.8,
+   "year": 2056
+  },
+  {
+   "target": 857142.86,
+   "wealth": 891858.08,
+   "year": 2057
+  },
+  {
+   "target": 857142.86,
+   "wealth": 936935.77,
+   "year": 2058
+  },
+  {
+   "target": 857142.86,
+   "wealth": 983552.7,
+   "year": 2059
+  }
+ ],
+ "progress_pct": 4.4,
+ "real_return_pct": 3.41,
+ "savings_overridden": true,
+ "scenarios": [
+  {
+   "annual_expenses": 30000.0,
+   "label": "Actuel",
+   "monthly_savings": 1200.0,
+   "years_to_fi": 30.2
+  },
+  {
+   "annual_expenses": 30000.0,
+   "label": "+100 €/mois",
+   "monthly_savings": 1300.0,
+   "years_to_fi": 28.8
+  },
+  {
+   "annual_expenses": 30000.0,
+   "label": "+250 €/mois",
+   "monthly_savings": 1450.0,
+   "years_to_fi": 27.0
+  },
+  {
+   "annual_expenses": 30000.0,
+   "label": "+500 €/mois",
+   "monthly_savings": 1700.0,
+   "years_to_fi": 24.5
+  },
+  {
+   "annual_expenses": 27000.0,
+   "label": "Dépenses −10 %",
+   "monthly_savings": 1450.0,
+   "years_to_fi": 25.1
+  }
+ ],
+ "target": 857142.86,
+ "withdrawal_rate_pct": 3.5,
+ "years_to_fi": 30.2
+}

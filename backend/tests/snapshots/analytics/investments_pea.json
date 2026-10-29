@@ -1,0 +1,25 @@
+{
+ "items": [
+  {
+   "account_id": 3,
+   "account_name": "PEA",
+   "currency": "EUR",
+   "current_value": 12986.07,
+   "dividends_eur": 122.7,
+   "gain_eur": 1286.07,
+   "net_invested": 11700.0,
+   "performance_pct": 10.99,
+   "realized_eur": 0.0,
+   "total_retire": 0.0,
+   "total_verse": 11700.0,
+   "unrealized_eur": 1163.37,
+   "value_source": "positions",
+   "value_stale": false,
+   "xirr_pct": 9.24
+  }
+ ],
+ "total_current_value": 12986.07,
+ "total_gain_eur": 1286.07,
+ "total_net_invested": 11700.0,
+ "total_performance_pct": 10.99
+}

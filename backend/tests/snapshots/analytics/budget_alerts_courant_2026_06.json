@@ -1,0 +1,74 @@
+[
+ {
+  "annual_limit": null,
+  "annual_ratio": null,
+  "annual_spent": 907.94,
+  "category_color": null,
+  "category_icon": null,
+  "category_id": 20,
+  "category_name": "Instantané loisirs",
+  "monthly_limit": 20.0,
+  "monthly_ratio": 41.8995,
+  "monthly_spent": 837.99
+ },
+ {
+  "annual_limit": null,
+  "annual_ratio": null,
+  "annual_spent": 651.43,
+  "category_color": null,
+  "category_icon": null,
+  "category_id": 18,
+  "category_name": "Shopping",
+  "monthly_limit": 150.0,
+  "monthly_ratio": 0.874267,
+  "monthly_spent": 131.14
+ },
+ {
+  "annual_limit": null,
+  "annual_ratio": null,
+  "annual_spent": 856.41,
+  "category_color": null,
+  "category_icon": null,
+  "category_id": 16,
+  "category_name": "Transport",
+  "monthly_limit": 150.0,
+  "monthly_ratio": 0.8462,
+  "monthly_spent": 126.93
+ },
+ {
+  "annual_limit": null,
+  "annual_ratio": null,
+  "annual_spent": 267.6,
+  "category_color": null,
+  "category_icon": null,
+  "category_id": 1,
+  "category_name": "Abonnement",
+  "monthly_limit": 80.0,
+  "monthly_ratio": 0.5575,
+  "monthly_spent": 44.6
+ },
+ {
+  "annual_limit": null,
+  "annual_ratio": null,
+  "annual_spent": 859.11,
+  "category_color": null,
+  "category_icon": null,
+  "category_id": 4,
+  "category_name": "Sortie",
+  "monthly_limit": 220.0,
+  "monthly_ratio": 0.283318,
+  "monthly_spent": 62.33
+ },
+ {
+  "annual_limit": null,
+  "annual_ratio": null,
+  "annual_spent": 2494.23,
+  "category_color": null,
+  "category_icon": null,
+  "category_id": 3,
+  "category_name": "Nourriture",
+  "monthly_limit": 450.0,
+  "monthly_ratio": 0.241,
+  "monthly_spent": 108.45
+ }
+]

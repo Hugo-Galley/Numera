@@ -1,0 +1,50 @@
+{
+ "health_score": {
+  "metrics": [
+   {
+    "max_score": 30.0,
+    "name": "Taux d'Épargne",
+    "score": 30.0,
+    "status": "good",
+    "unit": "%",
+    "value": 28.3
+   },
+   {
+    "max_score": 30.0,
+    "name": "Fonds de Sécurité",
+    "score": 0.0,
+    "status": "critical",
+    "unit": "mois",
+    "value": 0.0
+   },
+   {
+    "max_score": 20.0,
+    "name": "Flux de Trésorerie",
+    "score": 20.0,
+    "status": "good",
+    "unit": "€",
+    "value": 822.6
+   },
+   {
+    "max_score": 20.0,
+    "name": "Ratio d'Investissement",
+    "score": 0.0,
+    "status": "critical",
+    "unit": "%",
+    "value": 0.0
+   }
+  ],
+  "total_score": 50.0
+ },
+ "insights": [
+  {
+   "category_id": null,
+   "description": "La transaction 'Foncia — Loyer' de 890,00 € est exceptionnellement élevée.",
+   "severity": "high",
+   "title": "Grosse dépense isolée",
+   "type": "anomaly",
+   "unit": "€",
+   "value": 890.0
+  }
+ ]
+}

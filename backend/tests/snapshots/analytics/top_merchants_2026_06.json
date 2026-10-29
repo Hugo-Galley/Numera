@@ -1,0 +1,46 @@
+{
+ "items": [
+  {
+   "merchant": "Foncia — Loyer",
+   "total": 890.0
+  },
+  {
+   "merchant": "VIR SANS LIEN",
+   "total": 777.0
+  },
+  {
+   "merchant": "Navigo",
+   "total": 86.4
+  },
+  {
+   "merchant": "Decathlon",
+   "total": 85.41
+  },
+  {
+   "merchant": "EDF",
+   "total": 61.0
+  },
+  {
+   "merchant": "Lidl",
+   "total": 48.31
+  },
+  {
+   "merchant": "Amazon",
+   "total": 45.73
+  },
+  {
+   "merchant": "CINEMA",
+   "total": 45.0
+  },
+  {
+   "merchant": "TotalEnergies Station",
+   "total": 40.53
+  },
+  {
+   "merchant": "Biocoop",
+   "total": 36.12
+  }
+ ],
+ "month": 6,
+ "year": 2026
+}

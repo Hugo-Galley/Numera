@@ -1,0 +1,101 @@
+{
+ "fixed_charges": {
+  "amount": 1133.39,
+  "diff_prev_month": 0.0,
+  "diff_prev_month_pct": 0.0,
+  "percentage": 39.0
+ },
+ "income": 2906.87,
+ "investments": {
+  "amount": 0.0,
+  "diff_prev_month": 0.0,
+  "diff_prev_month_pct": 0.0,
+  "percentage": 0.0
+ },
+ "month": 5,
+ "remainder": {
+  "amount": 822.6,
+  "diff_prev_month": -329.02,
+  "diff_prev_month_pct": -28.6,
+  "percentage": 28.3
+ },
+ "savings": {
+  "amount": 0.0,
+  "diff_prev_month": 0.0,
+  "diff_prev_month_pct": 0.0,
+  "percentage": 0.0
+ },
+ "top_fixed": [
+  {
+   "amount": 890.0,
+   "category": null,
+   "is_recurring": true,
+   "name": "Foncia — Loyer (Logement)"
+  },
+  {
+   "amount": 86.4,
+   "category": null,
+   "is_recurring": true,
+   "name": "Navigo (Transport)"
+  },
+  {
+   "amount": 61.0,
+   "category": null,
+   "is_recurring": true,
+   "name": "EDF (Énergie)"
+  },
+  {
+   "amount": 29.99,
+   "category": null,
+   "is_recurring": true,
+   "name": "Basic-Fit (Sport)"
+  },
+  {
+   "amount": 21.4,
+   "category": null,
+   "is_recurring": true,
+   "name": "MAIF — Assurance habitation (Assurances)"
+  }
+ ],
+ "top_investments": [],
+ "top_savings": [],
+ "top_variable": [
+  {
+   "amount": 494.41,
+   "category": null,
+   "is_recurring": false,
+   "name": "Nourriture"
+  },
+  {
+   "amount": 186.28,
+   "category": null,
+   "is_recurring": false,
+   "name": "Sortie"
+  },
+  {
+   "amount": 111.09,
+   "category": null,
+   "is_recurring": false,
+   "name": "Shopping"
+  },
+  {
+   "amount": 102.4,
+   "category": null,
+   "is_recurring": false,
+   "name": "Sans catégorie"
+  },
+  {
+   "amount": 40.71,
+   "category": null,
+   "is_recurring": false,
+   "name": "Transport"
+  }
+ ],
+ "variable_expenses": {
+  "amount": 950.88,
+  "diff_prev_month": 312.52,
+  "diff_prev_month_pct": 49.0,
+  "percentage": 32.7
+ },
+ "year": 2026
+}

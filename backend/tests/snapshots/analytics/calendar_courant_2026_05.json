@@ -1,0 +1,548 @@
+{
+ "daily_balances": [
+  {
+   "balance": 6517.39,
+   "date": "2026-05-01"
+  },
+  {
+   "balance": 5549.38,
+   "date": "2026-05-02"
+  },
+  {
+   "balance": 4856.52,
+   "date": "2026-05-03"
+  },
+  {
+   "balance": 4856.52,
+   "date": "2026-05-04"
+  },
+  {
+   "balance": 4704.39,
+   "date": "2026-05-05"
+  },
+  {
+   "balance": 4621.61,
+   "date": "2026-05-06"
+  },
+  {
+   "balance": 4490.07,
+   "date": "2026-05-07"
+  },
+  {
+   "balance": 4470.08,
+   "date": "2026-05-08"
+  },
+  {
+   "balance": 4441.62,
+   "date": "2026-05-09"
+  },
+  {
+   "balance": 4412.14,
+   "date": "2026-05-10"
+  },
+  {
+   "balance": 4360.83,
+   "date": "2026-05-11"
+  },
+  {
+   "balance": 4349.71,
+   "date": "2026-05-12"
+  },
+  {
+   "balance": 4349.71,
+   "date": "2026-05-13"
+  },
+  {
+   "balance": 4349.71,
+   "date": "2026-05-14"
+  },
+  {
+   "balance": 4288.71,
+   "date": "2026-05-15"
+  },
+  {
+   "balance": 4288.71,
+   "date": "2026-05-16"
+  },
+  {
+   "balance": 4247.39,
+   "date": "2026-05-17"
+  },
+  {
+   "balance": 4162.54,
+   "date": "2026-05-18"
+  },
+  {
+   "balance": 4162.54,
+   "date": "2026-05-19"
+  },
+  {
+   "balance": 4002.46,
+   "date": "2026-05-20"
+  },
+  {
+   "balance": 4002.46,
+   "date": "2026-05-21"
+  },
+  {
+   "balance": 4002.46,
+   "date": "2026-05-22"
+  },
+  {
+   "balance": 4002.46,
+   "date": "2026-05-23"
+  },
+  {
+   "balance": 4002.46,
+   "date": "2026-05-24"
+  },
+  {
+   "balance": 4002.46,
+   "date": "2026-05-25"
+  },
+  {
+   "balance": 3949.04,
+   "date": "2026-05-26"
+  },
+  {
+   "balance": 6855.91,
+   "date": "2026-05-27"
+  },
+  {
+   "balance": 6739.99,
+   "date": "2026-05-28"
+  },
+  {
+   "balance": 6739.99,
+   "date": "2026-05-29"
+  },
+  {
+   "balance": 6739.99,
+   "date": "2026-05-30"
+  },
+  {
+   "balance": 6739.99,
+   "date": "2026-05-31"
+  }
+ ],
+ "events": [
+  {
+   "account_id": 1,
+   "amount": 890.0,
+   "category_id": 13,
+   "currency": "EUR",
+   "date": "2026-05-02T12:00:00",
+   "id": "tx_531",
+   "is_projected": false,
+   "logo": null,
+   "name": "Foncia — Loyer",
+   "running_balance": 5627.39,
+   "type": "Sortie"
+  },
+  {
+   "account_id": 1,
+   "amount": 78.01,
+   "category_id": 3,
+   "currency": "EUR",
+   "date": "2026-05-02T12:00:00",
+   "id": "tx_549",
+   "is_projected": false,
+   "logo": null,
+   "name": "Biocoop",
+   "running_balance": 5549.38,
+   "type": "Sortie"
+  },
+  {
+   "account_id": 1,
+   "amount": 200.0,
+   "category_id": null,
+   "currency": "EUR",
+   "date": "2026-05-03T09:00:00",
+   "id": "tx_539",
+   "is_projected": false,
+   "logo": null,
+   "name": "Virement Livret A",
+   "running_balance": 5349.38,
+   "type": "Sortie"
+  },
+  {
+   "account_id": 1,
+   "amount": 100.0,
+   "category_id": null,
+   "currency": "EUR",
+   "date": "2026-05-03T09:00:00",
+   "id": "tx_541",
+   "is_projected": false,
+   "logo": null,
+   "name": "Versement assurance-vie",
+   "running_balance": 5249.38,
+   "type": "Sortie"
+  },
+  {
+   "account_id": 1,
+   "amount": 300.0,
+   "category_id": null,
+   "currency": "EUR",
+   "date": "2026-05-03T09:00:00",
+   "id": "tx_595",
+   "is_projected": false,
+   "logo": null,
+   "name": "Virement PEA",
+   "running_balance": 4949.38,
+   "type": "Sortie"
+  },
+  {
+   "account_id": 1,
+   "amount": 92.86,
+   "category_id": 3,
+   "currency": "EUR",
+   "date": "2026-05-03T11:00:00",
+   "id": "tx_543",
+   "is_projected": false,
+   "logo": null,
+   "name": "Monoprix",
+   "running_balance": 4856.52,
+   "type": "Sortie"
+  },
+  {
+   "account_id": 1,
+   "amount": 86.4,
+   "category_id": 16,
+   "currency": "EUR",
+   "date": "2026-05-05T12:00:00",
+   "id": "tx_532",
+   "is_projected": false,
+   "logo": null,
+   "name": "Navigo",
+   "running_balance": 4770.12,
+   "type": "Sortie"
+  },
+  {
+   "account_id": 1,
+   "amount": 40.71,
+   "category_id": 16,
+   "currency": "EUR",
+   "date": "2026-05-05T12:00:00",
+   "id": "tx_559",
+   "is_projected": false,
+   "logo": null,
+   "name": "TotalEnergies Station",
+   "running_balance": 4729.41,
+   "type": "Sortie"
+  },
+  {
+   "account_id": 1,
+   "amount": 25.02,
+   "category_id": 3,
+   "currency": "EUR",
+   "date": "2026-05-05T20:00:00",
+   "id": "tx_544",
+   "is_projected": false,
+   "logo": null,
+   "name": "Lidl",
+   "running_balance": 4704.39,
+   "type": "Sortie"
+  },
+  {
+   "account_id": 1,
+   "amount": 52.47,
+   "category_id": 3,
+   "currency": "EUR",
+   "date": "2026-05-06T12:00:00",
+   "id": "tx_547",
+   "is_projected": false,
+   "logo": null,
+   "name": "Intermarché",
+   "running_balance": 4651.92,
+   "type": "Sortie"
+  },
+  {
+   "account_id": 1,
+   "amount": 30.31,
+   "category_id": 3,
+   "currency": "EUR",
+   "date": "2026-05-06T21:00:00",
+   "id": "tx_550",
+   "is_projected": false,
+   "logo": null,
+   "name": "Biocoop",
+   "running_balance": 4621.61,
+   "type": "Sortie"
+  },
+  {
+   "account_id": 1,
+   "amount": 12.4,
+   "category_id": null,
+   "currency": "EUR",
+   "date": "2026-05-07T00:00:00",
+   "id": "tx_604",
+   "is_projected": false,
+   "logo": null,
+   "name": "BOULANGERIE DUPONT",
+   "running_balance": 4609.21,
+   "type": "Sortie"
+  },
+  {
+   "account_id": 1,
+   "amount": 27.49,
+   "category_id": 4,
+   "currency": "EUR",
+   "date": "2026-05-07T09:00:00",
+   "id": "tx_552",
+   "is_projected": false,
+   "logo": null,
+   "name": "Big Mamma",
+   "running_balance": 4581.72,
+   "type": "Sortie"
+  },
+  {
+   "account_id": 1,
+   "amount": 91.65,
+   "category_id": 3,
+   "currency": "EUR",
+   "date": "2026-05-07T21:00:00",
+   "id": "tx_551",
+   "is_projected": false,
+   "logo": null,
+   "name": "Carrefour",
+   "running_balance": 4490.07,
+   "type": "Sortie"
+  },
+  {
+   "account_id": 1,
+   "amount": 19.99,
+   "category_id": 1,
+   "currency": "EUR",
+   "date": "2026-05-08T12:00:00",
+   "id": "tx_533",
+   "is_projected": false,
+   "logo": "si:free",
+   "name": "Free Mobile",
+   "running_balance": 4470.08,
+   "type": "Sortie"
+  },
+  {
+   "account_id": 1,
+   "amount": 28.46,
+   "category_id": 3,
+   "currency": "EUR",
+   "date": "2026-05-09T20:00:00",
+   "id": "tx_545",
+   "is_projected": false,
+   "logo": null,
+   "name": "Monoprix",
+   "running_balance": 4441.62,
+   "type": "Sortie"
+  },
+  {
+   "account_id": 1,
+   "amount": 15.99,
+   "category_id": 20,
+   "currency": "EUR",
+   "date": "2026-05-10T00:00:00",
+   "id": "tx_614",
+   "is_projected": false,
+   "logo": null,
+   "name": "STREAMFLIX",
+   "running_balance": 4425.63,
+   "type": "Sortie"
+  },
+  {
+   "account_id": 1,
+   "amount": 13.49,
+   "category_id": 1,
+   "currency": "EUR",
+   "date": "2026-05-10T12:00:00",
+   "id": "tx_534",
+   "is_projected": false,
+   "logo": "si:netflix",
+   "name": "Netflix",
+   "running_balance": 4412.14,
+   "type": "Sortie"
+  },
+  {
+   "account_id": 1,
+   "amount": 51.31,
+   "category_id": 18,
+   "currency": "EUR",
+   "date": "2026-05-11T10:00:00",
+   "id": "tx_557",
+   "is_projected": false,
+   "logo": null,
+   "name": "IKEA",
+   "running_balance": 4360.83,
+   "type": "Sortie"
+  },
+  {
+   "account_id": 1,
+   "amount": 11.12,
+   "category_id": 1,
+   "currency": "EUR",
+   "date": "2026-05-12T12:00:00",
+   "id": "tx_535",
+   "is_projected": false,
+   "logo": "si:spotify",
+   "name": "Spotify",
+   "running_balance": 4349.71,
+   "type": "Sortie"
+  },
+  {
+   "account_id": 1,
+   "amount": 61.0,
+   "category_id": 14,
+   "currency": "EUR",
+   "date": "2026-05-15T12:00:00",
+   "id": "tx_536",
+   "is_projected": false,
+   "logo": null,
+   "name": "EDF",
+   "running_balance": 4288.71,
+   "type": "Sortie"
+  },
+  {
+   "account_id": 1,
+   "amount": 41.32,
+   "category_id": 4,
+   "currency": "EUR",
+   "date": "2026-05-17T19:00:00",
+   "id": "tx_554",
+   "is_projected": false,
+   "logo": null,
+   "name": "Le Comptoir du Marché",
+   "running_balance": 4247.39,
+   "type": "Sortie"
+  },
+  {
+   "account_id": 1,
+   "amount": 54.86,
+   "category_id": 3,
+   "currency": "EUR",
+   "date": "2026-05-18T11:00:00",
+   "id": "tx_546",
+   "is_projected": false,
+   "logo": null,
+   "name": "Picard",
+   "running_balance": 4192.53,
+   "type": "Sortie"
+  },
+  {
+   "account_id": 1,
+   "amount": 29.99,
+   "category_id": 7,
+   "currency": "EUR",
+   "date": "2026-05-18T12:00:00",
+   "id": "tx_537",
+   "is_projected": false,
+   "logo": null,
+   "name": "Basic-Fit",
+   "running_balance": 4162.54,
+   "type": "Sortie"
+  },
+  {
+   "account_id": 1,
+   "amount": 90.0,
+   "category_id": null,
+   "currency": "EUR",
+   "date": "2026-05-20T00:00:00",
+   "id": "tx_608",
+   "is_projected": false,
+   "logo": null,
+   "name": "RESTAURANT AVANCE",
+   "running_balance": 4072.54,
+   "type": "Sortie"
+  },
+  {
+   "account_id": 1,
+   "amount": 21.4,
+   "category_id": 15,
+   "currency": "EUR",
+   "date": "2026-05-20T12:00:00",
+   "id": "tx_538",
+   "is_projected": false,
+   "logo": null,
+   "name": "MAIF — Assurance habitation",
+   "running_balance": 4051.14,
+   "type": "Sortie"
+  },
+  {
+   "account_id": 1,
+   "amount": 48.68,
+   "category_id": 4,
+   "currency": "EUR",
+   "date": "2026-05-20T12:00:00",
+   "id": "tx_555",
+   "is_projected": false,
+   "logo": null,
+   "name": "Deliveroo",
+   "running_balance": 4002.46,
+   "type": "Sortie"
+  },
+  {
+   "account_id": 1,
+   "amount": 53.42,
+   "category_id": 4,
+   "currency": "EUR",
+   "date": "2026-05-26T11:00:00",
+   "id": "tx_553",
+   "is_projected": false,
+   "logo": null,
+   "name": "Uber Eats",
+   "running_balance": 3949.04,
+   "type": "Sortie"
+  },
+  {
+   "account_id": 1,
+   "amount": 2906.87,
+   "category_id": 10,
+   "currency": "EUR",
+   "date": "2026-05-27T12:00:00",
+   "id": "tx_530",
+   "is_projected": false,
+   "logo": null,
+   "name": "Acme Conseil — Salaire",
+   "running_balance": 6855.91,
+   "type": "Entree"
+  },
+  {
+   "account_id": 1,
+   "amount": 59.78,
+   "category_id": 18,
+   "currency": "EUR",
+   "date": "2026-05-28T10:00:00",
+   "id": "tx_558",
+   "is_projected": false,
+   "logo": null,
+   "name": "Leroy Merlin",
+   "running_balance": 6796.13,
+   "type": "Sortie"
+  },
+  {
+   "account_id": 1,
+   "amount": 15.37,
+   "category_id": 4,
+   "currency": "EUR",
+   "date": "2026-05-28T20:00:00",
+   "id": "tx_556",
+   "is_projected": false,
+   "logo": null,
+   "name": "Deliveroo",
+   "running_balance": 6780.76,
+   "type": "Sortie"
+  },
+  {
+   "account_id": 1,
+   "amount": 40.77,
+   "category_id": 3,
+   "currency": "EUR",
+   "date": "2026-05-28T21:00:00",
+   "id": "tx_548",
+   "is_projected": false,
+   "logo": null,
+   "name": "Carrefour",
+   "running_balance": 6739.99,
+   "type": "Sortie"
+  }
+ ],
+ "month": 5,
+ "year": 2026
+}

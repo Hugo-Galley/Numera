@@ -1,0 +1,46 @@
+{
+ "items": [
+  {
+   "merchant": "Foncia — Loyer",
+   "total": 890.0
+  },
+  {
+   "merchant": "Carrefour",
+   "total": 132.42
+  },
+  {
+   "merchant": "Monoprix",
+   "total": 121.32
+  },
+  {
+   "merchant": "Biocoop",
+   "total": 108.32
+  },
+  {
+   "merchant": "RESTAURANT AVANCE",
+   "total": 90.0
+  },
+  {
+   "merchant": "Navigo",
+   "total": 86.4
+  },
+  {
+   "merchant": "Deliveroo",
+   "total": 64.05
+  },
+  {
+   "merchant": "EDF",
+   "total": 61.0
+  },
+  {
+   "merchant": "Leroy Merlin",
+   "total": 59.78
+  },
+  {
+   "merchant": "Picard",
+   "total": 54.86
+  }
+ ],
+ "month": 5,
+ "year": 2026
+}

@@ -1,0 +1,555 @@
+{
+ "daily_balances": [
+  {
+   "balance": 25399.79,
+   "date": "2026-06-01"
+  },
+  {
+   "balance": 25183.93,
+   "date": "2026-06-02"
+  },
+  {
+   "balance": 25213.93,
+   "date": "2026-06-03"
+  },
+  {
+   "balance": 25168.93,
+   "date": "2026-06-04"
+  },
+  {
+   "balance": 25082.53,
+   "date": "2026-06-05"
+  },
+  {
+   "balance": 25057.73,
+   "date": "2026-06-06"
+  },
+  {
+   "balance": 25057.73,
+   "date": "2026-06-07"
+  },
+  {
+   "balance": 25037.74,
+   "date": "2026-06-08"
+  },
+  {
+   "balance": 25029.64,
+   "date": "2026-06-09"
+  },
+  {
+   "balance": 25000.16,
+   "date": "2026-06-10"
+  },
+  {
+   "balance": 24964.04,
+   "date": "2026-06-11"
+  },
+  {
+   "balance": 24928.9,
+   "date": "2026-06-12"
+  },
+  {
+   "balance": 24795.18,
+   "date": "2026-06-13"
+  },
+  {
+   "balance": 24749.45,
+   "date": "2026-06-14"
+  },
+  {
+   "balance": 24688.45,
+   "date": "2026-06-15"
+  },
+  {
+   "balance": 24688.45,
+   "date": "2026-06-16"
+  },
+  {
+   "balance": 24688.45,
+   "date": "2026-06-17"
+  },
+  {
+   "balance": 24658.46,
+   "date": "2026-06-18"
+  },
+  {
+   "balance": 24658.46,
+   "date": "2026-06-19"
+  },
+  {
+   "balance": 24637.06,
+   "date": "2026-06-20"
+  },
+  {
+   "balance": 24637.06,
+   "date": "2026-06-21"
+  },
+  {
+   "balance": 24637.06,
+   "date": "2026-06-22"
+  },
+  {
+   "balance": 24637.06,
+   "date": "2026-06-23"
+  },
+  {
+   "balance": 24637.06,
+   "date": "2026-06-24"
+  },
+  {
+   "balance": 24637.06,
+   "date": "2026-06-25"
+  },
+  {
+   "balance": 24637.06,
+   "date": "2026-06-26"
+  },
+  {
+   "balance": 27377.06,
+   "date": "2026-06-27"
+  },
+  {
+   "balance": 27377.06,
+   "date": "2026-06-28"
+  },
+  {
+   "balance": 27377.06,
+   "date": "2026-06-29"
+  },
+  {
+   "balance": 27377.06,
+   "date": "2026-06-30"
+  }
+ ],
+ "events": [
+  {
+   "account_id": 1,
+   "amount": 777.0,
+   "category_id": 20,
+   "currency": "EUR",
+   "date": "2026-06-01T00:00:00",
+   "id": "tx_599",
+   "is_projected": false,
+   "logo": null,
+   "name": "VIR SANS LIEN",
+   "running_balance": 5962.99,
+   "type": "Sortie"
+  },
+  {
+   "account_id": 2,
+   "amount": 777.0,
+   "category_id": null,
+   "currency": "EUR",
+   "date": "2026-06-02T00:00:00",
+   "id": "tx_600",
+   "is_projected": false,
+   "logo": null,
+   "name": "VIR RECU SANS LIEN",
+   "running_balance": 10413.8,
+   "type": "Entree"
+  },
+  {
+   "account_id": 1,
+   "amount": 33.73,
+   "category_id": 4,
+   "currency": "EUR",
+   "date": "2026-06-02T09:00:00",
+   "id": "tx_573",
+   "is_projected": false,
+   "logo": null,
+   "name": "Big Mamma",
+   "running_balance": 5929.26,
+   "type": "Sortie"
+  },
+  {
+   "account_id": 1,
+   "amount": 890.0,
+   "category_id": 13,
+   "currency": "EUR",
+   "date": "2026-06-02T12:00:00",
+   "id": "tx_560",
+   "is_projected": false,
+   "logo": null,
+   "name": "Foncia — Loyer",
+   "running_balance": 5039.26,
+   "type": "Sortie"
+  },
+  {
+   "account_id": 1,
+   "amount": 40.53,
+   "category_id": 16,
+   "currency": "EUR",
+   "date": "2026-06-02T12:00:00",
+   "id": "tx_577",
+   "is_projected": false,
+   "logo": null,
+   "name": "TotalEnergies Station",
+   "running_balance": 4998.73,
+   "type": "Sortie"
+  },
+  {
+   "account_id": 1,
+   "amount": 28.6,
+   "category_id": 4,
+   "currency": "EUR",
+   "date": "2026-06-02T16:00:00",
+   "id": "tx_574",
+   "is_projected": false,
+   "logo": null,
+   "name": "Bar Le Perchoir",
+   "running_balance": 4970.13,
+   "type": "Sortie"
+  },
+  {
+   "account_id": 1,
+   "amount": 30.0,
+   "category_id": 9,
+   "currency": "EUR",
+   "date": "2026-06-03T00:00:00",
+   "id": "tx_609",
+   "is_projected": false,
+   "logo": null,
+   "name": "VIR AMI REMBOURSEMENT",
+   "running_balance": 5000.13,
+   "type": "Entree"
+  },
+  {
+   "account_id": 1,
+   "amount": 200.0,
+   "category_id": null,
+   "currency": "EUR",
+   "date": "2026-06-03T09:00:00",
+   "id": "tx_566",
+   "is_projected": false,
+   "logo": null,
+   "name": "Virement Livret A",
+   "running_balance": 4800.13,
+   "type": "Sortie"
+  },
+  {
+   "account_id": 2,
+   "amount": 200.0,
+   "category_id": null,
+   "currency": "EUR",
+   "date": "2026-06-03T09:00:00",
+   "id": "tx_567",
+   "is_projected": false,
+   "logo": null,
+   "name": "Virement depuis compte courant",
+   "running_balance": 10613.8,
+   "type": "Entree"
+  },
+  {
+   "account_id": 1,
+   "amount": 100.0,
+   "category_id": null,
+   "currency": "EUR",
+   "date": "2026-06-03T09:00:00",
+   "id": "tx_568",
+   "is_projected": false,
+   "logo": null,
+   "name": "Versement assurance-vie",
+   "running_balance": 4700.13,
+   "type": "Sortie"
+  },
+  {
+   "account_id": 4,
+   "amount": 100.0,
+   "category_id": null,
+   "currency": "EUR",
+   "date": "2026-06-03T09:00:00",
+   "id": "tx_569",
+   "is_projected": false,
+   "logo": null,
+   "name": "Versement programmé",
+   "running_balance": 9900.0,
+   "type": "Entree"
+  },
+  {
+   "account_id": 1,
+   "amount": 300.0,
+   "category_id": null,
+   "currency": "EUR",
+   "date": "2026-06-03T09:00:00",
+   "id": "tx_596",
+   "is_projected": false,
+   "logo": null,
+   "name": "Virement PEA",
+   "running_balance": 4400.13,
+   "type": "Sortie"
+  },
+  {
+   "account_id": 3,
+   "amount": 300.0,
+   "category_id": null,
+   "currency": "EUR",
+   "date": "2026-06-03T10:00:00",
+   "id": "inv_41",
+   "is_projected": false,
+   "name": "[Versement] Versement mensuel",
+   "quantity": null,
+   "ticker": null,
+   "type": "versement",
+   "unit_price": null
+  },
+  {
+   "account_id": 1,
+   "amount": 45.0,
+   "category_id": 20,
+   "currency": "EUR",
+   "date": "2026-06-04T00:00:00",
+   "id": "tx_598",
+   "is_projected": false,
+   "logo": null,
+   "name": "CINEMA",
+   "running_balance": 4355.13,
+   "type": "Sortie"
+  },
+  {
+   "account_id": 3,
+   "amount": 490.9,
+   "category_id": null,
+   "currency": "EUR",
+   "date": "2026-06-04T10:00:00",
+   "id": "inv_42",
+   "is_projected": false,
+   "name": "[Achat] Amundi PEA MSCI Emerging Markets",
+   "quantity": 15.0,
+   "ticker": "PAEEM.PA",
+   "type": "achat",
+   "unit_price": 32.66
+  },
+  {
+   "account_id": 1,
+   "amount": 86.4,
+   "category_id": 16,
+   "currency": "EUR",
+   "date": "2026-06-05T12:00:00",
+   "id": "tx_561",
+   "is_projected": false,
+   "logo": null,
+   "name": "Navigo",
+   "running_balance": 4268.73,
+   "type": "Sortie"
+  },
+  {
+   "account_id": 1,
+   "amount": 12.4,
+   "category_id": null,
+   "currency": "EUR",
+   "date": "2026-06-06T00:00:00",
+   "id": "tx_605",
+   "is_projected": false,
+   "logo": null,
+   "name": "BOULANGERIE DUPONT",
+   "running_balance": 4256.33,
+   "type": "Sortie"
+  },
+  {
+   "account_id": 1,
+   "amount": 12.4,
+   "category_id": null,
+   "currency": "EUR",
+   "date": "2026-06-06T00:00:00",
+   "id": "tx_606",
+   "is_projected": false,
+   "logo": null,
+   "name": "BOULANGERIE DUPONT",
+   "running_balance": 4243.93,
+   "type": "Sortie"
+  },
+  {
+   "account_id": 1,
+   "amount": 19.99,
+   "category_id": 1,
+   "currency": "EUR",
+   "date": "2026-06-08T12:00:00",
+   "id": "tx_562",
+   "is_projected": false,
+   "logo": "si:free",
+   "name": "Free Mobile",
+   "running_balance": 4223.94,
+   "type": "Sortie"
+  },
+  {
+   "account_id": 1,
+   "amount": 8.1,
+   "category_id": null,
+   "currency": "EUR",
+   "date": "2026-06-09T00:00:00",
+   "id": "tx_607",
+   "is_projected": false,
+   "logo": null,
+   "name": "Boulangerie Dupont 75",
+   "running_balance": 4215.84,
+   "type": "Sortie"
+  },
+  {
+   "account_id": 1,
+   "amount": 15.99,
+   "category_id": 20,
+   "currency": "EUR",
+   "date": "2026-06-10T00:00:00",
+   "id": "tx_615",
+   "is_projected": false,
+   "logo": null,
+   "name": "STREAMFLIX",
+   "running_balance": 4199.85,
+   "type": "Sortie"
+  },
+  {
+   "account_id": 1,
+   "amount": 13.49,
+   "category_id": 1,
+   "currency": "EUR",
+   "date": "2026-06-10T12:00:00",
+   "id": "tx_563",
+   "is_projected": false,
+   "logo": "si:netflix",
+   "name": "Netflix",
+   "running_balance": 4186.36,
+   "type": "Sortie"
+  },
+  {
+   "account_id": 1,
+   "amount": 36.12,
+   "category_id": 3,
+   "currency": "EUR",
+   "date": "2026-06-11T19:00:00",
+   "id": "tx_572",
+   "is_projected": false,
+   "logo": null,
+   "name": "Biocoop",
+   "running_balance": 4150.24,
+   "type": "Sortie"
+  },
+  {
+   "account_id": 1,
+   "amount": 11.12,
+   "category_id": 1,
+   "currency": "EUR",
+   "date": "2026-06-12T12:00:00",
+   "id": "tx_564",
+   "is_projected": false,
+   "logo": "si:spotify",
+   "name": "Spotify",
+   "running_balance": 4139.12,
+   "type": "Sortie"
+  },
+  {
+   "account_id": 1,
+   "amount": 24.02,
+   "category_id": 3,
+   "currency": "EUR",
+   "date": "2026-06-12T18:00:00",
+   "id": "tx_570",
+   "is_projected": false,
+   "logo": null,
+   "name": "Carrefour",
+   "running_balance": 4115.1,
+   "type": "Sortie"
+  },
+  {
+   "account_id": 1,
+   "amount": 85.41,
+   "category_id": 18,
+   "currency": "EUR",
+   "date": "2026-06-13T12:00:00",
+   "id": "tx_575",
+   "is_projected": false,
+   "logo": null,
+   "name": "Decathlon",
+   "running_balance": 4029.69,
+   "type": "Sortie"
+  },
+  {
+   "account_id": 1,
+   "amount": 48.31,
+   "category_id": 3,
+   "currency": "EUR",
+   "date": "2026-06-13T21:00:00",
+   "id": "tx_571",
+   "is_projected": false,
+   "logo": null,
+   "name": "Lidl",
+   "running_balance": 3981.38,
+   "type": "Sortie"
+  },
+  {
+   "account_id": 1,
+   "amount": 45.73,
+   "category_id": 18,
+   "currency": "EUR",
+   "date": "2026-06-14T09:00:00",
+   "id": "tx_576",
+   "is_projected": false,
+   "logo": null,
+   "name": "Amazon",
+   "running_balance": 3935.65,
+   "type": "Sortie"
+  },
+  {
+   "account_id": 1,
+   "amount": 61.0,
+   "category_id": 14,
+   "currency": "EUR",
+   "date": "2026-06-15T12:00:00",
+   "id": "tx_565",
+   "is_projected": false,
+   "logo": null,
+   "name": "EDF",
+   "running_balance": 3874.65,
+   "type": "Sortie"
+  },
+  {
+   "account_id": 1,
+   "amount": 29.99,
+   "category_id": 7,
+   "currency": "EUR",
+   "date": "2026-06-18T00:00:00",
+   "id": "proj_9_2026-06-18T00:00:00",
+   "is_projected": true,
+   "logo": null,
+   "name": "Basic-Fit",
+   "quantity": null,
+   "recurring_id": 9,
+   "ticker": null,
+   "type": "Sortie",
+   "unit_price": null
+  },
+  {
+   "account_id": 1,
+   "amount": 21.4,
+   "category_id": 15,
+   "currency": "EUR",
+   "date": "2026-06-20T00:00:00",
+   "id": "proj_10_2026-06-20T00:00:00",
+   "is_projected": true,
+   "logo": null,
+   "name": "MAIF — Assurance habitation",
+   "quantity": null,
+   "recurring_id": 10,
+   "ticker": null,
+   "type": "Sortie",
+   "unit_price": null
+  },
+  {
+   "account_id": 1,
+   "amount": 2740.0,
+   "category_id": 10,
+   "currency": "EUR",
+   "date": "2026-06-27T00:00:00",
+   "id": "proj_1_2026-06-27T00:00:00",
+   "is_projected": true,
+   "logo": null,
+   "name": "Acme Conseil — Salaire",
+   "quantity": null,
+   "recurring_id": 1,
+   "ticker": null,
+   "type": "Entree",
+   "unit_price": null
+  }
+ ],
+ "month": 6,
+ "year": 2026
+}

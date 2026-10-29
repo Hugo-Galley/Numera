@@ -1,0 +1,180 @@
+{
+ "links": [
+  {
+   "color": null,
+   "source": 1,
+   "target": 0,
+   "value": 2906.87
+  },
+  {
+   "color": "#6366f1",
+   "source": 0,
+   "target": 2,
+   "value": 300.0
+  },
+  {
+   "color": "#10b981",
+   "source": 0,
+   "target": 3,
+   "value": 625.0
+  },
+  {
+   "color": "#cbd5e1",
+   "source": 0,
+   "target": 4,
+   "value": 1017.0
+  },
+  {
+   "color": "#cbd5e1",
+   "source": 0,
+   "target": 5,
+   "value": 621.52
+  },
+  {
+   "color": "#cbd5e1",
+   "source": 0,
+   "target": 6,
+   "value": 327.36
+  },
+  {
+   "color": null,
+   "source": 4,
+   "target": 7,
+   "value": 890.0
+  },
+  {
+   "color": null,
+   "source": 4,
+   "target": 8,
+   "value": 61.0
+  },
+  {
+   "color": null,
+   "source": 4,
+   "target": 9,
+   "value": 44.6
+  },
+  {
+   "color": null,
+   "source": 4,
+   "target": 10,
+   "value": 21.4
+  },
+  {
+   "color": null,
+   "source": 5,
+   "target": 11,
+   "value": 494.41
+  },
+  {
+   "color": null,
+   "source": 5,
+   "target": 12,
+   "value": 127.11
+  },
+  {
+   "color": null,
+   "source": 6,
+   "target": 13,
+   "value": 186.28
+  },
+  {
+   "color": null,
+   "source": 6,
+   "target": 14,
+   "value": 111.09
+  },
+  {
+   "color": null,
+   "source": 6,
+   "target": 15,
+   "value": 29.99
+  },
+  {
+   "color": null,
+   "source": 0,
+   "target": 16,
+   "value": 15.99
+  }
+ ],
+ "nodes": [
+  {
+   "color": "#94a3b8",
+   "name": "Budget"
+  },
+  {
+   "color": null,
+   "name": "Salaire"
+  },
+  {
+   "color": "#6366f1",
+   "name": "Investissements"
+  },
+  {
+   "color": "#10b981",
+   "name": "Épargne"
+  },
+  {
+   "color": "#64748b",
+   "name": "Fixe"
+  },
+  {
+   "color": "#64748b",
+   "name": "Vie courante"
+  },
+  {
+   "color": "#64748b",
+   "name": "Loisirs"
+  },
+  {
+   "category_id": 13,
+   "color": null,
+   "name": "Logement"
+  },
+  {
+   "category_id": 14,
+   "color": null,
+   "name": "Énergie"
+  },
+  {
+   "category_id": 1,
+   "color": null,
+   "name": "Abonnement"
+  },
+  {
+   "category_id": 15,
+   "color": null,
+   "name": "Assurances"
+  },
+  {
+   "category_id": 3,
+   "color": null,
+   "name": "Nourriture"
+  },
+  {
+   "category_id": 16,
+   "color": null,
+   "name": "Transport"
+  },
+  {
+   "category_id": 4,
+   "color": null,
+   "name": "Sortie"
+  },
+  {
+   "category_id": 18,
+   "color": null,
+   "name": "Shopping"
+  },
+  {
+   "category_id": 7,
+   "color": null,
+   "name": "Sport"
+  },
+  {
+   "category_id": 20,
+   "color": null,
+   "name": "Instantané loisirs"
+  }
+ ]
+}

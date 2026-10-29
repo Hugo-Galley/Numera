@@ -1,0 +1,26 @@
+{
+ "items": [
+  {
+   "merchant": "Foncia — Loyer",
+   "total": 890.0
+  },
+  {
+   "merchant": "Carrefour",
+   "total": 132.42
+  },
+  {
+   "merchant": "Monoprix",
+   "total": 121.32
+  },
+  {
+   "merchant": "Biocoop",
+   "total": 108.32
+  },
+  {
+   "merchant": "RESTAURANT AVANCE",
+   "total": 90.0
+  }
+ ],
+ "month": 5,
+ "year": 2026
+}

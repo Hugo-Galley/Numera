@@ -1,0 +1,255 @@
+{
+ "issues": [
+  {
+   "action_label": "Voir les transactions",
+   "action_url": "/accounts",
+   "amount": null,
+   "count": 8,
+   "description": "Ces depenses ne sont pas prises en compte correctement dans les budgets et les analyses par categorie.",
+   "id": "uncategorized-expenses",
+   "samples": [
+    {
+     "account_id": 1,
+     "amount": 8.1,
+     "currency": "EUR",
+     "date": "2026-06-09",
+     "id": 607,
+     "merchant": "Boulangerie Dupont 75",
+     "type": "Sortie"
+    },
+    {
+     "account_id": 1,
+     "amount": 12.4,
+     "currency": "EUR",
+     "date": "2026-06-06",
+     "id": 606,
+     "merchant": "BOULANGERIE DUPONT",
+     "type": "Sortie"
+    },
+    {
+     "account_id": 1,
+     "amount": 12.4,
+     "currency": "EUR",
+     "date": "2026-06-06",
+     "id": 605,
+     "merchant": "BOULANGERIE DUPONT",
+     "type": "Sortie"
+    },
+    {
+     "account_id": 1,
+     "amount": 90.0,
+     "currency": "EUR",
+     "date": "2026-05-20",
+     "id": 608,
+     "merchant": "RESTAURANT AVANCE",
+     "type": "Sortie"
+    },
+    {
+     "account_id": 1,
+     "amount": 12.4,
+     "currency": "EUR",
+     "date": "2026-05-07",
+     "id": 604,
+     "merchant": "BOULANGERIE DUPONT",
+     "type": "Sortie"
+    }
+   ],
+   "severity": "high",
+   "title": "Transactions sans categorie",
+   "type": "categorization"
+  },
+  {
+   "action_label": "Normaliser",
+   "action_url": "/classement?tab=merchants",
+   "amount": null,
+   "count": 37,
+   "description": "Certains marchands fréquents ne sont pas encore reliés à un marchand canonique.",
+   "id": "unnormalized-merchants",
+   "samples": [
+    {
+     "count": 34,
+     "merchant": "Intermarché"
+    },
+    {
+     "count": 26,
+     "merchant": "Biocoop"
+    },
+    {
+     "count": 25,
+     "merchant": "Carrefour"
+    },
+    {
+     "count": 23,
+     "merchant": "Monoprix"
+    },
+    {
+     "count": 21,
+     "merchant": "Picard"
+    }
+   ],
+   "severity": "low",
+   "title": "Marchands non normalisés",
+   "type": "merchant"
+  },
+  {
+   "action_label": "Verifier les comptes",
+   "action_url": "/accounts",
+   "amount": null,
+   "count": 2,
+   "description": "Plusieurs transactions ont exactement le meme compte, la meme date, le meme marchand et le meme montant.",
+   "id": "duplicate-transactions",
+   "samples": [
+    {
+     "account_id": 1,
+     "amount": 12.4,
+     "count": 2,
+     "currency": "EUR",
+     "date": "2026-06-06",
+     "merchant": "BOULANGERIE DUPONT",
+     "type": "Sortie"
+    }
+   ],
+   "severity": "high",
+   "title": "Doublons suspects",
+   "type": "duplicates"
+  },
+  {
+   "action_label": "Mettre a jour",
+   "action_url": "/investments",
+   "amount": null,
+   "count": 1,
+   "description": "Les performances et le patrimoine net peuvent etre obsoletes si les valeurs de marche ne sont pas rafraichies.",
+   "id": "stale-investment-snapshots",
+   "samples": [
+    {
+     "days_since_snapshot": null,
+     "id": 3,
+     "last_snapshot": null,
+     "name": "PEA"
+    }
+   ],
+   "severity": "medium",
+   "title": "Snapshots investissement a mettre a jour",
+   "type": "investments"
+  },
+  {
+   "action_label": "Archiver ou supprimer",
+   "action_url": "/classement?tab=categories",
+   "amount": null,
+   "count": 3,
+   "description": "Ces categories ajoutent du bruit dans les formulaires et les filtres : archivez-les (historique conserve) ou supprimez-les.",
+   "id": "unused-categories",
+   "samples": [
+    {
+     "id": 8,
+     "name": "Categorie",
+     "type": "depense"
+    },
+    {
+     "id": 12,
+     "name": "Dividendes",
+     "type": "revenu"
+    },
+    {
+     "id": 6,
+     "name": "Don",
+     "type": "depense"
+    }
+   ],
+   "severity": "low",
+   "title": "Categories inutilisees",
+   "type": "cleanup"
+  },
+  {
+   "action_label": "Rapprocher",
+   "action_url": "/audit?vue=virements",
+   "amount": null,
+   "count": 1,
+   "description": "Ces mouvements ressemblent a des virements entre comptes et peuvent fausser les depenses s'ils ne sont pas rapproches.",
+   "id": "unmatched-transfers",
+   "samples": [
+    {
+     "entree": {
+      "account_id": 2,
+      "amount": 777.0,
+      "currency": "EUR",
+      "date": "2026-06-02",
+      "id": 600,
+      "merchant": "VIR RECU SANS LIEN",
+      "type": "Entree"
+     },
+     "sortie": {
+      "account_id": 1,
+      "amount": 777.0,
+      "currency": "EUR",
+      "date": "2026-06-01",
+      "id": 599,
+      "merchant": "VIR SANS LIEN",
+      "type": "Sortie"
+     }
+    }
+   ],
+   "severity": "medium",
+   "title": "Transferts internes possibles",
+   "type": "transfers"
+  },
+  {
+   "action_label": "Affecter",
+   "action_url": "/reimbursements",
+   "amount": null,
+   "count": 4,
+   "description": "Ces remboursements reçus ne sont rattachés à aucune créance : ils comptent encore comme revenus et la dépense d'origine reste comptée en entier.",
+   "id": "unallocated-reimbursements",
+   "samples": [
+    {
+     "account_id": 1,
+     "amount": 30.0,
+     "currency": "EUR",
+     "date": "2026-06-03",
+     "id": 609,
+     "merchant": "VIR AMI REMBOURSEMENT",
+     "type": "Entree"
+    },
+    {
+     "account_id": 1,
+     "amount": 16.5,
+     "currency": "EUR",
+     "date": "2026-04-10",
+     "id": 529,
+     "merchant": "CPAM — Remboursement",
+     "type": "Entree"
+    },
+    {
+     "account_id": 1,
+     "amount": 16.5,
+     "currency": "EUR",
+     "date": "2026-03-05",
+     "id": 501,
+     "merchant": "CPAM — Remboursement",
+     "type": "Entree"
+    },
+    {
+     "account_id": 1,
+     "amount": 16.5,
+     "currency": "EUR",
+     "date": "2026-01-19",
+     "id": 440,
+     "merchant": "CPAM — Remboursement",
+     "type": "Entree"
+    }
+   ],
+   "severity": "low",
+   "title": "Remboursements à affecter",
+   "type": "reimbursements"
+  }
+ ],
+ "summary": {
+  "active_accounts": 4,
+  "checked_at": "2026-06-15T10:00:00",
+  "high_count": 2,
+  "low_count": 3,
+  "medium_count": 2,
+  "total_issues": 7,
+  "total_transactions": 615
+ }
+}

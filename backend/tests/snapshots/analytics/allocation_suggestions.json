@@ -1,0 +1,34 @@
+{
+ "asset_classes": [
+  "Actions",
+  "Crypto",
+  "Immobilier",
+  "Liquidités",
+  "Obligations",
+  "Or & Matières Premières",
+  "Private Equity"
+ ],
+ "geographic_zones": [
+  "Asie",
+  "Chine",
+  "Europe",
+  "France",
+  "Japon",
+  "Marchés Émergents",
+  "Monde",
+  "USA"
+ ],
+ "sectors": [
+  "Consommation",
+  "E-commerce",
+  "Energie",
+  "Finance",
+  "Industrie",
+  "Luxe",
+  "SaaS",
+  "Santé",
+  "Tech",
+  "Tourisme",
+  "Télécoms"
+ ]
+}

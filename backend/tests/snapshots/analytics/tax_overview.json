@@ -1,0 +1,107 @@
+{
+ "allocation_advice": [
+  {
+   "account_id": 2,
+   "account_name": "Livret A",
+   "kind": "livret_a",
+   "rank": 1,
+   "reason": "Ton épargne de précaution couvre 5,2 mois de dépenses, l'objectif est 6 mois : verse sur ton Livret A, disponible à tout moment et sans impôt.",
+   "remaining": 12336.2
+  },
+  {
+   "account_id": 3,
+   "account_name": "PEA",
+   "kind": "pea",
+   "rank": 2,
+   "reason": "Actions sur le long terme : le PEA est exonéré d'impôt sur les gains après 5 ans (hors prélèvements sociaux).",
+   "remaining": 138300.0
+  },
+  {
+   "account_id": null,
+   "account_name": "PER à ouvrir",
+   "kind": "per",
+   "rank": 3,
+   "reason": "Avec une tranche à 30 %, un PER réduirait ton impôt (argent bloqué jusqu'à la retraite).",
+   "remaining": null
+  },
+  {
+   "account_id": null,
+   "account_name": "Compte-titres",
+   "kind": "cto",
+   "rank": 4,
+   "reason": "Enveloppes avantageuses remplies ou ouvertes : le compte-titres n'a pas de plafond.",
+   "remaining": null
+  }
+ ],
+ "precaution_months": 5.2,
+ "settings": {
+  "gross_annual_salary": 0.0,
+  "household": "single",
+  "prior_year_pro_income": 0.0,
+  "tmi_pct": 30.0
+ },
+ "suggestions": [],
+ "wrappers": [
+  {
+   "account_id": 2,
+   "account_name": "Livret A",
+   "age_years": null,
+   "alerts": [],
+   "allowance": null,
+   "available": null,
+   "blocked": null,
+   "ceiling": 22950.0,
+   "current": 10613.8,
+   "estimated_tax_saving": null,
+   "kind": "livret_a",
+   "milestone_reached": null,
+   "milestone_years": null,
+   "next_unlock_date": null,
+   "opened_at": "2024-12-01",
+   "remaining": 12336.2,
+   "total_contributed": null,
+   "used_pct": 46.247495
+  },
+  {
+   "account_id": 3,
+   "account_name": "PEA",
+   "age_years": 1.536986,
+   "alerts": [],
+   "allowance": null,
+   "available": null,
+   "blocked": null,
+   "ceiling": 150000.0,
+   "current": 11700.0,
+   "estimated_tax_saving": null,
+   "kind": "pea",
+   "milestone_reached": false,
+   "milestone_years": 5,
+   "next_unlock_date": null,
+   "opened_at": "2024-12-01",
+   "remaining": 138300.0,
+   "total_contributed": null,
+   "used_pct": 7.8
+  },
+  {
+   "account_id": 4,
+   "account_name": "Assurance-vie",
+   "age_years": 1.536986,
+   "alerts": [],
+   "allowance": 4600.0,
+   "available": null,
+   "blocked": null,
+   "ceiling": null,
+   "current": null,
+   "estimated_tax_saving": null,
+   "kind": "assurance_vie",
+   "milestone_reached": false,
+   "milestone_years": 8,
+   "next_unlock_date": null,
+   "opened_at": "2024-12-01",
+   "remaining": null,
+   "total_contributed": null,
+   "used_pct": null
+  }
+ ],
+ "year": 2026
+}

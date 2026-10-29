@@ -1,0 +1,139 @@
+{
+ "items": [
+  {
+   "category": {
+    "annual_limit": null,
+    "color": null,
+    "icon": null,
+    "id": 13,
+    "monthly_limit": null,
+    "name": "Logement"
+   },
+   "percentage": 42.7,
+   "total": 890.0
+  },
+  {
+   "category": {
+    "annual_limit": null,
+    "color": null,
+    "icon": null,
+    "id": 3,
+    "monthly_limit": 450.0,
+    "name": "Nourriture"
+   },
+   "percentage": 23.72,
+   "total": 494.41
+  },
+  {
+   "category": {
+    "annual_limit": null,
+    "color": null,
+    "icon": null,
+    "id": 4,
+    "monthly_limit": 220.0,
+    "name": "Sortie"
+   },
+   "percentage": 8.94,
+   "total": 186.28
+  },
+  {
+   "category": {
+    "annual_limit": null,
+    "color": null,
+    "icon": null,
+    "id": 16,
+    "monthly_limit": 150.0,
+    "name": "Transport"
+   },
+   "percentage": 6.1,
+   "total": 127.11
+  },
+  {
+   "category": {
+    "annual_limit": null,
+    "color": null,
+    "icon": null,
+    "id": 18,
+    "monthly_limit": 150.0,
+    "name": "Shopping"
+   },
+   "percentage": 5.33,
+   "total": 111.09
+  },
+  {
+   "category": {
+    "annual_limit": null,
+    "color": "#94a3b8",
+    "icon": null,
+    "id": null,
+    "monthly_limit": null,
+    "name": "Sans catégorie"
+   },
+   "percentage": 4.91,
+   "total": 102.4
+  },
+  {
+   "category": {
+    "annual_limit": null,
+    "color": null,
+    "icon": null,
+    "id": 14,
+    "monthly_limit": null,
+    "name": "Énergie"
+   },
+   "percentage": 2.93,
+   "total": 61.0
+  },
+  {
+   "category": {
+    "annual_limit": null,
+    "color": null,
+    "icon": null,
+    "id": 1,
+    "monthly_limit": 80.0,
+    "name": "Abonnement"
+   },
+   "percentage": 2.14,
+   "total": 44.6
+  },
+  {
+   "category": {
+    "annual_limit": null,
+    "color": null,
+    "icon": null,
+    "id": 7,
+    "monthly_limit": null,
+    "name": "Sport"
+   },
+   "percentage": 1.44,
+   "total": 29.99
+  },
+  {
+   "category": {
+    "annual_limit": null,
+    "color": null,
+    "icon": null,
+    "id": 15,
+    "monthly_limit": null,
+    "name": "Assurances"
+   },
+   "percentage": 1.03,
+   "total": 21.4
+  },
+  {
+   "category": {
+    "annual_limit": null,
+    "color": null,
+    "icon": null,
+    "id": 20,
+    "monthly_limit": 20.0,
+    "name": "Instantané loisirs"
+   },
+   "percentage": 0.77,
+   "total": 15.99
+  }
+ ],
+ "month": 5,
+ "total": 2084.27,
+ "year": 2026
+}

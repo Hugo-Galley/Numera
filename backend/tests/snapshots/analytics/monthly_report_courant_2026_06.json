@@ -1,0 +1,271 @@
+{
+ "burn_rate": 153.02,
+ "burn_rate_excl_exceptional": 153.02,
+ "comparison": {
+  "expenses_diff": 211.07,
+  "expenses_diff_pct": 10.1,
+  "income_diff": -2876.87,
+  "income_diff_pct": -99.0,
+  "savings_diff": -3087.94,
+  "savings_diff_pct": -375.4
+ },
+ "exceptional_expenses": 0.0,
+ "expenses": 2295.34,
+ "health_score": {
+  "metrics": [
+   {
+    "max_score": 30.0,
+    "name": "Taux d'Épargne",
+    "score": 0.0,
+    "status": "critical",
+    "unit": "%",
+    "value": -100.0
+   },
+   {
+    "max_score": 30.0,
+    "name": "Fonds de Sécurité",
+    "score": 0.0,
+    "status": "critical",
+    "unit": "mois",
+    "value": 0.0
+   },
+   {
+    "max_score": 20.0,
+    "name": "Flux de Trésorerie",
+    "score": 0.0,
+    "status": "critical",
+    "unit": "€",
+    "value": -2265.34
+   },
+   {
+    "max_score": 20.0,
+    "name": "Ratio d'Investissement",
+    "score": 0.0,
+    "status": "critical",
+    "unit": "%",
+    "value": 0.0
+   }
+  ],
+  "total_score": 0.0
+ },
+ "income": 30.0,
+ "insights": [
+  {
+   "category_id": null,
+   "description": "La transaction 'Foncia — Loyer' de 890,00 € est exceptionnellement élevée.",
+   "severity": "high",
+   "title": "Grosse dépense isolée",
+   "type": "anomaly",
+   "unit": "€",
+   "value": 890.0
+  },
+  {
+   "category_id": null,
+   "description": "La transaction 'VIR SANS LIEN' de 777,00 € est exceptionnellement élevée.",
+   "severity": "high",
+   "title": "Grosse dépense isolée",
+   "type": "anomaly",
+   "unit": "€",
+   "value": 777.0
+  }
+ ],
+ "money_flow": {
+  "fixed_charges": {
+   "amount": 1082.0,
+   "diff_prev_month": -51.39,
+   "diff_prev_month_pct": -4.5,
+   "percentage": 3606.7
+  },
+  "income": 30.0,
+  "investments": {
+   "amount": 0.0,
+   "diff_prev_month": 0.0,
+   "diff_prev_month_pct": 0.0,
+   "percentage": 0.0
+  },
+  "month": 6,
+  "remainder": {
+   "amount": -2265.34,
+   "diff_prev_month": -3087.94,
+   "diff_prev_month_pct": -375.4,
+   "percentage": -7551.1
+  },
+  "savings": {
+   "amount": 0.0,
+   "diff_prev_month": 0.0,
+   "diff_prev_month_pct": 0.0,
+   "percentage": 0.0
+  },
+  "top_fixed": [
+   {
+    "amount": 890.0,
+    "category": null,
+    "is_recurring": true,
+    "name": "Foncia — Loyer (Logement)"
+   },
+   {
+    "amount": 86.4,
+    "category": null,
+    "is_recurring": true,
+    "name": "Navigo (Transport)"
+   },
+   {
+    "amount": 61.0,
+    "category": null,
+    "is_recurring": true,
+    "name": "EDF (Énergie)"
+   },
+   {
+    "amount": 19.99,
+    "category": null,
+    "is_recurring": true,
+    "name": "Free Mobile (Abonnement)"
+   },
+   {
+    "amount": 13.49,
+    "category": null,
+    "is_recurring": true,
+    "name": "Netflix (Abonnement)"
+   }
+  ],
+  "top_investments": [],
+  "top_savings": [],
+  "top_variable": [
+   {
+    "amount": 837.99,
+    "category": null,
+    "is_recurring": false,
+    "name": "Instantané loisirs"
+   },
+   {
+    "amount": 131.14,
+    "category": null,
+    "is_recurring": false,
+    "name": "Shopping"
+   },
+   {
+    "amount": 108.45,
+    "category": null,
+    "is_recurring": false,
+    "name": "Nourriture"
+   },
+   {
+    "amount": 62.33,
+    "category": null,
+    "is_recurring": false,
+    "name": "Sortie"
+   },
+   {
+    "amount": 40.53,
+    "category": null,
+    "is_recurring": false,
+    "name": "Transport"
+   }
+  ],
+  "variable_expenses": {
+   "amount": 1213.34,
+   "diff_prev_month": 262.46,
+   "diff_prev_month_pct": 27.6,
+   "percentage": 4044.5
+  },
+  "year": 2026
+ },
+ "month": 6,
+ "net_worth": 3874.65,
+ "net_worth_change": -2088.34,
+ "real_expenses": 2295.34,
+ "real_expenses_excl_exceptional": 2295.34,
+ "savings": -2265.34,
+ "savings_excl_exceptional": -2265.34,
+ "savings_rate": -100.0,
+ "savings_rate_excl_exceptional": -100.0,
+ "top_categories": [
+  {
+   "color": null,
+   "icon": null,
+   "id": 13,
+   "name": "Logement",
+   "prev_total": 890.0,
+   "total": 890.0
+  },
+  {
+   "color": null,
+   "icon": null,
+   "id": 20,
+   "name": "Instantané loisirs",
+   "prev_total": 15.99,
+   "total": 837.99
+  },
+  {
+   "color": null,
+   "icon": null,
+   "id": 18,
+   "name": "Shopping",
+   "prev_total": 111.09,
+   "total": 131.14
+  },
+  {
+   "color": null,
+   "icon": null,
+   "id": 16,
+   "name": "Transport",
+   "prev_total": 127.11,
+   "total": 126.93
+  },
+  {
+   "color": null,
+   "icon": null,
+   "id": 3,
+   "name": "Nourriture",
+   "prev_total": 494.41,
+   "total": 108.45
+  },
+  {
+   "color": null,
+   "icon": null,
+   "id": 4,
+   "name": "Sortie",
+   "prev_total": 186.28,
+   "total": 62.33
+  },
+  {
+   "color": null,
+   "icon": null,
+   "id": 14,
+   "name": "Énergie",
+   "prev_total": 61.0,
+   "total": 61.0
+  },
+  {
+   "color": null,
+   "icon": null,
+   "id": 1,
+   "name": "Abonnement",
+   "prev_total": 44.6,
+   "total": 44.6
+  }
+ ],
+ "top_merchants": [
+  {
+   "merchant": "Foncia — Loyer",
+   "total": 890.0
+  },
+  {
+   "merchant": "VIR SANS LIEN",
+   "total": 777.0
+  },
+  {
+   "merchant": "Navigo",
+   "total": 86.4
+  },
+  {
+   "merchant": "Decathlon",
+   "total": 85.41
+  },
+  {
+   "merchant": "EDF",
+   "total": 61.0
+  }
+ ],
+ "year": 2026
+}

@@ -1,0 +1,65 @@
+{
+ "account_id": null,
+ "balance_points": [],
+ "monthly_flows": [
+  {
+   "burn_rate": 62.39,
+   "expense": 1934.08,
+   "income": 2943.12,
+   "month": 1
+  },
+  {
+   "burn_rate": 79.68,
+   "expense": 2230.98,
+   "income": 2906.87,
+   "month": 2
+  },
+  {
+   "burn_rate": 65.83,
+   "expense": 2040.69,
+   "income": 2927.57,
+   "month": 3
+  },
+  {
+   "burn_rate": 59.06,
+   "expense": 1771.75,
+   "income": 2943.12,
+   "month": 4
+  },
+  {
+   "burn_rate": 67.23,
+   "expense": 2084.27,
+   "income": 2906.87,
+   "month": 5
+  },
+  {
+   "burn_rate": 153.02,
+   "expense": 2295.34,
+   "income": 30.0,
+   "month": 6
+  }
+ ],
+ "salary_series": [
+  {
+   "month": 1,
+   "salary": 2906.87
+  },
+  {
+   "month": 2,
+   "salary": 2906.87
+  },
+  {
+   "month": 3,
+   "salary": 2906.87
+  },
+  {
+   "month": 4,
+   "salary": 2906.87
+  },
+  {
+   "month": 5,
+   "salary": 2906.87
+  }
+ ],
+ "year": 2026
+}
