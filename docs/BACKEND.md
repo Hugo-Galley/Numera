@@ -39,11 +39,15 @@ Le backend de Numera est conçu selon le principe **Local-First & Privacy**. Il 
 backend/
 ├── alembic/                # Scripts de migrations de schéma de base de données
 ├── app/                    # Code source principal de l'application
-│   ├── api/                # Routeurs et endpoints FastAPI
-│   ├── core/               # Logique métier, configuration, sécurité, devises
+│   ├── controllers/        # Routers FastAPI, par domaine (budget, comptes, investissement, analytics, systeme) + deps.py
+│   ├── services/           # Cas d'usage (commit, erreurs métier), même arborescence par domaine (+ audit/)
+│   ├── repositories/       # Requêtes SQLAlchemy, même arborescence par domaine, sans commit
+│   ├── domain/             # Calculs purs (sans Session)
+│   ├── integrations/       # Appels externes (Frankfurter, Yahoo Finance, ntfy/Telegram, logos, backup)
+│   ├── core/               # Transverse : configuration, sécurité, erreurs, logs, migrations
 │   ├── db/                 # Connexion et session SQLAlchemy
 │   ├── models/             # Modèles de l'ORM SQLAlchemy
-│   └── schemas/            # Schémas de validation Pydantic (v2)
+│   ├── schemas/            # Schémas de validation Pydantic (v2)
 │   └── main.py             # Point d'entrée de l'application FastAPI
 ├── data/                   # Répertoire contenant le fichier SQLite (exclu de Git)
 ├── scripts/                # Scripts utilitaires (backups, seeds, migrations)
@@ -60,10 +64,13 @@ graph TD
     Client[Client Frontend React] -->|HTTPS Requests + JWT| API[FastAPI Gateway app/main.py]
     API -->|Validation & Security Depends| Auth[Security Middleware app/controllers/deps.py]
     API -->|Routing| Controllers[API Routers app/controllers/*]
-    Controllers -->|Read/Write SessionLocal| DB[(SQLite Database backend/data/suivi_budget.db)]
-    Controllers -->|Business Logic| Core[Financial Core app/core/*]
-    Core -->|Live Rates Fetch| Frankfurter[Frankfurter API]
-    Core -->|History Rates cache| DB
+    Controllers -->|Use cases| Services[Services app/services/*]
+    Services -->|Queries| Repositories[Repositories app/repositories/*]
+    Services -->|Pure calculations| Domain[Domain app/domain/*]
+    Services -->|External calls| Integrations[Integrations app/integrations/*]
+    Repositories -->|SessionLocal| DB[(SQLite Database backend/data/suivi_budget.db)]
+    Integrations -->|Live Rates Fetch| Frankfurter[Frankfurter API]
+    Integrations -->|History Rates cache| DB
     BackupService[Backup Scheduler scripts/backup_scheduler.py] -->|Backup & encrypt| Backups[(Encrypted backups backups/*.enc)]
     DB -->|Source data| BackupService
 ```

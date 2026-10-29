@@ -216,7 +216,7 @@ Pour un seul fichier de tests : `cd backend && PYTHONPATH=. python3.12 -m pytest
  Claude ──────▶         └── /mcp ──▶ serveur MCP ──▶ FastAPI (lecture seule)
 ```
 
-Le backend utilise FastAPI, SQLAlchemy 2, Alembic et Pydantic v2. Une règle tient l'ensemble : **tous les calculs sont faits par le backend** (`backend/app/services/analytics/` et `backend/app/controllers/analytics/`), le frontend se contente d'afficher. C'est ce qui garantit que l'appli et Claude voient les mêmes chiffres.
+Le backend utilise FastAPI, SQLAlchemy 2, Alembic et Pydantic v2. Une règle tient l'ensemble : **tous les calculs sont faits par le backend** (`backend/app/services/`, notamment `services/analytics/`, exposés par `backend/app/controllers/`), le frontend se contente d'afficher. C'est ce qui garantit que l'appli et Claude voient les mêmes chiffres.
 
 | Pour aller plus loin | |
 |---|---|

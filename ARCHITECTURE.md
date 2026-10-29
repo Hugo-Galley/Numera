@@ -29,14 +29,22 @@ Flux principal:
 backend/
   alembic/              migrations
   app/
-    controllers/        routers REST (ex-api/)
-    services/           cas d'usage : un module par domaine (accounts, transactions + transaction_writes/links,
-                        imports, recurring, salary, month_review, reimbursements, transfers, loans, demo/, ...),
-                        analytics/ (budget/, metrics/, reports/, investments/, portfolio, dividends, diversity, ...),
-                        audit/ (registre de regles), tax, wealth ; portefeuille : portfolio/ (valorisation),
-                        holdings/ (rejeu, inventaire), market/ (cours, recherche), etf_profiles, dividends,
-                        investment_transactions
-    repositories/       requetes SQLAlchemy, un module par domaine (+ analytics/), sans commit
+    controllers/        routers REST (ex-api/), un package par domaine + deps.py (get_db, get_current_user)
+    services/           cas d'usage, meme arborescence par domaine
+    repositories/       requetes SQLAlchemy, meme arborescence par domaine, sans commit
+                        budget/          transactions (+ transaction_writes/links, splits, balances), categories,
+                                         categorization_rules, merchants, tags, imports, exports, recurring(_transactions),
+                                         salary (+ salary_generation, work_time), transfer_rules, transfers,
+                                         reimbursements, provisions, savings_goals, month_review, budget_period,
+                                         subscription_prices
+                        comptes/         accounts, balance_snapshots, reconciliation, loans, financial_events, wealth
+                        investissement/  investment_transactions, holdings/ (rejeu, inventaire), etf_profiles,
+                                         market/ (cours, recherche), tax, dividends, portfolio/ (valorisation),
+                                         security_prices
+                        analytics/       budget/, metrics/, reports/, investments/, portfolio, dividends, diversity, ...
+                                         (controllers : sous-routers montes sous /analytics, dont audit)
+                        audit/           services seulement : Centre d'Actions (registre de regles)
+                        systeme/         auth, totp, passkeys, admin, notifications, logos, health, seeds, demo/
     domain/             calculs purs : finance, transactions, budget, metrics, projections, tax, performance
                         (XIRR/TWR), portfolio, holdings, dividends, diversity, market, etf_profiles (+ etf_presets.json), ...
     integrations/       appels externes : currency (Frankfurter), yahoo_finance, notifications (ntfy, Telegram), logos, backup
@@ -53,8 +61,6 @@ frontend/
     components/         layout, ui (shadcn), dashboard (+ tabs/), investments, settings, classement, import, audit, tools, analytics
     lib/                apiFetch, utils, countries
     types/              types partages (diversity.ts)
-    lib/                apiFetch, utils, countries
-    types/              types partages (diversity.ts)
     pages/              routes principales
     providers/          AuthProvider, UIProvider
 mcp-server/             serveur MCP (server_api.py = proxy API, server_sqlite.py = accès SQLite direct)
@@ -65,18 +71,20 @@ docker-compose.prod.yml, Makefile, setup.sh, install.sh
 
 ## Couches backend
 
-Architecture en couches, migrée progressivement (plan : `docs/superpowers/plans/2026-10-28-architecture-en-couches.md`, conception : `docs/superpowers/specs/2026-10-28-architecture-en-couches-design.md`). Domaine modèle : `accounts` (`controllers/comptes/accounts.py` → `services/comptes/accounts.py` → `repositories/comptes/accounts.py`). Phases 0-3 terminées : tous les routers d'écriture côté budget et administration, et les analytics (budget, Centre d'Actions, métriques, rapports, insights, abonnements, bilan annuel, investissements et projections, fiscalité) suivent ce modèle ; restent le portefeuille (phase 4 : `analytics/portfolio`, `dividends`, `diversity`, `holdings`, `investment_transactions`, `etf_profiles`, `market`, `core/portfolio`…) et le frontend (phase 5). Les chiffres analytics sont figés par `tests/test_analytics_snapshots.py`.
+Architecture en couches, migrée progressivement (plan : `docs/superpowers/plans/2026-10-28-architecture-en-couches.md`, conception : `docs/superpowers/specs/2026-10-28-architecture-en-couches-design.md`). Domaine modèle : `accounts` (`controllers/comptes/accounts.py` → `services/comptes/accounts.py` → `repositories/comptes/accounts.py`). Phases 0-4 et partie backend de la phase 6 terminées : tout le backend suit ce modèle ; reste le frontend (phase 5). Les chiffres sont figés par `tests/test_analytics_snapshots.py` et `tests/test_portfolio_snapshots.py`, la liste des routes par `tests/test_openapi_routes.py`.
+
+`controllers/`, `services/` et `repositories/` sont rangés par domaine, avec la même arborescence dans les trois couches : `budget/`, `comptes/`, `investissement/`, `analytics/`, `audit/` (services seulement ; les requêtes sont dans `repositories/analytics/audit.py`, la route dans `controllers/analytics/audit.py`), `systeme/` (voir l'arborescence ci-dessus). `controllers/deps.py` reste à la racine. `domain/` et `integrations/` restent plats. Un nouveau module va dans le package de son domaine, dans chaque couche ; un nouveau router est ajouté à `protected_routers` (`main.py`).
 
 | Couche | Rôle | N'importe pas |
 |---|---|---|
-| `controllers/` | Controllers : HTTP, `Depends`, `Query`, appel d'un service. Ni `db.query`, ni `commit`, ni import de `app.models`. | un autre module `controllers.*` (sauf `controllers.deps` et son propre package) |
+| `controllers/` | Controllers : HTTP, `Depends`, `Query`, appel d'un service. Ni `db.query`, ni `commit`, ni import de `app.models`. | un module `controllers.*` d'un autre domaine (seuls `controllers.deps` et les modules de son propre package de domaine sont permis) |
 | `services/` | Cas d'usage : orchestration, **commit**, erreurs métier (`NotFoundError` 404, `InvalidOperationError` 400, `BusinessRuleError` 422, `ConflictError` 409, `InternalError` 500, `ExternalServiceError` 502, `ExternalTimeoutError` 504 de `core/errors.py`, traduites en HTTP par `main.py` corps `{"detail": …}`, ou `{"detail": {"code", "detail", "context"}}` si un `code` est fourni). | `app.controllers`, `fastapi` |
 | `repositories/` | Requêtes SQLAlchemy (`repositories/analytics/common.py` : `NET_AMOUNT`, `income_criterion`, `category_lines`…). Jamais de `commit` (`flush` permis). | `app.controllers`, `app.services`, `app.integrations`, `fastapi` |
 | `domain/` | Calculs purs, sans Session (`domain/transactions.py` : `net_amount`, `tx_sample`, `tx_read` ; `budget`, `metrics`, `reports`, `insights`, `wrapped`, `projections`, `investments`, `budget_period`, `subscription_prices`, `tax`, `tax_rules`). | `app.controllers`, `app.services`, `app.repositories`, `app.integrations`, `app.db`, `sqlalchemy.orm`, `fastapi` |
 | `integrations/` | Appels externes : `currency` (Frankfurter), `notifications` (canaux ntfy/Telegram), `logos`, `backup`, `yahoo_finance` (recherche, cours, composition des ETF). | `app.controllers`, `app.services`, `app.repositories` |
-| `core/` | Transverse uniquement (config, sécurité, logs, erreurs, rate limit, TOTP, jetons MCP, migrations, temps) depuis la phase 4 ; règle d'import durcie en phase 6. | `app.controllers` |
+| `core/` | Transverse uniquement (config, sécurité, logs, erreurs, rate limit, TOTP, jetons MCP, migrations, temps) ; n'importe que `core`, `models` et `db`. | `app.controllers`, `app.services`, `app.repositories`, `app.domain`, `app.integrations`, `app.schemas` |
 
-Garde-fous (cliquet, les baselines ne font que diminuer) : `backend/tests/test_architecture.py` + `architecture_baseline.txt` (règles ci-dessus, imports locaux compris, imports vers un module `app.*` introuvable, `commit()` dans `repositories/`) ; `scripts/check_code_size.py` + `scripts/code_size_baseline.json` (plafonds 400 lignes par fichier Python, 80 par fonction, 350 par fichier TS/TSX hors `components/ui`), lancé par `make check-size` / `make validate` et par pytest.
+Garde-fous (cliquet, les baselines ne font que diminuer) : `backend/tests/test_architecture.py` + `architecture_baseline.txt` (règles ci-dessus, imports locaux compris, imports vers un module `app.*` introuvable, `commit()` dans `repositories/`) ; `scripts/check_code_size.py` + `scripts/code_size_baseline.json` (plafonds 400 lignes par fichier Python, 80 par fonction, 350 par fichier TS/TSX hors `components/ui`), lancé par `make check-size` / `make validate` et par pytest. État : baseline d'architecture vide ; baseline de taille réduite aux 21 fichiers frontend de la phase 5.
 
 ## Backend
 
@@ -91,6 +99,8 @@ Garde-fous (cliquet, les baselines ne font que diminuer) : `backend/tests/test_a
 - Les autres routeurs sont inclus avec `Depends(get_current_user)` : JWT de session, ou token MCP (`core/mcp_tokens.py` : empreinte SHA-256 dans `mcp_tokens`, refusé si révoqué, si `mcp_enabled` est faux ou pour toute méthode autre que `GET`/`HEAD`). Le router `/admin` ajoute `require_interactive_session` : 403 pour un token MCP.
 
 ### Modules API
+
+Fichiers de `controllers/<domaine>/` (voir l'arborescence) ; les routes `/analytics/*` sont dans `controllers/analytics/`.
 
 - `auth.py`: login OAuth2 password et génération JWT ; `POST /auth/refresh` (renouvellement glissant d'un jeton de session valide, durée totale bornée par `SESSION_MAX_HOURS` via le claim `auth_time`, refusé aux jetons MCP) ; `GET /auth/whoami` (validation des identifiants, utilisé par le serveur MCP).
 - `passkeys.py`: connexion WebAuthn (Face ID / Touch ID) en plus du mot de passe. `GET /auth/passkey/available` (public), `POST /auth/passkey/login/{options,verify}` (public, même limiteur de tentatives que le mot de passe), `GET/DELETE /auth/passkey` et `POST /auth/passkey/register/{options,verify}` (session interactive). Credentials en JSON dans `system_settings` (`webauthn_credentials`), défi dans un JWT signé de 5 min ; l'en-tête `Origin` doit figurer dans `CORS_ORIGINS` ou avoir le nom d'hôte de la requête (Host / X-Forwarded-Host) ; le RP ID en est le nom d'hôte.
