@@ -169,7 +169,7 @@ Un commit par fichier. ImportFlow : aller jusqu'à l'aperçu d'un CSV **sans val
 
 - [x] `Tax` : `pages/Tax/` : `index.tsx`, `types.ts`, `TaxWidgets.tsx` (`Money`, `Gauge`, `WrapperCardView` déplacés tels quels), hooks `useTax.ts` / `useTaxData.ts` ; composants `TaxSettingsCard`, `AllocationAdviceCard`, `WrappersSection`, `AnnualReportSection`. Plus gros fichier : 95 lignes. Vérifié sur `/tax` : texte, requêtes, boutons, HTML ; réglages ouverts (valeurs identiques).
 - [x] `SalaryManager` : `components/tools/SalaryManager/` (export inchangé) : `index.tsx` (retours anticipés chargement / erreur, `WorkTimeSettings`, `TelecommutingCalendar`), `types.ts`, hooks `useSalaryManager.ts` / `useSalaryData.ts` (dont `nbTickets`, calcul pur remonté) ; composants `SalaryConfigCard`, `MonthSummaryPanel`. Plus gros fichier : 225 lignes. Vérifié dans `/recurring?tab=salary` : texte, requêtes, boutons. La démo n'a pas de configuration salaire (`/salary/config` 404) : la synthèse du mois n'est vérifiée que par tsc.
-- [ ] `ImportFlow`
+- [x] `ImportFlow` : `components/import/ImportFlow/` (export et props inchangés) : `index.tsx`, `types.ts`, hooks `useImportFlow.ts` (reçoit les props) / `useImportState.ts` ; composants `ImportSettingsCard`, `CategoryMappingCard`, `ImportResultCard`, `ImportPreviewCard`. Plus gros fichier : 99 lignes. Vérifié par `/accounts?import=1` : dialogue, choix du compte, CSV de test → `/import/preview` 200 et aperçu identique, **sans valider l'import**.
 - [ ] `ProvisionsSection`
 
 ### Task 11: `components/tools/WealthForecast.tsx` (377), `components/wrapped/WrappedStory.tsx` (373), `components/analytics/SankeyFlow.tsx` (371)
