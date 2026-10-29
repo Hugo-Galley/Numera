@@ -37,7 +37,7 @@ Créer `app/controllers/<nom>.py` (`APIRouter(prefix="/<nom>", tags=[...])`), l'
 
 ## Ajouter un type d'action au Centre d'Actions
 
-Voir `docs/ACTION_CENTER.md` ; `ActionItem.id` doit être déterministe.
+Créer `services/audit/rules/<nom>.py` avec `detect(ctx)`, l'ajouter à `RULES` (`services/audit/__init__.py`) ; requêtes dans `repositories/analytics/audit.py`. Détails : `docs/ACTION_CENTER.md` ; `ActionItem.id` doit être déterministe.
 
 ## Tâche de fond
 
