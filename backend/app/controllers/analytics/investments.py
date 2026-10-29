@@ -885,7 +885,7 @@ async def wealth_forecast(
     `monthly_savings`, `investment_return_pct` et `savings_return_pct` remplacent les valeurs calculées ; la réponse détaille
     les mois et les soldes par type qui ont servi au calcul.
     """
-    from .metrics import kpi_history
+    from app.services.analytics.metrics import compute_kpi_history
 
     allocation = await patrimoine_allocation(db)
     current_wealth = float(allocation["total_patrimoine"])
@@ -943,7 +943,7 @@ async def wealth_forecast(
     weighted = sum(i.balance * i.rate_pct for i in return_breakdown)
     annual_return_pct = weighted / positive_total if positive_total > 0 else 0.0
 
-    history = await kpi_history(months_count=13, account_id=None, db=db)
+    history = await compute_kpi_history(months_count=13, account_id=None, db=db)
     now = datetime.now()
     completed = [r for r in history if not (r["year"] == now.year and r["month"] == now.month)]
     rows = completed[-12:] if completed else history

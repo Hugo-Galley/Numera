@@ -32,7 +32,7 @@ from app.schemas.wrapped import (
 
 from app.services.budget_period import civil_months
 from app.services.analytics.budget import compute_budget
-from .metrics import expenses_by_category, top_merchants
+from app.services.analytics.metrics import compute_expenses_by_category, compute_top_merchants
 from app.repositories.analytics.common import NET_AMOUNT, ticket_restaurant_account_ids, opening_balances_eur
 
 router = APIRouter()
@@ -156,7 +156,7 @@ async def _totals(db: Session, year: int, last_month: int, rates: dict[str, floa
 async def _top_categories(db: Session, year: int, last_month: int, hourly_rate: float | None) -> list[WrappedCategory]:
     totals: dict[int, dict] = {}
     for month in range(1, last_month + 1):
-        data = await expenses_by_category(month=month, year=year, account_id=None, db=db)
+        data = await compute_expenses_by_category(month=month, year=year, account_id=None, db=db)
         for item in data["items"]:
             cat = item["category"]
             if cat["name"] in NON_EXPENSE_CATEGORIES:
@@ -181,7 +181,7 @@ async def _top_categories(db: Session, year: int, last_month: int, hourly_rate: 
 async def _top_merchants(db: Session, year: int, last_month: int, hourly_rate: float | None) -> list[WrappedMerchant]:
     totals: dict[str, float] = {}
     for month in range(1, last_month + 1):
-        data = await top_merchants(month=month, year=year, limit=50, account_id=None, db=db)
+        data = await compute_top_merchants(month=month, year=year, limit=50, account_id=None, db=db)
         for item in data["items"]:
             totals[item["merchant"]] = totals.get(item["merchant"], 0.0) + item["total"]
     ranked = sorted(totals.items(), key=lambda kv: kv[1], reverse=True)[:5]

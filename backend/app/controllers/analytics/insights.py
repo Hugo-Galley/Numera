@@ -49,7 +49,7 @@ from app.core.logging import get_logger
 from app.schemas.transaction import TransactionRead
 from app.services.analytics.budget import compute_budget, compute_budget_alerts, compute_resilience
 from .subscriptions import get_subscription_total_for_period
-from .metrics import expenses_by_category
+from app.services.analytics.metrics import compute_expenses_by_category
 
 logger = get_logger(__name__)
 
@@ -205,7 +205,7 @@ async def get_intelligent_insights(
 
     # 3. Category spending anomalies (Sprint 4: > 2x average of last 3 months)
     # Get current month category totals
-    current_cat_data = await expenses_by_category(month=month, year=year, account_id=account_id, db=db)
+    current_cat_data = await compute_expenses_by_category(month=month, year=year, account_id=account_id, db=db)
     current_cat_totals = {item["category"]["id"]: item["total"] for item in current_cat_data["items"]}
     
     # Get last 3 months averages
@@ -220,7 +220,7 @@ async def get_intelligent_insights(
     
     cat_histories = {} # cat_id -> [totals]
     for m_idx, y_idx in last_3_months:
-        hist_data = await expenses_by_category(month=m_idx, year=y_idx, account_id=account_id, db=db)
+        hist_data = await compute_expenses_by_category(month=m_idx, year=y_idx, account_id=account_id, db=db)
         for item in hist_data["items"]:
             cat_id = item["category"]["id"]
             if cat_id not in cat_histories:

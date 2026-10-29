@@ -28,7 +28,7 @@ Les règles critiques courtes sont dans le `CLAUDE.md` racine ; ce skill détail
 
 ## Virements internes
 
-Un virement est un couple **1 pour 1** : une `Sortie` et une `Entree` (ou un `versement` d'investissement) sur deux comptes différents (`is_transfer`, `linked_transaction_id` / `linked_investment_transaction_id`). Un lien ne change aucun montant. Les « dépenses réelles », les revenus et le taux d'épargne excluent ces lignes (`controllers/analytics/metrics.py`, `budget.py`). Toute la logique est dans `services/transfers.py` :
+Un virement est un couple **1 pour 1** : une `Sortie` et une `Entree` (ou un `versement` d'investissement) sur deux comptes différents (`is_transfer`, `linked_transaction_id` / `linked_investment_transaction_id`). Un lien ne change aucun montant. Les « dépenses réelles », les revenus et le taux d'épargne excluent ces lignes (`services/analytics/metrics/`, `services/analytics/budget/`). Toute la logique est dans `services/transfers.py` :
 
 - `link_pair` / `unlink_pair` : seule porte d'entrée pour lier ou délier (endpoints `POST /transactions/{id}/link/{other_id}`, `.../unlink`). `link_origin` = `manual` | `rule` | `recurring` ; `transfer_rule_id` = règle à l'origine.
 - **Délier un lien `rule` ou `recurring`** marque les deux lignes `is_transfer_ignored`, sinon la règle les relierait aussitôt. Un lien manuel délié n'est pas ignoré.

@@ -22,7 +22,7 @@ from app.services.month_review import exceptional_expenses, month_bounds, saving
 from app.services.analytics.budget import compute_budget
 from app.services.analytics.cashflow import compute_cashflow_projection
 from .insights import get_intelligent_insights
-from .metrics import expenses_by_category, top_merchants
+from app.services.analytics.metrics import compute_expenses_by_category, compute_top_merchants
 logger = get_logger(__name__)
 
 router = APIRouter()
@@ -76,8 +76,8 @@ async def get_monthly_report(
     insights_data = await get_intelligent_insights(month=month, year=year, account_id=account_id, db=db)
     
     # 4. Top categories
-    cat_data = await expenses_by_category(month=month, year=year, account_id=account_id, db=db)
-    prev_cat_data = await expenses_by_category(month=prev_month, year=prev_year, account_id=account_id, db=db)
+    cat_data = await compute_expenses_by_category(month=month, year=year, account_id=account_id, db=db)
+    prev_cat_data = await compute_expenses_by_category(month=prev_month, year=prev_year, account_id=account_id, db=db)
     prev_cat_totals = {item["category"]["id"]: item["total"] for item in prev_cat_data["items"]}
     top_categories = []
     # Sort items by total descending
@@ -98,7 +98,7 @@ async def get_monthly_report(
         })
 
     # 5. Top merchants
-    merch_data = await top_merchants(month=month, year=year, limit=5, account_id=account_id, db=db)
+    merch_data = await compute_top_merchants(month=month, year=year, limit=5, account_id=account_id, db=db)
     
     # 6. Comparison logic
     inc_diff, inc_pct = calc_diff(current_budget["revenus_totaux"], prev_budget["revenus_totaux"])
