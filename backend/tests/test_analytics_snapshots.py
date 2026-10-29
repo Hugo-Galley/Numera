@@ -14,7 +14,8 @@ from pathlib import Path
 import pytest
 from freezegun import freeze_time
 
-import app.core.market_data as market_data
+import app.integrations.yahoo_finance as yahoo_finance
+import app.services.market.quotes as market_quotes
 import app.integrations.currency as currency_mod
 from app.services.demo import generate_demo_data
 from app.models.account import Account
@@ -209,15 +210,15 @@ def snapshot_client(client, db_session, monkeypatch, tmp_path):
     backup_dir.mkdir()
     (backup_dir / "status.json").write_text(json.dumps({"last_error": "disque plein", "last_error_at": "2026-06-14T03:00:00+00:00"}))
     monkeypatch.setenv("BACKUP_DIR", str(backup_dir))
-    monkeypatch.setattr(market_data, "_fetch_chart", no_chart)
-    market_data._QUOTES_CACHE.clear()
+    monkeypatch.setattr(yahoo_finance, "fetch_chart", no_chart)
+    market_quotes._QUOTES_CACHE.clear()
     currency_mod._rates_cache.clear()
     currency_mod._cache_expiry.clear()
     with freeze_time(FROZEN_NOW, tick=False, real_asyncio=True):
         asyncio.run(generate_demo_data(db_session, today=TODAY))
         _add_action_center_cases(db_session)
         yield client
-    market_data._QUOTES_CACHE.clear()
+    market_quotes._QUOTES_CACHE.clear()
     currency_mod._rates_cache.clear()
     currency_mod._cache_expiry.clear()
 

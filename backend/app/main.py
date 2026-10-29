@@ -52,7 +52,7 @@ from app.db.session import SessionLocal
 from app.core.logging import setup_logging, get_logger
 from app.core.etf_analyzer import refresh_held_etf_profiles
 from app.services.notifications import run_notifications
-from app.core.market_data import refresh_held_prices
+from app.services.market.quotes import refresh_held_prices
 from app.services.recurring import generate_recurring_transactions
 from app.services.salary_generation import check_and_generate_pending_salaries
 from app import models  # noqa: F401

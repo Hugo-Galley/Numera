@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from app.core.logging import get_logger
 from app.integrations.currency import get_exchange_rates
 from app.core.etf_analyzer import load_sources
-from app.core.market_data import get_market_quotes, _match_etf_profile
+from app.services.market import quotes as market_quotes, search as market_search
 from app.db.session import get_db
 from app.models.account import Account
 from app.models.balance_snapshot import BalanceSnapshot
@@ -99,7 +99,7 @@ async def diversity_scanner(
 
     # Pre-fetch live quotes
     symbols = [h.ticker for h in holdings]
-    quotes = await get_market_quotes(symbols, db=db)
+    quotes = await market_quotes.get_market_quotes(symbols, db=db)
     fx_rates = await get_exchange_rates("EUR")
 
     # 2. Value each holding in EUR
@@ -115,7 +115,7 @@ async def diversity_scanner(
 
         profile_id = h.etf_profile_id
         if not profile_id:
-            matched_p = _match_etf_profile(db, symbol=h.ticker, isin=h.isin, name=h.asset_name)
+            matched_p = market_search.match_etf_profile(db, symbol=h.ticker, isin=h.isin, name=h.asset_name)
             if not matched_p:
                 norm_upper = f"{h.ticker} {h.asset_name or ''}".upper()
                 if (
@@ -215,7 +215,7 @@ async def diversity_scanner(
 
         etf_profile = profiles_by_id.get(vh["etf_profile_id"]) if vh["etf_profile_id"] else None
         if not etf_profile:
-            etf_profile = _match_etf_profile(db, symbol=vh["ticker"], isin=vh.get("isin"), name=vh.get("name"))
+            etf_profile = market_search.match_etf_profile(db, symbol=vh["ticker"], isin=vh.get("isin"), name=vh.get("name"))
 
         if etf_profile:
             # It's an ETF -> decompose into underlying assets

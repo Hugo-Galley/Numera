@@ -78,7 +78,7 @@ def test_transfer_recurrence_validation(client, db_session: Session):
 
 from datetime import date as date_type
 
-from app.core import market_data
+import app.services.market.quotes as market_quotes
 from app.models.portfolio_holding import PortfolioHolding
 
 
@@ -90,8 +90,8 @@ def fake_market(monkeypatch):
     async def fake_quotes(symbols, db=None):
         return {s: {"price": 999.0, "currency": "EUR"} for s in symbols}
 
-    monkeypatch.setattr(market_data, "get_price_on", fake_price_on)
-    monkeypatch.setattr(market_data, "get_market_quotes", fake_quotes)
+    monkeypatch.setattr(market_quotes, "get_price_on", fake_price_on)
+    monkeypatch.setattr(market_quotes, "get_market_quotes", fake_quotes)
 
 
 def test_dca_transfer_buys_shares_at_historical_price(db_session: Session, monkeypatch):

@@ -4,7 +4,8 @@ from datetime import date, datetime, timedelta
 import pytest
 
 import app.integrations.currency as currency_mod
-import app.core.market_data as market_data
+import app.integrations.yahoo_finance as yahoo_finance
+import app.services.market.quotes as market_quotes
 from app.services.recurring import generate_recurring_transactions
 from app.models.account import Account
 from app.models.investment_transaction import InvestmentTransaction
@@ -22,11 +23,11 @@ def offline_market(monkeypatch):
     async def fake_historical_rate(db, day, currency, base="EUR"):
         return {"EUR": 1.0, "USD": 2.0}[currency]
 
-    monkeypatch.setattr(market_data, "_fetch_chart", no_chart)
+    monkeypatch.setattr(yahoo_finance, "fetch_chart", no_chart)
     monkeypatch.setattr(currency_mod, "get_historical_rate", fake_historical_rate)
-    market_data._QUOTES_CACHE.clear()
+    market_quotes._QUOTES_CACHE.clear()
     yield
-    market_data._QUOTES_CACHE.clear()
+    market_quotes._QUOTES_CACHE.clear()
 
 
 def _account(client, name="PEA", currency="EUR") -> int:
@@ -204,8 +205,8 @@ async def test_quote_is_stored_and_used_when_yahoo_fails(db_session, monkeypatch
     async def chart_ok(client, sym, params):
         return {"meta": {"regularMarketPrice": 512.3, "currency": "EUR", "regularMarketTime": 1780000000}}
 
-    monkeypatch.setattr(market_data, "_fetch_chart", chart_ok)
-    quote = (await market_data.get_market_quotes(["CW8.PA"], db=db_session))["CW8.PA"]
+    monkeypatch.setattr(yahoo_finance, "fetch_chart", chart_ok)
+    quote = (await market_quotes.get_market_quotes(["CW8.PA"], db=db_session))["CW8.PA"]
     assert quote["price"] == pytest.approx(512.3)
     assert quote["stale"] is False
     assert db_session.query(SecurityPrice).filter_by(ticker="CW8.PA").count() == 1
@@ -213,9 +214,9 @@ async def test_quote_is_stored_and_used_when_yahoo_fails(db_session, monkeypatch
     async def chart_down(client, sym, params):
         raise RuntimeError("Yahoo down")
 
-    monkeypatch.setattr(market_data, "_fetch_chart", chart_down)
-    market_data._QUOTES_CACHE.clear()
-    quote = (await market_data.get_market_quotes(["CW8.PA"], db=db_session))["CW8.PA"]
+    monkeypatch.setattr(yahoo_finance, "fetch_chart", chart_down)
+    market_quotes._QUOTES_CACHE.clear()
+    quote = (await market_quotes.get_market_quotes(["CW8.PA"], db=db_session))["CW8.PA"]
     assert quote["price"] == pytest.approx(512.3)  # dernier cours connu, pas 0
     assert quote["stale"] is True
 
@@ -228,13 +229,7 @@ async def test_price_on_uses_last_close_before_date(db_session):
     ])
     db_session.commit()
     # Samedi 7 mars : clôture du vendredi
-    assert (await market_data.get_price_on(db_session, "CW8.PA", date(2026, 3, 7)))["price"] == 500.0
+    assert (await market_quotes.get_price_on(db_session, "CW8.PA", date(2026, 3, 7)))["price"] == 500.0
     # Rien d'assez proche (et Yahoo hors ligne) : None
-    assert await market_data.get_price_on(db_session, "CW8.PA", date(2025, 1, 1)) is None
+    assert await market_quotes.get_price_on(db_session, "CW8.PA", date(2025, 1, 1)) is None
 
-
-def test_guess_quote_currency():
-    assert market_data.guess_quote_currency("IE0002XZSHO1.SG") == "EUR"
-    assert market_data.guess_quote_currency("BTC-EUR") == "EUR"
-    assert market_data.guess_quote_currency("VUSA.L") == "GBP"
-    assert market_data.guess_quote_currency("AAPL") == "USD"

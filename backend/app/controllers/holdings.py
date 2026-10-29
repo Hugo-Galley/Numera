@@ -19,7 +19,8 @@ from app.schemas.holding import (
 from app.integrations.currency import get_exchange_rates
 from app.core.dividends import HoldingDividends, load_dividends_eur, summarize_by_holding
 from app.core.holdings import TRADE_TYPES, estimate_baseline_costs, normalize_ticker, rebuild_holdings, trade_cutoff
-from app.core.market_data import get_market_quotes, suggest_holdings_from_notes
+from app.services.market.quotes import get_market_quotes
+from app.services.market.suggestions import suggest_holdings_from_notes
 from app.core.time import utcnow_naive
 
 router = APIRouter(prefix="/holdings", tags=["holdings"])

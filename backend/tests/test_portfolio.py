@@ -4,7 +4,9 @@ from datetime import date, datetime, timedelta
 import pytest
 
 import app.integrations.currency as currency_mod
-import app.core.market_data as market_data
+import app.integrations.yahoo_finance as yahoo_finance
+import app.services.market.quotes as market_quotes
+import app.repositories.security_prices as security_prices
 from app.core.portfolio import twr, xirr
 from app.models.balance_snapshot import BalanceSnapshot
 
@@ -17,11 +19,11 @@ def offline_market(monkeypatch):
     async def fake_historical_rate(db, day, currency, base="EUR"):
         return {"EUR": 1.0, "USD": 2.0}[currency]
 
-    monkeypatch.setattr(market_data, "_fetch_chart", no_chart)
+    monkeypatch.setattr(yahoo_finance, "fetch_chart", no_chart)
     monkeypatch.setattr(currency_mod, "get_historical_rate", fake_historical_rate)
-    market_data._QUOTES_CACHE.clear()
+    market_quotes._QUOTES_CACHE.clear()
     yield
-    market_data._QUOTES_CACHE.clear()
+    market_quotes._QUOTES_CACHE.clear()
 
 
 def _iso(days_ago: int) -> str:
@@ -35,7 +37,7 @@ def _day(days_ago: int) -> date:
 def _prices(db_session, ticker, *points, currency="EUR"):
     """points : (jours en arrière, cours)."""
     for days_ago, close in points:
-        market_data.store_price(db_session, ticker, _day(days_ago), close, currency)
+        security_prices.store_price(db_session, ticker, _day(days_ago), close, currency)
     db_session.commit()
 
 
@@ -296,7 +298,7 @@ def test_usd_line_splits_unrealized_gain_into_price_and_currency_effect(client, 
     async def current_rates(base="EUR"):
         return {"EUR": 1.0, "USD": 1.6}  # le dollar a monté depuis l'achat (taux historique : 2,0)
 
-    monkeypatch.setattr(market_data, "get_exchange_rates", current_rates)
+    monkeypatch.setattr(market_quotes, "get_exchange_rates", current_rates)
     monkeypatch.setattr(currency_mod, "get_exchange_rates", current_rates)
     import app.core.portfolio as portfolio_mod
     monkeypatch.setattr(portfolio_mod, "get_exchange_rates", current_rates)

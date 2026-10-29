@@ -4,7 +4,9 @@ from datetime import date, datetime, timedelta
 import pytest
 
 import app.integrations.currency as currency_mod
-import app.core.market_data as market_data
+import app.integrations.yahoo_finance as yahoo_finance
+import app.services.market.quotes as market_quotes
+import app.repositories.security_prices as security_prices
 from app.domain.tax_rules import rules_for
 from app.models.investment_transaction import InvestmentTransaction
 
@@ -114,11 +116,11 @@ def offline_market(monkeypatch):
     async def fake_historical_rate(db, day, currency, base="EUR"):
         return {"EUR": 1.0, "USD": 2.0}[currency]
 
-    monkeypatch.setattr(market_data, "_fetch_chart", no_chart)
+    monkeypatch.setattr(yahoo_finance, "fetch_chart", no_chart)
     monkeypatch.setattr(currency_mod, "get_historical_rate", fake_historical_rate)
-    market_data._QUOTES_CACHE.clear()
+    market_quotes._QUOTES_CACHE.clear()
     yield
-    market_data._QUOTES_CACHE.clear()
+    market_quotes._QUOTES_CACHE.clear()
 
 
 def _iso(days_ago: int) -> str:
@@ -141,8 +143,8 @@ def _cto_with_sale_and_dividend(client, db_session, *, wrapper="cto"):
     })
     assert resp.status_code == 200, resp.text
     for when, close in (((1, 5), 100.0), ((6, 15), 130.0)):
-        market_data.store_price(db_session, "CW8.PA", date(YEAR, *when), close, "EUR")
-    market_data.store_price(db_session, "CW8.PA", date.today(), 120.0, "EUR")
+        security_prices.store_price(db_session, "CW8.PA", date(YEAR, *when), close, "EUR")
+    security_prices.store_price(db_session, "CW8.PA", date.today(), 120.0, "EUR")
     db_session.commit()
     sale = client.post("/investment-transactions", json={
         "account_id": account["id"], "date": _at(6, 15), "type": "vente", "amount": 520.0,
@@ -197,7 +199,7 @@ def test_annual_report_loss_goes_to_box_3vh_and_is_not_taxed(client, db_session,
         "account_id": account["id"], "date": _at(1, 5),
         "holdings": [{"ticker": "CW8.PA", "asset_name": "MSCI World", "quantity": 10, "buy_price_avg": 100.0, "currency": "EUR"}],
     })
-    market_data.store_price(db_session, "CW8.PA", date(YEAR, 6, 15), 80.0, "EUR")
+    security_prices.store_price(db_session, "CW8.PA", date(YEAR, 6, 15), 80.0, "EUR")
     db_session.commit()
     client.post("/investment-transactions", json={
         "account_id": account["id"], "date": _at(6, 15), "type": "vente", "amount": 320.0,
@@ -255,7 +257,7 @@ def test_annual_report_does_not_fetch_market_quotes(client, db_session, offline_
         raise AssertionError("le récap annuel ne doit pas interroger le marché")
 
     monkeypatch.setattr("app.core.portfolio.get_market_quotes", forbidden)
-    monkeypatch.setattr(market_data, "get_market_quotes", forbidden)
+    monkeypatch.setattr(market_quotes, "get_market_quotes", forbidden)
     report = client.get(f"/tax/annual-report?year={YEAR}")
     assert report.status_code == 200, report.text
     assert report.json()["box_3vg"] == pytest.approx(120.0)

@@ -10,7 +10,7 @@ from datetime import date, datetime, timedelta
 
 from sqlalchemy.orm import Session
 
-from app.core import market_data
+from app.services.market import quotes as market_quotes
 from app.integrations.currency import CurrencyConversionError, convert_amount
 from app.core.holdings import rebuild_holdings
 from app.core.logging import get_logger
@@ -32,10 +32,10 @@ async def _market_price(db: Session, ticker: str, day: date) -> tuple[float, str
     rattrapée après coup), sinon cotation en direct. None si aucun cours exploitable."""
     try:
         if day < date.today():
-            hist = await market_data.get_price_on(db, ticker, day)
+            hist = await market_quotes.get_price_on(db, ticker, day)
             if hist and hist["price"] and float(hist["price"]) > 0:
                 return round(float(hist["price"]), 4), hist.get("currency")
-        quotes = await market_data.get_market_quotes([ticker], db=db)
+        quotes = await market_quotes.get_market_quotes([ticker], db=db)
         q_data = quotes.get(ticker, {})
         if q_data.get("price") and float(q_data["price"]) > 0:
             return round(float(q_data["price"]), 4), q_data.get("currency")

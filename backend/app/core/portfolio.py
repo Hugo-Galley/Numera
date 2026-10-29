@@ -19,7 +19,7 @@ from app.integrations.currency import CurrencyConversionError, convert_amount, g
 from app.core.dividends import load_dividends_eur
 from app.core.holdings import EPSILON, Replay, is_trade, replay_account
 from app.core.logging import get_logger
-from app.core.market_data import fetch_price_history, get_market_quotes
+from app.services.market.quotes import fetch_price_history, get_market_quotes
 from app.models.account import Account
 from app.models.balance_snapshot import BalanceSnapshot
 from app.models.category import Category

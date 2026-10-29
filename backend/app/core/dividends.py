@@ -15,7 +15,7 @@ from sqlalchemy.orm import Session
 
 from app.integrations.currency import CurrencyConversionError, convert_amount
 from app.core.logging import get_logger
-from app.core.market_data import extract_asset_clean_name
+from app.domain.market import extract_asset_clean_name
 from app.models.account import Account
 from app.models.investment_transaction import InvestmentTransaction
 

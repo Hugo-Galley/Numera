@@ -4,7 +4,8 @@ from datetime import datetime, timedelta
 import pytest
 
 import app.integrations.currency as currency_mod
-import app.core.market_data as market_data
+import app.integrations.yahoo_finance as yahoo_finance
+import app.services.market.quotes as market_quotes
 from app.core.dividends import match_dividend_ticker
 from app.models.investment_transaction import InvestmentTransaction
 from app.models.portfolio_holding import PortfolioHolding
@@ -27,11 +28,11 @@ def offline_market(monkeypatch):
     async def fake_historical_rate(db, day, currency, base="EUR"):
         return {"EUR": 1.0, "USD": 2.0}[currency]
 
-    monkeypatch.setattr(market_data, "_fetch_chart", no_chart)
+    monkeypatch.setattr(yahoo_finance, "fetch_chart", no_chart)
     monkeypatch.setattr(currency_mod, "get_historical_rate", fake_historical_rate)
-    market_data._QUOTES_CACHE.clear()
+    market_quotes._QUOTES_CACHE.clear()
     yield
-    market_data._QUOTES_CACHE.clear()
+    market_quotes._QUOTES_CACHE.clear()
 
 
 def _iso(days_ago: int) -> str:

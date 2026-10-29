@@ -36,10 +36,10 @@ backend/
     repositories/       requetes SQLAlchemy, un module par domaine (+ analytics/common)
     domain/             calculs purs : finance, transactions, transfers, csv_import, loans, salary,
                         savings_goals, recurring, exports
-    integrations/       appels externes : currency (Frankfurter), notifications (ntfy, Telegram), logos, backup
+    integrations/       appels externes : currency (Frankfurter), yahoo_finance, notifications (ntfy, Telegram), logos, backup
     core/               transverse (config, errors, security, logging, login_rate_limit, totp, mcp_tokens, ...)
                         et metier herite, a migrer : wealth, budget_period, subscription_prices, tax*
-                        (phase 3) ; portfolio, holdings, dividends, market_data, etf_analyzer, seeds_etf (phase 4)
+                        (phase 3) ; portfolio, holdings, dividends, etf_analyzer, seeds_etf (phase 4)
     db/                 session SQLAlchemy, system_settings (get_setting/set_setting)
     models/             modeles ORM
     schemas/            schemas Pydantic

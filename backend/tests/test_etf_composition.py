@@ -129,12 +129,12 @@ def test_refresh_held_only_touches_held_profiles(client: TestClient, db_session:
 
 
 def test_diversity_puts_uncovered_weight_in_non_renseigne(client: TestClient, db_session: Session, monkeypatch):
-    from app.controllers.analytics import diversity
+    from app.services.market import quotes as market_quotes
 
     async def fake_quotes(symbols, db=None):
         return {s.upper(): {"price_eur": 100.0, "type": "ETF"} for s in symbols}
 
-    monkeypatch.setattr(diversity, "get_market_quotes", fake_quotes)
+    monkeypatch.setattr(market_quotes, "get_market_quotes", fake_quotes)
     profile = EtfProfile(
         name="Fonds Yahoo", ticker="WLD.PA", aliases="[]", countries="{}",
         sectors=json.dumps({"Technologie": 60.0}), top_holdings="[]",
