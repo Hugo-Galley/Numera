@@ -28,8 +28,8 @@ si le budget le permet. Commits directement sur main, sans push.
 ### État (mis à jour à chaque tâche)
 
 - **Fait** : tâches 1 à 7 (`AccountDetail`, `RecurringTransactions`, `WealthSimulator`, `Accounts`, `Audit`, `Investments` + `Savings`, `HoldingsTable` + `PointZeroModal`), un commit « refactor(frontend): découpe de … » par fichier. Baseline : **12 entrées**.
-- **Fait aussi** : tâche 8 (`OverviewTab`). Baseline : **11 entrées**.
-- **Prochaine tâche** : tâche 9 (`Calendar`, puis `MerchantsTab`, `CategoriesTab`, `Omnibox`).
+- **Fait aussi** : tâche 8 (`OverviewTab`), tâche 9 pour `Calendar`. Baseline : **10 entrées**.
+- **Prochaine tâche** : tâche 9, suite (`MerchantsTab`, puis `CategoriesTab`, `Omnibox`).
 - Aucune tâche entamée à moitié.
 
 ### Conventions de l'utilisateur (sans redemander)
@@ -157,6 +157,11 @@ Fait. `components/dashboard/tabs/OverviewTab/` (export et props inchangés) : `i
 ### Task 9: `pages/Calendar.tsx` (519), `components/classement/MerchantsTab.tsx` (511), `CategoriesTab.tsx` (510), `components/layout/Omnibox.tsx` (509)
 
 Un commit par fichier. Omnibox : ⌘K, recherche, navigation clavier (vérifier par `KeyboardEvent`).
+
+- [x] `Calendar` : `pages/Calendar/` (export par défaut et prop `embedded` inchangés ; `lazy(() => import("@/pages/Calendar"))` de `RecurringTransactions` inchangé) : `index.tsx`, `types.ts`, hooks `useCalendar.ts` / `useCalendarData.ts` ; composants `CalendarGrid`, `CalendarSummary`, `DayDetailDialog`. Plus gros fichier : 161 lignes. Vérifié dans `/recurring?tab=calendar` : texte, requêtes, boutons, détail de 3 jours.
+- [ ] `MerchantsTab`
+- [ ] `CategoriesTab`
+- [ ] `Omnibox`
 
 ### Task 10: `pages/Tax.tsx` (478), `components/tools/SalaryManager.tsx` (450), `components/import/ImportFlow.tsx` (405), `components/savings/ProvisionsSection.tsx` (386)
 
