@@ -28,8 +28,8 @@ si le budget le permet. Commits directement sur main, sans push.
 ### État (mis à jour à chaque tâche)
 
 - **Fait** : tâches 1 à 7 (`AccountDetail`, `RecurringTransactions`, `WealthSimulator`, `Accounts`, `Audit`, `Investments` + `Savings`, `HoldingsTable` + `PointZeroModal`), un commit « refactor(frontend): découpe de … » par fichier. Baseline : **12 entrées**.
-- **Fait aussi** : tâches 8 (`OverviewTab`) et 9 (`Calendar`, `MerchantsTab`, `CategoriesTab`, `Omnibox`). Baseline : **7 entrées**.
-- **Prochaine tâche** : tâche 10 (`Tax`, puis `SalaryManager`, `ImportFlow`, `ProvisionsSection`).
+- **Fait aussi** : tâches 8 (`OverviewTab`) et 9 (`Calendar`, `MerchantsTab`, `CategoriesTab`, `Omnibox`). Baseline : **6 entrées**.
+- **Prochaine tâche** : tâche 10, suite (`SalaryManager`, puis `ImportFlow`, `ProvisionsSection`).
 - Aucune tâche entamée à moitié.
 
 ### Conventions de l'utilisateur (sans redemander)
@@ -166,6 +166,11 @@ Un commit par fichier. Omnibox : ⌘K, recherche, navigation clavier (vérifier 
 ### Task 10: `pages/Tax.tsx` (478), `components/tools/SalaryManager.tsx` (450), `components/import/ImportFlow.tsx` (405), `components/savings/ProvisionsSection.tsx` (386)
 
 Un commit par fichier. ImportFlow : aller jusqu'à l'aperçu d'un CSV **sans valider l'import**.
+
+- [x] `Tax` : `pages/Tax/` : `index.tsx`, `types.ts`, `TaxWidgets.tsx` (`Money`, `Gauge`, `WrapperCardView` déplacés tels quels), hooks `useTax.ts` / `useTaxData.ts` ; composants `TaxSettingsCard`, `AllocationAdviceCard`, `WrappersSection`, `AnnualReportSection`. Plus gros fichier : 95 lignes. Vérifié sur `/tax` : texte, requêtes, boutons, HTML ; réglages ouverts (valeurs identiques).
+- [ ] `SalaryManager`
+- [ ] `ImportFlow`
+- [ ] `ProvisionsSection`
 
 ### Task 11: `components/tools/WealthForecast.tsx` (377), `components/wrapped/WrappedStory.tsx` (373), `components/analytics/SankeyFlow.tsx` (371)
 
