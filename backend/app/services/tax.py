@@ -4,6 +4,8 @@ from datetime import date, datetime
 from sqlalchemy.orm import Session
 
 from app.services.accounts import account_balance
+from app.services.analytics.budget import compute_resilience
+from app.core.logging import get_logger
 from app.core.dividends import load_dividends_eur
 from app.core.holdings import replay_account
 from app.domain.tax import (
@@ -25,6 +27,8 @@ from app.models.account import Account
 from app.models.balance_snapshot import BalanceSnapshot
 from app.models.investment_transaction import InvestmentTransaction
 from app.schemas.tax import AllocationAdvice, AnnualReport, CtoYearRow, TaxOverview, TaxSettings, TaxSettingsUpdate, WrapperCard, WrapperSuggestion
+
+logger = get_logger(__name__)
 
 SETTING_KEYS = {
     "tmi_pct": "tax_tmi_pct",
@@ -147,6 +151,22 @@ def build_overview(db: Session, today: date, precaution_months: float | None = N
         year=today.year, settings=settings, wrappers=cards, suggestions=suggestions,
         allocation_advice=[AllocationAdvice(**step) for step in advice], precaution_months=precaution_months,
     )
+
+
+async def annual_report(db: Session, year: int | None) -> AnnualReport:
+    """Rapport fiscal de l'année demandée (année en cours par défaut)."""
+    return await build_annual_report(db, year or date.today().year)
+
+
+async def tax_overview(db: Session, today: date | None = None) -> TaxOverview:
+    """Vue fiscale du jour ; sans épargne de précaution calculable, le conseil reste donné (`precaution_months` None)."""
+    today = today or date.today()
+    try:
+        months = (await compute_resilience(db, today.year, today.month))["months"]
+    except Exception as exc:  # le conseil reste utile sans l'épargne de précaution
+        logger.warning(f"Resilience unavailable for tax advice: {exc}")
+        months = None
+    return build_overview(db, today, months)
 
 
 async def build_annual_report(db: Session, year: int) -> AnnualReport:

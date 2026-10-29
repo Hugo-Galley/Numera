@@ -98,6 +98,19 @@ def months_back(db: Session, count: int, today: datetime | None = None) -> list[
     return [((base - i) // 12, (base - i) % 12 + 1) for i in range(count - 1, -1, -1)]
 
 
+def period_info(db: Session, year: int | None = None, month: int | None = None) -> dict:
+    """Mois budgétaire en cours et fenêtre (début / fin incluse) du mois demandé (par défaut, le mois en cours)."""
+    current_year, current_month = current_period(db)
+    info = describe(db, year or current_year, month or current_month)
+    return {**info, "current": {"year": current_year, "month": current_month}}
+
+
+def update_mode(db: Session, mode: str) -> dict:
+    """Change le mode (civil ou mois de paie) et renvoie la période en cours."""
+    set_mode(db, mode)
+    return period_info(db)
+
+
 def describe(db: Session, year: int, month: int) -> dict:
     start, end = period_bounds(db, year, month)
     return {
@@ -118,8 +131,10 @@ __all__ = [
     "describe",
     "get_mode",
     "months_back",
+    "period_info",
     "period_bounds",
     "period_key_expr",
     "salary_dates",
     "set_mode",
+    "update_mode",
 ]

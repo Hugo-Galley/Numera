@@ -52,12 +52,9 @@ def get_budget_period(
     db: Session = Depends(get_db),
 ):
     """Mois budgétaire en cours et fenêtre (début / fin incluse) du mois demandé."""
-    current_year, current_month = budget_period.current_period(db)
-    info = budget_period.describe(db, year or current_year, month or current_month)
-    return {**info, "current": {"year": current_year, "month": current_month}}
+    return budget_period.period_info(db, year, month)
 
 
 @router.put("/budget-period")
 def set_budget_period_mode(payload: BudgetPeriodModeUpdate, db: Session = Depends(get_db)):
-    budget_period.set_mode(db, payload.mode)
-    return get_budget_period(year=None, month=None, db=db)
+    return budget_period.update_mode(db, payload.mode)
