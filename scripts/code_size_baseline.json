@@ -1,6 +1,5 @@
 {
   "frontend/src/components/analytics/SankeyFlow.tsx": 371,
-  "frontend/src/components/analytics/WealthSimulator.tsx": 1169,
   "frontend/src/components/classement/CategoriesTab.tsx": 510,
   "frontend/src/components/classement/MerchantsTab.tsx": 511,
   "frontend/src/components/dashboard/tabs/OverviewTab.tsx": 622,

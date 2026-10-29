@@ -27,8 +27,8 @@ si le budget le permet. Commits directement sur main, sans push.
 
 ### État (mis à jour à chaque tâche)
 
-- **Fait** : tâches 1 (`AccountDetail`) et 2 (`RecurringTransactions`), un commit « refactor(frontend): découpe de … » chacune. Baseline : **19 entrées**.
-- **Prochaine tâche** : tâche 3 (`WealthSimulator`).
+- **Fait** : tâches 1 à 3 (`AccountDetail`, `RecurringTransactions`, `WealthSimulator`), un commit « refactor(frontend): découpe de … » chacune. Baseline : **18 entrées**.
+- **Prochaine tâche** : tâche 4 (`Accounts`).
 - Aucune tâche entamée à moitié.
 
 ### Conventions de l'utilisateur (sans redemander)
@@ -115,7 +115,9 @@ Fait. `pages/RecurringTransactions/` : `index.tsx` (onglets, calendrier en `lazy
 
 Écrans : chaque onglet `?tab=` (dont `calendar` et `salary`, qui embarquent `Calendar.tsx` et `SalaryManager` : ne pas les toucher ici). Dossier `pages/RecurringTransactions/`.
 
-### Task 3: `components/analytics/WealthSimulator.tsx` (1 169)
+### Task 3: `components/analytics/WealthSimulator.tsx` (1 169) ✅
+
+Fait. `components/analytics/WealthSimulator/` : `index.tsx` (export nommé `WealthSimulator`, mêmes props ; import de `pages/Tools.tsx` inchangé), `types.ts`, hooks `useWealthSimulator.ts` (reçoit `initialCapitalDefault`), `useSimulatorState.ts`, `useSimulatorActions.tsx` (dont l'infobulle) ; composants `BaseTab`, `AllocationTab`, `AdvancedTab`, `EventsTab`, `DetailTable`, `SimulatorKpis`, `SimulatorChart`, `AssetDialog`. Plus gros fichier : 172 lignes. Vérifié sur `/tools` → « Mode avancé » (volatilité nulle : déterministe) : texte des 4 onglets, boutons et requête `/analytics/wealth-simulation` identiques. `splitlib.py` accepte des props (`hooks(..., args=[(nom, type)])`, `index(..., head=, call_args=, default=False)`).
 
 Dossier `components/analytics/WealthSimulator/`. Écran : `/tools` (et tout autre consommateur : `grep -rn WealthSimulator frontend/src`). Le simulateur Monte-Carlo est aléatoire avec volatilité : comparer avec volatilité nulle ou ne comparer que les champs déterministes.
 
