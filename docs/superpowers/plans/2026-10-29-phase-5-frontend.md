@@ -176,6 +176,8 @@ Un commit par fichier. ImportFlow : aller jusqu'à l'aperçu d'un CSV **sans val
 
 Petits dépassements : souvent un sous-composant ou un utilitaire à sortir suffit. Un commit par fichier.
 
+- [x] `WealthForecast` : une seule grosse fonction, donc dossier `components/tools/WealthForecast/` (export inchangé) : `index.tsx` (retours anticipés, contexte « vue » `WealthForecastView` avec `data` non nul, `boostedShown`, `final`), `types.ts`, `forecastParts.tsx` (`HORIZONS`, `Step`, `EXTRA_PRESETS`), hooks `useWealthForecast.ts` / `useForecastData.ts` ; composants `ForecastSummaryCard`, `ForecastChartCard`, `ForecastMethodCard`. Plus gros fichier : 150 lignes. Vérifié sur `/tools` contre l'original rebranché temporairement. `splitlib.py` : `hooks(..., view=(nom, champs))` et marqueur `[Composant, indent, "view"]`.
+
 ### Task 12: appels typés `lib/api/<domaine>.ts` et clôture
 
 - Créer `lib/api/<domaine>.ts` (au-dessus de `lib/api.ts`, qui reste) pour les domaines des pages découpées (`accounts`, `transactions`, `investments`, `recurring`, `analytics`…) : une fonction typée par appel, mêmes URL et paramètres ; remplacer les `api.get(...)` des hooks par ces fonctions. Vérification : relevé réseau identique (URL et ordre).
