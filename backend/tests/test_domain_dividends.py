@@ -1,7 +1,7 @@
 """Rattachement des dividendes et agrégats par position (sans base)."""
 from datetime import datetime
 
-from app.domain.dividends import DividendRow, match_dividend_ticker, summarize_by_holding
+from app.domain.dividends import DividendRow, aggregate_dividends, match_dividend_ticker, month_keys, summarize_by_holding
 from app.models.investment_transaction import InvestmentTransaction
 
 
@@ -26,3 +26,19 @@ def test_summarize_by_holding_last_12m():
     item = summary[(1, "TTE.PA")]
     assert (item.total_eur, item.last_12m_eur, item.count, item.last_date.isoformat()) == (15.0, 5.0, 2, "2026-06-05")
     assert rows[0].gross_eur == 12.0
+
+
+def test_month_keys_wraps_year():
+    assert month_keys(datetime(2026, 2, 10), 3) == ["2025-12", "2026-01", "2026-02"]
+
+
+def test_aggregate_dividends_unlinked():
+    rows = [
+        DividendRow(InvestmentTransaction(account_id=1, ticker=None, note="Dividende ?", date=datetime(2026, 3, 1)), 4.0, 1.0),
+        DividendRow(InvestmentTransaction(account_id=1, ticker="tte.pa", note="Dividende TTE", date=datetime(2025, 1, 1)), 10.0, 0.0),
+    ]
+    agg = aggregate_dividends(rows, since=datetime(2025, 6, 15))
+    assert (agg.totals.count, agg.totals.net_eur, agg.totals.withholding_eur, agg.totals.last_12m_eur) == (2, 14.0, 1.0, 4.0)
+    assert (agg.unlinked.count, agg.unlinked.total_eur) == (1, 4.0)
+    assert agg.by_ticker["TTE.PA"]["total"] == 10.0 and agg.by_ticker["TTE.PA"]["last12"] == 0.0
+    assert dict(agg.by_month) == {"2026-03": 4.0, "2025-01": 10.0}

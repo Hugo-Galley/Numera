@@ -190,7 +190,7 @@ def test_link_existing_dividends_by_label(client, db_session):
 # ─── Agrégats ───────────────────────────────────────────────────────────────
 
 def test_dividend_summary_converts_to_eur_and_computes_yields(client, monkeypatch):
-    import app.controllers.analytics.dividends as dividends_api
+    import app.services.analytics.dividends as dividends_api
 
     async def fake_quotes(symbols, db=None):
         return {s.upper(): {"price": 200.0, "price_eur": 200.0} for s in symbols}

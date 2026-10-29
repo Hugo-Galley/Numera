@@ -1,12 +1,14 @@
 """Portefeuille titres : comptes valorisés par positions et synthèse (valeur, plus-values, dividendes, XIRR)."""
 from sqlalchemy.orm import Session
 
-from app.services.holdings.replay import replay_account
+from app.core.errors import BusinessRuleError, NotFoundError
 from app.domain.performance import xirr
 from app.domain.portfolio import uses_positions
-from app.services.portfolio import compute_portfolio
+from app.repositories import accounts as accounts_repo
 from app.repositories.analytics import investments as repo
 from app.schemas.portfolio import PortfolioOverview, PortfolioRead
+from app.services.holdings.replay import replay_account
+from app.services.portfolio import compute_portfolio
 
 
 async def valued_accounts(db: Session, *, history: bool = False) -> list[dict]:
@@ -57,3 +59,13 @@ async def portfolio_overview(db: Session) -> PortfolioOverview:
         dividends_12m_eur=round(sum(a["dividends_12m_eur"] for a in accounts), 2),
         fees_eur=round(sum(a["fees_eur"] for a in accounts), 2),
     )
+
+
+async def portfolio_account(db: Session, account_id: int) -> PortfolioRead:
+    """Valeur calculée (positions × cours + espèces), plus-values, XIRR/TWR, courbe reconstituée et rapprochement."""
+    account = accounts_repo.get(db, account_id)
+    if not account:
+        raise NotFoundError("Account not found")
+    if account.type not in ("investissement", "assurance_vie"):
+        raise BusinessRuleError("Account must be investissement or assurance_vie")
+    return PortfolioRead(**await compute_portfolio(db, account))

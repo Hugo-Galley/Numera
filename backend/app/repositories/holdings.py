@@ -80,3 +80,11 @@ def later_trade_exists(db: Session, account_id: int, ticker: str, cutoff: dateti
         InvestmentTransaction.type.in_(TRADE_TYPES),
         *([InvestmentTransaction.date > cutoff] if cutoff else []),
     ).first() is not None
+
+
+def held_positions(db: Session, account_id: int | None = None) -> list[PortfolioHolding]:
+    """Positions non soldées (d'un compte ou de tous), dans l'ordre de la base."""
+    query = db.query(PortfolioHolding).filter(PortfolioHolding.quantity > 0)
+    if account_id is not None:
+        query = query.filter(PortfolioHolding.account_id == account_id)
+    return query.all()
