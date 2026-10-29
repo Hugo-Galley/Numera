@@ -390,7 +390,7 @@ def test_timeseries_empty_year_defaults(client):
 
 
 def test_calc_diff_with_negative_values():
-    from app.controllers.analytics.reports import calc_diff
+    from app.domain.reports import calc_diff
 
     # From negative (-500) to positive (+200): +700 improvement -> +140%
     diff, pct = calc_diff(200.0, -500.0)
