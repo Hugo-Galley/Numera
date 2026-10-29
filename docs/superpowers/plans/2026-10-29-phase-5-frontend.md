@@ -28,8 +28,8 @@ si le budget le permet. Commits directement sur main, sans push.
 ### État (mis à jour à chaque tâche)
 
 - **Fait** : tâches 1 à 7 (`AccountDetail`, `RecurringTransactions`, `WealthSimulator`, `Accounts`, `Audit`, `Investments` + `Savings`, `HoldingsTable` + `PointZeroModal`), un commit « refactor(frontend): découpe de … » par fichier. Baseline : **12 entrées**.
-- **Fait aussi** : tâche 8 (`OverviewTab`), tâche 9 pour `Calendar`. Baseline : **9 entrées**.
-- **Prochaine tâche** : tâche 9, suite (`CategoriesTab`, puis `Omnibox`).
+- **Fait aussi** : tâche 8 (`OverviewTab`), tâche 9 pour `Calendar`. Baseline : **8 entrées**.
+- **Prochaine tâche** : tâche 9, fin (`Omnibox`).
 - Aucune tâche entamée à moitié.
 
 ### Conventions de l'utilisateur (sans redemander)
@@ -160,7 +160,7 @@ Un commit par fichier. Omnibox : ⌘K, recherche, navigation clavier (vérifier 
 
 - [x] `Calendar` : `pages/Calendar/` (export par défaut et prop `embedded` inchangés ; `lazy(() => import("@/pages/Calendar"))` de `RecurringTransactions` inchangé) : `index.tsx`, `types.ts`, hooks `useCalendar.ts` / `useCalendarData.ts` ; composants `CalendarGrid`, `CalendarSummary`, `DayDetailDialog`. Plus gros fichier : 161 lignes. Vérifié dans `/recurring?tab=calendar` : texte, requêtes, boutons, détail de 3 jours.
 - [x] `MerchantsTab` : `components/classement/MerchantsTab/` (export inchangé) : `index.tsx`, `types.ts`, hooks `useMerchantsTab.ts` / `useMerchantsData.ts` ; composants `MerchantsActions` (dialogue de création), `MerchantsList`, `SuggestionsPanel`, `EditMerchantDialog`. Plus gros fichier : 152 lignes. Vérifié sur `/classement?tab=merchants` : texte, requêtes, boutons, création ×2. La démo n'a aucun marchand : édition vérifiée par tsc seulement.
-- [ ] `CategoriesTab`
+- [x] `CategoriesTab` : `components/classement/CategoriesTab/` (export inchangé) : `index.tsx` (archivées), `types.ts`, hooks `useCategoriesTab.ts` / `useCategoriesData.ts` ; composants `NewCategoryDialog`, `CategoriesGrid`, `EditCategoryDialog`. Plus gros fichier : 141 lignes. Vérifié sur `/classement?tab=categories` contre l'original rebranché temporairement : texte, requêtes, boutons ; création ×2 (vide), édition pré-remplie.
 - [ ] `Omnibox`
 
 ### Task 10: `pages/Tax.tsx` (478), `components/tools/SalaryManager.tsx` (450), `components/import/ImportFlow.tsx` (405), `components/savings/ProvisionsSection.tsx` (386)
