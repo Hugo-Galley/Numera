@@ -9,8 +9,8 @@ from app.models.account import Account
 from app.models.category import Category
 from app.models.transaction import Transaction
 from app.schemas.transaction import TransactionSplitItem
-from app.services import reimbursements as remb
-from app.services.splits import check_split_compatible, set_splits
+from app.services.budget import reimbursements as remb
+from app.services.budget.splits import check_split_compatible, set_splits
 
 
 def _tx(db, type_="Sortie", amount=100.0):

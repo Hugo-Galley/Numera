@@ -25,7 +25,7 @@ from app.models.portfolio_holding import PortfolioHolding
 from app.models.reimbursement import ReimbursementClaim
 from app.models.salary_config import SalaryConfig
 from app.models.transaction import Transaction
-from app.services.balances import recalculate_running_balances
+from app.services.budget.balances import recalculate_running_balances
 
 SNAPSHOT_DIR = Path(__file__).parent / "snapshots" / "analytics"
 FROZEN_NOW = "2026-06-15 10:00:00"

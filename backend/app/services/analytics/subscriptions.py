@@ -10,8 +10,8 @@ from app.integrations.currency import get_exchange_rates
 from app.repositories.analytics import subscriptions as repo
 from app.repositories.analytics.common import ticket_restaurant_account_ids
 from app.schemas.insight import SubscriptionIgnore, SubscriptionInsight, SubscriptionPriceChange, SubscriptionsResponse
-from app.services.budget_period import period_bounds
-from app.services.subscription_prices import detect_price_changes
+from app.services.budget.budget_period import period_bounds
+from app.services.budget.subscription_prices import detect_price_changes
 
 
 async def compute_subscriptions(db: Session, account_id: int | None = None, include_other: bool = False) -> SubscriptionsResponse:

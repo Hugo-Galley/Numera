@@ -2,7 +2,7 @@
 from app.domain.audit import month_name
 from app.schemas.insight import ActionItem
 from app.services.audit.context import AuditContext
-from app.services.salary_generation import find_missing_salary_months
+from app.services.budget.salary_generation import find_missing_salary_months
 
 
 def detect(ctx: AuditContext) -> list[ActionItem]:

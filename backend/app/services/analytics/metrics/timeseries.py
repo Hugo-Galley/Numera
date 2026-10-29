@@ -7,7 +7,7 @@ from app.domain.budget import elapsed_days, to_eur
 from app.integrations.currency import get_exchange_rates
 from app.repositories.analytics import metrics as repo
 from app.repositories.analytics.common import ticket_restaurant_account_ids
-from app.services.budget_period import period_bounds
+from app.services.budget.budget_period import period_bounds
 
 
 async def compute_timeseries(db: Session, year: int, account_id: int | None = None) -> dict:

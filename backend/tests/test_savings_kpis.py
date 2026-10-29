@@ -93,7 +93,7 @@ def test_resilience_uses_complete_months_not_the_current_one(client, db_session)
 
 def test_kpi_history_rate_ignores_a_versement_funded_the_previous_month(client, db_session):
     """Sortie le 29 du mois précédent, arrivée sur le PEA ce mois-ci : octobre affichait 100 % d'épargne."""
-    from app.services.transfers import link_pair
+    from app.services.budget.transfers import link_pair
 
     courant = _account(db_session, "Courant", "courant")
     pea = _account(db_session, "PEA", "investissement")

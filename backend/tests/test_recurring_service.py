@@ -12,8 +12,8 @@ from app.models.account import Account
 from app.models.recurring_transaction import RecurringTransaction
 from app.models.transaction import Transaction
 from app.schemas.recurring_transaction import RecurringTransactionCreate
-from app.services import recurring_transactions as service
-from app.services.recurring import generate_recurring_transactions
+from app.services.budget import recurring_transactions as service
+from app.services.budget.recurring import generate_recurring_transactions
 
 
 def _rule(**overrides):

@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from app.core.errors import NotFoundError
 from app.domain.metrics import net_flow, variation_pct
 from app.repositories.analytics import metrics as repo
-from app.services.budget_period import current_period, period_bounds
+from app.services.budget.budget_period import current_period, period_bounds
 
 
 def compute_account_flow_summary(db: Session, account_id: int, start_date: datetime | None = None,

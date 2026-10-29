@@ -10,7 +10,7 @@ from app.schemas.insight import Insight, IntelligentInsights
 from app.services.analytics.budget import compute_budget, compute_resilience
 from app.services.analytics.metrics import compute_expenses_by_category
 from app.services.analytics.subscriptions import get_subscription_total_for_period
-from app.services.budget_period import period_bounds
+from app.services.budget.budget_period import period_bounds
 
 
 def _previous(month: int, year: int, back: int = 1) -> tuple[int, int]:

@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 
 from sqlalchemy.orm import Session
 
-from app.services.recurring import generate_recurring_transactions
+from app.services.budget.recurring import generate_recurring_transactions
 from app.models.account import Account
 from app.models.investment_transaction import InvestmentTransaction
 from app.models.recurring_transaction import RecurringTransaction

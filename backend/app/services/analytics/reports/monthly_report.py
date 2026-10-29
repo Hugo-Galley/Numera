@@ -9,8 +9,8 @@ from app.services.analytics.budget import compute_budget
 from app.services.analytics.insights import compute_insights
 from app.services.analytics.metrics import compute_expenses_by_category, compute_top_merchants
 from app.services.analytics.reports.money_flow import compute_money_flow
-from app.services.budget_period import period_bounds
-from app.services.month_review import exceptional_expenses, month_bounds, savings_basis, without_exceptional
+from app.services.budget.budget_period import period_bounds
+from app.services.budget.month_review import exceptional_expenses, month_bounds, savings_basis, without_exceptional
 
 
 async def compute_monthly_report(db: Session, month: int, year: int, account_id: int | None = None) -> MonthlyReport:

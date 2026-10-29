@@ -7,7 +7,7 @@ from app.models.account import Account
 from app.models.portfolio_holding import PortfolioHolding
 from app.models.investment_transaction import InvestmentTransaction
 from app.models.recurring_transaction import RecurringTransaction
-from app.services.recurring import generate_recurring_transactions
+from app.services.budget.recurring import generate_recurring_transactions
 
 
 def test_recurring_transaction_with_securities_api(client: TestClient, db_session: Session):

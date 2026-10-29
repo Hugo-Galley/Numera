@@ -7,11 +7,11 @@ from datetime import date, datetime, timedelta
 
 from sqlalchemy.orm import Session
 
-from app.services.balances import recalculate_running_balances
+from app.services.budget.balances import recalculate_running_balances
 from app.domain.finance import month_label_from_date
 from app.services.investissement.holdings.rebuild import rebuild_holdings
 from app.services.systeme.seeds import seed_all
-from app.services.transfers import link_pair
+from app.services.budget.transfers import link_pair
 from app.models.account import Account
 from app.models.balance_snapshot import BalanceSnapshot
 from app.models.category import Category

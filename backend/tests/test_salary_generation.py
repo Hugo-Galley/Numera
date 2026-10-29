@@ -1,6 +1,6 @@
 from datetime import date, datetime
 
-from app.services.salary_generation import check_and_generate_pending_salaries
+from app.services.budget.salary_generation import check_and_generate_pending_salaries
 from app.models.account import Account
 from app.models.salary_config import SalaryConfig
 from app.models.salary_month import SalaryMonth

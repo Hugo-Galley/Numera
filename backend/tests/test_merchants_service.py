@@ -10,8 +10,8 @@ from app.models.categorization_rule import CategorizationRule
 from app.models.category import Category
 from app.models.transaction import Transaction
 from app.schemas.merchant import MerchantAliasCreate, MerchantCreate
-from app.services import categorization_rules as rule_service
-from app.services import merchants as merchant_service
+from app.services.budget import categorization_rules as rule_service
+from app.services.budget import merchants as merchant_service
 
 
 def _tx(db, account, merchant, running_balance=-10.0):

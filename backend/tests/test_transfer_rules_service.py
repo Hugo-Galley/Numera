@@ -3,7 +3,7 @@ import pytest
 from app.core.errors import BusinessRuleError, NotFoundError
 from app.models.account import Account
 from app.schemas.transfer_rule import TransferRuleCreate
-from app.services import transfer_rules as service
+from app.services.budget import transfer_rules as service
 
 
 def _account(db, name):

@@ -3,7 +3,7 @@ from datetime import datetime
 import pytest
 from sqlalchemy.orm import Session
 
-from app.services import reimbursements as remb
+from app.services.budget import reimbursements as remb
 from app.domain.finance import month_label_from_date
 from app.models.account import Account
 from app.models.category import Category

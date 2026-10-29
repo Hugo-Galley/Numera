@@ -3,7 +3,7 @@ from datetime import datetime
 import pytest
 
 from app.domain.finance import month_label_from_date
-from app.services.month_review import without_exceptional
+from app.services.budget.month_review import without_exceptional
 from app.models.account import Account
 from app.models.category import Category
 from app.models.month_closure import MonthClosure
@@ -272,7 +272,7 @@ def test_small_correction_is_detected_as_modification(client, october):
 def test_exchange_rate_drift_does_not_flag_modification(client, db_session, monkeypatch):
     import app.services.analytics.budget.alerts as alerts_mod
     import app.services.analytics.budget.summary as budget_mod
-    import app.services.month_review as router_mod
+    import app.services.budget.month_review as router_mod
 
     eur = _courant(db_session)
     usd = Account(name="USD", type="courant", currency="USD", active=True)

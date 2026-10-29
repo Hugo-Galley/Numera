@@ -9,7 +9,7 @@ from app.models.investment_transaction import InvestmentTransaction
 from app.models.transaction import Transaction
 from app.repositories.analytics import metrics as repo
 from app.repositories.analytics.common import savings_account_ids, savings_events_by_account, ticket_restaurant_account_ids
-from app.services.budget_period import current_period, months_back, period_bounds, period_key_expr
+from app.services.budget.budget_period import current_period, months_back, period_bounds, period_key_expr
 
 
 def _add(totals: dict[str, float], key: str, amount: float) -> None:

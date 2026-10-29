@@ -27,8 +27,8 @@ from app.schemas.wrapped import (
 )
 from app.services.analytics.budget import compute_budget
 from app.services.analytics.metrics import compute_expenses_by_category, compute_top_merchants
-from app.services.budget_period import civil_months
-from app.services.work_time import load_work_time
+from app.services.budget.budget_period import civil_months
+from app.services.budget.work_time import load_work_time
 
 
 async def compute_wrapped(db: Session, year: int) -> WrappedReport:

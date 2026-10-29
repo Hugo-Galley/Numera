@@ -14,8 +14,8 @@ from app.models.tag import Tag
 from app.models.transaction import Transaction
 from app.schemas.category import CategoryCreate
 from app.schemas.tag import TagCreate, TagUpdate
-from app.services import categories as category_service
-from app.services import tags as tag_service
+from app.services.budget import categories as category_service
+from app.services.budget import tags as tag_service
 
 
 def test_delete_category_detaches_every_reference(db_session):

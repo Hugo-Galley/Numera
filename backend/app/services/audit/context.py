@@ -5,7 +5,7 @@ from datetime import datetime
 from sqlalchemy.orm import Query, Session
 
 from app.repositories.analytics import audit as repo
-from app.services import reimbursements as remb
+from app.services.budget import reimbursements as remb
 
 
 @dataclass

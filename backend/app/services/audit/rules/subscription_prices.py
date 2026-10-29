@@ -2,7 +2,7 @@
 from app.domain.subscription_prices import price_change_id
 from app.schemas.insight import ActionItem
 from app.services.audit.context import AuditContext
-from app.services.subscription_prices import detect_price_changes
+from app.services.budget.subscription_prices import detect_price_changes
 
 FREQ_LABEL = {"monthly": "mois", "quarterly": "trimestre", "yearly": "an"}
 

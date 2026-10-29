@@ -8,7 +8,7 @@ from app.integrations.currency import get_exchange_rates
 from app.repositories.analytics import budget as repo
 from app.repositories.analytics.common import ticket_restaurant_account_ids
 from app.schemas.category import BudgetAlert
-from app.services.budget_period import period_bounds
+from app.services.budget.budget_period import period_bounds
 
 
 async def compute_budget_alerts(db: Session, year: int, month: int, account_id: int | None = None) -> list[BudgetAlert]:

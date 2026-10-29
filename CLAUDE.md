@@ -81,10 +81,10 @@ python scripts/change_password.py <mot-de-passe>
 
 1. Montants **toujours positifs** ; le sens est porté par `type`.
 2. **KPI calculés côté backend uniquement** (`controllers/analytics/`), jamais côté frontend.
-3. `running_balance` recalculé intégralement après toute création/modification/suppression (`recalculate_running_balances` dans `services/balances.py`).
+3. `running_balance` recalculé intégralement après toute création/modification/suppression (`recalculate_running_balances` dans `services/budget/balances.py`).
 4. Import CSV **idempotent** : doublon = `(account_id, date, amount, merchant, type)`. Le commit insère avec un solde courant partant de la dernière transaction, puis appelle `recalculate_running_balances` si au moins une ligne est importée (les soldes sont donc corrects même pour des données antérieures).
 5. Un seul `is_zero_point = True` par compte investissement.
-6. Salaire (`services/salary_generation.py`, montant `domain/salary.py::salary_amount`) : **une seule** transaction `Entree` « Salaire » = `net_salary − (nb jours TT × ticket_employee_share)`, rattachée à la récurrence salaire. Les tickets restaurant sont informatifs, aucune transaction TR n'est créée. Génération idempotente (`SalaryMonth.is_generated`).
+6. Salaire (`services/budget/salary_generation.py`, montant `domain/salary.py::salary_amount`) : **une seule** transaction `Entree` « Salaire » = `net_salary − (nb jours TT × ticket_employee_share)`, rattachée à la récurrence salaire. Les tickets restaurant sont informatifs, aucune transaction TR n'est créée. Génération idempotente (`SalaryMonth.is_generated`).
 7. Normalisation marchands : `merchant_id` relie à un marchand canonique sans modifier le libellé bancaire `merchant`.
 8. Vérification de compte : `last_verified_at` mis à jour par validation explicite.
 9. `normalize_transaction_type()` mappe `"type"` → `"Solde Initial"` volontairement (export Numbers).

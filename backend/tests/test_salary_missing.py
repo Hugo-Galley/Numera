@@ -1,6 +1,6 @@
 from datetime import date, datetime
 
-from app.services.salary_generation import find_missing_salary_months
+from app.services.budget.salary_generation import find_missing_salary_months
 from app.models.account import Account
 from app.models.category import Category
 from app.models.salary_config import SalaryConfig

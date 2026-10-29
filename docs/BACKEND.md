@@ -74,12 +74,12 @@ Au démarrage de l'application (événement `lifespan` configuré dans [backend/
 1. **Migrations automatiques** : Si `APP_ENV` n'est pas configuré sur `test`, Alembic est exécuté automatiquement via `run_migrations()` dans [backend/app/core/migrations.py](file:///Users/hugogalley/DEV/numera/backend/app/core/migrations.py) pour mettre à jour la structure de la base de données.
 2. **Peuplement par défaut (Seeding)** : Les catégories fondamentales et les profils ETF système sont insérés s'ils sont absents via `seed_all()` dans `backend/app/services/systeme/seeds.py`.
 3. **Tâche récurrente asynchrone** : Une boucle asynchrone permanente (`recurring_transactions_task`) est lancée en tâche de fond. Elle s'exécute toutes les heures pour :
-   - Générer automatiquement les instances de transactions récurrentes (abonnements, charges fixes) définies par l'utilisateur (`backend/app/services/recurring.py`).
-   - Vérifier et générer les transactions liées aux salaires configurés et jours de télétravail déclarés (`backend/app/services/salary_generation.py`).
+   - Générer automatiquement les instances de transactions récurrentes (abonnements, charges fixes) définies par l'utilisateur (`backend/app/services/budget/recurring.py`).
+   - Vérifier et générer les transactions liées aux salaires configurés et jours de télétravail déclarés (`backend/app/services/budget/salary_generation.py`).
 
 ### Règles Métier Majeures
 
-- **Calcul du Solde Cumulé (Running Balance)** : Contrairement à d'autres architectures, le solde cumulé à un instant T (`running_balance`) est stocké directement sur chaque transaction financière. Lors de l'ajout, modification ou suppression d'une transaction, le backend recalcule récursivement et chronologiquement les soldes cumulés du compte concerné via `recalculate_running_balances` (`backend/app/services/balances.py`, appelée aussi par l'import CSV et la génération de salaire) afin de garantir l'intégrité absolue des graphiques temporels.
+- **Calcul du Solde Cumulé (Running Balance)** : Contrairement à d'autres architectures, le solde cumulé à un instant T (`running_balance`) est stocké directement sur chaque transaction financière. Lors de l'ajout, modification ou suppression d'une transaction, le backend recalcule récursivement et chronologiquement les soldes cumulés du compte concerné via `recalculate_running_balances` (`backend/app/services/budget/balances.py`, appelée aussi par l'import CSV et la génération de salaire) afin de garantir l'intégrité absolue des graphiques temporels.
 - **Gestion Multidevises** :
   - L'application supporte nativement les transactions en devises étrangères (USD, GBP, CHF, etc.).
   - Le taux de change de référence est l'**EUR**. Les conversions s'effectuent via l'API publique Frankfurter.

@@ -13,7 +13,7 @@ from app.models.account import Account
 from app.models.categorization_rule import CategorizationRule
 from app.models.recurring_transaction import RecurringTransaction
 from app.models.transaction import Transaction
-from app.services.balances import recalculate_running_balances
+from app.services.budget.balances import recalculate_running_balances
 
 
 def _fresh_balances(db_session, account_id):

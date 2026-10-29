@@ -4,7 +4,7 @@ from datetime import datetime
 from sqlalchemy.orm import Session
 
 from app.domain.finance import month_label_from_date
-from app.services.transfers import apply_rules, find_pairs, link_pair, unlink_pair
+from app.services.budget.transfers import apply_rules, find_pairs, link_pair, unlink_pair
 from app.models.account import Account
 from app.models.investment_transaction import InvestmentTransaction
 from app.models.transaction import Transaction

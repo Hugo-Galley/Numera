@@ -4,7 +4,7 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
-from app.services import budget_period
+from app.services.budget import budget_period
 from app.domain.finance import month_label_from_date
 from app.models.account import Account
 from app.models.category import Category

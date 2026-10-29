@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from app.services.balances import recalculate_running_balances
+from app.services.budget.balances import recalculate_running_balances
 from app.domain.finance import month_label_from_date
 from app.models.account import Account
 from app.models.transaction import Transaction

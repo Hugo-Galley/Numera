@@ -9,8 +9,8 @@ from app.models.account import Account
 from app.models.category import Category
 from app.models.transaction import Transaction
 from app.models.transaction_split import TransactionSplit
-from app.repositories.transactions import TransactionFilters
-from app.services import transactions as service
+from app.repositories.budget.transactions import TransactionFilters
+from app.services.budget import transactions as service
 
 
 def _account(db, name, type_="courant"):
@@ -85,8 +85,8 @@ import asyncio  # noqa: E402
 
 from app.core.errors import BusinessRuleError, InvalidOperationError  # noqa: E402
 from app.schemas.transaction import TransactionBulkDelete, TransactionCreate, TransactionUpdate  # noqa: E402
-from app.services import transaction_links as links  # noqa: E402
-from app.services import transaction_writes as writes  # noqa: E402
+from app.services.budget import transaction_links as links  # noqa: E402
+from app.services.budget import transaction_writes as writes  # noqa: E402
 
 
 def _create(db, account, type_, amount, date):
@@ -125,7 +125,7 @@ def test_bulk_delete_recalculates_each_account(db_session):
 
 
 def test_linking_reimbursed_transaction_is_invalid_operation(db_session):
-    from app.services import reimbursements as remb
+    from app.services.budget import reimbursements as remb
 
     a, b = _account(db_session, "A"), _account(db_session, "B")
     sortie = _create(db_session, a, "Sortie", 40.0, datetime(2026, 1, 2))

@@ -10,7 +10,7 @@ from app.integrations.currency import get_exchange_rates
 from app.models.account import Account
 from app.repositories.analytics import investments as repo
 from app.services.analytics.investments.flows import calculate_investment_flows
-from app.services.budget_period import period_bounds
+from app.services.budget.budget_period import period_bounds
 
 
 async def compute_investments(db: Session, month: int | None = None, year: int | None = None,
