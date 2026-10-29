@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import case, func, or_
 from sqlalchemy.orm import Session
 
-from app.core.budget_period import period_bounds
+from app.services.budget_period import period_bounds
 from app.integrations.currency import get_exchange_rates, convert_amount
 from app.db.session import get_db
 from app.models.account import Account
@@ -55,7 +55,7 @@ from app.models.recurring_transaction import RecurringTransaction
 from app.domain.finance import get_recurring_occurrences
 from app.core.holdings import replay_account
 from app.core.portfolio import compute_portfolio, only_transfer_legs, positions_values_eur, uses_positions
-from app.core.wealth import account_values, active_accounts
+from app.services.wealth import account_values, active_accounts
 from app.core.logging import get_logger
 from app.schemas.transaction import TransactionRead
 

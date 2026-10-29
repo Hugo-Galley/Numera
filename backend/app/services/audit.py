@@ -65,7 +65,6 @@ async def compute_action_center(db: Session) -> ActionCenterResponse:
         actions: list[ActionItem] = []
         
         # --- 1. Audit Actions (Ported from data_audit) ---
-        
         # 1.1 Uncategorized Expenses
         uncategorized_query = (
             db.query(Transaction)
@@ -435,7 +434,8 @@ async def compute_action_center(db: Session) -> ActionCenterResponse:
 
         # --- 4b. Hausses de prix des abonnements ---
         try:
-            from app.core.subscription_prices import detect_price_changes, price_change_id
+            from app.domain.subscription_prices import price_change_id
+            from app.services.subscription_prices import detect_price_changes
 
             freq_label = {"monthly": "mois", "quarterly": "trimestre", "yearly": "an"}
             for change in detect_price_changes(db):

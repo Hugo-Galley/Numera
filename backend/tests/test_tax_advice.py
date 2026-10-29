@@ -1,6 +1,6 @@
 """LDDS, LEP et conseil « où placer ton prochain euro »."""
-from app.core.tax import allocation_advice, ldds_status, lep_status
-from app.core.tax_rules import rules_for
+from app.domain.tax import allocation_advice, ldds_status, lep_status
+from app.domain.tax_rules import rules_for
 
 
 def _card(kind, remaining, account_id=1, name=None):

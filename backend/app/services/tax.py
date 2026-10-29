@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from app.services.accounts import account_balance
 from app.core.dividends import load_dividends_eur
 from app.core.holdings import replay_account
-from app.core.tax import (
+from app.domain.tax import (
     PeeLot,
     allocation_advice,
     av_status,
@@ -19,7 +19,7 @@ from app.core.tax import (
     pee_status,
     per_status,
 )
-from app.core.tax_rules import rules_for
+from app.domain.tax_rules import rules_for
 from app.db.system_settings import get_setting, set_setting
 from app.models.account import Account
 from app.models.balance_snapshot import BalanceSnapshot

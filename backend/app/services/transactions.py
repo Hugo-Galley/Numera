@@ -1,10 +1,13 @@
 """Transactions : lecture, filtres et suggestions de virements internes."""
+from dataclasses import replace
+
 from sqlalchemy.orm import Session
 
 from app.core.errors import NotFoundError
 from app.models.transaction import Transaction
 from app.repositories import transactions as repo
 from app.repositories.transactions import TransactionFilters
+from app.services.budget_period import period_bounds
 from app.services.transfers import candidates_for, find_pairs
 
 
@@ -20,6 +23,9 @@ def list_merchants(db: Session) -> list[str]:
 
 
 def list_transactions(db: Session, filters: TransactionFilters, skip: int, limit: int) -> list[Transaction]:
+    if filters.period and filters.month is not None and filters.year is not None:
+        start, end = period_bounds(db, filters.year, filters.month)
+        filters = replace(filters, period_start=start, period_end=end)
     return repo.filtered(db, filters, skip, limit)
 
 

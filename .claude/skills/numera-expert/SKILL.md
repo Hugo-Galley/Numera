@@ -22,7 +22,7 @@ Les règles critiques courtes sont dans le `CLAUDE.md` racine ; ce skill détail
 
 - **Revenu** : `income_criterion(db)` (`repositories/analytics/common.py`, requête jointe à `Account`) = entrée sur un compte `courant`, ou entrée dont la catégorie est de type `revenu` (marquage explicite d'un revenu arrivé ailleurs), ou `Interets`. `Solde Initial` et virements internes jamais. Le money-flow reprend le `revenus_totaux` du budget ; le Sankey, le timeseries et `kpi-history` appliquent le même critère. Un dépôt non lié sur un livret n'est donc pas un revenu.
 - **Périmètre des flux** (revenus/dépenses, répartition par catégorie, top marchands, Sankey) : comptes `courant` et `epargne` hors tickets restaurant ; `expenses-by-category` ajoute un bloc « Sans catégorie » pour que son total égale `depenses_totales`.
-- **Patrimoine** : `core/wealth.py::account_values(db, accounts, at=None)` → valeur par compte (positions × cours pour un compte titres valorisé ainsi ; sinon relevé ; pour courant/épargne/autres le plus récent entre relevé et dernier solde ; rien = 0). Utilisé par `patrimoine-allocation`, `investments-allocation(-advanced)` et `budget.patrimoine_net_total` (tous les comptes actifs, y compris l'ancien type `bank`).
+- **Patrimoine** : `services/wealth.py::account_values(db, accounts, at=None)` → valeur par compte (positions × cours pour un compte titres valorisé ainsi ; sinon relevé ; pour courant/épargne/autres le plus récent entre relevé et dernier solde ; rien = 0). Utilisé par `patrimoine-allocation`, `investments-allocation(-advanced)` et `budget.patrimoine_net_total` (tous les comptes actifs, y compris l'ancien type `bank`).
 - **Crédits** : un compte `credit` (créé via `/loans`, jamais via `/accounts`) vaut −capital restant dû de son prêt (`domain/loans.py` (`loan_remaining` : `services/loans.py`)) : tous les totaux de patrimoine sont donc **nets**. `patrimoine-allocation` sort les crédits du camembert (`total_debts_eur`, `net_patrimoine_eur`). Pas de transactions sur un compte crédit : les mensualités restent des `Sortie` du courant (dépenses normales).
 - **Mois de paie** : `build_periods` comble les trous (mois sans salaire = fenêtre propre, second salaire d'un même mois absorbé) pour que chaque jour appartienne à une période.
 
@@ -70,7 +70,7 @@ Un seul `is_zero_point` par compte investissement (`POST /balance-snapshots/set-
 
 ## Mois de paie
 
-`core/budget_period.py` : un salaire reçu ouvre une période (jusqu'au salaire suivant) nommée d'après le mois qu'elle finance (salaire du 25 août → septembre ; nom = mois de `début + 15 j`). Tout calcul de fenêtre mensuelle doit passer par `period_bounds(db, year, month)` (jamais `datetime(year, month, 1)`), et tout regroupement par mois par `period_key_expr` (jamais `strftime("%Y-%m")`). Réglage `budget_month_mode` (`civil` | `salary`, défaut `salary`), `GET/PUT /analytics/budget-period`. Les dates et soldes ne changent pas. Bilan annuel `/wrapped` : forcé en mois civil (`civil_months()`).
+`services/budget_period.py` (calcul pur : `domain/budget_period.py`) : un salaire reçu ouvre une période (jusqu'au salaire suivant) nommée d'après le mois qu'elle finance (salaire du 25 août → septembre ; nom = mois de `début + 15 j`). Tout calcul de fenêtre mensuelle doit passer par `period_bounds(db, year, month)` (jamais `datetime(year, month, 1)`), et tout regroupement par mois par `period_key_expr` (jamais `strftime("%Y-%m")`). Réglage `budget_month_mode` (`civil` | `salary`, défaut `salary`), `GET/PUT /analytics/budget-period`. Les dates et soldes ne changent pas. Bilan annuel `/wrapped` : forcé en mois civil (`civil_months()`).
 
 ## Import / export CSV
 
@@ -90,7 +90,7 @@ Agrège : audit d'intégrité (`/analytics/audit`, issues avec `id` stable : `un
 
 ## Hausses de prix des abonnements
 
-`core/subscription_prices.py::detect_price_changes` : séries de sorties régulières (récurrence, sinon marchand canonique, sinon libellé, par compte), cadence mensuelle / trimestrielle / annuelle, hausse ≥ 0,10 et ≥ 1 % face à un montant précédent stable. Exposé dans `price_changes` de `/analytics/subscriptions` et au Centre d'Actions. Une baisse n'est pas signalée.
+`services/subscription_prices.py::detect_price_changes` (détection d'une série : `domain/subscription_prices.py::series_change`) : séries de sorties régulières (récurrence, sinon marchand canonique, sinon libellé, par compte), cadence mensuelle / trimestrielle / annuelle, hausse ≥ 0,10 et ≥ 1 % face à un montant précédent stable. Exposé dans `price_changes` de `/analytics/subscriptions` et au Centre d'Actions. Une baisse n'est pas signalée.
 
 ## Journal des décisions
 
@@ -98,7 +98,7 @@ Table `financial_events` (`/financial-events`) : notes datées sans effet sur au
 
 ## Fiscalité et enveloppes (`/tax`, page `Tax.tsx`)
 
-`accounts.tax_wrapper` (`pea`, `per`, `cto`, `assurance_vie`, `livret_a`) et `opened_at` activent le suivi. Règles dans `core/tax.py`, valeurs chiffrées uniquement dans `core/tax_rules.py` (table par année, à vérifier chaque année) :
+`accounts.tax_wrapper` (`pea`, `per`, `cto`, `assurance_vie`, `livret_a`) et `opened_at` activent le suivi. Règles dans `domain/tax.py`, valeurs chiffrées uniquement dans `domain/tax_rules.py` (table par année, à vérifier chaque année) :
 
 - **PEA** : versements cumulés (somme des `versement`) face à 150 k€ ; un retrait ne restitue pas de place ; retrait avant 5 ans = alerte ; alerte si le compte démarre d'un inventaire / Point Zéro (versements antérieurs non saisis, place restante surestimée).
 - **PER** : versements de l'année civile **de tous les PER actifs additionnés** (plafond du foyer, une seule carte) face au plafond de déduction = 10 % des revenus pro N-1 borné entre plancher et maximum ; économie d'impôt = versé déductible × TMI.

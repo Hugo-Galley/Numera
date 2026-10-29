@@ -2,7 +2,7 @@
 from datetime import date, datetime, timedelta
 from sqlalchemy import func
 from sqlalchemy.orm import Session
-from app.core.budget_period import period_bounds
+from app.services.budget_period import period_bounds
 from app.integrations.currency import get_exchange_rates
 from app.models.account import Account
 from app.models.category import Category
@@ -12,7 +12,7 @@ from app.models.investment_transaction import InvestmentTransaction
 from app.models.transaction import Transaction
 from app.core.logging import get_logger
 from app.core.portfolio import positions_values_eur
-from app.core.wealth import account_values, active_accounts
+from app.services.wealth import account_values, active_accounts
 from app.repositories.analytics.common import (
     category_lines,
     income_criterion,

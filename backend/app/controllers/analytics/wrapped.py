@@ -30,7 +30,7 @@ from app.schemas.wrapped import (
     WrappedTotals,
 )
 
-from app.core.budget_period import civil_months
+from app.services.budget_period import civil_months
 from app.services.analytics.budget import compute_budget
 from .metrics import expenses_by_category, top_merchants
 from app.repositories.analytics.common import NET_AMOUNT, ticket_restaurant_account_ids, opening_balances_eur

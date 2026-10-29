@@ -5,7 +5,7 @@ import pytest
 
 import app.integrations.currency as currency_mod
 import app.core.market_data as market_data
-from app.core.tax_rules import rules_for
+from app.domain.tax_rules import rules_for
 from app.models.investment_transaction import InvestmentTransaction
 
 

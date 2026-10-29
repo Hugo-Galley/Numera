@@ -4,7 +4,7 @@ from datetime import date, datetime
 import pytest
 
 from app.domain.loans import add_months
-from app.core.wealth import account_values
+from app.services.wealth import account_values
 from app.models.account import Account
 from app.models.loan import Loan, LoanPrepayment
 from app.models.transaction import Transaction

@@ -4,7 +4,7 @@ import unicodedata
 from datetime import date
 from typing import NamedTuple
 
-from app.core.tax_rules import TaxRules
+from app.domain.tax_rules import TaxRules
 
 _CAPITALISED_INTEREST_ALERT = "Plafond de versements du {name} atteint : les intérêts capitalisés peuvent légitimement le dépasser."
 PEA_MILESTONE_YEARS = 5

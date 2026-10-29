@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import case, func, or_
 from sqlalchemy.orm import Session
 
-from app.core.budget_period import period_bounds
+from app.services.budget_period import period_bounds
 from app.integrations.currency import get_exchange_rates, convert_amount
 from app.db.session import get_db
 from app.models.account import Account

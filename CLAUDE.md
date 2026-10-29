@@ -90,7 +90,7 @@ python scripts/change_password.py <mot-de-passe>
 9. `normalize_transaction_type()` mappe `"type"` → `"Solde Initial"` volontairement (export Numbers).
 10. Revue de fin de mois (`/month-review`) : clôturer = **marquer**, jamais verrouiller ; `transactions.is_exceptional` reste dans les totaux officiels et les soldes, seules les lectures « hors exceptionnel » (rapport mensuel, revue) l'isolent.
 
-11. **Revenu** = entrées sur un compte `courant` (+ intérêts) ; une entrée sur un autre compte n'en est un que si sa catégorie est de type `revenu` (`income_criterion`, `repositories/analytics/common.py`). Même définition dans budget, money-flow, Sankey, kpi-history, timeseries. **Patrimoine** = tous les comptes actifs, tous types, via `core/wealth.py::account_values` (source unique).
+11. **Revenu** = entrées sur un compte `courant` (+ intérêts) ; une entrée sur un autre compte n'en est un que si sa catégorie est de type `revenu` (`income_criterion`, `repositories/analytics/common.py`). Même définition dans budget, money-flow, Sankey, kpi-history, timeseries. **Patrimoine** = tous les comptes actifs, tous types, via `services/wealth.py::account_values` (source unique).
 
 Pipeline import : détection du délimiteur (`,` `;` `\t`) → en-têtes normalisés via `HEADER_ALIASES` → mapping catégories (manuel puis auto-création si `create_missing_categories=True`) → détection doublons → insert + log dans `imports_log`.
 

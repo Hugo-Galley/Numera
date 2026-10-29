@@ -3,11 +3,11 @@ from datetime import date
 
 import pytest
 
-from app.core.tax import (
+from app.domain.tax import (
     PeeLot, av_status, livret_a_status, livret_jeune_status, pea_status, pee_status, per_deduction_ceiling, per_status,
     years_between,
 )
-from app.core.tax_rules import rules_for
+from app.domain.tax_rules import rules_for
 
 TODAY = date(2026, 10, 7)
 RULES = rules_for(2026)

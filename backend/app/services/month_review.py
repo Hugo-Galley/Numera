@@ -5,7 +5,7 @@ from datetime import datetime
 from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 
-from app.core.budget_period import period_bounds
+from app.services.budget_period import period_bounds
 from app.integrations.currency import get_exchange_rates
 from app.core.time import utcnow_naive
 from app.domain.transactions import net_amount

@@ -1,6 +1,6 @@
 import pytest
 
-from app.core.tax import guess_tax_wrapper
+from app.domain.tax import guess_tax_wrapper
 from app.models.account import Account
 
 

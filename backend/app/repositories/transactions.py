@@ -4,7 +4,6 @@ from datetime import datetime
 from sqlalchemy import and_, func, or_
 from sqlalchemy.orm import Query, Session
 
-from app.core.budget_period import period_bounds
 from app.models.account import Account
 from app.models.category import Category
 from app.models.merchant import Merchant
@@ -33,6 +32,9 @@ class TransactionFilters:
     uncategorized: bool = False
     merchant_name: str | None = None
     period: bool = False
+    # Bornes du mois de paie, résolues par le service quand `period` est vrai
+    period_start: datetime | None = None
+    period_end: datetime | None = None
     budget_scope: bool = False
 
 
@@ -100,7 +102,7 @@ def _month_filter(db: Session, query: Query, f: TransactionFilters) -> Query:
     if f.month is None or f.year is None:
         return query
     if f.period:  # mois de paie, comme les analytics
-        start, end = period_bounds(db, f.year, f.month)
+        start, end = f.period_start, f.period_end
     else:
         start = datetime(f.year, f.month, 1)
         end = datetime(f.year + (1 if f.month == 12 else 0), 1 if f.month == 12 else f.month + 1, 1)
