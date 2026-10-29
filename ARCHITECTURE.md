@@ -31,11 +31,14 @@ backend/
   app/
     controllers/        routers REST (ex-api/)
     services/           cas d'usage : un module par domaine (accounts, transactions + transaction_writes/links,
-                        imports, recurring, salary, month_review, reimbursements, transfers, loans, demo/, ...)
-                        et analytics/{budget,cashflow}, audit, tax
-    repositories/       requetes SQLAlchemy, un module par domaine (+ analytics/common)
-    domain/             calculs purs : finance, transactions, transfers, csv_import, loans, salary,
-                        savings_goals, recurring, exports
+                        imports, recurring, salary, month_review, reimbursements, transfers, loans, demo/, ...),
+                        analytics/ (budget/, metrics/, reports/, investments/, portfolio, dividends, diversity, ...),
+                        audit/ (registre de regles), tax, wealth ; portefeuille : portfolio/ (valorisation),
+                        holdings/ (rejeu, inventaire), market/ (cours, recherche), etf_profiles, dividends,
+                        investment_transactions
+    repositories/       requetes SQLAlchemy, un module par domaine (+ analytics/), sans commit
+    domain/             calculs purs : finance, transactions, budget, metrics, projections, tax, performance
+                        (XIRR/TWR), portfolio, holdings, dividends, diversity, market, etf_profiles (+ etf_presets.json), ...
     integrations/       appels externes : currency (Frankfurter), yahoo_finance, notifications (ntfy, Telegram), logos, backup
     core/               transverse : config, errors, security, logging, login_events, login_rate_limit, totp,
                         mcp_tokens, migrations, time
@@ -44,7 +47,7 @@ backend/
     schemas/            schemas Pydantic
   data/                 SQLite dev
   scripts/              backup, backup_scheduler, restore, seed_demo, backfill
-  tests/                pytest backend (~840 tests, ~1 min 40)
+  tests/                pytest backend (~910 tests, ~1 min 45)
 frontend/
   src/
     components/         layout, ui (shadcn), dashboard (+ tabs/), investments, settings, classement, import, audit, tools, analytics
@@ -66,12 +69,12 @@ Architecture en couches, migrée progressivement (plan : `docs/superpowers/plans
 
 | Couche | Rôle | N'importe pas |
 |---|---|---|
-| `controllers/` | Controllers : HTTP, `Depends`, `Query`, appel d'un service. Ni `db.query`, ni `commit`, ni import de `app.models` (routers du portefeuille pas encore migrés). | un autre module `controllers.*` (sauf `controllers.deps` et son propre package) |
+| `controllers/` | Controllers : HTTP, `Depends`, `Query`, appel d'un service. Ni `db.query`, ni `commit`, ni import de `app.models`. | un autre module `controllers.*` (sauf `controllers.deps` et son propre package) |
 | `services/` | Cas d'usage : orchestration, **commit**, erreurs métier (`NotFoundError` 404, `InvalidOperationError` 400, `BusinessRuleError` 422, `ConflictError` 409, `InternalError` 500, `ExternalServiceError` 502, `ExternalTimeoutError` 504 de `core/errors.py`, traduites en HTTP par `main.py` avec le même corps qu'`api_error`). | `app.controllers`, `fastapi` |
 | `repositories/` | Requêtes SQLAlchemy (`repositories/analytics/common.py` : `NET_AMOUNT`, `income_criterion`, `category_lines`…). Jamais de `commit` (`flush` permis). | `app.controllers`, `app.services`, `app.integrations`, `fastapi` |
 | `domain/` | Calculs purs, sans Session (`domain/transactions.py` : `net_amount`, `tx_sample`, `tx_read` ; `budget`, `metrics`, `reports`, `insights`, `wrapped`, `projections`, `investments`, `budget_period`, `subscription_prices`, `tax`, `tax_rules`). | `app.controllers`, `app.services`, `app.repositories`, `app.integrations`, `app.db`, `sqlalchemy.orm`, `fastapi` |
-| `integrations/` | Appels externes : `currency` (Frankfurter), `notifications` (canaux ntfy/Telegram), `logos`, `backup` (Yahoo : phase 4). | `app.controllers`, `app.services`, `app.repositories` |
-| `core/` | Transverse (config, sécurité, logs, erreurs, rate limit, TOTP) et, pendant la migration, métier hérité. | `app.controllers` |
+| `integrations/` | Appels externes : `currency` (Frankfurter), `notifications` (canaux ntfy/Telegram), `logos`, `backup`, `yahoo_finance` (recherche, cours, composition des ETF). | `app.controllers`, `app.services`, `app.repositories` |
+| `core/` | Transverse uniquement (config, sécurité, logs, erreurs, rate limit, TOTP, jetons MCP, migrations, temps) depuis la phase 4 ; règle d'import durcie en phase 6. | `app.controllers` |
 
 Garde-fous (cliquet, les baselines ne font que diminuer) : `backend/tests/test_architecture.py` + `architecture_baseline.txt` (règles ci-dessus, imports locaux compris, imports vers un module `app.*` introuvable, `commit()` dans `repositories/`) ; `scripts/check_code_size.py` + `scripts/code_size_baseline.json` (plafonds 400 lignes par fichier Python, 80 par fonction, 350 par fichier TS/TSX hors `components/ui`), lancé par `make check-size` / `make validate` et par pytest.
 

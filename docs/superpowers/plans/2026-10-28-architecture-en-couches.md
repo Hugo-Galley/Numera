@@ -280,31 +280,28 @@ Plan détaillé : `docs/superpowers/plans/2026-10-28-phase-2-domaines-ecriture.m
 ### Phase 3 — Analytics (terminée le 29/10/2026)
 Plan détaillé, autonome (reprise dans une nouvelle conversation, section 0) : `docs/superpowers/plans/2026-10-28-phase-3-analytics.md` (10 tâches). Filet de sécurité : instantanés JSON de toutes les routes analytics sur les données de démo à date figée (`freezegun`), identiques après chaque tâche. Périmètre : budget, Centre d'Actions (registre de règles `services/audit/rules/`), métriques, rapports/Sankey/trésorerie, insights, abonnements, bilan annuel, investissements et projections, fiscalité ; `core/wealth`, `budget_period`, `subscription_prices`, `tax`, `tax_rules`. Les routes `analytics/portfolio`, `dividends`, `diversity` passent en phase 4.
 
-### Phase 4 — Portefeuille
+### Phase 4 — Portefeuille (terminée le 29/10/2026)
+Plan détaillé : `docs/superpowers/plans/2026-10-29-phase-4-portefeuille.md` (10 tâches). Filet de sécurité supplémentaire : `tests/test_portfolio_snapshots.py` (instantanés des routes du portefeuille, compte titres avec Point Zéro). `core/` ne contient plus que le transverse ; marché → `integrations/yahoo_finance.py` + `services/market/` + `repositories/security_prices.py` ; profils ETF → `services/etf_profiles.py` (préréglages `domain/etf_presets.json`) ; positions → `services/holdings/` ; dividendes → `services/dividends.py` ; valorisation → `services/portfolio/` (XIRR/TWR dans `domain/performance.py`) ; routers `investment_transactions`, `holdings`, `etf_profiles`, `market`, `analytics/{portfolio,dividends,diversity}` amincis. `scripts/code_size_baseline.json` ne contient plus aucune entrée backend.
 
-#### Reprendre la phase 4 dans une nouvelle conversation
+### Phase 5 — Frontend
+
+#### Reprendre la phase 5 dans une nouvelle conversation
 
 Message à coller :
 
 ```text
-On reprend la migration de Numera vers une architecture en couches. Les phases 0 à 3 sont terminées.
-Lis d'abord : la section « Phase 4 » de docs/superpowers/plans/2026-10-28-architecture-en-couches.md,
-le plan de la phase 3 (docs/superpowers/plans/2026-10-28-phase-3-analytics.md, section 0 : conventions et pièges),
-la spec docs/superpowers/specs/2026-10-28-architecture-en-couches-design.md, ARCHITECTURE.md § « Couches backend »
-et backend/CLAUDE.md. Écris le plan détaillé de la phase 4 (skill superpowers:writing-plans) sur le modèle
-du plan de la phase 3, puis exécute-le toi-même tâche par tâche. Commits directement sur main.
+On reprend la migration de Numera vers une architecture en couches. Les phases 0 à 4 sont terminées (backend migré).
+Lis d'abord : la section « Phase 5 » de docs/superpowers/plans/2026-10-28-architecture-en-couches.md, la spec
+docs/superpowers/specs/2026-10-28-architecture-en-couches-design.md (§ Couches frontend, limites de taille),
+frontend/src/CLAUDE.md et le skill numera-frontend. Écris le plan détaillé de la phase 5 (skill superpowers:writing-plans)
+sur le modèle des plans des phases 3 et 4, puis exécute-le toi-même tâche par tâche. Commits directement sur main, sans push.
 ```
 
-État au début de la phase 4 (commit de clôture de la phase 3) :
-- Migré : tous les routers d'écriture budget/administration (phase 2) et les analytics (phase 3) : `services/analytics/{budget,metrics,reports,investments}/`, `services/analytics/{insights,subscriptions,wrapped,portfolio}.py`, `services/audit/` (registre `RULES`, une règle par module), `services/{wealth,budget_period,subscription_prices,tax}.py` ; requêtes `repositories/analytics/*.py` ; formules `domain/{budget,metrics,reports,insights,wrapped,projections,investments,budget_period,subscription_prices,tax,tax_rules,audit}.py`.
-- Déjà fait pour la phase 4 : la synthèse du portefeuille (`valued_accounts`, `portfolio_overview`) est dans `services/analytics/portfolio.py` ; la route `/analytics/portfolio/{id}` est encore dans `controllers/analytics/portfolio.py`.
-- Restent dans `core/` : transverse (`config`, `errors`, `logging`, `login_events`, `login_rate_limit`, `mcp_tokens`, `migrations`, `security`, `time`, `totp`) + phase 4 (`portfolio`, `holdings`, `dividends`, `market_data`, `etf_analyzer`, `seeds_etf`). `scripts/code_size_baseline.json` : 34 entrées, dont `core/portfolio.py` et `compute_portfolio` (395 lignes).
-- Filet de sécurité : `tests/test_analytics_snapshots.py` couvre déjà `/analytics/investments*`, les allocations et les projections, qui appellent `core/portfolio` ; la phase 4 doit l'étendre (sans régénérer l'existant) à `/analytics/portfolio`, `/portfolio/{id}`, `/dividends`, `/diversity`, `/holdings` en ajoutant de **nouveaux** fichiers d'instantanés, puis ne plus jamais les régénérer. Le rapprochement courtier (`reconciliation-gap`) exige un Point Zéro absent de la démo : prévoir un compte titres avec `holdings_baseline_date` dans les données complémentaires.
-- Pièges propres à la phase 3 en plus de ceux de sa section 0 : garder l'associativité des additions flottantes (cumuler dans le même total, pas en sous-totaux) ; `random.normalvariate` global pour que `random.seed` des instantanés fonctionne ; un controller qui appelait la fonction de route d'un autre doit appeler le service ; patchs de tests à repointer (`portfolio_overview` → `app.services.analytics.portfolio`).
+État au début de la phase 5 (commit de clôture de la phase 4) :
+- Backend entièrement en couches ; `tests/architecture_baseline.txt` vide ; la baseline de taille ne liste plus que des fichiers `frontend/src` (21 entrées, plafond 350 lignes par fichier `.ts`/`.tsx`).
+- Aucun test frontend : la seule vérification automatique est `cd frontend && npm run build` (`tsc --noEmit` + `vite build`) ; `make check-size` et `tests/test_code_size_guard.py` contrôlent les tailles. Le contrat avec le backend est figé par les deux tests d'instantanés (aucune route ne doit changer).
+- Vérification visuelle par l'aperçu navigateur (thème sombre, mode confidentialité, mobile 375 px), une page à la fois, avant et après chaque découpe.
 
-Routers `investment_transactions`, `holdings`, `etf_profiles`, `market` (reportés de la phase 2), `analytics/portfolio`, `analytics/dividends`, `analytics/diversity` (reportés de la phase 3) ; `core/seeds_etf.py`. `core/portfolio.py` → `domain/performance.py` (`xirr`, `twr`), `services/portfolio/` (`PriceBook`, `FxBook`, `cash_events`, `compute_portfolio` découpé par étape), puis `core/holdings.py`, `core/etf_analyzer.py`.
-
-### Phase 5 — Frontend
 Ordre par taille : `AccountDetail` (2 773), `RecurringTransactions` (1 548), `WealthSimulator` (1 169), `Accounts` (1 057), `Audit` (1 030), `Investments`, `Savings`, `HoldingsTable`, `OverviewTab`, `PointZeroModal`, `Calendar`, `MerchantsTab`, `CategoriesTab`, `Omnibox`, `Tax`, `SalaryManager`, `ImportFlow`.
 Cible : `pages/<Page>/index.tsx` (composition), un composant par section et par dialogue, `use<Page>Data.ts` pour le chargement et l'état, `lib/api/<domaine>.ts` pour les appels typés. Vérification : `npm run build` vert, plus un contrôle manuel (thème sombre, mode confidentialité, mobile 375 px) via l'aperçu navigateur.
 
