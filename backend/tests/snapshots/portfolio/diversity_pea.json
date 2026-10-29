@@ -1,0 +1,545 @@
+{
+ "alerts": [
+  {
+   "category": "company",
+   "item_name": "TotalEnergies",
+   "message": "TotalEnergies représente 12.1% de vos actions/ETFs (4.96% du patrimoine total).",
+   "title": "Forte exposition sur TotalEnergies",
+   "type": "warning",
+   "value_pct": 12.1
+  }
+ ],
+ "countries": [
+  {
+   "name": "USA",
+   "percentage_stocks": 43.08,
+   "percentage_total_wealth": 17.65,
+   "value_eur": 5583.9
+  },
+  {
+   "name": "Autres",
+   "percentage_stocks": 18.61,
+   "percentage_total_wealth": 7.62,
+   "value_eur": 2411.62
+  },
+  {
+   "name": "CHN",
+   "percentage_stocks": 6.79,
+   "percentage_total_wealth": 2.78,
+   "value_eur": 880.35
+  },
+  {
+   "name": "IND",
+   "percentage_stocks": 5.34,
+   "percentage_total_wealth": 2.19,
+   "value_eur": 692.21
+  },
+  {
+   "name": "TWN",
+   "percentage_stocks": 5.26,
+   "percentage_total_wealth": 2.15,
+   "value_eur": 681.56
+  },
+  {
+   "name": "JPN",
+   "percentage_stocks": 3.21,
+   "percentage_total_wealth": 1.31,
+   "value_eur": 415.66
+  },
+  {
+   "name": "KOR",
+   "percentage_stocks": 3.07,
+   "percentage_total_wealth": 1.26,
+   "value_eur": 397.58
+  },
+  {
+   "name": "GBR",
+   "percentage_stocks": 2.24,
+   "percentage_total_wealth": 0.92,
+   "value_eur": 290.17
+  },
+  {
+   "name": "CAN",
+   "percentage_stocks": 1.88,
+   "percentage_total_wealth": 0.77,
+   "value_eur": 243.12
+  },
+  {
+   "name": "FRA",
+   "percentage_stocks": 1.69,
+   "percentage_total_wealth": 0.69,
+   "value_eur": 219.59
+  },
+  {
+   "name": "CHE",
+   "percentage_stocks": 1.45,
+   "percentage_total_wealth": 0.59,
+   "value_eur": 188.22
+  },
+  {
+   "name": "BRA",
+   "percentage_stocks": 1.31,
+   "percentage_total_wealth": 0.54,
+   "value_eur": 170.39
+  },
+  {
+   "name": "DEU",
+   "percentage_stocks": 1.27,
+   "percentage_total_wealth": 0.52,
+   "value_eur": 164.69
+  },
+  {
+   "name": "AUS",
+   "percentage_stocks": 1.09,
+   "percentage_total_wealth": 0.45,
+   "value_eur": 141.17
+  },
+  {
+   "name": "SAU",
+   "percentage_stocks": 1.01,
+   "percentage_total_wealth": 0.42,
+   "value_eur": 131.34
+  },
+  {
+   "name": "NLD",
+   "percentage_stocks": 0.79,
+   "percentage_total_wealth": 0.32,
+   "value_eur": 101.95
+  },
+  {
+   "name": "ZAF",
+   "percentage_stocks": 0.77,
+   "percentage_total_wealth": 0.31,
+   "value_eur": 99.39
+  },
+  {
+   "name": "MEX",
+   "percentage_stocks": 0.66,
+   "percentage_total_wealth": 0.27,
+   "value_eur": 85.19
+  },
+  {
+   "name": "SWE",
+   "percentage_stocks": 0.48,
+   "percentage_total_wealth": 0.2,
+   "value_eur": 62.74
+  }
+ ],
+ "etf_compositions": [
+  {
+   "profile_id": 1,
+   "profile_name": "MSCI World",
+   "refreshed_at": null,
+   "sources": {
+    "countries": "preset",
+    "sectors": "preset",
+    "top_holdings": "preset"
+   },
+   "tickers": [
+    "CW8.PA"
+   ],
+   "value_eur": 7842.56
+  },
+  {
+   "profile_id": 6,
+   "profile_name": "MSCI Emerging Markets",
+   "refreshed_at": null,
+   "sources": {
+    "countries": "preset",
+    "sectors": "preset",
+    "top_holdings": "preset"
+   },
+   "tickers": [
+    "PAEEM.PA"
+   ],
+   "value_eur": 3549.78
+  }
+ ],
+ "holdings": [
+  {
+   "account_id": 3,
+   "etf_profile_id": 1,
+   "id": 1,
+   "is_etf": true,
+   "isin": "LU1681043599",
+   "name": "Amundi MSCI World",
+   "price_eur": 490.16,
+   "quantity": 16.0,
+   "ticker": "CW8.PA",
+   "value_eur": 7842.56
+  },
+  {
+   "account_id": 3,
+   "etf_profile_id": null,
+   "id": 2,
+   "is_etf": false,
+   "isin": "FR0000120271",
+   "name": "TotalEnergies",
+   "price_eur": 62.74,
+   "quantity": 25.0,
+   "ticker": "TTE.PA",
+   "value_eur": 1568.5
+  },
+  {
+   "account_id": 3,
+   "etf_profile_id": 6,
+   "id": 3,
+   "is_etf": true,
+   "isin": "FR0013412020",
+   "name": "Amundi PEA MSCI Emerging Markets",
+   "price_eur": 31.98,
+   "quantity": 111.0,
+   "ticker": "PAEEM.PA",
+   "value_eur": 3549.78
+  }
+ ],
+ "score": 78.8,
+ "score_label": "Bonne diversification globale",
+ "sectors": [
+  {
+   "name": "Technologie",
+   "percentage_stocks": 21.82,
+   "percentage_total_wealth": 8.94,
+   "value_eur": 2827.53
+  },
+  {
+   "name": "Finance",
+   "percentage_stocks": 15.44,
+   "percentage_total_wealth": 6.33,
+   "value_eur": 2001.42
+  },
+  {
+   "name": "Actions directes",
+   "percentage_stocks": 12.1,
+   "percentage_total_wealth": 4.96,
+   "value_eur": 1568.5
+  },
+  {
+   "name": "Consommation discrétionnaire",
+   "percentage_stocks": 9.72,
+   "percentage_total_wealth": 3.98,
+   "value_eur": 1259.35
+  },
+  {
+   "name": "Santé",
+   "percentage_stocks": 8.1,
+   "percentage_total_wealth": 3.32,
+   "value_eur": 1049.66
+  },
+  {
+   "name": "Industrie",
+   "percentage_stocks": 7.57,
+   "percentage_total_wealth": 3.1,
+   "value_eur": 980.98
+  },
+  {
+   "name": "Services de communication",
+   "percentage_stocks": 7.03,
+   "percentage_total_wealth": 2.88,
+   "value_eur": 911.22
+  },
+  {
+   "name": "Biens de consommation",
+   "percentage_stocks": 5.07,
+   "percentage_total_wealth": 2.08,
+   "value_eur": 656.63
+  },
+  {
+   "name": "Matériaux",
+   "percentage_stocks": 4.15,
+   "percentage_total_wealth": 1.7,
+   "value_eur": 537.92
+  },
+  {
+   "name": "Énergie",
+   "percentage_stocks": 3.96,
+   "percentage_total_wealth": 1.62,
+   "value_eur": 513.23
+  },
+  {
+   "name": "Autres",
+   "percentage_stocks": 2.08,
+   "percentage_total_wealth": 0.85,
+   "value_eur": 270.11
+  },
+  {
+   "name": "Services aux collectivités",
+   "percentage_stocks": 1.69,
+   "percentage_total_wealth": 0.69,
+   "value_eur": 219.59
+  },
+  {
+   "name": "Immobilier",
+   "percentage_stocks": 1.27,
+   "percentage_total_wealth": 0.52,
+   "value_eur": 164.69
+  }
+ ],
+ "top_underlying_companies": [
+  {
+   "direct_value_eur": 1568.5,
+   "has_overlap": false,
+   "indirect_value_eur": 0.0,
+   "name": "TotalEnergies",
+   "pct_stocks": 12.1,
+   "pct_total_wealth": 4.96,
+   "sources": [
+    {
+     "pct_in_source": 100.0,
+     "source": "En direct",
+     "value_eur": 1568.5
+    }
+   ],
+   "ticker": "TTE.PA",
+   "total_value_eur": 1568.5
+  },
+  {
+   "direct_value_eur": 0.0,
+   "has_overlap": false,
+   "indirect_value_eur": 376.44,
+   "name": "Apple",
+   "pct_stocks": 2.9,
+   "pct_total_wealth": 1.19,
+   "sources": [
+    {
+     "pct_in_source": 4.8,
+     "source": "CW8.PA",
+     "value_eur": 376.44
+    }
+   ],
+   "ticker": "AAPL",
+   "total_value_eur": 376.44
+  },
+  {
+   "direct_value_eur": 0.0,
+   "has_overlap": false,
+   "indirect_value_eur": 347.88,
+   "name": "TSMC (Taiwan Semiconductor)",
+   "pct_stocks": 2.68,
+   "pct_total_wealth": 1.1,
+   "sources": [
+    {
+     "pct_in_source": 9.8,
+     "source": "PAEEM.PA",
+     "value_eur": 347.88
+    }
+   ],
+   "ticker": "TSM",
+   "total_value_eur": 347.88
+  },
+  {
+   "direct_value_eur": 0.0,
+   "has_overlap": false,
+   "indirect_value_eur": 337.23,
+   "name": "Microsoft",
+   "pct_stocks": 2.6,
+   "pct_total_wealth": 1.07,
+   "sources": [
+    {
+     "pct_in_source": 4.3,
+     "source": "CW8.PA",
+     "value_eur": 337.23
+    }
+   ],
+   "ticker": "MSFT",
+   "total_value_eur": 337.23
+  },
+  {
+   "direct_value_eur": 0.0,
+   "has_overlap": false,
+   "indirect_value_eur": 321.54,
+   "name": "Nvidia",
+   "pct_stocks": 2.48,
+   "pct_total_wealth": 1.02,
+   "sources": [
+    {
+     "pct_in_source": 4.1,
+     "source": "CW8.PA",
+     "value_eur": 321.54
+    }
+   ],
+   "ticker": "NVDA",
+   "total_value_eur": 321.54
+  },
+  {
+   "direct_value_eur": 0.0,
+   "has_overlap": false,
+   "indirect_value_eur": 227.43,
+   "name": "Alphabet (Google)",
+   "pct_stocks": 1.75,
+   "pct_total_wealth": 0.72,
+   "sources": [
+    {
+     "pct_in_source": 2.9,
+     "source": "CW8.PA",
+     "value_eur": 227.43
+    }
+   ],
+   "ticker": "GOOGL",
+   "total_value_eur": 227.43
+  },
+  {
+   "direct_value_eur": 0.0,
+   "has_overlap": false,
+   "indirect_value_eur": 203.91,
+   "name": "Amazon",
+   "pct_stocks": 1.57,
+   "pct_total_wealth": 0.64,
+   "sources": [
+    {
+     "pct_in_source": 2.6,
+     "source": "CW8.PA",
+     "value_eur": 203.91
+    }
+   ],
+   "ticker": "AMZN",
+   "total_value_eur": 203.91
+  },
+  {
+   "direct_value_eur": 0.0,
+   "has_overlap": false,
+   "indirect_value_eur": 152.64,
+   "name": "Tencent",
+   "pct_stocks": 1.18,
+   "pct_total_wealth": 0.48,
+   "sources": [
+    {
+     "pct_in_source": 4.3,
+     "source": "PAEEM.PA",
+     "value_eur": 152.64
+    }
+   ],
+   "ticker": "0700.HK",
+   "total_value_eur": 152.64
+  },
+  {
+   "direct_value_eur": 0.0,
+   "has_overlap": false,
+   "indirect_value_eur": 138.44,
+   "name": "Samsung Electronics",
+   "pct_stocks": 1.07,
+   "pct_total_wealth": 0.44,
+   "sources": [
+    {
+     "pct_in_source": 3.9,
+     "source": "PAEEM.PA",
+     "value_eur": 138.44
+    }
+   ],
+   "ticker": "005930.KS",
+   "total_value_eur": 138.44
+  },
+  {
+   "direct_value_eur": 0.0,
+   "has_overlap": false,
+   "indirect_value_eur": 117.64,
+   "name": "Meta Platforms",
+   "pct_stocks": 0.91,
+   "pct_total_wealth": 0.37,
+   "sources": [
+    {
+     "pct_in_source": 1.5,
+     "source": "CW8.PA",
+     "value_eur": 117.64
+    }
+   ],
+   "ticker": "META",
+   "total_value_eur": 117.64
+  },
+  {
+   "direct_value_eur": 0.0,
+   "has_overlap": false,
+   "indirect_value_eur": 85.19,
+   "name": "Alibaba",
+   "pct_stocks": 0.66,
+   "pct_total_wealth": 0.27,
+   "sources": [
+    {
+     "pct_in_source": 2.4,
+     "source": "PAEEM.PA",
+     "value_eur": 85.19
+    }
+   ],
+   "ticker": "BABA",
+   "total_value_eur": 85.19
+  },
+  {
+   "direct_value_eur": 0.0,
+   "has_overlap": false,
+   "indirect_value_eur": 78.43,
+   "name": "Eli Lilly",
+   "pct_stocks": 0.61,
+   "pct_total_wealth": 0.25,
+   "sources": [
+    {
+     "pct_in_source": 1.0,
+     "source": "CW8.PA",
+     "value_eur": 78.43
+    }
+   ],
+   "ticker": "LLY",
+   "total_value_eur": 78.43
+  },
+  {
+   "direct_value_eur": 0.0,
+   "has_overlap": false,
+   "indirect_value_eur": 70.58,
+   "name": "Broadcom",
+   "pct_stocks": 0.54,
+   "pct_total_wealth": 0.22,
+   "sources": [
+    {
+     "pct_in_source": 0.9,
+     "source": "CW8.PA",
+     "value_eur": 70.58
+    }
+   ],
+   "ticker": "AVGO",
+   "total_value_eur": 70.58
+  },
+  {
+   "direct_value_eur": 0.0,
+   "has_overlap": false,
+   "indirect_value_eur": 70.58,
+   "name": "Tesla",
+   "pct_stocks": 0.54,
+   "pct_total_wealth": 0.22,
+   "sources": [
+    {
+     "pct_in_source": 0.9,
+     "source": "CW8.PA",
+     "value_eur": 70.58
+    }
+   ],
+   "ticker": "TSLA",
+   "total_value_eur": 70.58
+  },
+  {
+   "direct_value_eur": 0.0,
+   "has_overlap": false,
+   "indirect_value_eur": 62.74,
+   "name": "Berkshire Hathaway",
+   "pct_stocks": 0.48,
+   "pct_total_wealth": 0.2,
+   "sources": [
+    {
+     "pct_in_source": 0.8,
+     "source": "CW8.PA",
+     "value_eur": 62.74
+    }
+   ],
+   "ticker": "BRK-B",
+   "total_value_eur": 62.74
+  }
+ ],
+ "totals": {
+  "courant_eur": 3874.65,
+  "epargne_eur": 10613.8,
+  "etfs_count": 2,
+  "fonds_euros_eur": 4188.12,
+  "holdings_count": 3,
+  "other_eur": 0.0,
+  "stocks_eur": 12960.84,
+  "wealth_eur": 31637.41
+ }
+}

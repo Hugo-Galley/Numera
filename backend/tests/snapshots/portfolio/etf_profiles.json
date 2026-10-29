@@ -1,0 +1,951 @@
+[
+ {
+  "aliases": [
+   "0P0001HI7F.F",
+   "0P0001HI7F",
+   "FR0014001FD5",
+   "QS00021048B7",
+   "AXA ES LONG TERME",
+   "AXA ES LONG TERME 2M",
+   "AXA ES LONG TERME 2M CAPITALISATION EUR",
+   "AXA LONG TERME"
+  ],
+  "composition_refreshed_at": null,
+  "composition_sources": {
+   "countries": "preset",
+   "sectors": "preset",
+   "top_holdings": "preset"
+  },
+  "countries": {
+   "Autres": 23.0,
+   "CHE": 6.0,
+   "DEU": 10.0,
+   "FRA": 28.0,
+   "GBR": 8.0,
+   "USA": 25.0
+  },
+  "created_at": "2026-06-15T10:00:00",
+  "id": 10,
+  "is_system": true,
+  "isin": "FR0014001FD5",
+  "name": "AXA ES Long Terme 2M",
+  "sectors": {
+   "Autres": 11.0,
+   "Finance": 25.0,
+   "Immobilier": 20.0,
+   "Industrie": 14.0,
+   "Santé": 12.0,
+   "Technologie": 18.0
+  },
+  "ticker": "0P0001HI7F.F",
+  "top_holdings": [
+   {
+    "name": "AXA Selectiv' Immo (OPCI)",
+    "ticker": "OPCI.AXA",
+    "weight": 15.0
+   },
+   {
+    "name": "AXA Global High Yield Bonds",
+    "ticker": "BOND.AXA",
+    "weight": 10.0
+   },
+   {
+    "name": "TotalEnergies",
+    "ticker": "TTE.PA",
+    "weight": 3.5
+   },
+   {
+    "name": "LVMH",
+    "ticker": "MC.PA",
+    "weight": 3.2
+   },
+   {
+    "name": "Schneider Electric",
+    "ticker": "SU.PA",
+    "weight": 3.0
+   },
+   {
+    "name": "Microsoft",
+    "ticker": "MSFT",
+    "weight": 2.8
+   },
+   {
+    "name": "Air Liquide",
+    "ticker": "AI.PA",
+    "weight": 2.5
+   },
+   {
+    "name": "Sanofi",
+    "ticker": "SAN.PA",
+    "weight": 2.4
+   },
+   {
+    "name": "BNP Paribas",
+    "ticker": "BNP.PA",
+    "weight": 2.2
+   },
+   {
+    "name": "SAP",
+    "ticker": "SAP.DE",
+    "weight": 2.0
+   }
+  ],
+  "updated_at": "2026-06-15T10:00:00"
+ },
+ {
+  "aliases": [
+   "CAC40",
+   "C40",
+   "C40.PA",
+   "LQQ",
+   "LQQ.PA",
+   "PX1",
+   "FR0007054316",
+   "FR0010592014"
+  ],
+  "composition_refreshed_at": null,
+  "composition_sources": {
+   "countries": "preset",
+   "sectors": "preset",
+   "top_holdings": "preset"
+  },
+  "countries": {
+   "FRA": 100.0
+  },
+  "created_at": "2026-06-15T10:00:00",
+  "id": 3,
+  "is_system": true,
+  "isin": "FR0007054316",
+  "name": "CAC 40",
+  "sectors": {
+   "Autres": 4.3,
+   "Consommation discrétionnaire": 26.5,
+   "Finance": 11.5,
+   "Industrie": 21.2,
+   "Matériaux": 7.8,
+   "Santé": 14.2,
+   "Technologie": 5.4,
+   "Énergie": 9.1
+  },
+  "ticker": "C40.PA",
+  "top_holdings": [
+   {
+    "name": "LVMH",
+    "ticker": "MC.PA",
+    "weight": 10.2
+   },
+   {
+    "name": "TotalEnergies",
+    "ticker": "TTE.PA",
+    "weight": 8.4
+   },
+   {
+    "name": "Schneider Electric",
+    "ticker": "SU.PA",
+    "weight": 7.8
+   },
+   {
+    "name": "Sanofi",
+    "ticker": "SAN.PA",
+    "weight": 7.1
+   },
+   {
+    "name": "Air Liquide",
+    "ticker": "AI.PA",
+    "weight": 6.9
+   },
+   {
+    "name": "Hermès",
+    "ticker": "RMS.PA",
+    "weight": 5.8
+   },
+   {
+    "name": "BNP Paribas",
+    "ticker": "BNP.PA",
+    "weight": 5.4
+   },
+   {
+    "name": "Airbus",
+    "ticker": "AIR.PA",
+    "weight": 5.1
+   },
+   {
+    "name": "L'Oréal",
+    "ticker": "OR.PA",
+    "weight": 4.9
+   },
+   {
+    "name": "EssilorLuxottica",
+    "ticker": "EL.PA",
+    "weight": 4.2
+   }
+  ],
+  "updated_at": "2026-06-15T10:00:00"
+ },
+ {
+  "aliases": [
+   "FR0010149302",
+   "CARMIGNAC",
+   "CARMIGNAC EMERGENTS",
+   "CARMIGNAC EMERGENTS FCP A",
+   "CARMIGNAC EMERGENTS A EUR ACC",
+   "0P00000G01.F",
+   "0P00000G01",
+   "FR0011269554"
+  ],
+  "composition_refreshed_at": null,
+  "composition_sources": {
+   "countries": "preset",
+   "sectors": "preset",
+   "top_holdings": "preset"
+  },
+  "countries": {
+   "Autres": 10.5,
+   "BRA": 6.5,
+   "CHN": 27.5,
+   "IND": 21.0,
+   "KOR": 10.5,
+   "MEX": 4.5,
+   "TWN": 16.5,
+   "ZAF": 3.0
+  },
+  "created_at": "2026-06-15T10:00:00",
+  "id": 7,
+  "is_system": true,
+  "isin": "FR0010149302",
+  "name": "Carmignac Emergents",
+  "sectors": {
+   "Autres": 5.5,
+   "Consommation discrétionnaire": 15.2,
+   "Finance": 21.5,
+   "Industrie": 9.5,
+   "Santé": 7.8,
+   "Services de communication": 6.5,
+   "Technologie": 34.0
+  },
+  "ticker": "0P00000G01.F",
+  "top_holdings": [
+   {
+    "name": "TSMC (Taiwan Semiconductor)",
+    "ticker": "TSM",
+    "weight": 9.5
+   },
+   {
+    "name": "Samsung Electronics",
+    "ticker": "005930.KS",
+    "weight": 6.2
+   },
+   {
+    "name": "Tencent",
+    "ticker": "0700.HK",
+    "weight": 5.8
+   },
+   {
+    "name": "Alibaba",
+    "ticker": "BABA",
+    "weight": 4.1
+   },
+   {
+    "name": "ICICI Bank",
+    "ticker": "IBN",
+    "weight": 3.8
+   },
+   {
+    "name": "Infosys",
+    "ticker": "INFY",
+    "weight": 3.5
+   },
+   {
+    "name": "MercadoLibre",
+    "ticker": "MELI",
+    "weight": 3.2
+   },
+   {
+    "name": "HDFC Bank",
+    "ticker": "HDB",
+    "weight": 2.9
+   },
+   {
+    "name": "Petrobras",
+    "ticker": "PBR",
+    "weight": 2.2
+   },
+   {
+    "name": "MediaTek",
+    "ticker": "2454.TW",
+    "weight": 2.1
+   }
+  ],
+  "updated_at": "2026-06-15T10:00:00"
+ },
+ {
+  "aliases": [
+   "FR0010148981",
+   "CARMIGNAC INVESTISSEMENT",
+   "CARMIGNAC INVESTISSEMENT A EUR ACC",
+   "0P00000G02.F",
+   "0P00000G02"
+  ],
+  "composition_refreshed_at": null,
+  "composition_sources": {
+   "countries": "preset",
+   "sectors": "preset",
+   "top_holdings": "preset"
+  },
+  "countries": {
+   "Autres": 9.0,
+   "CHN": 6.5,
+   "DEU": 5.5,
+   "FRA": 8.5,
+   "NLD": 4.5,
+   "TWN": 4.0,
+   "USA": 62.0
+  },
+  "created_at": "2026-06-15T10:00:00",
+  "id": 8,
+  "is_system": true,
+  "isin": "FR0010148981",
+  "name": "Carmignac Investissement",
+  "sectors": {
+   "Autres": 9.8,
+   "Consommation discrétionnaire": 14.2,
+   "Finance": 11.5,
+   "Santé": 18.0,
+   "Services de communication": 10.0,
+   "Technologie": 36.5
+  },
+  "ticker": "0P00000G02.F",
+  "top_holdings": [
+   {
+    "name": "Microsoft",
+    "ticker": "MSFT",
+    "weight": 6.5
+   },
+   {
+    "name": "Amazon",
+    "ticker": "AMZN",
+    "weight": 5.8
+   },
+   {
+    "name": "Nvidia",
+    "ticker": "NVDA",
+    "weight": 5.2
+   },
+   {
+    "name": "Meta Platforms",
+    "ticker": "META",
+    "weight": 4.8
+   },
+   {
+    "name": "TSMC (Taiwan Semiconductor)",
+    "ticker": "TSM",
+    "weight": 4.2
+   },
+   {
+    "name": "Eli Lilly",
+    "ticker": "LLY",
+    "weight": 3.9
+   },
+   {
+    "name": "Alphabet (Google)",
+    "ticker": "GOOGL",
+    "weight": 3.5
+   },
+   {
+    "name": "Novo Nordisk",
+    "ticker": "NOVO-B.CO",
+    "weight": 3.1
+   },
+   {
+    "name": "Hermès",
+    "ticker": "RMS.PA",
+    "weight": 2.8
+   },
+   {
+    "name": "ASML",
+    "ticker": "ASML.AS",
+    "weight": 2.5
+   }
+  ],
+  "updated_at": "2026-06-15T10:00:00"
+ },
+ {
+  "aliases": [
+   "FR0000284689",
+   "COMGEST MONDE",
+   "COMGEST MONDE C",
+   "0P00000K6A.F",
+   "0P00000K6A"
+  ],
+  "composition_refreshed_at": null,
+  "composition_sources": {
+   "countries": "preset",
+   "sectors": "preset",
+   "top_holdings": "preset"
+  },
+  "countries": {
+   "Autres": 5.0,
+   "CHE": 5.0,
+   "DNK": 4.0,
+   "FRA": 4.5,
+   "JPN": 9.0,
+   "NLD": 7.5,
+   "USA": 65.0
+  },
+  "created_at": "2026-06-15T10:00:00",
+  "id": 9,
+  "is_system": true,
+  "isin": "FR0000284689",
+  "name": "Comgest Monde",
+  "sectors": {
+   "Autres": 4.0,
+   "Consommation discrétionnaire": 18.0,
+   "Finance": 6.0,
+   "Industrie": 14.0,
+   "Santé": 26.0,
+   "Technologie": 32.0
+  },
+  "ticker": "0P00000K6A.F",
+  "top_holdings": [
+   {
+    "name": "Microsoft",
+    "ticker": "MSFT",
+    "weight": 7.5
+   },
+   {
+    "name": "Apple",
+    "ticker": "AAPL",
+    "weight": 6.2
+   },
+   {
+    "name": "ASML",
+    "ticker": "ASML.AS",
+    "weight": 5.8
+   },
+   {
+    "name": "Eli Lilly",
+    "ticker": "LLY",
+    "weight": 5.1
+   },
+   {
+    "name": "Alphabet (Google)",
+    "ticker": "GOOGL",
+    "weight": 4.8
+   },
+   {
+    "name": "Novo Nordisk",
+    "ticker": "NOVO-B.CO",
+    "weight": 4.2
+   },
+   {
+    "name": "Oracle",
+    "ticker": "ORCL",
+    "weight": 3.8
+   },
+   {
+    "name": "Keyence",
+    "ticker": "6861.T",
+    "weight": 3.5
+   },
+   {
+    "name": "EssilorLuxottica",
+    "ticker": "EL.PA",
+    "weight": 3.1
+   }
+  ],
+  "updated_at": "2026-06-15T10:00:00"
+ },
+ {
+  "aliases": [
+   "PAASI",
+   "PAASI.PA",
+   "PAEEM",
+   "PAEEM.PA",
+   "EEM",
+   "VWO",
+   "FR0013412020",
+   "LU1681045370"
+  ],
+  "composition_refreshed_at": null,
+  "composition_sources": {
+   "countries": "preset",
+   "sectors": "preset",
+   "top_holdings": "preset"
+  },
+  "countries": {
+   "Autres": 11.6,
+   "BRA": 4.8,
+   "CHN": 24.8,
+   "IND": 19.5,
+   "KOR": 11.2,
+   "MEX": 2.4,
+   "SAU": 3.7,
+   "TWN": 19.2,
+   "ZAF": 2.8
+  },
+  "created_at": "2026-06-15T10:00:00",
+  "id": 6,
+  "is_system": true,
+  "isin": "FR0013412020",
+  "name": "MSCI Emerging Markets",
+  "sectors": {
+   "Autres": 5.4,
+   "Biens de consommation": 4.8,
+   "Consommation discrétionnaire": 12.5,
+   "Finance": 22.8,
+   "Industrie": 5.1,
+   "Matériaux": 7.2,
+   "Santé": 3.5,
+   "Services de communication": 9.1,
+   "Technologie": 24.2,
+   "Énergie": 5.4
+  },
+  "ticker": "PAEEM.PA",
+  "top_holdings": [
+   {
+    "name": "TSMC (Taiwan Semiconductor)",
+    "ticker": "TSM",
+    "weight": 9.8
+   },
+   {
+    "name": "Tencent",
+    "ticker": "0700.HK",
+    "weight": 4.3
+   },
+   {
+    "name": "Samsung Electronics",
+    "ticker": "005930.KS",
+    "weight": 3.9
+   },
+   {
+    "name": "Alibaba",
+    "ticker": "BABA",
+    "weight": 2.4
+   },
+   {
+    "name": "Reliance Industries",
+    "ticker": "RELIANCE.NS",
+    "weight": 1.5
+   },
+   {
+    "name": "Meituan",
+    "ticker": "3690.HK",
+    "weight": 1.2
+   },
+   {
+    "name": "ICICI Bank",
+    "ticker": "IBN",
+    "weight": 1.1
+   },
+   {
+    "name": "Infosys",
+    "ticker": "INFY",
+    "weight": 1.0
+   },
+   {
+    "name": "SK Hynix",
+    "ticker": "000660.KS",
+    "weight": 0.9
+   }
+  ],
+  "updated_at": "2026-06-15T10:00:00"
+ },
+ {
+  "aliases": [
+   "CW8",
+   "CW8.PA",
+   "WPEA",
+   "WPEA.PA",
+   "EWLD",
+   "EWLD.PA",
+   "URTH",
+   "IWDA",
+   "SWDA",
+   "LU1681043599",
+   "IE0002XZSHO1",
+   "FR0010315770",
+   "AHYQ.DE"
+  ],
+  "composition_refreshed_at": null,
+  "composition_sources": {
+   "countries": "preset",
+   "sectors": "preset",
+   "top_holdings": "preset"
+  },
+  "countries": {
+   "AUS": 1.8,
+   "Autres": 5.5,
+   "CAN": 3.1,
+   "CHE": 2.4,
+   "DEU": 2.1,
+   "FRA": 2.8,
+   "GBR": 3.7,
+   "JPN": 5.3,
+   "NLD": 1.3,
+   "SWE": 0.8,
+   "USA": 71.2
+  },
+  "created_at": "2026-06-15T10:00:00",
+  "id": 1,
+  "is_system": true,
+  "isin": "LU1681043599",
+  "name": "MSCI World",
+  "sectors": {
+   "Autres": 1.0,
+   "Biens de consommation": 6.2,
+   "Consommation discrétionnaire": 10.4,
+   "Finance": 15.2,
+   "Immobilier": 2.1,
+   "Industrie": 10.2,
+   "Matériaux": 3.6,
+   "Santé": 11.8,
+   "Services aux collectivités": 2.8,
+   "Services de communication": 7.5,
+   "Technologie": 25.1,
+   "Énergie": 4.1
+  },
+  "ticker": "CW8.PA",
+  "top_holdings": [
+   {
+    "name": "Apple",
+    "ticker": "AAPL",
+    "weight": 4.8
+   },
+   {
+    "name": "Microsoft",
+    "ticker": "MSFT",
+    "weight": 4.3
+   },
+   {
+    "name": "Nvidia",
+    "ticker": "NVDA",
+    "weight": 4.1
+   },
+   {
+    "name": "Amazon",
+    "ticker": "AMZN",
+    "weight": 2.6
+   },
+   {
+    "name": "Alphabet (Google)",
+    "ticker": "GOOGL",
+    "weight": 2.9
+   },
+   {
+    "name": "Meta Platforms",
+    "ticker": "META",
+    "weight": 1.5
+   },
+   {
+    "name": "Eli Lilly",
+    "ticker": "LLY",
+    "weight": 1.0
+   },
+   {
+    "name": "Broadcom",
+    "ticker": "AVGO",
+    "weight": 0.9
+   },
+   {
+    "name": "Tesla",
+    "ticker": "TSLA",
+    "weight": 0.9
+   },
+   {
+    "name": "Berkshire Hathaway",
+    "ticker": "BRK-B",
+    "weight": 0.8
+   },
+   {
+    "name": "JPMorgan Chase",
+    "ticker": "JPM",
+    "weight": 0.8
+   }
+  ],
+  "updated_at": "2026-06-15T10:00:00"
+ },
+ {
+  "aliases": [
+   "PANX",
+   "PANX.PA",
+   "UST",
+   "UST.PA",
+   "QQQ",
+   "EQQQ",
+   "FR0011550193"
+  ],
+  "composition_refreshed_at": null,
+  "composition_sources": {
+   "countries": "preset",
+   "sectors": "preset",
+   "top_holdings": "preset"
+  },
+  "countries": {
+   "NLD": 1.8,
+   "USA": 98.2
+  },
+  "created_at": "2026-06-15T10:00:00",
+  "id": 4,
+  "is_system": true,
+  "isin": "FR0011550193",
+  "name": "Nasdaq 100",
+  "sectors": {
+   "Autres": 5.9,
+   "Biens de consommation": 4.2,
+   "Consommation discrétionnaire": 13.1,
+   "Industrie": 3.8,
+   "Santé": 6.4,
+   "Services de communication": 15.4,
+   "Technologie": 51.2
+  },
+  "ticker": "PANX.PA",
+  "top_holdings": [
+   {
+    "name": "Apple",
+    "ticker": "AAPL",
+    "weight": 8.9
+   },
+   {
+    "name": "Microsoft",
+    "ticker": "MSFT",
+    "weight": 8.1
+   },
+   {
+    "name": "Nvidia",
+    "ticker": "NVDA",
+    "weight": 7.8
+   },
+   {
+    "name": "Amazon",
+    "ticker": "AMZN",
+    "weight": 5.2
+   },
+   {
+    "name": "Broadcom",
+    "ticker": "AVGO",
+    "weight": 4.6
+   },
+   {
+    "name": "Meta Platforms",
+    "ticker": "META",
+    "weight": 4.3
+   },
+   {
+    "name": "Alphabet (Google)",
+    "ticker": "GOOGL",
+    "weight": 5.5
+   },
+   {
+    "name": "Tesla",
+    "ticker": "TSLA",
+    "weight": 2.6
+   },
+   {
+    "name": "Costco",
+    "ticker": "COST",
+    "weight": 2.4
+   }
+  ],
+  "updated_at": "2026-06-15T10:00:00"
+ },
+ {
+  "aliases": [
+   "ESE",
+   "ESE.PA",
+   "PUST",
+   "PUST.PA",
+   "VOO",
+   "SPY",
+   "IVV",
+   "CSPX",
+   "FR0011550185",
+   "IE00B5BMR087"
+  ],
+  "composition_refreshed_at": null,
+  "composition_sources": {
+   "countries": "preset",
+   "sectors": "preset",
+   "top_holdings": "preset"
+  },
+  "countries": {
+   "USA": 100.0
+  },
+  "created_at": "2026-06-15T10:00:00",
+  "id": 2,
+  "is_system": true,
+  "isin": "FR0011550185",
+  "name": "S&P 500",
+  "sectors": {
+   "Biens de consommation": 5.8,
+   "Consommation discrétionnaire": 10.1,
+   "Finance": 13.8,
+   "Immobilier": 1.8,
+   "Industrie": 8.4,
+   "Matériaux": 2.4,
+   "Santé": 11.5,
+   "Services aux collectivités": 2.2,
+   "Services de communication": 8.9,
+   "Technologie": 31.5,
+   "Énergie": 3.6
+  },
+  "ticker": "ESE.PA",
+  "top_holdings": [
+   {
+    "name": "Apple",
+    "ticker": "AAPL",
+    "weight": 7.1
+   },
+   {
+    "name": "Microsoft",
+    "ticker": "MSFT",
+    "weight": 6.5
+   },
+   {
+    "name": "Nvidia",
+    "ticker": "NVDA",
+    "weight": 6.1
+   },
+   {
+    "name": "Amazon",
+    "ticker": "AMZN",
+    "weight": 3.8
+   },
+   {
+    "name": "Alphabet (Google)",
+    "ticker": "GOOGL",
+    "weight": 4.3
+   },
+   {
+    "name": "Meta Platforms",
+    "ticker": "META",
+    "weight": 2.4
+   },
+   {
+    "name": "Berkshire Hathaway",
+    "ticker": "BRK-B",
+    "weight": 1.7
+   },
+   {
+    "name": "Eli Lilly",
+    "ticker": "LLY",
+    "weight": 1.5
+   },
+   {
+    "name": "Broadcom",
+    "ticker": "AVGO",
+    "weight": 1.4
+   },
+   {
+    "name": "Tesla",
+    "ticker": "TSLA",
+    "weight": 1.2
+   },
+   {
+    "name": "JPMorgan Chase",
+    "ticker": "JPM",
+    "weight": 1.3
+   }
+  ],
+  "updated_at": "2026-06-15T10:00:00"
+ },
+ {
+  "aliases": [
+   "MEUD",
+   "MEUD.PA",
+   "EXSA",
+   "ETZ",
+   "FR0010791004",
+   "LU0908500753"
+  ],
+  "composition_refreshed_at": null,
+  "composition_sources": {
+   "countries": "preset",
+   "sectors": "preset",
+   "top_holdings": "preset"
+  },
+  "countries": {
+   "Autres": 7.2,
+   "CHE": 14.2,
+   "DEU": 13.5,
+   "DNK": 3.8,
+   "ESP": 4.1,
+   "FRA": 17.8,
+   "GBR": 22.5,
+   "ITA": 4.3,
+   "NLD": 7.2,
+   "SWE": 5.4
+  },
+  "created_at": "2026-06-15T10:00:00",
+  "id": 5,
+  "is_system": true,
+  "isin": "FR0010791004",
+  "name": "STOXX Europe 600",
+  "sectors": {
+   "Biens de consommation": 9.8,
+   "Consommation discrétionnaire": 10.2,
+   "Finance": 18.1,
+   "Immobilier": 3.5,
+   "Industrie": 14.8,
+   "Matériaux": 6.5,
+   "Santé": 15.4,
+   "Services aux collectivités": 4.2,
+   "Services de communication": 3.8,
+   "Technologie": 7.9,
+   "Énergie": 5.8
+  },
+  "ticker": "MEUD.PA",
+  "top_holdings": [
+   {
+    "name": "Novo Nordisk",
+    "ticker": "NOVO-B.CO",
+    "weight": 3.5
+   },
+   {
+    "name": "ASML",
+    "ticker": "ASML.AS",
+    "weight": 3.1
+   },
+   {
+    "name": "Nestlé",
+    "ticker": "NESN.SW",
+    "weight": 2.7
+   },
+   {
+    "name": "SAP",
+    "ticker": "SAP.DE",
+    "weight": 2.2
+   },
+   {
+    "name": "AstraZeneca",
+    "ticker": "AZN.L",
+    "weight": 2.1
+   },
+   {
+    "name": "Shell",
+    "ticker": "SHEL.L",
+    "weight": 2.0
+   },
+   {
+    "name": "Novartis",
+    "ticker": "NOVN.SW",
+    "weight": 1.9
+   },
+   {
+    "name": "Roche",
+    "ticker": "ROG.SW",
+    "weight": 1.8
+   },
+   {
+    "name": "LVMH",
+    "ticker": "MC.PA",
+    "weight": 1.7
+   },
+   {
+    "name": "TotalEnergies",
+    "ticker": "TTE.PA",
+    "weight": 1.4
+   }
+  ],
+  "updated_at": "2026-06-15T10:00:00"
+ }
+]

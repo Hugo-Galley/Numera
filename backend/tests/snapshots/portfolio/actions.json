@@ -1,0 +1,329 @@
+{
+ "actions": [
+  {
+   "action_label": "Catégoriser",
+   "action_type": "modal_categorize",
+   "action_url": "/audit",
+   "description": "Vous avez 8 dépenses sans catégorie.",
+   "id": "uncategorized-expenses",
+   "metadata": {
+    "issue_id": "uncategorized-expenses"
+   },
+   "samples": [
+    {
+     "account_id": 1,
+     "amount": 8.1,
+     "currency": "EUR",
+     "date": "2026-06-09",
+     "id": 607,
+     "merchant": "Boulangerie Dupont 75",
+     "type": "Sortie"
+    },
+    {
+     "account_id": 1,
+     "amount": 12.4,
+     "currency": "EUR",
+     "date": "2026-06-06",
+     "id": 605,
+     "merchant": "BOULANGERIE DUPONT",
+     "type": "Sortie"
+    },
+    {
+     "account_id": 1,
+     "amount": 12.4,
+     "currency": "EUR",
+     "date": "2026-06-06",
+     "id": 606,
+     "merchant": "BOULANGERIE DUPONT",
+     "type": "Sortie"
+    },
+    {
+     "account_id": 1,
+     "amount": 90.0,
+     "currency": "EUR",
+     "date": "2026-05-20",
+     "id": 608,
+     "merchant": "RESTAURANT AVANCE",
+     "type": "Sortie"
+    },
+    {
+     "account_id": 1,
+     "amount": 12.4,
+     "currency": "EUR",
+     "date": "2026-05-07",
+     "id": 604,
+     "merchant": "BOULANGERIE DUPONT",
+     "type": "Sortie"
+    }
+   ],
+   "severity": "high",
+   "title": "Transactions sans catégorie",
+   "type": "audit"
+  },
+  {
+   "action_label": "Vérifier",
+   "action_type": "modal_categorize",
+   "action_url": "/audit",
+   "description": "2 transactions semblent être des doublons.",
+   "id": "duplicate-transactions",
+   "metadata": {
+    "issue_id": "duplicate-transactions"
+   },
+   "samples": [],
+   "severity": "high",
+   "title": "Doublons suspects",
+   "type": "audit"
+  },
+  {
+   "action_label": "Ouvrir le salaire",
+   "action_type": "link",
+   "action_url": "/recurring?tab=salary",
+   "description": "Aucun salaire pour mars 2026, avril 2026, mai 2026. Renseigne le mois dans le gestionnaire de salaire, ou désactive la configuration si tu ne perçois plus ce salaire.",
+   "id": "missing-salary-2026-05",
+   "metadata": {
+    "months": [
+     "2026-03",
+     "2026-04",
+     "2026-05"
+    ]
+   },
+   "samples": [],
+   "severity": "high",
+   "title": "Salaire absent",
+   "type": "audit"
+  },
+  {
+   "action_label": "Voir détails",
+   "action_type": "link",
+   "action_url": "/accounts",
+   "description": "Vous avez dépensé 837.99€ pour une limite de 20.0€.",
+   "id": "budget-over-20",
+   "metadata": {
+    "category_id": 20,
+    "limit": 20.0,
+    "spent": 837.99
+   },
+   "samples": [],
+   "severity": "high",
+   "title": "Budget dépassé : Instantané loisirs",
+   "type": "budget"
+  },
+  {
+   "action_label": "Voir les sauvegardes",
+   "action_type": "link",
+   "action_url": "/settings?tab=data",
+   "description": "Dernière sauvegarde réussie : jamais. Dernière erreur : disque plein",
+   "id": "backup-failing-never",
+   "metadata": {},
+   "samples": [],
+   "severity": "high",
+   "title": "Sauvegarde en retard",
+   "type": "audit"
+  },
+  {
+   "action_label": "Mettre à jour",
+   "action_type": "link",
+   "action_url": "/investments",
+   "description": "1 comptes d'investissement n'ont pas de mise à jour récente.",
+   "id": "stale-snapshots",
+   "metadata": {
+    "account_ids": [
+     3
+    ]
+   },
+   "samples": [],
+   "severity": "medium",
+   "title": "Soldes investissement obsolètes",
+   "type": "audit"
+  },
+  {
+   "action_label": "Rapprocher",
+   "action_type": "link",
+   "action_url": "/audit?vue=virements",
+   "description": "1 virements internes potentiels ont été détectés.",
+   "id": "possible-transfers",
+   "metadata": {
+    "issue_id": "unmatched-transfers"
+   },
+   "samples": [],
+   "severity": "medium",
+   "title": "Transferts non rapprochés",
+   "type": "audit"
+  },
+  {
+   "action_label": "Surveiller",
+   "action_type": "link",
+   "action_url": "/accounts",
+   "description": "Vous êtes à 87% de votre limite pour Shopping.",
+   "id": "budget-near-18",
+   "metadata": {
+    "category_id": 18,
+    "limit": 150.0,
+    "spent": 131.14
+   },
+   "samples": [],
+   "severity": "medium",
+   "title": "Budget presque atteint : Shopping",
+   "type": "budget"
+  },
+  {
+   "action_label": "Rattacher",
+   "action_type": "link",
+   "action_url": "/accounts/3",
+   "description": "1 dividende(s) ne sont rattachés à aucun titre : rendement et plus-value totale par ligne sont incomplets.",
+   "id": "dividends-unlinked-3",
+   "metadata": {
+    "account_id": 3,
+    "count": 1
+   },
+   "samples": [],
+   "severity": "medium",
+   "title": "Dividendes à rattacher à un titre : PEA",
+   "type": "investments"
+  },
+  {
+   "action_label": "Vérifier le compte",
+   "action_type": "link",
+   "action_url": "/accounts/5",
+   "description": "Le relevé du 2026-05-04 indique 7200.00 EUR, Numera calcule 7938.60 (+10.3 %, seuil 2 %). Une opération, des frais ou un dividende manquent probablement.",
+   "id": "reconciliation-gap-5-2026-05-04",
+   "metadata": {
+    "account_id": 5,
+    "computed_value": 7938.6,
+    "date": "2026-05-04T10:00:00",
+    "flagged": true,
+    "gap": 738.6,
+    "gap_pct": 10.26,
+    "snapshot_value": 7200.0
+   },
+   "samples": [],
+   "severity": "medium",
+   "title": "Écart avec le relevé du courtier : CTO Instantané",
+   "type": "investments"
+  },
+  {
+   "action_label": "Voir les abonnements",
+   "action_type": "link",
+   "action_url": "/recurring?tab=subscriptions",
+   "description": "Passé de 13.49 à 15.99 EUR par mois le 10/05/2026 (+18.5 %), soit 30.00 EUR de plus par an. Toujours utile à ce prix ?",
+   "id": "subscription-price-1-lstreamflix-2026-05-10",
+   "metadata": {
+    "account_id": 1,
+    "annual_impact": 30.0,
+    "new_amount": 15.99,
+    "old_amount": 13.49
+   },
+   "samples": [],
+   "severity": "medium",
+   "title": "Hausse de prix : STREAMFLIX",
+   "type": "subscription"
+  },
+  {
+   "action_label": "Affecter",
+   "action_type": "link",
+   "action_url": "/reimbursements",
+   "description": "4 remboursement(s) reçu(s) ne sont rattachés à aucune créance ouverte.",
+   "id": "unallocated-reimbursements",
+   "metadata": {
+    "issue_id": "unallocated-reimbursements"
+   },
+   "samples": [
+    {
+     "account_id": 1,
+     "amount": 30.0,
+     "currency": "EUR",
+     "date": "2026-06-03",
+     "id": 609,
+     "merchant": "VIR AMI REMBOURSEMENT",
+     "type": "Entree"
+    },
+    {
+     "account_id": 1,
+     "amount": 16.5,
+     "currency": "EUR",
+     "date": "2026-04-10",
+     "id": 529,
+     "merchant": "CPAM — Remboursement",
+     "type": "Entree"
+    },
+    {
+     "account_id": 1,
+     "amount": 16.5,
+     "currency": "EUR",
+     "date": "2026-03-05",
+     "id": 501,
+     "merchant": "CPAM — Remboursement",
+     "type": "Entree"
+    },
+    {
+     "account_id": 1,
+     "amount": 16.5,
+     "currency": "EUR",
+     "date": "2026-01-19",
+     "id": 440,
+     "merchant": "CPAM — Remboursement",
+     "type": "Entree"
+    }
+   ],
+   "severity": "low",
+   "title": "Remboursements à affecter",
+   "type": "audit"
+  },
+  {
+   "action_label": "Créer la règle",
+   "action_type": "modal_rule",
+   "action_url": "/classement?tab=rules",
+   "description": "6 transaction(s) sans catégorie chez 'BOULANGERIE DUPONT' (sur 6). Une règle les catégoriserait, ainsi que les prochains imports.",
+   "id": "suggest-rule-BOULANGERIE DUPONT",
+   "metadata": {
+    "merchant": "BOULANGERIE DUPONT",
+    "suggested_category_id": null
+   },
+   "samples": [],
+   "severity": "low",
+   "title": "Nouvelle règle suggérée : BOULANGERIE DUPONT",
+   "type": "rule"
+  },
+  {
+   "action_label": "Normaliser",
+   "action_type": "modal_merchant",
+   "action_url": "/classement?tab=merchants",
+   "description": "2 écritures pour le même marchand ('BOULANGERIE DUPONT', 'Boulangerie Dupont 75'), 7 transactions. Les regrouper sous un marchand canonique ?",
+   "id": "suggest-normalization-BOULANGERIE DUPONT",
+   "metadata": {
+    "count": 7,
+    "merchant": "BOULANGERIE DUPONT",
+    "variants": [
+     "BOULANGERIE DUPONT",
+     "Boulangerie Dupont 75"
+    ]
+   },
+   "samples": [],
+   "severity": "low",
+   "title": "Normalisation suggérée : BOULANGERIE DUPONT",
+   "type": "merchant"
+  },
+  {
+   "action_label": "Saisir un dividende",
+   "action_type": "link",
+   "action_url": "/accounts/3",
+   "description": "Aucun dividende saisi sur CW8.PA depuis plus de 13 mois. En as-tu reçu un ?",
+   "id": "dividend-missing-3-CW8.PA",
+   "metadata": {
+    "account_id": 3,
+    "ticker": "CW8.PA"
+   },
+   "samples": [],
+   "severity": "low",
+   "title": "Dividende attendu : Amundi MSCI World",
+   "type": "investments"
+  }
+ ],
+ "summary": {
+  "checked_at": "2026-06-15T10:00:00",
+  "high_priority": 5,
+  "low_priority": 4,
+  "medium_priority": 6,
+  "total_actions": 15
+ }
+}

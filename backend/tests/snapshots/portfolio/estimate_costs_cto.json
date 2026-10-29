@@ -1,0 +1,32 @@
+[
+ {
+  "amount_only_buys": 0,
+  "asset_name": "BNP Paribas Easy S&P 500",
+  "bought_quantity": 4.0,
+  "buys": 1,
+  "coverage": 0.4,
+  "currency": "EUR",
+  "current_cost": 400.0,
+  "estimate": 380.0,
+  "first_buy": "2025-03-10T09:00:00",
+  "method": "quantities",
+  "quantity": 10.0,
+  "sold_quantity": 0.0,
+  "ticker": "ESE.PA"
+ },
+ {
+  "amount_only_buys": 1,
+  "asset_name": "Apple Inc",
+  "bought_quantity": 0.0,
+  "buys": 1,
+  "coverage": null,
+  "currency": "USD",
+  "current_cost": 150.0,
+  "estimate": 147.0,
+  "first_buy": "2025-04-14T09:00:00",
+  "method": "amounts",
+  "quantity": 5.0,
+  "sold_quantity": 0.0,
+  "ticker": "AAPL"
+ }
+]

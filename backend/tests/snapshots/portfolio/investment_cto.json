@@ -1,0 +1,115 @@
+{
+ "account_id": 5,
+ "account_name": "CTO Instantané",
+ "baseline": {
+  "date": "2025-06-02T10:00:00",
+  "value": 5000.0
+ },
+ "currency": "EUR",
+ "totals": {
+  "current_value": 8078.77,
+  "gain_eur": 1078.77,
+  "net_invested": 7000.0,
+  "performance_pct": 15.41,
+  "snapshot_value": 7200.0,
+  "total_retire": 0.0,
+  "total_verse": 2000.0,
+  "value_source": "positions"
+ },
+ "transactions": [
+  {
+   "amount": 2000.0,
+   "asset_class": null,
+   "currency": "EUR",
+   "date": "2025-07-01T09:00:00",
+   "geographic_zone": null,
+   "id": 46,
+   "note": null,
+   "original_amount": 2000.0,
+   "sector": null,
+   "type": "versement"
+  },
+  {
+   "amount": 1262.0,
+   "asset_class": null,
+   "currency": "EUR",
+   "date": "2025-07-03T09:00:00",
+   "geographic_zone": null,
+   "id": 47,
+   "note": "Achat ESE",
+   "original_amount": 1262.0,
+   "sector": null,
+   "type": "achat"
+  },
+  {
+   "amount": 305.41,
+   "asset_class": null,
+   "currency": "USD",
+   "date": "2025-11-10T15:00:00",
+   "geographic_zone": null,
+   "id": 48,
+   "note": "Vente Apple",
+   "original_amount": 339.0,
+   "sector": null,
+   "type": "vente"
+  },
+  {
+   "amount": 5.0,
+   "asset_class": null,
+   "currency": "EUR",
+   "date": "2025-12-31T12:00:00",
+   "geographic_zone": null,
+   "id": 49,
+   "note": "Droits de garde",
+   "original_amount": 5.0,
+   "sector": null,
+   "type": "frais"
+  },
+  {
+   "amount": 12.0,
+   "asset_class": null,
+   "currency": "EUR",
+   "date": "2026-02-16T12:00:00",
+   "geographic_zone": null,
+   "id": 50,
+   "note": "Dividende ESE",
+   "original_amount": 12.0,
+   "sector": null,
+   "type": "dividende"
+  }
+ ],
+ "value_series": [
+  {
+   "current_value": 5000.0,
+   "current_value_raw": 5000.0,
+   "date": "2025-06-02T10:00:00",
+   "id": 21,
+   "is_zero_point": true,
+   "note": "Point zéro"
+  },
+  {
+   "current_value": 6200.0,
+   "current_value_raw": 6200.0,
+   "date": "2025-09-01T10:00:00",
+   "id": 22,
+   "is_zero_point": false,
+   "note": "Relevé courtier"
+  },
+  {
+   "current_value": 6500.0,
+   "current_value_raw": 6500.0,
+   "date": "2026-01-05T10:00:00",
+   "id": 23,
+   "is_zero_point": false,
+   "note": "Relevé courtier"
+  },
+  {
+   "current_value": 7200.0,
+   "current_value_raw": 7200.0,
+   "date": "2026-05-04T10:00:00",
+   "id": 24,
+   "is_zero_point": false,
+   "note": "Relevé courtier"
+  }
+ ]
+}
