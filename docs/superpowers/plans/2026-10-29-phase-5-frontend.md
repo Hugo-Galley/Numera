@@ -28,8 +28,8 @@ si le budget le permet. Commits directement sur main, sans push.
 ### État (mis à jour à chaque tâche)
 
 - **Fait** : tâches 1 à 7 (`AccountDetail`, `RecurringTransactions`, `WealthSimulator`, `Accounts`, `Audit`, `Investments` + `Savings`, `HoldingsTable` + `PointZeroModal`), un commit « refactor(frontend): découpe de … » par fichier. Baseline : **12 entrées**.
-- **Fait aussi** : tâches 8 (`OverviewTab`) et 9 (`Calendar`, `MerchantsTab`, `CategoriesTab`, `Omnibox`). Baseline : **6 entrées**.
-- **Prochaine tâche** : tâche 10, suite (`SalaryManager`, puis `ImportFlow`, `ProvisionsSection`).
+- **Fait aussi** : tâches 8 (`OverviewTab`) et 9 (`Calendar`, `MerchantsTab`, `CategoriesTab`, `Omnibox`). Baseline : **5 entrées**.
+- **Prochaine tâche** : tâche 10, suite (`ImportFlow`, puis `ProvisionsSection`).
 - Aucune tâche entamée à moitié.
 
 ### Conventions de l'utilisateur (sans redemander)
@@ -168,7 +168,7 @@ Un commit par fichier. Omnibox : ⌘K, recherche, navigation clavier (vérifier 
 Un commit par fichier. ImportFlow : aller jusqu'à l'aperçu d'un CSV **sans valider l'import**.
 
 - [x] `Tax` : `pages/Tax/` : `index.tsx`, `types.ts`, `TaxWidgets.tsx` (`Money`, `Gauge`, `WrapperCardView` déplacés tels quels), hooks `useTax.ts` / `useTaxData.ts` ; composants `TaxSettingsCard`, `AllocationAdviceCard`, `WrappersSection`, `AnnualReportSection`. Plus gros fichier : 95 lignes. Vérifié sur `/tax` : texte, requêtes, boutons, HTML ; réglages ouverts (valeurs identiques).
-- [ ] `SalaryManager`
+- [x] `SalaryManager` : `components/tools/SalaryManager/` (export inchangé) : `index.tsx` (retours anticipés chargement / erreur, `WorkTimeSettings`, `TelecommutingCalendar`), `types.ts`, hooks `useSalaryManager.ts` / `useSalaryData.ts` (dont `nbTickets`, calcul pur remonté) ; composants `SalaryConfigCard`, `MonthSummaryPanel`. Plus gros fichier : 225 lignes. Vérifié dans `/recurring?tab=salary` : texte, requêtes, boutons. La démo n'a pas de configuration salaire (`/salary/config` 404) : la synthèse du mois n'est vérifiée que par tsc.
 - [ ] `ImportFlow`
 - [ ] `ProvisionsSection`
 
