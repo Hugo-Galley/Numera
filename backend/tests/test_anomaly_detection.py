@@ -130,3 +130,26 @@ def test_positive_insights_carry_their_unit(client, db_session):
 
     rate = next(i for i in data["insights"] if i["title"] == "Excellent taux d'épargne")
     assert rate["unit"] == "%"
+
+
+def test_anomaly_detection_uncategorized_expenses(client, db_session):
+    # « Sans catégorie » (id None) au-delà de 2x sa moyenne : alerte, pas d'erreur 500
+    acc = Account(name="Test Acc", type="courant", currency="EUR", active=True)
+    db_session.add(acc)
+    db_session.commit()
+    for d, amount in [(datetime(2026, 2, 10), 50.0), (datetime(2026, 3, 10), 50.0),
+                      (datetime(2026, 4, 10), 50.0), (datetime(2026, 5, 15), 150.0)]:
+        db_session.add(Transaction(
+            account_id=acc.id, date=d, month_label=d.strftime("%b %Y"), type="Sortie",
+            merchant="Inconnu", category_id=None, amount=amount, original_amount=amount,
+            currency="EUR", running_balance=1000.0,
+        ))
+    db_session.commit()
+
+    response = client.get("/analytics/insights", params={"month": 5, "year": 2026})
+    assert response.status_code == 200
+    anomalies = [i for i in response.json()["insights"] if i["type"] == "anomaly"]
+    assert [(a["title"], a["category_id"]) for a in anomalies] == [("Alerte catégorie : Sans catégorie", None)]
+
+    report = client.get("/analytics/monthly-report", params={"month": 5, "year": 2026})
+    assert report.status_code == 200

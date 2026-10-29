@@ -9,6 +9,7 @@ from app.repositories.analytics.common import ticket_restaurant_account_ids
 from app.schemas.insight import Insight, IntelligentInsights
 from app.services.analytics.budget import compute_budget, compute_resilience
 from app.services.analytics.metrics import compute_expenses_by_category
+from app.services.analytics.metrics.categories import UNCATEGORIZED
 from app.services.analytics.subscriptions import get_subscription_total_for_period
 from app.services.budget.budget_period import period_bounds
 
@@ -89,7 +90,8 @@ async def _category_anomalies(db: Session, month: int, year: int, account_id: in
             histories.setdefault(item["category"]["id"], []).append(item["total"])
     insights = []
     for cat_id, current_total, avg in category_anomalies(current_totals, histories):
-        cat_obj = repo.get_category(db, cat_id)
+        # « Sans catégorie » a un id None : pas de ligne en base
+        cat_obj = repo.get_category(db, cat_id) if cat_id is not None else UNCATEGORIZED
         insights.append(Insight(
             type="anomaly",
             title=f"Alerte catégorie : {cat_obj.name}",
