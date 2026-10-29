@@ -27,9 +27,8 @@ si le budget le permet. Commits directement sur main, sans push.
 
 ### État (mis à jour à chaque tâche)
 
-- **Fait** : tâches 1 à 5 (`AccountDetail`, `RecurringTransactions`, `WealthSimulator`, `Accounts`, `Audit`), un commit « refactor(frontend): découpe de … » chacune. Baseline : **16 entrées**.
-- **Fait aussi** : tâche 6, première moitié (`Investments`). Baseline : **15 entrées**.
-- **Prochaine tâche** : tâche 6, seconde moitié (`Savings`).
+- **Fait** : tâches 1 à 6 (`AccountDetail`, `RecurringTransactions`, `WealthSimulator`, `Accounts`, `Audit`, `Investments` + `Savings`), un commit « refactor(frontend): découpe de … » par fichier. Baseline : **14 entrées**.
+- **Prochaine tâche** : tâche 7 (`HoldingsTable`, puis `PointZeroModal`).
 - Aucune tâche entamée à moitié.
 
 ### Conventions de l'utilisateur (sans redemander)
@@ -134,12 +133,12 @@ Fait. `pages/Audit/` : `index.tsx` (`ActionCenter`, retours anticipés : `?vue=v
 
 Écrans : `/audit`, `/audit?vue=virements`. Le compteur d'actions de la Sidebar ne doit pas changer.
 
-### Task 6: `pages/Investments.tsx` (775) et `pages/Savings.tsx` (761)
+### Task 6: `pages/Investments.tsx` (775) et `pages/Savings.tsx` (761) ✅
 
 Deux commits (un par page). `Investments` : modales `PointZeroModal`, `CustomEtfModal` ouvrables (sans les découper ici).
 
 - [x] `Investments` : `pages/Investments/` : `index.tsx` (retour anticipé de chargement, sections), `types.ts` (constantes), hook `useInvestmentsData.ts` (dont `chartData`, calcul pur remonté avant le retour anticipé), composants `InvestmentsKpis`, `AccountsAllocation`, `PerformanceSection`, `AdvancedCharts`, `TopCompanies`, `EtfCompositions`, `DrillDownDialog`. Plus gros fichier : 156 lignes. Relevé identique (texte, requêtes, boutons, longueur du HTML de `<main>`). La page n'utilise ni `PointZeroModal` ni `CustomEtfModal` (aucun import).
-- [ ] `Savings`.
+- [x] `Savings` : `pages/Savings/` : `index.tsx` (états erreur / chargement / contenu, `ProvisionsSection`), `types.ts`, hook `useSavingsData.ts` ; composants `SavingsHeader`, `BalanceSection`, `FlowsSection`, `GoalsHeader` (dialogue d'objectif), `GoalsGrid`. Plus gros fichier : 155 lignes. Relevé identique ; dialogue création ×2 (vide) et édition pré-remplie.
 
 ### Task 7: `components/investments/HoldingsTable.tsx` (749) et `PointZeroModal.tsx` (602)
 
