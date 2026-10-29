@@ -6,7 +6,10 @@ from sqlalchemy.orm import Session
 from app.domain.dividends import DIVIDEND_TYPE
 from app.domain.holdings import BUY_TYPES, TRADE_TYPES
 from app.models.account import Account
+from app.models.holding_baseline_item import HoldingBaselineItem
 from app.models.investment_transaction import InvestmentTransaction
+from app.models.portfolio_holding import PortfolioHolding
+from app.models.transaction import Transaction
 
 
 def for_account(db: Session, account_id: int) -> list[InvestmentTransaction]:
@@ -62,3 +65,61 @@ def delete_reinvestments(db: Session, dividend_id: int) -> None:
 def add(db: Session, tx: InvestmentTransaction) -> None:
     db.add(tx)
     db.flush()
+
+
+def list_for(db: Session, account_id: int | None, skip: int, limit: int | None) -> list[InvestmentTransaction]:
+    query = db.query(InvestmentTransaction)
+    if account_id is not None:
+        query = query.filter(InvestmentTransaction.account_id == account_id)
+    query = query.order_by(InvestmentTransaction.date.asc(), InvestmentTransaction.id.asc()).offset(skip)
+    if limit is not None:
+        query = query.limit(limit)
+    return query.all()
+
+
+def get(db: Session, tx_id: int) -> InvestmentTransaction | None:
+    return db.query(InvestmentTransaction).filter(InvestmentTransaction.id == tx_id).first()
+
+
+def dividend_link_candidates(db: Session, account_id: int) -> dict[str, str]:
+    """Titres auxquels rattacher un dividende : positions, puis inventaire, puis titres des opérations."""
+    candidates: dict[str, str] = {}
+    for h in db.query(PortfolioHolding).filter(PortfolioHolding.account_id == account_id).all():
+        candidates[h.ticker] = h.asset_name
+    for b in db.query(HoldingBaselineItem).filter(HoldingBaselineItem.account_id == account_id).all():
+        candidates.setdefault(b.ticker, b.asset_name)
+    for ticker, name in (
+        db.query(InvestmentTransaction.ticker, InvestmentTransaction.note)
+        .filter(InvestmentTransaction.account_id == account_id, InvestmentTransaction.ticker.isnot(None))
+        .distinct()
+        .all()
+    ):
+        candidates.setdefault(ticker, name or ticker)
+    return candidates
+
+
+def unlinked_dividends(db: Session, account_id: int) -> list[InvestmentTransaction]:
+    return (
+        db.query(InvestmentTransaction)
+        .filter(
+            InvestmentTransaction.account_id == account_id,
+            InvestmentTransaction.type == DIVIDEND_TYPE,
+            InvestmentTransaction.ticker.is_(None),
+        )
+        .order_by(InvestmentTransaction.date.asc())
+        .all()
+    )
+
+
+def linked_bank_transactions(db: Session, tx_id: int) -> list[Transaction]:
+    return db.query(Transaction).filter(Transaction.linked_investment_transaction_id == tx_id).all()
+
+
+def holding(db: Session, account_id: int, ticker: str) -> PortfolioHolding | None:
+    return db.query(PortfolioHolding).filter(
+        PortfolioHolding.account_id == account_id, PortfolioHolding.ticker == ticker.upper().strip()
+    ).first()
+
+
+def delete(db: Session, tx: InvestmentTransaction) -> None:
+    db.delete(tx)

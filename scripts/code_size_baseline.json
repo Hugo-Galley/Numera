@@ -2,8 +2,6 @@
   "backend/app/controllers/analytics/diversity.py": 453,
   "backend/app/controllers/analytics/diversity.py::diversity_scanner": 369,
   "backend/app/controllers/analytics/dividends.py::get_dividends": 101,
-  "backend/app/controllers/investment_transactions.py::create_investment_transaction": 83,
-  "backend/app/controllers/investment_transactions.py::update_investment_transaction": 95,
   "frontend/src/components/analytics/SankeyFlow.tsx": 371,
   "frontend/src/components/analytics/WealthSimulator.tsx": 1169,
   "frontend/src/components/classement/CategoriesTab.tsx": 510,
