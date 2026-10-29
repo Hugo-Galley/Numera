@@ -277,10 +277,31 @@ def test_layers_match_baseline():
 ### Phase 2 — Domaines d'écriture (terminée le 28/10/2026)
 Plan détaillé : `docs/superpowers/plans/2026-10-28-phase-2-domaines-ecriture.md` (18 tâches). Tâche 1 : le dossier `api/` devient `controllers/` (demande de l'utilisateur). Périmètre : routers d'écriture côté budget et administration, et les modules `core/` qui leur appartiennent (`transfers`, `loans`, `provisions`, `reimbursements`, `splits`, `recurring`, `finance`, `salary`, `work_time`, `month_review`, `reconciliation`, `demo`, `seeds`, `notifications`, `currency`, `logos`, `backup`). Le passage de `recalculate_running_balances` en `flush` y est traité (tâche 15). Les domaines d'écriture côté investissement sont reportés en phase 4.
 
-### Phase 3 — Analytics
+### Phase 3 — Analytics (terminée le 29/10/2026)
 Plan détaillé, autonome (reprise dans une nouvelle conversation, section 0) : `docs/superpowers/plans/2026-10-28-phase-3-analytics.md` (10 tâches). Filet de sécurité : instantanés JSON de toutes les routes analytics sur les données de démo à date figée (`freezegun`), identiques après chaque tâche. Périmètre : budget, Centre d'Actions (registre de règles `services/audit/rules/`), métriques, rapports/Sankey/trésorerie, insights, abonnements, bilan annuel, investissements et projections, fiscalité ; `core/wealth`, `budget_period`, `subscription_prices`, `tax`, `tax_rules`. Les routes `analytics/portfolio`, `dividends`, `diversity` passent en phase 4.
 
 ### Phase 4 — Portefeuille
+
+#### Reprendre la phase 4 dans une nouvelle conversation
+
+Message à coller :
+
+```text
+On reprend la migration de Numera vers une architecture en couches. Les phases 0 à 3 sont terminées.
+Lis d'abord : la section « Phase 4 » de docs/superpowers/plans/2026-10-28-architecture-en-couches.md,
+le plan de la phase 3 (docs/superpowers/plans/2026-10-28-phase-3-analytics.md, section 0 : conventions et pièges),
+la spec docs/superpowers/specs/2026-10-28-architecture-en-couches-design.md, ARCHITECTURE.md § « Couches backend »
+et backend/CLAUDE.md. Écris le plan détaillé de la phase 4 (skill superpowers:writing-plans) sur le modèle
+du plan de la phase 3, puis exécute-le toi-même tâche par tâche. Commits directement sur main.
+```
+
+État au début de la phase 4 (commit de clôture de la phase 3) :
+- Migré : tous les routers d'écriture budget/administration (phase 2) et les analytics (phase 3) : `services/analytics/{budget,metrics,reports,investments}/`, `services/analytics/{insights,subscriptions,wrapped,portfolio}.py`, `services/audit/` (registre `RULES`, une règle par module), `services/{wealth,budget_period,subscription_prices,tax}.py` ; requêtes `repositories/analytics/*.py` ; formules `domain/{budget,metrics,reports,insights,wrapped,projections,investments,budget_period,subscription_prices,tax,tax_rules,audit}.py`.
+- Déjà fait pour la phase 4 : la synthèse du portefeuille (`valued_accounts`, `portfolio_overview`) est dans `services/analytics/portfolio.py` ; la route `/analytics/portfolio/{id}` est encore dans `controllers/analytics/portfolio.py`.
+- Restent dans `core/` : transverse (`config`, `errors`, `logging`, `login_events`, `login_rate_limit`, `mcp_tokens`, `migrations`, `security`, `time`, `totp`) + phase 4 (`portfolio`, `holdings`, `dividends`, `market_data`, `etf_analyzer`, `seeds_etf`). `scripts/code_size_baseline.json` : 34 entrées, dont `core/portfolio.py` et `compute_portfolio` (395 lignes).
+- Filet de sécurité : `tests/test_analytics_snapshots.py` couvre déjà `/analytics/investments*`, les allocations et les projections, qui appellent `core/portfolio` ; la phase 4 doit l'étendre (sans régénérer l'existant) à `/analytics/portfolio`, `/portfolio/{id}`, `/dividends`, `/diversity`, `/holdings` en ajoutant de **nouveaux** fichiers d'instantanés, puis ne plus jamais les régénérer. Le rapprochement courtier (`reconciliation-gap`) exige un Point Zéro absent de la démo : prévoir un compte titres avec `holdings_baseline_date` dans les données complémentaires.
+- Pièges propres à la phase 3 en plus de ceux de sa section 0 : garder l'associativité des additions flottantes (cumuler dans le même total, pas en sous-totaux) ; `random.normalvariate` global pour que `random.seed` des instantanés fonctionne ; un controller qui appelait la fonction de route d'un autre doit appeler le service ; patchs de tests à repointer (`portfolio_overview` → `app.services.analytics.portfolio`).
+
 Routers `investment_transactions`, `holdings`, `etf_profiles`, `market` (reportés de la phase 2), `analytics/portfolio`, `analytics/dividends`, `analytics/diversity` (reportés de la phase 3) ; `core/seeds_etf.py`. `core/portfolio.py` → `domain/performance.py` (`xirr`, `twr`), `services/portfolio/` (`PriceBook`, `FxBook`, `cash_events`, `compute_portfolio` découpé par étape), puis `core/holdings.py`, `core/etf_analyzer.py`.
 
 ### Phase 5 — Frontend

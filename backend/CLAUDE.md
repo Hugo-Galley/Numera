@@ -53,6 +53,7 @@ Complète le `CLAUDE.md` racine. Procédures pas-à-pas : skill `numera-backend`
 
 ## Tests
 
-- `PYTHONPATH=. python3.11 -m pytest tests -q` depuis `backend/` (~840 tests, ~1 min 40). `make test` détecte l'interpréteur (venv, sinon python3.12/3.11) ; `venv_new` est en Python 3.14 sans pytest.
+- `PYTHONPATH=. python3.11 -m pytest tests -q` depuis `backend/` (~880 tests, ~1 min 40). `make test` détecte l'interpréteur (venv, sinon python3.12/3.11) ; `venv_new` est en Python 3.14 sans pytest.
 - Fixtures (`tests/conftest.py`) : `db_session` (SQLite temporaire par test, `Base.metadata.create_all`) et `client` (TestClient, override de `get_db` et `get_current_user` → `"admin"`, rate limiter réinitialisé). Vérifier l'état en base après l'appel API.
 - Un test par bug corrigé / fonctionnalité ajoutée, nommé `tests/test_<domaine>.py`.
+- `tests/test_analytics_snapshots.py` fige la sortie de toutes les routes analytics (démo à date figée) : un écart est un bug, ne jamais régénérer les instantanés pour faire passer le test (procédure : skill `numera-testing`).

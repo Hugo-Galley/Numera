@@ -63,14 +63,14 @@ docker-compose.prod.yml, Makefile, setup.sh, install.sh
 
 ## Couches backend
 
-Architecture en couches, migrée progressivement (plan : `docs/superpowers/plans/2026-10-28-architecture-en-couches.md`, conception : `docs/superpowers/specs/2026-10-28-architecture-en-couches-design.md`). Domaine modèle : `accounts` (`controllers/accounts.py` → `services/accounts.py` → `repositories/accounts.py`). Phases 0-2 terminées : tous les routers d'écriture côté budget et administration suivent ce modèle ; restent les analytics (phase 3), l'investissement (phase 4) et le frontend (phase 5).
+Architecture en couches, migrée progressivement (plan : `docs/superpowers/plans/2026-10-28-architecture-en-couches.md`, conception : `docs/superpowers/specs/2026-10-28-architecture-en-couches-design.md`). Domaine modèle : `accounts` (`controllers/accounts.py` → `services/accounts.py` → `repositories/accounts.py`). Phases 0-3 terminées : tous les routers d'écriture côté budget et administration, et les analytics (budget, Centre d'Actions, métriques, rapports, insights, abonnements, bilan annuel, investissements et projections, fiscalité) suivent ce modèle ; restent le portefeuille (phase 4 : `analytics/portfolio`, `dividends`, `diversity`, `holdings`, `investment_transactions`, `etf_profiles`, `market`, `core/portfolio`…) et le frontend (phase 5). Les chiffres analytics sont figés par `tests/test_analytics_snapshots.py`.
 
 | Couche | Rôle | N'importe pas |
 |---|---|---|
-| `controllers/` | Controllers : HTTP, `Depends`, `Query`, appel d'un service. Ni `db.query`, ni `commit`, ni import de `app.models` (routers analytics et investissement pas encore migrés). | un autre module `controllers.*` (sauf `controllers.deps` et son propre package) |
+| `controllers/` | Controllers : HTTP, `Depends`, `Query`, appel d'un service. Ni `db.query`, ni `commit`, ni import de `app.models` (routers du portefeuille pas encore migrés). | un autre module `controllers.*` (sauf `controllers.deps` et son propre package) |
 | `services/` | Cas d'usage : orchestration, **commit**, erreurs métier (`NotFoundError` 404, `InvalidOperationError` 400, `BusinessRuleError` 422, `ConflictError` 409, `InternalError` 500, `ExternalServiceError` 502, `ExternalTimeoutError` 504 de `core/errors.py`, traduites en HTTP par `main.py` avec le même corps qu'`api_error`). | `app.controllers`, `fastapi` |
 | `repositories/` | Requêtes SQLAlchemy (`repositories/analytics/common.py` : `NET_AMOUNT`, `income_criterion`, `category_lines`…). Jamais de `commit` (`flush` permis). | `app.controllers`, `app.services`, `app.integrations`, `fastapi` |
-| `domain/` | Calculs purs, sans Session (`domain/transactions.py` : `net_amount`, `tx_sample`, `tx_read`). | `app.controllers`, `app.services`, `app.repositories`, `app.integrations`, `app.db`, `sqlalchemy.orm`, `fastapi` |
+| `domain/` | Calculs purs, sans Session (`domain/transactions.py` : `net_amount`, `tx_sample`, `tx_read` ; `budget`, `metrics`, `reports`, `insights`, `wrapped`, `projections`, `investments`, `budget_period`, `subscription_prices`, `tax`, `tax_rules`). | `app.controllers`, `app.services`, `app.repositories`, `app.integrations`, `app.db`, `sqlalchemy.orm`, `fastapi` |
 | `integrations/` | Appels externes : `currency` (Frankfurter), `notifications` (canaux ntfy/Telegram), `logos`, `backup` (Yahoo : phase 4). | `app.controllers`, `app.services`, `app.repositories` |
 | `core/` | Transverse (config, sécurité, logs, erreurs, rate limit, TOTP) et, pendant la migration, métier hérité. | `app.controllers` |
 

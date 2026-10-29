@@ -37,6 +37,7 @@ Fichier `tests/test_<domaine>.py`. Créer les données via `db_session` ou l'API
 - Marchands / règles / tags : `test_merchants.py`, `test_categorization_rules.py`, `test_tags.py`.
 - Salaire : transaction unique « Salaire », `is_generated` posé, pas de doublon (`test_p0_features.py` à consulter).
 - Centre d'Actions / audit : l'issue résolue disparaît de `/analytics/actions` (`test_data_audit.py`, `test_anomaly_detection.py`).
+- Analytics, filet de non-régression : `tests/test_analytics_snapshots.py` compare la sortie JSON de toutes les routes analytics (budget, Centre d'Actions, métriques, rapports, insights, abonnements, bilan annuel, investissements, projections, fiscalité, revue de mois) aux instantanés de `tests/snapshots/analytics/`, sur les données de démo à date figée (`freezegun`, 2026-06-15 10:00) complétées pour déclencher chaque règle du Centre d'Actions. Un écart est un bug : **ne jamais régénérer les instantanés pour faire passer le test**. Régénération volontaire seulement pour un changement de chiffre voulu et justifié dans le commit : `UPDATE_SNAPSHOTS=1 PYTHONPATH=. python3.11 -m pytest tests/test_analytics_snapshots.py`.
 - Analytics : `test_money_flow.py`, `test_sankey.py`, `test_cashflow_projection.py`, `test_asset_allocation.py`, `test_diversity_scanner.py`, `test_simulation.py`, `test_subscriptions.py`, `test_savings_goals.py`, `test_calendar.py`, `test_excluded_months.py`, `test_filtering.py`.
 - Auth / config : `test_auth.py`, `test_config.py`.
 
