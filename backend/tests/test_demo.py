@@ -101,3 +101,12 @@ def test_demo_mode_requires_dedicated_database():
     with pytest.raises(ValidationError):
         Settings(DEMO_MODE=True, app_env="test", database_url="sqlite:///./data/suivi_budget.db")
     assert Settings(DEMO_MODE=True, app_env="test", database_url="sqlite:///./data/demo.db").DEMO_MODE
+
+
+def test_seed_demo_script_imports():
+    # `make backend-seed-demo` : le script doit suivre les déplacements de modules
+    import importlib
+
+    module = importlib.import_module("scripts.seed_demo")
+    assert module.generate_demo_data is generate_demo_data
+    assert module.wipe_database is wipe_database
