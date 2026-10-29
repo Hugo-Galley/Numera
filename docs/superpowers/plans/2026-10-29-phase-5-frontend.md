@@ -28,7 +28,8 @@ si le budget le permet. Commits directement sur main, sans push.
 ### État (mis à jour à chaque tâche)
 
 - **Fait** : tâches 1 à 6 (`AccountDetail`, `RecurringTransactions`, `WealthSimulator`, `Accounts`, `Audit`, `Investments` + `Savings`), un commit « refactor(frontend): découpe de … » par fichier. Baseline : **14 entrées**.
-- **Prochaine tâche** : tâche 7 (`HoldingsTable`, puis `PointZeroModal`).
+- **Fait aussi** : tâche 7, première moitié (`HoldingsTable`). Baseline : **13 entrées**.
+- **Prochaine tâche** : tâche 7, seconde moitié (`PointZeroModal`).
 - Aucune tâche entamée à moitié.
 
 ### Conventions de l'utilisateur (sans redemander)
@@ -143,6 +144,9 @@ Deux commits (un par page). `Investments` : modales `PointZeroModal`, `CustomEtf
 ### Task 7: `components/investments/HoldingsTable.tsx` (749) et `PointZeroModal.tsx` (602)
 
 Écrans : `/investments`, `/accounts/3` (PEA de la démo). Deux commits.
+
+- [x] `HoldingsTable` : `components/investments/HoldingsTable/` (export nommé et props inchangés) : `index.tsx`, `types.ts`, hooks `useHoldingsTable.ts` (reçoit les props) / `useHoldingsState.ts` ; composants `HoldingsHeader`, `HoldingsMobileList`, `HoldingsDesktopTable`. Plus gros fichier : 260 lignes. Vérifié sur `/accounts/3` : texte, requêtes, boutons, HTML ; point zéro (valeurs pré-remplies), filtre ETF puis réinitialisation. `splitlib.py` recale les imports relatifs d'origine (`./X` → `../X`).
+- [ ] `PointZeroModal`.
 
 ### Task 8: `components/dashboard/tabs/OverviewTab.tsx` (622)
 
