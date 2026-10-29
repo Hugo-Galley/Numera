@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pytest
 from fastapi.testclient import TestClient
 from app.core.config import settings
@@ -204,7 +206,10 @@ def test_manual_backup_endpoint(client: TestClient, monkeypatch, tmp_path):
     import subprocess
     from app.services.systeme import admin
 
+    calls = []
+
     def fake_run(cmd, **kwargs):
+        calls.append(cmd)
         return subprocess.CompletedProcess(cmd, 0, "", "")
 
     monkeypatch.setattr(admin.subprocess, "run", fake_run)
@@ -212,6 +217,8 @@ def test_manual_backup_endpoint(client: TestClient, monkeypatch, tmp_path):
     res = client.post("/admin/backup/run")
     assert res.status_code == 200
     assert res.json() == {"ok": True, "github": False}
+    # Le script lancé doit exister (son chemin est relatif au module, qui peut être déplacé)
+    assert Path(calls[0][1]).is_file()
 
     monkeypatch.setattr(
         admin.subprocess, "run",

@@ -31,7 +31,7 @@ logger = get_logger(__name__)
 
 MIN_PASSWORD_LENGTH = 8
 RESET_CONFIRMATION_CODE = "EFFACER"
-BACKUP_SCRIPT = Path(__file__).resolve().parents[2] / "scripts" / "backup.py"
+BACKUP_SCRIPT = Path(__file__).resolve().parents[3] / "scripts" / "backup.py"
 BACKUP_TIMEOUT_SECONDS = 180
 
 
