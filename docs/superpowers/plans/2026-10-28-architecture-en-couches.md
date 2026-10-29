@@ -285,6 +285,8 @@ Plan détaillé : `docs/superpowers/plans/2026-10-29-phase-4-portefeuille.md` (1
 
 ### Phase 5 — Frontend
 
+**État au 29/10/2026** : découpage terminé (tâches 1 à 11 du plan détaillé `docs/superpowers/plans/2026-10-29-phase-5-frontend.md`, un commit par fichier, les 21 fichiers sous le plafond). **Reste** : la tâche 12 (appels typés `lib/api/<domaine>.ts`, environ 130 appels dans les dossiers découpés), à reprendre depuis la section 0 de ce plan.
+
 #### Reprendre la phase 5 dans une nouvelle conversation
 
 Message à coller :
@@ -305,8 +307,8 @@ sur le modèle des plans des phases 3 et 4, puis exécute-le toi-même tâche pa
 Ordre par taille : `AccountDetail` (2 773), `RecurringTransactions` (1 548), `WealthSimulator` (1 169), `Accounts` (1 057), `Audit` (1 030), `Investments`, `Savings`, `HoldingsTable`, `OverviewTab`, `PointZeroModal`, `Calendar`, `MerchantsTab`, `CategoriesTab`, `Omnibox`, `Tax`, `SalaryManager`, `ImportFlow`.
 Cible : `pages/<Page>/index.tsx` (composition), un composant par section et par dialogue, `use<Page>Data.ts` pour le chargement et l'état, `lib/api/<domaine>.ts` pour les appels typés. Vérification : `npm run build` vert, plus un contrôle manuel (thème sombre, mode confidentialité, mobile 375 px) via l'aperçu navigateur.
 
-### Phase 6 — Nettoyage et durcissement (partie backend terminée le 29/10/2026)
-Plan détaillé : `docs/superpowers/plans/2026-10-29-phase-6-backend.md`. Fait : regroupement par domaine (`systeme/`, `comptes/`, `investissement/`, `budget/` ; `domain/` et `integrations/` restent plats), filet `tests/test_openapi_routes.py`, frontières entre domaines de controllers et `FORBIDDEN["app.core"]` durci dans `tests/test_architecture.py`, `api_error` supprimé, documentation relue. Baseline d'architecture vide. **Reste** : vider la baseline de taille (21 entrées, toutes frontend), qui attend la phase 5.
+### Phase 6 — Nettoyage et durcissement (terminée le 29/10/2026)
+Plan détaillé : `docs/superpowers/plans/2026-10-29-phase-6-backend.md`. Fait : regroupement par domaine (`systeme/`, `comptes/`, `investissement/`, `budget/` ; `domain/` et `integrations/` restent plats), filet `tests/test_openapi_routes.py`, frontières entre domaines de controllers et `FORBIDDEN["app.core"]` durci dans `tests/test_architecture.py`, `api_error` supprimé, documentation relue. Baseline d'architecture vide. La baseline de taille est vide depuis la fin du découpage frontend (phase 5, tâche 11).
 
 Les deux baselines sont vides. `FORBIDDEN["app.core"]` est durci (core n'importe plus que core, models, db). `core/errors.api_error` est remplacé par les `DomainError`. Relecture finale de `ARCHITECTURE.md`, des `CLAUDE.md` et des skills.
 
