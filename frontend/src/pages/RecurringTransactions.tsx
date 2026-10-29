@@ -249,9 +249,9 @@ export default function RecurringTransactions() {
   const potentialSubs = allSubs.filter((s: any) => !s.is_recurring_entity && subKind(s) === subTab)
   // counts_in_total exclut les alimentations d'épargne/investissement des totaux d'abonnements :
   // sur l'onglet Investissements, on somme donc les plans actifs (ni en pause, ni interrompus)
-  const monthlyTotal = activeSubs
-    .filter((s: any) => (subTab === "investments" ? s.status === "active" : s.counts_in_total !== false))
-    .reduce((acc: number, s: any) => acc + s.monthly_cost, 0)
+  const countedSubs = activeSubs.filter((s: any) => (subTab === "investments" ? s.status === "active" : s.counts_in_total !== false))
+  const monthlyTotal = countedSubs.reduce((acc: number, s: any) => acc + s.monthly_cost, 0)
+  const monthlyBreakdown = [...countedSubs].sort((a: any, b: any) => b.monthly_cost - a.monthly_cost)
 
   const loadData = async () => {
     setLoading(true)
@@ -979,36 +979,36 @@ export default function RecurringTransactions() {
 
              {subTab !== "other" && <div className="lg:col-span-4 space-y-6">
                 <Card className="shadow-sm border-slate-100">
-                  <CardHeader className="bg-slate-50/50 border-b pb-4">
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <TrendingUp className={`h-5 w-5 ${subTab === 'subscriptions' ? 'text-emerald-500' : 'text-indigo-500'}`} />
-                      {subTab === "subscriptions" ? "Optimisation" : "Allocation"}
-                    </CardTitle>
+                  <CardHeader className="border-b pb-4">
+                    <CardTitle className="text-lg">Répartition mensuelle</CardTitle>
+                    {monthlyTotal > 0 && (
+                      <CardDescription>
+                        {subTab === "subscriptions" ? "Part de chaque abonnement" : "Part de chaque plan"} dans les {formatCurrency(monthlyTotal)} par mois
+                      </CardDescription>
+                    )}
                   </CardHeader>
-                  <CardContent className="p-4 md:p-6 space-y-6">
-                    <div>
-                      <p className="text-sm font-medium text-slate-900 mb-2">Poids sur votre budget</p>
-                      <div className="space-y-1.5">
-                         <div className="flex justify-between text-xs font-bold">
-                           <span className="text-slate-500">Flux mensuel</span>
-                           <span className="text-slate-900">{formatCurrency(monthlyTotal)}</span>
-                         </div>
-                         <Progress value={subTab === "subscriptions" ? 8.4 : 15.2} className="h-2 bg-slate-100" indicatorClassName={subTab === "subscriptions" ? "bg-blue-500" : "bg-indigo-500"} />
-                      </div>
-                    </div>
-                    <div className={`p-4 rounded-xl border ${subTab === 'subscriptions' ? 'bg-emerald-50 border-emerald-100' : 'bg-indigo-50 border-indigo-100'}`}>
-                      <p className={`text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 mb-1 ${subTab === 'subscriptions' ? 'text-emerald-800' : 'text-indigo-800'}`}>
-                        <CheckCircle2 className="h-3.5 w-3.5" />
-                        Conseil
-                      </p>
-                      <p className={`text-sm font-medium leading-relaxed ${subTab === 'subscriptions' ? 'text-emerald-900' : 'text-indigo-900'}`}>
-                        {subTab === "subscriptions" ? (
-                          <>Passez vos abonnements mensuels en <span className="font-black underline decoration-emerald-200 underline-offset-2">annuel</span> pour économiser en moyenne <span className="font-black text-emerald-700">15%</span> par an.</>
-                        ) : (
-                          <>L'investissement <span className="font-black underline decoration-indigo-200 underline-offset-2">automatique</span> (DCA) est la meilleure stratégie pour lisser la volatilité des marchés.</>
-                        )}
-                      </p>
-                    </div>
+                  <CardContent className="p-4 md:p-6">
+                    {monthlyBreakdown.length === 0 || monthlyTotal <= 0 ? (
+                      <p className="text-sm text-slate-400">Aucun montant mensuel à répartir.</p>
+                    ) : (
+                      <ul className="space-y-4">
+                        {monthlyBreakdown.map((sub: any) => {
+                          const share = (sub.monthly_cost / monthlyTotal) * 100
+                          return (
+                            <li key={sub.name} className="space-y-1.5">
+                              <div className="flex items-baseline justify-between gap-3 text-sm">
+                                <span className="truncate font-medium text-slate-700">{sub.name}</span>
+                                <span className="shrink-0 tabular-nums">
+                                  <span className="font-semibold text-slate-900">{formatCurrency(sub.monthly_cost)}</span>
+                                  <span className="ml-2 text-xs text-slate-400">{Math.round(share)} %</span>
+                                </span>
+                              </div>
+                              <Progress value={share} className="h-1.5 bg-slate-100" indicatorClassName={subTab === "subscriptions" ? "bg-blue-500" : "bg-indigo-500"} />
+                            </li>
+                          )
+                        })}
+                      </ul>
+                    )}
                   </CardContent>
                 </Card>
              </div>}
