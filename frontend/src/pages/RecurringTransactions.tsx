@@ -247,6 +247,11 @@ export default function RecurringTransactions() {
   }
   const activeSubs = allSubs.filter((s: any) => s.is_recurring_entity && subKind(s) === subTab)
   const potentialSubs = allSubs.filter((s: any) => !s.is_recurring_entity && subKind(s) === subTab)
+  // counts_in_total exclut les alimentations d'épargne/investissement des totaux d'abonnements :
+  // sur l'onglet Investissements, on somme donc les plans actifs (ni en pause, ni interrompus)
+  const monthlyTotal = activeSubs
+    .filter((s: any) => (subTab === "investments" ? s.status === "active" : s.counts_in_total !== false))
+    .reduce((acc: number, s: any) => acc + s.monthly_cost, 0)
 
   const loadData = async () => {
     setLoading(true)
@@ -809,7 +814,7 @@ export default function RecurringTransactions() {
                </CardHeader>
                <CardContent>
                  <CardTitle className="text-2xl md:text-3xl font-bold text-slate-900">
-                   {formatCurrency(activeSubs.filter((s: any) => s.counts_in_total !== false).reduce((acc: number, s: any) => acc + s.monthly_cost, 0))}
+                   {formatCurrency(monthlyTotal)}
                  </CardTitle>
                  <p className="text-xs text-slate-400 mt-1">
                    {subTab === "subscriptions" ? "Prélevé automatiquement chaque mois" : subTab === "other" ? "Moyenne mensuelle des flux récurrents" : "Moyenne mensuelle investie"}
@@ -986,7 +991,7 @@ export default function RecurringTransactions() {
                       <div className="space-y-1.5">
                          <div className="flex justify-between text-xs font-bold">
                            <span className="text-slate-500">Flux mensuel</span>
-                           <span className="text-slate-900">{formatCurrency(activeSubs.filter((s: any) => s.counts_in_total !== false).reduce((acc: number, s: any) => acc + s.monthly_cost, 0))}</span>
+                           <span className="text-slate-900">{formatCurrency(monthlyTotal)}</span>
                          </div>
                          <Progress value={subTab === "subscriptions" ? 8.4 : 15.2} className="h-2 bg-slate-100" indicatorClassName={subTab === "subscriptions" ? "bg-blue-500" : "bg-indigo-500"} />
                       </div>
