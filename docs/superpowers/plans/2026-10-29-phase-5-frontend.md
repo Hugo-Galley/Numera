@@ -28,8 +28,8 @@ si le budget le permet. Commits directement sur main, sans push.
 ### État (mis à jour à chaque tâche)
 
 - **Fait** : tâches 1 à 7 (`AccountDetail`, `RecurringTransactions`, `WealthSimulator`, `Accounts`, `Audit`, `Investments` + `Savings`, `HoldingsTable` + `PointZeroModal`), un commit « refactor(frontend): découpe de … » par fichier. Baseline : **12 entrées**.
-- **Fait aussi** : tâche 8 (`OverviewTab`), tâche 9 pour `Calendar`. Baseline : **10 entrées**.
-- **Prochaine tâche** : tâche 9, suite (`MerchantsTab`, puis `CategoriesTab`, `Omnibox`).
+- **Fait aussi** : tâche 8 (`OverviewTab`), tâche 9 pour `Calendar`. Baseline : **9 entrées**.
+- **Prochaine tâche** : tâche 9, suite (`CategoriesTab`, puis `Omnibox`).
 - Aucune tâche entamée à moitié.
 
 ### Conventions de l'utilisateur (sans redemander)
@@ -159,7 +159,7 @@ Fait. `components/dashboard/tabs/OverviewTab/` (export et props inchangés) : `i
 Un commit par fichier. Omnibox : ⌘K, recherche, navigation clavier (vérifier par `KeyboardEvent`).
 
 - [x] `Calendar` : `pages/Calendar/` (export par défaut et prop `embedded` inchangés ; `lazy(() => import("@/pages/Calendar"))` de `RecurringTransactions` inchangé) : `index.tsx`, `types.ts`, hooks `useCalendar.ts` / `useCalendarData.ts` ; composants `CalendarGrid`, `CalendarSummary`, `DayDetailDialog`. Plus gros fichier : 161 lignes. Vérifié dans `/recurring?tab=calendar` : texte, requêtes, boutons, détail de 3 jours.
-- [ ] `MerchantsTab`
+- [x] `MerchantsTab` : `components/classement/MerchantsTab/` (export inchangé) : `index.tsx`, `types.ts`, hooks `useMerchantsTab.ts` / `useMerchantsData.ts` ; composants `MerchantsActions` (dialogue de création), `MerchantsList`, `SuggestionsPanel`, `EditMerchantDialog`. Plus gros fichier : 152 lignes. Vérifié sur `/classement?tab=merchants` : texte, requêtes, boutons, création ×2. La démo n'a aucun marchand : édition vérifiée par tsc seulement.
 - [ ] `CategoriesTab`
 - [ ] `Omnibox`
 
