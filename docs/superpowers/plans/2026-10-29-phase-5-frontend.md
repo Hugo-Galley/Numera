@@ -27,9 +27,8 @@ si le budget le permet. Commits directement sur main, sans push.
 
 ### État (mis à jour à chaque tâche)
 
-- **Fait** : tâches 1 à 6 (`AccountDetail`, `RecurringTransactions`, `WealthSimulator`, `Accounts`, `Audit`, `Investments` + `Savings`), un commit « refactor(frontend): découpe de … » par fichier. Baseline : **14 entrées**.
-- **Fait aussi** : tâche 7, première moitié (`HoldingsTable`). Baseline : **13 entrées**.
-- **Prochaine tâche** : tâche 7, seconde moitié (`PointZeroModal`).
+- **Fait** : tâches 1 à 7 (`AccountDetail`, `RecurringTransactions`, `WealthSimulator`, `Accounts`, `Audit`, `Investments` + `Savings`, `HoldingsTable` + `PointZeroModal`), un commit « refactor(frontend): découpe de … » par fichier. Baseline : **12 entrées**.
+- **Prochaine tâche** : tâche 8 (`OverviewTab`).
 - Aucune tâche entamée à moitié.
 
 ### Conventions de l'utilisateur (sans redemander)
@@ -141,12 +140,12 @@ Deux commits (un par page). `Investments` : modales `PointZeroModal`, `CustomEtf
 - [x] `Investments` : `pages/Investments/` : `index.tsx` (retour anticipé de chargement, sections), `types.ts` (constantes), hook `useInvestmentsData.ts` (dont `chartData`, calcul pur remonté avant le retour anticipé), composants `InvestmentsKpis`, `AccountsAllocation`, `PerformanceSection`, `AdvancedCharts`, `TopCompanies`, `EtfCompositions`, `DrillDownDialog`. Plus gros fichier : 156 lignes. Relevé identique (texte, requêtes, boutons, longueur du HTML de `<main>`). La page n'utilise ni `PointZeroModal` ni `CustomEtfModal` (aucun import).
 - [x] `Savings` : `pages/Savings/` : `index.tsx` (états erreur / chargement / contenu, `ProvisionsSection`), `types.ts`, hook `useSavingsData.ts` ; composants `SavingsHeader`, `BalanceSection`, `FlowsSection`, `GoalsHeader` (dialogue d'objectif), `GoalsGrid`. Plus gros fichier : 155 lignes. Relevé identique ; dialogue création ×2 (vide) et édition pré-remplie.
 
-### Task 7: `components/investments/HoldingsTable.tsx` (749) et `PointZeroModal.tsx` (602)
+### Task 7: `components/investments/HoldingsTable.tsx` (749) et `PointZeroModal.tsx` (602) ✅
 
 Écrans : `/investments`, `/accounts/3` (PEA de la démo). Deux commits.
 
 - [x] `HoldingsTable` : `components/investments/HoldingsTable/` (export nommé et props inchangés) : `index.tsx`, `types.ts`, hooks `useHoldingsTable.ts` (reçoit les props) / `useHoldingsState.ts` ; composants `HoldingsHeader`, `HoldingsMobileList`, `HoldingsDesktopTable`. Plus gros fichier : 260 lignes. Vérifié sur `/accounts/3` : texte, requêtes, boutons, HTML ; point zéro (valeurs pré-remplies), filtre ETF puis réinitialisation. `splitlib.py` recale les imports relatifs d'origine (`./X` → `../X`).
-- [ ] `PointZeroModal`.
+- [x] `PointZeroModal` : `components/investments/PointZeroModal/` (export et props inchangés) : `index.tsx`, `types.ts`, hooks `usePointZeroModal.ts` / `usePointZeroState.ts` ; composants `PointZeroSearch`, `PointZeroRows`, `PointZeroFooter`. Plus gros fichier : 217 lignes. Vérifié : ouverture depuis `/accounts/3`, texte et valeurs pré-remplies identiques.
 
 ### Task 8: `components/dashboard/tabs/OverviewTab.tsx` (622)
 
