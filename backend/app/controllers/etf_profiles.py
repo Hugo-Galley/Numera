@@ -1,147 +1,50 @@
-import json
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
-from app.models.etf_profile import EtfProfile
-from app.core.etf_analyzer import (
-    COMPOSITION_FIELDS,
-    SOURCE_MANUAL,
-    YahooUnavailable,
-    load_sources,
-    refresh_etf_profile,
-    refresh_held_etf_profiles,
-)
 from app.schemas.etf_profile import EtfProfileCreate, EtfProfileRead, EtfProfileUpdate, AutoDecomposeRequest, EtfRefreshResult
+from app.services import etf_profiles as service
 
 router = APIRouter(prefix="/etf-profiles", tags=["etf-profiles"])
 
 
-def _to_read_model(profile: EtfProfile) -> EtfProfileRead:
-    return EtfProfileRead(
-        id=profile.id,
-        name=profile.name,
-        ticker=profile.ticker,
-        isin=profile.isin,
-        aliases=json.loads(profile.aliases) if profile.aliases else [],
-        countries=json.loads(profile.countries) if profile.countries else {},
-        sectors=json.loads(profile.sectors) if profile.sectors else {},
-        top_holdings=json.loads(profile.top_holdings) if profile.top_holdings else [],
-        is_system=profile.is_system,
-        composition_sources=load_sources(profile),
-        composition_refreshed_at=profile.composition_refreshed_at,
-        created_at=profile.created_at,
-        updated_at=profile.updated_at,
-    )
-
-
 @router.get("", response_model=List[EtfProfileRead])
 def list_etf_profiles(db: Session = Depends(get_db)):
-    profiles = db.query(EtfProfile).order_by(EtfProfile.is_system.desc(), EtfProfile.name.asc()).all()
-    return [_to_read_model(p) for p in profiles]
+    return service.list_profiles(db)
 
 
 @router.post("/refresh-held", response_model=EtfRefreshResult)
 async def refresh_held_profiles(db: Session = Depends(get_db)):
     """Actualise depuis Yahoo la composition de tous les profils rattachés à une position détenue."""
-    refreshed = await refresh_held_etf_profiles(db, force=True)
+    refreshed = await service.refresh_held_etf_profiles(db, force=True)
     return EtfRefreshResult(refreshed=refreshed)
 
 
 @router.get("/{profile_id}", response_model=EtfProfileRead)
 def get_etf_profile(profile_id: int, db: Session = Depends(get_db)):
-    profile = db.query(EtfProfile).filter(EtfProfile.id == profile_id).first()
-    if not profile:
-        raise HTTPException(status_code=404, detail="ETF profile not found")
-    return _to_read_model(profile)
+    return service.get_profile(db, profile_id)
 
 
 @router.post("", response_model=EtfProfileRead, status_code=201)
 def create_etf_profile(payload: EtfProfileCreate, db: Session = Depends(get_db)):
-    # Check if name or ticker already exists
-    existing = db.query(EtfProfile).filter(
-        (EtfProfile.ticker == payload.ticker.upper()) | (EtfProfile.name == payload.name)
-    ).first()
-    if existing:
-        raise HTTPException(status_code=400, detail="An ETF profile with this name or ticker already exists")
-
-    profile = EtfProfile(
-        name=payload.name,
-        ticker=payload.ticker.upper(),
-        isin=payload.isin.upper() if payload.isin else None,
-        aliases=json.dumps(payload.aliases or [payload.ticker.upper()]),
-        countries=json.dumps(payload.countries or {}),
-        sectors=json.dumps(payload.sectors or {}),
-        top_holdings=json.dumps([h.model_dump() for h in payload.top_holdings]),
-        composition_sources=json.dumps({
-            field: SOURCE_MANUAL for field in COMPOSITION_FIELDS if getattr(payload, field)
-        }),
-        is_system=False,
-    )
-    db.add(profile)
-    db.commit()
-    db.refresh(profile)
-    return _to_read_model(profile)
+    return service.create_profile(db, payload)
 
 
 @router.put("/{profile_id}", response_model=EtfProfileRead)
 def update_etf_profile(profile_id: int, payload: EtfProfileUpdate, db: Session = Depends(get_db)):
-    profile = db.query(EtfProfile).filter(EtfProfile.id == profile_id).first()
-    if not profile:
-        raise HTTPException(status_code=404, detail="ETF profile not found")
-
-    if payload.name is not None:
-        profile.name = payload.name
-    if payload.ticker is not None:
-        profile.ticker = payload.ticker.upper()
-    if payload.isin is not None:
-        profile.isin = payload.isin.upper() if payload.isin else None
-    if payload.aliases is not None:
-        profile.aliases = json.dumps(payload.aliases)
-    if payload.countries is not None:
-        profile.countries = json.dumps(payload.countries)
-    if payload.sectors is not None:
-        profile.sectors = json.dumps(payload.sectors)
-    if payload.top_holdings is not None:
-        profile.top_holdings = json.dumps([h.model_dump() for h in payload.top_holdings])
-
-    # Un champ de composition saisi à la main n'est plus écrasé par l'actualisation Yahoo
-    sources = load_sources(profile)
-    for field in COMPOSITION_FIELDS:
-        if getattr(payload, field) is not None:
-            sources[field] = SOURCE_MANUAL
-    profile.composition_sources = json.dumps(sources)
-
-    db.commit()
-    db.refresh(profile)
-    return _to_read_model(profile)
+    return service.update_profile(db, profile_id, payload)
 
 
 @router.delete("/{profile_id}", status_code=204)
 def delete_etf_profile(profile_id: int, db: Session = Depends(get_db)):
-    profile = db.query(EtfProfile).filter(EtfProfile.id == profile_id).first()
-    if not profile:
-        raise HTTPException(status_code=404, detail="ETF profile not found")
-    if profile.is_system:
-        raise HTTPException(status_code=400, detail="Cannot delete system preset ETF profiles")
-
-    db.delete(profile)
-    db.commit()
+    service.delete_profile(db, profile_id)
 
 
 @router.post("/{profile_id}/refresh", response_model=EtfProfileRead)
 async def refresh_profile(profile_id: int, db: Session = Depends(get_db)):
     """Actualise la composition d'un profil depuis Yahoo (secteurs et top 10 ; jamais les pays)."""
-    profile = db.query(EtfProfile).filter(EtfProfile.id == profile_id).first()
-    if not profile:
-        raise HTTPException(status_code=404, detail="ETF profile not found")
-    try:
-        await refresh_etf_profile(db, profile)
-    except YahooUnavailable:
-        raise HTTPException(status_code=502, detail="Yahoo Finance est injoignable, réessayez plus tard")
-    db.refresh(profile)
-    return _to_read_model(profile)
+    return await service.refresh_profile(db, profile_id)
 
 
 @router.post("/auto-decompose", response_model=EtfProfileRead)
@@ -150,13 +53,4 @@ async def auto_decompose_profile(payload: AutoDecomposeRequest, db: Session = De
     Crée le profil d'un ETF ou fonds inconnu à partir de la composition publiée par Yahoo
     (secteurs et top 10 ; la répartition par pays reste vide).
     """
-    from app.core.etf_analyzer import auto_decompose_and_create_profile
-    profile = await auto_decompose_and_create_profile(
-        db=db,
-        symbol=payload.symbol,
-        name=payload.name,
-        isin=payload.isin
-    )
-    if not profile:
-        raise HTTPException(status_code=400, detail="Could not decompose ETF profile online")
-    return _to_read_model(profile)
+    return await service.auto_decompose(db, payload)

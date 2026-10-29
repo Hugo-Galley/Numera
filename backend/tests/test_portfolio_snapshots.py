@@ -13,8 +13,8 @@ from pathlib import Path
 
 import pytest
 
-import app.core.etf_analyzer as etf_analyzer
 import app.integrations.currency as currency_mod
+import app.integrations.yahoo_finance as yahoo_finance
 from app.models.account import Account
 from app.core.holdings import rebuild_holdings
 from app.models.balance_snapshot import BalanceSnapshot
@@ -123,7 +123,7 @@ def portfolio_client(snapshot_client, db_session, monkeypatch):
     async def historical_rate(db, day, currency, base="EUR"):
         return 1.0 if currency == "EUR" else _usd_rate(day)
 
-    monkeypatch.setattr(etf_analyzer, "fetch_yahoo_composition", no_composition)
+    monkeypatch.setattr(yahoo_finance, "fetch_composition", no_composition)
     monkeypatch.setattr(currency_mod, "get_historical_rate", historical_rate)
     accounts = {a.type: a.id for a in db_session.query(Account).order_by(Account.id).all()}
     accounts.update(_add_portfolio_cases(db_session))

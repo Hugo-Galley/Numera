@@ -4,8 +4,8 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
-from app.core import etf_analyzer
-from app.core.seeds_etf import seed_etf_profiles
+from app.integrations import yahoo_finance
+from app.services.etf_profiles import seed_etf_profiles
 from app.models.account import Account
 from app.models.etf_profile import EtfProfile
 from app.models.portfolio_holding import PortfolioHolding
@@ -26,7 +26,7 @@ def yahoo(monkeypatch):
         calls.append(symbol)
         return YAHOO_COMPOSITION
 
-    monkeypatch.setattr(etf_analyzer, "fetch_yahoo_composition", fake_fetch)
+    monkeypatch.setattr(yahoo_finance, "fetch_composition", fake_fetch)
     return calls
 
 
@@ -35,7 +35,7 @@ def _world(db_session: Session) -> EtfProfile:
 
 
 def test_parse_yahoo_top_holdings_maps_sectors_and_weights():
-    parsed = etf_analyzer._parse_top_holdings({
+    parsed = yahoo_finance.parse_top_holdings({
         "sectorWeightings": [{"technology": {"raw": 0.3062}}, {"energy": {"raw": 0.0}}, {"realestate": {"raw": 0.0167}}],
         "holdings": [{"symbol": "NVDA", "holdingName": "NVIDIA Corp", "holdingPercent": {"raw": 0.0578801}}],
     })
@@ -87,9 +87,9 @@ def test_refresh_never_overwrites_manual_field(client: TestClient, db_session: S
 
 def test_refresh_returns_502_when_yahoo_unreachable(client: TestClient, db_session: Session, monkeypatch):
     async def down(symbol):
-        raise etf_analyzer.YahooUnavailable("timeout")
+        raise yahoo_finance.YahooUnavailable("timeout")
 
-    monkeypatch.setattr(etf_analyzer, "fetch_yahoo_composition", down)
+    monkeypatch.setattr(yahoo_finance, "fetch_composition", down)
     seed_etf_profiles(db_session)
     world = _world(db_session)
     preset_sectors = world.sectors

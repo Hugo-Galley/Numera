@@ -8,7 +8,6 @@
   "backend/app/core/holdings.py::replay_account": 100,
   "backend/app/core/portfolio.py": 670,
   "backend/app/core/portfolio.py::compute_portfolio": 395,
-  "backend/app/core/seeds_etf.py": 445,
   "frontend/src/components/analytics/SankeyFlow.tsx": 371,
   "frontend/src/components/analytics/WealthSimulator.tsx": 1169,
   "frontend/src/components/classement/CategoriesTab.tsx": 510,

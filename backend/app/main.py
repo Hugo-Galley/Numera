@@ -50,7 +50,7 @@ from app.core.migrations import run_migrations
 from app.services.seeds import seed_all
 from app.db.session import SessionLocal
 from app.core.logging import setup_logging, get_logger
-from app.core.etf_analyzer import refresh_held_etf_profiles
+from app.services.etf_profiles import refresh_held_etf_profiles
 from app.services.notifications import run_notifications
 from app.services.market.quotes import refresh_held_prices
 from app.services.recurring import generate_recurring_transactions

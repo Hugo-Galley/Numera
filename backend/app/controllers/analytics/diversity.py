@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.core.logging import get_logger
 from app.integrations.currency import get_exchange_rates
-from app.core.etf_analyzer import load_sources
+from app.domain.etf_profiles import load_sources
 from app.services.market import quotes as market_quotes, search as market_search
 from app.db.session import get_db
 from app.models.account import Account
@@ -124,7 +124,7 @@ async def diversity_scanner(
                     or any(k in norm_upper for k in ["ETF", "FCP", "SICAV", "TRACKER", "INDEX", "FONDS", "FUND"])
                 ):
                     try:
-                        from app.core.etf_analyzer import auto_decompose_and_create_profile
+                        from app.services.etf_profiles import auto_decompose_and_create_profile
                         matched_p = await auto_decompose_and_create_profile(db, symbol=h.ticker, name=h.asset_name, isin=h.isin)
                     except Exception as e:
                         logger.warning(f"Could not auto-decompose {h.ticker}: {e}")

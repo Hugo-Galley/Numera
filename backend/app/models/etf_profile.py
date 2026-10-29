@@ -28,7 +28,7 @@ class EtfProfile(Base):
     top_holdings: Mapped[str] = mapped_column(Text, default="[]", nullable=False)
     
     # Source de chaque champ de composition : {"sectors": "yahoo", "countries": "preset", ...}
-    # (yahoo | preset | manual, cf. core/etf_analyzer.py)
+    # (yahoo | preset | manual, cf. domain/etf_profiles.py)
     composition_sources: Mapped[str] = mapped_column(Text, default="{}", nullable=False)
     composition_refreshed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
