@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 from app.services.balances import recalculate_running_balances
 from app.domain.finance import month_label_from_date
 from app.services.holdings.rebuild import rebuild_holdings
-from app.services.seeds import seed_all
+from app.services.systeme.seeds import seed_all
 from app.services.transfers import link_pair
 from app.models.account import Account
 from app.models.balance_snapshot import BalanceSnapshot
@@ -24,11 +24,11 @@ from app.models.system_setting import SystemSetting
 from app.models.tag import Tag
 from app.models.transaction import Transaction
 
-from app.services.demo.data import (
+from app.services.systeme.demo.data import (
     BUDGETS, DEMO_MONTHS, DEMO_SEED, EXTRA_CATEGORIES, FIXED_EXPENSES, GROCERIES, HEALTH, OUTINGS, SALARY,
     SALARY_DAY, SECURITIES, SHOPPING, TO_AV, TO_LIVRET, TO_PEA, TRANSFER_DAY, TRANSPORT, _price_on, _price_series,
 )
-from app.services.demo.guard import DEMO_STAMP_KEY
+from app.services.systeme.demo.guard import DEMO_STAMP_KEY
 
 
 class _Builder:

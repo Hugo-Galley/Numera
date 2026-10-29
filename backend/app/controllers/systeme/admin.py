@@ -13,7 +13,7 @@ from app.schemas.admin import (
     McpTokenCreated,
     McpTokenRead,
 )
-from app.services import admin as service
+from app.services.systeme import admin as service
 
 # Les tokens MCP n'ont pas accès à /admin : un agent ne peut ni changer le mot de passe, ni vider
 # la base, ni se créer d'autres tokens.

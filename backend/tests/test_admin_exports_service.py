@@ -9,7 +9,7 @@ from app.domain.finance import month_label_from_date
 from app.models.account import Account
 from app.models.transaction import Transaction
 from app.schemas.admin import McpTokenCreate
-from app.services import admin as admin_service
+from app.services.systeme import admin as admin_service
 from app.services import exports as export_service
 
 

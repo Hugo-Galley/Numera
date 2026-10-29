@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Query, Response
 from pydantic import BaseModel
 
-from app.services import logos as service
+from app.services.systeme import logos as service
 
 router = APIRouter(prefix="/logos", tags=["logos"])
 public_router = APIRouter(prefix="/logos", tags=["logos"])

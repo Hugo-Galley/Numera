@@ -9,7 +9,7 @@ from app.schemas.notification import (
     NotificationTestRequest,
     NotificationTestResult,
 )
-from app.services import notifications as service
+from app.services.systeme import notifications as service
 
 # Sujet ntfy et chat Telegram permettent d'écrire sur le canal : jamais accessibles avec un token MCP
 router = APIRouter(prefix="/notifications", tags=["notifications"], dependencies=[Depends(require_interactive_session)])

@@ -6,8 +6,8 @@ import pytest
 
 from app.core.errors import BusinessRuleError, ExternalServiceError, InvalidOperationError, NotFoundError
 from app.schemas.notification import NotificationTestRequest
-from app.services import logos as logo_service
-from app.services import notifications as notif
+from app.services.systeme import logos as logo_service
+from app.services.systeme import notifications as notif
 
 
 class _FailingChannel:

@@ -17,7 +17,7 @@ from freezegun import freeze_time
 import app.integrations.yahoo_finance as yahoo_finance
 import app.services.market.quotes as market_quotes
 import app.integrations.currency as currency_mod
-from app.services.demo import generate_demo_data
+from app.services.systeme.demo import generate_demo_data
 from app.models.account import Account
 from app.models.category import Category
 from app.models.investment_transaction import InvestmentTransaction

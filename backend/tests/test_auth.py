@@ -202,7 +202,7 @@ def test_refresh_is_refused_to_mcp_tokens(client: TestClient):
 
 def test_manual_backup_endpoint(client: TestClient, monkeypatch, tmp_path):
     import subprocess
-    from app.services import admin
+    from app.services.systeme import admin
 
     def fake_run(cmd, **kwargs):
         return subprocess.CompletedProcess(cmd, 0, "", "")

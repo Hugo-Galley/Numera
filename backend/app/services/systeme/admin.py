@@ -23,9 +23,9 @@ from app.db.session import SessionLocal, engine
 from app.db.system_settings import get_setting, set_setting
 from app.models.login_event import LoginEvent
 from app.models.mcp_token import McpToken
-from app.repositories import admin as repo
+from app.repositories.systeme import admin as repo
 from app.schemas.admin import AdminProfile, AdminProfileUpdate, BackupStatus, McpTokenCreate, McpTokenCreated, McpTokenRead
-from app.services.seeds import seed_default_categories
+from app.services.systeme.seeds import seed_default_categories
 
 logger = get_logger(__name__)
 

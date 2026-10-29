@@ -9,21 +9,21 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.exc import IntegrityError
 
-from app.controllers.auth import router as auth_router
-from app.controllers.passkeys import router as passkeys_router
-from app.controllers.totp import router as totp_router
+from app.controllers.systeme.auth import router as auth_router
+from app.controllers.systeme.passkeys import router as passkeys_router
+from app.controllers.systeme.totp import router as totp_router
 from app.controllers.accounts import router as accounts_router
 from app.controllers.analytics import router as analytics_router
-from app.controllers.admin import router as admin_router
+from app.controllers.systeme.admin import router as admin_router
 from app.controllers.balance_snapshots import router as balance_snapshots_router
 from app.controllers.categories import router as categories_router
 from app.controllers.exports import router as exports_router
-from app.controllers.health import router as health_router
+from app.controllers.systeme.health import router as health_router
 from app.controllers.imports import router as imports_router
 from app.controllers.investment_transactions import router as investment_transactions_router
 from app.controllers.transactions import router as transactions_router
 from app.controllers.recurring_transactions import router as recurring_transactions_router
-from app.controllers.logos import router as logos_router, public_router as logos_public_router
+from app.controllers.systeme.logos import router as logos_router, public_router as logos_public_router
 from app.controllers.savings_goals import router as savings_goals_router
 from app.controllers.categorization_rules import router as categorization_rules_router
 from app.controllers.merchants import router as merchants_router
@@ -39,19 +39,19 @@ from app.controllers.month_review import router as month_review_router
 from app.controllers.provisions import router as provisions_router
 from app.controllers.financial_events import router as financial_events_router
 from app.controllers.loans import router as loans_router
-from app.controllers.notifications import router as notifications_router
+from app.controllers.systeme.notifications import router as notifications_router
 from app.controllers.analytics.diversity import router as diversity_router
 from app.controllers.deps import get_current_user
 from app.core.config import settings
 from app.integrations.currency import CurrencyConversionError
 from app.core.errors import DomainError
-from app.services.demo import ensure_demo_data, is_blocked_in_demo
+from app.services.systeme.demo import ensure_demo_data, is_blocked_in_demo
 from app.core.migrations import run_migrations
-from app.services.seeds import seed_all
+from app.services.systeme.seeds import seed_all
 from app.db.session import SessionLocal
 from app.core.logging import setup_logging, get_logger
 from app.services.etf_profiles import refresh_held_etf_profiles
-from app.services.notifications import run_notifications
+from app.services.systeme.notifications import run_notifications
 from app.services.market.quotes import refresh_held_prices
 from app.services.recurring import generate_recurring_transactions
 from app.services.salary_generation import check_and_generate_pending_salaries

@@ -7,7 +7,7 @@ import httpx
 import pytest
 
 import app.integrations.notifications as channels
-import app.services.notifications as notif
+import app.services.systeme.notifications as notif
 from app.db.system_settings import get_setting, set_setting
 from app.models.notification_log import NotificationLog
 from app.schemas.insight import ActionItem
