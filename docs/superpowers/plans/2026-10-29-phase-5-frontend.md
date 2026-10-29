@@ -177,6 +177,7 @@ Un commit par fichier. ImportFlow : aller jusqu'à l'aperçu d'un CSV **sans val
 Petits dépassements : souvent un sous-composant ou un utilitaire à sortir suffit. Un commit par fichier.
 
 - [x] `WealthForecast` : une seule grosse fonction, donc dossier `components/tools/WealthForecast/` (export inchangé) : `index.tsx` (retours anticipés, contexte « vue » `WealthForecastView` avec `data` non nul, `boostedShown`, `final`), `types.ts`, `forecastParts.tsx` (`HORIZONS`, `Step`, `EXTRA_PRESETS`), hooks `useWealthForecast.ts` / `useForecastData.ts` ; composants `ForecastSummaryCard`, `ForecastChartCard`, `ForecastMethodCard`. Plus gros fichier : 150 lignes. Vérifié sur `/tools` contre l'original rebranché temporairement. `splitlib.py` : `hooks(..., view=(nom, champs))` et marqueur `[Composant, indent, "view"]`.
+- [x] `WrappedStory` : la construction des diapositives (`buildSlides`, type `Slide`) et les petits composants de texte (`Eyebrow`, `Big`, `Sub`) sortis dans `components/wrapped/wrappedSlides.tsx` ; `WrappedStory.tsx` : 86 lignes. Vérifié sur `/wrapped` : récap et 11 diapositives de la story identiques (flèches, Échap).
 
 ### Task 12: appels typés `lib/api/<domaine>.ts` et clôture
 
