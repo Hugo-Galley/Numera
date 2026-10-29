@@ -27,8 +27,8 @@ si le budget le permet. Commits directement sur main, sans push.
 
 ### État (mis à jour à chaque tâche)
 
-- **Fait** : tâches 1 à 4 (`AccountDetail`, `RecurringTransactions`, `WealthSimulator`, `Accounts`), un commit « refactor(frontend): découpe de … » chacune. Baseline : **17 entrées**.
-- **Prochaine tâche** : tâche 5 (`Audit`).
+- **Fait** : tâches 1 à 5 (`AccountDetail`, `RecurringTransactions`, `WealthSimulator`, `Accounts`, `Audit`), un commit « refactor(frontend): découpe de … » chacune. Baseline : **16 entrées**.
+- **Prochaine tâche** : tâche 6 (`Investments`, puis `Savings`).
 - Aucune tâche entamée à moitié.
 
 ### Conventions de l'utilisateur (sans redemander)
@@ -127,7 +127,9 @@ Fait. `pages/Accounts/` : `index.tsx` (en-tête, crédit, archivés, import), `t
 
 Écrans : `/accounts`, `/accounts?import=1` (dialogue d'import), bannière de vérification.
 
-### Task 5: `pages/Audit.tsx` (1 030)
+### Task 5: `pages/Audit.tsx` (1 030) ✅
+
+Fait. `pages/Audit/` : `index.tsx` (`ActionCenter`, retours anticipés : `?vue=virements`, chargement, erreur, détail), `types.ts` (types, constantes, `sampleLabel`), `TransactionEditor.tsx` et `CreatorModals.tsx` (sous-composants autonomes déplacés tels quels), hooks `useAudit.ts` / `useActionCenterData.ts` ; composants `ActionDetail`, `ActionList`. Plus gros fichier : 264 lignes. Vérifié : `/audit` (texte identique hors horodatage « Dernière analyse », requêtes, boutons, Sidebar), clic sur chaque action (liens), `?vue=virements`. La démo n'a pas d'action `modal_*` : `ActionDetail` et les modales sont vérifiés par tsc seulement. `splitlib.py` : `module()` (déplacer des déclarations de premier niveau), `comp(..., exclude=, prelude=)` (valeur rétrécie après un retour anticipé, ex. `ctx.data!`).
 
 Écrans : `/audit`, `/audit?vue=virements`. Le compteur d'actions de la Sidebar ne doit pas changer.
 
