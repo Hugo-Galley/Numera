@@ -8,7 +8,7 @@ from app.core.logging import get_logger
 from app.domain.dividends import DividendRow
 from app.integrations.currency import CurrencyConversionError, convert_amount
 from app.models.investment_transaction import InvestmentTransaction
-from app.repositories import investment_transactions as repo
+from app.repositories.investissement import investment_transactions as repo
 
 logger = get_logger(__name__)
 

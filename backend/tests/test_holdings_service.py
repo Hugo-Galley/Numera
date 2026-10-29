@@ -10,7 +10,7 @@ from app.models.account import Account
 from app.models.investment_transaction import InvestmentTransaction
 from app.models.portfolio_holding import PortfolioHolding
 from app.schemas.holding import PortfolioHoldingUpdate
-from app.services.holdings import inventory
+from app.services.investissement.holdings import inventory
 
 
 def test_holding_returns_include_dividends():

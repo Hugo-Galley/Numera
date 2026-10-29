@@ -6,9 +6,9 @@ from sqlalchemy.orm import Session
 from app.domain.holdings import EPSILON, Replay
 from app.domain.performance import twr
 from app.domain.portfolio import history_point, reconciliation_line, sample_days
-from app.repositories import portfolio as repo
-from app.services.portfolio.books import FxBook, PriceBook, unit_price
-from app.services.portfolio.cash import Capital
+from app.repositories.investissement import portfolio as repo
+from app.services.investissement.portfolio.books import FxBook, PriceBook, unit_price
+from app.services.investissement.portfolio.cash import Capital
 
 
 async def history_series(db: Session, account_id: int, replay: Replay, book: PriceBook, fx: FxBook, cap: Capital,

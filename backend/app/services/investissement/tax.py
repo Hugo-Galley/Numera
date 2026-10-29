@@ -6,8 +6,8 @@ from sqlalchemy.orm import Session
 from app.services.comptes.accounts import account_balance
 from app.services.analytics.budget import compute_resilience
 from app.core.logging import get_logger
-from app.services.dividends import load_dividends_eur
-from app.services.holdings.replay import replay_account
+from app.services.investissement.dividends import load_dividends_eur
+from app.services.investissement.holdings.replay import replay_account
 from app.domain.tax import (
     PeeLot,
     allocation_advice,

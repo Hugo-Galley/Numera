@@ -5,8 +5,8 @@ import pytest
 
 import app.integrations.currency as currency_mod
 import app.integrations.yahoo_finance as yahoo_finance
-import app.services.market.quotes as market_quotes
-import app.repositories.security_prices as security_prices
+import app.services.investissement.market.quotes as market_quotes
+import app.repositories.investissement.security_prices as security_prices
 from app.domain.tax_rules import rules_for
 from app.models.investment_transaction import InvestmentTransaction
 
@@ -256,7 +256,7 @@ def test_annual_report_does_not_fetch_market_quotes(client, db_session, offline_
     async def forbidden(*args, **kwargs):
         raise AssertionError("le récap annuel ne doit pas interroger le marché")
 
-    monkeypatch.setattr("app.services.portfolio.compute.get_market_quotes", forbidden)
+    monkeypatch.setattr("app.services.investissement.portfolio.compute.get_market_quotes", forbidden)
     monkeypatch.setattr(market_quotes, "get_market_quotes", forbidden)
     report = client.get(f"/tax/annual-report?year={YEAR}")
     assert report.status_code == 200, report.text

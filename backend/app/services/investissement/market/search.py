@@ -8,8 +8,8 @@ from app.domain.etf_profiles import match_profile, profile_matches_query
 from app.domain.market import guess_quote_currency
 from app.integrations import yahoo_finance
 from app.models.etf_profile import EtfProfile
-from app.repositories import etf_profiles as etf_repo
-from app.services.market import quotes
+from app.repositories.investissement import etf_profiles as etf_repo
+from app.services.investissement.market import quotes
 
 logger = get_logger(__name__)
 

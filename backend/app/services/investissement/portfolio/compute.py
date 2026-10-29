@@ -12,15 +12,15 @@ from app.domain.performance import xirr
 from app.domain.portfolio import MIN_XIRR_DAYS, PRE_INVENTORY_RATIO, uses_positions
 from app.integrations.currency import CurrencyConversionError, get_exchange_rates
 from app.models.account import Account
-from app.repositories import portfolio as repo
-from app.services.holdings.replay import replay_account
-from app.services.market.quotes import get_market_quotes
-from app.services.portfolio.books import FxBook, PriceBook, ensure_history
-from app.services.portfolio.cash import Capital, anchor_on_inventory, capital
-from app.services.portfolio.history import history_series
-from app.services.portfolio.income import dividend_totals, fees_eur, realized_summary
-from app.services.portfolio.opening import opening_value
-from app.services.portfolio.positions import PositionsValuation, value_positions
+from app.repositories.investissement import portfolio as repo
+from app.services.investissement.holdings.replay import replay_account
+from app.services.investissement.market.quotes import get_market_quotes
+from app.services.investissement.portfolio.books import FxBook, PriceBook, ensure_history
+from app.services.investissement.portfolio.cash import Capital, anchor_on_inventory, capital
+from app.services.investissement.portfolio.history import history_series
+from app.services.investissement.portfolio.income import dividend_totals, fees_eur, realized_summary
+from app.services.investissement.portfolio.opening import opening_value
+from app.services.investissement.portfolio.positions import PositionsValuation, value_positions
 
 
 def _account_rate(rates: dict[str, float], currency: str) -> float:

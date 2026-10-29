@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from app.models.account import Account
 from app.models.portfolio_holding import PortfolioHolding
 from app.models.etf_profile import EtfProfile
-from app.services.etf_profiles import seed_etf_profiles
+from app.services.investissement.etf_profiles import seed_etf_profiles
 
 
 def test_etf_profiles_seeded_and_listable(client: TestClient, db_session: Session):

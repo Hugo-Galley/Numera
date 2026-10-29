@@ -78,7 +78,7 @@ def test_transfer_recurrence_validation(client, db_session: Session):
 
 from datetime import date as date_type
 
-import app.services.market.quotes as market_quotes
+import app.services.investissement.market.quotes as market_quotes
 from app.models.portfolio_holding import PortfolioHolding
 
 

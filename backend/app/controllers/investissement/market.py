@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
-from app.services.market import quotes, search
+from app.services.investissement.market import quotes, search
 
 router = APIRouter(prefix="/market", tags=["market"])
 

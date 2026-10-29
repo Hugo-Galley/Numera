@@ -5,7 +5,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
 from app.integrations import yahoo_finance
-from app.services.etf_profiles import seed_etf_profiles
+from app.services.investissement.etf_profiles import seed_etf_profiles
 from app.models.account import Account
 from app.models.etf_profile import EtfProfile
 from app.models.portfolio_holding import PortfolioHolding
@@ -129,7 +129,7 @@ def test_refresh_held_only_touches_held_profiles(client: TestClient, db_session:
 
 
 def test_diversity_puts_uncovered_weight_in_non_renseigne(client: TestClient, db_session: Session, monkeypatch):
-    from app.services.market import quotes as market_quotes
+    from app.services.investissement.market import quotes as market_quotes
 
     async def fake_quotes(symbols, db=None):
         return {s.upper(): {"price_eur": 100.0, "type": "ETF"} for s in symbols}

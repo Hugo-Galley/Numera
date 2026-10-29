@@ -4,9 +4,9 @@ from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 
 from app.domain.holdings import Replay, is_trade
-from app.repositories import investment_transactions as tx_repo
-from app.services.dividends import load_dividends_eur
-from app.services.portfolio.books import FxBook
+from app.repositories.investissement import investment_transactions as tx_repo
+from app.services.investissement.dividends import load_dividends_eur
+from app.services.investissement.portfolio.books import FxBook
 
 
 def realized_summary(replay: Replay) -> tuple[dict[int, dict], float, int]:

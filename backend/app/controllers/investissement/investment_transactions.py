@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.db.session import get_db
 from app.schemas.investment import InvestmentTransactionCreate, InvestmentTransactionRead, InvestmentTransactionUpdate
-from app.services import investment_transactions as service
+from app.services.investissement import investment_transactions as service
 
 router = APIRouter(prefix="/investment-transactions", tags=["investment-transactions"])
 

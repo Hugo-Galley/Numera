@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from app.domain.holdings import is_trade
 from app.domain.portfolio import CashEvent, classify_regular_flow
 from app.models.balance_snapshot import BalanceSnapshot
-from app.repositories import portfolio as repo
+from app.repositories.investissement import portfolio as repo
 
 
 def cash_events(db: Session, account_id: int, after: datetime | None) -> tuple[list[CashEvent], bool]:

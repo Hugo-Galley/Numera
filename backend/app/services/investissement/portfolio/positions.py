@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 
 from app.domain.holdings import Replay
 from app.models.portfolio_holding import PortfolioHolding
-from app.services.portfolio.books import FxBook
+from app.services.investissement.portfolio.books import FxBook
 
 
 @dataclass

@@ -5,8 +5,8 @@ import pytest
 
 import app.integrations.currency as currency_mod
 import app.integrations.yahoo_finance as yahoo_finance
-import app.services.market.quotes as market_quotes
-import app.repositories.security_prices as security_prices
+import app.services.investissement.market.quotes as market_quotes
+import app.repositories.investissement.security_prices as security_prices
 from app.models.balance_snapshot import BalanceSnapshot
 
 
@@ -274,7 +274,7 @@ def test_usd_line_splits_unrealized_gain_into_price_and_currency_effect(client, 
 
     monkeypatch.setattr(market_quotes, "get_exchange_rates", current_rates)
     monkeypatch.setattr(currency_mod, "get_exchange_rates", current_rates)
-    import app.services.portfolio.compute as portfolio_mod
+    import app.services.investissement.portfolio.compute as portfolio_mod
     monkeypatch.setattr(portfolio_mod, "get_exchange_rates", current_rates)
 
     account_id = client.post("/accounts", json={"name": "CTO", "type": "investissement", "currency": "EUR", "color": None}).json()["id"]

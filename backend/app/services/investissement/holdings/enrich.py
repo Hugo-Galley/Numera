@@ -6,8 +6,8 @@ from app.domain.holdings import holding_returns
 from app.integrations.currency import get_exchange_rates
 from app.models.portfolio_holding import PortfolioHolding
 from app.schemas.holding import PortfolioHoldingRead
-from app.services.dividends import load_dividends_eur
-from app.services.market.quotes import get_market_quotes
+from app.services.investissement.dividends import load_dividends_eur
+from app.services.investissement.market.quotes import get_market_quotes
 
 
 def enrich_holding(holding: PortfolioHolding, quotes: dict, rates: dict, divs: HoldingDividends | None = None) -> PortfolioHoldingRead:

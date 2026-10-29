@@ -10,9 +10,9 @@ from datetime import date, datetime, timedelta
 
 from sqlalchemy.orm import Session
 
-from app.services.market import quotes as market_quotes
+from app.services.investissement.market import quotes as market_quotes
 from app.integrations.currency import CurrencyConversionError, convert_amount
-from app.services.holdings.rebuild import rebuild_holdings
+from app.services.investissement.holdings.rebuild import rebuild_holdings
 from app.core.logging import get_logger
 from app.domain.finance import get_recurring_occurrences, month_label_from_date
 from app.domain.recurring import investment_leg_type

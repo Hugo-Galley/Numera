@@ -3,8 +3,8 @@ from sqlalchemy.orm import Session
 
 from app.domain.holdings import EPSILON
 from app.models.portfolio_holding import PortfolioHolding
-from app.repositories import holdings as repo
-from app.services.holdings.replay import replay_account
+from app.repositories.investissement import holdings as repo
+from app.services.investissement.holdings.replay import replay_account
 
 
 async def rebuild_holdings(db: Session, account_id: int) -> None:

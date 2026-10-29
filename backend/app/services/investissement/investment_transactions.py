@@ -14,12 +14,12 @@ from app.integrations.currency import convert_amount
 from app.models.account import Account
 from app.models.investment_transaction import InvestmentTransaction
 from app.repositories.comptes import accounts as accounts_repo
-from app.repositories import investment_transactions as repo
-from app.repositories import portfolio as portfolio_repo
+from app.repositories.investissement import investment_transactions as repo
+from app.repositories.investissement import portfolio as portfolio_repo
 from app.schemas.investment import InvestmentTransactionCreate, InvestmentTransactionUpdate
-from app.services.dividends import sync_reinvestment
-from app.services.holdings.rebuild import rebuild_holdings
-from app.services.holdings.replay import trade_cutoff
+from app.services.investissement.dividends import sync_reinvestment
+from app.services.investissement.holdings.rebuild import rebuild_holdings
+from app.services.investissement.holdings.replay import trade_cutoff
 
 VALID_TYPES = {"versement", "retrait", "dividende", "achat", "vente", "frais"}
 TRADE_FIELDS = {"type", "date", "ticker", "quantity", "unit_price", "price_currency", "fees"}

@@ -7,8 +7,8 @@ from app.domain.portfolio import uses_positions
 from app.repositories.comptes import accounts as accounts_repo
 from app.repositories.analytics import investments as repo
 from app.schemas.portfolio import PortfolioOverview, PortfolioRead
-from app.services.holdings.replay import replay_account
-from app.services.portfolio import compute_portfolio
+from app.services.investissement.holdings.replay import replay_account
+from app.services.investissement.portfolio import compute_portfolio
 
 
 async def valued_accounts(db: Session, *, history: bool = False) -> list[dict]:

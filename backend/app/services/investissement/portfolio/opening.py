@@ -5,8 +5,8 @@ from sqlalchemy.orm import Session
 
 from app.domain.holdings import Replay
 from app.domain.portfolio import SNAPSHOT_MATCH_DAYS
-from app.repositories import portfolio as repo
-from app.services.portfolio.books import FxBook, PriceBook, unit_price
+from app.repositories.investissement import portfolio as repo
+from app.services.investissement.portfolio.books import FxBook, PriceBook, unit_price
 
 
 async def opening_value(db: Session, account_id: int, replay: Replay, book: PriceBook, fx: FxBook,

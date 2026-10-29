@@ -7,9 +7,9 @@ from app.domain.dividends import match_dividend_ticker
 from app.domain.holdings import EPSILON, SELL_TYPES, CostEstimate, normalize_ticker
 from app.models.holding_baseline_item import HoldingBaselineItem
 from app.models.investment_transaction import InvestmentTransaction
-from app.repositories import holdings as repo
-from app.repositories import investment_transactions as tx_repo
-from app.services.holdings.replay import convert, trade_cutoff
+from app.repositories.investissement import holdings as repo
+from app.repositories.investissement import investment_transactions as tx_repo
+from app.services.investissement.holdings.replay import convert, trade_cutoff
 
 
 def _amount_only_buys(db: Session, account_id: int, items: list[HoldingBaselineItem]) -> dict[str, list[InvestmentTransaction]]:

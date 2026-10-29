@@ -5,7 +5,7 @@ import pytest
 
 import app.integrations.currency as currency_mod
 import app.integrations.yahoo_finance as yahoo_finance
-import app.services.market.quotes as market_quotes
+import app.services.investissement.market.quotes as market_quotes
 from app.services.recurring import generate_recurring_transactions
 from app.models.account import Account
 from app.models.investment_transaction import InvestmentTransaction

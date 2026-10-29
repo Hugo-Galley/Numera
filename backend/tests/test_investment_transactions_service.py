@@ -9,7 +9,7 @@ from app.models.account import Account
 from app.models.holding_baseline_item import HoldingBaselineItem
 from app.models.investment_transaction import InvestmentTransaction
 from app.schemas.investment import InvestmentTransactionCreate
-from app.services import investment_transactions as service
+from app.services.investissement import investment_transactions as service
 
 BASELINE = datetime(2026, 1, 10, 12, 0)
 

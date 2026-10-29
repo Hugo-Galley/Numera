@@ -3,9 +3,9 @@ from datetime import datetime
 
 from sqlalchemy.orm import Session
 
-from app.services.holdings.replay import replay_account
+from app.services.investissement.holdings.replay import replay_account
 from app.domain.portfolio import uses_positions
-from app.services.portfolio import compute_portfolio
+from app.services.investissement.portfolio import compute_portfolio
 from app.integrations.currency import get_exchange_rates
 from app.models.account import Account
 from app.repositories.analytics import investments as repo

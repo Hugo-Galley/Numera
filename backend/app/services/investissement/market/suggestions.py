@@ -4,8 +4,8 @@ from typing import Any, Dict, List
 from sqlalchemy.orm import Session
 
 from app.domain.market import extract_asset_clean_name
-from app.repositories import investment_transactions as tx_repo
-from app.services.market.search import search_market_assets
+from app.repositories.investissement import investment_transactions as tx_repo
+from app.services.investissement.market.search import search_market_assets
 
 
 async def suggest_holdings_from_notes(db: Session, account_id: int) -> List[Dict[str, Any]]:

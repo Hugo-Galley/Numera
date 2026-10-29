@@ -20,7 +20,7 @@ from app.domain.etf_profiles import (
 )
 from app.integrations import yahoo_finance
 from app.models.etf_profile import EtfProfile
-from app.repositories import etf_profiles as repo
+from app.repositories.investissement import etf_profiles as repo
 from app.schemas.etf_profile import AutoDecomposeRequest, EtfProfileCreate, EtfProfileRead, EtfProfileUpdate
 
 logger = get_logger(__name__)

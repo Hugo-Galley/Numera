@@ -4,10 +4,10 @@ from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 
 from app.domain.dividends import aggregate_dividends, dividend_tickers, month_keys, position_values
-from app.repositories import holdings as holdings_repo
+from app.repositories.investissement import holdings as holdings_repo
 from app.schemas.dividend import DividendMonth, DividendSummary, DividendTotals, DividendUnlinked, DividendYear
-from app.services.dividends import load_dividends_eur
-from app.services.market.quotes import get_market_quotes
+from app.services.investissement.dividends import load_dividends_eur
+from app.services.investissement.market.quotes import get_market_quotes
 
 
 async def compute_dividends(db: Session, account_id: int | None, months: int) -> DividendSummary:

@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 
 from app.core.errors import BusinessRuleError, DomainError, InternalError, NotFoundError
 from app.core.logging import get_logger
-from app.services.portfolio import positions_values_eur
+from app.services.investissement.portfolio import positions_values_eur
 from app.domain.budget import elapsed_days, savings_rate, to_eur
 from app.integrations.currency import get_exchange_rates
 from app.models.account import Account

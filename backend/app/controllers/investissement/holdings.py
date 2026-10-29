@@ -11,7 +11,7 @@ from app.schemas.holding import (
     CostEstimateRead,
     ApplyCostsRequest,
 )
-from app.services.holdings import inventory as service
+from app.services.investissement.holdings import inventory as service
 
 router = APIRouter(prefix="/holdings", tags=["holdings"])
 

@@ -2,7 +2,7 @@
 import asyncio
 from datetime import date
 
-import app.services.tax as tax_service
+import app.services.investissement.tax as tax_service
 
 
 def test_overview_survives_resilience_failure(db_session, monkeypatch):

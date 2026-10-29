@@ -9,7 +9,7 @@ from app.core.logging import get_logger
 from app.domain.market import guess_quote_currency, normalize_price, to_eur
 from app.integrations import yahoo_finance
 from app.integrations.currency import get_exchange_rates
-from app.repositories import security_prices
+from app.repositories.investissement import security_prices
 
 logger = get_logger(__name__)
 

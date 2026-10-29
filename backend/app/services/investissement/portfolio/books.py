@@ -7,8 +7,8 @@ from sqlalchemy.orm import Session
 from app.core.logging import get_logger
 from app.domain.portfolio import SNAPSHOT_MATCH_DAYS
 from app.integrations.currency import CurrencyConversionError, convert_amount
-from app.repositories import security_prices
-from app.services.market import quotes as market_quotes
+from app.repositories.investissement import security_prices
+from app.services.investissement.market import quotes as market_quotes
 
 logger = get_logger(__name__)
 

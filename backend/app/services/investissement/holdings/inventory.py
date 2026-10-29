@@ -11,7 +11,7 @@ from app.domain.holdings import normalize_ticker
 from app.models.account import Account
 from app.models.holding_baseline_item import HoldingBaselineItem
 from app.repositories.comptes import accounts as accounts_repo
-from app.repositories import holdings as repo
+from app.repositories.investissement import holdings as repo
 from app.schemas.holding import (
     ApplyCostsRequest,
     BaselineInventoryRequest,
@@ -20,11 +20,11 @@ from app.schemas.holding import (
     PortfolioHoldingRead,
     PortfolioHoldingUpdate,
 )
-from app.services.holdings.cost_estimates import estimate_baseline_costs
-from app.services.holdings.enrich import enrich_all
-from app.services.holdings.rebuild import rebuild_holdings
-from app.services.holdings.replay import trade_cutoff
-from app.services.market.suggestions import suggest_holdings_from_notes
+from app.services.investissement.holdings.cost_estimates import estimate_baseline_costs
+from app.services.investissement.holdings.enrich import enrich_all
+from app.services.investissement.holdings.rebuild import rebuild_holdings
+from app.services.investissement.holdings.replay import trade_cutoff
+from app.services.investissement.market.suggestions import suggest_holdings_from_notes
 
 
 def _get_account(db: Session, account_id: int) -> Account:
