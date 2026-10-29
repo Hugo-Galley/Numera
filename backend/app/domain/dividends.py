@@ -1,4 +1,4 @@
-"""Dividendes d'investissement : rattachement à un titre, réinvestissement, agrégats en EUR.
+"""Dividendes : rattachement d'un libellé à un titre, lignes en EUR et agrégats par position (sans base).
 
 Un dividende est une `investment_transaction` de type `dividende` :
 - `amount` = net reçu (devise du compte), `original_amount` / `currency` = saisie d'origine ;
@@ -11,15 +11,8 @@ import unicodedata
 from dataclasses import dataclass
 from datetime import date as date_type, datetime, timedelta
 
-from sqlalchemy.orm import Session
-
-from app.integrations.currency import CurrencyConversionError, convert_amount
-from app.core.logging import get_logger
 from app.domain.market import extract_asset_clean_name
-from app.models.account import Account
 from app.models.investment_transaction import InvestmentTransaction
-
-logger = get_logger(__name__)
 
 DIVIDEND_TYPE = "dividende"
 
@@ -63,39 +56,6 @@ def match_dividend_ticker(note: str | None, candidates: list[tuple[str, str]]) -
     return next(iter(matches)) if len(matches) == 1 else None
 
 
-def sync_reinvestment(db: Session, dividend: InvestmentTransaction) -> None:
-    """Recrée l'achat lié d'un dividende réinvesti (ou le supprime s'il ne l'est plus). Ne commit pas.
-
-    Le dividende doit déjà avoir un `id` (flush). `quantity` = parts reçues en échange du net.
-    """
-    db.query(InvestmentTransaction).filter(InvestmentTransaction.reinvest_of_id == dividend.id).delete()
-    db.flush()
-    if not dividend.reinvested:
-        return
-    db.add(
-        InvestmentTransaction(
-            account_id=dividend.account_id,
-            date=dividend.date,
-            type="achat",
-            amount=dividend.amount,
-            currency=dividend.currency,
-            original_amount=dividend.original_amount,
-            note=dividend.note,
-            asset_class=dividend.asset_class,
-            sector=dividend.sector,
-            geographic_zone=dividend.geographic_zone,
-            ticker=dividend.ticker,
-            isin=dividend.isin,
-            quantity=dividend.quantity,
-            unit_price=round(dividend.original_amount / dividend.quantity, 6),
-            price_currency=dividend.currency,
-            etf_profile_id=dividend.etf_profile_id,
-            reinvest_of_id=dividend.id,
-        )
-    )
-    db.flush()
-
-
 @dataclass
 class DividendRow:
     tx: InvestmentTransaction
@@ -105,36 +65,6 @@ class DividendRow:
     @property
     def gross_eur(self) -> float:
         return self.net_eur + self.tax_eur
-
-
-async def load_dividends_eur(db: Session, account_id: int | None = None) -> list[DividendRow]:
-    """
-    Tous les dividendes (optionnellement d'un compte) en EUR.
-
-    Le net vient de `amount`, déjà converti dans la devise du compte à la saisie (aucun appel de taux
-    pour un compte en EUR) ; la retenue, exprimée dans `currency`, est convertie au taux du jour de versement.
-    """
-    query = db.query(InvestmentTransaction).filter(InvestmentTransaction.type == DIVIDEND_TYPE)
-    if account_id is not None:
-        query = query.filter(InvestmentTransaction.account_id == account_id)
-    account_currency = {acc_id: cur for acc_id, cur in db.query(Account.id, Account.currency).all()}
-
-    rows: list[DividendRow] = []
-    for tx in query.order_by(InvestmentTransaction.date.asc(), InvestmentTransaction.id.asc()).all():
-        try:
-            net = await convert_amount(
-                tx.amount, account_currency.get(tx.account_id, "EUR"), "EUR", date=tx.date.date(), db=db
-            )
-            tax = (
-                await convert_amount(tx.withholding_tax, tx.currency, "EUR", date=tx.date.date(), db=db)
-                if tx.withholding_tax
-                else 0.0
-            )
-        except CurrencyConversionError as exc:
-            logger.warning(f"Dividend {tx.id} skipped (no exchange rate): {exc}")
-            continue
-        rows.append(DividendRow(tx=tx, net_eur=net, tax_eur=tax))
-    return rows
 
 
 @dataclass

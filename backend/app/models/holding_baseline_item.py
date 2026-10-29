@@ -10,7 +10,7 @@ class HoldingBaselineItem(Base):
     """Ligne de l'inventaire « Point Zéro » des positions d'un compte.
 
     Les positions (`portfolio_holdings`) sont recalculées à partir de cet inventaire, puis des
-    opérations sur titres postérieures à `baseline_date` (voir `core/holdings.py::rebuild_holdings`).
+    opérations sur titres postérieures à `baseline_date` (voir `services/holdings/rebuild.py::rebuild_holdings`).
     """
 
     __tablename__ = "holding_baseline_items"

@@ -1,7 +1,7 @@
 """Portefeuille titres : comptes valorisés par positions et synthèse (valeur, plus-values, dividendes, XIRR)."""
 from sqlalchemy.orm import Session
 
-from app.core.holdings import replay_account
+from app.services.holdings.replay import replay_account
 from app.core.portfolio import compute_portfolio, uses_positions, xirr
 from app.repositories.analytics import investments as repo
 from app.schemas.portfolio import PortfolioOverview, PortfolioRead

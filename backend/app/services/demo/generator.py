@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 
 from app.services.balances import recalculate_running_balances
 from app.domain.finance import month_label_from_date
-from app.core.holdings import rebuild_holdings
+from app.services.holdings.rebuild import rebuild_holdings
 from app.services.seeds import seed_all
 from app.services.transfers import link_pair
 from app.models.account import Account

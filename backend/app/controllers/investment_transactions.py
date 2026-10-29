@@ -2,8 +2,11 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from datetime import datetime
 
-from app.core.dividends import match_dividend_ticker, sync_reinvestment
-from app.core.holdings import SELL_TYPES, is_trade, rebuild_holdings, trade_cutoff
+from app.domain.dividends import match_dividend_ticker
+from app.domain.holdings import SELL_TYPES, is_trade
+from app.services.dividends import sync_reinvestment
+from app.services.holdings.rebuild import rebuild_holdings
+from app.services.holdings.replay import trade_cutoff
 from app.db.session import get_db
 from app.models.account import Account
 from app.models.balance_snapshot import BalanceSnapshot

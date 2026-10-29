@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
-from app.core.dividends import load_dividends_eur
+from app.services.dividends import load_dividends_eur
 from app.services.market.quotes import get_market_quotes
 from app.db.session import get_db
 from app.models.portfolio_holding import PortfolioHolding

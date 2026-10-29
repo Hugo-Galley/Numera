@@ -16,7 +16,7 @@ import pytest
 import app.integrations.currency as currency_mod
 import app.integrations.yahoo_finance as yahoo_finance
 from app.models.account import Account
-from app.core.holdings import rebuild_holdings
+from app.services.holdings.rebuild import rebuild_holdings
 from app.models.balance_snapshot import BalanceSnapshot
 from app.models.holding_baseline_item import HoldingBaselineItem
 from app.models.investment_transaction import InvestmentTransaction

@@ -17,8 +17,12 @@ from app.schemas.holding import (
     ApplyCostsRequest,
 )
 from app.integrations.currency import get_exchange_rates
-from app.core.dividends import HoldingDividends, load_dividends_eur, summarize_by_holding
-from app.core.holdings import TRADE_TYPES, estimate_baseline_costs, normalize_ticker, rebuild_holdings, trade_cutoff
+from app.domain.dividends import HoldingDividends, summarize_by_holding
+from app.domain.holdings import TRADE_TYPES, normalize_ticker
+from app.services.dividends import load_dividends_eur
+from app.services.holdings.cost_estimates import estimate_baseline_costs
+from app.services.holdings.rebuild import rebuild_holdings
+from app.services.holdings.replay import trade_cutoff
 from app.services.market.quotes import get_market_quotes
 from app.services.market.suggestions import suggest_holdings_from_notes
 from app.core.time import utcnow_naive

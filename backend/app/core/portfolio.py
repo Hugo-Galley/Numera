@@ -14,11 +14,11 @@ from dataclasses import dataclass
 from datetime import date as date_type, datetime, timedelta
 
 from sqlalchemy.orm import Session
-
 from app.integrations.currency import CurrencyConversionError, convert_amount, get_exchange_rates
-from app.core.dividends import load_dividends_eur
-from app.core.holdings import EPSILON, Replay, is_trade, replay_account
+from app.domain.holdings import EPSILON, Replay, is_trade
 from app.core.logging import get_logger
+from app.services.dividends import load_dividends_eur
+from app.services.holdings.replay import replay_account
 from app.services.market.quotes import fetch_price_history, get_market_quotes
 from app.models.account import Account
 from app.models.balance_snapshot import BalanceSnapshot

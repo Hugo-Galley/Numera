@@ -4,8 +4,6 @@
   "backend/app/controllers/analytics/dividends.py::get_dividends": 101,
   "backend/app/controllers/investment_transactions.py::create_investment_transaction": 83,
   "backend/app/controllers/investment_transactions.py::update_investment_transaction": 95,
-  "backend/app/core/holdings.py::estimate_baseline_costs": 94,
-  "backend/app/core/holdings.py::replay_account": 100,
   "backend/app/core/portfolio.py": 670,
   "backend/app/core/portfolio.py::compute_portfolio": 395,
   "frontend/src/components/analytics/SankeyFlow.tsx": 371,

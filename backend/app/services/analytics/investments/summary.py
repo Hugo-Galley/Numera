@@ -3,7 +3,7 @@ from datetime import datetime
 
 from sqlalchemy.orm import Session
 
-from app.core.holdings import replay_account
+from app.services.holdings.replay import replay_account
 from app.core.portfolio import compute_portfolio, uses_positions
 from app.integrations.currency import get_exchange_rates
 from app.models.account import Account
