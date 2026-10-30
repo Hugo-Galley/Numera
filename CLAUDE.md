@@ -35,7 +35,7 @@ make prod                  # docker-compose.prod.yml
 make test                  # pytest backend (backend/venv si présent, sinon python3.12/3.11 ; PYTHON=... pour forcer)
 make lint / lint-fix       # ruff sur backend/ (règles : backend/ruff.toml), lint-fix corrige ce qui est sûr
 make check-size            # plafonds de taille (fichier/fonction), baseline à cliquet scripts/code_size_baseline.json
-make validate              # lint + check-size + tests backend + build frontend
+make validate              # lint + check-size + tests backend + tests frontend + build frontend
 make backend-seed-demo     # données de démo (backend/data/demo.db, jamais la vraie base)
 make demo / demo-down      # instance de démo publique (docker-compose.demo.yml, port 8090, demo/demo)
 make backup-now            # backup dans le conteneur
@@ -43,7 +43,8 @@ make backup-now            # backup dans le conteneur
 # Dev local
 cd backend && uvicorn app.main:app --reload --port 8001
 cd frontend && npm run dev          # port 5173
-cd frontend && npm run build        # tsc --noEmit + vite build : seule vérification frontend (pas de lint/test)
+cd frontend && npm test            # Vitest (jsdom + Testing Library + MSW) ; make test-front ; test:watch, coverage
+cd frontend && npm run build        # tsc (app + tests) + vite build ; pas de lint frontend
 cd frontend && npm run typecheck    # tsc seul
 
 # Un seul test

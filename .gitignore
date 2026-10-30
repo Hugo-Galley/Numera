@@ -15,6 +15,7 @@ backend/venv*/
 # Frontend
 node_modules/
 dist/
+coverage/
 
 # Bases SQLite (y compris WAL / mémoire partagée d'une base ouverte)
 *.db

@@ -17,7 +17,7 @@ Terminé = vérifié par une commande lancée **maintenant**, docs à jour, comm
    | Changé | Commande |
    |---|---|
    | `backend/` | `make lint && make check-size && make test` |
-   | `frontend/` | `make check-size && cd frontend && npm run build` |
+   | `frontend/` | `make check-size && cd frontend && npm test && npm run build` (le build seul ne lance pas les tests) |
    | les deux, ou un déplacement de fichier | `make validate` |
    | modèle SQLAlchemy | + migration Alembic relue ; `tests/test_migrations.py` vert |
    | une route | + `tests/test_openapi_routes.py` mis à jour volontairement |

@@ -40,13 +40,13 @@ Le lot 0 est **séquentiel et bloquant**. Ensuite chaque lot (et chaque tâche d
 
 ## Lot 0 : socle (bloquant)
 
-- [ ] **0.1 Dépendances** : `npm i -D vitest @vitest/coverage-v8 jsdom @testing-library/react @testing-library/user-event @testing-library/jest-dom msw` (versions compatibles Vite 5, épinglées dans `package-lock.json`).
-- [ ] **0.2 Config** : `vitest.config.ts` qui étend `vite.config.ts` (`mergeConfig`) : `environment: "jsdom"`, `setupFiles: ["src/test/setup.ts"]`, `env: { TZ: "Europe/Paris" }`, `css: false`, `restoreMocks: true`. `tsconfig` : types `vitest/globals` et `@testing-library/jest-dom` pour les fichiers de test seulement ; vérifier que `vite build` n'embarque pas `src/test/`.
-- [ ] **0.3 Setup jsdom** (`src/test/setup.ts`) : jest-dom, `cleanup`, polyfills manquants pour Radix et Recharts (`matchMedia`, `ResizeObserver`, `IntersectionObserver`, `scrollIntoView`, `hasPointerCapture`), `localStorage` vidé entre tests, serveur MSW `listen / resetHandlers / close`.
-- [ ] **0.4 Outils** : `src/test/render.tsx` (`renderWithProviders`, option `auth` qui pose un JWT valide via une fabrique `makeToken({ expInMinutes })`), `src/test/server.ts`, `src/test/handlers/` (un fichier par domaine, vide au départ sauf `auth` et `analytics` minimal), `src/test/factories.ts`.
-- [ ] **0.5 Test témoin** : `lib/utils.test.ts` avec un cas `formatCurrency` + un rendu `renderWithProviders(<ErrorState …/>)` qui clique « Réessayer », pour prouver jsdom + providers + user-event.
-- [ ] **0.6 Scripts et CI** : `package.json` → `"test": "vitest run"`, `"test:watch": "vitest"`, `"coverage": "vitest run --coverage"` ; `Makefile` → `make test-front`, et `make validate` l'appelle ; job CI `Frontend` : `npm test` avant `npm run build`.
-- [ ] **0.7 Documentation (même commit)** : `frontend/src/CLAUDE.md` § Vérification (« Pas de tests ni de lint frontend » devient la commande et les conventions de la section 0), `CLAUDE.md` racine (commandes), skills `numera-testing`, `numera-frontend` et `numera-finishing` (le build ne suffit plus : `npm test` aussi).
+- [x] **0.1 Dépendances** : `npm i -D vitest @vitest/coverage-v8 jsdom @testing-library/react @testing-library/user-event @testing-library/jest-dom msw` (versions compatibles Vite 5, épinglées dans `package-lock.json`).
+- [x] **0.2 Config** : `vitest.config.ts` qui étend `vite.config.ts` (`mergeConfig`) : `environment: "jsdom"`, `setupFiles: ["src/test/setup.ts"]`, `env: { TZ: "Europe/Paris" }`, `css: false`, `restoreMocks: true`. `tsconfig` : types `vitest/globals` et `@testing-library/jest-dom` pour les fichiers de test seulement ; vérifier que `vite build` n'embarque pas `src/test/`.
+- [x] **0.3 Setup jsdom** (`src/test/setup.ts`) : jest-dom, `cleanup`, polyfills manquants pour Radix et Recharts (`matchMedia`, `ResizeObserver`, `IntersectionObserver`, `scrollIntoView`, `hasPointerCapture`), `localStorage` vidé entre tests, serveur MSW `listen / resetHandlers / close`.
+- [x] **0.4 Outils** : `src/test/render.tsx` (`renderWithProviders`, option `auth` qui pose un JWT valide via une fabrique `makeToken({ expInMinutes })`), `src/test/server.ts`, `src/test/handlers/` (un fichier par domaine, vide au départ sauf `auth` et `analytics` minimal), `src/test/factories.ts`.
+- [x] **0.5 Test témoin** : `lib/utils.test.ts` avec un cas `formatCurrency` + un rendu `renderWithProviders(<ErrorState …/>)` qui clique « Réessayer », pour prouver jsdom + providers + user-event.
+- [x] **0.6 Scripts et CI** : `package.json` → `"test": "vitest run"`, `"test:watch": "vitest"`, `"coverage": "vitest run --coverage"` ; `Makefile` → `make test-front`, et `make validate` l'appelle ; job CI `Frontend` : `npm test` avant `npm run build`.
+- [x] **0.7 Documentation (même commit)** : `frontend/src/CLAUDE.md` § Vérification (« Pas de tests ni de lint frontend » devient la commande et les conventions de la section 0), `CLAUDE.md` racine (commandes), skills `numera-testing`, `numera-frontend` et `numera-finishing` (le build ne suffit plus : `npm test` aussi).
 
 ## Lot 1 : `lib/` pur (tests unitaires, aucun DOM)
 

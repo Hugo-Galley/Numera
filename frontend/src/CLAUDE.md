@@ -33,4 +33,15 @@ Complète le `CLAUDE.md` racine. Procédures : skill `numera-frontend`. Le front
 
 ## Vérification
 
-Pas de tests ni de lint frontend. Seul garde-fou : `cd frontend && npm run build` = `tsc --noEmit && vite build` (les erreurs de types bloquent le build ; `npm run typecheck` pour tsc seul). Le projet est à 0 erreur TypeScript : ne pas en introduire. Types manquants : `types/react-simple-maps.d.ts`. Contrôle manuel : mode confidentialité (œil), thème sombre, responsive mobile.
+`cd frontend && npm test && npm run build` (ou `make test-front`, inclus dans `make validate` et la CI). `npm test` = `vitest run` (`npm run test:watch` en continu, `npm run coverage` pour la couverture v8, sans seuil pour l'instant). `npm run build` = `npm run typecheck && vite build` ; `typecheck` passe `tsc` sur l'app (`tsconfig.json`, qui exclut les tests) puis sur les tests (`tsconfig.test.json`, types `vitest/globals` et jest-dom). Le projet est à 0 erreur TypeScript : ne pas en introduire. Types manquants : `types/react-simple-maps.d.ts`. Pas de lint frontend. Contrôle manuel en plus : mode confidentialité (œil), thème sombre, responsive mobile.
+
+Tests (Vitest + jsdom + Testing Library + MSW ; config `frontend/vitest.config.ts`, `TZ=Europe/Paris`, globals `describe/it/expect/vi`). Plan par lots : `docs/superpowers/plans/2026-10-30-tests-frontend.md`.
+- Fichier `X.test.ts(x)` à côté du fichier testé. Outils partagés dans `src/test/` (jamais importés par l'app, absents du build).
+- Rendu : `renderWithProviders(ui, { route, auth })` de `@/test/render` (UIProvider + AuthProvider + ConfirmProvider + MemoryRouter + Toaster ; renvoie aussi `user` = `userEvent.setup()`), jamais un `render` nu pour un composant qui dépend d'un provider. `auth: true` pose un JWT valide une heure (`makeToken({ expInMinutes })` de `@/test/token`, négatif = expiré). `WorkTimeProvider` et les routes d'`App.tsx` ne sont pas montés : les ajouter dans le test qui en a besoin.
+- Requêtes DOM par rôle et libellé français (`getByRole("button", { name: "Enregistrer" })`), pas par classe CSS ni `data-testid` sauf dernier recours.
+- API simulée au niveau réseau par MSW (ne pas mocker `lib/api.ts`) : handlers par défaut dans `src/test/handlers/<domaine>.ts` (même découpage que `lib/api/`, plus `auth` : `/admin/profile`, `/auth/refresh`, `/health`), URL via `apiUrl("/accounts")`, réponse propre à un test via `server.use(...)` (`@/test/server`). Toute requête sans handler fait échouer le test, même si le composant avale l'erreur.
+- Données : fabriques `makeAccount`, `makeTransaction`, `makeCategory`, `makeProfile`, `makeActionCenter` (`@/test/factories`), surchargées champ par champ.
+- Entre deux tests : DOM démonté, handlers réinitialisés, `localStorage` / `sessionStorage` vidés. Polyfills jsdom (`matchMedia`, `ResizeObserver`, `IntersectionObserver`, `scrollIntoView`, pointer capture) dans `src/test/setup.ts`.
+- Date du jour : `vi.useFakeTimers({ toFake: ["Date"] })` + `vi.setSystemTime(...)`.
+- Après une mutation, vérifier la requête reçue par MSW (méthode, corps) **et** ce qui s'affiche (toast, ligne mise à jour).
+- Un bug frontend corrigé = un test rouge d'abord. Aucun `it.skip` / `it.only` commité.

@@ -48,7 +48,7 @@ Un écart d'instantané est un test rouge comme un autre. Jamais `UPDATE_SNAPSHO
 
 ## Frontend
 
-Pas de tests frontend : c'est une raison de plus pour qu'aucune logique n'y vive. Une règle à tester côté front (calcul, agrégat, statut) → elle appartient au backend, en TDD.
+Les tests frontend (Vitest, skill `numera-testing`) vérifient le rendu, les appels et les parcours, pas des règles métier : aucune logique n'y vit. Une règle à tester côté front (calcul, agrégat, statut) → elle appartient au backend, en TDD. Un bug frontend corrigé suit la même discipline : test `X.test.tsx` rouge d'abord.
 
 ## Rationalisations
 

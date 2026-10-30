@@ -1,6 +1,6 @@
 ---
 name: numera-testing
-description: Comment lancer, écrire et déboguer les tests de Numera (pytest backend, build frontend) et ce qu'il faut vérifier avant de considérer une tâche terminée. À charger avant toute validation ou pour corriger un test en échec.
+description: Comment lancer, écrire et déboguer les tests de Numera (pytest backend, Vitest frontend) et ce qu'il faut vérifier avant de considérer une tâche terminée. À charger avant toute validation ou pour corriger un test en échec.
 ---
 
 # Numera — tests et validation
@@ -44,7 +44,17 @@ Le test s'écrit **avant** le code et doit être vu rouge (skill `numera-tdd`, q
 
 ## Frontend
 
-Aucun test automatisé. `cd frontend && npm run build` (= `tsc --noEmit && vite build` ; 0 erreur de types actuellement, ne pas en introduire). Contrôles manuels : mode confidentialité, toasts, thème sombre, mobile.
+```bash
+cd frontend && npm test                                   # tout (vitest run) ; make test-front depuis la racine
+cd frontend && npx vitest run src/lib/utils.test.ts       # un fichier
+cd frontend && npx vitest run -t "formatCurrency"         # par nom de test
+cd frontend && npm run test:watch                         # en continu
+cd frontend && npm run build                              # tsc app + tests (0 erreur), puis vite build
+```
+
+Les deux sont obligatoires : `npm test` ne vérifie pas les types, le build ne lance pas les tests. Conventions (emplacement `X.test.tsx`, `renderWithProviders`, handlers MSW par domaine, fabriques, horloge figée) : `frontend/src/CLAUDE.md` § Vérification.
+
+Débogage : « Requête(s) sans handler MSW : GET … » = ajouter un handler (`server.use(...)` dans le test, ou `src/test/handlers/<domaine>.ts`) ; `localStorage` indéfini sous Node ≥ 25 = lancer via `npm test` / `vitest.config.ts` (option `--no-experimental-webstorage`) ; un élément introuvable : `screen.debug()`, et `findBy…` pour ce qui s'affiche après une requête. Contrôles manuels en plus : mode confidentialité, toasts, thème sombre, mobile.
 
 ## Définition de « terminé »
 

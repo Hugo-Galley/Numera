@@ -33,7 +33,7 @@ jobs:
         run: python -m pytest tests -q
 
   frontend:
-    name: Frontend (typecheck + build)
+    name: Frontend (tests + typecheck + build)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -43,6 +43,8 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
       - run: npm ci
+        working-directory: frontend
+      - run: npm test
         working-directory: frontend
       - run: npm run build
         working-directory: frontend

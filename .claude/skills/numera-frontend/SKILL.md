@@ -46,4 +46,4 @@ Créer `components/dashboard/tabs/<Nom>Tab.tsx` (onglets actuels : Overview, His
 
 ## Validation
 
-`cd frontend && npm run build` (= `tsc --noEmit && vite build`, 0 erreur de types actuellement) ; `npm run typecheck` pour tsc seul. Puis contrôle manuel : mode confidentialité, thème sombre, largeur mobile.
+`cd frontend && npm test && npm run build` (Vitest, puis `tsc` app + tests et `vite build`, 0 erreur de types actuellement) ; `npm run typecheck` pour tsc seul. Un composant ou un bug corrigé reçoit son test `X.test.tsx` (conventions : `frontend/src/CLAUDE.md` § Vérification, procédures : skill `numera-testing`). Puis contrôle manuel : mode confidentialité, thème sombre, largeur mobile.
