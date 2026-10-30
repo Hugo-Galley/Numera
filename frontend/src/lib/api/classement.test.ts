@@ -6,7 +6,7 @@ describeApiCases("classement", classement, [
   { fn: "postCategories", args: [BODY], method: "POST", path: "/categories", body: BODY },
   { fn: "deleteCategoriesById", args: [7], method: "DELETE", path: "/categories/7" },
   { fn: "patchCategoriesById", args: [7, BODY], method: "PATCH", path: "/categories/7", body: BODY },
-  { fn: "postCategorizationRules", args: [BODY], method: "POST", path: "/categorization-rules", body: BODY },
+  { fn: "postCategorizationRules", args: [BODY], method: "POST", path: "/categorization-rules/", body: BODY },
   { fn: "getMerchants", method: "GET", path: "/merchants" },
   { fn: "postMerchants", args: [BODY], method: "POST", path: "/merchants", body: BODY },
   { fn: "deleteMerchantsAliasesById", args: [7], method: "DELETE", path: "/merchants/aliases/7" },

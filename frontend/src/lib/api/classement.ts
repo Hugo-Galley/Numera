@@ -14,8 +14,8 @@ export const deleteCategoriesById = <T = any>(id: Id) => api.delete<T>(`/categor
 /** PATCH /categories/:id */
 export const patchCategoriesById = <T = any>(id: Id, body: any) => api.patch<T>(`/categories/${id}`, body)
 
-/** POST /categorization-rules */
-export const postCategorizationRules = <T = any>(body?: any) => api.post<T>(`/categorization-rules`, body)
+/** POST /categorization-rules/ */
+export const postCategorizationRules = <T = any>(body?: any) => api.post<T>(`/categorization-rules/`, body)
 
 /** GET /merchants */
 export const getMerchants = <T = any>() => api.get<T>(`/merchants`)

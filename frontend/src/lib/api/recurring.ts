@@ -14,9 +14,6 @@ export const postRecurringTransactionsTrigger = <T = any>(body?: any) => api.pos
 /** DELETE /recurring-transactions/:id */
 export const deleteRecurringTransactionsById = <T = any>(id: Id) => api.delete<T>(`/recurring-transactions/${id}`)
 
-/** GET /recurring-transactions/:id */
-export const getRecurringTransactionsById = <T = any>(id: Id) => api.get<T>(`/recurring-transactions/${id}`)
-
 /** PATCH /recurring-transactions/:id */
 export const patchRecurringTransactionsById = <T = any>(id: Id, body: any) => api.patch<T>(`/recurring-transactions/${id}`, body)
 

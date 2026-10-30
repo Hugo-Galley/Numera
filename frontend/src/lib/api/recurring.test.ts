@@ -6,7 +6,6 @@ describeApiCases("recurring", recurring, [
   { fn: "postRecurringTransactions", args: [BODY], method: "POST", path: "/recurring-transactions/", body: BODY },
   { fn: "postRecurringTransactionsTrigger", method: "POST", path: "/recurring-transactions/trigger" },
   { fn: "deleteRecurringTransactionsById", args: [7], method: "DELETE", path: "/recurring-transactions/7" },
-  { fn: "getRecurringTransactionsById", args: [7], method: "GET", path: "/recurring-transactions/7" },
   { fn: "patchRecurringTransactionsById", args: [7, BODY], method: "PATCH", path: "/recurring-transactions/7", body: BODY },
   { fn: "getSalaryConfig", method: "GET", path: "/salary/config" },
   { fn: "postSalaryConfig", args: [BODY], method: "POST", path: "/salary/config", body: BODY },

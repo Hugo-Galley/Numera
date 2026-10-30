@@ -63,7 +63,7 @@ Le lot 0 est **séquentiel et bloquant**. Ensuite chaque lot (et chaque tâche d
 - [x] **2.3 Erreurs** : `ApiError(status, message, detail)` pour un `detail` texte, un `detail` structuré (`code` / `context`), une réponse non JSON, une erreur réseau.
 - [x] **2.4 `api.upload`** (pas de `Content-Type`, Bearer présent) et **`api.download`** (renvoie un `Blob`).
 - [x] **2.5 `lib/api/<domaine>.ts`** : une table de cas par domaine (fonction → méthode + URL + query + corps), vérifiée via MSW. Sert aussi de garde-fou contre une route renommée côté backend (à croiser avec `backend/tests/snapshots/openapi_routes.json`, voir 2.6).
-- [x] **2.6 (option)** Test qui vérifie que chaque URL appelée par `lib/api/` existe dans `openapi_routes.json` : détecte côté front une route supprimée côté back. A trouvé 2 écarts (`it.todo` dans `lib/api/routes.test.ts`, liste `KNOWN_MISSING`) : `POST /categorization-rules` sans « / » final, `GET /recurring-transactions/{id}` inexistant.
+- [x] **2.6 (option)** Test qui vérifie que chaque URL appelée par `lib/api/` existe dans `openapi_routes.json` : détecte côté front une route supprimée côté back. A trouvé 2 écarts, corrigés depuis : `POST /categorization-rules` sans « / » final (création de règle du Centre d'Actions), `GET /recurring-transactions/{id}` inexistant (« Valider » du calendrier passe désormais par la liste).
 
 ## Lot 3 : hooks et providers
 

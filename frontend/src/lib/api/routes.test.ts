@@ -19,11 +19,8 @@ const normalizeCalled = (method: string, path: string) =>
     .join("/")}`
 
 const modules = import.meta.glob<Record<string, unknown>>(["./*.ts", "!./*.test.ts", "!./types.ts"], { eager: true })
-// Écarts connus (bugs signalés, non corrigés dans ce lot) : à retirer d'ici quand la route est corrigée.
-const KNOWN_MISSING: Record<string, string[]> = {
-  "./classement.ts": ["POST /categorization-rules"],
-  "./recurring.ts": ["GET /recurring-transactions/{}"],
-}
+// Écarts connus (bugs signalés, non corrigés) : à retirer d'ici quand la route est corrigée.
+const KNOWN_MISSING: Record<string, string[]> = {}
 
 const backendRoutes = new Set((JSON.parse(readFileSync(SNAPSHOT, "utf8")) as string[]).map(normalizeBackend))
 
@@ -46,14 +43,4 @@ describe("lib/api : routes existantes côté backend", () => {
     expect(called.length).toBeGreaterThan(0)
     expect(called.filter((route) => !backendRoutes.has(route))).toEqual(KNOWN_MISSING[file] ?? [])
   })
-
-  it.todo(
-    "bug : postCategorizationRules appelle POST /categorization-rules sans « / » final ; le backend ne connaît que " +
-      "POST /categorization-rules/ et répond par une redirection 307 vers une adresse sans le préfixe /api derrière nginx " +
-      "(création d'une règle depuis le Centre d'Actions, pages/Audit/CreatorModals.tsx)",
-  )
-  it.todo(
-    "bug : getRecurringTransactionsById appelle GET /recurring-transactions/{id}, qui n'existe pas côté backend (405) : " +
-      "« Valider » une échéance du calendrier échoue toujours (pages/Calendar/useCalendarData.ts)",
-  )
 })

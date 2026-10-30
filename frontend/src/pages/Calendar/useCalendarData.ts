@@ -7,7 +7,7 @@ import { Account, CalendarData, CalendarEvent } from "./types"
 import { getAccounts } from "@/lib/api/accounts"
 import { getAnalyticsCalendar } from "@/lib/api/analytics"
 import { postInvestmentTransactions } from "@/lib/api/investments"
-import { getRecurringTransactionsById } from "@/lib/api/recurring"
+import { getRecurringTransactions } from "@/lib/api/recurring"
 import { postTransactions } from "@/lib/api/transactions"
 
 /** Mois affiché, chargement des événements et soldes, sélection d'un jour et validation d'une échéance. */
@@ -105,9 +105,10 @@ export function useCalendarData(p: { embedded: boolean }) {
     if (!ev.recurring_id || !selectedDay) return
     
     try {
-      // Find the recurring transaction details
-      const recurringTx = await getRecurringTransactionsById<any>(ev.recurring_id)
-      const account = accounts.find(a => a.id === recurringTx.account_id)
+      // Pas de GET /recurring-transactions/{id} côté backend : on la retrouve dans la liste
+      const recurringList = await getRecurringTransactions<any[]>()
+      const recurringTx = recurringList.find(r => r.id === ev.recurring_id)
+      const account = recurringTx && accounts.find(a => a.id === recurringTx.account_id)
       
       if (!account) {
         toast.error("Compte non trouvé")
