@@ -50,11 +50,11 @@ Le lot 0 est **séquentiel et bloquant**. Ensuite chaque lot (et chaque tâche d
 
 ## Lot 1 : `lib/` pur (tests unitaires, aucun DOM)
 
-- [ ] **1.1 `lib/utils.ts`** : `formatCurrency` (locale fr-FR, espaces insécables, négatifs, autres devises), `formatPercent` / `formatAmountWithShare` (total à 0), `formatRate` (signe, `null`), `getTokenExpiry` / `isTokenExpired` (jeton mal formé, sans `exp`, expiré), `parsePositiveAmount` (virgule décimale, négatif, vide, texte), `errorMessage` (`ApiError` avec `detail` texte / structuré, `Error`, inconnu), `frequencyLabel`.
-- [ ] **1.2 `lib/dates.ts`** : `toInputValue` / `toNaiveLocal` aller-retour sans décalage UTC (le piège documenté : jamais `toISOString()`), `startOfDayParam` / `endOfDayParam`, `todayLocal` sous horloge figée près de minuit.
-- [ ] **1.3 `lib/quickEntry.ts`** : `parseQuickEntry` (montant seul, montant + libellé, virgule, signe, entrée invalide → `null`).
-- [ ] **1.4 `lib/privacyScanner.ts::looksSensitive`** : montants avec devise, milliers, décimales ; faux positifs à éviter (dates, années, pourcentages, numéros).
-- [ ] **1.5 Divers** : `budgetPeriod.formatPeriodRange`, `storage.safeStorage` (ne lève jamais si `localStorage` jette), `labels`, `countries`.
+- [x] **1.1 `lib/utils.ts`** : `formatCurrency` (locale fr-FR, espaces insécables, négatifs, autres devises), `formatPercent` / `formatAmountWithShare` (total à 0), `formatRate` (signe, `null`), `getTokenExpiry` / `isTokenExpired` (jeton mal formé, sans `exp`, expiré), `parsePositiveAmount` (virgule décimale, négatif, vide, texte), `errorMessage` (`ApiError` avec `detail` texte / structuré, `Error`, inconnu), `frequencyLabel`.
+- [x] **1.2 `lib/dates.ts`** : `toInputValue` / `toNaiveLocal` aller-retour sans décalage UTC (le piège documenté : jamais `toISOString()`), `startOfDayParam` / `endOfDayParam`, `todayLocal` sous horloge figée près de minuit.
+- [x] **1.3 `lib/quickEntry.ts`** : `parseQuickEntry` (montant seul, montant + libellé, virgule, signe, entrée invalide → `null`).
+- [x] **1.4 `lib/privacyScanner.ts::looksSensitive`** : montants avec devise, milliers, décimales ; faux positifs à éviter (dates, années, pourcentages, numéros).
+- [x] **1.5 Divers** : `budgetPeriod.formatPeriodRange`, `storage.safeStorage` (ne lève jamais si `localStorage` jette), `labels`, `countries`.
 
 ## Lot 2 : client API (`lib/api.ts` + `lib/api/<domaine>.ts`)
 
