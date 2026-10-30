@@ -23,7 +23,7 @@ Terminé = vérifié par une commande lancée **maintenant**, docs à jour, comm
    | une route | + `tests/test_openapi_routes.py` mis à jour volontairement |
 
    Une commande rouge = pas terminé. Ne pas commiter « en attendant ».
-3. **Diff relu** — `git diff --stat` puis `git diff` : pas de `print`, de code commenté, de `TODO` sans suite, de fichier hors sujet, de `*.db`, de `.env`, de secret, de baseline ou d'instantané régénéré sans justification.
+3. **Diff relu** — `git diff --stat` puis `git diff` : pas de `print`, de code commenté, de `TODO` sans suite, de fichier hors sujet, de `*.db`, de `.env`, de secret, de baseline ou d'instantané régénéré sans justification, de tag flottant (action GitHub sans SHA, image Docker sans digest : règle dans `CLAUDE.md`).
 4. **Docs dans le même commit** quand le code change :
 
    | Changement | À mettre à jour |

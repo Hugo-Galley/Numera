@@ -24,6 +24,8 @@ Stack : React 18 + Vite + TypeScript + Tailwind + Recharts (frontend) · FastAPI
 
 Quand le code change une route, un modèle, une commande ou une règle métier, mettre à jour `ARCHITECTURE.md` et, si besoin, le skill concerné dans le même commit.
 
+**Jamais de tag flottant** : une action GitHub s'épingle par SHA de commit complet avec la version en commentaire (`actions/checkout@<sha40> # v4.4.0`), une image Docker par digest (`python:3.12-slim@sha256:…`), dans les `Dockerfile`, `docker-compose*.yml` et workflows. SHA obtenu par `git ls-remote --tags https://github.com/<org>/<action>`, digest par `docker buildx imagetools inspect <image>`. Contrôlé par `backend/tests/test_pinned_dependencies.py`.
+
 ## Commandes
 
 > Python 3.14+ : pydantic-core incompatible. Utiliser Python 3.11 ou 3.12.
