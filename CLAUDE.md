@@ -19,7 +19,7 @@ Stack : React 18 + Vite + TypeScript + Tailwind + Recharts (frontend) · FastAPI
 | Centre d'Actions (audit, alertes budget, suggestions de règles) | `docs/ACTION_CENTER.md` |
 | Serveur MCP | `mcp-server/README.md` |
 | Guide agent historique (fichier local, ignoré par git) | `AGENT.MD` |
-| Suivi produit (historique, non maintenu à chaque changement) | `PLAN.MD`, `ROADMAP.md`, `TEST_PLAN.md` |
+| Suivi produit (historique, non maintenu à chaque changement) | `docs/archive/` (`PLAN.md`, `ROADMAP.md`, `TEST_PLAN.md`) |
 
 Quand le code change une route, un modèle, une commande ou une règle métier, mettre à jour `ARCHITECTURE.md` et, si besoin, le skill concerné dans le même commit.
 
