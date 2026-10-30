@@ -10,7 +10,7 @@ description: Comment lancer, écrire et déboguer les tests de Numera (pytest ba
 Depuis `backend/` (le `PYTHONPATH` est obligatoire, sinon `ModuleNotFoundError: app`) :
 
 ```bash
-PYTHONPATH=. python3.11 -m pytest tests -q                       # tout : 228 tests, ~13 s
+PYTHONPATH=. python3.11 -m pytest tests -q                       # tout : ~910 tests, ~1 min 45
 PYTHONPATH=. python3.11 -m pytest tests/test_merchants.py -v     # un fichier
 PYTHONPATH=. python3.11 -m pytest tests/test_tags.py::test_x -v  # un test
 ```
@@ -28,7 +28,7 @@ PYTHONPATH=. python3.11 -m pytest tests/test_tags.py::test_x -v  # un test
 
 ## Écrire un test
 
-Fichier `tests/test_<domaine>.py`. Créer les données via `db_session` ou l'API (`client.post`), appeler l'endpoint, vérifier le code HTTP **et** l'état en base (soldes, flags, liens). Un test par bug corrigé.
+Le test s'écrit **avant** le code et doit être vu rouge (skill `numera-tdd`, qui dit aussi quel niveau choisir : `domain`, service, route). Fichier `tests/test_<domaine>.py`. Créer les données via `db_session` ou l'API (`client.post`), appeler l'endpoint, vérifier le code HTTP **et** l'état en base (soldes, flags, liens). Un test par bug corrigé.
 
 ## Points de vérification selon le changement
 
@@ -48,4 +48,4 @@ Aucun test automatisé. `cd frontend && npm run build` (= `tsc --noEmit && vite 
 
 ## Définition de « terminé »
 
-Tests backend verts, build frontend OK, nouveau test pour le comportement ajouté, docs concernées mises à jour (`ARCHITECTURE.md`, skills, CLAUDE.md).
+Checklist complète (validation selon le changement, docs, commit) : skill `numera-finishing`.

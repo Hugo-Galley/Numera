@@ -14,6 +14,7 @@ Stack : React 18 + Vite + TypeScript + Tailwind + Recharts (frontend) · FastAPI
 |---|---|
 | Conventions backend / frontend | `backend/CLAUDE.md`, `frontend/src/CLAUDE.md` (chargés automatiquement dans ces dossiers) |
 | Procédures détaillées | skills `.claude/skills/` : `numera-expert` (métier), `numera-backend`, `numera-frontend`, `numera-testing` |
+| Discipline (obligatoire) | `numera-tdd` (test rouge avant tout code backend), `numera-clean-architecture` (où va le code, source unique, déplacements), `numera-finishing` (validation, docs, commit avant « terminé ») |
 | Architecture, modèle de données, routes API | `ARCHITECTURE.md` |
 | Exploitation backend (logs, déploiement, sécurité) | `docs/BACKEND.md`, `backend/LOGGING.md`, `docs/BACKUP_RESTORE.md` |
 | Centre d'Actions (audit, alertes budget, suggestions de règles) | `docs/ACTION_CENTER.md` |

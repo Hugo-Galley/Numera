@@ -5,7 +5,7 @@ description: Procédures pour modifier le backend Numera (FastAPI, SQLAlchemy 2,
 
 # Numera backend — procédures
 
-Conventions et pièges : `backend/CLAUDE.md` (à lire d'abord). Règles métier : skill `numera-expert`.
+Conventions et pièges : `backend/CLAUDE.md` (à lire d'abord). Règles métier : skill `numera-expert`. Toute procédure ci-dessous commence par un test rouge (`numera-tdd`) ; où placer le code et comment déplacer : `numera-clean-architecture`.
 
 ## Ajouter un endpoint dans un router existant
 
