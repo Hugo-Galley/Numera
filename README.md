@@ -2,7 +2,11 @@
 
 <h1>Numera</h1>
 
-<p><strong>Budget, épargne et investissements, chez vous.</strong></p>
+<p><strong>Votre budget, votre épargne et vos investissements, au même endroit. Chez vous.</strong></p>
+
+<p>
+  <a href="https://demo-budget.galleyhugo.com"><img alt="Essayer la démo" src="https://img.shields.io/badge/▶_Essayer_la_démo-demo%20%2F%20demo-2563eb?style=for-the-badge"></a>
+</p>
 
 <p>
   <img alt="Self-hosted" src="https://img.shields.io/badge/self--hosted-SQLite-0f172a?style=flat-square">
@@ -13,64 +17,95 @@
 </p>
 
 <p>
-  <a href="#installation">Installation</a> ·
-  <a href="#ce-quon-peut-faire-avec">Fonctionnalités</a> ·
-  <a href="#demander-à-claude">Claude</a> ·
-  <a href="#développer">Développer</a>
+  <a href="#-la-démo">Démo</a> ·
+  <a href="#-ce-que-numera-fait-pour-vous">Fonctionnalités</a> ·
+  <a href="#-installation-en-3-commandes">Installation</a> ·
+  <a href="#-demander-à-claude">Claude</a> ·
+  <a href="#-développer">Développer</a>
 </p>
+
+<br>
+
+<img src="docs/screenshots/dashboard.png" alt="Tableau de bord de Numera : revenus, dépenses, épargne du mois et flux financiers" width="100%">
 
 </div>
 
 <br>
 
-Pendant longtemps, j'ai suivi mon budget et mes placements dans un tableur Numbers. Ça marchait, jusqu'au jour où il y a eu trop d'onglets, trop de formules fragiles et plus aucune envie de l'ouvrir. Numera est l'application que j'ai écrite pour le remplacer.
+Pendant longtemps, j'ai suivi mon budget et mes placements dans un tableur. Ça marchait, jusqu'au jour où il y a eu trop d'onglets, trop de formules fragiles et plus aucune envie de l'ouvrir. **Numera** est l'application que j'ai écrite pour le remplacer.
 
-C'est une appli web à héberger soi-même, pensée pour une seule personne. Vos données restent dans un fichier SQLite sur votre machine ; les seuls appels vers l'extérieur servent à récupérer les taux de change et les cours de bourse.
-
-<br>
-
-## Ce qu'on peut faire avec
-
-<table>
-<tr>
-<td width="50%" valign="top">
-
-### Le budget au quotidien
-
-Import des relevés bancaires en CSV, sans doublons même si on réimporte le même fichier. Catégories, règles automatiques et tags. Les libellés illisibles (« CB CARREFOUR 1234 PARIS ») sont regroupés sous un seul marchand, et les virements entre vos propres comptes ne faussent pas les dépenses.
-
-</td>
-<td width="50%" valign="top">
-
-### Le suivi du mois
-
-Dépenses par catégorie, abonnements, budgets qui débordent, projection de trésorerie. Un bilan mensuel avec le flux de l'argent, la comparaison entre deux mois, un calendrier, et un centre d'actions qui signale les incohérences à corriger.
-
-</td>
-</tr>
-<tr>
-<td width="50%" valign="top">
-
-### Les investissements
-
-Versements, achats, ventes et dividendes : Numera en déduit les positions, le prix de revient et la performance au cours du jour. Composition des ETF, diversification par pays et par secteur, simulateur de patrimoine.
-
-</td>
-<td width="50%" valign="top">
-
-### Et le reste
-
-Objectifs d'épargne, fiscalité des enveloppes (PEA, PER, assurance-vie, livrets), salaire avec télétravail et tickets restaurant, remboursements en attente, comptes en devises. Un bouton masque tous les montants quand quelqu'un regarde l'écran.
-
-</td>
-</tr>
-</table>
+- 🏠 **Vos données restent chez vous** : un simple fichier SQLite sur votre machine, pas de compte à créer, pas de cloud.
+- 🔌 **Rien n'est connecté à votre banque** : vous importez vos relevés CSV quand vous voulez.
+- 🌍 **Les seuls appels vers l'extérieur** servent aux taux de change et aux cours de bourse.
+- 👤 **Pensé pour une personne** : pas d'usine à gaz multi-utilisateurs.
 
 <br>
 
-## Installation
+## 🎮 La démo
 
-Il vous faut Docker (avec Compose), `git`, `openssl` et `curl`.
+Le plus simple pour se faire une idée, c'est de cliquer partout :
+
+<p align="center">
+  <a href="https://demo-budget.galleyhugo.com"><strong>👉 demo-budget.galleyhugo.com</strong></a><br>
+  <sub>identifiant <code>demo</code> · mot de passe <code>demo</code> (déjà remplis)</sub>
+</p>
+
+Les données sont fictives et remises à zéro chaque jour : modifiez, supprimez, importez, rien ne peut casser.
+
+<br>
+
+## ✨ Ce que Numera fait pour vous
+
+### Comprendre où part l'argent
+
+Chaque mois, un bilan clair : ce qui est entré, ce qui est sorti, ce qui a été mis de côté, et les catégories qui ont bougé par rapport au mois d'avant. Une revue de fin de mois vous guide pour tout vérifier, et une vue comparaison met deux mois côte à côte.
+
+<p align="center"><img src="docs/screenshots/bilan-mois.png" alt="Bilan du mois : revenus, dépenses, épargne et principales catégories" width="85%"></p>
+
+### Ne plus rien laisser filer
+
+Le **Centre d'actions** fait le ménage à votre place : budgets dépassés, transactions sans catégorie, soldes pas à jour, règles de classement à créer. Vous traitez la liste, c'est tout.
+
+<p align="center"><img src="docs/screenshots/centre-actions.png" alt="Centre d'actions : budgets dépassés et soldes à mettre à jour" width="85%"></p>
+
+### Suivre ses abonnements et ses échéances
+
+Loyer, forfait, streaming, salaire : Numera repère ce qui revient chaque mois, vous dit ce que ça coûte sur l'année et affiche tout dans un calendrier.
+
+<p align="center"><img src="docs/screenshots/echeances.png" alt="Échéances : abonnements confirmés, coût mensuel et annuel" width="85%"></p>
+
+### Faire grossir son épargne
+
+Patrimoine net, épargne disponible, taux d'épargne, nombre de mois que vous tiendriez sans revenus, objectifs d'épargne avec leur avancement.
+
+<p align="center"><img src="docs/screenshots/epargne.png" alt="Suivi de l'épargne : patrimoine net, taux d'épargne, indice de résilience" width="85%"></p>
+
+### Piloter ses investissements
+
+Saisissez vos versements, achats, ventes et dividendes : Numera en déduit vos positions, votre prix de revient et votre performance au cours du jour. Il décortique aussi vos ETF pour montrer votre exposition réelle par pays et par secteur.
+
+<p align="center"><img src="docs/screenshots/investissements.png" alt="Investissements : valeur totale, performance, répartition par enveloppe" width="85%"></p>
+
+### Et aussi
+
+| | |
+|---|---|
+| 📥 **Import CSV** | depuis n'importe quelle banque, sans doublons même si vous réimportez le même fichier |
+| 🏷️ **Classement automatique** | catégories, tags et règles ; « CB CARREFOUR 1234 PARIS » devient simplement « Carrefour » |
+| 🔁 **Virements internes** | détectés, ils ne gonflent ni vos revenus ni vos dépenses |
+| 🧾 **Fiscalité** | PEA, PER, assurance-vie, livrets : plafonds et avantages de chaque enveloppe |
+| 💼 **Salaire** | télétravail et tickets restaurant pris en compte |
+| 💸 **Remboursements** | les sommes avancées qu'on doit vous rendre |
+| 💱 **Multi-devises** | comptes en dollars, francs suisses ou livres, convertis automatiquement |
+| 🎁 **Bilan annuel** | votre année en un coup d'œil, façon *Wrapped* |
+| 🙈 **Mode discret** | un bouton masque tous les montants quand quelqu'un regarde l'écran |
+| 🌗 **Thème clair ou sombre** | et une interface qui fonctionne aussi sur téléphone |
+
+<br>
+
+## 🚀 Installation en 3 commandes
+
+Il vous faut **Docker** (avec Compose), `git`, `openssl` et `curl`.
 
 ```bash
 git clone https://github.com/Hugo-Galley/numera.git
@@ -78,15 +113,13 @@ cd numera
 ./install.sh
 ```
 
-Le script demande un identifiant et un mot de passe, génère les clés, construit les images et attend que tout réponde. Quelques minutes plus tard, Numera tourne sur **http://localhost:8082**.
-
-Le script peut être relancé sans crainte : s'il trouve une configuration existante, il la garde et se contente de redémarrer.
+Le script vous demande un identifiant et un mot de passe, s'occupe de tout le reste, et quelques minutes plus tard Numera tourne sur **http://localhost:8082**. Vous pouvez le relancer sans crainte : il garde votre configuration.
 
 > [!IMPORTANT]
-> Les sauvegardes sont chiffrées avec la `BACKUP_KEY` de votre fichier `.env`. Copiez-la quelque part (dans un gestionnaire de mots de passe, par exemple) : sans elle, une sauvegarde ne sert à rien.
+> Vos sauvegardes sont chiffrées avec la `BACKUP_KEY` du fichier `.env`. **Gardez-la précieusement** (dans un gestionnaire de mots de passe, par exemple) : sans elle, une sauvegarde est illisible.
 
 > [!TIP]
-> Pour essayer avec des données fictives : `make backend-seed-demo`.
+> Envie d'essayer en local avec des données fictives ? `make backend-seed-demo`.
 
 <details>
 <summary><strong>Installer sans cloner le dépôt</strong></summary>
@@ -122,11 +155,11 @@ Puis lancez `make prod`.
 </details>
 
 <details>
-<summary><strong>Y accéder depuis l'extérieur</strong></summary>
+<summary><strong>Y accéder depuis son téléphone</strong></summary>
 
 <br>
 
-Par défaut, l'appli n'écoute que sur `127.0.0.1:8082`. Pour l'ouvrir depuis votre téléphone, mettez un reverse proxy HTTPS devant : Caddy, Traefik, Nginx ou un tunnel Cloudflare. L'API (`/api`) et le serveur MCP (`/mcp`) passent par ce même port, il n'y a rien d'autre à exposer.
+Par défaut, l'appli n'écoute que sur `127.0.0.1:8082`. Pour l'ouvrir depuis l'extérieur, mettez un reverse proxy HTTPS devant : Caddy, Traefik, Nginx ou un tunnel Cloudflare. L'API (`/api`) et le serveur MCP (`/mcp`) passent par ce même port, il n'y a rien d'autre à exposer.
 
 </details>
 
@@ -136,13 +169,16 @@ Par défaut, l'appli n'écoute que sur `127.0.0.1:8082`. Pour l'ouvrir depuis vo
 make upgrade
 ```
 
-Ça récupère la dernière version et reconstruit les conteneurs. Les migrations de la base s'appliquent toutes seules au démarrage.
+La dernière version est récupérée et les conteneurs reconstruits. La base se met à jour toute seule au démarrage.
+
+### Sauvegardes
+
+Toutes les 24 heures, une copie chiffrée de la base est déposée dans `backups/`, et les 7 derniers jours sont conservés (réglables via `BACKUP_INTERVAL_SECONDS` et `RETENTION_DAYS` dans `.env`).
+
+<details>
+<summary><strong>Sauvegarder ou restaurer à la main</strong></summary>
 
 <br>
-
-## Sauvegardes
-
-Toutes les 24 heures, une copie chiffrée de la base est déposée dans `backups/` ; les 7 derniers jours sont conservés (`BACKUP_INTERVAL_SECONDS` et `RETENTION_DAYS` dans `.env`).
 
 ```bash
 # Sauvegarder tout de suite
@@ -156,17 +192,19 @@ PYTHONPATH=backend python3 backend/scripts/restore.py \
 
 Plus de détails dans [docs/BACKUP_RESTORE.md](docs/BACKUP_RESTORE.md).
 
+</details>
+
 <br>
 
-## Demander à Claude
+## 🤖 Demander à Claude
 
-Numera embarque un serveur [MCP](https://modelcontextprotocol.io). Une fois branché, on peut demander à Claude :
+Numera embarque un serveur [MCP](https://modelcontextprotocol.io) : branchez-le à Claude et posez vos questions en langage naturel.
 
 > *« Combien j'ai dépensé en restaurants ce trimestre ? »*<br>
 > *« Fais-moi le bilan de septembre. »*<br>
 > *« Mon portefeuille est-il trop concentré sur les États-Unis ? »*
 
-Claude répond à partir des mêmes chiffres que l'appli. Pour le connecter, allez dans **Paramètres → Sécurité → Claude (MCP)**, générez un token et lancez la commande affichée :
+Claude répond avec exactement les mêmes chiffres que l'appli. Pour le connecter, allez dans **Paramètres → Sécurité → Claude (MCP)**, générez un token et lancez la commande affichée :
 
 ```bash
 claude mcp add --transport http --scope user numera https://votre-domaine/mcp \
@@ -175,17 +213,17 @@ claude mcp add --transport http --scope user numera https://votre-domaine/mcp \
 
 Pour Claude Desktop, la même page fournit le bloc à coller dans `claude_desktop_config.json`.
 
-L'accès est **en lecture seule**, et c'est l'API elle-même qui l'impose : elle refuse toute écriture faite avec un token MCP, ainsi que l'accès aux réglages du compte. Chaque token se révoque depuis l'interface, et un interrupteur coupe tout d'un coup. La liste des outils est dans [mcp-server/README.md](mcp-server/README.md).
+🔒 L'accès est **en lecture seule**, et c'est l'API elle-même qui l'impose : toute écriture faite avec un token MCP est refusée, tout comme l'accès aux réglages du compte. Chaque token se révoque depuis l'interface, et un interrupteur coupe tout d'un coup. La liste des outils est dans [mcp-server/README.md](mcp-server/README.md).
 
 <br>
 
-## Développer
+## 🛠️ Développer
 
 ```bash
 make dev
 ```
 
-Frontend sur http://localhost:5173, API sur http://localhost:8001, avec rechargement à chaud des deux côtés. Avant de pousser : `make validate` (tests backend et build du frontend).
+Frontend sur http://localhost:5173, API sur http://localhost:8001, avec rechargement à chaud des deux côtés. Avant de pousser : `make validate` (lint, tests backend et build du frontend).
 
 <details>
 <summary><strong>Sans Docker</strong></summary>
@@ -216,7 +254,7 @@ Pour un seul fichier de tests : `cd backend && PYTHONPATH=. python3.12 -m pytest
  Claude ──────▶         └── /mcp ──▶ serveur MCP ──▶ FastAPI (lecture seule)
 ```
 
-Le backend utilise FastAPI, SQLAlchemy 2, Alembic et Pydantic v2. Une règle tient l'ensemble : **tous les calculs sont faits par le backend** (`backend/app/services/`, notamment `services/analytics/`, exposés par `backend/app/controllers/`), le frontend se contente d'afficher. C'est ce qui garantit que l'appli et Claude voient les mêmes chiffres.
+Le backend utilise FastAPI, SQLAlchemy 2, Alembic et Pydantic v2. Une règle tient l'ensemble : **tous les calculs sont faits par le backend** (`backend/app/services/`, exposés par `backend/app/controllers/`), le frontend se contente d'afficher. C'est ce qui garantit que l'appli et Claude voient les mêmes chiffres.
 
 | Pour aller plus loin | |
 |---|---|
@@ -227,12 +265,12 @@ Le backend utilise FastAPI, SQLAlchemy 2, Alembic et Pydantic v2. Une règle tie
 
 <br>
 
-## Contribuer
+## 🤝 Contribuer
 
 C'est d'abord un projet personnel, mais les issues et les pull requests sont les bienvenues. Si vous touchez au schéma, ajoutez une migration Alembic ; si vous changez une route ou un calcul, mettez à jour `ARCHITECTURE.md`. Les commits suivent les [Conventional Commits](https://www.conventionalcommits.org/).
 
 <br>
 
 <div align="center">
-<sub>MIT · fait par <a href="https://github.com/Hugo-Galley">@Hugo-Galley</a></sub>
+<sub>Gratuit et open source, sous licence MIT · fait par <a href="https://github.com/Hugo-Galley">@Hugo-Galley</a></sub>
 </div>
