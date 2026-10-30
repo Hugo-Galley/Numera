@@ -242,7 +242,7 @@ uvicorn app.main:app --reload --port 8001
 cd frontend && npm install && npm run dev
 ```
 
-Pour un seul fichier de tests : `cd backend && PYTHONPATH=. python3.12 -m pytest tests/test_tags.py -v`.
+Pour un seul fichier de tests : `cd backend && PYTHONPATH=. python3.12 -m pytest tests/budget/test_tags.py -v`.
 
 </details>
 

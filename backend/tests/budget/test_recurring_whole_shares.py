@@ -11,8 +11,8 @@ from app.models.portfolio_holding import PortfolioHolding
 from app.models.recurring_transaction import RecurringTransaction
 from app.models.transaction import Transaction
 from app.services.budget.recurring import generate_recurring_transactions
-from tests.test_recurring_deferred_credit import deferred_rule
-from tests.test_recurring_transfers import accounts, fake_market
+from tests.budget.test_recurring_deferred_credit import deferred_rule
+from tests.budget.test_recurring_transfers import accounts, fake_market
 
 
 def test_whole_shares_transfer_credits_only_the_cost_of_the_shares(db_session: Session, monkeypatch):

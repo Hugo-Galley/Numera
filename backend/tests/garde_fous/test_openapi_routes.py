@@ -8,7 +8,7 @@ from pathlib import Path
 
 from app.main import app
 
-SNAPSHOT_PATH = Path(__file__).parent / "snapshots" / "openapi_routes.json"
+SNAPSHOT_PATH = Path(__file__).parents[1] / "snapshots" / "openapi_routes.json"
 
 
 def _routes() -> list[str]:

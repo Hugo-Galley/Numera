@@ -8,7 +8,7 @@ violation, et une entrée qui ne se produit plus doit être retirée.
 import ast
 from pathlib import Path
 
-APP_DIR = Path(__file__).parents[1] / "app"
+APP_DIR = Path(__file__).parents[2] / "app"
 BASELINE_PATH = Path(__file__).parent / "architecture_baseline.txt"
 
 _DATA_LAYERS_FORBIDDEN = ("app.controllers", "app.services", "app.repositories", "app.integrations")

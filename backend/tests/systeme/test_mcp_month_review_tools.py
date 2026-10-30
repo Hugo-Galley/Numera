@@ -1,7 +1,7 @@
 import ast
 from pathlib import Path
 
-SERVER_API = Path(__file__).resolve().parents[2] / "mcp-server" / "server_api.py"
+SERVER_API = Path(__file__).resolve().parents[3] / "mcp-server" / "server_api.py"
 TOOLS = {"get_month_review": "/month-review", "list_month_closures": "/month-review/closures"}
 
 

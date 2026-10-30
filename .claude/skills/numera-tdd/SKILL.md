@@ -14,7 +14,7 @@ Violer la lettre de cette règle, c'est violer son esprit. Cycle complet : `supe
 
 1. **RED** — écrire le test, le lancer seul, le voir échouer :
    ```bash
-   cd backend && PYTHONPATH=. python3.11 -m pytest tests/test_<domaine>.py::test_<cas> -v
+   cd backend && PYTHONPATH=. python3.11 -m pytest tests/<domaine>/test_<sujet>.py::test_<cas> -v
    ```
    L'échec doit être une **assertion** sur le comportement attendu (pas `ImportError`, pas `401`, pas une fixture cassée). Un test qui passe du premier coup ne prouve rien : le corriger ou en écrire un autre.
 2. **GREEN** — le code minimal qui fait passer ce test. Rien d'autre.
@@ -24,9 +24,9 @@ Violer la lettre de cette règle, c'est violer son esprit. Cycle complet : `supe
 
 | Ce que tu changes | Où va le test | Fixture |
 |---|---|---|
-| Calcul pur (`domain/`) | `tests/test_domain_<sujet>.py` | aucune : objets en mémoire (modèle : `test_domain_transfers.py`) |
-| Cas d'usage (`services/`) | `tests/test_<sujet>_service.py` | `db_session`, sans HTTP |
-| Contrat d'une route | `tests/test_<domaine>.py` | `client` + relecture en base |
+| Calcul pur (`domain/`) | `tests/<domaine>/test_domain_<sujet>.py` | aucune : objets en mémoire (modèle : `test_domain_transfers.py`) |
+| Cas d'usage (`services/`) | `tests/<domaine>/test_<sujet>_service.py` | `db_session`, sans HTTP |
+| Contrat d'une route | `tests/<domaine>/test_<sujet>.py` | `client` + relecture en base |
 | Chiffre analytics / portefeuille | test ciblé **en plus** des instantanés | — |
 
 Le niveau le plus bas qui exprime le comportement gagne. Un calcul difficile à tester sans base est un calcul qui n'est pas encore dans `domain/` : c'est le test qui te dit où le mettre (cf. `numera-clean-architecture`).

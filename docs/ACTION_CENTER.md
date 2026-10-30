@@ -35,7 +35,7 @@ Pour tester sans problèmes d'environnement, assurez-vous de définir le `PYTHON
 **Commande recommandée :**
 ```bash
 cd backend
-PYTHONPATH=. python3.11 -m pytest tests/test_data_audit.py tests/test_import_and_analytics.py
+PYTHONPATH=. python3.11 -m pytest tests/audit/test_data_audit.py tests/non_regression/test_import_and_analytics.py
 ```
 
 *Note : Si vous avez des erreurs de module (`jwt`, etc.), vérifiez que votre `venv` est bien activé.*
@@ -67,7 +67,7 @@ L'endpoint `/actions` effectue plusieurs scans de la base de données.
 ### Ajout d'une nouvelle action
 Pour ajouter un nouveau type d'action :
 1.  Choisissez un `action_type` (chaîne libre dans `ActionItem`, schéma `insight.py` : `link`, `modal_categorize`, `modal_rule`, `modal_snapshot`, `modal_merchant`).
-2.  Créez `backend/app/services/audit/rules/<nom>.py` exposant `detect(ctx) -> list[ActionItem]` (`async def` si la règle attend un calcul asynchrone ; `ctx` = `AuditContext` : `db`, `now`), requêtes dans `repositories/analytics/audit.py`, puis ajoutez-la à `RULES` (`services/audit/__init__.py`) : l'ordre du registre fixe l'ordre d'affichage à sévérité égale. Une règle qui lève est journalisée et ignorée, les autres s'affichent (`tests/test_audit_rules.py`). La route `/analytics/actions` ne fait qu'appeler `compute_action_center`. Les actions écartées sont filtrées via `dismissed_insights` (`POST /analytics/actions/dismiss`, `dismiss_action`).
+2.  Créez `backend/app/services/audit/rules/<nom>.py` exposant `detect(ctx) -> list[ActionItem]` (`async def` si la règle attend un calcul asynchrone ; `ctx` = `AuditContext` : `db`, `now`), requêtes dans `repositories/analytics/audit.py`, puis ajoutez-la à `RULES` (`services/audit/__init__.py`) : l'ordre du registre fixe l'ordre d'affichage à sévérité égale. Une règle qui lève est journalisée et ignorée, les autres s'affichent (`tests/audit/test_audit_rules.py`). La route `/analytics/actions` ne fait qu'appeler `compute_action_center`. Les actions écartées sont filtrées via `dismissed_insights` (`POST /analytics/actions/dismiss`, `dismiss_action`).
 3.  Si une modale spécifique est requise, ajoutez-la dans `Audit.tsx` et gérez le `action_type`.
 
 ### Actions « dividendes » (`type: investments`)

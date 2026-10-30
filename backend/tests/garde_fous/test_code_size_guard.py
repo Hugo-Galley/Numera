@@ -2,7 +2,7 @@ import importlib.util
 import json
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).parents[2]
+REPO_ROOT = Path(__file__).parents[3]
 
 _spec = importlib.util.spec_from_file_location("check_code_size", REPO_ROOT / "scripts/check_code_size.py")
 guard = importlib.util.module_from_spec(_spec)

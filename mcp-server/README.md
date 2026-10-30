@@ -156,7 +156,7 @@ Build manuel : `docker build -t numera-mcp ./mcp-server`.
 - **Mode SQLite** : stdio uniquement (refuse de démarrer en HTTP) ; lecture via connexion `mode=ro` ; SQL brut limité aux `SELECT` (mots-clés `INSERT`, `UPDATE`, `DELETE`, `DROP`, `ALTER`, `CREATE`, `TRUNCATE`, `REPLACE`, `ATTACH`, `DETACH`, `PRAGMA` refusés), `LIMIT 200` forcé , aucune écriture.
 - Logs sur stderr.
 
-Tests : `cd mcp-server && python3 -m pytest test_server_auth.py -q` (middleware) et `backend/tests/test_mcp_tokens.py` (tokens côté API).
+Tests : `cd mcp-server && python3 -m pytest test_server_auth.py -q` (middleware) et `backend/tests/systeme/test_mcp_tokens.py` (tokens côté API).
 
 ---
 

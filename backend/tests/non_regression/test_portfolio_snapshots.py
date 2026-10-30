@@ -3,7 +3,7 @@
 Complète `test_analytics_snapshots.py` (mêmes données de démo, même fixture) avec un compte titres doté d'un
 Point Zéro, seul cas où la courbe, le TWR et le rapprochement courtier sont calculés. Ne jamais régénérer
 pour faire passer le test : un écart est un bug. Régénération volontaire :
-`UPDATE_SNAPSHOTS=1 PYTHONPATH=. python3.11 -m pytest tests/test_portfolio_snapshots.py`.
+`UPDATE_SNAPSHOTS=1 PYTHONPATH=. python3.11 -m pytest tests/non_regression/test_portfolio_snapshots.py`.
 """
 import asyncio
 import json
@@ -12,7 +12,6 @@ from datetime import date, datetime, timedelta
 from pathlib import Path
 
 import pytest
-from test_analytics_snapshots import _first_diff, _normalize, snapshot_client  # noqa: F401 (fixture)
 
 import app.integrations.currency as currency_mod
 import app.integrations.yahoo_finance as yahoo_finance
@@ -22,8 +21,9 @@ from app.models.holding_baseline_item import HoldingBaselineItem
 from app.models.investment_transaction import InvestmentTransaction
 from app.models.security_price import SecurityPrice
 from app.services.investissement.holdings.rebuild import rebuild_holdings
+from tests.non_regression.test_analytics_snapshots import _first_diff, _normalize, snapshot_client  # noqa: F401 (fixture)
 
-SNAPSHOT_DIR = Path(__file__).parent / "snapshots" / "portfolio"
+SNAPSHOT_DIR = Path(__file__).parents[1] / "snapshots" / "portfolio"
 BASELINE = datetime(2025, 6, 2, 10, 0)
 PRICE_START, PRICE_END = date(2025, 5, 1), date(2026, 6, 15)
 

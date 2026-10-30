@@ -19,8 +19,8 @@ Terminé = vérifié par une commande lancée **maintenant**, docs à jour, comm
    | `backend/` | `make lint && make check-size && make test` |
    | `frontend/` | `make check-size && cd frontend && npm test && npm run build` (le build seul ne lance pas les tests) |
    | les deux, ou un déplacement de fichier | `make validate` |
-   | modèle SQLAlchemy | + migration Alembic relue ; `tests/test_migrations.py` vert |
-   | une route | + `tests/test_openapi_routes.py` mis à jour volontairement |
+   | modèle SQLAlchemy | + migration Alembic relue ; `tests/garde_fous/test_migrations.py` vert |
+   | une route | + `tests/garde_fous/test_openapi_routes.py` mis à jour volontairement |
 
    Une commande rouge = pas terminé. Ne pas commiter « en attendant ».
 3. **Diff relu** — `git diff --stat` puis `git diff` : pas de `print`, de code commenté, de `TODO` sans suite, de fichier hors sujet, de `*.db`, de `.env`, de secret, de baseline ou d'instantané régénéré sans justification, de tag flottant (action GitHub sans SHA, image Docker sans digest : règle dans `CLAUDE.md`).

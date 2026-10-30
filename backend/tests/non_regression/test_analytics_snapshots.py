@@ -2,7 +2,7 @@
 
 Filet de sécurité de la migration en couches : un déplacement de code ne doit changer aucun chiffre.
 Ne jamais régénérer pour faire passer le test : un écart est un bug. Régénération volontaire :
-`UPDATE_SNAPSHOTS=1 PYTHONPATH=. python3.11 -m pytest tests/test_analytics_snapshots.py`.
+`UPDATE_SNAPSHOTS=1 PYTHONPATH=. python3.11 -m pytest tests/non_regression/test_analytics_snapshots.py`.
 """
 import asyncio
 import json
@@ -27,7 +27,7 @@ from app.models.transaction import Transaction
 from app.services.budget.balances import recalculate_running_balances
 from app.services.systeme.demo import generate_demo_data
 
-SNAPSHOT_DIR = Path(__file__).parent / "snapshots" / "analytics"
+SNAPSHOT_DIR = Path(__file__).parents[1] / "snapshots" / "analytics"
 FROZEN_NOW = "2026-06-15 10:00:00"
 TODAY = date(2026, 6, 15)
 MONTHS = [(5, 2026), (6, 2026)]

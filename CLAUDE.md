@@ -24,7 +24,7 @@ Stack : React 18 + Vite + TypeScript + Tailwind + Recharts (frontend) · FastAPI
 
 Quand le code change une route, un modèle, une commande ou une règle métier, mettre à jour `ARCHITECTURE.md` et, si besoin, le skill concerné dans le même commit.
 
-**Jamais de tag flottant** : une action GitHub s'épingle par SHA de commit complet avec la version en commentaire (`actions/checkout@<sha40> # v4.4.0`), une image Docker par digest (`python:3.12-slim@sha256:…`), dans les `Dockerfile`, `docker-compose*.yml` et workflows. SHA obtenu par `git ls-remote --tags https://github.com/<org>/<action>`, digest par `docker buildx imagetools inspect <image>`. Contrôlé par `backend/tests/test_pinned_dependencies.py`.
+**Jamais de tag flottant** : une action GitHub s'épingle par SHA de commit complet avec la version en commentaire (`actions/checkout@<sha40> # v4.4.0`), une image Docker par digest (`python:3.12-slim@sha256:…`), dans les `Dockerfile`, `docker-compose*.yml` et workflows. SHA obtenu par `git ls-remote --tags https://github.com/<org>/<action>`, digest par `docker buildx imagetools inspect <image>`. Contrôlé par `backend/tests/garde_fous/test_pinned_dependencies.py`.
 
 ## Commandes
 
@@ -50,8 +50,8 @@ cd frontend && npm run build        # tsc (app + tests) + vite build ; pas de li
 cd frontend && npm run typecheck    # tsc seul
 
 # Un seul test
-cd backend && PYTHONPATH=. python3.11 -m pytest tests/test_tags.py -v   # PYTHONPATH=. requis
-cd backend && PYTHONPATH=. python3.11 -m pytest tests/test_tags.py::test_name -v
+cd backend && PYTHONPATH=. python3.11 -m pytest tests/budget/test_tags.py -v   # PYTHONPATH=. requis
+cd backend && PYTHONPATH=. python3.11 -m pytest tests/budget/test_tags.py::test_name -v
 cd backend && PYTHONPATH=. python3.11 -m pytest tests -q     # suite complète : ~910 tests, ~1 min 45
 
 # Mot de passe admin (hash à mettre dans ADMIN_PASSWORD_HASH ; doubler les $ dans docker-compose)
@@ -62,7 +62,7 @@ python scripts/change_password.py <mot-de-passe>
 
 ### Backend (`backend/app/`)
 - `main.py` : lifespan (migrations Alembic + seed), middleware de logs, CORS via `settings.cors_origins` (pas `*`). Les routers sont dans la liste `protected_routers` et reçoivent tous `Depends(get_current_user)` (JWT) ; seuls `health` et `auth` sont publics. **Un nouveau router doit être ajouté à cette liste.**
-- **Architecture en couches** (backend et frontend migrés, cf. `ARCHITECTURE.md` § Couches backend) : `controllers/` (controllers) → `services/` (cas d'usage, commit, erreurs métier `core/errors.py`) → `repositories/` (requêtes) / `domain/` (calculs purs) / `integrations/` (appels externes). Règles d'import vérifiées par `tests/test_architecture.py`, tailles par `scripts/check_code_size.py` (baselines à cliquet : ne jamais les augmenter). Modèle à suivre : `accounts`. `controllers/`, `services/` et `repositories/` sont rangés par domaine, même arborescence dans les trois couches : `budget/`, `comptes/`, `investissement/`, `analytics/`, `audit/` (services), `systeme/` ; un controller n'importe pas un controller d'un autre domaine, `core/` n'importe que `core`, `models`, `db`. Code déplacé : supprimé de l'ancien emplacement, sans ré-export.
+- **Architecture en couches** (backend et frontend migrés, cf. `ARCHITECTURE.md` § Couches backend) : `controllers/` (controllers) → `services/` (cas d'usage, commit, erreurs métier `core/errors.py`) → `repositories/` (requêtes) / `domain/` (calculs purs) / `integrations/` (appels externes). Règles d'import vérifiées par `tests/garde_fous/test_architecture.py`, tailles par `scripts/check_code_size.py` (baselines à cliquet : ne jamais les augmenter). Modèle à suivre : `accounts`. `controllers/`, `services/` et `repositories/` sont rangés par domaine, même arborescence dans les trois couches : `budget/`, `comptes/`, `investissement/`, `analytics/`, `audit/` (services), `systeme/` ; un controller n'importe pas un controller d'un autre domaine, `core/` n'importe que `core`, `models`, `db`. Code déplacé : supprimé de l'ancien emplacement, sans ré-export.
 - `controllers/<domaine>/` : un router par sujet (`budget/transactions`, `comptes/accounts`, `investissement/holdings`, `systeme/auth`, …) ; `controllers/deps.py` à la racine. `controllers/analytics/` est un **package** (metrics, budget, investments, insights, reports, subscriptions, audit, diversity) ; budget, Centre d'Actions et projection de trésorerie sont calculés dans `services/analytics/` et `services/audit/` (registre de règles), les requêtes partagées dans `repositories/analytics/common.py`.
 - `core/` : `config.py` (pydantic-settings, validation stricte des secrets en `APP_ENV=prod`), `security.py` + `login_rate_limit.py` (auth mono-utilisateur `ADMIN_USERNAME`/`ADMIN_PASSWORD_HASH` ; limiteurs `login_rate_limiter` / `totp_rate_limiter`), `errors.py` (erreurs métier), `logging.py`, `time.py`, `totp.py`, `mcp_tokens.py`, `migrations.py` (transverse uniquement). Valorisation des comptes titres : `services/investissement/portfolio/` ; positions : `services/investissement/holdings/` ; dividendes : `services/investissement/dividends.py`. Marché : `services/investissement/market/` + `integrations/yahoo_finance.py` ; profils ETF : `services/investissement/etf_profiles.py` (préréglages `domain/etf_presets.json`).
 - `models/` (SQLAlchemy 2 `Mapped`/`mapped_column`), `schemas/` (Pydantic, `from_attributes=True`), `db/session.py`. Schéma modifié → nouvelle migration Alembic dans `backend/alembic/versions/`.

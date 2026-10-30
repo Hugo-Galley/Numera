@@ -15,7 +15,7 @@ from sqlalchemy import create_engine, text
 from app import models  # noqa: F401
 from app.db.base import Base
 
-BACKEND = Path(__file__).resolve().parents[1]
+BACKEND = Path(__file__).resolve().parents[2]
 PREVIOUS_HEAD = "e3c8a1f5b7d2"  # tête avant la migration de rattrapage
 
 

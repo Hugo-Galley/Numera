@@ -8,7 +8,7 @@ from cryptography.fernet import Fernet
 
 from scripts.restore import restore_backup
 
-BACKEND = Path(__file__).resolve().parents[1]
+BACKEND = Path(__file__).resolve().parents[2]
 
 
 def _make_db(path: Path, value: int) -> Path:

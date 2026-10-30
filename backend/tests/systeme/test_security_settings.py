@@ -161,7 +161,7 @@ def test_backup_script_writes_status(tmp_path):
     db_file = tmp_path / "budget.db"
     sqlite3.connect(db_file).execute("CREATE TABLE t (x INTEGER)").connection.commit()
     backups = tmp_path / "backups"
-    script = Path(__file__).resolve().parents[1] / "scripts" / "backup.py"
+    script = Path(__file__).resolve().parents[2] / "scripts" / "backup.py"
     env = {
         **os.environ,
         "DB_PATH": str(db_file),

@@ -7,7 +7,7 @@ description: Use when deciding where new Numera code goes (controller, service, 
 
 ## Principe
 
-Une responsabilité par couche, une définition par règle métier. Les garde-fous (`tests/test_architecture.py`, `scripts/check_code_size.py`) attrapent les imports et les tailles ; ce skill couvre ce qu'ils ne voient pas. Règles d'import détaillées : `backend/CLAUDE.md` § Couches.
+Une responsabilité par couche, une définition par règle métier. Les garde-fous (`tests/garde_fous/test_architecture.py`, `scripts/check_code_size.py`) attrapent les imports et les tailles ; ce skill couvre ce qu'ils ne voient pas. Règles d'import détaillées : `backend/CLAUDE.md` § Couches.
 
 ## Où va ce code ?
 
@@ -53,7 +53,7 @@ Besoin d'une variante ? Paramétrer la fonction existante, ne pas la copier. Une
 
 ## Cliquets (baselines)
 
-`tests/architecture_baseline.txt` et `scripts/code_size_baseline.json` ne font que **diminuer**. Une violation nouvelle se corrige dans le code (découper, déplacer), jamais en régénérant la baseline. Régénérer n'est permis que pour retirer une entrée disparue ou renommer une clé lors d'un déplacement à l'identique.
+`tests/garde_fous/architecture_baseline.txt` et `scripts/code_size_baseline.json` ne font que **diminuer**. Une violation nouvelle se corrige dans le code (découper, déplacer), jamais en régénérant la baseline. Régénérer n'est permis que pour retirer une entrée disparue ou renommer une clé lors d'un déplacement à l'identique.
 
 ## Rationalisations
 

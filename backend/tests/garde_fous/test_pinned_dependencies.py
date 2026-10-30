@@ -7,7 +7,7 @@ import re
 import subprocess
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).parents[2]
+REPO_ROOT = Path(__file__).parents[3]
 
 ACTION_USES = re.compile(r"^\s*-?\s*uses:\s*(\S+)", re.MULTILINE)
 PINNED_ACTION = re.compile(r"^[\w.-]+/[\w./-]+@[0-9a-f]{40}$")

@@ -14,7 +14,7 @@ Conventions et pièges : `backend/CLAUDE.md` (à lire d'abord). Règles métier 
 3. Endpoint dans `app/controllers/<domaine>/<sujet>.py` : `response_model`, `db: Session = Depends(get_db)`, une ligne qui appelle le service. Pas de `Depends(get_current_user)` à ajouter : le router est déjà protégé dans `main.py`.
 4. Mutation de transactions → `recalculate_running_balances(db, account_id)` (`app.services.budget.balances`) pour chaque compte touché, **puis `db.commit()`** : le recalcul ne fait qu'un `flush`.
 5. Ordre des routes FastAPI : déclarer les chemins fixes (`/bulk`, `/merchants`, `/potential-transfers`, `/auto-normalize`) **avant** `/{id}`.
-6. Tests : service (`db_session`, sans HTTP) et route (`client`) dans `backend/tests/test_<domaine>.py`. `tests/test_architecture.py` (un controller n'importe pas un controller d'un autre domaine) et `scripts/check_code_size.py` doivent rester verts.
+6. Tests : service (`db_session`, sans HTTP) et route (`client`) dans `backend/tests/<domaine>/test_<sujet>.py`. `tests/garde_fous/test_architecture.py` (un controller n'importe pas un controller d'un autre domaine) et `scripts/check_code_size.py` doivent rester verts.
 7. Mettre à jour `ARCHITECTURE.md` (routes) et, si le serveur MCP expose le domaine, `mcp-server/server_api.py`.
 
 ## Ajouter un nouveau router
