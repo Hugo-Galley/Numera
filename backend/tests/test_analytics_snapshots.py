@@ -214,6 +214,9 @@ def snapshot_client(client, db_session, monkeypatch, tmp_path):
     market_quotes._QUOTES_CACHE.clear()
     currency_mod._rates_cache.clear()
     currency_mod._cache_expiry.clear()
+    # FastAPI construit le schéma d'une route à son premier passage et freezegun remplace datetime.datetime
+    # dans la stdlib : une requête vers un chemin inconnu parcourt tous les routers avant le gel.
+    client.get("/__warmup_routes")
     with freeze_time(FROZEN_NOW, tick=False, real_asyncio=True):
         asyncio.run(generate_demo_data(db_session, today=TODAY))
         _add_action_center_cases(db_session)

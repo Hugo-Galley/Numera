@@ -41,11 +41,13 @@ def test_domain_error_reaches_client_through_route(client):
     def _raise():
         raise NotFoundError("Thing not found")
 
+    original_routes = list(app.router.routes)
     app.include_router(router)
     try:
         response = client.get("/__test_domain_error")
     finally:
-        app.router.routes = [r for r in app.router.routes if getattr(r, "path", "") != "/__test_domain_error"]
+        app.router.routes = original_routes
+        app.openapi_schema = None
     assert response.status_code == 404
     assert response.json() == {"detail": "Thing not found"}
 
