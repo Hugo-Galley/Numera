@@ -86,13 +86,13 @@ Le lot 0 est **séquentiel et bloquant**. Ensuite chaque lot (et chaque tâche d
 
 Une tâche = une page, une session possible par tâche. Chaque page : chargement (squelette), succès, **échec de chargement visible** (règle « un échec ne ressemble jamais à “pas de données” »), réponse obsolète ignorée au changement de mois / compte.
 
-- [ ] **5.1 Login** : identifiants faux (message), succès → redirection ; étape TOTP quand `mfa_token` est renvoyé ; limite de débit (`429`) affichée.
-- [ ] **5.2 AccountDetail** (`pages/AccountDetail/`) : création, édition et suppression d'une transaction (confirmation `useConfirm`, toast, liste rechargée), corps envoyé avec montant positif + `type` et date naïve sans `Z`.
-- [ ] **5.3 Import CSV** : upload multipart, aperçu, catégories manquantes, commit, compte rendu des doublons.
-- [ ] **5.4 MonthReview** : clôturer marque le mois (pas de verrouillage de l'UI), transaction exceptionnelle signalée.
-- [ ] **5.5 Dashboard** (`useDashboardData`) : un endpoint en échec n'empêche pas les autres onglets de s'afficher (`safeLoad`).
-- [ ] **5.6 Classement** : création d'une règle de catégorisation et d'un tag, suppression avec confirmation.
-- [ ] **5.7 Settings** : `ProfileForm` exige le mot de passe actuel, une erreur `400` reste sur la page (pas de déconnexion).
+- [x] **5.1 Login** : identifiants faux (message), succès → redirection ; étape TOTP quand `mfa_token` est renvoyé ; limite de débit (`429`) affichée.
+- [x] **5.2 AccountDetail** (`pages/AccountDetail/`) : création, édition et suppression d'une transaction (confirmation `useConfirm`, toast, liste rechargée), corps envoyé avec montant positif + `type` et date naïve sans `Z`.
+- [x] **5.3 Import CSV** : upload multipart, aperçu, catégories manquantes, commit, compte rendu des doublons.
+- [x] **5.4 MonthReview** : clôturer marque le mois (pas de verrouillage de l'UI), transaction exceptionnelle signalée.
+- [x] **5.5 Dashboard** (`useDashboardData`) : un endpoint en échec n'empêche pas les autres onglets de s'afficher (`safeLoad`).
+- [x] **5.6 Classement** : création d'une règle de catégorisation et d'un tag, suppression avec confirmation.
+- [x] **5.7 Settings** : `ProfileForm` exige le mot de passe actuel, une erreur `400` reste sur la page (pas de déconnexion).
 
 ## Lot 6 : formulaires et composants métier
 
