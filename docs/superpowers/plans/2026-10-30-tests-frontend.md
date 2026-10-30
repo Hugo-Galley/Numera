@@ -58,12 +58,12 @@ Le lot 0 est **séquentiel et bloquant**. Ensuite chaque lot (et chaque tâche d
 
 ## Lot 2 : client API (`lib/api.ts` + `lib/api/<domaine>.ts`)
 
-- [ ] **2.1 `apiFetch`** : ajoute le Bearer ; `Content-Type: application/json` par défaut ; `API_BASE` selon l'hôte (`localhost` → `:8001`, sinon `/api`).
-- [ ] **2.2 Session** : `401` vide la session et redirige vers `/login` ; `403` idem **sauf** sur `/auth/token` ; refresh appelé quand il reste moins de 15 min, pas au-delà, et pas en boucle si le refresh échoue.
-- [ ] **2.3 Erreurs** : `ApiError(status, message, detail)` pour un `detail` texte, un `detail` structuré (`code` / `context`), une réponse non JSON, une erreur réseau.
-- [ ] **2.4 `api.upload`** (pas de `Content-Type`, Bearer présent) et **`api.download`** (renvoie un `Blob`).
-- [ ] **2.5 `lib/api/<domaine>.ts`** : une table de cas par domaine (fonction → méthode + URL + query + corps), vérifiée via MSW. Sert aussi de garde-fou contre une route renommée côté backend (à croiser avec `backend/tests/snapshots/openapi_routes.json`, voir 2.6).
-- [ ] **2.6 (option)** Test qui vérifie que chaque URL appelée par `lib/api/` existe dans `openapi_routes.json` : détecte côté front une route supprimée côté back.
+- [x] **2.1 `apiFetch`** : ajoute le Bearer ; `Content-Type: application/json` par défaut ; `API_BASE` selon le mode de build, pas l'hôte (`VITE_API_BASE` sinon dev Vite → `http://localhost:8001`, sinon `/api`, même sur localhost).
+- [x] **2.2 Session** : `401` vide la session et redirige vers `/login` ; `403` idem (seulement si `detail` = « User not authorized », un 403 métier reste une erreur ordinaire) **sauf** sur `/auth/token` ; refresh appelé quand il reste moins de 15 min, pas au-delà, et pas en boucle si le refresh échoue.
+- [x] **2.3 Erreurs** : `ApiError(status, message, detail)` pour un `detail` texte, un `detail` structuré (`code` / `context`), une réponse non JSON, une erreur réseau.
+- [x] **2.4 `api.upload`** (pas de `Content-Type`, Bearer présent) et **`api.download`** (renvoie un `Blob`).
+- [x] **2.5 `lib/api/<domaine>.ts`** : une table de cas par domaine (fonction → méthode + URL + query + corps), vérifiée via MSW. Sert aussi de garde-fou contre une route renommée côté backend (à croiser avec `backend/tests/snapshots/openapi_routes.json`, voir 2.6).
+- [x] **2.6 (option)** Test qui vérifie que chaque URL appelée par `lib/api/` existe dans `openapi_routes.json` : détecte côté front une route supprimée côté back. A trouvé 2 écarts (`it.todo` dans `lib/api/routes.test.ts`, liste `KNOWN_MISSING`) : `POST /categorization-rules` sans « / » final, `GET /recurring-transactions/{id}` inexistant.
 
 ## Lot 3 : hooks et providers
 
