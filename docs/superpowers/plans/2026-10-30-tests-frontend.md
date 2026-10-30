@@ -67,13 +67,13 @@ Le lot 0 est **séquentiel et bloquant**. Ensuite chaque lot (et chaque tâche d
 
 ## Lot 3 : hooks et providers
 
-- [ ] **3.1 `useSubmit`** : un second clic pendant l'exécution n'appelle pas deux fois ; `busy` repasse à `false` après une erreur.
-- [ ] **3.2 `useDrilldown`** : `openDrilldown` écrit les `?dd_*` dans l'URL, fermeture les retire sans toucher aux autres paramètres.
-- [ ] **3.3 `useIsMobile`, `useDemoMode`** (via `matchMedia` simulé / réponse MSW).
-- [ ] **3.4 `AuthProvider`** : lecture du jeton au démarrage, jeton expiré ignoré, `logout` vide le stockage.
-- [ ] **3.5 `UIProvider`** : thème light / dark / system (classe `dark` sur `<html>`, persistance), bascule du mode confidentialité.
-- [ ] **3.6 `ConfirmProvider`** : `await confirm()` résout `true` / `false` selon le bouton, Échap = `false`.
-- [ ] **3.7 `startPrivacyScanner`** (DOM) : pose `.privacy-masked` sur un montant inséré après coup (MutationObserver), respecte `data-privacy-ignore`, nettoie à l'arrêt.
+- [x] **3.1 `useSubmit`** : un second clic pendant l'exécution n'appelle pas deux fois ; `busy` repasse à `false` après une erreur.
+- [x] **3.2 `useDrilldown`** : `openDrilldown` écrit les `?dd_*` dans l'URL, fermeture les retire sans toucher aux autres paramètres.
+- [x] **3.3 `useIsMobile`, `useDemoMode`** (via `matchMedia` simulé / réponse MSW).
+- [x] **3.4 `AuthProvider`** : lecture du jeton au démarrage, jeton expiré ignoré, `logout` vide le stockage.
+- [x] **3.5 `UIProvider`** : thème light / dark / system (classe `dark` sur `<html>`, persistance), bascule du mode confidentialité.
+- [x] **3.6 `ConfirmProvider`** : `await confirm()` résout `true` / `false` selon le bouton, Échap = `false`.
+- [x] **3.7 `startPrivacyScanner`** (DOM) : pose `.privacy-masked` sur un montant inséré après coup (MutationObserver), respecte `data-privacy-ignore`, nettoie à l'arrêt. Plus `WorkTimeProvider` (chargement, `refresh`, toast d’échec).
 
 ## Lot 4 : routing et layout
 
