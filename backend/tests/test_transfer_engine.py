@@ -4,11 +4,11 @@ from datetime import datetime
 from sqlalchemy.orm import Session
 
 from app.domain.finance import month_label_from_date
-from app.services.budget.transfers import apply_rules, find_pairs, link_pair, unlink_pair
 from app.models.account import Account
 from app.models.investment_transaction import InvestmentTransaction
 from app.models.transaction import Transaction
 from app.models.transfer_rule import TransferRule
+from app.services.budget.transfers import apply_rules, find_pairs, link_pair, unlink_pair
 
 
 def run(coro):
@@ -53,7 +53,8 @@ def test_same_amount_to_two_accounts_pairs_by_destination(db_session: Session):
     linked = run(apply_rules(db_session))
 
     assert len(linked) == 2
-    db_session.refresh(s1); db_session.refresh(s2)
+    db_session.refresh(s1)
+    db_session.refresh(s2)
     assert s1.linked_transaction_id == e1.id
     assert s2.linked_transaction_id == e2.id
     assert s1.link_origin == "rule" and s1.transfer_rule_id is not None
@@ -70,7 +71,8 @@ def test_entree_is_never_used_twice(db_session: Session):
     linked = run(apply_rules(db_session))
 
     assert len(linked) == 1
-    db_session.refresh(s_near); db_session.refresh(s_far)
+    db_session.refresh(s_near)
+    db_session.refresh(s_far)
     assert s_near.linked_transaction_id == e.id
     assert s_far.linked_transaction_id is None
 
@@ -85,7 +87,8 @@ def test_ambiguous_tie_is_left_as_suggestion(db_session: Session):
     rule(db_session, main, livret)
 
     assert run(apply_rules(db_session)) == []
-    db_session.refresh(s1); db_session.refresh(s2)
+    db_session.refresh(s1)
+    db_session.refresh(s2)
     assert s1.is_transfer is False and s2.is_transfer is False
     pairs = run(find_pairs(db_session, source_account_id=main.id, dest_account_id=livret.id))
     assert pairs and all(p.ambiguous for p in pairs)
@@ -101,7 +104,8 @@ def test_unlink_of_rule_link_is_not_relinked(db_session: Session):
 
     unlink_pair(db_session, s)
     db_session.commit()
-    db_session.refresh(s); db_session.refresh(e)
+    db_session.refresh(s)
+    db_session.refresh(e)
     assert s.is_transfer is False and e.is_transfer is False
     assert s.is_transfer_ignored is True and e.is_transfer_ignored is True
 
@@ -149,7 +153,8 @@ def test_investment_destination_links_versement(db_session: Session):
     rule(db_session, main, broker)
 
     assert len(run(apply_rules(db_session))) == 1
-    db_session.refresh(s); db_session.refresh(v)
+    db_session.refresh(s)
+    db_session.refresh(v)
     assert s.linked_investment_transaction_id == v.id
     assert v.linked_transaction_id == s.id and v.is_transfer is True and v.link_origin == "rule"
 
@@ -185,7 +190,8 @@ def test_api_ignore_marks_both_sides(client, db_session: Session):
     s = tx(db_session, main, "Sortie", 500, d)
     e = tx(db_session, livret, "Entree", 500, d)
     assert client.post(f"/transactions/{s.id}/ignore", params={"other_id": e.id}).status_code == 204
-    db_session.refresh(s); db_session.refresh(e)
+    db_session.refresh(s)
+    db_session.refresh(e)
     assert s.is_transfer_ignored and e.is_transfer_ignored
     assert client.get("/transactions/potential-transfers").json() == []
 

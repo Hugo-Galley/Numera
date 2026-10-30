@@ -17,11 +17,11 @@ from datetime import date, datetime
 from sqlalchemy.orm import Session
 
 from app.integrations.currency import get_exchange_rates
-from app.services.comptes.loans import loan_remaining
-from app.services.investissement.portfolio import positions_values_eur
 from app.models.account import Account
 from app.models.balance_snapshot import BalanceSnapshot
 from app.models.transaction import Transaction
+from app.services.comptes.loans import loan_remaining
+from app.services.investissement.portfolio import positions_values_eur
 
 INVESTMENT_TYPES = ("investissement", "assurance_vie")
 

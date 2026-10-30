@@ -6,17 +6,21 @@ from datetime import datetime
 
 from sqlalchemy.orm import Session
 
-from app.integrations import currency as currency_module
 from app.core.errors import BusinessRuleError, NotFoundError
-from app.domain.finance import month_label_from_date, normalize_transaction_type
 from app.core.time import utcnow_naive
+from app.domain.finance import month_label_from_date, normalize_transaction_type
+from app.integrations import currency as currency_module
 from app.models.account import Account
 from app.models.transaction import Transaction
-from app.repositories.comptes import accounts as account_repo
 from app.repositories.budget import transactions as repo
+from app.repositories.comptes import accounts as account_repo
 from app.schemas.transaction import (
-    TransactionBulkDelete, TransactionBulkDeleteResult, TransactionBulkUpdate, TransactionCreate,
-    TransactionSplitsUpdate, TransactionUpdate,
+    TransactionBulkDelete,
+    TransactionBulkDeleteResult,
+    TransactionBulkUpdate,
+    TransactionCreate,
+    TransactionSplitsUpdate,
+    TransactionUpdate,
 )
 from app.services.budget import reimbursements as remb
 from app.services.budget.balances import recalculate_running_balances

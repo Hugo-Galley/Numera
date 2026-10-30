@@ -1,8 +1,6 @@
 """Import CSV : caractérisation de bout en bout (écrite avant le découpage) et analyse pure."""
 import json
 
-import pytest
-
 from app.models.categorization_rule import CategorizationRule
 from app.models.category import Category
 from app.models.import_log import ImportLog

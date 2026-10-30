@@ -39,7 +39,7 @@ class Account(Base):
     opened_at: Mapped[date | None] = mapped_column(Date, nullable=True)
 
     is_main: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0", nullable=False)
-    
+
     last_verified_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow_naive, nullable=False)
 
     # Date de l'inventaire « Point Zéro » des positions : les opérations sur titres antérieures

@@ -10,7 +10,6 @@ from sqlalchemy.orm import Session
 
 from app.core.errors import BusinessRuleError, DomainError, InternalError, NotFoundError
 from app.core.logging import get_logger
-from app.services.investissement.portfolio import positions_values_eur
 from app.domain.budget import elapsed_days, savings_rate, to_eur
 from app.integrations.currency import get_exchange_rates
 from app.models.account import Account
@@ -18,6 +17,7 @@ from app.repositories.analytics import budget as repo
 from app.repositories.analytics.common import savings_account_ids, savings_events_by_account, ticket_restaurant_account_ids
 from app.services.budget.budget_period import period_bounds
 from app.services.comptes.wealth import account_values, active_accounts
+from app.services.investissement.portfolio import positions_values_eur
 
 logger = get_logger(__name__)
 
@@ -74,7 +74,7 @@ async def compute_budget(db: Session, month: int | None = None, year: int | None
     except Exception:
         # Détail volontairement absent de la réponse : il reste dans les logs
         logger.exception("Erreur dans budget_analytics")
-        raise InternalError("Erreur interne lors du calcul du budget")
+        raise InternalError("Erreur interne lors du calcul du budget") from None
 
 
 def _days(db: Session, start: datetime | None, end: datetime, monthly: bool) -> int:

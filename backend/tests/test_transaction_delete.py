@@ -2,11 +2,11 @@ from datetime import datetime
 
 from sqlalchemy.orm import Session
 
-from app.services.budget import reimbursements as remb
 from app.domain.finance import month_label_from_date
 from app.models.account import Account
 from app.models.reimbursement import ReimbursementClaim
 from app.models.transaction import Transaction
+from app.services.budget import reimbursements as remb
 
 
 def make_account(db: Session, name="Principal"):
@@ -77,9 +77,9 @@ def test_delete_recurring_dca_legs(client, db_session):
     """DCA récurrent par virement : chaque côté se supprime et délie l'autre."""
     import asyncio
 
-    from app.services.budget.recurring import generate_recurring_transactions
     from app.models.investment_transaction import InvestmentTransaction
     from app.models.recurring_transaction import RecurringTransaction
+    from app.services.budget.recurring import generate_recurring_transactions
 
     cc = make_account(db_session, "CC")
     pea = Account(name="PEA", type="investissement", currency="EUR", active=True)

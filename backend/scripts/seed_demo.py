@@ -7,9 +7,9 @@ import asyncio
 import sys
 
 from app.core.config import settings
-from app.services.systeme.demo import generate_demo_data, wipe_database
 from app.core.migrations import run_migrations
 from app.db.session import SessionLocal
+from app.services.systeme.demo import generate_demo_data, wipe_database
 
 
 async def main() -> None:

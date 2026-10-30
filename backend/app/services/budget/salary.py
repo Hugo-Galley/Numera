@@ -16,7 +16,12 @@ from app.models.salary_month import SalaryMonth
 from app.models.telecommuting_day import TelecommutingDay
 from app.repositories.budget import salary as repo
 from app.schemas.salary_config import (
-    SalaryConfigCreate, SalaryConfigUpdate, SalaryMonthUpdate, TelecommutingDaysUpdate, WorkTimeRead, WorkTimeUpdate,
+    SalaryConfigCreate,
+    SalaryConfigUpdate,
+    SalaryMonthUpdate,
+    TelecommutingDaysUpdate,
+    WorkTimeRead,
+    WorkTimeUpdate,
 )
 from app.services.budget import reimbursements as remb
 from app.services.budget.balances import recalculate_running_balances

@@ -1,11 +1,11 @@
 from datetime import date, datetime
 
-from app.services.budget.salary_generation import find_missing_salary_months
 from app.models.account import Account
 from app.models.category import Category
 from app.models.salary_config import SalaryConfig
 from app.models.salary_month import SalaryMonth
 from app.models.transaction import Transaction
+from app.services.budget.salary_generation import find_missing_salary_months
 
 
 def _setup(db_session, created_at=datetime(2026, 5, 1)):

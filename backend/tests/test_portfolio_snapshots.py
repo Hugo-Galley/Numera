@@ -12,16 +12,16 @@ from datetime import date, datetime, timedelta
 from pathlib import Path
 
 import pytest
+from test_analytics_snapshots import _first_diff, _normalize, snapshot_client  # noqa: F401 (fixture)
 
 import app.integrations.currency as currency_mod
 import app.integrations.yahoo_finance as yahoo_finance
 from app.models.account import Account
-from app.services.investissement.holdings.rebuild import rebuild_holdings
 from app.models.balance_snapshot import BalanceSnapshot
 from app.models.holding_baseline_item import HoldingBaselineItem
 from app.models.investment_transaction import InvestmentTransaction
 from app.models.security_price import SecurityPrice
-from test_analytics_snapshots import _first_diff, _normalize, snapshot_client  # noqa: F401 (fixture)
+from app.services.investissement.holdings.rebuild import rebuild_holdings
 
 SNAPSHOT_DIR = Path(__file__).parent / "snapshots" / "portfolio"
 BASELINE = datetime(2025, 6, 2, 10, 0)
@@ -116,7 +116,7 @@ def _routes(accounts: dict[str, int]) -> list[tuple[str, str, dict]]:
 
 
 @pytest.fixture()
-def portfolio_client(snapshot_client, db_session, monkeypatch):
+def portfolio_client(snapshot_client, db_session, monkeypatch):  # noqa: F811 (fixture importée)
     async def no_composition(symbol):
         return None
 

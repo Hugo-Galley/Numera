@@ -12,6 +12,7 @@ Revises: e5a1c7d3f9b2
 import json
 
 import sqlalchemy as sa
+
 from alembic import op
 
 revision = "f6b3d9e2a7c4"
@@ -71,7 +72,7 @@ def upgrade() -> None:
         else:
             sources = {
                 field: "manual"
-                for field, value in zip(FIELDS, (row.countries, row.sectors, row.top_holdings))
+                for field, value in zip(FIELDS, (row.countries, row.sectors, row.top_holdings), strict=True)
                 if value not in (None, "", "{}", "[]")
             }
             conn.execute(

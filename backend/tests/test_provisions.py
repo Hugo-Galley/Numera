@@ -4,11 +4,11 @@ from datetime import date, datetime
 import pytest
 
 from app.domain.finance import month_label_from_date
-from app.services.budget.provisions import add_months, compute_states, due_window
 from app.models.account import Account
 from app.models.category import Category
 from app.models.provision import Provision
 from app.models.transaction import Transaction
+from app.services.budget.provisions import add_months, compute_states, due_window
 
 
 def test_due_window_rolls_forward_and_back():

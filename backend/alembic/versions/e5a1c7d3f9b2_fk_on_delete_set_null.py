@@ -7,8 +7,9 @@ virement (DCA récurrent) échouait en FOREIGN KEY constraint failed.
 Revision ID: e5a1c7d3f9b2
 Revises: d4f2a8c6e1b9
 """
-from alembic import op
 import sqlalchemy as sa
+
+from alembic import op
 
 revision = "e5a1c7d3f9b2"
 down_revision = "d4f2a8c6e1b9"

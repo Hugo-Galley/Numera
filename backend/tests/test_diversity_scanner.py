@@ -1,17 +1,17 @@
-import pytest
 from datetime import datetime
+
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
 from app.models.account import Account
-from app.models.portfolio_holding import PortfolioHolding
 from app.models.etf_profile import EtfProfile
+from app.models.portfolio_holding import PortfolioHolding
 from app.services.investissement.etf_profiles import seed_etf_profiles
 
 
 def test_etf_profiles_seeded_and_listable(client: TestClient, db_session: Session):
     seed_etf_profiles(db_session)
-    
+
     # Test GET /etf-profiles
     response = client.get("/etf-profiles")
     assert response.status_code == 200
@@ -25,11 +25,11 @@ def test_etf_profiles_seeded_and_listable(client: TestClient, db_session: Sessio
 
 def test_baseline_holdings_and_diversity_scanner(client: TestClient, db_session: Session):
     seed_etf_profiles(db_session)
-    
+
     # Create test investment account
     account = Account(name="Test PEA", type="investissement", currency="EUR", active=True)
     db_session.add(account)
-    
+
     # Create safe savings account (Ce qu'on a à côté)
     livret = Account(name="Livret A", type="epargne", currency="EUR", active=True)
     db_session.add(livret)

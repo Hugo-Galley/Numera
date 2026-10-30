@@ -7,9 +7,9 @@ Create Date: 2026-10-01 17:36:33.095753
 """
 from typing import Sequence, Union
 
-from alembic import op
 import sqlalchemy as sa
 
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision: str = 'dc9a98b4a88f'
@@ -73,15 +73,15 @@ def upgrade() -> None:
         if 'asset_holdings' in table_names and 'assets' in table_names:
             op.execute("""
                 INSERT INTO portfolio_holdings (account_id, ticker, isin, asset_name, quantity, buy_price_avg, currency, created_at, updated_at)
-                SELECT 
-                    ah.account_id, 
-                    a.symbol, 
-                    NULL, 
-                    a.name, 
-                    ah.quantity, 
-                    ah.average_purchase_price, 
+                SELECT
+                    ah.account_id,
+                    a.symbol,
+                    NULL,
+                    a.name,
+                    ah.quantity,
+                    ah.average_purchase_price,
                     COALESCE(a.currency, 'EUR'),
-                    datetime('now'), 
+                    datetime('now'),
                     datetime('now')
                 FROM asset_holdings ah
                 JOIN assets a ON ah.asset_id = a.id

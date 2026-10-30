@@ -10,7 +10,6 @@ la dépense) ; la transaction prend la catégorie de sa plus grosse part.
 from sqlalchemy.orm import Session
 
 from app.core.errors import InvalidOperationError, NotFoundError
-
 from app.models.category import Category
 from app.models.transaction import Transaction
 from app.models.transaction_split import TransactionSplit

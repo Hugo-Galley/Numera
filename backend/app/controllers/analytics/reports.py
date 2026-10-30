@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
-from app.schemas.insight import CashflowProjection, MonthlyReport, MoneyFlowReport
+from app.schemas.insight import CashflowProjection, MoneyFlowReport, MonthlyReport
 from app.services.analytics import reports as service
 
 router = APIRouter()

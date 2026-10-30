@@ -5,8 +5,8 @@ import pytest
 
 import app.integrations.currency as currency_mod
 import app.integrations.yahoo_finance as yahoo_finance
-import app.services.investissement.market.quotes as market_quotes
 import app.repositories.investissement.security_prices as security_prices
+import app.services.investissement.market.quotes as market_quotes
 from app.models.balance_snapshot import BalanceSnapshot
 
 

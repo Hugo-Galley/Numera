@@ -1,6 +1,8 @@
-from sqlalchemy import ForeignKey, String, Integer
+from sqlalchemy import ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+
 from app.db.base import Base
+
 
 class CategorizationRule(Base):
     __tablename__ = "categorization_rules"

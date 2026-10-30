@@ -1,17 +1,17 @@
 import calendar
 from datetime import date, datetime, timedelta
+
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
+from app.core.logging import get_logger
+from app.domain.salary import salary_amount, salary_note
 from app.models.category import Category
 from app.models.salary_config import SalaryConfig
 from app.models.salary_month import SalaryMonth
 from app.models.telecommuting_day import TelecommutingDay
 from app.models.transaction import Transaction
-from app.models.recurring_transaction import RecurringTransaction
 from app.services.budget.balances import recalculate_running_balances
-from app.core.logging import get_logger
-from app.domain.salary import salary_amount, salary_note
 
 logger = get_logger(__name__)
 

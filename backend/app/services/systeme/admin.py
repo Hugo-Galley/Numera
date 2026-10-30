@@ -12,7 +12,6 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.core import security
-from app.integrations.backup import backup_status, snapshot_database
 from app.core.config import settings
 from app.core.errors import BusinessRuleError, ExternalTimeoutError, InternalError, InvalidOperationError, NotFoundError
 from app.core.logging import get_logger
@@ -21,6 +20,7 @@ from app.core.migrations import run_migrations
 from app.db.base import Base
 from app.db.session import SessionLocal, engine
 from app.db.system_settings import get_setting, set_setting
+from app.integrations.backup import backup_status, snapshot_database
 from app.models.login_event import LoginEvent
 from app.models.mcp_token import McpToken
 from app.repositories.systeme import admin as repo
@@ -122,7 +122,7 @@ def _snapshot_before_reset() -> None:
         logger.info("Instantané avant reset : %s", backup.name)
     except Exception:
         logger.exception("Instantané avant reset impossible : reset annulé")
-        raise InternalError("Sauvegarde préalable impossible, réinitialisation annulée")
+        raise InternalError("Sauvegarde préalable impossible, réinitialisation annulée") from None
 
 
 def reset_database(db: Session, confirm: bool, confirmation_code: str | None, current_password: str | None) -> dict:
@@ -162,7 +162,7 @@ def run_backup_now() -> dict:
             env={**os.environ, "BACKUP_TRIGGER": "manual"},
         )
     except subprocess.TimeoutExpired:
-        raise ExternalTimeoutError("La sauvegarde a dépassé le délai imparti")
+        raise ExternalTimeoutError("La sauvegarde a dépassé le délai imparti") from None
     if result.returncode != 0:
         errors = [line for line in result.stderr.splitlines() if "ERROR" in line]
         detail = errors[-1].split("ERROR - ", 1)[-1] if errors else "Échec de la sauvegarde"

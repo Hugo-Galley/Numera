@@ -82,7 +82,7 @@ async def refresh_profile(db: Session, profile_id: int) -> EtfProfileRead:
     try:
         await refresh_etf_profile(db, profile)
     except yahoo_finance.YahooUnavailable:
-        raise ExternalServiceError("Yahoo Finance est injoignable, réessayez plus tard")
+        raise ExternalServiceError("Yahoo Finance est injoignable, réessayez plus tard") from None
     db.refresh(profile)
     return to_read(profile)
 

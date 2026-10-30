@@ -1,6 +1,8 @@
-import httpx
-from datetime import datetime, timedelta, date as date_type
+from datetime import date as date_type
+from datetime import datetime, timedelta
 from typing import Dict, Optional
+
+import httpx
 from sqlalchemy.orm import Session
 
 from app.core.logging import get_logger

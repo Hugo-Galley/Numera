@@ -117,7 +117,7 @@ def pee_status(lots: list[PeeLot], withdrawn: float, gross_annual_salary: float,
     """Total versé, part bloquée / disponible (retraits imputés sur les plus anciens), plafond des versements volontaires."""
     remaining_withdrawal = withdrawn
     open_lots: list[tuple[date, float]] = []
-    for lot in sorted(lots, key=lambda l: l.date):
+    for lot in sorted(lots, key=lambda item: item.date):
         taken = min(lot.amount, remaining_withdrawal)
         remaining_withdrawal -= taken
         if lot.amount - taken > 0:
@@ -126,7 +126,7 @@ def pee_status(lots: list[PeeLot], withdrawn: float, gross_annual_salary: float,
     blocked_lots = [(when, amount) for when, amount in unlock if when > today]
     blocked = sum(amount for _, amount in blocked_lots)
     available = sum(amount for when, amount in unlock if when <= today)
-    voluntary = sum(l.amount for l in lots if not l.employer and l.date.year == today.year)
+    voluntary = sum(lot.amount for lot in lots if not lot.employer and lot.date.year == today.year)
 
     alerts: list[str] = []
     ceiling = remaining = used_pct = None
@@ -139,7 +139,7 @@ def pee_status(lots: list[PeeLot], withdrawn: float, gross_annual_salary: float,
         alerts.append("Renseigne ton salaire brut annuel dans les réglages pour suivre le plafond des versements volontaires.")
     return _blank(
         current=voluntary, ceiling=ceiling, remaining=remaining, used_pct=used_pct,
-        total_contributed=sum(l.amount for l in lots), blocked=blocked, available=available,
+        total_contributed=sum(lot.amount for lot in lots), blocked=blocked, available=available,
         next_unlock_date=min(when for when, _ in blocked_lots).isoformat() if blocked_lots else None,
         alerts=alerts,
     )

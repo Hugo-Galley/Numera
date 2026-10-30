@@ -1,13 +1,13 @@
 from datetime import datetime
 
 import pytest
-from app.core.errors import InvalidOperationError
 from sqlalchemy.orm import Session
 
-from app.services.budget import reimbursements as remb
+from app.core.errors import InvalidOperationError
 from app.domain.finance import month_label_from_date
 from app.models.account import Account
 from app.models.transaction import Transaction
+from app.services.budget import reimbursements as remb
 
 
 def make_account(db: Session, name="Principal", currency="EUR", type_="courant"):
@@ -41,7 +41,8 @@ def test_claim_and_allocation_update_offsets(db_session, resto):
     entree = tx(db_session, main, "Entree", 30.0, datetime(2026, 10, 3), "VIR DENIS")
     alloc = remb.allocate(db_session, denis, entree.id)
     assert alloc.amount == 30.0
-    db_session.refresh(sortie); db_session.refresh(entree)
+    db_session.refresh(sortie)
+    db_session.refresh(entree)
     assert sortie.reimbursement_offset == 30.0
     assert entree.reimbursement_offset == 30.0
     assert remb.claim_received(db_session, denis.id) == 30.0
@@ -136,7 +137,8 @@ def test_delete_claim_resets_offsets(db_session, resto):
     entree = tx(db_session, main, "Entree", 30.0, datetime(2026, 10, 3))
     remb.allocate(db_session, claim, entree.id)
     remb.delete_claim(db_session, claim)
-    db_session.refresh(sortie); db_session.refresh(entree)
+    db_session.refresh(sortie)
+    db_session.refresh(entree)
     assert sortie.reimbursement_offset == 0.0 and entree.reimbursement_offset == 0.0
 
 
@@ -243,10 +245,11 @@ def test_categorization_apply_all_does_not_retype_reimbursed_transactions(client
 
 
 def _salary_setup(db_session, main):
+    from datetime import date
+
     from app.models.recurring_transaction import RecurringTransaction
     from app.models.salary_config import SalaryConfig
     from app.models.salary_month import SalaryMonth
-    from datetime import date
     rec = RecurringTransaction(account_id=main.id, name="Salaire", type="Entree", amount=2000.0,
                                frequency="monthly", start_date=datetime(2026, 1, 1))
     db_session.add(rec)

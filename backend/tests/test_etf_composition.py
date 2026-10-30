@@ -5,10 +5,10 @@ from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
 from app.integrations import yahoo_finance
-from app.services.investissement.etf_profiles import seed_etf_profiles
 from app.models.account import Account
 from app.models.etf_profile import EtfProfile
 from app.models.portfolio_holding import PortfolioHolding
+from app.services.investissement.etf_profiles import seed_etf_profiles
 
 YAHOO_COMPOSITION = {
     "name": "Amundi MSCI World Swap UCITS ETF",

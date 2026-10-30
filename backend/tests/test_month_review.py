@@ -3,11 +3,11 @@ from datetime import datetime
 import pytest
 
 from app.domain.finance import month_label_from_date
-from app.services.budget.month_review import without_exceptional
 from app.models.account import Account
 from app.models.category import Category
 from app.models.month_closure import MonthClosure
 from app.models.transaction import Transaction
+from app.services.budget.month_review import without_exceptional
 
 
 def _tx(db, account, type_, amount, date, merchant="x", category=None, exceptional=False):

@@ -1,19 +1,20 @@
-import pytest
-from fastapi.testclient import TestClient
-from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 
-from app.models.account import Account
-from app.models.transaction import Transaction
-from app.models.recurring_transaction import RecurringTransaction
+from fastapi.testclient import TestClient
+from sqlalchemy.orm import Session
+
 from app.domain.finance import month_label_from_date
+from app.models.account import Account
+from app.models.recurring_transaction import RecurringTransaction
+from app.models.transaction import Transaction
+
 
 def test_cashflow_projection(client: TestClient, db_session: Session):
     # Setup: Account with balance
     account = Account(name="Checking", type="courant", currency="EUR", active=True)
     db_session.add(account)
     db_session.commit()
-    
+
     now = datetime.now()
     tx = Transaction(
         account_id=account.id,
@@ -27,7 +28,7 @@ def test_cashflow_projection(client: TestClient, db_session: Session):
         running_balance=1000
     )
     db_session.add(tx)
-    
+
     # Setup: Recurring transaction
     rd = RecurringTransaction(
         account_id=account.id,
@@ -55,16 +56,16 @@ def test_cashflow_projection(client: TestClient, db_session: Session):
     )
     db_session.add_all([rd, rd2])
     db_session.commit()
-    
+
     response = client.get("/analytics/cashflow-projection", params={"days": 30})
     assert response.status_code == 200
     data = response.json()
-    
+
     assert data["current_balance"] == 1000.0
     # One salary + one rent expected in next 30 days
     # (Simplified since dates might shift month boundaries, but usually 1 occurrence each)
     assert len(data["events"]) >= 2
-    
+
     # Check projected balance
     # 1000 + 2000 - 800 = 2200
     assert data["projected_balance"] >= 2200.0

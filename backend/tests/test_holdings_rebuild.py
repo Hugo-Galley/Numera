@@ -6,12 +6,12 @@ import pytest
 import app.integrations.currency as currency_mod
 import app.integrations.yahoo_finance as yahoo_finance
 import app.services.investissement.market.quotes as market_quotes
-from app.services.budget.recurring import generate_recurring_transactions
 from app.models.account import Account
 from app.models.investment_transaction import InvestmentTransaction
 from app.models.portfolio_holding import PortfolioHolding
 from app.models.recurring_transaction import RecurringTransaction
 from app.models.security_price import SecurityPrice
+from app.services.budget.recurring import generate_recurring_transactions
 
 
 @pytest.fixture(autouse=True)

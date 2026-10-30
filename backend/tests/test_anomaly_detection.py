@@ -1,7 +1,9 @@
-from datetime import datetime, timedelta
+from datetime import datetime
+
 from app.models.account import Account
 from app.models.category import Category
 from app.models.transaction import Transaction
+
 
 def test_anomaly_detection_category_increase(client, db_session):
     # Setup account and category
@@ -32,7 +34,7 @@ def test_anomaly_detection_category_increase(client, db_session):
             running_balance=1000.0
         )
         db_session.add(tx)
-    
+
     # Current month: Huge expense (150€ > 2 * 50€)
     current_date = datetime(2026, 5, 15)
     current_tx = Transaction(
@@ -54,7 +56,7 @@ def test_anomaly_detection_category_increase(client, db_session):
     response = client.get("/analytics/insights", params={"month": 5, "year": 2026})
     assert response.status_code == 200
     data = response.json()
-    
+
     # Check for anomaly
     anomalies = [i for i in data["insights"] if i["type"] == "anomaly" and "Alerte catégorie" in i["title"]]
     assert len(anomalies) > 0
@@ -76,7 +78,7 @@ def test_no_anomaly_when_under_threshold(client, db_session):
             type="Sortie", merchant="SuperU", category_id=cat.id,
             amount=100.0, original_amount=100.0, currency="EUR", running_balance=1000.0
         ))
-    
+
     # Current month: Normal expense (120€ < 2 * 100€)
     db_session.add(Transaction(
         account_id=acc.id, date=datetime(2026, 5, 5), month_label="May 2026",
@@ -87,7 +89,7 @@ def test_no_anomaly_when_under_threshold(client, db_session):
 
     response = client.get("/analytics/insights", params={"month": 5, "year": 2026})
     data = response.json()
-    
+
     anomalies = [i for i in data["insights"] if i["type"] == "anomaly" and "Alerte catégorie" in i["title"]]
     assert len(anomalies) == 0
 

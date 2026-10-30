@@ -8,8 +8,8 @@ from app.core.logging import get_logger
 from app.domain.diversity import diversity_alerts, exposure_rows, hhi_score, look_through, score_label, top_companies
 from app.integrations.currency import get_exchange_rates
 from app.models.portfolio_holding import PortfolioHolding
-from app.repositories.investissement import etf_profiles as etf_repo
 from app.repositories.analytics import diversity as repo
+from app.repositories.investissement import etf_profiles as etf_repo
 from app.services.investissement.etf_profiles import auto_decompose_and_create_profile
 from app.services.investissement.market import quotes as market_quotes
 from app.services.investissement.market.search import match_etf_profile

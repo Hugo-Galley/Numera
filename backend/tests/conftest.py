@@ -9,17 +9,19 @@ from sqlalchemy.orm import Session, sessionmaker
 
 os.environ["APP_ENV"] = "test"
 
-from app.core.config import settings
 from app.core import security
+from app.core.config import settings
+
 settings.ADMIN_PASSWORD_HASH = security.get_password_hash("admin")
 
-from app.db.base import Base
-from app.db.session import enable_sqlite_foreign_keys, get_db as get_db_session
-from app.controllers.deps import get_db as get_db_deps
+from app import models  # noqa: F401
 from app.controllers.deps import get_current_user
-from app.main import app
+from app.controllers.deps import get_db as get_db_deps
 from app.core.login_rate_limit import login_rate_limiter, totp_rate_limiter
-from app import models # noqa: F401
+from app.db.base import Base
+from app.db.session import enable_sqlite_foreign_keys
+from app.db.session import get_db as get_db_session
+from app.main import app
 
 
 def _network_forbidden(*args, **kwargs):
@@ -56,7 +58,7 @@ def client(db_session: Session) -> Generator[TestClient, None, None]:
     totp_rate_limiter.clear()
     def override_get_db() -> Generator[Session, None, None]:
         yield db_session
-    
+
     def override_get_current_user() -> str:
         return "admin"
 

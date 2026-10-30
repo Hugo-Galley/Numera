@@ -1,10 +1,12 @@
 from datetime import datetime, timedelta
+
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
+from app.domain.finance import month_label_from_date
 from app.models.account import Account
 from app.models.transaction import Transaction
-from app.domain.finance import month_label_from_date
+
 
 def test_transfer_detection_and_linking(client: TestClient, db_session: Session):
     # 1. Create two accounts
@@ -45,7 +47,7 @@ def test_transfer_detection_and_linking(client: TestClient, db_session: Session)
     assert response.status_code == 200
     pairs = response.json()
     assert len(pairs) >= 1
-    
+
     # Check if our pair is found
     found = False
     for pair in pairs:
@@ -57,7 +59,7 @@ def test_transfer_detection_and_linking(client: TestClient, db_session: Session)
     # 4. Link them
     response = client.post(f"/transactions/{tx_out.id}/link/{tx_in.id}")
     assert response.status_code == 200
-    
+
     db_session.refresh(tx_out)
     db_session.refresh(tx_in)
     assert tx_out.is_transfer is True
@@ -76,7 +78,7 @@ def test_transfer_detection_and_linking(client: TestClient, db_session: Session)
     # 6. Unlink them
     response = client.post(f"/transactions/{tx_out.id}/unlink")
     assert response.status_code == 200
-    
+
     # 7. Verify analytics INCLUDE them again
     response = client.get("/analytics/budget", params={"month": 6, "year": 2026})
     assert response.status_code == 200

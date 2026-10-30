@@ -3,14 +3,14 @@ from datetime import datetime
 
 from sqlalchemy.orm import Session
 
-from app.services.investissement.holdings.replay import replay_account
 from app.domain.portfolio import uses_positions
-from app.services.investissement.portfolio import compute_portfolio
 from app.integrations.currency import get_exchange_rates
 from app.models.account import Account
 from app.repositories.analytics import investments as repo
 from app.services.analytics.investments.flows import calculate_investment_flows
 from app.services.budget.budget_period import period_bounds
+from app.services.investissement.holdings.replay import replay_account
+from app.services.investissement.portfolio import compute_portfolio
 
 
 async def compute_investments(db: Session, month: int | None = None, year: int | None = None,

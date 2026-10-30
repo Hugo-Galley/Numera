@@ -5,13 +5,13 @@ import pytest
 from pydantic import ValidationError
 
 from app.core.config import Settings, settings
-from app.services.systeme.demo import DEMO_STAMP_KEY, ensure_demo_data, generate_demo_data, is_blocked_in_demo, wipe_database
 from app.domain.finance import apply_transaction_to_balance
 from app.models.account import Account
 from app.models.investment_transaction import InvestmentTransaction
 from app.models.portfolio_holding import PortfolioHolding
 from app.models.system_setting import SystemSetting
 from app.models.transaction import Transaction
+from app.services.systeme.demo import DEMO_STAMP_KEY, ensure_demo_data, generate_demo_data, is_blocked_in_demo, wipe_database
 
 TODAY = date(2025, 3, 15)  # jamais « aujourd’hui » : ensure_demo_data doit voir un jeu périmé
 

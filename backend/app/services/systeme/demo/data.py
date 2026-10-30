@@ -6,7 +6,6 @@ import math
 import random
 from datetime import date, timedelta
 
-
 DEMO_SEED = 2026
 DEMO_MONTHS = 18
 

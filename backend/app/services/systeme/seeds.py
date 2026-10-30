@@ -28,14 +28,14 @@ def seed_default_categories(db: Session) -> int:
             if existing:
                 existing.group = group
                 updated += 1
-    
+
     if updated:
         db.commit()
 
-    # 2. Only seed new ones on a fresh install (empty table). 
+    # 2. Only seed new ones on a fresh install (empty table).
     if db.query(Category).first() is not None and updated == 0:
         return 0
-    
+
     if db.query(Category).first() is not None:
         return updated
 

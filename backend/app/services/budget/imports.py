@@ -12,18 +12,24 @@ from dataclasses import dataclass, field
 from sqlalchemy.orm import Session
 
 from app.core.errors import BusinessRuleError, NotFoundError
-from app.domain.finance import apply_transaction_to_balance, month_label_from_date
 from app.core.logging import get_logger
 from app.domain.csv_import import (
-    ImportRowError, ParsedRow, apply_import_rules, duplicate_key, is_blank, parse_csv, parse_row,
+    ImportRowError,
+    ParsedRow,
+    apply_import_rules,
+    duplicate_key,
+    is_blank,
+    parse_csv,
+    parse_row,
 )
+from app.domain.finance import apply_transaction_to_balance, month_label_from_date
 from app.models.account import Account
 from app.models.category import Category
 from app.models.import_log import ImportLog
 from app.models.transaction import Transaction
-from app.repositories.comptes import accounts as account_repo
 from app.repositories.budget import categorization_rules as rule_repo
 from app.repositories.budget import imports as repo
+from app.repositories.comptes import accounts as account_repo
 from app.services.budget.balances import recalculate_running_balances
 from app.services.budget.transfers import auto_link_transfers
 
@@ -126,7 +132,7 @@ def _parse_mapping(category_mapping: str | None) -> dict:
     try:
         return json.loads(category_mapping)
     except Exception:
-        raise BusinessRuleError("Invalid category_mapping JSON")
+        raise BusinessRuleError("Invalid category_mapping JSON") from None
 
 
 def _create_category(db: Session, run: _ImportRun, name: str) -> Category:

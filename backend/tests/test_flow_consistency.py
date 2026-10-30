@@ -74,12 +74,12 @@ def test_sankey_budget_node_is_balanced(client, scenario):
     names = [n["name"] for n in data["nodes"]]
     budget = names.index("Budget")
 
-    inflow = sum(l["value"] for l in data["links"] if l["target"] == budget)
-    outflow = sum(l["value"] for l in data["links"] if l["source"] == budget)
+    inflow = sum(link["value"] for link in data["links"] if link["target"] == budget)
+    outflow = sum(link["value"] for link in data["links"] if link["source"] == budget)
     assert inflow == pytest.approx(2000.0)
     assert outflow == pytest.approx(inflow)
 
-    out = {names[l["target"]]: l["value"] for l in data["links"] if l["source"] == budget}
+    out = {names[link["target"]]: link["value"] for link in data["links"] if link["source"] == budget}
     assert out["Investissements"] == 900.0
     assert out["Épargne"] == 800.0
 

@@ -1,12 +1,13 @@
-import pytest
+from datetime import date, datetime, timedelta
+
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
-from datetime import datetime, date, timedelta
 
+from app.domain.finance import month_label_from_date
 from app.models.account import Account
 from app.models.category import Category
 from app.models.transaction import Transaction
-from app.domain.finance import month_label_from_date
+
 
 def test_bulk_update_transactions(client: TestClient, db_session: Session):
     # Setup: Account, Category, Transactions
@@ -15,7 +16,7 @@ def test_bulk_update_transactions(client: TestClient, db_session: Session):
     cat2 = Category(name="Cat 2", type="depense")
     db_session.add_all([account, cat1, cat2])
     db_session.commit()
-    
+
     date1 = datetime(2026, 6, 1)
     date2 = datetime(2026, 6, 2)
     tx1 = Transaction(
@@ -44,7 +45,7 @@ def test_bulk_update_transactions(client: TestClient, db_session: Session):
     )
     db_session.add_all([tx1, tx2])
     db_session.commit()
-    
+
     # Bulk update: change category and merchant for both
     payload = {
         "ids": [tx1.id, tx2.id],
@@ -56,10 +57,10 @@ def test_bulk_update_transactions(client: TestClient, db_session: Session):
     if response.status_code == 422:
         print(f"Bulk update 422 error: {response.json()}")
     assert response.status_code == 204
-    
+
     db_session.refresh(tx1)
     db_session.refresh(tx2)
-    
+
     assert tx1.category_id == cat2.id
     assert tx1.merchant == "New Merchant"
     assert tx1.is_recurring is True
@@ -71,12 +72,12 @@ def test_budget_alerts(client: TestClient, db_session: Session):
     # Setup category with limit
     cat = Category(name="Food", type="depense", monthly_limit=100.0)
     account = Account(name="Wallet", type="courant", currency="EUR", active=True)
-    
+
     # Setup Ticket Restaurant account and active SalaryConfig
     tr_account = Account(name="Ticket Restaurant", type="courant", currency="EUR", active=True)
     db_session.add_all([cat, account, tr_account])
     db_session.commit()
-    
+
     from app.models.salary_config import SalaryConfig
     salary_config = SalaryConfig(
         salary_account_id=account.id,
@@ -88,7 +89,7 @@ def test_budget_alerts(client: TestClient, db_session: Session):
     )
     db_session.add(salary_config)
     db_session.commit()
-    
+
     # Add transaction exceeding limit
     client.post(
         "/transactions",
@@ -101,7 +102,7 @@ def test_budget_alerts(client: TestClient, db_session: Session):
             "amount": 120.0
         }
     )
-    
+
     # Add transaction in ticket restaurant account (should be ignored for budgets)
     client.post(
         "/transactions",
@@ -114,7 +115,7 @@ def test_budget_alerts(client: TestClient, db_session: Session):
             "amount": 15.0
         }
     )
-    
+
     response = client.get("/analytics/budget-alerts", params={"year": datetime.now().year, "month": datetime.now().month})
     assert response.status_code == 200
     alerts = response.json()
@@ -131,10 +132,10 @@ def test_intelligent_insights(client: TestClient, db_session: Session):
     account = Account(name="Checking", type="courant", currency="EUR", active=True)
     db_session.add(account)
     db_session.commit()
-    
+
     today = date.today()
     last_month = today.replace(day=1) - timedelta(days=1)
-    
+
     # Last month: 1000 spending
     dt_last = datetime.combine(last_month, datetime.min.time())
     db_session.add(Transaction(
@@ -143,7 +144,7 @@ def test_intelligent_insights(client: TestClient, db_session: Session):
         type="Sortie", merchant="Rent", amount=1000,
         original_amount=1000, currency="EUR", running_balance=0
     ))
-    
+
     # This month: 2000 spending (huge increase)
     dt_now = datetime.now()
     db_session.add(Transaction(
@@ -153,7 +154,7 @@ def test_intelligent_insights(client: TestClient, db_session: Session):
         original_amount=2000, currency="EUR", running_balance=0
     ))
     db_session.commit()
-    
+
     response = client.get("/analytics/insights", params={"year": today.year, "month": today.month})
     if response.status_code == 422:
         print(f"Insights 422 error: {response.json()}")

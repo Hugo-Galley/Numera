@@ -5,8 +5,8 @@ import pytest
 
 import app.integrations.currency as currency_mod
 import app.integrations.yahoo_finance as yahoo_finance
-import app.services.investissement.market.quotes as market_quotes
 import app.repositories.investissement.security_prices as security_prices
+import app.services.investissement.market.quotes as market_quotes
 from app.domain.tax_rules import rules_for
 from app.models.investment_transaction import InvestmentTransaction
 
@@ -101,6 +101,7 @@ def test_overview_wrapper_without_opening_date_alerts(client):
 
 def test_tax_routes_require_authentication(db_session):
     from fastapi.testclient import TestClient
+
     from app.main import app
 
     app.dependency_overrides.clear()

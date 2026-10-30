@@ -1,15 +1,16 @@
 from typing import List, Optional
+
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
 from app.schemas.holding import (
+    ApplyCostsRequest,
+    BaselineInventoryRequest,
+    CostEstimateRead,
     PortfolioHoldingCreate,
     PortfolioHoldingRead,
     PortfolioHoldingUpdate,
-    BaselineInventoryRequest,
-    CostEstimateRead,
-    ApplyCostsRequest,
 )
 from app.services.investissement.holdings import inventory as service
 

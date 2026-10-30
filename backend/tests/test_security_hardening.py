@@ -1,6 +1,5 @@
 """Audit R8, R9, R10 : documentation fermée en prod, JWT strict, limiteur de connexion borné."""
 import time
-from datetime import timedelta
 
 import jwt
 import pytest

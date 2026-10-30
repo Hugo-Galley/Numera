@@ -1,11 +1,12 @@
-import os
-import sqlite3
 import datetime
 import json
 import logging
+import os
+import sqlite3
 import sys
-from cryptography.fernet import Fernet
 from pathlib import Path
+
+from cryptography.fernet import Fernet
 
 # Configuration
 DB_PATH = os.getenv("DB_PATH", "/app/data/suivi_budget.db")

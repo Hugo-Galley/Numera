@@ -1,0 +1,20 @@
+target-version = "py311"
+line-length = 140
+
+[lint]
+select = ["E", "F", "W", "I", "B"]
+ignore = [
+    "E501",  # longueur de ligne : pas de formateur imposé, la taille est bornée par scripts/check_code_size.py
+    "B008",  # Depends()/Query() en valeur par défaut : idiome FastAPI
+    "E711",  # `== None` / `== True` requis dans les filtres SQLAlchemy
+    "E712",
+]
+
+[lint.per-file-ignores]
+# Relations SQLAlchemy annotées par chaîne (`Mapped["Account"]`), résolues par le registre
+"app/models/*.py" = ["F821"]
+# APP_ENV et le hash admin doivent être posés avant d'importer l'application
+"tests/conftest.py" = ["E402"]
+
+[lint.isort]
+known-first-party = ["app"]

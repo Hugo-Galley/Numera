@@ -74,7 +74,7 @@ def _read_mfa_token(db: Session, token: str) -> str:
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
     except jwt.PyJWTError:
-        raise HTTPException(status_code=401, detail="Étape de connexion expirée, recommencez")
+        raise HTTPException(status_code=401, detail="Étape de connexion expirée, recommencez") from None
     if payload.get("purpose") != "totp" or not payload.get("u"):
         raise HTTPException(status_code=401, detail="Étape de connexion invalide")
     # Un changement de mot de passe entre les deux étapes invalide l'étape en cours

@@ -5,19 +5,19 @@ from datetime import datetime
 from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 
-from app.services.budget.budget_period import period_bounds
-from app.integrations.currency import get_exchange_rates
 from app.core.time import utcnow_naive
 from app.domain.transactions import net_amount
+from app.integrations.currency import get_exchange_rates
 from app.models.account import Account
 from app.models.category import Category
 from app.models.month_closure import MonthClosure
 from app.models.transaction import Transaction
-from app.repositories.budget import month_review as repo
 from app.repositories.analytics.common import NET_AMOUNT, ticket_restaurant_account_ids
+from app.repositories.budget import month_review as repo
 from app.schemas.month_review import CloseRequest, ClosureRead
-from app.services.comptes.accounts import account_balance
 from app.services.analytics.budget import compute_budget, compute_budget_alerts
+from app.services.budget.budget_period import period_bounds
+from app.services.comptes.accounts import account_balance
 
 # Même liste que budget_analytics : ces catégories ne sont pas de la consommation
 INVESTMENT_CATEGORIES = ["Investissement", "Epargne"]

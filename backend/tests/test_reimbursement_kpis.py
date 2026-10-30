@@ -3,11 +3,11 @@ from datetime import datetime
 import pytest
 from sqlalchemy.orm import Session
 
-from app.services.budget import reimbursements as remb
 from app.domain.finance import month_label_from_date
 from app.models.account import Account
 from app.models.category import Category
 from app.models.transaction import Transaction
+from app.services.budget import reimbursements as remb
 
 
 def _tx(db, account, type_, amount, date, merchant, category=None):

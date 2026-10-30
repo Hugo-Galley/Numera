@@ -4,13 +4,13 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
-from app.services.budget.balances import recalculate_running_balances
 from app.domain.finance import month_label_from_date
 from app.models.account import Account
 from app.models.category import Category
 from app.models.recurring_transaction import RecurringTransaction
 from app.models.salary_config import SalaryConfig
 from app.models.transaction import Transaction
+from app.services.budget.balances import recalculate_running_balances
 
 
 def _tx(db: Session, account: Account, when: datetime, tx_type: str, amount: float, merchant: str, **kw) -> Transaction:

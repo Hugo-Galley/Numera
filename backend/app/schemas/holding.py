@@ -1,6 +1,8 @@
 from datetime import datetime
-from typing import Any, Dict, List, Optional
-from pydantic import BaseModel, Field
+from typing import List, Optional
+
+from pydantic import BaseModel
+
 from app.schemas.types import Amount, BoundedDatetime, Quantity
 
 
@@ -34,7 +36,7 @@ class PortfolioHoldingRead(PortfolioHoldingBase):
     id: int
     created_at: datetime
     updated_at: datetime
-    
+
     # Dynamic live market fields
     current_price: Optional[float] = None
     current_price_eur: Optional[float] = None

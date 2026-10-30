@@ -1,11 +1,11 @@
 """Rapprochement : dernier relevé du courtier vs valeur calculée par Numera."""
-from app.services.investissement.holdings.replay import replay_account
 from app.core.logging import get_logger
 from app.domain.portfolio import RECONCILIATION_THRESHOLD_PCT, uses_positions
-from app.services.investissement.portfolio import compute_portfolio
 from app.repositories.analytics import audit as repo
 from app.schemas.insight import ActionItem
 from app.services.audit.context import AuditContext
+from app.services.investissement.holdings.replay import replay_account
+from app.services.investissement.portfolio import compute_portfolio
 
 logger = get_logger(__name__)
 

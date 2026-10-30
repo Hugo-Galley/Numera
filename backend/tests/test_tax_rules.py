@@ -4,7 +4,14 @@ from datetime import date
 import pytest
 
 from app.domain.tax import (
-    PeeLot, av_status, livret_a_status, livret_jeune_status, pea_status, pee_status, per_deduction_ceiling, per_status,
+    PeeLot,
+    av_status,
+    livret_a_status,
+    livret_jeune_status,
+    pea_status,
+    pee_status,
+    per_deduction_ceiling,
+    per_status,
     years_between,
 )
 from app.domain.tax_rules import rules_for

@@ -1,7 +1,7 @@
 """Tests for excluded_months feature in recurring transactions."""
-import pytest
 from datetime import datetime
 from unittest.mock import MagicMock
+
 from app.domain.finance import get_recurring_occurrences
 
 

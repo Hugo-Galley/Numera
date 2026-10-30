@@ -3,7 +3,8 @@
 Règles et constantes : `domain/portfolio.py` ; XIRR / TWR : `domain/performance.py`. Le calcul lit la base
 et les cours stockés (`security_prices`), étape par étape : positions, flux, ouverture, revenus, courbe.
 """
-from datetime import date as date_type, datetime
+from datetime import date as date_type
+from datetime import datetime
 
 from sqlalchemy.orm import Session
 

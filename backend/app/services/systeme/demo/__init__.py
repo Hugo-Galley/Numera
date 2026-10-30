@@ -15,7 +15,6 @@ from sqlalchemy.orm import Session
 from app.core.logging import get_logger
 from app.db.base import Base
 from app.models.system_setting import SystemSetting
-
 from app.services.systeme.demo.generator import generate_demo_data
 from app.services.systeme.demo.guard import DEMO_STAMP_KEY, is_blocked_in_demo
 

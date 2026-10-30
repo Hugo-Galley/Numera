@@ -7,11 +7,11 @@ from datetime import datetime, timedelta
 
 from sqlalchemy.orm import Session
 
-from app.integrations import currency as currency_module
-from app.domain.finance import month_label_from_date
 from app.core.logging import get_logger
 from app.core.time import utcnow_naive
+from app.domain.finance import month_label_from_date
 from app.domain.transfers import Leg, Pair, match_pairs, matches_pattern
+from app.integrations import currency as currency_module
 from app.models.account import Account
 from app.models.investment_transaction import InvestmentTransaction
 from app.models.transaction import Transaction

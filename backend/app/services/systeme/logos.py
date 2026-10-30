@@ -11,11 +11,11 @@ async def logo_from_domain(domain: str) -> dict:
     try:
         normalized = logos.normalize_domain(domain)
     except ValueError:
-        raise BusinessRuleError("Invalid domain")
+        raise BusinessRuleError("Invalid domain") from None
     try:
         return {"ref": await logos.fetch_favicon_ref(normalized)}
     except logos.LogoError as exc:
-        raise NotFoundError(str(exc))
+        raise NotFoundError(str(exc)) from exc
 
 
 def get_logo_image(ref: str) -> tuple[bytes | str, str]:

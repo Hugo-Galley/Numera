@@ -1,13 +1,16 @@
 import asyncio
+from datetime import date as date_type
 from datetime import datetime, timedelta
 
 from sqlalchemy.orm import Session
 
-from app.services.budget.recurring import generate_recurring_transactions
+import app.services.investissement.market.quotes as market_quotes
 from app.models.account import Account
 from app.models.investment_transaction import InvestmentTransaction
+from app.models.portfolio_holding import PortfolioHolding
 from app.models.recurring_transaction import RecurringTransaction
 from app.models.transaction import Transaction
+from app.services.budget.recurring import generate_recurring_transactions
 
 
 def accounts(db: Session, dest_type="epargne", dest_currency="EUR"):
@@ -76,10 +79,6 @@ def test_transfer_recurrence_validation(client, db_session: Session):
 
 # ─── DCA : virement + achat de parts en un seul mouvement ─────────────────────
 
-from datetime import date as date_type
-
-import app.services.investissement.market.quotes as market_quotes
-from app.models.portfolio_holding import PortfolioHolding
 
 
 def fake_market(monkeypatch):
@@ -97,7 +96,7 @@ def fake_market(monkeypatch):
 def test_dca_transfer_buys_shares_at_historical_price(db_session: Session, monkeypatch):
     fake_market(monkeypatch)
     main, pea = accounts(db_session, dest_type="investissement")
-    rd = recurring(db_session, main, pea.id, ticker="CW8.PA")
+    recurring(db_session, main, pea.id, ticker="CW8.PA")
 
     asyncio.run(generate_recurring_transactions(db_session))
 

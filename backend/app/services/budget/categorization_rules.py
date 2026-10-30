@@ -1,11 +1,11 @@
 from sqlalchemy.orm import Session
 
-from app.services.budget import reimbursements as remb
 from app.core.errors import NotFoundError
 from app.models.categorization_rule import CategorizationRule
 from app.models.transaction import Transaction
 from app.repositories.budget import categorization_rules as repo
 from app.schemas.categorization_rule import CategorizationRuleCreate, CategorizationRuleUpdate
+from app.services.budget import reimbursements as remb
 from app.services.budget.balances import recalculate_running_balances
 
 

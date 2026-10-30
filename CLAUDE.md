@@ -33,8 +33,9 @@ make setup                 # premier lancement (setup.sh), crée .env depuis .en
 make dev                   # Docker : docker compose -f infra/docker-compose.yml up --build
 make prod                  # docker-compose.prod.yml
 make test                  # pytest backend (backend/venv si présent, sinon python3.12/3.11 ; PYTHON=... pour forcer)
+make lint / lint-fix       # ruff sur backend/ (règles : backend/ruff.toml), lint-fix corrige ce qui est sûr
 make check-size            # plafonds de taille (fichier/fonction), baseline à cliquet scripts/code_size_baseline.json
-make validate              # check-size + tests backend + build frontend
+make validate              # lint + check-size + tests backend + build frontend
 make backend-seed-demo     # données de démo (backend/data/demo.db, jamais la vraie base)
 make demo / demo-down      # instance de démo publique (docker-compose.demo.yml, port 8090, demo/demo)
 make backup-now            # backup dans le conteneur

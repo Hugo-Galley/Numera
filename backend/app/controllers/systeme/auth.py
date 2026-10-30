@@ -2,19 +2,20 @@ import time
 from datetime import timedelta
 from typing import Any
 
+import jwt
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordRequestForm
-import jwt
 from sqlalchemy.orm import Session
 
+from app.controllers.deps import get_current_user, optional_oauth2, require_interactive_session
 from app.core import security
 from app.core.config import settings
-from app.core.mcp_tokens import is_mcp_token
 from app.core.logging import get_logger
 from app.core.login_events import record_login
 from app.core.login_rate_limit import client_key, login_rate_limiter
-from app.controllers.deps import get_current_user, optional_oauth2, require_interactive_session
-from app.core.totp import create_mfa_token, is_enabled as totp_enabled
+from app.core.mcp_tokens import is_mcp_token
+from app.core.totp import create_mfa_token
+from app.core.totp import is_enabled as totp_enabled
 from app.db.session import get_db
 from app.db.system_settings import get_setting
 
@@ -61,7 +62,7 @@ def login_access_token(
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    
+
     login_rate_limiter.reset(key)
     # Double authentification active : pas encore de session, seulement un jeton pour l'étape du code
     if totp_enabled(db):

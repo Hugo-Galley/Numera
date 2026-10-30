@@ -1,10 +1,10 @@
 """Centre d'Actions : registre ordonné de règles, une règle en échec n'emporte pas les autres."""
 import asyncio
+from datetime import datetime
 
 import app.services.audit as audit
 from app.models.account import Account
 from app.models.transaction import Transaction
-from datetime import datetime
 
 EXPECTED_ORDER = [
     "uncategorized", "duplicates", "missing_snapshots", "missing_salary", "benefits",

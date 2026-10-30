@@ -17,6 +17,7 @@ Complète le `CLAUDE.md` racine. Procédures pas-à-pas : skill `numera-backend`
 
 ## Règles de code
 
+- Lint : `make lint` (ruff, `backend/ruff.toml` : pyflakes, pycodestyle, isort, bugbear), bloquant en CI. Pas de `# noqa` sans motif écrit sur la ligne ; ne pas élargir `ignore` pour faire passer un écart. Exception relancée dans un `except` : `raise … from exc` (ou `from None` pour masquer volontairement la cause).
 - Typer arguments et retours. Logger : `from app.core.logging import get_logger; logger = get_logger(__name__)` (jamais de `print`, jamais de JWT/hash/secret dans les logs).
 - Erreurs : dans un service, lever `NotFoundError` / `BusinessRuleError` (422) / `ConflictError` / `InternalError` (`app.core.errors`, `code` + `context` optionnels pour une erreur structurée) ; jamais d'`HTTPException` hors de `controllers/`. `HTTPException` reste réservée aux controllers pour 401/403 (auth), 413 et 429.
 - Modèles : `Mapped` / `mapped_column`, index sur `account_id`, `date`, `merchant`, FK. Pas de logique métier dans les modèles → `app/services/` (ou `app/domain/` si calcul pur).

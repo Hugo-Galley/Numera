@@ -1,5 +1,6 @@
-from pydantic import BaseModel, Field
 from typing import List, Optional
+
+from pydantic import BaseModel, Field
 
 
 class MetricDetail(BaseModel):
@@ -223,7 +224,7 @@ class MoneyFlowReport(BaseModel):
     savings: MoneyFlowBlock
     investments: MoneyFlowBlock
     remainder: MoneyFlowBlock
-    
+
     top_fixed: List[MoneyFlowItem]
     top_variable: List[MoneyFlowItem]
     top_savings: List[MoneyFlowItem]

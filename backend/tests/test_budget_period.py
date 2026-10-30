@@ -1,15 +1,16 @@
 from datetime import datetime
+from itertools import pairwise
 
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
-from app.services.budget import budget_period
 from app.domain.finance import month_label_from_date
 from app.models.account import Account
 from app.models.category import Category
 from app.models.salary_config import SalaryConfig
 from app.models.transaction import Transaction
+from app.services.budget import budget_period
 
 
 def _tx(db: Session, account: Account, when: datetime, tx_type: str, amount: float, merchant: str, **kw) -> Transaction:
@@ -129,7 +130,7 @@ def test_every_day_belongs_to_exactly_one_period(db_session: Session):
         [],
     )
     periods = budget_period.build_periods(db_session)
-    for before, after in zip(periods, periods[1:]):
+    for before, after in pairwise(periods):
         assert before.end == after.start, (before, after)
     assert len({(p.year, p.month) for p in periods}) == len(periods)
 
@@ -142,7 +143,7 @@ def test_second_salary_in_same_financed_month_keeps_coverage(client: TestClient,
         [(datetime(2026, 2, 20), 70.0)],
     )
     periods = budget_period.build_periods(db_session)
-    for before, after in zip(periods, periods[1:]):
+    for before, after in pairwise(periods):
         assert before.end == after.start, (before, after)
     feb = client.get("/analytics/budget", params={"month": 2, "year": 2026}).json()
     assert feb["depenses_totales"] == 70.0

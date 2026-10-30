@@ -1,7 +1,6 @@
 from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-
 INSECURE_SECRET_VALUES = {
     "",
     "placeholder-key-to-be-replaced-in-env",

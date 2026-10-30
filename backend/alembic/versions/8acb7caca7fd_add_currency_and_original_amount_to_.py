@@ -7,9 +7,9 @@ Create Date: 2026-05-19 19:43:20.586984
 """
 from typing import Sequence, Union
 
-from alembic import op
 import sqlalchemy as sa
 
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision: str = '8acb7caca7fd'
@@ -23,7 +23,7 @@ def upgrade() -> None:
     op.add_column('transactions', sa.Column('currency', sa.String(length=3), nullable=False, server_default='EUR'))
     op.add_column('transactions', sa.Column('original_amount', sa.Float(), nullable=True))
     op.execute("UPDATE transactions SET original_amount = amount")
-    
+
     # Investment Transactions
     op.add_column('investment_transactions', sa.Column('currency', sa.String(length=3), nullable=False, server_default='EUR'))
     op.add_column('investment_transactions', sa.Column('original_amount', sa.Float(), nullable=True))

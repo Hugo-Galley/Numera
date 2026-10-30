@@ -1,11 +1,10 @@
-import pytest
-from fastapi.testclient import TestClient
-from sqlalchemy.orm import Session
 from datetime import datetime
 
+from fastapi.testclient import TestClient
+from sqlalchemy.orm import Session
+
 from app.models.account import Account
-from app.models.tag import Tag
-from app.models.transaction import Transaction
+
 
 def test_create_and_list_tags(client: TestClient):
     # Create tag
@@ -78,7 +77,7 @@ def test_transaction_with_tags(client: TestClient, db_session: Session):
     assert response.status_code == 204
 
     # Verify bulk update
-    response = client.get(f"/transactions?search=Amazon")
+    response = client.get("/transactions?search=Amazon")
     txs = response.json()
     assert any(tx["id"] == tx_id and len(tx["tags"]) == 1 for tx in txs)
 

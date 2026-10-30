@@ -1,7 +1,9 @@
 from datetime import datetime
+
 from app.models.account import Account
 from app.models.category import Category
 from app.models.transaction import Transaction
+
 
 def _tx(account_id: int, date: datetime, merchant: str, amount: float, type: str, category_id: int | None = None):
     return Transaction(
@@ -63,7 +65,7 @@ def test_sankey_flow_nodes_grouping_and_sorting(client, db_session):
 
     # Verify nodes structure
     node_names = [n["name"] for n in nodes]
-    
+
     # "Budget" must be present
     assert "Budget" in node_names
     # Groups must be present
@@ -87,10 +89,10 @@ def test_sankey_flow_nodes_grouping_and_sorting(client, db_session):
     # And categories under each group must be adjacent and sorted by value descending:
     # "Transports" (195.0) then "Abonnement" (19.0)
     # "Cadeaux" (104.0) then "Sortie" (52.0)
-    
+
     fixe_idx = node_names.index("Fixe")
     loisirs_idx = node_names.index("Loisirs")
-    
+
     transports_idx = node_names.index("Transports")
     abonnement_idx = node_names.index("Abonnement")
     cadeaux_idx = node_names.index("Cadeaux")
@@ -101,23 +103,23 @@ def test_sankey_flow_nodes_grouping_and_sorting(client, db_session):
     assert transports_idx < abonnement_idx
     # Categories under "Loisirs" must be grouped together
     assert cadeaux_idx < sortie_idx
-    
+
     # Since "Fixe" comes before "Loisirs", its categories should come before "Loisirs"'s categories
     assert abonnement_idx < cadeaux_idx
 
     # Check link values
     # Budget -> Fixe link
     budget_idx = node_names.index("Budget")
-    budget_to_fixe_links = [l for l in links if l["source"] == budget_idx and l["target"] == fixe_idx]
+    budget_to_fixe_links = [link for link in links if link["source"] == budget_idx and link["target"] == fixe_idx]
     assert len(budget_to_fixe_links) == 1
     assert budget_to_fixe_links[0]["value"] == 214.0
 
     # Budget -> Loisirs link
-    budget_to_loisirs_links = [l for l in links if l["source"] == budget_idx and l["target"] == loisirs_idx]
+    budget_to_loisirs_links = [link for link in links if link["source"] == budget_idx and link["target"] == loisirs_idx]
     assert len(budget_to_loisirs_links) == 1
     assert budget_to_loisirs_links[0]["value"] == 156.0
 
     # Budget -> Nourriture link (direct link)
-    budget_to_nourriture_links = [l for l in links if l["source"] == budget_idx and l["target"] == nourriture_idx]
+    budget_to_nourriture_links = [link for link in links if link["source"] == budget_idx and link["target"] == nourriture_idx]
     assert len(budget_to_nourriture_links) == 1
     assert budget_to_nourriture_links[0]["value"] == 57.0

@@ -3,7 +3,6 @@
 Chaque test relit les soldes dans une session NEUVE : un appelant qui oublierait de commiter
 après le recalcul laisserait des soldes faux en base.
 """
-import json
 from datetime import datetime
 
 from sqlalchemy.orm import sessionmaker

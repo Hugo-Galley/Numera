@@ -69,8 +69,8 @@ def test_password_login_requires_code(client, db_session):
 
 
 def test_mfa_token_is_not_a_session(client):
-    from app.main import app
     from app.controllers.deps import get_current_user
+    from app.main import app
 
     _enable(client)
     mfa_token = _login(client).json()["mfa_token"]

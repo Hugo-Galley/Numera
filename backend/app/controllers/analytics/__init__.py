@@ -1,13 +1,14 @@
 from fastapi import APIRouter
+
 from .audit import router as audit_router
 from .budget import router as budget_router
-from .investments import router as investments_router
-from .insights import router as insights_router
-from .subscriptions import router as subscriptions_router
-from .reports import router as reports_router
-from .metrics import router as metrics_router
 from .dividends import router as dividends_router
+from .insights import router as insights_router
+from .investments import router as investments_router
+from .metrics import router as metrics_router
 from .portfolio import router as portfolio_router
+from .reports import router as reports_router
+from .subscriptions import router as subscriptions_router
 from .wrapped import router as wrapped_router
 
 router = APIRouter(prefix="/analytics", tags=["analytics"])

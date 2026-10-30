@@ -2,61 +2,62 @@ import asyncio
 import time
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Depends, Request
+from fastapi import Depends, FastAPI, Request
 from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from sqlalchemy.exc import IntegrityError
 
-from app.controllers.systeme.auth import router as auth_router
-from app.controllers.systeme.passkeys import router as passkeys_router
-from app.controllers.systeme.totp import router as totp_router
-from app.controllers.comptes.accounts import router as accounts_router
+from app import models  # noqa: F401
 from app.controllers.analytics import router as analytics_router
-from app.controllers.systeme.admin import router as admin_router
-from app.controllers.comptes.balance_snapshots import router as balance_snapshots_router
+from app.controllers.analytics.diversity import router as diversity_router
+from app.controllers.budget.benefits import router as benefits_router
 from app.controllers.budget.categories import router as categories_router
-from app.controllers.budget.exports import router as exports_router
-from app.controllers.systeme.health import router as health_router
-from app.controllers.budget.imports import router as imports_router
-from app.controllers.investissement.investment_transactions import router as investment_transactions_router
-from app.controllers.budget.transactions import router as transactions_router
-from app.controllers.budget.recurring_transactions import router as recurring_transactions_router
-from app.controllers.systeme.logos import router as logos_router, public_router as logos_public_router
-from app.controllers.budget.savings_goals import router as savings_goals_router
 from app.controllers.budget.categorization_rules import router as categorization_rules_router
+from app.controllers.budget.exports import router as exports_router
+from app.controllers.budget.imports import router as imports_router
 from app.controllers.budget.merchants import router as merchants_router
-from app.controllers.budget.tags import router as tags_router
-from app.controllers.budget.salary import router as salary_router
-from app.controllers.investissement.market import router as market_router
-from app.controllers.investissement.etf_profiles import router as etf_profiles_router
-from app.controllers.investissement.holdings import router as holdings_router
-from app.controllers.investissement.tax import router as tax_router
-from app.controllers.budget.transfer_rules import router as transfer_rules_router
-from app.controllers.budget.reimbursements import router as reimbursements_router
 from app.controllers.budget.month_review import router as month_review_router
 from app.controllers.budget.provisions import router as provisions_router
-from app.controllers.budget.benefits import router as benefits_router
+from app.controllers.budget.recurring_transactions import router as recurring_transactions_router
+from app.controllers.budget.reimbursements import router as reimbursements_router
+from app.controllers.budget.salary import router as salary_router
+from app.controllers.budget.savings_goals import router as savings_goals_router
+from app.controllers.budget.tags import router as tags_router
+from app.controllers.budget.transactions import router as transactions_router
+from app.controllers.budget.transfer_rules import router as transfer_rules_router
+from app.controllers.comptes.accounts import router as accounts_router
+from app.controllers.comptes.balance_snapshots import router as balance_snapshots_router
 from app.controllers.comptes.financial_events import router as financial_events_router
 from app.controllers.comptes.loans import router as loans_router
-from app.controllers.systeme.notifications import router as notifications_router
-from app.controllers.analytics.diversity import router as diversity_router
 from app.controllers.deps import get_current_user
+from app.controllers.investissement.etf_profiles import router as etf_profiles_router
+from app.controllers.investissement.holdings import router as holdings_router
+from app.controllers.investissement.investment_transactions import router as investment_transactions_router
+from app.controllers.investissement.market import router as market_router
+from app.controllers.investissement.tax import router as tax_router
+from app.controllers.systeme.admin import router as admin_router
+from app.controllers.systeme.auth import router as auth_router
+from app.controllers.systeme.health import router as health_router
+from app.controllers.systeme.logos import public_router as logos_public_router
+from app.controllers.systeme.logos import router as logos_router
+from app.controllers.systeme.notifications import router as notifications_router
+from app.controllers.systeme.passkeys import router as passkeys_router
+from app.controllers.systeme.totp import router as totp_router
 from app.core.config import settings
-from app.integrations.currency import CurrencyConversionError
 from app.core.errors import DomainError
-from app.services.systeme.demo import ensure_demo_data, is_blocked_in_demo
+from app.core.logging import get_logger, setup_logging
 from app.core.migrations import run_migrations
-from app.services.systeme.seeds import seed_all
 from app.db.session import SessionLocal
-from app.core.logging import setup_logging, get_logger
-from app.services.investissement.etf_profiles import refresh_held_etf_profiles
-from app.services.systeme.notifications import run_notifications
-from app.services.investissement.market.quotes import refresh_held_prices
+from app.integrations.currency import CurrencyConversionError
 from app.services.budget.recurring import generate_recurring_transactions
 from app.services.budget.salary_generation import check_and_generate_pending_salaries
-from app import models  # noqa: F401
+from app.services.investissement.etf_profiles import refresh_held_etf_profiles
+from app.services.investissement.market.quotes import refresh_held_prices
+from app.services.systeme.demo import ensure_demo_data, is_blocked_in_demo
+from app.services.systeme.notifications import run_notifications
+from app.services.systeme.seeds import seed_all
 
 # Initialize logging
 setup_logging()
@@ -88,7 +89,7 @@ async def recurring_transactions_task():
                 db.close()
         except Exception as e:
             logger.error(f"Error in recurring transactions task: {e}")
-        
+
         # Run every hour
         await asyncio.sleep(3600)
 
@@ -125,10 +126,10 @@ async def lifespan(_: FastAPI):
             logger.info("DEBUG: Seeding completed.")
         finally:
             db.close()
-        
+
         logger.info("DEBUG: Starting background task...")
         background_task = asyncio.create_task(recurring_transactions_task())
-    
+
     logger.info("DEBUG: Lifespan setup complete. Yielding...")
     yield
 
@@ -196,11 +197,11 @@ async def log_requests(request: Request, call_next):
     try:
         response = await call_next(request)
         process_time = (time.time() - start_time) * 1000
-        
+
         # Don't log health check to keep logs clean unless they fail
         if request.url.path == "/health" and response.status_code == 200:
             return response
-            
+
         logger.info(
             f"method={request.method} path={request.url.path} "
             f"status={response.status_code} duration={process_time:.2f}ms"
@@ -210,7 +211,7 @@ async def log_requests(request: Request, call_next):
         process_time = (time.time() - start_time) * 1000
         logger.error(
             f"method={request.method} path={request.url.path} "
-            f"error={str(e)} duration={process_time:.2f}ms", 
+            f"error={str(e)} duration={process_time:.2f}ms",
             exc_info=True
         )
         # Réponse JSON ici (sous CORSMiddleware) : un 500 laissé à Starlette n'aurait pas

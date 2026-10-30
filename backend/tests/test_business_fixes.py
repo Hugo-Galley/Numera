@@ -7,10 +7,8 @@ import pytest
 from app.integrations import currency as currency_module
 from app.models.account import Account
 from app.models.balance_snapshot import BalanceSnapshot
-from app.models.investment_transaction import InvestmentTransaction
 from app.models.portfolio_holding import PortfolioHolding
 from app.models.transaction import Transaction
-
 
 # ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -255,8 +253,8 @@ def test_holding_gain_converts_cost_basis_to_eur(client, db_session, monkeypatch
     async def fake_historical_rate(db, date, currency, base="EUR"):
         return {"EUR": 1.0, "USD": 2.0}[currency]
 
-    import app.services.investissement.holdings.enrich as holdings_api
     import app.integrations.currency as currency_mod
+    import app.services.investissement.holdings.enrich as holdings_api
 
     monkeypatch.setattr(holdings_api, "get_exchange_rates", fake_rates)
     monkeypatch.setattr(holdings_api, "get_market_quotes", fake_quotes)
@@ -276,8 +274,8 @@ def test_holding_gain_converts_cost_basis_to_eur(client, db_session, monkeypatch
 
 
 def test_etf_profile_matching_ignores_empty_and_short_names(db_session):
-    from app.services.investissement.market.search import match_etf_profile
     from app.models.etf_profile import EtfProfile
+    from app.services.investissement.market.search import match_etf_profile
 
     db_session.add(EtfProfile(ticker="CW8.PA", name="Amundi MSCI World", aliases="[]"))
     db_session.commit()

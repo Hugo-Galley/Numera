@@ -1,5 +1,7 @@
+from typing import List, Optional
+
 from pydantic import BaseModel, ConfigDict, Field, field_validator
-from typing import Optional, List
+
 
 def _clean_label(value: str) -> str:
     value = (value or "").strip()
@@ -19,7 +21,7 @@ class MerchantAliasCreate(MerchantAliasBase):
 class MerchantAlias(MerchantAliasBase):
     id: int
     merchant_id: int
-    
+
     model_config = ConfigDict(from_attributes=True)
 
 class MerchantBase(BaseModel):

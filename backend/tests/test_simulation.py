@@ -1,4 +1,3 @@
-import pytest
 
 def test_wealth_simulation_basic(client, db_session):
     # 10000€, 0 contribution, 10% interest, 1 year
@@ -81,7 +80,7 @@ def test_wealth_simulation_advanced(client, db_session):
     assert "pessimistic_final" in data
     assert "median_final" in data
     assert "optimistic_final" in data
-    
+
     # Check that events were captured in items
     items = data["items"]
     assert len(items) == 4 # Year 0, 1, 2, 3

@@ -8,7 +8,8 @@ espèces s'annule. Les snapshots (`balance_snapshots`) ne servent plus qu'au rap
 du courtier.
 """
 from dataclasses import dataclass
-from datetime import date as date_type, datetime, timedelta
+from datetime import date as date_type
+from datetime import datetime, timedelta
 
 from app.domain.holdings import Replay
 from app.models.account import Account

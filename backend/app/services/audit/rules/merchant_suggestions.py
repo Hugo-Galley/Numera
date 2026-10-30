@@ -20,12 +20,12 @@ def detect(ctx: AuditContext) -> list[ActionItem]:
             severity="low",
             title=f"Normalisation suggérée : {main_label}",
             description=(
-                f"{len(labels)} écritures pour le même marchand ({', '.join(repr(l) for l, _ in labels[:4])}), "
+                f"{len(labels)} écritures pour le même marchand ({', '.join(repr(label) for label, _ in labels[:4])}), "
                 f"{total} transactions. Les regrouper sous un marchand canonique ?"
             ),
             action_label="Normaliser",
             action_url="/classement?tab=merchants",
             action_type="modal_merchant",
-            metadata={"merchant": main_label, "count": total, "variants": [l for l, _ in labels]}
+            metadata={"merchant": main_label, "count": total, "variants": [label for label, _ in labels]}
         ))
     return actions

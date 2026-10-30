@@ -1,5 +1,6 @@
 """Cours des titres : cotation actuelle (cache mémoire 1 h, enregistrée en base), historique et cours à une date."""
-from datetime import date as date_type, datetime, timedelta
+from datetime import date as date_type
+from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
 from sqlalchemy.orm import Session
@@ -170,7 +171,7 @@ async def fetch_price_history(db: Session, ticker: str, start: date_type) -> int
     timestamps = result.get("timestamp") or []
     closes = ((result.get("indicators") or {}).get("quote") or [{}])[0].get("close") or []
     count = 0
-    for ts, close in zip(timestamps, closes):
+    for ts, close in zip(timestamps, closes, strict=False):
         if close is None:
             continue
         price, currency = normalize_price(close, raw_currency)

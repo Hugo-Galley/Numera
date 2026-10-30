@@ -1,6 +1,6 @@
-from datetime import datetime
 import csv
 import io
+from datetime import datetime
 
 from app.models.account import Account
 from app.models.balance_snapshot import BalanceSnapshot
@@ -140,7 +140,7 @@ def test_patch_investment_transaction_and_snapshot(client):
     assert patched_tx.json()["amount"] == 1200.0
     assert patched_tx.json()["type"] == "retrait"
 
-    snap_a = client.post(
+    client.post(
         "/balance-snapshots",
         json={"account_id": account["id"], "date": "2026-02-02T10:00:00", "current_value": 1400, "is_zero_point": True},
     ).json()
@@ -335,7 +335,7 @@ def test_export_csv_multiple_accounts(client):
     assert response.status_code == 200
     reader = csv.reader(io.StringIO(response.text))
     rows = list(reader)
-    
+
     # Header + 2 rows
     assert len(rows) == 3
     # Check account names
@@ -368,7 +368,7 @@ def test_export_csv_includes_investments(client):
     assert response.status_code == 200
     reader = csv.reader(io.StringIO(response.text))
     rows = list(reader)
-    
+
     # Header + 1 row
     assert len(rows) == 2
     assert rows[1][0] == "Compte Titres"

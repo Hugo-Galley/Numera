@@ -3,6 +3,7 @@ from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
+
 class AdminProfile(BaseModel):
     username: str
     profile_picture_url: Optional[str] = None

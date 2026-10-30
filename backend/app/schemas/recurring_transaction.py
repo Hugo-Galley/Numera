@@ -1,9 +1,11 @@
+import re
 from datetime import datetime
 from typing import Annotated, Literal
-import re
+
 from pydantic import BaseModel, Field, field_validator, model_validator
+
 from app.schemas.category import CategoryRead
-from app.schemas.types import Amount, Quantity, BoundedDatetime
+from app.schemas.types import Amount, BoundedDatetime, Quantity
 
 LOGO_REF_RE = re.compile(r"^(si:[a-z0-9]{1,60}|file:[0-9a-f]{16}\.png)$")
 

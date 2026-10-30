@@ -3,11 +3,8 @@ from datetime import date, datetime
 
 from sqlalchemy.orm import Session
 
-from app.services.comptes.accounts import account_balance
-from app.services.analytics.budget import compute_resilience
 from app.core.logging import get_logger
-from app.services.investissement.dividends import load_dividends_eur
-from app.services.investissement.holdings.replay import replay_account
+from app.db.system_settings import get_setting, set_setting
 from app.domain.tax import (
     PeeLot,
     allocation_advice,
@@ -22,11 +19,23 @@ from app.domain.tax import (
     per_status,
 )
 from app.domain.tax_rules import rules_for
-from app.db.system_settings import get_setting, set_setting
 from app.models.account import Account
 from app.models.balance_snapshot import BalanceSnapshot
 from app.models.investment_transaction import InvestmentTransaction
-from app.schemas.tax import AllocationAdvice, AnnualReport, CtoYearRow, TaxOverview, TaxSettings, TaxSettingsUpdate, WrapperCard, WrapperSuggestion
+from app.schemas.tax import (
+    AllocationAdvice,
+    AnnualReport,
+    CtoYearRow,
+    TaxOverview,
+    TaxSettings,
+    TaxSettingsUpdate,
+    WrapperCard,
+    WrapperSuggestion,
+)
+from app.services.analytics.budget import compute_resilience
+from app.services.comptes.accounts import account_balance
+from app.services.investissement.dividends import load_dividends_eur
+from app.services.investissement.holdings.replay import replay_account
 
 logger = get_logger(__name__)
 

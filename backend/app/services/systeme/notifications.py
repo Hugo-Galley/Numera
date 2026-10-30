@@ -20,13 +20,13 @@ from sqlalchemy.orm import Session
 
 from app.core.errors import ExternalServiceError, InvalidOperationError
 from app.core.logging import get_logger
+from app.db.system_settings import get_setting, set_setting
 from app.integrations.notifications import DEFAULT_NTFY_SERVER, Channel, NtfyChannel, TelegramChannel, send_all
+from app.models.notification_log import NotificationLog
+from app.schemas.insight import ActionItem
 from app.services.analytics.budget import compute_budget
 from app.services.analytics.reports import compute_cashflow_projection
 from app.services.audit import compute_action_center
-from app.db.system_settings import get_setting, set_setting
-from app.models.notification_log import NotificationLog
-from app.schemas.insight import ActionItem
 
 logger = get_logger(__name__)
 

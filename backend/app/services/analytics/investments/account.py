@@ -4,13 +4,13 @@ from datetime import datetime
 from sqlalchemy.orm import Session
 
 from app.core.errors import BusinessRuleError, NotFoundError
-from app.services.investissement.holdings.replay import replay_account
 from app.domain.portfolio import uses_positions
-from app.services.investissement.portfolio import compute_portfolio
 from app.integrations.currency import convert_amount
 from app.models.account import Account
 from app.repositories.analytics import investments as repo
 from app.services.analytics.investments.flows import FEE_KEYWORDS, INTEREST_CATEGORIES, calculate_investment_flows
+from app.services.investissement.holdings.replay import replay_account
+from app.services.investissement.portfolio import compute_portfolio
 
 
 def _require_investment_account(db: Session, account_id: int) -> Account:

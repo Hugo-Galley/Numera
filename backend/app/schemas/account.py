@@ -5,7 +5,6 @@ from pydantic import BaseModel, Field, field_validator
 
 from app.schemas.recurring_transaction import _check_logo
 
-
 TaxWrapper = Literal["pea", "per", "cto", "assurance_vie", "livret_a", "livret_jeune", "pee", "ldds", "lep"]
 # Types reconnus par les calculs ; un type inconnu (ex. « bank ») était classé au hasard selon les vues.
 # La lecture reste en `str` pour ne pas casser d'anciens comptes déjà enregistrés avec un autre type.

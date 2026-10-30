@@ -14,12 +14,12 @@ from datetime import date, datetime, timedelta
 
 from sqlalchemy.orm import Session
 
-from app.integrations.currency import get_exchange_rates
-from app.services.comptes.wealth import account_values
 from app.core.errors import NotFoundError
+from app.integrations.currency import get_exchange_rates
 from app.models.provision import Provision
 from app.repositories.budget import provisions as repo
 from app.schemas.provision import ProvisionCreate, ProvisionUpdate
+from app.services.comptes.wealth import account_values
 
 # Fenêtre autour de l'échéance précédente pour retrouver le paiement réel
 PAYMENT_WINDOW_DAYS = 60

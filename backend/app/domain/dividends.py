@@ -10,7 +10,8 @@ import re
 import unicodedata
 from collections import defaultdict
 from dataclasses import dataclass, field
-from datetime import date as date_type, datetime, timedelta
+from datetime import date as date_type
+from datetime import datetime, timedelta
 
 from app.domain.market import extract_asset_clean_name
 from app.models.investment_transaction import InvestmentTransaction

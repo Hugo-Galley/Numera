@@ -2,14 +2,14 @@
 from datetime import datetime
 
 from sqlalchemy import func
-from sqlalchemy.orm import Query, Session
+from sqlalchemy.orm import Session
 
-from app.repositories.investissement.portfolio import only_transfer_legs
 from app.models.account import Account
 from app.models.balance_snapshot import BalanceSnapshot
 from app.models.category import Category
 from app.models.investment_transaction import InvestmentTransaction
 from app.models.transaction import Transaction
+from app.repositories.investissement.portfolio import only_transfer_legs
 
 INVESTMENT_TYPES = ["investissement", "assurance_vie"]
 

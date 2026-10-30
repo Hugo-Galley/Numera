@@ -1,9 +1,11 @@
 from datetime import datetime
+
 from pydantic import BaseModel, Field
+
 from app.schemas.category import CategoryRead
-from app.schemas.tag import TagRead
 from app.schemas.merchant import MerchantRead
-from app.schemas.types import AmountOrZero, Amount, BoundedDatetime
+from app.schemas.tag import TagRead
+from app.schemas.types import Amount, AmountOrZero, BoundedDatetime
 
 
 class TransactionBase(BaseModel):

@@ -1,9 +1,10 @@
-import pytest
+from datetime import datetime
+
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
-from app.models.merchant import Merchant, MerchantAlias
+
 from app.models.transaction import Transaction
-from datetime import datetime
+
 
 def test_create_merchant(client: TestClient):
     response = client.post(

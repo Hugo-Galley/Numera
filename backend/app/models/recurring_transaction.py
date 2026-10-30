@@ -1,7 +1,10 @@
 from datetime import datetime
+
 from sqlalchemy import Boolean, DateTime, Float, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+
 from app.db.base import Base
+
 
 class RecurringTransaction(Base):
     __tablename__ = "recurring_transactions"

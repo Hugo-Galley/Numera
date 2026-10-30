@@ -1,6 +1,5 @@
-import subprocess
-import sys
 import os
+import subprocess
 from pathlib import Path
 
 from app.core.config import settings
@@ -12,7 +11,7 @@ logger = get_logger(__name__)
 def run_migrations() -> None:
     logger.info("Starting database migrations...")
     backend_root = Path(__file__).resolve().parents[2]
-    
+
     # We use subprocess to run alembic to avoid any in-process locking or logging conflicts
     try:
         # 1. Ensure WAL mode is enabled first
@@ -24,7 +23,7 @@ def run_migrations() -> None:
                 pass
             else:
                 db_path = str(backend_root / db_path)
-            
+
             logger.info(f"Target DB path for WAL: {db_path}")
             try:
                 conn = sqlite3.connect(db_path, timeout=30)
@@ -44,7 +43,7 @@ def run_migrations() -> None:
             text=True,
             env=env
         )
-        
+
         if result.returncode == 0:
             logger.info("Migrations successful:\n" + result.stdout)
             return

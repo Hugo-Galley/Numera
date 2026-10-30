@@ -4,10 +4,10 @@ from datetime import date, datetime
 import pytest
 
 from app.domain.loans import add_months
-from app.services.comptes.wealth import account_values
 from app.models.account import Account
 from app.models.loan import Loan, LoanPrepayment
 from app.models.transaction import Transaction
+from app.services.comptes.wealth import account_values
 
 
 def _start_months_ago(months: int) -> date:
@@ -127,7 +127,7 @@ def test_delete_loan_deletes_account(client, db_session):
 def test_loan_by_account_and_list(client):
     loan = _create(client)
     assert client.get(f"/loans/by-account/{loan['account_id']}").json()["id"] == loan["id"]
-    assert [l["id"] for l in client.get("/loans").json()] == [loan["id"]]
+    assert [item["id"] for item in client.get("/loans").json()] == [loan["id"]]
     assert client.get("/loans/by-account/999").status_code == 404
 
 

@@ -3,15 +3,15 @@ from datetime import datetime
 
 from sqlalchemy.orm import Session
 
-from app.services.investissement.holdings.replay import replay_account
-from app.domain.portfolio import uses_positions
-from app.services.investissement.portfolio import compute_portfolio
 from app.domain.investments import AllocationGroups, patrimoine_items
+from app.domain.portfolio import uses_positions
 from app.models.account import Account
 from app.models.investment_transaction import InvestmentTransaction
 from app.repositories.analytics import investments as repo
 from app.services.analytics.investments.flows import calculate_investment_flows
 from app.services.comptes.wealth import account_values, active_accounts
+from app.services.investissement.holdings.replay import replay_account
+from app.services.investissement.portfolio import compute_portfolio
 
 DEFAULT_CLASSES = ["Actions", "Obligations", "Immobilier", "Liquidités", "Crypto", "Or & Matières Premières", "Private Equity"]
 DEFAULT_SECTORS = ["Tech", "Santé", "Finance", "Energie", "Industrie", "Consommation", "Télécoms", "Luxe", "SaaS", "E-commerce", "Tourisme"]

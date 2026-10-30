@@ -1,5 +1,4 @@
 """Revue de mois : clôturer = marquer, jamais verrouiller (règle métier 10) ; rapprochement."""
-from datetime import date
 
 
 def _setup(client):

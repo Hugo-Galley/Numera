@@ -14,10 +14,9 @@ from pathlib import Path
 import pytest
 from freezegun import freeze_time
 
+import app.integrations.currency as currency_mod
 import app.integrations.yahoo_finance as yahoo_finance
 import app.services.investissement.market.quotes as market_quotes
-import app.integrations.currency as currency_mod
-from app.services.systeme.demo import generate_demo_data
 from app.models.account import Account
 from app.models.category import Category
 from app.models.investment_transaction import InvestmentTransaction
@@ -26,6 +25,7 @@ from app.models.reimbursement import ReimbursementClaim
 from app.models.salary_config import SalaryConfig
 from app.models.transaction import Transaction
 from app.services.budget.balances import recalculate_running_balances
+from app.services.systeme.demo import generate_demo_data
 
 SNAPSHOT_DIR = Path(__file__).parent / "snapshots" / "analytics"
 FROZEN_NOW = "2026-06-15 10:00:00"
@@ -60,7 +60,7 @@ def _first_diff(expected, actual, path="$"):
     if isinstance(expected, list):
         if len(expected) != len(actual):
             return f"{path}: longueur {len(expected)} != {len(actual)}"
-        for i, (e, a) in enumerate(zip(expected, actual)):
+        for i, (e, a) in enumerate(zip(expected, actual, strict=True)):
             diff = _first_diff(e, a, f"{path}[{i}]")
             if diff:
                 return diff

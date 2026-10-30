@@ -1,10 +1,11 @@
-import os
-import sys
-import logging
 import argparse
+import logging
+import os
 import shutil
 import sqlite3
+import sys
 from datetime import datetime
+
 from cryptography.fernet import Fernet, InvalidToken
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')

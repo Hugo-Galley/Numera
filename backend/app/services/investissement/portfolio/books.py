@@ -1,6 +1,7 @@
 """Cours et taux historiques d'une valorisation : cours stockés en mémoire, conversions datées mémorisées."""
 from bisect import bisect_right
-from datetime import date as date_type, datetime, timedelta
+from datetime import date as date_type
+from datetime import datetime, timedelta
 
 from sqlalchemy.orm import Session
 

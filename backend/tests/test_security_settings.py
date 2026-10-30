@@ -6,10 +6,10 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from app.integrations import backup as backup_core
 from app.core.config import settings
 from app.core.login_events import MAX_EVENTS
 from app.db.system_settings import get_setting
+from app.integrations import backup as backup_core
 from app.models.login_event import LoginEvent
 
 

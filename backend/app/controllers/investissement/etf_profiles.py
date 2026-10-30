@@ -1,9 +1,10 @@
 from typing import List
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
-from app.schemas.etf_profile import EtfProfileCreate, EtfProfileRead, EtfProfileUpdate, AutoDecomposeRequest, EtfRefreshResult
+from app.schemas.etf_profile import AutoDecomposeRequest, EtfProfileCreate, EtfProfileRead, EtfProfileUpdate, EtfRefreshResult
 from app.services.investissement import etf_profiles as service
 
 router = APIRouter(prefix="/etf-profiles", tags=["etf-profiles"])

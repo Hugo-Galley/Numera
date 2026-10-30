@@ -1,15 +1,14 @@
 from typing import Generator
 
+import jwt
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer
-import jwt
 from pydantic import ValidationError
+from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.core.mcp_tokens import authenticate_mcp_token, is_mcp_token
 from app.db.session import SessionLocal
-
-from sqlalchemy.orm import Session
 from app.db.system_settings import get_setting
 
 reusable_oauth2 = OAuth2PasswordBearer(
@@ -65,15 +64,15 @@ def get_current_user(
         if int(payload.get("auth_time") or 0) < valid_after:
             raise credentials_exception
     except (jwt.PyJWTError, ValidationError):
-        raise credentials_exception
-    
+        raise credentials_exception from None
+
     # In single user mode, we check if it's the current admin username
     if token_data != current_admin:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="User not authorized",
         )
-    
+
     return token_data
 
 

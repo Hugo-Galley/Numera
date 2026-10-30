@@ -1,5 +1,6 @@
 """Requêtes et expressions SQL partagées par les analytics."""
 from datetime import datetime
+
 from sqlalchemy import and_, func, literal_column, or_, select, union_all
 from sqlalchemy.orm import Session
 
@@ -147,9 +148,9 @@ def ticket_restaurant_account_ids(db: Session) -> set[int]:
         salary_config = db.query(SalaryConfig).filter(SalaryConfig.is_active == True).first()
         if salary_config and salary_config.ticket_account_id:
             ticket_account_ids.add(salary_config.ticket_account_id)
-            
+
         matching_accounts = db.query(Account.id).filter(
-            (Account.name.ilike("%ticket%restaurant%")) | 
+            (Account.name.ilike("%ticket%restaurant%")) |
             (Account.name.ilike("%tickets%restaurant%")) |
             (Account.type == "ticket_restaurant")
         ).all()
@@ -157,5 +158,5 @@ def ticket_restaurant_account_ids(db: Session) -> set[int]:
             ticket_account_ids.add(acc_id_tuple[0])
     except Exception as e:
         logger.warning(f"Error getting ticket restaurant accounts: {e}")
-        
+
     return ticket_account_ids

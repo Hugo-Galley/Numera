@@ -1,7 +1,7 @@
-import bcrypt
 from datetime import datetime, timedelta, timezone
 from typing import Any, Union
 
+import bcrypt
 import jwt
 
 from app.core.config import settings

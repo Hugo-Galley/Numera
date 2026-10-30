@@ -5,6 +5,7 @@ une hausse est signalée quand le dernier prélèvement dépasse un montant pré
 """
 from dataclasses import dataclass
 from datetime import date, datetime
+from itertools import pairwise
 from statistics import median
 from typing import Any, Sequence
 
@@ -52,7 +53,7 @@ def price_change_id(change: PriceChange) -> str:
 
 
 def _cadence(dates: list[datetime]) -> tuple[int, str] | None:
-    gaps = [(b - a).days for a, b in zip(dates, dates[1:])]
+    gaps = [(b - a).days for a, b in pairwise(dates)]
     if not gaps:
         return None
     gap = median(gaps)

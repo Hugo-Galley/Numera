@@ -32,6 +32,7 @@ def test_conflict_status():
 
 def test_domain_error_reaches_client_through_route(client):
     from fastapi import APIRouter
+
     from app.main import app
 
     router = APIRouter()

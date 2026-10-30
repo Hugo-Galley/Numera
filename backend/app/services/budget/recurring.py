@@ -10,12 +10,10 @@ from datetime import date, datetime, timedelta
 
 from sqlalchemy.orm import Session
 
-from app.services.investissement.market import quotes as market_quotes
-from app.integrations.currency import CurrencyConversionError, convert_amount
-from app.services.investissement.holdings.rebuild import rebuild_holdings
 from app.core.logging import get_logger
 from app.domain.finance import get_recurring_occurrences, month_label_from_date
 from app.domain.recurring import investment_leg_type
+from app.integrations.currency import CurrencyConversionError, convert_amount
 from app.models.account import Account
 from app.models.investment_transaction import InvestmentTransaction
 from app.models.recurring_transaction import RecurringTransaction
@@ -23,6 +21,8 @@ from app.models.transaction import Transaction
 from app.repositories.budget import recurring as repo
 from app.services.budget.balances import recalculate_running_balances
 from app.services.budget.transfers import auto_link_transfers, create_counterpart
+from app.services.investissement.holdings.rebuild import rebuild_holdings
+from app.services.investissement.market import quotes as market_quotes
 
 logger = get_logger(__name__)
 

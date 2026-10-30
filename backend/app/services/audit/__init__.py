@@ -73,7 +73,7 @@ async def compute_action_center(db: Session) -> ActionCenterResponse:
         return _summary(db, ctx.now, actions)
     except Exception as e:
         logger.error(f"Error in get_action_center: {e}", exc_info=True)
-        raise InternalError(str(e))
+        raise InternalError(str(e)) from e
 
 
 def _summary(db: Session, now: datetime, actions: list[ActionItem]) -> ActionCenterResponse:

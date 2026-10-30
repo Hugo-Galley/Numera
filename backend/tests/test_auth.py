@@ -2,9 +2,11 @@ from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
-from app.core.config import settings
+
 from app.core import security
+from app.core.config import settings
 from app.core.login_rate_limit import LoginRateLimiter
+
 
 def test_login_success(client: TestClient):
     response = client.post(
@@ -77,9 +79,9 @@ def test_cors_allows_only_configured_origins(client: TestClient):
 
 
 def test_invalid_token_returns_401(client: TestClient):
-    from app.main import app
     from app.controllers.deps import get_current_user
-    
+    from app.main import app
+
     app.dependency_overrides.pop(get_current_user, None)
     try:
         response = client.get("/accounts", headers={"Authorization": "Bearer invalid_or_expired_token"})
@@ -204,6 +206,7 @@ def test_refresh_is_refused_to_mcp_tokens(client: TestClient):
 
 def test_manual_backup_endpoint(client: TestClient, monkeypatch, tmp_path):
     import subprocess
+
     from app.services.systeme import admin
 
     calls = []

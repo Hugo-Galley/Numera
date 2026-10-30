@@ -28,12 +28,12 @@ from webauthn.helpers.structs import (
     UserVerificationRequirement,
 )
 
-from app.core.login_rate_limit import client_key, login_rate_limiter
 from app.controllers.deps import get_current_user, require_interactive_session
 from app.core import security
 from app.core.config import settings
 from app.core.logging import get_logger
 from app.core.login_events import record_login
+from app.core.login_rate_limit import client_key, login_rate_limiter
 from app.db.session import get_db
 from app.db.system_settings import get_setting, set_setting
 
@@ -104,7 +104,7 @@ def _read_challenge(state: str, purpose: str) -> bytes:
     try:
         payload = jwt.decode(state, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
     except jwt.PyJWTError:
-        raise HTTPException(status_code=400, detail="Défi expiré ou invalide")
+        raise HTTPException(status_code=400, detail="Défi expiré ou invalide") from None
     if payload.get("purpose") != purpose:
         raise HTTPException(status_code=400, detail="Défi invalide")
     if not payload.get("ch"):
@@ -174,7 +174,7 @@ def register_verify(
         )
     except InvalidRegistrationResponse as exc:
         logger.warning("Passkey registration refused: %s", exc)
-        raise HTTPException(status_code=400, detail="Enregistrement de la passkey refusé")
+        raise HTTPException(status_code=400, detail="Enregistrement de la passkey refusé") from exc
 
     credentials = _load(db)
     credential_id = bytes_to_base64url(verified.credential_id)
@@ -241,7 +241,7 @@ def login_verify(body: LoginVerifyBody, request: Request, db: Session = Depends(
         login_rate_limiter.record_failure(key)
         logger.warning("Passkey login refused: %s", exc)
         record_login(db, request, "passkey", False, "invalid_passkey")
-        raise HTTPException(status_code=401, detail="Connexion par passkey refusée")
+        raise HTTPException(status_code=401, detail="Connexion par passkey refusée") from exc
 
     stored["sign_count"] = verified.new_sign_count
     stored["last_used_at"] = datetime.now(timezone.utc).isoformat()

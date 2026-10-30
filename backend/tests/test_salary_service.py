@@ -1,5 +1,4 @@
 """Salaire : caractérisation de bout en bout (écrite avant le découpage) et règles pures."""
-from datetime import date
 
 from app.domain.salary import hourly_rate, salary_amount
 from app.models.transaction import Transaction

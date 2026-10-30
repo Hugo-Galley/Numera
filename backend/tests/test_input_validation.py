@@ -176,6 +176,7 @@ def test_import_preview_sample_size_bounded(client, account, size):
 
 def test_passkey_state_without_challenge_is_400(client):
     import jwt
+
     from app.core.config import settings
 
     state = jwt.encode({"purpose": "login"}, settings.SECRET_KEY, algorithm=settings.ALGORITHM)

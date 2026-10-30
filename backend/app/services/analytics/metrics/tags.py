@@ -27,4 +27,4 @@ async def compute_tags(db: Session, month: int | None = None, year: int | None =
         return tag_totals(repo.tag_spending_rows(db, start, end, account_id, tr_accounts), rates)
     except Exception as e:
         logger.error(f"Error in tags_analytics: {e}")
-        raise InternalError(str(e))
+        raise InternalError(str(e)) from e

@@ -1,6 +1,9 @@
-from typing import Any, Optional
+from typing import Any
+
 from sqlalchemy.orm import Session
+
 from app.models.system_setting import SystemSetting
+
 
 def get_setting(db: Session, key: str, default: Any = None) -> Any:
     setting = db.query(SystemSetting).filter(SystemSetting.key == key).first()

@@ -1,8 +1,10 @@
-from sqlalchemy import Date, Float, String
-from sqlalchemy.orm import Mapped, mapped_column
 from datetime import date
 
+from sqlalchemy import Date, Float, String
+from sqlalchemy.orm import Mapped, mapped_column
+
 from app.db.base import Base
+
 
 class HistoricalExchangeRate(Base):
     __tablename__ = "historical_exchange_rates"
