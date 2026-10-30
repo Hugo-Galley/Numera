@@ -99,8 +99,7 @@ describe("App : anciennes adresses", () => {
 })
 
 describe("App : route inconnue", () => {
-  // `frontend/src/CLAUDE.md` annonce « Route inconnue → / » : l'app affiche en fait la page NotFound
-  // (dans le layout, lien « Retour au tableau de bord »), sans changer l'adresse.
+  // Page NotFound dans le layout (lien « Retour au tableau de bord »), sans changer l'adresse.
   it("affiche la page introuvable dans le layout, à la même adresse", async () => {
     renderApp("/nimporte-quoi?x=1")
 

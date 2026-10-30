@@ -78,7 +78,7 @@ Le lot 0 est **séquentiel et bloquant**. Ensuite chaque lot (et chaque tâche d
 ## Lot 4 : routing et layout
 
 - [x] **4.1 `ProtectedRoute`** : sans jeton → `/login` ; avec jeton → contenu.
-- [x] **4.2 Redirections `App.tsx`** : `/report`, `/month-review`, `/comparison`, `/calendar` vers leur nouvelle adresse **en gardant la query** (`RedirectKeepingSearch`) ; route inconnue → `/` ; anciens `?tab=` de `/settings`. `App.test.tsx` monte la vraie table de routes (pages et `AppLayout` remplacés par des pages factices) ; une route inconnue affiche en fait la page `NotFound` sans changer l'adresse.
+- [x] **4.2 Redirections `App.tsx`** : `/report`, `/month-review`, `/comparison`, `/calendar` vers leur nouvelle adresse **en gardant la query** (`RedirectKeepingSearch`) ; route inconnue → page `NotFound` ; anciens `?tab=` de `/settings`. `App.test.tsx` monte la vraie table de routes (pages et `AppLayout` remplacés par des pages factices) ; une route inconnue affiche la page `NotFound` sans changer l'adresse (la doc annonçait à tort une redirection vers `/`, corrigée).
 - [x] **4.3 `ErrorBoundary`** (un composant qui jette affiche l'écran d'erreur, pas une page blanche) et **`ErrorState`** (« Réessayer » rappelle le chargement).
 - [x] **4.4 Sidebar / Omnibox** : chaque entrée de la Sidebar (et chaque destination de l'Omnibox) pointe vers une route déclarée ; ⌘K ouvre l'omnibox et une saisie rapide (`parseQuickEntry`) propose la création.
 
