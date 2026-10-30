@@ -17,10 +17,10 @@ const AMOUNT_PATTERNS: RegExp[] = [
   // 1 234,56 € · 12 € · $ 45 · 3k€
   new RegExp(`\\d\\s*[kKM]?\\s*${CURRENCY}`),
   new RegExp(`${CURRENCY}\\s*\\d`),
-  // 1 234,56 · 1.234,56 · 1 234 (séparateurs de milliers)
-  /\d{1,3}(?:[\s  .,]\d{3})+(?:[.,]\d+)?/,
-  // 12,50 · 12.50 (décimales de montant), hors date/version type 22.10.2026
-  /(?<![\d.,])\d+[.,]\d{2}(?![\d.,])/,
+  // 1 234,56 · 1.234,56 · 1 234 (séparateurs de milliers), en début de nombre : pas « 10.202 » dans 22.10.2026
+  /(?<![\d.,])\d{1,3}(?:[\s  .,]\d{3})+(?:[.,]\d+)?(?!\d)/,
+  // 12,50 · 12.50 (décimales de montant), hors date/version type 22.10.2026 et pourcentage (3,14 %)
+  /(?<![\d.,])\d+[.,]\d{2}(?![\d.,])(?!\s*%)/,
 ]
 
 export function looksSensitive(text: string | null | undefined): boolean {

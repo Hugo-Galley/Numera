@@ -58,9 +58,16 @@ describe("looksSensitive", () => {
     })
   })
 
-  // Faux positifs actuels, à trancher (le commentaire du code annonce exclure « 22.10.2026 ») :
-  // « 22.10.2026 » est masqué via le motif des milliers (« 10.202 ») ; « 3,14 % » et « 12,34 % »
-  // le sont via le motif des décimales.
-  it.todo("ne masque pas une date à points (« 22.10.2026 »)")
-  it.todo("ne masque pas un pourcentage à deux décimales (« 3,14 % »)")
+    it.each(["22.10.2026", "Le 01.02.2025", "1.2.3456"])("date ou version à points : « %s »", (text) => {
+      expect(looksSensitive(text)).toBe(false)
+    })
+
+    it.each(["3,14 %", "12,34 %", "-0,50 %", "3,14 %", "Taux 2.25%"])("pourcentage à deux décimales : « %s »", (text) => {
+      expect(looksSensitive(text)).toBe(false)
+    })
+  })
+
+  it("détecte toujours un montant voisin d'un pourcentage ou d'une date", () => {
+    expect(looksSensitive("45,90 soit 3,14 %")).toBe(true)
+    expect(looksSensitive("Le 22.10.2026 : 1 234,56")).toBe(true)
 })

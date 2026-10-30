@@ -35,7 +35,15 @@ describe("parseQuickEntry", () => {
     expect(parseQuickEntry(query)).toBeNull()
   })
 
-  // Bug suspect, à trancher : « 1 234 loyer » donne aujourd'hui { amount: 1, merchant: "234 loyer" }
-  // (le séparateur de milliers est pris pour la fin du montant), une dépense de 1 € créée sans alerte.
-  it.todo("refuse ou lit 1234 pour un montant avec séparateur de milliers (« 1 234 loyer »)")
+  it("lit un montant avec séparateur de milliers (espace, insécable ou fine)", () => {
+    expect(parseQuickEntry("1 234 loyer")).toEqual({ amount: 1234, type: "Sortie", merchant: "loyer" })
+    expect(parseQuickEntry("1 234,50 € loyer")).toEqual({ amount: 1234.5, type: "Sortie", merchant: "loyer" })
+    expect(parseQuickEntry("+12 500 prime")).toEqual({ amount: 12500, type: "Entree", merchant: "prime" })
+    expect(parseQuickEntry("1 234 567")).toEqual({ amount: 1234567, type: "Sortie", merchant: "" })
+  })
+
+  it("garde un petit nombre suivi d'un libellé qui commence par un chiffre court", () => {
+    expect(parseQuickEntry("2 croissants")).toEqual({ amount: 2, type: "Sortie", merchant: "croissants" })
+    expect(parseQuickEntry("3 12 cafés")).toEqual({ amount: 3, type: "Sortie", merchant: "12 cafés" })
+  })
 })
