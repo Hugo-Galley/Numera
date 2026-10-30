@@ -38,6 +38,7 @@ class IntersectionObserverStub {
 globalThis.IntersectionObserver ??= IntersectionObserverStub as unknown as typeof IntersectionObserver
 
 Element.prototype.scrollIntoView ??= function () {}
+Element.prototype.scrollTo ??= function () {}
 Element.prototype.hasPointerCapture ??= () => false
 Element.prototype.setPointerCapture ??= function () {}
 Element.prototype.releasePointerCapture ??= function () {}

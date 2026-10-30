@@ -12,4 +12,11 @@ describe("ErrorState", () => {
 
     expect(onRetry).toHaveBeenCalledTimes(1)
   })
+
+  it("sans message ni onRetry : message par défaut, pas de bouton", () => {
+    renderWithProviders(<ErrorState />)
+
+    expect(screen.getByRole("alert")).toHaveTextContent("Impossible de charger ces données.")
+    expect(screen.queryByRole("button")).not.toBeInTheDocument()
+  })
 })
