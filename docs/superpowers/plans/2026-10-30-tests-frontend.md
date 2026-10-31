@@ -98,12 +98,12 @@ Une tâche = une page, une session possible par tâche. Chaque page : chargement
 
 Validation zod (message affiché, bouton désactivé pendant l'envoi), envoi correct, toast.
 
-- [ ] **6.1 Récurrences** (`components/recurring/`) : fréquences, salaire / aides (`IncomeTab`).
-- [ ] **6.2 Épargne** : objectifs et provisions (`components/savings/`).
-- [ ] **6.3 Crédits** (`components/loans/`) : saisie, remboursement anticipé.
-- [ ] **6.4 Investissements** : `SecuritySearchInput` (recherche différée, réponses obsolètes ignorées), opération d'investissement, `HoldingsTable` en mode confidentialité.
-- [ ] **6.5 Remboursements** et **virements** (`components/reimbursements/`, `components/transfers/`).
-- [ ] **6.6 Paramètres** : notifications, MCP (création / révocation de jeton), sauvegardes.
+- [x] **6.1 Récurrences** (`components/recurring/`) : fréquences, salaire / aides (`IncomeTab`).
+- [x] **6.2 Épargne** : objectifs et provisions (`components/savings/`).
+- [x] **6.3 Crédits** (`components/loans/`) : saisie, remboursement anticipé.
+- [x] **6.4 Investissements** : `SecuritySearchInput` (recherche différée, réponses obsolètes ignorées), opération d'investissement, `HoldingsTable` en mode confidentialité.
+- [x] **6.5 Remboursements** et **virements** (`components/reimbursements/`, `components/transfers/`).
+- [x] **6.6 Paramètres** : notifications, MCP (création / révocation de jeton), sauvegardes.
 
 ## Lot 7 (optionnel) : E2E Playwright
 
