@@ -19,7 +19,7 @@
 <p>
   <a href="#-la-démo">Démo</a> ·
   <a href="#-ce-que-numera-fait-pour-vous">Fonctionnalités</a> ·
-  <a href="#-installation-en-3-commandes">Installation</a> ·
+  <a href="#-installation">Installation</a> ·
   <a href="#-demander-à-claude">Claude</a> ·
   <a href="#-développer">Développer</a>
 </p>
