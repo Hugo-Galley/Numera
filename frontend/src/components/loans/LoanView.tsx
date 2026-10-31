@@ -110,7 +110,7 @@ export function LoanView({ accountId }: { accountId: number }) {
     if (!loan) return
     const amount = toNumber(simAmount)
     if (!(amount > 0)) return
-    if (!(await confirm(`Enregistrer un remboursement anticipé de ${formatCurrency(amount)} le ${formatDateFr(simDate)} ?`))) return
+    if (!(await confirm(`Enregistrer un remboursement anticipé de ${formatCurrency(amount)} le ${formatDateFr(simDate)} ?`, { destructive: false, confirmLabel: "Enregistrer" }))) return
     try {
       await api.post(`/loans/${loan.id}/prepayments`, { amount, date: simDate, mode: simMode })
       toast.success("Remboursement anticipé enregistré")

@@ -110,8 +110,8 @@ describe("LoanView", () => {
     await user.click(screen.getByRole("button", { name: "J'ai effectué ce remboursement" }))
     const confirmDialog = await screen.findByRole("dialog", { name: "Confirmer" })
     expect(confirmDialog).toHaveTextContent("5 septembre 2026")
-    // Bouton rouge « Supprimer » pour valider un enregistrement : voir le it.todo plus bas
-    await user.click(within(confirmDialog).getByRole("button", { name: "Supprimer" }))
+    expect(within(confirmDialog).queryByRole("button", { name: "Supprimer" })).not.toBeInTheDocument()
+    await user.click(within(confirmDialog).getByRole("button", { name: "Enregistrer" }))
 
     expect(await screen.findByText("Remboursement anticipé enregistré")).toBeInTheDocument()
     expect(posted[1]).toEqual({ path: expect.stringMatching(/\/loans\/8\/prepayments$/), body: { amount: 10000.5, date: "2026-09-05", mode: "reduce_payment" } })
@@ -171,9 +171,4 @@ describe("LoanView", () => {
     expect(await screen.findByText("Crédit supprimé")).toBeInTheDocument()
     expect(screen.getByRole("status", { name: "adresse" })).toHaveTextContent("/accounts")
   })
-
-  // Bug suspect (LoanView.tsx, handleRecord) : confirm("Enregistrer un remboursement anticipé…") est appelé sans
-  // { destructive: false, confirmLabel } ; la boîte affiche donc un bouton rouge « Supprimer » pour valider un
-  // enregistrement. Attendu : un bouton « Enregistrer » (ou « Confirmer ») non destructif.
-  it.todo("confirme l'enregistrement d'un remboursement anticipé avec un bouton non destructif")
 })

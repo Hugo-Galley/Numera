@@ -11,6 +11,7 @@ import { api, ApiError } from "@/lib/api"
 import { formatCurrency } from "@/lib/utils"
 import type { Claim, EntryClaims, ReimbursableTransaction } from "@/types/reimbursements"
 import { useConfirm } from "@/providers/ConfirmProvider"
+import { useSubmit } from "@/hooks/useSubmit"
 
 interface Props {
   open: boolean
@@ -59,6 +60,9 @@ export function ReimbursementDialog({ open, onOpenChange, transaction, onDone }:
   }, [open, load])
 
   const declared = claims.reduce((sum, c) => sum + c.expected_amount, 0)
+
+  // « Ajouter » et « Répartir » partagent un verrou : un double clic ne crée pas deux fois les créances
+  const [submit, submitting] = useSubmit((action: () => Promise<void>) => action())
 
   async function addClaim(name: string, amount: number) {
     if (!transaction) return
@@ -206,7 +210,7 @@ export function ReimbursementDialog({ open, onOpenChange, transaction, onDone }:
                 <Label htmlFor="claim-amount">Montant</Label>
                 <Input id="claim-amount" className="h-10 text-base sm:h-9 sm:text-sm" inputMode="decimal" value={expected} onChange={(e) => setExpected(e.target.value)} />
               </div>
-              <Button className="h-10 gap-2 sm:h-9" onClick={handleAdd}>
+              <Button className="h-10 gap-2 sm:h-9" onClick={() => submit(handleAdd)} disabled={submitting}>
                 <Plus className="h-4 w-4" />
                 Ajouter
               </Button>
@@ -217,7 +221,7 @@ export function ReimbursementDialog({ open, onOpenChange, transaction, onDone }:
                   <Label htmlFor="claim-split">Partager à parts égales entre (vous compris)</Label>
                   <Input id="claim-split" inputMode="numeric" className="h-10 w-24 text-base sm:h-9 sm:text-sm" value={splitCount} onChange={(e) => setSplitCount(e.target.value)} />
                 </div>
-                <Button variant="outline" className="h-10 gap-2 sm:h-9" onClick={handleSplit}>
+                <Button variant="outline" className="h-10 gap-2 sm:h-9" onClick={() => submit(handleSplit)} disabled={submitting}>
                   <Users className="h-4 w-4" />
                   Répartir
                 </Button>

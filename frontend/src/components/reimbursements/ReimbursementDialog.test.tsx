@@ -78,8 +78,25 @@ describe("ReimbursementDialog : dépense", () => {
     await waitFor(() => expect(onDone).not.toHaveBeenCalled())
   })
 
-  // Bug suspect (ReimbursementDialog.tsx, handleAdd / handleSplit) : pas de useSubmit ni de bouton désactivé ;
-  // deux clics sur « Ajouter » pendant que le POST /reimbursements/claims est en cours créent deux créances.
-  // Attendu : bouton désactivé pendant l'envoi, une seule requête.
-  it.todo("désactive « Ajouter » et « Répartir » pendant l'envoi")
+  it("désactive « Ajouter » et « Répartir » pendant l'envoi : une seule créance pour deux clics", async () => {
+    let release = () => {}
+    const pending = new Promise<void>((resolve) => (release = resolve))
+    const { user, posted } = setup(async () => {
+      await pending
+      return HttpResponse.json({ id: 1 })
+    })
+    await screen.findByText("Aucune créance sur cette dépense.")
+
+    await user.type(screen.getByLabelText("Qui me doit"), "Denis")
+    await user.type(screen.getByLabelText("Montant"), "20")
+    const add = screen.getByRole("button", { name: "Ajouter" })
+    await user.click(add)
+    await waitFor(() => expect(add).toBeDisabled())
+    expect(screen.getByRole("button", { name: "Répartir" })).toBeDisabled()
+    await user.click(add)
+
+    release()
+    expect(await screen.findByText("Créance ajoutée")).toBeInTheDocument()
+    expect(posted).toHaveLength(1)
+  })
 })
