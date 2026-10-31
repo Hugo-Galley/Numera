@@ -14,6 +14,9 @@ PINNED_ACTION = re.compile(r"^[\w.-]+/[\w./-]+@[0-9a-f]{40}$")
 DOCKER_FROM = re.compile(r"^\s*FROM\s+(?:--platform=\S+\s+)?(\S+)", re.MULTILINE | re.IGNORECASE)
 COMPOSE_IMAGE = re.compile(r"^\s*image:\s*['\"]?([^'\"\s#]+)", re.MULTILINE)
 PINNED_IMAGE = re.compile(r"@sha256:[0-9a-f]{64}$")
+# Images publiées par la release (docker-compose.release.yml) : le digest n'existe pas avant le tag,
+# la version est choisie par l'utilisateur via NUMERA_VERSION.
+OWN_RELEASE_IMAGE = re.compile(r"^ghcr\.io/hugo-galley/numera-[a-z]+:\$\{NUMERA_VERSION(:-latest)?\}$")
 
 
 def _tracked(*patterns: str) -> list[Path]:
@@ -27,7 +30,8 @@ def floating_actions(text: str) -> list[str]:
 
 def floating_images(text: str, stage_names: set[str] = frozenset()) -> list[str]:
     images = DOCKER_FROM.findall(text) + COMPOSE_IMAGE.findall(text)
-    return [img for img in images if img not in stage_names and img != "scratch" and not PINNED_IMAGE.search(img)]
+    return [img for img in images if img not in stage_names and img != "scratch" and not PINNED_IMAGE.search(img)
+            and not OWN_RELEASE_IMAGE.match(img)]
 
 
 def _stage_names(text: str) -> set[str]:
@@ -40,6 +44,8 @@ def test_detects_floating_action_and_image():
     assert floating_images("FROM python:3.12-slim") == ["python:3.12-slim"]
     assert floating_images(f"FROM python:3.12-slim@sha256:{'b' * 64}") == []
     assert floating_images("FROM build-stage", {"build-stage"}) == []
+    assert floating_images("    image: ghcr.io/hugo-galley/numera-backend:${NUMERA_VERSION:-latest}") == []
+    assert floating_images("    image: ghcr.io/autre/numera-backend:${NUMERA_VERSION:-latest}") != []
 
 
 def test_github_actions_are_pinned_by_sha():

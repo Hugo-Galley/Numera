@@ -171,6 +171,17 @@ make upgrade
 
 La dernière version est récupérée et les conteneurs reconstruits. La base se met à jour toute seule au démarrage.
 
+#### Sans builder : images publiées
+
+Chaque [release](https://github.com/Hugo-Galley/numera/releases) publie ses images sur GHCR (`amd64` et `arm64`), avec le détail des changements. Pour déployer une version précise sans rien construire :
+
+```bash
+NUMERA_VERSION=0.1.0 docker compose --env-file .env \
+  -f docker-compose.prod.yml -f docker-compose.release.yml up -d --no-build
+```
+
+Pour revenir en arrière, relancez avec la version précédente. Les migrations de la base ne se défont pas toutes seules : restaurez aussi une sauvegarde faite avant la mise à jour.
+
 ### Sauvegardes
 
 Toutes les 24 heures, une copie chiffrée de la base est déposée dans `backups/`, et les 7 derniers jours sont conservés (réglables via `BACKUP_INTERVAL_SECONDS` et `RETENTION_DAYS` dans `.env`).
