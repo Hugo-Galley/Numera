@@ -1,5 +1,5 @@
 import { format } from "date-fns"
-import { formatCurrency } from "@/lib/utils"
+import { errorMessage, formatCurrency } from "@/lib/utils"
 import { fr } from "date-fns/locale"
 import { toNaiveLocal } from "@/lib/dates"
 import { toast } from "sonner"
@@ -154,7 +154,7 @@ export function useRecurringActions(p: ReturnType<typeof useRecurringState> & Re
       loadData()
     } catch (error) {
       console.error("Error saving recurring tx:", error)
-      toast.error("Erreur lors de l'enregistrement")
+      toast.error(errorMessage(error, "Erreur lors de l'enregistrement"))
     }
   })
 

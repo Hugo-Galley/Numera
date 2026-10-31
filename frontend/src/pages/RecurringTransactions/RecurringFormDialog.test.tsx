@@ -142,7 +142,7 @@ describe("Formulaire de récurrence", () => {
     expect(posted).toHaveLength(1)
   })
 
-  it("garde le formulaire ouvert et affiche un toast si le serveur refuse", async () => {
+  it("affiche le détail renvoyé par le serveur quand l'enregistrement est refusé", async () => {
     vi.spyOn(console, "error").mockImplementation(() => undefined)
     const { user } = setup(() => HttpResponse.json({ detail: "Compte inconnu" }, { status: 400 }))
     const dialog = await openForm(user)
@@ -151,11 +151,7 @@ describe("Formulaire de récurrence", () => {
     await user.type(within(dialog).getByLabelText("Montant"), "700")
     await user.click(within(dialog).getByRole("button", { name: "Enregistrer" }))
 
-    expect(await screen.findByText("Erreur lors de l'enregistrement")).toBeInTheDocument()
+    expect(await screen.findByText("Compte inconnu")).toBeInTheDocument()
     expect(screen.getByRole("dialog", { name: "Nouvelle récurrence" })).toBeInTheDocument()
   })
-
-  // Bug suspect (useRecurringActions.ts, handleSubmit) : un 400 { detail: "Compte inconnu" } affiche seulement
-  // « Erreur lors de l'enregistrement » ; attendu : errorMessage(error, …) pour montrer le détail du serveur.
-  it.todo("affiche le détail renvoyé par le serveur quand l'enregistrement est refusé")
 })

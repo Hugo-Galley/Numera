@@ -129,7 +129,7 @@ describe("Objectifs d'épargne", () => {
     expect(posted).toHaveLength(1)
   })
 
-  it("garde le dialogue ouvert si le serveur refuse", async () => {
+  it("affiche le détail du serveur et garde le dialogue ouvert si l'objectif est refusé", async () => {
     vi.spyOn(console, "error").mockImplementation(() => undefined)
     const { user } = setup([], () => HttpResponse.json({ detail: "Montant invalide" }, { status: 422 }))
     const dialog = await openCreate(user)
@@ -138,7 +138,7 @@ describe("Objectifs d'épargne", () => {
     await user.type(within(dialog).getByLabelText("Montant cible (€)"), "8000")
     await user.click(within(dialog).getByRole("button", { name: "Créer l'objectif" }))
 
-    expect(await screen.findByText("Une erreur est survenue lors de l'enregistrement")).toBeInTheDocument()
+    expect(await screen.findByText("Montant invalide")).toBeInTheDocument()
     expect(screen.getByRole("dialog", { name: "Créer un objectif" })).toBeInTheDocument()
   })
 
@@ -183,8 +183,4 @@ describe("Objectifs d'épargne", () => {
     expect(await screen.findByText("Objectif supprimé")).toBeInTheDocument()
     expect(deleted).toEqual(["DELETE"])
   })
-
-  // Bug suspect (pages/Savings/useSavingsData.ts, handleCreateOrUpdateGoal) : un 422 { detail: "Montant invalide" }
-  // affiche seulement « Une erreur est survenue lors de l'enregistrement » ; attendu : errorMessage(error, …).
-  it.todo("affiche le détail renvoyé par le serveur quand l'objectif est refusé")
 })

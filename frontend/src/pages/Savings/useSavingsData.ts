@@ -1,4 +1,4 @@
-import { formatAmountWithShare, formatCurrency } from "@/lib/utils"
+import { errorMessage, formatAmountWithShare, formatCurrency } from "@/lib/utils"
 import { toast } from "sonner"
 import { useConfirm } from "@/providers/ConfirmProvider"
 import { useEffect, useState } from "react"
@@ -109,7 +109,7 @@ export function useSavingsData() {
       loadData()
     } catch (error) {
       console.error("Error saving goal:", error)
-      toast.error("Une erreur est survenue lors de l'enregistrement")
+      toast.error(errorMessage(error, "Une erreur est survenue lors de l'enregistrement"))
     }
   })
 
