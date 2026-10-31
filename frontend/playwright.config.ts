@@ -9,6 +9,8 @@ export default defineConfig({
   testDir: "./e2e",
   fullyParallel: false,
   workers: 1, // une seule base partagée : les scénarios qui écrivent ne se marchent pas dessus
+  // Premier chargement à froid de Vite (optimisation des dépendances) : marge sur les attentes
+  expect: { timeout: 10_000 },
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? [["list"], ["html", { open: "never" }]] : "list",
   use: {

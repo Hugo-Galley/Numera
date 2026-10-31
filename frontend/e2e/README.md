@@ -12,6 +12,19 @@ cd frontend && npx playwright show-report        # rapport (CI) ; trace : npx pl
 
 Premier lancement : `cd frontend && npx playwright install chromium`.
 
+## Scénarios
+
+| Fichier | Vérifie |
+|---|---|
+| `login.spec.ts`, `logout.spec.ts` | connexion, mauvais mot de passe, retour à la page demandée, déconnexion |
+| `navigation.spec.ts` | chaque route se charge : pas de page blanche, d'exception JS, d'erreur console ni de 5xx |
+| `import-csv.spec.ts` | aperçu, import, lignes visibles, ré-import sans doublon |
+| `transaction.spec.ts` | saisie manuelle d'une opération |
+| `rules.spec.ts` | création et suppression d'une règle de catégorisation |
+| `privacy.spec.ts` | mode confidentialité (activation, persistance, désactivation) |
+
+Nouvelle route dans `App.tsx` : l'ajouter à `ROUTES` dans `navigation.spec.ts`.
+
 ## Fonctionnement
 
 - `playwright.config.ts` lance deux serveurs : le backend (`e2e/backend.sh`) sur **8101** et Vite sur **5174**
