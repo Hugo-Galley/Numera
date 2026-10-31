@@ -1,5 +1,5 @@
 import { ErrorState } from "@/components/layout/ErrorState"
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { useSearchParams } from "react-router-dom"
 import { ChevronLeft, ChevronRight, ClipboardCheck } from "lucide-react"
 import { toast } from "sonner"
@@ -53,23 +53,30 @@ export default function MonthReview() {
   const [highlight, setHighlight] = useState("")
   const [busy, setBusy] = useState(false)
 
-  const load = useCallback(async () => {
+  // Numéro de requête : la réponse d'un mois quitté entre-temps est ignorée.
+  // Renvoie `false` si une requête plus récente est partie (l'appelant ne doit pas arrêter le chargement).
+  const loadRequestId = useRef(0)
+  const load = useCallback(async (): Promise<boolean> => {
+    const requestId = ++loadRequestId.current
     setLoadFailed(false)
     try {
       const data = await api.get<MonthReviewData>(`/month-review?year=${year}&month=${month}`)
+      if (requestId !== loadRequestId.current) return false
       setReview(data)
       setHighlight((current) => current || data.closure?.highlight || "")
     } catch {
+      if (requestId !== loadRequestId.current) return false
       setReview(null)  // pas l'ancien mois sous le nouveau libellé
       setLoadFailed(true)
       toast.error("Impossible de charger la revue du mois")
     }
+    return true
   }, [year, month])
 
   useEffect(() => {
     setLoading(true)
     setHighlight("")
-    load().finally(() => setLoading(false))
+    load().then((current) => current && setLoading(false))
   }, [load])
 
   function go(delta: number) {
@@ -162,7 +169,7 @@ export default function MonthReview() {
       </div>
 
       {loadFailed && !loading ? (
-        <ErrorState message="La revue du mois n'a pas pu être chargée." onRetry={() => { setLoading(true); load().finally(() => setLoading(false)) }} />
+        <ErrorState message="La revue du mois n'a pas pu être chargée." onRetry={() => { setLoading(true); load().then((current) => current && setLoading(false)) }} />
       ) : loading || !review ? (
         <Skeleton className="h-64 w-full" />
       ) : (

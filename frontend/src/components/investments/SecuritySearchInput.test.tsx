@@ -84,11 +84,24 @@ describe("SecuritySearchInput : recherche", () => {
     expect(screen.getByLabelText("Ticker / Code")).toHaveValue("CW8.PA")
   })
 
-  // Bug suspect (SecuritySearchInput.tsx, effet de recherche) : pas de drapeau `cancelled` ; une réponse lente
-  // à « micro » arrivant après celle de « microsoft » remplace la liste. Entrée : frappe « micro », pause > 280 ms
-  // (requête partie, réponse retenue), puis « soft » ; « microsoft » répond [Microsoft], puis « micro » répond
-  // [Micron]. Obtenu : Micron affiché. Attendu : Microsoft (réponse obsolète ignorée).
-  it.todo("ignore la réponse d'une recherche précédente arrivée après la dernière")
+  it("ignore la réponse d'une recherche précédente arrivée après la dernière", async () => {
+    const micron = { ...apple, symbol: "MU", name: "Micron Technology" }
+    const microsoft = { ...apple, symbol: "MSFT", name: "Microsoft Corp." }
+    const slowMicro = held([micron])
+    const queries = recordSearches((q) => (q === "micro" ? slowMicro.respond() : HttpResponse.json([microsoft])))
+    const { user } = renderWithProviders(<Harness />)
+    const search = screen.getByLabelText(/Recherche par Titre/)
+
+    await user.type(search, "micro")
+    await waitFor(() => expect(queries).toEqual(["micro"]))
+    await user.type(search, "soft")
+    expect(await screen.findByText("Microsoft Corp.")).toBeInTheDocument()
+
+    slowMicro.release()
+    await new Promise((resolve) => setTimeout(resolve, 50))
+    expect(screen.getByText("Microsoft Corp.")).toBeInTheDocument()
+    expect(screen.queryByText("Micron Technology")).not.toBeInTheDocument()
+  })
 })
 
 describe("SecuritySearchInput : validation du ticker", () => {

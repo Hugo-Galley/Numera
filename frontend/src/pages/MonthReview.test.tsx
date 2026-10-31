@@ -105,10 +105,30 @@ describe("MonthReview : chargement", () => {
     expect(screen.getByRole("button", { name: "Mois suivant" })).toBeEnabled()
   })
 
-  it.todo(
-    "changement de mois pendant un chargement lent : la réponse de l'ancien mois (arrivée après celle du nouveau) " +
-      "s'affiche sous le libellé du nouveau mois ; attendu : réponse obsolète ignorée (pages/MonthReview.tsx, load() sans drapeau d'annulation)",
-  )
+  it("changement de mois pendant un chargement lent : la réponse de l'ancien mois est ignorée", async () => {
+    let releaseJune = () => {}
+    const junePending = new Promise<void>((resolve) => (releaseJune = resolve))
+    serveReview()
+    server.use(
+      http.get(apiUrl("/month-review"), async ({ request }) => {
+        const month = Number(new URL(request.url).searchParams.get("month"))
+        if (month === 6) {
+          await junePending
+          return HttpResponse.json(makeReview({ month: 6, categorize: { count: 3, total: 120, items: [] } }))
+        }
+        return HttpResponse.json(makeReview({ month, categorize: { count: 0, total: 0, items: [] } }))
+      }),
+    )
+    const { user } = renderReview()
+
+    await user.click(screen.getByRole("button", { name: "Mois précédent" }))
+    expect(await screen.findByText("Toutes les dépenses du mois sont catégorisées.")).toBeInTheDocument()
+    expect(screen.getByText("mai 2026")).toBeInTheDocument()
+
+    releaseJune()
+    await new Promise((resolve) => setTimeout(resolve, 50))
+    expect(screen.getByText("Toutes les dépenses du mois sont catégorisées.")).toBeInTheDocument()
+  })
 })
 
 describe("MonthReview : clôture", () => {

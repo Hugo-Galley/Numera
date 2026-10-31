@@ -69,20 +69,26 @@ export function SecuritySearchInput({
       return
     }
 
+    // Une frappe suivante annule la recherche en cours : sa réponse, même tardive, est ignorée
+    let cancelled = false
     const timer = setTimeout(async () => {
       setIsSearching(true)
       try {
         const res = await api.get<any[]>(`/market/search?q=${encodeURIComponent(query)}`)
+        if (cancelled) return
         setResults(res || [])
         setIsOpen(true)
       } catch (err) {
-        console.error("Market search error:", err)
+        if (!cancelled) console.error("Market search error:", err)
       } finally {
-        setIsSearching(false)
+        if (!cancelled) setIsSearching(false)
       }
     }, 280)
 
-    return () => clearTimeout(timer)
+    return () => {
+      cancelled = true
+      clearTimeout(timer)
+    }
   }, [query])
 
   // Click outside to close dropdown
