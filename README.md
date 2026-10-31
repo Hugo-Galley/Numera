@@ -18,8 +18,8 @@
 
 <p>
   <a href="#-la-démo">Démo</a> ·
-  <a href="#-ce-que-numera-fait-pour-vous">Fonctionnalités</a> ·
   <a href="#-installation">Installation</a> ·
+  <a href="#-ce-que-numera-fait-pour-vous">Fonctionnalités</a> ·
   <a href="#-demander-à-claude">Claude</a> ·
   <a href="#-développer">Développer</a>
 </p>
@@ -51,55 +51,6 @@ Le plus simple pour se faire une idée, c'est de cliquer partout :
 </p>
 
 Les données sont fictives et remises à zéro chaque jour : modifiez, supprimez, importez, rien ne peut casser.
-
-<br>
-
-## ✨ Ce que Numera fait pour vous
-
-### Comprendre où part l'argent
-
-Chaque mois, un bilan clair : ce qui est entré, ce qui est sorti, ce qui a été mis de côté, et les catégories qui ont bougé par rapport au mois d'avant. Une revue de fin de mois vous guide pour tout vérifier, et une vue comparaison met deux mois côte à côte.
-
-<p align="center"><img src="docs/screenshots/bilan-mois.png" alt="Bilan du mois : revenus, dépenses, épargne et principales catégories" width="85%"></p>
-
-### Ne plus rien laisser filer
-
-Le **Centre d'actions** fait le ménage à votre place : budgets dépassés, transactions sans catégorie, soldes pas à jour, règles de classement à créer. Vous traitez la liste, c'est tout.
-
-<p align="center"><img src="docs/screenshots/centre-actions.png" alt="Centre d'actions : budgets dépassés et soldes à mettre à jour" width="85%"></p>
-
-### Suivre ses abonnements et ses échéances
-
-Loyer, forfait, streaming, salaire : Numera repère ce qui revient chaque mois, vous dit ce que ça coûte sur l'année et affiche tout dans un calendrier.
-
-<p align="center"><img src="docs/screenshots/echeances.png" alt="Échéances : abonnements confirmés, coût mensuel et annuel" width="85%"></p>
-
-### Faire grossir son épargne
-
-Patrimoine net, épargne disponible, taux d'épargne, nombre de mois que vous tiendriez sans revenus, objectifs d'épargne avec leur avancement.
-
-<p align="center"><img src="docs/screenshots/epargne.png" alt="Suivi de l'épargne : patrimoine net, taux d'épargne, indice de résilience" width="85%"></p>
-
-### Piloter ses investissements
-
-Saisissez vos versements, achats, ventes et dividendes : Numera en déduit vos positions, votre prix de revient et votre performance au cours du jour. Il décortique aussi vos ETF pour montrer votre exposition réelle par pays et par secteur.
-
-<p align="center"><img src="docs/screenshots/investissements.png" alt="Investissements : valeur totale, performance, répartition par enveloppe" width="85%"></p>
-
-### Et aussi
-
-| | |
-|---|---|
-| 📥 **Import CSV** | depuis n'importe quelle banque, sans doublons même si vous réimportez le même fichier |
-| 🏷️ **Classement automatique** | catégories, tags et règles ; « CB CARREFOUR 1234 PARIS » devient simplement « Carrefour » |
-| 🔁 **Virements internes** | détectés, ils ne gonflent ni vos revenus ni vos dépenses |
-| 🧾 **Fiscalité** | PEA, PER, assurance-vie, livrets : plafonds et avantages de chaque enveloppe |
-| 💼 **Salaire** | télétravail et tickets restaurant pris en compte |
-| 💸 **Remboursements** | les sommes avancées qu'on doit vous rendre |
-| 💱 **Multi-devises** | comptes en dollars, francs suisses ou livres, convertis automatiquement |
-| 🎁 **Bilan annuel** | votre année en un coup d'œil, façon *Wrapped* |
-| 🙈 **Mode discret** | un bouton masque tous les montants quand quelqu'un regarde l'écran |
-| 🌗 **Thème clair ou sombre** | et une interface qui fonctionne aussi sur téléphone |
 
 <br>
 
@@ -228,6 +179,55 @@ docker compose --env-file .env up -d
 Plus de détails dans [docs/BACKUP_RESTORE.md](docs/BACKUP_RESTORE.md).
 
 </details>
+
+<br>
+
+## ✨ Ce que Numera fait pour vous
+
+### Comprendre où part l'argent
+
+Chaque mois, un bilan clair : ce qui est entré, ce qui est sorti, ce qui a été mis de côté, et les catégories qui ont bougé par rapport au mois d'avant. Une revue de fin de mois vous guide pour tout vérifier, et une vue comparaison met deux mois côte à côte.
+
+<p align="center"><img src="docs/screenshots/bilan-mois.png" alt="Bilan du mois : revenus, dépenses, épargne et principales catégories" width="85%"></p>
+
+### Ne plus rien laisser filer
+
+Le **Centre d'actions** fait le ménage à votre place : budgets dépassés, transactions sans catégorie, soldes pas à jour, règles de classement à créer. Vous traitez la liste, c'est tout.
+
+<p align="center"><img src="docs/screenshots/centre-actions.png" alt="Centre d'actions : budgets dépassés et soldes à mettre à jour" width="85%"></p>
+
+### Suivre ses abonnements et ses échéances
+
+Loyer, forfait, streaming, salaire : Numera repère ce qui revient chaque mois, vous dit ce que ça coûte sur l'année et affiche tout dans un calendrier.
+
+<p align="center"><img src="docs/screenshots/echeances.png" alt="Échéances : abonnements confirmés, coût mensuel et annuel" width="85%"></p>
+
+### Faire grossir son épargne
+
+Patrimoine net, épargne disponible, taux d'épargne, nombre de mois que vous tiendriez sans revenus, objectifs d'épargne avec leur avancement.
+
+<p align="center"><img src="docs/screenshots/epargne.png" alt="Suivi de l'épargne : patrimoine net, taux d'épargne, indice de résilience" width="85%"></p>
+
+### Piloter ses investissements
+
+Saisissez vos versements, achats, ventes et dividendes : Numera en déduit vos positions, votre prix de revient et votre performance au cours du jour. Il décortique aussi vos ETF pour montrer votre exposition réelle par pays et par secteur.
+
+<p align="center"><img src="docs/screenshots/investissements.png" alt="Investissements : valeur totale, performance, répartition par enveloppe" width="85%"></p>
+
+### Et aussi
+
+| | |
+|---|---|
+| 📥 **Import CSV** | depuis n'importe quelle banque, sans doublons même si vous réimportez le même fichier |
+| 🏷️ **Classement automatique** | catégories, tags et règles ; « CB CARREFOUR 1234 PARIS » devient simplement « Carrefour » |
+| 🔁 **Virements internes** | détectés, ils ne gonflent ni vos revenus ni vos dépenses |
+| 🧾 **Fiscalité** | PEA, PER, assurance-vie, livrets : plafonds et avantages de chaque enveloppe |
+| 💼 **Salaire** | télétravail et tickets restaurant pris en compte |
+| 💸 **Remboursements** | les sommes avancées qu'on doit vous rendre |
+| 💱 **Multi-devises** | comptes en dollars, francs suisses ou livres, convertis automatiquement |
+| 🎁 **Bilan annuel** | votre année en un coup d'œil, façon *Wrapped* |
+| 🙈 **Mode discret** | un bouton masque tous les montants quand quelqu'un regarde l'écran |
+| 🌗 **Thème clair ou sombre** | et une interface qui fonctionne aussi sur téléphone |
 
 <br>
 

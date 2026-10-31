@@ -41,3 +41,7 @@ Nouvelle route dans `App.tsx` : l'ajouter à `ROUTES` dans `navigation.spec.ts`.
 - Attentes explicites (`expect(...).toBeVisible()`), pas de `waitForTimeout`.
 - Données créées par le scénario avec un préfixe `E2E ` ; dates relatives à aujourd'hui.
 - Peu de scénarios, uniquement des parcours critiques ; pas de captures d'écran de référence.
+
+## Captures du README
+
+`npm run screenshots` régénère `docs/screenshots/*.png` (1440×900 en @2x) sur la base de démo jetable. Ignoré par `npm run test:e2e`.
