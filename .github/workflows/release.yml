@@ -106,6 +106,11 @@ jobs:
           fetch-depth: 0
       - name: Notes de version (depuis les commits)
         run: python3 scripts/release_notes.py --notes "$GITHUB_REF_NAME" > "$RUNNER_TEMP/notes.md"
+      - name: Compose autonome (images de cette version)
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          sed "s/NUMERA_VERSION:-latest/NUMERA_VERSION:-$version/" docker-compose.images.yml > "$RUNNER_TEMP/docker-compose.yml"
+          grep -q "NUMERA_VERSION:-$version}" "$RUNNER_TEMP/docker-compose.yml"
       - name: Créer la release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -113,4 +118,5 @@ jobs:
           gh release create "$GITHUB_REF_NAME" \
             --title "Numera ${GITHUB_REF_NAME#v}" \
             --notes-file "$RUNNER_TEMP/notes.md" \
-            --verify-tag
+            --verify-tag \
+            "$RUNNER_TEMP/docker-compose.yml"

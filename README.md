@@ -103,34 +103,53 @@ Saisissez vos versements, achats, ventes et dividendes : Numera en déduit vos p
 
 <br>
 
-## 🚀 Installation en 3 commandes
+## 🚀 Installation
 
-Il vous faut **Docker** (avec Compose), `git`, `openssl` et `curl`.
-
-```bash
-git clone https://github.com/Hugo-Galley/numera.git
-cd numera
-./install.sh
-```
-
-Le script vous demande un identifiant et un mot de passe, s'occupe de tout le reste, et quelques minutes plus tard Numera tourne sur **http://localhost:8082**. Vous pouvez le relancer sans crainte : il garde votre configuration.
-
-> [!IMPORTANT]
-> Vos sauvegardes sont chiffrées avec la `BACKUP_KEY` du fichier `.env`. **Gardez-la précieusement** (dans un gestionnaire de mots de passe, par exemple) : sans elle, une sauvegarde est illisible.
-
-> [!TIP]
-> Envie d'essayer en local avec des données fictives ? `make backend-seed-demo`.
-
-<details>
-<summary><strong>Installer sans cloner le dépôt</strong></summary>
-
-<br>
+Il vous faut **Docker** (avec Compose), `openssl` et `curl`. Une seule commande :
 
 ```bash
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/Hugo-Galley/numera/main/install.sh)"
 ```
 
-Le dépôt est cloné dans `./numera`, puis l'installation se déroule comme ci-dessus.
+Le script propose deux modes. Choisissez **1) Docker** :
+
+| Mode | Pour qui | Ce qui se passe |
+|---|---|---|
+| **1) Docker** (recommandé) | tout le monde | télécharge les **images prêtes à l'emploi** de la dernière [release](https://github.com/Hugo-Galley/numera/releases) (`amd64` et `arm64`, donc aussi Raspberry Pi et NAS ARM) : **rien à cloner, rien à construire**, installé en une minute ; tout vit dans `./numera` |
+| 2) Depuis les sources | pour modifier le code | clone le dépôt et construit les conteneurs sur votre machine (quelques minutes) |
+
+Le script vous demande un identifiant et un mot de passe, s'occupe de tout le reste, et Numera tourne sur **http://localhost:8082**. Vous pouvez le relancer sans crainte : il garde votre configuration. Pour ne pas être interrogé : `NUMERA_MODE=docker` (ou `source`), et `NUMERA_VERSION=0.1.0` pour une version précise.
+
+> [!IMPORTANT]
+> Vos sauvegardes sont chiffrées avec la `BACKUP_KEY` du fichier `.env`. **Gardez-la précieusement** (dans un gestionnaire de mots de passe, par exemple) : sans elle, une sauvegarde est illisible.
+
+> [!TIP]
+> Envie d'essayer en local avec des données fictives ? Depuis un clone, `make backend-seed-demo`.
+
+<details>
+<summary><strong>Installer à la main avec Docker (sans le script)</strong></summary>
+
+<br>
+
+Dans un dossier vide, récupérez le compose de la dernière release, créez votre `.env` (`SECRET_KEY`, `ADMIN_PASSWORD_HASH`, `BACKUP_KEY` : voir plus bas) et lancez :
+
+```bash
+curl -fsSLO https://github.com/Hugo-Galley/numera/releases/latest/download/docker-compose.yml
+docker compose --env-file .env up -d
+```
+
+</details>
+
+<details>
+<summary><strong>Installer depuis les sources</strong></summary>
+
+<br>
+
+```bash
+git clone https://github.com/Hugo-Galley/numera.git
+cd numera
+./install.sh        # choisit automatiquement le mode « sources » depuis un clone
+```
 
 </details>
 
@@ -165,22 +184,21 @@ Par défaut, l'appli n'écoute que sur `127.0.0.1:8082`. Pour l'ouvrir depuis l'
 
 ### Mettre à jour
 
+**Mode Docker** : relancez le script d'installation (il garde votre configuration), ou, dans `./numera` :
+
+```bash
+docker compose --env-file .env pull && docker compose --env-file .env up -d
+```
+
+Pour une version précise (ou revenir en arrière), préfixez par `NUMERA_VERSION=0.1.0`. Les migrations de la base ne se défont pas toutes seules : restaurez aussi une sauvegarde faite avant la mise à jour.
+
+**Depuis les sources** :
+
 ```bash
 make upgrade
 ```
 
-La dernière version est récupérée et les conteneurs reconstruits. La base se met à jour toute seule au démarrage.
-
-#### Sans builder : images publiées
-
-Chaque [release](https://github.com/Hugo-Galley/numera/releases) publie ses images sur GHCR (`amd64` et `arm64`), avec le détail des changements. Pour déployer une version précise sans rien construire :
-
-```bash
-NUMERA_VERSION=0.1.0 docker compose --env-file .env \
-  -f docker-compose.prod.yml -f docker-compose.release.yml up -d --no-build
-```
-
-Pour revenir en arrière, relancez avec la version précédente. Les migrations de la base ne se défont pas toutes seules : restaurez aussi une sauvegarde faite avant la mise à jour.
+La dernière version est récupérée et les conteneurs reconstruits. Dans les deux cas, la base se met à jour toute seule au démarrage.
 
 ### Sauvegardes
 
@@ -195,10 +213,16 @@ Toutes les 24 heures, une copie chiffrée de la base est déposée dans `backups
 # Sauvegarder tout de suite
 docker exec numera-backup-prod python scripts/backup.py
 
-# Restaurer (après make prod-down)
+# Restaurer, mode sources (après make prod-down)
 export BACKUP_KEY=...
 PYTHONPATH=backend python3 backend/scripts/restore.py \
   backups/suivi_budget_AAAAMMJJ_HHMMSS.db.enc --dest backend/data/suivi_budget.db
+
+# Restaurer, mode Docker (dans ./numera ; la BACKUP_KEY vient du .env)
+docker compose --env-file .env stop backend backup
+docker compose --env-file .env run --rm --no-deps backend python scripts/restore.py \
+  /app/backups/suivi_budget_AAAAMMJJ_HHMMSS.db.enc --dest /app/data/suivi_budget.db
+docker compose --env-file .env up -d
 ```
 
 Plus de détails dans [docs/BACKUP_RESTORE.md](docs/BACKUP_RESTORE.md).

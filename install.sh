@@ -1,16 +1,21 @@
 #!/usr/bin/env bash
 # Installe Numera et le lance en production (docker-compose.prod.yml).
 #
-#   git clone https://github.com/Hugo-Galley/numera.git && cd numera && ./install.sh
-# ou, sans cloner :
 #   bash -c "$(curl -fsSL https://raw.githubusercontent.com/Hugo-Galley/numera/main/install.sh)"
+# ou, depuis un clone :
+#   git clone https://github.com/Hugo-Galley/numera.git && cd numera && ./install.sh
+#
+# Deux modes (NUMERA_MODE=docker|source pour ne pas être interrogé) :
+#   docker : images publiées de la dernière release (ou NUMERA_VERSION=x.y.z), rien à construire ;
+#            l'installation vit dans ./numera (docker-compose.yml, .env, data/, backups/).
+#   source : clone du dépôt et construction locale (docker-compose.prod.yml).
 #
 # Relancer le script sur une installation existante garde le .env (et donc la clé des sauvegardes).
 
 set -euo pipefail
 
 REPO_URL="https://github.com/Hugo-Galley/numera.git"
-COMPOSE_FILE="docker-compose.prod.yml"
+RELEASES_URL="https://github.com/Hugo-Galley/numera/releases"
 APP_URL="http://localhost:8082"
 
 if [ -t 1 ]; then
@@ -28,8 +33,28 @@ ask_secret() { local reply; read -r -s -p "$1" reply < /dev/tty; echo >&2; print
 
 # --- Prérequis -----------------------------------------------------------------
 
+# --- Mode ----------------------------------------------------------------------
+
+mode="${NUMERA_MODE:-}"
+if [ -z "$mode" ]; then
+    if [ -f docker-compose.prod.yml ] && [ -f scripts/change_password.py ]; then
+        mode=source   # lancé depuis un clone : on y reste
+    else
+        step "Mode d'installation"
+        echo "  1) Docker       images prêtes à l'emploi, rien à construire, mises à jour en une commande (recommandé)"
+        echo "  2) Depuis les sources   clone du dépôt et construction locale (pour modifier le code)"
+        case "$(ask "Votre choix [1] : ")" in
+            2) mode=source ;;
+            *) mode=docker ;;
+        esac
+    fi
+fi
+case "$mode" in docker|source) ;; *) fail "NUMERA_MODE doit valoir « docker » ou « source »." ;; esac
+
+# --- Prérequis -----------------------------------------------------------------
+
 step "Vérification des prérequis"
-command -v git >/dev/null || fail "git n'est pas installé."
+[ "$mode" = source ] && { command -v git >/dev/null || fail "git n'est pas installé."; }
 command -v openssl >/dev/null || fail "openssl n'est pas installé."
 command -v curl >/dev/null || fail "curl n'est pas installé."
 command -v docker >/dev/null || fail "Docker n'est pas installé (https://docs.docker.com/get-docker/)."
@@ -37,17 +62,35 @@ docker compose version >/dev/null 2>&1 || fail "le plugin Docker Compose est abs
 docker info >/dev/null 2>&1 || fail "impossible de joindre Docker. Le démon est-il lancé ? Votre utilisateur a-t-il accès à Docker (groupe docker ou sudo) ?"
 echo "OK"
 
-# --- Dépôt ---------------------------------------------------------------------
+# --- Dossier d'installation ----------------------------------------------------
 
-if [ ! -f "$COMPOSE_FILE" ] || [ ! -f "scripts/change_password.py" ]; then
-    if [ -d numera/.git ]; then
-        step "Mise à jour du dépôt existant dans ./numera"
-        git -C numera pull --ff-only
-    else
-        step "Clonage du dépôt dans ./numera"
-        git clone "$REPO_URL" numera
+if [ "$mode" = source ]; then
+    COMPOSE_FILE="docker-compose.prod.yml"
+    DATA_DIR="backend/data"
+    if [ ! -f "$COMPOSE_FILE" ] || [ ! -f "scripts/change_password.py" ]; then
+        if [ -d numera/.git ]; then
+            step "Mise à jour du dépôt existant dans ./numera"
+            git -C numera pull --ff-only
+        else
+            step "Clonage du dépôt dans ./numera"
+            git clone "$REPO_URL" numera
+        fi
+        cd numera
     fi
+else
+    COMPOSE_FILE="docker-compose.yml"
+    DATA_DIR="data"
+    mkdir -p numera
     cd numera
+    step "Téléchargement de la configuration Docker"
+    if [ -n "${NUMERA_VERSION:-}" ]; then
+        compose_url="$RELEASES_URL/download/v${NUMERA_VERSION#v}/docker-compose.yml"
+    else
+        compose_url="$RELEASES_URL/latest/download/docker-compose.yml"
+    fi
+    curl -fsSL "$compose_url" -o "$COMPOSE_FILE.new" || { rm -f "$COMPOSE_FILE.new"; fail "impossible de télécharger $compose_url (aucune release publiée avec ce compose ?)."; }
+    mv "$COMPOSE_FILE.new" "$COMPOSE_FILE"
+    grep -m1 "NUMERA_VERSION:-" "$COMPOSE_FILE" | sed 's/.*NUMERA_VERSION:-\([^}]*\)}.*/Version : \1/'
 fi
 
 # --- Configuration -------------------------------------------------------------
@@ -63,6 +106,25 @@ hash_password() {
     fi
 }
 
+# Mode source : .env.example du dépôt ; mode Docker : gabarit minimal (rien d'autre n'est cloné).
+env_template() {
+    if [ -f .env.example ]; then
+        cat .env.example
+    else
+        cat <<'TEMPLATE'
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD_HASH=
+SECRET_KEY=
+CORS_ORIGINS=http://localhost:8082
+BACKUP_KEY=
+RETENTION_DAYS=7
+# Envoi des sauvegardes chiffrées vers un dépôt GitHub PRIVÉ dédié (laisser vide = désactivé)
+GITHUB_BACKUP_REPO=
+GITHUB_BACKUP_TOKEN=
+TEMPLATE
+    fi
+}
+
 write_env() {
     local username="$1" password_hash="$2" secret_key="$3" backup_key="$4"
     local line
@@ -75,7 +137,7 @@ write_env() {
             BACKUP_KEY=*) printf 'BACKUP_KEY=%s\n' "$backup_key" ;;
             *) printf '%s\n' "$line" ;;
         esac
-    done < .env.example > .env
+    done < <(env_template) > .env
     chmod 600 .env
 }
 
@@ -111,15 +173,21 @@ if [ "$configure" -eq 1 ]; then
     # Clé Fernet = 32 octets aléatoires en base64 « url-safe ».
     backup_key="$(openssl rand -base64 32 | tr '+/' '-_')"
 
-    mkdir -p backend/data backups
+    mkdir -p "$DATA_DIR" backups
     write_env "$username" "$password_hash" "$secret_key" "$backup_key"
     echo ".env créé."
 fi
 
 # --- Lancement -----------------------------------------------------------------
 
-step "Construction et démarrage des conteneurs (quelques minutes la première fois)"
-docker compose --env-file .env -f "$COMPOSE_FILE" up -d --build
+if [ "$mode" = docker ]; then
+    step "Téléchargement des images et démarrage"
+    docker compose --env-file .env -f "$COMPOSE_FILE" pull
+    docker compose --env-file .env -f "$COMPOSE_FILE" up -d --no-build
+else
+    step "Construction et démarrage des conteneurs (quelques minutes la première fois)"
+    docker compose --env-file .env -f "$COMPOSE_FILE" up -d --build
+fi
 
 step "Attente du démarrage de l'API"
 for _ in $(seq 1 60); do
@@ -129,6 +197,11 @@ for _ in $(seq 1 60); do
             echo "Connectez-vous avec l'identifiant « $username »."
             echo
             echo "Pensez à copier BACKUP_KEY (dans .env) en lieu sûr : sans elle, les sauvegardes sont illisibles."
+        fi
+        if [ "$mode" = docker ]; then
+            echo
+            echo "Mettre à jour plus tard : relancez ce script (la configuration est conservée), ou"
+            echo "  cd numera && docker compose --env-file .env pull && docker compose --env-file .env up -d"
         fi
         exit 0
     fi

@@ -9,7 +9,7 @@ description: Use when deciding whether Numera should be released, choosing patch
 
 Une release = un tag `vX.Y.Z` sur `main`. Le tag déclenche `.github/workflows/release.yml` : contrôle (commit sur `main`, CI vert) → 3 images multi-arch sur GHCR (`numera-backend`, `numera-frontend`, `numera-mcp`, tags `X.Y.Z`, `X.Y`, `latest`) → GitHub Release avec notes générées par `scripts/release_notes.py` depuis les commits Conventional Commits. Aucun changelog écrit à la main ; la qualité des notes dépend donc de celle des messages de commit (`type(portée): description`, le corps explique le pourquoi).
 
-Les utilisateurs déploient avec `docker-compose.release.yml` (`NUMERA_VERSION=X.Y.Z`, images au lieu de build).
+Le workflow joint à la Release un `docker-compose.yml` autonome (dérivé de `docker-compose.images.yml`, version de la release en défaut de `NUMERA_VERSION`). `install.sh` (mode « Docker », recommandé dans le README) le télécharge ; `docker-compose.images.yml` doit rester identique à `docker-compose.prod.yml` hors `build`/`image`/volumes (`tests/garde_fous/test_compose_images.py`). Toute modification de `docker-compose.prod.yml` se répercute donc dans `docker-compose.images.yml`.
 
 ## Autonomie
 
@@ -45,7 +45,7 @@ Tant que la version majeure est `0` (état actuel, pas de tag avant la première
 2. `make validate` vert (sinon pas de release).
 3. `make release-check` : bump suggéré, version suivante, aperçu des notes. Décider selon les sections ci-dessus.
 4. `make release V=X.Y.Z` : vérifie (propre, sur `main`, tag libre, version > dernier tag), crée un tag annoté et le pousse.
-5. Suivre le workflow (`gh run watch`), vérifier que la Release existe et que `docker pull ghcr.io/hugo-galley/numera-backend:X.Y.Z` fonctionne ; au premier tag, rendre les 3 paquets GHCR **publics** (Réglages du paquet → Change visibility), sinon `docker pull` demande une authentification.
+5. Suivre le workflow (`gh run watch`), vérifier que la Release existe, qu'elle porte `docker-compose.yml` en pièce jointe, et que `docker pull ghcr.io/hugo-galley/numera-backend:X.Y.Z` fonctionne ; au premier tag, rendre les 3 paquets GHCR **publics** (Réglages du paquet → Change visibility), sinon `docker pull` demande une authentification.
 6. Compte rendu à l'utilisateur : version, bump choisi et pourquoi, lien de la release, ce qui n'a pas été vérifié.
 
 ## Si le workflow échoue
