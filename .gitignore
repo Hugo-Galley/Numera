@@ -16,6 +16,9 @@ backend/venv*/
 node_modules/
 dist/
 coverage/
+frontend/test-results/
+frontend/playwright-report/
+frontend/e2e/.auth/
 
 # Bases SQLite (y compris WAL / mémoire partagée d'une base ouverte)
 *.db

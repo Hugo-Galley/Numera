@@ -58,7 +58,7 @@ cd frontend && npm run build                              # tsc app + tests (0 e
 
 Les deux sont obligatoires : `npm test` ne vérifie pas les types, le build ne lance pas les tests. Conventions (emplacement `X.test.tsx`, `renderWithProviders`, handlers MSW par domaine, fabriques, horloge figée) : `frontend/src/CLAUDE.md` § Vérification.
 
-Débogage : « Requête(s) sans handler MSW : GET … » = ajouter un handler (`server.use(...)` dans le test, ou `src/test/handlers/<domaine>.ts`) ; `localStorage` indéfini sous Node ≥ 25 = lancer via `npm test` / `vitest.config.ts` (option `--no-experimental-webstorage`) ; un élément introuvable : `screen.debug()`, et `findBy…` pour ce qui s'affiche après une requête. Contrôles manuels en plus : mode confidentialité, toasts, thème sombre, mobile.
+Débogage : « Requête(s) sans handler MSW : GET … » = ajouter un handler (`server.use(...)` dans le test, ou `src/test/handlers/<domaine>.ts`) ; `localStorage` indéfini sous Node ≥ 25 = lancer via `npm test` / `vitest.config.ts` (option `--no-experimental-webstorage`) ; un élément introuvable : `screen.debug()`, et `findBy…` pour ce qui s'affiche après une requête. E2E (Playwright, `make test-e2e`, parcours critiques sur base de démo jetable) : `frontend/e2e/README.md`. Contrôles manuels en plus : mode confidentialité, toasts, thème sombre, mobile.
 
 ## Définition de « terminé »
 
