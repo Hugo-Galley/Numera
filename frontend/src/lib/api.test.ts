@@ -169,8 +169,7 @@ describe("ApiError", () => {
 })
 
 describe("api.upload et api.download", () => {
-  // jsdom et le fetch de Node n'ont pas la même classe FormData : le corps n'arrive pas en multipart
-  // dans les tests (il le fait dans le navigateur) ; on vérifie que apiFetch ne force pas le JSON.
+  // setup.ts convertit le FormData de jsdom en FormData natif avant fetch : le corps arrive bien en multipart.
   it("upload : POST sans Content-Type JSON, avec le Bearer", async () => {
     const token = makeToken()
     safeStorage.setItem("token", token)
@@ -198,7 +197,8 @@ describe("api.upload et api.download", () => {
 
     const blob = await api.download("/export/transactions")
 
-    expect(blob).toBeInstanceOf(Blob)
+    // le Blob vient du fetch de Node, pas de jsdom : pas de toBeInstanceOf(Blob)
+    expect(Object.prototype.toString.call(blob)).toBe("[object Blob]")
     expect(await blob.text()).toBe("date;montant\n2026-06-15;42,50\n")
     expect(authorization).toBe(`Bearer ${token}`)
   })
