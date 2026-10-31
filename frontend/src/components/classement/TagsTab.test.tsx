@@ -57,17 +57,19 @@ describe("TagsTab", () => {
     expect(await screen.findByText("Aucun tag créé pour le moment.")).toBeInTheDocument()
   })
 
-  it("échec du chargement : toast d'erreur", async () => {
-    server.use(http.get(apiUrl("/tags"), () => HttpResponse.json({ detail: "boom" }, { status: 500 })))
-    renderWithProviders(<TagsTab />, { auth: true })
+  it("échec du chargement : alerte avec « Réessayer », jamais l'état vide", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => undefined)
+    serveTags([VACANCES])
+    server.use(http.get(apiUrl("/tags"), () => HttpResponse.json({ detail: "boom" }, { status: 500 }), { once: true }))
+    const { user } = renderWithProviders(<TagsTab />, { auth: true })
 
-    expect(await screen.findByText("Erreur chargement tags")).toBeInTheDocument()
+    expect(await screen.findByRole("alert")).toHaveTextContent("Impossible de charger les tags.")
+    expect(screen.queryByText("Aucun tag créé pour le moment.")).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole("button", { name: "Réessayer" }))
+    expect(await screen.findByText("Vacances")).toBeInTheDocument()
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument()
   })
-
-  it.todo(
-    "échec du chargement (GET /tags → 500) : la page affiche « Aucun tag créé pour le moment. » comme s'il n'y en avait pas ; " +
-      "attendu un ErrorState avec « Réessayer » (components/classement/TagsTab.tsx, loadTags)",
-  )
 
   it("création : nom et couleur choisie envoyés, toast, tag ajouté à la liste", async () => {
     const state = serveTags()

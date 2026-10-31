@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import { ErrorState } from "@/components/layout/ErrorState"
 import {
   Plus,
   Trash2,
@@ -46,6 +47,7 @@ export function RulesTab() {
   const [rules, setRules] = useState<any[]>([])
   const [categories, setCategories] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadFailed, setLoadFailed] = useState(false)
   const [isAddOpen, setIsAddOpen] = useState(false)
   const [editingRule, setEditingRule] = useState<any>(null)
   
@@ -69,9 +71,10 @@ export function RulesTab() {
       ])
       setRules(r)
       setCategories(cats)
+      setLoadFailed(false)
     } catch (error) {
       console.error("Failed to load rules", error)
-      toast.error("Impossible de charger les règles")
+      setLoadFailed(true)
     } finally {
       setLoading(false)
     }
@@ -121,6 +124,7 @@ export function RulesTab() {
   }
 
   if (loading) return <div className="p-8 text-center text-slate-500">Chargement...</div>
+  if (loadFailed) return <ErrorState message="Impossible de charger les règles." onRetry={() => { setLoading(true); loadData() }} />
 
   return (
     <div className="space-y-6 [&_input]:text-base md:[&_input]:text-sm">

@@ -1,4 +1,5 @@
 import { LoanView } from "@/components/loans/LoanView"
+import { ErrorState } from "@/components/layout/ErrorState"
 import { useAccountDetail } from "./useAccountDetail"
 import { AccountHeader } from "./AccountHeader"
 import { FilterBar } from "./FilterBar"
@@ -12,7 +13,7 @@ import { AccountDialogs } from "./AccountDialogs"
 
 export default function AccountDetail() {
   const ctx = useAccountDetail()
-  const { loading, account, investmentData } = ctx
+  const { loading, account, investmentData, loadError, loadData } = ctx
 
   if (loading) return (
     <div className="flex items-center justify-center h-[60vh]">
@@ -23,6 +24,7 @@ export default function AccountDetail() {
     </div>
   )
   
+  if (loadError) return <ErrorState message={loadError} onRetry={() => loadData()} />
   if (!account) return <div>Compte non trouvé</div>
   // Un compte crédit n'a pas d'opérations : échéancier, capital restant dû et simulateur
   if (account.type === "credit") return <LoanView accountId={account.id} />

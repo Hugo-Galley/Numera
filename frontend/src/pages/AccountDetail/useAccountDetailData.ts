@@ -2,6 +2,7 @@ import { type AccountLite } from "@/types/transfers"
 import { PortfolioHolding } from "@/types/diversity"
 import { endOfDayParam, startOfDayParam } from "@/lib/dates"
 import { errorMessage } from "@/lib/utils"
+import { ApiError } from "@/lib/api"
 import { toast } from "sonner"
 import { useEffect, useRef, useState } from "react"
 import { Account, Category, TagType, Transaction, TX_PAGE_SIZE } from "./types"
@@ -35,6 +36,9 @@ export function useAccountDetailData(p: ReturnType<typeof useAccountDetailState>
 
   // Numéro de la dernière requête de liste : une réponse arrivée après une autre plus récente est ignorée
   const txRequestId = useRef(0)
+  // Chargement complet : numéro de requête pour ignorer la réponse d'un compte quitté entre-temps
+  const loadRequestId = useRef(0)
+  const [loadError, setLoadError] = useState<string | null>(null)
   const [txLoading, setTxLoading] = useState(false)
 
   const loadTransactions = async (opts?: { reset?: boolean }) => {
@@ -95,13 +99,19 @@ export function useAccountDetailData(p: ReturnType<typeof useAccountDetailState>
   // `quiet` : rechargement après une modification, sans remplacer la page par un spinner
   const loadData = async (opts?: { quiet?: boolean }) => {
     if (!id) return
-    if (!opts?.quiet) setLoading(true)
+    const requestId = ++loadRequestId.current
+    const isCurrent = () => requestId === loadRequestId.current
+    if (!opts?.quiet) {
+      setLoading(true)
+      setLoadError(null)
+    }
     try {
       const [accData, merchantsData, suggestionsData] = await Promise.all([
         getAccountsById<Account>(id),
         getTransactionsMerchants<string[]>(),
         getAnalyticsAssetAllocationSuggestions<any>()
       ])
+      if (!isCurrent()) return
       setAccount(accData)
       setKnownMerchants(merchantsData)
       if (suggestionsData) setSuggestions(suggestionsData)
@@ -114,6 +124,7 @@ export function useAccountDetailData(p: ReturnType<typeof useAccountDetailState>
           getAnalyticsInvestmentsPerformanceHistory<any>(id),
           getHoldings<PortfolioHolding[]>(`?account_id=${id}`)
         ])
+        if (!isCurrent()) return
         setInvestmentData(invData)
         setPerfHistory(perfData.items || [])
         setHoldings(holdingsData || [])
@@ -127,6 +138,7 @@ export function useAccountDetailData(p: ReturnType<typeof useAccountDetailState>
           getTags<TagType[]>(),
           getAnalyticsTags<any[]>(`?account_id=${id}${dateStart ? `&start_date=${dateStart}` : ""}${dateEnd ? `&end_date=${dateEnd}` : ""}`)
         ])
+        if (!isCurrent()) return
         setTransactions(txData)
         setHasMoreTx(txData.length === TX_PAGE_SIZE)
         setTimeseries(timeData)
@@ -135,9 +147,18 @@ export function useAccountDetailData(p: ReturnType<typeof useAccountDetailState>
         setTagTotals(tagTotalsData)
       }
     } catch (error) {
-      toast.error(errorMessage(error, "Erreur lors du chargement des données"))
+      if (!isCurrent()) return
+      if (error instanceof ApiError && error.status === 404) {
+        setAccount(null)
+      } else if (opts?.quiet) {
+        toast.error(errorMessage(error, "Erreur lors du chargement des données"))
+      } else {
+        // Page entière en erreur (avec « Réessayer ») : jamais confondue avec un compte inexistant
+        console.error("Failed to load account", error)
+        setLoadError(errorMessage(error, "Le compte n'a pas pu être chargé."))
+      }
     } finally {
-      setLoading(false)
+      if (isCurrent()) setLoading(false)
     }
   }
 
@@ -167,5 +188,5 @@ export function useAccountDetailData(p: ReturnType<typeof useAccountDetailState>
     }
   }, [dateStart, dateEnd])
 
-  return { buildTransactionParams, txRequestId, txLoading, setTxLoading, loadTransactions, loadTagTotals, loadMoreTransactions, openTransferDialog, loadData }
+  return { buildTransactionParams, txRequestId, txLoading, setTxLoading, loadTransactions, loadTagTotals, loadMoreTransactions, openTransferDialog, loadData, loadError }
 }

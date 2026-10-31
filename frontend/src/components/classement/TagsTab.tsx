@@ -17,6 +17,7 @@ import {
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import { useConfirm } from "@/providers/ConfirmProvider"
+import { ErrorState } from "@/components/layout/ErrorState"
 
 type TagType = {
   id: number
@@ -42,6 +43,7 @@ export function TagsTab() {
   const confirm = useConfirm()
   const [tags, setTags] = useState<TagType[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadFailed, setLoadFailed] = useState(false)
 
   // -- New Tag Form --
   const [newOpen, setNewOpen] = useState(false)
@@ -58,8 +60,10 @@ export function TagsTab() {
     try {
       const data = await api.get<TagType[]>("/tags")
       setTags(data)
+      setLoadFailed(false)
     } catch (error) {
-      toast.error("Erreur chargement tags")
+      console.error("Failed to load tags", error)
+      setLoadFailed(true)
     } finally {
       setLoading(false)
     }
@@ -198,6 +202,8 @@ export function TagsTab() {
 
       {loading ? (
         <div className="text-center py-20 text-slate-400">Chargement de vos tags...</div>
+      ) : loadFailed ? (
+        <ErrorState message="Impossible de charger les tags." onRetry={() => { setLoading(true); loadTags() }} />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {[...tags].sort((a, b) => Number(!!a.archived) - Number(!!b.archived)).map((tag) => (

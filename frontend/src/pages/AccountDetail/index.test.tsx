@@ -1,7 +1,7 @@
 /** Page d'un compte : chargement, création / édition / suppression d'une transaction (corps envoyé, toast, liste rechargée). */
 import { fireEvent, screen, waitFor, within } from "@testing-library/react"
 import { http, HttpResponse } from "msw"
-import { Route, Routes } from "react-router-dom"
+import { Link, Route, Routes } from "react-router-dom"
 import { makeAccount, makeTransaction } from "@/test/factories"
 import { apiUrl } from "@/test/handlers"
 import { renderWithProviders } from "@/test/render"
@@ -85,24 +85,61 @@ describe("AccountDetail : chargement", () => {
     expect(within(desktopTable()).getByText("Boulangerie")).toBeInTheDocument()
   })
 
-  it("échec du chargement : toast d'erreur du serveur", async () => {
-    serveAccount()
-    server.use(http.get(apiUrl("/accounts/:id"), () => HttpResponse.json({ detail: "Base indisponible" }, { status: 500 })))
-    renderAccount()
+  it("échec du chargement : alerte avec le détail du serveur et « Réessayer », pas « Compte non trouvé »", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => undefined)
+    serveAccount([makeTransaction({ id: 5, merchant: "Boulangerie" })])
+    server.use(http.get(apiUrl("/accounts/:id"), () => HttpResponse.json({ detail: "Base indisponible" }, { status: 500 }), { once: true }))
+    const { user } = renderAccount()
 
-    expect(await screen.findByText("Base indisponible")).toBeInTheDocument()
+    expect(await screen.findByRole("alert")).toHaveTextContent("Base indisponible")
+    expect(screen.queryByText("Compte non trouvé")).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole("button", { name: "Réessayer" }))
+    expect(await screen.findByRole("heading", { name: /Compte joint/ })).toBeInTheDocument()
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument()
   })
 
-  it.todo(
-    "échec du chargement (GET /accounts/1 → 500) : la page affiche « Compte non trouvé » comme pour un compte inexistant ; " +
-      "attendu un ErrorState avec « Réessayer » (pages/AccountDetail/index.tsx + useAccountDetailData.loadData)",
-  )
+  it("compte inexistant (404) : « Compte non trouvé », sans alerte", async () => {
+    serveAccount()
+    server.use(http.get(apiUrl("/accounts/:id"), () => HttpResponse.json({ detail: "Compte introuvable" }, { status: 404 })))
+    renderAccount()
 
-  it.todo(
-    "changement de compte (/accounts/1 → /accounts/2) pendant que GET /accounts/1 est lent : la réponse du compte 1, " +
-      "arrivée après celle du compte 2, remplace le compte affiché ; attendu : réponse obsolète ignorée " +
-      "(useAccountDetailData.loadData n'a ni drapeau d'annulation ni numéro de requête)",
-  )
+    expect(await screen.findByText("Compte non trouvé")).toBeInTheDocument()
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument()
+  })
+
+
+  it("changement de compte pendant un chargement lent : la réponse de l'ancien compte est ignorée", async () => {
+    let releaseFirst = () => {}
+    const firstPending = new Promise<void>((resolve) => (releaseFirst = resolve))
+    serveAccount()
+    server.use(
+      http.get(apiUrl("/accounts/:id"), async ({ params }) => {
+        if (params.id === "1") {
+          await firstPending
+          return HttpResponse.json(makeAccount({ id: 1, name: "Compte joint" }))
+        }
+        return HttpResponse.json(makeAccount({ id: 2, name: "Livret" }))
+      }),
+    )
+    const { user } = renderWithProviders(
+      <WorkTimeProvider>
+        <Link to="/accounts/2">Autre compte</Link>
+        <Routes>
+          <Route path="/accounts/:id" element={<AccountDetail />} />
+        </Routes>
+      </WorkTimeProvider>,
+      { route: "/accounts/1", auth: true },
+    )
+
+    await user.click(screen.getByRole("link", { name: "Autre compte" }))
+    expect(await screen.findByRole("heading", { name: /Livret/ })).toBeInTheDocument()
+
+    releaseFirst()
+    await new Promise((resolve) => setTimeout(resolve, 50))
+    expect(screen.getByRole("heading", { name: /Livret/ })).toBeInTheDocument()
+    expect(screen.queryByRole("heading", { name: /Compte joint/ })).not.toBeInTheDocument()
+  })
 })
 
 describe("AccountDetail : transactions", () => {

@@ -59,18 +59,19 @@ describe("RulesTab", () => {
     expect(await screen.findByText(/Aucune règle définie/)).toBeInTheDocument()
   })
 
-  it("échec du chargement : toast d'erreur", async () => {
-    serveRules()
-    server.use(http.get(apiUrl("/categorization-rules/"), () => HttpResponse.json({ detail: "boom" }, { status: 500 })))
-    renderWithProviders(<RulesTab />, { auth: true })
+  it("échec du chargement : alerte avec « Réessayer », jamais l'état vide", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => undefined)
+    serveRules([UBER])
+    server.use(http.get(apiUrl("/categorization-rules/"), () => HttpResponse.json({ detail: "boom" }, { status: 500 }), { once: true }))
+    const { user } = renderWithProviders(<RulesTab />, { auth: true })
 
-    expect(await screen.findByText("Impossible de charger les règles")).toBeInTheDocument()
+    expect(await screen.findByRole("alert")).toHaveTextContent("Impossible de charger les règles.")
+    expect(screen.queryByText(/Aucune règle définie/)).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole("button", { name: "Réessayer" }))
+    expect(await screen.findByText("UBER")).toBeInTheDocument()
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument()
   })
-
-  it.todo(
-    "échec du chargement (GET /categorization-rules/ → 500) : la liste affiche « Aucune règle définie… » comme s'il n'y en avait pas ; " +
-      "attendu un ErrorState avec « Réessayer » (components/classement/RulesTab.tsx, loadData)",
-  )
 
   it("création : POST avec catégorie numérique, type null si « Aucun changement », toast et liste rechargée", async () => {
     const state = serveRules()
