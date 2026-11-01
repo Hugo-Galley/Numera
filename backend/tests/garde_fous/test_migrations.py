@@ -93,3 +93,17 @@ def test_run_migrations_bootstraps_an_empty_database(tmp_path, monkeypatch):
     with engine.connect() as conn:
         assert conn.execute(text("SELECT version_num FROM alembic_version")).scalar()
     engine.dispose()
+
+
+def test_run_migrations_does_not_need_alembic_on_path(tmp_path, monkeypatch):
+    """Venv non activé (CI, `uv sync` sans `source`) : `alembic` absent du PATH ne bloque pas le démarrage."""
+    from app.core import migrations
+    from app.core.config import settings
+
+    url = f"sqlite:///{tmp_path / 'nopath.db'}"
+    monkeypatch.setenv("DATABASE_URL", url)
+    monkeypatch.setenv("APP_ENV", "test")
+    monkeypatch.setenv("PATH", str(tmp_path))
+    monkeypatch.setattr(settings, "database_url", url)
+    migrations.run_migrations()
+    assert _schema_diffs(url) == []

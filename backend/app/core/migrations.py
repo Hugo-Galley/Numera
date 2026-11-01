@@ -1,5 +1,6 @@
 import os
 import subprocess
+import sys
 from pathlib import Path
 
 from app.core.config import settings
@@ -37,7 +38,7 @@ def run_migrations() -> None:
         env = {**os.environ, "PYTHONPATH": str(backend_root)}
         logger.info(f"Executing: alembic upgrade head in {backend_root}")
         result = subprocess.run(
-            ["alembic", "upgrade", "head"],
+            [sys.executable, "-m", "alembic", "upgrade", "head"],
             cwd=str(backend_root),
             capture_output=True,
             text=True,
