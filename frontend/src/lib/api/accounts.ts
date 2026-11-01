@@ -1,12 +1,12 @@
 /** Comptes, relevés de solde (snapshots, point zéro) et crédits. Une fonction par route ; `query` (« ?a=1&b=2 ») est ajouté tel quel à l'URL. */
 import { api } from "@/lib/api"
-import type { Id } from "./types"
+import type { ApiBody, ApiResponse, Id } from "./types"
 
 /** GET /accounts */
-export const getAccounts = <T = any>() => api.get<T>(`/accounts`)
+export const getAccounts = <T = ApiResponse<"/accounts", "get">>() => api.get<T>(`/accounts`)
 
 /** POST /accounts */
-export const postAccounts = <T = any>(body?: any) => api.post<T>(`/accounts`, body)
+export const postAccounts = <T = ApiResponse<"/accounts", "post">>(body?: ApiBody<"/accounts", "post">) => api.post<T>(`/accounts`, body)
 
 /** DELETE /accounts/:id */
 export const deleteAccountsById = <T = any>(id: Id) => api.delete<T>(`/accounts/${id}`)
