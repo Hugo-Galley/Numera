@@ -41,7 +41,7 @@ Tant que la version majeure est `0` (état actuel, pas de tag avant la première
 
 ## Procédure
 
-1. `git status` propre, sur `main`, à jour avec `origin/main` ; `git fetch --tags`.
+1. `git status` propre, sur `main` (ou `release/X.Y` pour un correctif d'une ancienne version, cf. `docs/WORKFLOW_GIT.md`), à jour avec son `origin` ; `git fetch --tags`.
 2. `make validate` vert (sinon pas de release).
 3. `make release-check` : bump suggéré, version suivante, aperçu des notes. Décider selon les sections ci-dessus.
 4. `make release V=X.Y.Z` : vérifie (propre, sur `main`, tag libre, version > dernier tag), crée un tag annoté et le pousse.
@@ -50,5 +50,5 @@ Tant que la version majeure est `0` (état actuel, pas de tag avant la première
 
 ## Si le workflow échoue
 
-- `verify` : le CI n'est pas vert sur le commit taggé → corriger sur `main`, puis **nouveau tag** (patch suivant). Ne pas forcer.
+- `verify` : le CI n'est pas vert sur le commit taggé → corriger par une PR vers `main` (ou `release/X.Y`), puis **nouveau tag** (patch suivant). Ne pas forcer.
 - `images` ou `release` en échec transitoire : relancer le job (`gh run rerun --failed`), sans toucher au tag.

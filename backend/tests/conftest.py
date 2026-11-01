@@ -46,6 +46,29 @@ def fresh_portfolio_cache():
 
 
 @pytest.fixture()
+def measure_queries(db_session):
+    """`measure_queries(appel)` exécute `appel()` et renvoie `(résultat, nombre de requêtes SQL émises)`.
+
+    Garde-fou de performance : borner le nombre de requêtes d'une route ou d'un service sur un jeu de données
+    volumineux détecte un N+1 (skill `numera-performance`)."""
+    def measure(call):
+        statements = []
+
+        def listener(conn, cursor, statement, parameters, context, executemany):
+            statements.append(statement)
+
+        engine = db_session.get_bind()
+        event.listen(engine, "before_cursor_execute", listener)
+        try:
+            result = call()
+        finally:
+            event.remove(engine, "before_cursor_execute", listener)
+        return result, len(statements)
+
+    return measure
+
+
+@pytest.fixture()
 def db_session(tmp_path) -> Generator[Session, None, None]:
     db_file = tmp_path / "test.db"
     engine = create_engine(f"sqlite:///{db_file}", connect_args={"check_same_thread": False})

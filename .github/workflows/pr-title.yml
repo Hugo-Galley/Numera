@@ -1,0 +1,26 @@
+name: Titre de PR
+
+# Merge en squash : le titre de la PR devient le message du commit sur main, donc la source
+# des notes de version (scripts/release_notes.py). Il doit suivre Conventional Commits.
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  titre:
+    name: Titre de PR (Conventional Commits)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Vérifier le format du titre
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          pattern='^(feat|fix|perf|refactor|test|docs|build|ci|chore|revert|style)(\([a-z0-9._/-]+\))?!?: [^ ].+$'
+          if ! printf '%s' "$TITLE" | grep -Eq "$pattern"; then
+            echo "::error::Titre invalide : « $TITLE »"
+            echo "Attendu : type(portée): description   (types : feat fix perf refactor test docs build ci chore revert style)"
+            exit 1
+          fi
