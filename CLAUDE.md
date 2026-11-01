@@ -16,6 +16,7 @@ Stack : React 18 + Vite + TypeScript + Tailwind + Recharts (frontend) · FastAPI
 | Procédures détaillées | skills `.claude/skills/` : `numera-expert` (métier), `numera-backend`, `numera-frontend`, `numera-testing` |
 | Discipline (obligatoire) | `numera-tdd` (test rouge avant tout code backend), `numera-clean-architecture` (où va le code, source unique, déplacements), `numera-finishing` (validation, docs, commit avant « terminé »), `numera-release` (quand et comment publier une version : choix patch/minor/major, tag), `numera-performance` (mesurer avant d'optimiser, N+1, lecture par colonnes, caches et leur invalidation, bundle, nginx) |
 | Architecture, modèle de données, routes API | `ARCHITECTURE.md` |
+| Workflow Git (PR, rulesets, branches de release) | `docs/WORKFLOW_GIT.md` |
 | Exploitation backend (logs, déploiement, sécurité) | `docs/BACKEND.md`, `backend/LOGGING.md`, `docs/BACKUP_RESTORE.md` |
 | Centre d'Actions (audit, alertes budget, suggestions de règles) | `docs/ACTION_CENTER.md` |
 | Serveur MCP | `mcp-server/README.md` |
@@ -26,9 +27,11 @@ Quand le code change une route, un modèle, une commande ou une règle métier, 
 
 **Jamais de tag flottant** : une action GitHub s'épingle par SHA de commit complet avec la version en commentaire (`actions/checkout@<sha40> # v4.4.0`), une image Docker par digest (`python:3.12-slim@sha256:…`), dans les `Dockerfile`, `docker-compose*.yml` et workflows. SHA obtenu par `git ls-remote --tags https://github.com/<org>/<action>`, digest par `docker buildx imagetools inspect <image>`. Contrôlé par `backend/tests/garde_fous/test_pinned_dependencies.py`.
 
+**Git : PR obligatoire.** `main` et `release/**` sont protégées (rulesets `.github/rulesets/`, appliqués par `scripts/github_rules.sh`) : plus de push direct. Branche `type/sujet` → PR au template `.github/pull_request_template.md` → checks `CI ok` + `Titre de PR` verts → merge en **squash** (le titre de PR, au format Conventional Commits, devient le commit et alimente les notes de version). Branches `release/X.Y` seulement à la demande, pour un correctif d'une ancienne version. Détail : `docs/WORKFLOW_GIT.md`.
+
 **Performance** : toute optimisation suit le skill `numera-performance` — mesure sur jeu volumineux avant et après (`backend/scripts/perf_profile.py`), test de nombre de requêtes (fixture `measure_queries`), chiffres dans le message de commit. Pas de requête SQL dans une boucle, pas d'objets ORM pour une lecture seule volumineuse, pas d'`async def` sans `await`, pas de cache sans invalidation sur écriture.
 
-**Releases** : tag `vX.Y.Z` sur `main` → `.github/workflows/release.yml` publie 3 images GHCR et la GitHub Release (notes auto depuis les commits Conventional Commits, `scripts/release_notes.py`). Décision et procédure : skill `numera-release` ; je release de moi-même quand les critères y sont réunis, ou sur demande. Des messages de commit propres = de bonnes notes.
+**Releases** : tag `vX.Y.Z` sur `main` (ou `release/X.Y`) → `.github/workflows/release.yml` publie 3 images GHCR et la GitHub Release (notes auto depuis les commits Conventional Commits, `scripts/release_notes.py`). Décision et procédure : skill `numera-release` ; je release de moi-même quand les critères y sont réunis, ou sur demande. Des messages de commit propres = de bonnes notes.
 
 ## Commandes
 
