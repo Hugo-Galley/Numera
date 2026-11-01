@@ -13,9 +13,16 @@ def accounts_by_id(db: Session) -> dict[int, Account]:
     return {a.id: a for a in db.query(Account).all()}
 
 
-def unlinked_sorties(db: Session, source_account_id: int | None, since: datetime | None) -> list[Transaction]:
-    """Sorties ni liées, ni ignorées, ni verrouillées par une créance."""
-    q = db.query(Transaction).filter(
+# Colonnes lues par l'appariement : les couples trouvés sont rechargés en entier (`load_legs`).
+MATCH_COLUMNS = (Transaction.id, Transaction.account_id, Transaction.date, Transaction.amount, Transaction.merchant, Transaction.note)
+MATCH_VERSEMENT_COLUMNS = (
+    InvestmentTransaction.id, InvestmentTransaction.account_id, InvestmentTransaction.date, InvestmentTransaction.amount,
+)
+
+
+def unlinked_sorties(db: Session, source_account_id: int | None, since: datetime | None, columns=None) -> list:
+    """Sorties ni liées, ni ignorées, ni verrouillées par une créance (lignes de `columns` si fourni)."""
+    q = (db.query(*columns) if columns else db.query(Transaction)).filter(
         Transaction.type == "Sortie",
         Transaction.is_transfer.is_(False),
         Transaction.is_transfer_ignored.is_(False),
@@ -30,8 +37,8 @@ def unlinked_sorties(db: Session, source_account_id: int | None, since: datetime
     return q.all()
 
 
-def unlinked_entrees(db: Session, dest_account_id: int | None, date_floor: datetime | None) -> list[Transaction]:
-    q = db.query(Transaction).filter(
+def unlinked_entrees(db: Session, dest_account_id: int | None, date_floor: datetime | None, columns=None) -> list:
+    q = (db.query(*columns) if columns else db.query(Transaction)).filter(
         Transaction.type == "Entree",
         Transaction.is_transfer.is_(False),
         Transaction.is_transfer_ignored.is_(False),
@@ -45,8 +52,8 @@ def unlinked_entrees(db: Session, dest_account_id: int | None, date_floor: datet
     return q.all()
 
 
-def unlinked_versements(db: Session, dest_account_id: int | None, date_floor: datetime | None) -> list[InvestmentTransaction]:
-    q = db.query(InvestmentTransaction).filter(
+def unlinked_versements(db: Session, dest_account_id: int | None, date_floor: datetime | None, columns=None) -> list:
+    q = (db.query(*columns) if columns else db.query(InvestmentTransaction)).filter(
         InvestmentTransaction.type == "versement",
         InvestmentTransaction.is_transfer.is_(False),
         InvestmentTransaction.is_transfer_ignored.is_(False),
@@ -57,6 +64,13 @@ def unlinked_versements(db: Session, dest_account_id: int | None, date_floor: da
     if date_floor:
         q = q.filter(InvestmentTransaction.date >= date_floor)
     return q.all()
+
+
+def load_legs(db: Session, model, ids: set[int]) -> dict[int, Transaction | InvestmentTransaction]:
+    """Objets complets (relations chargées) des lignes données, par id."""
+    if not ids:
+        return {}
+    return {leg.id: leg for leg in db.query(model).filter(model.id.in_(ids)).all()}
 
 
 def active_rules(db: Session, rule_ids: list[int] | None) -> list[TransferRule]:

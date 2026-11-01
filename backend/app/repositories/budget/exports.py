@@ -6,18 +6,24 @@ from app.models.investment_transaction import InvestmentTransaction
 from app.models.transaction import Transaction
 
 
-def transactions(db: Session, account_ids: list[int]) -> list[Transaction]:
-    query = db.query(Transaction)
+def transactions(db: Session, account_ids: list[int]):
+    """Colonnes de l'export seulement : pas d'objets ORM ni de relations chargées pour chaque ligne."""
+    query = db.query(
+        Transaction.account_id, Transaction.category_id, Transaction.date, Transaction.month_label,
+        Transaction.type, Transaction.merchant, Transaction.amount, Transaction.running_balance,
+    )
     if account_ids:
         query = query.filter(Transaction.account_id.in_(account_ids))
-    return query.all()
+    return query.order_by(Transaction.id).all()
 
 
-def investment_transactions(db: Session, account_ids: list[int]) -> list[InvestmentTransaction]:
-    query = db.query(InvestmentTransaction)
+def investment_transactions(db: Session, account_ids: list[int]):
+    query = db.query(
+        InvestmentTransaction.account_id, InvestmentTransaction.date, InvestmentTransaction.type, InvestmentTransaction.amount,
+    )
     if account_ids:
         query = query.filter(InvestmentTransaction.account_id.in_(account_ids))
-    return query.all()
+    return query.order_by(InvestmentTransaction.id).all()
 
 
 def category_names(db: Session, category_ids: set[int]) -> dict[int, str]:

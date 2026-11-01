@@ -38,6 +38,7 @@ async def find_potential_transfers(db: Session, days_tolerance: int, amount_tole
         day_tolerance=days_tolerance,
         amount_tolerance_pct=amount_tolerance_pct,
         months=months or None,
+        light=True,
     )
     return [
         {

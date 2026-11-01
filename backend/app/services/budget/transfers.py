@@ -113,8 +113,12 @@ async def find_pairs(
     day_tolerance: int = 3,
     months: int | None = None,
     rule_id: int | None = None,
+    light: bool = False,
 ) -> list[Pair]:
     """Appariement 1 pour 1 des sorties et des entrées non liées.
+
+    `light` (lecture seule) apparie sur des colonnes puis recharge en entier les seuls couples trouvés :
+    évite d'instancier tout l'historique.
 
     Les arêtes (sortie, entrée) sont triées par écart de date puis de montant et affectées au plus
     proche d'abord : une entrée ne sert jamais deux sorties. Quand plusieurs arêtes ont exactement
@@ -124,7 +128,8 @@ async def find_pairs(
     to_eur = await _eur_converter(accounts)
     since = utcnow_naive() - timedelta(days=30 * months) if months else None
 
-    sorties = [s for s in repo.unlinked_sorties(db, source_account_id, since) if matches_pattern(s, pattern)]
+    cols = repo.MATCH_COLUMNS if light else None
+    sorties = [s for s in repo.unlinked_sorties(db, source_account_id, since, cols) if matches_pattern(s, pattern)]
     if amount is not None:
         sorties = [s for s in sorties if abs(s.amount - amount) / max(abs(amount), 1.0) * 100.0 <= amount_tolerance_pct]
 
@@ -132,14 +137,29 @@ async def find_pairs(
     date_floor = since - timedelta(days=day_tolerance) if since else None
     entrees: list[tuple[str, Leg]] = []
     if dest is None or dest.type != "investissement":
-        entrees += [("regular", e) for e in repo.unlinked_entrees(db, dest_account_id, date_floor)]
+        entrees += [("regular", e) for e in repo.unlinked_entrees(db, dest_account_id, date_floor, cols)]
     if dest is None or dest.type == "investissement":
-        entrees += [("investment", e) for e in repo.unlinked_versements(db, dest_account_id, date_floor)]
+        entrees += [
+            ("investment", e)
+            for e in repo.unlinked_versements(db, dest_account_id, date_floor, repo.MATCH_VERSEMENT_COLUMNS if light else None)
+        ]
 
-    return match_pairs(
+    pairs = match_pairs(
         sorties, entrees, to_eur,
         day_tolerance=day_tolerance, amount_tolerance_pct=amount_tolerance_pct, rule_id=rule_id,
     )
+    if light:
+        _load_full_legs(db, pairs)
+    return pairs
+
+
+def _load_full_legs(db: Session, pairs: list[Pair]) -> None:
+    sorties = repo.load_legs(db, Transaction, {p.sortie.id for p in pairs})
+    regular = repo.load_legs(db, Transaction, {p.entree.id for p in pairs if p.kind == "regular"})
+    investment = repo.load_legs(db, InvestmentTransaction, {p.entree.id for p in pairs if p.kind == "investment"})
+    for p in pairs:
+        p.sortie = sorties[p.sortie.id]
+        p.entree = (regular if p.kind == "regular" else investment)[p.entree.id]
 
 
 async def apply_rules(
