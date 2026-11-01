@@ -105,19 +105,24 @@ def transfer_match(db: Session, sortie: Transaction) -> Transaction | None:
     ).first()
 
 
-def strict_transfer_matches(db: Session, sortie: Transaction) -> Query:
-    """Entrées candidates d'un virement (même devise, non rapprochées), pour l'audit des données."""
-    return db.query(Transaction).filter(
-        Transaction.id != sortie.id,
-        Transaction.account_id != sortie.account_id,
-        Transaction.type == "Entree",
-        Transaction.currency == sortie.currency,
-        Transaction.amount == sortie.amount,
-        Transaction.is_transfer.is_(False),
-        Transaction.is_transfer_ignored.is_(False),
-        Transaction.linked_transaction_id.is_(None),
-        Transaction.date >= sortie.date - timedelta(days=3),
-        Transaction.date <= sortie.date + timedelta(days=3),
+def strict_transfer_candidates(db: Session, sorties: list[Transaction]) -> list[Transaction]:
+    """Entrées candidates (même devise, non rapprochées) de toutes ces sorties, en une seule requête.
+    L'appariement fin (autre compte, même montant, ±3 jours) est fait par `domain.transfers.strict_matches`."""
+    if not sorties:
+        return []
+    return (
+        db.query(Transaction)
+        .filter(
+            Transaction.type == "Entree",
+            Transaction.amount.in_({s.amount for s in sorties}),
+            Transaction.is_transfer.is_(False),
+            Transaction.is_transfer_ignored.is_(False),
+            Transaction.linked_transaction_id.is_(None),
+            Transaction.date >= min(s.date for s in sorties) - timedelta(days=3),
+            Transaction.date <= max(s.date for s in sorties) + timedelta(days=3),
+        )
+        .order_by(Transaction.date.asc(), Transaction.id.asc())
+        .all()
     )
 
 

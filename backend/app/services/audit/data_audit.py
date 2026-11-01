@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.core.errors import NotFoundError
 from app.domain.transactions import tx_read, tx_sample
+from app.domain.transfers import strict_matches
 from app.models.transaction import Transaction
 from app.repositories.analytics import audit as repo
 from app.schemas.insight import DataAuditIssue, DataAuditResponse, DataAuditSummary
@@ -189,15 +190,25 @@ def _unused_categories(db: Session) -> DataAuditIssue | None:
     )
 
 
+def _transfer_candidates(db: Session, now: datetime) -> tuple[list[Transaction], dict[float, list[Transaction]]]:
+    """Sorties récentes non rapprochées et leurs entrées candidates (une requête chacune), indexées par montant."""
+    sorties = repo.recent_unlinked_sorties(db, now - timedelta(days=180), strict=True, limit=250)
+    entrees: dict[float, list[Transaction]] = {}
+    for entree in repo.strict_transfer_candidates(db, sorties):
+        entrees.setdefault(entree.amount, []).append(entree)
+    return sorties, entrees
+
+
 def _unmatched_transfers(db: Session, now: datetime) -> DataAuditIssue | None:
     count = 0
     samples = []
-    for sortie in repo.recent_unlinked_sorties(db, now - timedelta(days=180), strict=True, limit=250):
-        match = repo.strict_transfer_matches(db, sortie).first()
-        if match:
+    sorties, entrees = _transfer_candidates(db, now)
+    for sortie in sorties:
+        matches = strict_matches(sortie, entrees)
+        if matches:
             count += 1
             if len(samples) < 5:
-                samples.append({"sortie": tx_sample(sortie), "entree": tx_sample(match)})
+                samples.append({"sortie": tx_sample(sortie), "entree": tx_sample(matches[0])})
     if not count:
         return None
     return DataAuditIssue(
@@ -265,14 +276,9 @@ def _duplicate_groups(db: Session) -> list[dict]:
 def _transfer_pairs(db: Session, now: datetime) -> list[dict]:
     pairs = []
     seen: set[tuple[int, int]] = set()
-    for sortie in repo.recent_unlinked_sorties(db, now - timedelta(days=180), strict=True, limit=250):
-        matches = (
-            repo.strict_transfer_matches(db, sortie)
-            .order_by(Transaction.date.asc(), Transaction.id.asc())
-            .limit(5)
-            .all()
-        )
-        for match in matches:
+    sorties, entrees = _transfer_candidates(db, now)
+    for sortie in sorties:
+        for match in strict_matches(sortie, entrees)[:5]:
             key = (sortie.id, match.id)
             if key in seen:
                 continue

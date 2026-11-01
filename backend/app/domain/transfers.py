@@ -2,6 +2,7 @@
 from collections import defaultdict
 from collections.abc import Callable
 from dataclasses import dataclass
+from datetime import timedelta
 
 from app.models.investment_transaction import InvestmentTransaction
 from app.models.transaction import Transaction
@@ -33,6 +34,19 @@ def matches_pattern(tx: Transaction, pattern: str | None) -> bool:
         return True
     needle = pattern.lower()
     return needle in (tx.merchant or "").lower() or needle in (tx.note or "").lower()
+
+
+def strict_matches(sortie: Transaction, entrees_by_amount: dict[float, list[Transaction]]) -> list[Transaction]:
+    """Entrées d'un autre compte, même devise et même montant, à ±3 jours de la sortie (audit des données).
+    `entrees_by_amount` garde l'ordre d'arrivée (date puis id) : le résultat le conserve."""
+    window = timedelta(days=3)
+    return [
+        e for e in entrees_by_amount.get(sortie.amount, ())
+        if e.id != sortie.id
+        and e.account_id != sortie.account_id
+        and e.currency == sortie.currency
+        and abs(e.date - sortie.date) <= window
+    ]
 
 
 def _edges(
