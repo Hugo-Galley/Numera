@@ -1,4 +1,3 @@
-from typing import List
 
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
@@ -10,7 +9,7 @@ from app.services.budget import savings_goals as service
 router = APIRouter(prefix="/goals", tags=["savings-goals"])
 
 
-@router.get("", response_model=List[SavingsGoalProgress])
+@router.get("", response_model=list[SavingsGoalProgress])
 async def list_goals(db: Session = Depends(get_db)):
     return await service.list_goals(db)
 

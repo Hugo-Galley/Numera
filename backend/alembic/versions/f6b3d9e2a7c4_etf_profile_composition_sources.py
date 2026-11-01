@@ -56,7 +56,7 @@ def upgrade() -> None:
     rows = conn.execute(sa.text("SELECT id, is_system, countries, sectors, top_holdings FROM etf_profiles")).fetchall()
     for row in rows:
         if row.is_system:
-            sources = {field: "preset" for field in FIELDS}
+            sources = dict.fromkeys(FIELDS, "preset")
             conn.execute(
                 sa.text("UPDATE etf_profiles SET composition_sources = :s WHERE id = :id"),
                 {"s": json.dumps(sources), "id": row.id},

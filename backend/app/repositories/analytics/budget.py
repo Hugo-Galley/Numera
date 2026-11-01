@@ -36,7 +36,7 @@ def _net_by_currency(db: Session) -> Query:
 def income_by_currency(db: Session, start: datetime | None, end: datetime, tr_accounts: set[int]) -> list:
     """Revenus au sens de income_criterion (Solde Initial jamais compté)."""
     query = _net_by_currency(db).filter(
-        Transaction.type.in_(["Entree", "Interets"]), Transaction.is_transfer == False  # noqa: E712
+        Transaction.type.in_(["Entree", "Interets"]), Transaction.is_transfer == False
     ).filter(Account.type.in_(["courant", "epargne"]), income_criterion(db))
     query = _window(_exclude(query, tr_accounts), Transaction.date, start, end)
     return query.group_by(Account.currency).all()
@@ -54,7 +54,7 @@ def interests_by_currency(db: Session, start: datetime | None, end: datetime, tr
     """Intérêts (type ou catégorie intérêts/dividendes) des comptes courant/épargne."""
     query = _net_by_currency(db).outerjoin(Category, Transaction.category_id == Category.id).filter(
         ((Transaction.type == "Interets") | (Category.name.in_(INTEREST_CATEGORIES))),
-        Transaction.is_transfer == False,  # noqa: E712
+        Transaction.is_transfer == False,
     ).filter(Account.type.in_(["courant", "epargne"]))
     query = _window(_exclude(query, tr_accounts), Transaction.date, start, end)
     return query.group_by(Account.currency).all()
@@ -72,7 +72,7 @@ def dividends_by_currency(db: Session, start: datetime | None, end: datetime) ->
 
 def expenses_by_currency(db: Session, start: datetime | None, end: datetime, tr_accounts: set[int]) -> list:
     query = _net_by_currency(db).filter(
-        Transaction.type == "Sortie", Transaction.is_transfer == False  # noqa: E712
+        Transaction.type == "Sortie", Transaction.is_transfer == False
     ).filter(Account.type.in_(["courant", "epargne"]))
     query = _window(_exclude(query, tr_accounts), Transaction.date, start, end)
     return query.group_by(Account.currency).all()
@@ -81,7 +81,7 @@ def expenses_by_currency(db: Session, start: datetime | None, end: datetime, tr_
 def categorized_investments_by_currency(db: Session, start: datetime | None, end: datetime, tr_accounts: set[int]) -> list:
     """Sorties catégorisées Investissement/Epargne (non consommées)."""
     query = _net_by_currency(db).join(Category, Transaction.category_id == Category.id).filter(
-        Transaction.type == "Sortie", Category.name.in_(INVESTMENT_CATEGORIES), Transaction.is_transfer == False  # noqa: E712
+        Transaction.type == "Sortie", Category.name.in_(INVESTMENT_CATEGORIES), Transaction.is_transfer == False
     )
     query = _exclude(_window(query, Transaction.date, start, end), tr_accounts)
     return query.group_by(Account.currency).all()
@@ -114,11 +114,11 @@ def account_transactions_sum(db: Session, account_id: int, start: datetime | Non
     if investment_categories:
         query = query.join(Category, Transaction.category_id == Category.id).filter(
             Transaction.account_id == account_id, Transaction.type.in_(types),
-            Category.name.in_(INVESTMENT_CATEGORIES), Transaction.is_transfer == False,  # noqa: E712
+            Category.name.in_(INVESTMENT_CATEGORIES), Transaction.is_transfer == False,
         )
     else:
         query = query.filter(
-            Transaction.account_id == account_id, Transaction.type.in_(types), Transaction.is_transfer == False  # noqa: E712
+            Transaction.account_id == account_id, Transaction.type.in_(types), Transaction.is_transfer == False
         )
     return float(_window(query, Transaction.date, start, end).scalar() or 0.0)
 
@@ -188,15 +188,12 @@ def category_spending_rows(db: Session, start: datetime, end: datetime, account_
         .join(Account, Transaction.account_id == Account.id)
         .filter(
             Transaction.type == "Sortie",
-            Transaction.is_transfer == False,  # noqa: E712
+            Transaction.is_transfer == False,
             Transaction.date >= start,
             Transaction.date < end,
         )
     )
-    if account_id:
-        query = query.filter(Transaction.account_id == account_id)
-    else:
-        query = _exclude(query, tr_accounts)
+    query = query.filter(Transaction.account_id == account_id) if account_id else _exclude(query, tr_accounts)
     return query.group_by(lines.c.category_id, Account.currency).all()
 
 

@@ -1,4 +1,3 @@
-from typing import List, Optional
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
@@ -26,12 +25,12 @@ class MerchantAlias(MerchantAliasBase):
 
 class MerchantBase(BaseModel):
     name: str = Field(max_length=120)
-    category_id: Optional[int] = None
-    icon: Optional[str] = None
-    color: Optional[str] = None
+    category_id: int | None = None
+    icon: str | None = None
+    color: str | None = None
 
 class MerchantCreate(MerchantBase):
-    aliases: Optional[List[str]] = []
+    aliases: list[str] | None = []
 
     _name = field_validator("name")(_clean_label)
 
@@ -44,19 +43,19 @@ class MerchantCreate(MerchantBase):
         return cleaned
 
 class MerchantUpdate(BaseModel):
-    name: Optional[str] = Field(default=None, max_length=120)
+    name: str | None = Field(default=None, max_length=120)
 
     @field_validator("name")
     @classmethod
     def _name(cls, value):
         return None if value is None else _clean_label(value)
 
-    category_id: Optional[int] = None
-    icon: Optional[str] = None
-    color: Optional[str] = None
+    category_id: int | None = None
+    icon: str | None = None
+    color: str | None = None
 
 class MerchantRead(MerchantBase):
     id: int
-    aliases: List[MerchantAlias] = []
+    aliases: list[MerchantAlias] = []
 
     model_config = ConfigDict(from_attributes=True)

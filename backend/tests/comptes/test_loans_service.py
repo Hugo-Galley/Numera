@@ -15,8 +15,8 @@ from app.services.comptes import loans as loan_service
 
 
 def _payload(**overrides):
-    data = dict(name="Prêt auto", principal=12000.0, annual_rate_pct=3.0, duration_months=48,
-                start_date=add_months(date.today().replace(day=1), -6))
+    data = {"name": "Prêt auto", "principal": 12000.0, "annual_rate_pct": 3.0, "duration_months": 48,
+                "start_date": add_months(date.today().replace(day=1), -6)}
     data.update(overrides)
     return LoanCreate(**data)
 

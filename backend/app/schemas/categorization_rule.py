@@ -1,11 +1,10 @@
-from typing import Optional
 
 from pydantic import BaseModel, Field, field_validator
 
 from app.domain.finance import normalize_transaction_type
 
 
-def _check_pattern(value: Optional[str]) -> Optional[str]:
+def _check_pattern(value: str | None) -> str | None:
     if value is None:
         return value
     value = value.strip()
@@ -14,7 +13,7 @@ def _check_pattern(value: Optional[str]) -> Optional[str]:
     return value
 
 
-def _check_type(value: Optional[str]) -> Optional[str]:
+def _check_type(value: str | None) -> str | None:
     """Type cible normalisé ; `Solde Initial` n'est jamais une cible de règle."""
     if value is None:
         return value
@@ -29,9 +28,9 @@ def _check_type(value: Optional[str]) -> Optional[str]:
 
 class CategorizationRuleBase(BaseModel):
     pattern: str = Field(max_length=200)
-    category_id: Optional[int] = None
-    transaction_type: Optional[str] = None  # None = ne change pas le type
-    merchant_name: Optional[str] = None
+    category_id: int | None = None
+    transaction_type: str | None = None  # None = ne change pas le type
+    merchant_name: str | None = None
     priority: int = 0
 
     _pattern = field_validator("pattern")(_check_pattern)
@@ -41,11 +40,11 @@ class CategorizationRuleCreate(CategorizationRuleBase):
     pass
 
 class CategorizationRuleUpdate(BaseModel):
-    pattern: Optional[str] = Field(default=None, max_length=200)
-    category_id: Optional[int] = None
-    transaction_type: Optional[str] = None
-    merchant_name: Optional[str] = None
-    priority: Optional[int] = None
+    pattern: str | None = Field(default=None, max_length=200)
+    category_id: int | None = None
+    transaction_type: str | None = None
+    merchant_name: str | None = None
+    priority: int | None = None
 
     _pattern = field_validator("pattern")(_check_pattern)
     _type = field_validator("transaction_type")(_check_type)

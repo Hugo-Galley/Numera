@@ -139,7 +139,7 @@ def simulate_prepayment(
     }
 
 
-def terms_of(loan: "Loan") -> tuple[LoanTerms, list[Prepayment]]:
+def terms_of(loan: Loan) -> tuple[LoanTerms, list[Prepayment]]:
     terms = LoanTerms(
         principal=loan.principal, annual_rate_pct=loan.annual_rate_pct, duration_months=loan.duration_months,
         start_date=loan.start_date, insurance_monthly=loan.insurance_monthly or 0.0,

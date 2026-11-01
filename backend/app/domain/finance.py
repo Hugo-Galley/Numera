@@ -1,6 +1,6 @@
 import calendar
 from datetime import datetime, timedelta
-from typing import Any, List
+from typing import Any
 
 FRENCH_MONTHS = {
     1: "Janvier",
@@ -89,7 +89,7 @@ def _next_occurrence(recurring_tx: Any, current_date: datetime) -> datetime | No
     return None
 
 
-def get_recurring_occurrences(recurring_tx: Any, start_period: datetime, end_period: datetime) -> List[datetime]:
+def get_recurring_occurrences(recurring_tx: Any, start_period: datetime, end_period: datetime) -> list[datetime]:
     """
     Returns a list of dates when a recurring transaction occurs within a period.
     Respects excluded_months (CSV string or list of month numbers 1-12).

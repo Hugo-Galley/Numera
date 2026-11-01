@@ -1,4 +1,3 @@
-from typing import Optional
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
@@ -11,7 +10,7 @@ router = APIRouter(tags=["diversity-scanner"])
 
 @router.get("/analytics/diversity-scanner")
 async def diversity_scanner(
-    account_id: Optional[int] = Query(default=None),
+    account_id: int | None = Query(default=None),
     db: Session = Depends(get_db),
 ):
     """

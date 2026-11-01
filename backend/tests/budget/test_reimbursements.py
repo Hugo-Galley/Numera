@@ -111,7 +111,7 @@ def test_rules_are_enforced(db_session, resto):
 
 
 def test_transfer_cannot_be_used(db_session, resto):
-    main, sortie = resto
+    _main, sortie = resto
     sortie.is_transfer = True
     db_session.commit()
     with pytest.raises(InvalidOperationError):
@@ -222,7 +222,7 @@ def test_deleting_sortie_frees_entree(client, db_session, resto):
 
 
 def test_reimbursement_excludes_transfer_matching(client, db_session, resto):
-    main, sortie = resto
+    _main, sortie = resto
     livret = make_account(db_session, "Livret A", type_="epargne")
     remb.create_claim(db_session, sortie.id, "Denis", 30.0)
     mirror = tx(db_session, livret, "Entree", 90.0, datetime(2026, 9, 28))
@@ -282,7 +282,7 @@ def test_salary_reset_resyncs_reimbursed_expense(client, db_session, resto):
 
 
 def test_salary_telecommuting_cannot_drop_below_allocations(client, db_session, resto):
-    main, sortie = resto
+    main, _sortie = resto
     salary = _salary_setup(db_session, main)
     big = tx(db_session, main, "Sortie", 3000.0, datetime(2026, 9, 1))
     claim = remb.create_claim(db_session, big.id, "Employeur", 2000.0)

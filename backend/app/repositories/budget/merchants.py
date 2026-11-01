@@ -49,7 +49,7 @@ def link_unnormalized_transactions(db: Session, merchant_id: int, labels: list[s
     result = db.execute(
         Transaction.__table__.update()
         .where(Transaction.merchant.in_(labels))
-        .where(Transaction.merchant_id == None)  # noqa: E711
+        .where(Transaction.merchant_id == None)
         .values(merchant_id=merchant_id)
     )
     return result.rowcount
@@ -60,8 +60,8 @@ def unnormalized_labels(db: Session, min_count: int) -> list[tuple[str, int]]:
     query = (
         select(Transaction.merchant, func.count(Transaction.id).label("count"))
         .outerjoin(Category, Transaction.category_id == Category.id)
-        .where(Transaction.merchant_id == None)  # noqa: E711
-        .where(Transaction.is_transfer == False)  # noqa: E712
+        .where(Transaction.merchant_id == None)
+        .where(Transaction.is_transfer == False)
         .where(func.coalesce(Category.name, "").notin_(["Investissement", "Epargne"]))
         .group_by(Transaction.merchant)
         .having(func.count(Transaction.id) >= min_count)

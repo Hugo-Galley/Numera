@@ -1,6 +1,5 @@
 from datetime import date as date_type
 from datetime import datetime, timedelta
-from typing import Dict, Optional
 
 import httpx
 from sqlalchemy.orm import Session
@@ -11,20 +10,20 @@ from app.models.exchange_rate import HistoricalExchangeRate
 logger = get_logger(__name__)
 
 # Simple cache for exchange rates
-_rates_cache: Dict[str, Dict[str, float]] = {}
-_cache_expiry: Dict[str, datetime] = {}
+_rates_cache: dict[str, dict[str, float]] = {}
+_cache_expiry: dict[str, datetime] = {}
 CACHE_DURATION = timedelta(hours=6)
 
 # Taux hors-ligne (1 EUR = X devise), utilisés uniquement si Frankfurter est injoignable
 # et qu'aucun taux n'a jamais été récupéré.
-OFFLINE_EUR_RATES: Dict[str, float] = {"EUR": 1.0, "USD": 1.08, "GBP": 0.84, "CHF": 0.95}
+OFFLINE_EUR_RATES: dict[str, float] = {"EUR": 1.0, "USD": 1.08, "GBP": 0.84, "CHF": 0.95}
 
 
 class CurrencyConversionError(ValueError):
     """Aucun taux de change exploitable : on refuse de convertir plutôt que d'inventer un taux 1:1."""
 
 
-def _offline_rates(base: str) -> Dict[str, float]:
+def _offline_rates(base: str) -> dict[str, float]:
     """Taux hors-ligne exprimés pour `base` (dérivés de l'EUR si besoin)."""
     if base not in OFFLINE_EUR_RATES:
         return {base: 1.0}
@@ -32,7 +31,7 @@ def _offline_rates(base: str) -> Dict[str, float]:
     return {cur: rate / base_per_eur for cur, rate in OFFLINE_EUR_RATES.items()}
 
 
-async def get_exchange_rates(base: str = "EUR") -> Dict[str, float]:
+async def get_exchange_rates(base: str = "EUR") -> dict[str, float]:
     """
     Fetch exchange rates from a free API (Frankfurter).
     Rates are cached for 6 hours. En cas d'échec : dernier cache connu (même expiré),
@@ -110,8 +109,8 @@ async def convert_amount(
     amount: float,
     from_currency: str,
     to_currency: str = "EUR",
-    date: Optional[date_type] = None,
-    db: Optional[Session] = None
+    date: date_type | None = None,
+    db: Session | None = None
 ) -> float:
     """
     Convert an amount from one currency to another.

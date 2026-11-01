@@ -13,11 +13,11 @@ SALARY_MERCHANTS = ["Salaire", "Tickets Restaurant"]
 
 
 def active_config(db: Session) -> SalaryConfig | None:
-    return db.query(SalaryConfig).filter(SalaryConfig.is_active == True).first()  # noqa: E712
+    return db.query(SalaryConfig).filter(SalaryConfig.is_active == True).first()
 
 
 def active_configs(db: Session) -> list[SalaryConfig]:
-    return db.query(SalaryConfig).filter(SalaryConfig.is_active == True).all()  # noqa: E712
+    return db.query(SalaryConfig).filter(SalaryConfig.is_active == True).all()
 
 
 def get_recurring(db: Session, recurring_id: int) -> RecurringTransaction | None:
@@ -74,8 +74,8 @@ def _orphan_salary_filter(labels: list[str]):
     return and_(
         Transaction.merchant.in_(SALARY_MERCHANTS),
         Transaction.month_label.in_(labels),
-        Transaction.is_recurring == True,  # noqa: E712
-        Transaction.recurring_transaction_id == None,  # noqa: E711
+        Transaction.is_recurring == True,
+        Transaction.recurring_transaction_id == None,
     )
 
 

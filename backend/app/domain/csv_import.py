@@ -7,6 +7,7 @@ import csv
 import io
 import math
 import unicodedata
+from contextlib import suppress
 from dataclasses import dataclass
 from datetime import datetime
 
@@ -76,7 +77,7 @@ def read_csv(content: str) -> tuple[list[dict[str, str]], str, list[str]]:
 
 
 def canonicalize_row(raw_row: dict[str, str]) -> dict[str, str]:
-    canonical: dict[str, str] = {key: "" for key in REQUIRED_COLUMNS}
+    canonical: dict[str, str] = dict.fromkeys(REQUIRED_COLUMNS, "")
     canonical["_line"] = str(raw_row.get("_line", ""))
     for raw_key, raw_value in raw_row.items():
         if raw_key == "_line":
@@ -224,10 +225,8 @@ def apply_import_rules(rules: list, merchant: str, note: str, tx_type: str) -> t
         if pattern in merchant.lower() or pattern in note.lower():
             category_id = rule.category_id or None
             if rule.transaction_type:
-                try:
+                with suppress(ValueError):  # règle ancienne au type invalide : ignorée plutôt que de corrompre la ligne
                     tx_type = normalize_transaction_type(rule.transaction_type)
-                except ValueError:
-                    pass  # règle ancienne au type invalide : ignorée plutôt que de corrompre la ligne
             if rule.merchant_name:
                 merchant = rule.merchant_name
             return category_id, tx_type, merchant

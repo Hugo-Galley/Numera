@@ -1,4 +1,3 @@
-from typing import Optional
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
@@ -51,9 +50,9 @@ async def patrimoine_allocation(db: Session = Depends(get_db)):
 async def wealth_forecast(
     years: int = Query(default=10, ge=1, le=50),
     extra_monthly: float = Query(default=0.0, ge=-100000, le=100000),
-    monthly_savings: Optional[float] = Query(default=None, ge=-100000, le=100000),
-    investment_return_pct: Optional[float] = Query(default=None, ge=-50, le=100),
-    savings_return_pct: Optional[float] = Query(default=None, ge=-50, le=100),
+    monthly_savings: float | None = Query(default=None, ge=-100000, le=100000),
+    investment_return_pct: float | None = Query(default=None, ge=-50, le=100),
+    savings_return_pct: float | None = Query(default=None, ge=-50, le=100),
     db: Session = Depends(get_db),
 ):
     """Prévision simple du patrimoine (épargne moyenne des 12 derniers mois complets, XIRR constaté) ;
@@ -67,9 +66,9 @@ async def wealth_forecast(
 async def fire_projection(
     withdrawal_rate_pct: float = Query(default=4.0, gt=0, le=20),
     inflation_pct: float = Query(default=2.0, ge=-5, le=20),
-    return_pct: Optional[float] = Query(default=None, ge=-50, le=100),
-    monthly_savings: Optional[float] = Query(default=None, ge=-100000, le=100000),
-    annual_expenses: Optional[float] = Query(default=None, gt=0, le=10_000_000),
+    return_pct: float | None = Query(default=None, ge=-50, le=100),
+    monthly_savings: float | None = Query(default=None, ge=-100000, le=100000),
+    annual_expenses: float | None = Query(default=None, gt=0, le=10_000_000),
     db: Session = Depends(get_db),
 ):
     """Indépendance financière sur les données réelles (cible = dépenses annuelles ÷ taux de retrait)."""
@@ -93,7 +92,7 @@ async def wealth_simulation(
     contribution_indexation_pct: float = Query(ge=-50, le=100, default=0.0),
     tax_rate_pct: float = Query(ge=0, le=100, default=0.0),
     tax_deferred: bool = Query(default=True),
-    events: Optional[str] = Query(default=None),
+    events: str | None = Query(default=None),
 ):
     """Simulateur de patrimoine (intérêts composés, inflation, fiscalité, événements, volatilité Monte-Carlo)."""
     return service.compute_wealth_simulation(

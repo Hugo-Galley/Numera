@@ -33,8 +33,8 @@ def _tx(account_id: int, **over) -> dict:
 def test_create_transaction_rejects_bad_amount(client, db_session, account, amount):
     # littéral JSON écrit à la main : `json=` refuserait Infinity/NaN
     body = (
-        '{"account_id": %d, "date": "2026-03-10T10:00:00", "type": "Sortie", '
-        '"merchant": "Test", "amount": %s}' % (account.id, amount)
+        f'{{"account_id": {account.id}, "date": "2026-03-10T10:00:00", "type": "Sortie", '
+        f'"merchant": "Test", "amount": {amount}}}'
     )
     r = client.post("/transactions", content=body, headers={"Content-Type": "application/json"})
     assert r.status_code == 422

@@ -30,7 +30,7 @@ def money_flow_rows(db: Session, start: datetime, end: datetime, account_id: int
         .join(Account, Transaction.account_id == Account.id)
         .outerjoin(Category, Transaction.category_id == Category.id)
         .filter(Transaction.date >= start, Transaction.date < end)
-        .filter(Transaction.is_transfer == False)  # noqa: E712
+        .filter(Transaction.is_transfer == False)
     )
     return _scope(query, account_id, tr_accounts).all()
 
@@ -63,7 +63,7 @@ def sankey_expense_rows(db: Session, start: datetime, end: datetime, account_id:
             Transaction.date >= start,
             Transaction.date < end,
             Transaction.type == "Sortie",
-            Transaction.is_transfer == False,  # noqa: E712
+            Transaction.is_transfer == False,
             ~Category.name.in_(INVESTMENT_CATEGORIES)
         )
     )
@@ -80,7 +80,7 @@ def sankey_income_rows(db: Session, start: datetime, end: datetime, account_id: 
             Transaction.date >= start,
             Transaction.date < end,
             Transaction.type.in_(["Entree", "Interets"]),
-            Transaction.is_transfer == False  # noqa: E712
+            Transaction.is_transfer == False
         )
     )
     return _scope(query, account_id, tr_accounts, income_criterion(db)).group_by(Category.id, Account.currency).all()
@@ -106,7 +106,7 @@ def get_account(db: Session, account_id: int) -> Account | None:
 
 
 def active_accounts(db: Session) -> list[Account]:
-    return db.query(Account).filter(Account.active == True).all()  # noqa: E712
+    return db.query(Account).filter(Account.active == True).all()
 
 
 def last_transaction(db: Session, account_id: int) -> Transaction | None:
@@ -119,7 +119,7 @@ def last_transaction(db: Session, account_id: int) -> Transaction | None:
 
 
 def active_recurrings(db: Session, account_id: int | None, tr_accounts: set[int]) -> list[RecurringTransaction]:
-    query = db.query(RecurringTransaction).filter(RecurringTransaction.is_active == True)  # noqa: E712
+    query = db.query(RecurringTransaction).filter(RecurringTransaction.is_active == True)
     if account_id:
         query = query.filter(RecurringTransaction.account_id == account_id)
     elif tr_accounts:

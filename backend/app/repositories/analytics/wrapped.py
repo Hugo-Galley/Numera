@@ -23,7 +23,7 @@ def expense_query(db: Session, start: datetime, end: datetime, tr_accounts: set[
             Transaction.date >= start,
             Transaction.date < end,
             Transaction.type == "Sortie",
-            Transaction.is_transfer == False,  # noqa: E712
+            Transaction.is_transfer == False,
             Account.type.in_(["courant", "epargne"]),
         )
     )

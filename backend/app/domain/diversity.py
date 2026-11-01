@@ -2,8 +2,9 @@
 pays, secteurs, doublons, alertes de concentration et score HHI (sans base)."""
 import json
 import re
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any
 
 from app.core.logging import get_logger
 from app.domain.etf_profiles import load_sources
@@ -14,7 +15,7 @@ logger = get_logger(__name__)
 UNKNOWN_LABEL = "Non renseigné"
 
 
-def normalize_company_key(ticker: Optional[str], name: Optional[str]) -> str:
+def normalize_company_key(ticker: str | None, name: str | None) -> str:
     if ticker:
         clean_t = ticker.upper().split(".")[0].strip()
         if len(clean_t) >= 2:
@@ -27,7 +28,7 @@ def normalize_company_key(ticker: Optional[str], name: Optional[str]) -> str:
     return f"RAW:{ticker or name or 'unknown'}"
 
 
-def spread_weights(target: Dict[str, float], weights_json: str, value_eur: float) -> None:
+def spread_weights(target: dict[str, float], weights_json: str, value_eur: float) -> None:
     """Répartit `value_eur` selon les poids (en %) ; la part non couverte va dans « Non renseigné »."""
     try:
         weights = {k: float(v) for k, v in json.loads(weights_json or "{}").items()}
@@ -40,7 +41,7 @@ def spread_weights(target: Dict[str, float], weights_json: str, value_eur: float
         target[UNKNOWN_LABEL] = target.get(UNKNOWN_LABEL, 0.0) + value_eur * uncovered / 100.0
 
 
-def hhi_score(weights: List[float]) -> float:
+def hhi_score(weights: list[float]) -> float:
     """
     Computes a 0-100 score based on Herfindahl-Hirschman Index (HHI).
     HHI ranges from ~0 (infinite diversity) to 10,000 (100% single asset).
@@ -83,14 +84,14 @@ def score_label(score: float) -> str:
 
 @dataclass
 class LookThrough:
-    companies: Dict[str, Dict[str, Any]] = field(default_factory=dict)
-    countries: Dict[str, float] = field(default_factory=dict)
-    sectors: Dict[str, float] = field(default_factory=dict)
-    etfs: List[Dict[str, Any]] = field(default_factory=list)
+    companies: dict[str, dict[str, Any]] = field(default_factory=dict)
+    countries: dict[str, float] = field(default_factory=dict)
+    sectors: dict[str, float] = field(default_factory=dict)
+    etfs: list[dict[str, Any]] = field(default_factory=list)
     # Origine des compositions utilisées (Yahoo, préréglage, saisie), par profil
-    compositions: Dict[int, Dict[str, Any]] = field(default_factory=dict)
+    compositions: dict[int, dict[str, Any]] = field(default_factory=dict)
 
-    def company(self, key: str, name: str, ticker: Optional[str]) -> Dict[str, Any]:
+    def company(self, key: str, name: str, ticker: str | None) -> dict[str, Any]:
         if key not in self.companies:
             self.companies[key] = {
                 "name": name,
@@ -102,7 +103,7 @@ class LookThrough:
         return self.companies[key]
 
 
-def _decompose_etf(out: LookThrough, vh: Dict[str, Any], etf_profile: EtfProfile) -> None:
+def _decompose_etf(out: LookThrough, vh: dict[str, Any], etf_profile: EtfProfile) -> None:
     """Un ETF : sa valeur est répartie entre ses pays, secteurs et premières lignes."""
     vh_val = vh["value_eur"]
     out.etfs.append({
@@ -146,7 +147,7 @@ def _decompose_etf(out: LookThrough, vh: Dict[str, Any], etf_profile: EtfProfile
         logger.warning(f"Error parsing ETF holdings for {etf_profile.name}: {e}")
 
 
-def _direct_line(out: LookThrough, vh: Dict[str, Any]) -> None:
+def _direct_line(out: LookThrough, vh: dict[str, Any]) -> None:
     """Une action détenue en direct (pays et secteur par défaut)."""
     vh_val = vh["value_eur"]
     direct_ticker = vh.get("ticker")
@@ -163,8 +164,8 @@ def _direct_line(out: LookThrough, vh: Dict[str, Any]) -> None:
     out.sectors["Actions directes"] = out.sectors.get("Actions directes", 0.0) + vh_val
 
 
-def look_through(valued_holdings: List[Dict[str, Any]],
-                 profile_for: Callable[[Dict[str, Any]], Optional[EtfProfile]]) -> LookThrough:
+def look_through(valued_holdings: list[dict[str, Any]],
+                 profile_for: Callable[[dict[str, Any]], EtfProfile | None]) -> LookThrough:
     """Agrège les positions valorisées (> 0) : un ETF est décomposé selon son profil, une action reste en direct."""
     out = LookThrough()
     for vh in valued_holdings:
@@ -182,7 +183,7 @@ def _pct(value: float, total: float) -> float:
     return round((value / total * 100.0), 2) if total > 0 else 0.0
 
 
-def top_companies(companies: Dict[str, Dict[str, Any]], total_stocks: float, total_wealth: float) -> List[Dict[str, Any]]:
+def top_companies(companies: dict[str, dict[str, Any]], total_stocks: float, total_wealth: float) -> list[dict[str, Any]]:
     rows = []
     for comp in companies.values():
         total_comp_eur = round(comp["direct_value_eur"] + comp["indirect_value_eur"], 2)
@@ -201,7 +202,7 @@ def top_companies(companies: Dict[str, Dict[str, Any]], total_stocks: float, tot
     return rows
 
 
-def exposure_rows(values: Dict[str, float], total_stocks: float, total_wealth: float) -> List[Dict[str, Any]]:
+def exposure_rows(values: dict[str, float], total_stocks: float, total_wealth: float) -> list[dict[str, Any]]:
     """Exposition par pays ou par secteur, en valeur et en % des actions / du patrimoine, décroissante."""
     rows = [
         {
@@ -216,7 +217,7 @@ def exposure_rows(values: Dict[str, float], total_stocks: float, total_wealth: f
     return rows
 
 
-def _company_alerts(companies: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+def _company_alerts(companies: list[dict[str, Any]]) -> list[dict[str, Any]]:
     alerts = []
     for comp in companies:
         if comp["pct_stocks"] >= 20.0:
@@ -253,7 +254,7 @@ def _company_alerts(companies: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     return alerts
 
 
-def _geography_and_sector_alerts(countries: List[Dict[str, Any]], sectors: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+def _geography_and_sector_alerts(countries: list[dict[str, Any]], sectors: list[dict[str, Any]]) -> list[dict[str, Any]]:
     alerts = []
     for country in countries:
         if country["name"] in ("USA", "États-Unis") and country["percentage_stocks"] >= 65.0:
@@ -274,20 +275,22 @@ def _geography_and_sector_alerts(countries: List[Dict[str, Any]], sectors: List[
                 "item_name": country["name"],
                 "value_pct": country["percentage_stocks"],
             })
-    for sector in sectors:
-        if sector["name"] != UNKNOWN_LABEL and sector["percentage_stocks"] >= 30.0:
-            alerts.append({
-                "type": "warning",
-                "category": "sector",
-                "title": f"Sur-exposition sectorielle : {sector['name']} ({sector['percentage_stocks']}%)",
-                "message": f"Le secteur {sector['name']} domine {sector['percentage_stocks']}% de vos investissements en actions.",
-                "item_name": sector["name"],
-                "value_pct": sector["percentage_stocks"],
-            })
+    alerts.extend(
+        {
+            "type": "warning",
+            "category": "sector",
+            "title": f"Sur-exposition sectorielle : {sector['name']} ({sector['percentage_stocks']}%)",
+            "message": f"Le secteur {sector['name']} domine {sector['percentage_stocks']}% de vos investissements en actions.",
+            "item_name": sector["name"],
+            "value_pct": sector["percentage_stocks"],
+        }
+        for sector in sectors
+        if sector["name"] != UNKNOWN_LABEL and sector["percentage_stocks"] >= 30.0
+    )
     return alerts
 
 
-def diversity_alerts(companies: List[Dict[str, Any]], countries: List[Dict[str, Any]],
-                     sectors: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+def diversity_alerts(companies: list[dict[str, Any]], countries: list[dict[str, Any]],
+                     sectors: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """Alertes : société surreprésentée, doublons, concentration géographique, sur-exposition sectorielle."""
     return _company_alerts(companies) + _geography_and_sector_alerts(countries, sectors)

@@ -1,5 +1,5 @@
-from datetime import datetime, timedelta, timezone
-from typing import Any, Union
+from datetime import UTC, datetime, timedelta
+from typing import Any
 
 import bcrypt
 import jwt
@@ -8,17 +8,12 @@ from app.core.config import settings
 
 
 def create_access_token(
-    subject: Union[str, Any], expires_delta: timedelta = None, auth_time: int | None = None
+    subject: str | Any, expires_delta: timedelta | None = None, auth_time: int | None = None
 ) -> str:
     """JWT de session. `auth_time` (horodatage Unix de la connexion par mot de passe) est conservé
     d'un renouvellement à l'autre pour borner la durée totale d'une session."""
-    now = datetime.now(timezone.utc)
-    if expires_delta:
-        expire = now + expires_delta
-    else:
-        expire = now + timedelta(
-            minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
-        )
+    now = datetime.now(UTC)
+    expire = now + expires_delta if expires_delta else now + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode = {"exp": expire, "sub": str(subject), "auth_time": auth_time or int(now.timestamp())}
     encoded_jwt = jwt.encode(
         to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM

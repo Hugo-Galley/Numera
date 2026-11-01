@@ -6,6 +6,7 @@ Variables d'environnement :
 - `BACKUP_KEY` : obligatoire, seuls les fichiers `.enc` sont envoyés (jamais de base en clair sur GitHub).
 """
 import base64
+import contextlib
 import datetime
 import logging
 import os
@@ -36,10 +37,8 @@ def _prepare_clone() -> None:
     url = os.getenv("GITHUB_BACKUP_URL") or f"https://github.com/{REPO}.git"  # surchargeable pour les tests
     if (WORK_DIR / ".git").exists():
         _git("fetch", "origin", cwd=WORK_DIR)
-        try:
+        with contextlib.suppress(RuntimeError):  # dépôt encore vide
             _git("reset", "--hard", f"origin/{BRANCH}", cwd=WORK_DIR)
-        except RuntimeError:  # dépôt encore vide
-            pass
         return
     shutil.rmtree(WORK_DIR, ignore_errors=True)
     WORK_DIR.mkdir(parents=True)

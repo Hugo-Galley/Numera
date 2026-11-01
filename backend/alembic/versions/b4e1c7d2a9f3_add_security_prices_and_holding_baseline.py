@@ -5,16 +5,16 @@ Revises: 7d3f9a21c8b4
 Create Date: 2026-10-07 14:00:00.000000
 
 """
-from typing import Sequence, Union
+from collections.abc import Sequence
 
 import sqlalchemy as sa
 
 from alembic import op
 
 revision: str = "b4e1c7d2a9f3"
-down_revision: Union[str, None] = "7d3f9a21c8b4"
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | None = "7d3f9a21c8b4"
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 # Copie figée de market_data.QUOTE_SUFFIX_CURRENCIES (une migration ne doit pas dépendre du code applicatif)
 _EUR_SUFFIXES = (".PA", ".AS", ".BR", ".DE", ".F", ".SG", ".MU", ".DU", ".HM", ".BE", ".MI", ".MC", ".VI", ".LS", ".HE", ".IR")

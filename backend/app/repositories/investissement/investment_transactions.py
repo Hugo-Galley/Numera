@@ -53,7 +53,7 @@ def dividends(db: Session, account_id: int | None = None) -> list[InvestmentTran
 
 
 def account_currencies(db: Session) -> dict[int, str]:
-    return {acc_id: cur for acc_id, cur in db.query(Account.id, Account.currency).all()}
+    return dict(db.query(Account.id, Account.currency).all())
 
 
 def delete_reinvestments(db: Session, dividend_id: int) -> None:

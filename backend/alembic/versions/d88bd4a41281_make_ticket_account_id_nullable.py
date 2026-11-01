@@ -5,7 +5,7 @@ Revises: 7c257ae426ca
 Create Date: 2026-09-24 16:46:53.050015
 
 """
-from typing import Sequence, Union
+from collections.abc import Sequence
 
 import sqlalchemy as sa
 
@@ -13,9 +13,9 @@ from alembic import op
 
 # revision identifiers, used by Alembic.
 revision: str = 'd88bd4a41281'
-down_revision: Union[str, Sequence[str], None] = '7c257ae426ca'
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | Sequence[str] | None = '7c257ae426ca'
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:

@@ -35,7 +35,7 @@ def return_breakdown(measured: float, unmeasured: float, other: float, observed_
             invest_items.append(WealthForecastReturnItem(
                 type="investissement_non_mesure", balance=round(unmeasured, 2), rate_pct=0.0, source="none",
             ))
-    return invest_items + [other_item]
+    return [*invest_items, other_item]
 
 
 def weighted_return(breakdown: list[WealthForecastReturnItem], positive_total: float) -> float:
@@ -102,7 +102,7 @@ def years_to_fi(wealth: float, monthly: float, annual: float, rate: float, withd
 def fire_points(wealth: float, savings: float, rate: float, target: float, years_needed: float | None,
                 this_year: int) -> list[FirePoint]:
     """Courbe jusqu'à deux ans après l'indépendance (40 ans si hors d'atteinte, 80 au plus)."""
-    horizon = min(int(math.ceil(years_needed)) + 2 if years_needed is not None else 40, FIRE_MAX_YEARS)
+    horizon = min(math.ceil(years_needed) + 2 if years_needed is not None else 40, FIRE_MAX_YEARS)
     points = []
     value = wealth
     for year in range(horizon + 1):

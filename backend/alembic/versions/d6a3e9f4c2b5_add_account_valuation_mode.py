@@ -6,16 +6,16 @@ Create Date: 2026-10-07 21:00:00.000000
 
 """
 import re
-from typing import Sequence, Union
+from collections.abc import Sequence
 
 import sqlalchemy as sa
 
 from alembic import op
 
 revision: str = "d6a3e9f4c2b5"
-down_revision: Union[str, None] = "c5f2d8e3b1a4"
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | None = "c5f2d8e3b1a4"
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 CRYPTO_PAIR = re.compile(r"^[A-Z0-9]{2,10}-(EUR|USD|USDT|USDC|GBP|CHF|BTC|ETH)$")
 

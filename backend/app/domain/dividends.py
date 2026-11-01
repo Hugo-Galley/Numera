@@ -53,9 +53,7 @@ def match_dividend_ticker(note: str | None, candidates: list[tuple[str, str]]) -
         symbol = _norm(ticker)
         base_symbol = _norm(re.split(r"[.\-]", ticker)[0])  # CW8.PA → cw8, BTC-EUR → btc
         label = _norm(asset_name)
-        if wanted in (symbol, base_symbol) or wanted_symbol == base_symbol:
-            matches.add(ticker)
-        elif len(wanted) >= 4 and (label.startswith(wanted) or f" {wanted}" in f" {label}"):
+        if wanted in (symbol, base_symbol) or wanted_symbol == base_symbol or (len(wanted) >= 4 and (label.startswith(wanted) or f" {wanted}" in f" {label}")):
             matches.add(ticker)
     return next(iter(matches)) if len(matches) == 1 else None
 

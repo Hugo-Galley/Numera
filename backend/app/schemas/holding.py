@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import List, Optional
 
 from pydantic import BaseModel
 
@@ -9,12 +8,12 @@ from app.schemas.types import Amount, BoundedDatetime, Quantity
 class PortfolioHoldingBase(BaseModel):
     account_id: int
     ticker: str
-    isin: Optional[str] = None
+    isin: str | None = None
     asset_name: str
     quantity: Quantity
-    buy_price_avg: Optional[Quantity] = None
+    buy_price_avg: Quantity | None = None
     currency: str = "EUR"
-    etf_profile_id: Optional[int] = None
+    etf_profile_id: int | None = None
 
 
 class PortfolioHoldingCreate(PortfolioHoldingBase):
@@ -22,14 +21,14 @@ class PortfolioHoldingCreate(PortfolioHoldingBase):
 
 
 class PortfolioHoldingUpdate(BaseModel):
-    ticker: Optional[str] = None
-    isin: Optional[str] = None
-    asset_name: Optional[str] = None
-    quantity: Optional[Quantity] = None
-    buy_price_avg: Optional[Quantity] = None
-    currency: Optional[str] = None
-    etf_profile_id: Optional[int] = None
-    pays_dividends: Optional[bool] = None
+    ticker: str | None = None
+    isin: str | None = None
+    asset_name: str | None = None
+    quantity: Quantity | None = None
+    buy_price_avg: Quantity | None = None
+    currency: str | None = None
+    etf_profile_id: int | None = None
+    pays_dividends: bool | None = None
 
 
 class PortfolioHoldingRead(PortfolioHoldingBase):
@@ -38,24 +37,24 @@ class PortfolioHoldingRead(PortfolioHoldingBase):
     updated_at: datetime
 
     # Dynamic live market fields
-    current_price: Optional[float] = None
-    current_price_eur: Optional[float] = None
-    quote_currency: Optional[str] = None
-    price_date: Optional[str] = None
+    current_price: float | None = None
+    current_price_eur: float | None = None
+    quote_currency: str | None = None
+    price_date: str | None = None
     price_stale: bool = False
-    current_value_eur: Optional[float] = None
-    total_invested_eur: Optional[float] = None
-    gain_eur: Optional[float] = None
-    gain_pct: Optional[float] = None
+    current_value_eur: float | None = None
+    total_invested_eur: float | None = None
+    gain_eur: float | None = None
+    gain_pct: float | None = None
     is_etf: bool = False
 
     # Dividendes (EUR) rattachés à ce titre
-    pays_dividends: Optional[bool] = None
+    pays_dividends: bool | None = None
     dividends_received_eur: float = 0.0
     dividends_12m_eur: float = 0.0
-    last_dividend_date: Optional[str] = None
-    total_return_eur: Optional[float] = None  # plus-value latente + dividendes reçus
-    total_return_pct: Optional[float] = None
+    last_dividend_date: str | None = None
+    total_return_eur: float | None = None  # plus-value latente + dividendes reçus
+    total_return_pct: float | None = None
 
     model_config = {"from_attributes": True}
 
@@ -63,17 +62,17 @@ class PortfolioHoldingRead(PortfolioHoldingBase):
 class BaselineHoldingItem(BaseModel):
     ticker: str
     asset_name: str
-    isin: Optional[str] = None
+    isin: str | None = None
     quantity: Quantity
-    buy_price_avg: Optional[Quantity] = None
+    buy_price_avg: Quantity | None = None
     currency: str = "EUR"
-    etf_profile_id: Optional[int] = None
+    etf_profile_id: int | None = None
 
 
 class BaselineInventoryRequest(BaseModel):
     account_id: int
-    date: Optional[BoundedDatetime] = None
-    holdings: List[BaselineHoldingItem]
+    date: BoundedDatetime | None = None
+    holdings: list[BaselineHoldingItem]
 
 
 class CostEstimateRead(BaseModel):
@@ -81,13 +80,13 @@ class CostEstimateRead(BaseModel):
     asset_name: str
     quantity: float
     currency: str
-    current_cost: Optional[float] = None
-    estimate: Optional[float] = None
+    current_cost: float | None = None
+    estimate: float | None = None
     buys: int
     bought_quantity: float
     sold_quantity: float
-    coverage: Optional[float] = None
-    first_buy: Optional[str] = None
+    coverage: float | None = None
+    first_buy: str | None = None
     method: str = "quantities"
     amount_only_buys: int = 0
 
@@ -99,4 +98,4 @@ class ApplyCostLine(BaseModel):
 
 class ApplyCostsRequest(BaseModel):
     account_id: int
-    items: List[ApplyCostLine]
+    items: list[ApplyCostLine]

@@ -11,7 +11,7 @@ from app.models.transaction import Transaction
 
 def salary_entry_dates(db: Session) -> set[datetime]:
     """Dates (jour, sans heure) des salaires reçus sur les comptes de salaire actifs."""
-    configs = db.query(SalaryConfig).filter(SalaryConfig.is_active == True).all()  # noqa: E712
+    configs = db.query(SalaryConfig).filter(SalaryConfig.is_active == True).all()
     if not configs:
         return set()
 
@@ -29,7 +29,7 @@ def salary_entry_dates(db: Session) -> set[datetime]:
         query = db.query(Transaction.date).filter(
             Transaction.account_id == config.salary_account_id,
             Transaction.type == "Entree",
-            Transaction.is_transfer == False,  # noqa: E712
+            Transaction.is_transfer == False,
             or_(*criteria),
         )
         rows.update(datetime(d.year, d.month, d.day) for (d,) in query.all())

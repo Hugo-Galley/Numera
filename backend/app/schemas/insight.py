@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Optional
 
 from pydantic import BaseModel, Field
 
@@ -14,7 +14,7 @@ class MetricDetail(BaseModel):
 
 class HealthScore(BaseModel):
     total_score: float  # 0-100
-    metrics: List[MetricDetail]
+    metrics: list[MetricDetail]
 
 
 class Insight(BaseModel):
@@ -22,14 +22,14 @@ class Insight(BaseModel):
     title: str
     description: str
     severity: str  # "low", "medium", "high"
-    value: Optional[float] = None
+    value: float | None = None
     unit: str = "€"  # unité de `value` : « € », « % » ou « mois »
-    category_id: Optional[int] = None
+    category_id: int | None = None
 
 
 class IntelligentInsights(BaseModel):
     health_score: HealthScore
-    insights: List[Insight]
+    insights: list[Insight]
 
 
 class MonthlyComparison(BaseModel):
@@ -52,10 +52,10 @@ class MonthlyReport(BaseModel):
     burn_rate: float
     net_worth: float
     net_worth_change: float
-    top_categories: List[dict]
-    top_merchants: List[dict]
+    top_categories: list[dict]
+    top_merchants: list[dict]
     comparison: MonthlyComparison
-    insights: List[Insight]
+    insights: list[Insight]
     health_score: HealthScore
     exceptional_expenses: float
     real_expenses_excl_exceptional: float
@@ -69,7 +69,7 @@ class ProjectionPoint(BaseModel):
     date: str
     balance: float
     change: float
-    label: Optional[str] = None
+    label: str | None = None
 
 
 class ProjectionEvent(BaseModel):
@@ -81,12 +81,12 @@ class ProjectionEvent(BaseModel):
 
 
 class CashflowProjection(BaseModel):
-    points: List[ProjectionPoint]
-    events: List[ProjectionEvent]
+    points: list[ProjectionPoint]
+    events: list[ProjectionEvent]
     current_balance: float
     projected_balance: float
     low_point: float
-    low_point_date: Optional[str]
+    low_point_date: str | None
     days: int
 
 
@@ -97,11 +97,11 @@ class SubscriptionInsight(BaseModel):
     frequency: str  # "monthly", "annual", "other"
     monthly_cost: float
     annual_cost: float
-    last_occurrence: Optional[str]
-    next_occurrence: Optional[str]
+    last_occurrence: str | None
+    next_occurrence: str | None
     is_recurring_entity: bool
     status: str  # "active", "lapsed" (plus prélevée depuis 2 périodes), "paused", "potential"
-    logo: Optional[str] = None
+    logo: str | None = None
     flow_type: str = "Sortie"  # type de la récurrence (Sortie, Entree, versement…)
     # Faux pour une récurrence en pause, un virement ou une alimentation d'épargne/d'investissement :
     # elle reste listée mais n'entre pas dans les totaux d'abonnements.
@@ -128,10 +128,10 @@ class SubscriptionPriceChange(BaseModel):
 
 
 class SubscriptionsResponse(BaseModel):
-    subscriptions: List[SubscriptionInsight]
+    subscriptions: list[SubscriptionInsight]
     total_monthly: float
     total_annual: float
-    price_changes: List[SubscriptionPriceChange] = Field(default_factory=list)
+    price_changes: list[SubscriptionPriceChange] = Field(default_factory=list)
 
 
 class WealthSimulationPoint(BaseModel):
@@ -140,27 +140,27 @@ class WealthSimulationPoint(BaseModel):
     total_contributions: float
     total_interest: float
     total_value: float
-    total_value_real: Optional[float] = None
-    total_value_p10: Optional[float] = None
-    total_value_p50: Optional[float] = None
-    total_value_p90: Optional[float] = None
-    total_value_p10_real: Optional[float] = None
-    total_value_p50_real: Optional[float] = None
-    total_value_p90_real: Optional[float] = None
-    total_tax_paid: Optional[float] = 0.0
-    event_applied: Optional[str] = None
+    total_value_real: float | None = None
+    total_value_p10: float | None = None
+    total_value_p50: float | None = None
+    total_value_p90: float | None = None
+    total_value_p10_real: float | None = None
+    total_value_p50_real: float | None = None
+    total_value_p90_real: float | None = None
+    total_tax_paid: float | None = 0.0
+    event_applied: str | None = None
 
 
 class WealthSimulationResponse(BaseModel):
-    items: List[WealthSimulationPoint]
+    items: list[WealthSimulationPoint]
     total_final: float
     total_interest: float
     total_contributions: float
-    total_final_real: Optional[float] = None
-    total_tax_paid: Optional[float] = None
-    pessimistic_final: Optional[float] = None
-    median_final: Optional[float] = None
-    optimistic_final: Optional[float] = None
+    total_final_real: float | None = None
+    total_tax_paid: float | None = None
+    pessimistic_final: float | None = None
+    median_final: float | None = None
+    optimistic_final: float | None = None
 
 
 class WealthForecastPoint(BaseModel):
@@ -193,18 +193,18 @@ class WealthForecastResponse(BaseModel):
     final_base: float
     final_boosted: float
     gain_from_extra: float
-    points: List[WealthForecastPoint]
+    points: list[WealthForecastPoint]
     computed_monthly_savings: float = 0.0
-    observed_investment_return_pct: Optional[float] = None
+    observed_investment_return_pct: float | None = None
     savings_overridden: bool = False
-    savings_months: List[WealthForecastSavingsMonth] = []
-    return_breakdown: List[WealthForecastReturnItem] = []
+    savings_months: list[WealthForecastSavingsMonth] = []
+    return_breakdown: list[WealthForecastReturnItem] = []
 
 
 class MoneyFlowItem(BaseModel):
     name: str
     amount: float
-    category: Optional[str] = None
+    category: str | None = None
     is_recurring: bool = False
 
 
@@ -225,10 +225,10 @@ class MoneyFlowReport(BaseModel):
     investments: MoneyFlowBlock
     remainder: MoneyFlowBlock
 
-    top_fixed: List[MoneyFlowItem]
-    top_variable: List[MoneyFlowItem]
-    top_savings: List[MoneyFlowItem]
-    top_investments: List[MoneyFlowItem]
+    top_fixed: list[MoneyFlowItem]
+    top_variable: list[MoneyFlowItem]
+    top_savings: list[MoneyFlowItem]
+    top_investments: list[MoneyFlowItem]
 
 
 class DataAuditIssue(BaseModel):
@@ -238,10 +238,10 @@ class DataAuditIssue(BaseModel):
     title: str
     description: str
     count: int = 1
-    amount: Optional[float] = None
-    action_label: Optional[str] = None
-    action_url: Optional[str] = None
-    samples: List[dict] = Field(default_factory=list)
+    amount: float | None = None
+    action_label: str | None = None
+    action_url: str | None = None
+    samples: list[dict] = Field(default_factory=list)
 
 
 class DataAuditSummary(BaseModel):
@@ -256,7 +256,7 @@ class DataAuditSummary(BaseModel):
 
 class DataAuditResponse(BaseModel):
     summary: DataAuditSummary
-    issues: List[DataAuditIssue]
+    issues: list[DataAuditIssue]
 
 
 class ActionItem(BaseModel):
@@ -265,11 +265,11 @@ class ActionItem(BaseModel):
     severity: str  # "low", "medium", "high"
     title: str
     description: str
-    action_label: Optional[str] = None
-    action_url: Optional[str] = None
+    action_label: str | None = None
+    action_url: str | None = None
     action_type: str  # "link", "modal_categorize", "modal_rule", "modal_snapshot", "modal_merchant"
-    metadata: Optional[dict] = Field(default_factory=dict)
-    samples: List[dict] = Field(default_factory=list)
+    metadata: dict | None = Field(default_factory=dict)
+    samples: list[dict] = Field(default_factory=list)
 
 
 class ActionCenterSummary(BaseModel):
@@ -282,7 +282,7 @@ class ActionCenterSummary(BaseModel):
 
 class ActionCenterResponse(BaseModel):
     summary: ActionCenterSummary
-    actions: List[ActionItem]
+    actions: list[ActionItem]
 
 
 class FireScenario(BaseModel):

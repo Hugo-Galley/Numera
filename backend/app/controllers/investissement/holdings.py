@@ -1,4 +1,3 @@
-from typing import List, Optional
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
@@ -17,9 +16,9 @@ from app.services.investissement.holdings import inventory as service
 router = APIRouter(prefix="/holdings", tags=["holdings"])
 
 
-@router.get("", response_model=List[PortfolioHoldingRead])
+@router.get("", response_model=list[PortfolioHoldingRead])
 async def list_holdings(
-    account_id: Optional[int] = Query(default=None),
+    account_id: int | None = Query(default=None),
     db: Session = Depends(get_db),
 ):
     return await service.list_holdings(db, account_id)
@@ -36,7 +35,7 @@ async def get_holding_suggestions(
     return await service.suggestions(db, account_id)
 
 
-@router.get("/estimate-costs", response_model=List[CostEstimateRead])
+@router.get("/estimate-costs", response_model=list[CostEstimateRead])
 async def get_cost_estimates(account_id: int = Query(...), db: Session = Depends(get_db)):
     """
     PRU estimé de chaque ligne du Point Zéro, déduit des achats saisis avant sa date (moyenne pondérée,
@@ -46,13 +45,13 @@ async def get_cost_estimates(account_id: int = Query(...), db: Session = Depends
     return await service.cost_estimates(db, account_id)
 
 
-@router.post("/apply-costs", response_model=List[PortfolioHoldingRead])
+@router.post("/apply-costs", response_model=list[PortfolioHoldingRead])
 async def apply_costs(payload: ApplyCostsRequest, db: Session = Depends(get_db)):
     """Enregistre les PRU validés dans l'inventaire Point Zéro, puis recalcule les positions."""
     return await service.apply_costs(db, payload)
 
 
-@router.post("/baseline", response_model=List[PortfolioHoldingRead])
+@router.post("/baseline", response_model=list[PortfolioHoldingRead])
 async def set_baseline_inventory(
     payload: BaselineInventoryRequest,
     db: Session = Depends(get_db),

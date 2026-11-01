@@ -105,7 +105,7 @@ def test_code_step_is_rate_limited(client):
 
 
 def test_disable_requires_password_and_code(client, db_session):
-    secret, codes = _enable(client)
+    _secret, codes = _enable(client)
     assert client.post("/auth/totp/disable", json={"current_password": "wrong", "code": codes[0]}).status_code == 400
     assert client.post("/auth/totp/disable", json={"current_password": "admin", "code": "nope"}).status_code == 400
     assert client.post("/auth/totp/disable", json={"current_password": "admin", "code": codes[0]}).status_code == 200

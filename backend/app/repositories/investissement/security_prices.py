@@ -1,6 +1,5 @@
 """Cours de clôture stockés (`security_prices`) et titres détenus à coter."""
 from datetime import date as date_type
-from typing import Optional
 
 from sqlalchemy.orm import Session
 
@@ -18,14 +17,14 @@ def store_price(db: Session, ticker: str, day: date_type, close: float, currency
         row.close, row.currency, row.source = close, currency, source
 
 
-def latest(db: Session, ticker: str, on_or_before: Optional[date_type] = None) -> Optional[SecurityPrice]:
+def latest(db: Session, ticker: str, on_or_before: date_type | None = None) -> SecurityPrice | None:
     q = db.query(SecurityPrice).filter(SecurityPrice.ticker == ticker.upper().strip())
     if on_or_before is not None:
         q = q.filter(SecurityPrice.date <= on_or_before)
     return q.order_by(SecurityPrice.date.desc()).first()
 
 
-def latest_demo(db: Session, sym: str) -> Optional[SecurityPrice]:
+def latest_demo(db: Session, sym: str) -> SecurityPrice | None:
     """Dernier cours généré par le jeu de démonstration (`source == "demo"`)."""
     return (
         db.query(SecurityPrice)

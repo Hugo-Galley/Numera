@@ -1,6 +1,6 @@
 import asyncio
 import time
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, suppress
 
 from fastapi import Depends, FastAPI, Request
 from fastapi.encoders import jsonable_encoder
@@ -136,10 +136,8 @@ async def lifespan(_: FastAPI):
     if background_task:
         # Référence conservée + arrêt propre (sinon la tâche peut être collectée ou survivre à l'arrêt)
         background_task.cancel()
-        try:
+        with suppress(asyncio.CancelledError):
             await background_task
-        except asyncio.CancelledError:
-            pass
 
 
 
@@ -211,7 +209,7 @@ async def log_requests(request: Request, call_next):
         process_time = (time.time() - start_time) * 1000
         logger.error(
             f"method={request.method} path={request.url.path} "
-            f"error={str(e)} duration={process_time:.2f}ms",
+            f"error={e!s} duration={process_time:.2f}ms",
             exc_info=True
         )
         # Réponse JSON ici (sous CORSMiddleware) : un 500 laissé à Starlette n'aurait pas
