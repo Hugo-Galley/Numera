@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import TypeVar
 
 from sqlalchemy.orm import Session
 
@@ -12,6 +13,8 @@ from app.repositories.budget.reimbursements import locked_transaction_ids
 def accounts_by_id(db: Session) -> dict[int, Account]:
     return {a.id: a for a in db.query(Account).all()}
 
+
+_Leg = TypeVar("_Leg", Transaction, InvestmentTransaction)
 
 # Colonnes lues par l'appariement : les couples trouvés sont rechargés en entier (`load_legs`).
 MATCH_COLUMNS = (Transaction.id, Transaction.account_id, Transaction.date, Transaction.amount, Transaction.merchant, Transaction.note)
@@ -66,7 +69,7 @@ def unlinked_versements(db: Session, dest_account_id: int | None, date_floor: da
     return q.all()
 
 
-def load_legs(db: Session, model, ids: set[int]) -> dict[int, Transaction | InvestmentTransaction]:
+def load_legs(db: Session, model: type[_Leg], ids: set[int]) -> dict[int, _Leg]:
     """Objets complets (relations chargées) des lignes données, par id."""
     if not ids:
         return {}
