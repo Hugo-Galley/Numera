@@ -2,8 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, "release/**"]
   pull_request:
+    branches: [main, "release/**"]
 
 env:
   # Outils de sécurité exécutés en conteneur : épinglés par digest (garde-fou test_pinned_dependencies)
@@ -139,3 +140,19 @@ jobs:
           uid=$(docker run --rm --entrypoint id scan/${{ matrix.image }}:ci -u)
           echo "UID du conteneur : $uid"
           [ "$uid" != "0" ]
+
+  # Seul check exigé par la protection de branche : un job dont le nom ne change pas, même si la matrice
+  # ou la liste des jobs évolue. `if: always()` évite qu'un job en échec laisse ce check « skipped »
+  # (un check ignoré passerait pour vert).
+  ci-ok:
+    name: CI ok
+    if: always()
+    needs: [backend, frontend, e2e, docker-lint, trivy-repo, trivy-images]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Tous les jobs sont en succès
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+        run: |
+          echo "$NEEDS" | jq -r 'to_entries[] | "\(.key): \(.value.result)"'
+          echo "$NEEDS" | jq -e 'all(.[]; .result == "success")' >/dev/null

@@ -1,8 +1,6 @@
 """Suggestions de virements : l'appariement lit des colonnes, seuls les couples trouvés sont chargés en entier."""
 from datetime import datetime, timedelta
 
-from sqlalchemy import event
-
 from app.models.account import Account
 from app.models.transaction import Transaction
 
@@ -14,7 +12,7 @@ def _tx(account_id: int, date: datetime, kind: str, amount: float, merchant: str
     )
 
 
-def test_potential_transfers_loads_few_queries_and_full_pairs(client, db_session):
+def test_potential_transfers_loads_few_queries_and_full_pairs(client, db_session, measure_queries):
     courant = Account(name="Courant", type="courant", currency="EUR", active=True)
     livret = Account(name="Livret", type="epargne", currency="EUR", active=True)
     db_session.add_all([courant, livret])
@@ -28,17 +26,7 @@ def test_potential_transfers_loads_few_queries_and_full_pairs(client, db_session
     db_session.add_all(rows)
     db_session.commit()
 
-    statements = []
-    engine = db_session.get_bind()
-
-    def listener(conn, cursor, statement, params, context, executemany):
-        statements.append(statement)
-
-    event.listen(engine, "before_cursor_execute", listener)
-    try:
-        response = client.get("/transactions/potential-transfers")
-    finally:
-        event.remove(engine, "before_cursor_execute", listener)
+    response, queries = measure_queries(lambda: client.get("/transactions/potential-transfers"))
 
     body = response.json()
     assert response.status_code == 200
@@ -47,4 +35,4 @@ def test_potential_transfers_loads_few_queries_and_full_pairs(client, db_session
     assert body[0]["entree"]["merchant"] == "Virement depuis courant"
     assert body[0]["day_gap"] == 1 and body[0]["confidence"] == "high"
     assert "tags" in body[0]["sortie"]  # objet complet, comme avant
-    assert len(statements) <= 12, f"{len(statements)} requêtes SQL"
+    assert queries <= 12, f"{queries} requêtes SQL"
