@@ -104,10 +104,10 @@ Prérequis : Python 3.12+.
 
 ```bash
 cd mcp-server
-pip install -r requirements.txt     # mcp[cli]>=1.9.0 (httpx arrive avec mcp)
+uv sync                             # mcp[cli]>=1.9.0 (httpx arrive avec mcp), figé par uv.lock
 
 # Tester avec l'Inspector MCP
-npx -y @modelcontextprotocol/inspector python server.py
+npx -y @modelcontextprotocol/inspector uv run python server.py
 ```
 
 ## ⚙️ Variables d'environnement
@@ -177,7 +177,8 @@ mcp-server/
 ├── server_api.py      # Mode proxy API, lecture seule (httpx, token MCP)
 ├── server_auth.py     # Validation des tokens par l'API (transports HTTP)
 ├── server_sqlite.py   # Mode SQLite direct
-├── requirements.txt
+├── pyproject.toml     # Dépendances (uv)
+├── uv.lock
 ├── Dockerfile
 ├── .env.example
 └── README.md

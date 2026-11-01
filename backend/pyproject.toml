@@ -1,0 +1,32 @@
+[project]
+name = "numera-backend"
+version = "0.0.0"  # non publié : la version de l'application est portée par le tag git
+description = "API Numera (FastAPI)"
+requires-python = ">=3.11,<3.13"  # pydantic-core n'est pas compatible 3.14
+dependencies = [
+    "fastapi==0.142.2",
+    "uvicorn[standard]==0.35.0",
+    "sqlalchemy==2.0.43",
+    "pydantic==2.11.7",
+    "pydantic-settings==2.10.1",
+    "alembic==1.16.5",
+    "python-multipart==0.0.32",
+    "PyJWT==2.15.1",
+    "cryptography>=50,<51",  # chiffrement des backups (Fernet)
+    "bcrypt==4.1.2",
+    "httpx==0.27.2",
+    "webauthn==2.7.0",
+    "segno==1.6.6",  # QR code de la double authentification TOTP
+]
+
+[dependency-groups]
+dev = [
+    "pytest==9.1.1",
+    "pytest-cov==7.1.0",
+    "freezegun==1.5.1",
+    "ruff==0.17.3",
+    "mypy==2.4.1",
+]
+
+[tool.uv]
+package = false  # application, pas une bibliothèque : on installe les dépendances seulement

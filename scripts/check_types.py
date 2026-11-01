@@ -30,7 +30,7 @@ def run_mypy() -> tuple[Counter[str], str]:
         [python, "-m", "mypy"], cwd=REPO_ROOT / "backend", capture_output=True, text=True, check=False
     )
     if "No module named mypy" in result.stderr:
-        sys.exit("mypy introuvable : pip install -r backend/requirements-dev.txt")
+        sys.exit("mypy introuvable : make backend-install (uv sync)")
     counts: Counter[str] = Counter()
     for line in result.stdout.splitlines():
         match = ERROR_RE.match(line)

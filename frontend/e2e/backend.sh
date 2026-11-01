@@ -6,7 +6,8 @@ cd "$(dirname "$0")/../../backend"
 
 PY="${E2E_PYTHON:-}"
 if [ -z "$PY" ]; then
-  if [ -x venv/bin/python ]; then PY=venv/bin/python
+  if [ -x .venv/bin/python ]; then PY=.venv/bin/python
+  elif [ -x venv/bin/python ]; then PY=venv/bin/python
   elif command -v python3.12 >/dev/null 2>&1; then PY=python3.12
   else PY=python3.11
   fi

@@ -1,8 +1,9 @@
 COMPOSE_FILE=infra/docker-compose.yml
 
-# Interpréteur Python pour les tests : venv du backend si présent, sinon python3.12 / python3.11 du PATH
-# (Python 3.14 est incompatible avec pydantic-core). Surchargeable : make test PYTHON=...
-PYTHON ?= $(shell if [ -x $(CURDIR)/backend/venv/bin/python ]; then echo $(CURDIR)/backend/venv/bin/python; else command -v python3.12 || command -v python3.11; fi)
+# Interpréteur Python pour les tests : backend/.venv (créé par `make backend-install`, uv), sinon l'ancien
+# backend/venv, sinon python3.12 / python3.11 du PATH (Python 3.14 est incompatible avec pydantic-core).
+# Surchargeable : make test PYTHON=...
+PYTHON ?= $(shell for p in $(CURDIR)/backend/.venv/bin/python $(CURDIR)/backend/venv/bin/python; do if [ -x $$p ]; then echo $$p; exit; fi; done; command -v python3.12 || command -v python3.11)
 
 .PHONY: setup dev down prod prod-down demo demo-down backend-install frontend-install backend-seed-demo test coverage test-front test-e2e lint lint-fix lint-front typecheck check-size validate backup-now backup-restore release-check release
 
@@ -30,7 +31,7 @@ demo-down:
 	docker compose --env-file .env -p numera-demo -f docker-compose.demo.yml down
 
 backend-install:
-	python3 -m venv .venv && . .venv/bin/activate && pip install -r backend/requirements-dev.txt
+	cd backend && uv sync --frozen
 
 frontend-install:
 	cd frontend && npm install

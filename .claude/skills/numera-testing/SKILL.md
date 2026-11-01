@@ -15,8 +15,8 @@ PYTHONPATH=. python3.11 -m pytest tests/budget/test_merchants.py -v     # un fic
 PYTHONPATH=. python3.11 -m pytest tests/budget/test_tags.py::test_x -v  # un test
 ```
 
-- `make test` / `make validate` choisissent l'interpréteur automatiquement : `backend/venv/bin/python` si présent, sinon `python3.12`, sinon `python3.11` (surchargeable : `make test PYTHON=...`). `backend/venv_new` est en Python 3.14 sans pytest, et pydantic-core ne supporte pas 3.14.
-- Dépendances : `backend/requirements.txt` (jose, bcrypt, httpx, etc.).
+- `make test` / `make validate` choisissent l'interpréteur automatiquement : `backend/.venv/bin/python` (créé par `make backend-install`, i.e. `uv sync`), puis l'ancien `backend/venv`, sinon `python3.12`, sinon `python3.11` (surchargeable : `make test PYTHON=...`). `backend/venv_new` est en Python 3.14 sans pytest, et pydantic-core ne supporte pas 3.14.
+- Dépendances : `backend/pyproject.toml` + `backend/uv.lock` (groupe `dev` pour pytest/ruff/mypy). Ajouter une dépendance : `cd backend && uv add <pkg>` (ou `uv add --dev`), commiter `uv.lock`.
 
 ## Rangement (`backend/tests/`)
 

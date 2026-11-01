@@ -265,19 +265,18 @@ Frontend sur http://localhost:5173, API sur http://localhost:8001, avec recharge
 
 <br>
 
-Il faut **Python 3.11 ou 3.12** (`pydantic-core` ne s'installe pas sous 3.14) et Node 20 ou plus.
+Il faut [uv](https://docs.astral.sh/uv/) (il installe lui-même Python 3.12 si besoin ; `pydantic-core` ne s'installe pas sous 3.14) et Node 20 ou plus.
 
 ```bash
 cd backend
-python3.12 -m venv venv && . venv/bin/activate
-pip install -r requirements.txt
-uvicorn app.main:app --reload --port 8001
+uv sync                       # crée backend/.venv depuis uv.lock
+uv run uvicorn app.main:app --reload --port 8001
 
 # dans un autre terminal
 cd frontend && npm install && npm run dev
 ```
 
-Pour un seul fichier de tests : `cd backend && PYTHONPATH=. python3.12 -m pytest tests/budget/test_tags.py -v`.
+Pour un seul fichier de tests : `cd backend && PYTHONPATH=. uv run pytest tests/budget/test_tags.py -v`.
 
 </details>
 

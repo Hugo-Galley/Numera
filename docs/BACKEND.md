@@ -53,7 +53,8 @@ backend/
 ├── scripts/                # Scripts utilitaires (backups, seeds, migrations)
 ├── tests/                  # Tests unitaires et d'intégration avec Pytest
 ├── Dockerfile              # Dockerfile pour le conteneur backend
-├── requirements.txt        # Dépendances Python requises
+├── pyproject.toml          # Dépendances Python (uv) ; groupe dev : pytest, ruff, mypy
+├── uv.lock                 # Versions figées (uv sync --frozen)
 └── alembic.ini             # Configuration d'Alembic
 ```
 

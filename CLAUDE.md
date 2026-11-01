@@ -33,10 +33,11 @@ Quand le code change une route, un modèle, une commande ou une règle métier, 
 > Python 3.14+ : pydantic-core incompatible. Utiliser Python 3.11 ou 3.12.
 
 ```bash
+make backend-install       # uv sync (backend/.venv) ; dépendances : backend/pyproject.toml + uv.lock (mcp-server a les siens)
 make setup                 # premier lancement (setup.sh), crée .env depuis .env.example
 make dev                   # Docker : docker compose -f infra/docker-compose.yml up --build
 make prod                  # docker-compose.prod.yml
-make test                  # pytest backend (backend/venv si présent, sinon python3.12/3.11 ; PYTHON=... pour forcer)
+make test                  # pytest backend (backend/.venv si présent, sinon python3.12/3.11 ; PYTHON=... pour forcer)
 make coverage              # tests + couverture avec seuil à cliquet : backend (backend/.coveragerc, 93 %) et frontend (frontend/vitest.config.ts, v8) ; ne jamais baisser un seuil
 make lint / lint-fix       # ruff sur backend/ (règles : backend/ruff.toml), lint-fix corrige ce qui est sûr
 make lint-front             # ESLint frontend (rules-of-hooks, exhaustive-deps, variables inutilisées) ; avertissements existants plafonnés par frontend/eslint-baseline.json
