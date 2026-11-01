@@ -1,4 +1,3 @@
-from typing import List, Optional
 
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
@@ -10,12 +9,12 @@ from app.services.budget import merchants as service
 router = APIRouter(prefix="/merchants", tags=["merchants"])
 
 
-@router.get("", response_model=List[merchant_schemas.MerchantRead])
+@router.get("", response_model=list[merchant_schemas.MerchantRead])
 def get_merchants(
     db: Session = Depends(deps.get_db),
     skip: int = Query(default=0, ge=0),
     limit: int = Query(default=1000, ge=1, le=5000),
-    search: Optional[str] = None
+    search: str | None = None
 ):
     return service.get_merchants(db, skip, limit, search)
 

@@ -153,7 +153,7 @@ export function useSalaryData() {
     const year = currentDate.getFullYear()
     const month = currentDate.getMonth() + 1
     
-    let newDays = [...ttDays]
+    const newDays = [...ttDays]
     const exists = newDays.findIndex(d => isSameDay(d, date))
     
     if (exists >= 0) {

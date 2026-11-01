@@ -1,5 +1,5 @@
 """Recherche et validation de titres : profils ETF locaux puis recherche publique Yahoo."""
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from sqlalchemy.orm import Session
 
@@ -14,13 +14,13 @@ from app.services.investissement.market import quotes
 logger = get_logger(__name__)
 
 
-def match_etf_profile(db: Session, symbol: str, isin: Optional[str] = None, name: Optional[str] = None) -> Optional[EtfProfile]:
+def match_etf_profile(db: Session, symbol: str, isin: str | None = None, name: str | None = None) -> EtfProfile | None:
     """Profil ETF correspondant à un titre (ticker, ISIN, alias, puis nom)."""
     return match_profile(etf_repo.all_profiles(db), symbol, isin, name)
 
 
-def _local_matches(db: Session, cleaned: str, seen_symbols: set) -> List[Dict[str, Any]]:
-    results: List[Dict[str, Any]] = []
+def _local_matches(db: Session, cleaned: str, seen_symbols: set) -> list[dict[str, Any]]:
+    results: list[dict[str, Any]] = []
     q_lower = cleaned.lower()
     for p in etf_repo.all_profiles(db):
         if profile_matches_query(p, q_lower):
@@ -40,7 +40,7 @@ def _local_matches(db: Session, cleaned: str, seen_symbols: set) -> List[Dict[st
     return results
 
 
-async def _yahoo_matches(db: Optional[Session], cleaned: str, seen_symbols: set, results: List[Dict[str, Any]]) -> None:
+async def _yahoo_matches(db: Session | None, cleaned: str, seen_symbols: set, results: list[dict[str, Any]]) -> None:
     try:
         for q in await yahoo_finance.search_quotes(cleaned):
             sym = q.get("symbol")
@@ -70,7 +70,7 @@ async def _yahoo_matches(db: Optional[Session], cleaned: str, seen_symbols: set,
         logger.warning(f"Error querying market search API for '{cleaned}': {e}")
 
 
-async def search_market_assets(query: str, db: Optional[Session] = None) -> List[Dict[str, Any]]:
+async def search_market_assets(query: str, db: Session | None = None) -> list[dict[str, Any]]:
     """
     Search for market assets by ISIN code, Ticker symbol or Name.
     Combines local ETF profiles and Yahoo Finance public search.
@@ -87,7 +87,7 @@ async def search_market_assets(query: str, db: Optional[Session] = None) -> List
     return results
 
 
-def _invalid(symbol: str) -> Dict[str, Any]:
+def _invalid(symbol: str) -> dict[str, Any]:
     return {
         "valid": False,
         "symbol": symbol,
@@ -101,7 +101,7 @@ def _invalid(symbol: str) -> Dict[str, Any]:
     }
 
 
-def _best_match(assets: List[Dict[str, Any]], term: str) -> Optional[Dict[str, Any]]:
+def _best_match(assets: list[dict[str, Any]], term: str) -> dict[str, Any] | None:
     for a in assets:
         if a["symbol"].upper() == term.upper() or (a.get("isin") and a["isin"].upper() == term.upper()):
             return a
@@ -112,7 +112,7 @@ def _best_match(assets: List[Dict[str, Any]], term: str) -> Optional[Dict[str, A
     return None
 
 
-async def validate_symbol(db: Session, symbol_or_isin: str) -> Dict[str, Any]:
+async def validate_symbol(db: Session, symbol_or_isin: str) -> dict[str, Any]:
     """Vérifie qu'un ticker ou un ISIN existe et renvoie ses informations (cours compris)."""
     term = symbol_or_isin.strip()
     if not term:

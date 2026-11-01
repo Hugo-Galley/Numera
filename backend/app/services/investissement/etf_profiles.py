@@ -1,6 +1,5 @@
 """Profils ETF : saisie, actualisation de la composition depuis Yahoo, création à la volée, profils système."""
 import json
-from typing import List, Optional
 
 from sqlalchemy.orm import Session
 
@@ -26,7 +25,7 @@ from app.schemas.etf_profile import AutoDecomposeRequest, EtfProfileCreate, EtfP
 logger = get_logger(__name__)
 
 
-def list_profiles(db: Session) -> List[EtfProfileRead]:
+def list_profiles(db: Session) -> list[EtfProfileRead]:
     return [to_read(p) for p in repo.list_ordered(db)]
 
 
@@ -67,7 +66,7 @@ def delete_profile(db: Session, profile_id: int) -> None:
     db.commit()
 
 
-async def refresh_etf_profile(db: Session, profile: EtfProfile) -> List[str]:
+async def refresh_etf_profile(db: Session, profile: EtfProfile) -> list[str]:
     """Actualise un profil depuis Yahoo. Lève YahooUnavailable si Yahoo est injoignable."""
     composition = await yahoo_finance.fetch_composition(profile.ticker)
     updated = apply_composition(profile, composition or {})
@@ -106,9 +105,9 @@ async def refresh_held_etf_profiles(db: Session, force: bool = False) -> int:
 async def auto_decompose_and_create_profile(
     db: Session,
     symbol: str,
-    name: Optional[str] = None,
-    isin: Optional[str] = None
-) -> Optional[EtfProfile]:
+    name: str | None = None,
+    isin: str | None = None
+) -> EtfProfile | None:
     """Crée un profil pour un ETF ou fonds inconnu à partir de la composition publiée par Yahoo.
 
     Les champs que Yahoo ne fournit pas (toujours les pays) restent vides.
@@ -187,7 +186,7 @@ def seed_etf_profiles(db: Session) -> None:
                 countries=json.dumps(preset["countries"]),
                 sectors=json.dumps(preset["sectors"]),
                 top_holdings=json.dumps(preset["top_holdings"]),
-                composition_sources=json.dumps({field: SOURCE_PRESET for field in COMPOSITION_FIELDS}),
+                composition_sources=json.dumps(dict.fromkeys(COMPOSITION_FIELDS, SOURCE_PRESET)),
                 is_system=True,
             )
             repo.add(db, profile)

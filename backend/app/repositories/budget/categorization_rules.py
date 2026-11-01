@@ -30,6 +30,6 @@ def categorizable_transactions(db: Session) -> list[Transaction]:
     """Transactions auxquelles une règle peut s'appliquer : ni « Solde Initial » ni virement interne."""
     return (
         db.query(Transaction)
-        .filter(Transaction.type != "Solde Initial", Transaction.is_transfer == False)  # noqa: E712
+        .filter(Transaction.type != "Solde Initial", Transaction.is_transfer == False)
         .all()
     )

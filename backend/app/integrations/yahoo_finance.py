@@ -2,7 +2,7 @@
 
 Aucune écriture en base ni règle métier : le service `services/market` décide quoi stocker et quel repli appliquer.
 """
-from typing import Any, Dict, List, Optional
+from typing import Any
 from urllib.parse import quote
 
 import httpx
@@ -19,7 +19,7 @@ def client(timeout: float) -> httpx.AsyncClient:
     return httpx.AsyncClient(headers=HEADERS, timeout=timeout)
 
 
-async def fetch_chart(http_client: httpx.AsyncClient, sym: str, params: Dict[str, str]) -> Optional[Dict[str, Any]]:
+async def fetch_chart(http_client: httpx.AsyncClient, sym: str, params: dict[str, str]) -> dict[str, Any] | None:
     """Appelle l'endpoint chart de Yahoo (query2 puis query1) et renvoie le premier résultat."""
     quoted_sym = quote(sym, safe="")
     for host in ("query2", "query1"):
@@ -30,7 +30,7 @@ async def fetch_chart(http_client: httpx.AsyncClient, sym: str, params: Dict[str
     return None
 
 
-async def search_quotes(query: str) -> List[Dict[str, Any]]:
+async def search_quotes(query: str) -> list[dict[str, Any]]:
     """Résultats bruts (`quotes`) de la recherche publique Yahoo ; liste vide si Yahoo répond en erreur."""
     async with client(6.0) as http_client:
         resp = await http_client.get(SEARCH_URL, params={"q": query, "quotesCount": 10, "newsCount": 0})
@@ -43,7 +43,7 @@ async def search_quotes(query: str) -> List[Dict[str, Any]]:
 # Yahoo fournit la répartition sectorielle et, pour les ETF à réplication physique, les 10 premières lignes ;
 # jamais la répartition par pays.
 
-YAHOO_SECTOR_LABELS: Dict[str, str] = {
+YAHOO_SECTOR_LABELS: dict[str, str] = {
     "technology": "Technologie",
     "financial_services": "Finance",
     "healthcare": "Santé",
@@ -60,7 +60,7 @@ YAHOO_SECTOR_LABELS: Dict[str, str] = {
 QUOTE_SUMMARY_URL = "https://query2.finance.yahoo.com/v10/finance/quoteSummary/{symbol}"
 
 # quoteSummary exige un cookie de consentement et un « crumb » associé ; on les garde en mémoire
-_yahoo_auth: Dict[str, Any] = {"cookies": None, "crumb": None}
+_yahoo_auth: dict[str, Any] = {"cookies": None, "crumb": None}
 
 
 class YahooUnavailable(Exception):
@@ -83,8 +83,8 @@ async def ensure_crumb(http_client: httpx.AsyncClient, force: bool = False) -> s
     return crumb
 
 
-def parse_top_holdings(top: Dict[str, Any]) -> Dict[str, Any]:
-    sectors: Dict[str, float] = {}
+def parse_top_holdings(top: dict[str, Any]) -> dict[str, Any]:
+    sectors: dict[str, float] = {}
     for entry in top.get("sectorWeightings") or []:
         for key, value in entry.items():
             weight = round(float((value or {}).get("raw") or 0.0) * 100, 2)
@@ -92,7 +92,7 @@ def parse_top_holdings(top: Dict[str, Any]) -> Dict[str, Any]:
                 label = YAHOO_SECTOR_LABELS.get(key, key.replace("_", " ").capitalize())
                 sectors[label] = round(sectors.get(label, 0.0) + weight, 2)
 
-    holdings: List[Dict[str, Any]] = []
+    holdings: list[dict[str, Any]] = []
     for h in top.get("holdings") or []:
         weight = round(float((h.get("holdingPercent") or {}).get("raw") or 0.0) * 100, 2)
         name = h.get("holdingName") or h.get("symbol")
@@ -102,7 +102,7 @@ def parse_top_holdings(top: Dict[str, Any]) -> Dict[str, Any]:
     return {"sectors": sectors, "top_holdings": holdings}
 
 
-async def fetch_composition(symbol: str) -> Optional[Dict[str, Any]]:
+async def fetch_composition(symbol: str) -> dict[str, Any] | None:
     """Composition publiée par Yahoo pour `symbol`.
 
     Renvoie None si Yahoo ne connaît pas le titre, un dict (éventuellement vide) sinon.

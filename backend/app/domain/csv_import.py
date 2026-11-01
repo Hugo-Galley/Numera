@@ -3,12 +3,15 @@
 Détection du délimiteur (`,` `;` `\t`), en-têtes normalisés via `HEADER_ALIASES`, lignes validées en
 `ParsedRow` (montant toujours positif, sens porté par le type).
 """
+
 import csv
 import io
 import math
 import unicodedata
+from contextlib import suppress
 from dataclasses import dataclass
 from datetime import datetime
+from typing import Any
 
 from app.core.errors import BusinessRuleError
 from app.domain.finance import normalize_transaction_type
@@ -68,15 +71,15 @@ def read_csv(content: str) -> tuple[list[dict[str, str]], str, list[str]]:
         delimiter = ","
 
     reader = csv.DictReader(io.StringIO(content), delimiter=delimiter)
-    rows = []
+    rows: list[dict[str, str]] = []
     for row in reader:
         row["_line"] = str(reader.line_num)  # numéro de ligne du fichier (1 = en-têtes)
         rows.append(row)
-    return rows, delimiter, reader.fieldnames or []
+    return rows, delimiter, list(reader.fieldnames or [])
 
 
 def canonicalize_row(raw_row: dict[str, str]) -> dict[str, str]:
-    canonical: dict[str, str] = {key: "" for key in REQUIRED_COLUMNS}
+    canonical: dict[str, str] = dict.fromkeys(REQUIRED_COLUMNS, "")
     canonical["_line"] = str(raw_row.get("_line", ""))
     for raw_key, raw_value in raw_row.items():
         if raw_key == "_line":
@@ -211,12 +214,12 @@ def parse_row(row: dict[str, str]) -> ParsedRow:
     )
 
 
-def duplicate_key(date: datetime, amount: float, merchant: str, tx_type: str) -> tuple:
+def duplicate_key(date: datetime, amount: float, merchant: str, tx_type: str) -> tuple[Any, ...]:
     """Clé de doublon d'une ligne dans un compte (règle métier 4 : date, montant, marchand, type)."""
     return (date, round(float(amount), 4), merchant, tx_type)
 
 
-def apply_import_rules(rules: list, merchant: str, note: str, tx_type: str) -> tuple[int | None, str, str]:
+def apply_import_rules(rules: list[Any], merchant: str, note: str, tx_type: str) -> tuple[int | None, str, str]:
     """Première règle (par priorité) dont le motif figure dans le marchand ou la note :
     (catégorie, type, marchand) après application. Un type de règle invalide est ignoré."""
     for rule in rules:
@@ -224,10 +227,8 @@ def apply_import_rules(rules: list, merchant: str, note: str, tx_type: str) -> t
         if pattern in merchant.lower() or pattern in note.lower():
             category_id = rule.category_id or None
             if rule.transaction_type:
-                try:
+                with suppress(ValueError):  # règle ancienne au type invalide : ignorée plutôt que de corrompre la ligne
                     tx_type = normalize_transaction_type(rule.transaction_type)
-                except ValueError:
-                    pass  # règle ancienne au type invalide : ignorée plutôt que de corrompre la ligne
             if rule.merchant_name:
                 merchant = rule.merchant_name
             return category_id, tx_type, merchant

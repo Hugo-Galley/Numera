@@ -39,7 +39,7 @@ def potential_subscriptions(db: Session, since: datetime, account_id: int | None
      .filter(Transaction.recurring_transaction_id == None) \
      .filter(Transaction.is_subscription_ignored == False) \
      .group_by(Transaction.merchant, Transaction.amount, Category.id) \
-     .having(func.count(Transaction.id) >= 2)  # noqa: E711, E712
+     .having(func.count(Transaction.id) >= 2)
     if account_id:
         query = query.filter(Transaction.account_id == account_id)
     return query.all()
@@ -49,7 +49,7 @@ def ignore_detection(db: Session, merchant: str, amount: float) -> None:
     db.query(Transaction).filter(
         Transaction.merchant == merchant,
         Transaction.amount == amount,
-        Transaction.recurring_transaction_id == None  # noqa: E711
+        Transaction.recurring_transaction_id == None
     ).update({"is_subscription_ignored": True}, synchronize_session=False)
 
 
@@ -63,7 +63,7 @@ def subscription_category_rows(db: Session, start: datetime, end: datetime, tr_a
             Transaction.date >= start,
             Transaction.date < end,
             Transaction.type == "Sortie",
-            Transaction.is_transfer == False,  # noqa: E712
+            Transaction.is_transfer == False,
             Category.name == "Abonnement",
         )
     )

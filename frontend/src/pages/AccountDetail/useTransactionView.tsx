@@ -46,7 +46,7 @@ export function useTransactionView(p: ReturnType<typeof useAccountDetailState> &
           case "amount":
             comparison = a.amount - b.amount
             break
-          case "category":
+          case "category": {
             const getDisplayCategory = (tx: Transaction) => {
               if (tx.type === "Solde Initial") return "Solde Initial"
               if (tx.type === "Interets") return "Intérêts"
@@ -54,6 +54,7 @@ export function useTransactionView(p: ReturnType<typeof useAccountDetailState> &
             }
             comparison = getDisplayCategory(a).localeCompare(getDisplayCategory(b))
             break
+          }
           case "type":
             comparison = a.type.localeCompare(b.type)
             break

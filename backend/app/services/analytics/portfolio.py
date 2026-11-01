@@ -16,7 +16,7 @@ async def valued_accounts(db: Session, *, history: bool = False) -> list[dict]:
     results = []
     for account in repo.securities_accounts(db):
         if uses_positions(account, await replay_account(db, account.id)):
-            results.append(await compute_portfolio(db, account, history=history))
+            results.append(await compute_portfolio(db, account, history=history))  # noqa: PERF401 - awaits séquentiels sur la même session
     return results
 
 

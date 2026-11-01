@@ -1,7 +1,9 @@
 """Export CSV compatible Numbers : rendu pur des lignes déjà assemblées."""
+
 import csv
 import io
 from datetime import datetime
+from typing import Any
 
 EXPORT_HEADERS = ["Compte", "Date", "Mois", "Type", "Commercant", "Categorie", "Montant", "Solde Compte"]
 
@@ -13,7 +15,7 @@ def csv_safe(value: str) -> str:
     return value
 
 
-def to_csv(rows: list[dict]) -> str:
+def to_csv(rows: list[dict[str, Any]]) -> str:
     """Lignes triées par compte puis date ; montants à deux décimales."""
     output = io.StringIO()
     writer = csv.writer(output)

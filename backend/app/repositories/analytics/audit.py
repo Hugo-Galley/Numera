@@ -43,7 +43,7 @@ def duplicate_groups(db: Session) -> Query:
     """Groupes de transactions identiques (compte, date, type, marchand, montant, devise) non ignorés."""
     return (
         db.query(*DUPLICATE_KEY, func.count(Transaction.id).label("count"))
-        .filter(Transaction.is_duplicate_ignored == False)  # noqa: E712
+        .filter(Transaction.is_duplicate_ignored == False)
         .group_by(*DUPLICATE_KEY)
         .having(func.count(Transaction.id) > 1)
     )

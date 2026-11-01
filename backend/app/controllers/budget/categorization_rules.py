@@ -1,4 +1,3 @@
-from typing import List
 
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
@@ -10,7 +9,7 @@ from app.services.budget import categorization_rules as service
 router = APIRouter(prefix="/categorization-rules", tags=["categorization-rules"])
 
 
-@router.get("/", response_model=List[CategorizationRuleRead])
+@router.get("/", response_model=list[CategorizationRuleRead])
 def list_rules(db: Session = Depends(get_db)):
     return service.list_rules(db)
 

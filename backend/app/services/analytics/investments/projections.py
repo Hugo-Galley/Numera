@@ -128,7 +128,7 @@ async def compute_fire(db: Session, withdrawal_rate_pct: float = 4.0, inflation_
         real_return_pct=round(real, 2),
         months_used=forecast.months_used,
         years_to_fi=years_to_fi,
-        fi_year=this_year + int(math.ceil(years_to_fi)) if years_to_fi is not None else None,
+        fi_year=this_year + math.ceil(years_to_fi) if years_to_fi is not None else None,
         points=proj.fire_points(wealth, savings, rate, target, years_to_fi, this_year),
         scenarios=proj.fire_scenarios(wealth, savings, expenses, rate, withdrawal_rate_pct),
     )

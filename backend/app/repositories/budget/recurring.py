@@ -12,11 +12,11 @@ from app.models.transaction import Transaction
 def generatable_rules(db: Session) -> list[RecurringTransaction]:
     """Règles actives à génération automatique, hors récurrences gérées par la configuration salaire."""
     salary_managed_ids: set[int] = set()
-    for sc in db.query(SalaryConfig).filter(SalaryConfig.is_active == True).all():  # noqa: E712
+    for sc in db.query(SalaryConfig).filter(SalaryConfig.is_active == True).all():
         salary_managed_ids.update(i for i in (sc.salary_recurring_id, sc.ticket_recurring_id) if i)
     rules = db.query(RecurringTransaction).filter(
-        RecurringTransaction.is_active == True,  # noqa: E712
-        RecurringTransaction.auto_generate == True,  # noqa: E712
+        RecurringTransaction.is_active == True,
+        RecurringTransaction.auto_generate == True,
     ).all()
     return [rd for rd in rules if rd.id not in salary_managed_ids]
 

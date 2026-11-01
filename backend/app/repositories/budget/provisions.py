@@ -45,7 +45,7 @@ def category_expenses_between(db: Session, category_id: int, start: datetime, en
         .filter(
             lines.c.category_id == category_id,
             Transaction.type == "Sortie",
-            Transaction.is_transfer == False,  # noqa: E712
+            Transaction.is_transfer == False,
             Transaction.date >= start,
             Transaction.date < end,
         )

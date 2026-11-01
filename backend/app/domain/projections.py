@@ -1,7 +1,9 @@
 """Projections pures : prévision de patrimoine, indépendance financière (FIRE), simulation (Monte-Carlo)."""
+
 import json
 import math
 import random
+from typing import Any
 
 from app.schemas.insight import FirePoint, FireScenario, WealthForecastReturnItem, WealthSimulationPoint
 
@@ -35,7 +37,7 @@ def return_breakdown(measured: float, unmeasured: float, other: float, observed_
             invest_items.append(WealthForecastReturnItem(
                 type="investissement_non_mesure", balance=round(unmeasured, 2), rate_pct=0.0, source="none",
             ))
-    return invest_items + [other_item]
+    return [*invest_items, other_item]
 
 
 def weighted_return(breakdown: list[WealthForecastReturnItem], positive_total: float) -> float:
@@ -44,7 +46,7 @@ def weighted_return(breakdown: list[WealthForecastReturnItem], positive_total: f
     return weighted / positive_total if positive_total > 0 else 0.0
 
 
-def savings_window(history: list[dict], year: int, month: int) -> list[dict]:
+def savings_window(history: list[dict[str, Any]], year: int, month: int) -> list[dict[str, Any]]:
     """Douze derniers mois complets du kpi-history, sans les mois de tête sans dépense (avant le début du suivi)."""
     completed = [r for r in history if not (r["year"] == year and r["month"] == month)]
     rows = completed[-12:] if completed else history
@@ -56,7 +58,7 @@ def savings_window(history: list[dict], year: int, month: int) -> list[dict]:
 
 
 def monthly_rate(annual_pct: float) -> float:
-    return (1 + annual_pct / 100.0) ** (1 / 12) - 1
+    return float((1 + annual_pct / 100.0) ** (1 / 12) - 1)
 
 
 def project_wealth(start: float, monthly: float, rate: float, years: int) -> list[float]:
@@ -102,7 +104,7 @@ def years_to_fi(wealth: float, monthly: float, annual: float, rate: float, withd
 def fire_points(wealth: float, savings: float, rate: float, target: float, years_needed: float | None,
                 this_year: int) -> list[FirePoint]:
     """Courbe jusqu'à deux ans après l'indépendance (40 ans si hors d'atteinte, 80 au plus)."""
-    horizon = min(int(math.ceil(years_needed)) + 2 if years_needed is not None else 40, FIRE_MAX_YEARS)
+    horizon = min(math.ceil(years_needed) + 2 if years_needed is not None else 40, FIRE_MAX_YEARS)
     points = []
     value = wealth
     for year in range(horizon + 1):
@@ -130,7 +132,7 @@ def fire_scenarios(wealth: float, savings: float, expenses: float, rate: float,
 
 # --- Simulation ---
 
-def parse_events(events: str | None) -> dict[int, list[dict]]:
+def parse_events(events: str | None) -> dict[int, list[dict[str, Any]]]:
     """Événements ponctuels (JSON `[{year, amount, label}]`) groupés par année ; entrées invalides ignorées."""
     parsed = []
     if events:
@@ -140,7 +142,7 @@ def parse_events(events: str | None) -> dict[int, list[dict]]:
                 parsed = []
         except Exception:
             parsed = []
-    by_year: dict[int, list[dict]] = {}
+    by_year: dict[int, list[dict[str, Any]]] = {}
     for ev in parsed:
         try:
             y = int(ev.get("year", 0))
@@ -155,7 +157,7 @@ def parse_events(events: str | None) -> dict[int, list[dict]]:
 def _run_trial(initial_capital: float, monthly_contribution: float, years: int, monthly_rate_det: float,
                monthly_mean: float, monthly_std: float, volatile: bool, inflation_rate_pct: float,
                contribution_indexation_pct: float, tax_rate_pct: float, tax_deferred: bool,
-               events: dict[int, list[dict]]) -> list[tuple[float, float, float, float, float]]:
+               events: dict[int, list[dict[str, Any]]]) -> list[tuple[float, float, float, float, float]]:
     """Une trajectoire : par année (valeur nette, valeur réelle, intérêts nets, impôt, versements cumulés)."""
     current_total = initial_capital
     cumulative_contributions = cumulative_interest = cumulative_tax_paid = cumulative_events = 0.0
@@ -196,7 +198,7 @@ def _run_trial(initial_capital: float, monthly_contribution: float, years: int, 
     return rows
 
 
-def _event_label(events: dict[int, list[dict]], y: int) -> str | None:
+def _event_label(events: dict[int, list[dict[str, Any]]], y: int) -> str | None:
     if y not in events:
         return None
     return ", ".join(f"{ev['label']} ({'+' if ev['amount'] >= 0 else ''}{int(ev['amount'])}€)" for ev in events[y])
@@ -204,7 +206,7 @@ def _event_label(events: dict[int, list[dict]], y: int) -> str | None:
 
 def simulate_wealth(initial_capital: float, monthly_contribution: float, annual_return_pct: float, years: int,
                     volatility_pct: float, inflation_rate_pct: float, contribution_indexation_pct: float,
-                    tax_rate_pct: float, tax_deferred: bool, events: dict[int, list[dict]]) -> list[WealthSimulationPoint]:
+                    tax_rate_pct: float, tax_deferred: bool, events: dict[int, list[dict[str, Any]]]) -> list[WealthSimulationPoint]:
     """Simulation année par année ; avec volatilité, 1 000 tirages et percentiles 10/50/90."""
     num_trials = 1000 if volatility_pct > 0 else 1
     annual_rate_decimal = annual_return_pct / 100.0

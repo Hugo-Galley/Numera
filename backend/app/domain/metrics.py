@@ -6,9 +6,9 @@ POSITIVE_TYPES = ["Entree", "Interets", "Solde Initial", "versement", "dividende
 NEGATIVE_TYPES = ["Sortie", "retrait"]
 
 
-def tag_totals(rows: list[Any], rates: dict[str, float]) -> list[dict]:
+def tag_totals(rows: list[Any], rates: dict[str, float]) -> list[dict[str, Any]]:
     """Dépenses par tag converties en EUR, de la plus forte à la plus faible, arrondies à 2 décimales."""
-    totals: dict = {}
+    totals: dict[str, Any] = {}
     for row in rows:
         if row.id not in totals:
             totals[row.id] = {"id": row.id, "name": row.name, "color": row.color, "total_eur": 0.0}
@@ -31,7 +31,7 @@ def variation_pct(current: float, previous: float) -> float | None:
     return (current - previous) / abs(previous) * 100
 
 
-def savings_at(events_by_account: dict[int, list], end: datetime, accounts: dict[int, Any],
+def savings_at(events_by_account: dict[int, list[Any]], end: datetime, accounts: dict[int, Any],
                rates: dict[str, float]) -> float:
     """Épargne totale en EUR : dernière valeur connue (relevé ou solde) de chaque compte à `end`."""
     total = 0.0
@@ -45,7 +45,7 @@ def savings_at(events_by_account: dict[int, list], end: datetime, accounts: dict
 
 
 def kpi_row(year: int, month: int, rev: float, inte: float, dep: float, inv: float, cat_inv: float,
-            epargne: float, account_view: bool) -> dict:
+            epargne: float, account_view: bool) -> dict[str, Any]:
     """Point mensuel du kpi-history (mêmes formules que le budget)."""
     # Comme le budget : seules les sorties catégorisées sont retranchées, jamais les versements
     # (un versement financé par une sortie du mois précédent rendait les dépenses réelles négatives)
@@ -69,7 +69,7 @@ def kpi_row(year: int, month: int, rev: float, inte: float, dep: float, inv: flo
     }
 
 
-def _apply_event(balances: dict[int, float], ev: dict) -> None:
+def _apply_event(balances: dict[int, float], ev: dict[str, Any]) -> None:
     acc_id = ev.get("account_id")
     if acc_id is None:
         return
@@ -88,9 +88,9 @@ def _apply_event(balances: dict[int, float], ev: dict) -> None:
         balances[acc_id] -= amt
 
 
-def daily_balances(events: list[dict], balances: dict[int, float], currencies: dict[int, str],
+def daily_balances(events: list[dict[str, Any]], balances: dict[int, float], currencies: dict[int, str],
                    rates: dict[str, float], sim_start: datetime, start_month: datetime, end_month: datetime,
-                   account_id: int | None) -> list[dict]:
+                   account_id: int | None) -> list[dict[str, Any]]:
     """Solde jour par jour (devise du compte, ou EUR en vue globale), du début du mois à sa fin.
 
     `events` (réels et projetés) sont triés par date ; la simulation part de `sim_start` (au plus tard

@@ -1,4 +1,3 @@
-from typing import List
 
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
@@ -10,7 +9,7 @@ from app.services.investissement import etf_profiles as service
 router = APIRouter(prefix="/etf-profiles", tags=["etf-profiles"])
 
 
-@router.get("", response_model=List[EtfProfileRead])
+@router.get("", response_model=list[EtfProfileRead])
 def list_etf_profiles(db: Session = Depends(get_db)):
     return service.list_profiles(db)
 

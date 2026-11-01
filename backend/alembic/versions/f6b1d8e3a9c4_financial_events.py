@@ -5,16 +5,16 @@ Revises: e5a0c3d7f2b8
 Create Date: 2026-10-26 17:00:00.000000
 
 """
-from typing import Sequence, Union
+from collections.abc import Sequence
 
 import sqlalchemy as sa
 
 from alembic import op
 
 revision: str = "f6b1d8e3a9c4"
-down_revision: Union[str, Sequence[str], None] = "e5a0c3d7f2b8"
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | Sequence[str] | None = "e5a0c3d7f2b8"
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:

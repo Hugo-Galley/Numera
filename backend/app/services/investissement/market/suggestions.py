@@ -1,5 +1,5 @@
 """Suggestions de titres pour l'inventaire Point Zéro, déduites des libellés des anciennes opérations."""
-from typing import Any, Dict, List
+from typing import Any
 
 from sqlalchemy.orm import Session
 
@@ -8,14 +8,14 @@ from app.repositories.investissement import investment_transactions as tx_repo
 from app.services.investissement.market.search import search_market_assets
 
 
-async def suggest_holdings_from_notes(db: Session, account_id: int) -> List[Dict[str, Any]]:
+async def suggest_holdings_from_notes(db: Session, account_id: int) -> list[dict[str, Any]]:
     """
     Intelligently analyzes historical notes in investment_transactions for an account,
     identifies past assets (e.g. Apple, Total, Microsoft, Cisco...) and proposes suggestions
     for the Point Zéro baseline inventory.
     """
     # Aggregate by identified clean asset name
-    aggregated: Dict[str, Dict[str, Any]] = {}
+    aggregated: dict[str, dict[str, Any]] = {}
     for tx in tx_repo.for_account(db, account_id):
         raw_name = tx.ticker or tx.note or ""
         clean_name = extract_asset_clean_name(raw_name)
@@ -40,7 +40,7 @@ async def suggest_holdings_from_notes(db: Session, account_id: int) -> List[Dict
             aggregated[clean_name]["last_date"] = tx.date
 
     # Resolve tickers for top suggestions
-    suggestions: List[Dict[str, Any]] = []
+    suggestions: list[dict[str, Any]] = []
     for asset_name, item in aggregated.items():
         search_res = await search_market_assets(asset_name, db=db)
         best_match = search_res[0] if search_res else None

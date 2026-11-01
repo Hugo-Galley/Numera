@@ -1,14 +1,13 @@
 """Règles pures sur les cotations : devise d'un ticker Yahoo, cours en pence, conversion EUR, libellés d'actifs."""
 import re
-from typing import Dict, Optional
 
 from app.core.logging import get_logger
 
 logger = get_logger(__name__)
 
 # Devise de cotation déduite du suffixe Yahoo (la recherche ne renvoie pas la devise)
-QUOTE_SUFFIX_CURRENCIES: Dict[str, str] = {
-    **{sfx: "EUR" for sfx in (".PA", ".AS", ".BR", ".DE", ".F", ".SG", ".MU", ".DU", ".HM", ".BE", ".MI", ".MC", ".VI", ".LS", ".HE", ".IR")},
+QUOTE_SUFFIX_CURRENCIES: dict[str, str] = {
+    **dict.fromkeys((".PA", ".AS", ".BR", ".DE", ".F", ".SG", ".MU", ".DU", ".HM", ".BE", ".MI", ".MC", ".VI", ".LS", ".HE", ".IR"), "EUR"),
     ".SW": "CHF",
     ".L": "GBP",
 }
@@ -32,7 +31,7 @@ def normalize_price(price: float, raw_currency: str) -> tuple[float, str]:
     return float(price), (raw_currency or "EUR").upper()
 
 
-def to_eur(price: float, currency: str, rates: Dict[str, float]) -> Optional[float]:
+def to_eur(price: float, currency: str, rates: dict[str, float]) -> float | None:
     rate = rates.get(currency)
     if not rate:
         logger.warning(f"No EUR exchange rate for {currency}: price left unconverted")
@@ -40,7 +39,7 @@ def to_eur(price: float, currency: str, rates: Dict[str, float]) -> Optional[flo
     return price / rate
 
 
-def extract_asset_clean_name(note: str) -> Optional[str]:
+def extract_asset_clean_name(note: str) -> str | None:
     """Clean up transaction note to extract company or asset name."""
     if not note:
         return None

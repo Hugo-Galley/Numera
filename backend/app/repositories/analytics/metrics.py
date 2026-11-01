@@ -39,7 +39,7 @@ def tag_spending_rows(db: Session, start: datetime | None, end: datetime, accoun
     ).join(transaction_tags, Tag.id == transaction_tags.c.tag_id) \
      .join(Transaction, Transaction.id == transaction_tags.c.transaction_id) \
      .join(Account, Transaction.account_id == Account.id) \
-     .filter(Transaction.type == "Sortie", Transaction.is_transfer == False)  # noqa: E712
+     .filter(Transaction.type == "Sortie", Transaction.is_transfer == False)
     if start:
         query = query.filter(Transaction.date >= start)
     query = query.filter(Transaction.date < end)
@@ -64,7 +64,7 @@ def category_expense_rows(db: Session, start: datetime, end: datetime, account_i
             Transaction.date >= start,
             Transaction.date < end,
             Transaction.type == "Sortie",
-            Transaction.is_transfer == False,  # noqa: E712
+            Transaction.is_transfer == False,
         )
     )
     # Même périmètre que le budget : le total de la répartition doit égaler `depenses_totales`
@@ -87,7 +87,7 @@ def merchant_expense_rows(db: Session, start: datetime, end: datetime, account_i
             Transaction.date >= start,
             Transaction.date < end,
             Transaction.type == "Sortie",
-            Transaction.is_transfer == False,  # noqa: E712
+            Transaction.is_transfer == False,
             func.coalesce(Category.name, "").notin_(INVESTMENT_CATEGORIES),
         )
     )
@@ -108,7 +108,7 @@ def flow_by_type(db: Session, account_id: int, start: datetime, end: datetime) -
             Transaction.account_id == account_id,
             Transaction.date >= start,
             Transaction.date < end,
-            Transaction.is_transfer == False,  # noqa: E712
+            Transaction.is_transfer == False,
             Transaction.type.in_(["Entree", "Interets", "Sortie"]),
         )
         .group_by(Transaction.type)
@@ -121,7 +121,7 @@ def average_expense(db: Session, account_id: int, start: datetime | None, end: d
     query = db.query(func.coalesce(func.avg(Transaction.amount), 0.0)).filter(
         Transaction.account_id == account_id,
         Transaction.type == "Sortie",
-        Transaction.is_transfer == False,  # noqa: E712
+        Transaction.is_transfer == False,
     )
     if start is not None:
         query = query.filter(Transaction.date >= start)
@@ -150,7 +150,7 @@ def kpi_transaction_rows(db: Session, label, start: datetime, end: datetime, acc
         label, Account.currency, Transaction.type, func.coalesce(func.sum(NET_AMOUNT), 0.0).label("total")
     ).select_from(Transaction).join(Account, Transaction.account_id == Account.id).filter(
         Transaction.date >= start, Transaction.date < end,
-        Transaction.is_transfer == False,  # noqa: E712
+        Transaction.is_transfer == False,
     )
     if not account_id:
         query = query.filter(Account.type.in_(["courant", "epargne"]))
@@ -192,7 +192,7 @@ def kpi_categorized_investment_rows(db: Session, label, start: datetime, end: da
         Transaction.date >= start, Transaction.date < end,
         Transaction.type == "Sortie",
         Category.name.in_(INVESTMENT_CATEGORIES),
-        Transaction.is_transfer == False,  # noqa: E712
+        Transaction.is_transfer == False,
     )
     if not account_id:
         if tr_accounts:
@@ -234,7 +234,7 @@ def month_income_rows(db: Session, start: datetime, end: datetime, account_id: i
         Transaction.date >= start,
         Transaction.date < end,
         Transaction.type.in_(["Entree", "Interets"]),
-        Transaction.is_transfer == False,  # un virement interne n'est ni un revenu ni une dépense  # noqa: E712
+        Transaction.is_transfer == False,  # un virement interne n'est ni un revenu ni une dépense
     )
     if account_id is not None:
         query = query.filter(Transaction.account_id == account_id)
@@ -253,7 +253,7 @@ def month_expense_rows(db: Session, start: datetime, end: datetime, account_id: 
         Transaction.date >= start,
         Transaction.date < end,
         Transaction.type == "Sortie",
-        Transaction.is_transfer == False,  # noqa: E712
+        Transaction.is_transfer == False,
     )
     if account_id is not None:
         query = query.filter(Transaction.account_id == account_id)
@@ -321,7 +321,7 @@ def investment_transactions_between(db: Session, start: datetime, end: datetime,
 
 
 def active_recurrings(db: Session, account_id: int | None, tr_accounts: set[int]) -> list[RecurringTransaction]:
-    query = db.query(RecurringTransaction).filter(RecurringTransaction.is_active == True)  # noqa: E712
+    query = db.query(RecurringTransaction).filter(RecurringTransaction.is_active == True)
     if account_id:
         query = query.filter(RecurringTransaction.account_id == account_id)
     elif tr_accounts:

@@ -17,7 +17,7 @@ export function useSimulatorState(p: { initialCapitalDefault: number }) {
           ...parsed,
           initial_capital: initialCapitalDefault // Reset initial capital default if prop changes
         }
-      } catch {}
+      } catch { /* sauvegarde illisible : valeurs par défaut */ }
     }
     return {
       initial_capital: initialCapitalDefault,
@@ -35,7 +35,7 @@ export function useSimulatorState(p: { initialCapitalDefault: number }) {
   const [events, setEvents] = useState<LifeEvent[]>(() => {
     const saved = safeStorage.getItem("numera_wealth_sim_events")
     if (saved) {
-      try { return JSON.parse(saved) } catch {}
+      try { return JSON.parse(saved) } catch { /* sauvegarde illisible : valeurs par défaut */ }
     }
     return []
   })
@@ -54,7 +54,7 @@ export function useSimulatorState(p: { initialCapitalDefault: number }) {
   const [assetClasses, setAssetClasses] = useState<AssetClass[]>(() => {
     const saved = safeStorage.getItem("numera_wealth_sim_asset_classes")
     if (saved) {
-      try { return JSON.parse(saved) } catch {}
+      try { return JSON.parse(saved) } catch { /* sauvegarde illisible : valeurs par défaut */ }
     }
     return defaultAssetClasses
   })

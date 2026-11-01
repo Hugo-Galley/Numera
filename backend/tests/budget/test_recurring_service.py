@@ -17,8 +17,8 @@ from app.services.budget.recurring import generate_recurring_transactions
 
 
 def _rule(**overrides):
-    data = dict(start_date=datetime(2026, 1, 10), end_date=None, frequency="monthly", day_of_month=None,
-                excluded_months=None)
+    data = {"start_date": datetime(2026, 1, 10), "end_date": None, "frequency": "monthly", "day_of_month": None,
+                "excluded_months": None}
     data.update(overrides)
     return SimpleNamespace(**data)
 

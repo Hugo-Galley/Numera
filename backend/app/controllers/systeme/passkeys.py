@@ -5,7 +5,7 @@ WebAuthn voyage dans un jeton signé à courte durée (aucun état serveur). L'o
 figurer dans `CORS_ORIGINS` ; l'identifiant de la partie de confiance (RP ID) en est le nom d'hôte.
 """
 import json
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from urllib.parse import urlparse
 
 import jwt
@@ -92,7 +92,7 @@ def _origin(request: Request) -> tuple[str, str]:
 
 
 def _sign_challenge(challenge: bytes, purpose: str) -> str:
-    exp = datetime.now(timezone.utc) + timedelta(seconds=CHALLENGE_TTL_SECONDS)
+    exp = datetime.now(UTC) + timedelta(seconds=CHALLENGE_TTL_SECONDS)
     return jwt.encode(
         {"purpose": purpose, "ch": bytes_to_base64url(challenge), "exp": exp},
         settings.SECRET_KEY,
@@ -186,7 +186,7 @@ def register_verify(
             "public_key": bytes_to_base64url(verified.credential_public_key),
             "sign_count": verified.sign_count,
             "name": (body.name or "").strip()[:60] or f"Passkey {len(credentials) + 1}",
-            "created_at": datetime.now(timezone.utc).isoformat(),
+            "created_at": datetime.now(UTC).isoformat(),
             "last_used_at": None,
         }
     )
@@ -244,7 +244,7 @@ def login_verify(body: LoginVerifyBody, request: Request, db: Session = Depends(
         raise HTTPException(status_code=401, detail="Connexion par passkey refusée") from exc
 
     stored["sign_count"] = verified.new_sign_count
-    stored["last_used_at"] = datetime.now(timezone.utc).isoformat()
+    stored["last_used_at"] = datetime.now(UTC).isoformat()
     _save(db, credentials)
     login_rate_limiter.reset(key)
     logger.info("Successful passkey login")

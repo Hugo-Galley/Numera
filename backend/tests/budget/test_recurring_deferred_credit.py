@@ -112,7 +112,7 @@ def test_deferred_credit_skipped_when_linked_meanwhile(db_session: Session):
     rd = deferred_rule(db_session, main, livret)
     rd.start_date = rd.last_generated_date = datetime.now()
     debit = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=40)
-    common = dict(month_label="x", amount=400.0, currency="EUR", original_amount=400.0, running_balance=0.0)
+    common = {"month_label": "x", "amount": 400.0, "currency": "EUR", "original_amount": 400.0, "running_balance": 0.0}
     s = Transaction(account_id=main.id, date=debit, type="Sortie", merchant=rd.name, recurring_transaction_id=rd.id,
                     transfer_credit_due=transfer_credit_date(debit, 16), **common)
     imported = Transaction(account_id=livret.id, date=debit + timedelta(days=17), type="Entree", merchant="VIR", **common)

@@ -1,23 +1,22 @@
 from datetime import datetime
-from typing import Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
 
 class EtfHoldingItem(BaseModel):
     name: str
-    ticker: Optional[str] = None
+    ticker: str | None = None
     weight: float = Field(ge=0, le=100)
 
 
 class EtfProfileBase(BaseModel):
     name: str
     ticker: str
-    isin: Optional[str] = None
-    aliases: List[str] = []
-    countries: Dict[str, float] = {}
-    sectors: Dict[str, float] = {}
-    top_holdings: List[EtfHoldingItem] = []
+    isin: str | None = None
+    aliases: list[str] = []
+    countries: dict[str, float] = {}
+    sectors: dict[str, float] = {}
+    top_holdings: list[EtfHoldingItem] = []
 
 
 class EtfProfileCreate(EtfProfileBase):
@@ -25,21 +24,21 @@ class EtfProfileCreate(EtfProfileBase):
 
 
 class EtfProfileUpdate(BaseModel):
-    name: Optional[str] = None
-    ticker: Optional[str] = None
-    isin: Optional[str] = None
-    aliases: Optional[List[str]] = None
-    countries: Optional[Dict[str, float]] = None
-    sectors: Optional[Dict[str, float]] = None
-    top_holdings: Optional[List[EtfHoldingItem]] = None
+    name: str | None = None
+    ticker: str | None = None
+    isin: str | None = None
+    aliases: list[str] | None = None
+    countries: dict[str, float] | None = None
+    sectors: dict[str, float] | None = None
+    top_holdings: list[EtfHoldingItem] | None = None
 
 
 class EtfProfileRead(EtfProfileBase):
     id: int
     is_system: bool
     # Source de chaque champ de composition : yahoo | preset | manual (absent = non renseigné)
-    composition_sources: Dict[str, str] = {}
-    composition_refreshed_at: Optional[datetime] = None
+    composition_sources: dict[str, str] = {}
+    composition_refreshed_at: datetime | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -48,8 +47,8 @@ class EtfProfileRead(EtfProfileBase):
 
 class AutoDecomposeRequest(BaseModel):
     symbol: str
-    name: Optional[str] = None
-    isin: Optional[str] = None
+    name: str | None = None
+    isin: str | None = None
 
 
 class EtfRefreshResult(BaseModel):

@@ -2,7 +2,7 @@
 import json
 import os
 import sqlite3
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 
@@ -41,12 +41,12 @@ def _parse_iso(value: object) -> datetime | None:
         parsed = datetime.fromisoformat(value)
     except ValueError:
         return None
-    return parsed if parsed.tzinfo else parsed.replace(tzinfo=timezone.utc)
+    return parsed if parsed.tzinfo else parsed.replace(tzinfo=UTC)
 
 
 def backup_status(now: datetime | None = None) -> dict:
     """État des sauvegardes, lu dans BACKUP_DIR (fichiers `suivi_budget_*` et `status.json` écrit par scripts/backup.py)."""
-    now = now or datetime.now(timezone.utc)
+    now = now or datetime.now(UTC)
     backup_dir = Path(os.getenv("BACKUP_DIR", "/app/backups"))
     github_configured = bool(os.getenv("GITHUB_BACKUP_REPO", "").strip())
     files = (
@@ -63,7 +63,7 @@ def backup_status(now: datetime | None = None) -> dict:
         status = {}
 
     latest = files[-1] if files else None
-    last_backup_at = datetime.fromtimestamp(latest.stat().st_mtime, tz=timezone.utc) if latest else None
+    last_backup_at = datetime.fromtimestamp(latest.stat().st_mtime, tz=UTC) if latest else None
     last_error_at = _parse_iso(status.get("last_error_at"))
     # Un échec n'est affiché que s'il est postérieur à la dernière sauvegarde réussie
     failing = bool(status.get("last_error")) and (last_backup_at is None or (last_error_at or now) > last_backup_at)

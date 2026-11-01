@@ -29,7 +29,7 @@ def matching_entries(db: Session, benefit: Benefit, since: datetime) -> list[Tra
     pattern = f"%{benefit.match_pattern.strip()}%"
     query = db.query(Transaction).filter(
         Transaction.type == "Entree",
-        Transaction.is_transfer == False,  # noqa: E712
+        Transaction.is_transfer == False,
         Transaction.date >= since,
         or_(Transaction.merchant.ilike(pattern), Transaction.note.ilike(pattern)),
     )

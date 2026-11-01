@@ -92,13 +92,13 @@ def compute_allocation_suggestions(db: Session) -> dict:
     """Valeurs connues (comptes et opérations) et usuelles des classes d'actifs, secteurs et zones (autocomplétion)."""
     def known(account_column, operation_column) -> list[str]:
         rows = repo.distinct_values(db, account_column) + repo.distinct_values(db, operation_column)
-        return sorted(list(set([r[0] for r in rows if r[0]])))
+        return sorted({r[0] for r in rows if r[0]})
 
     classes = known(Account.asset_class, InvestmentTransaction.asset_class)
     sectors = known(Account.sector, InvestmentTransaction.sector)
     zones = known(Account.geographic_zone, InvestmentTransaction.geographic_zone)
     return {
-        "asset_classes": sorted(list(set(classes + DEFAULT_CLASSES))),
-        "sectors": sorted(list(set(sectors + DEFAULT_SECTORS))),
-        "geographic_zones": sorted(list(set(zones + DEFAULT_ZONES)))
+        "asset_classes": sorted(set(classes + DEFAULT_CLASSES)),
+        "sectors": sorted(set(sectors + DEFAULT_SECTORS)),
+        "geographic_zones": sorted(set(zones + DEFAULT_ZONES))
     }

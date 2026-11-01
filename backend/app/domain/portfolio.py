@@ -7,9 +7,11 @@ les espèces cumulent les flux d'opérations (`versement` +, `retrait` −, `ach
 espèces s'annule. Les snapshots (`balance_snapshots`) ne servent plus qu'au rapprochement avec le relevé
 du courtier.
 """
+
 from dataclasses import dataclass
 from datetime import date as date_type
 from datetime import datetime, timedelta
+from typing import Any
 
 from app.domain.holdings import Replay
 from app.models.account import Account
@@ -65,7 +67,7 @@ def uses_positions(account: Account, replay: Replay) -> bool:
     return account.type in ("investissement", "assurance_vie") and account.valuation_mode == "positions" and bool(replay.positions or replay.baseline or replay.realized)
 
 
-def history_point(day: str, value: float, invested: float) -> dict:
+def history_point(day: str, value: float, invested: float) -> dict[str, Any]:
     """Point de la courbe : valeur, capital investi, gain et performance à date."""
     return {
         "date": day,
@@ -76,7 +78,7 @@ def history_point(day: str, value: float, invested: float) -> dict:
     }
 
 
-def reconciliation_line(snapshot_date: datetime, snapshot_value: float, computed: float) -> dict:
+def reconciliation_line(snapshot_date: datetime, snapshot_value: float, computed: float) -> dict[str, Any]:
     """Écart entre la valeur calculée et le relevé du courtier ; signalé au-delà du seuil."""
     gap = computed - snapshot_value
     gap_pct = gap / snapshot_value * 100.0 if snapshot_value else None

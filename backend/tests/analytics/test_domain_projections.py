@@ -32,8 +32,8 @@ def test_parse_events_groups_by_year_and_ignores_garbage():
 
 
 def test_simulation_without_volatility_is_deterministic():
-    args = dict(initial_capital=1000.0, monthly_contribution=100.0, annual_return_pct=0.0, years=2, volatility_pct=0.0,
-                inflation_rate_pct=0.0, contribution_indexation_pct=0.0, tax_rate_pct=0.0, tax_deferred=True, events={})
+    args = {'initial_capital': 1000.0, 'monthly_contribution': 100.0, 'annual_return_pct': 0.0, 'years': 2, 'volatility_pct': 0.0,
+                'inflation_rate_pct': 0.0, 'contribution_indexation_pct': 0.0, 'tax_rate_pct': 0.0, 'tax_deferred': True, 'events': {}}
     first = simulate_wealth(**args)
     assert first == simulate_wealth(**args)
     assert [p.total_value for p in first] == [1000.0, 2200.0, 3400.0]

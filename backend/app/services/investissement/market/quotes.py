@@ -1,7 +1,7 @@
 """Cours des titres : cotation actuelle (cache mémoire 1 h, enregistrée en base), historique et cours à une date."""
 from datetime import date as date_type
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from sqlalchemy.orm import Session
 
@@ -16,11 +16,11 @@ logger = get_logger(__name__)
 
 # In-memory quote cache
 # symbol -> {"price": float, "currency": str, "name": str, "type": str, "price_eur": float, "expires_at": datetime}
-_QUOTES_CACHE: Dict[str, Dict[str, Any]] = {}
+_QUOTES_CACHE: dict[str, dict[str, Any]] = {}
 CACHE_TTL = timedelta(hours=1)
 
 
-def _demo_stored_quote(db: Optional[Session], sym: str) -> Optional[Dict[str, Any]]:
+def _demo_stored_quote(db: Session | None, sym: str) -> dict[str, Any] | None:
     from app.db.session import SessionLocal
 
     session = db or SessionLocal()
@@ -44,10 +44,10 @@ def _demo_stored_quote(db: Optional[Session], sym: str) -> Optional[Dict[str, An
     }
 
 
-def _cached_or_demo(symbols: List[str], db: Optional[Session], now: datetime) -> tuple[Dict[str, Dict[str, Any]], List[str]]:
+def _cached_or_demo(symbols: list[str], db: Session | None, now: datetime) -> tuple[dict[str, dict[str, Any]], list[str]]:
     """Cotations déjà connues (démo, cache valide) et symboles à interroger."""
-    output: Dict[str, Dict[str, Any]] = {}
-    missing_symbols: List[str] = []
+    output: dict[str, dict[str, Any]] = {}
+    missing_symbols: list[str] = []
     for s in symbols:
         sym = s.strip().upper()
         if not sym:
@@ -65,7 +65,7 @@ def _cached_or_demo(symbols: List[str], db: Optional[Session], now: datetime) ->
     return output, missing_symbols
 
 
-async def _fetch_quote(client, sym: str, rates: Dict[str, float], now: datetime) -> Optional[tuple[Dict[str, Any], date_type, float]]:
+async def _fetch_quote(client, sym: str, rates: dict[str, float], now: datetime) -> tuple[dict[str, Any], date_type, float] | None:
     """Cotation Yahoo du jour : (cotation, jour du cours, cours) ou None si Yahoo n'a pas de cours."""
     result = await yahoo_finance.fetch_chart(client, sym, {"interval": "1d", "range": "1d"})
     if not result:
@@ -92,7 +92,7 @@ async def _fetch_quote(client, sym: str, rates: Dict[str, float], now: datetime)
     return quote_data, price_day, price
 
 
-def _fallback_quote(db: Optional[Session], sym: str, rates: Dict[str, float], now: datetime) -> Dict[str, Any]:
+def _fallback_quote(db: Session | None, sym: str, rates: dict[str, float], now: datetime) -> dict[str, Any]:
     """Échec : dernier cours enregistré si on en a un, sinon cotation vide."""
     last = security_prices.latest(db, sym) if db is not None else None
     if last is not None:
@@ -121,7 +121,7 @@ def _fallback_quote(db: Optional[Session], sym: str, rates: Dict[str, float], no
     }
 
 
-async def get_market_quotes(symbols: List[str], db: Optional[Session] = None) -> Dict[str, Dict[str, Any]]:
+async def get_market_quotes(symbols: list[str], db: Session | None = None) -> dict[str, dict[str, Any]]:
     """
     Cours actuels d'une liste de tickers, avec conversion en EUR (cache mémoire 1 h).
 
@@ -181,7 +181,7 @@ async def fetch_price_history(db: Session, ticker: str, start: date_type) -> int
     return count
 
 
-async def get_price_on(db: Session, ticker: str, day: date_type, max_gap_days: int = 7) -> Optional[Dict[str, Any]]:
+async def get_price_on(db: Session, ticker: str, day: date_type, max_gap_days: int = 7) -> dict[str, Any] | None:
     """
     Cours de clôture de `ticker` au jour `day` (ou au dernier jour de cotation précédent).
     Si la base n'a rien de suffisamment proche, on télécharge l'historique depuis `day`.

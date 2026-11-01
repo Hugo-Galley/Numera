@@ -7,8 +7,9 @@ Chaque champ de composition garde sa source dans `EtfProfile.composition_sources
 - `manual` : saisi par l'utilisateur, jamais écrasé.
 """
 import json
+from contextlib import suppress
 from datetime import timedelta
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from app.core.time import utcnow_naive
 from app.models.etf_profile import EtfProfile
@@ -25,7 +26,7 @@ YAHOO_FIELDS = ("sectors", "top_holdings")
 REFRESH_INTERVAL = timedelta(days=7)
 
 
-def load_sources(profile: EtfProfile) -> Dict[str, str]:
+def load_sources(profile: EtfProfile) -> dict[str, str]:
     try:
         sources = json.loads(profile.composition_sources or "{}")
         return sources if isinstance(sources, dict) else {}
@@ -33,10 +34,10 @@ def load_sources(profile: EtfProfile) -> Dict[str, str]:
         return {}
 
 
-def apply_composition(profile: EtfProfile, composition: Dict[str, Any]) -> List[str]:
+def apply_composition(profile: EtfProfile, composition: dict[str, Any]) -> list[str]:
     """Écrit les champs fournis par Yahoo, sauf ceux saisis à la main. Renvoie les champs mis à jour."""
     sources = load_sources(profile)
-    updated: List[str] = []
+    updated: list[str] = []
     for field in YAHOO_FIELDS:
         value = composition.get(field)
         if not value or sources.get(field) == SOURCE_MANUAL:
@@ -108,7 +109,7 @@ def apply_update(profile: EtfProfile, payload: EtfProfileUpdate) -> None:
     profile.composition_sources = json.dumps(sources)
 
 
-def match_profile(profiles: List[EtfProfile], symbol: str, isin: Optional[str] = None, name: Optional[str] = None) -> Optional[EtfProfile]:
+def match_profile(profiles: list[EtfProfile], symbol: str, isin: str | None = None, name: str | None = None) -> EtfProfile | None:
     """Find matching EtfProfile by ticker, isin or alias."""
     norm_symbol = symbol.upper().strip()
     norm_isin = (isin or "").upper().strip()
@@ -122,13 +123,11 @@ def match_profile(profiles: List[EtfProfile], symbol: str, isin: Optional[str] =
             return p
 
         # Check aliases
-        try:
+        with suppress(Exception):  # alias illisible : ignoré
             aliases = json.loads(p.aliases)
             for alias in aliases:
                 if alias.upper() in (norm_symbol, norm_symbol.split(".")[0], norm_isin):
                     return p
-        except Exception:
-            pass
 
     # Name-based heuristic : nom vide => aucune correspondance (sinon "" est contenu dans tout),
     # et on exige que le nom complet du profil figure dans le libellé (pas l'inverse, trop large)
@@ -155,10 +154,8 @@ def profile_matches_query(p: EtfProfile, q_lower: str) -> bool:
         or (p_isin and q_lower == p_isin)
     )
     if not matches:
-        try:
+        with suppress(Exception):  # alias illisible : ignoré
             aliases = [a.lower() for a in json.loads(p.aliases)]
             if any(q_lower in a or a in q_lower for a in aliases):
                 matches = True
-        except Exception:
-            pass
     return bool(matches)

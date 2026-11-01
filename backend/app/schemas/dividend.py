@@ -1,4 +1,3 @@
-from typing import List, Optional
 
 from pydantic import BaseModel
 
@@ -30,10 +29,10 @@ class DividendTicker(BaseModel):
     count: int
     total_eur: float
     last_12m_eur: float
-    last_date: Optional[str] = None
+    last_date: str | None = None
     # 12 derniers mois ÷ coût de revient / valeur actuelle de la position (None sans position ou sans coût)
-    yield_on_cost_pct: Optional[float] = None
-    current_yield_pct: Optional[float] = None
+    yield_on_cost_pct: float | None = None
+    current_yield_pct: float | None = None
 
 
 class DividendUnlinked(BaseModel):
@@ -43,7 +42,7 @@ class DividendUnlinked(BaseModel):
 
 class DividendSummary(BaseModel):
     totals: DividendTotals
-    by_month: List[DividendMonth]
-    by_year: List[DividendYear]
-    by_ticker: List[DividendTicker]
+    by_month: list[DividendMonth]
+    by_year: list[DividendYear]
+    by_ticker: list[DividendTicker]
     unlinked: DividendUnlinked

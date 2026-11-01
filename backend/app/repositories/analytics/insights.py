@@ -15,7 +15,7 @@ def month_expenses(db: Session, start: datetime, end: datetime, account_id: int 
         Transaction.date >= start,
         Transaction.date < end,
         Transaction.type == "Sortie",
-        Transaction.is_transfer == False  # noqa: E712
+        Transaction.is_transfer == False
     )
     if account_id:
         query = query.filter(Transaction.account_id == account_id)

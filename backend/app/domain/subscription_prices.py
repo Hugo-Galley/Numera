@@ -3,11 +3,12 @@
 Une série est retenue si ses échéances sont régulières (mensuelle, trimestrielle ou annuelle) ;
 une hausse est signalée quand le dernier prélèvement dépasse un montant précédent stable.
 """
+from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import date, datetime
 from itertools import pairwise
 from statistics import median
-from typing import Any, Sequence
+from typing import Any
 
 # (écart médian min, max en jours, prélèvements par an, libellé)
 CADENCES = (

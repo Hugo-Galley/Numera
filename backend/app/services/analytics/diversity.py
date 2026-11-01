@@ -1,6 +1,6 @@
 """Scanner de diversification : expositions réelles par transparence des ETF, doublons, score et alertes,
 rapportées au portefeuille boursier et au patrimoine total."""
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from sqlalchemy.orm import Session
 
@@ -19,7 +19,7 @@ logger = get_logger(__name__)
 FUND_KEYWORDS = ["ETF", "FCP", "SICAV", "TRACKER", "INDEX", "FONDS", "FUND"]
 
 
-async def _resolve_profile_id(db: Session, h: PortfolioHolding, q: dict) -> Optional[int]:
+async def _resolve_profile_id(db: Session, h: PortfolioHolding, q: dict) -> int | None:
     """Profil ETF de la position : rattaché, retrouvé, ou créé depuis Yahoo pour un fonds inconnu (rattachement commité)."""
     if h.etf_profile_id:
         return h.etf_profile_id
@@ -45,8 +45,8 @@ async def _resolve_profile_id(db: Session, h: PortfolioHolding, q: dict) -> Opti
     return matched_p.id
 
 
-async def _value_holdings(db: Session, holdings: List[PortfolioHolding], quotes: dict,
-                          fx_rates: dict) -> tuple[List[Dict[str, Any]], float]:
+async def _value_holdings(db: Session, holdings: list[PortfolioHolding], quotes: dict,
+                          fx_rates: dict) -> tuple[list[dict[str, Any]], float]:
     """Valeur EUR de chaque position (repli sur le PRU sans cours connu) et total du portefeuille boursier."""
     total_stocks_eur = 0.0
     valued_holdings = []
@@ -76,7 +76,7 @@ async def _value_holdings(db: Session, holdings: List[PortfolioHolding], quotes:
     return valued_holdings, total_stocks_eur
 
 
-def _wealth_context(db: Session, rates: dict) -> Dict[str, float]:
+def _wealth_context(db: Session, rates: dict) -> dict[str, float]:
     """« Ce qu'on a à côté » : épargne, courant, fonds euros des assurances-vie et autres comptes, en EUR."""
     totals = {"epargne": 0.0, "courant": 0.0, "fonds_euros": 0.0, "other": 0.0}
     for acc in repo.active_accounts(db):
@@ -100,7 +100,7 @@ def _wealth_context(db: Session, rates: dict) -> Dict[str, float]:
     return totals
 
 
-async def compute_diversity(db: Session, account_id: Optional[int]) -> Dict[str, Any]:
+async def compute_diversity(db: Session, account_id: int | None) -> dict[str, Any]:
     """Expositions réelles (sociétés, pays, secteurs), doublons, alertes, score HHI et vue patrimoine total."""
     holdings = repo.holdings(db, account_id)
     quotes = await market_quotes.get_market_quotes([h.ticker for h in holdings], db=db)
@@ -111,7 +111,7 @@ async def compute_diversity(db: Session, account_id: Optional[int]) -> Dict[str,
 
     profiles_by_id = {p.id: p for p in etf_repo.all_profiles(db)}
 
-    def profile_for(vh: Dict[str, Any]):
+    def profile_for(vh: dict[str, Any]):
         etf_profile = profiles_by_id.get(vh["etf_profile_id"]) if vh["etf_profile_id"] else None
         return etf_profile or match_etf_profile(db, symbol=vh["ticker"], isin=vh.get("isin"), name=vh.get("name"))
 

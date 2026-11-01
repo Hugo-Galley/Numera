@@ -2,17 +2,29 @@ target-version = "py311"
 line-length = 140
 
 [lint]
-select = ["E", "F", "W", "I", "B"]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "C4", "PERF", "RUF", "S"]
 ignore = [
     "E501",  # longueur de ligne : pas de formateur imposé, la taille est bornée par scripts/check_code_size.py
     "B008",  # Depends()/Query() en valeur par défaut : idiome FastAPI
     "E711",  # `== None` / `== True` requis dans les filtres SQLAlchemy
     "E712",
+    "RUF001",  # caractères Unicode « ambigus » : typographie française voulue (guillemets, tirets, ×) dans les libellés
+    "RUF002",
+    "RUF003",
+    "S101",  # assert : omniprésent dans les tests, et invariants internes assumés dans app/
+    "S105",  # faux positifs sur les noms (token_type, SECRET_KEY_SETTING, préfixe de token) : les vrais secrets viennent de l'environnement
+    "S106",
+    "S107",
+    "S603",  # subprocess : arguments fixes (alembic, git, pg tools), jamais d'entrée utilisateur
+    "S607",
+    "S608",  # SQL construit par f-string : vérifié au cas par cas (identifiants internes, jamais d'entrée utilisateur)
 ]
 
 [lint.per-file-ignores]
 # Relations SQLAlchemy annotées par chaîne (`Mapped["Account"]`), résolues par le registre
 "app/models/*.py" = ["F821"]
+# Données de démo : aléa non cryptographique voulu
+"app/services/systeme/demo/*.py" = ["S311"]
 # APP_ENV et le hash admin doivent être posés avant d'importer l'application
 "tests/conftest.py" = ["E402"]
 

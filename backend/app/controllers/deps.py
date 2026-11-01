@@ -1,4 +1,4 @@
-from typing import Generator
+from collections.abc import Generator
 
 import jwt
 from fastapi import Depends, HTTPException, Request, status

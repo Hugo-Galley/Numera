@@ -2,7 +2,7 @@
 import json
 import os
 import time
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
@@ -82,7 +82,7 @@ def test_privacy_on_start_is_stored_on_profile(client, db_session):
 def _make_backup(directory, name: str, age: timedelta) -> None:
     path = directory / name
     path.write_bytes(b"x")
-    ts = (datetime.now(timezone.utc) - age).timestamp()
+    ts = (datetime.now(UTC) - age).timestamp()
     os.utime(path, (ts, ts))
 
 
@@ -119,7 +119,7 @@ def test_stale_or_failing_backup_raises_an_action(client, monkeypatch, tmp_path)
     _make_backup(tmp_path, "suivi_budget_20261020_010000.db.enc", timedelta(days=4))
     (tmp_path / "status.json").write_text(json.dumps({
         "last_error": "Database not found",
-        "last_error_at": datetime.now(timezone.utc).isoformat(),
+        "last_error_at": datetime.now(UTC).isoformat(),
     }))
 
     status = backup_core.backup_status()
@@ -137,7 +137,7 @@ def test_old_error_is_hidden_after_a_successful_backup(monkeypatch, tmp_path):
     monkeypatch.setenv("BACKUP_DIR", str(tmp_path))
     (tmp_path / "status.json").write_text(json.dumps({
         "last_error": "boom",
-        "last_error_at": (datetime.now(timezone.utc) - timedelta(days=1)).isoformat(),
+        "last_error_at": (datetime.now(UTC) - timedelta(days=1)).isoformat(),
     }))
     _make_backup(tmp_path, "suivi_budget_20261026_010000.db", timedelta(hours=1))
     status = backup_core.backup_status()

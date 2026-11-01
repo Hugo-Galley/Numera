@@ -1,4 +1,3 @@
-from typing import Optional
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
@@ -11,8 +10,8 @@ router = APIRouter(prefix="/market", tags=["market"])
 
 @router.get("/search")
 async def market_search(
-    q: Optional[str] = Query(default=None, description="ISIN, ticker or asset name"),
-    query: Optional[str] = Query(default=None, description="ISIN, ticker or asset name"),
+    q: str | None = Query(default=None, description="ISIN, ticker or asset name"),
+    query: str | None = Query(default=None, description="ISIN, ticker or asset name"),
     db: Session = Depends(get_db),
 ):
     """

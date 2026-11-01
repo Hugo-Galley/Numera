@@ -12,7 +12,7 @@ from __future__ import annotations
 import calendar
 from dataclasses import dataclass
 from datetime import date
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Any, Literal
 
 if TYPE_CHECKING:
     from app.models.loan import Loan
@@ -119,7 +119,7 @@ def remaining_principal(terms: LoanTerms, prepayments: list[Prepayment], at: dat
 
 def simulate_prepayment(
     terms: LoanTerms, prepayments: list[Prepayment], amount: float, at: date, mode: PrepaymentMode
-) -> dict:
+) -> dict[str, Any]:
     before = build_schedule(terms, prepayments)
     after = build_schedule(terms, [*prepayments, Prepayment(at, amount, mode)])
     interest_before = round(sum(row.interest for row in before), 2)
@@ -139,7 +139,7 @@ def simulate_prepayment(
     }
 
 
-def terms_of(loan: "Loan") -> tuple[LoanTerms, list[Prepayment]]:
+def terms_of(loan: Loan) -> tuple[LoanTerms, list[Prepayment]]:
     terms = LoanTerms(
         principal=loan.principal, annual_rate_pct=loan.annual_rate_pct, duration_months=loan.duration_months,
         start_date=loan.start_date, insurance_monthly=loan.insurance_monthly or 0.0,

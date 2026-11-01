@@ -8,7 +8,7 @@ import hmac
 import secrets
 import struct
 import time
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from urllib.parse import quote, urlencode
 
 import jwt
@@ -94,7 +94,7 @@ def is_enabled(db: Session) -> bool:
 
 
 def create_mfa_token(username: str) -> str:
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     return jwt.encode(
         {"purpose": "totp", "u": username, "iat": now, "exp": now + timedelta(seconds=MFA_TOKEN_TTL_SECONDS)},
         settings.SECRET_KEY,

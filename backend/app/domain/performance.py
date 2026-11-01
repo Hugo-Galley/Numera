@@ -16,7 +16,7 @@ def xirr(flows: list[tuple[date_type, float]]) -> float | None:
     spans = [((d - origin).days / 365.0, a) for d, a in flows]
 
     def npv(rate: float) -> float:
-        return sum(a / (1.0 + rate) ** t for t, a in spans)
+        return float(sum(a / (1.0 + rate) ** t for t, a in spans))
 
     low, high = -0.9999, 1000.0
     f_low, f_high = npv(low), npv(high)

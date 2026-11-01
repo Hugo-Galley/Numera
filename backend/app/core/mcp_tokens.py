@@ -20,7 +20,7 @@ LAST_USED_RESOLUTION = timedelta(minutes=1)
 
 
 def is_mcp_token(token: str | None) -> bool:
-    return bool(token) and token.startswith(MCP_TOKEN_PREFIX)
+    return token is not None and token.startswith(MCP_TOKEN_PREFIX)
 
 
 def hash_token(token: str) -> str:
@@ -32,7 +32,7 @@ def generate_token() -> str:
 
 
 def mcp_access_enabled(db: Session) -> bool:
-    return get_setting(db, "mcp_enabled", "true").lower() == "true"
+    return bool(get_setting(db, "mcp_enabled", "true").lower() == "true")
 
 
 def authenticate_mcp_token(db: Session, token: str) -> bool:

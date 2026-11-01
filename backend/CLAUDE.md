@@ -17,7 +17,8 @@ Complète le `CLAUDE.md` racine. Procédures pas-à-pas : skill `numera-backend`
 
 ## Règles de code
 
-- Lint : `make lint` (ruff, `backend/ruff.toml` : pyflakes, pycodestyle, isort, bugbear), bloquant en CI. Pas de `# noqa` sans motif écrit sur la ligne ; ne pas élargir `ignore` pour faire passer un écart. Exception relancée dans un `except` : `raise … from exc` (ou `from None` pour masquer volontairement la cause).
+- Types : `make typecheck` (mypy, `backend/mypy.ini`, bloquant en CI). `app/domain/` et `app/core/` sont stricts (zéro erreur) ; ailleurs les erreurs existantes sont plafonnées par fichier dans `scripts/mypy_baseline.json` (cliquet : ne jamais l'augmenter ; après une correction, `python3 scripts/check_types.py --write-baseline` pour la diminuer). Du code neuf se type complètement.
+- Lint : `make lint` (ruff, `backend/ruff.toml` : pyflakes, pycodestyle, isort, bugbear, pyupgrade, simplify, comprehensions, perflint, ruff-specific, bandit ; chaque règle ignorée porte son motif dans le fichier), bloquant en CI. Pas de `# noqa` sans motif écrit sur la ligne ; ne pas élargir `ignore` pour faire passer un écart. Exception relancée dans un `except` : `raise … from exc` (ou `from None` pour masquer volontairement la cause).
 - Typer arguments et retours. Logger : `from app.core.logging import get_logger; logger = get_logger(__name__)` (jamais de `print`, jamais de JWT/hash/secret dans les logs).
 - Erreurs : dans un service, lever `NotFoundError` / `BusinessRuleError` (422) / `ConflictError` / `InternalError` (`app.core.errors`, `code` + `context` optionnels pour une erreur structurée) ; jamais d'`HTTPException` hors de `controllers/`. `HTTPException` reste réservée aux controllers pour 401/403 (auth), 413 et 429.
 - Modèles : `Mapped` / `mapped_column`, index sur `account_id`, `date`, `merchant`, FK. Pas de logique métier dans les modèles → `app/services/` (ou `app/domain/` si calcul pur).
@@ -55,6 +56,7 @@ Complète le `CLAUDE.md` racine. Procédures pas-à-pas : skill `numera-backend`
 ## Tests
 
 - `PYTHONPATH=. python3.11 -m pytest tests -q` depuis `backend/` (~910 tests, ~1 min 45). `make test` détecte l'interpréteur (venv, sinon python3.12/3.11) ; `venv_new` est en Python 3.14 sans pytest.
+- Couverture : `make coverage` (`pytest --cov`, config `backend/.coveragerc`) échoue sous le seuil `fail_under` (93 % de lignes au 2026-11-01, mesuré 93,75 %). Cliquet : ne jamais le baisser, le relever quand la couverture progresse ; vérifié par `make validate` et la CI.
 - Fixtures (`tests/conftest.py`) : `db_session` (SQLite temporaire par test, `Base.metadata.create_all`) et `client` (TestClient, override de `get_db` et `get_current_user` → `"admin"`, rate limiter réinitialisé). Vérifier l'état en base après l'appel API.
 - Un test par bug corrigé / fonctionnalité ajoutée, nommé `tests/<domaine>/test_<sujet>.py`.
 - Rangement : un dossier par domaine, comme `services/` : `budget/`, `comptes/`, `investissement/`, `analytics/`, `audit/`, `systeme/` (auth, sécurité, MCP, démo, notifications). Plus `garde_fous/` (architecture, tailles, migrations, routes OpenAPI, épinglage, réseau) et `non_regression/` (instantanés et lots d'audit transverses). Les tests `domain`, service et route d'un même sujet vont dans le même dossier ; `conftest.py` et `snapshots/` restent à la racine de `tests/`. Pas de `__init__.py` : les noms de fichiers doivent rester uniques ; un import entre fichiers de test passe par `tests.<domaine>.test_x`.

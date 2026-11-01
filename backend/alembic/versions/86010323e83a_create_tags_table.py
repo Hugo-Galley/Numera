@@ -5,7 +5,7 @@ Revises: c35f18abcd7b
 Create Date: 2026-06-07 19:48:58.443495
 
 """
-from typing import Sequence, Union
+from collections.abc import Sequence
 
 import sqlalchemy as sa
 
@@ -13,9 +13,9 @@ from alembic import op
 
 # revision identifiers, used by Alembic.
 revision: str = '86010323e83a'
-down_revision: Union[str, Sequence[str], None] = 'c35f18abcd7b'
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | Sequence[str] | None = 'c35f18abcd7b'
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
