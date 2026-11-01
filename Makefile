@@ -4,7 +4,7 @@ COMPOSE_FILE=infra/docker-compose.yml
 # (Python 3.14 est incompatible avec pydantic-core). Surchargeable : make test PYTHON=...
 PYTHON ?= $(shell if [ -x $(CURDIR)/backend/venv/bin/python ]; then echo $(CURDIR)/backend/venv/bin/python; else command -v python3.12 || command -v python3.11; fi)
 
-.PHONY: setup dev down prod prod-down demo demo-down backend-install frontend-install backend-seed-demo test test-front test-e2e lint lint-fix check-size validate backup-now backup-restore release-check release
+.PHONY: setup dev down prod prod-down demo demo-down backend-install frontend-install backend-seed-demo test test-front test-e2e lint lint-fix typecheck check-size validate backup-now backup-restore release-check release
 
 setup:
 	chmod +x setup.sh
@@ -49,6 +49,10 @@ lint:
 lint-fix:
 	cd backend && $(PYTHON) -m ruff check app tests scripts alembic --fix
 
+# Types Python (mypy, backend/mypy.ini) : strict sur app/domain et app/core, baseline à cliquet ailleurs (scripts/mypy_baseline.json)
+typecheck:
+	PYTHON=$(PYTHON) $(PYTHON) scripts/check_types.py
+
 # Tests frontend (Vitest + Testing Library + MSW, cf. frontend/src/CLAUDE.md § Vérification)
 test-front:
 	cd frontend && npm test
@@ -63,7 +67,7 @@ frontend-build:
 check-size:
 	python3 scripts/check_code_size.py
 
-validate: lint check-size test test-front frontend-build
+validate: lint typecheck check-size test test-front frontend-build
 	@echo "Validation complete: Backend and Frontend tests passed, Frontend builds successfully."
 
 backup-now:

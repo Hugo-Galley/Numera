@@ -1,6 +1,8 @@
 """Positions : types d'opérations sur titres, ventes réalisées, résultat du rejeu, estimation du PRU (sans base)."""
+
 from dataclasses import dataclass
 from datetime import datetime
+from typing import Any
 
 BUY_TYPES = ("versement", "achat")
 SELL_TYPES = ("retrait", "vente")
@@ -14,7 +16,7 @@ def normalize_ticker(ticker: str) -> str:
 
 def is_trade(tx_type: str, ticker: str | None, quantity: float | None) -> bool:
     """Vrai si l'opération fait bouger une position (titre + quantité + type achat/vente)."""
-    return bool(ticker) and bool(quantity) and quantity > 0 and tx_type in TRADE_TYPES
+    return bool(ticker) and quantity is not None and quantity > 0 and tx_type in TRADE_TYPES
 
 
 @dataclass
@@ -83,7 +85,7 @@ class CostEstimate:
 
 
 def holding_returns(quantity: float, price_eur: float, cost_basis_eur: float | None, buy_price_avg: float | None,
-                    fx: float | None, dividends_total_eur: float) -> dict:
+                    fx: float | None, dividends_total_eur: float) -> dict[str, Any]:
     """Valeur, coût de revient, plus-value et rendement total (dividendes compris) d'une position, en EUR.
 
     Coût de revient : aux taux historiques des achats si connu, sinon PRU converti au taux du jour (`fx`).
@@ -99,7 +101,7 @@ def holding_returns(quantity: float, price_eur: float, cost_basis_eur: float | N
         gain_pct = round((gain_eur / invested_eur) * 100.0, 2)
 
     total_return_eur = total_return_pct = None
-    if gain_eur is not None:
+    if gain_eur is not None and invested_eur is not None:
         total_return_eur = round(gain_eur + dividends_total_eur, 2)
         total_return_pct = round(total_return_eur / invested_eur * 100.0, 2)
     return {

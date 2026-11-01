@@ -2,7 +2,7 @@
 import re
 import unicodedata
 from datetime import date
-from typing import NamedTuple
+from typing import Any, NamedTuple
 
 from app.domain.tax_rules import TaxRules
 
@@ -20,8 +20,8 @@ def years_between(start: date, end: date) -> float:
     return whole + (end - anniversary).days / max((next_anniversary - anniversary).days, 1)
 
 
-def _blank(**overrides) -> dict:
-    status = {
+def _blank(**overrides: Any) -> dict[str, Any]:
+    status: dict[str, Any] = {
         "current": None, "ceiling": None, "remaining": None, "used_pct": None,
         "age_years": None, "milestone_years": None, "milestone_reached": None,
         "estimated_tax_saving": None, "allowance": None, "total_contributed": None,
@@ -35,7 +35,7 @@ def _room(current: float, ceiling: float) -> tuple[float, float]:
     return max(ceiling - current, 0.0), (current / ceiling * 100.0 if ceiling > 0 else 0.0)
 
 
-def pea_status(contributions: float, opened_at: date | None, withdrawals: list[date], today: date, rules: TaxRules) -> dict:
+def pea_status(contributions: float, opened_at: date | None, withdrawals: list[date], today: date, rules: TaxRules) -> dict[str, Any]:
     """Versements cumulés (un retrait ne restitue pas de place) et ancienneté du plan."""
     remaining, used_pct = _room(contributions, rules.pea_ceiling)
     alerts: list[str] = []
@@ -60,7 +60,7 @@ def per_deduction_ceiling(prior_year_income: float, rules: TaxRules) -> float:
     return min(max(prior_year_income * rules.per_rate, rules.per_floor), rules.per_ceiling)
 
 
-def per_status(contributed_this_year: float, prior_year_income: float, tmi_pct: float, rules: TaxRules) -> dict:
+def per_status(contributed_this_year: float, prior_year_income: float, tmi_pct: float, rules: TaxRules) -> dict[str, Any]:
     """Versements de l'année civile face au plafond de déduction, économie d'impôt = déductible × TMI."""
     ceiling = per_deduction_ceiling(prior_year_income, rules)
     remaining, used_pct = _room(contributed_this_year, ceiling)
@@ -73,25 +73,25 @@ def per_status(contributed_this_year: float, prior_year_income: float, tmi_pct: 
     )
 
 
-def livret_a_status(balance: float, rules: TaxRules) -> dict:
+def livret_a_status(balance: float, rules: TaxRules) -> dict[str, Any]:
     remaining, used_pct = _room(balance, rules.livret_a_ceiling)
     alerts = [_CAPITALISED_INTEREST_ALERT.format(name="Livret A")] if balance > rules.livret_a_ceiling else []
     return _blank(current=balance, ceiling=rules.livret_a_ceiling, remaining=remaining, used_pct=used_pct, alerts=alerts)
 
 
-def livret_jeune_status(balance: float, rules: TaxRules) -> dict:
+def livret_jeune_status(balance: float, rules: TaxRules) -> dict[str, Any]:
     remaining, used_pct = _room(balance, rules.livret_jeune_ceiling)
     alerts = [_CAPITALISED_INTEREST_ALERT.format(name="Livret Jeune")] if balance > rules.livret_jeune_ceiling else []
     return _blank(current=balance, ceiling=rules.livret_jeune_ceiling, remaining=remaining, used_pct=used_pct, alerts=alerts)
 
 
-def ldds_status(balance: float, rules: TaxRules) -> dict:
+def ldds_status(balance: float, rules: TaxRules) -> dict[str, Any]:
     remaining, used_pct = _room(balance, rules.ldds_ceiling)
     alerts = [_CAPITALISED_INTEREST_ALERT.format(name="LDDS")] if balance > rules.ldds_ceiling else []
     return _blank(current=balance, ceiling=rules.ldds_ceiling, remaining=remaining, used_pct=used_pct, alerts=alerts)
 
 
-def lep_status(balance: float, rules: TaxRules) -> dict:
+def lep_status(balance: float, rules: TaxRules) -> dict[str, Any]:
     remaining, used_pct = _room(balance, rules.lep_ceiling)
     alerts = [_CAPITALISED_INTEREST_ALERT.format(name="LEP")] if balance > rules.lep_ceiling else []
     alerts.append("Le LEP est réservé aux foyers sous un plafond de revenus : à revérifier chaque année (non contrôlé ici).")
@@ -113,7 +113,7 @@ def _add_years(day: date, years: int) -> date:
         return day.replace(year=day.year + years, day=28)
 
 
-def pee_status(lots: list[PeeLot], withdrawn: float, gross_annual_salary: float, today: date, rules: TaxRules) -> dict:
+def pee_status(lots: list[PeeLot], withdrawn: float, gross_annual_salary: float, today: date, rules: TaxRules) -> dict[str, Any]:
     """Total versé, part bloquée / disponible (retraits imputés sur les plus anciens), plafond des versements volontaires."""
     remaining_withdrawal = withdrawn
     open_lots: list[tuple[date, float]] = []
@@ -145,7 +145,7 @@ def pee_status(lots: list[PeeLot], withdrawn: float, gross_annual_salary: float,
     )
 
 
-def av_status(opened_at: date | None, household: str, today: date, rules: TaxRules) -> dict:
+def av_status(opened_at: date | None, household: str, today: date, rules: TaxRules) -> dict[str, Any]:
     """Ancienneté face aux 8 ans et abattement annuel applicable aux gains de rachat."""
     allowance = rules.av_allowance_couple if household == "couple" else rules.av_allowance_single
     if opened_at is None:
@@ -196,19 +196,22 @@ def _fr(value: float) -> str:
     return f"{value:.1f}".replace(".", ",")
 
 
-def allocation_advice(cards: list[dict], months_of_expenses: float | None, tmi_pct: float | None) -> list[dict]:
+def allocation_advice(cards: list[dict[str, Any]], months_of_expenses: float | None, tmi_pct: float | None) -> list[dict[str, Any]]:
     """Ordre de remplissage conseillé : précaution sur livret, PEA, PER si TMI ≥ 30 %, assurance-vie, CTO.
 
     `cards` : cartes d'enveloppes (`kind`, `account_id`, `account_name`, `remaining`). Une étape sans compte
     existant propose d'en ouvrir un (`account_id = None`). Règle fixe et explicable, aucun taux codé en dur.
     """
-    by_kind: dict[str, list[dict]] = {}
+    by_kind: dict[str, list[dict[str, Any]]] = {}
     for card in cards:
         by_kind.setdefault(card["kind"], []).append(card)
-    with_room = lambda kind: next((c for c in by_kind.get(kind, []) if (c.get("remaining") or 0) > 0), None)  # noqa: E731
-    steps: list[dict] = []
 
-    def add(kind: str, card: dict | None, reason: str, name: str | None = None) -> None:
+    def with_room(kind: str) -> dict[str, Any] | None:
+        return next((c for c in by_kind.get(kind, []) if (c.get("remaining") or 0) > 0), None)
+
+    steps: list[dict[str, Any]] = []
+
+    def add(kind: str, card: dict[str, Any] | None, reason: str, name: str | None = None) -> None:
         steps.append({
             "rank": len(steps) + 1, "kind": kind, "account_id": card["account_id"] if card else None,
             "account_name": card["account_name"] if card else name, "reason": reason,
@@ -222,7 +225,7 @@ def allocation_advice(cards: list[dict], months_of_expenses: float | None, tmi_p
             situation = f"Ton épargne de précaution couvre {_fr(months_of_expenses)} mois de dépenses, sous le minimum de {PRECAUTION_MIN_MONTHS} mois"
         else:
             situation = f"Ton épargne de précaution couvre {_fr(months_of_expenses)} mois de dépenses, l'objectif est {PRECAUTION_TARGET_MONTHS} mois"
-        livret = next((card for kind in _LIVRET_ORDER if (card := with_room(kind))), None)
+        livret = next((room for kind in _LIVRET_ORDER if (room := with_room(kind))), None)
         has_livret = any(kind in by_kind for kind in _LIVRET_ORDER)
         if livret:
             add(livret["kind"], livret, f"{situation} : verse sur ton {_LIVRET_NAMES[livret['kind']]}, disponible à tout moment et sans impôt.")
@@ -245,6 +248,6 @@ def allocation_advice(cards: list[dict], months_of_expenses: float | None, tmi_p
     if "assurance_vie" not in by_kind:
         add("assurance_vie", None, "Ouvre une assurance-vie pour prendre date : la fiscalité s'allège après 8 ans.", "Assurance-vie à ouvrir")
     else:
-        cto = (by_kind.get("cto") or [None])[0]
+        cto = by_kind["cto"][0] if by_kind.get("cto") else None
         add("cto", cto, "Enveloppes avantageuses remplies ou ouvertes : le compte-titres n'a pas de plafond.", None if cto else "Compte-titres")
     return steps

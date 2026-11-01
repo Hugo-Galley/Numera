@@ -204,7 +204,7 @@ def top_companies(companies: dict[str, dict[str, Any]], total_stocks: float, tot
 
 def exposure_rows(values: dict[str, float], total_stocks: float, total_wealth: float) -> list[dict[str, Any]]:
     """Exposition par pays ou par secteur, en valeur et en % des actions / du patrimoine, décroissante."""
-    rows = [
+    rows: list[dict[str, Any]] = [
         {
             "name": name,
             "value_eur": round(value, 2),

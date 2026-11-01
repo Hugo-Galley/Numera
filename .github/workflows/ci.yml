@@ -24,6 +24,8 @@ jobs:
       - name: Lint (ruff)
         working-directory: backend
         run: ruff check app tests scripts alembic
+      - name: Types (mypy)
+        run: python scripts/check_types.py
       - name: Plafonds de taille
         run: python scripts/check_code_size.py
       - name: Tests

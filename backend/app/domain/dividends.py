@@ -6,12 +6,14 @@ Un dividende est une `investment_transaction` de type `dividende` :
 - `ticker` = titre qui l'a versé ;
 - `reinvested` = True : un `achat` lié (`reinvest_of_id`) augmente la position.
 """
+
 import re
 import unicodedata
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import date as date_type
 from datetime import datetime, timedelta
+from typing import Any
 
 from app.domain.market import extract_asset_clean_name
 from app.models.investment_transaction import InvestmentTransaction
@@ -110,8 +112,8 @@ class DividendAggregates:
     totals: DividendTotals = field(default_factory=DividendTotals)
     unlinked: DividendUnlinked = field(default_factory=DividendUnlinked)
     by_month: dict[str, float] = field(default_factory=lambda: defaultdict(float))
-    by_year: dict[int, dict] = field(default_factory=lambda: defaultdict(lambda: {"count": 0, "net": 0.0, "tax": 0.0}))
-    by_ticker: dict[str, dict] = field(default_factory=dict)
+    by_year: dict[int, dict[str, Any]] = field(default_factory=lambda: defaultdict(lambda: {"count": 0, "net": 0.0, "tax": 0.0}))
+    by_ticker: dict[str, dict[str, Any]] = field(default_factory=dict)
 
 
 def aggregate_dividends(rows: list[DividendRow], since: datetime) -> DividendAggregates:
@@ -146,9 +148,9 @@ def aggregate_dividends(rows: list[DividendRow], since: datetime) -> DividendAgg
     return agg
 
 
-def position_values(holdings: list[PortfolioHolding], quotes: dict) -> dict[str, dict]:
+def position_values(holdings: list[PortfolioHolding], quotes: dict[str, Any]) -> dict[str, dict[str, Any]]:
     """Coût de revient et valeur actuelle (EUR) par ticker, pour les rendements ; incomplets si un coût ou un cours manque."""
-    positions: dict[str, dict] = {}
+    positions: dict[str, dict[str, Any]] = {}
     for h in holdings:
         pos = positions.setdefault(h.ticker.upper(), {"name": h.asset_name, "cost": 0.0, "has_cost": True, "value": 0.0, "has_value": True})
         if h.cost_basis_eur:
@@ -163,7 +165,7 @@ def position_values(holdings: list[PortfolioHolding], quotes: dict) -> dict[str,
     return positions
 
 
-def dividend_tickers(by_ticker: dict[str, dict], positions: dict[str, dict]) -> list[DividendTicker]:
+def dividend_tickers(by_ticker: dict[str, dict[str, Any]], positions: dict[str, dict[str, Any]]) -> list[DividendTicker]:
     """Dividendes par titre avec rendement sur coût et rendement courant, par total décroissant."""
     tickers: list[DividendTicker] = []
     for ticker, item in by_ticker.items():

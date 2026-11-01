@@ -9,12 +9,12 @@ class AllocationGroups:
 
     def __init__(self) -> None:
         self.total = 0.0
-        self.by_asset_class: dict = {}
-        self.by_sector: dict = {}
-        self.by_zone: dict = {}
+        self.by_asset_class: dict[str, Any] = {}
+        self.by_sector: dict[str, Any] = {}
+        self.by_zone: dict[str, Any] = {}
 
     @staticmethod
-    def _add_to(groups: dict, name: str, value: float, account: Any) -> None:
+    def _add_to(groups: dict[str, Any], name: str, value: float, account: Any) -> None:
         group = groups.setdefault(name, {"value": 0.0, "items": {}})
         group["value"] += value
         item = group["items"].setdefault(account.id, {"account_id": account.id, "account_name": account.name, "value": 0.0})
@@ -25,7 +25,7 @@ class AllocationGroups:
         self._add_to(self.by_sector, sector or UNCLASSIFIED, value, account)
         self._add_to(self.by_zone, zone or UNCLASSIFIED, value, account)
 
-    def _format(self, groups: dict) -> list[dict]:
+    def _format(self, groups: dict[str, Any]) -> list[dict[str, Any]]:
         result = []
         for name, data in groups.items():
             val = data["value"]
@@ -49,7 +49,7 @@ class AllocationGroups:
             })
         return sorted(result, key=lambda x: x["value"], reverse=True)
 
-    def result(self) -> dict:
+    def result(self) -> dict[str, Any]:
         return {
             "total_value_eur": round(self.total, 2),
             "by_asset_class": self._format(self.by_asset_class),
@@ -58,7 +58,7 @@ class AllocationGroups:
         }
 
 
-def _patrimoine_item(account: Any, name: str, type_: str, balance: float, balance_eur: float) -> dict:
+def _patrimoine_item(account: Any, name: str, type_: str, balance: float, balance_eur: float) -> dict[str, Any]:
     return {
         "account_id": account.id,
         "account_name": name,
@@ -71,7 +71,7 @@ def _patrimoine_item(account: Any, name: str, type_: str, balance: float, balanc
     }
 
 
-def patrimoine_items(accounts: list[Any], values: dict[int, Any]) -> dict:
+def patrimoine_items(accounts: list[Any], values: dict[int, Any]) -> dict[str, Any]:
     """Répartition du patrimoine : une assurance-vie se partage entre fonds euros et unités de compte."""
     total_patrimoine_eur = 0.0
     total_debts_eur = 0.0

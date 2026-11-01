@@ -1,4 +1,7 @@
 """Score de santé financière et détection d'anomalies (calcul pur)."""
+
+from typing import Any
+
 from app.schemas.insight import HealthScore, MetricDetail
 
 
@@ -7,7 +10,7 @@ def eur(value: float) -> str:
     return f"{value:,.2f}".replace(",", " ").replace(".", ",") + " €"
 
 
-def health_score(budget_data: dict, runway_months: float) -> HealthScore:
+def health_score(budget_data: dict[str, Any], runway_months: float) -> HealthScore:
     """Score sur 100 : taux d'épargne (30), fonds de sécurité (30), trésorerie positive (20), investissement (20)."""
     revenus = budget_data["revenus_totaux"]
     savings_rate = budget_data["taux_epargne"]
@@ -45,7 +48,7 @@ def health_score(budget_data: dict, runway_months: float) -> HealthScore:
     return HealthScore(total_score=round(sum(m.score for m in metrics), 1), metrics=metrics)
 
 
-def category_anomalies(current_totals: dict, histories: dict) -> list[tuple]:
+def category_anomalies(current_totals: dict[str, Any], histories: dict[str, Any]) -> list[tuple[Any, ...]]:
     """(catégorie, total du mois, moyenne) des catégories à plus de 2× leur moyenne (moyenne > 20 €, 2 mois au moins)."""
     anomalies = []
     for cat_id, current_total in current_totals.items():

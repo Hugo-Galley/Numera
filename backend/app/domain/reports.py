@@ -25,17 +25,18 @@ def money_flow_block(val_curr: float, val_prev: float, income: float) -> MoneyFl
     )
 
 
-def top_items(totals: dict[str, float], limit: int = 5) -> list[dict]:
-    return sorted([{"name": k, "amount": v} for k, v in totals.items()], key=lambda x: x["amount"], reverse=True)[:limit]
+def top_items(totals: dict[str, float], limit: int = 5) -> list[dict[str, Any]]:
+    items: list[dict[str, Any]] = [{"name": k, "amount": v} for k, v in totals.items()]
+    return sorted(items, key=lambda x: x["amount"], reverse=True)[:limit]
 
 
 class _Graph:
     def __init__(self) -> None:
-        self.nodes: list[dict] = []
-        self.links: list[dict] = []
+        self.nodes: list[dict[str, Any]] = []
+        self.links: list[dict[str, Any]] = []
 
     def node(self, name: str, color: str | None = None, category_id: int | None = None) -> int:
-        node = {"name": name, "color": color}
+        node: dict[str, Any] = {"name": name, "color": color}
         if category_id is not None:
             node["category_id"] = category_id  # nœud de catégorie de dépense : cliquable (drill-down)
         self.nodes.append(node)
@@ -45,10 +46,10 @@ class _Graph:
         self.links.append({"source": source, "target": target, "value": round(value, 2), "color": color})
 
 
-def _group_expenses(cat_expenses: dict[Any, dict]) -> tuple[list[str], dict, dict, list]:
+def _group_expenses(cat_expenses: dict[Any, dict[str, Any]]) -> tuple[list[str], dict[str, Any], dict[str, Any], list[Any]]:
     """Catégories regroupées par groupe parent (évite les croisements), groupes et catégories triés par total."""
-    grouped: dict[str, list[dict]] = {}
-    ungrouped: list[dict] = []
+    grouped: dict[str, list[dict[str, Any]]] = {}
+    ungrouped: list[dict[str, Any]] = []
     for data in cat_expenses.values():
         cat, total = data["obj"], data["total"]
         if total <= 0:
@@ -65,8 +66,8 @@ def _group_expenses(cat_expenses: dict[Any, dict]) -> tuple[list[str], dict, dic
     return sorted_groups, grouped, group_totals, sorted(ungrouped, key=lambda x: x["total"], reverse=True)
 
 
-def sankey_graph(income_sources: list[dict], total_income: float, invest_total: float,
-                 cat_expenses: dict[Any, dict]) -> dict:
+def sankey_graph(income_sources: list[dict[str, Any]], total_income: float, invest_total: float,
+                 cat_expenses: dict[Any, dict[str, Any]]) -> dict[str, Any]:
     """Revenus → Budget → (investissements, épargne, groupes → catégories) ; le nœud Budget est équilibré."""
     g = _Graph()
     budget = g.node("Budget", "#94a3b8")

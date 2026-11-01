@@ -17,6 +17,7 @@ Complète le `CLAUDE.md` racine. Procédures pas-à-pas : skill `numera-backend`
 
 ## Règles de code
 
+- Types : `make typecheck` (mypy, `backend/mypy.ini`, bloquant en CI). `app/domain/` et `app/core/` sont stricts (zéro erreur) ; ailleurs les erreurs existantes sont plafonnées par fichier dans `scripts/mypy_baseline.json` (cliquet : ne jamais l'augmenter ; après une correction, `python3 scripts/check_types.py --write-baseline` pour la diminuer). Du code neuf se type complètement.
 - Lint : `make lint` (ruff, `backend/ruff.toml` : pyflakes, pycodestyle, isort, bugbear, pyupgrade, simplify, comprehensions, perflint, ruff-specific, bandit ; chaque règle ignorée porte son motif dans le fichier), bloquant en CI. Pas de `# noqa` sans motif écrit sur la ligne ; ne pas élargir `ignore` pour faire passer un écart. Exception relancée dans un `except` : `raise … from exc` (ou `from None` pour masquer volontairement la cause).
 - Typer arguments et retours. Logger : `from app.core.logging import get_logger; logger = get_logger(__name__)` (jamais de `print`, jamais de JWT/hash/secret dans les logs).
 - Erreurs : dans un service, lever `NotFoundError` / `BusinessRuleError` (422) / `ConflictError` / `InternalError` (`app.core.errors`, `code` + `context` optionnels pour une erreur structurée) ; jamais d'`HTTPException` hors de `controllers/`. `HTTPException` reste réservée aux controllers pour 401/403 (auth), 413 et 429.

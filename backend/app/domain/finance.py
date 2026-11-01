@@ -46,7 +46,7 @@ def apply_transaction_to_balance(current_balance: float, transaction_type: str, 
 def _first_occurrence(recurring_tx: Any) -> datetime:
     """Premier passage : la date de début (à minuit), ou pour une règle mensuelle/trimestrielle à jour
     fixe, ce jour-là à partir de la date de début (une règle créée le 8 pour le 16 démarre le 16)."""
-    current_date = recurring_tx.start_date.replace(hour=0, minute=0, second=0, microsecond=0)
+    current_date: datetime = recurring_tx.start_date.replace(hour=0, minute=0, second=0, microsecond=0)
     if recurring_tx.frequency in ("monthly", "quarterly") and recurring_tx.day_of_month:
         day = recurring_tx.day_of_month
         year, month = current_date.year, current_date.month
@@ -101,7 +101,7 @@ def get_recurring_occurrences(recurring_tx: Any, start_period: datetime, end_per
         actual_end_period = recurring_tx.end_date
 
     occurrences = []
-    current_date = _first_occurrence(recurring_tx)
+    current_date: datetime | None = _first_occurrence(recurring_tx)
     while current_date is not None and current_date < actual_end_period:
         if current_date >= start_period and current_date.month not in excluded_months:
             occurrences.append(current_date)
@@ -113,7 +113,7 @@ def get_recurring_occurrences(recurring_tx: Any, start_period: datetime, end_per
 PERIOD_DAYS = {"daily": 1, "weekly": 7, "monthly": 31, "quarterly": 92, "yearly": 366, "annual": 366}
 
 
-def is_lapsed(frequency: str, last_occurrence, today) -> bool:
+def is_lapsed(frequency: str, last_occurrence: Any, today: Any) -> bool:
     """Récurrence active mais plus prélevée : aucune occurrence depuis plus de deux périodes (+ 7 jours de marge).
 
     Sans aucune occurrence rattachée, on ne conclut rien (récurrence jamais liée, ou toute nouvelle).
@@ -123,4 +123,4 @@ def is_lapsed(frequency: str, last_occurrence, today) -> bool:
     days = PERIOD_DAYS.get(frequency, 31)
     last_day = last_occurrence.date() if hasattr(last_occurrence, "date") else last_occurrence
     today_day = today.date() if hasattr(today, "date") else today
-    return (today_day - last_day).days > 2 * days + 7
+    return bool((today_day - last_day).days > 2 * days + 7)
