@@ -74,5 +74,8 @@
     "typescript-eslint": "^8.72.1",
     "vite": "^5.4.10",
     "vitest": "^3.2.7"
+  },
+  "overrides": {
+    "d3-color": "3.1.0"
   }
 }
