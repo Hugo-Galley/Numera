@@ -16,6 +16,7 @@ from app.models.account import Account
 from app.repositories.investissement import portfolio as repo
 from app.services.investissement.holdings.replay import replay_account
 from app.services.investissement.market.quotes import get_market_quotes
+from app.services.investissement.portfolio import cache
 from app.services.investissement.portfolio.books import FxBook, PriceBook, ensure_history
 from app.services.investissement.portfolio.cash import Capital, anchor_on_inventory, capital
 from app.services.investissement.portfolio.history import history_series
@@ -131,7 +132,18 @@ def _result(account: Account, rate: float, valued: bool, baseline_date: datetime
 
 
 async def compute_portfolio(db: Session, account: Account, *, fetch: bool = True, history: bool = True) -> dict:
-    """Indicateurs complets d'un compte (voir `schemas/portfolio.py::PortfolioRead`)."""
+    """Indicateurs complets d'un compte (voir `schemas/portfolio.py::PortfolioRead`), via le cache bref de `cache.py`."""
+    entry_key = cache.key(db, account.id, fetch, history)
+    cached = cache.get(entry_key)
+    if cached is not None:
+        return cached
+    started_at = cache.generation()
+    result = await _compute_portfolio(db, account, fetch=fetch, history=history)
+    cache.put(entry_key, result, started_at)
+    return result
+
+
+async def _compute_portfolio(db: Session, account: Account, *, fetch: bool, history: bool) -> dict:
     today = datetime.now()
     today_day = today.date()
     currency = account.currency

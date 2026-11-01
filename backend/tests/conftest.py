@@ -35,6 +35,16 @@ def block_network(monkeypatch):
     monkeypatch.setattr(httpx.AsyncHTTPTransport, "handle_async_request", _network_forbidden)
 
 
+@pytest.fixture(autouse=True)
+def fresh_portfolio_cache():
+    """Une base de test neuve ne doit jamais lire une valorisation mémorisée par un test précédent."""
+    from app.services.investissement.portfolio.cache import invalidate
+
+    invalidate()
+    yield
+    invalidate()
+
+
 @pytest.fixture()
 def db_session(tmp_path) -> Generator[Session, None, None]:
     db_file = tmp_path / "test.db"

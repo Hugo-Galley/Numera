@@ -36,7 +36,7 @@ grep -rn "def .*<mot-clé>" backend/app/domain backend/app/services backend/app/
 | Valeur de compte / patrimoine | `services/comptes/wealth.py::account_values` |
 | Soldes courants | `services/budget/balances.py::recalculate_running_balances` |
 | Positions titres | `services/investissement/holdings/rebuild.py::rebuild_holdings` |
-| Valorisation portefeuille | `services/investissement/portfolio/compute.py::compute_portfolio` |
+| Valorisation portefeuille | `services/investissement/portfolio/compute.py::compute_portfolio` (cache bref : `portfolio/cache.py`) |
 | Budget | `services/analytics/budget/summary.py::compute_budget` (appeler le service, jamais une fonction de route) |
 | Salaire | `domain/salary.py::salary_amount` |
 | Format d'un montant (front) | `lib/utils.ts::formatCurrency` |
