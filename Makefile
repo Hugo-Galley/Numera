@@ -5,7 +5,7 @@ COMPOSE_FILE=infra/docker-compose.yml
 # Surchargeable : make test PYTHON=...
 PYTHON ?= $(shell for p in $(CURDIR)/backend/.venv/bin/python $(CURDIR)/backend/venv/bin/python; do if [ -x $$p ]; then echo $$p; exit; fi; done; command -v python3.12 || command -v python3.11)
 
-.PHONY: setup dev down prod prod-down demo demo-down backend-install frontend-install backend-seed-demo test coverage test-front test-e2e lint lint-fix lint-front typecheck check-size validate hooks pre-commit-all api-contract backup-now backup-restore release-check release
+.PHONY: setup dev down prod prod-down demo demo-down backend-install frontend-install backend-seed-demo test coverage test-front test-e2e lint lint-fix lint-front typecheck check-size validate hooks pre-commit-all api-contract backup-now backup-restore release-check release dead-code knip
 
 setup:
 	chmod +x setup.sh
@@ -89,7 +89,15 @@ api-contract:
 	cd backend && PYTHONPATH=. $(PYTHON) scripts/export_openapi.py
 	cd frontend && npm run api:types
 
-validate: lint lint-front typecheck check-size coverage frontend-build
+# Code mort backend (vulture, scripts/check_dead_code.py) : fonctions, classes, méthodes et imports inutilisés ; faux positifs déclarés dans scripts/dead_code_allowlist.json
+dead-code:
+	PYTHON=$(PYTHON) $(PYTHON) scripts/check_dead_code.py
+
+# Code mort frontend (knip, frontend/knip.json) : fichiers, dépendances, exports et types inutilisés
+knip:
+	cd frontend && npm run knip
+
+validate: lint lint-front knip typecheck check-size dead-code coverage frontend-build
 	@echo "Validation complete: Backend and Frontend tests passed, Frontend builds successfully."
 
 backup-now:
