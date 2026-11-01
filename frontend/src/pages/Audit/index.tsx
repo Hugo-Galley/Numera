@@ -1,5 +1,6 @@
 import { AlertTriangle, ArrowRight, ArrowRightLeft, CheckCircle2, Database, LayoutList, RefreshCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { resetApiCache } from "@/lib/apiCache"
 import { TransferReview } from "@/components/audit/TransferReview"
 import { MerchantCreatorModal, RuleCreatorModal } from "./CreatorModals"
 import { useAudit } from "./useAudit"
@@ -9,6 +10,11 @@ import { ActionList } from "./ActionList"
 export default function ActionCenter() {
   const ctx = useAudit()
   const { activeAction, activeActionId, categories, data, error, loadActions, loading, navigate, normMerchant, ruleMerchant, setNormMerchant, setRuleMerchant, view } = ctx
+  // Analyse relancée à la demande : on contourne le cache de lecture
+  const reanalyze = () => {
+    resetApiCache()
+    loadActions()
+  }
 
   if (view === "virements") {
     return (
@@ -50,7 +56,7 @@ export default function ActionCenter() {
           <h2 className="text-sm font-semibold">Centre d'actions indisponible</h2>
         </div>
         <p className="mb-4 text-sm text-slate-600">{error}</p>
-        <Button onClick={loadActions} variant="outline" size="sm">Relancer l'analyse</Button>
+        <Button onClick={reanalyze} variant="outline" size="sm">Relancer l'analyse</Button>
       </div>
     )
   }
@@ -80,7 +86,7 @@ export default function ActionCenter() {
             <ArrowRightLeft className="h-4 w-4" />
             Virements internes
           </Button>
-          <Button onClick={loadActions} variant="outline" className="h-11 gap-2 md:h-10">
+          <Button onClick={reanalyze} variant="outline" className="h-11 gap-2 md:h-10">
             <RefreshCw className="h-4 w-4" />
             Actualiser
           </Button>

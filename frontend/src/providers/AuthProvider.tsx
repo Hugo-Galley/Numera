@@ -2,6 +2,7 @@ import { safeStorage } from "@/lib/storage"
 import React, { createContext, useContext, useState, useEffect } from "react"
 import { isTokenExpired } from "@/lib/utils"
 import { API_BASE, TOKEN_REFRESHED_EVENT } from "@/lib/api"
+import { resetApiCache } from "@/lib/apiCache"
 
 interface UserProfile {
   username: string
@@ -93,12 +94,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [token])
 
   const login = (newToken: string) => {
+    resetApiCache()
     safeStorage.setItem("token", newToken)
     setToken(newToken)
   }
 
   const logout = () => {
     safeStorage.removeItem("token")
+    resetApiCache()
     setToken(null)
     setProfile(null)
   }

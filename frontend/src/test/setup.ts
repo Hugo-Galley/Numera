@@ -2,6 +2,7 @@
 import "@testing-library/jest-dom/vitest"
 import { cleanup } from "@testing-library/react"
 import { File as NodeFile } from "node:buffer"
+import { resetApiCache } from "@/lib/apiCache"
 import { server } from "./server"
 
 // jsdom n'implémente pas ces API, utilisées par Radix (Dialog, Select…) et Recharts
@@ -85,6 +86,7 @@ beforeAll(() => {
 afterEach(() => {
   cleanup()
   server.resetHandlers()
+  resetApiCache()
   window.localStorage.clear()
   window.sessionStorage.clear()
   if (unhandledRequests.length) {

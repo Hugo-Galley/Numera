@@ -1,6 +1,7 @@
 import { toast } from "sonner"
 import React, { createContext, useCallback, useContext, useEffect, useState } from "react"
 import { api } from "@/lib/api"
+import { resetApiCache } from "@/lib/apiCache"
 
 export interface WorkTime {
   configured: boolean
@@ -21,7 +22,7 @@ const WorkTimeContext = createContext<WorkTimeContextType | undefined>(undefined
 export function WorkTimeProvider({ children }: { children: React.ReactNode }) {
   const [workTime, setWorkTime] = useState<WorkTime | null>(null)
 
-  const refresh = useCallback(async () => {
+  const load = useCallback(async () => {
     try {
       setWorkTime(await api.get<WorkTime>("/salary/work-time"))
     } catch (error) {
@@ -30,9 +31,15 @@ export function WorkTimeProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
+  // Rechargement demandé (après un changement de réglage) : on contourne le cache de lecture
+  const refresh = useCallback(async () => {
+    resetApiCache()
+    await load()
+  }, [load])
+
   useEffect(() => {
-    refresh()
-  }, [refresh])
+    load()
+  }, [load])
 
   return <WorkTimeContext.Provider value={{ workTime, refresh }}>{children}</WorkTimeContext.Provider>
 }

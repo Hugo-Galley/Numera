@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react"
 import { toast } from "sonner"
 import { api } from "@/lib/api"
+import { resetApiCache } from "@/lib/apiCache"
 
 export interface Milestone {
   year: number
@@ -47,9 +48,14 @@ export function useDashboardData(selectedAccountId: string, month: number, year:
   const [failedCount, setFailedCount] = useState(0)
   const [reloadToken, setReloadToken] = useState(0)
 
-  const reload = useCallback(() => setReloadToken(t => t + 1), [])
+  // Rechargement demandé : on contourne le cache de lecture
+  const reload = useCallback(() => {
+    resetApiCache()
+    setReloadToken(t => t + 1)
+  }, [])
   // Après un ajout/une modification dans le journal : seul le journal est rechargé
   const reloadEvents = useCallback(async () => {
+    resetApiCache()
     try {
       setEvents(await api.get<FinancialEvent[]>("/financial-events"))
     } catch (e) {

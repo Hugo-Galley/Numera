@@ -1,4 +1,5 @@
 import { safeStorage } from "@/lib/storage"
+import { cachedRead, resetApiCache } from "@/lib/apiCache"
 import { getTokenExpiry } from "@/lib/utils"
 
 // Dev (vite, port 5173) : API directe sur :8001. Sinon (build servi par nginx, y compris sur
@@ -90,6 +91,7 @@ async function request(endpoint: string, options?: RequestInit): Promise<Respons
     const isSessionProblem = response.status === 401 || body?.detail === "User not authorized"
     if (isSessionProblem) {
       safeStorage.removeItem("token")
+      resetApiCache()
       if (typeof window !== "undefined" && window.location.pathname !== "/login") {
         const back = encodeURIComponent(window.location.pathname + window.location.search)
         window.location.href = `/login?from=${back}`
@@ -107,8 +109,17 @@ async function request(endpoint: string, options?: RequestInit): Promise<Respons
 }
 
 export async function apiFetch<T>(endpoint: string, options?: RequestInit): Promise<T> {
-  const response = await request(endpoint, options)
+  const isWrite = !!options?.method && options.method !== "GET"
+  // Une écriture invalide tout, avant et après : une lecture concurrente ne ramène pas l'ancien état dans le cache
+  if (isWrite) resetApiCache()
+  try {
+    return await readResponse<T>(await request(endpoint, options))
+  } finally {
+    if (isWrite) resetApiCache()
+  }
+}
 
+async function readResponse<T>(response: Response): Promise<T> {
   if (response.status === 204) {
     return null as T
   }
@@ -128,7 +139,7 @@ export async function apiDownload(endpoint: string): Promise<Blob> {
 }
 
 export const api = {
-  get: <T = any>(endpoint: string) => apiFetch<T>(endpoint),
+  get: <T = any>(endpoint: string) => cachedRead<T>(endpoint, () => apiFetch<T>(endpoint)),
   post: <T = any>(endpoint: string, body?: any) => apiFetch<T>(endpoint, { method: "POST", body: JSON.stringify(body) }),
   put: <T = any>(endpoint: string, body: any) => apiFetch<T>(endpoint, { method: "PUT", body: JSON.stringify(body) }),
   patch: <T = any>(endpoint: string, body: any) => apiFetch<T>(endpoint, { method: "PATCH", body: JSON.stringify(body) }),
