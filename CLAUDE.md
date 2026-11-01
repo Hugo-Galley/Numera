@@ -37,11 +37,12 @@ make setup                 # premier lancement (setup.sh), crée .env depuis .en
 make dev                   # Docker : docker compose -f infra/docker-compose.yml up --build
 make prod                  # docker-compose.prod.yml
 make test                  # pytest backend (backend/venv si présent, sinon python3.12/3.11 ; PYTHON=... pour forcer)
+make coverage              # tests + couverture avec seuil à cliquet : backend (backend/.coveragerc, 93 %) et frontend (frontend/vitest.config.ts, v8) ; ne jamais baisser un seuil
 make lint / lint-fix       # ruff sur backend/ (règles : backend/ruff.toml), lint-fix corrige ce qui est sûr
 make lint-front             # ESLint frontend (rules-of-hooks, exhaustive-deps, variables inutilisées) ; avertissements existants plafonnés par frontend/eslint-baseline.json
 make typecheck             # mypy : strict sur app/domain et app/core, baseline à cliquet ailleurs (scripts/mypy_baseline.json)
 make check-size            # plafonds de taille (fichier/fonction), baseline à cliquet scripts/code_size_baseline.json
-make validate              # lint + lint-front + typecheck + check-size + tests backend + tests frontend + build frontend
+make validate              # lint + lint-front + typecheck + check-size + coverage (tests backend et frontend avec seuils) + build frontend
 make backend-seed-demo     # données de démo (backend/data/demo.db, jamais la vraie base)
 make demo / demo-down      # instance de démo publique (docker-compose.demo.yml, port 8090, demo/demo)
 make backup-now            # backup dans le conteneur

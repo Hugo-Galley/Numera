@@ -21,6 +21,9 @@ export default mergeConfig(
         provider: "v8",
         include: ["src/**/*.{ts,tsx}"],
         exclude: ["src/test/**", "src/**/*.test.{ts,tsx}", "src/components/ui/**", "src/**/*.d.ts"],
+        // Seuils à cliquet : niveau mesuré au 2026-11-01 (40,08 % lignes, 72,11 % branches, 56,63 % fonctions),
+        // arrondi vers le bas. Ne jamais les baisser ; les relever quand la couverture progresse.
+        thresholds: { statements: 40, lines: 40, branches: 72, functions: 56 },
       },
     },
   }),

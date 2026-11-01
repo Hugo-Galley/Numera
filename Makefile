@@ -4,7 +4,7 @@ COMPOSE_FILE=infra/docker-compose.yml
 # (Python 3.14 est incompatible avec pydantic-core). Surchargeable : make test PYTHON=...
 PYTHON ?= $(shell if [ -x $(CURDIR)/backend/venv/bin/python ]; then echo $(CURDIR)/backend/venv/bin/python; else command -v python3.12 || command -v python3.11; fi)
 
-.PHONY: setup dev down prod prod-down demo demo-down backend-install frontend-install backend-seed-demo test test-front test-e2e lint lint-fix lint-front typecheck check-size validate backup-now backup-restore release-check release
+.PHONY: setup dev down prod prod-down demo demo-down backend-install frontend-install backend-seed-demo test coverage test-front test-e2e lint lint-fix lint-front typecheck check-size validate backup-now backup-restore release-check release
 
 setup:
 	chmod +x setup.sh
@@ -42,6 +42,11 @@ backend-seed-demo:
 test:
 	cd backend && PYTHONPATH=. $(PYTHON) -m pytest tests/ -q
 
+# Tests + couverture avec seuil à cliquet : backend (backend/.coveragerc) puis frontend (frontend/vitest.config.ts)
+coverage:
+	cd backend && PYTHONPATH=. $(PYTHON) -m pytest tests/ -q --cov --cov-report=term:skip-covered
+	cd frontend && npm run coverage
+
 # Lint Python du backend (règles dans backend/ruff.toml) ; `make lint-fix` corrige ce qui est sûr
 lint:
 	cd backend && $(PYTHON) -m ruff check app tests scripts alembic
@@ -71,7 +76,7 @@ frontend-build:
 check-size:
 	python3 scripts/check_code_size.py
 
-validate: lint lint-front typecheck check-size test test-front frontend-build
+validate: lint lint-front typecheck check-size coverage frontend-build
 	@echo "Validation complete: Backend and Frontend tests passed, Frontend builds successfully."
 
 backup-now:
