@@ -3,7 +3,6 @@ import asyncio
 from datetime import datetime, timedelta
 
 import pytest
-from sqlalchemy import event
 
 import app.integrations.currency as currency_mod
 import app.integrations.yahoo_finance as yahoo_finance
@@ -45,39 +44,24 @@ def _account(client, db_session) -> Account:
     return db_session.get(Account, account_id)
 
 
-def _statements(db_session, call):
-    seen = []
-
-    def listener(conn, cursor, statement, params, context, executemany):
-        seen.append(statement)
-
-    engine = db_session.get_bind()
-    event.listen(engine, "before_cursor_execute", listener)
-    try:
-        result = call()
-    finally:
-        event.remove(engine, "before_cursor_execute", listener)
-    return result, len(seen)
-
-
 def _compute(db_session, account, **kwargs):
     return asyncio.run(compute_portfolio(db_session, account, history=False, **kwargs))
 
 
-def test_second_call_is_served_from_cache(client, db_session):
+def test_second_call_is_served_from_cache(client, db_session, measure_queries):
     account = _account(client, db_session)
-    first, first_queries = _statements(db_session, lambda: _compute(db_session, account))
-    second, second_queries = _statements(db_session, lambda: _compute(db_session, account))
+    first, first_queries = measure_queries(lambda: _compute(db_session, account))
+    second, second_queries = measure_queries(lambda: _compute(db_session, account))
 
     assert first_queries > 0
     assert second_queries == 0
     assert second["value_eur"] == first["value_eur"]
 
 
-def test_cache_is_distinct_per_history_flag(client, db_session):
+def test_cache_is_distinct_per_history_flag(client, db_session, measure_queries):
     account = _account(client, db_session)
     _compute(db_session, account)
-    _, queries = _statements(db_session, lambda: asyncio.run(compute_portfolio(db_session, account, history=True)))
+    _, queries = measure_queries(lambda: asyncio.run(compute_portfolio(db_session, account, history=True)))
 
     assert queries > 0
 
@@ -95,13 +79,13 @@ def test_write_invalidates_cache(client, db_session):
     assert after["value_eur"] == pytest.approx(before["value_eur"] + 500.0)
 
 
-def test_flush_without_commit_invalidates_cache(client, db_session):
+def test_flush_without_commit_invalidates_cache(client, db_session, measure_queries):
     account = _account(client, db_session)
     _compute(db_session, account)
 
     account.name = "CTO renommé"
     db_session.flush()
-    _, queries = _statements(db_session, lambda: _compute(db_session, account))
+    _, queries = measure_queries(lambda: _compute(db_session, account))
 
     assert queries > 0
 

@@ -1,8 +1,6 @@
 """Audit des données : appariement des virements internes sans une requête par sortie."""
 from datetime import datetime, timedelta
 
-from sqlalchemy import event
-
 from app.models.account import Account
 from app.models.transaction import Transaction
 
@@ -24,22 +22,7 @@ def _accounts(db_session):
     return a, b
 
 
-def _count_queries(db_session, call):
-    statements = []
-
-    def listener(conn, cursor, statement, params, context, executemany):
-        statements.append(statement)
-
-    engine = db_session.get_bind()
-    event.listen(engine, "before_cursor_execute", listener)
-    try:
-        response = call()
-    finally:
-        event.remove(engine, "before_cursor_execute", listener)
-    return response, len(statements)
-
-
-def test_audit_pairs_transfers_in_constant_number_of_queries(client, db_session):
+def test_audit_pairs_transfers_in_constant_number_of_queries(client, db_session, measure_queries):
     courant, livret = _accounts(db_session)
     for i in range(40):
         day = NOW - timedelta(days=5 + i)
@@ -47,7 +30,7 @@ def test_audit_pairs_transfers_in_constant_number_of_queries(client, db_session)
         db_session.add(_tx(livret.id, day + timedelta(days=1), "Entree", 100.0 + i))
     db_session.commit()
 
-    response, queries = _count_queries(db_session, lambda: client.get("/analytics/audit"))
+    response, queries = measure_queries(lambda: client.get("/analytics/audit"))
 
     issue = next(i for i in response.json()["issues"] if i["id"] == "unmatched-transfers")
     assert issue["count"] == 40

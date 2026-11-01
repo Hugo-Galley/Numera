@@ -21,6 +21,7 @@ Terminé = vérifié par une commande lancée **maintenant**, docs à jour, comm
    | les deux, ou un déplacement de fichier | `make validate` |
    | modèle SQLAlchemy | + migration Alembic relue ; `tests/garde_fous/test_migrations.py` vert |
    | une route | + `tests/garde_fous/test_openapi_routes.py` mis à jour volontairement |
+   | performance (requêtes, cache, bundle, nginx) | skill `numera-performance` : mesure avant/après sur jeu volumineux, test de nombre de requêtes, chiffres et limites dans le message de commit |
 
    Une commande rouge = pas terminé. Ne pas commiter « en attendant ».
 3. **Diff relu** — `git diff --stat` puis `git diff` : pas de `print`, de code commenté, de `TODO` sans suite, de fichier hors sujet, de `*.db`, de `.env`, de secret, de baseline ou d'instantané régénéré sans justification, de tag flottant (action GitHub sans SHA, image Docker sans digest : règle dans `CLAUDE.md`).
@@ -36,7 +37,7 @@ Terminé = vérifié par une commande lancée **maintenant**, docs à jour, comm
    | Centre d'Actions | `docs/ACTION_CENTER.md` |
 
    Une doc qui cite un chemin déplacé est une doc fausse : `grep` l'ancien chemin dans `*.md` et `.claude/`.
-5. **Commit** — directement sur `main`, un commit par changement cohérent, message en français au format du dépôt : `type(portée): description` (`feat`, `fix`, `refactor`, `test`, `docs`, `chore`). Le corps dit *pourquoi*, et pourquoi un chiffre d'instantané change si c'est le cas.
+5. **Commit puis PR** — `main` est protégée (`docs/WORKFLOW_GIT.md`) : jamais de push direct. Branche `type/sujet-court` depuis `main` à jour, un commit par changement cohérent, message en français au format du dépôt : `type(portée): description` (`feat`, `fix`, `refactor`, `test`, `docs`, `chore`). Le corps dit *pourquoi*, et pourquoi un chiffre d'instantané change si c'est le cas. Puis `git push -u origin <branche>` et `gh pr create` : le **titre** de la PR (même format, `!` si incompatible) devient le commit squashé et la ligne des notes de version ; remplir le template sans en supprimer de section. Merge (`gh pr merge --squash`) seulement quand `CI ok` et `Titre de PR` sont verts.
 6. **Compte rendu** — ce qui est vérifié (commandes et résultat), ce qui ne l'est pas (ex. rendu visuel, mobile, mode sombre non regardés).
 
 ## Signaux d'arrêt

@@ -1,6 +1,6 @@
 name: Release
 
-# Déclenchée par un tag vX.Y.Z posé sur main (procédure et choix du bump : skill numera-release).
+# Déclenchée par un tag vX.Y.Z posé sur main (ou sur une branche release/X.Y pour un correctif) (procédure et choix du bump : skill numera-release).
 on:
   push:
     tags: ["v[0-9]+.[0-9]+.[0-9]+"]
@@ -26,8 +26,13 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           fetch-depth: 0
-      - name: Le commit taggé est sur main
-        run: git merge-base --is-ancestor "$GITHUB_SHA" origin/main
+      - name: Le commit taggé est sur main ou sur une branche release/*
+        run: |
+          for ref in origin/main $(git for-each-ref --format='%(refname:short)' 'refs/remotes/origin/release/*'); do
+            if git merge-base --is-ancestor "$GITHUB_SHA" "$ref"; then echo "Présent sur $ref"; exit 0; fi
+          done
+          echo "::error::Le commit taggé n'est ni sur main ni sur une branche release/*"
+          exit 1
       - name: Le CI est vert sur ce commit (attend sa fin s'il tourne encore)
         env:
           GH_TOKEN: ${{ github.token }}
