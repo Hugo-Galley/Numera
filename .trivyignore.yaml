@@ -1,0 +1,6 @@
+# Exceptions Trivy, chacune justifiée. Ne jamais ignorer une CVE sans en écrire la raison.
+misconfigurations:
+  - id: DS-0002
+    paths:
+      - frontend/Dockerfile
+    statement: Image de développement (docker compose de dev, code monté en volume) ; jamais publiée. L'image de production tourne en non-root.

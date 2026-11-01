@@ -5,6 +5,11 @@ on:
     branches: [main]
   pull_request:
 
+env:
+  # Outils de sécurité exécutés en conteneur : épinglés par digest (garde-fou test_pinned_dependencies)
+  TRIVY_IMAGE: ghcr.io/aquasecurity/trivy:0.76.1@sha256:790fd66d1697395d8693d1acaa1ea702406a20f109b6fc7bac8db623eca6c06c
+  HADOLINT_IMAGE: hadolint/hadolint:v2.14.0@sha256:27086352fd5e1907ea2b934eb1023f217c5ae087992eb59fde121dce9c9ff21e
+
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
@@ -80,3 +85,57 @@ jobs:
         env:
           CI: "true"
           E2E_PYTHON: .venv/bin/python
+
+  docker-lint:
+    name: Dockerfiles (hadolint)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - name: Hadolint
+        run: |
+          for f in backend/Dockerfile frontend/Dockerfile frontend/Dockerfile.prod mcp-server/Dockerfile; do
+            echo "::group::$f"
+            docker run --rm -i -v "$PWD/.hadolint.yaml:/.hadolint.yaml:ro" "$HADOLINT_IMAGE" hadolint --config /.hadolint.yaml - < "$f"
+            echo "::endgroup::"
+          done
+
+  trivy-repo:
+    name: Trivy (dépendances, secrets, configuration)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - name: Trivy fs
+        run: |
+          docker run --rm -v "$PWD:/work:ro" -w /work "$TRIVY_IMAGE" fs \
+            --scanners vuln,secret,misconfig --severity HIGH,CRITICAL --ignore-unfixed \
+            --ignorefile .trivyignore.yaml --exit-code 1 .
+
+  trivy-images:
+    name: Trivy image ${{ matrix.image }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { image: numera-backend, context: ./backend, dockerfile: Dockerfile }
+          - { image: numera-frontend, context: ./frontend, dockerfile: Dockerfile.prod }
+          - { image: numera-mcp, context: ./mcp-server, dockerfile: Dockerfile }
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.context }}/${{ matrix.dockerfile }}
+          load: true
+          tags: scan/${{ matrix.image }}:ci
+          cache-from: type=gha,scope=${{ matrix.image }}
+      - name: Trivy image (HIGH/CRITICAL corrigeables)
+        run: |
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock "$TRIVY_IMAGE" image \
+            --scanners vuln --severity HIGH,CRITICAL --ignore-unfixed --exit-code 1 scan/${{ matrix.image }}:ci
+      - name: L'image ne tourne pas en root
+        run: |
+          uid=$(docker run --rm --entrypoint id scan/${{ matrix.image }}:ci -u)
+          echo "UID du conteneur : $uid"
+          [ "$uid" != "0" ]

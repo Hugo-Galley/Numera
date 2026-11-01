@@ -1,0 +1,5 @@
+# Lint des Dockerfiles (CI). Les paquets Debian ne sont pas épinglés par version : l'image de base l'est par
+# digest et Dependabot la met à jour ; épingler apt casserait la build à chaque correctif de sécurité Debian.
+ignored:
+  - DL3008
+failure-threshold: warning

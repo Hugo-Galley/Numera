@@ -191,6 +191,20 @@ Pour arrêter la production :
 make prod-down
 ```
 
+#### Durcissement des images et des conteneurs
+- **Non-root** : backend et MCP (UID 1000, surchargeable pour le backend par `NUMERA_UID`/`NUMERA_GID` afin de suivre le propriétaire de `data/` et `backups/`), nginx via `nginx-unprivileged` (port 8080 dans le conteneur, publié sur 8082).
+- **Migration depuis une version root** : les fichiers de `data/` et `backups/` créés par les anciens conteneurs appartiennent à root ; une seule fois, `sudo chown -R "$(id -u):$(id -g)" data backups` (ou `backend/data`) puis renseigner `NUMERA_UID`/`NUMERA_GID` dans `.env`.
+- **Compose** : `read_only`, `tmpfs: /tmp`, `cap_drop: ALL`, `no-new-privileges`, `pids_limit` sur tous les services ; seuls `data/` et `backups/` sont inscriptibles. Verrouillé par `tests/garde_fous/test_docker_hardening.py`.
+- **Images** : multi-stage (ni compilateur ni `uv` ni `curl` à l'exécution), `HEALTHCHECK` intégré, bases épinglées par digest.
+- **CI** (`ci.yml`) : hadolint sur les Dockerfile, Trivy sur le dépôt (dépendances, secrets, configuration) et sur chaque image (HIGH/CRITICAL corrigeables bloquent). Exceptions justifiées dans `.trivyignore.yaml`. `security.yml` rescanne chaque semaine le dépôt et les images publiées (résultats dans l'onglet Security).
+- **Release** (`release.yml`) : scan Trivy avant publication, SBOM SPDX et provenance SLSA attachés à l'image, signature cosign sans clé. Vérifier une image :
+  ```bash
+  cosign verify ghcr.io/hugo-galley/numera-backend:<version> \
+    --certificate-identity-regexp '^https://github.com/Hugo-Galley/numera/\.github/workflows/release\.yml@' \
+    --certificate-oidc-issuer https://token.actions.githubusercontent.com
+  ```
+- **Dependabot** (`.github/dependabot.yml`) met à jour les digests Docker, SHA d'actions, npm et uv.
+
 #### Instance de démonstration publique
 Une seconde instance, totalement séparée de la prod (projet Compose `numera-demo`, base `backend/data-demo/demo.db`), sert une démo avec des données fictives régénérées chaque jour :
 ```bash

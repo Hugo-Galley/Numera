@@ -62,3 +62,14 @@ def test_docker_images_are_pinned_by_digest():
         if refs := floating_images(text, _stage_names(text)):
             floating[str(f.relative_to(REPO_ROOT))] = refs
     assert floating == {}
+
+
+TOOL_IMAGE_ENV = re.compile(r"^\s*[A-Z_]+_IMAGE:\s*(\S+)", re.MULTILINE)
+
+
+def test_tool_images_in_workflows_are_pinned_by_digest():
+    """Trivy, hadolint… sont lancés en conteneur depuis une variable `*_IMAGE` : même règle que les Dockerfile."""
+    files = _tracked(".github/workflows/*.yml", ".github/workflows/*.yaml")
+    floating = {str(f.relative_to(REPO_ROOT)): imgs for f in files
+                if (imgs := [i for i in TOOL_IMAGE_ENV.findall(f.read_text()) if not PINNED_IMAGE.search(i)])}
+    assert floating == {}

@@ -1,0 +1,59 @@
+name: Sécurité (hebdomadaire)
+
+# Les CVE sont publiées après la sortie d'une version : on rescanne chaque semaine le dépôt et les images
+# publiées (:latest), et on remonte les résultats dans l'onglet Security (code scanning).
+on:
+  schedule:
+    - cron: "17 5 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  TRIVY_IMAGE: ghcr.io/aquasecurity/trivy:0.76.1@sha256:790fd66d1697395d8693d1acaa1ea702406a20f109b6fc7bac8db623eca6c06c
+
+jobs:
+  repo:
+    name: Trivy dépôt
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - name: Trivy fs (SARIF)
+        run: |
+          docker run --rm -v "$PWD:/work" -w /work "$TRIVY_IMAGE" fs \
+            --scanners vuln,secret,misconfig --severity HIGH,CRITICAL --ignore-unfixed \
+            --ignorefile .trivyignore.yaml --format sarif --output trivy-repo.sarif .
+      - uses: github/codeql-action/upload-sarif@8498dc4c2b27cdd99baf0f87955b29ebbf30c78d # v4.39.1
+        with:
+          sarif_file: trivy-repo.sarif
+          category: trivy-repo
+
+  images:
+    name: Trivy ${{ matrix.image }}:latest
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        image: [numera-backend, numera-frontend, numera-mcp]
+    steps:
+      - name: Trivy image publiée (SARIF)
+        env:
+          TRIVY_USERNAME: ${{ github.actor }}
+          TRIVY_PASSWORD: ${{ github.token }}
+        run: |
+          docker run --rm -v "$PWD:/out" -e TRIVY_USERNAME -e TRIVY_PASSWORD "$TRIVY_IMAGE" image \
+            --scanners vuln --severity HIGH,CRITICAL --ignore-unfixed \
+            --format sarif --output /out/trivy-image.sarif \
+            "ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/${{ matrix.image }}:latest"
+      - uses: github/codeql-action/upload-sarif@8498dc4c2b27cdd99baf0f87955b29ebbf30c78d # v4.39.1
+        with:
+          sarif_file: trivy-image.sarif
+          category: trivy-${{ matrix.image }}

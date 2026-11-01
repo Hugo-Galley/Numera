@@ -12,6 +12,7 @@ services:
   backend:
     image: ghcr.io/hugo-galley/numera-backend:${NUMERA_VERSION:-latest}
     container_name: numera-backend-prod
+    user: "${NUMERA_UID:-1000}:${NUMERA_GID:-1000}"
     environment:
       - APP_ENV=prod
       - DATABASE_URL=sqlite:////app/data/suivi_budget.db
@@ -31,16 +32,25 @@ services:
     # X-Forwarded-For, et nginx écrase l'en-tête avec l'IP cliente réelle (cf. frontend/nginx.conf)
     command: uvicorn app.main:app --host 0.0.0.0 --port 8001 --proxy-headers --forwarded-allow-ips=127.0.0.1,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8001/health', timeout=4)"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 20s
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 256
     restart: always
 
   backup:
     image: ghcr.io/hugo-galley/numera-backend:${NUMERA_VERSION:-latest}
     container_name: numera-backup-prod
+    user: "${NUMERA_UID:-1000}:${NUMERA_GID:-1000}"
     environment:
       - DB_PATH=/app/data/suivi_budget.db
       - BACKUP_DIR=/app/backups
@@ -56,6 +66,16 @@ services:
       backend:
         condition: service_healthy
     command: python scripts/backup_scheduler.py
+    healthcheck:
+      disable: true
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 256
     restart: always
 
   mcp-server:
@@ -70,14 +90,30 @@ services:
     depends_on:
       backend:
         condition: service_healthy
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 256
     restart: always
 
   frontend:
     image: ghcr.io/hugo-galley/numera-frontend:${NUMERA_VERSION:-latest}
     container_name: numera-frontend-prod
     ports:
-      - "127.0.0.1:8082:80"
+      - "127.0.0.1:8082:8080"
     depends_on:
       - backend
       - mcp-server
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 256
     restart: always

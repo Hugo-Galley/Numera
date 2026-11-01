@@ -138,6 +138,8 @@ write_env() {
             *) printf '%s\n' "$line" ;;
         esac
     done < <(env_template) > .env
+    # Les conteneurs backend écrivent dans ./data et ./backups avec l'UID de l'utilisateur courant (non-root)
+    printf 'NUMERA_UID=%s\nNUMERA_GID=%s\n' "$(id -u)" "$(id -g)" >> .env
     chmod 600 .env
 }
 

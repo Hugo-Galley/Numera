@@ -42,6 +42,11 @@ if grep -q "generate-a-fernet-key-using-python" .env; then
     fi
 fi
 
+# Les conteneurs backend tournent en non-root avec l'UID de l'utilisateur courant (accès à data/ et backups/)
+if ! grep -q '^NUMERA_UID=' .env 2>/dev/null; then
+    printf 'NUMERA_UID=%s\nNUMERA_GID=%s\n' "$(id -u)" "$(id -g)" >> .env
+fi
+
 # 4. Créer les dossiers nécessaires
 echo "📁 Création des dossiers de données et sauvegardes..."
 mkdir -p backend/data
