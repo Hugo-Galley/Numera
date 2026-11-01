@@ -128,7 +128,7 @@ export function usePointZeroState(p: { open: PointZeroModalProps["open"]; onOpen
         price = q.price
         priceEur = q.price_eur
       }
-    } catch (e) {}
+    } catch (e) { /* cours indisponible : valeurs par défaut conservées */ }
 
     const isFundOrEtf = item.type === "ETF" || item.type === "MUTUALFUND" || !!item.etf_profile_id || item.symbol.startsWith("0P")
     let profileId = item.etf_profile_id

@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.test.json",
+    "lint": "node scripts/check-lint.mjs",
     "build": "npm run typecheck && vite build",
     "preview": "vite preview",
     "test": "vitest run",
@@ -48,6 +49,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.5",
     "@playwright/test": "^1.49.1",
     "@testing-library/dom": "^10.4.2",
     "@testing-library/jest-dom": "^7.0.1",
@@ -60,11 +62,15 @@
     "@vitejs/plugin-react": "^4.3.2",
     "@vitest/coverage-v8": "^3.2.7",
     "autoprefixer": "^10.5.0",
+    "eslint": "^9.39.5",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.13.0",
     "jsdom": "^29.1.1",
     "msw": "^2.15.0",
     "postcss": "^8.5.14",
     "tailwindcss": "^3.4.13",
     "typescript": "^5.6.3",
+    "typescript-eslint": "^8.72.1",
     "vite": "^5.4.10",
     "vitest": "^3.2.7"
   }
