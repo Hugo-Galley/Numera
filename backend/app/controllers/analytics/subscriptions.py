@@ -19,7 +19,7 @@ async def get_subscriptions_analytics(
 
 
 @router.post("/subscriptions/ignore")
-async def ignore_subscription_detection(
+def ignore_subscription_detection(
     data: SubscriptionIgnore,
     db: Session = Depends(get_db),
 ):

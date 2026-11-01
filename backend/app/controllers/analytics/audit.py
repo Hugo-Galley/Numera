@@ -29,5 +29,5 @@ class DismissActionRequest(BaseModel):
 
 
 @router.post("/actions/dismiss")
-async def dismiss_action(request: DismissActionRequest, db: Session = Depends(get_db)):
+def dismiss_action(request: DismissActionRequest, db: Session = Depends(get_db)):
     return service.dismiss_action(db, request.id)

@@ -22,7 +22,7 @@ async def _read_upload(file: UploadFile) -> bytes:
 
 
 @router.get("/logs")
-async def get_import_logs(limit: int = 10, db: Session = Depends(get_db)):
+def get_import_logs(limit: int = 10, db: Session = Depends(get_db)):
     return service.get_import_logs(db, limit)
 
 

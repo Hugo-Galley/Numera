@@ -83,7 +83,7 @@ def get_asset_allocation_suggestions(db: Session = Depends(get_db)):
 
 
 @router.get("/wealth-simulation", response_model=WealthSimulationResponse)
-async def wealth_simulation(
+def wealth_simulation(
     initial_capital: float = Query(ge=0),
     monthly_contribution: float = Query(ge=0),
     annual_return_pct: float = Query(ge=-100, le=1000),

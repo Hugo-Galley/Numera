@@ -24,5 +24,5 @@ class DismissInsightRequest(BaseModel):
 
 
 @router.post("/insights/dismiss")
-async def dismiss_insight(request: DismissInsightRequest, db: Session = Depends(get_db)):
+def dismiss_insight(request: DismissInsightRequest, db: Session = Depends(get_db)):
     return service.dismiss_insight(db, request.title)
