@@ -102,9 +102,9 @@ release-check:
 release:
 	@test -n "$(V)" || { echo "usage : make release V=X.Y.Z"; exit 1; }
 	@echo "$(V)" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$$' || { echo "version invalide : $(V)"; exit 1; }
-	@test "$$(git branch --show-current)" = main || { echo "il faut être sur main"; exit 1; }
+	@case "$$(git branch --show-current)" in main|release/*) ;; *) echo "il faut être sur main ou release/X.Y"; exit 1;; esac
 	@test -z "$$(git status --porcelain)" || { echo "arbre de travail non propre"; exit 1; }
-	@git fetch --tags --quiet && test "$$(git rev-parse HEAD)" = "$$(git rev-parse origin/main)" || { echo "main n'est pas synchronisé avec origin/main"; exit 1; }
+	@git fetch --tags --quiet && test "$$(git rev-parse HEAD)" = "$$(git rev-parse origin/$$(git branch --show-current))" || { echo "la branche n'est pas synchronisée avec son origin"; exit 1; }
 	@! git rev-parse -q --verify refs/tags/v$(V) >/dev/null || { echo "le tag v$(V) existe déjà"; exit 1; }
 	git tag -a v$(V) -m "Numera $(V)"
 	git push origin v$(V)

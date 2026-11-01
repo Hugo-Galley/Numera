@@ -5,7 +5,7 @@ description: Procédures et standards UI/UX pour le frontend Numera (React, Tail
 
 # Numera frontend — procédures et design
 
-Conventions techniques : `frontend/src/CLAUDE.md` (à lire d'abord).
+Conventions techniques : `frontend/src/CLAUDE.md` (à lire d'abord). Chargement lent, cache de lecture, bundle : skill `numera-performance`.
 
 ## Identité visuelle
 
