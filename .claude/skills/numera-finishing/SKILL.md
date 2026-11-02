@@ -23,6 +23,8 @@ Terminé = vérifié par une commande lancée **maintenant**, docs à jour, comm
    | une route | + `tests/garde_fous/test_openapi_routes.py` mis à jour volontairement |
    | performance (requêtes, cache, bundle, nginx) | skill `numera-performance` : mesure avant/après sur jeu volumineux, test de nombre de requêtes, chiffres et limites dans le message de commit |
 
+   Les hooks pre-commit (`make hooks`) rejouent lint, tailles et secrets au commit : ne jamais les contourner avec `--no-verify`.
+
    Une commande rouge = pas terminé. Ne pas commiter « en attendant ».
 3. **Diff relu** — `git diff --stat` puis `git diff` : pas de `print`, de code commenté, de `TODO` sans suite, de fichier hors sujet, de `*.db`, de `.env`, de secret, de baseline ou d'instantané régénéré sans justification, de tag flottant (action GitHub sans SHA, image Docker sans digest : règle dans `CLAUDE.md`).
 4. **Docs dans le même commit** quand le code change :

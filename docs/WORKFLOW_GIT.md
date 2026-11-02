@@ -6,7 +6,7 @@
 
 1. **Partir de `main` à jour**, créer une branche : `type/sujet-court` (`feat/export-pdf`, `fix/solde-courant`, `docs/workflow-git`). Un sujet par branche.
 2. **Commiter** comme avant (Conventional Commits, corps = pourquoi). Les commits de la branche sont libres : seul le titre de la PR compte (squash).
-3. **Valider en local** : `make validate` (skill `numera-finishing`).
+3. **Valider en local** : `make validate` (skill `numera-finishing`). Une fois par clone, `make hooks` installe les garde-fous git (`.pre-commit-config.yaml`) : au commit gitleaks (secrets), ruff et plafonds de taille, au push mypy et typecheck frontend. Ils rejouent des contrôles de la CI plus tôt, ils ne les remplacent pas ; `make pre-commit-all` les lance sur tout le dépôt.
 4. **Pousser et ouvrir la PR** : `gh pr create --fill-first` puis compléter le template. Le **titre** respecte `type(portée): description` (check « Titre de PR »), car il devient le commit sur `main` et la ligne des notes de version. Changement incompatible : `!` avant `:` (`feat(api)!: …`).
 5. **Attendre les checks** : `CI ok` (backend, frontend, e2e, hadolint, Trivy repo et images) et `Titre de PR`. La branche doit être à jour avec `main` (bouton « Update branch » ou `git rebase origin/main`), les conversations résolues.
 6. **Merger en squash** (seule méthode autorisée). La branche est supprimée automatiquement. `gh pr merge --squash --auto` merge dès que les checks passent.
