@@ -123,6 +123,8 @@ describe("App : Sidebar", () => {
     const nav = () => within(screen.getByRole("navigation"))
     const names = nav().getAllByRole("link").map((link) => link.textContent ?? "")
     const visited: string[] = []
+    const currentHeading = () => screen.getAllByRole("heading", { level: 1 })[0]
+    let previous = currentHeading().textContent
 
     for (const name of names) {
       const link = nav().getByRole("link", { name })
@@ -130,7 +132,11 @@ describe("App : Sidebar", () => {
       await user.click(link)
       // « Mois » ouvre son premier onglet (/month/bilan)
       await waitFor(() => expect(window.location.pathname).toMatch(new RegExp(`^${href}(/|$)`)))
-      const [heading] = await screen.findAllByRole("heading", { level: 1 })
+      // Les pages sont chargées à la demande (React.lazy) : l'adresse change avant le rendu de la page. Sans cette
+      // attente, on lirait encore le titre de la page précédente. Seule la première entrée (« / », déjà affichée) garde son titre.
+      if (href !== "/") await waitFor(() => expect(currentHeading().textContent).not.toBe(previous))
+      const heading = currentHeading()
+      previous = heading.textContent
       expect(heading, `${name} (${href})`).not.toHaveTextContent("Page introuvable")
       visited.push(`${href} → ${heading.textContent}`)
     }
