@@ -110,6 +110,8 @@ python scripts/change_password.py <mot-de-passe>
 
 11. **Revenu** = entrées sur un compte `courant` (+ intérêts) ; une entrée sur un autre compte n'en est un que si sa catégorie est de type `revenu` (`income_criterion`, `repositories/analytics/common.py`). Même définition dans budget, money-flow, Sankey, kpi-history, timeseries. **Patrimoine** = tous les comptes actifs, tous types, via `services/comptes/wealth.py::account_values` (source unique).
 
+12. **Transaction à venir** (datée après aujourd'hui) : elle est stockée avec son `running_balance` chronologique, mais ne compte qu'à sa date. Tout solde « courant » lit la dernière transaction **avant `core.time.end_of_today()`** (demain 00:00, granularité au jour) ; tout total de période passe par `budget_period.period_bounds` (fenêtre arrêtée à aujourd'hui) et non `period_window` (fenêtre entière, pour l'affichage des dates). Jamais de `datetime.now()` ni de « dernier `running_balance` » brut pour un solde courant.
+
 Pipeline import : détection du délimiteur (`,` `;` `\t`) → en-têtes normalisés via `HEADER_ALIASES` → mapping catégories (manuel puis auto-création si `create_missing_categories=True`) → détection doublons → insert + log dans `imports_log`.
 
 Multi-devises : Frankfurter, taux courants cachés 6 h en mémoire, historiques en base (`historical_exchange_rates`), fallback offline `EUR=1.0, USD=1.08, GBP=0.84, CHF=0.95`. Passer par `convert_amount` / `get_exchange_rates` (async). Stocker `amount` (devise du compte) + `original_amount` et `currency` (saisie d'origine).

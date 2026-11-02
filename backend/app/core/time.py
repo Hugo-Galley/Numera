@@ -1,4 +1,4 @@
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime, time, timedelta
 from typing import Annotated
 
 from pydantic import AfterValidator
@@ -6,6 +6,15 @@ from pydantic import AfterValidator
 
 def utcnow_naive() -> datetime:
     return datetime.now(UTC).replace(tzinfo=None)
+
+
+def end_of_today() -> datetime:
+    """Borne haute exclusive des lectures « à ce jour » : demain à minuit.
+
+    Une transaction datée d'aujourd'hui (à n'importe quelle heure) compte ; une transaction
+    future (saisie à venir) ne compte qu'à sa date.
+    """
+    return datetime.combine(date.today() + timedelta(days=1), time.min)
 
 
 def to_naive_utc(value: datetime) -> datetime:

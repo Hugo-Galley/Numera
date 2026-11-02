@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.core.errors import InternalError
 from app.core.logging import get_logger
+from app.core.time import end_of_today
 from app.domain.metrics import tag_totals
 from app.integrations.currency import get_exchange_rates
 from app.repositories.analytics import metrics as repo
@@ -19,7 +20,7 @@ async def compute_tags(db: Session, month: int | None = None, year: int | None =
                        account_id: int | None = None) -> list[dict]:
     try:
         start = start_date
-        end = end_date or datetime.now()
+        end = end_date or end_of_today()
         rates = await get_exchange_rates("EUR")
         if month and year and not start_date:
             start, end = period_bounds(db, year, month)

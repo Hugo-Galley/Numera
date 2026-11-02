@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 
 from app.core.errors import NotFoundError
+from app.core.time import end_of_today
 from app.domain.finance import get_recurring_occurrences, is_lapsed
 from app.domain.reports import simulate_cashflow
 from app.integrations.currency import get_exchange_rates
@@ -43,7 +44,7 @@ def _current_balance(db: Session, account_id: int | None, rates: dict) -> tuple[
     if account_id:
         if not repo.get_account(db, account_id):
             raise NotFoundError("Account not found")
-        last_tx = repo.last_transaction(db, account_id)
+        last_tx = repo.last_transaction(db, account_id, before=end_of_today())
         if last_tx:
             current_bal = float(last_tx.running_balance)
         return current_bal, counted_ids
@@ -51,7 +52,7 @@ def _current_balance(db: Session, account_id: int | None, rates: dict) -> tuple[
     for acc in repo.active_accounts(db):
         if tr_accounts and acc.id in tr_accounts:
             continue
-        last_tx = repo.last_transaction(db, acc.id)
+        last_tx = repo.last_transaction(db, acc.id, before=end_of_today())
         if last_tx:
             current_bal += float(last_tx.running_balance) / rates.get(acc.currency, 1.0)
             counted_ids.add(acc.id)

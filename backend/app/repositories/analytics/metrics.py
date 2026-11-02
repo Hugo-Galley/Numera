@@ -275,10 +275,12 @@ def month_investment_rows(db: Session, start: datetime, end: datetime, type_: st
     return query.group_by(Account.currency).all()
 
 
-def account_transactions(db: Session, account_id: int) -> list[Transaction]:
-    return db.query(Transaction).order_by(Transaction.date.asc(), Transaction.id.asc()).filter(
-        Transaction.account_id == account_id
-    ).all()
+def account_transactions(db: Session, account_id: int, before: datetime | None = None) -> list[Transaction]:
+    """Transactions du compte par ordre chronologique (strictement avant `before` si donné)."""
+    query = db.query(Transaction).filter(Transaction.account_id == account_id)
+    if before is not None:
+        query = query.filter(Transaction.date < before)
+    return query.order_by(Transaction.date.asc(), Transaction.id.asc()).all()
 
 
 def salary_rows(db: Session, start: datetime, end: datetime, account_id: int | None) -> list:

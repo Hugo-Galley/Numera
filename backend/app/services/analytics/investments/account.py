@@ -4,6 +4,7 @@ from datetime import datetime
 from sqlalchemy.orm import Session
 
 from app.core.errors import BusinessRuleError, NotFoundError
+from app.core.time import end_of_today
 from app.domain.portfolio import uses_positions
 from app.integrations.currency import convert_amount
 from app.models.account import Account
@@ -34,7 +35,7 @@ async def compute_investment_account(db: Session, account_id: int) -> dict:
         current_value = float(latest.current_value)
     else:
         # Sans relevé : dernier solde courant, sinon capital net investi
-        last_tx = repo.last_transaction(db, account_id)
+        last_tx = repo.last_transaction(db, account_id, before=end_of_today())
         current_value = float(last_tx.running_balance) if last_tx else net_invested
     value_source = "snapshot"
     snapshot_value = current_value if latest else None
