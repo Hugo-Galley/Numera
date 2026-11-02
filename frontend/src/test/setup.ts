@@ -72,6 +72,7 @@ let mswFetch: typeof fetch
 
 // Toute requête sans handler fait échouer le test, même si le composant avale l'erreur réseau
 const unhandledRequests: string[] = []
+let inFlight = 0
 beforeAll(() => {
   server.listen({
     onUnhandledRequest(request, print) {
@@ -80,11 +81,27 @@ beforeAll(() => {
     },
   })
   mswFetch = globalThis.fetch
-  globalThis.fetch = async (input, init) => mswFetch(input, await toNativeBody(init))
+  globalThis.fetch = async (input, init) => {
+    inFlight++
+    try {
+      return await mswFetch(input, await toNativeBody(init))
+    } finally {
+      inFlight--
+    }
+  }
 })
 
-afterEach(() => {
+// Requêtes lancées en fin de test (effet au montage, `api.get` différé par le cache de requêtes) : sans attente,
+// elles partent après `resetHandlers()`, ne trouvent plus leur handler et font échouer le test SUIVANT, au hasard.
+async function settleRequests() {
+  await new Promise((resolve) => setTimeout(resolve, 0))
+  const deadline = Date.now() + 2000
+  while (inFlight > 0 && Date.now() < deadline) await new Promise((resolve) => setTimeout(resolve, 5))
+}
+
+afterEach(async () => {
   cleanup()
+  await settleRequests()
   server.resetHandlers()
   resetApiCache()
   window.localStorage.clear()
