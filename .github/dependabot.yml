@@ -37,6 +37,14 @@ updates:
   - package-ecosystem: npm
     directory: /frontend
     schedule: { interval: weekly }
+    ignore:
+      # Majeures bloquées : Vitest 5 exige Vite >= 6 ; TypeScript 7 non supporté par knip / typescript-eslint.
+      - dependency-name: vitest
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@vitest/coverage-v8"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: typescript
+        update-types: ["version-update:semver-major"]
     commit-message: { prefix: "build(deps)" }
     groups:
       npm-minor-patch:
