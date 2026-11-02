@@ -202,7 +202,7 @@ jobs:
           echo "$NEEDS" | jq -e '
             .changes.result == "success"
             and (if .changes.outputs.dockerfiles == "true" then .["docker-lint"].result == "success" else true end)
-            and (if .changes.outputs.images != "" then .["trivy-images"].result == "success" else true end)
+            and (if (.changes.outputs.images // "") != "" then .["trivy-images"].result == "success" else true end)
             and all(to_entries[] | select(.key != "docker-lint" and .key != "trivy-images"); .value.result == "success")
             and all(.["docker-lint"], .["trivy-images"]; .result == "success" or .result == "skipped")
           ' >/dev/null
