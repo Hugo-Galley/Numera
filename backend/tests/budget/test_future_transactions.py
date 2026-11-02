@@ -138,3 +138,14 @@ def test_balance_curve_stops_at_today(client, account_with_future_expense):
     with freeze_time(NOW):
         points = client.get("/analytics/timeseries", params={"year": 2026, "account_id": account_with_future_expense}).json()["balance_points"]
     assert [p["running_balance"] for p in points] == [1000.0, 1500.0, 1400.0]
+
+
+def test_transactions_list_flags_upcoming_rows(client, account_with_future_expense):
+    with freeze_time(NOW):
+        rows = client.get("/transactions", params={"account_id": account_with_future_expense}).json()
+        created = client.post("/transactions", json={"account_id": account_with_future_expense, "date": "2026-03-10T09:00:00",
+                                                     "type": "Sortie", "merchant": "Ce matin", "amount": 5.0}).json()
+    items = rows["items"] if isinstance(rows, dict) else rows
+    flags = {item["merchant"]: item["is_upcoming"] for item in items}
+    assert flags == {"x": False, "Salaire": False, "Courses": False, "Loyer": True}
+    assert created["is_upcoming"] is False

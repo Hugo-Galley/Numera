@@ -128,3 +128,18 @@ def active_recurrings(db: Session, account_id: int | None, tr_accounts: set[int]
 
 def last_occurrence(db: Session, recurring_id: int) -> datetime | None:
     return db.query(func.max(Transaction.date)).filter(Transaction.recurring_transaction_id == recurring_id).scalar()
+
+
+def upcoming_transactions(db: Session, account_id: int | None, excluded_account_ids: set[int],
+                          start: datetime, end: datetime) -> list[Transaction]:
+    """Transactions saisies dans le futur, de `start` (inclus) à `end` (exclu), des comptes actifs."""
+    query = (
+        db.query(Transaction).join(Account, Account.id == Transaction.account_id)
+        .filter(Account.active.is_(True), Transaction.date >= start, Transaction.date < end,
+                Transaction.type != "Solde Initial")
+    )
+    if account_id:
+        query = query.filter(Transaction.account_id == account_id)
+    elif excluded_account_ids:
+        query = query.filter(Transaction.account_id.notin_(excluded_account_ids))
+    return query.order_by(Transaction.date.asc(), Transaction.id.asc()).all()

@@ -4,6 +4,7 @@ import { useAccountDetail } from "./useAccountDetail"
 import { AccountHeader } from "./AccountHeader"
 import { FilterBar } from "./FilterBar"
 import { AccountKpis } from "./AccountKpis"
+import { UpcomingCard } from "./UpcomingCard"
 import { AccountCharts } from "./AccountCharts"
 import { TransactionsSection } from "./TransactionsSection"
 import { InvestmentSection } from "./InvestmentSection"
@@ -45,6 +46,8 @@ export default function AccountDetail() {
       </div>
 
       <AccountKpis ctx={view} />
+
+      {!isInvestment && <UpcomingCard accountId={account.id} currency={account.currency} refreshKey={view.transactions} />}
 
       <AccountCharts ctx={view} />
 

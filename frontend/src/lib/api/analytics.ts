@@ -23,6 +23,9 @@ export const getAnalyticsBudget = <T = any>(query = "") => api.get<T>(`/analytic
 /** GET /analytics/calendar */
 export const getAnalyticsCalendar = <T = any>(query = "") => api.get<T>(`/analytics/calendar${query}`)
 
+/** GET /analytics/cashflow-projection */
+export const getAnalyticsCashflowProjection = <T = any>(query = "") => api.get<T>(`/analytics/cashflow-projection${query}`)
+
 /** GET /analytics/diversity-scanner */
 export const getAnalyticsDiversityScanner = <T = any>() => api.get<T>(`/analytics/diversity-scanner`)
 

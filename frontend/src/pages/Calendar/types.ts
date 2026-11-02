@@ -8,6 +8,8 @@ export interface CalendarEvent {
   type: string
   category_id: number | null
   is_projected: boolean
+  /** Datée après aujourd'hui (saisie réelle ou échéance projetée) : calculé par le backend. */
+  is_upcoming?: boolean
   currency: string
   recurring_id?: number
   logo?: string | null

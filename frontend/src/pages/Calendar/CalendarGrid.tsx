@@ -58,7 +58,7 @@ export function CalendarGrid({ ctx }: { ctx: CalendarCtx }) {
                         className={cn(
                           "h-1.5 w-1.5 rounded-full",
                           ev.type === "Sortie" || ev.type === "retrait"
-                            ? (ev.is_projected ? "bg-amber-400" : "bg-slate-500")
+                            ? (ev.is_projected ? "bg-amber-400" : ev.is_upcoming ? "bg-sky-400" : "bg-slate-500")
                             : "bg-emerald-500"
                         )}
                       />
@@ -69,6 +69,7 @@ export function CalendarGrid({ ctx }: { ctx: CalendarCtx }) {
                 <div className="hidden md:flex flex-col gap-0.5 overflow-hidden">
                   {events.slice(0, 3).map((ev, i) => {
                     const isEvNegative = ev.type === "Sortie" || ev.type === "retrait"
+                    const isPending = ev.is_projected || !!ev.is_upcoming
                     return (
                       <div 
                         key={ev.id} 
@@ -76,10 +77,11 @@ export function CalendarGrid({ ctx }: { ctx: CalendarCtx }) {
                           "text-[10px] px-1 py-0.5 rounded truncate flex items-center gap-1",
                           isEvNegative
                             ? (ev.is_projected ? "bg-amber-50 text-amber-700 border border-amber-100/50" : "bg-slate-100 text-slate-700")
-                            : (ev.is_projected ? "bg-emerald-50 text-emerald-700 border border-emerald-100/50" : "bg-emerald-100 text-emerald-800")
+                            : (ev.is_projected ? "bg-emerald-50 text-emerald-700 border border-emerald-100/50" : "bg-emerald-100 text-emerald-800"),
+                          !ev.is_projected && ev.is_upcoming && "border border-dashed border-sky-300"
                         )}
                       >
-                        {ev.is_projected && <Clock className="h-2 w-2 flex-shrink-0" />}
+                        {isPending && <Clock className="h-2 w-2 flex-shrink-0" />}
                         <span className="truncate">{ev.name}</span>
                       </div>
                     )

@@ -5562,6 +5562,13 @@ export interface components {
             is_income: boolean;
             /** Name */
             name: string;
+            /**
+             * Possible Duplicate
+             * @default false
+             */
+            possible_duplicate?: boolean;
+            /** Transaction Id */
+            transaction_id?: number | null;
             /** Type */
             type: string;
         };
@@ -6708,6 +6715,11 @@ export interface components {
              * @default false
              */
             is_transfer_ignored?: boolean;
+            /**
+             * Is Upcoming
+             * @description Saisie datée après aujourd'hui : elle ne compte dans aucun solde ni total avant sa date.
+             */
+            readonly is_upcoming: boolean;
             /** Link Origin */
             link_origin?: string | null;
             /** Linked Account Id */

@@ -1,5 +1,6 @@
 {
  "app/models/transaction.py::property linked_account_id": "lu par Pydantic (from_attributes) via schemas/transaction.py",
  "app/models/transaction.py::property has_claims": "lu par Pydantic (from_attributes) via schemas/transaction.py",
- "app/models/transaction.py::property reimbursement_expected": "lu par Pydantic (from_attributes) via schemas/transaction.py"
+ "app/models/transaction.py::property reimbursement_expected": "lu par Pydantic (from_attributes) via schemas/transaction.py",
+ "app/schemas/transaction.py::property is_upcoming": "champ calculé Pydantic (computed_field), lu à la sérialisation de TransactionRead"
 }

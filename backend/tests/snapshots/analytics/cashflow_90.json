@@ -7,6 +7,8 @@
    "date": "2026-06-18T00:00:00",
    "is_income": false,
    "name": "Basic-Fit",
+   "possible_duplicate": false,
+   "transaction_id": null,
    "type": "recurring"
   },
   {
@@ -14,6 +16,8 @@
    "date": "2026-06-20T00:00:00",
    "is_income": false,
    "name": "MAIF — Assurance habitation",
+   "possible_duplicate": false,
+   "transaction_id": null,
    "type": "recurring"
   },
   {
@@ -21,6 +25,8 @@
    "date": "2026-06-27T00:00:00",
    "is_income": true,
    "name": "Acme Conseil — Salaire",
+   "possible_duplicate": false,
+   "transaction_id": null,
    "type": "recurring"
   },
   {
@@ -28,6 +34,8 @@
    "date": "2026-07-02T00:00:00",
    "is_income": false,
    "name": "Foncia — Loyer",
+   "possible_duplicate": false,
+   "transaction_id": null,
    "type": "recurring"
   },
   {
@@ -35,6 +43,8 @@
    "date": "2026-07-05T00:00:00",
    "is_income": false,
    "name": "Navigo",
+   "possible_duplicate": false,
+   "transaction_id": null,
    "type": "recurring"
   },
   {
@@ -42,6 +52,8 @@
    "date": "2026-07-08T00:00:00",
    "is_income": false,
    "name": "Free Mobile",
+   "possible_duplicate": false,
+   "transaction_id": null,
    "type": "recurring"
   },
   {
@@ -49,6 +61,8 @@
    "date": "2026-07-10T00:00:00",
    "is_income": false,
    "name": "Netflix",
+   "possible_duplicate": false,
+   "transaction_id": null,
    "type": "recurring"
   },
   {
@@ -56,6 +70,8 @@
    "date": "2026-07-12T00:00:00",
    "is_income": false,
    "name": "Spotify",
+   "possible_duplicate": false,
+   "transaction_id": null,
    "type": "recurring"
   },
   {
@@ -63,6 +79,8 @@
    "date": "2026-07-15T00:00:00",
    "is_income": false,
    "name": "EDF",
+   "possible_duplicate": false,
+   "transaction_id": null,
    "type": "recurring"
   },
   {
@@ -70,6 +88,8 @@
    "date": "2026-07-18T00:00:00",
    "is_income": false,
    "name": "Basic-Fit",
+   "possible_duplicate": false,
+   "transaction_id": null,
    "type": "recurring"
   },
   {
@@ -77,6 +97,8 @@
    "date": "2026-07-20T00:00:00",
    "is_income": false,
    "name": "MAIF — Assurance habitation",
+   "possible_duplicate": false,
+   "transaction_id": null,
    "type": "recurring"
   },
   {
@@ -84,6 +106,8 @@
    "date": "2026-07-27T00:00:00",
    "is_income": true,
    "name": "Acme Conseil — Salaire",
+   "possible_duplicate": false,
+   "transaction_id": null,
    "type": "recurring"
   },
   {
@@ -91,6 +115,8 @@
    "date": "2026-08-02T00:00:00",
    "is_income": false,
    "name": "Foncia — Loyer",
+   "possible_duplicate": false,
+   "transaction_id": null,
    "type": "recurring"
   },
   {
@@ -98,6 +124,8 @@
    "date": "2026-08-05T00:00:00",
    "is_income": false,
    "name": "Navigo",
+   "possible_duplicate": false,
+   "transaction_id": null,
    "type": "recurring"
   },
   {
@@ -105,6 +133,8 @@
    "date": "2026-08-08T00:00:00",
    "is_income": false,
    "name": "Free Mobile",
+   "possible_duplicate": false,
+   "transaction_id": null,
    "type": "recurring"
   },
   {
@@ -112,6 +142,8 @@
    "date": "2026-08-10T00:00:00",
    "is_income": false,
    "name": "Netflix",
+   "possible_duplicate": false,
+   "transaction_id": null,
    "type": "recurring"
   },
   {
@@ -119,6 +151,8 @@
    "date": "2026-08-12T00:00:00",
    "is_income": false,
    "name": "Spotify",
+   "possible_duplicate": false,
+   "transaction_id": null,
    "type": "recurring"
   },
   {
@@ -126,6 +160,8 @@
    "date": "2026-08-15T00:00:00",
    "is_income": false,
    "name": "EDF",
+   "possible_duplicate": false,
+   "transaction_id": null,
    "type": "recurring"
   },
   {
@@ -133,6 +169,8 @@
    "date": "2026-08-18T00:00:00",
    "is_income": false,
    "name": "Basic-Fit",
+   "possible_duplicate": false,
+   "transaction_id": null,
    "type": "recurring"
   },
   {
@@ -140,6 +178,8 @@
    "date": "2026-08-20T00:00:00",
    "is_income": false,
    "name": "MAIF — Assurance habitation",
+   "possible_duplicate": false,
+   "transaction_id": null,
    "type": "recurring"
   },
   {
@@ -147,6 +187,8 @@
    "date": "2026-08-27T00:00:00",
    "is_income": true,
    "name": "Acme Conseil — Salaire",
+   "possible_duplicate": false,
+   "transaction_id": null,
    "type": "recurring"
   },
   {
@@ -154,6 +196,8 @@
    "date": "2026-09-02T00:00:00",
    "is_income": false,
    "name": "Foncia — Loyer",
+   "possible_duplicate": false,
+   "transaction_id": null,
    "type": "recurring"
   },
   {
@@ -161,6 +205,8 @@
    "date": "2026-09-05T00:00:00",
    "is_income": false,
    "name": "Navigo",
+   "possible_duplicate": false,
+   "transaction_id": null,
    "type": "recurring"
   },
   {
@@ -168,6 +214,8 @@
    "date": "2026-09-08T00:00:00",
    "is_income": false,
    "name": "Free Mobile",
+   "possible_duplicate": false,
+   "transaction_id": null,
    "type": "recurring"
   },
   {
@@ -175,6 +223,8 @@
    "date": "2026-09-10T00:00:00",
    "is_income": false,
    "name": "Netflix",
+   "possible_duplicate": false,
+   "transaction_id": null,
    "type": "recurring"
   },
   {
@@ -182,6 +232,8 @@
    "date": "2026-09-12T00:00:00",
    "is_income": false,
    "name": "Spotify",
+   "possible_duplicate": false,
+   "transaction_id": null,
    "type": "recurring"
   }
  ],

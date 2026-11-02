@@ -85,6 +85,25 @@ describe("AccountDetail : chargement", () => {
     expect(within(desktopTable()).getByText("Boulangerie")).toBeInTheDocument()
   })
 
+  it("marque « À venir » une transaction datée après aujourd'hui et affiche la carte des échéances", async () => {
+    serveAccount([
+      makeTransaction({ id: 5, merchant: "Boulangerie" }),
+      { ...makeTransaction({ id: 6, merchant: "Loyer" }), is_upcoming: true },
+    ])
+    server.use(http.get(apiUrl("/analytics/cashflow-projection"), () => HttpResponse.json({
+      points: [], current_balance: 100, projected_balance: 40, low_point: 40, low_point_date: "2026-03-20",
+      events: [{ date: "2026-03-20T00:00:00", name: "Loyer", amount: 60, type: "scheduled", is_income: false, transaction_id: 6, possible_duplicate: false }],
+    })))
+    renderAccount()
+
+    await screen.findByRole("heading", { name: /Compte joint/ })
+    const rent = within(desktopTable()).getByText("Loyer").closest("tr")!
+    expect(within(rent).getByText("À venir")).toBeInTheDocument()
+    const bakery = within(desktopTable()).getByText("Boulangerie").closest("tr")!
+    expect(within(bakery).queryByText("À venir")).not.toBeInTheDocument()
+    expect(await screen.findByRole("region", { name: "À venir" })).toBeInTheDocument()
+  })
+
   it("échec du chargement : alerte avec le détail du serveur et « Réessayer », pas « Compte non trouvé »", async () => {
     vi.spyOn(console, "error").mockImplementation(() => undefined)
     serveAccount([makeTransaction({ id: 5, merchant: "Boulangerie" })])
