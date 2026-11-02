@@ -27,8 +27,10 @@ from urllib.parse import urlencode
 from typing import Any
 
 import httpx
-from mcp.server.fastmcp import FastMCP
+from mcp.server.mcpserver import MCPServer
 from mcp.server.transport_security import TransportSecuritySettings
+
+from server_auth import current_token
 
 # ─── Configuration ───────────────────────────────────────────────────────────
 
@@ -72,13 +74,11 @@ class APIClient:
     def _token(self) -> str:
         if self._static_token:
             return self._static_token
-        # Transport HTTP : le middleware a déjà validé le token de la requête en cours
-        request = mcp.get_context().request_context.request
-        authorization = request.headers.get("authorization", "") if request is not None else ""
-        scheme, _, token = authorization.partition(" ")
-        if scheme.lower() != "bearer" or not token.strip():
+        # Transport HTTP : le middleware a déjà validé le token de la requête en cours et l'a déposé ici
+        token = current_token.get()
+        if not token:
             raise PermissionError("Aucun token MCP dans la requête")
-        return token.strip()
+        return token
 
     def _request(self, method: str, path: str, **kwargs) -> httpx.Response:
         url = f"{self.base_url}{path}"
@@ -100,14 +100,7 @@ api = APIClient(API_BASE_URL, API_TOKEN if TRANSPORT not in HTTP_TRANSPORTS else
 
 # ─── Initialisation du serveur MCP ───────────────────────────────────────────
 
-mcp = FastMCP(
-    SERVER_NAME,
-    # Sans état : chaque requête HTTP est autonome (pas d'affinité de session derrière Nginx)
-    stateless_http=True,
-    # La protection DNS rebinding n'autorise que localhost ; derrière Nginx, l'hôte est le domaine public.
-    # Inutile ici : l'accès repose sur un token bearer explicite, pas sur un accès réseau local.
-    transport_security=TransportSecuritySettings(enable_dns_rebinding_protection=False),
-)
+mcp = MCPServer(SERVER_NAME)
 
 # ─── Helpers de formatage ────────────────────────────────────────────────────
 
@@ -1758,6 +1751,17 @@ Rapport :
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
+def http_app():
+    """Application ASGI du transport HTTP configuré (avant le middleware d'authentification)."""
+    # La protection DNS rebinding n'autorise que localhost ; derrière Nginx, l'hôte est le domaine public.
+    # Inutile ici : l'accès repose sur un token bearer explicite, pas sur un accès réseau local.
+    security = TransportSecuritySettings(enable_dns_rebinding_protection=False)
+    if TRANSPORT == "streamable-http":
+        # Sans état : chaque requête HTTP est autonome (pas d'affinité de session derrière Nginx)
+        return mcp.streamable_http_app(stateless_http=True, transport_security=security)
+    return mcp.sse_app(transport_security=security)
+
+
 if __name__ == "__main__":
     logger.info(f"Démarrage du serveur MCP '{SERVER_NAME}' v{__version__}")
     logger.info(f"API cible : {API_BASE_URL}")
@@ -1767,7 +1771,7 @@ if __name__ == "__main__":
         import uvicorn
         from server_auth import protect
 
-        app = mcp.streamable_http_app() if TRANSPORT == "streamable-http" else mcp.sse_app()
+        app = http_app()
         logger.info(f"Écoute sur {HOST}:{PORT} (tokens MCP validés par l'API)")
         uvicorn.run(protect(app, API_BASE_URL), host=HOST, port=PORT, proxy_headers=True, forwarded_allow_ips="*")
     else:

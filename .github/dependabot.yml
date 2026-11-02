@@ -59,10 +59,6 @@ updates:
   - package-ecosystem: uv
     directory: /mcp-server
     schedule: { interval: weekly }
-    ignore:
-      # mcp 2.x a renommé FastMCP en MCPServer : migrer le code avant d'accepter la majeure.
-      - dependency-name: mcp
-        update-types: ["version-update:semver-major"]
     groups:
       python-minor-patch:
         update-types: [minor, patch]
