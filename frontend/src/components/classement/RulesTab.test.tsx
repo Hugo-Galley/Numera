@@ -113,7 +113,8 @@ describe("RulesTab", () => {
     await user.click(screen.getByRole("option", { name: "Forcer en Entrée" }))
     await user.click(within(dialog).getByRole("button", { name: "Créer la règle" }))
 
-    await screen.findByText("Règle créée avec succès")
+    await screen.findAllByText("Règle créée avec succès")
+    expect(state.writes).toHaveLength(1)
     expect(state.writes[0].body).toMatchObject({ pattern: "REMB", category_id: null, transaction_type: "Entree" })
     expect(await screen.findByText("Type → Entrée")).toBeInTheDocument()
   })
