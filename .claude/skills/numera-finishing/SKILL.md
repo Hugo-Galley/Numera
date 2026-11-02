@@ -20,7 +20,7 @@ Terminé = vérifié par une commande lancée **maintenant**, docs à jour, comm
    | `frontend/` | `make check-size && cd frontend && npm test && npm run build` (le build seul ne lance pas les tests) |
    | les deux, ou un déplacement de fichier | `make validate` |
    | modèle SQLAlchemy | + migration Alembic relue ; `tests/garde_fous/test_migrations.py` vert |
-   | une route | + `tests/garde_fous/test_openapi_routes.py` mis à jour volontairement |
+   | une route ou un schéma Pydantic | + `make api-contract` (régénère `openapi.json` et `schema.d.ts`, à commiter) ; `test_openapi_routes.py` et `test_openapi_contract.py` mis à jour volontairement |
    | performance (requêtes, cache, bundle, nginx) | skill `numera-performance` : mesure avant/après sur jeu volumineux, test de nombre de requêtes, chiffres et limites dans le message de commit |
 
    Les hooks pre-commit (`make hooks`) rejouent lint, tailles et secrets au commit : ne jamais les contourner avec `--no-verify`.
