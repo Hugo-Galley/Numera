@@ -1,6 +1,7 @@
 """Requêtes des insights : sorties du mois, catégories, insights écartés."""
 from datetime import datetime
 
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.models.account import Account
@@ -29,7 +30,7 @@ def get_category(db: Session, category_id) -> Category | None:
 
 
 def dismissed_titles(db: Session) -> set[str]:
-    return {d.title for d in db.query(DismissedInsight.title).all()}
+    return set(db.scalars(select(DismissedInsight.title)))
 
 
 def is_dismissed(db: Session, title: str) -> bool:
