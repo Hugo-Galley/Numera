@@ -113,6 +113,7 @@ class RecurringTransactionUpdate(BaseModel):
 class RecurringTransactionRead(RecurringTransactionBase):
     id: int
     category: CategoryRead | None = None
+    security_name: str | None = None  # nom lisible du titre (profil ETF ou position), calculé à la lecture
 
     model_config = {"from_attributes": True}
 

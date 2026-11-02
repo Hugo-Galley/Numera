@@ -22,6 +22,8 @@ export interface FlowRecurring {
   transfer_to_account_id?: number | null
   ticker?: string | null
   isin?: string | null
+  /** Nom lisible du titre (ex. « MSCI World »), résolu par le backend */
+  security_name?: string | null
   quantity?: number | null
   logo?: string | null
 }
@@ -130,8 +132,8 @@ export function InvestmentFlowDialog({ recurring, accounts, nextOccurrence, onCl
                   <>
                     <Link label={recurring.quantity ? `${recurring.quantity} part(s)` : "Achat"} />
                     <Node
-                      title={recurring.ticker || recurring.isin || recurring.name}
-                      subtitle="Titre acheté"
+                      title={recurring.security_name || recurring.name}
+                      subtitle={recurring.ticker || recurring.isin || "Titre acheté"}
                       logo={recurring.logo}
                       name={recurring.name}
                       ticker={recurring.ticker}

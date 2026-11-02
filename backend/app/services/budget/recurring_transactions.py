@@ -67,6 +67,20 @@ async def _generate_now(db: Session, rule: RecurringTransaction) -> None:
         logger.exception("Génération immédiate échouée pour la récurrence %s", rule.id)
 
 
+def attach_security_names(db: Session, rules: list[RecurringTransaction]) -> list[RecurringTransaction]:
+    """Pose `security_name` (nom lisible du titre, ex. « MSCI World ») sur chaque règle : profil ETF lié,
+    sinon profil ETF du même ticker, sinon nom de la position détenue. `None` si inconnu."""
+    tickers = {r.ticker for r in rules if r.ticker}
+    profile_ids = {r.etf_profile_id for r in rules if r.etf_profile_id}
+    by_id, profile_by_ticker, holding_by_ticker = repo.security_name_sources(db, tickers, profile_ids)
+    for r in rules:
+        r.security_name = (  # type: ignore[attr-defined]  # attribut de lecture, non persisté
+            (by_id.get(r.etf_profile_id) if r.etf_profile_id else None)
+            or (profile_by_ticker.get(r.ticker) or holding_by_ticker.get(r.ticker) if r.ticker else None)
+        )
+    return rules
+
+
 async def trigger_generation(db: Session) -> int:
     return await generate_recurring_transactions(db)
 
@@ -74,7 +88,7 @@ async def trigger_generation(db: Session) -> int:
 async def read_recurring_transactions(db: Session, skip: int, limit: int, trigger: bool) -> list[RecurringTransaction]:
     if trigger:
         await generate_recurring_transactions(db)
-    return repo.list_page(db, skip, limit)
+    return attach_security_names(db, repo.list_page(db, skip, limit))
 
 
 async def create_recurring_transaction(db: Session, recurring_tx_in: RecurringTransactionCreate) -> RecurringTransaction:
@@ -91,6 +105,7 @@ async def create_recurring_transaction(db: Session, recurring_tx_in: RecurringTr
     db.commit()
     db.refresh(rule)
     await _generate_now(db, rule)
+    attach_security_names(db, [rule])
     return rule
 
 
@@ -123,6 +138,7 @@ async def update_recurring_transaction(db: Session, recurring_tx_id: int,
     db.commit()
     db.refresh(rule)
     await _generate_now(db, rule)
+    attach_security_names(db, [rule])
     return rule
 
 
