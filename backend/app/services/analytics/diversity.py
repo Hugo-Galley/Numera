@@ -5,6 +5,7 @@ from typing import Any
 from sqlalchemy.orm import Session
 
 from app.core.logging import get_logger
+from app.core.time import end_of_today
 from app.domain.diversity import diversity_alerts, exposure_rows, hhi_score, look_through, score_label, top_companies
 from app.integrations.currency import get_exchange_rates
 from app.models.portfolio_holding import PortfolioHolding
@@ -84,7 +85,7 @@ def _wealth_context(db: Session, rates: dict) -> dict[str, float]:
         latest_snap = repo.latest_snapshot(db, acc.id)
         val_raw = float(latest_snap.current_value) if latest_snap else 0.0
         if not latest_snap:
-            last_tx = repo.last_transaction(db, acc.id)
+            last_tx = repo.last_transaction(db, acc.id, before=end_of_today())
             if last_tx:
                 val_raw = float(last_tx.running_balance)
 

@@ -3,6 +3,7 @@ from datetime import datetime
 
 from sqlalchemy.orm import Session
 
+from app.core.time import end_of_today
 from app.domain.budget import elapsed_days, to_eur
 from app.integrations.currency import get_exchange_rates
 from app.repositories.analytics import metrics as repo
@@ -37,7 +38,7 @@ async def compute_timeseries(db: Session, year: int, account_id: int | None = No
     # Vue globale : des soldes de comptes entremêlés n'ont pas de sens, pas de points
     balance_points = [
         {"date": tx.date.isoformat(), "running_balance": round(float(tx.running_balance), 2), "account_id": tx.account_id}
-        for tx in repo.account_transactions(db, account_id)
+        for tx in repo.account_transactions(db, account_id, before=end_of_today())
     ] if account_id is not None else []
 
     return {

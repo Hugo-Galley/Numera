@@ -3,7 +3,7 @@ from datetime import date
 from sqlalchemy.orm import Session
 
 from app.core.errors import NotFoundError
-from app.core.time import utcnow_naive
+from app.core.time import end_of_today, utcnow_naive
 from app.models.account import Account
 from app.repositories.comptes import accounts as repo
 from app.schemas.account import (
@@ -27,7 +27,7 @@ def account_balance(db: Session, account_id: int) -> float:
     if remaining is not None:
         return -remaining
     latest_snap = repo.latest_snapshot(db, account_id)
-    latest_tx = repo.latest_transaction(db, account_id)
+    latest_tx = repo.latest_transaction(db, account_id, before=end_of_today())
 
     if latest_snap and (not latest_tx or latest_snap.date >= latest_tx.date):
         return float(latest_snap.current_value)

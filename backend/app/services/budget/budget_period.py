@@ -16,6 +16,7 @@ from datetime import datetime, timedelta
 from sqlalchemy import case, func
 from sqlalchemy.orm import Session
 
+from app.core.time import end_of_today
 from app.db.system_settings import get_setting, set_setting
 from app.domain.budget_period import Period, bounds_in_periods, civil_bounds, distinct_salary_dates, periods_from_salary_dates
 from app.repositories.budget.budget_period import salary_entry_dates
@@ -63,11 +64,20 @@ def build_periods(db: Session) -> list[Period]:
     return periods_from_salary_dates(salary_dates(db), datetime.now())
 
 
-def period_bounds(db: Session, year: int, month: int) -> tuple[datetime, datetime]:
-    """Fenêtre [début, fin[ du mois budgétaire `year`/`month`."""
+def period_window(db: Session, year: int, month: int) -> tuple[datetime, datetime]:
+    """Fenêtre complète [début, fin[ du mois budgétaire `year`/`month` (affichage, dates de la période)."""
     if get_mode(db) == MODE_CIVIL:
         return civil_bounds(year, month)
     return bounds_in_periods(build_periods(db), year, month)
+
+
+def period_bounds(db: Session, year: int, month: int) -> tuple[datetime, datetime]:
+    """Fenêtre de lecture des KPI : `period_window` arrêtée à aujourd'hui inclus.
+
+    Les transactions à venir (datées après aujourd'hui) sortent ainsi de tous les totaux de période.
+    """
+    start, end = period_window(db, year, month)
+    return start, min(end, end_of_today())
 
 
 def current_period(db: Session, today: datetime | None = None) -> tuple[int, int]:
@@ -112,7 +122,7 @@ def update_mode(db: Session, mode: str) -> dict:
 
 
 def describe(db: Session, year: int, month: int) -> dict:
-    start, end = period_bounds(db, year, month)
+    start, end = period_window(db, year, month)
     return {
         "year": year,
         "month": month,
@@ -134,6 +144,7 @@ __all__ = [
     "period_bounds",
     "period_info",
     "period_key_expr",
+    "period_window",
     "salary_dates",
     "set_mode",
     "update_mode",

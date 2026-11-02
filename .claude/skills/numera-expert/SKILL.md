@@ -26,6 +26,10 @@ Les règles critiques courtes sont dans le `CLAUDE.md` racine ; ce skill détail
 - **Crédits** : un compte `credit` (créé via `/loans`, jamais via `/accounts`) vaut −capital restant dû de son prêt (`domain/loans.py` (`loan_remaining` : `services/comptes/loans.py`)) : tous les totaux de patrimoine sont donc **nets**. `patrimoine-allocation` sort les crédits du camembert (`total_debts_eur`, `net_patrimoine_eur`). Pas de transactions sur un compte crédit : les mensualités restent des `Sortie` du courant (dépenses normales).
 - **Mois de paie** : `build_periods` comble les trous (mois sans salaire = fenêtre propre, second salaire d'un même mois absorbé) pour que chaque jour appartienne à une période.
 
+## Transactions à venir
+
+Une transaction datée après aujourd'hui est une saisie à venir : `running_balance` calculé en chronologie comme les autres, mais exclue de tout solde et total « à ce jour ». Bornes : `core/time.py::end_of_today()` (demain 00:00, exclusif ; une dépense du jour compte quelle que soit son heure) ; `budget_period.period_bounds` plafonne la fenêtre mensuelle à cette borne, `budget_period.period_window` donne la fenêtre entière (affichage). Les lectures du dernier solde (`account_balance`, projection de trésorerie, scanner de diversité, valeur d'un compte titres sans relevé) passent `before=end_of_today()`. Import CSV : garde la dernière transaction réelle (sans plafond) pour chaîner le solde.
+
 ## Virements internes
 
 Un virement est un couple **1 pour 1** : une `Sortie` et une `Entree` (ou un `versement` d'investissement) sur deux comptes différents (`is_transfer`, `linked_transaction_id` / `linked_investment_transaction_id`). Un lien ne change aucun montant. Les « dépenses réelles », les revenus et le taux d'épargne excluent ces lignes (`services/analytics/metrics/`, `services/analytics/budget/`). Toute la logique est dans `services/budget/transfers.py` :
