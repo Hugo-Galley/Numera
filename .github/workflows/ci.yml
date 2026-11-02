@@ -60,6 +60,9 @@ jobs:
         run: |
           npm run api:types
           git diff --exit-code -- src/lib/api/generated
+      - name: Code mort (knip)
+        run: npm run knip
+        working-directory: frontend
       - run: npm run coverage
         working-directory: frontend
       - run: npm run build

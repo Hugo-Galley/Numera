@@ -16,8 +16,8 @@ Terminé = vérifié par une commande lancée **maintenant**, docs à jour, comm
 
    | Changé | Commande |
    |---|---|
-   | `backend/` | `make lint && make check-size && make test` |
-   | `frontend/` | `make check-size && cd frontend && npm test && npm run build` (le build seul ne lance pas les tests) |
+   | `backend/` | `make lint && make check-size && make dead-code && make test` |
+   | `frontend/` | `make check-size && make knip && cd frontend && npm test && npm run build` (le build seul ne lance pas les tests) |
    | les deux, ou un déplacement de fichier | `make validate` |
    | modèle SQLAlchemy | + migration Alembic relue ; `tests/garde_fous/test_migrations.py` vert |
    | une route ou un schéma Pydantic | + `make api-contract` (régénère `openapi.json` et `schema.d.ts`, à commiter) ; `test_openapi_routes.py` et `test_openapi_contract.py` mis à jour volontairement |
