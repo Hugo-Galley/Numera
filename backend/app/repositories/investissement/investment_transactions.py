@@ -94,7 +94,8 @@ def dividend_link_candidates(db: Session, account_id: int) -> dict[str, str]:
         .distinct()
         .all()
     ):
-        candidates.setdefault(ticker, name or ticker)
+        if ticker is not None:
+            candidates.setdefault(ticker, name or ticker)
     return candidates
 
 

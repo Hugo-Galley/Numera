@@ -21,7 +21,6 @@
   "app/repositories/budget/budget_period.py": 2,
   "app/repositories/budget/merchants.py": 6,
   "app/repositories/budget/savings_goals.py": 1,
-  "app/repositories/investissement/investment_transactions.py": 1,
   "app/repositories/investissement/security_prices.py": 1,
   "app/services/analytics/budget/alerts.py": 1,
   "app/services/analytics/budget/summary.py": 1,

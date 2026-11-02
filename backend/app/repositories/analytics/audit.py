@@ -1,7 +1,7 @@
 """Requêtes du Centre d'Actions et de l'audit des données (requêtes de base, que le service ordonne et limite)."""
 from datetime import datetime, timedelta
 
-from sqlalchemy import func, or_
+from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Query, Session
 
 from app.models.account import Account
@@ -195,7 +195,7 @@ def unlinked_dividend_counts(db: Session) -> list:
 
 def last_dividend_by_ticker(db: Session) -> dict[tuple[int, str], datetime]:
     return {
-        (acc_id, ticker.upper()): last
+        (acc_id, (ticker or "").upper()): last
         for acc_id, ticker, last in db.query(
             InvestmentTransaction.account_id, InvestmentTransaction.ticker, func.max(InvestmentTransaction.date)
         )
@@ -214,7 +214,7 @@ def active_investment_accounts(db: Session) -> list[Account]:
 
 
 def dismissed_ids(db: Session) -> set[str]:
-    return {d.title for d in db.query(DismissedInsight.title).all()}
+    return set(db.scalars(select(DismissedInsight.title)))
 
 
 def is_dismissed(db: Session, action_id: str) -> bool:
