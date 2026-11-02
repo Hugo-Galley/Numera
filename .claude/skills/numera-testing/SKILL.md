@@ -10,7 +10,7 @@ description: Comment lancer, écrire et déboguer les tests de Numera (pytest ba
 Depuis `backend/` (le `PYTHONPATH` est obligatoire, sinon `ModuleNotFoundError: app`) :
 
 ```bash
-PYTHONPATH=. python3.11 -m pytest tests -q                       # tout : ~910 tests, ~1 min 45
+PYTHONPATH=. python3.11 -m pytest tests -q                       # tout : ~950 tests, ~2 min 40 en série ; ajouter -n auto (pytest-xdist) : ~80 s
 PYTHONPATH=. python3.11 -m pytest tests/budget/test_merchants.py -v     # un fichier
 PYTHONPATH=. python3.11 -m pytest tests/budget/test_tags.py::test_x -v  # un test
 ```
