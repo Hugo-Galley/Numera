@@ -62,17 +62,5 @@ export type Transaction = {
   splits?: (SplitPart & { category?: Category | null })[]
 }
 
-export const getMerchantIcon = (merchantName: string) => {
-  const name = merchantName.toLowerCase();
-  if (name.includes("spotify") || name.includes("music")) return "Music";
-  if (name.includes("netflix") || name.includes("disney") || name.includes("canal") || name.includes("prime") || name.includes("cinema") || name.includes("ugc") || name.includes("cgr")) return "Film";
-  if (name.includes("fit") || name.includes("gym") || name.includes("sport") || name.includes("neoness") || name.includes("crossfit")) return "Dumbbell";
-  if (name.includes("free") || name.includes("orange") || name.includes("sfr") || name.includes("bouygues") || name.includes("sosh")) return "Smartphone";
-  if (name.includes("navigo") || name.includes("sncf") || name.includes("uber") || name.includes("bolt")) return "Car";
-  if (name.includes("apple") || name.includes("icloud") || name.includes("amazon") || name.includes("google")) return "Zap";
-  if (name.includes("banque") || name.includes("boursorama") || name.includes("boursobank") || name.includes("credit") || name.includes("lcl") || name.includes("sg") || name.includes("n26") || name.includes("revolut")) return "Banknote";
-  return "Briefcase";
-}
-
 // Taille d'une page de transactions (l'API renvoie 100 lignes par défaut, 1000 au plus)
 export const TX_PAGE_SIZE = 200

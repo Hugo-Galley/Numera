@@ -55,7 +55,7 @@ Complète le `CLAUDE.md` racine. Procédures pas-à-pas : skill `numera-backend`
 
 ## Tests
 
-- `PYTHONPATH=. python3.11 -m pytest tests -q` depuis `backend/` (~910 tests, ~1 min 45). `make test` détecte l'interpréteur (`backend/.venv` créé par `uv sync`, sinon python3.12/3.11) ; `venv_new` est en Python 3.14 sans pytest.
+- `PYTHONPATH=. python3.11 -m pytest tests -q` depuis `backend/` (~950 tests, ~2 min 40 en série ; `-n auto` via pytest-xdist : ~80 s, utilisé par `make test`, `make coverage` et la CI). `make test` détecte l'interpréteur (`backend/.venv` créé par `uv sync`, sinon python3.12/3.11) ; `venv_new` est en Python 3.14 sans pytest.
 - Couverture : `make coverage` (`pytest --cov`, config `backend/.coveragerc`) échoue sous le seuil `fail_under` (93 % de lignes au 2026-11-01, mesuré 93,75 %). Cliquet : ne jamais le baisser, le relever quand la couverture progresse ; vérifié par `make validate` et la CI.
 - Fixtures (`tests/conftest.py`) : `db_session` (SQLite temporaire par test, `Base.metadata.create_all`) et `client` (TestClient, override de `get_db` et `get_current_user` → `"admin"`, rate limiter réinitialisé). Vérifier l'état en base après l'appel API.
 - Un test par bug corrigé / fonctionnalité ajoutée, nommé `tests/<domaine>/test_<sujet>.py`. Correctif de performance : test qui borne le nombre de requêtes SQL avec la fixture `measure_queries` (`measure_queries(lambda: client.get(...))` → `(résultat, nombre)`) sur ≥ 1 000 lignes ; `tests/garde_fous/test_async_endpoints.py` interdit un `async def` sans `await` dans `controllers/`.

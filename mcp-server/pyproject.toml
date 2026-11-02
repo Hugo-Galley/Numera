@@ -4,7 +4,7 @@ version = "0.0.0"  # non publié : la version de l'application est portée par l
 description = "Serveur MCP (lecture seule) pour Numera"
 requires-python = ">=3.11,<3.13"
 dependencies = [
-    "mcp[cli]>=1.9.0,<2",
+    "mcp[cli]>=1.9.0,<3",
 ]
 
 [tool.uv]

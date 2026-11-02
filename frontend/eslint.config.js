@@ -6,7 +6,7 @@ import tseslint from "typescript-eslint"
 // Config minimale : erreurs de logique et hooks React, pas de règle de style (pas de formateur imposé).
 // Les écarts existants sont plafonnés par fichier dans eslint-baseline.json (cf. scripts/check-lint.mjs).
 export default tseslint.config(
-  { ignores: ["dist", "coverage", "playwright-report", "test-results", "src/components/ui/**"] },
+  { ignores: ["dist", "coverage", "playwright-report", "test-results", "src/components/ui/**", "src/lib/api/generated/**"] },
   {
     files: ["src/**/*.{ts,tsx}", "e2e/**/*.ts", "*.ts", "*.js"],
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
