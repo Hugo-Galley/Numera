@@ -8921,6 +8921,17 @@
       ],
       "title": "Sector"
      },
+     "security_name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Security Name"
+     },
      "start_date": {
       "format": "date-time",
       "title": "Start Date",

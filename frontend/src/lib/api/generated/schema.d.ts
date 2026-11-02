@@ -5941,6 +5941,8 @@ export interface components {
             quantity?: number | null;
             /** Sector */
             sector?: string | null;
+            /** Security Name */
+            security_name?: string | null;
             /**
              * Start Date
              * Format: date-time
