@@ -73,3 +73,13 @@ def test_tool_images_in_workflows_are_pinned_by_digest():
     floating = {str(f.relative_to(REPO_ROOT)): imgs for f in files
                 if (imgs := [i for i in TOOL_IMAGE_ENV.findall(f.read_text()) if not PINNED_IMAGE.search(i)])}
     assert floating == {}
+
+
+PRE_COMMIT_REV = re.compile(r"^\s*rev:\s*(\S+)", re.MULTILINE)
+
+
+def test_pre_commit_repos_are_pinned_by_sha():
+    """Les dépôts de hooks pre-commit suivent la même règle que les actions : SHA de commit, tag en commentaire."""
+    text = (REPO_ROOT / ".pre-commit-config.yaml").read_text()
+    floating = [rev for rev in PRE_COMMIT_REV.findall(text) if not re.fullmatch(r"[0-9a-f]{40}", rev)]
+    assert floating == []

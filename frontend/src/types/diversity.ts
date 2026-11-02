@@ -1,23 +1,3 @@
-export interface EtfHoldingItem {
-  name: string
-  ticker?: string
-  weight: number
-}
-
-export interface EtfProfile {
-  id: number
-  name: string
-  ticker: string
-  isin?: string
-  aliases: string[]
-  countries: Record<string, number>
-  sectors: Record<string, number>
-  top_holdings: EtfHoldingItem[]
-  is_system: boolean
-  composition_sources: Partial<Record<CompositionField, CompositionSource>>
-  composition_refreshed_at?: string | null
-}
-
 export type CompositionField = "countries" | "sectors" | "top_holdings"
 // yahoo : actualisé depuis Yahoo Finance · preset : préréglage intégré · manual : saisi à la main
 export type CompositionSource = "yahoo" | "preset" | "manual"
@@ -57,27 +37,6 @@ export interface PortfolioHolding {
   last_dividend_date?: string | null
   total_return_eur?: number | null
   total_return_pct?: number | null
-}
-
-export interface MarketSearchResult {
-  symbol: string
-  name: string
-  isin?: string
-  type: string
-  exchange?: string
-  currency: string
-  etf_profile_id?: number
-  is_custom_etf?: boolean
-}
-
-export interface HoldingSuggestion {
-  name: string
-  ticker: string
-  isin?: string
-  historical_net_invested: number
-  tx_count: number
-  etf_profile_id?: number
-  is_etf: boolean
 }
 
 export interface UnderlyingCompanySource {

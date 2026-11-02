@@ -16,12 +16,14 @@ Terminé = vérifié par une commande lancée **maintenant**, docs à jour, comm
 
    | Changé | Commande |
    |---|---|
-   | `backend/` | `make lint && make check-size && make test` |
-   | `frontend/` | `make check-size && cd frontend && npm test && npm run build` (le build seul ne lance pas les tests) |
+   | `backend/` | `make lint && make check-size && make dead-code && make test` |
+   | `frontend/` | `make check-size && make knip && cd frontend && npm test && npm run build` (le build seul ne lance pas les tests) |
    | les deux, ou un déplacement de fichier | `make validate` |
    | modèle SQLAlchemy | + migration Alembic relue ; `tests/garde_fous/test_migrations.py` vert |
-   | une route | + `tests/garde_fous/test_openapi_routes.py` mis à jour volontairement |
+   | une route ou un schéma Pydantic | + `make api-contract` (régénère `openapi.json` et `schema.d.ts`, à commiter) ; `test_openapi_routes.py` et `test_openapi_contract.py` mis à jour volontairement |
    | performance (requêtes, cache, bundle, nginx) | skill `numera-performance` : mesure avant/après sur jeu volumineux, test de nombre de requêtes, chiffres et limites dans le message de commit |
+
+   Les hooks pre-commit (`make hooks`) rejouent lint, tailles et secrets au commit : ne jamais les contourner avec `--no-verify`.
 
    Une commande rouge = pas terminé. Ne pas commiter « en attendant ».
 3. **Diff relu** — `git diff --stat` puis `git diff` : pas de `print`, de code commenté, de `TODO` sans suite, de fichier hors sujet, de `*.db`, de `.env`, de secret, de baseline ou d'instantané régénéré sans justification, de tag flottant (action GitHub sans SHA, image Docker sans digest : règle dans `CLAUDE.md`).

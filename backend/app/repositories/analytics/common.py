@@ -133,14 +133,6 @@ def savings_events_by_account(db: Session, account_ids: list[int], end_date: dat
     return events
 
 
-def savings_total_at(db: Session, account_ids: list[int], end_date: datetime) -> float:
-    events = savings_events_by_account(db, account_ids, end_date)
-    total = 0.0
-    for items in events.values():
-        total += items[-1][2] if items else 0.0
-    return total
-
-
 def ticket_restaurant_account_ids(db: Session) -> set[int]:
     from app.models.salary_config import SalaryConfig
     ticket_account_ids = set()

@@ -20,8 +20,8 @@ jobs:
     name: Backend (tests + tailles)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
-      - uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
           python-version: "3.12"
           enable-cache: true
@@ -39,14 +39,14 @@ jobs:
         working-directory: backend
         env:
           PYTHONPATH: .
-        run: uv run python -m pytest tests -q --cov
+        run: uv run python -m pytest tests -q -n auto --cov
 
   frontend:
     name: Frontend (tests + typecheck + build)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: "22"
           cache: npm
@@ -54,6 +54,14 @@ jobs:
       - run: npm ci
         working-directory: frontend
       - run: npm run lint
+        working-directory: frontend
+      - name: Types d'API à jour (schema.d.ts généré depuis openapi.json)
+        working-directory: frontend
+        run: |
+          npm run api:types
+          git diff --exit-code -- src/lib/api/generated
+      - name: Code mort (knip)
+        run: npm run knip
         working-directory: frontend
       - run: npm run coverage
         working-directory: frontend
@@ -64,15 +72,15 @@ jobs:
     name: E2E (Playwright)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
-      - uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
           python-version: "3.12"
           enable-cache: true
           cache-dependency-glob: backend/uv.lock
       - run: uv sync --frozen --no-dev
         working-directory: backend
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: "22"
           cache: npm
@@ -87,11 +95,35 @@ jobs:
           CI: "true"
           E2E_PYTHON: .venv/bin/python
 
+  # Quelles images scanner et faut-il relancer hadolint : seulement si une PR touche ce qui les compose
+  # (Dockerfile, dépendances, .trivyignore, ce workflow ; classement dans scripts/ci_changes.py). Hors PR, tout.
+  changes:
+    name: Fichiers modifiés
+    runs-on: ubuntu-latest
+    outputs:
+      images: ${{ steps.classify.outputs.images }}
+      dockerfiles: ${{ steps.classify.outputs.dockerfiles }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - id: classify
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE: ${{ github.event.pull_request.base.sha }}
+        run: |
+          if [ "$EVENT" != "pull_request" ]; then
+            echo ".github/workflows/ci.yml" | python3 scripts/ci_changes.py | tee -a "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git fetch --depth=1 origin "$BASE"
+          git diff --name-only "$BASE" HEAD | python3 scripts/ci_changes.py | tee -a "$GITHUB_OUTPUT"
+
   docker-lint:
     name: Dockerfiles (hadolint)
+    needs: changes
+    if: needs.changes.outputs.dockerfiles == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Hadolint
         run: |
           for f in backend/Dockerfile frontend/Dockerfile frontend/Dockerfile.prod mcp-server/Dockerfile; do
@@ -104,7 +136,7 @@ jobs:
     name: Trivy (dépendances, secrets, configuration)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Trivy fs
         run: |
           docker run --rm -v "$PWD:/work:ro" -w /work "$TRIVY_IMAGE" fs \
@@ -113,6 +145,8 @@ jobs:
 
   trivy-images:
     name: Trivy image ${{ matrix.image }}
+    needs: changes
+    if: needs.changes.outputs.images != ''
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -121,10 +155,16 @@ jobs:
           - { image: numera-backend, context: ./backend, dockerfile: Dockerfile }
           - { image: numera-frontend, context: ./frontend, dockerfile: Dockerfile.prod }
           - { image: numera-mcp, context: ./mcp-server, dockerfile: Dockerfile }
+    # Un `if` de job ne voit pas la matrice : une image non concernée garde son job, mais saute ses étapes
+    env:
+      SCAN: ${{ contains(needs.changes.outputs.images, matrix.image) }}
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
-      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
-      - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+      - if: env.SCAN == 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - if: env.SCAN == 'true'
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - if: env.SCAN == 'true'
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: ${{ matrix.context }}
           file: ${{ matrix.context }}/${{ matrix.dockerfile }}
@@ -132,10 +172,12 @@ jobs:
           tags: scan/${{ matrix.image }}:ci
           cache-from: type=gha,scope=${{ matrix.image }}
       - name: Trivy image (HIGH/CRITICAL corrigeables)
+        if: env.SCAN == 'true'
         run: |
           docker run --rm -v /var/run/docker.sock:/var/run/docker.sock "$TRIVY_IMAGE" image \
             --scanners vuln --severity HIGH,CRITICAL --ignore-unfixed --exit-code 1 scan/${{ matrix.image }}:ci
       - name: L'image ne tourne pas en root
+        if: env.SCAN == 'true'
         run: |
           uid=$(docker run --rm --entrypoint id scan/${{ matrix.image }}:ci -u)
           echo "UID du conteneur : $uid"
@@ -147,12 +189,20 @@ jobs:
   ci-ok:
     name: CI ok
     if: always()
-    needs: [backend, frontend, e2e, docker-lint, trivy-repo, trivy-images]
+    needs: [changes, backend, frontend, e2e, docker-lint, trivy-repo, trivy-images]
     runs-on: ubuntu-latest
     steps:
       - name: Tous les jobs sont en succès
         env:
           NEEDS: ${{ toJSON(needs) }}
+        # hadolint et les scans d'images peuvent être « skipped », mais seulement quand `changes` (en succès) les a
+        # jugés inutiles ; tout autre job doit être en succès.
         run: |
           echo "$NEEDS" | jq -r 'to_entries[] | "\(.key): \(.value.result)"'
-          echo "$NEEDS" | jq -e 'all(.[]; .result == "success")' >/dev/null
+          echo "$NEEDS" | jq -e '
+            .changes.result == "success"
+            and (if .changes.outputs.dockerfiles == "true" then .["docker-lint"].result == "success" else true end)
+            and (if .changes.outputs.images != "" then .["trivy-images"].result == "success" else true end)
+            and all(to_entries[] | select(.key != "docker-lint" and .key != "trivy-images"); .value.result == "success")
+            and all(.["docker-lint"], .["trivy-images"]; .result == "success" or .result == "skipped")
+          ' >/dev/null

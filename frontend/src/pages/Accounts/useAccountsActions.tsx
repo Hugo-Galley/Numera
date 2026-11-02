@@ -8,6 +8,9 @@ import { Account } from "./types"
 import type { useAccountsState } from "./useAccountsState"
 import { deleteAccountsById, getAccounts, patchAccountsById, postAccounts } from "@/lib/api/accounts"
 import { getAnalyticsAssetAllocationSuggestions } from "@/lib/api/analytics"
+import type { ApiBody } from "@/lib/api/types"
+
+type NewAccount = ApiBody<"/accounts", "post">
 
 /** Chargement, tri et actions sur les comptes (création, modification, archivage, compte principal). */
 export function useAccountsActions(p: ReturnType<typeof useAccountsState>) {
@@ -88,7 +91,7 @@ export function useAccountsActions(p: ReturnType<typeof useAccountsState>) {
     try {
       await postAccounts({ 
         name: newName, 
-        type: newType, 
+        type: newType as NewAccount["type"],
         currency: newCurrency,
         institution: newInstitution || null,
         logo: newLogo,
@@ -96,7 +99,7 @@ export function useAccountsActions(p: ReturnType<typeof useAccountsState>) {
         sector: newType === "investissement" ? newSector : null,
         geographic_zone: newType === "investissement" ? newZone : null,
         valuation_mode: newType === "investissement" || newType === "assurance_vie" ? newValuationMode : "positions",
-        tax_wrapper: newTaxWrapper === "none" ? null : newTaxWrapper,
+        tax_wrapper: newTaxWrapper === "none" ? null : (newTaxWrapper as NewAccount["tax_wrapper"]),
         opened_at: newTaxWrapper === "none" || !newOpenedAt ? null : newOpenedAt,
         fonds_euros_pct: newType === "assurance_vie" ? (newEurosPct ? parseFloat(newEurosPct) : 0) : null,
         fonds_investis_pct: newType === "assurance_vie" ? (newInvestisPct ? parseFloat(newInvestisPct) : 0) : null

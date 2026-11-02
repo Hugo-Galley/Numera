@@ -89,7 +89,10 @@ describe("MonthReview : chargement", () => {
     expect(screen.getByText("Impossible de charger la revue du mois")).toBeInTheDocument()
     await user.click(screen.getByRole("button", { name: "Réessayer" }))
 
-    await waitFor(() => expect(screen.queryByText("La revue du mois n'a pas pu être chargée.")).not.toBeInTheDocument())
+    // Fin du test = revue affichée : l'erreur disparaît dès le rechargement, avant le rendu de la première étape,
+    // qui appelle /categories ; finir plus tôt laisserait cette requête partir après la réinitialisation des handlers.
+    expect(await screen.findByText("Toutes les dépenses du mois sont catégorisées.")).toBeInTheDocument()
+    expect(screen.queryByText("La revue du mois n'a pas pu être chargée.")).not.toBeInTheDocument()
     expect(attempts).toBe(2)
   })
 

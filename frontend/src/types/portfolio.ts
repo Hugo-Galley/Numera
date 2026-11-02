@@ -50,17 +50,3 @@ export interface PortfolioRead {
   warnings: string[]
 }
 
-export interface PortfolioOverview {
-  accounts: PortfolioRead[]
-  value_eur: number
-  net_invested_eur: number
-  gain_eur: number
-  performance_pct: number | null
-  xirr_pct: number | null
-  unrealized_eur: number | null
-  realized_eur: number
-  realized_by_year: PortfolioRealizedYear[]
-  dividends_eur: number
-  dividends_12m_eur: number
-  fees_eur: number
-}

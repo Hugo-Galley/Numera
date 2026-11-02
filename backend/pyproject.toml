@@ -4,7 +4,7 @@ version = "0.0.0"  # non publié : la version de l'application est portée par l
 description = "API Numera (FastAPI)"
 requires-python = ">=3.11,<3.13"  # pydantic-core n'est pas compatible 3.14
 dependencies = [
-    "fastapi==0.142.2",
+    "fastapi==0.162.0",
     "uvicorn[standard]==0.35.0",
     "sqlalchemy==2.0.43",
     "pydantic==2.11.7",
@@ -26,6 +26,8 @@ dev = [
     "freezegun==1.5.1",
     "ruff==0.17.3",
     "mypy==2.4.1",
+    "pytest-xdist==3.8.0",
+    "vulture==2.14",
 ]
 
 [tool.uv]

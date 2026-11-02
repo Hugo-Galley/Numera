@@ -67,3 +67,7 @@ La procédure a été validée le 5 juin 2026 :
 - La base remplacée est conservée à côté (`<destination>.pre-restore-<horodatage>`), puis le remplacement est atomique.
 - Le script sort avec un code non nul en cas d'échec.
 - Arrêtez le backend avant de restaurer (`docker compose stop backend`). Les logos (`backend/data/logos`) ne sont pas inclus dans les sauvegardes.
+
+## Vérification automatique
+
+`backend/tests/systeme/test_backup_roundtrip.py` (suite pytest, donc CI) fait un aller-retour réel : base migrée par Alembic en mode WAL avec une écriture encore dans le `-wal`, `backup.py` (en clair et chiffré), `restore.py`, puis comparaison table par table, schéma identique aux modèles et `PRAGMA integrity_check`. Une sauvegarde qui ne se restaure plus fait échouer la CI.
