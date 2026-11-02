@@ -1,6 +1,7 @@
 /** Chargé avant chaque fichier de test (vitest.config.ts) : matchers, polyfills jsdom, serveur MSW. */
 import "@testing-library/jest-dom/vitest"
 import { cleanup } from "@testing-library/react"
+import { toast } from "sonner"
 import { File as NodeFile } from "node:buffer"
 import { resetApiCache } from "@/lib/apiCache"
 import { server } from "./server"
@@ -101,6 +102,8 @@ async function settleRequests() {
 
 afterEach(async () => {
   cleanup()
+  // le store de sonner est global : sans purge, un toast du test précédent est réaffiché (doublon) au montage suivant
+  toast.dismiss()
   await settleRequests()
   server.resetHandlers()
   resetApiCache()
