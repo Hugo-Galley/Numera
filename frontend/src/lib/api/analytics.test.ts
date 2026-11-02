@@ -12,6 +12,7 @@ describeApiCases("analytics", analytics, [
   { fn: "getAnalyticsAuditById", args: [7], method: "GET", path: "/analytics/audit/7" },
   { fn: "getAnalyticsBudget", args: [Q], method: "GET", path: "/analytics/budget", query: Q },
   { fn: "getAnalyticsCalendar", args: [Q], method: "GET", path: "/analytics/calendar", query: Q },
+  { fn: "getAnalyticsCashflowProjection", args: [Q], method: "GET", path: "/analytics/cashflow-projection", query: Q },
   { fn: "getAnalyticsDiversityScanner", method: "GET", path: "/analytics/diversity-scanner" },
   { fn: "getAnalyticsInvestmentsAllocation", method: "GET", path: "/analytics/investments-allocation" },
   { fn: "getAnalyticsInvestmentsAllocationAdvanced", method: "GET", path: "/analytics/investments-allocation-advanced" },

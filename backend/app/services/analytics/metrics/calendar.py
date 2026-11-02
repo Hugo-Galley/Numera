@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 
 from sqlalchemy.orm import Session
 
+from app.core.time import end_of_today
 from app.domain.finance import get_recurring_occurrences, month_label_from_date
 from app.domain.metrics import daily_balances
 from app.integrations.currency import get_exchange_rates
@@ -67,6 +68,7 @@ def _projected_events(db: Session, start: datetime, end: datetime, account_id: i
                 "type": rd.type,
                 "category_id": rd.category_id,
                 "is_projected": True,
+                "is_upcoming": True,
                 "recurring_id": rd.id,
                 "currency": rd.currency,
                 "account_id": rd.account_id,
@@ -116,6 +118,7 @@ def _real_events(real_txs: list, real_inv_txs: list) -> list[dict]:
         "type": tx.type,
         "category_id": tx.category_id,
         "is_projected": False,
+        "is_upcoming": tx.date >= end_of_today(),
         "currency": tx.currency,
         "account_id": tx.account_id,
         "running_balance": getattr(tx, "running_balance", None),
@@ -129,6 +132,7 @@ def _real_events(real_txs: list, real_inv_txs: list) -> list[dict]:
         "type": tx.type,
         "category_id": None,
         "is_projected": False,
+        "is_upcoming": tx.date >= end_of_today(),
         "currency": tx.currency,
         "account_id": tx.account_id,
         "ticker": getattr(tx, "ticker", None),

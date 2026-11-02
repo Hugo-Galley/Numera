@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowRightLeft, ArrowUp, HandCoins, Repeat, Split } from "lucide-react"
+import { ArrowDown, ArrowRightLeft, ArrowUp, CalendarClock, HandCoins, Repeat, Split } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -66,7 +66,7 @@ export function TransactionsTable({ ctx }: { ctx: AccountDetailView }) {
         </TableHeader>
           <TableBody>
             {filteredTransactions.map((tx) => (
-              <TableRow key={tx.id}>
+              <TableRow key={tx.id} className={tx.is_upcoming ? "bg-slate-50/60" : undefined}>
                 <TableCell>
                   <Checkbox 
                     checked={selectedIds.includes(tx.id)}
@@ -92,6 +92,7 @@ export function TransactionsTable({ ctx }: { ctx: AccountDetailView }) {
                       )}
                       <span className="font-bold text-slate-900">{tx.merchant_obj?.name || tx.merchant}</span>
                       {tx.is_recurring && <Repeat className="h-3 w-3 text-indigo-500" />}
+                      {tx.is_upcoming && <Badge variant="outline" className="shrink-0 gap-1 whitespace-nowrap border-none bg-sky-50 px-1.5 py-0 text-[10px] text-sky-700"><CalendarClock className="h-3 w-3" />À venir</Badge>}
                     </div>
                     {tx.note && <span className="text-[10px] text-slate-400 truncate max-w-[200px]">{tx.note}</span>}
                     {tx.merchant_obj && tx.merchant_obj.name !== tx.merchant && (

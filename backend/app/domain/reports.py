@@ -131,3 +131,21 @@ def simulate_cashflow(events: list[Any], current_bal: float, now: datetime,
         points.append(ProjectionPoint(date=day.date().isoformat(), balance=round(simulated_bal, 2), change=round(daily_change, 2)))
         day += timedelta(days=1)
     return points, simulated_bal, low_point, low_point_date
+
+
+DUPLICATE_WINDOW_DAYS = 3
+
+
+def flag_possible_duplicates(events: list[Any]) -> None:
+    """Marque (`possible_duplicate`) une saisie à venir et une échéance récurrente de même sens et même montant, à ≤ 3 jours.
+
+    Typiquement : un loyer saisi à la main alors qu'une récurrence le prévoit aussi. Rien n'est fusionné.
+    """
+    recurring = [e for e in events if e.type == "recurring"]
+    for scheduled in (e for e in events if e.type == "scheduled"):
+        day = datetime.fromisoformat(scheduled.date).date()
+        for other in recurring:
+            same_amount = abs(other.amount - scheduled.amount) <= 0.01
+            near = abs((datetime.fromisoformat(other.date).date() - day).days) <= DUPLICATE_WINDOW_DAYS
+            if same_amount and near and other.is_income == scheduled.is_income:
+                scheduled.possible_duplicate = other.possible_duplicate = True

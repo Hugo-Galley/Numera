@@ -1,4 +1,4 @@
-import { ArrowRightLeft, HandCoins, Repeat } from "lucide-react"
+import { ArrowRightLeft, CalendarClock, HandCoins, Repeat } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
 import { CompanyLogo } from "@/components/ui/CompanyLogo"
@@ -50,6 +50,7 @@ export function TransactionsMobileList({ ctx }: { ctx: AccountDetailView }) {
                 <div className="mt-1 flex flex-wrap items-center justify-between gap-x-2 gap-y-0.5 text-xs text-slate-500">
                   <div className="flex min-w-0 flex-wrap items-center gap-x-1.5">
                     <span className="shrink-0">{format(new Date(tx.date), "dd/MM/yy")}</span>
+                    {tx.is_upcoming && <Badge variant="outline" className="shrink-0 gap-1 whitespace-nowrap border-none bg-sky-50 px-1.5 py-0 text-[10px] text-sky-700"><CalendarClock className="h-3 w-3" />À venir</Badge>}
                     <span className="text-slate-300">·</span>
                     {tx.type === "Solde Initial" ? (
                       <span>Solde Initial</span>

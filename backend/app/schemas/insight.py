@@ -78,6 +78,8 @@ class ProjectionEvent(BaseModel):
     amount: float
     type: str  # "recurring", "scheduled"
     is_income: bool
+    transaction_id: int | None = None  # "scheduled" : la transaction saisie à venir
+    possible_duplicate: bool = False  # saisie à venir proche d'une échéance récurrente de même montant
 
 
 class CashflowProjection(BaseModel):
