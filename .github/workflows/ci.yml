@@ -39,7 +39,7 @@ jobs:
         working-directory: backend
         env:
           PYTHONPATH: .
-        run: uv run python -m pytest tests -q --cov
+        run: uv run python -m pytest tests -q -n auto --cov
 
   frontend:
     name: Frontend (tests + typecheck + build)

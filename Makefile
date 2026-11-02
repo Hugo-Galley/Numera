@@ -41,11 +41,11 @@ backend-seed-demo:
 	cd backend && DEMO_MODE=true DATABASE_URL=sqlite:///./data/demo.db PYTHONPATH=. $(PYTHON) scripts/seed_demo.py
 
 test:
-	cd backend && PYTHONPATH=. $(PYTHON) -m pytest tests/ -q
+	cd backend && PYTHONPATH=. $(PYTHON) -m pytest tests/ -q -n auto
 
 # Tests + couverture avec seuil à cliquet : backend (backend/.coveragerc) puis frontend (frontend/vitest.config.ts)
 coverage:
-	cd backend && PYTHONPATH=. $(PYTHON) -m pytest tests/ -q --cov --cov-report=term:skip-covered
+	cd backend && PYTHONPATH=. $(PYTHON) -m pytest tests/ -q -n auto --cov --cov-report=term:skip-covered
 	cd frontend && npm run coverage
 
 # Lint Python du backend (règles dans backend/ruff.toml) ; `make lint-fix` corrige ce qui est sûr
