@@ -11,9 +11,11 @@ env:
   TRIVY_IMAGE: ghcr.io/aquasecurity/trivy:0.76.1@sha256:790fd66d1697395d8693d1acaa1ea702406a20f109b6fc7bac8db623eca6c06c
   HADOLINT_IMAGE: hadolint/hadolint:v2.14.0@sha256:27086352fd5e1907ea2b934eb1023f217c5ae087992eb59fde121dce9c9ff21e
 
+# PR : un nouveau push annule la CI en cours de la même PR. main et release/** : une CI par commit (groupe = SHA,
+# jamais annulée) ; c'est le filet qui remplace l'obligation « branche à jour » des rulesets (test_ci_concurrency.py).
 concurrency:
-  group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  group: ci-${{ github.event_name == 'pull_request' && github.ref || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   backend:
