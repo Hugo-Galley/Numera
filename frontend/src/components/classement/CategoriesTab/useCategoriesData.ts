@@ -1,8 +1,9 @@
 import { toast } from "sonner"
 import { useConfirm } from "@/providers/ConfirmProvider"
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useSubmit } from "@/hooks/useSubmit"
 import { Category } from "./types"
+import { sankeyGroups } from "./SankeyGroupSelect"
 import { deleteCategoriesById, getCategories, patchCategoriesById, postCategories } from "@/lib/api/classement"
 
 /** Chargement des catégories, création, modification, archivage et suppression. */
@@ -106,6 +107,8 @@ export function useCategoriesData() {
     }
   })
 
+  const sankeyGroupOptions = useMemo(() => sankeyGroups(categories), [categories])
+
   const [showArchivedCats, setShowArchivedCats] = useState(false)
 
   const handleToggleArchiveCategory = async (cat: Category) => {
@@ -129,5 +132,5 @@ export function useCategoriesData() {
     }
   }
 
-  return { confirm, categories, setCategories, loading, setLoading, newOpen, setNewOpen, newCatName, setNewCatName, newCatType, setNewCatType, newCatIcon, setNewCatIcon, newCatColor, setNewCatColor, newCatGroup, setNewCatGroup, newMonthlyLimit, setNewMonthlyLimit, newAnnualLimit, setNewAnnualLimit, editOpen, setEditOpen, editingCat, setEditingCat, editCatName, setEditCatName, editCatType, setEditCatType, editCatIcon, setEditCatIcon, editCatColor, setEditCatColor, editCatGroup, setEditCatGroup, editMonthlyLimit, setEditMonthlyLimit, editAnnualLimit, setEditAnnualLimit, loadCategories, handleAddCategory, handleAddCategoryBusy, handleEditClick, handleUpdateCategory, handleUpdateCategoryBusy, showArchivedCats, setShowArchivedCats, handleToggleArchiveCategory, handleDeleteCategory }
+  return { confirm, categories, sankeyGroupOptions, setCategories, loading, setLoading, newOpen, setNewOpen, newCatName, setNewCatName, newCatType, setNewCatType, newCatIcon, setNewCatIcon, newCatColor, setNewCatColor, newCatGroup, setNewCatGroup, newMonthlyLimit, setNewMonthlyLimit, newAnnualLimit, setNewAnnualLimit, editOpen, setEditOpen, editingCat, setEditingCat, editCatName, setEditCatName, editCatType, setEditCatType, editCatIcon, setEditCatIcon, editCatColor, setEditCatColor, editCatGroup, setEditCatGroup, editMonthlyLimit, setEditMonthlyLimit, editAnnualLimit, setEditAnnualLimit, loadCategories, handleAddCategory, handleAddCategoryBusy, handleEditClick, handleUpdateCategory, handleUpdateCategoryBusy, showArchivedCats, setShowArchivedCats, handleToggleArchiveCategory, handleDeleteCategory }
 }

@@ -5,11 +5,12 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { COLOR_OPTIONS } from "./types"
+import { SankeyGroupSelect } from "./SankeyGroupSelect"
 import type { CategoriesTabCtx } from "./useCategoriesTab"
 
 /** Dialogue de modification d'une catégorie. */
 export function EditCategoryDialog({ ctx }: { ctx: CategoriesTabCtx }) {
-  const { editAnnualLimit, editCatColor, editCatGroup, editCatIcon, editCatName, editCatType, editMonthlyLimit, editOpen, handleUpdateCategory, handleUpdateCategoryBusy, setEditAnnualLimit, setEditCatColor, setEditCatGroup, setEditCatIcon, setEditCatName, setEditCatType, setEditMonthlyLimit, setEditOpen } = ctx
+  const { sankeyGroupOptions, editAnnualLimit, editCatColor, editCatGroup, editCatIcon, editCatName, editCatType, editMonthlyLimit, editOpen, handleUpdateCategory, handleUpdateCategoryBusy, setEditAnnualLimit, setEditCatColor, setEditCatGroup, setEditCatIcon, setEditCatName, setEditCatType, setEditMonthlyLimit, setEditOpen } = ctx
   return (
     <>
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
@@ -46,13 +47,7 @@ export function EditCategoryDialog({ ctx }: { ctx: CategoriesTabCtx }) {
 
                   <div className="grid gap-2">
                   <Label htmlFor="edit-group" className="text-xs font-bold uppercase tracking-wider text-slate-500">Groupe (pour Sankey)</Label>
-                  <Input 
-                  id="edit-group" 
-                  placeholder="Ex: Vie courante, Loisirs..." 
-                  value={editCatGroup}
-                  onChange={(e) => setEditCatGroup(e.target.value)}
-                  className="bg-slate-50 border-slate-200"
-                  />
+                  <SankeyGroupSelect id="edit-group" value={editCatGroup} onChange={setEditCatGroup} groups={sankeyGroupOptions} />
                   </div>
 
                   <div className="grid gap-2">
