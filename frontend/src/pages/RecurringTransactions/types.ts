@@ -53,6 +53,7 @@ export type RecurringTransaction = {
   geographic_zone?: string | null
   ticker?: string | null
   isin?: string | null
+  security_name?: string | null
   quantity?: number | null
   unit_price?: number | null
   whole_shares?: boolean

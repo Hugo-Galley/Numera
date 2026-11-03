@@ -3,7 +3,9 @@ from datetime import datetime
 from sqlalchemy.orm import Session
 
 from app.models.account import Account
+from app.models.etf_profile import EtfProfile
 from app.models.investment_transaction import InvestmentTransaction
+from app.models.portfolio_holding import PortfolioHolding
 from app.models.recurring_transaction import RecurringTransaction
 from app.models.salary_config import SalaryConfig
 from app.models.transaction import Transaction
@@ -31,6 +33,24 @@ def get_rule(db: Session, rule_id: int) -> RecurringTransaction | None:
 
 def list_page(db: Session, skip: int, limit: int) -> list[RecurringTransaction]:
     return db.query(RecurringTransaction).offset(skip).limit(limit).all()
+
+
+def security_name_sources(
+    db: Session, tickers: set[str], profile_ids: set[int]
+) -> tuple[dict[int, str], dict[str, str], dict[str, str]]:
+    """Noms lisibles des titres, en 3 requêtes groupées : profils ETF par id, profils ETF par ticker,
+    positions par ticker (`asset_name`)."""
+    by_id: dict[int, str] = {}
+    profile_by_ticker: dict[str, str] = {}
+    holding_by_ticker: dict[str, str] = {}
+    if profile_ids:
+        by_id = dict(db.query(EtfProfile.id, EtfProfile.name).filter(EtfProfile.id.in_(profile_ids)).all())
+    if tickers:
+        profile_by_ticker = dict(db.query(EtfProfile.ticker, EtfProfile.name).filter(EtfProfile.ticker.in_(tickers)).all())
+        holding_by_ticker = dict(
+            db.query(PortfolioHolding.ticker, PortfolioHolding.asset_name).filter(PortfolioHolding.ticker.in_(tickers)).all()
+        )
+    return by_id, profile_by_ticker, holding_by_ticker
 
 
 def transfers_due(db: Session, now: datetime) -> list[Transaction]:

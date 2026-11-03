@@ -58,6 +58,8 @@ export type Transaction = {
   is_exceptional?: boolean
   reimbursement_offset?: number
   reimbursement_expected?: number
+  /** Saisie datée après aujourd'hui : ne compte dans aucun solde ni total avant sa date (calculé par le backend). */
+  is_upcoming?: boolean
   has_claims?: boolean
   splits?: (SplitPart & { category?: Category | null })[]
 }

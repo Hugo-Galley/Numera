@@ -80,9 +80,9 @@ def test_missing_salary_does_not_stretch_period(db_session: Session, setup):
     courant = setup["courant"]
     _tx(db_session, courant, datetime(2026, 12, 26), "Entree", 2000.0, "Salaire")
     db_session.commit()
-    assert budget_period.period_bounds(db_session, 2026, 10) == (datetime(2026, 9, 26), datetime(2026, 10, 26))
+    assert budget_period.period_window(db_session, 2026, 10) == (datetime(2026, 9, 26), datetime(2026, 10, 26))
     # Le mois sans salaire démarre où la période précédente s'arrête (aucun jour sans période, audit A1)
-    assert budget_period.period_bounds(db_session, 2026, 11) == (datetime(2026, 10, 26), datetime(2026, 11, 26))
+    assert budget_period.period_window(db_session, 2026, 11) == (datetime(2026, 10, 26), datetime(2026, 11, 26))
 
 
 def test_salary_imported_with_employer_label_is_detected_by_category(db_session: Session):

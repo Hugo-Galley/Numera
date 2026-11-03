@@ -1,7 +1,8 @@
 from datetime import datetime
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, computed_field
 
+from app.core.time import end_of_today
 from app.schemas.category import CategoryRead
 from app.schemas.merchant import MerchantRead
 from app.schemas.tag import TagRead
@@ -117,6 +118,12 @@ class TransactionRead(TransactionBase):
     splits: list[TransactionSplitRead] = []
 
     model_config = {"from_attributes": True, "populate_by_name": True}
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def is_upcoming(self) -> bool:
+        """Saisie datée après aujourd'hui : elle ne compte dans aucun solde ni total avant sa date."""
+        return self.date >= end_of_today()
 
 
 class TransferCandidate(BaseModel):

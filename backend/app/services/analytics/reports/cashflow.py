@@ -1,11 +1,12 @@
 """Projection de trésorerie (échéances récurrentes à venir)."""
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 
 from sqlalchemy.orm import Session
 
 from app.core.errors import NotFoundError
+from app.core.time import end_of_today
 from app.domain.finance import get_recurring_occurrences, is_lapsed
-from app.domain.reports import simulate_cashflow
+from app.domain.reports import flag_possible_duplicates, simulate_cashflow
 from app.integrations.currency import get_exchange_rates
 from app.models.recurring_transaction import RecurringTransaction
 from app.repositories.analytics import metrics as salary_repo
@@ -22,8 +23,10 @@ async def compute_cashflow_projection(db: Session, days: int = 30, account_id: i
     end_date = now + timedelta(days=days)
     rates = await get_exchange_rates("EUR")
     current_bal, counted_ids = _current_balance(db, account_id, rates)
-    events = _projected_events(db, account_id, counted_ids, rates, now, end_date)
+    scheduled, entered = _scheduled_events(db, account_id, rates, end_date)
+    events = scheduled + _projected_events(db, account_id, counted_ids, rates, now, end_date, entered)
     events.sort(key=lambda x: x.date)
+    flag_possible_duplicates(events)
     points, simulated_bal, low_point, low_point_date = simulate_cashflow(events, current_bal, now, end_date)
     return CashflowProjection(
         points=points,
@@ -43,7 +46,7 @@ def _current_balance(db: Session, account_id: int | None, rates: dict) -> tuple[
     if account_id:
         if not repo.get_account(db, account_id):
             raise NotFoundError("Account not found")
-        last_tx = repo.last_transaction(db, account_id)
+        last_tx = repo.last_transaction(db, account_id, before=end_of_today())
         if last_tx:
             current_bal = float(last_tx.running_balance)
         return current_bal, counted_ids
@@ -51,15 +54,32 @@ def _current_balance(db: Session, account_id: int | None, rates: dict) -> tuple[
     for acc in repo.active_accounts(db):
         if tr_accounts and acc.id in tr_accounts:
             continue
-        last_tx = repo.last_transaction(db, acc.id)
+        last_tx = repo.last_transaction(db, acc.id, before=end_of_today())
         if last_tx:
             current_bal += float(last_tx.running_balance) / rates.get(acc.currency, 1.0)
             counted_ids.add(acc.id)
     return current_bal, counted_ids
 
 
+def _scheduled_events(db: Session, account_id: int | None, rates: dict,
+                      end_date: datetime) -> tuple[list[ProjectionEvent], set[tuple[int, date]]]:
+    """Transactions saisies à l'avance (après aujourd'hui) et les échéances récurrentes qu'elles réalisent déjà."""
+    tr_accounts = set() if account_id else ticket_restaurant_account_ids(db)
+    currencies = {acc.id: acc.currency for acc in repo.active_accounts(db)}
+    events: list[ProjectionEvent] = []
+    entered: set[tuple[int, date]] = set()
+    for tx in repo.upcoming_transactions(db, account_id, tr_accounts, end_of_today(), end_date):
+        # Vue globale : montant converti en EUR (le montant stocké est dans la devise du compte)
+        amount = float(tx.amount) if account_id else float(tx.amount) / rates.get(currencies.get(tx.account_id, "EUR"), 1.0)
+        events.append(ProjectionEvent(date=tx.date.isoformat(), name=tx.merchant, amount=amount, type="scheduled",
+                                      is_income=tx.type in INCOME_TYPES, transaction_id=tx.id))
+        if tx.recurring_transaction_id is not None:
+            entered.add((tx.recurring_transaction_id, tx.date.date()))
+    return events, entered
+
+
 def _projected_events(db: Session, account_id: int | None, counted_ids: set[int], rates: dict,
-                      now: datetime, end_date: datetime) -> list[ProjectionEvent]:
+                      now: datetime, end_date: datetime, entered: set[tuple[int, date]]) -> list[ProjectionEvent]:
     tr_accounts = set() if account_id else ticket_restaurant_account_ids(db)
     events: list[ProjectionEvent] = []
     for rd in repo.active_recurrings(db, account_id, tr_accounts):
@@ -70,6 +90,8 @@ def _projected_events(db: Session, account_id: int | None, counted_ids: set[int]
         if is_lapsed(rd.frequency, repo.last_occurrence(db, rd.id), now):
             continue
         for occ in get_recurring_occurrences(rd, now, end_date):
+            if (rd.id, occ.date()) in entered:  # échéance déjà saisie à la main : ne pas la compter deux fois
+                continue
             amount_target = float(_projected_amount(db, rd, occ))
             # Vue globale : montant converti en EUR
             if not account_id and rd.currency != "EUR":

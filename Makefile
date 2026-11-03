@@ -12,12 +12,14 @@ setup:
 	./setup.sh
 
 dev:
+	scripts/check_volumes.sh backend/data backups
 	docker compose --env-file .env -f infra/docker-compose.yml up --build
 
 down:
 	docker compose --env-file .env -f infra/docker-compose.yml down
 
 prod:
+	scripts/check_volumes.sh backend/data backups
 	docker compose --env-file .env -f docker-compose.prod.yml up -d --build
 
 prod-down:
@@ -25,6 +27,7 @@ prod-down:
 
 # Instance de démonstration publique (données fictives, base séparée, port 8090)
 demo:
+	scripts/check_volumes.sh backend/data-demo
 	docker compose --env-file .env -p numera-demo -f docker-compose.demo.yml up -d --build
 
 demo-down:

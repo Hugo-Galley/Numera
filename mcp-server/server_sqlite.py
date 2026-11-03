@@ -28,7 +28,7 @@ from typing import Any
 import urllib.request
 import urllib.error
 
-from mcp.server.fastmcp import FastMCP
+from mcp.server.mcpserver import MCPServer
 
 
 # ─── Configuration ───────────────────────────────────────────────────────────
@@ -52,7 +52,7 @@ logger = logging.getLogger("mcp-suivi-budget")
 
 # ─── Initialisation du serveur MCP ───────────────────────────────────────────
 
-mcp = FastMCP(SERVER_NAME)
+mcp = MCPServer(SERVER_NAME)
 
 # ─── Helpers DB ──────────────────────────────────────────────────────────────
 

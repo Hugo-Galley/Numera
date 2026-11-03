@@ -9,10 +9,13 @@ immédiatement, le serveur MCP ne détient aucun secret.
 import hashlib
 import json
 import time
+from contextvars import ContextVar
 
 import httpx
 
 MCP_TOKEN_PREFIX = "nmr_"
+# Token MCP de la requête en cours, lu par les outils pour appeler l'API en son nom
+current_token: ContextVar[str | None] = ContextVar("mcp_current_token", default=None)
 # Durée pendant laquelle une validation positive est réutilisée (évite un aller-retour par message MCP)
 VALIDATION_CACHE_SECONDS = 30
 UNAUTHORIZED_BODY = json.dumps(
@@ -62,7 +65,11 @@ class BackendTokenAuthMiddleware:
 
         token = bearer_token(dict(scope.get("headers") or []))
         if token and await self._is_valid(token):
-            await self.app(scope, receive, send)
+            reset = current_token.set(token)
+            try:
+                await self.app(scope, receive, send)
+            finally:
+                current_token.reset(reset)
             return
 
         body = UNAUTHORIZED_BODY

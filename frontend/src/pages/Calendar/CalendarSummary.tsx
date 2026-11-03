@@ -17,7 +17,7 @@ export function CalendarSummary({ ctx }: { ctx: CalendarCtx }) {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {data?.events.filter(e => e.is_projected).slice(0, 5).map(ev => {
+              {data?.events.filter(e => e.is_projected || e.is_upcoming).slice(0, 5).map(ev => {
                 const isEvNegative = ev.type === "Sortie" || ev.type === "retrait"
                 return (
                   <div key={ev.id} className="flex items-center justify-between gap-3 text-sm min-h-10">
@@ -36,7 +36,7 @@ export function CalendarSummary({ ctx }: { ctx: CalendarCtx }) {
                   </div>
                 )
               })}
-              {data?.events.filter(e => e.is_projected).length === 0 && (
+              {data?.events.filter(e => e.is_projected || e.is_upcoming).length === 0 && (
                 <p className="text-xs text-slate-400 text-center py-4">Aucune échéance prévue</p>
               )}
             </div>

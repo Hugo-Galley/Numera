@@ -6,11 +6,12 @@ import { Label } from "@/components/ui/label"
 import { Plus } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { COLOR_OPTIONS } from "./types"
+import { SankeyGroupSelect } from "./SankeyGroupSelect"
 import type { CategoriesTabCtx } from "./useCategoriesTab"
 
 /** Dialogue de création d'une catégorie. */
 export function NewCategoryDialog({ ctx }: { ctx: CategoriesTabCtx }) {
-  const { handleAddCategory, handleAddCategoryBusy, newAnnualLimit, newCatColor, newCatGroup, newCatIcon, newCatName, newCatType, newMonthlyLimit, newOpen, setNewAnnualLimit, setNewCatColor, setNewCatGroup, setNewCatIcon, setNewCatName, setNewCatType, setNewMonthlyLimit, setNewOpen } = ctx
+  const { sankeyGroupOptions, handleAddCategory, handleAddCategoryBusy, newAnnualLimit, newCatColor, newCatGroup, newCatIcon, newCatName, newCatType, newMonthlyLimit, newOpen, setNewAnnualLimit, setNewCatColor, setNewCatGroup, setNewCatIcon, setNewCatName, setNewCatType, setNewMonthlyLimit, setNewOpen } = ctx
   return (
     <>
       <Dialog open={newOpen} onOpenChange={setNewOpen}>
@@ -55,13 +56,7 @@ export function NewCategoryDialog({ ctx }: { ctx: CategoriesTabCtx }) {
 
             <div className="grid gap-2">
               <Label htmlFor="new-group" className="text-xs font-bold uppercase tracking-wider text-slate-500">Groupe (pour Sankey)</Label>
-              <Input 
-                id="new-group" 
-                placeholder="Ex: Vie courante, Loisirs..." 
-                value={newCatGroup}
-                onChange={(e) => setNewCatGroup(e.target.value)}
-                className="bg-slate-50 border-slate-200"
-              />
+              <SankeyGroupSelect id="new-group" value={newCatGroup} onChange={setNewCatGroup} groups={sankeyGroupOptions} />
             </div>
 
             <div className="grid gap-2">

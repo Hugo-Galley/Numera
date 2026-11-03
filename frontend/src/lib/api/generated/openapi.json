@@ -7741,6 +7741,22 @@
       "title": "Name",
       "type": "string"
      },
+     "possible_duplicate": {
+      "default": false,
+      "title": "Possible Duplicate",
+      "type": "boolean"
+     },
+     "transaction_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Transaction Id"
+     },
      "type": {
       "title": "Type",
       "type": "string"
@@ -8920,6 +8936,17 @@
        }
       ],
       "title": "Sector"
+     },
+     "security_name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Security Name"
      },
      "start_date": {
       "format": "date-time",
@@ -11416,6 +11443,12 @@
       "title": "Is Transfer Ignored",
       "type": "boolean"
      },
+     "is_upcoming": {
+      "description": "Saisie datée après aujourd'hui : elle ne compte dans aucun solde ni total avant sa date.",
+      "readOnly": true,
+      "title": "Is Upcoming",
+      "type": "boolean"
+     },
      "link_origin": {
       "anyOf": [
        {
@@ -11603,7 +11636,8 @@
      "amount",
      "id",
      "month_label",
-     "running_balance"
+     "running_balance",
+     "is_upcoming"
     ],
     "title": "TransactionRead",
     "type": "object"

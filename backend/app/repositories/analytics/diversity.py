@@ -1,4 +1,6 @@
 """Lectures du scanner de diversification : positions et dernière valeur connue des comptes actifs."""
+from datetime import datetime
+
 from sqlalchemy.orm import Session
 
 from app.models.account import Account
@@ -27,10 +29,9 @@ def latest_snapshot(db: Session, account_id: int) -> BalanceSnapshot | None:
     )
 
 
-def last_transaction(db: Session, account_id: int) -> Transaction | None:
-    return (
-        db.query(Transaction)
-        .filter(Transaction.account_id == account_id)
-        .order_by(Transaction.date.desc(), Transaction.id.desc())
-        .first()
-    )
+def last_transaction(db: Session, account_id: int, before: datetime | None = None) -> Transaction | None:
+    """Dernière transaction du compte (strictement avant `before` si donné)."""
+    query = db.query(Transaction).filter(Transaction.account_id == account_id)
+    if before is not None:
+        query = query.filter(Transaction.date < before)
+    return query.order_by(Transaction.date.desc(), Transaction.id.desc()).first()
