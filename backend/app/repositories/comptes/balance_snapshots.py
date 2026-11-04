@@ -19,15 +19,6 @@ def get_account(db: Session, account_id: int) -> Account | None:
     return db.query(Account).filter(Account.id == account_id).first()
 
 
-def latest(db: Session, account_id: int) -> BalanceSnapshot | None:
-    return (
-        db.query(BalanceSnapshot)
-        .filter(BalanceSnapshot.account_id == account_id)
-        .order_by(BalanceSnapshot.date.desc(), BalanceSnapshot.id.desc())
-        .first()
-    )
-
-
 def clear_zero_points(db: Session, account_id: int, except_id: int | None = None) -> None:
     """Retire le drapeau point zéro des relevés du compte (un seul point zéro par compte)."""
     query = db.query(BalanceSnapshot).filter(

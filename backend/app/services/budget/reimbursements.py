@@ -215,39 +215,50 @@ def _label(tx: Transaction) -> str:
     return tx.merchant or tx.note or ""
 
 
-def claim_view(db: Session, claim: ReimbursementClaim) -> dict:
-    sortie = db.get(Transaction, claim.transaction_id)
-    received = claim_received(db, claim.id)
-    allocations = []
-    for a in claim.allocations:
-        entree = db.get(Transaction, a.entree_transaction_id)
-        allocations.append({
-            "id": a.id, "entree_id": a.entree_transaction_id, "amount": cents(a.amount),
-            "date": entree.date if entree else None, "label": _label(entree) if entree else None,
-            "account_id": entree.account_id if entree else None,
+def claim_views(db: Session, claims: list[ReimbursementClaim]) -> list[dict]:
+    """Vue de chaque créance : totaux, dépense et affectations lus par lot (3 requêtes quel que soit le nombre de créances)."""
+    received_by_id = repo.received_by_claim(db, [c.id for c in claims])
+    tx_ids = {c.transaction_id for c in claims} | {a.entree_transaction_id for c in claims for a in c.allocations}
+    txs = repo.transactions_with_currency(db, tx_ids)
+    views = []
+    for claim in claims:
+        sortie, currency = txs[claim.transaction_id]
+        received = cents(received_by_id.get(claim.id, 0.0))
+        allocations = []
+        for a in claim.allocations:
+            entree = txs.get(a.entree_transaction_id, (None, ""))[0]
+            allocations.append({
+                "id": a.id, "entree_id": a.entree_transaction_id, "amount": cents(a.amount),
+                "date": entree.date if entree else None, "label": _label(entree) if entree else None,
+                "account_id": entree.account_id if entree else None,
+            })
+        views.append({
+            "id": claim.id,
+            "debtor": claim.debtor,
+            "expected_amount": cents(claim.expected_amount),
+            "received": received,
+            "remaining": cents(claim.expected_amount - received),
+            "note": claim.note,
+            "created_at": claim.created_at,
+            "currency": currency,
+            "expense": {
+                "id": sortie.id, "account_id": sortie.account_id, "date": sortie.date,
+                "label": _label(sortie), "amount": cents(sortie.amount),
+            },
+            "allocations": allocations,
         })
-    return {
-        "id": claim.id,
-        "debtor": claim.debtor,
-        "expected_amount": cents(claim.expected_amount),
-        "received": received,
-        "remaining": cents(claim.expected_amount - received),
-        "note": claim.note,
-        "created_at": claim.created_at,
-        "currency": account_currency(db, sortie),
-        "expense": {
-            "id": sortie.id, "account_id": sortie.account_id, "date": sortie.date,
-            "label": _label(sortie), "amount": cents(sortie.amount),
-        },
-        "allocations": allocations,
-    }
+    return views
+
+
+def claim_view(db: Session, claim: ReimbursementClaim) -> dict:
+    return claim_views(db, [claim])[0]
 
 
 def list_claims(db: Session, status: str = "open", debtor: str | None = None) -> list[dict]:
     q = db.query(ReimbursementClaim).join(Transaction, ReimbursementClaim.transaction_id == Transaction.id)
     if debtor:
         q = q.filter(func.lower(ReimbursementClaim.debtor) == debtor.strip().lower())
-    views = [claim_view(db, c) for c in q.order_by(Transaction.date.desc(), ReimbursementClaim.id).all()]
+    views = claim_views(db, q.order_by(Transaction.date.desc(), ReimbursementClaim.id).all())
     if status == "open":
         return [v for v in views if v["remaining"] > EPS]
     if status == "settled":

@@ -34,7 +34,7 @@
   "app/services/budget/benefits.py": 4,
   "app/services/budget/merchants.py": 2,
   "app/services/budget/recurring.py": 9,
-  "app/services/budget/reimbursements.py": 11,
+  "app/services/budget/reimbursements.py": 5,
   "app/services/budget/salary_generation.py": 1,
   "app/services/budget/transaction_writes.py": 1,
   "app/services/budget/transfers.py": 5,

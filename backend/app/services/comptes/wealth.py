@@ -19,8 +19,7 @@ from sqlalchemy.orm import Session
 from app.core.time import end_of_today
 from app.integrations.currency import get_exchange_rates
 from app.models.account import Account
-from app.models.balance_snapshot import BalanceSnapshot
-from app.models.transaction import Transaction
+from app.repositories.comptes import balances as repo
 from app.services.comptes.loans import loan_remaining
 from app.services.investissement.portfolio import positions_values_eur
 
@@ -31,39 +30,25 @@ INVESTMENT_TYPES = ("investissement", "assurance_vie")
 class AccountValue:
     value: float  # devise du compte
     value_eur: float
-    source: str  # positions | snapshot | balance | none
-
-
-def active_accounts(db: Session) -> list[Account]:
-    return db.query(Account).filter(Account.active.is_(True)).all()
-
-
-def _latest_snapshot(db: Session, account_id: int, at: datetime) -> BalanceSnapshot | None:
-    return (
-        db.query(BalanceSnapshot)
-        .filter(BalanceSnapshot.account_id == account_id, BalanceSnapshot.date < at)
-        .order_by(BalanceSnapshot.date.desc(), BalanceSnapshot.id.desc())
-        .first()
-    )
-
-
-def _latest_transaction(db: Session, account_id: int, at: datetime) -> Transaction | None:
-    return (
-        db.query(Transaction)
-        .filter(Transaction.account_id == account_id, Transaction.date < at)
-        .order_by(Transaction.date.desc(), Transaction.id.desc())
-        .first()
-    )
+    source: str  # positions | snapshot | balance | loan | none
+    as_of: datetime | None = None  # date du relevé / de la dernière opération retenue
 
 
 async def account_values(
-    db: Session, accounts: list[Account], at: datetime | None = None
+    db: Session, accounts: list[Account], at: datetime | None = None, use_positions: bool = True
 ) -> dict[int, AccountValue]:
-    """Valeur de chaque compte à `at` (borne exclusive ; fin de la journée en cours par défaut)."""
+    """Valeur de chaque compte à `at` (borne exclusive ; fin de la journée en cours par défaut).
+
+    `use_positions=False` : vue qui compare des relevés (mois d'investissements) et ignore la valorisation
+    par positions. Relevés et soldes sont lus par lot (une requête chacun, quel que soit le nombre de comptes).
+    """
     at = at or end_of_today()
     rates = await get_exchange_rates("EUR")
     # Les positions n'existent que pour la valeur courante : un mois passé garde le relevé à sa date
-    positions = await positions_values_eur(db, accounts) if at >= end_of_today() else {}
+    positions = await positions_values_eur(db, accounts) if use_positions and at >= end_of_today() else {}
+    plain = [a.id for a in accounts if a.type != "credit" and a.id not in positions]
+    snapshots = repo.latest_snapshots_by_account(db, plain, at)
+    balances = repo.latest_balances_by_account(db, plain, at)
 
     values: dict[int, AccountValue] = {}
     for acc in accounts:
@@ -78,20 +63,16 @@ async def account_values(
             values[acc.id] = AccountValue(eur * rate, eur, "positions")
             continue
 
-        snap = _latest_snapshot(db, acc.id, at)
-        tx = _latest_transaction(db, acc.id, at)
-        if acc.type in INVESTMENT_TYPES:
-            # Un relevé fait foi ; le solde des opérations ne sert que sans relevé
-            chosen = snap or tx
-        elif snap and tx:
-            chosen = snap if snap.date >= tx.date else tx
-        else:
-            chosen = snap or tx
+        snap, tx = snapshots.get(acc.id), balances.get(acc.id)
+        # Investissement : un relevé fait foi, le solde des opérations ne sert que sans relevé ; sinon le plus récent des deux
+        use_snapshot = snap is not None and (acc.type in INVESTMENT_TYPES or tx is None or snap.date >= tx.date)
 
-        if chosen is None:
-            values[acc.id] = AccountValue(0.0, 0.0, "none")
-        elif isinstance(chosen, BalanceSnapshot):
-            values[acc.id] = AccountValue(float(chosen.current_value or 0.0), float(chosen.current_value or 0.0) / rate, "snapshot")
+        if snap is not None and use_snapshot:
+            value = float(snap.current_value or 0.0)
+            values[acc.id] = AccountValue(value, value / rate, "snapshot", snap.date)
+        elif tx is not None:
+            value = float(tx.running_balance or 0.0)
+            values[acc.id] = AccountValue(value, value / rate, "balance", tx.date)
         else:
-            values[acc.id] = AccountValue(float(chosen.running_balance or 0.0), float(chosen.running_balance or 0.0) / rate, "balance")
+            values[acc.id] = AccountValue(0.0, 0.0, "none")
     return values

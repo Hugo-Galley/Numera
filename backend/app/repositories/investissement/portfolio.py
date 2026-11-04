@@ -58,15 +58,6 @@ def latest_snapshot_until(db: Session, account_id: int, until: datetime) -> Bala
     )
 
 
-def latest_snapshot(db: Session, account_id: int) -> BalanceSnapshot | None:
-    return (
-        db.query(BalanceSnapshot)
-        .filter(BalanceSnapshot.account_id == account_id)
-        .order_by(BalanceSnapshot.date.desc(), BalanceSnapshot.id.desc())
-        .first()
-    )
-
-
 def snapshots_before(db: Session, account_id: int, day: datetime) -> list[BalanceSnapshot]:
     return (
         db.query(BalanceSnapshot)

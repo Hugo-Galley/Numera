@@ -1,7 +1,6 @@
 """Requêtes des investissements : comptes titres, relevés, flux (opérations et transactions), répartitions."""
 from datetime import datetime
 
-from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.models.account import Account
@@ -31,63 +30,11 @@ def securities_accounts(db: Session) -> list[Account]:
     return db.query(Account).filter(Account.type == "investissement", Account.active.is_(True)).order_by(Account.id).all()
 
 
-def latest_snapshot_rows(db: Session, end: datetime) -> list:
-    """Dernier relevé de chaque compte à `end` : (account_id, current_value, date)."""
-    latest_dates = (
-        db.query(BalanceSnapshot.account_id.label("account_id"), func.max(BalanceSnapshot.date).label("max_date"))
-        .filter(BalanceSnapshot.date <= end)
-        .group_by(BalanceSnapshot.account_id)
-        .subquery()
-    )
-    latest_ids = (
-        db.query(func.max(BalanceSnapshot.id).label("max_id"))
-        .join(
-            latest_dates,
-            (BalanceSnapshot.account_id == latest_dates.c.account_id) & (BalanceSnapshot.date == latest_dates.c.max_date),
-        )
-        .group_by(BalanceSnapshot.account_id)
-        .subquery()
-    )
-    return (
-        db.query(BalanceSnapshot.account_id, BalanceSnapshot.current_value, BalanceSnapshot.date)
-        .join(latest_ids, BalanceSnapshot.id == latest_ids.c.max_id)
-        .all()
-    )
-
-
-def last_transaction(db: Session, account_id: int, until: datetime | None = None, before: datetime | None = None) -> Transaction | None:
-    """Dernière transaction du compte (jusqu'à `until` inclus, ou strictement avant `before`)."""
-    query = db.query(Transaction).filter(Transaction.account_id == account_id)
-    if until is not None:
-        query = query.filter(Transaction.date <= until)
-    if before is not None:
-        query = query.filter(Transaction.date < before)
-    return query.order_by(Transaction.date.desc(), Transaction.id.desc()).first()
-
-
-def last_snapshot_before(db: Session, account_id: int, before: datetime) -> BalanceSnapshot | None:
-    return (
-        db.query(BalanceSnapshot)
-        .filter(BalanceSnapshot.account_id == account_id, BalanceSnapshot.date < before)
-        .order_by(BalanceSnapshot.date.desc(), BalanceSnapshot.id.desc())
-        .first()
-    )
-
-
 def latest_zero_point(db: Session, account_id: int, until: datetime | None = None) -> BalanceSnapshot | None:
     query = db.query(BalanceSnapshot).filter(BalanceSnapshot.account_id == account_id, BalanceSnapshot.is_zero_point.is_(True))
     if until is not None:
         query = query.filter(BalanceSnapshot.date <= until)
     return query.order_by(BalanceSnapshot.date.desc(), BalanceSnapshot.id.desc()).first()
-
-
-def latest_snapshot(db: Session, account_id: int) -> BalanceSnapshot | None:
-    return (
-        db.query(BalanceSnapshot)
-        .filter(BalanceSnapshot.account_id == account_id)
-        .order_by(BalanceSnapshot.date.desc(), BalanceSnapshot.id.desc())
-        .first()
-    )
 
 
 def snapshots(db: Session, account_id: int, since: datetime | None = None) -> list[BalanceSnapshot]:

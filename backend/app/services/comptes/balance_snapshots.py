@@ -5,6 +5,7 @@ from app.core.time import utcnow_naive
 from app.models.account import Account
 from app.models.balance_snapshot import BalanceSnapshot
 from app.repositories.comptes import balance_snapshots as repo
+from app.repositories.comptes import balances
 from app.schemas.investment import BalanceSnapshotCreate, BalanceSnapshotUpdate, SetZeroPointRequest
 
 VALUED_ACCOUNT_TYPES = ("investissement", "assurance_vie")
@@ -68,7 +69,7 @@ def update_balance_snapshot(db: Session, snapshot_id: int, payload: BalanceSnaps
 def set_zero_point(db: Session, payload: SetZeroPointRequest) -> BalanceSnapshot:
     _require_valued_account(db, payload.account_id)
     repo.clear_zero_points(db, payload.account_id)
-    latest_snapshot = repo.latest(db, payload.account_id)
+    latest_snapshot = balances.latest_snapshot(db, payload.account_id)
     snapshot = BalanceSnapshot(
         account_id=payload.account_id,
         date=payload.date or utcnow_naive(),

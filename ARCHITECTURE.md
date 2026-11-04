@@ -83,6 +83,8 @@ Architecture en couches. Domaine modèle : `accounts` (`controllers/comptes/acco
 | `integrations/` | Appels externes : `currency` (Frankfurter), `notifications` (canaux ntfy/Telegram), `logos`, `backup`, `yahoo_finance` (recherche, cours, composition des ETF). | `app.controllers`, `app.services`, `app.repositories` |
 | `core/` | Transverse uniquement (config, sécurité, logs, erreurs, rate limit, TOTP, jetons MCP, migrations, temps) ; n'importe que `core`, `models` et `db`. | `app.controllers`, `app.services`, `app.repositories`, `app.domain`, `app.integrations`, `app.schemas` |
 
+Valeur d'un compte : source unique `services/comptes/wealth.py::account_values` (positions → relevé → solde, borne `at` exclusive), lisant relevés et soldes par lot via `repositories/comptes/balances.py` (`latest_snapshot`, `latest_transaction`, `latest_*_by_account`, `active_accounts`). La page Comptes, `/tax/overview`, le scanner de diversité, la projection de trésorerie, la revue de mois et `/analytics/investments` l'utilisent ; aucun ne recopie la règle de repli.
+
 Garde-fous (cliquet, les baselines ne font que diminuer) : `backend/tests/garde_fous/test_architecture.py` + `architecture_baseline.txt` (règles ci-dessus, imports locaux compris, imports vers un module `app.*` introuvable, `commit()` dans `repositories/`) ; `scripts/quality/check_code_size.py` + `scripts/quality/baselines/code_size_baseline.json` (plafonds 400 lignes par fichier Python, 80 par fonction, 350 par fichier TS/TSX hors `components/ui`), lancé par `make check-size` / `make validate` et par pytest. État : les deux baselines sont vides (29/10/2026).
 
 ## Backend

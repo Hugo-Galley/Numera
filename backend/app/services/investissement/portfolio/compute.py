@@ -13,6 +13,7 @@ from app.domain.performance import xirr
 from app.domain.portfolio import MIN_XIRR_DAYS, PRE_INVENTORY_RATIO, uses_positions
 from app.integrations.currency import CurrencyConversionError, get_exchange_rates
 from app.models.account import Account
+from app.repositories.comptes import balances
 from app.repositories.investissement import portfolio as repo
 from app.services.investissement.holdings.replay import replay_account
 from app.services.investissement.market.quotes import get_market_quotes, persist_fetched_prices
@@ -197,7 +198,7 @@ async def _compute_portfolio(db: Session, account: Account, *, fetch: bool, hist
         "period_days": period_days, "fees": fees,
     }
     return _result(account, rate, valued, baseline_date, positions, figures, realized, dividends,
-                   (series, twr_value, reconciliation), repo.latest_snapshot(db, account.id), warnings, xirr_flows)
+                   (series, twr_value, reconciliation), balances.latest_snapshot(db, account.id), warnings, xirr_flows)
 
 
 async def positions_values_eur(db: Session, accounts: list[Account]) -> dict[int, float]:
@@ -208,6 +209,9 @@ async def positions_values_eur(db: Session, accounts: list[Account]) -> dict[int
     """
     values: dict[int, float] = {}
     for account in accounts:
+        # Seuls les comptes titres / assurance-vie en mode « positions » sont rejoués (aucune requête pour les autres)
+        if account.type not in ("investissement", "assurance_vie") or account.valuation_mode != "positions":
+            continue
         if uses_positions(account, await replay_account(db, account.id)):
             values[account.id] = (await compute_portfolio(db, account, history=False))["value_eur"]
     return values

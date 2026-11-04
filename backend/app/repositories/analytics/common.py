@@ -8,6 +8,7 @@ from app.core.logging import get_logger
 from app.models.account import Account
 from app.models.balance_snapshot import BalanceSnapshot
 from app.models.category import Category
+from app.models.recurring_transaction import RecurringTransaction
 from app.models.transaction import Transaction
 from app.models.transaction_split import TransactionSplit
 
@@ -152,3 +153,14 @@ def ticket_restaurant_account_ids(db: Session) -> set[int]:
         logger.warning(f"Error getting ticket restaurant accounts: {e}")
 
     return ticket_account_ids
+
+
+def active_recurrings(db: Session, account_id: int | None, tr_accounts: set[int]) -> list[RecurringTransaction]:
+    """Récurrences actives ; pour un compte, y compris les virements récurrents qui arrivent dessus."""
+    query = db.query(RecurringTransaction).filter(RecurringTransaction.is_active.is_(True))
+    if account_id:
+        query = query.filter(or_(RecurringTransaction.account_id == account_id,
+                                 RecurringTransaction.transfer_to_account_id == account_id))
+    elif tr_accounts:
+        query = query.filter(RecurringTransaction.account_id.notin_(tr_accounts))
+    return query.all()

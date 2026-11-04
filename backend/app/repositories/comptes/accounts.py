@@ -1,10 +1,7 @@
-from datetime import datetime
 
 from sqlalchemy.orm import Session
 
 from app.models.account import Account
-from app.models.balance_snapshot import BalanceSnapshot
-from app.models.transaction import Transaction
 
 
 def list_all(db: Session) -> list[Account]:
@@ -23,17 +20,3 @@ def add(db: Session, account: Account) -> None:
 def clear_main_flag(db: Session, except_id: int) -> None:
     """Un seul compte principal : retire le drapeau à tous les autres."""
     db.query(Account).filter(Account.id != except_id).update({"is_main": False})
-
-
-def latest_snapshot(db: Session, account_id: int) -> BalanceSnapshot | None:
-    return db.query(BalanceSnapshot).filter(
-        BalanceSnapshot.account_id == account_id
-    ).order_by(BalanceSnapshot.date.desc(), BalanceSnapshot.id.desc()).first()
-
-
-def latest_transaction(db: Session, account_id: int, before: datetime | None = None) -> Transaction | None:
-    """Dernière transaction du compte (strictement avant `before` si donné)."""
-    query = db.query(Transaction).filter(Transaction.account_id == account_id)
-    if before is not None:
-        query = query.filter(Transaction.date < before)
-    return query.order_by(Transaction.date.desc(), Transaction.id.desc()).first()

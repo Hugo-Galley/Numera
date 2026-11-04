@@ -1,9 +1,7 @@
-from datetime import date
-
 from sqlalchemy.orm import Session
 
 from app.core.errors import NotFoundError
-from app.core.time import end_of_today, utcnow_naive
+from app.core.time import utcnow_naive
 from app.models.account import Account
 from app.repositories.comptes import accounts as repo
 from app.schemas.account import (
@@ -15,27 +13,13 @@ from app.schemas.account import (
     ReconcileTransaction,
 )
 from app.services.comptes import reconciliation
-from app.services.comptes.loans import loan_remaining
+from app.services.comptes.wealth import account_values
 
 
-def account_balance(db: Session, account_id: int) -> float:
-    """Solde = source la plus récente entre le dernier snapshot et la dernière transaction.
-
-    Compte `credit` : −capital restant dû de son prêt à ce jour.
-    """
-    remaining = loan_remaining(db, account_id, date.today())
-    if remaining is not None:
-        return -remaining
-    latest_snap = repo.latest_snapshot(db, account_id)
-    latest_tx = repo.latest_transaction(db, account_id, before=end_of_today())
-
-    if latest_snap and (not latest_tx or latest_snap.date >= latest_tx.date):
-        return float(latest_snap.current_value)
-
-    if latest_tx:
-        return float(latest_tx.running_balance)
-
-    return 0.0
+async def account_balance(db: Session, account_id: int) -> float:
+    """Solde affiché d'un compte : sa valeur par `account_values` (source unique du patrimoine)."""
+    account = _require(db, account_id)
+    return (await account_values(db, [account]))[account_id].value
 
 
 def _require(db: Session, account_id: int) -> Account:
@@ -45,17 +29,19 @@ def _require(db: Session, account_id: int) -> Account:
     return account
 
 
-def _with_balance(db: Session, account: Account) -> Account:
-    account.balance = account_balance(db, account.id)
-    return account
+async def _with_balances(db: Session, accounts: list[Account]) -> list[Account]:
+    values = await account_values(db, accounts)
+    for account in accounts:
+        account.balance = values[account.id].value
+    return accounts
 
 
-def list_accounts(db: Session) -> list[Account]:
-    return [_with_balance(db, account) for account in repo.list_all(db)]
+async def list_accounts(db: Session) -> list[Account]:
+    return await _with_balances(db, repo.list_all(db))
 
 
-def get_account(db: Session, account_id: int) -> Account:
-    return _with_balance(db, _require(db, account_id))
+async def get_account(db: Session, account_id: int) -> Account:
+    return (await _with_balances(db, [_require(db, account_id)]))[0]
 
 
 def create_account(db: Session, payload: AccountCreate) -> Account:
@@ -84,7 +70,7 @@ def create_account(db: Session, payload: AccountCreate) -> Account:
     return account
 
 
-def update_account(db: Session, account_id: int, payload: AccountUpdate) -> Account:
+async def update_account(db: Session, account_id: int, payload: AccountUpdate) -> Account:
     account = _require(db, account_id)
     data = payload.model_dump(exclude_unset=True)
     if data.get("is_main") is True:
@@ -93,15 +79,15 @@ def update_account(db: Session, account_id: int, payload: AccountUpdate) -> Acco
         setattr(account, key, value)
     db.commit()
     db.refresh(account)
-    return _with_balance(db, account)
+    return (await _with_balances(db, [account]))[0]
 
 
-def verify_account(db: Session, account_id: int) -> Account:
+async def verify_account(db: Session, account_id: int) -> Account:
     account = _require(db, account_id)
     account.last_verified_at = utcnow_naive()
     db.commit()
     db.refresh(account)
-    return _with_balance(db, account)
+    return (await _with_balances(db, [account]))[0]
 
 
 def reconcile_account(db: Session, account_id: int, payload: ReconcileRequest) -> ReconcileResult:

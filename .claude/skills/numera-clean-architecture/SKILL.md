@@ -33,7 +33,9 @@ grep -rn "def .*<mot-clé>" backend/app/domain backend/app/services backend/app/
 | Notion | Source unique |
 |---|---|
 | Revenu | `repositories/analytics/common.py::income_criterion` |
-| Valeur de compte / patrimoine | `services/comptes/wealth.py::account_values` |
+| Valeur de compte / patrimoine / solde affiché | `services/comptes/wealth.py::account_values` (page Comptes, taxe, diversité, trésorerie, investissements : jamais de repli recopié) |
+| Dernier relevé / dernière transaction d'un compte, comptes actifs | `repositories/comptes/balances.py` (`latest_snapshot`, `latest_transaction`, versions par lot `latest_*_by_account` ; `before` exclusif) |
+| Récurrences actives | `repositories/analytics/common.py::active_recurrings` |
 | Soldes courants | `services/budget/balances.py::recalculate_running_balances` |
 | Positions titres | `services/investissement/holdings/rebuild.py::rebuild_holdings` |
 | Valorisation portefeuille | `services/investissement/portfolio/compute.py::compute_portfolio` (cache bref : `portfolio/cache.py`) |
