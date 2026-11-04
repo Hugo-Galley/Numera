@@ -193,6 +193,7 @@ def kpi_categorized_investment_rows(db: Session, label, start: datetime, end: da
         Transaction.type == "Sortie",
         Category.name.in_(INVESTMENT_CATEGORIES),
         Transaction.is_transfer == False,
+        Account.type.in_(["courant", "epargne"]),
     )
     if not account_id:
         if tr_accounts:

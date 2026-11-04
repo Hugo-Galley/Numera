@@ -5,11 +5,11 @@ from sqlalchemy.orm import Session
 
 from app.core.errors import BusinessRuleError, NotFoundError
 from app.core.time import end_of_today
-from app.domain.portfolio import uses_positions
+from app.domain.portfolio import regular_flow_direction, uses_positions
 from app.integrations.currency import convert_amount
 from app.models.account import Account
 from app.repositories.analytics import investments as repo
-from app.services.analytics.investments.flows import FEE_KEYWORDS, INTEREST_CATEGORIES, calculate_investment_flows
+from app.services.analytics.investments.flows import calculate_investment_flows
 from app.services.investissement.holdings.replay import replay_account
 from app.services.investissement.portfolio import compute_portfolio
 
@@ -160,18 +160,11 @@ async def _flows_by_day(db: Session, account: Account, baseline_date: datetime |
     transfer_legs_only = bool(txs) or repo.has_investment_operations(db, account.id)
     for tx in repo.account_transactions(db, account.id, since=baseline_date, transfer_legs_only=transfer_legs_only):
         day = by_day.setdefault(tx.date.date().isoformat(), {"versement_target": 0.0, "retrait_target": 0.0})
-        merchant_lower = (tx.merchant or "").lower()
-        if tx.type in ["Entree", "Solde Initial"]:
-            if tx.type == "Entree":
-                if tx.category and tx.category.name in INTEREST_CATEGORIES:
-                    continue
-                if "vente" in merchant_lower or "dividende" in merchant_lower:
-                    continue
-            day["versement_target"] += await convert_amount(tx.original_amount, tx.currency, account.currency, date=tx.date.date(), db=db)
-        elif tx.type == "Sortie":
-            if any(k in merchant_lower for k in FEE_KEYWORDS):
-                continue
-            day["retrait_target"] += await convert_amount(tx.original_amount, tx.currency, account.currency, date=tx.date.date(), db=db)
+        direction = regular_flow_direction(tx)
+        if direction == 0:
+            continue
+        amount_target = await convert_amount(tx.original_amount, tx.currency, account.currency, date=tx.date.date(), db=db)
+        day["versement_target" if direction > 0 else "retrait_target"] += amount_target
     return by_day
 
 

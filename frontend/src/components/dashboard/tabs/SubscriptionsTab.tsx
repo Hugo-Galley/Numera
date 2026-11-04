@@ -34,10 +34,9 @@ export function SubscriptionsTab({ subscriptions, displayCurrency }: Subscriptio
     return !isInv && sub.status !== "paused"
   })
 
-  // Total des abonnements encore prélevés (une récurrence « lapsed » n'est plus débitée depuis deux périodes)
-  const total = items
-    .filter((item: any) => item.status !== "lapsed")
-    .reduce((acc: number, item: any) => acc + (item.monthly_cost || 0), 0)
+  // Total du backend (récurrences encore prélevées, hors pause, épargne et virements)
+  const total: number = subscriptions?.total_monthly ?? 0
+  const annualTotal: number = subscriptions?.total_annual ?? 0
 
   return (
     <div className="grid grid-cols-1 gap-5 md:gap-8 lg:grid-cols-2">
@@ -51,7 +50,7 @@ export function SubscriptionsTab({ subscriptions, displayCurrency }: Subscriptio
           {displayCurrency === "EUR" && (
             <div className="flex flex-wrap gap-x-3 text-xs text-slate-500">
               <WorkHours amount={total} className="text-xs" />
-              <span className="inline-flex items-center gap-1">par an <WorkHours amount={total * 12} className="text-xs" showIcon={false} /></span>
+              <span className="inline-flex items-center gap-1">par an <WorkHours amount={annualTotal} className="text-xs" showIcon={false} /></span>
             </div>
           )}
         </CardHeader>
