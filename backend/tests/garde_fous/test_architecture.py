@@ -1,4 +1,4 @@
-"""Règles d'import entre couches (docs/superpowers/specs/2026-10-28-architecture-en-couches-design.md).
+"""Règles d'import entre couches (cf. ARCHITECTURE.md § Couches backend).
 
 Les violations existantes sont tolérées via `architecture_baseline.txt` (cliquet) : aucune nouvelle
 violation, et une entrée qui ne se produit plus doit être retirée.
