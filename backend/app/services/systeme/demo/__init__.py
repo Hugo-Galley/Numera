@@ -16,9 +16,22 @@ from app.core.logging import get_logger
 from app.db.base import Base
 from app.models.system_setting import SystemSetting
 from app.services.systeme.demo.generator import generate_demo_data
-from app.services.systeme.demo.guard import DEMO_STAMP_KEY, is_blocked_in_demo
+from app.services.systeme.demo.guard import (
+    DEMO_MAX_UPLOAD_BYTES,
+    DEMO_STAMP_KEY,
+    demo_write_allowed,
+    is_blocked_in_demo,
+)
 
-__all__ = ["DEMO_STAMP_KEY", "ensure_demo_data", "generate_demo_data", "is_blocked_in_demo", "wipe_database"]
+__all__ = [
+    "DEMO_MAX_UPLOAD_BYTES",
+    "DEMO_STAMP_KEY",
+    "demo_write_allowed",
+    "ensure_demo_data",
+    "generate_demo_data",
+    "is_blocked_in_demo",
+    "wipe_database",
+]
 
 logger = get_logger(__name__)
 

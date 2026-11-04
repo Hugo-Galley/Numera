@@ -49,6 +49,7 @@ from app.controllers.systeme.totp import router as totp_router
 from app.core.config import settings
 from app.core.errors import DomainError
 from app.core.logging import get_logger, setup_logging
+from app.core.login_events import client_ip
 from app.core.migrations import run_migrations
 from app.db.session import SessionLocal
 from app.integrations.currency import CurrencyConversionError
@@ -57,7 +58,7 @@ from app.services.budget.salary_generation import check_and_generate_pending_sal
 from app.services.investissement.etf_profiles import refresh_held_etf_profiles
 from app.services.investissement.holdings.rebuild import rebuild_due_holdings
 from app.services.investissement.market.quotes import refresh_held_prices
-from app.services.systeme.demo import ensure_demo_data, is_blocked_in_demo
+from app.services.systeme.demo import demo_write_allowed, ensure_demo_data, is_blocked_in_demo
 from app.services.systeme.notifications import run_notifications
 from app.services.systeme.seeds import seed_all
 
@@ -192,6 +193,8 @@ async def demo_guard(request: Request, call_next):
     if settings.DEMO_MODE and is_blocked_in_demo(request.method, request.url.path):
         # 403 avec un détail métier : le client n'y voit pas une session expirée (cf. lib/api.ts)
         return JSONResponse(status_code=403, content={"detail": "Action désactivée sur l'instance de démonstration"})
+    if settings.DEMO_MODE and not demo_write_allowed(request.method, client_ip(request) or "unknown"):
+        return JSONResponse(status_code=429, content={"detail": "Trop d'écritures sur l'instance de démonstration, réessayez dans une minute"})
     return await call_next(request)
 
 
