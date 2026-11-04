@@ -32,7 +32,7 @@ Terminé = vérifié par une commande lancée **maintenant**, docs à jour, comm
    | Changement | À mettre à jour |
    |---|---|
    | route, modèle, commande | `ARCHITECTURE.md` |
-   | route de lecture exposable | `mcp-server/server_api.py` (+ `mcp-server/README.md`) |
+   | route de lecture exposable | `mcp-server/numera_mcp/tools/<domaine>.py` + snapshot `tests/surface_snapshot.json` (+ `mcp-server/README.md`) |
    | règle métier | `CLAUDE.md` (règles critiques) et skill `numera-expert` |
    | convention, emplacement, procédure | `backend/CLAUDE.md` / `frontend/src/CLAUDE.md` / skill concerné |
    | notion à source unique | tableau de `numera-clean-architecture` |

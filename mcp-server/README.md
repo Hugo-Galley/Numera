@@ -2,29 +2,15 @@
 
 Serveur [MCP (Model Context Protocol)](https://modelcontextprotocol.io) permettant à Claude (Claude Code, Claude Desktop) d'interroger les données du suivi budgétaire, **en lecture seule**.
 
-Le point d'entrée `server.py` est un **dispatcher** qui lance l'un des deux serveurs :
+Le serveur est un **proxy de l'API FastAPI** : il appelle l'API avec un **token MCP** généré dans Numera et reprend les KPI calculés par le backend (exposé sur `/mcp` par Nginx). **48 outils, 4 ressources, 6 prompts.** Le point d'entrée est `server.py`, le code vit dans le package `numera_mcp/` (voir [Structure](#-structure)).
 
-| Mode | Fichier | Fonctionnement | Outils |
-|------|---------|----------------|--------|
-| **API proxy** | `server_api.py` | Appelle l'API FastAPI avec un **token MCP** généré dans Numera. Reprend les KPI calculés par le backend. Recommandé, et seul mode du `infra/docker-compose.prod.yml` (exposé sur `/mcp`). | 48 outils, 4 ressources, 6 prompts |
-| **SQLite direct** | `server_sqlite.py` | Lit la base SQLite (connexion `mode=ro`). Installation locale, **stdio uniquement**. | 20 outils, 5 ressources, 3 prompts |
-
-### Choix du mode
-
-1. `MCP_MODE=api` ou `sqlite` : mode forcé.
-2. Sinon, si `MCP_API_URL` est défini → API.
-3. Sinon, si le fichier `MCP_DB_PATH` (défaut `../backend/data/suivi_budget.db`) existe → SQLite.
-4. Sinon → API.
-
-> Règle du projet : les KPI sont calculés par le backend. Le mode SQLite recalcule certains agrégats en SQL et peut diverger ; en cas de doute, utiliser le mode API.
+> Règle du projet : les KPI sont calculés par le backend. Le serveur MCP n'a pas d'accès direct à la base et ne recalcule rien.
 
 ---
 
 ## 🧰 Outils
 
-**Lecture seule, dans les deux modes.** Aucun outil ne crée, modifie ou supprime de données, et l'API le garantit aussi : avec un token MCP, toute requête autre que `GET` reçoit un 403 (`Accès MCP en lecture seule`). Les modifications se font dans l'interface Numera.
-
-### Mode API (`server_api.py`)
+**Lecture seule.** Aucun outil ne crée, modifie ou supprime de données, et l'API le garantit aussi : avec un token MCP, toute requête autre que `GET` reçoit un 403 (`Accès MCP en lecture seule`). Les modifications se font dans l'interface Numera.
 
 **Données**
 `list_accounts`, `list_categories`, `list_transactions`, `get_transaction`, `search_transactions`, `list_merchants`, `list_recurring_transactions`, `list_savings_goals`, `list_provisions`, `list_benefits`, `list_financial_events`, `list_tags`, `list_transfer_rules`, `list_reimbursement_claims`
@@ -39,22 +25,11 @@ Le point d'entrée `server.py` est un **dispatcher** qui lance l'un des deux ser
 
 **Prompts** : `analyze_month`, `audit_subscriptions`, `budget_review`, `categorize_uncategorized` (propose des catégories, à appliquer dans l'interface), `analyze_portfolio`, `analyze_etf_lookthrough`
 
-### Mode SQLite (`server_sqlite.py`)
-
-- **Données** : `list_accounts`, `list_categories`, `list_transactions`, `get_transaction`, `search_transactions`, `list_recurring_transactions`, `list_savings_goals`, `list_tags`
-- **Analyses** : `get_budget_summary`, `get_expenses_by_category`, `get_income_vs_expenses`, `get_top_merchants`, `get_monthly_trends`, `get_account_balance_history`
-- **Investissements** : `get_investments_summary`, `get_investment_performance`, `get_investment_performance_history`, `get_investments_allocation`, `get_investments_allocation_advanced`
-- **SQL** : `execute_read_query` (SELECT uniquement, `LIMIT 200` forcé ; les tables `system_settings`, `mcp_tokens` et `login_events` sont illisibles, `ATTACH`/`PRAGMA` refusés, durée limitée à 5 s)
-- **Ressources** : `data://accounts`, `data://categories`, `data://tags`, tables et schémas de la base
-- **Prompts** : `analyze_month`, `audit_subscriptions`, `budget_review`
-
-> Le mode SQLite recalcule certains agrégats en SQL et peut diverger du backend ; toute évolution du modèle de données impose de vérifier `server_sqlite.py`.
-
 ---
 
 ## 🔑 Connexion de Claude (Code / Desktop)
 
-En production, `infra/docker-compose.prod.yml` lance `mcp-server` (mode API, transport `streamable-http`, sans état) ; Nginx l'expose sur `https://<domaine>/mcp`. Aucun port publié, aucun secret dans le conteneur.
+En production, `infra/docker-compose.prod.yml` lance `mcp-server` (transport `streamable-http`, sans état) ; Nginx l'expose sur `https://<domaine>/mcp`. Aucun port publié, aucun secret dans le conteneur.
 
 1. Numera → **Paramètres → Sécurité → Claude (MCP)** → **Générer un token** (`nmr_…`, affiché une seule fois).
 2. Lancer la commande affichée :
@@ -86,8 +61,8 @@ Chaîne d'authentification :
 
 ```
 Claude Code ──Bearer nmr_…──▶ Nginx /mcp ──▶ mcp-server
-   server_auth.py : GET /auth/whoami avec ce token (refus 401 sinon, validation gardée 30 s)
-   chaque outil   : appel API avec ce même token (server_api.APIClient)
+   numera_mcp/auth.py : GET /auth/whoami avec ce token (refus 401 sinon, validation gardée 30 s)
+   chaque outil   : appel API avec ce même token (numera_mcp.api_client.APIClient)
 backend : get_current_user accepte le token (empreinte SHA-256 dans mcp_tokens),
           le refuse s'il est révoqué ou si l'accès MCP est coupé, et /admin le refuse toujours (403)
 ```
@@ -112,35 +87,31 @@ npx -y @modelcontextprotocol/inspector uv run python server.py
 
 ## ⚙️ Variables d'environnement
 
-| Variable | Mode | Description | Défaut |
-|----------|------|-------------|--------|
-| `MCP_MODE` | les deux | Force `api` ou `sqlite` | auto |
-| `MCP_SERVER_NAME` | les deux | Nom affiché | `Numera` |
-| `MCP_TRANSPORT` | les deux | `stdio`, `streamable-http`, `sse` (SQLite : `stdio` seulement) | `stdio` (l'image Docker met `streamable-http`) |
+| Variable | Portée | Description | Défaut |
+|----------|--------|-------------|--------|
+| `MCP_SERVER_NAME` | tous | Nom affiché | `Numera` |
+| `MCP_TRANSPORT` | tous | `stdio`, `streamable-http`, `sse` | `stdio` (l'image Docker met `streamable-http`) |
 | `MCP_HOST` / `MCP_PORT` | HTTP/SSE | Écoute | `127.0.0.1` / `8100` (l'image Docker met `0.0.0.0`) |
-| `MCP_API_URL` | API | URL de l'API : `http://backend:8001` dans Docker, `https://domaine/api` via Nginx | `http://localhost:8001` (l'image Docker met `http://backend:8001`) |
-| `MCP_API_TOKEN` | API, stdio | Token MCP généré dans l'interface — **obligatoire en stdio**. En HTTP, ignoré : chaque client envoie le sien | — |
-| `MCP_DB_PATH` | SQLite | Fichier SQLite | `../backend/data/suivi_budget.db` |
+| `MCP_API_URL` | tous | URL de l'API : `http://backend:8001` dans Docker, `https://domaine/api` via Nginx | `http://localhost:8001` (l'image Docker met `http://backend:8001`) |
+| `MCP_API_TOKEN` | stdio | Token MCP généré dans l'interface — **obligatoire en stdio**. En HTTP, ignoré : chaque client envoie le sien | — |
 
 Plus aucun mot de passe : `MCP_API_USERNAME`, `MCP_API_PASSWORD` et `MCP_AUTH_TOKEN` n'existent plus.
 
 ### Client local en stdio (optionnel)
 
-Mode API, par exemple pour Claude Code sans passer par `/mcp` :
+Par exemple pour Claude Code sans passer par `/mcp` :
 
 ```bash
 claude mcp add --scope user numera-local \
-  -e MCP_MODE=api -e MCP_API_URL=https://<domaine>/api -e MCP_API_TOKEN=nmr_… \
+  -e MCP_API_URL=https://<domaine>/api -e MCP_API_TOKEN=nmr_… \
   -- python3 /chemin/absolu/numera/mcp-server/server.py
 ```
-
-Mode SQLite (même machine que la base ; pas d'authentification, le fichier suffit) : `-e MCP_MODE=sqlite -e MCP_DB_PATH=/chemin/absolu/numera/backend/data/suivi_budget.db`.
 
 ---
 
 ## 🐳 Docker
 
-Service `mcp-server` de `infra/docker-compose.prod.yml` (toujours lancé, frontend Nginx en dépend) : mode API, `streamable-http` sur `8100` dans le réseau Docker seulement, `MCP_API_URL=http://backend:8001`. Bloc Nginx : `location = /mcp` dans `frontend/nginx.conf` (`proxy_buffering off` pour le flux SSE).
+Service `mcp-server` de `infra/docker-compose.prod.yml` (toujours lancé, frontend Nginx en dépend) : `streamable-http` sur `8100` dans le réseau Docker seulement, `MCP_API_URL=http://backend:8001`. Bloc Nginx : `location = /mcp` dans `frontend/nginx.conf` (`proxy_buffering off` pour le flux SSE).
 
 Le serveur est construit en `stateless_http` (pas d'affinité de session) et sans protection DNS rebinding de la lib `mcp` (elle n'accepte que `Host: localhost`, ce qui casse derrière Nginx ; inutile puisque l'accès repose sur un token bearer explicite).
 
@@ -153,19 +124,18 @@ Build manuel : `docker build -t numera-mcp ./mcp-server`.
 - **Tokens MCP** : 256 bits aléatoires préfixés `nmr_`, seule l'empreinte SHA-256 est stockée (`mcp_tokens`), affichés une seule fois, révocables un par un, `last_used_at` mis à jour (au plus une fois par minute). Interrupteur global « Accès MCP » (`system_settings.mcp_enabled`).
 - **Périmètre** : un token MCP est en **lecture seule** (`GET` uniquement, 403 sinon) et n'a **aucun accès à `/admin`** (profil, mot de passe, reset de la base, gestion des tokens).
 - **Transport** : le token circule dans un en-tête ; en production, n'exposer Numera qu'en HTTPS.
-- **Mode SQLite** : stdio uniquement (refuse de démarrer en HTTP) ; lecture via connexion `mode=ro` ; SQL brut limité aux `SELECT` (mots-clés `INSERT`, `UPDATE`, `DELETE`, `DROP`, `ALTER`, `CREATE`, `TRUNCATE`, `REPLACE`, `ATTACH`, `DETACH`, `PRAGMA` refusés), `LIMIT 200` forcé , aucune écriture.
 - Logs sur stderr.
 
-Tests : `cd mcp-server && python3 -m pytest test_server_auth.py -q` (middleware) et `backend/tests/systeme/test_mcp_tokens.py` (tokens côté API).
+Tests : `cd mcp-server && uv run --with pytest python -m pytest tests -q` (surface MCP figée, middleware d'authentification, lecture seule, transport HTTP) et `backend/tests/systeme/test_mcp_tokens.py` (tokens côté API).
 
 ---
 
 ## 🧪 Exemples
 
 - « Analyse mon budget de mai 2026 » → `get_budget_summary`, `get_expenses_by_category`, `get_top_merchants` (ou prompt `analyze_month`).
-- « Audit de mes abonnements » → prompt `audit_subscriptions` (`get_subscriptions` en mode API).
-- « Combien chez Amazon cette année ? » → `execute_read_query` (mode SQLite) ou `search_transactions`.
-- « Analyse mon portefeuille » → prompts `analyze_portfolio` / `analyze_etf_lookthrough` (mode API).
+- « Audit de mes abonnements » → prompt `audit_subscriptions` (`get_subscriptions`).
+- « Combien chez Amazon cette année ? » → `search_transactions`.
+- « Analyse mon portefeuille » → prompts `analyze_portfolio` / `analyze_etf_lookthrough`.
 
 ---
 
@@ -173,13 +143,28 @@ Tests : `cd mcp-server && python3 -m pytest test_server_auth.py -q` (middleware)
 
 ```
 mcp-server/
-├── server.py          # Dispatcher (choisit api ou sqlite)
-├── server_api.py      # Mode proxy API, lecture seule (httpx, token MCP)
-├── server_auth.py     # Validation des tokens par l'API (transports HTTP)
-├── server_sqlite.py   # Mode SQLite direct
-├── pyproject.toml     # Dépendances (uv)
+├── server.py              # Point d'entrée (stdio ou HTTP + middleware d'authentification)
+├── numera_mcp/
+│   ├── config.py          # Variables d'environnement, transport, logs
+│   ├── auth.py            # Validation des tokens par l'API (transports HTTP)
+│   ├── api_client.py      # Client HTTP en lecture seule (GET) + gestion des erreurs API
+│   ├── formatting.py      # serialize, format_table
+│   ├── budget_period.py   # Mois budgétaire courant
+│   ├── resources.py       # Ressources data://…
+│   ├── prompts.py         # Prompts d'analyse
+│   ├── app.py             # Assemblage : enregistrement des modules, application HTTP
+│   └── tools/             # Un module par domaine du backend, chacun expose register(mcp)
+│       ├── budget.py, budget_revue.py        # transactions, catégories, marchands, revue de mois…
+│       ├── comptes.py                        # comptes, prêts, événements financiers
+│       ├── investissement.py, etf.py         # portefeuille, positions, dividendes, ETF
+│       └── analytics.py, projections.py      # budget, KPI, projections, flux, patrimoine
+├── tests/                 # surface MCP figée (snapshot), auth, lecture seule, transport HTTP
+├── ruff.toml
+├── pyproject.toml         # Dépendances (uv)
 ├── uv.lock
 ├── Dockerfile
 ├── .env.example
 └── README.md
 ```
+
+Ajouter un outil : une fonction dans le module du domaine, l'ajouter à sa liste `TOOLS`, puis régénérer le snapshot de `tests/` après revue (`tests/surface_snapshot.json`).

@@ -84,7 +84,6 @@ services:
     # Exposé uniquement via Nginx (/mcp). Aucun secret : chaque client présente un token MCP
     # généré dans Paramètres → Compte, validé par le backend.
     environment:
-      - MCP_MODE=api
       - MCP_API_URL=http://backend:8001
       - MCP_TRANSPORT=streamable-http
     depends_on:

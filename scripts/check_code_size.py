@@ -19,6 +19,8 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 BASELINE_PATH = Path(__file__).resolve().parent / "code_size_baseline.json"
 
 BACKEND_DIR = "backend/app"
+MCP_DIR = "mcp-server"
+MCP_IGNORED = (".venv", "__pycache__")
 FRONTEND_DIR = "frontend/src"
 FRONTEND_IGNORED = "frontend/src/components/ui/"
 
@@ -43,6 +45,9 @@ def _function_lengths(tree: ast.AST, prefix: str = ""):
 def _python_files(repo_root: Path):
     for path in sorted((repo_root / BACKEND_DIR).rglob("*.py")):
         if "__pycache__" not in path.parts:
+            yield path
+    for path in sorted((repo_root / MCP_DIR).rglob("*.py")):
+        if not set(MCP_IGNORED) & set(path.parts):
             yield path
 
 

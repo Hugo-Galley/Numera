@@ -3,7 +3,7 @@
 Le client MCP (Claude Code…) envoie `Authorization: Bearer nmr_…`, token créé dans Paramètres → Sécurité.
 Le middleware le fait valider par le backend (`GET /auth/whoami`) avant tout échange MCP : un client
 sans token valide ne voit même pas la liste des outils. Le même token est ensuite transmis tel quel au
-backend par chaque outil (`server_api.APIClient`) : révocation et interrupteur « Accès MCP » s'appliquent
+backend par chaque outil (`api_client.APIClient`) : révocation et interrupteur « Accès MCP » s'appliquent
 immédiatement, le serveur MCP ne détient aucun secret.
 """
 import hashlib

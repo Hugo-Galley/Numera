@@ -33,13 +33,13 @@ RUN groupadd --gid 1000 mcp && useradd --uid 1000 --gid mcp --no-create-home --s
 COPY --from=builder /opt/venv /opt/venv
 
 WORKDIR /app
-COPY server*.py ./
+COPY server.py ./
+COPY numera_mcp ./numera_mcp
 
 USER mcp
 
-# Mode API derrière Nginx (/mcp) : aucun secret, les tokens des clients sont validés par l'API
-ENV MCP_MODE=api \
-    MCP_API_URL=http://backend:8001 \
+# Derrière Nginx (/mcp) : aucun secret, les tokens des clients sont validés par l'API
+ENV MCP_API_URL=http://backend:8001 \
     MCP_TRANSPORT=streamable-http \
     MCP_HOST=0.0.0.0 \
     MCP_PORT=8100 \
