@@ -1,5 +1,6 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
+import { yearOptions } from "@/lib/years"
 import type { SavingsCtx } from "./useSavings"
 
 /** En-tête : titre et sélecteurs de période. */
@@ -43,7 +44,7 @@ export function SavingsHeader({ ctx }: { ctx: SavingsCtx }) {
                   <SelectValue placeholder="Année" />
                 </SelectTrigger>
                 <SelectContent>
-                  {[2024, 2025, 2026].map((y) => (
+                  {yearOptions(year).map((y) => (
                     <SelectItem key={y} value={String(y)}>{y}</SelectItem>
                   ))}
                 </SelectContent>

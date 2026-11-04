@@ -17,6 +17,10 @@ def get(db: Session, merchant_id: int) -> Merchant | None:
     return db.get(Merchant, merchant_id)
 
 
+def get_by_name(db: Session, name: str) -> Merchant | None:
+    return db.scalar(select(Merchant).where(Merchant.name == name))
+
+
 def name_taken(db: Session, name: str) -> bool:
     return db.scalar(select(Merchant.id).where(Merchant.name == name)) is not None
 

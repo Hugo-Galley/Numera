@@ -4,7 +4,7 @@ Vue globale : flux convertis en EUR, patrimoine par le calculateur unique `accou
 Vue compte (`account_id`) : flux et soldes dans la devise du compte.
 """
 from dataclasses import dataclass
-from datetime import date, datetime
+from datetime import datetime
 
 from sqlalchemy.orm import Session
 
@@ -59,7 +59,7 @@ async def compute_budget(db: Session, month: int | None = None, year: int | None
         if month and year:
             start, end = period_bounds(db, year, month)
         days = _days(db, start, end, bool(month and year))
-        is_current_period = end.date() >= date.today()
+        is_current_period = end >= end_of_today()
         if account_id:
             account = db.query(Account).filter(Account.id == account_id).first()
             if not account:

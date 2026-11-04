@@ -111,7 +111,7 @@ def savings_events_by_account(db: Session, account_ids: list[int], end_date: dat
 
     snapshots = (
         db.query(BalanceSnapshot)
-        .filter(BalanceSnapshot.account_id.in_(account_ids), BalanceSnapshot.date <= end_date)
+        .filter(BalanceSnapshot.account_id.in_(account_ids), BalanceSnapshot.date < end_date)
         .order_by(BalanceSnapshot.date.asc(), BalanceSnapshot.id.asc())
         .all()
     )
@@ -120,7 +120,7 @@ def savings_events_by_account(db: Session, account_ids: list[int], end_date: dat
 
     transactions = (
         db.query(Transaction)
-        .filter(Transaction.account_id.in_(account_ids), Transaction.date <= end_date)
+        .filter(Transaction.account_id.in_(account_ids), Transaction.date < end_date)
         .order_by(Transaction.date.asc(), Transaction.id.asc())
         .all()
     )

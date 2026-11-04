@@ -44,7 +44,8 @@ def test_categorization_rule_import(client: TestClient, db_session: Session):
     txs = db_session.query(Transaction).all()
     kfc_tx = next(tx for tx in txs if "KFC" in tx.merchant)
     assert kfc_tx.category_id == cat.id
-    assert kfc_tx.merchant == "KFC RESTAURANT" # Normalized name from rule
+    assert kfc_tx.merchant == "KFC"  # règle 7 : le libellé bancaire n'est jamais écrasé
+    assert kfc_tx.merchant_obj.name == "KFC RESTAURANT"  # le nom de la règle passe par le marchand canonique
 
     other_tx = next(tx for tx in txs if "Other" in tx.merchant)
     assert other_tx.category_id is None

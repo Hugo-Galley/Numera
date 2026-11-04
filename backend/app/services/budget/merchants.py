@@ -41,6 +41,15 @@ def create_merchant(db: Session, merchant_in: MerchantCreate) -> Merchant:
     return merchant
 
 
+def get_or_create_by_name(db: Session, name: str) -> Merchant:
+    """Marchand canonique de ce nom, créé au besoin (sans commit : l'appelant valide)."""
+    merchant = repo.get_by_name(db, name)
+    if not merchant:
+        merchant = Merchant(name=name)
+        repo.add(db, merchant)
+    return merchant
+
+
 def get_merchant(db: Session, merchant_id: int) -> Merchant:
     return _require(db, merchant_id)
 

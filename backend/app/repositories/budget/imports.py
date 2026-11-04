@@ -17,10 +17,14 @@ def categories_by_name(db: Session) -> dict[str, Category]:
 
 
 def existing_keys(db: Session, account_id: int) -> Counter:
-    """Occurrences de chaque clé de doublon déjà présente dans le compte (import idempotent)."""
+    """Occurrences de chaque clé de doublon déjà présente dans le compte (import idempotent).
+
+    Clé sur les valeurs brutes du relevé (`original_*`, à défaut les valeurs stockées pour les lignes
+    antérieures ou saisies à la main) : ni une règle ni une retouche manuelle ne la fait bouger."""
     return Counter(
-        duplicate_key(tx.date, tx.amount, tx.merchant, tx.type)
-        for tx in db.query(Transaction.date, Transaction.amount, Transaction.merchant, Transaction.type)
+        duplicate_key(tx.date, tx.amount, tx.original_merchant or tx.merchant, tx.original_type or tx.type)
+        for tx in db.query(Transaction.date, Transaction.amount, Transaction.merchant, Transaction.type,
+                           Transaction.original_merchant, Transaction.original_type)
         .filter(Transaction.account_id == account_id)
         .all()
     )

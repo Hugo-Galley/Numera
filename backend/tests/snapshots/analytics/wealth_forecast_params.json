@@ -2,129 +2,129 @@
  "annual_return_pct": 3.52,
  "avg_monthly_savings": 900.0,
  "computed_monthly_savings": 811.93,
- "current_wealth": 37929.17,
+ "current_wealth": 37944.81,
  "extra_monthly": 200.0,
- "final_base": 386737.26,
- "final_boosted": 455841.36,
- "gain_from_extra": 69104.1,
+ "final_base": 386912.94,
+ "final_boosted": 456039.34,
+ "gain_from_extra": 69126.4,
  "months_used": 12,
  "observed_investment_return_pct": 9.24,
  "points": [
   {
-   "base": 37929.17,
-   "boosted": 37929.17,
+   "base": 37944.81,
+   "boosted": 37944.81,
    "year": 0
   },
   {
-   "base": 50237.59,
-   "boosted": 52676.07,
+   "base": 50255.07,
+   "boosted": 52693.59,
    "year": 1
   },
   {
-   "base": 62979.32,
-   "boosted": 67942.12,
+   "base": 62999.07,
+   "boosted": 67962.02,
    "year": 2
   },
   {
-   "base": 76169.6,
-   "boosted": 83745.6,
+   "base": 76192.09,
+   "boosted": 83768.42,
    "year": 3
   },
   {
-   "base": 89824.23,
-   "boosted": 100105.42,
+   "base": 89849.95,
+   "boosted": 100131.74,
    "year": 4
   },
   {
-   "base": 103959.55,
-   "boosted": 117041.16,
+   "base": 103989.03,
+   "boosted": 117071.6,
    "year": 5
   },
   {
-   "base": 118592.5,
-   "boosted": 134573.11,
+   "base": 118626.29,
+   "boosted": 134608.32,
    "year": 6
   },
   {
-   "base": 133740.57,
-   "boosted": 152722.24,
+   "base": 133779.27,
+   "boosted": 152762.93,
    "year": 7
   },
   {
-   "base": 149421.92,
-   "boosted": 171510.3,
+   "base": 149466.15,
+   "boosted": 171557.19,
    "year": 8
   },
   {
-   "base": 165655.31,
-   "boosted": 190959.77,
+   "base": 165705.75,
+   "boosted": 191013.65,
    "year": 9
   },
   {
-   "base": 182460.18,
-   "boosted": 211093.93,
+   "base": 182517.52,
+   "boosted": 211155.64,
    "year": 10
   },
   {
-   "base": 199856.64,
-   "boosted": 231936.9,
+   "base": 199921.64,
+   "boosted": 232007.31,
    "year": 11
   },
   {
-   "base": 217865.53,
-   "boosted": 253513.61,
+   "base": 217938.98,
+   "boosted": 253593.66,
    "year": 12
   },
   {
-   "base": 236508.4,
-   "boosted": 275849.91,
+   "base": 236591.13,
+   "boosted": 275940.59,
    "year": 13
   },
   {
-   "base": 255807.56,
-   "boosted": 298972.53,
+   "base": 255900.48,
+   "boosted": 299074.88,
    "year": 14
   },
   {
-   "base": 275786.13,
-   "boosted": 322909.15,
+   "base": 275890.16,
+   "boosted": 323024.28,
    "year": 15
   },
   {
-   "base": 296468.02,
-   "boosted": 347688.44,
+   "base": 296584.17,
+   "boosted": 347817.52,
    "year": 16
   },
   {
-   "base": 317878.0,
-   "boosted": 373340.05,
+   "base": 318007.3,
+   "boosted": 373484.32,
    "year": 17
   },
   {
-   "base": 340041.68,
-   "boosted": 399894.69,
+   "base": 340185.25,
+   "boosted": 400055.46,
    "year": 18
   },
   {
-   "base": 362985.62,
-   "boosted": 427384.16,
+   "base": 363144.62,
+   "boosted": 427562.8,
    "year": 19
   },
   {
-   "base": 386737.26,
-   "boosted": 455841.36,
+   "base": 386912.94,
+   "boosted": 456039.34,
    "year": 20
   }
  ],
  "return_breakdown": [
   {
-   "balance": 19222.26,
+   "balance": 19268.24,
    "rate_pct": 5.0,
    "source": "manual",
    "type": "investissement"
   },
   {
-   "balance": 18706.91,
+   "balance": 18676.57,
    "rate_pct": 2.0,
    "source": "manual",
    "type": "autres"

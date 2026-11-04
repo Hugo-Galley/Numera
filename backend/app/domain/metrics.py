@@ -36,7 +36,7 @@ def savings_at(events_by_account: dict[int, list[Any]], end: datetime, accounts:
     """Épargne totale en EUR : dernière valeur connue (relevé ou solde) de chaque compte à `end`."""
     total = 0.0
     for acc_id, items in events_by_account.items():
-        matching = [val for date_val, _, val in items if date_val <= end]
+        matching = [val for date_val, _, val in items if date_val < end]
         if matching:
             val = matching[-1]
             acc = accounts.get(acc_id)
