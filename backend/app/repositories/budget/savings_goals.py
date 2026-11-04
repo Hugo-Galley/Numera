@@ -1,6 +1,7 @@
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
+from app.core.time import end_of_today
 from app.models.account import Account
 from app.models.category import Category
 from app.models.savings_goal import SavingsGoal
@@ -25,13 +26,16 @@ def delete(db: Session, goal: SavingsGoal) -> None:
 
 
 def goal_rows(db: Session, goal: SavingsGoal) -> list[tuple[str, float, str]]:
-    """(type, montant, devise du compte) des transactions suivies par l'objectif.
+    """(type, montant, devise du compte) des transactions suivies par l'objectif, saisies à venir exclues.
 
     Sans mot-clé, compte ni catégorie, l'objectif ne suit rien (liste vide par prudence).
     """
     if not goal.keyword and not goal.account_id and not goal.category_id:
         return []
-    query = db.query(Transaction.type, Transaction.amount, Account.currency).join(Account).outerjoin(Category)
+    query = (
+        db.query(Transaction.type, Transaction.amount, Account.currency).join(Account).outerjoin(Category)
+        .filter(Transaction.date < end_of_today())
+    )
     if goal.account_id:
         query = query.filter(Transaction.account_id == goal.account_id)
     if goal.category_id:

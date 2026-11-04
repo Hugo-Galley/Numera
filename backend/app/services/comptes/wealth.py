@@ -2,7 +2,7 @@
 
 Règle de repli :
 - compte titres valorisé par ses positions → positions × cours + espèces (`services/portfolio/`) ;
-- compte d'investissement / assurance-vie → dernier relevé (snapshot) daté au plus tard à `at` ;
+- compte d'investissement / assurance-vie → dernier relevé (snapshot) daté avant `at` (exclu) ;
 - autre compte (courant, épargne, ancien type…) → le plus récent entre un relevé et la dernière
   opération (solde courant) ;
 - compte `credit` → −capital restant dû de son prêt à la date (`core/loans.py`), dette déduite du patrimoine ;
@@ -12,10 +12,11 @@ Tout compte actif compte dans le patrimoine, quel que soit son type.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import date, datetime
+from datetime import datetime, timedelta
 
 from sqlalchemy.orm import Session
 
+from app.core.time import end_of_today
 from app.integrations.currency import get_exchange_rates
 from app.models.account import Account
 from app.models.balance_snapshot import BalanceSnapshot
@@ -40,7 +41,7 @@ def active_accounts(db: Session) -> list[Account]:
 def _latest_snapshot(db: Session, account_id: int, at: datetime) -> BalanceSnapshot | None:
     return (
         db.query(BalanceSnapshot)
-        .filter(BalanceSnapshot.account_id == account_id, BalanceSnapshot.date <= at)
+        .filter(BalanceSnapshot.account_id == account_id, BalanceSnapshot.date < at)
         .order_by(BalanceSnapshot.date.desc(), BalanceSnapshot.id.desc())
         .first()
     )
@@ -49,7 +50,7 @@ def _latest_snapshot(db: Session, account_id: int, at: datetime) -> BalanceSnaps
 def _latest_transaction(db: Session, account_id: int, at: datetime) -> Transaction | None:
     return (
         db.query(Transaction)
-        .filter(Transaction.account_id == account_id, Transaction.date <= at)
+        .filter(Transaction.account_id == account_id, Transaction.date < at)
         .order_by(Transaction.date.desc(), Transaction.id.desc())
         .first()
     )
@@ -58,18 +59,17 @@ def _latest_transaction(db: Session, account_id: int, at: datetime) -> Transacti
 async def account_values(
     db: Session, accounts: list[Account], at: datetime | None = None
 ) -> dict[int, AccountValue]:
-    """Valeur de chaque compte à la date `at` (maintenant par défaut)."""
-    now = datetime.now()
-    at = at or now
+    """Valeur de chaque compte à `at` (borne exclusive ; fin de la journée en cours par défaut)."""
+    at = at or end_of_today()
     rates = await get_exchange_rates("EUR")
     # Les positions n'existent que pour la valeur courante : un mois passé garde le relevé à sa date
-    positions = await positions_values_eur(db, accounts) if at.date() >= date.today() else {}
+    positions = await positions_values_eur(db, accounts) if at >= end_of_today() else {}
 
     values: dict[int, AccountValue] = {}
     for acc in accounts:
         rate = rates.get(acc.currency, 1.0) or 1.0
         if acc.type == "credit":
-            remaining = loan_remaining(db, acc.id, at.date())
+            remaining = loan_remaining(db, acc.id, (at - timedelta(microseconds=1)).date())
             if remaining is not None:
                 values[acc.id] = AccountValue(-remaining, -remaining / rate, "loan")
                 continue

@@ -3,6 +3,7 @@ from datetime import datetime
 
 from sqlalchemy.orm import Session
 
+from app.core.time import end_of_today
 from app.domain.budget import budget_alert, sort_alerts, spending_by_category
 from app.integrations.currency import get_exchange_rates
 from app.repositories.analytics import budget as repo
@@ -19,7 +20,8 @@ async def compute_budget_alerts(db: Session, year: int, month: int, account_id: 
     rates = await get_exchange_rates("EUR")
     tr_accounts = ticket_restaurant_account_ids(db)
     start_month, end_month = period_bounds(db, year, month)
-    start_year, end_year = datetime(year, 1, 1), datetime(year + 1, 1, 1)
+    # Cumul annuel « à ce jour » : jamais les saisies à venir (règle 12)
+    start_year, end_year = datetime(year, 1, 1), min(datetime(year + 1, 1, 1), end_of_today())
 
     # Dépenses par catégorie en EUR (dépenses découpées : une ligne par part)
     monthly = spending_by_category(repo.category_spending_rows(db, start_month, end_month, account_id, tr_accounts), rates)

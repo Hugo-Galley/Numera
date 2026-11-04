@@ -59,12 +59,12 @@
   "real_expenses": 2295.34,
   "saved": -2265.34
  },
- "net_worth_change_pct": 60.4,
+ "net_worth_change_pct": 60.5,
  "new_subscriptions": [],
  "previous": {
   "income_change_pct": -21.1,
   "invested_change_pct": 0.0,
-  "net_worth_change_diff": 9054.61,
+  "net_worth_change_diff": 9070.25,
   "real_expenses_change_pct": 4.7,
   "savings_rate_change_pts": -20.8,
   "totals": {
@@ -165,8 +165,8 @@
   "expense_count": 152,
   "income": 14657.55,
   "invested": 1800.0,
-  "net_worth_change": 14284.06,
-  "net_worth_end": 37929.17,
+  "net_worth_change": 14299.7,
+  "net_worth_end": 37944.81,
   "net_worth_start": 23645.11,
   "real_expenses": 12357.11,
   "saved": 2300.44,
