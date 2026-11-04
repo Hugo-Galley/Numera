@@ -6,7 +6,6 @@ from sqlalchemy.orm import Query, Session
 
 from app.domain.portfolio import INTEREST_CATEGORIES as DOMAIN_INTEREST_CATEGORIES
 from app.models.account import Account
-from app.models.balance_snapshot import BalanceSnapshot
 from app.models.category import Category
 from app.models.investment_transaction import InvestmentTransaction
 from app.models.transaction import Transaction
@@ -129,18 +128,6 @@ def account_investment_sum(db: Session, account_id: int, start: datetime | None,
         InvestmentTransaction.account_id == account_id, InvestmentTransaction.type == type_
     )
     return float(_window(query, InvestmentTransaction.date, start, end).scalar() or 0.0)
-
-
-def latest_snapshot(db: Session, account_id: int, end: datetime) -> BalanceSnapshot | None:
-    return db.query(BalanceSnapshot).filter(
-        BalanceSnapshot.account_id == account_id, BalanceSnapshot.date < end
-    ).order_by(BalanceSnapshot.date.desc(), BalanceSnapshot.id.desc()).first()
-
-
-def last_transaction(db: Session, account_id: int, end: datetime) -> Transaction | None:
-    return db.query(Transaction).filter(
-        Transaction.account_id == account_id, Transaction.date < end
-    ).order_by(Transaction.date.desc(), Transaction.id.desc()).first()
 
 
 def latest_balance_rows(db: Session, account_id: int, end: datetime) -> list:

@@ -5,12 +5,13 @@ from typing import Any
 from sqlalchemy.orm import Session
 
 from app.core.logging import get_logger
-from app.core.time import end_of_today
 from app.domain.diversity import diversity_alerts, exposure_rows, hhi_score, look_through, score_label, top_companies
 from app.integrations.currency import get_exchange_rates
 from app.models.portfolio_holding import PortfolioHolding
 from app.repositories.analytics import diversity as repo
+from app.repositories.comptes.balances import active_accounts
 from app.repositories.investissement import etf_profiles as etf_repo
+from app.services.comptes.wealth import account_values
 from app.services.investissement.etf_profiles import auto_decompose_and_create_profile
 from app.services.investissement.market import quotes as market_quotes
 from app.services.investissement.market.search import match_etf_profile
@@ -77,19 +78,15 @@ async def _value_holdings(db: Session, holdings: list[PortfolioHolding], quotes:
     return valued_holdings, total_stocks_eur
 
 
-def _wealth_context(db: Session, rates: dict) -> dict[str, float]:
-    """« Ce qu'on a à côté » : épargne, courant, fonds euros des assurances-vie et autres comptes, en EUR."""
-    totals = {"epargne": 0.0, "courant": 0.0, "fonds_euros": 0.0, "other": 0.0}
-    for acc in repo.active_accounts(db):
-        # Dernier relevé, sinon solde courant de la dernière transaction
-        latest_snap = repo.latest_snapshot(db, acc.id)
-        val_raw = float(latest_snap.current_value) if latest_snap else 0.0
-        if not latest_snap:
-            last_tx = repo.last_transaction(db, acc.id, before=end_of_today())
-            if last_tx:
-                val_raw = float(last_tx.running_balance)
+async def _wealth_context(db: Session) -> dict[str, float]:
+    """« Ce qu'on a à côté » : épargne, courant, fonds euros des assurances-vie et autres comptes, en EUR.
 
-        val_acc_eur = val_raw / rates.get(acc.currency, 1.0) if val_raw > 0 else 0.0
+    Valeurs par `account_values` (source unique, même patrimoine que `patrimoine-allocation`)."""
+    totals = {"epargne": 0.0, "courant": 0.0, "fonds_euros": 0.0, "other": 0.0}
+    accounts = active_accounts(db)
+    values = await account_values(db, accounts)
+    for acc in accounts:
+        val_acc_eur = values[acc.id].value_eur
         if acc.type == "epargne":
             totals["epargne"] += val_acc_eur
         elif acc.type == "courant":
@@ -107,7 +104,7 @@ async def compute_diversity(db: Session, account_id: int | None) -> dict[str, An
     quotes = await market_quotes.get_market_quotes([h.ticker for h in holdings], db=db)
     market_quotes.persist_fetched_prices(db)
     valued_holdings, total_stocks_eur = await _value_holdings(db, holdings, quotes, await get_exchange_rates("EUR"))
-    side = _wealth_context(db, await get_exchange_rates("EUR"))
+    side = await _wealth_context(db)
     # Patrimoine total : actions valorisées par positions (ou repli) + épargne, liquidités et fonds euros
     total_wealth_eur = round(total_stocks_eur + side["epargne"] + side["courant"] + side["fonds_euros"] + side["other"], 2)
 

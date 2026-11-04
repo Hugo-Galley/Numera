@@ -1,5 +1,5 @@
 {
- "current_balance": 24388.45,
+ "current_balance": 37944.81,
  "days": 90,
  "events": [
   {
@@ -237,555 +237,555 @@
    "type": "recurring"
   }
  ],
- "low_point": 24337.06,
+ "low_point": 37893.42,
  "low_point_date": "2026-06-20",
  "points": [
   {
-   "balance": 24388.45,
+   "balance": 37944.81,
    "change": 0.0,
    "date": "2026-06-15",
    "label": null
   },
   {
-   "balance": 24388.45,
+   "balance": 37944.81,
    "change": 0.0,
    "date": "2026-06-16",
    "label": null
   },
   {
-   "balance": 24388.45,
+   "balance": 37944.81,
    "change": 0.0,
    "date": "2026-06-17",
    "label": null
   },
   {
-   "balance": 24358.46,
+   "balance": 37914.82,
    "change": -29.99,
    "date": "2026-06-18",
    "label": null
   },
   {
-   "balance": 24358.46,
+   "balance": 37914.82,
    "change": 0.0,
    "date": "2026-06-19",
    "label": null
   },
   {
-   "balance": 24337.06,
+   "balance": 37893.42,
    "change": -21.4,
    "date": "2026-06-20",
    "label": null
   },
   {
-   "balance": 24337.06,
+   "balance": 37893.42,
    "change": 0.0,
    "date": "2026-06-21",
    "label": null
   },
   {
-   "balance": 24337.06,
+   "balance": 37893.42,
    "change": 0.0,
    "date": "2026-06-22",
    "label": null
   },
   {
-   "balance": 24337.06,
+   "balance": 37893.42,
    "change": 0.0,
    "date": "2026-06-23",
    "label": null
   },
   {
-   "balance": 24337.06,
+   "balance": 37893.42,
    "change": 0.0,
    "date": "2026-06-24",
    "label": null
   },
   {
-   "balance": 24337.06,
+   "balance": 37893.42,
    "change": 0.0,
    "date": "2026-06-25",
    "label": null
   },
   {
-   "balance": 24337.06,
+   "balance": 37893.42,
    "change": 0.0,
    "date": "2026-06-26",
    "label": null
   },
   {
-   "balance": 27077.06,
+   "balance": 40633.42,
    "change": 2740.0,
    "date": "2026-06-27",
    "label": null
   },
   {
-   "balance": 27077.06,
+   "balance": 40633.42,
    "change": 0.0,
    "date": "2026-06-28",
    "label": null
   },
   {
-   "balance": 27077.06,
+   "balance": 40633.42,
    "change": 0.0,
    "date": "2026-06-29",
    "label": null
   },
   {
-   "balance": 27077.06,
+   "balance": 40633.42,
    "change": 0.0,
    "date": "2026-06-30",
    "label": null
   },
   {
-   "balance": 27077.06,
+   "balance": 40633.42,
    "change": 0.0,
    "date": "2026-07-01",
    "label": null
   },
   {
-   "balance": 26187.06,
+   "balance": 39743.42,
    "change": -890.0,
    "date": "2026-07-02",
    "label": null
   },
   {
-   "balance": 26187.06,
+   "balance": 39743.42,
    "change": 0.0,
    "date": "2026-07-03",
    "label": null
   },
   {
-   "balance": 26187.06,
+   "balance": 39743.42,
    "change": 0.0,
    "date": "2026-07-04",
    "label": null
   },
   {
-   "balance": 26100.66,
+   "balance": 39657.02,
    "change": -86.4,
    "date": "2026-07-05",
    "label": null
   },
   {
-   "balance": 26100.66,
+   "balance": 39657.02,
    "change": 0.0,
    "date": "2026-07-06",
    "label": null
   },
   {
-   "balance": 26100.66,
+   "balance": 39657.02,
    "change": 0.0,
    "date": "2026-07-07",
    "label": null
   },
   {
-   "balance": 26080.67,
+   "balance": 39637.03,
    "change": -19.99,
    "date": "2026-07-08",
    "label": null
   },
   {
-   "balance": 26080.67,
+   "balance": 39637.03,
    "change": 0.0,
    "date": "2026-07-09",
    "label": null
   },
   {
-   "balance": 26067.18,
+   "balance": 39623.54,
    "change": -13.49,
    "date": "2026-07-10",
    "label": null
   },
   {
-   "balance": 26067.18,
+   "balance": 39623.54,
    "change": 0.0,
    "date": "2026-07-11",
    "label": null
   },
   {
-   "balance": 26056.06,
+   "balance": 39612.42,
    "change": -11.12,
    "date": "2026-07-12",
    "label": null
   },
   {
-   "balance": 26056.06,
+   "balance": 39612.42,
    "change": 0.0,
    "date": "2026-07-13",
    "label": null
   },
   {
-   "balance": 26056.06,
+   "balance": 39612.42,
    "change": 0.0,
    "date": "2026-07-14",
    "label": null
   },
   {
-   "balance": 25984.06,
+   "balance": 39540.42,
    "change": -72.0,
    "date": "2026-07-15",
    "label": null
   },
   {
-   "balance": 25984.06,
+   "balance": 39540.42,
    "change": 0.0,
    "date": "2026-07-16",
    "label": null
   },
   {
-   "balance": 25984.06,
+   "balance": 39540.42,
    "change": 0.0,
    "date": "2026-07-17",
    "label": null
   },
   {
-   "balance": 25954.07,
+   "balance": 39510.43,
    "change": -29.99,
    "date": "2026-07-18",
    "label": null
   },
   {
-   "balance": 25954.07,
+   "balance": 39510.43,
    "change": 0.0,
    "date": "2026-07-19",
    "label": null
   },
   {
-   "balance": 25932.67,
+   "balance": 39489.03,
    "change": -21.4,
    "date": "2026-07-20",
    "label": null
   },
   {
-   "balance": 25932.67,
+   "balance": 39489.03,
    "change": 0.0,
    "date": "2026-07-21",
    "label": null
   },
   {
-   "balance": 25932.67,
+   "balance": 39489.03,
    "change": 0.0,
    "date": "2026-07-22",
    "label": null
   },
   {
-   "balance": 25932.67,
+   "balance": 39489.03,
    "change": 0.0,
    "date": "2026-07-23",
    "label": null
   },
   {
-   "balance": 25932.67,
+   "balance": 39489.03,
    "change": 0.0,
    "date": "2026-07-24",
    "label": null
   },
   {
-   "balance": 25932.67,
+   "balance": 39489.03,
    "change": 0.0,
    "date": "2026-07-25",
    "label": null
   },
   {
-   "balance": 25932.67,
+   "balance": 39489.03,
    "change": 0.0,
    "date": "2026-07-26",
    "label": null
   },
   {
-   "balance": 28672.67,
+   "balance": 42229.03,
    "change": 2740.0,
    "date": "2026-07-27",
    "label": null
   },
   {
-   "balance": 28672.67,
+   "balance": 42229.03,
    "change": 0.0,
    "date": "2026-07-28",
    "label": null
   },
   {
-   "balance": 28672.67,
+   "balance": 42229.03,
    "change": 0.0,
    "date": "2026-07-29",
    "label": null
   },
   {
-   "balance": 28672.67,
+   "balance": 42229.03,
    "change": 0.0,
    "date": "2026-07-30",
    "label": null
   },
   {
-   "balance": 28672.67,
+   "balance": 42229.03,
    "change": 0.0,
    "date": "2026-07-31",
    "label": null
   },
   {
-   "balance": 28672.67,
+   "balance": 42229.03,
    "change": 0.0,
    "date": "2026-08-01",
    "label": null
   },
   {
-   "balance": 27782.67,
+   "balance": 41339.03,
    "change": -890.0,
    "date": "2026-08-02",
    "label": null
   },
   {
-   "balance": 27782.67,
+   "balance": 41339.03,
    "change": 0.0,
    "date": "2026-08-03",
    "label": null
   },
   {
-   "balance": 27782.67,
+   "balance": 41339.03,
    "change": 0.0,
    "date": "2026-08-04",
    "label": null
   },
   {
-   "balance": 27696.27,
+   "balance": 41252.63,
    "change": -86.4,
    "date": "2026-08-05",
    "label": null
   },
   {
-   "balance": 27696.27,
+   "balance": 41252.63,
    "change": 0.0,
    "date": "2026-08-06",
    "label": null
   },
   {
-   "balance": 27696.27,
+   "balance": 41252.63,
    "change": 0.0,
    "date": "2026-08-07",
    "label": null
   },
   {
-   "balance": 27676.28,
+   "balance": 41232.64,
    "change": -19.99,
    "date": "2026-08-08",
    "label": null
   },
   {
-   "balance": 27676.28,
+   "balance": 41232.64,
    "change": 0.0,
    "date": "2026-08-09",
    "label": null
   },
   {
-   "balance": 27662.79,
+   "balance": 41219.15,
    "change": -13.49,
    "date": "2026-08-10",
    "label": null
   },
   {
-   "balance": 27662.79,
+   "balance": 41219.15,
    "change": 0.0,
    "date": "2026-08-11",
    "label": null
   },
   {
-   "balance": 27651.67,
+   "balance": 41208.03,
    "change": -11.12,
    "date": "2026-08-12",
    "label": null
   },
   {
-   "balance": 27651.67,
+   "balance": 41208.03,
    "change": 0.0,
    "date": "2026-08-13",
    "label": null
   },
   {
-   "balance": 27651.67,
+   "balance": 41208.03,
    "change": 0.0,
    "date": "2026-08-14",
    "label": null
   },
   {
-   "balance": 27579.67,
+   "balance": 41136.03,
    "change": -72.0,
    "date": "2026-08-15",
    "label": null
   },
   {
-   "balance": 27579.67,
+   "balance": 41136.03,
    "change": 0.0,
    "date": "2026-08-16",
    "label": null
   },
   {
-   "balance": 27579.67,
+   "balance": 41136.03,
    "change": 0.0,
    "date": "2026-08-17",
    "label": null
   },
   {
-   "balance": 27549.68,
+   "balance": 41106.04,
    "change": -29.99,
    "date": "2026-08-18",
    "label": null
   },
   {
-   "balance": 27549.68,
+   "balance": 41106.04,
    "change": 0.0,
    "date": "2026-08-19",
    "label": null
   },
   {
-   "balance": 27528.28,
+   "balance": 41084.64,
    "change": -21.4,
    "date": "2026-08-20",
    "label": null
   },
   {
-   "balance": 27528.28,
+   "balance": 41084.64,
    "change": 0.0,
    "date": "2026-08-21",
    "label": null
   },
   {
-   "balance": 27528.28,
+   "balance": 41084.64,
    "change": 0.0,
    "date": "2026-08-22",
    "label": null
   },
   {
-   "balance": 27528.28,
+   "balance": 41084.64,
    "change": 0.0,
    "date": "2026-08-23",
    "label": null
   },
   {
-   "balance": 27528.28,
+   "balance": 41084.64,
    "change": 0.0,
    "date": "2026-08-24",
    "label": null
   },
   {
-   "balance": 27528.28,
+   "balance": 41084.64,
    "change": 0.0,
    "date": "2026-08-25",
    "label": null
   },
   {
-   "balance": 27528.28,
+   "balance": 41084.64,
    "change": 0.0,
    "date": "2026-08-26",
    "label": null
   },
   {
-   "balance": 30268.28,
+   "balance": 43824.64,
    "change": 2740.0,
    "date": "2026-08-27",
    "label": null
   },
   {
-   "balance": 30268.28,
+   "balance": 43824.64,
    "change": 0.0,
    "date": "2026-08-28",
    "label": null
   },
   {
-   "balance": 30268.28,
+   "balance": 43824.64,
    "change": 0.0,
    "date": "2026-08-29",
    "label": null
   },
   {
-   "balance": 30268.28,
+   "balance": 43824.64,
    "change": 0.0,
    "date": "2026-08-30",
    "label": null
   },
   {
-   "balance": 30268.28,
+   "balance": 43824.64,
    "change": 0.0,
    "date": "2026-08-31",
    "label": null
   },
   {
-   "balance": 30268.28,
+   "balance": 43824.64,
    "change": 0.0,
    "date": "2026-09-01",
    "label": null
   },
   {
-   "balance": 29378.28,
+   "balance": 42934.64,
    "change": -890.0,
    "date": "2026-09-02",
    "label": null
   },
   {
-   "balance": 29378.28,
+   "balance": 42934.64,
    "change": 0.0,
    "date": "2026-09-03",
    "label": null
   },
   {
-   "balance": 29378.28,
+   "balance": 42934.64,
    "change": 0.0,
    "date": "2026-09-04",
    "label": null
   },
   {
-   "balance": 29291.88,
+   "balance": 42848.24,
    "change": -86.4,
    "date": "2026-09-05",
    "label": null
   },
   {
-   "balance": 29291.88,
+   "balance": 42848.24,
    "change": 0.0,
    "date": "2026-09-06",
    "label": null
   },
   {
-   "balance": 29291.88,
+   "balance": 42848.24,
    "change": 0.0,
    "date": "2026-09-07",
    "label": null
   },
   {
-   "balance": 29271.89,
+   "balance": 42828.25,
    "change": -19.99,
    "date": "2026-09-08",
    "label": null
   },
   {
-   "balance": 29271.89,
+   "balance": 42828.25,
    "change": 0.0,
    "date": "2026-09-09",
    "label": null
   },
   {
-   "balance": 29258.4,
+   "balance": 42814.76,
    "change": -13.49,
    "date": "2026-09-10",
    "label": null
   },
   {
-   "balance": 29258.4,
+   "balance": 42814.76,
    "change": 0.0,
    "date": "2026-09-11",
    "label": null
   },
   {
-   "balance": 29247.28,
+   "balance": 42803.64,
    "change": -11.12,
    "date": "2026-09-12",
    "label": null
   },
   {
-   "balance": 29247.28,
+   "balance": 42803.64,
    "change": 0.0,
    "date": "2026-09-13",
    "label": null
   }
  ],
- "projected_balance": 29247.28
+ "projected_balance": 42803.64
 }

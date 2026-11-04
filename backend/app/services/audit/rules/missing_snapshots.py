@@ -1,12 +1,13 @@
 """Comptes d'investissement sans relevé depuis plus de 45 jours."""
 from app.repositories.analytics import audit as repo
+from app.repositories.comptes import balances
 from app.schemas.insight import ActionItem
 from app.services.audit.context import AuditContext
 
 
 def detect(ctx: AuditContext) -> list[ActionItem]:
     stale = []
-    for account in repo.active_accounts(ctx.db):
+    for account in balances.active_accounts(ctx.db):
         if account.type != "investissement":
             continue
         last = repo.latest_snapshot_date(ctx.db, account.id)

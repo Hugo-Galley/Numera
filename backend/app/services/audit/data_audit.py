@@ -9,6 +9,7 @@ from app.domain.transactions import tx_read, tx_sample
 from app.domain.transfers import strict_matches
 from app.models.transaction import Transaction
 from app.repositories.analytics import audit as repo
+from app.repositories.comptes import balances
 from app.schemas.insight import DataAuditIssue, DataAuditResponse, DataAuditSummary
 from app.services.audit.context import unallocated_reimbursements_query
 
@@ -17,7 +18,7 @@ def compute_data_audit(db: Session) -> DataAuditResponse:
     now = datetime.now()
     total_transactions = repo.transaction_count(db)
     active_accounts = repo.active_account_count(db)
-    accounts = repo.active_accounts(db, by_name=True)
+    accounts = balances.active_accounts(db, by_name=True)
     checks = [
         _uncategorized(db), _missing_merchants(db), _unnormalized_merchants(db), _duplicates(db),
         _missing_initial_balances(db, accounts), _stale_snapshots(db, accounts, now), _unused_categories(db),

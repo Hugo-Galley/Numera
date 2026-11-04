@@ -8,6 +8,7 @@ from app.core.time import end_of_today
 from app.domain.portfolio import regular_flow_direction, uses_positions
 from app.models.account import Account
 from app.repositories.analytics import investments as repo
+from app.repositories.comptes import balances
 from app.services.analytics.investments.flows import calculate_investment_flows
 from app.services.comptes.exchange_rates import convert_amount
 from app.services.investissement.holdings.replay import replay_account
@@ -30,12 +31,12 @@ async def compute_investment_account(db: Session, account_id: int) -> dict:
     net_invested = flows["net_invested_target"]
     baseline_date = flows["baseline_date"]
 
-    latest = repo.latest_snapshot(db, account_id)
+    latest = balances.latest_snapshot(db, account_id)
     if latest:
         current_value = float(latest.current_value)
     else:
         # Sans relevé : dernier solde courant, sinon capital net investi
-        last_tx = repo.last_transaction(db, account_id, before=end_of_today())
+        last_tx = balances.latest_transaction(db, account_id, before=end_of_today())
         current_value = float(last_tx.running_balance) if last_tx else net_invested
     value_source = "snapshot"
     snapshot_value = current_value if latest else None

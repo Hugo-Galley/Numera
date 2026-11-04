@@ -16,8 +16,10 @@ from app.integrations.currency import get_exchange_rates
 from app.models.account import Account
 from app.repositories.analytics import budget as repo
 from app.repositories.analytics.common import savings_account_ids, savings_events_by_account, ticket_restaurant_account_ids
+from app.repositories.comptes import balances
+from app.repositories.comptes.balances import active_accounts
 from app.services.budget.budget_period import period_bounds
-from app.services.comptes.wealth import account_values, active_accounts
+from app.services.comptes.wealth import account_values
 from app.services.investissement.portfolio import positions_values_eur
 
 logger = get_logger(__name__)
@@ -175,10 +177,10 @@ async def _account_investment_value(db: Session, account: Account, end: datetime
         return 0.0
     if account.id in positions_values:
         return positions_values[account.id] * rates.get(account.currency, 1.0)
-    snapshot = repo.latest_snapshot(db, account.id, end)
+    snapshot = balances.latest_snapshot(db, account.id, before=end)
     if snapshot:
         return float(snapshot.current_value)
-    last_tx = repo.last_transaction(db, account.id, end)
+    last_tx = balances.latest_transaction(db, account.id, before=end)
     return float(last_tx.running_balance) if last_tx else 0.0
 
 

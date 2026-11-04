@@ -9,6 +9,7 @@ from app.models.account import Account
 from app.repositories.analytics import investments as repo
 from app.services.analytics.investments.flows import calculate_investment_flows
 from app.services.budget.budget_period import period_bounds
+from app.services.comptes.wealth import account_values
 from app.services.investissement.holdings.replay import replay_account
 from app.services.investissement.portfolio import compute_portfolio
 
@@ -25,7 +26,7 @@ async def compute_investments(db: Session, month: int | None = None, year: int |
     if month and year:
         # Fenêtre du mois budgétaire (mois de paie en mode « salaire »), comme les autres KPI mensuels
         start_date, end_date = period_bounds(db, year, month)
-    latest_values, latest_dates = _latest_values(db, accounts, end_date)
+    latest_values, latest_dates = await _latest_values(db, accounts, end_date, start_date is not None)
 
     totals = {"net_invested": 0.0, "current_value": 0.0, "gain": 0.0, "gain_base": 0.0}
     items = []
@@ -49,17 +50,13 @@ async def compute_investments(db: Session, month: int | None = None, year: int |
     }
 
 
-def _latest_values(db: Session, accounts: list[Account], end_date: datetime) -> tuple[dict, dict]:
-    """Dernière valeur connue de chaque compte à `end_date` : relevé, sinon dernier solde courant."""
-    rows = repo.latest_snapshot_rows(db, end_date)
-    values = {row.account_id: float(row.current_value or 0.0) for row in rows}
-    dates = {row.account_id: row.date for row in rows}
-    for acc in accounts:
-        if acc.id not in values:
-            last_tx = repo.last_transaction(db, acc.id, until=end_date)
-            if last_tx:
-                values[acc.id] = float(last_tx.running_balance)
-                dates[acc.id] = last_tx.date
+async def _latest_values(db: Session, accounts: list[Account], end_date: datetime, at_period_end: bool) -> tuple[dict, dict]:
+    """Dernière valeur connue de chaque compte (devise du compte) et sa date : par `account_values`, relevés seuls.
+
+    Les positions sont valorisées à part (`_positions_item`) ; sur un mois, la valeur est celle de la fin de période."""
+    found = await account_values(db, accounts, end_date if at_period_end else None, use_positions=False)
+    values = {i: v.value for i, v in found.items() if v.source != "none"}
+    dates = {i: v.as_of for i, v in found.items() if v.source != "none"}
     return values, dates
 
 

@@ -30,6 +30,7 @@ from app.models.transaction import Transaction
 from app.repositories.budget import categorization_rules as rule_repo
 from app.repositories.budget import imports as repo
 from app.repositories.comptes import accounts as account_repo
+from app.repositories.comptes import balances as balances_repo
 from app.services.budget import merchants as merchant_service
 from app.services.budget.balances import recalculate_running_balances
 from app.services.budget.transfers import auto_link_transfers
@@ -230,7 +231,7 @@ def _log_import(db: Session, run: _ImportRun, filename: str | None, delimiter: s
 
 
 def _start_run(db: Session, account: Account, mapping: dict, create_missing_categories: bool) -> _ImportRun:
-    last = account_repo.latest_transaction(db, account.id)
+    last = balances_repo.latest_transaction(db, account.id)
     run = _ImportRun(
         account=account,
         categories=repo.categories_by_name(db),

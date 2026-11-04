@@ -1,4 +1,5 @@
 """Services crédits et provisions, sans HTTP."""
+import asyncio
 from datetime import date
 
 import pytest
@@ -25,7 +26,7 @@ def test_create_loan_creates_credit_account(db_session):
     summary = loan_service.create_loan(db_session, _payload())
     account = db_session.get(Account, summary.account_id)
     assert account.type == "credit"
-    assert account_service.account_balance(db_session, account.id) == pytest.approx(-summary.remaining_principal)
+    assert asyncio.run(account_service.account_balance(db_session, account.id)) == pytest.approx(-summary.remaining_principal)
     assert 0 < summary.remaining_principal < 12000.0
 
 

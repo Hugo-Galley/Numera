@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from app.domain.portfolio import regular_flow_direction
 from app.models.account import Account
 from app.repositories.analytics import investments as repo
+from app.repositories.comptes import balances
 from app.services.comptes.exchange_rates import convert_amount
 
 
@@ -35,11 +36,11 @@ async def calculate_investment_flows(db: Session, account: Account, end_date: da
 def _baseline(db: Session, account: Account, end_date: datetime, start_date: datetime | None) -> tuple[float, datetime | None]:
     """Sur une période : valeur avant son début (relevé, sinon solde). Sur tout l'historique : dernier Point Zéro."""
     if start_date:
-        last_snap = repo.last_snapshot_before(db, account.id, start_date)
+        last_snap = balances.latest_snapshot(db, account.id, before=start_date)
         if last_snap:
             return float(last_snap.current_value), last_snap.date
         # Compte ouvert pendant la période : base nulle, Solde Initial et versements comptés comme flux
-        last_tx = repo.last_transaction(db, account.id, before=start_date)
+        last_tx = balances.latest_transaction(db, account.id, before=start_date)
         if last_tx:
             return float(last_tx.running_balance), last_tx.date
         return 0.0, None
