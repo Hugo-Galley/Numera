@@ -49,3 +49,10 @@ backups/*
 # Configuration locale des agents IA
 AGENT.MD
 .claude/launch.json
+
+# Documents de travail des agents / dev (jamais versionnés)
+docs/superpowers/
+docs/archive/
+.superpowers/
+.audit/
+.claude/worktrees/
