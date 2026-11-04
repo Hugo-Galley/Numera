@@ -7,8 +7,9 @@ from sqlalchemy.orm import Session
 
 from app.core.logging import get_logger
 from app.domain.portfolio import SNAPSHOT_MATCH_DAYS
-from app.integrations.currency import CurrencyConversionError, convert_amount
+from app.integrations.currency import CurrencyConversionError
 from app.repositories.investissement import security_prices
+from app.services.comptes.exchange_rates import convert_amount
 from app.services.investissement.market import quotes as market_quotes
 
 logger = get_logger(__name__)
@@ -61,6 +62,7 @@ async def ensure_history(db: Session, book: PriceBook, tickers: list[str], start
             await market_quotes.fetch_price_history(db, ticker, start - timedelta(days=SNAPSHOT_MATCH_DAYS))
         except Exception as exc:  # réseau, format inattendu : on continue avec ce qu'on a
             logger.warning(f"Price history unavailable for {ticker}: {exc}")
+    market_quotes.persist_fetched_prices(db)
     book.load(db, tickers)
 
 

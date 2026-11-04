@@ -9,7 +9,6 @@ from sqlalchemy.orm import Session
 from app.core.errors import BusinessRuleError, NotFoundError
 from app.core.time import utcnow_naive
 from app.domain.finance import month_label_from_date, normalize_transaction_type
-from app.integrations import currency as currency_module
 from app.models.account import Account
 from app.models.transaction import Transaction
 from app.repositories.budget import transactions as repo
@@ -27,6 +26,7 @@ from app.services.budget.balances import recalculate_running_balances
 from app.services.budget.splits import check_split_compatible, set_splits
 from app.services.budget.transactions import require
 from app.services.budget.transfers import auto_link_transfers, release_partner
+from app.services.comptes import exchange_rates
 
 
 def validate_solde_initial(db: Session, account_id: int, date: datetime, exclude_id: int | None = None) -> None:
@@ -49,7 +49,7 @@ def _normalized_type(value: str) -> str:
 async def _in_account_currency(db: Session, account: Account, amount: float, currency: str, date: datetime) -> float:
     if currency == account.currency:
         return amount
-    return await currency_module.convert_amount(amount=amount, from_currency=currency, to_currency=account.currency, date=date.date(), db=db)
+    return await exchange_rates.convert_amount(amount=amount, from_currency=currency, to_currency=account.currency, date=date.date(), db=db)
 
 
 async def create_transaction(db: Session, payload: TransactionCreate) -> Transaction:
@@ -83,9 +83,9 @@ async def create_transaction(db: Session, payload: TransactionCreate) -> Transac
         transaction.tags = repo.tags_by_ids(db, payload.tag_ids)
     db.add(transaction)
     account.last_verified_at = utcnow_naive()
-    db.commit()
+    db.flush()  # autoflush désactivé : la ligne doit être en base pour que le recalcul la voie
 
-    recalculate_running_balances(db, payload.account_id)
+    recalculate_running_balances(db, payload.account_id)  # flush ; un seul commit, après le recalcul
     db.commit()
     await auto_link_transfers(db)
     db.refresh(transaction)
@@ -131,7 +131,7 @@ async def bulk_update_transactions(db: Session, payload: TransactionBulkUpdate) 
         if payload.tag_ids is not None:
             tx.tags = tags
         affected_account_ids.add(tx.account_id)
-    db.commit()
+    db.flush()
     for account_id in affected_account_ids:
         recalculate_running_balances(db, account_id)
     db.commit()
@@ -148,8 +148,7 @@ def _delete(db: Session, transactions: list[Transaction]) -> None:
     db.flush()
     for tx in transactions:
         repo.delete(db, tx)
-    remb.sync_offsets(db, others - deleted_ids)
-    db.commit()
+    remb.sync_offsets(db, others - deleted_ids)  # pas de commit : l'appelant recalcule les soldes, puis commit
 
 
 def bulk_delete_transactions(db: Session, payload: TransactionBulkDelete) -> TransactionBulkDeleteResult:
@@ -228,8 +227,8 @@ async def update_transaction(db: Session, transaction_id: int, payload: Transact
         update_data.pop("is_exceptional")
     for field, value in update_data.items():
         setattr(transaction, field, value)
+    db.flush()
 
-    db.commit()
     recalculate_running_balances(db, transaction.account_id)
     db.commit()
     await auto_link_transfers(db)

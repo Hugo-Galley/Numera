@@ -107,3 +107,20 @@ def test_run_migrations_does_not_need_alembic_on_path(tmp_path, monkeypatch):
     monkeypatch.setattr(settings, "database_url", url)
     migrations.run_migrations()
     assert _schema_diffs(url) == []
+
+
+def test_exchange_rate_uniqueness_migration_removes_duplicates(tmp_path):
+    url = f"sqlite:///{tmp_path / 'dups.db'}"
+    assert _alembic(url, "upgrade", "a7d3f1c9e5b2").returncode == 0
+    engine = create_engine(url)
+    with engine.begin() as conn:
+        for rate in (1.1, 1.2):
+            conn.execute(text("INSERT INTO historical_exchange_rates (date, currency, rate) VALUES ('2026-01-05', 'USD', :r)"), {"r": rate})
+    engine.dispose()
+
+    result = _alembic(url, "upgrade", "head")
+    assert result.returncode == 0, result.stderr
+    engine = create_engine(url)
+    with engine.connect() as conn:
+        assert conn.execute(text("SELECT rate FROM historical_exchange_rates")).fetchall() == [(1.1,)]
+    engine.dispose()

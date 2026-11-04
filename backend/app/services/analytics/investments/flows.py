@@ -4,9 +4,9 @@ from datetime import datetime
 from sqlalchemy.orm import Session
 
 from app.domain.portfolio import regular_flow_direction
-from app.integrations.currency import convert_amount
 from app.models.account import Account
 from app.repositories.analytics import investments as repo
+from app.services.comptes.exchange_rates import convert_amount
 
 
 async def calculate_investment_flows(db: Session, account: Account, end_date: datetime, start_date: datetime | None = None,

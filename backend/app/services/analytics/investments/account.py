@@ -6,10 +6,10 @@ from sqlalchemy.orm import Session
 from app.core.errors import BusinessRuleError, NotFoundError
 from app.core.time import end_of_today
 from app.domain.portfolio import regular_flow_direction, uses_positions
-from app.integrations.currency import convert_amount
 from app.models.account import Account
 from app.repositories.analytics import investments as repo
 from app.services.analytics.investments.flows import calculate_investment_flows
+from app.services.comptes.exchange_rates import convert_amount
 from app.services.investissement.holdings.replay import replay_account
 from app.services.investissement.portfolio import compute_portfolio
 

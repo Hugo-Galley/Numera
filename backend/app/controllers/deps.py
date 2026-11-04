@@ -1,5 +1,3 @@
-from collections.abc import Generator
-
 import jwt
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer
@@ -8,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.core.mcp_tokens import authenticate_mcp_token, is_mcp_token
-from app.db.session import SessionLocal
+from app.db.session import get_db
 from app.db.system_settings import get_setting
 
 reusable_oauth2 = OAuth2PasswordBearer(
@@ -16,13 +14,7 @@ reusable_oauth2 = OAuth2PasswordBearer(
 )
 optional_oauth2 = OAuth2PasswordBearer(tokenUrl="/auth/token", auto_error=False)
 
-def get_db() -> Generator:
-    try:
-        db = SessionLocal()
-        yield db
-    finally:
-        db.close()
-
+# `get_db` vient de `db.session` (non copié) : une seule dépendance, donc une session par requête.
 
 MCP_ALLOWED_METHODS = {"GET", "HEAD"}
 

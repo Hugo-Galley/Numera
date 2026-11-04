@@ -51,6 +51,7 @@ def require_reauth(db: Session, password: str | None, code: str | None) -> None:
     require_current_password(db, password)
     if is_enabled(db) and not (code and check_second_factor(db, code)):
         raise InvalidOperationError("Code de double authentification incorrect")
+    db.commit()  # étape TOTP ou code de secours consommé : enregistré tout de suite (anti-rejeu)
 
 
 def get_admin_profile(db: Session) -> AdminProfile:
@@ -83,6 +84,7 @@ def update_admin_profile(db: Session, profile_in: AdminProfileUpdate) -> AdminPr
         set_setting(db, "mcp_enabled", "true" if profile_in.mcp_enabled else "false")
     if profile_in.privacy_on_start is not None:
         set_setting(db, "ui.privacy_on_start", "true" if profile_in.privacy_on_start else "false")
+    db.commit()
     return get_admin_profile(db)
 
 
@@ -94,6 +96,7 @@ def list_login_events(db: Session, limit: int) -> list[LoginEvent]:
 def logout_all_sessions(db: Session) -> dict:
     """Invalide toutes les sessions ouvertes, y compris celle-ci (les tokens MCP ne sont pas concernés)."""
     set_setting(db, "auth_valid_after", str(int(time.time()) + 1))
+    db.commit()
     logger.info("Toutes les sessions ont été déconnectées")
     return {"ok": True}
 

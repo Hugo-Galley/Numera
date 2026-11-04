@@ -105,6 +105,7 @@ async def compute_diversity(db: Session, account_id: int | None) -> dict[str, An
     """Expositions réelles (sociétés, pays, secteurs), doublons, alertes, score HHI et vue patrimoine total."""
     holdings = repo.holdings(db, account_id)
     quotes = await market_quotes.get_market_quotes([h.ticker for h in holdings], db=db)
+    market_quotes.persist_fetched_prices(db)
     valued_holdings, total_stocks_eur = await _value_holdings(db, holdings, quotes, await get_exchange_rates("EUR"))
     side = _wealth_context(db, await get_exchange_rates("EUR"))
     # Patrimoine total : actions valorisées par positions (ou repli) + épargne, liquidités et fonds euros

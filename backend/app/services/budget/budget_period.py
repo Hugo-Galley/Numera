@@ -51,6 +51,7 @@ def set_mode(db: Session, mode: str) -> str:
     if mode not in (MODE_CIVIL, MODE_SALARY):
         raise ValueError("mode invalide")
     set_setting(db, SETTING_KEY, mode)
+    db.commit()
     return mode
 
 

@@ -16,6 +16,5 @@ def set_setting(db: Session, key: str, value: str) -> SystemSetting:
     else:
         setting = SystemSetting(key=key, value=value)
         db.add(setting)
-    db.commit()
-    db.refresh(setting)
+    db.flush()  # le commit revient au service appelant (plusieurs clés = une seule transaction)
     return setting

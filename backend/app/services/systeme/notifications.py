@@ -103,6 +103,7 @@ def save_settings(db: Session, update: dict) -> NotificationSettings:
             continue
         stored = ("1" if value else "0") if field in BOOL_FIELDS else str(value).strip()
         set_setting(db, KEYS[field], stored)
+    db.commit()
     return load_settings(db)
 
 
@@ -169,6 +170,7 @@ async def run_notifications(db: Session, now: datetime | None = None) -> int:
         if await send_all(channels, "Numera connecté", body, "default", _link(settings, "/audit")):
             _log(db, [(p, a.id) for p, a in fresh], "init")
             set_setting(db, INITIALIZED_KEY, "1")
+            db.commit()
             sent += 1
         return sent
 
@@ -244,6 +246,7 @@ async def send_weekly_digest(db: Session, now: datetime) -> bool:
     if not await send_all(channels, "Ta semaine avec Numera", body, "low", _link(settings, "/")):
         return False
     set_setting(db, LAST_DIGEST_KEY, week)
+    db.commit()
     return True
 
 

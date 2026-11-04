@@ -1,4 +1,5 @@
 import asyncio
+import inspect
 import time
 from contextlib import asynccontextmanager, suppress
 
@@ -65,33 +66,41 @@ setup_logging()
 logger = get_logger(__name__)
 
 
+async def _run_step(db, name: str, step) -> None:
+    """Exécute une étape de la tâche de fond : une erreur est journalisée et annulée, les étapes suivantes tournent."""
+    try:
+        result = step(db)
+        if inspect.isawaitable(result):
+            await result
+    except Exception:
+        db.rollback()
+        logger.exception("Tâche de fond : étape « %s » en échec", name)
+
+
 async def recurring_transactions_task():
     """Background task to generate recurring transactions periodically."""
     # Wait a bit after startup to avoid interfering with migrations/seeding
     await asyncio.sleep(10)
     logger.info("Starting recurring transactions background task")
     while True:
+        db = SessionLocal()
         try:
-            db = SessionLocal()
-            try:
-                if settings.DEMO_MODE:
-                    # Démo publique : régénération quotidienne, ni cours réels ni notifications
-                    await ensure_demo_data(db)
-                else:
-                    await generate_recurring_transactions(db)
-                    check_and_generate_pending_salaries(db)
-                    # Opérations sur titres arrivées à échéance : positions stockées (règle 12)
-                    await rebuild_due_holdings(db)
-                    # Cours des titres détenus enregistrés en base (historique de valorisation)
-                    await refresh_held_prices(db)
-                    # Composition des ETF détenus (Yahoo), au plus une fois par semaine et par profil
-                    await refresh_held_etf_profiles(db)
-                    # Alertes du Centre d'Actions et résumé hebdo vers ntfy / Telegram (si activés)
-                    await run_notifications(db)
-            finally:
-                db.close()
-        except Exception as e:
-            logger.error(f"Error in recurring transactions task: {e}")
+            if settings.DEMO_MODE:
+                # Démo publique : régénération quotidienne, ni cours réels ni notifications
+                await _run_step(db, "démo", ensure_demo_data)
+            else:
+                await _run_step(db, "récurrences", generate_recurring_transactions)
+                await _run_step(db, "salaires", check_and_generate_pending_salaries)
+                # Opérations sur titres arrivées à échéance : positions stockées (règle 12)
+                await _run_step(db, "positions", rebuild_due_holdings)
+                # Cours des titres détenus enregistrés en base (historique de valorisation)
+                await _run_step(db, "cours", refresh_held_prices)
+                # Composition des ETF détenus (Yahoo), au plus une fois par semaine et par profil
+                await _run_step(db, "profils ETF", refresh_held_etf_profiles)
+                # Alertes du Centre d'Actions et résumé hebdo vers ntfy / Telegram (si activés)
+                await _run_step(db, "notifications", run_notifications)
+        finally:
+            db.close()
 
         # Run every hour
         await asyncio.sleep(3600)

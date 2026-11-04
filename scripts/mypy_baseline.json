@@ -44,7 +44,6 @@
   "app/services/investissement/holdings/rebuild.py": 1,
   "app/services/investissement/holdings/replay.py": 14,
   "app/services/investissement/investment_transactions.py": 5,
-  "app/services/investissement/market/quotes.py": 1,
   "app/services/investissement/portfolio/cash.py": 2,
   "app/services/investissement/portfolio/history.py": 3,
   "app/services/investissement/tax.py": 1,

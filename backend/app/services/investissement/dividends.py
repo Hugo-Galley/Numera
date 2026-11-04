@@ -6,9 +6,10 @@ from sqlalchemy.orm import Session
 
 from app.core.logging import get_logger
 from app.domain.dividends import DividendRow
-from app.integrations.currency import CurrencyConversionError, convert_amount
+from app.integrations.currency import CurrencyConversionError
 from app.models.investment_transaction import InvestmentTransaction
 from app.repositories.investissement import investment_transactions as repo
+from app.services.comptes.exchange_rates import convert_amount
 
 logger = get_logger(__name__)
 

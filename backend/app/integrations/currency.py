@@ -2,10 +2,8 @@ from datetime import date as date_type
 from datetime import datetime, timedelta
 
 import httpx
-from sqlalchemy.orm import Session
 
 from app.core.logging import get_logger
-from app.models.exchange_rate import HistoricalExchangeRate
 
 logger = get_logger(__name__)
 
@@ -62,74 +60,15 @@ async def get_exchange_rates(base: str = "EUR") -> dict[str, float]:
     return _offline_rates(base)
 
 
-async def get_historical_rate(db: Session, date: date_type, currency: str, base: str = "EUR") -> float:
-    """
-    Get the exchange rate for a specific date and currency.
-    Results are cached in the database.
-    Rate returned is: 1 base = X currency.
-    """
-    if currency == base:
-        return 1.0
+async def fetch_historical_rate(date: date_type, currency: str) -> float | None:
+    """Taux Frankfurter (1 EUR = X `currency`) à `date`, ou au jour ouvré précédent. None si indisponible.
 
-    # Try to find in DB (la table ne stocke que des taux exprimés en base EUR)
-    existing = db.query(HistoricalExchangeRate).filter(
-        HistoricalExchangeRate.date == date,
-        HistoricalExchangeRate.currency == currency
-    ).first() if base == "EUR" else None
-
-    if existing:
-        return existing.rate
-
-    # Fetch from API
+    Réseau seulement : la mise en cache en base est faite par `services/comptes/exchange_rates.py`."""
     try:
-        date_str = date.isoformat()
         async with httpx.AsyncClient(timeout=8.0) as client:
-            # Frankfurter returns the rate for the given date or the closest previous business day
-            response = await client.get(f"https://api.frankfurter.dev/v1/{date_str}", params={"base": base})
+            response = await client.get(f"https://api.frankfurter.dev/v1/{date.isoformat()}", params={"base": "EUR"})
             if response.status_code == 200:
-                data = response.json()
-                rate = data.get("rates", {}).get(currency)
-                if rate:
-                    if base == "EUR":
-                        db.add(HistoricalExchangeRate(date=date, currency=currency, rate=rate))
-                        db.commit()
-                    return rate
+                return response.json().get("rates", {}).get(currency) or None
     except Exception as e:
         logger.warning(f"Error fetching historical exchange rate: {e}")
-
-    # Fallback to current rate if historical is not available
-    current_rates = await get_exchange_rates(base)
-    rate = current_rates.get(currency)
-    if not rate:
-        raise CurrencyConversionError(f"No exchange rate available for {currency} (base {base})")
-    return rate
-
-
-async def convert_amount(
-    amount: float,
-    from_currency: str,
-    to_currency: str = "EUR",
-    date: date_type | None = None,
-    db: Session | None = None
-) -> float:
-    """
-    Convert an amount from one currency to another.
-    If date and db are provided, uses historical rates (cross-rate via EUR for any
-    currency pair), otherwise current rates.
-    Raises CurrencyConversionError when no rate is available.
-    """
-    if from_currency == to_currency:
-        return amount
-
-    if date and db:
-        # 1 EUR = X from_currency ; 1 EUR = Y to_currency  =>  amount / X * Y
-        from_per_eur = await get_historical_rate(db, date, from_currency, base="EUR")
-        to_per_eur = await get_historical_rate(db, date, to_currency, base="EUR")
-        return amount / from_per_eur * to_per_eur
-
-    # Default to current rates
-    rates = await get_exchange_rates(to_currency)
-    rate = rates.get(from_currency)
-    if not rate:
-        raise CurrencyConversionError(f"No exchange rate available for {from_currency} -> {to_currency}")
-    return amount / rate
+    return None
