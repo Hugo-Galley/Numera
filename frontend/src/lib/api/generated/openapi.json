@@ -11903,17 +11903,6 @@
       ],
       "title": "Is Recurring"
      },
-     "is_transfer": {
-      "anyOf": [
-       {
-        "type": "boolean"
-       },
-       {
-        "type": "null"
-       }
-      ],
-      "title": "Is Transfer"
-     },
      "is_transfer_ignored": {
       "anyOf": [
        {
@@ -11924,28 +11913,6 @@
        }
       ],
       "title": "Is Transfer Ignored"
-     },
-     "linked_investment_transaction_id": {
-      "anyOf": [
-       {
-        "type": "integer"
-       },
-       {
-        "type": "null"
-       }
-      ],
-      "title": "Linked Investment Transaction Id"
-     },
-     "linked_transaction_id": {
-      "anyOf": [
-       {
-        "type": "integer"
-       },
-       {
-        "type": "null"
-       }
-      ],
-      "title": "Linked Transaction Id"
      },
      "merchant": {
       "anyOf": [

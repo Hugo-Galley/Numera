@@ -4,11 +4,12 @@ from datetime import datetime, timedelta
 
 from sqlalchemy.orm import Session
 
+from app.domain.recurring import transfer_credit_date
 from app.models.account import Account
 from app.models.investment_transaction import InvestmentTransaction
 from app.models.recurring_transaction import RecurringTransaction
 from app.models.transaction import Transaction
-from app.services.budget.recurring import generate_recurring_transactions, transfer_credit_date
+from app.services.budget.recurring import generate_recurring_transactions
 from tests.budget.test_recurring_transfers import accounts, fake_market
 
 

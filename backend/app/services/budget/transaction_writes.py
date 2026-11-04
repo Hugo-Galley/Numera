@@ -101,7 +101,7 @@ def _bulk_type(payload: TransactionBulkUpdate, transactions: list[Transaction], 
     if any(tx.type == "Solde Initial" for tx in transactions):
         raise BusinessRuleError("A Solde Initial transaction cannot be bulk-retyped")
     for tx in transactions:
-        remb.check_transaction_change(db, tx, bulk_type, tx.amount, False)
+        remb.check_transaction_change(db, tx, bulk_type, tx.amount)
         check_split_compatible(tx, bulk_type, tx.amount, tx.is_transfer)
     return bulk_type
 
@@ -202,8 +202,8 @@ def _apply_tags(db: Session, transaction: Transaction, update_data: dict) -> Non
 def _check_change(db: Session, transaction: Transaction, update_data: dict) -> None:
     new_type = update_data.get("type", transaction.type)
     new_amount = update_data.get("amount", transaction.amount)
-    remb.check_transaction_change(db, transaction, new_type, new_amount, bool(update_data.get("is_transfer")))
-    check_split_compatible(transaction, new_type, new_amount, bool(update_data.get("is_transfer", transaction.is_transfer)))
+    remb.check_transaction_change(db, transaction, new_type, new_amount)
+    check_split_compatible(transaction, new_type, new_amount, transaction.is_transfer)
     if transaction.splits and "category_id" in update_data and update_data["category_id"] != transaction.category_id:
         transaction.splits = []  # choisir une seule catégorie annule le découpage
 

@@ -193,7 +193,8 @@ def test_guards_on_transaction_mutations(client, db_session, resto):
     assert client.patch(f"/transactions/{entree.id}", json={"amount": 10}).status_code == 400
     assert client.patch(f"/transactions/{sortie.id}", json={"type": "Entree"}).status_code == 400
     assert client.patch("/transactions/bulk", json={"ids": [entree.id], "type": "Sortie"}).status_code == 400
-    assert client.patch(f"/transactions/{sortie.id}", json={"is_transfer": True}).status_code == 400
+    autre = tx(db_session, main, "Entree", 90.0, datetime(2026, 10, 4))
+    assert client.post(f"/transactions/{sortie.id}/link/{autre.id}").status_code == 400
     db_session.refresh(sortie)
     assert sortie.amount == 90.0 and sortie.type == "Sortie"
     assert client.patch(f"/transactions/{sortie.id}", json={"amount": 95}).status_code == 200
