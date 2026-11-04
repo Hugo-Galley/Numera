@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 
 from sqlalchemy.orm import Session
 
+from app.core.errors import BusinessRuleError
 from app.core.logging import get_logger
 from app.core.time import utcnow_naive
 from app.domain.finance import month_label_from_date
@@ -76,12 +77,25 @@ def unlink_pair(db: Session, tx: Transaction) -> None:
     _detach(db, tx, mark_ignored=True)
 
 
+def _check_pair(sortie: Transaction, other: Leg, kind: str) -> None:
+    """Un virement = une Sortie et une Entree (ou un versement) sur deux comptes différents."""
+    if sortie.type != "Sortie":
+        raise BusinessRuleError("Un virement part d'une Sortie")
+    expected = "Entree" if kind == "regular" else "versement"
+    if other.type != expected:
+        raise BusinessRuleError(f"La contrepartie d'un virement doit être une {expected}" if kind == "regular"
+                                else "La contrepartie d'un virement doit être un versement")
+    if other.account_id == sortie.account_id:
+        raise BusinessRuleError("Un virement relie deux comptes différents")
+
+
 def link_pair(db: Session, sortie: Transaction, other: Leg, kind: str, origin: str, rule_id: int | None = None) -> None:
     """Relie `sortie` à `other` (Transaction si kind="regular", InvestmentTransaction si "investment")."""
     if kind not in ("regular", "investment"):
         raise ValueError("kind must be 'regular' or 'investment'")
     if kind == "regular" and other.id == sortie.id:
         raise ValueError("A transaction cannot be linked to itself")
+    _check_pair(sortie, other, kind)
 
     # Libère les anciens partenaires pour ne laisser aucun lien orphelin
     _detach(db, sortie, mark_ignored=False)

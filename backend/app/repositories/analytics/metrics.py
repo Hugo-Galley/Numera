@@ -193,6 +193,7 @@ def kpi_categorized_investment_rows(db: Session, label, start: datetime, end: da
         Transaction.type == "Sortie",
         Category.name.in_(INVESTMENT_CATEGORIES),
         Transaction.is_transfer == False,
+        Account.type.in_(["courant", "epargne"]),
     )
     if not account_id:
         if tr_accounts:
@@ -325,7 +326,9 @@ def investment_transactions_between(db: Session, start: datetime, end: datetime,
 def active_recurrings(db: Session, account_id: int | None, tr_accounts: set[int]) -> list[RecurringTransaction]:
     query = db.query(RecurringTransaction).filter(RecurringTransaction.is_active == True)
     if account_id:
-        query = query.filter(RecurringTransaction.account_id == account_id)
+        # Y compris les virements récurrents qui arrivent sur ce compte
+        query = query.filter(or_(RecurringTransaction.account_id == account_id,
+                                 RecurringTransaction.transfer_to_account_id == account_id))
     elif tr_accounts:
         query = query.filter(RecurringTransaction.account_id.notin_(tr_accounts))
     return query.all()

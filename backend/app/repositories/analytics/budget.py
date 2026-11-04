@@ -4,6 +4,7 @@ from datetime import datetime
 from sqlalchemy import func
 from sqlalchemy.orm import Query, Session
 
+from app.domain.portfolio import INTEREST_CATEGORIES as DOMAIN_INTEREST_CATEGORIES
 from app.models.account import Account
 from app.models.balance_snapshot import BalanceSnapshot
 from app.models.category import Category
@@ -12,7 +13,7 @@ from app.models.transaction import Transaction
 from app.repositories.analytics.common import NET_AMOUNT, budget_versement_ids, category_lines, income_criterion
 
 INVESTMENT_CATEGORIES = ["Investissement", "Epargne"]
-INTEREST_CATEGORIES = ["Interets", "Intérêts", "Intérêt", "Interet", "Dividendes", "Dividende"]
+INTEREST_CATEGORIES = sorted(DOMAIN_INTEREST_CATEGORIES)
 
 
 def _window(query: Query, column, start: datetime | None, end: datetime) -> Query:
@@ -82,7 +83,7 @@ def categorized_investments_by_currency(db: Session, start: datetime | None, end
     """Sorties catégorisées Investissement/Epargne (non consommées)."""
     query = _net_by_currency(db).join(Category, Transaction.category_id == Category.id).filter(
         Transaction.type == "Sortie", Category.name.in_(INVESTMENT_CATEGORIES), Transaction.is_transfer == False
-    )
+    ).filter(Account.type.in_(["courant", "epargne"]))
     query = _exclude(_window(query, Transaction.date, start, end), tr_accounts)
     return query.group_by(Account.currency).all()
 

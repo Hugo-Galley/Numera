@@ -9,6 +9,21 @@ description: Use when deciding whether Numera should be released, choosing patch
 
 Une release = un tag `vX.Y.Z` sur `main`. Le tag déclenche `.github/workflows/release.yml` : contrôle (commit sur `main`, CI vert) → 3 images multi-arch sur GHCR (`numera-backend`, `numera-frontend`, `numera-mcp`, tags `X.Y.Z`, `X.Y`, `latest`) → GitHub Release avec notes générées par `scripts/release_notes.py` depuis les commits Conventional Commits. Aucun changelog écrit à la main ; la qualité des notes dépend donc de celle des messages de commit (`type(portée): description`, le corps explique le pourquoi).
 
+## Écrire pour les notes
+
+Le titre de PR (= commit squashé) devient une ligne publique : phrase courte au présent, côté utilisateur (« Vue À venir des transactions futures »), pas le détail technique. `(#N)` est ajouté par GitHub et rendu en lien.
+
+Rendu (`scripts/release_notes.py`) :
+
+| Section | Contenu |
+|---|---|
+| Changements incompatibles | tout commit `!` / `BREAKING CHANGE`, en tête |
+| ✨ À la une | jusqu'à 3 `feat` visibles ; ceux dont le **premier paragraphe du corps** existe passent en premier et l'affichent (≤ 280 car., sans puces ni signatures) |
+| 🆕 Nouveautés · 🐛 Corrections · ⚡ Performances | le reste, `**Portée** · Description (#N)` |
+| 🔧 Sous le capot | `refactor` et portées d'outillage (`qualité`, `ci`, `release`, `build`, `tests`, `docs`, `deps`) |
+
+Pour qu'une nouveauté soit bien mise en avant : un corps de commit (ou de PR) dont le **premier paragraphe** explique en une ou deux phrases ce que ça change pour l'utilisateur, avant toute liste technique. Les `docs` / `test` / `chore` / `ci` restent muets (hors portée d'outillage sur `feat`/`fix`). La note se termine par la commande de mise à jour et le lien « Changelog complet » (comparaison avec le tag précédent). Aperçu : `make release-check`.
+
 Le workflow joint à la Release un `docker-compose.yml` autonome (dérivé de `docker-compose.images.yml`, version de la release en défaut de `NUMERA_VERSION`). `install.sh` (mode « Docker », recommandé dans le README) le télécharge ; `docker-compose.images.yml` doit rester identique à `docker-compose.prod.yml` hors `build`/`image`/volumes (`tests/garde_fous/test_compose_images.py`). Toute modification de `docker-compose.prod.yml` se répercute donc dans `docker-compose.images.yml`.
 
 ## Autonomie

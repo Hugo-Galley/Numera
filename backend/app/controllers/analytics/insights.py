@@ -20,9 +20,9 @@ async def get_intelligent_insights(
 
 
 class DismissInsightRequest(BaseModel):
-    title: str
+    key: str
 
 
 @router.post("/insights/dismiss")
 def dismiss_insight(request: DismissInsightRequest, db: Session = Depends(get_db)):
-    return service.dismiss_insight(db, request.title)
+    return service.dismiss_insight(db, request.key)

@@ -5,11 +5,11 @@ from sqlalchemy.orm import Session
 
 from app.domain.finance import get_recurring_occurrences, is_lapsed
 from app.domain.subscription_prices import PriceChange, price_change_id
-from app.domain.subscriptions import recurring_costs
+from app.domain.subscriptions import counted_in_kind_total, recurring_costs, subscription_kind
 from app.integrations.currency import get_exchange_rates
 from app.repositories.analytics import subscriptions as repo
 from app.repositories.analytics.common import ticket_restaurant_account_ids
-from app.schemas.insight import SubscriptionIgnore, SubscriptionInsight, SubscriptionPriceChange, SubscriptionsResponse
+from app.schemas.insight import CostTotals, SubscriptionIgnore, SubscriptionInsight, SubscriptionPriceChange, SubscriptionsResponse
 from app.services.budget.budget_period import period_bounds
 from app.services.budget.subscription_prices import detect_price_changes
 
@@ -22,10 +22,23 @@ async def compute_subscriptions(db: Session, account_id: int | None = None, incl
     subscriptions = [_recurring_insight(db, rd, rates) for rd in repo.recurrings(db, account_id, include_other)]
     subscriptions += _potential_insights(db, account_id, subscriptions)
     outflows = [s for s in subscriptions if s.flow_type == "Sortie" and s.counts_in_total]
+    for s in subscriptions:
+        s.in_kind_total = counted_in_kind_total(s.kind, s.status, s.counts_in_total, s.is_recurring_entity)
+    totals_by_kind = {
+        kind: CostTotals(
+            monthly=round(sum(s.monthly_cost for s in counted), 2), annual=round(sum(s.annual_cost for s in counted), 2),
+        )
+        for kind in ("subscriptions", "investments", "other")
+        for counted in [[
+            s for s in subscriptions
+            if s.kind == kind and s.in_kind_total
+        ]]
+    }
     return SubscriptionsResponse(
         subscriptions=subscriptions,
         total_monthly=round(sum(s.monthly_cost for s in outflows), 2),
         total_annual=round(sum(s.annual_cost for s in outflows), 2),
+        totals_by_kind=totals_by_kind,
         price_changes=[price_change_read(c) for c in detect_price_changes(db, account_id=account_id)],
     )
 
@@ -55,6 +68,7 @@ def _recurring_insight(db: Session, rd, rates: dict) -> SubscriptionInsight:
         flow_type=rd.type,
         # Plus prélevée depuis deux périodes : affichée à part, hors des totaux
         counts_in_total=bool(rd.is_active) and not lapsed and not is_savings_flow,
+        kind=subscription_kind(rd.category.name if rd.category else None, rd.type),
     )
 
 

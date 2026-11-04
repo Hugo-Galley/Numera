@@ -40,6 +40,7 @@
   {
    "category_id": null,
    "description": "La transaction 'Foncia — Loyer' de 890,00 € est exceptionnellement élevée.",
+   "key": "large-expense-560",
    "severity": "high",
    "title": "Grosse dépense isolée",
    "type": "anomaly",
@@ -49,6 +50,7 @@
   {
    "category_id": null,
    "description": "La transaction 'VIR SANS LIEN' de 777,00 € est exceptionnellement élevée.",
+   "key": "large-expense-599",
    "severity": "high",
    "title": "Grosse dépense isolée",
    "type": "anomaly",

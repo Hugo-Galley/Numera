@@ -3,12 +3,10 @@ from datetime import datetime
 
 from sqlalchemy.orm import Session
 
+from app.domain.portfolio import regular_flow_direction
 from app.models.account import Account
 from app.repositories.analytics import investments as repo
 from app.services.comptes.exchange_rates import convert_amount
-
-INTEREST_CATEGORIES = ["Interets", "Intérêts", "Intérêt", "Interet", "Dividendes", "Dividende"]
-FEE_KEYWORDS = ["achat", "frais", "commission", "tax"]
 
 
 async def calculate_investment_flows(db: Session, account: Account, end_date: datetime, start_date: datetime | None = None,
@@ -79,22 +77,12 @@ async def _bank_flows(db: Session, account: Account, end_date: datetime, start_d
         transfer_legs_only=repo.has_investment_operations(db, account.id),
     )
     for tx in rtxs:
-        merchant_lower = (tx.merchant or "").lower()
-        if tx.type == "Solde Initial" or tx.type == "Entree":
-            # Intérêts et dividendes sont des gains, pas du capital
-            if tx.category and tx.category.name in INTEREST_CATEGORIES:
-                continue
-            if "dividende" in merchant_lower:
-                continue
-            amount_target = await convert_amount(tx.original_amount, tx.currency, target_currency, date=tx.date.date(), db=db)
-            # « Vente » sur un compte titres : argent rendu par le marché, compté en retrait
-            if "vente" in merchant_lower:
-                retire += amount_target
-            else:
-                verse += amount_target
-        elif tx.type == "Sortie":
-            # Frais et taxes font partie de la performance, pas des flux de capital
-            if any(k in merchant_lower for k in FEE_KEYWORDS):
-                continue
-            retire += await convert_amount(tx.original_amount, tx.currency, target_currency, date=tx.date.date(), db=db)
+        direction = regular_flow_direction(tx)
+        if direction == 0:
+            continue
+        amount_target = await convert_amount(tx.original_amount, tx.currency, target_currency, date=tx.date.date(), db=db)
+        if direction > 0:
+            verse += amount_target
+        else:
+            retire += amount_target
     return verse, retire

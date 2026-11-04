@@ -37,10 +37,11 @@ async def compute_insights(db: Session, month: int, year: int, account_id: int |
     insights = await _subscription_increase(db, month, year)
     insights += _large_expenses(db, start_month, end_month, account_id, budget_data["revenus_totaux"], rates)
     insights += await _category_anomalies(db, month, year, account_id)
-    insights += _positive_insights(budget_data["taux_epargne"], runway_months)
+    insights += _positive_insights(budget_data["taux_epargne"], runway_months, month, year)
 
-    dismissed = repo.dismissed_titles(db)
-    return IntelligentInsights(health_score=score, insights=[i for i in insights if i.title not in dismissed])
+    # Un insight écarté l'est pour son mois et son objet (la clé en porte les deux), pas pour son titre générique
+    dismissed = repo.dismissed_keys(db)
+    return IntelligentInsights(health_score=score, insights=[i for i in insights if i.key not in dismissed])
 
 
 async def _subscription_increase(db: Session, month: int, year: int) -> list[Insight]:
@@ -52,6 +53,7 @@ async def _subscription_increase(db: Session, month: int, year: int) -> list[Ins
     diff = current - previous
     return [Insight(
         type="anomaly",
+        key=f"subs-increase-{year}-{month:02d}",
         title="Hausse des abonnements",
         description=f"Vos abonnements ont augmenté de {eur(diff)} par rapport au mois dernier.",
         severity="medium",
@@ -70,6 +72,7 @@ def _large_expenses(db: Session, start, end, account_id: int | None, revenus: fl
         if val_eur > max(revenus * 0.1, 500.0):
             insights.append(Insight(
                 type="anomaly",
+                key=f"large-expense-{tx.id}",
                 title="Grosse dépense isolée",
                 description=f"La transaction '{tx.merchant}' de {eur(val_eur)} est exceptionnellement élevée.",
                 severity="high" if val_eur > revenus * 0.3 else "medium",
@@ -94,6 +97,7 @@ async def _category_anomalies(db: Session, month: int, year: int, account_id: in
         cat_obj = repo.get_category(db, cat_id) if cat_id is not None else UNCATEGORIZED
         insights.append(Insight(
             type="anomaly",
+            key=f"category-anomaly-{year}-{month:02d}-{cat_id}",
             title=f"Alerte catégorie : {cat_obj.name}",
             description=f"Vos dépenses en '{cat_obj.name}' ({eur(current_total)}) sont plus de 2x supérieures à votre moyenne habituelle ({eur(avg)}).",
             severity="medium",
@@ -103,11 +107,12 @@ async def _category_anomalies(db: Session, month: int, year: int, account_id: in
     return insights
 
 
-def _positive_insights(savings_rate: float, runway_months: float) -> list[Insight]:
+def _positive_insights(savings_rate: float, runway_months: float, month: int, year: int) -> list[Insight]:
     insights = []
     if savings_rate > 30:
         insights.append(Insight(
             type="positive",
+            key=f"high-savings-rate-{year}-{month:02d}",
             title="Excellent taux d'épargne",
             description="Félicitations ! Vous épargnez plus de 30 % de vos revenus ce mois-ci.",
             severity="low",
@@ -117,6 +122,7 @@ def _positive_insights(savings_rate: float, runway_months: float) -> list[Insigh
     if runway_months > 12:
         insights.append(Insight(
             type="positive",
+            key=f"long-runway-{year}-{month:02d}",
             title="Sérénité financière",
             description="Votre fonds de sécurité couvre plus d'un an de dépenses. Vous êtes très bien protégé.",
             severity="low",
@@ -126,8 +132,8 @@ def _positive_insights(savings_rate: float, runway_months: float) -> list[Insigh
     return insights
 
 
-def dismiss_insight(db: Session, title: str) -> dict:
-    if not repo.is_dismissed(db, title):
-        repo.add_dismissed(db, title)
+def dismiss_insight(db: Session, key: str) -> dict:
+    if not repo.is_dismissed(db, key):
+        repo.add_dismissed(db, key)
         db.commit()
     return {"status": "success"}

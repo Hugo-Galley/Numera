@@ -25,7 +25,7 @@
   "app/services/analytics/budget/alerts.py": 1,
   "app/services/analytics/budget/summary.py": 1,
   "app/services/analytics/insights.py": 3,
-  "app/services/analytics/investments/account.py": 7,
+  "app/services/analytics/investments/account.py": 6,
   "app/services/analytics/reports/money_flow.py": 8,
   "app/services/audit/data_audit.py": 2,
   "app/services/audit/rules/benefits.py": 5,

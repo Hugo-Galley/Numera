@@ -25,25 +25,25 @@ interface InsightsTabProps {
 }
 
 export function InsightsTab({ insights }: InsightsTabProps) {
-  const [dismissedTitles, setDismissedTitles] = useState<string[]>([])
+  const [dismissedKeys, setDismissedKeys] = useState<string[]>([])
 
-  const handleDismiss = async (title: string) => {
-    setDismissedTitles(prev => [...prev, title])
+  const handleDismiss = async (key: string) => {
+    setDismissedKeys(prev => [...prev, key])
     try {
       await apiFetch('/analytics/insights/dismiss', {
         method: 'POST',
-        body: JSON.stringify({ title })
+        body: JSON.stringify({ key })
       })
     } catch (err) {
       console.error('Failed to dismiss insight permanently', err)
       // Rejet optimiste annulé : l'insight revient et l'utilisateur est prévenu
-      setDismissedTitles(prev => prev.filter(t => t !== title))
+      setDismissedKeys(prev => prev.filter(k => k !== key))
       toast.error("Impossible de masquer cet insight")
     }
   }
 
   const visibleInsights = insights?.insights?.filter(
-    (insight: any) => !dismissedTitles.includes(insight.title)
+    (insight: any) => !dismissedKeys.includes(insight.key)
   ) || []
 
   return (
@@ -141,7 +141,7 @@ export function InsightsTab({ insights }: InsightsTabProps) {
                       variant="ghost"
                       size="icon"
                       className="h-10 w-10 md:h-8 md:w-8 text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
-                      onClick={() => handleDismiss(insight.title)}
+                      onClick={() => handleDismiss(insight.key)}
                       title="Ne pas prendre en compte de façon permanente"
                     >
                       <X className="h-4 w-4" />

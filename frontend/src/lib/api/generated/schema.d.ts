@@ -4076,6 +4076,13 @@ export interface components {
             /** Ticker */
             ticker: string;
         };
+        /** CostTotals */
+        CostTotals: {
+            /** Annual */
+            annual: number;
+            /** Monthly */
+            monthly: number;
+        };
         /** CtoYearRow */
         CtoYearRow: {
             /** Account Id */
@@ -4171,8 +4178,8 @@ export interface components {
         };
         /** DismissInsightRequest */
         DismissInsightRequest: {
-            /** Title */
-            title: string;
+            /** Key */
+            key: string;
         };
         /** DividendMonth */
         DividendMonth: {
@@ -4563,6 +4570,8 @@ export interface components {
             category_id?: number | null;
             /** Description */
             description: string;
+            /** Key */
+            key: string;
             /** Severity */
             severity: string;
             /** Title */
@@ -6416,8 +6425,18 @@ export interface components {
             flow_type?: string;
             /** Frequency */
             frequency: string;
+            /**
+             * In Kind Total
+             * @default false
+             */
+            in_kind_total?: boolean;
             /** Is Recurring Entity */
             is_recurring_entity: boolean;
+            /**
+             * Kind
+             * @default subscriptions
+             */
+            kind?: string;
             /** Last Occurrence */
             last_occurrence: string | null;
             /** Logo */
@@ -6466,6 +6485,13 @@ export interface components {
             total_annual: number;
             /** Total Monthly */
             total_monthly: number;
+            /**
+             * Totals By Kind
+             * @default {}
+             */
+            totals_by_kind?: {
+                [key: string]: components["schemas"]["CostTotals"];
+            };
         };
         /** TagCreate */
         TagCreate: {
@@ -6840,14 +6866,8 @@ export interface components {
             is_exceptional?: boolean | null;
             /** Is Recurring */
             is_recurring?: boolean | null;
-            /** Is Transfer */
-            is_transfer?: boolean | null;
             /** Is Transfer Ignored */
             is_transfer_ignored?: boolean | null;
-            /** Linked Investment Transaction Id */
-            linked_investment_transaction_id?: number | null;
-            /** Linked Transaction Id */
-            linked_transaction_id?: number | null;
             /** Merchant */
             merchant?: string | null;
             /** Merchant Id */

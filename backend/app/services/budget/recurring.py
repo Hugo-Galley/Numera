@@ -3,7 +3,6 @@
 Les récurrences gérées par la configuration salaire sont exclues : `services/salary_generation.py`
 s'en charge seul (une double génération créait des centaines de salaires en double).
 """
-import calendar
 import math
 from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta
@@ -12,7 +11,7 @@ from sqlalchemy.orm import Session
 
 from app.core.logging import get_logger
 from app.domain.finance import get_recurring_occurrences, month_label_from_date
-from app.domain.recurring import investment_leg_type
+from app.domain.recurring import investment_leg_type, transfer_credit_date
 from app.integrations.currency import CurrencyConversionError
 from app.models.account import Account
 from app.models.investment_transaction import InvestmentTransaction
@@ -86,19 +85,6 @@ async def _size_trade(
         unit_price = round(amount / quantity, 4)
         price_currency = account_currency
     return quantity, unit_price, price_currency, invested
-
-
-def transfer_credit_date(debit: datetime, credit_day: int | None) -> datetime:
-    """Date d'arrivée d'un virement récurrent débité le `debit` : le premier `credit_day` du mois
-    (borné à la fin du mois) à partir du jour du débit. Sans jour d'arrivée, le jour du débit."""
-    if not credit_day:
-        return debit
-    year, month = debit.year, debit.month
-    while True:
-        candidate = debit.replace(year=year, month=month, day=min(credit_day, calendar.monthrange(year, month)[1]))
-        if candidate.date() >= debit.date():
-            return candidate
-        year, month = (year + 1, 1) if month == 12 else (year, month + 1)
 
 
 async def _transfer_credit(

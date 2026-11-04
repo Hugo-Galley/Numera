@@ -163,7 +163,7 @@ def set_telecommuting_days(db: Session, year: int, month: int, data: Telecommuti
         real_salary = salary_amount(config.net_salary, len(dates), config.ticket_employee_share)
         tx_salary = repo.salary_transaction(db, config.salary_recurring_id, month_label)
         if tx_salary:
-            remb.check_transaction_change(db, tx_salary, tx_salary.type, real_salary, False)
+            remb.check_transaction_change(db, tx_salary, tx_salary.type, real_salary)
             tx_salary.amount = real_salary
             tx_salary.original_amount = real_salary
             tx_salary.note = salary_note(config.net_salary, len(dates), config.ticket_employee_share, real_salary)
