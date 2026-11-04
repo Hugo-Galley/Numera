@@ -35,6 +35,9 @@ services:
     security_opt:
       - no-new-privileges:true
     pids_limit: 256
+    # Hôte partagé avec la prod : une démo emballée ne doit pas l'affamer (audit M4)
+    mem_limit: 512m
+    cpus: 1.0
     restart: always
 
   # nginx (frontend/nginx.conf) référence l'hôte mcp-server : sans lui il refuse de démarrer

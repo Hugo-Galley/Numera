@@ -211,7 +211,7 @@ Une seconde instance, totalement séparée de la prod (projet Compose `numera-de
 make demo        # démarre sur 127.0.0.1:8090
 make demo-down
 ```
-Prérequis dans `.env` : `DEMO_SECRET_KEY` (distincte de `SECRET_KEY`, `openssl rand -hex 32`) et, si le domaine diffère, `DEMO_CORS_ORIGINS`. Publier ensuite le port 8090 sur le domaine voulu (tunnel / reverse proxy, ex. `demo-budget.galleyhugo.com` → `http://localhost:8090`). Identifiants publics : `demo` / `demo`, affichés sur la page de connexion. Changement d'identifiants, 2FA, passkeys, jetons MCP, sauvegardes et notifications y sont désactivés (403). Pour régénérer la démo en local : `make backend-seed-demo` (écrit dans `backend/data/demo.db`).
+Prérequis dans `.env` : `DEMO_SECRET_KEY` (distincte de `SECRET_KEY`, `openssl rand -hex 32`) et, si le domaine diffère, `DEMO_CORS_ORIGINS`. Publier ensuite le port 8090 sur le domaine voulu (tunnel / reverse proxy, ex. `demo-budget.galleyhugo.com` → `http://localhost:8090`). Identifiants publics : `demo` / `demo`, affichés sur la page de connexion. Changement d'identifiants, 2FA, passkeys, jetons MCP, sauvegardes et notifications y sont désactivés (403). Les IP et navigateurs des visiteurs ne sont pas journalisés ; imports plafonnés à 200 Ko (413), 120 écritures par minute et par IP (429), backend limité à 512 Mo / 1 CPU. Pour régénérer la démo en local : `make backend-seed-demo` (écrit dans `backend/data/demo.db`).
 
 ---
 
