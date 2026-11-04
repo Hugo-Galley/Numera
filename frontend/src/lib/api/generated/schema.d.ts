@@ -6840,14 +6840,8 @@ export interface components {
             is_exceptional?: boolean | null;
             /** Is Recurring */
             is_recurring?: boolean | null;
-            /** Is Transfer */
-            is_transfer?: boolean | null;
             /** Is Transfer Ignored */
             is_transfer_ignored?: boolean | null;
-            /** Linked Investment Transaction Id */
-            linked_investment_transaction_id?: number | null;
-            /** Linked Transaction Id */
-            linked_transaction_id?: number | null;
             /** Merchant */
             merchant?: string | null;
             /** Merchant Id */

@@ -46,10 +46,7 @@ class TransactionUpdate(BaseModel):
     note: str | None = None
     is_recurring: bool | None = None
     recurring_transaction_id: int | None = None
-    is_transfer: bool | None = None
     is_transfer_ignored: bool | None = None
-    linked_transaction_id: int | None = None
-    linked_investment_transaction_id: int | None = None
     custom_icon: str | None = None
     custom_color: str | None = None
     is_exceptional: bool | None = None
