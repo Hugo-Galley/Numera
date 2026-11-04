@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session
 from app.core.logging import get_logger
 from app.domain.finance import get_recurring_occurrences, month_label_from_date
 from app.domain.recurring import investment_leg_type
-from app.integrations.currency import CurrencyConversionError, convert_amount
+from app.integrations.currency import CurrencyConversionError
 from app.models.account import Account
 from app.models.investment_transaction import InvestmentTransaction
 from app.models.recurring_transaction import RecurringTransaction
@@ -21,6 +21,7 @@ from app.models.transaction import Transaction
 from app.repositories.budget import recurring as repo
 from app.services.budget.balances import recalculate_running_balances
 from app.services.budget.transfers import auto_link_transfers, create_counterpart
+from app.services.comptes.exchange_rates import convert_amount
 from app.services.investissement.holdings.rebuild import rebuild_holdings
 from app.services.investissement.market import quotes as market_quotes
 
@@ -129,9 +130,17 @@ async def _transfer_credit(
     return transfer_amount, trade
 
 
-async def _credit_pending_transfers(
-    db: Session, now: datetime, affected_account_ids: set[int], affected_holding_account_ids: set[int]
-) -> int:
+async def _commit_unit(db: Session, unit: "_Generation") -> None:
+    """Un seul commit, après positions et soldes des comptes touchés : jamais d'écriture validée avec un solde faux."""
+    db.flush()  # autoflush désactivé : les lignes générées doivent être en base avant positions et soldes
+    for acc_id in unit.holding_accounts:
+        await rebuild_holdings(db, acc_id)
+    for acc_id in unit.accounts:
+        recalculate_running_balances(db, acc_id)
+    db.commit()
+
+
+async def _credit_pending_transfers(db: Session, now: datetime) -> int:
     """Crédite les virements récurrents à arrivée différée dont la date d'arrivée est passée.
 
     Une sortie d'une telle règle reste « en transit » (`transfer_credit_due`) jusqu'à son jour d'arrivée.
@@ -147,7 +156,7 @@ async def _credit_pending_transfers(
         already_linked = sortie.is_transfer or sortie.linked_transaction_id or sortie.linked_investment_transaction_id
         if not dest or not account or already_linked or sortie.is_transfer_ignored:
             sortie.transfer_credit_due = None
-            db.commit()
+            db.flush()
             continue
         try:
             transfer_amount, trade = await _transfer_credit(db, rd, account, dest, sortie.amount, rd.currency, when)
@@ -159,11 +168,9 @@ async def _credit_pending_transfers(
             origin="recurring", recurring_transaction_id=rd.id, trade=trade,
         )
         sortie.transfer_credit_due = None
-        db.commit()
+        unit = _Generation(accounts={dest.id}, holding_accounts={dest.id} if trade else set())
+        await _commit_unit(db, unit)
         credited += 1
-        affected_account_ids.add(dest.id)
-        if trade:
-            affected_holding_account_ids.add(dest.id)
     return credited
 
 @dataclass
@@ -284,31 +291,35 @@ async def _generate_rule(db: Session, rd: RecurringTransaction, now: datetime, r
         rd.is_active = False
         if occurrences:
             rd.last_generated_date = occurrences[-1]
-        db.commit()
         return
     for occ in occurrences:
         if not await _generate_occurrence(db, rd, account, occ, run):
             break
-    db.commit()
 
 
 async def generate_recurring_transactions(db: Session) -> int:
-    """Génère les opérations dues de toutes les récurrences actives ; renvoie le nombre créé."""
+    """Génère les opérations dues de toutes les récurrences actives ; renvoie le nombre créé.
+
+    Une règle (ou un crédit différé) est une unité de travail : positions et soldes recalculés, puis un commit.
+    Une erreur annule cette unité seule, les autres règles sont générées."""
     now = datetime.now()
     run = _Generation()
     for rd in repo.generatable_rules(db):
-        await _generate_rule(db, rd, now, run)
+        unit = _Generation()
+        rule_id = rd.id
+        try:
+            await _generate_rule(db, rd, now, unit)
+            await _commit_unit(db, unit)
+        except Exception:
+            db.rollback()
+            logger.exception("Recurring rule %s: generation rolled back", rule_id)
+            continue
+        run.generated += unit.generated
+        run.accounts |= unit.accounts
 
-    run.generated += await _credit_pending_transfers(db, now, run.accounts, run.holding_accounts)
-    for acc_id in run.holding_accounts:
-        await rebuild_holdings(db, acc_id)
-    if run.holding_accounts:
-        db.commit()
+    run.generated += await _credit_pending_transfers(db, now)
 
     if run.generated > 0:
-        for acc_id in run.accounts:
-            recalculate_running_balances(db, acc_id)
-        db.commit()
         await auto_link_transfers(db)
         logger.info(f"Generated {run.generated} recurring transactions")
     return run.generated

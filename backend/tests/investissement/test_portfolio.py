@@ -19,7 +19,7 @@ def offline_market(monkeypatch):
         return {"EUR": 1.0, "USD": 2.0}[currency]
 
     monkeypatch.setattr(yahoo_finance, "fetch_chart", no_chart)
-    monkeypatch.setattr(currency_mod, "get_historical_rate", fake_historical_rate)
+    monkeypatch.setattr("app.services.comptes.exchange_rates.get_historical_rate", fake_historical_rate)
     market_quotes._QUOTES_CACHE.clear()
     yield
     market_quotes._QUOTES_CACHE.clear()
@@ -274,6 +274,7 @@ def test_usd_line_splits_unrealized_gain_into_price_and_currency_effect(client, 
 
     monkeypatch.setattr(market_quotes, "get_exchange_rates", current_rates)
     monkeypatch.setattr(currency_mod, "get_exchange_rates", current_rates)
+    monkeypatch.setattr("app.services.comptes.exchange_rates.get_exchange_rates", current_rates)
     import app.services.investissement.portfolio.compute as portfolio_mod
     monkeypatch.setattr(portfolio_mod, "get_exchange_rates", current_rates)
 

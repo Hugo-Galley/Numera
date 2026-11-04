@@ -7,7 +7,7 @@ from app.domain.dividends import aggregate_dividends, dividend_tickers, month_ke
 from app.repositories.investissement import holdings as holdings_repo
 from app.schemas.dividend import DividendMonth, DividendSummary, DividendTotals, DividendUnlinked, DividendYear
 from app.services.investissement.dividends import load_dividends_eur
-from app.services.investissement.market.quotes import get_market_quotes
+from app.services.investissement.market.quotes import get_market_quotes, persist_fetched_prices
 
 
 async def compute_dividends(db: Session, account_id: int | None, months: int) -> DividendSummary:
@@ -18,6 +18,7 @@ async def compute_dividends(db: Session, account_id: int | None, months: int) ->
     # Positions : coût de revient et valeur actuelle par ticker, pour les rendements
     holdings = holdings_repo.held_positions(db, account_id)
     quotes = await get_market_quotes([h.ticker for h in holdings if h.ticker.upper() in agg.by_ticker], db=db) if holdings else {}
+    persist_fetched_prices(db)
     totals, unlinked = agg.totals, agg.unlinked
 
     return DividendSummary(

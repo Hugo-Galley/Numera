@@ -29,7 +29,7 @@ Flux principal:
 backend/
   alembic/              migrations
   app/
-    controllers/        routers REST (ex-api/), un package par domaine + deps.py (get_db, get_current_user)
+    controllers/        routers REST (ex-api/), un package par domaine + deps.py (get_current_user ; `get_db` y est réexporté depuis db/session.py : une seule session par requête)
     services/           cas d'usage, meme arborescence par domaine
     repositories/       requetes SQLAlchemy, meme arborescence par domaine, sans commit
                         budget/          transactions (+ transaction_writes/links, splits, balances), categories,
@@ -50,7 +50,7 @@ backend/
     integrations/       appels externes : currency (Frankfurter), yahoo_finance, notifications (ntfy, Telegram), logos, backup
     core/               transverse : config, errors, security, logging, login_events, login_rate_limit, totp,
                         mcp_tokens, migrations, time
-    db/                 session SQLAlchemy, system_settings (get_setting/set_setting)
+    db/                 session SQLAlchemy, system_settings (get_setting/set_setting : set_setting ne fait que flush, le service commit)
     models/             modeles ORM
     schemas/            schemas Pydantic
   data/                 SQLite dev
@@ -202,7 +202,7 @@ Un point zéro sert de base de performance pour un compte.
 - `login_events`: tentatives de connexion (`created_at`, `method` = `password|password_totp|passkey`, `success`, `reason` = `invalid_password|invalid_totp|invalid_passkey|rate_limited`, `ip` (X-Real-IP de Nginx), `user_agent`). Écrites par `core/login_events.py::record_login` depuis `/auth/token`, `/auth/totp/login`, `/auth/passkey/login/verify` ; seules les 200 dernières sont gardées.
 - `mcp_tokens`: tokens d'accès MCP (`name`, `token_hash` SHA-256 unique, `token_prefix` pour l'affichage, `created_at`, `last_used_at`).
 - `imports_log`: journal d'import CSV.
-- `historical_exchange_rates`: cache de taux historiques.
+- `historical_exchange_rates`: cache de taux historiques, unique par `(date, currency)` ; écrit par `services/comptes/exchange_rates.py` (`INSERT … ON CONFLICT DO NOTHING` via `repositories/comptes/exchange_rates.py`), sans jamais commiter la session de l'appelant.
 - `savings_goals`: objectifs d'épargne (`name`, `target_amount`, `keyword`, `deadline`, `account_id`, `category_id`, `icon`, `color`).
 - `categorization_rules`: règles d'auto-catégorisation locale basées sur des patterns de commerçants (`id`, `pattern`, `category_id`, `transaction_type`, `merchant_name`, `priority`). `merchant_name` rattache `transactions.merchant_id` à un marchand canonique (créé au besoin) : le libellé bancaire `merchant` n'est jamais modifié (règle 7). `apply-all` laisse leur type aux dépenses découpées.
 - `recurring_transactions`: définitions d'abonnements/charges fixes récurrentes (`id`, `account_id`, `name`, `type`, `amount`, `currency`, `category_id`, `frequency`, `day_of_month`, `start_date`, `end_date`, `excluded_months`, `last_generated_date`, `is_active`, `auto_generate`, `note`, `transfer_to_account_id`, `transfer_credit_day`, `asset_class`, `sector`, `geographic_zone`, `ticker`, `isin`, `quantity`, `unit_price`, `whole_shares`, `etf_profile_id`).

@@ -108,6 +108,7 @@ def totp_setup(body: TotpSetupBody, db: Session = Depends(get_db), user: str = D
         raise HTTPException(status_code=409, detail="Double authentification déjà activée")
     secret = totp.generate_secret()
     set_setting(db, PENDING_KEY_SETTING, secret)
+    db.commit()
     uri = totp.provisioning_uri(secret, user)
     return TotpSetup(secret=secret, otpauth_uri=uri, qr_svg=totp.qr_svg_data_uri(uri))
 
@@ -123,8 +124,10 @@ def totp_enable(body: CodeBody, db: Session = Depends(get_db), _user: str = Depe
     set_setting(db, SECRET_KEY_SETTING, pending)
     set_setting(db, PENDING_KEY_SETTING, "")
     set_setting(db, LAST_STEP_SETTING, str(step))
+    codes = _new_recovery_codes(db)
+    db.commit()  # secret, étape et codes de secours ensemble : jamais de 2FA active sans codes
     logger.info("TOTP two-factor authentication enabled")
-    return RecoveryCodes(recovery_codes=_new_recovery_codes(db))
+    return RecoveryCodes(recovery_codes=codes)
 
 
 @router.post("/disable", response_model=TotpStatus, dependencies=[Depends(require_interactive_session)])
@@ -138,6 +141,7 @@ def totp_disable(body: DisableBody, db: Session = Depends(get_db), _user: str = 
     for key in (SECRET_KEY_SETTING, PENDING_KEY_SETTING, RECOVERY_SETTING):
         set_setting(db, key, "")
     set_setting(db, LAST_STEP_SETTING, "-1")
+    db.commit()
     logger.info("TOTP two-factor authentication disabled")
     return TotpStatus(enabled=False, recovery_codes_left=0)
 
@@ -149,7 +153,9 @@ def regenerate_recovery_codes(body: CodeBody, db: Session = Depends(get_db), _us
         raise HTTPException(status_code=400, detail="Double authentification non activée")
     if not check_second_factor(db, body.code):
         raise HTTPException(status_code=400, detail="Code incorrect")
-    return RecoveryCodes(recovery_codes=_new_recovery_codes(db))
+    codes = _new_recovery_codes(db)
+    db.commit()
+    return RecoveryCodes(recovery_codes=codes)
 
 
 @router.post("/login", response_model=AccessToken)
@@ -172,6 +178,7 @@ def totp_login(body: TotpLoginBody, request: Request, db: Session = Depends(get_
         logger.warning("Failed login attempt: invalid TOTP code")
         record_login(db, request, "password_totp", False, "invalid_totp")
         raise HTTPException(status_code=401, detail="Code incorrect")
+    db.commit()  # pas de rejeu : l'étape TOTP consommée est enregistrée
     totp_rate_limiter.reset(key)
     logger.info("Successful login (password + TOTP)")
     record_login(db, request, "password_totp", True)

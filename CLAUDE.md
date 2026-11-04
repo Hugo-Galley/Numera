@@ -114,7 +114,7 @@ python scripts/change_password.py <mot-de-passe>
 
 Pipeline import : détection du délimiteur (`,` `;` `\t`) → en-têtes normalisés via `HEADER_ALIASES` → mapping catégories (manuel puis auto-création si `create_missing_categories=True`) → détection doublons → insert + log dans `imports_log`.
 
-Multi-devises : Frankfurter, taux courants cachés 6 h en mémoire, historiques en base (`historical_exchange_rates`), fallback offline `EUR=1.0, USD=1.08, GBP=0.84, CHF=0.95`. Passer par `convert_amount` / `get_exchange_rates` (async). Stocker `amount` (devise du compte) + `original_amount` et `currency` (saisie d'origine).
+Multi-devises : Frankfurter, taux courants cachés 6 h en mémoire, historiques en base (`historical_exchange_rates`), fallback offline `EUR=1.0, USD=1.08, GBP=0.84, CHF=0.95`. Passer par `services/comptes/exchange_rates.py::convert_amount` (taux datés mis en cache en base, sans commit : l'appelant valide) / `integrations/currency.py::get_exchange_rates` (async). Stocker `amount` (devise du compte) + `original_amount` et `currency` (saisie d'origine).
 
 ## Outils MCP Distill (préférences du projet)
 

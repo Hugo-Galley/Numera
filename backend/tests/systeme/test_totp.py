@@ -121,3 +121,28 @@ def test_regenerate_recovery_codes(client):
     assert set(new).isdisjoint(old)
     mfa_token = _login(client).json()["mfa_token"]
     assert client.post("/auth/totp/login", json={"mfa_token": mfa_token, "code": old[1]}).status_code == 401
+
+
+def test_enable_is_atomic_when_recovery_codes_fail(client, db_session, monkeypatch):
+    """Une erreur pendant la génération des codes de secours ne laisse jamais la 2FA active sans codes."""
+    from fastapi.testclient import TestClient
+    from sqlalchemy.orm import sessionmaker
+
+    from app.main import app
+
+    setup = client.post("/auth/totp/setup", json={"current_password": "admin"}).json()
+
+    def boom():
+        raise RuntimeError("codes indisponibles")
+
+    monkeypatch.setattr(totp, "generate_recovery_codes", boom)
+    code = totp.code_for(setup["secret"], time.time() - totp.PERIOD)
+    with TestClient(app, raise_server_exceptions=False) as c:
+        assert c.post("/auth/totp/enable", json={"code": code}).status_code == 500
+
+    fresh = sessionmaker(bind=db_session.get_bind())()
+    try:
+        assert not get_setting(fresh, totp.SECRET_KEY_SETTING)
+        assert not totp.is_enabled(fresh)
+    finally:
+        fresh.close()

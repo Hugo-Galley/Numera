@@ -121,12 +121,24 @@ def _fallback_quote(db: Session | None, sym: str, rates: dict[str, float], now: 
     }
 
 
+_UNCOMMITTED_PRICES = "uncommitted_security_prices"
+
+
+def persist_fetched_prices(db: Session) -> None:
+    """Valide les cours écrits par `get_market_quotes` / `fetch_price_history` dans cette session (sans effet sinon :
+    un commit inutile viderait le cache de valorisation)."""
+    if db.info.pop(_UNCOMMITTED_PRICES, False):
+        db.commit()
+
+
 async def get_market_quotes(symbols: list[str], db: Session | None = None) -> dict[str, dict[str, Any]]:
     """
     Cours actuels d'une liste de tickers, avec conversion en EUR (cache mémoire 1 h).
 
     Avec `db`, chaque cours obtenu est enregistré dans `security_prices` ; si Yahoo ne répond pas,
     on renvoie le dernier cours enregistré avec `stale=True` plutôt qu'un prix nul.
+    Les cours sont seulement écrits (flush) dans la transaction de l'appelant ; un service de lecture (GET)
+    les valide ensuite avec `persist_fetched_prices(db)`.
     Chaque cotation porte `price_date` et `stale`. `price == 0` signifie « aucun cours connu ».
     """
     now = datetime.now()
@@ -153,8 +165,9 @@ async def get_market_quotes(symbols: list[str], db: Session | None = None) -> di
                 logger.warning(f"Error fetching quote for '{sym}': {e}")
             output[sym] = _fallback_quote(db, sym, rates, now)
 
-    if stored_any:
-        db.commit()
+    if stored_any and db is not None:
+        db.flush()  # le commit revient à l'appelant
+        db.info[_UNCOMMITTED_PRICES] = True
     return output
 
 
@@ -177,7 +190,8 @@ async def fetch_price_history(db: Session, ticker: str, start: date_type) -> int
         price, currency = normalize_price(close, raw_currency)
         security_prices.store_price(db, sym, datetime.fromtimestamp(ts).date(), round(price, 6), currency)
         count += 1
-    db.commit()
+    db.flush()
+    db.info[_UNCOMMITTED_PRICES] = True
     return count
 
 
@@ -204,4 +218,5 @@ async def refresh_held_prices(db: Session) -> int:
     tickers = security_prices.held_tickers(db)
     if tickers:
         await get_market_quotes(tickers, db=db)
+        persist_fetched_prices(db)
     return len(tickers)

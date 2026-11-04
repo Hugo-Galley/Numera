@@ -15,7 +15,7 @@ from app.integrations.currency import CurrencyConversionError, get_exchange_rate
 from app.models.account import Account
 from app.repositories.investissement import portfolio as repo
 from app.services.investissement.holdings.replay import replay_account
-from app.services.investissement.market.quotes import get_market_quotes
+from app.services.investissement.market.quotes import get_market_quotes, persist_fetched_prices
 from app.services.investissement.portfolio import cache
 from app.services.investissement.portfolio.books import FxBook, PriceBook, ensure_history
 from app.services.investissement.portfolio.cash import Capital, anchor_on_inventory, capital
@@ -157,6 +157,7 @@ async def _compute_portfolio(db: Session, account: Account, *, fetch: bool, hist
     holdings_meta = repo.holdings_meta(db, account.id)
     tickers = sorted(t for t, p in replay.positions.items() if p.quantity > EPSILON)
     quotes = await get_market_quotes(tickers, db=db) if tickers else {}
+    persist_fetched_prices(db)
     positions = await value_positions(replay, tickers, quotes, fx, holdings_meta)
     if positions.unpriced:
         warnings.append(f"Aucun cours disponible pour {', '.join(positions.unpriced)} : valorisé au coût de revient.")

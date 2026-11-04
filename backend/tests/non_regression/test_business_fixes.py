@@ -9,6 +9,7 @@ from app.models.account import Account
 from app.models.balance_snapshot import BalanceSnapshot
 from app.models.portfolio_holding import PortfolioHolding
 from app.models.transaction import Transaction
+from app.services.comptes import exchange_rates
 
 # ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -121,9 +122,9 @@ def test_cross_currency_conversion_uses_dated_rates_for_any_pair(monkeypatch):
     async def fake_historical(db, date, cur, base="EUR"):
         return {"USD": 1.10, "GBP": 0.85, "EUR": 1.0}[cur]
 
-    monkeypatch.setattr(currency_module, "get_historical_rate", fake_historical)
+    monkeypatch.setattr("app.services.comptes.exchange_rates.get_historical_rate", fake_historical)
     converted = asyncio.run(
-        currency_module.convert_amount(110.0, "USD", "GBP", date=datetime(2026, 1, 1).date(), db=object())
+        exchange_rates.convert_amount(110.0, "USD", "GBP", date=datetime(2026, 1, 1).date(), db=object())
     )
     assert converted == pytest.approx(85.0)
 
@@ -253,12 +254,11 @@ def test_holding_gain_converts_cost_basis_to_eur(client, db_session, monkeypatch
     async def fake_historical_rate(db, date, currency, base="EUR"):
         return {"EUR": 1.0, "USD": 2.0}[currency]
 
-    import app.integrations.currency as currency_mod
     import app.services.investissement.holdings.enrich as holdings_api
 
     monkeypatch.setattr(holdings_api, "get_exchange_rates", fake_rates)
     monkeypatch.setattr(holdings_api, "get_market_quotes", fake_quotes)
-    monkeypatch.setattr(currency_mod, "get_historical_rate", fake_historical_rate)
+    monkeypatch.setattr("app.services.comptes.exchange_rates.get_historical_rate", fake_historical_rate)
 
     account_id = _account(client, "CTO", "investissement")
     resp = client.post("/holdings", json={

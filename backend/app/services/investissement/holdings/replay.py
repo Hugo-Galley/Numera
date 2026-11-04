@@ -22,10 +22,11 @@ from sqlalchemy.orm import Session
 from app.core.logging import get_logger
 from app.core.time import end_of_today
 from app.domain.holdings import BUY_TYPES, EPSILON, SELL_TYPES, Position, RealizedSale, Replay, normalize_ticker
-from app.integrations.currency import CurrencyConversionError, convert_amount
+from app.integrations.currency import CurrencyConversionError
 from app.models.investment_transaction import InvestmentTransaction
 from app.repositories.investissement import holdings as repo
 from app.repositories.investissement import investment_transactions as tx_repo
+from app.services.comptes.exchange_rates import convert_amount
 
 logger = get_logger(__name__)
 

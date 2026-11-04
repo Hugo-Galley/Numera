@@ -34,4 +34,5 @@ def save_work_time(db: Session, update: WorkTimeUpdate) -> WorkTimeRead:
     for field, value in update.model_dump(exclude_unset=True).items():
         if value is not None:
             set_setting(db, SETTING_KEYS[field], str(value))
+    db.commit()
     return load_work_time(db)

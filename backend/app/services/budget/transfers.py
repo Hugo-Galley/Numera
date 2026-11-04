@@ -16,6 +16,7 @@ from app.models.account import Account
 from app.models.investment_transaction import InvestmentTransaction
 from app.models.transaction import Transaction
 from app.repositories.budget import transfers as repo
+from app.services.comptes import exchange_rates
 
 logger = get_logger(__name__)
 
@@ -227,7 +228,7 @@ async def create_counterpart(
     if amount is None:
         amount = sortie.amount
         if src.currency != dest.currency:
-            amount = await currency_module.convert_amount(sortie.amount, src.currency, dest.currency, date=when.date(), db=db)
+            amount = await exchange_rates.convert_amount(sortie.amount, src.currency, dest.currency, date=when.date(), db=db)
 
     leg: Leg
     if dest.type == "investissement":

@@ -4,7 +4,6 @@ from datetime import datetime, timedelta
 
 import pytest
 
-import app.integrations.currency as currency_mod
 import app.integrations.yahoo_finance as yahoo_finance
 import app.repositories.investissement.security_prices as security_prices
 import app.services.investissement.market.quotes as market_quotes
@@ -21,7 +20,7 @@ def offline_market(monkeypatch):
         return {"EUR": 1.0, "USD": 2.0}[currency]
 
     monkeypatch.setattr(yahoo_finance, "fetch_chart", no_chart)
-    monkeypatch.setattr(currency_mod, "get_historical_rate", fake_historical_rate)
+    monkeypatch.setattr("app.services.comptes.exchange_rates.get_historical_rate", fake_historical_rate)
     market_quotes._QUOTES_CACHE.clear()
     yield
     market_quotes._QUOTES_CACHE.clear()

@@ -75,6 +75,7 @@ def _load(db: Session) -> list[dict]:
 
 def _save(db: Session, credentials: list[dict]) -> None:
     set_setting(db, SETTING_KEY, json.dumps(credentials))
+    db.commit()
 
 
 def _origin(request: Request) -> tuple[str, str]:

@@ -7,7 +7,7 @@ from app.integrations.currency import get_exchange_rates
 from app.models.portfolio_holding import PortfolioHolding
 from app.schemas.holding import PortfolioHoldingRead
 from app.services.investissement.dividends import load_dividends_eur
-from app.services.investissement.market.quotes import get_market_quotes
+from app.services.investissement.market.quotes import get_market_quotes, persist_fetched_prices
 
 
 def enrich_holding(holding: PortfolioHolding, quotes: dict, rates: dict, divs: HoldingDividends | None = None) -> PortfolioHoldingRead:
@@ -53,6 +53,7 @@ def enrich_holding(holding: PortfolioHolding, quotes: dict, rates: dict, divs: H
 
 async def enrich_all(db: Session, holdings: list[PortfolioHolding]) -> list[PortfolioHoldingRead]:
     quotes = await get_market_quotes([h.ticker for h in holdings], db=db)
+    persist_fetched_prices(db)
     rates = await get_exchange_rates("EUR")
     dividends = summarize_by_holding(await load_dividends_eur(db))
     return [enrich_holding(h, quotes, rates, dividends.get((h.account_id, h.ticker.upper()))) for h in holdings]

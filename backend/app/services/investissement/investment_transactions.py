@@ -10,13 +10,13 @@ from app.core.errors import BusinessRuleError, ConflictError, NotFoundError
 from app.core.time import utcnow_naive
 from app.domain.dividends import match_dividend_ticker
 from app.domain.holdings import SELL_TYPES, is_trade
-from app.integrations.currency import convert_amount
 from app.models.account import Account
 from app.models.investment_transaction import InvestmentTransaction
 from app.repositories.comptes import accounts as accounts_repo
 from app.repositories.investissement import investment_transactions as repo
 from app.repositories.investissement import portfolio as portfolio_repo
 from app.schemas.investment import InvestmentTransactionCreate, InvestmentTransactionUpdate
+from app.services.comptes.exchange_rates import convert_amount
 from app.services.investissement.dividends import sync_reinvestment
 from app.services.investissement.holdings.rebuild import rebuild_holdings
 from app.services.investissement.holdings.replay import trade_cutoff

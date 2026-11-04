@@ -3,9 +3,9 @@ from datetime import datetime
 
 from sqlalchemy.orm import Session
 
-from app.integrations.currency import convert_amount
 from app.models.account import Account
 from app.repositories.analytics import investments as repo
+from app.services.comptes.exchange_rates import convert_amount
 
 INTEREST_CATEGORIES = ["Interets", "Intérêts", "Intérêt", "Interet", "Dividendes", "Dividende"]
 FEE_KEYWORDS = ["achat", "frais", "commission", "tax"]

@@ -13,7 +13,6 @@ from pathlib import Path
 
 import pytest
 
-import app.integrations.currency as currency_mod
 import app.integrations.yahoo_finance as yahoo_finance
 from app.models.account import Account
 from app.models.balance_snapshot import BalanceSnapshot
@@ -124,7 +123,7 @@ def portfolio_client(snapshot_client, db_session, monkeypatch):  # noqa: F811 (f
         return 1.0 if currency == "EUR" else _usd_rate(day)
 
     monkeypatch.setattr(yahoo_finance, "fetch_composition", no_composition)
-    monkeypatch.setattr(currency_mod, "get_historical_rate", historical_rate)
+    monkeypatch.setattr("app.services.comptes.exchange_rates.get_historical_rate", historical_rate)
     accounts = {a.type: a.id for a in db_session.query(Account).order_by(Account.id).all()}
     accounts.update(_add_portfolio_cases(db_session))
     yield snapshot_client, accounts
