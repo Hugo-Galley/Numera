@@ -42,8 +42,9 @@ def test_commit_import_end_to_end(client, db_session):
     db_session.expire_all()
     rows = db_session.query(Transaction).order_by(Transaction.date, Transaction.id).all()
     assert [(t.merchant, t.type, t.amount) for t in rows] == [
-        ("Carrefour", "Sortie", 42.5), ("LOYER JANVIER", "Sortie", 700.0),
+        ("CB CARREFOUR", "Sortie", 42.5), ("LOYER JANVIER", "Sortie", 700.0),
         ("Boulangerie", "Sortie", 3.2), ("Boulangerie", "Sortie", 3.2), ("Salaire", "Entree", 2500.0)]
+    assert rows[0].merchant_obj.name == "Carrefour"  # la règle rattache le marchand sans toucher au libellé
     assert rows[0].category_id == courses.id and rows[2].category_id == courses.id
     assert {c.name for c in db_session.query(Category).all()} >= {"Logement", "Revenus"}
     assert [round(t.running_balance, 2) for t in rows] == [-42.5, -742.5, -745.7, -748.9, 1751.1]

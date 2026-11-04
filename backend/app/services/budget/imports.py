@@ -30,6 +30,7 @@ from app.models.transaction import Transaction
 from app.repositories.budget import categorization_rules as rule_repo
 from app.repositories.budget import imports as repo
 from app.repositories.comptes import accounts as account_repo
+from app.services.budget import merchants as merchant_service
 from app.services.budget.balances import recalculate_running_balances
 from app.services.budget.transfers import auto_link_transfers
 
@@ -114,6 +115,7 @@ class _ImportRun:
     skipped: int = 0
     errors: int = 0
     created_categories: int = 0
+    merchant_ids: dict[str, int] = field(default_factory=dict)
     seen_in_file: Counter = field(default_factory=Counter)
     error_samples: list[str] = field(default_factory=list)
     error_details: list[dict] = field(default_factory=list)
@@ -161,11 +163,21 @@ def _resolve_category(db: Session, run: _ImportRun, csv_name: str) -> int | None
     return category.id if category else None
 
 
+def _resolve_merchant_id(db: Session, run: _ImportRun, name: str | None) -> int | None:
+    """Marchand canonique d'une règle (créé au besoin, une seule fois par import)."""
+    if not name:
+        return None
+    if name not in run.merchant_ids:
+        run.merchant_ids[name] = merchant_service.get_or_create_by_name(db, name).id
+    return run.merchant_ids[name]
+
+
 def _import_row(db: Session, run: _ImportRun, parsed: ParsedRow, raw_date: str | None) -> None:
-    category_id, tx_type, merchant = apply_import_rules(rules=run.rules, merchant=parsed.merchant,
-                                                        note=parsed.note, tx_type=parsed.type)
-    # Doublon : détecté avant toute création de catégorie (un fichier 100 % doublons ne crée rien)
-    key = duplicate_key(parsed.date, parsed.amount, merchant, tx_type)
+    category_id, tx_type, merchant_name = apply_import_rules(rules=run.rules, merchant=parsed.merchant,
+                                                             note=parsed.note, tx_type=parsed.type)
+    # Doublon : clé sur les valeurs brutes du fichier (avant règles), détecté avant toute création de catégorie
+    # (un fichier 100 % doublons ne crée rien)
+    key = duplicate_key(parsed.date, parsed.amount, parsed.merchant, parsed.type)
     run.seen_in_file[key] += 1
     if run.seen_in_file[key] <= run.existing_counts[key]:
         run.skipped += 1
@@ -184,7 +196,10 @@ def _import_row(db: Session, run: _ImportRun, parsed: ParsedRow, raw_date: str |
         date=parsed.date,
         month_label=month_label_from_date(parsed.date),
         type=tx_type,
-        merchant=merchant,
+        merchant=parsed.merchant,
+        original_merchant=parsed.merchant,
+        original_type=parsed.type,
+        merchant_id=_resolve_merchant_id(db, run, merchant_name),
         category_id=category_id,
         amount=parsed.amount,
         currency=run.account.currency,

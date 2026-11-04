@@ -37,6 +37,9 @@ class Transaction(Base):
     transfer_rule_id: Mapped[int | None] = mapped_column(ForeignKey("transfer_rules.id", ondelete="SET NULL"), nullable=True, index=True)
     # Virement récurrent à arrivée différée : date à laquelle créditer la destination (None une fois crédité)
     transfer_credit_due: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    # Valeurs brutes du relevé à l'import (clé de doublon, règle 4) : indépendantes des règles et des retouches manuelles
+    original_merchant: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    original_type: Mapped[str | None] = mapped_column(String(32), nullable=True)
     merchant_id: Mapped[int | None] = mapped_column(ForeignKey("merchants.id", ondelete="SET NULL"), nullable=True, index=True)
     # Total remboursé (Sortie) ou affecté à des créances (Entree) ; maintenu par services/reimbursements.py
     reimbursement_offset: Mapped[float] = mapped_column(Float, default=0.0, server_default="0", nullable=False)
