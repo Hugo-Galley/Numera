@@ -1,7 +1,7 @@
 """investment_transactions.unit_price_derived : origine du prix unitaire (saisi ou déduit du montant)
 
 Revision ID: a7d3f1c9e5b2
-Revises: e3b7c1d9a4f2
+Revises: a7c3e9d1b5f8
 Create Date: 2026-11-04 10:00:00.000000
 
 """
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision: str = "a7d3f1c9e5b2"
-down_revision: str | Sequence[str] | None = "e3b7c1d9a4f2"
+down_revision: str | Sequence[str] | None = "a7c3e9d1b5f8"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
