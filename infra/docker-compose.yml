@@ -43,7 +43,9 @@ services:
       - BACKUP_KEY=${BACKUP_KEY}
       - GITHUB_BACKUP_REPO=${GITHUB_BACKUP_REPO:-}
       - GITHUB_BACKUP_TOKEN=${GITHUB_BACKUP_TOKEN:-}
-      - BACKUP_INTERVAL_SECONDS=86400 # 24h
+      - RETENTION_DAYS=${RETENTION_DAYS:-7}
+      - GITHUB_BACKUP_KEEP_DAYS=${GITHUB_BACKUP_KEEP_DAYS:-30}
+      - BACKUP_INTERVAL_SECONDS=${BACKUP_INTERVAL_SECONDS:-86400}
     volumes:
       - ../backend/data:/app/data
       - ../backups:/app/backups

@@ -152,6 +152,8 @@ jobs:
           version="${GITHUB_REF_NAME#v}"
           sed "s/NUMERA_VERSION:-latest/NUMERA_VERSION:-$version/" infra/docker-compose.images.yml > "$RUNNER_TEMP/docker-compose.yml"
           grep -q "NUMERA_VERSION:-$version}" "$RUNNER_TEMP/docker-compose.yml"
+          # Somme de contrôle vérifiée par install.sh avant d'utiliser le compose téléchargé
+          (cd "$RUNNER_TEMP" && sha256sum docker-compose.yml > SHA256SUMS)
       - name: Créer la release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -163,4 +165,5 @@ jobs:
             --title "Numera ${GITHUB_REF_NAME#v}" \
             --notes-file "$RUNNER_TEMP/notes.md" \
             --verify-tag \
-            "$RUNNER_TEMP/docker-compose.yml"
+            "$RUNNER_TEMP/docker-compose.yml" \
+            "$RUNNER_TEMP/SHA256SUMS"
