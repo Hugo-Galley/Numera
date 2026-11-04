@@ -10,7 +10,7 @@ dependencies = [
     "pydantic==2.14.2",
     "pydantic-settings==2.16.2",
     "alembic==1.20.1",
-    "python-multipart==0.0.32",
+    "python-multipart==0.0.33",
     "PyJWT==2.15.1",
     "cryptography>=50,<51",  # chiffrement des backups (Fernet)
     "bcrypt==5.0.0",
