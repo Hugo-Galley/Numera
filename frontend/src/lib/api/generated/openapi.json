@@ -6582,6 +6582,17 @@
    },
    "NotificationSettingsUpdate": {
     "properties": {
+     "current_password": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Current Password"
+     },
      "hide_amounts": {
       "anyOf": [
        {
@@ -8260,6 +8271,35 @@
     "title": "RealizedYear",
     "type": "object"
    },
+   "ReauthBody": {
+    "description": "Un jeton de session volé ne doit pas suffire à ajouter ou retirer une passkey.",
+    "properties": {
+     "code": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Code"
+     },
+     "current_password": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Current Password"
+     }
+    },
+    "title": "ReauthBody",
+    "type": "object"
+   },
    "ReconcileHint": {
     "properties": {
      "kind": {
@@ -9363,10 +9403,32 @@
    },
    "RegisterVerifyBody": {
     "properties": {
+     "code": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Code"
+     },
      "credential": {
       "additionalProperties": true,
       "title": "Credential",
       "type": "object"
+     },
+     "current_password": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Current Password"
      },
      "name": {
       "anyOf": [
@@ -16953,6 +17015,23 @@
   "/auth/passkey/register/options": {
    "post": {
     "operationId": "register_options_auth_passkey_register_options_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "anyOf": [
+         {
+          "$ref": "#/components/schemas/ReauthBody"
+         },
+         {
+          "type": "null"
+         }
+        ],
+        "title": "Body"
+       }
+      }
+     }
+    },
     "responses": {
      "200": {
       "content": {
@@ -16965,6 +17044,16 @@
        }
       },
       "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
      }
     },
     "security": [
@@ -17040,6 +17129,23 @@
       }
      }
     ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "anyOf": [
+         {
+          "$ref": "#/components/schemas/ReauthBody"
+         },
+         {
+          "type": "null"
+         }
+        ],
+        "title": "Body"
+       }
+      }
+     }
+    },
     "responses": {
      "200": {
       "content": {

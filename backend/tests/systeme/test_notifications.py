@@ -200,6 +200,7 @@ def test_settings_masks_tokens(client, db_session):
     resp = client.put("/notifications/settings", json={
         "ntfy_enabled": True, "ntfy_topic": "numera-x", "ntfy_token": "tk_secret_abcd",
         "telegram_bot_token": "123:XYZ9", "min_severity": "high", "weekly_digest": True,
+        "current_password": "admin",
     })
     assert resp.status_code == 200, resp.text
     data = client.get("/notifications/settings").json()
@@ -208,11 +209,11 @@ def test_settings_masks_tokens(client, db_session):
     assert data["ntfy_server"] == "https://ntfy.sh"
     assert data["min_severity"] == "high" and data["weekly_digest"] is True
 
-    client.put("/notifications/settings", json={"ntfy_token": "••••abcd", "ntfy_topic": "autre"})
+    client.put("/notifications/settings", json={"ntfy_token": "••••abcd", "ntfy_topic": "autre", "current_password": "admin"})
     assert get_setting(db_session, "notify.ntfy.token") == "tk_secret_abcd"
     assert get_setting(db_session, "notify.ntfy.topic") == "autre"
 
-    client.put("/notifications/settings", json={"ntfy_token": ""})
+    client.put("/notifications/settings", json={"ntfy_token": "", "current_password": "admin"})
     assert not get_setting(db_session, "notify.ntfy.token")
 
 
@@ -265,3 +266,53 @@ def test_digest_body_sections_all_computed(db_session, monkeypatch):
     assert warnings == []
     assert "Ce mois-ci :" in body
     assert "Centre d'Actions :" in body
+
+
+@pytest.mark.parametrize("field,value", [
+    ("ntfy_server", "https://evil.example"),
+    ("ntfy_topic", "autre"),
+    ("ntfy_token", "tk_new"),
+    ("telegram_bot_token", "999:NEW"),
+    ("telegram_chat_id", "777"),
+    ("hide_amounts", True),
+    ("public_url", "https://evil.example"),
+])
+def test_sensitive_settings_require_current_password(client, db_session, field, value):
+    assert client.put("/notifications/settings", json={field: value}).status_code == 400
+    assert client.put("/notifications/settings", json={field: value, "current_password": "nope"}).status_code == 400
+    assert not get_setting(db_session, notif.KEYS[field])
+    assert client.put("/notifications/settings", json={field: value, "current_password": "admin"}).status_code == 200
+
+
+def test_non_sensitive_or_unchanged_settings_need_no_password(client):
+    assert client.put("/notifications/settings", json={"ntfy_enabled": True, "min_severity": "high", "weekly_digest": True}).status_code == 200
+    # valeur identique à l'existante : pas de changement, pas de mot de passe
+    assert client.put("/notifications/settings", json={"ntfy_server": "https://ntfy.sh", "hide_amounts": False}).status_code == 200
+
+
+def _http_logs(caplog, transport_status):
+    caplog.set_level("INFO")
+    token = "123456789:AAH-secret_TOKEN"
+    channel = channels.TelegramChannel(token, "42", transport=httpx.MockTransport(lambda r: httpx.Response(transport_status, json={})))
+    asyncio.run(channels.send_all([channel], "t", "b"))
+    return token, caplog.text + " ".join(str(r.__dict__) for r in caplog.records)
+
+
+@pytest.mark.parametrize("status", [200, 401])
+def test_telegram_token_never_logged(caplog, status):
+    from app.core.logging import setup_logging
+
+    setup_logging()
+    token, logged = _http_logs(caplog, status)
+    assert "AAH-secret_TOKEN" not in logged
+    assert token not in logged
+
+
+def test_log_filter_masks_bot_token():
+    import logging
+
+    from app.core.logging import RedactSecretsFilter
+
+    record = logging.LogRecord("x", logging.INFO, "f", 1, "POST https://api.telegram.org/bot123:ABC-d_e/sendMessage", None, None)
+    assert RedactSecretsFilter().filter(record)
+    assert "123:ABC" not in record.getMessage()

@@ -32,6 +32,8 @@ class NotificationSettingsUpdate(BaseModel):
     weekly_digest: bool | None = None
     hide_amounts: bool | None = None
     public_url: str | None = Field(default=None, max_length=300)
+    # Exigé quand une destination d'envoi ou le masquage des montants change (jeton de session volé)
+    current_password: str | None = None
 
     @field_validator("ntfy_server", "public_url")
     @classmethod

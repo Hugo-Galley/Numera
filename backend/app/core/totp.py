@@ -5,6 +5,7 @@ Implémenté avec la bibliothèque standard ; seul le QR code passe par `segno`.
 import base64
 import hashlib
 import hmac
+import json
 import secrets
 import struct
 import time
@@ -16,7 +17,10 @@ import segno
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
-from app.db.system_settings import get_setting
+from app.core.logging import get_logger
+from app.db.system_settings import get_setting, set_setting
+
+logger = get_logger(__name__)
 
 PERIOD = 30
 DIGITS = 6
@@ -24,6 +28,8 @@ DIGITS = 6
 VALID_WINDOW = 1
 ISSUER = "Numera"
 SECRET_KEY_SETTING = "totp_secret"
+LAST_STEP_SETTING = "totp_last_step"
+RECOVERY_SETTING = "totp_recovery_codes"
 MFA_TOKEN_TTL_SECONDS = 300
 
 
@@ -100,3 +106,32 @@ def create_mfa_token(username: str) -> str:
         settings.SECRET_KEY,
         algorithm=settings.ALGORITHM,
     )
+
+
+def recovery_hashes(db: Session) -> list[str]:
+    try:
+        data = json.loads(get_setting(db, RECOVERY_SETTING, "[]"))
+    except (TypeError, ValueError):
+        return []
+    return data if isinstance(data, list) else []
+
+
+def check_second_factor(db: Session, code: str) -> bool:
+    """Code TOTP (jamais deux fois le même) ou code de secours (consommé)."""
+    secret = get_setting(db, SECRET_KEY_SETTING)
+    if not secret:
+        return False
+    step = verify(secret, code, int(get_setting(db, LAST_STEP_SETTING, "-1") or -1))
+    if step is not None:
+        set_setting(db, LAST_STEP_SETTING, str(step))
+        return True
+    if not normalize_recovery_code(code):
+        return False
+    hashed = hash_recovery_code(code)
+    hashes = recovery_hashes(db)
+    if hashed in hashes:
+        hashes.remove(hashed)
+        set_setting(db, RECOVERY_SETTING, json.dumps(hashes))
+        logger.info("Recovery code used, %d left", len(hashes))
+        return True
+    return False

@@ -13,6 +13,12 @@ import { Switch } from "@/components/ui/switch"
 import { useSubmit } from "@/hooks/useSubmit"
 import { api } from "@/lib/api"
 import { errorMessage } from "@/lib/utils"
+import { useReauth } from "./ReauthDialog"
+
+// Destinations d'envoi et masquage des montants : changer l'un d'eux exige le mot de passe actuel
+const SENSITIVE_FIELDS = [
+  "ntfy_server", "ntfy_topic", "ntfy_token", "telegram_bot_token", "telegram_chat_id", "hide_amounts", "public_url",
+] as const
 
 type Severity = "low" | "medium" | "high"
 
@@ -52,6 +58,7 @@ export function NotificationsTab() {
   const [settings, setSettings] = useState<NotificationSettings | null>(null)
   const [draft, setDraft] = useState<NotificationSettings | null>(null)
   const [failed, setFailed] = useState(false)
+  const { ask, dialog } = useReauth()
 
   const load = async () => {
     setFailed(false)
@@ -71,9 +78,15 @@ export function NotificationsTab() {
     setDraft((d) => (d ? { ...d, [key]: value } : d))
 
   const persist = async (): Promise<boolean> => {
-    if (!draft) return false
+    if (!draft || !settings) return false
+    const sensitiveChanged = SENSITIVE_FIELDS.some((field) => draft[field] !== settings[field])
+    let auth: { current_password: string } | null = null
+    if (sensitiveChanged) {
+      auth = await ask("Confirmer la modification", "Ces réglages décident où partent vos alertes : confirmez avec votre mot de passe.")
+      if (!auth) return false
+    }
     try {
-      const saved = await api.put<NotificationSettings>("/notifications/settings", draft)
+      const saved = await api.put<NotificationSettings>("/notifications/settings", { ...draft, ...(auth ? { current_password: auth.current_password } : {}) })
       setSettings(saved)
       setDraft(saved)
       toast.success("Réglages des notifications enregistrés")
@@ -213,6 +226,7 @@ export function NotificationsTab() {
         </Button>
         {dirty && <Button variant="ghost" className="h-11 sm:h-10" onClick={() => setDraft(settings)}>Annuler</Button>}
       </div>
+      {dialog}
     </div>
   )
 }

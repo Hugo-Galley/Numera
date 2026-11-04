@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useConfirm } from "@/providers/ConfirmProvider"
 import { toast } from "sonner"
+import { useReauth } from "./ReauthDialog"
 
 interface Passkey {
   id: string
@@ -20,6 +21,7 @@ export function PasskeyCard() {
   const [passkeys, setPasskeys] = useState<Passkey[]>([])
   const [busy, setBusy] = useState(false)
   const confirm = useConfirm()
+  const { ask, dialog } = useReauth()
 
   const load = useCallback(async () => {
     try {
@@ -34,13 +36,15 @@ export function PasskeyCard() {
   }, [load])
 
   const register = async () => {
+    const auth = await ask("Ajouter une passkey", "Confirmez votre identité pour ajouter un appareil de connexion.")
+    if (!auth) return
     setBusy(true)
     try {
-      const { options, state } = await api.post<{ options: any; state: string }>("/auth/passkey/register/options")
+      const { options, state } = await api.post<{ options: any; state: string }>("/auth/passkey/register/options", { current_password: auth.current_password })
       const credential = await createCredential(options)
       if (!credential) return
       const name = /iPhone|iPad/.test(navigator.userAgent) ? "iPhone / iPad" : /Mac/.test(navigator.userAgent) ? "Mac" : "Appareil"
-      await api.post("/auth/passkey/register/verify", { state, credential: serializeCredential(credential), name })
+      await api.post("/auth/passkey/register/verify", { state, credential: serializeCredential(credential), name, ...auth })
       toast.success("Passkey enregistrée")
       load()
     } catch (err: any) {
@@ -52,8 +56,10 @@ export function PasskeyCard() {
 
   const remove = async (passkey: Passkey) => {
     if (!(await confirm(`Supprimer la passkey « ${passkey.name} » ? Elle ne pourra plus servir à se connecter.`, { destructive: true }))) return
+    const auth = await ask("Supprimer la passkey", "Confirmez votre identité pour retirer cet appareil de connexion.")
+    if (!auth) return
     try {
-      await api.delete(`/auth/passkey/${passkey.id}`)
+      await api.delete(`/auth/passkey/${passkey.id}`, auth)
       toast.success("Passkey supprimée")
       load()
     } catch (err: any) {
@@ -97,6 +103,7 @@ export function PasskeyCard() {
           <p className="text-sm text-muted-foreground">Passkeys non prises en charge par ce navigateur.</p>
         )}
       </CardContent>
+      {dialog}
     </Card>
   )
 }

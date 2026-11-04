@@ -17,6 +17,7 @@ from app.core.errors import BusinessRuleError, ExternalTimeoutError, InternalErr
 from app.core.logging import get_logger
 from app.core.mcp_tokens import generate_token, hash_token
 from app.core.migrations import run_migrations
+from app.core.totp import check_second_factor, is_enabled
 from app.db.base import Base
 from app.db.session import SessionLocal, engine
 from app.db.system_settings import get_setting, set_setting
@@ -40,9 +41,16 @@ def _password_ok(db: Session, password: str | None) -> bool:
     return bool(password) and security.verify_password(password, current_hash)
 
 
-def _require_current_password(db: Session, password: str | None) -> None:
+def require_current_password(db: Session, password: str | None) -> None:
     if not _password_ok(db, password):
         raise InvalidOperationError("Mot de passe actuel incorrect")
+
+
+def require_reauth(db: Session, password: str | None, code: str | None) -> None:
+    """Mot de passe, plus code TOTP (ou de secours) si la double authentification est active."""
+    require_current_password(db, password)
+    if is_enabled(db) and not (code and check_second_factor(db, code)):
+        raise InvalidOperationError("Code de double authentification incorrect")
 
 
 def get_admin_profile(db: Session) -> AdminProfile:
@@ -59,7 +67,7 @@ def update_admin_profile(db: Session, profile_in: AdminProfileUpdate) -> AdminPr
     username_changed = bool(profile_in.username) and profile_in.username != current_username
     if username_changed or profile_in.password:
         # Un token volé ne doit pas suffire à prendre le contrôle du compte
-        _require_current_password(db, profile_in.current_password)
+        require_current_password(db, profile_in.current_password)
     if profile_in.password and len(profile_in.password) < MIN_PASSWORD_LENGTH:
         raise BusinessRuleError(f"Le mot de passe doit contenir au moins {MIN_PASSWORD_LENGTH} caractères")
 
@@ -95,7 +103,7 @@ def list_mcp_tokens(db: Session) -> list[McpToken]:
 
 
 def create_mcp_token(db: Session, payload: McpTokenCreate) -> McpTokenCreated:
-    _require_current_password(db, payload.current_password)
+    require_current_password(db, payload.current_password)
     token = generate_token()
     record = McpToken(name=payload.name.strip(), token_hash=hash_token(token), token_prefix=token[:8])
     db.add(record)
@@ -130,7 +138,7 @@ def reset_database(db: Session, confirm: bool, confirmation_code: str | None, cu
         raise InvalidOperationError("Confirmation required")
     if confirmation_code != RESET_CONFIRMATION_CODE:
         raise InvalidOperationError("Invalid confirmation code. Please type 'EFFACER' to confirm.")
-    _require_current_password(db, current_password)
+    require_current_password(db, current_password)
     _snapshot_before_reset()
 
     db.close()
