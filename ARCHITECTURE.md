@@ -335,7 +335,9 @@ Pipeline:
 - Service Docker `backup` lance `backend/scripts/backup_scheduler.py`.
 - Source: `backend/data/suivi_budget.db` montee dans `/app/data`.
 - Destination: `backups/` a la racine via `/app/backups`.
-- Variables: `BACKUP_KEY`, `BACKUP_INTERVAL_SECONDS`, `RETENTION_DAYS` selon scripts.
-- Commandes: `make backup-now`, `make backup-restore FILE=...` (le compose dev ne definit pas `RETENTION_DAYS` ; defaut 7 jours dans les scripts).
+- Variables: `BACKUP_KEY`, `BACKUP_INTERVAL_SECONDS`, `RETENTION_DAYS`, `GITHUB_BACKUP_KEEP_DAYS` (lues dans `.env` et transmises par les trois compose).
+- Avant une migration qui change le schema, `core/migrations.py` copie la base en `BACKUP_DIR/pre_migration_<rev>_<date>.db[.enc]` (5 conservees).
+- Commandes: `make backup-now`, `make backup-restore FILE=...`.
+- Mise a jour Docker: `install.sh --upgrade` (ou `NUMERA_UPGRADE=1`; le compose publie fixe la version ; checksum `SHA256SUMS` joint a la release).
 
 La cle `BACKUP_KEY` est indispensable pour restaurer les backups chiffres.

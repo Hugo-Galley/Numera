@@ -83,3 +83,69 @@ def test_pre_commit_repos_are_pinned_by_sha():
     text = (REPO_ROOT / ".pre-commit-config.yaml").read_text()
     floating = [rev for rev in PRE_COMMIT_REV.findall(text) if not re.fullmatch(r"[0-9a-f]{40}", rev)]
     assert floating == []
+
+
+SH_IMAGE_VAR = re.compile(r"^\s*[A-Z_]*IMAGE=[\"']?([^\"'\s]+)", re.MULTILINE)
+
+
+def floating_shell_images(text: str) -> list[str]:
+    """Images lancées par un script shell : `docker run <image>` ou variable `*_IMAGE=` (Audit M6)."""
+    images = [i for i in SH_IMAGE_VAR.findall(text) if not PINNED_IMAGE.search(i)]
+    for line in text.splitlines():
+        if line.lstrip().startswith("#") or "docker run" not in line:
+            continue
+        tokens = line.split("docker run", 1)[1].split()
+        it = iter(tokens)
+        for tok in it:
+            if tok in {"-e", "-v", "-u", "-p", "--name", "--entrypoint"}:
+                next(it, None)
+                continue
+            if tok.startswith("-"):
+                continue
+            tok = tok.strip("\"'")
+            if tok.startswith("$"):  # variable : sa valeur est contrôlée par la règle *_IMAGE
+                break
+            if not PINNED_IMAGE.search(tok):
+                images.append(tok)
+            break
+    return images
+
+
+def floating_pip_installs(text: str) -> list[str]:
+    """`pip install paquet` sans version exacte ni fichier de requirements (`-r`, avec hashes)."""
+    bad = []
+    for line in text.splitlines():
+        if line.lstrip().startswith("#") or "pip install" not in line:
+            continue
+        args = line.split("pip install", 1)[1]
+        if re.search(r"(^|\s)-r\s", args):
+            continue
+        pkgs = [t for t in args.split() if not t.startswith("-") and not t.startswith(("&", ">", "|", '"', "'"))]
+        bad += [p for p in pkgs if "==" not in p]
+    return bad
+
+
+def test_detects_floating_shell_images_and_pip():
+    assert floating_shell_images("docker run --rm -i python:3.12-slim sh -c x") == ["python:3.12-slim"]
+    assert floating_shell_images(f"docker run --rm -i python:3.12@sha256:{'a' * 64} sh") == []
+    assert floating_shell_images('docker run --rm -i -e A="$B" "$HASH_IMAGE" sh') == []
+    assert floating_shell_images('HASH_IMAGE="python:3.12-slim"') == ["python:3.12-slim"]
+    assert floating_pip_installs("pip install -q bcrypt") == ["bcrypt"]
+    assert floating_pip_installs("pip install -q bcrypt==5.0.0") == []
+    assert floating_pip_installs("pip install -q --require-hashes -r /tmp/r.txt") == []
+
+
+def test_shell_scripts_pin_images_and_packages():
+    floating = {}
+    for f in _tracked("*.sh"):
+        text = f.read_text()
+        if refs := floating_shell_images(text) + floating_pip_installs(text):
+            floating[str(f.relative_to(REPO_ROOT))] = refs
+    assert floating == {}
+
+
+def test_install_script_bcrypt_requirements_are_hash_pinned():
+    text = (REPO_ROOT / "install.sh").read_text()
+    block = re.search(r"BCRYPT_REQUIREMENTS='([^']+)'", text).group(1)
+    assert re.match(r"bcrypt==\d+\.\d+\.\d+", block)
+    assert len(re.findall(r"--hash=sha256:[0-9a-f]{64}", block)) >= 2

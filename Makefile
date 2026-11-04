@@ -117,6 +117,7 @@ backup-restore:
 	PYTHONPATH=backend python3 backend/scripts/restore.py $(FILE)
 
 upgrade:
+	-docker exec numera-backup-prod python scripts/backup.py
 	make prod-down
 	git pull origin main
 	make prod
