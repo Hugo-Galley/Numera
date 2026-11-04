@@ -10,7 +10,7 @@ Decrire l'architecture actuelle du depot pour permettre a un humain ou a un agen
 - Backend: FastAPI + SQLAlchemy + Alembic + Pydantic v2.
 - Base: SQLite locale dans `backend/data/suivi_budget.db` en dev Docker.
 - Auth: mono-admin JWT, routes metier protegees ; tokens MCP (`nmr_…`) acceptés à la place du JWT en lecture seule (`GET`), jamais sur `/admin`.
-- Orchestration: `infra/docker-compose.yml` (dev : `backend`, `frontend`, `backup`) ; `docker-compose.prod.yml` (prod : + `mcp-server` en streamable-http ; frontend Nginx non-root (8080 dans le conteneur) publié sur `127.0.0.1:8082`, proxy `/api/` → `backend:8001` et `/mcp` → `mcp-server:8100`).
+- Orchestration: `infra/docker-compose.yml` (dev : `backend`, `frontend`, `backup`) ; `infra/docker-compose.prod.yml` (prod : + `mcp-server` en streamable-http ; frontend Nginx non-root (8080 dans le conteneur) publié sur `127.0.0.1:8082`, proxy `/api/` → `backend:8001` et `/mcp` → `mcp-server:8100`).
 - Services externes (seuls appels sortants) : Frankfurter (taux de change) et Yahoo Finance (recherche/cotations de titres, profils ETF).
 - Serveur MCP dans `mcp-server/`, en lecture seule, connecté à Claude Code / Claude Desktop par token généré dans Paramètres → Sécurité (voir `mcp-server/README.md`).
 
@@ -64,9 +64,8 @@ frontend/
     pages/              routes principales
     providers/          AuthProvider, UIProvider
 mcp-server/             serveur MCP (server_api.py = proxy API, server_sqlite.py = accès SQLite direct)
-infra/
-  docker-compose.yml (dev)
-docker-compose.prod.yml, Makefile, setup.sh, install.sh
+infra/                  docker-compose.yml (dev), .prod.yml, .demo.yml, .images.yml (joint aux releases)
+Makefile, setup.sh, install.sh
 ```
 
 ## Couches backend

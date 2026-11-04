@@ -6,7 +6,7 @@ Le point d'entrée `server.py` est un **dispatcher** qui lance l'un des deux ser
 
 | Mode | Fichier | Fonctionnement | Outils |
 |------|---------|----------------|--------|
-| **API proxy** | `server_api.py` | Appelle l'API FastAPI avec un **token MCP** généré dans Numera. Reprend les KPI calculés par le backend. Recommandé, et seul mode du `docker-compose.prod.yml` (exposé sur `/mcp`). | 48 outils, 4 ressources, 6 prompts |
+| **API proxy** | `server_api.py` | Appelle l'API FastAPI avec un **token MCP** généré dans Numera. Reprend les KPI calculés par le backend. Recommandé, et seul mode du `infra/docker-compose.prod.yml` (exposé sur `/mcp`). | 48 outils, 4 ressources, 6 prompts |
 | **SQLite direct** | `server_sqlite.py` | Lit la base SQLite (connexion `mode=ro`). Installation locale, **stdio uniquement**. | 20 outils, 5 ressources, 3 prompts |
 
 ### Choix du mode
@@ -54,7 +54,7 @@ Le point d'entrée `server.py` est un **dispatcher** qui lance l'un des deux ser
 
 ## 🔑 Connexion de Claude (Code / Desktop)
 
-En production, `docker-compose.prod.yml` lance `mcp-server` (mode API, transport `streamable-http`, sans état) ; Nginx l'expose sur `https://<domaine>/mcp`. Aucun port publié, aucun secret dans le conteneur.
+En production, `infra/docker-compose.prod.yml` lance `mcp-server` (mode API, transport `streamable-http`, sans état) ; Nginx l'expose sur `https://<domaine>/mcp`. Aucun port publié, aucun secret dans le conteneur.
 
 1. Numera → **Paramètres → Sécurité → Claude (MCP)** → **Générer un token** (`nmr_…`, affiché une seule fois).
 2. Lancer la commande affichée :
@@ -140,7 +140,7 @@ Mode SQLite (même machine que la base ; pas d'authentification, le fichier suff
 
 ## 🐳 Docker
 
-Service `mcp-server` de `docker-compose.prod.yml` (toujours lancé, frontend Nginx en dépend) : mode API, `streamable-http` sur `8100` dans le réseau Docker seulement, `MCP_API_URL=http://backend:8001`. Bloc Nginx : `location = /mcp` dans `frontend/nginx.conf` (`proxy_buffering off` pour le flux SSE).
+Service `mcp-server` de `infra/docker-compose.prod.yml` (toujours lancé, frontend Nginx en dépend) : mode API, `streamable-http` sur `8100` dans le réseau Docker seulement, `MCP_API_URL=http://backend:8001`. Bloc Nginx : `location = /mcp` dans `frontend/nginx.conf` (`proxy_buffering off` pour le flux SSE).
 
 Le serveur est construit en `stateless_http` (pas d'affinité de session) et sans protection DNS rebinding de la lib `mcp` (elle n'accepte que `Host: localhost`, ce qui casse derrière Nginx ; inutile puisque l'accès repose sur un token bearer explicite).
 
