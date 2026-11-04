@@ -1,7 +1,7 @@
 """Le compose « images publiées » ne doit pas dériver du compose de production.
 
-`docker-compose.images.yml` est joint à chaque Release (renommé `docker-compose.yml`) : il décrit les
-mêmes services que `docker-compose.prod.yml`, mais avec les images GHCR au lieu de `build:`.
+`infra/docker-compose.images.yml` est joint à chaque Release (renommé `docker-compose.yml`) : il décrit les
+mêmes services que `infra/docker-compose.prod.yml`, mais avec les images GHCR au lieu de `build:`.
 """
 from pathlib import Path
 
