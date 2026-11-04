@@ -1,0 +1,1244 @@
+{
+ "prompts": {
+  "analyze_etf_lookthrough": {
+   "arguments": [],
+   "description": "Décompose les ETF détenus pour révéler les entreprises réelles sous-jacentes et les doublons."
+  },
+  "analyze_month": {
+   "arguments": [
+    {
+     "description": null,
+     "name": "month",
+     "required": true,
+     "title": null
+    },
+    {
+     "description": null,
+     "name": "year",
+     "required": true,
+     "title": null
+    }
+   ],
+   "description": "Analyse complète d'un mois de budget.\n\n    Args:\n        month: Mois (1-12)\n        year: Année\n    "
+  },
+  "analyze_portfolio": {
+   "arguments": [],
+   "description": "Analyse complète du portefeuille d'investissement : positions, performance, diversification."
+  },
+  "audit_subscriptions": {
+   "arguments": [],
+   "description": "Audit complet des abonnements et charges récurrentes."
+  },
+  "budget_review": {
+   "arguments": [],
+   "description": "Review complète et approfondie du budget."
+  },
+  "categorize_uncategorized": {
+   "arguments": [],
+   "description": "Propose des catégories pour les transactions qui n'en ont pas (sans rien modifier)."
+  }
+ },
+ "resources": {
+  "data://accounts": {
+   "description": "Liste tous les comptes bancaires.",
+   "name": "resource_accounts"
+  },
+  "data://categories": {
+   "description": "Liste toutes les catégories.",
+   "name": "resource_categories"
+  },
+  "data://recurring-transactions": {
+   "description": "Liste toutes les transactions récurrentes (abonnements).",
+   "name": "resource_recurring"
+  },
+  "data://tags": {
+   "description": "Liste tous les tags.",
+   "name": "resource_tags"
+  }
+ },
+ "tools": {
+  "get_budget_alerts": {
+   "description": "Alertes budgétaires : catégories proches ou dépassant les limites.\n\n    Args:\n        month: Mois (1-12, défaut : mois budgétaire en cours)\n        year: Année (défaut : année du mois en cours)\n    ",
+   "inputSchema": {
+    "properties": {
+     "month": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Month"
+     },
+     "year": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Year"
+     }
+    },
+    "title": "get_budget_alertsArguments",
+    "type": "object"
+   }
+  },
+  "get_budget_period": {
+   "description": "Découpage des mois : mode (mois de paie ou mois civil), mois en cours et fenêtre de dates.\n\n    En mode « salary », chaque salaire reçu ouvre un mois qui porte le nom du mois qu'il finance\n    (salaire du 25 août = septembre) ; tous les outils mensuels lisent ce découpage.\n\n    Args:\n        month: Mois (1-12, défaut : mois en cours)\n        year: Année (défaut : année du mois en cours)\n    ",
+   "inputSchema": {
+    "properties": {
+     "month": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Month"
+     },
+     "year": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Year"
+     }
+    },
+    "title": "get_budget_periodArguments",
+    "type": "object"
+   }
+  },
+  "get_budget_summary": {
+   "description": "Résumé budget complet : revenus, dépenses par catégorie, soldes des comptes.\n\n    Args:\n        month: Mois (1-12, optionnel, défaut: mois budgétaire en cours)\n        year: Année (optionnel, défaut: année du mois en cours)\n        account_id: Filtrer par compte (optionnel)\n    ",
+   "inputSchema": {
+    "properties": {
+     "account_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Account Id"
+     },
+     "month": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Month"
+     },
+     "year": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Year"
+     }
+    },
+    "title": "get_budget_summaryArguments",
+    "type": "object"
+   }
+  },
+  "get_cashflow_projection": {
+   "description": "Projection de trésorerie sur les prochains mois.\n\n    Args:\n        months: Nombre de mois de projection (défaut 3)\n    ",
+   "inputSchema": {
+    "properties": {
+     "months": {
+      "default": 3,
+      "title": "Months",
+      "type": "integer"
+     }
+    },
+    "title": "get_cashflow_projectionArguments",
+    "type": "object"
+   }
+  },
+  "get_diversity_scanner": {
+   "description": "Analyse complète de diversification du portefeuille avec décomposition ETF (look-through).\n\n    ⏱️ Cet outil peut prendre quelques secondes : il récupère les cours live\n    et peut créer depuis Yahoo le profil des ETF non encore profilés. La part d'un ETF\n    dont la composition n'est pas connue est comptée en « Non renseigné ».\n\n    Retourne :\n    - Score de diversité HHI (0-100) : 90+ = excellent, 60-90 = bon, <60 = à améliorer\n    - Exposition réelle par entreprise sous-jacente (directe + via ETF look-through)\n    - Répartition par pays et secteur (à travers tous les ETF)\n    - Alertes : surconcentration, chevauchements (doublons ETF), biais géographique\n    - Totaux : valeur actions/ETF, épargne, liquidités, fonds euros (contexte patrimoine complet)\n\n    Args:\n        account_id: Filtrer par compte d'investissement (optionnel, défaut = tous)\n    ",
+   "inputSchema": {
+    "properties": {
+     "account_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Account Id"
+     }
+    },
+    "title": "get_diversity_scannerArguments",
+    "type": "object"
+   }
+  },
+  "get_dividends": {
+   "description": "Dividendes reçus (EUR) : totaux net/brut/retenues, 12 derniers mois, par mois, par année et par titre.\n\n    Chaque titre porte son rendement sur PRU (12 derniers mois ÷ coût de revient) et son rendement\n    actuel (÷ valeur de la position). `unlinked` compte les dividendes encore sans titre.\n\n    Args:\n        account_id: Filtrer par compte d'investissement (optionnel)\n        months: Nombre de mois de la série mensuelle (défaut 24, max 120)\n    ",
+   "inputSchema": {
+    "properties": {
+     "account_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Account Id"
+     },
+     "months": {
+      "default": 24,
+      "title": "Months",
+      "type": "integer"
+     }
+    },
+    "title": "get_dividendsArguments",
+    "type": "object"
+   }
+  },
+  "get_etf_profile": {
+   "description": "Récupère le détail complet d'un profil ETF : pays (%), secteurs (%) et top 10 positions.\n\n    Args:\n        profile_id: ID du profil ETF (obtenir via list_etf_profiles)\n    ",
+   "inputSchema": {
+    "properties": {
+     "profile_id": {
+      "title": "Profile Id",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "profile_id"
+    ],
+    "title": "get_etf_profileArguments",
+    "type": "object"
+   }
+  },
+  "get_expenses_by_category": {
+   "description": "Répartition des dépenses par catégorie.\n\n    Args:\n        month: Mois (1-12, optionnel)\n        year: Année (optionnel)\n        account_id: Filtrer par compte (optionnel)\n    ",
+   "inputSchema": {
+    "properties": {
+     "account_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Account Id"
+     },
+     "month": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Month"
+     },
+     "year": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Year"
+     }
+    },
+    "title": "get_expenses_by_categoryArguments",
+    "type": "object"
+   }
+  },
+  "get_fire_projection": {
+   "description": "Indépendance financière : patrimoine cible = dépenses annuelles ÷ taux de retrait, années pour l'atteindre\n    au rythme d'épargne réel (en euros d'aujourd'hui), et scénarios (+100/+250/+500 €/mois, dépenses −10 %).\n\n    Args:\n        withdrawal_rate_pct: Taux de retrait annuel (défaut 4, règle des 4 %)\n        inflation_pct: Inflation annuelle retranchée du rendement (défaut 2)\n        return_pct: Remplace le rendement nominal constaté (optionnel)\n        monthly_savings: Remplace l'épargne mensuelle moyenne (optionnel)\n        annual_expenses: Remplace les dépenses annuelles réelles (optionnel)\n    ",
+   "inputSchema": {
+    "properties": {
+     "annual_expenses": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Annual Expenses"
+     },
+     "inflation_pct": {
+      "default": 2.0,
+      "title": "Inflation Pct",
+      "type": "number"
+     },
+     "monthly_savings": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Monthly Savings"
+     },
+     "return_pct": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Return Pct"
+     },
+     "withdrawal_rate_pct": {
+      "default": 4.0,
+      "title": "Withdrawal Rate Pct",
+      "type": "number"
+     }
+    },
+    "title": "get_fire_projectionArguments",
+    "type": "object"
+   }
+  },
+  "get_insights": {
+   "description": "Insights intelligents : score de santé financière, tendances, recommandations.\n\n    Args:\n        month: Mois (1-12, défaut : mois budgétaire en cours)\n        year: Année (défaut : année du mois en cours)\n    ",
+   "inputSchema": {
+    "properties": {
+     "month": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Month"
+     },
+     "year": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Year"
+     }
+    },
+    "title": "get_insightsArguments",
+    "type": "object"
+   }
+  },
+  "get_investment_performance": {
+   "description": "Analyse de performance détaillée d'un compte d'investissement spécifique.\n\n    Args:\n        account_id: ID du compte d'investissement\n    ",
+   "inputSchema": {
+    "properties": {
+     "account_id": {
+      "title": "Account Id",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "account_id"
+    ],
+    "title": "get_investment_performanceArguments",
+    "type": "object"
+   }
+  },
+  "get_investment_performance_history": {
+   "description": "Historique des performances mensuelles d'un compte d'investissement spécifique.\n\n    Args:\n        account_id: ID du compte d'investissement\n        months: Nombre de mois (défaut 12)\n    ",
+   "inputSchema": {
+    "properties": {
+     "account_id": {
+      "title": "Account Id",
+      "type": "integer"
+     },
+     "months": {
+      "default": 12,
+      "title": "Months",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "account_id"
+    ],
+    "title": "get_investment_performance_historyArguments",
+    "type": "object"
+   }
+  },
+  "get_investments_allocation": {
+   "description": "Répartition de l'allocation d'actifs globale ou pour un compte spécifique.\n\n    Args:\n        account_id: Filtrer par compte spécifique (optionnel)\n    ",
+   "inputSchema": {
+    "properties": {
+     "account_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Account Id"
+     }
+    },
+    "title": "get_investments_allocationArguments",
+    "type": "object"
+   }
+  },
+  "get_investments_allocation_advanced": {
+   "description": "Allocation d'actifs détaillée avancée par classe, secteur et zone géographique.",
+   "inputSchema": {
+    "properties": {},
+    "title": "get_investments_allocation_advancedArguments",
+    "type": "object"
+   }
+  },
+  "get_investments_summary": {
+   "description": "Résumé des investissements (comptes d'investissement actifs).\n\n    Args:\n        account_id: Filtrer par compte spécifique (optionnel)\n        month: Mois (1-12, optionnel)\n        year: Année (optionnel)\n    ",
+   "inputSchema": {
+    "properties": {
+     "account_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Account Id"
+     },
+     "month": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Month"
+     },
+     "year": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Year"
+     }
+    },
+    "title": "get_investments_summaryArguments",
+    "type": "object"
+   }
+  },
+  "get_kpi_history": {
+   "description": "Historique des KPIs financiers sur N mois (revenus, dépenses, épargne, etc.).\n\n    Args:\n        months: Nombre de mois d'historique (défaut 6)\n    ",
+   "inputSchema": {
+    "properties": {
+     "months": {
+      "default": 6,
+      "title": "Months",
+      "type": "integer"
+     }
+    },
+    "title": "get_kpi_historyArguments",
+    "type": "object"
+   }
+  },
+  "get_loan_schedule": {
+   "description": "Tableau d'amortissement d'un crédit (échéance, intérêts, capital, assurance, capital restant dû).\n\n    Args:\n        loan_id: Identifiant du crédit (voir list_loans)\n        year: Ne garder que les échéances de cette année (optionnel)\n    ",
+   "inputSchema": {
+    "properties": {
+     "loan_id": {
+      "title": "Loan Id",
+      "type": "integer"
+     },
+     "year": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Year"
+     }
+    },
+    "required": [
+     "loan_id"
+    ],
+    "title": "get_loan_scheduleArguments",
+    "type": "object"
+   }
+  },
+  "get_money_flow": {
+   "description": "Flux d'argent détaillé : d'où vient l'argent et où il va.\n\n    Args:\n        month: Mois (1-12, optionnel)\n        year: Année (optionnel)\n        account_id: Filtrer par compte (optionnel)\n    ",
+   "inputSchema": {
+    "properties": {
+     "account_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Account Id"
+     },
+     "month": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Month"
+     },
+     "year": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Year"
+     }
+    },
+    "title": "get_money_flowArguments",
+    "type": "object"
+   }
+  },
+  "get_month_review": {
+   "description": "Revue de fin de mois : points à traiter (dépenses sans catégorie, comptes non vérifiés),\n    comparaison au budget avec et sans dépenses exceptionnelles, et statut de clôture.\n\n    Args:\n        month: Mois (1-12, optionnel, défaut: mois budgétaire précédent)\n        year: Année (optionnel, défaut: année du mois précédent)\n    ",
+   "inputSchema": {
+    "properties": {
+     "month": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Month"
+     },
+     "year": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Year"
+     }
+    },
+    "title": "get_month_reviewArguments",
+    "type": "object"
+   }
+  },
+  "get_monthly_report": {
+   "description": "Rapport mensuel complet avec comparaison au mois précédent.\n\n    Args:\n        month: Mois (1-12, optionnel, défaut: mois budgétaire en cours)\n        year: Année (optionnel, défaut: année du mois en cours)\n    ",
+   "inputSchema": {
+    "properties": {
+     "month": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Month"
+     },
+     "year": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Year"
+     }
+    },
+    "title": "get_monthly_reportArguments",
+    "type": "object"
+   }
+  },
+  "get_patrimoine_allocation": {
+   "description": "Répartition complète du patrimoine global : courant, épargne, investissements, assurance-vie.\n\n    Vue macro de tous les comptes actifs avec leur valeur actuelle, type et part du patrimoine.\n    Complément idéal à get_diversity_scanner pour avoir une vue d'ensemble.\n    ",
+   "inputSchema": {
+    "properties": {},
+    "title": "get_patrimoine_allocationArguments",
+    "type": "object"
+   }
+  },
+  "get_portfolio": {
+   "description": "Valeur calculée (positions × cours + espèces), plus-values, XIRR/TWR et rapprochement.\n\n    Sans `account_id` : vue globale (somme EUR des comptes titres valorisés par positions, plus-values\n    réalisées par année pour la déclaration, dividendes, frais, XIRR global). Avec `account_id` : valeur,\n    espèces, montant investi, plus-value latente (dont effet de change par ligne), plus-value réalisée,\n    dividendes, frais, XIRR, TWR, courbe reconstituée et écart avec les relevés du courtier.\n    `value_source` vaut \"positions\" (PEA/CTO/crypto) ou \"snapshot\" (assurance-vie, compte sans positions).\n\n    Args:\n        account_id: ID du compte d'investissement (optionnel)\n    ",
+   "inputSchema": {
+    "properties": {
+     "account_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Account Id"
+     }
+    },
+    "title": "get_portfolioArguments",
+    "type": "object"
+   }
+  },
+  "get_resilience": {
+   "description": "Mois d'autonomie : épargne liquide ÷ dépenses réelles moyennes des 6 derniers mois complets.\n\n    Args:\n        month: Mois de référence (1-12, défaut : mois en cours)\n        year: Année de référence (défaut : année en cours)\n    ",
+   "inputSchema": {
+    "properties": {
+     "month": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Month"
+     },
+     "year": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Year"
+     }
+    },
+    "title": "get_resilienceArguments",
+    "type": "object"
+   }
+  },
+  "get_subscriptions": {
+   "description": "Analyse complète des abonnements détectés : actifs, montants, insights.",
+   "inputSchema": {
+    "properties": {},
+    "title": "get_subscriptionsArguments",
+    "type": "object"
+   }
+  },
+  "get_tax_overview": {
+   "description": "Plafonds, place restante et dates clés des enveloppes fiscales (PEA, PER, Livret A, assurance-vie).\n\n    Chaque enveloppe indique le montant courant, le plafond, la place restante, l'ancienneté\n    face aux 5 ans (PEA) ou 8 ans (assurance-vie) et les alertes éventuelles.\n    ",
+   "inputSchema": {
+    "properties": {},
+    "title": "get_tax_overviewArguments",
+    "type": "object"
+   }
+  },
+  "get_top_merchants": {
+   "description": "Top marchands par montant dépensé.\n\n    Args:\n        month: Mois (1-12, optionnel)\n        year: Année (optionnel)\n        account_id: Filtrer par compte (optionnel)\n        limit: Nombre de marchands (défaut 10)\n    ",
+   "inputSchema": {
+    "properties": {
+     "account_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Account Id"
+     },
+     "limit": {
+      "default": 10,
+      "title": "Limit",
+      "type": "integer"
+     },
+     "month": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Month"
+     },
+     "year": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Year"
+     }
+    },
+    "title": "get_top_merchantsArguments",
+    "type": "object"
+   }
+  },
+  "get_transaction": {
+   "description": "Récupère le détail complet d'une transaction par son ID.\n\n    Args:\n        transaction_id: L'ID de la transaction\n    ",
+   "inputSchema": {
+    "properties": {
+     "transaction_id": {
+      "title": "Transaction Id",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "transaction_id"
+    ],
+    "title": "get_transactionArguments",
+    "type": "object"
+   }
+  },
+  "get_wealth_forecast": {
+   "description": "Prévision simple du patrimoine : patrimoine actuel + épargne mensuelle moyenne des 12 derniers mois,\n    rendement des investissements = XIRR constaté. Compare le rythme actuel à un effort d'épargne supplémentaire.\n\n    Args:\n        years: Horizon en années (défaut 10)\n        extra_monthly: Épargne mensuelle supplémentaire hypothétique en € (défaut 0)\n        monthly_savings: Remplace l'épargne mensuelle moyenne calculée (optionnel)\n        investment_return_pct: Remplace le rendement constaté (XIRR) des comptes d'investissement (optionnel)\n        savings_return_pct: Rendement annuel des autres comptes, 0 par défaut (optionnel)\n    ",
+   "inputSchema": {
+    "properties": {
+     "extra_monthly": {
+      "default": 0.0,
+      "title": "Extra Monthly",
+      "type": "number"
+     },
+     "investment_return_pct": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Investment Return Pct"
+     },
+     "monthly_savings": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Monthly Savings"
+     },
+     "savings_return_pct": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Savings Return Pct"
+     },
+     "years": {
+      "default": 10,
+      "title": "Years",
+      "type": "integer"
+     }
+    },
+    "title": "get_wealth_forecastArguments",
+    "type": "object"
+   }
+  },
+  "get_work_time": {
+   "description": "Taux horaire net (salaire net × 12 ÷ heures travaillées par an) pour exprimer un prix en heures de travail.\n\n    Diviser un montant en euros par `taux_horaire_EUR` donne le nombre d'heures de travail qu'il représente.\n    ",
+   "inputSchema": {
+    "properties": {},
+    "title": "get_work_timeArguments",
+    "type": "object"
+   }
+  },
+  "get_wrapped": {
+   "description": "Bilan annuel : revenus, dépenses réelles, taux d'épargne, plus gros postes et marchands,\n    plus grosse dépense, évolution du patrimoine, abonnements nouveaux/arrêtés, comparaison à N-1.\n\n    L'année en cours est arrêtée au mois courant et comparée à la même période de N-1.\n\n    Args:\n        year: Année (optionnel, défaut: année en cours)\n    ",
+   "inputSchema": {
+    "properties": {
+     "year": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Year"
+     }
+    },
+    "title": "get_wrappedArguments",
+    "type": "object"
+   }
+  },
+  "list_accounts": {
+   "description": "Liste tous les comptes bancaires avec leur type, devise et statut.\n    Pour connaître les soldes, utilise get_budget_summary ou get_analytics_budget.\n    \n    Args:\n        type: Filtrer par type (ex: courant, epargne, investissement) (optionnel)\n    ",
+   "inputSchema": {
+    "properties": {
+     "type": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Type"
+     }
+    },
+    "title": "list_accountsArguments",
+    "type": "object"
+   }
+  },
+  "list_benefits": {
+   "description": "Aides perçues (prime d'activité, APL…) : organisme, montant attendu, statut du versement du mois\n    (reçue, en attente, non reçue), dernier versement, total reçu dans l'année et prochaine déclaration.",
+   "inputSchema": {
+    "properties": {},
+    "title": "list_benefitsArguments",
+    "type": "object"
+   }
+  },
+  "list_categories": {
+   "description": "Liste toutes les catégories de dépenses et revenus avec leurs limites budgétaires.",
+   "inputSchema": {
+    "properties": {},
+    "title": "list_categoriesArguments",
+    "type": "object"
+   }
+  },
+  "list_etf_profiles": {
+   "description": "Liste tous les profils ETF connus avec leur composition par pays, secteurs et top holdings.\n\n    Utile pour comprendre ce que contient réellement un ETF.\n    Les profils système (is_system ✅) sont intégrés à Numera, les autres (📝) créés à l'usage.\n    Secteurs et top 10 viennent de Yahoo Finance (actualisés chaque semaine) ; la répartition\n    par pays n'est jamais fournie par Yahoo : préréglage intégré ou saisie, sinon vide.\n    ",
+   "inputSchema": {
+    "properties": {},
+    "title": "list_etf_profilesArguments",
+    "type": "object"
+   }
+  },
+  "list_financial_events": {
+   "description": "Journal des décisions financières (résiliation, hausse d'épargne, changement d'allocation…),\n    du plus récent au plus ancien. Sert à expliquer un changement visible sur les courbes.\n\n    Args:\n        start: Date de début incluse (AAAA-MM-JJ, optionnel)\n        end: Date de fin incluse (AAAA-MM-JJ, optionnel)\n    ",
+   "inputSchema": {
+    "properties": {
+     "end": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "End"
+     },
+     "start": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Start"
+     }
+    },
+    "title": "list_financial_eventsArguments",
+    "type": "object"
+   }
+  },
+  "list_holdings": {
+   "description": "Liste toutes les positions du portefeuille (actions et ETF) avec prix live, performance et gain.\n\n    Chaque position inclut :\n    - ticker, ISIN, nom de l'actif\n    - quantité et prix moyen d'achat (buy_price_avg)\n    - prix actuel et valeur actuelle en EUR\n    - gain en EUR et pourcentage de performance\n    - si c'est un ETF (is_etf)\n\n    Args:\n        account_id: Filtrer par compte d'investissement (optionnel)\n    ",
+   "inputSchema": {
+    "properties": {
+     "account_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Account Id"
+     }
+    },
+    "title": "list_holdingsArguments",
+    "type": "object"
+   }
+  },
+  "list_investment_transactions": {
+   "description": "Liste les transactions d'investissement : achats, ventes et dividendes avec ticker, ISIN, quantité et prix unitaire.\n\n    Ces transactions sont distinctes des transactions bancaires classiques.\n    Elles tracent les opérations sur titres (actions / ETF).\n\n    Types : versement / retrait (flux d'espèces, avec titre = dépôt + achat / vente + retrait),\n    achat / vente (opération sur titres, sans effet sur le montant investi), dividende (ticker obligatoire), frais\n\n    Args:\n        account_id: Filtrer par compte d'investissement (optionnel)\n        limit: Nombre max de résultats (défaut 50, max 500)\n    ",
+   "inputSchema": {
+    "properties": {
+     "account_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Account Id"
+     },
+     "limit": {
+      "default": 50,
+      "title": "Limit",
+      "type": "integer"
+     }
+    },
+    "title": "list_investment_transactionsArguments",
+    "type": "object"
+   }
+  },
+  "list_loans": {
+   "description": "Crédits en cours : mensualité (hors assurance), capital restant dû (déduit du patrimoine net),\n    part remboursée, date de fin, coût total des intérêts et de l'assurance.",
+   "inputSchema": {
+    "properties": {},
+    "title": "list_loansArguments",
+    "type": "object"
+   }
+  },
+  "list_merchants": {
+   "description": "Liste tous les marchands distincts présents dans les transactions.",
+   "inputSchema": {
+    "properties": {},
+    "title": "list_merchantsArguments",
+    "type": "object"
+   }
+  },
+  "list_month_closures": {
+   "description": "Mois clôturés (revue de fin de mois) avec la date, le fait marquant et la photo des chiffres.",
+   "inputSchema": {
+    "properties": {},
+    "title": "list_month_closuresArguments",
+    "type": "object"
+   }
+  },
+  "list_provisions": {
+   "description": "Provisions pour grosses dépenses périodiques (taxe foncière, assurance…) : prochaine échéance,\n    effort mensuel, ce qui devrait déjà être de côté, constitution réelle sur le compte rattaché et statut.",
+   "inputSchema": {
+    "properties": {},
+    "title": "list_provisionsArguments",
+    "type": "object"
+   }
+  },
+  "list_recurring_transactions": {
+   "description": "Liste les transactions récurrentes (abonnements, salaires, etc.).",
+   "inputSchema": {
+    "properties": {},
+    "title": "list_recurring_transactionsArguments",
+    "type": "object"
+   }
+  },
+  "list_reimbursement_claims": {
+   "description": "Créances de remboursement (« ce qu'on me doit ») : dépense, débiteur, attendu, reçu, reste dû.\n    `status` : open (reste dû > 0, défaut), settled ou all.",
+   "inputSchema": {
+    "properties": {
+     "debtor": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Debtor"
+     },
+     "status": {
+      "default": "open",
+      "title": "Status",
+      "type": "string"
+     }
+    },
+    "title": "list_reimbursement_claimsArguments",
+    "type": "object"
+   }
+  },
+  "list_savings_goals": {
+   "description": "Liste tous les objectifs d'épargne avec leur progression.",
+   "inputSchema": {
+    "properties": {},
+    "title": "list_savings_goalsArguments",
+    "type": "object"
+   }
+  },
+  "list_tags": {
+   "description": "Liste tous les tags disponibles.",
+   "inputSchema": {
+    "properties": {},
+    "title": "list_tagsArguments",
+    "type": "object"
+   }
+  },
+  "list_transactions": {
+   "description": "Liste les transactions avec filtres.\n\n    Args:\n        account_id: Filtrer par compte (ID)\n        category_id: Filtrer par catégorie (ID)\n        type: Filtrer par type (Entree, Sortie, Interets, Solde Initial)\n        merchant: Recherche partielle dans le nom du marchand\n        start_date: Date de début (YYYY-MM-DDTHH:MM:SS)\n        end_date: Date de fin (YYYY-MM-DDTHH:MM:SS)\n        search: Recherche texte dans marchand et note\n        min_amount: Montant minimum\n        max_amount: Montant maximum\n        is_transfer: Filtrer les virements internes (true/false)\n        limit: Nombre max de résultats (défaut 50, max 200)\n    ",
+   "inputSchema": {
+    "properties": {
+     "account_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Account Id"
+     },
+     "category_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Category Id"
+     },
+     "end_date": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "End Date"
+     },
+     "is_transfer": {
+      "anyOf": [
+       {
+        "type": "boolean"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Is Transfer"
+     },
+     "limit": {
+      "default": 50,
+      "title": "Limit",
+      "type": "integer"
+     },
+     "max_amount": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Max Amount"
+     },
+     "merchant": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Merchant"
+     },
+     "min_amount": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Min Amount"
+     },
+     "search": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Search"
+     },
+     "start_date": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Start Date"
+     },
+     "type": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Type"
+     }
+    },
+    "title": "list_transactionsArguments",
+    "type": "object"
+   }
+  },
+  "list_transfer_rules": {
+   "description": "Règles de virement interne (compte source → compte destination) qui relient automatiquement\n    les sorties aux entrées pour ne pas compter deux fois un revenu réparti entre comptes.",
+   "inputSchema": {
+    "properties": {},
+    "title": "list_transfer_rulesArguments",
+    "type": "object"
+   }
+  },
+  "search_transactions": {
+   "description": "Recherche textuelle dans les transactions (marchand et note).\n\n    Args:\n        query: Texte à rechercher\n        limit: Nombre max de résultats (défaut 20)\n    ",
+   "inputSchema": {
+    "properties": {
+     "limit": {
+      "default": 20,
+      "title": "Limit",
+      "type": "integer"
+     },
+     "query": {
+      "title": "Query",
+      "type": "string"
+     }
+    },
+    "required": [
+     "query"
+    ],
+    "title": "search_transactionsArguments",
+    "type": "object"
+   }
+  }
+ }
+}

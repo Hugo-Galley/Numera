@@ -5,7 +5,7 @@ COMPOSE_FILE=infra/docker-compose.yml
 # Surchargeable : make test PYTHON=...
 PYTHON ?= $(shell for p in $(CURDIR)/backend/.venv/bin/python $(CURDIR)/backend/venv/bin/python; do if [ -x $$p ]; then echo $$p; exit; fi; done; command -v python3.12 || command -v python3.11)
 
-.PHONY: setup dev down prod prod-down demo demo-down backend-install frontend-install backend-seed-demo test coverage test-front test-e2e lint lint-fix lint-front typecheck check-size validate hooks pre-commit-all api-contract backup-now backup-restore release-check release dead-code knip
+.PHONY: setup dev down prod prod-down demo demo-down backend-install frontend-install backend-seed-demo test test-mcp coverage test-front test-e2e lint lint-fix lint-front typecheck check-size validate hooks pre-commit-all api-contract backup-now backup-restore release-check release dead-code knip
 
 setup:
 	chmod +x setup.sh
@@ -46,6 +46,10 @@ backend-seed-demo:
 test:
 	cd backend && PYTHONPATH=. $(PYTHON) -m pytest tests/ -q -n auto
 
+# Tests du serveur MCP (surface figée, auth, lecture seule)
+test-mcp:
+	cd mcp-server && uv run --with pytest python -m pytest tests -q
+
 # Tests + couverture avec seuil à cliquet : backend (backend/.coveragerc) puis frontend (frontend/vitest.config.ts)
 coverage:
 	cd backend && PYTHONPATH=. $(PYTHON) -m pytest tests/ -q -n auto --cov --cov-report=term:skip-covered
@@ -54,9 +58,11 @@ coverage:
 # Lint Python du backend (règles dans backend/ruff.toml) ; `make lint-fix` corrige ce qui est sûr
 lint:
 	cd backend && $(PYTHON) -m ruff check app tests scripts alembic
+	cd mcp-server && uv run --with ruff ruff check .
 
 lint-fix:
 	cd backend && $(PYTHON) -m ruff check app tests scripts alembic --fix
+	cd mcp-server && uv run --with ruff ruff check . --fix
 
 # Lint frontend (ESLint, frontend/eslint.config.js) : erreurs bloquantes, avertissements plafonnés par frontend/eslint-baseline.json
 lint-front:
@@ -100,7 +106,7 @@ dead-code:
 knip:
 	cd frontend && npm run knip
 
-validate: lint lint-front knip typecheck check-size dead-code coverage frontend-build
+validate: lint lint-front knip typecheck check-size dead-code test-mcp coverage frontend-build
 	@echo "Validation complete: Backend and Frontend tests passed, Frontend builds successfully."
 
 backup-now:

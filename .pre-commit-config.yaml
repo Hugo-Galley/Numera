@@ -25,12 +25,18 @@ repos:
         language: system
         pass_filenames: false
         files: ^backend/.*\.py$
+      - id: ruff-mcp
+        name: ruff (serveur MCP)
+        entry: bash -c 'cd mcp-server && uv run --with ruff ruff check .'
+        language: system
+        pass_filenames: false
+        files: ^mcp-server/.*\.py$
       - id: code-size
         name: plafonds de taille
         entry: python3 scripts/check_code_size.py
         language: system
         pass_filenames: false
-        files: ^(backend/app|frontend/src)/
+        files: ^(backend/app|frontend/src|mcp-server)/
       # Plus lents : au push seulement
       - id: mypy
         name: types Python (mypy)
