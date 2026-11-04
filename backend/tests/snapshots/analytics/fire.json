@@ -1,6 +1,6 @@
 {
  "annual_expenses": 26430.19,
- "current_wealth": 37929.17,
+ "current_wealth": 37944.81,
  "expenses_overridden": false,
  "fi_year": 2073,
  "inflation_pct": 2.0,
@@ -10,252 +10,252 @@
  "points": [
   {
    "target": 660754.75,
-   "wealth": 37929.17,
+   "wealth": 37944.81,
    "year": 2026
   },
   {
    "target": 660754.75,
-   "wealth": 48154.36,
+   "wealth": 48170.18,
    "year": 2027
   },
   {
    "target": 660754.75,
-   "wealth": 58495.84,
+   "wealth": 58511.84,
    "year": 2028
   },
   {
    "target": 660754.75,
-   "wealth": 68954.93,
+   "wealth": 68971.11,
    "year": 2029
   },
   {
    "target": 660754.75,
-   "wealth": 79532.97,
+   "wealth": 79549.33,
    "year": 2030
   },
   {
    "target": 660754.75,
-   "wealth": 90231.3,
+   "wealth": 90247.85,
    "year": 2031
   },
   {
    "target": 660754.75,
-   "wealth": 101051.3,
+   "wealth": 101068.04,
    "year": 2032
   },
   {
    "target": 660754.75,
-   "wealth": 111994.35,
+   "wealth": 112011.28,
    "year": 2033
   },
   {
    "target": 660754.75,
-   "wealth": 123061.86,
+   "wealth": 123078.98,
    "year": 2034
   },
   {
    "target": 660754.75,
-   "wealth": 134255.23,
+   "wealth": 134272.54,
    "year": 2035
   },
   {
    "target": 660754.75,
-   "wealth": 145575.89,
+   "wealth": 145593.4,
    "year": 2036
   },
   {
    "target": 660754.75,
-   "wealth": 157025.3,
+   "wealth": 157043.01,
    "year": 2037
   },
   {
    "target": 660754.75,
-   "wealth": 168604.92,
+   "wealth": 168622.84,
    "year": 2038
   },
   {
    "target": 660754.75,
-   "wealth": 180316.23,
+   "wealth": 180334.35,
    "year": 2039
   },
   {
    "target": 660754.75,
-   "wealth": 192160.73,
+   "wealth": 192179.05,
    "year": 2040
   },
   {
    "target": 660754.75,
-   "wealth": 204139.93,
+   "wealth": 204158.46,
    "year": 2041
   },
   {
    "target": 660754.75,
-   "wealth": 216255.36,
+   "wealth": 216274.1,
    "year": 2042
   },
   {
    "target": 660754.75,
-   "wealth": 228508.58,
+   "wealth": 228527.53,
    "year": 2043
   },
   {
    "target": 660754.75,
-   "wealth": 240901.14,
+   "wealth": 240920.32,
    "year": 2044
   },
   {
    "target": 660754.75,
-   "wealth": 253434.65,
+   "wealth": 253454.04,
    "year": 2045
   },
   {
    "target": 660754.75,
-   "wealth": 266110.69,
+   "wealth": 266130.3,
    "year": 2046
   },
   {
    "target": 660754.75,
-   "wealth": 278930.88,
+   "wealth": 278950.72,
    "year": 2047
   },
   {
    "target": 660754.75,
-   "wealth": 291896.88,
+   "wealth": 291916.94,
    "year": 2048
   },
   {
    "target": 660754.75,
-   "wealth": 305010.33,
+   "wealth": 305030.62,
    "year": 2049
   },
   {
    "target": 660754.75,
-   "wealth": 318272.92,
+   "wealth": 318293.44,
    "year": 2050
   },
   {
    "target": 660754.75,
-   "wealth": 331686.34,
+   "wealth": 331707.09,
    "year": 2051
   },
   {
    "target": 660754.75,
-   "wealth": 345252.3,
+   "wealth": 345273.28,
    "year": 2052
   },
   {
    "target": 660754.75,
-   "wealth": 358972.54,
+   "wealth": 358993.76,
    "year": 2053
   },
   {
    "target": 660754.75,
-   "wealth": 372848.81,
+   "wealth": 372870.28,
    "year": 2054
   },
   {
    "target": 660754.75,
-   "wealth": 386882.9,
+   "wealth": 386904.61,
    "year": 2055
   },
   {
    "target": 660754.75,
-   "wealth": 401076.58,
+   "wealth": 401098.54,
    "year": 2056
   },
   {
    "target": 660754.75,
-   "wealth": 415431.69,
+   "wealth": 415453.89,
    "year": 2057
   },
   {
    "target": 660754.75,
-   "wealth": 429950.05,
+   "wealth": 429972.51,
    "year": 2058
   },
   {
    "target": 660754.75,
-   "wealth": 444633.52,
+   "wealth": 444656.23,
    "year": 2059
   },
   {
    "target": 660754.75,
-   "wealth": 459483.97,
+   "wealth": 459506.95,
    "year": 2060
   },
   {
    "target": 660754.75,
-   "wealth": 474503.32,
+   "wealth": 474526.55,
    "year": 2061
   },
   {
    "target": 660754.75,
-   "wealth": 489693.47,
+   "wealth": 489716.97,
    "year": 2062
   },
   {
    "target": 660754.75,
-   "wealth": 505056.38,
+   "wealth": 505080.14,
    "year": 2063
   },
   {
    "target": 660754.75,
-   "wealth": 520594.0,
+   "wealth": 520618.04,
    "year": 2064
   },
   {
    "target": 660754.75,
-   "wealth": 536308.32,
+   "wealth": 536332.63,
    "year": 2065
   },
   {
    "target": 660754.75,
-   "wealth": 552201.36,
+   "wealth": 552225.94,
    "year": 2066
   },
   {
    "target": 660754.75,
-   "wealth": 568275.14,
+   "wealth": 568300.0,
    "year": 2067
   },
   {
    "target": 660754.75,
-   "wealth": 584531.71,
+   "wealth": 584556.86,
    "year": 2068
   },
   {
    "target": 660754.75,
-   "wealth": 600973.17,
+   "wealth": 600998.61,
    "year": 2069
   },
   {
    "target": 660754.75,
-   "wealth": 617601.61,
+   "wealth": 617627.33,
    "year": 2070
   },
   {
    "target": 660754.75,
-   "wealth": 634419.16,
+   "wealth": 634445.17,
    "year": 2071
   },
   {
    "target": 660754.75,
-   "wealth": 651427.96,
+   "wealth": 651454.27,
    "year": 2072
   },
   {
    "target": 660754.75,
-   "wealth": 668630.2,
+   "wealth": 668656.81,
    "year": 2073
   },
   {
    "target": 660754.75,
-   "wealth": 686028.07,
+   "wealth": 686054.98,
    "year": 2074
   },
   {
    "target": 660754.75,
-   "wealth": 703623.8,
+   "wealth": 703651.02,
    "year": 2075
   }
  ],

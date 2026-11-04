@@ -204,7 +204,7 @@ Un point zéro sert de base de performance pour un compte.
 - `imports_log`: journal d'import CSV.
 - `historical_exchange_rates`: cache de taux historiques.
 - `savings_goals`: objectifs d'épargne (`name`, `target_amount`, `keyword`, `deadline`, `account_id`, `category_id`, `icon`, `color`).
-- `categorization_rules`: règles d'auto-catégorisation locale basées sur des patterns de commerçants (`id`, `pattern`, `category_id`, `transaction_type`, `merchant_name`, `priority`).
+- `categorization_rules`: règles d'auto-catégorisation locale basées sur des patterns de commerçants (`id`, `pattern`, `category_id`, `transaction_type`, `merchant_name`, `priority`). `merchant_name` rattache `transactions.merchant_id` à un marchand canonique (créé au besoin) : le libellé bancaire `merchant` n'est jamais modifié (règle 7). `apply-all` laisse leur type aux dépenses découpées.
 - `recurring_transactions`: définitions d'abonnements/charges fixes récurrentes (`id`, `account_id`, `name`, `type`, `amount`, `currency`, `category_id`, `frequency`, `day_of_month`, `start_date`, `end_date`, `excluded_months`, `last_generated_date`, `is_active`, `auto_generate`, `note`, `transfer_to_account_id`, `transfer_credit_day`, `asset_class`, `sector`, `geographic_zone`, `ticker`, `isin`, `quantity`, `unit_price`, `whole_shares`, `etf_profile_id`).
 - `transfer_rules`: règles de virement interne (`source_account_id`, `dest_account_id`, `pattern` sur marchand/note de la sortie, `amount`, `amount_tolerance_pct`, `day_tolerance`, `is_active`). Moteur : `services/budget/transfers.py`.
 - `reimbursement_claims` (créance : `transaction_id` → Sortie, `debtor`, `expected_amount`, `note`) et `reimbursement_allocations` (`claim_id`, `entree_transaction_id`, `amount`, unique par couple). Moteur : `services/budget/reimbursements.py` ; les KPI utilisent `NET_AMOUNT = amount − reimbursement_offset` (`repositories/analytics/common.py`).
@@ -321,7 +321,7 @@ Pipeline:
 5. Parsing dates et montants francais/anglais.
 6. Normalisation type via `normalize_transaction_type()`.
 7. Mapping manuel categories, creation optionnelle des categories manquantes.
-8. Detection doublons.
+8. Detection doublons : clé `(date, amount, merchant, type)` sur les valeurs brutes du fichier (avant règles), comparée à `transactions.original_merchant` / `original_type` (à défaut `merchant` / `type`).
 9. Insertion avec solde courant, journal `imports_log`, puis `recalculate_running_balances` si au moins une ligne est importee.
 
 ## Multi-Devise

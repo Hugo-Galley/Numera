@@ -1,12 +1,14 @@
 from sqlalchemy.orm import Session
 
-from app.core.errors import NotFoundError
+from app.core.errors import InvalidOperationError, NotFoundError
 from app.models.categorization_rule import CategorizationRule
 from app.models.transaction import Transaction
 from app.repositories.budget import categorization_rules as repo
 from app.schemas.categorization_rule import CategorizationRuleCreate, CategorizationRuleUpdate
+from app.services.budget import merchants as merchant_service
 from app.services.budget import reimbursements as remb
 from app.services.budget.balances import recalculate_running_balances
+from app.services.budget.splits import check_split_compatible
 
 
 def _require(db: Session, rule_id: int) -> CategorizationRule:
@@ -55,11 +57,19 @@ def _apply_rule(db: Session, tx: Transaction, rule: CategorizationRule) -> tuple
         changed = True
     # Une transaction qui porte des remboursements garde son type (cf. services/reimbursements.py)
     if rule.transaction_type and tx.type != rule.transaction_type and not remb.has_reimbursement(db, tx.id):
-        tx.type = rule.transaction_type
-        changed = balance_changed = True
-    if rule.merchant_name and tx.merchant != rule.merchant_name:
-        tx.merchant = rule.merchant_name
-        changed = True
+        try:
+            check_split_compatible(tx, rule.transaction_type, tx.amount, tx.is_transfer)
+        except InvalidOperationError:
+            pass  # une dépense découpée garde son type (comme une saisie manuelle, il faut d'abord annuler le découpage)
+        else:
+            tx.type = rule.transaction_type
+            changed = balance_changed = True
+    # Règle 7 : le libellé bancaire `merchant` n'est jamais modifié, la règle rattache le marchand canonique
+    if rule.merchant_name:
+        merchant = merchant_service.get_or_create_by_name(db, rule.merchant_name)
+        if tx.merchant_id != merchant.id:
+            tx.merchant_id = merchant.id
+            changed = True
     return changed, balance_changed
 
 

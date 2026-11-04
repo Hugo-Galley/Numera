@@ -2,67 +2,67 @@
  "annual_return_pct": 3.16,
  "avg_monthly_savings": 811.93,
  "computed_monthly_savings": 811.93,
- "current_wealth": 37929.17,
+ "current_wealth": 37944.81,
  "extra_monthly": 0.0,
- "final_base": 165950.93,
- "final_boosted": 165950.93,
+ "final_base": 165958.21,
+ "final_boosted": 165958.21,
  "gain_from_extra": 0.0,
  "months_used": 12,
  "observed_investment_return_pct": 9.24,
  "points": [
   {
-   "base": 37929.17,
-   "boosted": 37929.17,
+   "base": 37944.81,
+   "boosted": 37944.81,
    "year": 0
   },
   {
-   "base": 49012.72,
-   "boosted": 49012.72,
+   "base": 49028.3,
+   "boosted": 49028.3,
    "year": 1
   },
   {
-   "base": 60446.91,
-   "boosted": 60446.91,
+   "base": 60462.29,
+   "boosted": 60462.29,
    "year": 2
   },
   {
-   "base": 72242.82,
-   "boosted": 72242.82,
+   "base": 72257.84,
+   "boosted": 72257.84,
    "year": 3
   },
   {
-   "base": 84411.91,
-   "boosted": 84411.91,
+   "base": 84426.4,
+   "boosted": 84426.4,
    "year": 4
   },
   {
-   "base": 96965.97,
-   "boosted": 96965.97,
+   "base": 96979.76,
+   "boosted": 96979.76,
    "year": 5
   },
   {
-   "base": 109917.18,
-   "boosted": 109917.18,
+   "base": 109930.09,
+   "boosted": 109930.09,
    "year": 6
   },
   {
-   "base": 123278.12,
-   "boosted": 123278.12,
+   "base": 123289.95,
+   "boosted": 123289.95,
    "year": 7
   },
   {
-   "base": 137061.74,
-   "boosted": 137061.74,
+   "base": 137072.27,
+   "boosted": 137072.27,
    "year": 8
   },
   {
-   "base": 151281.41,
-   "boosted": 151281.41,
+   "base": 151290.43,
+   "boosted": 151290.43,
    "year": 9
   },
   {
-   "base": 165950.93,
-   "boosted": 165950.93,
+   "base": 165958.21,
+   "boosted": 165958.21,
    "year": 10
   }
  ],
@@ -74,13 +74,13 @@
    "type": "investissement"
   },
   {
-   "balance": 6236.19,
+   "balance": 6282.17,
    "rate_pct": 0.0,
    "source": "none",
    "type": "investissement_non_mesure"
   },
   {
-   "balance": 18706.91,
+   "balance": 18676.57,
    "rate_pct": 0.0,
    "source": "none",
    "type": "autres"

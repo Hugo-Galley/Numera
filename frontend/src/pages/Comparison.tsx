@@ -36,6 +36,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { toast } from "sonner"
+import { yearOptions } from "@/lib/years"
 
 export default function Comparison() {
   const [loading, setLoading] = useState(false)
@@ -152,7 +153,7 @@ export default function Comparison() {
           </Select>
           <Select value={yearA} onValueChange={setYearA}>
             <SelectTrigger className="h-11 w-full text-base md:h-10 md:w-[100px] md:text-sm"><SelectValue /></SelectTrigger>
-            <SelectContent>{[2024, 2025, 2026].map(y => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}</SelectContent>
+            <SelectContent>{yearOptions(yearA, yearB).map(y => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}</SelectContent>
           </Select>
         </div>
 
@@ -168,7 +169,7 @@ export default function Comparison() {
           </Select>
           <Select value={yearB} onValueChange={setYearB}>
             <SelectTrigger className="h-11 w-full text-base md:h-10 md:w-[100px] md:text-sm"><SelectValue /></SelectTrigger>
-            <SelectContent>{[2024, 2025, 2026].map(y => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}</SelectContent>
+            <SelectContent>{yearOptions(yearA, yearB).map(y => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}</SelectContent>
           </Select>
         </div>
       </div>

@@ -76,6 +76,26 @@ async function openRowMenu(user: ReturnType<typeof renderAccount>["user"], merch
 }
 
 describe("AccountDetail : chargement", () => {
+  it("totaux par tag : la fenêtre de dates couvre tout le dernier jour (audit F-03)", async () => {
+    serveAccount()
+    const tagQueries: URLSearchParams[] = []
+    server.use(http.get(apiUrl("/analytics/tags"), ({ request }) => {
+      tagQueries.push(new URL(request.url).searchParams)
+      return HttpResponse.json([])
+    }))
+    const last = () => tagQueries[tagQueries.length - 1]
+    const { container } = renderAccount()
+    await screen.findByRole("heading", { name: /Compte joint/ })
+
+    const [start, end] = Array.from(container.querySelectorAll<HTMLInputElement>('input[type="date"]'))
+    fireEvent.change(start, { target: { value: "2026-11-01" } })
+    fireEvent.change(end, { target: { value: "2026-11-30" } })
+
+    await waitFor(() => expect(last()?.get("end_date")).toBe("2026-11-30T23:59:59"))
+    expect(last()?.get("start_date")).toBe("2026-11-01T00:00:00")
+    expect(last()?.get("account_id")).toBe("1")
+  })
+
   it("affiche le chargement puis le compte et ses transactions", async () => {
     serveAccount([makeTransaction({ id: 5, merchant: "Boulangerie" })])
     renderAccount()

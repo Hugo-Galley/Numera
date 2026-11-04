@@ -132,13 +132,13 @@ def account_investment_sum(db: Session, account_id: int, start: datetime | None,
 
 def latest_snapshot(db: Session, account_id: int, end: datetime) -> BalanceSnapshot | None:
     return db.query(BalanceSnapshot).filter(
-        BalanceSnapshot.account_id == account_id, BalanceSnapshot.date <= end
+        BalanceSnapshot.account_id == account_id, BalanceSnapshot.date < end
     ).order_by(BalanceSnapshot.date.desc(), BalanceSnapshot.id.desc()).first()
 
 
 def last_transaction(db: Session, account_id: int, end: datetime) -> Transaction | None:
     return db.query(Transaction).filter(
-        Transaction.account_id == account_id, Transaction.date <= end
+        Transaction.account_id == account_id, Transaction.date < end
     ).order_by(Transaction.date.desc(), Transaction.id.desc()).first()
 
 
@@ -146,7 +146,7 @@ def latest_balance_rows(db: Session, account_id: int, end: datetime) -> list:
     """Dernier solde courant (date max puis id max) du compte, avec son type et sa devise."""
     account_last_tx = (
         db.query(Transaction.account_id.label("account_id"), func.max(Transaction.date).label("max_date"))
-        .filter(Transaction.date <= end)
+        .filter(Transaction.date < end)
         .group_by(Transaction.account_id)
         .subquery()
     )
