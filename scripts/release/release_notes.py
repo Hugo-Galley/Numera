@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Notes de version et bump SemVer calculés depuis les commits Conventional Commits.
 
-    python3 scripts/release_notes.py --bump                  # patch | minor | major | none
-    python3 scripts/release_notes.py --next                  # prochaine version proposée (ex. 0.3.0)
-    python3 scripts/release_notes.py --notes v0.3.0          # notes Markdown (HEAD si le tag n'existe pas)
+    python3 scripts/release/release_notes.py --bump                  # patch | minor | major | none
+    python3 scripts/release/release_notes.py --next                  # prochaine version proposée (ex. 0.3.0)
+    python3 scripts/release/release_notes.py --notes v0.3.0          # notes Markdown (HEAD si le tag n'existe pas)
 
 Les commits pris en compte vont du dernier tag `vX.Y.Z` (exclu) à HEAD, ou au tag demandé.
 Sans tag existant, tout l'historique est lu et la base est `0.0.0`.
@@ -16,7 +16,7 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
+REPO_ROOT = Path(__file__).resolve().parents[2]
 
 SUBJECT = re.compile(r"^(?P<type>[a-z]+)(?:\((?P<scope>[^)]+)\))?(?P<bang>!)?:\s*(?P<desc>.+)$")
 TAG = re.compile(r"^v(\d+)\.(\d+)\.(\d+)$")

@@ -12,14 +12,14 @@ setup:
 	./setup.sh
 
 dev:
-	scripts/check_volumes.sh backend/data backups
+	scripts/ops/check_volumes.sh backend/data backups
 	docker compose --env-file .env -f infra/docker-compose.yml up --build
 
 down:
 	docker compose --env-file .env -f infra/docker-compose.yml down
 
 prod:
-	scripts/check_volumes.sh backend/data backups
+	scripts/ops/check_volumes.sh backend/data backups
 	docker compose --env-file .env -f docker-compose.prod.yml up -d --build
 
 prod-down:
@@ -27,7 +27,7 @@ prod-down:
 
 # Instance de démonstration publique (données fictives, base séparée, port 8090)
 demo:
-	scripts/check_volumes.sh backend/data-demo
+	scripts/ops/check_volumes.sh backend/data-demo
 	docker compose --env-file .env -p numera-demo -f docker-compose.demo.yml up -d --build
 
 demo-down:
@@ -68,9 +68,9 @@ lint-fix:
 lint-front:
 	cd frontend && npm run lint
 
-# Types Python (mypy, backend/mypy.ini) : strict sur app/domain et app/core, baseline à cliquet ailleurs (scripts/mypy_baseline.json)
+# Types Python (mypy, backend/mypy.ini) : strict sur app/domain et app/core, baseline à cliquet ailleurs (scripts/quality/baselines/mypy_baseline.json)
 typecheck:
-	PYTHON=$(PYTHON) $(PYTHON) scripts/check_types.py
+	PYTHON=$(PYTHON) $(PYTHON) scripts/quality/check_types.py
 
 # Tests frontend (Vitest + Testing Library + MSW, cf. frontend/src/CLAUDE.md § Vérification)
 test-front:
@@ -84,7 +84,7 @@ frontend-build:
 	cd frontend && npm run build
 
 check-size:
-	python3 scripts/check_code_size.py
+	python3 scripts/quality/check_code_size.py
 
 # Garde-fous locaux avant commit / push (.pre-commit-config.yaml) ; `pre-commit` s'installe avec `brew install pre-commit` ou `uv tool install pre-commit`
 hooks:
@@ -98,9 +98,9 @@ api-contract:
 	cd backend && PYTHONPATH=. $(PYTHON) scripts/export_openapi.py
 	cd frontend && npm run api:types
 
-# Code mort backend (vulture, scripts/check_dead_code.py) : fonctions, classes, méthodes et imports inutilisés ; faux positifs déclarés dans scripts/dead_code_allowlist.json
+# Code mort backend (vulture, scripts/quality/check_dead_code.py) : fonctions, classes, méthodes et imports inutilisés ; faux positifs déclarés dans scripts/quality/baselines/dead_code_allowlist.json
 dead-code:
-	PYTHON=$(PYTHON) $(PYTHON) scripts/check_dead_code.py
+	PYTHON=$(PYTHON) $(PYTHON) scripts/quality/check_dead_code.py
 
 # Code mort frontend (knip, frontend/knip.json) : fichiers, dépendances, exports et types inutilisés
 knip:
@@ -125,8 +125,8 @@ upgrade:
 # Releases (cf. skill numera-release) : tag vX.Y.Z sur main, le workflow release.yml publie images et notes
 release-check:
 	@git fetch --tags --quiet
-	@echo "Bump suggéré : $$($(PYTHON) scripts/release_notes.py --bump) → v$$($(PYTHON) scripts/release_notes.py --next)"
-	@$(PYTHON) scripts/release_notes.py --notes "v$$($(PYTHON) scripts/release_notes.py --next)"
+	@echo "Bump suggéré : $$($(PYTHON) scripts/release/release_notes.py --bump) → v$$($(PYTHON) scripts/release/release_notes.py --next)"
+	@$(PYTHON) scripts/release/release_notes.py --notes "v$$($(PYTHON) scripts/release/release_notes.py --next)"
 
 release:
 	@test -n "$(V)" || { echo "usage : make release V=X.Y.Z"; exit 1; }

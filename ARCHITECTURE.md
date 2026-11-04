@@ -84,7 +84,7 @@ Architecture en couches, migrée progressivement (plan : `docs/superpowers/plans
 | `integrations/` | Appels externes : `currency` (Frankfurter), `notifications` (canaux ntfy/Telegram), `logos`, `backup`, `yahoo_finance` (recherche, cours, composition des ETF). | `app.controllers`, `app.services`, `app.repositories` |
 | `core/` | Transverse uniquement (config, sécurité, logs, erreurs, rate limit, TOTP, jetons MCP, migrations, temps) ; n'importe que `core`, `models` et `db`. | `app.controllers`, `app.services`, `app.repositories`, `app.domain`, `app.integrations`, `app.schemas` |
 
-Garde-fous (cliquet, les baselines ne font que diminuer) : `backend/tests/garde_fous/test_architecture.py` + `architecture_baseline.txt` (règles ci-dessus, imports locaux compris, imports vers un module `app.*` introuvable, `commit()` dans `repositories/`) ; `scripts/check_code_size.py` + `scripts/code_size_baseline.json` (plafonds 400 lignes par fichier Python, 80 par fonction, 350 par fichier TS/TSX hors `components/ui`), lancé par `make check-size` / `make validate` et par pytest. État : les deux baselines sont vides (29/10/2026).
+Garde-fous (cliquet, les baselines ne font que diminuer) : `backend/tests/garde_fous/test_architecture.py` + `architecture_baseline.txt` (règles ci-dessus, imports locaux compris, imports vers un module `app.*` introuvable, `commit()` dans `repositories/`) ; `scripts/quality/check_code_size.py` + `scripts/quality/baselines/code_size_baseline.json` (plafonds 400 lignes par fichier Python, 80 par fonction, 350 par fichier TS/TSX hors `components/ui`), lancé par `make check-size` / `make validate` et par pytest. État : les deux baselines sont vides (29/10/2026).
 
 ## Backend
 

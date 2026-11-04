@@ -9,7 +9,7 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).parents[3]
 
-_spec = importlib.util.spec_from_file_location("ci_changes", REPO_ROOT / "scripts/ci_changes.py")
+_spec = importlib.util.spec_from_file_location("ci_changes", REPO_ROOT / "scripts/ci/ci_changes.py")
 ci_changes = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(ci_changes)
 

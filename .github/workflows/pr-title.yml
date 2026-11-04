@@ -1,7 +1,7 @@
 name: Titre de PR
 
 # Merge en squash : le titre de la PR devient le message du commit sur main, donc la source
-# des notes de version (scripts/release_notes.py). Il doit suivre Conventional Commits.
+# des notes de version (scripts/release/release_notes.py). Il doit suivre Conventional Commits.
 on:
   pull_request:
     types: [opened, edited, synchronize, reopened]

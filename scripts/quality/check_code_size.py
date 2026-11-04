@@ -4,8 +4,8 @@
 Les dépassements existants sont tolérés via `code_size_baseline.json` (cliquet) :
 une entrée ne peut pas grossir, et doit être retirée dès qu'elle repasse sous le plafond.
 
-    python3 scripts/check_code_size.py                    # contrôle (code 1 si erreur)
-    python3 scripts/check_code_size.py --write-baseline   # régénère la baseline
+    python3 scripts/quality/check_code_size.py                    # contrôle (code 1 si erreur)
+    python3 scripts/quality/check_code_size.py --write-baseline   # régénère la baseline
 """
 import argparse
 import ast
@@ -15,8 +15,8 @@ from pathlib import Path
 
 LIMITS = {"py_file": 400, "py_function": 80, "ts_file": 350}
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
-BASELINE_PATH = Path(__file__).resolve().parent / "code_size_baseline.json"
+REPO_ROOT = Path(__file__).resolve().parents[2]
+BASELINE_PATH = Path(__file__).resolve().parent / "baselines" / "code_size_baseline.json"
 
 BACKEND_DIR = "backend/app"
 MCP_DIR = "mcp-server"

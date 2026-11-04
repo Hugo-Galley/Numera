@@ -37,7 +37,7 @@ ask_secret() { local reply; read -r -s -p "$1" reply < /dev/tty; echo >&2; print
 
 mode="${NUMERA_MODE:-}"
 if [ -z "$mode" ]; then
-    if [ -f docker-compose.prod.yml ] && [ -f scripts/change_password.py ]; then
+    if [ -f docker-compose.prod.yml ] && [ -f scripts/ops/change_password.py ]; then
         mode=source   # lancé depuis un clone : on y reste
     else
         step "Mode d'installation"
@@ -67,7 +67,7 @@ echo "OK"
 if [ "$mode" = source ]; then
     COMPOSE_FILE="docker-compose.prod.yml"
     DATA_DIR="backend/data"
-    if [ ! -f "$COMPOSE_FILE" ] || [ ! -f "scripts/change_password.py" ]; then
+    if [ ! -f "$COMPOSE_FILE" ] || [ ! -f "scripts/ops/change_password.py" ]; then
         if [ -d numera/.git ]; then
             step "Mise à jour du dépôt existant dans ./numera"
             git -C numera pull --ff-only

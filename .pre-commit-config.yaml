@@ -33,14 +33,14 @@ repos:
         files: ^mcp-server/.*\.py$
       - id: code-size
         name: plafonds de taille
-        entry: python3 scripts/check_code_size.py
+        entry: python3 scripts/quality/check_code_size.py
         language: system
         pass_filenames: false
         files: ^(backend/app|frontend/src|mcp-server)/
       # Plus lents : au push seulement
       - id: mypy
         name: types Python (mypy)
-        entry: bash -c 'uv run --frozen --project backend python scripts/check_types.py'
+        entry: bash -c 'uv run --frozen --project backend python scripts/quality/check_types.py'
         language: system
         pass_filenames: false
         files: ^backend/.*\.py$
