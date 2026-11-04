@@ -8,7 +8,7 @@
    "currency": "EUR",
    "institution": "Courtier Démo",
    "logo": null,
-   "percentage": 34.24,
+   "percentage": 34.22,
    "type": "investissement"
   },
   {
@@ -19,44 +19,44 @@
    "currency": "EUR",
    "institution": "Banque Démo",
    "logo": null,
-   "percentage": 27.98,
+   "percentage": 27.97,
    "type": "epargne"
   },
   {
    "account_id": 4,
    "account_name": "Assurance-vie - Investi",
-   "balance": 6236.19,
-   "balance_eur": 6236.19,
+   "balance": 6282.17,
+   "balance_eur": 6282.17,
    "currency": "EUR",
    "institution": "Assureur Démo",
    "logo": null,
-   "percentage": 16.44,
+   "percentage": 16.56,
    "type": "investissement"
   },
   {
    "account_id": 4,
    "account_name": "Assurance-vie - Fonds Euro",
-   "balance": 4157.46,
-   "balance_eur": 4157.46,
+   "balance": 4188.12,
+   "balance_eur": 4188.12,
    "currency": "EUR",
    "institution": "Assureur Démo",
    "logo": null,
-   "percentage": 10.96,
+   "percentage": 11.04,
    "type": "epargne"
   },
   {
    "account_id": 1,
    "account_name": "Compte courant",
-   "balance": 3935.65,
-   "balance_eur": 3935.65,
+   "balance": 3874.65,
+   "balance_eur": 3874.65,
    "currency": "EUR",
    "institution": "Banque Démo",
    "logo": null,
-   "percentage": 10.38,
+   "percentage": 10.21,
    "type": "courant"
   }
  ],
- "net_patrimoine_eur": 37929.17,
+ "net_patrimoine_eur": 37944.81,
  "total_debts_eur": 0.0,
- "total_patrimoine": 37929.17
+ "total_patrimoine": 37944.81
 }
