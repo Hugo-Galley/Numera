@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from app.core.errors import NotFoundError
 from app.core.time import end_of_today
 from app.domain.finance import get_recurring_occurrences, is_lapsed
+from app.domain.recurring import transfer_credit_date
 from app.domain.reports import flag_possible_duplicates, simulate_cashflow
 from app.integrations.currency import get_exchange_rates
 from app.models.recurring_transaction import RecurringTransaction
@@ -82,7 +83,9 @@ def _projected_events(db: Session, account_id: int | None, counted_ids: set[int]
                       now: datetime, end_date: datetime, entered: set[tuple[int, date]]) -> list[ProjectionEvent]:
     tr_accounts = set() if account_id else ticket_restaurant_account_ids(db)
     events: list[ProjectionEvent] = []
+    dest = repo.get_account(db, account_id) if account_id else None
     for rd in repo.active_recurrings(db, account_id, tr_accounts):
+        incoming = dest is not None and rd.account_id != account_id  # virement récurrent qui arrive sur ce compte
         # Vue globale : un virement vers un compte déjà compté dans le solde ne change pas le total
         if not account_id and rd.transfer_to_account_id in counted_ids:
             continue
@@ -90,18 +93,20 @@ def _projected_events(db: Session, account_id: int | None, counted_ids: set[int]
         if is_lapsed(rd.frequency, repo.last_occurrence(db, rd.id), now):
             continue
         for occ in get_recurring_occurrences(rd, now, end_date):
-            if (rd.id, occ.date()) in entered:  # échéance déjà saisie à la main : ne pas la compter deux fois
+            when = transfer_credit_date(occ, rd.transfer_credit_day) if incoming else occ
+            if when >= end_date or (rd.id, when.date()) in entered:  # déjà saisie à la main : ne pas la compter deux fois
                 continue
             amount_target = float(_projected_amount(db, rd, occ))
-            # Vue globale : montant converti en EUR
-            if not account_id and rd.currency != "EUR":
+            if incoming and dest is not None:  # entrée dans la devise du compte de destination
+                amount_target = amount_target / rates.get(rd.currency, 1.0) * rates.get(dest.currency, 1.0)
+            elif not account_id and rd.currency != "EUR":  # vue globale : montant converti en EUR
                 amount_target = amount_target / rates.get(rd.currency, 1.0)
             events.append(ProjectionEvent(
-                date=occ.isoformat(),
+                date=when.isoformat(),
                 name=rd.name,
                 amount=amount_target,
                 type="recurring",
-                is_income=rd.type in INCOME_TYPES,
+                is_income=True if incoming else rd.type in INCOME_TYPES,
             ))
     return events
 

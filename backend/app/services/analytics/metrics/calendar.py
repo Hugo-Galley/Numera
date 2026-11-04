@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from app.core.time import end_of_today
 from app.domain.finance import get_recurring_occurrences, month_label_from_date
 from app.domain.metrics import daily_balances
+from app.domain.recurring import transfer_credit_date
 from app.integrations.currency import get_exchange_rates
 from app.models.recurring_transaction import RecurringTransaction
 from app.repositories.analytics import metrics as repo
@@ -21,11 +22,11 @@ async def compute_calendar(db: Session, month: int, year: int, account_id: int |
     tr_accounts = ticket_restaurant_account_ids(db)
     real_txs = repo.transactions_between(db, sim_start, end_month, account_id, tr_accounts)
     real_inv_txs = repo.investment_transactions_between(db, sim_start, end_month, account_id)
-    projected = _projected_events(db, sim_start, end_month, account_id, tr_accounts, real_txs, real_inv_txs)
-    formatted_real = _real_events(real_txs, real_inv_txs)
-
     rates = await get_exchange_rates("EUR")
     accounts = repo.all_accounts(db)
+    projected = _projected_events(db, sim_start, end_month, account_id, tr_accounts, real_txs, real_inv_txs, accounts, rates)
+    formatted_real = _real_events(real_txs, real_inv_txs)
+
     balances = _opening_balances(db, accounts, account_id, sim_start)
     currencies = {acc.id: acc.currency for acc in accounts}
     events = formatted_real + projected
@@ -48,17 +49,31 @@ def _opening_balances(db: Session, accounts: list, account_id: int | None, sim_s
 
 
 def _projected_events(db: Session, start: datetime, end: datetime, account_id: int | None, tr_accounts: set[int],
-                      real_txs: list, real_inv_txs: list) -> list[dict]:
+                      real_txs: list, real_inv_txs: list, accounts: list, rates: dict) -> list[dict]:
     """Occurrences des récurrences actives non encore réalisées (même récurrence, même jour)."""
     realized = {(tx.recurring_transaction_id, tx.date.date()) for tx in real_txs if tx.recurring_transaction_id is not None}
     for tx in real_inv_txs:
         if getattr(tx, "recurring_transaction_id", None) is not None:
             realized.add((tx.recurring_transaction_id, tx.date.date()))
     events = []
+    by_id = {a.id: a for a in accounts}
+    counted = {a.id for a in accounts if a.active and a.id not in tr_accounts}
     for rd in repo.active_recurrings(db, account_id, tr_accounts):
+        incoming = account_id is not None and rd.account_id != account_id  # virement qui arrive sur ce compte
+        # Vue globale : un virement entre deux comptes comptés est neutre pour le total
+        if account_id is None and rd.transfer_to_account_id in counted:
+            continue
         for occ in get_recurring_occurrences(rd, start, end):
             proj_date, proj_amount, proj_note = _salary_projection(db, rd, occ)
+            if incoming:
+                proj_date = transfer_credit_date(occ, rd.transfer_credit_day)
+                if proj_date >= end:
+                    continue
             if (rd.id, proj_date.date()) in realized:
+                continue
+            if incoming:
+                dest = by_id[account_id]
+                events.append(_incoming_transfer_event(rd, proj_date, proj_amount, proj_note, dest, rates))
                 continue
             events.append({
                 "id": f"proj_{rd.id}_{proj_date.isoformat()}",
@@ -78,6 +93,25 @@ def _projected_events(db: Session, start: datetime, end: datetime, account_id: i
                 "logo": rd.logo,
             })
     return events
+
+
+def _incoming_transfer_event(rd: RecurringTransaction, when: datetime, amount: float, name: str, dest, rates: dict) -> dict:
+    """Entrée projetée d'un virement récurrent sur le compte de destination, dans sa devise."""
+    converted = amount / rates.get(rd.currency, 1.0) * rates.get(dest.currency, 1.0)
+    return {
+        "id": f"proj_{rd.id}_{when.isoformat()}",
+        "date": when.isoformat(),
+        "name": name,
+        "amount": converted,
+        "type": "versement" if dest.type == "investissement" else "Entree",
+        "category_id": None,
+        "is_projected": True,
+        "is_upcoming": True,
+        "recurring_id": rd.id,
+        "currency": dest.currency,
+        "account_id": dest.id,
+        "logo": rd.logo,
+    }
 
 
 def _salary_projection(db: Session, rd: RecurringTransaction, occ: datetime) -> tuple[datetime, float, str]:

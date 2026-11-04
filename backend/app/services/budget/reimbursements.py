@@ -92,7 +92,7 @@ def has_reimbursement(db: Session, tx_id: int) -> bool:
     return repo.has_reimbursement(db, tx_id)
 
 
-def check_transaction_change(db: Session, tx: Transaction, new_type: str, new_amount: float, sets_transfer: bool) -> None:
+def check_transaction_change(db: Session, tx: Transaction, new_type: str, new_amount: float) -> None:
     """Refuse une modification qui casserait les créances ou affectations de `tx`."""
     expected = sortie_expected(db, tx.id)
     allocated = entree_allocated(db, tx.id)
@@ -100,8 +100,6 @@ def check_transaction_change(db: Session, tx: Transaction, new_type: str, new_am
         return
     if new_type != tx.type:
         _refuse("Cette transaction porte des remboursements : retirez-les avant de changer son type")
-    if sets_transfer:
-        _refuse("Cette transaction porte des remboursements : elle ne peut pas être un virement interne")
     if expected > 0 and cents(new_amount) < expected - EPS:
         _refuse("Le montant ne peut pas être inférieur au total des créances déclarées")
     if allocated > 0 and cents(new_amount) < allocated - EPS:

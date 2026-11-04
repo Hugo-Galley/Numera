@@ -1,4 +1,6 @@
 """Règles pures des récurrences."""
+import calendar
+from datetime import datetime
 
 INVESTMENT_ACCOUNT_TYPES = ("investissement", "assurance_vie")
 
@@ -21,3 +23,16 @@ def investment_leg_type(rule_type: str, account_type: str, has_ticker: bool, has
         # Achat programmé depuis un compte bancaire (ticker) : la Sortie finance l'achat
         inv_type = "versement" if inv_type == "sortie" else "retrait"
     return is_inv, inv_type
+
+
+def transfer_credit_date(debit: datetime, credit_day: int | None) -> datetime:
+    """Date d'arrivée d'un virement récurrent débité le `debit` : le premier `credit_day` du mois
+    (borné à la fin du mois) à partir du jour du débit. Sans jour d'arrivée, le jour du débit."""
+    if not credit_day:
+        return debit
+    year, month = debit.year, debit.month
+    while True:
+        candidate = debit.replace(year=year, month=month, day=min(credit_day, calendar.monthrange(year, month)[1]))
+        if candidate.date() >= debit.date():
+            return candidate
+        year, month = (year + 1, 1) if month == 12 else (year, month + 1)
