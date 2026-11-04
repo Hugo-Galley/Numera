@@ -9,7 +9,8 @@ echo "🚀 Initialisation de Suivi Budget..."
 # 1. Copier le fichier .env si nécessaire
 if [ ! -f .env ]; then
     echo "📄 Création du fichier .env à partir de .env.example..."
-    cp .env.example .env
+    (umask 077 && cp .env.example .env)
+    chmod 600 .env
     echo "⚠️  N'oubliez pas d'éditer le fichier .env pour changer les clés et mots de passe !"
 else
     echo "✅ Fichier .env déjà présent."
