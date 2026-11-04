@@ -23,10 +23,16 @@ KEEP_DAYS = int(os.getenv("GITHUB_BACKUP_KEEP_DAYS", "30"))
 
 
 def _git(*args: str, cwd: Path | None = None) -> str:
-    # Le token passe par un en-tête http (jamais dans l'URL ni dans les logs).
+    # Le token passe par un en-tête http fourni par l'environnement du processus git : ni dans l'URL, ni
+    # dans les logs, ni dans argv (visible par `ps` / /proc/<pid>/cmdline).
     auth = base64.b64encode(f"x-access-token:{TOKEN}".encode()).decode()
-    cmd = ["git", "-c", f"http.extraheader=Authorization: Basic {auth}", *args]
-    result = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True)
+    env = {
+        **os.environ,
+        "GIT_CONFIG_COUNT": "1",
+        "GIT_CONFIG_KEY_0": "http.extraheader",
+        "GIT_CONFIG_VALUE_0": f"Authorization: Basic {auth}",
+    }
+    result = subprocess.run(["git", *args], cwd=cwd, capture_output=True, text=True, env=env)
     if result.returncode != 0:
         # stderr peut citer l'URL mais pas l'en-tête ; on masque le token par prudence.
         raise RuntimeError(f"git {args[0]} : {result.stderr.replace(TOKEN, '***').strip()}")
