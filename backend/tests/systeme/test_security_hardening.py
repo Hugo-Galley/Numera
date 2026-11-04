@@ -81,3 +81,31 @@ def test_rate_limiter_forgets_expired_entries(monkeypatch):
 
     assert len(limiter._attempts) <= 2
     assert len(limiter._locked_until) == 0
+
+
+def test_tags_internal_error_does_not_leak_details(client, monkeypatch):
+    import app.services.analytics.metrics.tags as tags
+
+    def boom(*args, **kwargs):
+        raise RuntimeError("SELECT secret_column FROM /srv/app/db.sqlite")
+
+    monkeypatch.setattr(tags.repo, "tag_spending_rows", boom)
+    resp = client.get("/analytics/tags")
+    assert resp.status_code == 500
+    assert "secret_column" not in resp.text and "/srv/app" not in resp.text
+
+
+def test_tags_domain_errors_are_not_swallowed(db_session, monkeypatch):
+    import asyncio
+
+    import pytest
+
+    import app.services.analytics.metrics.tags as tags
+    from app.core.errors import InvalidOperationError
+
+    def boom(*args, **kwargs):
+        raise InvalidOperationError("période invalide")
+
+    monkeypatch.setattr(tags, "period_bounds", boom)
+    with pytest.raises(InvalidOperationError):
+        asyncio.run(tags.compute_tags(db_session, month=1, year=2026))
