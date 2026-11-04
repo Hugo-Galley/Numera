@@ -4927,6 +4927,12 @@
       "title": "Is Transfer Ignored",
       "type": "boolean"
      },
+     "is_upcoming": {
+      "description": "Opération datée après aujourd'hui : elle ne compte dans aucune position, espèce ni capital avant sa date.",
+      "readOnly": true,
+      "title": "Is Upcoming",
+      "type": "boolean"
+     },
      "isin": {
       "anyOf": [
        {
@@ -5071,7 +5077,8 @@
      "date",
      "type",
      "amount",
-     "id"
+     "id",
+     "is_upcoming"
     ],
     "title": "InvestmentTransactionRead",
     "type": "object"

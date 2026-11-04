@@ -28,6 +28,8 @@ class InvestmentTransaction(Base):
     isin: Mapped[str | None] = mapped_column(String(20), index=True, nullable=True)
     quantity: Mapped[float | None] = mapped_column(Float, nullable=True)
     unit_price: Mapped[float | None] = mapped_column(Float, nullable=True)
+    # Vrai quand `unit_price` a été déduit du montant (et non saisi) : il suit alors montant / quantité / frais
+    unit_price_derived: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0", nullable=False)
     # Devise de `unit_price` et de `fees` (devise de cotation du titre) ; à défaut, `currency`
     price_currency: Mapped[str | None] = mapped_column(String(3), nullable=True)
     fees: Mapped[float | None] = mapped_column(Float, nullable=True)

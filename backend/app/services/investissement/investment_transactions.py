@@ -70,14 +70,22 @@ def _flag_distributing(db: Session, account_id: int, ticker: str | None) -> None
 
 
 def _derive_unit_price(tx: InvestmentTransaction) -> None:
-    """Sans prix unitaire, on le déduit du montant (frais exclus) dans la devise de saisie."""
-    if tx.unit_price or not is_trade(tx.type, tx.ticker, tx.quantity):
+    """Sans prix unitaire saisi, on le déduit du montant (frais exclus) dans la devise de saisie.
+
+    Un prix déduit (`unit_price_derived`) est recalculé à chaque modification ; un prix saisi n'est jamais touché.
+    """
+    if tx.unit_price and not tx.unit_price_derived:
+        return
+    if not is_trade(tx.type, tx.ticker, tx.quantity):
+        if tx.unit_price_derived:  # l'opération n'est plus un achat/une vente : le prix déduit n'a plus de sens
+            tx.unit_price, tx.price_currency, tx.unit_price_derived = None, None, False
         return
     fees = tx.fees or 0.0
     gross = tx.original_amount + fees if tx.type in SELL_TYPES else tx.original_amount - fees
     if gross > 0:
         tx.unit_price = round(gross / tx.quantity, 6)
         tx.price_currency = tx.currency
+        tx.unit_price_derived = True
 
 
 async def _in_account_currency(db: Session, account: Account, amount: float, currency: str, day: datetime) -> float:
@@ -249,6 +257,8 @@ async def update_transaction(db: Session, tx_id: int, payload: InvestmentTransac
     await _normalize_update(db, tx, account, data)
     for key, value in data.items():
         setattr(tx, key, value)
+    if data.get("unit_price") is not None:
+        tx.unit_price_derived = False  # prix saisi : il redevient la référence
     if tx.ticker:
         tx.ticker = tx.ticker.upper().strip()
     if tx.price_currency:

@@ -17,8 +17,13 @@ def for_account(db: Session, account_id: int) -> list[InvestmentTransaction]:
     return db.query(InvestmentTransaction).filter(InvestmentTransaction.account_id == account_id).all()
 
 
-def trades(db: Session, account_id: int, until: datetime | None = None) -> list[InvestmentTransaction]:
-    """Opérations qui font bouger une position (titre, quantité > 0, achat/vente), par date puis id."""
+def trades(
+    db: Session, account_id: int, until: datetime | None = None, before: datetime | None = None
+) -> list[InvestmentTransaction]:
+    """Opérations qui font bouger une position (titre, quantité > 0, achat/vente), par date puis id.
+
+    `until` : borne haute inclusive ; `before` : borne haute exclusive (règle 12, `end_of_today()`).
+    """
     filters = [
         InvestmentTransaction.account_id == account_id,
         InvestmentTransaction.ticker.isnot(None),
@@ -27,12 +32,31 @@ def trades(db: Session, account_id: int, until: datetime | None = None) -> list[
     ]
     if until is not None:
         filters.append(InvestmentTransaction.date <= until)
+    if before is not None:
+        filters.append(InvestmentTransaction.date < before)
     return (
         db.query(InvestmentTransaction)
         .filter(*filters)
         .order_by(InvestmentTransaction.date.asc(), InvestmentTransaction.id.asc())
         .all()
     )
+
+
+def trade_account_ids_between(db: Session, since: datetime, before: datetime) -> list[int]:
+    """Comptes ayant une opération sur titre datée de `since` (inclus) à `before` (exclu)."""
+    rows = (
+        db.query(InvestmentTransaction.account_id)
+        .filter(
+            InvestmentTransaction.ticker.isnot(None),
+            InvestmentTransaction.quantity > 0,
+            InvestmentTransaction.type.in_(TRADE_TYPES),
+            InvestmentTransaction.date >= since,
+            InvestmentTransaction.date < before,
+        )
+        .distinct()
+        .all()
+    )
+    return [account_id for (account_id,) in rows]
 
 
 def buys(db: Session, account_id: int) -> list[InvestmentTransaction]:

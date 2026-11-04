@@ -20,6 +20,7 @@ from datetime import datetime
 from sqlalchemy.orm import Session
 
 from app.core.logging import get_logger
+from app.core.time import end_of_today
 from app.domain.holdings import BUY_TYPES, EPSILON, SELL_TYPES, Position, RealizedSale, Replay, normalize_ticker
 from app.integrations.currency import CurrencyConversionError, convert_amount
 from app.models.investment_transaction import InvestmentTransaction
@@ -116,8 +117,12 @@ async def _apply_sell(db: Session, pos: Position, tx: InvestmentTransaction, tic
     return sale
 
 
-async def replay_account(db: Session, account_id: int) -> Replay:
-    """Rejoue l'inventaire Point Zéro puis les opérations sur titres (aucune écriture)."""
+async def replay_account(db: Session, account_id: int, until: datetime | None = None) -> Replay:
+    """Rejoue l'inventaire Point Zéro puis les opérations sur titres (aucune écriture).
+
+    `until` (borne haute exclusive, défaut `end_of_today()`) : une opération à venir ne compte qu'à sa date
+    (règle 12) ; `rebuild_due_holdings` reconstruit les positions stockées quand elle arrive à échéance.
+    """
     account = repo.account(db, account_id)
     account_cutoff = account.holdings_baseline_date if account else None
     positions, baseline_date = await _load_baseline(db, account_id, account_cutoff)
@@ -125,7 +130,7 @@ async def replay_account(db: Session, account_id: int) -> Replay:
     realized: list[RealizedSale] = []
     events: list[tuple[datetime, str, float]] = []
 
-    for tx in tx_repo.trades(db, account_id):
+    for tx in tx_repo.trades(db, account_id, before=until or end_of_today()):
         ticker = normalize_ticker(tx.ticker)
         pos = positions.get(ticker)
         cutoff = pos.cutoff if pos else account_cutoff

@@ -1,6 +1,6 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, computed_field
 
-from app.core.time import NaiveUTCDatetime
+from app.core.time import NaiveUTCDatetime, end_of_today
 from app.schemas.types import Amount, AmountOrZero, BoundedNaiveUTCDatetime, Quantity
 
 
@@ -38,6 +38,12 @@ class InvestmentTransactionRead(InvestmentTransactionBase):
     reinvest_of_id: int | None = None
 
     model_config = {"from_attributes": True}
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def is_upcoming(self) -> bool:
+        """Opération datée après aujourd'hui : elle ne compte dans aucune position, espèce ni capital avant sa date."""
+        return self.date >= end_of_today()
 
 
 class InvestmentTransactionUpdate(BaseModel):
