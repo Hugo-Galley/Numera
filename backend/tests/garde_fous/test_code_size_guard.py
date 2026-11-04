@@ -4,7 +4,7 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).parents[3]
 
-_spec = importlib.util.spec_from_file_location("check_code_size", REPO_ROOT / "scripts/check_code_size.py")
+_spec = importlib.util.spec_from_file_location("check_code_size", REPO_ROOT / "scripts/quality/check_code_size.py")
 guard = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(guard)
 
@@ -53,5 +53,5 @@ def test_ui_components_are_ignored(tmp_path):
 
 
 def test_repository_matches_baseline():
-    baseline = json.loads((REPO_ROOT / "scripts/code_size_baseline.json").read_text())
+    baseline = json.loads((REPO_ROOT / "scripts/quality/baselines/code_size_baseline.json").read_text())
     assert guard.check(guard.measure(REPO_ROOT), baseline) == []

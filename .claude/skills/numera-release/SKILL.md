@@ -7,13 +7,13 @@ description: Use when deciding whether Numera should be released, choosing patch
 
 ## Principe
 
-Une release = un tag `vX.Y.Z` sur `main`. Le tag déclenche `.github/workflows/release.yml` : contrôle (commit sur `main`, CI vert) → 3 images multi-arch sur GHCR (`numera-backend`, `numera-frontend`, `numera-mcp`, tags `X.Y.Z`, `X.Y`, `latest`) → GitHub Release avec notes générées par `scripts/release_notes.py` depuis les commits Conventional Commits. Aucun changelog écrit à la main ; la qualité des notes dépend donc de celle des messages de commit (`type(portée): description`, le corps explique le pourquoi).
+Une release = un tag `vX.Y.Z` sur `main`. Le tag déclenche `.github/workflows/release.yml` : contrôle (commit sur `main`, CI vert) → 3 images multi-arch sur GHCR (`numera-backend`, `numera-frontend`, `numera-mcp`, tags `X.Y.Z`, `X.Y`, `latest`) → GitHub Release avec notes générées par `scripts/release/release_notes.py` depuis les commits Conventional Commits. Aucun changelog écrit à la main ; la qualité des notes dépend donc de celle des messages de commit (`type(portée): description`, le corps explique le pourquoi).
 
 ## Écrire pour les notes
 
 Le titre de PR (= commit squashé) devient une ligne publique : phrase courte au présent, côté utilisateur (« Vue À venir des transactions futures »), pas le détail technique. `(#N)` est ajouté par GitHub et rendu en lien.
 
-Rendu (`scripts/release_notes.py`) :
+Rendu (`scripts/release/release_notes.py`) :
 
 | Section | Contenu |
 |---|---|
@@ -34,7 +34,7 @@ Pousser un tag publie des images et une release publiques, c'est irréversible c
 
 ## Quand releaser
 
-Releaser si, depuis le dernier tag, `python3 scripts/release_notes.py --bump` ne répond pas `none` **et** :
+Releaser si, depuis le dernier tag, `python3 scripts/release/release_notes.py --bump` ne répond pas `none` **et** :
 
 - l'ensemble des changements forme un état stable et validé (`make validate` vert sur `main`, CI vert) ;
 - le dernier tag a plus de quelques commits `fix` / `feat` d'écart, **ou** un `fix` corrige un bug de données ou de sécurité (release immédiate, sans attendre le lot) ;

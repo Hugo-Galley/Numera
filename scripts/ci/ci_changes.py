@@ -4,7 +4,7 @@
 Un scan d'image ne change de résultat que si l'image de base, les paquets ou les dépendances déclarées changent ;
 le code applicatif, les tests et la doc n'y entrent pas. Hors PR (push sur main, release), la CI scanne tout.
 
-    git diff --name-only BASE HEAD | python3 scripts/ci_changes.py   # écrit images=… et dockerfiles=… sur stdout
+    git diff --name-only BASE HEAD | python3 scripts/ci/ci_changes.py   # écrit images=… et dockerfiles=… sur stdout
 """
 import sys
 

@@ -17,6 +17,7 @@ Stack : React 18 + Vite + TypeScript + Tailwind + Recharts (frontend) · FastAPI
 | Discipline (obligatoire) | `numera-tdd` (test rouge avant tout code backend), `numera-clean-architecture` (où va le code, source unique, déplacements), `numera-finishing` (validation, docs, commit avant « terminé »), `numera-release` (quand et comment publier une version : choix patch/minor/major, tag), `numera-performance` (mesurer avant d'optimiser, N+1, lecture par colonnes, caches et leur invalidation, bundle, nginx) |
 | Architecture, modèle de données, routes API | `ARCHITECTURE.md` |
 | Workflow Git (PR, rulesets, branches de release) | `docs/WORKFLOW_GIT.md` |
+| Scripts du dépôt (hors `backend/scripts/`, qui sert à l'exploitation du backend) | `scripts/quality/` (garde-fous à cliquet + `baselines/`), `scripts/release/`, `scripts/ci/`, `scripts/ops/` |
 | Exploitation backend (logs, déploiement, sécurité) | `docs/BACKEND.md`, `backend/LOGGING.md`, `docs/BACKUP_RESTORE.md` |
 | Centre d'Actions (audit, alertes budget, suggestions de règles) | `docs/ACTION_CENTER.md` |
 | Serveur MCP | `mcp-server/README.md` |
@@ -26,11 +27,11 @@ Quand le code change une route, un modèle, une commande ou une règle métier, 
 
 **Jamais de tag flottant** : une action GitHub s'épingle par SHA de commit complet avec la version en commentaire (`actions/checkout@<sha40> # v4.4.0`), une image Docker par digest (`python:3.12-slim@sha256:…`), dans les `Dockerfile`, `docker-compose*.yml` et workflows. SHA obtenu par `git ls-remote --tags https://github.com/<org>/<action>`, digest par `docker buildx imagetools inspect <image>`. Contrôlé par `backend/tests/garde_fous/test_pinned_dependencies.py`.
 
-**Git : PR obligatoire.** `main` et `release/**` sont protégées (rulesets `.github/rulesets/`, appliqués par `scripts/github_rules.sh`) : plus de push direct. Branche `type/sujet` → PR au template `.github/pull_request_template.md` → checks `CI ok` + `Titre de PR` verts → merge en **squash** (le titre de PR, au format Conventional Commits, devient le commit et alimente les notes de version). Branches `release/X.Y` seulement à la demande, pour un correctif d'une ancienne version. Détail : `docs/WORKFLOW_GIT.md`.
+**Git : PR obligatoire.** `main` et `release/**` sont protégées (rulesets `.github/rulesets/`, appliqués par `scripts/ci/github_rules.sh`) : plus de push direct. Branche `type/sujet` → PR au template `.github/pull_request_template.md` → checks `CI ok` + `Titre de PR` verts → merge en **squash** (le titre de PR, au format Conventional Commits, devient le commit et alimente les notes de version). Branches `release/X.Y` seulement à la demande, pour un correctif d'une ancienne version. Détail : `docs/WORKFLOW_GIT.md`.
 
 **Performance** : toute optimisation suit le skill `numera-performance` — mesure sur jeu volumineux avant et après (`backend/scripts/perf_profile.py`), test de nombre de requêtes (fixture `measure_queries`), chiffres dans le message de commit. Pas de requête SQL dans une boucle, pas d'objets ORM pour une lecture seule volumineuse, pas d'`async def` sans `await`, pas de cache sans invalidation sur écriture.
 
-**Releases** : tag `vX.Y.Z` sur `main` (ou `release/X.Y`) → `.github/workflows/release.yml` publie 3 images GHCR et la GitHub Release (notes auto depuis les commits Conventional Commits, `scripts/release_notes.py`). Décision et procédure : skill `numera-release` ; je release de moi-même quand les critères y sont réunis, ou sur demande. Des messages de commit propres = de bonnes notes.
+**Releases** : tag `vX.Y.Z` sur `main` (ou `release/X.Y`) → `.github/workflows/release.yml` publie 3 images GHCR et la GitHub Release (notes auto depuis les commits Conventional Commits, `scripts/release/release_notes.py`). Décision et procédure : skill `numera-release` ; je release de moi-même quand les critères y sont réunis, ou sur demande. Des messages de commit propres = de bonnes notes.
 
 ## Commandes
 
@@ -45,8 +46,8 @@ make test                  # pytest backend (backend/.venv si présent, sinon py
 make coverage              # tests + couverture avec seuil à cliquet : backend (backend/.coveragerc, 93 %) et frontend (frontend/vitest.config.ts, v8) ; ne jamais baisser un seuil
 make lint / lint-fix       # ruff sur backend/ (règles : backend/ruff.toml), lint-fix corrige ce qui est sûr
 make lint-front             # ESLint frontend (rules-of-hooks, exhaustive-deps, variables inutilisées) ; avertissements existants plafonnés par frontend/eslint-baseline.json
-make typecheck             # mypy : strict sur app/domain et app/core, baseline à cliquet ailleurs (scripts/mypy_baseline.json)
-make check-size            # plafonds de taille (fichier/fonction), baseline à cliquet scripts/code_size_baseline.json
+make typecheck             # mypy : strict sur app/domain et app/core, baseline à cliquet ailleurs (scripts/quality/baselines/mypy_baseline.json)
+make check-size            # plafonds de taille (fichier/fonction), baseline à cliquet scripts/quality/baselines/code_size_baseline.json
 make validate              # lint + lint-front + typecheck + check-size + coverage (tests backend et frontend avec seuils) + build frontend
 make backend-seed-demo     # données de démo (backend/data/demo.db, jamais la vraie base)
 make demo / demo-down      # instance de démo publique (infra/docker-compose.demo.yml, port 8090, demo/demo)
@@ -67,14 +68,14 @@ cd backend && PYTHONPATH=. python3.11 -m pytest tests/budget/test_tags.py::test_
 cd backend && PYTHONPATH=. python3.11 -m pytest tests -q     # suite complète : ~950 tests, ~80 s en parallèle (xdist, -n auto), ~2 min 40 en série
 
 # Mot de passe admin (hash à mettre dans ADMIN_PASSWORD_HASH ; doubler les $ dans docker-compose)
-python scripts/change_password.py <mot-de-passe>
+python scripts/ops/change_password.py <mot-de-passe>
 ```
 
 ## Architecture
 
 ### Backend (`backend/app/`)
 - `main.py` : lifespan (migrations Alembic + seed), middleware de logs, CORS via `settings.cors_origins` (pas `*`). Les routers sont dans la liste `protected_routers` et reçoivent tous `Depends(get_current_user)` (JWT) ; seuls `health` et `auth` sont publics. **Un nouveau router doit être ajouté à cette liste.**
-- **Architecture en couches** (backend et frontend migrés, cf. `ARCHITECTURE.md` § Couches backend) : `controllers/` (controllers) → `services/` (cas d'usage, commit, erreurs métier `core/errors.py`) → `repositories/` (requêtes) / `domain/` (calculs purs) / `integrations/` (appels externes). Règles d'import vérifiées par `tests/garde_fous/test_architecture.py`, tailles par `scripts/check_code_size.py` (baselines à cliquet : ne jamais les augmenter). Modèle à suivre : `accounts`. `controllers/`, `services/` et `repositories/` sont rangés par domaine, même arborescence dans les trois couches : `budget/`, `comptes/`, `investissement/`, `analytics/`, `audit/` (services), `systeme/` ; un controller n'importe pas un controller d'un autre domaine, `core/` n'importe que `core`, `models`, `db`. Code déplacé : supprimé de l'ancien emplacement, sans ré-export.
+- **Architecture en couches** (backend et frontend migrés, cf. `ARCHITECTURE.md` § Couches backend) : `controllers/` (controllers) → `services/` (cas d'usage, commit, erreurs métier `core/errors.py`) → `repositories/` (requêtes) / `domain/` (calculs purs) / `integrations/` (appels externes). Règles d'import vérifiées par `tests/garde_fous/test_architecture.py`, tailles par `scripts/quality/check_code_size.py` (baselines à cliquet : ne jamais les augmenter). Modèle à suivre : `accounts`. `controllers/`, `services/` et `repositories/` sont rangés par domaine, même arborescence dans les trois couches : `budget/`, `comptes/`, `investissement/`, `analytics/`, `audit/` (services), `systeme/` ; un controller n'importe pas un controller d'un autre domaine, `core/` n'importe que `core`, `models`, `db`. Code déplacé : supprimé de l'ancien emplacement, sans ré-export.
 - `controllers/<domaine>/` : un router par sujet (`budget/transactions`, `comptes/accounts`, `investissement/holdings`, `systeme/auth`, …) ; `controllers/deps.py` à la racine. `controllers/analytics/` est un **package** (metrics, budget, investments, insights, reports, subscriptions, audit, diversity) ; budget, Centre d'Actions et projection de trésorerie sont calculés dans `services/analytics/` et `services/audit/` (registre de règles), les requêtes partagées dans `repositories/analytics/common.py`.
 - `core/` : `config.py` (pydantic-settings, validation stricte des secrets en `APP_ENV=prod`), `security.py` + `login_rate_limit.py` (auth mono-utilisateur `ADMIN_USERNAME`/`ADMIN_PASSWORD_HASH` ; limiteurs `login_rate_limiter` / `totp_rate_limiter`), `errors.py` (erreurs métier), `logging.py`, `time.py`, `totp.py`, `mcp_tokens.py`, `migrations.py` (transverse uniquement). Valorisation des comptes titres : `services/investissement/portfolio/` ; positions : `services/investissement/holdings/` ; dividendes : `services/investissement/dividends.py`. Marché : `services/investissement/market/` + `integrations/yahoo_finance.py` ; profils ETF : `services/investissement/etf_profiles.py` (préréglages `domain/etf_presets.json`).
 - `models/` (SQLAlchemy 2 `Mapped`/`mapped_column`), `schemas/` (Pydantic, `from_attributes=True`), `db/session.py`. Schéma modifié → nouvelle migration Alembic dans `backend/alembic/versions/`.

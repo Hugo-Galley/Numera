@@ -6,8 +6,8 @@ Ailleurs, les erreurs existantes sont comptées par fichier dans `mypy_baseline.
 un fichier ne peut pas avoir plus d'erreurs que sa baseline, et une entrée doit être
 retirée (ou diminuée) dès que le fichier s'améliore.
 
-    python3 scripts/check_types.py                    # contrôle (code 1 si erreur)
-    python3 scripts/check_types.py --write-baseline   # régénère la baseline (à ne faire que pour la diminuer)
+    python3 scripts/quality/check_types.py                    # contrôle (code 1 si erreur)
+    python3 scripts/quality/check_types.py --write-baseline   # régénère la baseline (à ne faire que pour la diminuer)
 """
 import argparse
 import json
@@ -18,8 +18,8 @@ import sys
 from collections import Counter
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
-BASELINE_PATH = Path(__file__).resolve().parent / "mypy_baseline.json"
+REPO_ROOT = Path(__file__).resolve().parents[2]
+BASELINE_PATH = Path(__file__).resolve().parent / "baselines" / "mypy_baseline.json"
 STRICT_PREFIXES = ("app/domain/", "app/core/")
 ERROR_RE = re.compile(r"^(app/[^:]+\.py):\d+: error:")
 

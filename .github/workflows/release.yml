@@ -136,7 +136,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Notes de version (depuis les commits)
-        run: python3 scripts/release_notes.py --notes "$GITHUB_REF_NAME" > "$RUNNER_TEMP/notes.md"
+        run: python3 scripts/release/release_notes.py --notes "$GITHUB_REF_NAME" > "$RUNNER_TEMP/notes.md"
       - name: Compose autonome (images de cette version)
         run: |
           version="${GITHUB_REF_NAME#v}"

@@ -6,7 +6,7 @@ attributs produisent trop de faux positifs (colonnes ORM, champs Pydantic). Un f
 déclare dans `dead_code_allowlist.json` (`"fichier::nature nom": "motif"`) ; une entrée devenue inutile
 doit être retirée.
 
-    python3 scripts/check_dead_code.py     # contrôle (code 1 si écart)
+    python3 scripts/quality/check_dead_code.py     # contrôle (code 1 si écart)
 """
 import json
 import re
@@ -14,8 +14,8 @@ import subprocess
 import sys
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
-ALLOWLIST_PATH = Path(__file__).resolve().parent / "dead_code_allowlist.json"
+REPO_ROOT = Path(__file__).resolve().parents[2]
+ALLOWLIST_PATH = Path(__file__).resolve().parent / "baselines" / "dead_code_allowlist.json"
 BACKEND = REPO_ROOT / "backend"
 
 KINDS = ("function", "class", "method", "property", "import", "unreachable code")

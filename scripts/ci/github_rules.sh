@@ -2,10 +2,10 @@
 # Applique les réglages du dépôt GitHub (merge en squash, branches supprimées après merge) et les
 # rulesets de .github/rulesets/*.json. Idempotent : crée ou met à jour chaque ruleset par son nom.
 # Prérequis : gh authentifié avec les droits admin du dépôt.
-#   scripts/github_rules.sh           # applique
-#   scripts/github_rules.sh --dry-run # affiche ce qui serait fait
+#   scripts/ci/github_rules.sh           # applique
+#   scripts/ci/github_rules.sh --dry-run # affiche ce qui serait fait
 set -euo pipefail
-cd "$(dirname "$0")/.."
+cd "$(dirname "$0")/../.."
 
 dry=false
 [ "${1:-}" = "--dry-run" ] && dry=true

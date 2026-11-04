@@ -111,7 +111,7 @@ cd numera
 
 ```bash
 make setup                                        # crée .env, génère SECRET_KEY et BACKUP_KEY
-python3 scripts/change_password.py 'mot-de-passe' # nécessite bcrypt (pip install bcrypt)
+python3 scripts/ops/change_password.py 'mot-de-passe' # nécessite bcrypt (pip install bcrypt)
 ```
 
 Collez le hash obtenu dans `.env` **entre guillemets simples**, sinon Docker Compose prend les `$` pour des variables et la connexion échoue :

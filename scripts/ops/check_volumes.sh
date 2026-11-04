@@ -3,9 +3,9 @@
 # s'ils manquent (sinon Docker les crée en root) et refuse de lancer si un fichier n'appartient pas à
 # cet UID, ce qui casse les sauvegardes (« unable to open database file ») et l'envoi de logos.
 # Typiquement des fichiers écrits en root par une ancienne version des conteneurs.
-#   scripts/check_volumes.sh backend/data backups
+#   scripts/ops/check_volumes.sh backend/data backups
 set -euo pipefail
-cd "$(dirname "$0")/.."
+cd "$(dirname "$0")/../.."
 
 uid=$(sed -n 's/^NUMERA_UID=//p' .env 2>/dev/null | tail -1)
 gid=$(sed -n 's/^NUMERA_GID=//p' .env 2>/dev/null | tail -1)
