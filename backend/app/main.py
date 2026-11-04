@@ -54,6 +54,7 @@ from app.integrations.currency import CurrencyConversionError
 from app.services.budget.recurring import generate_recurring_transactions
 from app.services.budget.salary_generation import check_and_generate_pending_salaries
 from app.services.investissement.etf_profiles import refresh_held_etf_profiles
+from app.services.investissement.holdings.rebuild import rebuild_due_holdings
 from app.services.investissement.market.quotes import refresh_held_prices
 from app.services.systeme.demo import ensure_demo_data, is_blocked_in_demo
 from app.services.systeme.notifications import run_notifications
@@ -79,6 +80,8 @@ async def recurring_transactions_task():
                 else:
                     await generate_recurring_transactions(db)
                     check_and_generate_pending_salaries(db)
+                    # Opérations sur titres arrivées à échéance : positions stockées (règle 12)
+                    await rebuild_due_holdings(db)
                     # Cours des titres détenus enregistrés en base (historique de valorisation)
                     await refresh_held_prices(db)
                     # Composition des ETF détenus (Yahoo), au plus une fois par semaine et par profil

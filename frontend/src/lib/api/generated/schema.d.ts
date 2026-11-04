@@ -4681,6 +4681,11 @@ export interface components {
              * @default false
              */
             is_transfer_ignored?: boolean;
+            /**
+             * Is Upcoming
+             * @description Opération datée après aujourd'hui : elle ne compte dans aucune position, espèce ni capital avant sa date.
+             */
+            readonly is_upcoming: boolean;
             /** Isin */
             isin?: string | null;
             /** Linked Transaction Id */

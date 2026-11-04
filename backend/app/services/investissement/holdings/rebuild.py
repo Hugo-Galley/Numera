@@ -1,9 +1,13 @@
 """Reconstruction des positions (`portfolio_holdings`) d'un compte depuis l'inventaire et les opérations."""
+from datetime import timedelta
+
 from sqlalchemy.orm import Session
 
+from app.core.time import end_of_today
 from app.domain.holdings import EPSILON
 from app.models.portfolio_holding import PortfolioHolding
 from app.repositories.investissement import holdings as repo
+from app.repositories.investissement import investment_transactions as tx_repo
 from app.services.investissement.holdings.replay import replay_account
 
 
@@ -45,3 +49,18 @@ async def rebuild_holdings(db: Session, account_id: int) -> None:
             holding.isin = holding.isin or pos.isin
             holding.etf_profile_id = holding.etf_profile_id or pos.etf_profile_id
     db.flush()
+
+
+DUE_WINDOW = timedelta(days=7)
+
+
+async def rebuild_due_holdings(db: Session) -> None:
+    """Reconstruit les positions des comptes dont une opération sur titre vient d'arriver à échéance.
+
+    Le rejeu ignore les opérations à venir (règle 12) : les positions stockées ne bougent qu'ici, à la
+    première exécution horaire qui suit la date de l'opération. La fenêtre de 7 jours rattrape un arrêt du serveur.
+    """
+    until = end_of_today()
+    for account_id in tx_repo.trade_account_ids_between(db, until - DUE_WINDOW, until):
+        await rebuild_holdings(db, account_id)
+    db.commit()

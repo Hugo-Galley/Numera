@@ -15,19 +15,26 @@ def only_transfer_legs(query):
     return query.filter(Transaction.is_transfer.is_(True), Transaction.is_transfer_ignored.is_(False))
 
 
-def investment_transactions(db: Session, account_id: int) -> list[InvestmentTransaction]:
-    """Opérations d'investissement du compte, par date puis id."""
+def investment_transactions(db: Session, account_id: int, before: datetime | None = None) -> list[InvestmentTransaction]:
+    """Opérations d'investissement du compte, par date puis id ; `before` : borne haute exclusive (règle 12)."""
     query = db.query(InvestmentTransaction).filter(InvestmentTransaction.account_id == account_id)
+    if before is not None:
+        query = query.filter(InvestmentTransaction.date < before)
     return query.order_by(InvestmentTransaction.date.asc(), InvestmentTransaction.id.asc()).all()
 
 
-def regular_transactions(db: Session, account_id: int, transfers_only: bool) -> list[Transaction]:
-    """Transactions bancaires du compte (catégorie jointe), par date puis id ; jambes de virement seules si demandé."""
+def regular_transactions(
+    db: Session, account_id: int, transfers_only: bool, before: datetime | None = None
+) -> list[Transaction]:
+    """Transactions bancaires du compte (catégorie jointe), par date puis id ; jambes de virement seules si demandé ;
+    `before` : borne haute exclusive (règle 12)."""
     regular = (
         db.query(Transaction)
         .outerjoin(Category, Transaction.category_id == Category.id)
         .filter(Transaction.account_id == account_id)
     )
+    if before is not None:
+        regular = regular.filter(Transaction.date < before)
     if transfers_only:
         regular = only_transfer_legs(regular)
     return regular.order_by(Transaction.date.asc(), Transaction.id.asc()).all()
