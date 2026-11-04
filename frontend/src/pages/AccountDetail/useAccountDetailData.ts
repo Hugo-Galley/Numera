@@ -60,10 +60,18 @@ export function useAccountDetailData(p: ReturnType<typeof useAccountDetailState>
     }
   }
 
+  /** Même fenêtre que la liste : début de journée → fin de journée (`end_date` est exclusif côté backend). */
+  const tagTotalsQuery = () => {
+    const params = new URLSearchParams({ account_id: id! })
+    if (dateStart) params.append("start_date", startOfDayParam(dateStart))
+    if (dateEnd) params.append("end_date", endOfDayParam(dateEnd))
+    return `?${params.toString()}`
+  }
+
   const loadTagTotals = async () => {
     if (!id) return
     try {
-      setTagTotals(await getAnalyticsTags<any[]>(`?account_id=${id}${dateStart ? `&start_date=${dateStart}` : ""}${dateEnd ? `&end_date=${dateEnd}` : ""}`))
+      setTagTotals(await getAnalyticsTags<any[]>(tagTotalsQuery()))
     } catch (error) {
       toast.error(errorMessage(error, "Erreur lors du chargement des tags"))
     }
@@ -136,7 +144,7 @@ export function useAccountDetailData(p: ReturnType<typeof useAccountDetailState>
           getAnalyticsTimeseries<any>(`?account_id=${id}&year=${new Date().getFullYear()}`),
           getCategories<Category[]>(),
           getTags<TagType[]>(),
-          getAnalyticsTags<any[]>(`?account_id=${id}${dateStart ? `&start_date=${dateStart}` : ""}${dateEnd ? `&end_date=${dateEnd}` : ""}`)
+          getAnalyticsTags<any[]>(tagTotalsQuery())
         ])
         if (!isCurrent()) return
         setTransactions(txData)
