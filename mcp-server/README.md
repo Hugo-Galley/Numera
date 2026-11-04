@@ -29,7 +29,7 @@ Le serveur est un **proxy de l'API FastAPI** : il appelle l'API avec un **token 
 
 ## 🔑 Connexion de Claude (Code / Desktop)
 
-En production, `docker-compose.prod.yml` lance `mcp-server` (transport `streamable-http`, sans état) ; Nginx l'expose sur `https://<domaine>/mcp`. Aucun port publié, aucun secret dans le conteneur.
+En production, `infra/docker-compose.prod.yml` lance `mcp-server` (transport `streamable-http`, sans état) ; Nginx l'expose sur `https://<domaine>/mcp`. Aucun port publié, aucun secret dans le conteneur.
 
 1. Numera → **Paramètres → Sécurité → Claude (MCP)** → **Générer un token** (`nmr_…`, affiché une seule fois).
 2. Lancer la commande affichée :
@@ -111,7 +111,7 @@ claude mcp add --scope user numera-local \
 
 ## 🐳 Docker
 
-Service `mcp-server` de `docker-compose.prod.yml` (toujours lancé, frontend Nginx en dépend) : `streamable-http` sur `8100` dans le réseau Docker seulement, `MCP_API_URL=http://backend:8001`. Bloc Nginx : `location = /mcp` dans `frontend/nginx.conf` (`proxy_buffering off` pour le flux SSE).
+Service `mcp-server` de `infra/docker-compose.prod.yml` (toujours lancé, frontend Nginx en dépend) : `streamable-http` sur `8100` dans le réseau Docker seulement, `MCP_API_URL=http://backend:8001`. Bloc Nginx : `location = /mcp` dans `frontend/nginx.conf` (`proxy_buffering off` pour le flux SSE).
 
 Le serveur est construit en `stateless_http` (pas d'affinité de session) et sans protection DNS rebinding de la lib `mcp` (elle n'accepte que `Host: localhost`, ce qui casse derrière Nginx ; inutile puisque l'accès repose sur un token bearer explicite).
 

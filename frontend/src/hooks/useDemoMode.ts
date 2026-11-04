@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { API_BASE } from "@/lib/api"
 
-// Identifiants publics de l'instance de démonstration (cf. docker-compose.demo.yml)
+// Identifiants publics de l'instance de démonstration (cf. infra/docker-compose.demo.yml)
 export const DEMO_CREDENTIALS = { username: "demo", password: "demo" }
 
 // /health est public : une seule requête par chargement de l'app

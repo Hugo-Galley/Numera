@@ -140,7 +140,7 @@ jobs:
       - name: Compose autonome (images de cette version)
         run: |
           version="${GITHUB_REF_NAME#v}"
-          sed "s/NUMERA_VERSION:-latest/NUMERA_VERSION:-$version/" docker-compose.images.yml > "$RUNNER_TEMP/docker-compose.yml"
+          sed "s/NUMERA_VERSION:-latest/NUMERA_VERSION:-$version/" infra/docker-compose.images.yml > "$RUNNER_TEMP/docker-compose.yml"
           grep -q "NUMERA_VERSION:-$version}" "$RUNNER_TEMP/docker-compose.yml"
       - name: Créer la release
         env:

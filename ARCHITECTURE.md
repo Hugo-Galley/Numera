@@ -10,7 +10,7 @@ Decrire l'architecture actuelle du depot pour permettre a un humain ou a un agen
 - Backend: FastAPI + SQLAlchemy + Alembic + Pydantic v2.
 - Base: SQLite locale dans `backend/data/suivi_budget.db` en dev Docker.
 - Auth: mono-admin JWT, routes metier protegees ; tokens MCP (`nmr_…`) acceptés à la place du JWT en lecture seule (`GET`), jamais sur `/admin`.
-- Orchestration: `infra/docker-compose.yml` (dev : `backend`, `frontend`, `backup`) ; `docker-compose.prod.yml` (prod : + `mcp-server` en streamable-http ; frontend Nginx non-root (8080 dans le conteneur) publié sur `127.0.0.1:8082`, proxy `/api/` → `backend:8001` et `/mcp` → `mcp-server:8100`).
+- Orchestration: `infra/docker-compose.yml` (dev : `backend`, `frontend`, `backup`) ; `infra/docker-compose.prod.yml` (prod : + `mcp-server` en streamable-http ; frontend Nginx non-root (8080 dans le conteneur) publié sur `127.0.0.1:8082`, proxy `/api/` → `backend:8001` et `/mcp` → `mcp-server:8100`).
 - Services externes (seuls appels sortants) : Frankfurter (taux de change) et Yahoo Finance (recherche/cotations de titres, profils ETF).
 - Serveur MCP dans `mcp-server/`, en lecture seule, connecté à Claude Code / Claude Desktop par token généré dans Paramètres → Sécurité (voir `mcp-server/README.md`).
 
@@ -64,9 +64,8 @@ frontend/
     pages/              routes principales
     providers/          AuthProvider, UIProvider
 mcp-server/             serveur MCP en lecture seule (server.py + package numera_mcp/ : tools/<domaine>.py, resources, prompts, api_client, auth)
-infra/
-  docker-compose.yml (dev)
-docker-compose.prod.yml, Makefile, setup.sh, install.sh
+infra/                  docker-compose.yml (dev), .prod.yml, .demo.yml, .images.yml (joint aux releases)
+Makefile, setup.sh, install.sh
 ```
 
 ## Couches backend
@@ -95,7 +94,7 @@ Garde-fous (cliquet, les baselines ne font que diminuer) : `backend/tests/garde_
 - `seed_all()` insere les categories par defaut et les profils ETF systeme sauf en `test`.
 - Une tache de fond (`recurring_transactions_task`, toutes les heures, 1er passage apres 10 s) genere les transactions recurrentes et les salaires en attente, actualise cours et compositions d'ETF, puis envoie les notifications push (`services/systeme/notifications.py (canaux : integrations/notifications.py)::run_notifications`).
 - `GET /health` et `POST /auth/token` sont publics.
-- Mode démo (`DEMO_MODE=true`, package `services/systeme/demo/` : `guard`, `data`, `generator`) : base dédiée obligatoire (nom contenant « demo », vérifié par `config.py`). Au démarrage puis à chaque passage de la tâche de fond, `ensure_demo_data` efface la base et régénère un jeu fictif déterministe de 18 mois (4 comptes, virements liés, PEA avec cours synthétiques `security_prices.source = "demo"`, assurance-vie par relevés) s'il ne date pas du jour. La tâche de fond ne fait alors rien d'autre (ni cours réels, ni notifications) ; `get_market_quotes` sert les cours fictifs ; le middleware `demo_guard` renvoie 403 sur les écritures sensibles (`/admin/*`, TOTP, passkeys, notifications, logos, rafraîchissement d'ETF). Déploiement : `docker-compose.demo.yml` (`make demo`, port 8090, identifiants publics demo / demo).
+- Mode démo (`DEMO_MODE=true`, package `services/systeme/demo/` : `guard`, `data`, `generator`) : base dédiée obligatoire (nom contenant « demo », vérifié par `config.py`). Au démarrage puis à chaque passage de la tâche de fond, `ensure_demo_data` efface la base et régénère un jeu fictif déterministe de 18 mois (4 comptes, virements liés, PEA avec cours synthétiques `security_prices.source = "demo"`, assurance-vie par relevés) s'il ne date pas du jour. La tâche de fond ne fait alors rien d'autre (ni cours réels, ni notifications) ; `get_market_quotes` sert les cours fictifs ; le middleware `demo_guard` renvoie 403 sur les écritures sensibles (`/admin/*`, TOTP, passkeys, notifications, logos, rafraîchissement d'ETF). Déploiement : `infra/docker-compose.demo.yml` (`make demo`, port 8090, identifiants publics demo / demo).
 - Les autres routeurs sont inclus avec `Depends(get_current_user)` : JWT de session, ou token MCP (`core/mcp_tokens.py` : empreinte SHA-256 dans `mcp_tokens`, refusé si révoqué, si `mcp_enabled` est faux ou pour toute méthode autre que `GET`/`HEAD`). Le router `/admin` ajoute `require_interactive_session` : 403 pour un token MCP.
 
 ### Modules API
