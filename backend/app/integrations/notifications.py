@@ -68,5 +68,9 @@ async def send_all(channels: list[Channel], title: str, body: str, priority: str
             await channel.send(title, body, priority, url)
             delivered.append(channel.name)
         except Exception as exc:  # canal injoignable, jeton refusé… : on journalise et on continue
-            logger.warning(f"Notification via {channel.name} failed: {type(exc).__name__}: {exc}")
+            # Jamais str(exc) : le message d'une HTTPStatusError contient l'URL, donc le jeton Telegram
+            detail = type(exc).__name__
+            if isinstance(exc, httpx.HTTPStatusError):
+                detail += f" (HTTP {exc.response.status_code})"
+            logger.warning("Notification via %s failed: %s", channel.name, detail)
     return delivered

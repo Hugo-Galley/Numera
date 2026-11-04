@@ -21,6 +21,7 @@ __version__ = "1.0.0"
 import json
 import os
 import sqlite3
+import time
 import logging
 from datetime import datetime, date
 from contextlib import contextmanager
@@ -1658,6 +1659,28 @@ def get_account_balance_history(account_id: int, months: int = 12) -> str:
 # TOOLS — SQL brut sécurisé
 # ═══════════════════════════════════════════════════════════════════════════════
 
+# Tables jamais lisibles par `execute_read_query` : réglages (hash du mot de passe, secret TOTP, passkeys,
+# jetons de notification), hachés des jetons MCP, journal des connexions (IP, user-agent).
+SENSITIVE_TABLES = frozenset({"system_settings", "mcp_tokens", "login_events"})
+QUERY_TIMEOUT_S = 5.0
+_PROGRESS_STEPS = 10_000  # instructions SQLite entre deux vérifications du délai
+
+
+def _restrict_connection(conn: sqlite3.Connection) -> None:
+    """Interdit la lecture des tables sensibles et borne la durée de la requête."""
+    def authorizer(action, arg1, arg2, db_name, source):
+        if action == sqlite3.SQLITE_READ and (arg1 or "").lower() in SENSITIVE_TABLES:
+            return sqlite3.SQLITE_DENY
+        if action in (sqlite3.SQLITE_ATTACH, sqlite3.SQLITE_PRAGMA):
+            return sqlite3.SQLITE_DENY
+        return sqlite3.SQLITE_OK
+
+    deadline = time.monotonic() + QUERY_TIMEOUT_S
+    conn.set_authorizer(authorizer)
+    # Un retour non nul interrompt la requête (sqlite3.OperationalError: interrupted)
+    conn.set_progress_handler(lambda: 1 if time.monotonic() > deadline else 0, _PROGRESS_STEPS)
+
+
 @mcp.tool()
 def execute_read_query(sql: str) -> str:
     """Exécute une requête SQL en lecture seule (SELECT uniquement).
@@ -1689,6 +1712,7 @@ def execute_read_query(sql: str) -> str:
             sql = sql.rstrip(";").strip() + " LIMIT 200"
 
         with get_db() as conn:
+            _restrict_connection(conn)
             rows = rows_to_dicts(conn.execute(sql).fetchall())
             return f"📋 {len(rows)} résultat(s) :\n\n" + format_table(rows)
     except sqlite3.Error as e:

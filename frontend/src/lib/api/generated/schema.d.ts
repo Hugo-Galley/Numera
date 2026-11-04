@@ -5182,6 +5182,8 @@ export interface components {
         };
         /** NotificationSettingsUpdate */
         NotificationSettingsUpdate: {
+            /** Current Password */
+            current_password?: string | null;
             /** Hide Amounts */
             hide_amounts?: boolean | null;
             /** Min Severity */
@@ -5734,6 +5736,16 @@ export interface components {
             /** Year */
             year: number;
         };
+        /**
+         * ReauthBody
+         * @description Un jeton de session volé ne doit pas suffire à ajouter ou retirer une passkey.
+         */
+        ReauthBody: {
+            /** Code */
+            code?: string | null;
+            /** Current Password */
+            current_password?: string | null;
+        };
         /** ReconcileHint */
         ReconcileHint: {
             /** Kind */
@@ -6030,10 +6042,14 @@ export interface components {
         };
         /** RegisterVerifyBody */
         RegisterVerifyBody: {
+            /** Code */
+            code?: string | null;
             /** Credential */
             credential: {
                 [key: string]: unknown;
             };
+            /** Current Password */
+            current_password?: string | null;
             /** Name */
             name?: string | null;
             /** State */
@@ -9149,7 +9165,11 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["ReauthBody"] | null;
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {
@@ -9160,6 +9180,15 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -9208,7 +9237,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["ReauthBody"] | null;
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {

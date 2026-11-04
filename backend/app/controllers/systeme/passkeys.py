@@ -36,6 +36,7 @@ from app.core.login_events import record_login
 from app.core.login_rate_limit import client_key, login_rate_limiter
 from app.db.session import get_db
 from app.db.system_settings import get_setting, set_setting
+from app.services.systeme import admin as admin_service
 
 logger = get_logger(__name__)
 
@@ -46,7 +47,13 @@ CHALLENGE_TTL_SECONDS = 300
 RP_NAME = "Numera"
 
 
-class RegisterVerifyBody(BaseModel):
+class ReauthBody(BaseModel):
+    """Un jeton de session volé ne doit pas suffire à ajouter ou retirer une passkey."""
+    current_password: str | None = None
+    code: str | None = None
+
+
+class RegisterVerifyBody(ReauthBody):
     state: str
     credential: dict
     name: str | None = None
@@ -130,7 +137,14 @@ def list_passkeys(db: Session = Depends(get_db), _user: str = Depends(get_curren
 
 
 @router.delete("/{credential_id}", dependencies=[Depends(require_interactive_session)])
-def delete_passkey(credential_id: str, db: Session = Depends(get_db), _user: str = Depends(get_current_user)) -> dict:
+def delete_passkey(
+    credential_id: str,
+    body: ReauthBody | None = None,
+    db: Session = Depends(get_db),
+    _user: str = Depends(get_current_user),
+) -> dict:
+    body = body or ReauthBody()
+    admin_service.require_reauth(db, body.current_password, body.code)
     credentials = _load(db)
     remaining = [c for c in credentials if c["id"] != credential_id]
     if len(remaining) == len(credentials):
@@ -140,7 +154,14 @@ def delete_passkey(credential_id: str, db: Session = Depends(get_db), _user: str
 
 
 @router.post("/register/options", dependencies=[Depends(require_interactive_session)])
-def register_options(request: Request, db: Session = Depends(get_db), user: str = Depends(get_current_user)) -> dict:
+def register_options(
+    request: Request,
+    body: ReauthBody | None = None,
+    db: Session = Depends(get_db),
+    user: str = Depends(get_current_user),
+) -> dict:
+    # Le code TOTP, à usage unique, n'est exigé qu'à la validation (`register/verify`)
+    admin_service.require_current_password(db, (body or ReauthBody()).current_password)
     _, rp_id = _origin(request)
     options = generate_registration_options(
         rp_id=rp_id,
@@ -163,6 +184,7 @@ def register_verify(
     db: Session = Depends(get_db),
     _user: str = Depends(get_current_user),
 ) -> dict:
+    admin_service.require_reauth(db, body.current_password, body.code)
     origin, rp_id = _origin(request)
     try:
         verified = verify_registration_response(

@@ -27,6 +27,7 @@ from app.schemas.insight import ActionItem
 from app.services.analytics.budget import compute_budget
 from app.services.analytics.reports import compute_cashflow_projection
 from app.services.audit import compute_action_center
+from app.services.systeme.admin import require_current_password
 
 logger = get_logger(__name__)
 
@@ -49,6 +50,9 @@ KEYS = {
     "public_url": "notify.public_url",
 }
 SECRET_FIELDS = ("ntfy_token", "telegram_bot_token")
+SENSITIVE_FIELDS = (
+    "ntfy_server", "ntfy_topic", "ntfy_token", "telegram_bot_token", "telegram_chat_id", "hide_amounts", "public_url",
+)
 BOOL_FIELDS = ("ntfy_enabled", "telegram_enabled", "weekly_digest", "hide_amounts")
 INITIALIZED_KEY = "notify.initialized"
 LAST_DIGEST_KEY = "notify.last_digest_week"
@@ -255,7 +259,25 @@ def get_notification_settings(db: Session) -> dict:
     return masked_settings(load_settings(db))
 
 
+def _sensitive_changes(current: NotificationSettings, update: dict) -> list[str]:
+    changed = []
+    for field in SENSITIVE_FIELDS:
+        value = update.get(field)
+        if value is None:
+            continue
+        if field in SECRET_FIELDS and value == mask_secret(getattr(current, field)) and value:
+            continue
+        stored = value if field in BOOL_FIELDS else str(value).strip()
+        if stored != getattr(current, field):
+            changed.append(field)
+    return changed
+
+
 def update_notification_settings(db: Session, update: dict) -> dict:
+    password = update.pop("current_password", None)
+    if _sensitive_changes(load_settings(db), update):
+        # Rediriger les alertes vers un autre serveur ne doit pas être possible avec un simple jeton volé
+        require_current_password(db, password)
     return masked_settings(save_settings(db, update))
 
 

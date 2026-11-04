@@ -108,7 +108,6 @@ def _log_foreign_key_violations() -> None:
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    logger.info("DEBUG: Lifespan starting...")
     background_task = None
     if settings.app_env != "test":
         logger.info("Running database migrations...")
@@ -116,21 +115,16 @@ async def lifespan(_: FastAPI):
         _log_foreign_key_violations()
 
     if settings.app_env != "test":
-        logger.info("DEBUG: Opening database session for seeding...")
         db = SessionLocal()
         try:
-            logger.info("DEBUG: Seeding database (categories, ETF presets)...")
             seed_all(db)
             if settings.DEMO_MODE:
                 await ensure_demo_data(db)
-            logger.info("DEBUG: Seeding completed.")
         finally:
             db.close()
 
-        logger.info("DEBUG: Starting background task...")
         background_task = asyncio.create_task(recurring_transactions_task())
 
-    logger.info("DEBUG: Lifespan setup complete. Yielding...")
     yield
 
     if background_task:

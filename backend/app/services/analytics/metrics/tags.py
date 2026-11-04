@@ -3,7 +3,7 @@ from datetime import datetime
 
 from sqlalchemy.orm import Session
 
-from app.core.errors import InternalError
+from app.core.errors import DomainError, InternalError
 from app.core.logging import get_logger
 from app.core.time import end_of_today
 from app.domain.metrics import tag_totals
@@ -26,6 +26,8 @@ async def compute_tags(db: Session, month: int | None = None, year: int | None =
             start, end = period_bounds(db, year, month)
         tr_accounts = set() if account_id else ticket_restaurant_account_ids(db)
         return tag_totals(repo.tag_spending_rows(db, start, end, account_id, tr_accounts), rates)
+    except DomainError:
+        raise
     except Exception as e:
-        logger.error(f"Error in tags_analytics: {e}")
-        raise InternalError(str(e)) from e
+        logger.exception("Error in tags_analytics")
+        raise InternalError("Erreur interne") from e

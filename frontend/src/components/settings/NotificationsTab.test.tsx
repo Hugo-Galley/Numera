@@ -40,6 +40,12 @@ function setup(onPut: (body: Body) => Response | Promise<Response> = (body) => H
   return { ...view, calls }
 }
 
+/** Ré-authentification exigée quand une destination d'envoi change. */
+async function confirmPassword(user: ReturnType<typeof setup>["user"], password = "admin") {
+  await user.type(await screen.findByLabelText("Mot de passe actuel"), password)
+  await user.click(screen.getByRole("button", { name: "Confirmer" }))
+}
+
 describe("NotificationsTab", () => {
   it("affiche une erreur avec « Réessayer » si les réglages ne chargent pas", async () => {
     vi.spyOn(console, "error").mockImplementation(() => undefined)
@@ -59,9 +65,12 @@ describe("NotificationsTab", () => {
     await user.type(screen.getByLabelText("Sujet"), "numera-a8f3k2")
     await user.click(screen.getByRole("switch", { name: "Activer ntfy" }))
     await user.click(save)
+    await confirmPassword(user)
 
     expect(await screen.findByText("Réglages des notifications enregistrés")).toBeInTheDocument()
-    expect(calls).toEqual([{ method: "PUT", path: "/notifications/settings", body: { ...settings, ntfy_topic: "numera-a8f3k2", ntfy_enabled: true } }])
+    expect(calls).toEqual([
+      { method: "PUT", path: "/notifications/settings", body: { ...settings, ntfy_topic: "numera-a8f3k2", ntfy_enabled: true, current_password: "admin" } },
+    ])
     await waitFor(() => expect(screen.getByRole("button", { name: "Enregistrer" })).toBeDisabled())
   })
 
@@ -70,6 +79,7 @@ describe("NotificationsTab", () => {
     await user.type(await screen.findByLabelText("Sujet"), "numera-a8f3k2")
 
     await user.click(screen.getAllByRole("button", { name: /Enregistrer et tester/ })[0])
+    await confirmPassword(user)
 
     expect(await screen.findByText("Message de test envoyé sur ntfy")).toBeInTheDocument()
     expect(calls.map((c) => `${c.method} ${c.path}`)).toEqual(["PUT /notifications/settings", "POST /notifications/test"])
@@ -82,6 +92,7 @@ describe("NotificationsTab", () => {
     await user.type(screen.getByLabelText("Chat id"), "42")
 
     await user.click(screen.getAllByRole("button", { name: /Enregistrer et tester/ })[1])
+    await confirmPassword(user)
 
     expect(await screen.findByText("Sujet invalide")).toBeInTheDocument()
     expect(calls.map((c) => c.path)).toEqual(["/notifications/settings"])
@@ -97,6 +108,7 @@ describe("NotificationsTab", () => {
     await user.type(await screen.findByLabelText("Adresse de votre instance Numera (facultatif)"), "https://numera.test")
 
     await user.click(screen.getByRole("button", { name: "Enregistrer" }))
+    await confirmPassword(user)
     const busy = await screen.findByRole("button", { name: "Enregistrement…" })
     expect(busy).toBeDisabled()
     release()
@@ -113,5 +125,24 @@ describe("NotificationsTab", () => {
 
     expect(topic).toHaveValue("")
     expect(screen.getByRole("button", { name: "Enregistrer" })).toBeDisabled()
+  })
+
+  it("un réglage non sensible s'enregistre sans mot de passe", async () => {
+    const { user, calls } = setup()
+    await user.click(await screen.findByRole("switch", { name: "Activer ntfy" }))
+    await user.click(screen.getByRole("button", { name: "Enregistrer" }))
+
+    await screen.findByText("Réglages des notifications enregistrés")
+    expect(screen.queryByLabelText("Mot de passe actuel")).not.toBeInTheDocument()
+    expect(calls[0].body).not.toHaveProperty("current_password")
+  })
+
+  it("annuler la ré-authentification n'envoie rien", async () => {
+    const { user, calls } = setup()
+    await user.type(await screen.findByLabelText("Sujet"), "pirate")
+    await user.click(screen.getByRole("button", { name: "Enregistrer" }))
+    await user.click(await screen.findByRole("button", { name: "Annuler", hidden: false }))
+
+    expect(calls).toEqual([])
   })
 })

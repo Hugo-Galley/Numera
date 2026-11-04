@@ -58,13 +58,16 @@ class SoftAuthenticator:
         }
 
 
-def _register(client, authenticator):
+def _register(client, authenticator, **auth):
+    auth = auth or {"current_password": "admin"}
     headers = {"Origin": ORIGIN}
-    opts = client.post("/auth/passkey/register/options", headers=headers).json()
+    opts = client.post(
+        "/auth/passkey/register/options", headers=headers, json={"current_password": auth["current_password"]}
+    ).json()
     resp = client.post(
         "/auth/passkey/register/verify",
         headers=headers,
-        json={"state": opts["state"], "credential": authenticator.register(opts["options"]), "name": "iPhone"},
+        json={"state": opts["state"], "credential": authenticator.register(opts["options"]), "name": "iPhone", **auth},
     )
     return resp
 
@@ -99,7 +102,7 @@ def test_login_refused_with_foreign_key(client):
 
 
 def test_origin_must_be_allowed(client):
-    resp = client.post("/auth/passkey/register/options", headers={"Origin": "https://evil.example"})
+    resp = client.post("/auth/passkey/register/options", headers={"Origin": "https://evil.example"}, json={"current_password": "admin"})
     assert resp.status_code == 400
     assert client.post("/auth/passkey/login/options").status_code == 400
 
@@ -111,7 +114,7 @@ def test_login_options_without_passkey(client):
 def test_delete_passkey(client):
     authenticator = SoftAuthenticator()
     credential_id = _register(client, authenticator).json()["id"]
-    assert client.delete(f"/auth/passkey/{credential_id}").status_code == 200
+    assert client.request("DELETE", f"/auth/passkey/{credential_id}", json={"current_password": "admin"}).status_code == 200
     assert client.get("/auth/passkey").json() == []
 
 
@@ -119,5 +122,49 @@ def test_origin_matching_request_host_is_accepted(client):
     resp = client.post(
         "/auth/passkey/register/options",
         headers={"Origin": "https://numera.example.net", "X-Forwarded-Host": "numera.example.net"},
+        json={"current_password": "admin"},
     )
     assert resp.status_code == 200
+
+
+def test_register_requires_current_password(client):
+    headers = {"Origin": ORIGIN}
+    assert client.post("/auth/passkey/register/options", headers=headers).status_code == 400
+    wrong = client.post("/auth/passkey/register/options", headers=headers, json={"current_password": "nope"})
+    assert wrong.status_code == 400
+    opts = client.post("/auth/passkey/register/options", headers=headers, json={"current_password": "admin"}).json()
+    resp = client.post(
+        "/auth/passkey/register/verify",
+        headers=headers,
+        json={"state": opts["state"], "credential": SoftAuthenticator().register(opts["options"])},
+    )
+    assert resp.status_code == 400
+    assert client.get("/auth/passkey").json() == []
+
+
+def test_delete_requires_current_password(client):
+    credential_id = _register(client, SoftAuthenticator()).json()["id"]
+    assert client.request("DELETE", f"/auth/passkey/{credential_id}").status_code == 400
+    wrong = client.request("DELETE", f"/auth/passkey/{credential_id}", json={"current_password": "nope"})
+    assert wrong.status_code == 400
+    assert len(client.get("/auth/passkey").json()) == 1
+
+
+def test_register_and_delete_require_totp_code_when_enabled(client):
+    from tests.systeme.test_totp import _enable
+
+    _secret, recovery = _enable(client)
+    headers = {"Origin": ORIGIN}
+    opts = client.post("/auth/passkey/register/options", headers=headers, json={"current_password": "admin"}).json()
+    refused = client.post(
+        "/auth/passkey/register/verify",
+        headers=headers,
+        json={"state": opts["state"], "credential": SoftAuthenticator().register(opts["options"]), "current_password": "admin"},
+    )
+    assert refused.status_code == 400
+    assert client.get("/auth/passkey").json() == []
+    credential_id = _register(client, SoftAuthenticator(), current_password="admin", code=recovery[1]).json()["id"]
+    assert client.request("DELETE", f"/auth/passkey/{credential_id}", json={"current_password": "admin"}).status_code == 400
+    assert client.request(
+        "DELETE", f"/auth/passkey/{credential_id}", json={"current_password": "admin", "code": recovery[2]}
+    ).status_code == 200

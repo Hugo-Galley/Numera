@@ -143,7 +143,8 @@ export const api = {
   post: <T = any>(endpoint: string, body?: any) => apiFetch<T>(endpoint, { method: "POST", body: JSON.stringify(body) }),
   put: <T = any>(endpoint: string, body: any) => apiFetch<T>(endpoint, { method: "PUT", body: JSON.stringify(body) }),
   patch: <T = any>(endpoint: string, body: any) => apiFetch<T>(endpoint, { method: "PATCH", body: JSON.stringify(body) }),
-  delete: <T = any>(endpoint: string) => apiFetch<T>(endpoint, { method: "DELETE" }),
+  delete: <T = any>(endpoint: string, body?: any) =>
+    apiFetch<T>(endpoint, body === undefined ? { method: "DELETE" } : { method: "DELETE", body: JSON.stringify(body) }),
   upload: <T = any>(endpoint: string, formData: FormData) => apiFetch<T>(endpoint, { method: "POST", body: formData }),
   download: apiDownload,
 }

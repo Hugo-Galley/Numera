@@ -44,7 +44,7 @@ Le point d'entrée `server.py` est un **dispatcher** qui lance l'un des deux ser
 - **Données** : `list_accounts`, `list_categories`, `list_transactions`, `get_transaction`, `search_transactions`, `list_recurring_transactions`, `list_savings_goals`, `list_tags`
 - **Analyses** : `get_budget_summary`, `get_expenses_by_category`, `get_income_vs_expenses`, `get_top_merchants`, `get_monthly_trends`, `get_account_balance_history`
 - **Investissements** : `get_investments_summary`, `get_investment_performance`, `get_investment_performance_history`, `get_investments_allocation`, `get_investments_allocation_advanced`
-- **SQL** : `execute_read_query` (SELECT uniquement, `LIMIT 200` forcé)
+- **SQL** : `execute_read_query` (SELECT uniquement, `LIMIT 200` forcé ; les tables `system_settings`, `mcp_tokens` et `login_events` sont illisibles, `ATTACH`/`PRAGMA` refusés, durée limitée à 5 s)
 - **Ressources** : `data://accounts`, `data://categories`, `data://tags`, tables et schémas de la base
 - **Prompts** : `analyze_month`, `audit_subscriptions`, `budget_review`
 

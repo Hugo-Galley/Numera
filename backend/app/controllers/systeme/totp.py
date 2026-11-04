@@ -19,7 +19,7 @@ from app.core.config import settings
 from app.core.logging import get_logger
 from app.core.login_events import record_login
 from app.core.login_rate_limit import totp_rate_limiter
-from app.core.totp import SECRET_KEY_SETTING, is_enabled
+from app.core.totp import LAST_STEP_SETTING, RECOVERY_SETTING, SECRET_KEY_SETTING, check_second_factor, is_enabled, recovery_hashes
 from app.db.session import get_db
 from app.db.system_settings import get_setting, set_setting
 
@@ -28,8 +28,6 @@ logger = get_logger(__name__)
 router = APIRouter(prefix="/auth/totp", tags=["auth"])
 
 PENDING_KEY_SETTING = "totp_pending_secret"
-LAST_STEP_SETTING = "totp_last_step"
-RECOVERY_SETTING = "totp_recovery_codes"
 
 
 class TotpStatus(BaseModel):
@@ -83,39 +81,10 @@ def _read_mfa_token(db: Session, token: str) -> str:
     return payload["u"]
 
 
-def _recovery_hashes(db: Session) -> list[str]:
-    try:
-        data = json.loads(get_setting(db, RECOVERY_SETTING, "[]"))
-    except (TypeError, ValueError):
-        return []
-    return data if isinstance(data, list) else []
-
-
 def _new_recovery_codes(db: Session) -> list[str]:
     codes = totp.generate_recovery_codes()
     set_setting(db, RECOVERY_SETTING, json.dumps([totp.hash_recovery_code(c) for c in codes]))
     return codes
-
-
-def check_second_factor(db: Session, code: str) -> bool:
-    """Code TOTP (jamais deux fois le même) ou code de secours (consommé)."""
-    secret = get_setting(db, SECRET_KEY_SETTING)
-    if not secret:
-        return False
-    step = totp.verify(secret, code, int(get_setting(db, LAST_STEP_SETTING, "-1") or -1))
-    if step is not None:
-        set_setting(db, LAST_STEP_SETTING, str(step))
-        return True
-    if not totp.normalize_recovery_code(code):
-        return False
-    hashed = totp.hash_recovery_code(code)
-    hashes = _recovery_hashes(db)
-    if hashed in hashes:
-        hashes.remove(hashed)
-        set_setting(db, RECOVERY_SETTING, json.dumps(hashes))
-        logger.info("Recovery code used, %d left", len(hashes))
-        return True
-    return False
 
 
 def _require_current_password(db: Session, password: str) -> None:
@@ -128,7 +97,7 @@ def _require_current_password(db: Session, password: str) -> None:
 @router.get("/status", response_model=TotpStatus, dependencies=[Depends(require_interactive_session)])
 def totp_status(db: Session = Depends(get_db), _user: str = Depends(get_current_user)) -> TotpStatus:
     enabled = is_enabled(db)
-    return TotpStatus(enabled=enabled, recovery_codes_left=len(_recovery_hashes(db)) if enabled else 0)
+    return TotpStatus(enabled=enabled, recovery_codes_left=len(recovery_hashes(db)) if enabled else 0)
 
 
 @router.post("/setup", response_model=TotpSetup, dependencies=[Depends(require_interactive_session)])
