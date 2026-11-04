@@ -219,9 +219,11 @@ def duplicate_key(date: datetime, amount: float, merchant: str, tx_type: str) ->
     return (date, round(float(amount), 4), merchant, tx_type)
 
 
-def apply_import_rules(rules: list[Any], merchant: str, note: str, tx_type: str) -> tuple[int | None, str, str]:
+def apply_import_rules(rules: list[Any], merchant: str, note: str, tx_type: str) -> tuple[int | None, str, str | None]:
     """Première règle (par priorité) dont le motif figure dans le marchand ou la note :
-    (catégorie, type, marchand) après application. Un type de règle invalide est ignoré."""
+    (catégorie, type, nom de marchand canonique) après application. Le libellé bancaire `merchant`
+    n'est jamais modifié (règle 7) : le nom de la règle sert à rattacher un marchand, `None` sans règle de nom.
+    Un type de règle invalide est ignoré."""
     for rule in rules:
         pattern = rule.pattern.lower()
         if pattern in merchant.lower() or pattern in note.lower():
@@ -229,7 +231,5 @@ def apply_import_rules(rules: list[Any], merchant: str, note: str, tx_type: str)
             if rule.transaction_type:
                 with suppress(ValueError):  # règle ancienne au type invalide : ignorée plutôt que de corrompre la ligne
                     tx_type = normalize_transaction_type(rule.transaction_type)
-            if rule.merchant_name:
-                merchant = rule.merchant_name
-            return category_id, tx_type, merchant
-    return None, tx_type, merchant
+            return category_id, tx_type, rule.merchant_name or None
+    return None, tx_type, None
