@@ -3275,6 +3275,24 @@
     "title": "CostEstimateRead",
     "type": "object"
    },
+   "CostTotals": {
+    "properties": {
+     "annual": {
+      "title": "Annual",
+      "type": "number"
+     },
+     "monthly": {
+      "title": "Monthly",
+      "type": "number"
+     }
+    },
+    "required": [
+     "monthly",
+     "annual"
+    ],
+    "title": "CostTotals",
+    "type": "object"
+   },
    "CtoYearRow": {
     "properties": {
      "account_id": {
@@ -3526,13 +3544,13 @@
    },
    "DismissInsightRequest": {
     "properties": {
-     "title": {
-      "title": "Title",
+     "key": {
+      "title": "Key",
       "type": "string"
      }
     },
     "required": [
-     "title"
+     "key"
     ],
     "title": "DismissInsightRequest",
     "type": "object"
@@ -4572,6 +4590,10 @@
       "title": "Description",
       "type": "string"
      },
+     "key": {
+      "title": "Key",
+      "type": "string"
+     },
      "severity": {
       "title": "Severity",
       "type": "string"
@@ -4603,6 +4625,7 @@
     },
     "required": [
      "type",
+     "key",
      "title",
      "description",
      "severity"
@@ -10611,9 +10634,19 @@
       "title": "Frequency",
       "type": "string"
      },
+     "in_kind_total": {
+      "default": false,
+      "title": "In Kind Total",
+      "type": "boolean"
+     },
      "is_recurring_entity": {
       "title": "Is Recurring Entity",
       "type": "boolean"
+     },
+     "kind": {
+      "default": "subscriptions",
+      "title": "Kind",
+      "type": "string"
      },
      "last_occurrence": {
       "anyOf": [
@@ -10762,6 +10795,14 @@
      "total_monthly": {
       "title": "Total Monthly",
       "type": "number"
+     },
+     "totals_by_kind": {
+      "additionalProperties": {
+       "$ref": "#/components/schemas/CostTotals"
+      },
+      "default": {},
+      "title": "Totals By Kind",
+      "type": "object"
      }
     },
     "required": [

@@ -29,13 +29,14 @@ def get_category(db: Session, category_id) -> Category | None:
     return db.query(Category).filter(Category.id == category_id).first()
 
 
-def dismissed_titles(db: Session) -> set[str]:
+# La colonne `title` de `dismissed_insights` porte désormais la clé stable de l'insight (les anciens titres n'y correspondent plus).
+def dismissed_keys(db: Session) -> set[str]:
     return set(db.scalars(select(DismissedInsight.title)))
 
 
-def is_dismissed(db: Session, title: str) -> bool:
-    return db.query(DismissedInsight).filter(DismissedInsight.title == title).first() is not None
+def is_dismissed(db: Session, key: str) -> bool:
+    return db.query(DismissedInsight).filter(DismissedInsight.title == key).first() is not None
 
 
-def add_dismissed(db: Session, title: str) -> None:
-    db.add(DismissedInsight(title=title))
+def add_dismissed(db: Session, key: str) -> None:
+    db.add(DismissedInsight(title=key))

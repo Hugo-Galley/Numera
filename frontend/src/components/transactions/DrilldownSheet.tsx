@@ -30,6 +30,8 @@ interface AccountOption {
   currency: string
 }
 
+// Taille de page demandée au backend : au-delà, la liste est tronquée et le total n'est pas affiché
+const DRILLDOWN_LIMIT = 500
 const MONTHS = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"]
 
 /** Panneau « transactions derrière ce chiffre », ouvert par `useDrilldown().openDrilldown`. */
@@ -57,7 +59,7 @@ export function DrilldownSheet() {
       period: "true",
       type: "Sortie",
       is_transfer: "false",
-      limit: "500",
+      limit: String(DRILLDOWN_LIMIT),
     })
     if (filters.categoryId === null) params.set("uncategorized", "true")
     else if (filters.categoryId !== undefined) params.set("category_id", String(filters.categoryId))
@@ -94,6 +96,8 @@ export function DrilldownSheet() {
 
   const currencyOf = (tx: DrilldownTransaction) => accounts[tx.account_id]?.currency ?? "EUR"
   const sameCurrency = rows.every((tx) => currencyOf(tx) === "EUR")
+  // Liste tronquée : le total partiel serait faux, on ne l'affiche pas
+  const truncated = rows.length >= DRILLDOWN_LIMIT
   const total = rows.reduce((sum, tx) => sum + shareOf(tx), 0)
 
   return (
@@ -107,7 +111,9 @@ export function DrilldownSheet() {
           <SheetDescription>
             Dépenses de {filters ? `${MONTHS[filters.month - 1]} ${filters.year}` : ""}
             {filters?.accountId && accounts[filters.accountId] ? ` · ${accounts[filters.accountId].name}` : ""}
-            {!loading && rows.length > 0 && sameCurrency && <> · {rows.length} opérations · {formatCurrency(total)}</>}
+            {!loading && rows.length > 0 && sameCurrency && (truncated
+              ? <> · {DRILLDOWN_LIMIT}+ opérations</>
+              : <> · {rows.length} opérations · {formatCurrency(total)}</>)}
           </SheetDescription>
         </SheetHeader>
 

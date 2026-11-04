@@ -36,18 +36,27 @@ class CashEvent:
     external: float = 0.0  # flux externe (versement + / retrait −), devise du compte
 
 
-def classify_regular_flow(tx: Transaction) -> float:
-    """Flux externe (signe) d'une transaction bancaire classique sur un compte titres, par mots-clés."""
+def regular_flow_direction(tx: Transaction) -> int:
+    """Sens du flux externe d'une transaction bancaire classique sur un compte titres : +1 versement, −1 retrait, 0 aucun.
+
+    Source unique du capital investi (valorisation par positions, synthèse, courbe par relevés). Un « vente » est
+    de l'argent rendu par le marché : retrait. Intérêts, dividendes, frais et taxes sont de la performance.
+    """
     merchant = (tx.merchant or "").lower()
     if tx.type in ("Solde Initial", "Entree"):
         if tx.category and tx.category.name in INTEREST_CATEGORIES:
-            return 0.0
+            return 0
         if "dividende" in merchant:
-            return 0.0
-        return -tx.amount if "vente" in merchant else tx.amount
+            return 0
+        return -1 if "vente" in merchant else 1
     if tx.type == "Sortie":
-        return 0.0 if any(k in merchant for k in FEE_KEYWORDS) else -tx.amount
-    return 0.0
+        return 0 if any(k in merchant for k in FEE_KEYWORDS) else -1
+    return 0
+
+
+def classify_regular_flow(tx: Transaction) -> float:
+    """Flux externe signé (devise du compte) d'une transaction bancaire classique sur un compte titres."""
+    return regular_flow_direction(tx) * tx.amount
 
 
 def sample_days(start: date_type, end: date_type, extra: set[date_type]) -> list[date_type]:

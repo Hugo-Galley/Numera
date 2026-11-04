@@ -23,9 +23,8 @@ async def compute_monthly_report(db: Session, month: int, year: int, account_id:
     top_categories = await _top_categories(db, month, year, prev_month, prev_year, account_id)
     merch_data = await compute_top_merchants(month=month, year=year, limit=5, account_id=account_id, db=db)
 
-    account_scope = account_id is not None
-    current_savings = savings_basis(current_budget, account_scope)
-    comparison = _comparison(current_budget, prev_budget, current_savings, savings_basis(prev_budget, account_scope))
+    current_savings = savings_basis(current_budget)
+    comparison = _comparison(current_budget, prev_budget, current_savings, savings_basis(prev_budget))
     nw_change = await _net_worth_change(db, month, year, account_id, current_budget, prev_budget)
     flow_data = await compute_money_flow(month=month, year=year, account_id=account_id, db=db)
 
@@ -34,7 +33,6 @@ async def compute_monthly_report(db: Session, month: int, year: int, account_id:
     excl = without_exceptional(
         current_budget,
         exceptional_expenses(db, start, end, rates, account_id),
-        account_scope=account_scope,
     )
     return MonthlyReport(
         month=month,

@@ -1,5 +1,5 @@
 import { formatCurrency, formatRate } from "@/lib/utils"
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo, useRef } from "react"
 import { 
   BarChart3, 
   ArrowUpRight, 
@@ -11,6 +11,7 @@ import {
 } from "lucide-react"
 import { api } from "@/lib/api"
 import { useDrilldown } from "@/hooks/useDrilldown"
+import { ErrorState } from "@/components/layout/ErrorState"
 import { 
   Card, 
   CardContent, 
@@ -40,6 +41,9 @@ import { yearOptions } from "@/lib/years"
 
 export default function Comparison() {
   const [loading, setLoading] = useState(false)
+  const [failed, setFailed] = useState(false)
+  // Dernière requête lancée : une réponse en retard d'une combinaison précédente est ignorée
+  const requestId = useRef(0)
   const { openDrilldown } = useDrilldown()
   // Montant cliquable : transactions de la catégorie sur la période correspondante (A ou B)
   const amountButton = (row: { name: string; id: number | null }, value: number, month: string, year: string, className = "") => (
@@ -72,7 +76,9 @@ export default function Comparison() {
   ]
 
   const loadComparisonData = async () => {
+    const id = ++requestId.current
     setLoading(true)
+    setFailed(false)
     setDataA(null)  // jamais l'ancienne période sous le nouveau libellé
     setDataB(null)
     try {
@@ -83,6 +89,7 @@ export default function Comparison() {
         api.get<any>(`/analytics/expenses-by-category?month=${monthB}&year=${yearB}`)
       ])
       
+      if (id !== requestId.current) return
       setDataA({ 
         revenus_totaux: resA?.revenus_totaux || 0,
         depenses_totales: resA?.depenses_reelles || 0,
@@ -96,10 +103,12 @@ export default function Comparison() {
         categories: catB?.items || [] 
       })
     } catch (error) {
+      if (id !== requestId.current) return
       console.error("Comparison load error:", error)
+      setFailed(true)
       toast.error("Erreur lors du chargement de la comparaison")
     } finally {
-      setLoading(false)
+      if (id === requestId.current) setLoading(false)
     }
   }
 
@@ -173,6 +182,8 @@ export default function Comparison() {
           </Select>
         </div>
       </div>
+
+      {failed && <ErrorState message="La comparaison n'a pas pu être chargée." onRetry={loadComparisonData} />}
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-6 [&>*:last-child]:col-span-2 md:[&>*:last-child]:col-span-1">
         <Card>

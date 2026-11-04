@@ -62,27 +62,21 @@ def exceptional_expenses(
     return float(sum(total / rates.get(currency, 1.0) for currency, total in rows))
 
 
-def savings_basis(budget: dict, account_scope: bool = False) -> float:
-    """Montant épargné, numérateur du taux d'épargne de `budget_analytics`.
-
-    Vue globale : revenus − dépenses réelles (l'argent investi ou mis de côté compte comme épargné).
-    Vue d'un compte : revenus − dépenses du compte.
-    """
-    if account_scope:
-        return float(budget["revenus_apres_depenses"])
+def savings_basis(budget: dict) -> float:
+    """Montant épargné, numérateur du taux d'épargne de `budget_analytics` : revenus − dépenses réelles, en vue globale comme en vue compte."""
     return float(budget["revenus_totaux"]) - float(budget["depenses_reelles"])
 
 
-def without_exceptional(budget: dict, exceptional: float, account_scope: bool = False) -> dict:
+def without_exceptional(budget: dict, exceptional: float) -> dict:
     """Lecture « hors exceptionnel » à partir du dict de `budget_analytics` ; les totaux officiels ne bougent pas.
 
     Le taux officiel est plafonné à ±100 : on le recalcule depuis les montants bruts, avec le même numérateur
-    que `budget_analytics` (vue globale : revenus − dépenses réelles ; vue d'un compte : revenus − dépenses).
+    que `budget_analytics` (revenus − dépenses réelles, quelle que soit la vue).
     """
     real = float(budget["depenses_reelles"])
     income = float(budget["revenus_totaux"])
     real_excl = real - exceptional
-    savings_excl = savings_basis(budget, account_scope) + exceptional
+    savings_excl = savings_basis(budget) + exceptional
     rate_excl = savings_excl / income * 100.0 if income > 0 else 0.0
     burn_excl = float(budget["burn_rate"]) * (real_excl / real) if real > 0 else 0.0
     return {

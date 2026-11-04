@@ -11,7 +11,7 @@ import type { RecurringTransactionsCtx } from "./useRecurringTransactions"
 
 /** Onglet analyse : abonnements, investissements et autres flux récurrents. */
 export function SubscriptionsTab({ ctx }: { ctx: RecurringTransactionsCtx }) {
-  const { activeSubs, handleIgnoreDetection, handleOpenValidate, monthlyBreakdown, monthlyTotal, potentialSubs, safeFormat, setFlowSub, setSubTab, subTab, subsData } = ctx
+  const { activeSubs, handleIgnoreDetection, handleOpenValidate, annualTotal, monthlyBreakdown, monthlyTotal, potentialSubs, safeFormat, setFlowSub, setSubTab, subTab, subsData } = ctx
   return (
     <>
       <TabsContent value="subscriptions" className="space-y-6 md:space-y-8">
@@ -73,7 +73,7 @@ export function SubscriptionsTab({ ctx }: { ctx: RecurringTransactionsCtx }) {
              </CardHeader>
              <CardContent>
                <CardTitle className="text-2xl md:text-3xl font-bold text-slate-900">
-                 {formatCurrency(activeSubs.reduce((acc: number, s: any) => acc + s.annual_cost, 0))}
+                 {formatCurrency(annualTotal)}
                </CardTitle>
                <p className="text-xs text-slate-400 mt-1">
                  {subTab === "subscriptions" ? "Budget total sur 12 mois" : subTab === "other" ? "Projection sur 12 mois" : "Objectif d'investissement annuel"}

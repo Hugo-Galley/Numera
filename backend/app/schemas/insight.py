@@ -19,6 +19,7 @@ class HealthScore(BaseModel):
 
 class Insight(BaseModel):
     type: str  # "anomaly", "advice", "positive"
+    key: str  # identifiant stable (nature + mois + objet), clé d'un insight écarté
     title: str
     description: str
     severity: str  # "low", "medium", "high"
@@ -108,6 +109,8 @@ class SubscriptionInsight(BaseModel):
     # Faux pour une récurrence en pause, un virement ou une alimentation d'épargne/d'investissement :
     # elle reste listée mais n'entre pas dans les totaux d'abonnements.
     counts_in_total: bool = True
+    in_kind_total: bool = False  # compte dans le total de son onglet (`totals_by_kind`)
+    kind: str = "subscriptions"  # onglet : subscriptions, investments (épargne) ou other (flux qui ne sont pas des sorties)
 
 
 class SubscriptionIgnore(BaseModel):
@@ -129,10 +132,17 @@ class SubscriptionPriceChange(BaseModel):
     changed_on: str
 
 
+class CostTotals(BaseModel):
+    monthly: float
+    annual: float
+
+
 class SubscriptionsResponse(BaseModel):
     subscriptions: list[SubscriptionInsight]
     total_monthly: float
     total_annual: float
+    # Totaux des récurrences confirmées par onglet (`kind`), mêmes règles que l'affichage de la liste
+    totals_by_kind: dict[str, CostTotals] = {}
     price_changes: list[SubscriptionPriceChange] = Field(default_factory=list)
 
 

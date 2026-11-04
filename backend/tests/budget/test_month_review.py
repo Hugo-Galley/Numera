@@ -238,13 +238,8 @@ def test_capped_savings_rate_stays_exact_without_exceptional(client, db_session)
     assert report["savings_rate_excl_exceptional"] == -50.0
 
 
-def test_without_exceptional_account_scope_uses_remaining():
-    budget = {
-        "depenses_reelles": 700.0, "revenus_totaux": 1000.0, "taux_epargne": 25.0,
-        "burn_rate": 10.0, "revenus_apres_depenses": 250.0,
-    }
-    scoped = without_exceptional(budget, 100.0, account_scope=True)
-    assert scoped["savings_rate_excl_exceptional"] == 35.0  # (250 + 100) / 1000
+def test_without_exceptional_uses_real_expenses_in_every_view():
+    budget = {"depenses_reelles": 700.0, "revenus_totaux": 1000.0, "taux_epargne": 30.0, "burn_rate": 10.0}
     assert without_exceptional(budget, 100.0)["savings_rate_excl_exceptional"] == 40.0  # (1000 − 600) / 1000
 
 

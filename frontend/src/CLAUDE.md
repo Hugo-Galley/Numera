@@ -1,6 +1,6 @@
 # Frontend — conventions (React 18 / Vite / TypeScript / Tailwind / shadcn)
 
-Complète le `CLAUDE.md` racine. Procédures : skill `numera-frontend`. Le frontend est **purement présentatif** : aucun KPI calculé ici, tout vient de `/analytics/*`.
+Complète le `CLAUDE.md` racine. Procédures : skill `numera-frontend`. Le frontend est **purement présentatif** : aucun KPI calculé ici, tout vient de `/analytics/*`. Exceptions admises (présentation, pas un KPI) : parts en % d'un graphique, tri, et calculs sur les lignes déjà chargées d'une liste. Restent à déplacer au backend : variations de la page Comparaison, total du drill-down (affiché seulement si la liste n'est pas tronquée à 500), répartition fonds euros / UC d'une assurance-vie, sous-totaux annuels de l'échéancier de prêt, valeur totale des positions filtrées, moyenne en mode recherche.
 
 ## Structure
 
