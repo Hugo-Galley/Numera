@@ -1,7 +1,7 @@
 """Le compose « images publiées » ne doit pas dériver du compose de production.
 
-`docker-compose.images.yml` est joint à chaque Release (renommé `docker-compose.yml`) : il décrit les
-mêmes services que `docker-compose.prod.yml`, mais avec les images GHCR au lieu de `build:`.
+`infra/docker-compose.images.yml` est joint à chaque Release (renommé `docker-compose.yml`) : il décrit les
+mêmes services que `infra/docker-compose.prod.yml`, mais avec les images GHCR au lieu de `build:`.
 """
 from pathlib import Path
 
@@ -23,7 +23,7 @@ def load(name: str) -> dict:
 
 
 def test_same_services_and_settings_as_prod():
-    prod, images = load("docker-compose.prod.yml"), load("docker-compose.images.yml")
+    prod, images = load("infra/docker-compose.prod.yml"), load("infra/docker-compose.images.yml")
     assert set(images) == set(prod)
     for name, service in prod.items():
         wanted = {k: v for k, v in service.items() if k not in DIFFERENT}
@@ -32,12 +32,12 @@ def test_same_services_and_settings_as_prod():
 
 
 def test_images_are_ours_and_never_built():
-    for name, service in load("docker-compose.images.yml").items():
+    for name, service in load("infra/docker-compose.images.yml").items():
         assert "build" not in service, name
         assert service["image"] == f"ghcr.io/hugo-galley/{PUBLISHED[name]}:${{NUMERA_VERSION:-latest}}", name
 
 
 def test_data_lives_next_to_the_compose_file():
-    for name, service in load("docker-compose.images.yml").items():
+    for name, service in load("infra/docker-compose.images.yml").items():
         for volume in service.get("volumes", []):
             assert not volume.startswith("./backend/"), f"{name}: {volume}"

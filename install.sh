@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Installe Numera et le lance en production (docker-compose.prod.yml).
+# Installe Numera et le lance en production (infra/docker-compose.prod.yml).
 #
 #   bash -c "$(curl -fsSL https://raw.githubusercontent.com/Hugo-Galley/numera/main/install.sh)"
 # ou, depuis un clone :
@@ -8,7 +8,7 @@
 # Deux modes (NUMERA_MODE=docker|source pour ne pas être interrogé) :
 #   docker : images publiées de la dernière release (ou NUMERA_VERSION=x.y.z), rien à construire ;
 #            l'installation vit dans ./numera (docker-compose.yml, .env, data/, backups/).
-#   source : clone du dépôt et construction locale (docker-compose.prod.yml).
+#   source : clone du dépôt et construction locale (infra/docker-compose.prod.yml).
 #
 # Relancer le script sur une installation existante garde le .env (et donc la clé des sauvegardes).
 
@@ -37,7 +37,7 @@ ask_secret() { local reply; read -r -s -p "$1" reply < /dev/tty; echo >&2; print
 
 mode="${NUMERA_MODE:-}"
 if [ -z "$mode" ]; then
-    if [ -f docker-compose.prod.yml ] && [ -f scripts/change_password.py ]; then
+    if [ -f infra/docker-compose.prod.yml ] && [ -f scripts/change_password.py ]; then
         mode=source   # lancé depuis un clone : on y reste
     else
         step "Mode d'installation"
@@ -65,7 +65,7 @@ echo "OK"
 # --- Dossier d'installation ----------------------------------------------------
 
 if [ "$mode" = source ]; then
-    COMPOSE_FILE="docker-compose.prod.yml"
+    COMPOSE_FILE="infra/docker-compose.prod.yml"
     DATA_DIR="backend/data"
     if [ ! -f "$COMPOSE_FILE" ] || [ ! -f "scripts/change_password.py" ]; then
         if [ -d numera/.git ]; then

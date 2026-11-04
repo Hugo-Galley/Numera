@@ -41,7 +41,7 @@ Quand le code change une route, un modèle, une commande ou une règle métier, 
 make backend-install       # uv sync (backend/.venv) ; dépendances : backend/pyproject.toml + uv.lock (mcp-server a les siens)
 make setup                 # premier lancement (setup.sh), crée .env depuis .env.example
 make dev                   # Docker : docker compose -f infra/docker-compose.yml up --build
-make prod                  # docker-compose.prod.yml
+make prod                  # infra/docker-compose.prod.yml
 make test                  # pytest backend (backend/.venv si présent, sinon python3.12/3.11 ; PYTHON=... pour forcer)
 make coverage              # tests + couverture avec seuil à cliquet : backend (backend/.coveragerc, 93 %) et frontend (frontend/vitest.config.ts, v8) ; ne jamais baisser un seuil
 make lint / lint-fix       # ruff sur backend/ (règles : backend/ruff.toml), lint-fix corrige ce qui est sûr
@@ -50,7 +50,7 @@ make typecheck             # mypy : strict sur app/domain et app/core, baseline 
 make check-size            # plafonds de taille (fichier/fonction), baseline à cliquet scripts/code_size_baseline.json
 make validate              # lint + lint-front + typecheck + check-size + coverage (tests backend et frontend avec seuils) + build frontend
 make backend-seed-demo     # données de démo (backend/data/demo.db, jamais la vraie base)
-make demo / demo-down      # instance de démo publique (docker-compose.demo.yml, port 8090, demo/demo)
+make demo / demo-down      # instance de démo publique (infra/docker-compose.demo.yml, port 8090, demo/demo)
 make backup-now            # backup dans le conteneur
 cd backend && PYTHONPATH=. python3.11 scripts/perf_profile.py seed|bench|profile --db /tmp/perf_demo.db   # profilage sur base de démo volumineuse (skill numera-performance)
 make release-check         # bump SemVer suggéré + aperçu des notes ; make release V=X.Y.Z crée et pousse le tag

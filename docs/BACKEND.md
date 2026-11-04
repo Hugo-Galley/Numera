@@ -219,7 +219,7 @@ Prérequis dans `.env` : `DEMO_SECRET_KEY` (distincte de `SECRET_KEY`, `openssl 
 
 ### Le Service de Sauvegarde (Backup)
 
-Dans la configuration de production ([docker-compose.prod.yml](file:///Users/hugogalley/DEV/numera/docker-compose.prod.yml)), un service nommé `backup` s'exécute de manière isolée. Il lance le planificateur de sauvegarde [backend/scripts/backup_scheduler.py](file:///Users/hugogalley/DEV/numera/backend/scripts/backup_scheduler.py).
+Dans la configuration de production ([infra/docker-compose.prod.yml](../infra/docker-compose.prod.yml)), un service nommé `backup` s'exécute de manière isolée. Il lance le planificateur de sauvegarde [backend/scripts/backup_scheduler.py](file:///Users/hugogalley/DEV/numera/backend/scripts/backup_scheduler.py).
 
 - **Intervalle** : Par défaut, le script effectue une sauvegarde toutes les 24 heures (configurable via la variable `BACKUP_INTERVAL_SECONDS`).
 - **Chiffrement** : Si `BACKUP_KEY` est défini dans le fichier `.env`, le fichier SQLite est chiffré en utilisant l'algorithme symétrique Fernet (AES-128 en mode CBC avec signature HMAC) avant d'être écrit sur le disque. Le fichier de sauvegarde prend alors l'extension `.db.enc`.

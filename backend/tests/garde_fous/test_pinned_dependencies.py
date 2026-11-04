@@ -14,7 +14,7 @@ PINNED_ACTION = re.compile(r"^[\w.-]+/[\w./-]+@[0-9a-f]{40}$")
 DOCKER_FROM = re.compile(r"^\s*FROM\s+(?:--platform=\S+\s+)?(\S+)", re.MULTILINE | re.IGNORECASE)
 COMPOSE_IMAGE = re.compile(r"^\s*image:\s*['\"]?([^'\"\s#]+)", re.MULTILINE)
 PINNED_IMAGE = re.compile(r"@sha256:[0-9a-f]{64}$")
-# Images publiées par la release (docker-compose.images.yml) : le digest n'existe pas avant le tag,
+# Images publiées par la release (infra/docker-compose.images.yml) : le digest n'existe pas avant le tag,
 # la version est choisie par l'utilisateur via NUMERA_VERSION.
 OWN_RELEASE_IMAGE = re.compile(r"^ghcr\.io/hugo-galley/numera-[a-z]+:\$\{NUMERA_VERSION(:-latest)?\}$")
 
