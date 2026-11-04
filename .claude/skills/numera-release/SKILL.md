@@ -7,7 +7,7 @@ description: Use when deciding whether Numera should be released, choosing patch
 
 ## Principe
 
-Une release = un tag `vX.Y.Z` sur `main`. Le tag déclenche `.github/workflows/release.yml` : contrôle (commit sur `main`, CI vert) → 3 images multi-arch sur GHCR (`numera-backend`, `numera-frontend`, `numera-mcp`, tags `X.Y.Z`, `X.Y`, `latest`) → GitHub Release avec notes générées par `scripts/release/release_notes.py` depuis les commits Conventional Commits. Aucun changelog écrit à la main ; la qualité des notes dépend donc de celle des messages de commit (`type(portée): description`, le corps explique le pourquoi).
+Une release = un tag `vX.Y.Z` sur `main`. Le tag déclenche `.github/workflows/release.yml` : contrôle (commit sur `main`, CI vert) → 3 images multi-arch sur GHCR (`numera-backend`, `numera-frontend`, `numera-mcp`, publiées par digest, scannées par Trivy en amd64 et arm64, puis taguées `X.Y.Z`, `X.Y` et `latest` seulement si le tag est la plus haute version, `scripts/release/is_latest.py`) → GitHub Release avec notes générées par `scripts/release/release_notes.py` depuis les commits Conventional Commits. Aucun changelog écrit à la main ; la qualité des notes dépend donc de celle des messages de commit (`type(portée): description`, le corps explique le pourquoi).
 
 ## Écrire pour les notes
 

@@ -4,12 +4,16 @@ updates:
   - package-ecosystem: github-actions
     directory: /
     schedule: { interval: weekly }
+    # Délai de carence : une version fraîchement publiée (et peut-être compromise) n'est proposée qu'après 7 jours
+    cooldown: { default-days: 7 }
     commit-message: { prefix: "build(deps)" }
     groups:
       actions: { patterns: ["*"] }
   - package-ecosystem: docker
     directory: /backend
     schedule: { interval: weekly }
+    # Délai de carence : une version fraîchement publiée (et peut-être compromise) n'est proposée qu'après 7 jours
+    cooldown: { default-days: 7 }
     ignore:
       # Images de base : on reste sur Python 3.12 (pydantic-core) et Node LTS ; montée de version décidée à la main.
       - dependency-name: python
@@ -20,6 +24,8 @@ updates:
   - package-ecosystem: docker
     directory: /frontend
     schedule: { interval: weekly }
+    # Délai de carence : une version fraîchement publiée (et peut-être compromise) n'est proposée qu'après 7 jours
+    cooldown: { default-days: 7 }
     ignore:
       # Images de base : on reste sur Python 3.12 (pydantic-core) et Node LTS ; montée de version décidée à la main.
       - dependency-name: python
@@ -30,6 +36,8 @@ updates:
   - package-ecosystem: docker
     directory: /mcp-server
     schedule: { interval: weekly }
+    # Délai de carence : une version fraîchement publiée (et peut-être compromise) n'est proposée qu'après 7 jours
+    cooldown: { default-days: 7 }
     ignore:
       - dependency-name: python
         update-types: ["version-update:semver-major", "version-update:semver-minor"]
@@ -37,6 +45,8 @@ updates:
   - package-ecosystem: npm
     directory: /frontend
     schedule: { interval: weekly }
+    # Délai de carence : une version fraîchement publiée (et peut-être compromise) n'est proposée qu'après 7 jours
+    cooldown: { default-days: 7 }
     ignore:
       # Majeures bloquées : Vitest 5 exige Vite >= 6 ; TypeScript 7 non supporté par knip / typescript-eslint.
       - dependency-name: vitest
@@ -52,6 +62,8 @@ updates:
   - package-ecosystem: uv
     directory: /backend
     schedule: { interval: weekly }
+    # Délai de carence : une version fraîchement publiée (et peut-être compromise) n'est proposée qu'après 7 jours
+    cooldown: { default-days: 7 }
     groups:
       python-minor-patch:
         update-types: [minor, patch]
@@ -59,6 +71,8 @@ updates:
   - package-ecosystem: uv
     directory: /mcp-server
     schedule: { interval: weekly }
+    # Délai de carence : une version fraîchement publiée (et peut-être compromise) n'est proposée qu'après 7 jours
+    cooldown: { default-days: 7 }
     groups:
       python-minor-patch:
         update-types: [minor, patch]

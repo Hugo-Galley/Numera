@@ -60,6 +60,21 @@ jobs:
         working-directory: mcp-server
         run: uv run --with pytest python -m pytest tests -q
 
+  # Les cliquets (baselines, seuils de couverture) ne se relâchent pas : comparaison à la branche de base.
+  ratchets:
+    name: Cliquets (baselines et seuils)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Aucune baseline relevée, aucun seuil baissé
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE: ${{ github.event.pull_request.base.sha }}
+        run: |
+          if [ "$EVENT" != "pull_request" ]; then echo "Hors PR : rien à comparer."; exit 0; fi
+          git fetch --depth=1 origin "$BASE"
+          python3 scripts/quality/check_ratchets.py --base "$BASE"
+
   frontend:
     name: Frontend (tests + typecheck + build)
     runs-on: ubuntu-latest
@@ -208,7 +223,7 @@ jobs:
   ci-ok:
     name: CI ok
     if: always()
-    needs: [changes, backend, mcp-server, frontend, e2e, docker-lint, trivy-repo, trivy-images]
+    needs: [changes, backend, mcp-server, ratchets, frontend, e2e, docker-lint, trivy-repo, trivy-images]
     runs-on: ubuntu-latest
     steps:
       - name: Tous les jobs sont en succès
