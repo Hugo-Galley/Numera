@@ -17,7 +17,7 @@ Pas de relecture obligatoire (dépôt mono-utilisateur : on ne peut pas approuve
 
 | Cible | Règles |
 |---|---|
-| `main` et `release/**` | PR obligatoire · squash seul · historique linéaire · checks `CI ok` + `Titre de PR` exigés (sans obligation d'être à jour avec `main`) · conversations résolues · pas de force-push ni de suppression · aucun contournement |
+| `main` et `release/**` | PR obligatoire · squash seul · historique linéaire · checks `CI ok` (dont `Cliquets` : aucune baseline relevée ni seuil de couverture baissé par rapport à la base, `scripts/quality/check_ratchets.py`) + `Titre de PR` exigés (sans obligation d'être à jour avec `main`) · conversations résolues · pas de force-push ni de suppression · aucun contournement |
 | tags `v*` | ni suppression ni déplacement : une version publiée est immuable |
 
 `CI ok` est un job agrégé de `ci.yml` : c'est lui seul qui est exigé, la liste des jobs peut donc évoluer sans toucher aux règles. Modifier une règle : éditer le JSON dans `.github/rulesets/`, passer par une PR, puis relancer `scripts/ci/github_rules.sh` (admin).
@@ -34,7 +34,7 @@ Une branche `release/X.Y` ne se crée **qu'à la demande**, quand `main` a déj�
 git switch -c release/0.2 v0.2.0 && git push -u origin release/0.2
 ```
 
-Le correctif se fait d'abord sur `main` (PR normale), puis se rétro-porte par une PR vers `release/0.2` (`git cherry-pick -x <sha>`), le titre commençant par `fix(...)`. Une fois mergée, `make release V=0.2.1` depuis `release/0.2` (le workflow `release.yml` accepte un tag présent sur `main` ou sur `release/*`). La branche est protégée comme `main`. (Non éprouvé : si le ruleset refuse la création de la branche par `git push`, la créer via `gh api repos/Hugo-Galley/numera/git/refs` ou désactiver brièvement le ruleset `release/*`, puis corriger cette page.)
+Le correctif se fait d'abord sur `main` (PR normale), puis se rétro-porte par une PR vers `release/0.2` (`git cherry-pick -x <sha>`), le titre commençant par `fix(...)`. Une fois mergée, `make release V=0.2.1` depuis `release/0.2` (le workflow `release.yml` accepte un tag présent sur `main` ou sur `release/*`). `:latest` et la « Latest release » ne bougent pas pour ce tag (seule la plus haute version les porte). La branche est protégée comme `main`. (Non éprouvé : si le ruleset refuse la création de la branche par `git push`, la créer via `gh api repos/Hugo-Galley/numera/git/refs` ou désactiver brièvement le ruleset `release/*`, puis corriger cette page.)
 
 ## Dependabot
 

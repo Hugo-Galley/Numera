@@ -1,7 +1,9 @@
 name: Dependabot auto-merge
 
-# Active l'auto-merge (squash) sur les PR Dependabot minor/patch : la fusion n'a lieu que quand
-# les checks requis par le ruleset « main protégée » sont verts. Les majeures restent manuelles.
+# Active l'auto-merge (squash) sur les PR Dependabot à faible risque : patch, ou minor d'une dépendance de
+# développement. Les minor de production et les majeures restent à relire à la main. La fusion n'a lieu que
+# quand les checks exigés par le ruleset « main protégée » (CI ok : tests, types, lint, scans) sont tous verts,
+# et le `cooldown` de dependabot.yml laisse passer 7 jours après la publication d'une version.
 on: pull_request
 
 permissions:
@@ -11,11 +13,14 @@ permissions:
 jobs:
   automerge:
     runs-on: ubuntu-latest
-    if: github.actor == 'dependabot[bot]'
+    if: github.event.pull_request.user.login == 'dependabot[bot]'
     steps:
       - id: meta
         uses: dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98 # v3.1.0
-      - if: steps.meta.outputs.update-type == 'version-update:semver-minor' || steps.meta.outputs.update-type == 'version-update:semver-patch'
+      - if: >-
+          steps.meta.outputs.update-type == 'version-update:semver-patch' ||
+          (steps.meta.outputs.update-type == 'version-update:semver-minor' &&
+           steps.meta.outputs.dependency-type == 'direct:development')
         run: gh pr merge --auto --squash "$PR_URL"
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
