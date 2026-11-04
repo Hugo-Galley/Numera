@@ -5,7 +5,7 @@ description = "Serveur MCP (lecture seule) pour Numera"
 requires-python = ">=3.11,<3.13"
 dependencies = [
     "mcp[cli]>=2,<3",
-    "httpx",  # importé par server_api.py ; déclaré explicitement plutôt que transitif via mcp
+    "httpx",  # importé par numera_mcp.api_client ; déclaré explicitement plutôt que transitif via mcp
 ]
 
 [tool.uv]

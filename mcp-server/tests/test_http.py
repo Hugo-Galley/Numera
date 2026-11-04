@@ -2,7 +2,7 @@
 
 Le backend est simulé. Vérifie que le token Bearer du client, validé par le middleware, est bien
 celui transmis à l'API par l'outil, requête après requête (sans fuite d'un client à l'autre).
-Lancer : cd mcp-server && uv run --with pytest python -m pytest test_server_api_http.py -q
+Lancer : cd mcp-server && uv run --with pytest python -m pytest tests/test_http.py -q
 """
 import os
 
@@ -13,8 +13,7 @@ import httpx
 import pytest
 from starlette.testclient import TestClient
 
-import server_api
-import server_auth
+from numera_mcp import api_client, app, auth, config
 
 TOKEN_A = "nmr_" + "a" * 43
 TOKEN_B = "nmr_" + "b" * 43
@@ -27,17 +26,17 @@ def api_tokens(monkeypatch):
     received: list[str] = []
 
     def backend(request: httpx.Request) -> httpx.Response:
-        auth = request.headers.get("authorization", "")
+        header = request.headers.get("authorization", "")
         if request.url.path == "/auth/whoami":
-            ok = auth in (f"Bearer {TOKEN_A}", f"Bearer {TOKEN_B}")
+            ok = header in (f"Bearer {TOKEN_A}", f"Bearer {TOKEN_B}")
             return httpx.Response(200 if ok else 401, json={"auth": "mcp_token"})
-        received.append(auth)
+        received.append(header)
         return httpx.Response(200, json=[{"id": 1, "name": "Courant", "type": "courant", "currency": "EUR"}])
 
     transport = httpx.MockTransport(backend)
     original = httpx.AsyncClient
-    monkeypatch.setattr(server_auth.httpx, "AsyncClient", lambda **kw: original(transport=transport, **kw))
-    monkeypatch.setattr(server_api.api, "_client", httpx.Client(transport=transport))
+    monkeypatch.setattr(auth.httpx, "AsyncClient", lambda **kw: original(transport=transport, **kw))
+    monkeypatch.setattr(api_client.api, "_client", httpx.Client(transport=transport))
     return received
 
 
@@ -50,7 +49,7 @@ def _call_list_accounts(client: TestClient, token: str) -> httpx.Response:
 
 
 def test_tool_call_forwards_each_clients_own_token_to_the_api(api_tokens):
-    with TestClient(server_auth.protect(server_api.http_app(), server_api.API_BASE_URL)) as client:
+    with TestClient(auth.protect(app.http_app(), config.API_BASE_URL)) as client:
         for token in (TOKEN_A, TOKEN_B, TOKEN_A):
             response = _call_list_accounts(client, token)
             assert response.status_code == 200

@@ -1,60 +1,33 @@
+"""Point d'entrée du serveur MCP Numera (lecture seule, proxy de l'API FastAPI).
+
+  [Claude Code] ←HTTPS (streamable-http)→ [Nginx /mcp] → [serveur MCP] ←HTTP→ [API]
+  [Client local] ←stdio→ [serveur MCP] ←HTTP→ [API]
+
+Authentification par token MCP généré dans Numera (Paramètres → Sécurité) : en HTTP, celui du client
+(validé par le backend, `numera_mcp/auth.py`) ; en stdio, `MCP_API_TOKEN`. Voir `README.md`.
 """
-🔌 MCP Server Dispatcher — Suivi Budget
-======================================
-Permet d'exécuter le serveur MCP dans l'un des deux modes :
-1. Mode SQLite Direct (server_sqlite.py) : Requêtes directes à la base de données.
-2. Mode API Proxy (server_api.py) : Requêtes HTTP vers l'API FastAPI du VPS.
+from numera_mcp import __version__
+from numera_mcp.app import http_app, mcp
+from numera_mcp.config import API_BASE_URL, HOST, HTTP_TRANSPORTS, PORT, SERVER_NAME, TRANSPORT, logger
 
-Détection automatique :
-- Si MCP_MODE est défini à "api" ou "sqlite", ce mode est forcé.
-- Si MCP_API_URL est défini, le mode API Proxy est activé.
-- Sinon, si le fichier SQLite à MCP_DB_PATH existe, le mode SQLite Direct est activé.
-- Sinon, le mode API Proxy est activé par défaut.
-"""
 
-import os
-import sys
-import runpy
+def main() -> None:
+    logger.info(f"Démarrage du serveur MCP '{SERVER_NAME}' v{__version__}")
+    logger.info(f"API cible : {API_BASE_URL}")
+    logger.info(f"Transport : {TRANSPORT}")
 
-# ─── Détection du mode ────────────────────────────────────────────────────────
+    if TRANSPORT in HTTP_TRANSPORTS:
+        import uvicorn
 
-mode = os.environ.get("MCP_MODE", "").lower()
+        from numera_mcp.auth import protect
 
-if mode not in ("api", "sqlite"):
-    api_url = os.environ.get("MCP_API_URL")
-    db_path = os.environ.get("MCP_DB_PATH")
-    
-    if not db_path:
-        db_path = os.path.join(os.path.dirname(__file__), "..", "backend", "data", "suivi_budget.db")
-    
-    db_exists = os.path.exists(os.path.abspath(db_path))
-    
-    if api_url:
-        mode = "api"
-    elif db_exists:
-        mode = "sqlite"
+        logger.info(f"Écoute sur {HOST}:{PORT} (tokens MCP validés par l'API)")
+        uvicorn.run(
+            protect(http_app(), API_BASE_URL), host=HOST, port=PORT, proxy_headers=True, forwarded_allow_ips="*"
+        )
     else:
-        # Fallback par défaut
-        mode = "api"
+        mcp.run(transport="stdio")
 
-# Déterminer le fichier cible
-dir_path = os.path.dirname(os.path.abspath(__file__))
-if mode == "api":
-    target_path = os.path.join(dir_path, "server_api.py")
-else:
-    target_path = os.path.join(dir_path, "server_sqlite.py")
-
-# Ajouter le répertoire parent au sys.path pour les imports
-if dir_path not in sys.path:
-    sys.path.insert(0, dir_path)
-
-# ─── Dispatching ─────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
-    print(f"🔌 MCP Dispatcher: Mode détecté = '{mode.upper()}'", file=sys.stderr)
-    print(f"📂 Cible : {target_path}", file=sys.stderr)
-    runpy.run_path(target_path, run_name="__main__")
-else:
-    # Si le module est importé (ex: par l'inspecteur MCP ou la CLI),
-    # on exécute la cible dans le même namespace pour exporter 'mcp' et ses outils.
-    globals().update(runpy.run_path(target_path, run_name=__name__))
+    main()

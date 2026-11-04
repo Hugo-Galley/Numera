@@ -1,7 +1,7 @@
 """Tests de l'authentification des transports HTTP du serveur MCP (sans dépendre de la lib `mcp`).
 
 Le backend est simulé : `/auth/whoami` accepte uniquement VALID_TOKEN.
-Lancer : cd mcp-server && python3 -m pytest test_server_auth.py -q
+Lancer : cd mcp-server && python3 -m pytest tests/test_auth.py -q
 """
 import httpx
 import pytest
@@ -10,7 +10,7 @@ from starlette.responses import PlainTextResponse
 from starlette.routing import Route
 from starlette.testclient import TestClient
 
-import server_auth
+from numera_mcp import auth
 
 VALID_TOKEN = "nmr_" + "v" * 43
 API_URL = "http://backend:8001"
@@ -29,13 +29,13 @@ def backend_calls(monkeypatch):
     transport = httpx.MockTransport(whoami)
     original = httpx.AsyncClient
 
-    monkeypatch.setattr(server_auth.httpx, "AsyncClient", lambda **kwargs: original(transport=transport, **kwargs))
+    monkeypatch.setattr(auth.httpx, "AsyncClient", lambda **kwargs: original(transport=transport, **kwargs))
     return calls
 
 
 def _client() -> TestClient:
     app = Starlette(routes=[Route("/mcp", lambda request: PlainTextResponse("tools"), methods=["POST"])])
-    return TestClient(server_auth.protect(app, API_URL))
+    return TestClient(auth.protect(app, API_URL))
 
 
 def test_request_without_token_is_rejected_without_calling_backend(backend_calls):
