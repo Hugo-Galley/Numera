@@ -2,10 +2,11 @@
 
 Ne commit jamais : le taux découvert est écrit (flush) dans la transaction de l'appelant, qui décide de la valider."""
 from datetime import date as date_type
+from datetime import timedelta
 
 from sqlalchemy.orm import Session
 
-from app.integrations.currency import CurrencyConversionError, fetch_historical_rate, get_exchange_rates
+from app.integrations.currency import CurrencyConversionError, fetch_historical_rate, fetch_rate_series, get_exchange_rates
 from app.repositories.comptes import exchange_rates as repo
 
 
@@ -29,6 +30,28 @@ async def get_historical_rate(db: Session, date: date_type, currency: str, base:
     if not rate:
         raise CurrencyConversionError(f"No exchange rate available for {currency} (base {base})")
     return rate
+
+
+async def preload_historical_rates(db: Session, currency: str, start: date_type, end: date_type) -> None:
+    """Remplit le cache de taux de `start` à `end` (EUR → `currency`) avec UNE requête de série Frankfurter.
+
+    Les jours sans publication (week-ends, fériés) reprennent le dernier taux connu, comme le fait Frankfurter pour
+    une date isolée. Rien n'est écrit au-delà du dernier taux publié (dates futures). Sans effet si le réseau échoue :
+    `get_historical_rate` retombe alors sur l'appel par date."""
+    if currency == "EUR":
+        return
+    series = await fetch_rate_series(start - timedelta(days=7), end, currency)
+    if not series:
+        return
+    last_day = max(series)
+    rate = None
+    day = min(series)
+    while day <= min(end, last_day):
+        rate = series.get(day, rate)
+        if day >= start and rate is not None:
+            repo.store_rate(db, day, currency, rate)
+        day += timedelta(days=1)
+    db.flush()
 
 
 async def convert_amount(

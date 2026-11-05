@@ -102,3 +102,21 @@ def client(db_session: Session) -> Generator[TestClient, None, None]:
     finally:
         app.dependency_overrides.clear()
         login_rate_limiter.clear()
+
+
+@pytest.fixture(autouse=True)
+def fresh_external_state():
+    """Caches mémoire et disjoncteurs des services externes : un test ne lit jamais l'état d'un autre."""
+    from app.core.circuit_breaker import reset_all
+    from app.integrations import currency
+    from app.services.investissement.market import quotes
+
+    def clear():
+        reset_all()
+        currency.reset_state()
+        quotes._QUOTES_CACHE.clear()
+        quotes._FAILED_SYMBOLS.clear()
+
+    clear()
+    yield
+    clear()

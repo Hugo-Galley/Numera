@@ -2,6 +2,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
+from app.core.sync_bridge import run_async
 from app.db.session import get_db
 from app.schemas.etf_profile import AutoDecomposeRequest, EtfProfileCreate, EtfProfileRead, EtfProfileUpdate, EtfRefreshResult
 from app.services.investissement import etf_profiles as service
@@ -15,9 +16,9 @@ def list_etf_profiles(db: Session = Depends(get_db)):
 
 
 @router.post("/refresh-held", response_model=EtfRefreshResult)
-async def refresh_held_profiles(db: Session = Depends(get_db)):
+def refresh_held_profiles(db: Session = Depends(get_db)):
     """Actualise depuis Yahoo la composition de tous les profils rattachés à une position détenue."""
-    refreshed = await service.refresh_held_etf_profiles(db, force=True)
+    refreshed = run_async(service.refresh_held_etf_profiles(db, force=True))
     return EtfRefreshResult(refreshed=refreshed)
 
 
@@ -42,15 +43,15 @@ def delete_etf_profile(profile_id: int, db: Session = Depends(get_db)):
 
 
 @router.post("/{profile_id}/refresh", response_model=EtfProfileRead)
-async def refresh_profile(profile_id: int, db: Session = Depends(get_db)):
+def refresh_profile(profile_id: int, db: Session = Depends(get_db)):
     """Actualise la composition d'un profil depuis Yahoo (secteurs et top 10 ; jamais les pays)."""
-    return await service.refresh_profile(db, profile_id)
+    return run_async(service.refresh_profile(db, profile_id))
 
 
 @router.post("/auto-decompose", response_model=EtfProfileRead)
-async def auto_decompose_profile(payload: AutoDecomposeRequest, db: Session = Depends(get_db)):
+def auto_decompose_profile(payload: AutoDecomposeRequest, db: Session = Depends(get_db)):
     """
     Crée le profil d'un ETF ou fonds inconnu à partir de la composition publiée par Yahoo
     (secteurs et top 10 ; la répartition par pays reste vide).
     """
-    return await service.auto_decompose(db, payload)
+    return run_async(service.auto_decompose(db, payload))

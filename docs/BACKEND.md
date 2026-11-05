@@ -85,6 +85,12 @@ Au démarrage de l'application (événement `lifespan` configuré dans [backend/
    - Générer automatiquement les instances de transactions récurrentes (abonnements, charges fixes) définies par l'utilisateur (`backend/app/services/budget/recurring.py`).
    - Vérifier et générer les transactions liées aux salaires configurés et jours de télétravail déclarés (`backend/app/services/budget/salary_generation.py`).
 
+### Worker unique et état en mémoire
+
+Le backend doit tourner avec **un seul worker uvicorn** (`docker-compose.prod.yml`). Plusieurs états vivent dans la mémoire du processus et ne sont pas partagés entre workers : cache des taux (`integrations/currency.py`), cache des cotations et cache négatif (`services/investissement/market/quotes.py`), cache de valorisation (`services/investissement/portfolio/cache.py`), disjoncteurs (`core/circuit_breaker.py`) et limiteurs de connexion (`core/login_rate_limit.py`). Avec `--workers N`, chaque worker aurait ses propres copies : valorisation périmée après une écriture traitée par un autre worker, limite de tentatives de connexion multipliée par N. Passer à plusieurs workers suppose d'abord de déplacer ces états en base ou dans un cache partagé.
+
+Les routes sont des `def` (threadpool) : le calcul et SQLAlchemy ne bloquent pas la boucle d'événements. Les services qui attendent du réseau restent `async` et sont appelés par `run_async` (`core/sync_bridge.py`).
+
 ### Règles Métier Majeures
 
 - **Calcul du Solde Cumulé (Running Balance)** : Contrairement à d'autres architectures, le solde cumulé à un instant T (`running_balance`) est stocké directement sur chaque transaction financière. Lors de l'ajout, modification ou suppression d'une transaction, le backend recalcule récursivement et chronologiquement les soldes cumulés du compte concerné via `recalculate_running_balances` (`backend/app/services/budget/balances.py`, appelée aussi par l'import CSV et la génération de salaire) afin de garantir l'intégrité absolue des graphiques temporels.

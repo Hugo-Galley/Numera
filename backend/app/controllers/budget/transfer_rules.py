@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from app.controllers.deps import get_db
+from app.core.sync_bridge import run_async
 from app.schemas.transfer_rule import TransferApplyResult, TransferRuleCreate, TransferRuleRead, TransferRuleUpdate
 from app.services.budget import transfer_rules as service
 
@@ -29,10 +30,10 @@ def delete_rule(rule_id: int, db: Session = Depends(get_db)):
 
 
 @router.post("/apply", response_model=TransferApplyResult)
-async def apply_transfer_rules(
+def apply_transfer_rules(
     dry_run: bool = Query(default=False),
     rule_id: int | None = Query(default=None),
     db: Session = Depends(get_db),
 ):
     """Rattrape tout l'historique avec les règles actives. `dry_run=true` : aperçu sans écriture."""
-    return await service.apply_transfer_rules(db, dry_run, rule_id)
+    return run_async(service.apply_transfer_rules(db, dry_run, rule_id))

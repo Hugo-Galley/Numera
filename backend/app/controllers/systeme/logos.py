@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Query, Response
 from pydantic import BaseModel
 
+from app.core.sync_bridge import run_async
 from app.services.systeme import logos as service
 
 router = APIRouter(prefix="/logos", tags=["logos"])
@@ -27,8 +28,8 @@ def search_logos(q: str = Query("", max_length=60), limit: int = Query(8, ge=1, 
 
 
 @router.post("/from-domain", response_model=LogoRef)
-async def logo_from_domain(body: DomainIn) -> dict:
-    return await service.logo_from_domain(body.domain)
+def logo_from_domain(body: DomainIn) -> dict:
+    return run_async(service.logo_from_domain(body.domain))
 
 
 @public_router.get("/img/{ref}")

@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
+from app.core.sync_bridge import run_async
 from app.db.session import get_db
 from app.services.budget import imports as service
 from app.services.systeme.demo import DEMO_MAX_UPLOAD_BYTES
@@ -39,13 +40,13 @@ async def preview_import(
 
 
 @router.post("/commit")
-async def commit_import(
+def commit_import(
     account_id: int = Form(...),
     file: UploadFile = File(...),
     create_missing_categories: bool = Form(default=True),
     category_mapping: str | None = Form(default=None),
     db: Session = Depends(get_db),
 ):
-    return await service.commit_import(
+    return run_async(service.commit_import(
         db, account_id, lambda: _read_upload(file), file.filename, create_missing_categories, category_mapping,
-    )
+    ))
