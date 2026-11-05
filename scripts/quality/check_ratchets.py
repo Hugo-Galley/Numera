@@ -24,7 +24,12 @@ JSON_BASELINES = (
     "scripts/quality/baselines/dead_code_allowlist.json",
     "frontend/eslint-baseline.json",
 )
-LINES_BASELINES = ("backend/tests/garde_fous/architecture_baseline.txt",)
+LINES_BASELINES = (
+    "backend/tests/garde_fous/architecture_baseline.txt",
+    "backend/tests/garde_fous/architecture_rules_baseline.txt",
+    "backend/tests/garde_fous/response_model_baseline.txt",
+    "backend/tests/garde_fous/clock_baseline.txt",
+)
 COVERAGE_FILES = ("backend/.coveragerc", "frontend/vitest.config.ts")
 
 FAIL_UNDER = re.compile(r"^\s*fail_under\s*=\s*([\d.]+)", re.MULTILINE)

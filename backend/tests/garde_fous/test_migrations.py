@@ -124,3 +124,30 @@ def test_exchange_rate_uniqueness_migration_removes_duplicates(tmp_path):
     with engine.connect() as conn:
         assert conn.execute(text("SELECT rate FROM historical_exchange_rates")).fetchall() == [(1.1,)]
     engine.dispose()
+
+
+# Plancher du test de downgrade : `ece5365a3f43` (marchands) ne se rétrograde pas. Son `downgrade` généré
+# automatiquement supprime l'index `ix_bank_connections_id` d'une table (`bank_connections`) que ses propres
+# migrations ne créent jamais (elle n'existe que sur d'anciennes bases) → `ValueError: No such index`.
+# Exception justifiée : on ne réécrit pas une migration ancienne déjà appliquée en production. Les migrations
+# antérieures à ce point ne sont donc pas rejouées vers le bas.
+DOWNGRADE_FLOOR = "ece5365a3f43"
+
+
+def test_downgrade_then_upgrade_head_roundtrip(tmp_path):
+    """`upgrade head → downgrade <plancher> → upgrade head` sur base vide : toutes les migrations récentes se rejouent.
+
+    Deux migrations de données ont un `downgrade` volontairement vide (7d3f9a21c8b4, f1b7c4a9d2e6) : elles
+    corrigent des données existantes, il n'y a rien à défaire sur une base vide. Toute nouvelle migration dont le
+    `downgrade` échoue ou laisse un schéma différent des modèles fait échouer ce test ; si l'irréversibilité est
+    inévitable, la nommer ici en exception justifiée (comme `DOWNGRADE_FLOOR`), jamais la contourner en silence.
+    """
+    url = f"sqlite:///{tmp_path / 'roundtrip.db'}"
+    assert _alembic(url, "upgrade", "head").returncode == 0
+    down = _alembic(url, "downgrade", DOWNGRADE_FLOOR)
+    assert down.returncode == 0, down.stderr
+    current = _alembic(url, "current")
+    assert DOWNGRADE_FLOOR in current.stdout, current.stdout + current.stderr
+    up = _alembic(url, "upgrade", "head")
+    assert up.returncode == 0, up.stderr
+    assert _schema_diffs(url) == []
