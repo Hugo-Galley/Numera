@@ -5,19 +5,32 @@
     {
      "account_id": 3,
      "account_name": "PEA",
-     "percentage_of_group": 55.36,
-     "value": 12986.07
+     "percentage_of_group": 55.31,
+     "value": 12960.84
     },
     {
      "account_id": 4,
      "account_name": "Assurance-vie",
-     "percentage_of_group": 44.64,
+     "percentage_of_group": 44.69,
      "value": 10470.29
     }
    ],
    "name": "Non classé",
-   "percentage": 100.0,
-   "value": 23456.36
+   "percentage": 99.89,
+   "value": 23431.13
+  },
+  {
+   "items": [
+    {
+     "account_id": 3,
+     "account_name": "PEA",
+     "percentage_of_group": 100.0,
+     "value": 25.23
+    }
+   ],
+   "name": "Liquidités",
+   "percentage": 0.11,
+   "value": 25.23
   }
  ],
  "by_geographic_zone": [

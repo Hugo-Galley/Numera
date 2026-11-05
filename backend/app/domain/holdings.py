@@ -29,6 +29,7 @@ class RealizedSale:
     quantity: float
     proceeds_eur: float | None
     cost_eur: float | None  # coût de revient (EUR, taux des achats) de la quantité vendue
+    cost_eur_estimated: bool = False  # coût issu d'une ligne d'inventaire en devise, converti au taux du Point Zéro
 
     @property
     def realized_eur(self) -> float | None:
@@ -44,6 +45,7 @@ class Position:
     quantity: float = 0.0
     cost: float | None = 0.0  # devise de la position ; None = PRU inconnu
     cost_eur: float | None = 0.0
+    cost_eur_estimated: bool = False  # inventaire en devise sans coût EUR saisi : converti au taux du Point Zéro
     isin: str | None = None
     asset_name: str | None = None
     etf_profile_id: int | None = None

@@ -191,6 +191,13 @@ async def build_annual_report(db: Session, year: int) -> AnnualReport:
         unknown = sum(1 for sale in sales if sale.realized_eur is None)
         known = [sale for sale in sales if sale.realized_eur is not None]
         dividends = [d for d in await load_dividends_eur(db, account.id) if d.tx.date.year == year]
+        estimated = sorted({sale.ticker for sale in known if sale.cost_eur_estimated})
+        if estimated:
+            warnings.append(
+                f"{account.name} : coût de revient converti au taux du Point Zéro (et non à la date d'achat) pour "
+                f"{', '.join(estimated)}, titre(s) en devise : saisis le coût de revient en EUR dans l'inventaire "
+                "pour une plus-value 2074 exacte."
+            )
         if unknown:
             warnings.append(f"{account.name} : {unknown} vente(s) sans coût de revient connu, plus-value non comptée.")
         rows.append(
