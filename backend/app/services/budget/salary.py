@@ -8,6 +8,7 @@ from datetime import date, datetime
 from sqlalchemy.orm import Session
 
 from app.core.errors import BusinessRuleError, InvalidOperationError, NotFoundError
+from app.core.time import utcnow_naive
 from app.domain.finance import month_label_from_date
 from app.domain.salary import month_key, salary_amount, salary_note
 from app.models.recurring_transaction import RecurringTransaction
@@ -55,7 +56,7 @@ def sync_recurring_transactions(db: Session, config: SalaryConfig) -> None:
             category_id=config.salary_category_id,
             frequency="monthly",
             day_of_month=25,
-            start_date=datetime.utcnow().replace(day=25, hour=0, minute=0, second=0, microsecond=0),
+            start_date=utcnow_naive().replace(day=25, hour=0, minute=0, second=0, microsecond=0),
             auto_generate=False,
         )
         db.add(rt_salary)

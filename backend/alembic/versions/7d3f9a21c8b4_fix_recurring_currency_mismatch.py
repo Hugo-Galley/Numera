@@ -28,4 +28,6 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
+    # Volontairement vide (correction de données) : l'état d'origine n'est pas conservé, il n'y a rien à restaurer.
+    # Le test d'aller-retour des migrations (tests/garde_fous/test_migrations.py) l'accepte sur base vide.
     pass
