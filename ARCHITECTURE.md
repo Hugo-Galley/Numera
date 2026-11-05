@@ -196,7 +196,7 @@ Un point zéro sert de base de performance pour un compte.
 ### Autres Tables
 
 - `portfolio_holdings`: positions titres par compte (`account_id`, `ticker`, `isin`, `asset_name`, `quantity`, `buy_price_avg` = PRU frais inclus dans `currency`, `cost_basis_eur` = coût aux taux historiques, `pays_dividends` = titre distribuant (rappel), `etf_profile_id`). **Dérivées** : recalculées par `services/investissement/holdings/rebuild.py::rebuild_holdings` = inventaire `holding_baseline_items` + opérations sur titres postérieures à `accounts.holdings_baseline_date` (une opération sur titre antérieure est refusée en 422).
-- `holding_baseline_items`: inventaire Point Zéro des positions (`account_id`, `baseline_date`, `ticker`, `quantity`, `buy_price_avg`, `currency`, …).
+- `holding_baseline_items`: inventaire Point Zéro des positions (`account_id`, `baseline_date`, `ticker`, `quantity`, `buy_price_avg`, `currency`, `cost_basis_eur` = coût de revient EUR saisi, prioritaire sur la conversion de `buy_price_avg` au taux du Point Zéro ; sans lui, un titre en devise est signalé dans le récap fiscal (`/tax/annual-report`, `warnings`). Ré-enregistrer l'inventaire sans ce champ conserve la valeur saisie, `null` l'efface).
 - `security_prices`: cours de clôture journaliers (`ticker`, `date`, `close`, `currency`, `source`), alimentés à chaque cotation Yahoo (`get_market_quotes(..., db=)`), par la tâche de fond horaire (`refresh_held_prices`) et par `get_price_on` / `fetch_price_history`. Si Yahoo échoue, le dernier cours stocké est renvoyé avec `stale=True`.
 - `etf_profiles`: profils ETF (`name`, `ticker`, `isin`, `aliases`, `countries`, `sectors`, `top_holdings` en JSON texte, `is_system`, `composition_sources`, `composition_refreshed_at`). `composition_sources` donne la source de chaque champ : `yahoo` (réécrit à chaque actualisation), `preset` (préréglage des profils système dans `domain/etf_presets.json`, repli tant que Yahoo ne fournit pas le champ, réécrit au démarrage), `manual` (saisi via `PUT`, jamais écrasé). Le scanner de diversité compte la part non couverte d'un ETF en « Non renseigné » et renvoie l'origine des compositions dans `etf_compositions`.
 - `system_settings`: paires cle/valeur (ex. `admin_username`, `admin_password_hash`, `mcp_enabled`, `ui.privacy_on_start`).
@@ -289,7 +289,7 @@ Un point zéro sert de base de performance pour un compte.
 - `GET /analytics/resilience?month=&year=` (mois d'autonomie = épargne liquide ÷ dépenses réelles moyennes des 6 derniers mois complets ; aussi utilisé par le « fonds de sécurité » du score de santé)
 - `GET /analytics/account-flow-summary` (flux net du mois, variation, dépense moyenne d'un compte ; virements exclus)
 - `GET /analytics/investments-allocation`
-- `GET /analytics/investments-allocation-advanced`
+- `GET /analytics/investments-allocation-advanced` (répartition de ce qui est détenu : valeur de chaque position classée comme son titre, espèces en « Liquidités » ; compte sans positions : achats nets des ventes par titre)
 - `GET /analytics/timeseries`
 - `GET /analytics/budget-alerts`
 - `GET /analytics/insights`

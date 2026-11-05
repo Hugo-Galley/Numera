@@ -3523,6 +3523,8 @@ export interface components {
             asset_name: string;
             /** Buy Price Avg */
             buy_price_avg?: number | null;
+            /** Cost Basis Eur */
+            cost_basis_eur?: number | null;
             /**
              * Currency
              * @default EUR
@@ -5244,6 +5246,8 @@ export interface components {
             asset_name: string;
             /** Buy Price Avg */
             buy_price_avg?: number | null;
+            /** Cost Basis Eur */
+            cost_basis_eur?: number | null;
             /**
              * Currency
              * @default EUR
@@ -5266,6 +5270,8 @@ export interface components {
             asset_name: string;
             /** Buy Price Avg */
             buy_price_avg?: number | null;
+            /** Cost Basis Eur */
+            cost_basis_eur?: number | null;
             /**
              * Created At
              * Format: date-time
@@ -5342,6 +5348,8 @@ export interface components {
             asset_name?: string | null;
             /** Buy Price Avg */
             buy_price_avg?: number | null;
+            /** Cost Basis Eur */
+            cost_basis_eur?: number | null;
             /** Currency */
             currency?: string | null;
             /** Etf Profile Id */

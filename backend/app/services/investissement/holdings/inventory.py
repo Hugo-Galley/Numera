@@ -45,6 +45,7 @@ def _baseline_item(account_id: int, ticker: str, baseline_date, line) -> Holding
         buy_price_avg=line.buy_price_avg or None,
         currency=line.currency.upper(),
         etf_profile_id=line.etf_profile_id,
+        cost_basis_eur=line.cost_basis_eur or None,
     )
 
 
@@ -96,6 +97,7 @@ async def set_baseline(db: Session, payload: BaselineInventoryRequest) -> list[P
     """Remplace l'inventaire Point Zéro, daté de `payload.date` (maintenant par défaut)."""
     account = _get_account(db, payload.account_id)
     baseline_date = payload.date or utcnow_naive()
+    kept_costs = {i.ticker: i.cost_basis_eur for i in repo.baseline_items(db, payload.account_id)}
     repo.delete_baseline(db, payload.account_id)
     account.holdings_baseline_date = baseline_date
 
@@ -104,7 +106,10 @@ async def set_baseline(db: Session, payload: BaselineInventoryRequest) -> list[P
         if item.quantity <= 0:
             continue
         ticker = normalize_ticker(item.ticker)
-        by_ticker[ticker] = _baseline_item(payload.account_id, ticker, baseline_date, item)
+        entry = _baseline_item(payload.account_id, ticker, baseline_date, item)
+        if "cost_basis_eur" not in item.model_fields_set:
+            entry.cost_basis_eur = kept_costs.get(ticker)  # ré-enregistrer l'inventaire ne perd pas le coût saisi
+        by_ticker[ticker] = entry
     repo.add_baseline_items(db, list(by_ticker.values()))
     return await _rebuild_and_list(db, payload.account_id)
 
@@ -145,7 +150,7 @@ async def update_holding(db: Session, holding_id: int, payload: PortfolioHolding
     if item is not None:
         item.isin, item.asset_name, item.etf_profile_id = holding.isin, holding.asset_name, holding.etf_profile_id
 
-    if {"quantity", "buy_price_avg", "currency"} & payload.model_fields_set:
+    if {"quantity", "buy_price_avg", "currency", "cost_basis_eur"} & payload.model_fields_set:
         if item is None:
             raise BusinessRuleError(
                 "Cette position provient uniquement d'opérations : modifie les opérations, ou refais l'inventaire du Point Zéro"
@@ -156,6 +161,8 @@ async def update_holding(db: Session, holding_id: int, payload: PortfolioHolding
             item.buy_price_avg = payload.buy_price_avg or None
         if payload.currency is not None:
             item.currency = payload.currency.upper()
+        if "cost_basis_eur" in payload.model_fields_set:
+            item.cost_basis_eur = payload.cost_basis_eur or None
         db.flush()
         await rebuild_holdings(db, holding.account_id)
 

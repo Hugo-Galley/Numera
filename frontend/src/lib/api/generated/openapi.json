@@ -1456,6 +1456,19 @@
       ],
       "title": "Buy Price Avg"
      },
+     "cost_basis_eur": {
+      "anyOf": [
+       {
+        "exclusiveMaximum": 1000000000000.0,
+        "minimum": 0.0,
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Cost Basis Eur"
+     },
      "currency": {
       "default": "EUR",
       "title": "Currency",
@@ -6817,6 +6830,19 @@
       ],
       "title": "Buy Price Avg"
      },
+     "cost_basis_eur": {
+      "anyOf": [
+       {
+        "exclusiveMaximum": 1000000000000.0,
+        "minimum": 0.0,
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Cost Basis Eur"
+     },
      "currency": {
       "default": "EUR",
       "title": "Currency",
@@ -6886,6 +6912,17 @@
        }
       ],
       "title": "Buy Price Avg"
+     },
+     "cost_basis_eur": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Cost Basis Eur"
      },
      "created_at": {
       "format": "date-time",
@@ -7128,6 +7165,19 @@
        }
       ],
       "title": "Buy Price Avg"
+     },
+     "cost_basis_eur": {
+      "anyOf": [
+       {
+        "exclusiveMaximum": 1000000000000.0,
+        "minimum": 0.0,
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Cost Basis Eur"
      },
      "currency": {
       "anyOf": [
