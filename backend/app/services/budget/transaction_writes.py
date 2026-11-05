@@ -106,7 +106,7 @@ def _bulk_type(payload: TransactionBulkUpdate, transactions: list[Transaction], 
     return bulk_type
 
 
-async def bulk_update_transactions(db: Session, payload: TransactionBulkUpdate) -> None:
+def bulk_update_transactions(db: Session, payload: TransactionBulkUpdate) -> None:
     if not payload.ids:
         return
     transactions = repo.get_many(db, payload.ids)

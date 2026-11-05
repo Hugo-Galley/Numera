@@ -20,13 +20,24 @@ def client(timeout: float) -> httpx.AsyncClient:
 
 
 async def fetch_chart(http_client: httpx.AsyncClient, sym: str, params: dict[str, str]) -> dict[str, Any] | None:
-    """Appelle l'endpoint chart de Yahoo (query2 puis query1) et renvoie le premier résultat."""
+    """Appelle l'endpoint chart de Yahoo (query2 puis query1) et renvoie le premier résultat.
+
+    query1 est aussi essayé quand query2 lève une erreur réseau (timeout, connexion) ; si les deux hôtes lèvent,
+    la dernière erreur est propagée (l'appelant distingue ainsi une panne de « pas de données »)."""
     quoted_sym = quote(sym, safe="")
+    error: httpx.HTTPError | None = None
     for host in ("query2", "query1"):
-        resp = await http_client.get(f"https://{host}.finance.yahoo.com/v8/finance/chart/{quoted_sym}", params=params)
+        try:
+            resp = await http_client.get(f"https://{host}.finance.yahoo.com/v8/finance/chart/{quoted_sym}", params=params)
+        except httpx.HTTPError as exc:
+            error = exc
+            continue
+        error = None
         if resp.status_code == 200:
             res_list = resp.json().get("chart", {}).get("result") or []
             return res_list[0] if res_list else None
+    if error is not None:
+        raise error
     return None
 
 

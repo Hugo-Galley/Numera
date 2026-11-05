@@ -9,7 +9,7 @@ from app.core.logging import get_logger
 from app.domain.portfolio import SNAPSHOT_MATCH_DAYS
 from app.integrations.currency import CurrencyConversionError
 from app.repositories.investissement import security_prices
-from app.services.comptes.exchange_rates import convert_amount
+from app.services.comptes.exchange_rates import convert_amount, preload_historical_rates
 from app.services.investissement.market import quotes as market_quotes
 
 logger = get_logger(__name__)
@@ -28,6 +28,10 @@ class PriceBook:
         for ticker in tickers:
             rows = security_prices.series(db, ticker)
             self._series[ticker] = ([r[0] for r in rows], [r[1] for r in rows], [r[2] for r in rows])
+
+    def currencies(self) -> set[str]:
+        """Devises de cotation des titres chargés."""
+        return {c for _, _, currencies in self._series.values() for c in set(currencies)}
 
     def has(self, ticker: str) -> bool:
         return bool(self._series.get(ticker, ([], [], []))[0])
@@ -72,6 +76,11 @@ class FxBook:
     def __init__(self, db: Session) -> None:
         self._db = db
         self._memo: dict[tuple[str, str, date_type | None], float | None] = {}
+
+    async def preload(self, currencies: set[str], target: str, start: date_type, end: date_type) -> None:
+        """Charge en une requête par devise la série de taux de la période (courbe : un taux par jour échantillonné)."""
+        for currency in sorted((currencies | {target}) - {"EUR"}):
+            await preload_historical_rates(self._db, currency, start, end)
 
     async def convert(self, amount: float, source: str, target: str, day: date_type | None = None) -> float | None:
         if source == target:

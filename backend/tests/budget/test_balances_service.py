@@ -3,7 +3,7 @@
 Chaque test relit les soldes dans une session NEUVE : un appelant qui oublierait de commiter
 après le recalcul laisserait des soldes faux en base.
 """
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from sqlalchemy.orm import sessionmaker
 
@@ -118,3 +118,51 @@ def test_transfer_counterpart_persists_balances(client, db_session):
     sortie = _tx(client, source, 5, "Sortie", 50.0)
     client.post(f"/transactions/{sortie}/transfer-counterpart", json={"account_id": dest})
     assert _fresh_balances(db_session, dest) == [50.0]
+
+
+def _bulk_account(db_session, rows=1000):
+    account = Account(name="Gros", type="courant", currency="EUR", active=True)
+    db_session.add(account)
+    db_session.flush()
+    for i in range(rows):
+        date = datetime(2026, 1, 1) + timedelta(hours=i)
+        db_session.add(Transaction(account_id=account.id, date=date, month_label=month_label_from_date(date),
+                                   type="Entree" if i % 3 == 0 else "Sortie", merchant="x", amount=10.0 + i % 7,
+                                   original_amount=10.0, currency="EUR", running_balance=-1.0))
+    db_session.commit()
+    return account.id
+
+
+def test_recalculate_uses_a_bounded_number_of_queries(db_session, measure_queries):
+    account_id = _bulk_account(db_session)
+    _, queries = measure_queries(lambda: recalculate_running_balances(db_session, account_id))
+    assert queries <= 3
+
+
+def test_recalculate_refreshes_objects_already_in_session(db_session):
+    account_id = _bulk_account(db_session, rows=5)
+    loaded = db_session.query(Transaction).filter_by(account_id=account_id).order_by(Transaction.date).all()
+    assert loaded[0].running_balance == -1.0
+    recalculate_running_balances(db_session, account_id)
+    assert loaded[0].running_balance == 10.0
+    assert [round(t.running_balance, 2) for t in loaded] == _fresh_balances_uncommitted(db_session, account_id)
+
+
+def _fresh_balances_uncommitted(db_session, account_id):
+    rows = db_session.query(Transaction.running_balance).filter_by(account_id=account_id) \
+        .order_by(Transaction.date, Transaction.id).all()
+    return [round(r[0], 2) for r in rows]
+
+
+def test_recalculate_skips_rows_already_correct(db_session, measure_queries):
+    account_id = _bulk_account(db_session, rows=20)
+    recalculate_running_balances(db_session, account_id)
+    statements = []
+    from sqlalchemy import event
+    listener = lambda conn, cur, stmt, *a: statements.append(stmt)  # noqa: E731
+    event.listen(db_session.get_bind(), "before_cursor_execute", listener)
+    try:
+        recalculate_running_balances(db_session, account_id)
+    finally:
+        event.remove(db_session.get_bind(), "before_cursor_execute", listener)
+    assert not any(s.lstrip().upper().startswith("UPDATE") for s in statements)

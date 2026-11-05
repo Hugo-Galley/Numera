@@ -2,6 +2,7 @@
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
+from app.core.sync_bridge import run_async
 from app.db.session import get_db
 from app.services.investissement.market import quotes, search
 
@@ -9,7 +10,7 @@ router = APIRouter(prefix="/market", tags=["market"])
 
 
 @router.get("/search")
-async def market_search(
+def market_search(
     q: str | None = Query(default=None, description="ISIN, ticker or asset name"),
     query: str | None = Query(default=None, description="ISIN, ticker or asset name"),
     db: Session = Depends(get_db),
@@ -21,26 +22,26 @@ async def market_search(
     search_str = (q or query or "").strip()
     if not search_str:
         return []
-    return await search.search_market_assets(search_str, db=db)
+    return run_async(search.search_market_assets(search_str, db=db))
 
 
 @router.get("/validate")
-async def market_validate(
+def market_validate(
     symbol_or_isin: str = Query(..., min_length=1, description="Ticker symbol or ISIN to validate"),
     db: Session = Depends(get_db),
 ):
     """
     Validates if a symbol or ISIN exists and returns real-time verification details.
     """
-    return await search.validate_symbol(db, symbol_or_isin)
+    return run_async(search.validate_symbol(db, symbol_or_isin))
 
 
 @router.get("/quote")
-async def market_quote(
+def market_quote(
     symbols: str = Query(..., description="Comma-separated list of symbols (e.g. CW8.PA,AAPL)"),
 ):
     """
     Get live market quotes and converted EUR prices for given symbols.
     """
     sym_list = [s.strip() for s in symbols.split(",") if s.strip()]
-    return await quotes.get_market_quotes(sym_list)
+    return run_async(quotes.get_market_quotes(sym_list))

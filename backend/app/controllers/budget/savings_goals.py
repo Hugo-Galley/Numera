@@ -2,6 +2,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
+from app.core.sync_bridge import run_async
 from app.db.session import get_db
 from app.schemas.savings_goal import SavingsGoal, SavingsGoalCreate, SavingsGoalProgress, SavingsGoalUpdate
 from app.services.budget import savings_goals as service
@@ -10,8 +11,8 @@ router = APIRouter(prefix="/goals", tags=["savings-goals"])
 
 
 @router.get("", response_model=list[SavingsGoalProgress])
-async def list_goals(db: Session = Depends(get_db)):
-    return await service.list_goals(db)
+def list_goals(db: Session = Depends(get_db)):
+    return run_async(service.list_goals(db))
 
 
 @router.post("", response_model=SavingsGoal)

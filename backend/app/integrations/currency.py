@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 
 import httpx
 
+from app.core.circuit_breaker import CircuitBreaker
 from app.core.logging import get_logger
 
 logger = get_logger(__name__)
@@ -11,6 +12,11 @@ logger = get_logger(__name__)
 _rates_cache: dict[str, dict[str, float]] = {}
 _cache_expiry: dict[str, datetime] = {}
 CACHE_DURATION = timedelta(hours=6)
+# Cache négatif : après un échec, on ne réinterroge pas Frankfurter avant ce délai (taux hors ligne ou dernier connu)
+FAILURE_CACHE_DURATION = timedelta(minutes=10)
+_failed_until: dict[str, datetime] = {}
+# Disjoncteur des taux historiques : 3 échecs consécutifs coupent les appels pendant 10 min
+_historical_breaker = CircuitBreaker(threshold=3, cooldown=FAILURE_CACHE_DURATION)
 
 # Taux hors-ligne (1 EUR = X devise), utilisés uniquement si Frankfurter est injoignable
 # et qu'aucun taux n'a jamais été récupéré.
@@ -38,6 +44,8 @@ async def get_exchange_rates(base: str = "EUR") -> dict[str, float]:
     now = datetime.now()
     if base in _rates_cache and now < _cache_expiry.get(base, now):
         return _rates_cache[base]
+    if now < _failed_until.get(base, now):
+        return _fallback_rates(base)
 
     try:
         async with httpx.AsyncClient(timeout=8.0) as client:
@@ -49,11 +57,17 @@ async def get_exchange_rates(base: str = "EUR") -> dict[str, float]:
                 rates[base] = 1.0
                 _rates_cache[base] = rates
                 _cache_expiry[base] = now + CACHE_DURATION
+                _failed_until.pop(base, None)
                 return rates
             logger.warning(f"Frankfurter returned HTTP {response.status_code} for base={base}")
     except Exception as e:
         logger.warning(f"Error fetching exchange rates: {e}")
 
+    _failed_until[base] = now + FAILURE_CACHE_DURATION
+    return _fallback_rates(base)
+
+
+def _fallback_rates(base: str) -> dict[str, float]:
     if base in _rates_cache:
         # Taux périmés mais réels : préférables à des valeurs figées
         return _rates_cache[base]
@@ -64,11 +78,44 @@ async def fetch_historical_rate(date: date_type, currency: str) -> float | None:
     """Taux Frankfurter (1 EUR = X `currency`) à `date`, ou au jour ouvré précédent. None si indisponible.
 
     Réseau seulement : la mise en cache en base est faite par `services/comptes/exchange_rates.py`."""
+    if not _historical_breaker.allow():
+        return None
     try:
         async with httpx.AsyncClient(timeout=8.0) as client:
             response = await client.get(f"https://api.frankfurter.dev/v1/{date.isoformat()}", params={"base": "EUR"})
-            if response.status_code == 200:
-                return response.json().get("rates", {}).get(currency) or None
+        _historical_breaker.success()
+        if response.status_code == 200:
+            return response.json().get("rates", {}).get(currency) or None
     except Exception as e:
+        _historical_breaker.failure()
         logger.warning(f"Error fetching historical exchange rate: {e}")
     return None
+
+
+async def fetch_rate_series(start: date_type, end: date_type, currency: str) -> dict[date_type, float]:
+    """Série Frankfurter (1 EUR = X `currency`) des jours ouvrés de `start` à `end`, en une seule requête.
+    Vide si indisponible (disjoncteur ouvert, erreur réseau ou HTTP)."""
+    if not _historical_breaker.allow():
+        return {}
+    try:
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            response = await client.get(
+                f"https://api.frankfurter.dev/v1/{start.isoformat()}..{end.isoformat()}",
+                params={"base": "EUR", "symbols": currency},
+            )
+        _historical_breaker.success()
+        if response.status_code == 200:
+            rates = response.json().get("rates", {})
+            return {date_type.fromisoformat(day): by_currency[currency] for day, by_currency in rates.items()
+                    if by_currency.get(currency)}
+    except Exception as e:
+        _historical_breaker.failure()
+        logger.warning(f"Error fetching exchange rate series: {e}")
+    return {}
+
+
+def reset_state() -> None:
+    """Vide les caches mémoire (tests)."""
+    _rates_cache.clear()
+    _cache_expiry.clear()
+    _failed_until.clear()

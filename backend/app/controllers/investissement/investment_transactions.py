@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
+from app.core.sync_bridge import run_async
 from app.db.session import get_db
 from app.schemas.investment import InvestmentTransactionCreate, InvestmentTransactionRead, InvestmentTransactionUpdate
 from app.services.investissement import investment_transactions as service
@@ -33,15 +34,15 @@ def link_dividends(
 
 
 @router.post("", response_model=InvestmentTransactionRead, status_code=201)
-async def create_investment_transaction(payload: InvestmentTransactionCreate, db: Session = Depends(get_db)):
-    return await service.create_transaction(db, payload)
+def create_investment_transaction(payload: InvestmentTransactionCreate, db: Session = Depends(get_db)):
+    return run_async(service.create_transaction(db, payload))
 
 
 @router.delete("/{transaction_id}", status_code=204)
-async def delete_investment_transaction(transaction_id: int, db: Session = Depends(get_db)):
-    await service.delete_transaction(db, transaction_id)
+def delete_investment_transaction(transaction_id: int, db: Session = Depends(get_db)):
+    run_async(service.delete_transaction(db, transaction_id))
 
 
 @router.patch("/{transaction_id}", response_model=InvestmentTransactionRead)
-async def update_investment_transaction(transaction_id: int, payload: InvestmentTransactionUpdate, db: Session = Depends(get_db)):
-    return await service.update_transaction(db, transaction_id, payload)
+def update_investment_transaction(transaction_id: int, payload: InvestmentTransactionUpdate, db: Session = Depends(get_db)):
+    return run_async(service.update_transaction(db, transaction_id, payload))
