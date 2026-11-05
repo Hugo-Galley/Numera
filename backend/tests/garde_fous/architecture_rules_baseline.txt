@@ -73,7 +73,6 @@ app/services/budget/reimbursements.py -> db.query/execute (requête hors reposit
 app/services/budget/salary_generation.py -> db.query/execute (requête hors repository)
 app/services/budget/splits.py -> db.query/execute (requête hors repository)
 app/services/budget/subscription_prices.py -> db.query/execute (requête hors repository)
-app/services/budget/transaction_writes.py -> async def bulk_update_transactions sans await
 app/services/budget/work_time.py -> db.query/execute (requête hors repository)
 app/services/investissement/tax.py -> db.query/execute (requête hors repository)
 app/services/systeme/notifications.py -> db.query/execute (requête hors repository)
