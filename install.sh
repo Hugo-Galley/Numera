@@ -23,7 +23,7 @@ REPO_URL="https://github.com/Hugo-Galley/numera.git"
 RELEASES_URL="https://github.com/Hugo-Galley/numera/releases"
 APP_URL="http://localhost:8082"
 # Image jetable pour hacher le mot de passe : épinglée par digest (comme backend/Dockerfile), bcrypt par version + hashes
-HASH_IMAGE="python:3.12-slim@sha256:aa943ce411423c7582288f18707ff66eddcbaeb510502d747a72aeb34f30d159"
+HASH_IMAGE="python:3.12-slim@sha256:e695ab189fa2d082b1c61c69a6b888a5adeca61ceeccad107b1ed2a125721a9e"
 BCRYPT_REQUIREMENTS='bcrypt==5.0.0 \
     --hash=sha256:c2388ca94ffee269b6038d48747f4ce8df0ffbea43f31abfa18ac72f0218effb \
     --hash=sha256:560ddb6ec730386e7b3b26b8b4c88197aaed924430e7b74666a586ac997249ef \
