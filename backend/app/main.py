@@ -160,7 +160,7 @@ app = FastAPI(title=settings.app_name, lifespan=lifespan, **docs_kwargs(settings
 
 @app.exception_handler(DomainError)
 async def domain_error_handler(_: Request, exc: DomainError):
-    return JSONResponse(status_code=exc.status_code, content=exc.to_content())
+    return JSONResponse(status_code=exc.status_code, content=exc.to_content(), headers=exc.headers)
 
 
 @app.exception_handler(CurrencyConversionError)

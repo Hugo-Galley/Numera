@@ -1,6 +1,3 @@
-app/controllers/systeme/passkeys.py:_sign_challenge -> datetime.now()
-app/controllers/systeme/passkeys.py:login_verify -> datetime.now()
-app/controllers/systeme/passkeys.py:register_verify -> datetime.now()
 app/core/migrations.py:backup_before_migration -> datetime.now()
 app/core/security.py:create_access_token -> datetime.now()
 app/core/totp.py:create_mfa_token -> datetime.now()

@@ -31,14 +31,9 @@ app/controllers/investissement/market.py -> app.db.session
 app/controllers/investissement/tax.py -> app.db.session
 app/controllers/systeme/admin.py -> app.db.session
 app/controllers/systeme/auth.py -> app.db.session
-app/controllers/systeme/auth.py -> app.db.system_settings
 app/controllers/systeme/notifications.py -> app.db.session
 app/controllers/systeme/passkeys.py -> app.db.session
-app/controllers/systeme/passkeys.py -> app.db.system_settings
-app/controllers/systeme/passkeys.py -> commit()
 app/controllers/systeme/totp.py -> app.db.session
-app/controllers/systeme/totp.py -> app.db.system_settings
-app/controllers/systeme/totp.py -> commit()
 app/core/login_events.py -> commit()
 app/core/login_events.py -> fastapi
 app/core/login_rate_limit.py -> fastapi
