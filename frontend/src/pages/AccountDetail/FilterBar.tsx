@@ -47,7 +47,7 @@ export function FilterBar({ ctx }: { ctx: AccountDetailView }) {
               className="h-8 min-w-0 flex-1 border-none bg-transparent p-0 text-base font-medium shadow-none focus-visible:ring-0 sm:w-[120px] sm:flex-none sm:text-xs" 
             />
             {(dateStart || dateEnd) && (
-              <Button aria-label="Ajouter" 
+              <Button aria-label="Effacer les dates" 
                 variant="ghost" 
                 size="icon" 
                 onClick={() => { setDateStart(""); setDateEnd(""); }} 

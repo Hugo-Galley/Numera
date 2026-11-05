@@ -1,3 +1,4 @@
+import { errorMessage } from "@/lib/utils"
 import { useState } from "react"
 import { api } from "@/lib/api"
 import {
@@ -63,7 +64,7 @@ export function CustomEtfModal({
         toast.error("Impossible de décomposer ce fonds en ligne", { id: toastId })
       }
     } catch (err: any) {
-      toast.error(err?.response?.data?.detail || "Erreur lors de la décomposition en ligne", { id: toastId })
+      toast.error(errorMessage(err, "Erreur lors de la décomposition en ligne"), { id: toastId })
     } finally {
       setAnalyzing(false)
     }

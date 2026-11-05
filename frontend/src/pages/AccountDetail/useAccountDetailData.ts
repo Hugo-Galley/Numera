@@ -79,14 +79,17 @@ export function useAccountDetailData(p: ReturnType<typeof useAccountDetailState>
 
   const loadMoreTransactions = async () => {
     if (!id) return
+    // Même numéro que la liste : un changement de filtre pendant le chargement invalide cette page
+    const requestId = txRequestId.current
     setLoadingMoreTx(true)
     try {
       const params = buildTransactionParams(transactions.length)
       const more = await getTransactions<Transaction[]>(`?${params.toString()}`)
+      if (requestId !== txRequestId.current) return
       setTransactions(prev => [...prev, ...more])
       setHasMoreTx(more.length === TX_PAGE_SIZE)
     } catch (error) {
-      toast.error(errorMessage(error, "Erreur lors du chargement des transactions"))
+      if (requestId === txRequestId.current) toast.error(errorMessage(error, "Erreur lors du chargement des transactions"))
     } finally {
       setLoadingMoreTx(false)
     }

@@ -1,7 +1,7 @@
 import { errorMessage, formatAmountWithShare, formatCurrency } from "@/lib/utils"
 import { toast } from "sonner"
 import { useConfirm } from "@/providers/ConfirmProvider"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useIsMobile } from "@/hooks/useIsMobile"
 import { useSubmit } from "@/hooks/useSubmit"
 import { GOAL_COLORS, Resilience } from "./types"
@@ -40,9 +40,15 @@ export function useSavingsData() {
     category_id: "none"
   })
 
+  // Numéro de la dernière requête : la réponse d'une période quittée entre-temps est ignorée
+  const loadRequestId = useRef(0)
+
   const loadData = async () => {
+    const requestId = ++loadRequestId.current
+    const isCurrent = () => requestId === loadRequestId.current
     setLoading(true)
     setLoadFailed(false)
+    setAnalytics(null)
     try {
       const queryParams = period === "monthly" 
         ? `month=${month}&year=${year}`
@@ -59,6 +65,7 @@ export function useSavingsData() {
           ? `?month=${month}&year=${year}`
           : `?month=${now.getMonth() + 1}&year=${now.getFullYear()}`),
       ])
+      if (!isCurrent()) return
       setAnalytics(budget)
       setResilience(resilienceData)
       setHistory(kpiHistory)
@@ -66,11 +73,12 @@ export function useSavingsData() {
       setAccounts(accs)
       setCategories(cats)
     } catch (error) {
+      if (!isCurrent()) return
       console.error("Failed to load savings data", error)
       setLoadFailed(true)
       toast.error("Impossible de charger les données d'épargne")
     } finally {
-      setLoading(false)
+      if (isCurrent()) setLoading(false)
     }
   }
 

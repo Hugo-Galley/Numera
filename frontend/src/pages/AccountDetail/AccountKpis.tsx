@@ -7,7 +7,7 @@ import type { AccountDetailView } from "./useAccountDetail"
 
 /** Indicateurs du compte et totaux par tag. */
 export function AccountKpis({ ctx }: { ctx: AccountDetailView }) {
-  const { account, currentBalance, formatCurrency, id, investmentData, isInvestment, stats, tagTotals } = ctx
+  const { account, currentBalance, formatCurrency, formatValue, id, investmentData, isInvestment, stats, tagTotals } = ctx
   return (
     <>
       {/* Account KPIs : 2 colonnes compactes sur mobile pour que la liste ne soit pas repoussée de deux écrans */}
@@ -63,7 +63,7 @@ export function AccountKpis({ ctx }: { ctx: AccountDetailView }) {
               </CardHeader>
               <CardContent>
                 <CardTitle className={`text-2xl font-bold ${((investmentData?.totals?.gain_eur || 0) >= 0) ? "text-emerald-600" : "text-rose-600"} amount-blur`}>
-                  {((investmentData?.totals?.gain_eur || 0) >= 0) ? "+" : ""}{formatCurrency(investmentData?.totals?.gain_eur || 0)}
+                  {((investmentData?.totals?.gain_eur || 0) >= 0) ? "+" : ""}{formatValue(investmentData?.totals?.gain_eur || 0, "EUR")}
                 </CardTitle>
                 <p className="text-xs text-slate-400 mt-2">Evolution du capital</p>
               </CardContent>
@@ -78,7 +78,7 @@ export function AccountKpis({ ctx }: { ctx: AccountDetailView }) {
               </CardHeader>
               <CardContent>
                 <CardTitle className="text-2xl font-bold text-slate-900">
-                  {formatCurrency(investmentData?.totals?.net_invested || 0)}
+                  {formatValue(investmentData?.totals?.net_invested || 0, "EUR")}
                 </CardTitle>
                 <p className="text-xs text-slate-400 mt-2">Versements - Retraits</p>
               </CardContent>
@@ -90,7 +90,7 @@ export function AccountKpis({ ctx }: { ctx: AccountDetailView }) {
               </CardHeader>
               <CardContent>
                 <CardTitle className={`text-2xl font-bold ${(investmentData?.totals?.gain_eur || 0) >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
-                  {formatCurrency(investmentData?.totals?.gain_eur || 0)}
+                  {formatValue(investmentData?.totals?.gain_eur || 0, "EUR")}
                 </CardTitle>
                 <p className="text-xs text-slate-400 mt-2">Valeur − net investi (détail plus bas)</p>
               </CardContent>
@@ -174,7 +174,7 @@ export function AccountKpis({ ctx }: { ctx: AccountDetailView }) {
                     </div>
                     <div>
                       <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 leading-none mb-1">{t.name}</p>
-                      <p className="text-lg font-black text-slate-900 leading-none">{formatCurrency(t.total_eur)}</p>
+                      <p className="text-lg font-black text-slate-900 leading-none">{formatValue(t.total_eur, "EUR")}</p>
                     </div>
                   </div>
                 ))}

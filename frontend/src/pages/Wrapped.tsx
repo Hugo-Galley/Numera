@@ -1,6 +1,6 @@
 import { toast } from "sonner"
 import { ErrorState } from "@/components/layout/ErrorState"
-import { useCallback, useEffect, useState, type ReactNode } from "react"
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react"
 import { useSearchParams } from "react-router-dom"
 import { Gift, Play, Receipt, Store, TrendingUp, Repeat, CalendarRange } from "lucide-react"
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
@@ -60,18 +60,23 @@ export default function Wrapped() {
     return () => mq.removeEventListener("change", onChange)
   }, [])
 
+  // Numéro de la dernière requête : la réponse d'une année quittée entre-temps est ignorée
+  const requestId = useRef(0)
   const load = useCallback(async () => {
+    const id = ++requestId.current
     setLoading(true)
     setLoadFailed(false)
     setReport(null)
     try {
-      setReport(await api.get<WrappedReport>(`/analytics/wrapped?year=${year}`))
+      const data = await api.get<WrappedReport>(`/analytics/wrapped?year=${year}`)
+      if (id === requestId.current) setReport(data)
     } catch (error) {
+      if (id !== requestId.current) return
       console.error("Erreur lors du chargement du bilan annuel", error)
       setLoadFailed(true)
       toast.error("Impossible de charger le bilan annuel")
     } finally {
-      setLoading(false)
+      if (id === requestId.current) setLoading(false)
     }
   }, [year])
 
@@ -179,7 +184,7 @@ export default function Wrapped() {
                     <BarChart data={report.months} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                       <XAxis dataKey="month" tickFormatter={(m: number) => (narrow ? monthShort(m).charAt(0).toUpperCase() : monthShort(m))} axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "#64748b" }} interval={0} />
-                      <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "#64748b" }} tickFormatter={(v: number) => `${Number((v / 1000).toFixed(1))}k`} width={40} />
+                      <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "#64748b" }} tickFormatter={(v: number) => `${Number((v / 1000).toFixed(1))} k€`} width={52} />
                       <Tooltip
                         labelFormatter={(m: number) => monthName(m)}
                         formatter={(v: number) => formatCurrency(v)}
