@@ -1,5 +1,4 @@
 {
-  "app/controllers/systeme/auth.py": 1,
   "app/db/system_settings.py": 1,
   "app/models/benefit.py": 1,
   "app/models/categorization_rule.py": 1,

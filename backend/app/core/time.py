@@ -8,6 +8,10 @@ def utcnow_naive() -> datetime:
     return datetime.now(UTC).replace(tzinfo=None)
 
 
+def utcnow_aware() -> datetime:
+    return datetime.now(UTC)
+
+
 def end_of_today() -> datetime:
     """Borne haute exclusive des lectures « à ce jour » : demain à minuit.
 

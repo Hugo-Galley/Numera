@@ -8,6 +8,7 @@ class DomainError(Exception):
     """
 
     status_code = 400
+    headers: dict[str, str] | None = None
 
     def __init__(self, detail: str, code: str | None = None, context: dict[str, Any] | None = None):
         super().__init__(detail)
@@ -53,3 +54,24 @@ class ExternalServiceError(DomainError):
 
 class ExternalTimeoutError(DomainError):
     status_code = 504
+
+
+class AuthenticationError(DomainError):
+    """Identifiants ou jeton d'étape refusés : 401 (le client déconnecte l'utilisateur sur ce code)."""
+
+    status_code = 401
+
+    def __init__(self, detail: str, www_authenticate: bool = False):
+        super().__init__(detail)
+        if www_authenticate:
+            self.headers = {"WWW-Authenticate": "Bearer"}
+
+
+class RateLimitedError(DomainError):
+    """Trop de tentatives : 429 avec `Retry-After`."""
+
+    status_code = 429
+
+    def __init__(self, detail: str, retry_after_seconds: int):
+        super().__init__(detail)
+        self.headers = {"Retry-After": str(retry_after_seconds)}
