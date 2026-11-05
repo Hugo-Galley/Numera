@@ -3,7 +3,7 @@ from datetime import datetime
 
 from sqlalchemy.orm import Session
 
-from app.domain.investments import AllocationGroups, patrimoine_items
+from app.domain.investments import AllocationGroups, Tags, net_purchase_weights, patrimoine_items, ticker_tags
 from app.domain.portfolio import uses_positions
 from app.models.account import Account
 from app.models.investment_transaction import InvestmentTransaction
@@ -65,7 +65,8 @@ async def compute_allocation(db: Session, account_id: int | None = None) -> dict
 
 
 async def compute_allocation_advanced(db: Session) -> dict:
-    """Répartition par classe d'actifs, secteur et zone : celle des opérations au prorata de leur montant, sinon celle du compte."""
+    """Répartition par classe d'actifs, secteur et zone de ce qui est détenu : valeur de chaque position (compte
+    valorisé par positions) ou achats nets des ventes (sinon), à défaut la classification du compte."""
     accounts = repo.investment_accounts(db)
     values = await account_values(db, accounts)
     groups = AllocationGroups()
@@ -73,13 +74,32 @@ async def compute_allocation_advanced(db: Session) -> dict:
         val_eur = values[acc.id].value_eur
         groups.total += val_eur
         txs = repo.allocated_operations(db, acc.id)
-        total_tx_amount = sum(abs(tx.amount) for tx in txs) if txs else 0
-        if txs and total_tx_amount > 0:
-            for tx in txs:
-                groups.add(tx.asset_class, tx.sector, tx.geographic_zone, val_eur * (abs(tx.amount) / total_tx_amount), acc)
+        weights: list[tuple[Tags, float]] = []
+        if values[acc.id].source == "positions":
+            weights = await _position_weights(db, acc, txs)
+        else:
+            weights = net_purchase_weights(txs)
+        total_weight = sum(w for _, w in weights)
+        if total_weight > 0:
+            for (asset_class, sector, zone), weight in weights:
+                groups.add(asset_class, sector, zone, val_eur * weight / total_weight, acc)
         else:
             groups.add(acc.asset_class, acc.sector, acc.geographic_zone, val_eur, acc)
     return groups.result()
+
+
+async def _position_weights(db: Session, acc: Account, txs: list[InvestmentTransaction]) -> list[tuple[Tags, float]]:
+    """Valeur EUR de chaque ligne détenue, classée comme son titre ; les espèces en « Liquidités »."""
+    portfolio = await compute_portfolio(db, acc, history=False)
+    by_ticker = ticker_tags(txs)
+    weights = [
+        (by_ticker.get(line["ticker"], (acc.asset_class, acc.sector, acc.geographic_zone)), line["value_eur"])
+        for line in portfolio["lines"] if line["value_eur"] > 0
+    ]
+    cash = portfolio["value_eur"] - sum(w for _, w in weights)
+    if cash > 0.005:
+        weights.append((("Liquidités", None, None), cash))
+    return weights
 
 
 async def compute_patrimoine_allocation(db: Session) -> dict:

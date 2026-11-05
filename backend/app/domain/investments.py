@@ -1,7 +1,43 @@
 """Calculs purs des répartitions d'investissement et du patrimoine."""
 from typing import Any
 
+from app.domain.holdings import BUY_TYPES, SELL_TYPES, normalize_ticker
+
 UNCLASSIFIED = "Non classé"
+
+Tags = tuple[str | None, str | None, str | None]  # (classe d'actifs, secteur, zone)
+
+
+def _tags(op: Any) -> Tags:
+    return op.asset_class, op.sector, op.geographic_zone
+
+
+def ticker_tags(operations: list[Any]) -> dict[str, Tags]:
+    """Classification de chaque titre : celle de son achat le plus récent portant une classe d'actifs."""
+    buys = sorted((op for op in operations if op.ticker and op.type in BUY_TYPES), key=lambda op: (op.date, op.id or 0))
+    return {normalize_ticker(op.ticker): _tags(op) for op in buys}
+
+
+def net_purchase_weights(operations: list[Any]) -> list[tuple[Tags, float]]:
+    """Poids par classification d'un compte sans positions : achats nets des ventes, par titre.
+
+    Un titre entièrement revendu pèse 0 ; dividendes et frais ne sont pas de l'exposition. Les opérations
+    sans titre sont regroupées par classification.
+    """
+    net: dict[Any, float] = {}
+    tags: dict[Any, Tags] = {}
+    for op in sorted(operations, key=lambda op: (op.date, op.id or 0)):
+        if op.type in BUY_TYPES:
+            sign = 1.0
+        elif op.type in SELL_TYPES:
+            sign = -1.0
+        else:
+            continue
+        key = normalize_ticker(op.ticker) if op.ticker else _tags(op)
+        net[key] = net.get(key, 0.0) + sign * abs(op.amount)
+        if sign > 0 or key not in tags:
+            tags[key] = _tags(op)
+    return [(tags[key], weight) for key, weight in net.items() if weight > 0]
 
 
 class AllocationGroups:
