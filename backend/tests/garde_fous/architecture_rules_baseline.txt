@@ -1,0 +1,80 @@
+app/controllers/analytics/audit.py -> app.db.session
+app/controllers/analytics/budget.py -> app.db.session
+app/controllers/analytics/diversity.py -> app.db.session
+app/controllers/analytics/dividends.py -> app.db.session
+app/controllers/analytics/insights.py -> app.db.session
+app/controllers/analytics/investments.py -> app.db.session
+app/controllers/analytics/metrics.py -> app.db.session
+app/controllers/analytics/portfolio.py -> app.db.session
+app/controllers/analytics/reports.py -> app.db.session
+app/controllers/analytics/subscriptions.py -> app.db.session
+app/controllers/analytics/wrapped.py -> app.db.session
+app/controllers/budget/benefits.py -> app.db.session
+app/controllers/budget/categories.py -> app.db.session
+app/controllers/budget/exports.py -> app.db.session
+app/controllers/budget/imports.py -> app.db.session
+app/controllers/budget/provisions.py -> app.db.session
+app/controllers/budget/savings_goals.py -> app.db.session
+app/controllers/budget/tags.py -> app.db.session
+app/controllers/budget/transactions.py -> app.db.session
+app/controllers/budget/transactions.py -> app.repositories.budget.transactions
+app/controllers/comptes/accounts.py -> app.db.session
+app/controllers/comptes/balance_snapshots.py -> app.db.session
+app/controllers/comptes/financial_events.py -> app.db.session
+app/controllers/comptes/loans.py -> app.db.session
+app/controllers/deps.py -> app.db.session
+app/controllers/deps.py -> app.db.system_settings
+app/controllers/investissement/etf_profiles.py -> app.db.session
+app/controllers/investissement/holdings.py -> app.db.session
+app/controllers/investissement/investment_transactions.py -> app.db.session
+app/controllers/investissement/market.py -> app.db.session
+app/controllers/investissement/tax.py -> app.db.session
+app/controllers/systeme/admin.py -> app.db.session
+app/controllers/systeme/auth.py -> app.db.session
+app/controllers/systeme/auth.py -> app.db.system_settings
+app/controllers/systeme/notifications.py -> app.db.session
+app/controllers/systeme/passkeys.py -> app.db.session
+app/controllers/systeme/passkeys.py -> app.db.system_settings
+app/controllers/systeme/passkeys.py -> commit()
+app/controllers/systeme/totp.py -> app.db.session
+app/controllers/systeme/totp.py -> app.db.system_settings
+app/controllers/systeme/totp.py -> commit()
+app/core/login_events.py -> commit()
+app/core/login_events.py -> fastapi
+app/core/login_rate_limit.py -> fastapi
+app/core/mcp_tokens.py -> commit()
+app/domain/budget.py -> app.schemas.category
+app/domain/csv_import.py -> app.schemas.types
+app/domain/diversity.py -> app.models.etf_profile
+app/domain/dividends.py -> app.models.investment_transaction
+app/domain/dividends.py -> app.models.portfolio_holding
+app/domain/dividends.py -> app.schemas.dividend
+app/domain/etf_profiles.py -> app.models.etf_profile
+app/domain/etf_profiles.py -> app.schemas.etf_profile
+app/domain/insights.py -> app.schemas.insight
+app/domain/loans.py -> app.models.loan
+app/domain/portfolio.py -> app.models.account
+app/domain/portfolio.py -> app.models.transaction
+app/domain/projections.py -> app.schemas.insight
+app/domain/reports.py -> app.schemas.insight
+app/domain/transactions.py -> app.models.transaction
+app/domain/transactions.py -> app.schemas.transaction
+app/domain/transfers.py -> app.models.investment_transaction
+app/domain/transfers.py -> app.models.transaction
+app/integrations/notifications.py -> async def send sans await
+app/main.py -> async def currency_conversion_error_handler sans await
+app/main.py -> async def domain_error_handler sans await
+app/main.py -> async def integrity_error_handler sans await
+app/main.py -> async def overflow_error_handler sans await
+app/main.py -> async def validation_error_handler sans await
+app/services/analytics/budget/summary.py -> db.query/execute (requête hors repository)
+app/services/budget/month_review.py -> db.query/execute (requête hors repository)
+app/services/budget/reimbursements.py -> db.query/execute (requête hors repository)
+app/services/budget/salary_generation.py -> db.query/execute (requête hors repository)
+app/services/budget/splits.py -> db.query/execute (requête hors repository)
+app/services/budget/subscription_prices.py -> db.query/execute (requête hors repository)
+app/services/budget/transaction_writes.py -> async def bulk_update_transactions sans await
+app/services/budget/work_time.py -> db.query/execute (requête hors repository)
+app/services/investissement/tax.py -> db.query/execute (requête hors repository)
+app/services/systeme/notifications.py -> db.query/execute (requête hors repository)
+app/services/systeme/seeds.py -> db.query/execute (requête hors repository)

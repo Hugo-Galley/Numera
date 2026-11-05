@@ -5,6 +5,7 @@ from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from app.core.logging import get_logger
+from app.core.time import utcnow_naive
 from app.domain.salary import salary_amount, salary_note
 from app.models.category import Category
 from app.models.salary_config import SalaryConfig
@@ -40,7 +41,7 @@ def generate_salary_transactions(
                 f"marking as generated without creating duplicate"
             )
             month_record.is_generated = True
-            month_record.generated_at = datetime.utcnow()
+            month_record.generated_at = utcnow_naive()
             db.commit()
             return False
 
@@ -72,7 +73,7 @@ def generate_salary_transactions(
 
     # Update month record
     month_record.is_generated = True
-    month_record.generated_at = datetime.utcnow()
+    month_record.generated_at = utcnow_naive()
 
     db.commit()
 

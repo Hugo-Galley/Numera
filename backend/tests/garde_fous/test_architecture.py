@@ -3,23 +3,36 @@
 Les violations existantes sont tolérées via `architecture_baseline.txt` (cliquet) : aucune nouvelle
 violation, et une entrée qui ne se produit plus doit être retirée.
 
-    PYTHONPATH=. python3.11 tests/test_architecture.py   # régénère la baseline
+    cd backend && PYTHONPATH=. python3.11 tests/garde_fous/test_architecture.py   # régénère la baseline
+
+Contrôles (chaque entrée de la baseline est « fichier -> cause ») :
+- imports interdits par couche (`FORBIDDEN`), dont controllers -> models|repositories|db|integrations|domain ;
+- `commit()` hors `services/` (et hors tests) : controllers, repositories, core, db, integrations, domain ;
+- `db.query(...)` / `db.execute(...)` directs dans `services/` (à déplacer dans un repository) ;
+- `async def` sans `await` hors `controllers/` (couvert côté controllers par `test_async_endpoints.py`) ;
+- `HTTPException` : un service n'importe ni `fastapi` ni `starlette`.
 """
 import ast
 from pathlib import Path
 
 APP_DIR = Path(__file__).parents[2] / "app"
-BASELINE_PATH = Path(__file__).parent / "architecture_baseline.txt"
+BASELINE_PATH = Path(__file__).parent / "architecture_baseline.txt"  # règles historiques d'imports : vide
+# Règles ajoutées ensuite (commit hors services, controllers -> models/db…, requêtes dans les services, async inutile) :
+# baseline séparée, initialisée sur l'existant. Les deux fichiers sont protégés par le check « Cliquets ».
+RULES_BASELINE_PATH = Path(__file__).parent / "architecture_rules_baseline.txt"
 
 _DATA_LAYERS_FORBIDDEN = ("app.controllers", "app.services", "app.repositories", "app.integrations")
 
 FORBIDDEN: dict[str, tuple[str, ...]] = {
-    "app.services": ("app.controllers", "fastapi"),
+    # Un controller ne parle qu'aux services et aux schémas : pas d'ORM, de requêtes, de calculs ni d'appels externes.
+    "app.controllers": ("app.models", "app.repositories", "app.db", "app.integrations", "app.domain"),
+    "app.services": ("app.controllers", "fastapi", "starlette"),
     "app.repositories": ("app.controllers", "app.services", "app.integrations", "fastapi"),
-    "app.domain": ("app.controllers", "app.services", "app.repositories", "app.integrations", "app.db", "sqlalchemy.orm", "fastapi"),
-    "app.integrations": ("app.controllers", "app.services", "app.repositories"),
+    "app.domain": ("app.controllers", "app.services", "app.repositories", "app.integrations", "app.db", "sqlalchemy.orm", "fastapi",
+                   "app.models", "app.schemas"),
+    "app.integrations": ("app.controllers", "app.services", "app.repositories", "app.models", "app.db"),
     # core n'importe que core, models et db (transverse).
-    "app.core": ("app.controllers", "app.services", "app.repositories", "app.domain", "app.integrations", "app.schemas"),
+    "app.core": ("app.controllers", "app.services", "app.repositories", "app.domain", "app.integrations", "app.schemas", "fastapi"),
     "app.models": _DATA_LAYERS_FORBIDDEN,
     "app.schemas": _DATA_LAYERS_FORBIDDEN,
     "app.db": _DATA_LAYERS_FORBIDDEN,
@@ -70,11 +83,32 @@ def _controllers_violation(module: str, imported: str) -> bool:
     return not (domain and _matches(imported, domain)) and not _matches(imported, module)
 
 
-def _commits(path: Path) -> bool:
+# Couches où `commit()` est interdit : seuls les services valident la transaction.
+_NO_COMMIT_LAYERS = ("app.controllers", "app.repositories", "app.core", "app.db", "app.integrations", "app.domain")
+
+
+def _calls_method(tree: ast.AST, *names: str) -> bool:
     return any(
-        isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute) and node.func.attr == "commit"
-        for node in ast.walk(ast.parse(path.read_text(encoding="utf-8")))
+        isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute) and node.func.attr in names
+        for node in ast.walk(tree)
     )
+
+
+def _direct_queries(tree: ast.AST) -> bool:
+    """`db.query(...)` / `db.execute(...)` (ou `session.…`) : requête écrite hors repository."""
+    return any(
+        isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute) and node.func.attr in ("query", "execute")
+        and isinstance(node.func.value, ast.Name) and node.func.value.id in ("db", "session")
+        for node in ast.walk(tree)
+    )
+
+
+def _async_without_await(tree: ast.AST) -> list[str]:
+    return [
+        node.name for node in ast.walk(tree)
+        if isinstance(node, ast.AsyncFunctionDef)
+        and not any(isinstance(n, (ast.Await, ast.AsyncFor, ast.AsyncWith)) for n in ast.walk(node))
+    ]
 
 
 def violations(app_dir: Path) -> set[str]:
@@ -92,13 +126,19 @@ def violations(app_dir: Path) -> set[str]:
                 found.update(f"{rel} -> {imp}" for imp in imported if any(_matches(imp, f) for f in forbidden))
         if _matches(module, "app.controllers"):
             found.update(f"{rel} -> {imp}" for imp in imported if _controllers_violation(module, imp))
-        if _matches(module, "app.repositories") and _commits(path):
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+        if any(_matches(module, layer) for layer in _NO_COMMIT_LAYERS) and _calls_method(tree, "commit"):
             found.add(f"{rel} -> commit()")
+        if _matches(module, "app.services") and _direct_queries(tree):
+            found.add(f"{rel} -> db.query/execute (requête hors repository)")
+        if not _matches(module, "app.controllers"):
+            found.update(f"{rel} -> async def {name} sans await" for name in _async_without_await(tree))
     return found
 
 
 def _baseline() -> set[str]:
-    return set(BASELINE_PATH.read_text(encoding="utf-8").splitlines()) - {""}
+    lines = BASELINE_PATH.read_text(encoding="utf-8").splitlines() + RULES_BASELINE_PATH.read_text(encoding="utf-8").splitlines()
+    return set(lines) - {""}
 
 
 def write(path: Path, content: str) -> None:
@@ -176,13 +216,57 @@ def test_repository_commit_is_a_violation(tmp_path):
     assert "app/repositories/r.py -> commit()" in violations(tmp_path / "app")
 
 
+def test_controllers_may_not_reach_data_or_domain_layers(tmp_path):
+    for name in ("models/m", "repositories/r", "db/session", "integrations/i", "domain/d", "services/s", "schemas/y", "core/c"):
+        write(tmp_path / f"app/{name}.py", "")
+    write(tmp_path / "app/controllers/c.py",
+          "from app.models.m import M\nfrom app.repositories.r import R\nfrom app.db.session import S\n"
+          "from app.integrations.i import I\nfrom app.domain.d import D\n"
+          "from app.services.s import ok\nfrom app.schemas.y import ok\nfrom app.core.c import ok\n")
+    assert violations(tmp_path / "app") == {
+        f"app/controllers/c.py -> app.{m}" for m in ("models.m", "repositories.r", "db.session", "integrations.i", "domain.d")}
+
+
+def test_lower_layers_forbidden_imports(tmp_path):
+    for name in ("models/m", "schemas/y", "db/session"):
+        write(tmp_path / f"app/{name}.py", "")
+    write(tmp_path / "app/core/x.py", "from fastapi import HTTPException\n")
+    write(tmp_path / "app/domain/d.py", "from app.models.m import M\nfrom app.schemas.y import Y\n")
+    write(tmp_path / "app/integrations/i.py", "from app.models.m import M\nfrom app.db.session import S\n")
+    write(tmp_path / "app/services/s.py", "from starlette.exceptions import HTTPException\n")
+    assert violations(tmp_path / "app") == {
+        "app/core/x.py -> fastapi",
+        "app/domain/d.py -> app.models.m", "app/domain/d.py -> app.schemas.y",
+        "app/integrations/i.py -> app.models.m", "app/integrations/i.py -> app.db.session",
+        "app/services/s.py -> starlette.exceptions"}
+
+
+def test_commit_is_forbidden_outside_services(tmp_path):
+    for layer in ("controllers", "core", "db", "integrations", "domain", "services"):
+        write(tmp_path / f"app/{layer}/m.py", "def f(db):\n    db.commit()\n")
+    assert violations(tmp_path / "app") == {
+        f"app/{layer}/m.py -> commit()" for layer in ("controllers", "core", "db", "integrations", "domain")}
+
+
+def test_services_may_not_query_directly(tmp_path):
+    write(tmp_path / "app/services/s.py", "def f(db):\n    db.query(1)\n    db.execute(2)\n")
+    write(tmp_path / "app/services/ok.py", "def f(repo):\n    repo.query(1)\n")
+    assert violations(tmp_path / "app") == {"app/services/s.py -> db.query/execute (requête hors repository)"}
+
+
+def test_async_without_await_outside_controllers(tmp_path):
+    write(tmp_path / "app/services/s.py", "async def bad():\n    return 1\n\nasync def good(x):\n    await x\n")
+    write(tmp_path / "app/controllers/c.py", "async def bad():\n    return 1\n")
+    assert violations(tmp_path / "app") == {"app/services/s.py -> async def bad sans await"}
+
+
 def test_layers_match_baseline():
     found = violations(APP_DIR)
     baseline = _baseline()
     assert sorted(found - baseline) == [], "nouvelles violations de couches"
-    assert sorted(baseline - found) == [], f"violations corrigées : les retirer de {BASELINE_PATH.name}"
+    assert sorted(baseline - found) == [], f"violations corrigées : les retirer de {RULES_BASELINE_PATH.name}"
 
 
 if __name__ == "__main__":
-    BASELINE_PATH.write_text("\n".join(sorted(violations(APP_DIR))) + "\n", encoding="utf-8")
-    print(f"Baseline écrite : {BASELINE_PATH}")
+    RULES_BASELINE_PATH.write_text("\n".join(sorted(violations(APP_DIR))) + "\n", encoding="utf-8")
+    print(f"Baseline écrite : {RULES_BASELINE_PATH}")
