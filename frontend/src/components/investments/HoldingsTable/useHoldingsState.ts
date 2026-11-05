@@ -1,3 +1,4 @@
+import { errorMessage } from "@/lib/utils"
 import { PortfolioHolding } from "@/types/diversity"
 import { toast } from "sonner"
 import { useConfirm } from "@/providers/ConfirmProvider"
@@ -64,7 +65,7 @@ export function useHoldingsState(p: { accountId: HoldingsTableProps["accountId"]
         toast.error("Impossible de décomposer ce fonds en ligne", { id: toastId })
       }
     } catch (err: any) {
-      toast.error(err?.response?.data?.detail || "Erreur de décomposition", { id: toastId })
+      toast.error(errorMessage(err, "Erreur de décomposition"), { id: toastId })
     } finally {
       setDecomposingId(null)
     }

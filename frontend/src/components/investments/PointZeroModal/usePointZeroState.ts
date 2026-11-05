@@ -1,3 +1,4 @@
+import { errorMessage } from "@/lib/utils"
 import { toast } from "sonner"
 import { useEffect, useState } from "react"
 import { BaselineRow, PointZeroModalProps } from "./types"
@@ -205,7 +206,7 @@ export function usePointZeroState(p: { open: PointZeroModalProps["open"]; onOpen
       onBaselineSaved()
       onOpenChange(false)
     } catch (err: any) {
-      toast.error(err?.response?.data?.detail || "Erreur lors de l'enregistrement de l'état des lieux")
+      toast.error(errorMessage(err, "Erreur lors de l'enregistrement de l'état des lieux"))
     } finally {
       setSaving(false)
     }

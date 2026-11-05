@@ -1,3 +1,4 @@
+import { useParams } from "react-router-dom"
 import { LoanView } from "@/components/loans/LoanView"
 import { ErrorState } from "@/components/layout/ErrorState"
 import { useAccountDetail } from "./useAccountDetail"
@@ -12,7 +13,13 @@ import { BulkActionsBar } from "./BulkActionsBar"
 import { BulkEditDialog } from "./BulkEditDialog"
 import { AccountDialogs } from "./AccountDialogs"
 
+/** `key={id}` : passer d'un compte à l'autre repart d'un état vierge (sélection, recherche, filtres, dates). */
 export default function AccountDetail() {
+  const { id } = useParams()
+  return <AccountDetailPage key={id} />
+}
+
+function AccountDetailPage() {
   const ctx = useAccountDetail()
   const { loading, account, investmentData, loadError, loadData } = ctx
 
