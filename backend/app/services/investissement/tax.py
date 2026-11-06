@@ -3,6 +3,7 @@ from datetime import date, datetime
 
 from sqlalchemy.orm import Session
 
+from app.core.i18n import tr
 from app.core.logging import get_logger
 from app.db.system_settings import get_setting, set_setting
 from app.domain.tax import (
@@ -85,10 +86,7 @@ def _partial_history_alert(db: Session, account: Account) -> str | None:
         is not None
     )
     if account.holdings_baseline_date is not None or has_zero_point:
-        return (
-            "Le compte démarre d'un inventaire (Point Zéro) : les versements antérieurs n'étant pas saisis, "
-            "la place restante est probablement surestimée."
-        )
+        return tr("tax.partial_history")
     return None
 
 
@@ -193,13 +191,9 @@ async def build_annual_report(db: Session, year: int) -> AnnualReport:
         dividends = [d for d in await load_dividends_eur(db, account.id) if d.tx.date.year == year]
         estimated = sorted({sale.ticker for sale in known if sale.cost_eur_estimated})
         if estimated:
-            warnings.append(
-                f"{account.name} : coût de revient converti au taux du Point Zéro (et non à la date d'achat) pour "
-                f"{', '.join(estimated)}, titre(s) en devise : saisis le coût de revient en EUR dans l'inventaire "
-                "pour une plus-value 2074 exacte."
-            )
+            warnings.append(tr("tax.report.fx_estimated", account=account.name, tickers=", ".join(estimated)))
         if unknown:
-            warnings.append(f"{account.name} : {unknown} vente(s) sans coût de revient connu, plus-value non comptée.")
+            warnings.append(tr("tax.report.unknown_cost", account=account.name, count=unknown))
         rows.append(
             CtoYearRow(
                 account_id=account.id,
