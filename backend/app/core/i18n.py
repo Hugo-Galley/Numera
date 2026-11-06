@@ -87,7 +87,8 @@ def format_number(value: float, decimals: int = 2, thousands: str | None = None)
     """Nombre au format de la langue courante ; `thousands` remplace le séparateur de milliers (« » : aucun)."""
     fmt = formats()
     sep = fmt.thousands if thousands is None else thousands
-    return f"{value:,.{decimals}f}".translate(str.maketrans({",": sep, ".": fmt.decimal}))
+    table: dict[str, str | int | None] = {",": sep, ".": fmt.decimal}
+    return f"{value:,.{decimals}f}".translate(str.maketrans(table))
 
 
 def format_money(value: float, symbol: str = "€", gap: str | None = None) -> str:
