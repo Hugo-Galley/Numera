@@ -39,4 +39,13 @@ describe("langue de l'interface et formats", () => {
     expect(i18n.t("urgentActions", { ns: "nav", count: 1 })).toBe("1 urgent action")
     expect(i18n.t("urgentActions", { ns: "nav", count: 3 })).toBe("3 urgent actions")
   })
+
+  it("lit le code de langue sans la région et retombe sur le français pour une langue inconnue", async () => {
+    await i18n.changeLanguage("en-US")
+    expect(appLocale()).toBe("en-GB")
+    await i18n.changeLanguage("de")
+    expect(appLocale()).toBe("fr-FR")
+    expect(percentSuffix(true)).toBe("\u00a0%")
+    expect(percentSuffix()).toBe(" %")
+  })
 })

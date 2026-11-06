@@ -21,7 +21,7 @@ from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 
 from app.core.errors import ExternalServiceError, InvalidOperationError
-from app.core.i18n import LANGUAGES, get_language, set_language, tr
+from app.core.i18n import DEFAULT_LANGUAGE, LANGUAGES, format_money, get_language, set_language, tr
 from app.core.logging import get_logger
 from app.db.system_settings import get_setting, set_setting
 from app.integrations.notifications import DEFAULT_NTFY_SERVER, Channel, NtfyChannel, TelegramChannel, send_all
@@ -75,7 +75,7 @@ class NotificationSettings:
     weekly_digest: bool = False
     hide_amounts: bool = False
     public_url: str = ""
-    language: str = "fr"
+    language: str = DEFAULT_LANGUAGE
 
 
 def load_settings(db: Session) -> NotificationSettings:
@@ -164,7 +164,7 @@ def _language(language: str) -> Iterator[None]:
 
 async def _localized(db: Session, actions: list[ActionItem], language: str) -> dict[str, ActionItem]:
     """Les mêmes actions rédigées dans `language`, par id (les empreintes restent calculées sur le français)."""
-    if language == "fr":
+    if language == DEFAULT_LANGUAGE:
         return {a.id: a for a in actions}
     with _language(language):
         return {a.id: a for a in await current_actions(db)}
@@ -193,7 +193,7 @@ async def run_notifications(db: Session, now: datetime | None = None) -> int:
     language = settings.language
     floor = SEVERITY_RANK[settings.min_severity]
     # Empreintes sur le texte français : changer de langue ne renvoie pas les alertes déjà envoyées
-    with _language("fr"):
+    with _language(DEFAULT_LANGUAGE):
         all_actions = await current_actions(db)
     actions = [a for a in all_actions if SEVERITY_RANK.get(a.severity, 0) >= floor]
     shown = await _localized(db, all_actions, language)
@@ -237,9 +237,7 @@ async def run_notifications(db: Session, now: datetime | None = None) -> int:
 
 
 def _eur(value: float) -> str:
-    if get_language() == "en":
-        return f"€{value:,.2f}"
-    return f"{value:,.2f}".replace(",", "\u202f").replace(".", ",") + " €"
+    return format_money(value, gap=" ")
 
 
 def _week_key(now: datetime) -> str:

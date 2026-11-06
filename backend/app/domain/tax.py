@@ -4,7 +4,7 @@ import unicodedata
 from datetime import date
 from typing import Any, NamedTuple
 
-from app.core.i18n import get_language, tr
+from app.core.i18n import format_number, tr
 from app.domain.tax_rules import TaxRules
 
 PEA_MILESTONE_YEARS = 5
@@ -194,8 +194,7 @@ PER_MIN_TMI_PCT = 30
 
 def _months(value: float) -> str:
     """Nombre décimal dans un texte : virgule en français, point en anglais."""
-    text = f"{value:.1f}"
-    return text.replace(".", ",") if get_language() == "fr" else text
+    return format_number(value, 1, thousands="")
 
 
 def allocation_advice(cards: list[dict[str, Any]], months_of_expenses: float | None, tmi_pct: float | None) -> list[dict[str, Any]]:

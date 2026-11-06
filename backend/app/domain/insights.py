@@ -2,15 +2,13 @@
 
 from typing import Any
 
-from app.core.i18n import get_language, tr
+from app.core.i18n import format_money, tr
 from app.schemas.insight import HealthScore, MetricDetail
 
 
 def eur(value: float) -> str:
     """Montant pour les textes, dans la langue de la requête : « 1 234,56 € » ou « €1,234.56 »."""
-    if get_language() == "en":
-        return f"€{value:,.2f}"
-    return f"{value:,.2f}".replace(",", "\u202f").replace(".", ",") + "\u00a0€"
+    return format_money(value)
 
 
 def health_score(budget_data: dict[str, Any], runway_months: float) -> HealthScore:

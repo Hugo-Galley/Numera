@@ -7,7 +7,7 @@ from datetime import datetime
 from sqlalchemy.orm import Session
 
 from app.core.errors import BusinessRuleError, ConflictError, NotFoundError
-from app.core.i18n import get_language, tr
+from app.core.i18n import format_datetime, tr
 from app.core.time import utcnow_naive
 from app.domain.dividends import match_dividend_ticker
 from app.domain.holdings import SELL_TYPES, is_trade
@@ -38,7 +38,7 @@ def _check_trade(db: Session, account_id: int, tx_type: str, date: datetime, tic
         raise BusinessRuleError(
             tr(
                 "errors.trade_before_zero_point", ticker=ticker.upper(),
-                cutoff=cutoff.strftime("%Y-%m-%d %H:%M" if get_language() == "en" else "%d/%m/%Y %H:%M"),
+                cutoff=format_datetime(cutoff),
             )
         )
 
