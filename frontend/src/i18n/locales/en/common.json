@@ -59,5 +59,8 @@
     "initial": "Opening Balance",
     "Virement": "Transfer",
     "uncategorized": "Uncategorized"
+  },
+  "pwaExtras": {
+    "horsLigneLesDonneesAffichees": "Offline — the displayed data may be out of date"
   }
 }

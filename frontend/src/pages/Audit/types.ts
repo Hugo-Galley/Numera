@@ -1,3 +1,4 @@
+import i18n from "i18next"
 import { RefreshCw, ShieldCheck, ShoppingBag, Target, Zap } from "lucide-react"
 import { formatCurrency } from "@/lib/utils"
 import { toInputValue } from "@/lib/dates"
@@ -58,10 +59,11 @@ export interface IssueDetails {
 }
 
 // Mêmes mots que les compteurs du haut (« Priorité haute / moyenne », « Suggestions »)
+// Getters : traduits à la lecture (jamais figés à l'import)
 export const severityLabel = {
-  high: "Priorité haute",
-  medium: "Priorité moyenne",
-  low: "Suggestion",
+  get high() { return i18n.t("misc.severityHigh", { ns: "audit" }) },
+  get medium() { return i18n.t("misc.severityMedium", { ns: "audit" }) },
+  get low() { return i18n.t("misc.severityLow", { ns: "audit" }) },
 }
 
 export const severityClass = {

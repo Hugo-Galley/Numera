@@ -1,3 +1,5 @@
+import i18n from "i18next"
+import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
@@ -21,6 +23,7 @@ export function RuleCreatorModal({
   onCreated: () => void
   onClose: () => void
 }) {
+  const { t } = useTranslation("audit")
   const [draft, setDraft] = useState({
     pattern: merchant,
     category_id: suggestedCategoryId ? String(suggestedCategoryId) : "none",
@@ -35,11 +38,11 @@ export function RuleCreatorModal({
         category_id: draft.category_id === "none" ? null : Number(draft.category_id),
         priority: 0,
       })
-      toast.success("Règle créée")
+      toast.success(t("creatorModals.regleCreee"))
       onCreated()
       onClose()
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Création impossible")
+      toast.error(err instanceof Error ? err.message : t("creatorModals.creationImpossible"))
     } finally {
       setSaving(false)
     }
@@ -49,24 +52,24 @@ export function RuleCreatorModal({
     <Dialog open onOpenChange={onClose}>
       <DialogContent className="[&_input]:text-base md:[&_input]:text-sm">
         <DialogHeader>
-          <DialogTitle>Créer une règle d'auto-catégorisation</DialogTitle>
+          <DialogTitle>{t("creatorModals.creerUneRegleDAuto")}</DialogTitle>
           <DialogDescription>
-            Automatisez la catégorisation pour les futures transactions de "{merchant}".
+            {i18n.t("misc.ruleHint", { ns: "audit", merchant })}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <p className="text-sm font-medium">Mot-clé (Pattern)</p>
+            <p className="text-sm font-medium">{t("creatorModals.motClePattern")}</p>
             <Input value={draft.pattern} onChange={(e) => setDraft({...draft, pattern: e.target.value})} />
           </div>
           <div className="space-y-2">
-            <p className="text-sm font-medium">Catégorie cible</p>
+            <p className="text-sm font-medium">{t("creatorModals.categorieCible")}</p>
             <Select value={draft.category_id} onValueChange={(v) => setDraft({...draft, category_id: v})}>
               <SelectTrigger>
-                <SelectValue placeholder="Choisir une catégorie" />
+                <SelectValue placeholder={t("creatorModals.choisirUneCategorie")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="none">Aucune</SelectItem>
+                <SelectItem value="none">{t("creatorModals.aucune")}</SelectItem>
                 {categories.map((c) => (
                   <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
                 ))}
@@ -75,10 +78,10 @@ export function RuleCreatorModal({
           </div>
         </div>
         <DialogFooter className="gap-2 sm:gap-0">
-          <Button variant="outline" className="h-11 sm:h-10" onClick={onClose}>Annuler</Button>
+          <Button variant="outline" className="h-11 sm:h-10" onClick={onClose}>{t("creatorModals.annuler")}</Button>
           <Button className="h-11 sm:h-10" onClick={create} disabled={saving}>
             {saving ? <RefreshCw className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
-            Créer la règle
+            {t("creatorModals.creerLaRegle")}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -99,6 +102,7 @@ export function MerchantCreatorModal({
   onCreated: () => void
   onClose: () => void
 }) {
+  const { t } = useTranslation("audit")
   const [draft, setDraft] = useState({
     name: merchant,
     category_id: "none",
@@ -114,12 +118,12 @@ export function MerchantCreatorModal({
         // Toutes les écritures repérées par le Centre d'actions, pas seulement la plus fréquente
         aliases: variants?.length ? variants : [merchant]
       })
-      toast.success("Marchand créé et normalisé")
+      toast.success(t("creatorModals.marchandCreeEtNormalise"))
       await postMerchantsAutoNormalize({})
       onCreated()
       onClose()
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Création impossible")
+      toast.error(err instanceof Error ? err.message : t("creatorModals.creationImpossible"))
     } finally {
       setSaving(false)
     }
@@ -129,24 +133,24 @@ export function MerchantCreatorModal({
     <Dialog open onOpenChange={onClose}>
       <DialogContent className="[&_input]:text-base md:[&_input]:text-sm">
         <DialogHeader>
-          <DialogTitle>Normaliser le marchand</DialogTitle>
+          <DialogTitle>{t("creatorModals.normaliserLeMarchand")}</DialogTitle>
           <DialogDescription>
-            Créez un marchand canonique pour "{merchant}".
+            {i18n.t("misc.merchantHint", { ns: "audit", merchant })}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <p className="text-sm font-medium">Nom canonique</p>
+            <p className="text-sm font-medium">{t("creatorModals.nomCanonique")}</p>
             <Input value={draft.name} onChange={(e) => setDraft({...draft, name: e.target.value})} />
           </div>
           <div className="space-y-2">
-            <p className="text-sm font-medium">Catégorie par défaut</p>
+            <p className="text-sm font-medium">{t("creatorModals.categorieParDefaut")}</p>
             <Select value={draft.category_id} onValueChange={(v) => setDraft({...draft, category_id: v})}>
               <SelectTrigger>
-                <SelectValue placeholder="Choisir une catégorie" />
+                <SelectValue placeholder={t("creatorModals.choisirUneCategorie")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="none">Aucune</SelectItem>
+                <SelectItem value="none">{t("creatorModals.aucune")}</SelectItem>
                 {categories.map((c) => (
                   <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
                 ))}
@@ -155,10 +159,10 @@ export function MerchantCreatorModal({
           </div>
         </div>
         <DialogFooter className="gap-2 sm:gap-0">
-          <Button variant="outline" className="h-11 sm:h-10" onClick={onClose}>Annuler</Button>
+          <Button variant="outline" className="h-11 sm:h-10" onClick={onClose}>{t("creatorModals.annuler")}</Button>
           <Button className="h-11 sm:h-10" onClick={create} disabled={saving}>
             {saving ? <RefreshCw className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
-            Créer et normaliser
+            {t("creatorModals.creerEtNormaliser")}
           </Button>
         </DialogFooter>
       </DialogContent>

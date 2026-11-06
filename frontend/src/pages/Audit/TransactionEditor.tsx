@@ -1,3 +1,5 @@
+import i18n from "i18next"
+import { useTranslation } from "react-i18next"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -24,6 +26,7 @@ export function TransactionEditor({
   onSaved: (tx: Transaction) => void
   onDeleted?: (id: number) => void
 }) {
+  const { t } = useTranslation("audit")
   const confirm = useConfirm()
   const [draft, setDraft] = useState({
     date: toDateTimeLocal(tx.date),
@@ -49,23 +52,23 @@ export function TransactionEditor({
         note: draft.note.trim() || null,
       })
       onSaved(saved)
-      toast.success("Transaction enregistrée")
+      toast.success(t("transactionEditor.transactionEnregistree"))
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Sauvegarde impossible")
+      toast.error(err instanceof Error ? err.message : t("transactionEditor.sauvegardeImpossible"))
     } finally {
       setSaving(false)
     }
   }
 
   async function remove() {
-    if (!(await confirm(`Supprimer la transaction « ${tx.merchant} » de ${formatCurrency(tx.amount)} ?`))) return
+    if (!(await confirm(i18n.t("misc.deleteTx", { ns: "audit", merchant: tx.merchant, amount: formatCurrency(tx.amount) })))) return
     setSaving(true)
     try {
       await deleteTransactionsById(tx.id)
       onDeleted?.(tx.id)
-      toast.success("Transaction supprimée")
+      toast.success(t("transactionEditor.transactionSupprimee"))
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Suppression impossible")
+      toast.error(err instanceof Error ? err.message : t("transactionEditor.suppressionImpossible"))
     } finally {
       setSaving(false)
     }
@@ -81,7 +84,7 @@ export function TransactionEditor({
       <div className="flex flex-col p-3 gap-3 lg:hidden">
         <div className="flex items-center justify-between border-b pb-2">
           <div className="min-w-0">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Compte</p>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{t("transactionEditor.compte")}</p>
             <p className="truncate text-xs font-bold text-slate-700">{account?.name || `ID: ${tx.account_id}`}</p>
           </div>
           <Badge variant="outline" className="text-[10px]">{tx.currency}</Badge>
@@ -89,7 +92,7 @@ export function TransactionEditor({
         
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div>
-            <p className="mb-1 text-xs font-medium text-slate-500">Date et heure</p>
+            <p className="mb-1 text-xs font-medium text-slate-500">{t("transactionEditor.dateEtHeure")}</p>
             <Input
               type="datetime-local"
               value={draft.date}
@@ -98,40 +101,40 @@ export function TransactionEditor({
             />
           </div>
           <div>
-            <p className="mb-1 text-xs font-medium text-slate-500">Type</p>
+            <p className="mb-1 text-xs font-medium text-slate-500">{t("transactionEditor.type")}</p>
             <Select value={draft.type} onValueChange={(value) => setDraft({ ...draft, type: value })}>
               <SelectTrigger className="h-11 text-base">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Sortie">Sortie</SelectItem>
-                <SelectItem value="Entree">Entrée</SelectItem>
-                <SelectItem value="Interets">Intérêts</SelectItem>
-                <SelectItem value="Solde Initial">Solde Initial</SelectItem>
+                <SelectItem value="Sortie">{t("transactionEditor.sortie")}</SelectItem>
+                <SelectItem value="Entree">{t("transactionEditor.entree")}</SelectItem>
+                <SelectItem value="Interets">{t("transactionEditor.interets")}</SelectItem>
+                <SelectItem value="Solde Initial">{t("transactionEditor.soldeInitial")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
         </div>
 
         <div>
-          <p className="mb-1 text-xs font-medium text-slate-500">Marchand</p>
+          <p className="mb-1 text-xs font-medium text-slate-500">{t("transactionEditor.marchand")}</p>
           <Input
             value={draft.merchant}
             onChange={(event) => setDraft({ ...draft, merchant: event.target.value })}
-            placeholder="Marchand"
+            placeholder={t("transactionEditor.marchand")}
             className="h-11 text-base"
           />
         </div>
 
         <div className="grid grid-cols-[1.5fr_1fr] gap-3">
           <div className="min-w-0">
-            <p className="mb-1 text-xs font-medium text-slate-500">Catégorie</p>
+            <p className="mb-1 text-xs font-medium text-slate-500">{t("transactionEditor.categorie")}</p>
             <Select value={draft.category_id} onValueChange={(value) => setDraft({ ...draft, category_id: value })}>
               <SelectTrigger className="h-11 text-base">
-                <SelectValue placeholder="Catégorie" />
+                <SelectValue placeholder={t("transactionEditor.categorie")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="none">Sans catégorie</SelectItem>
+                <SelectItem value="none">{t("transactionEditor.sansCategorie")}</SelectItem>
                 {categoryOptions.map((category) => (
                   <SelectItem key={category.id} value={String(category.id)}>
                     {category.name}
@@ -141,7 +144,7 @@ export function TransactionEditor({
             </Select>
           </div>
           <div>
-            <p className="mb-1 text-xs font-medium text-slate-500">Montant</p>
+            <p className="mb-1 text-xs font-medium text-slate-500">{t("transactionEditor.montant")}</p>
             <Input
               type="number" inputMode="decimal"
               min="0"
@@ -155,13 +158,13 @@ export function TransactionEditor({
 
         <div className="flex justify-end gap-2 border-t pt-3">
           {onDeleted && (
-            <Button aria-label="Supprimer" type="button" variant="outline" size="icon" onClick={remove} disabled={saving} className="h-11 w-11 text-rose-500 hover:bg-rose-50 hover:text-rose-600">
+            <Button aria-label={t("transactionEditor.supprimer")} type="button" variant="outline" size="icon" onClick={remove} disabled={saving} className="h-11 w-11 text-rose-500 hover:bg-rose-50 hover:text-rose-600">
               <Trash2 className="h-4 w-4" />
             </Button>
           )}
           <Button type="button" size="sm" onClick={save} disabled={saving || !draft.merchant.trim() || Number(draft.amount) <= 0} className="h-11 shadow-sm flex-1">
             {saving ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-            Enregistrer
+            {t("transactionEditor.enregistrer")}
           </Button>
         </div>
       </div>
@@ -169,7 +172,7 @@ export function TransactionEditor({
       <div className="hidden lg:block overflow-x-auto">
         <div className="flex items-center gap-4 p-3 min-w-[1000px]">
           <div className="w-[140px] shrink-0">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Compte</p>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{t("transactionEditor.compte")}</p>
             <p className="truncate text-xs font-bold text-slate-700">{account?.name || `ID: ${tx.account_id}`}</p>
           </div>
 
@@ -188,10 +191,10 @@ export function TransactionEditor({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Sortie">Sortie</SelectItem>
-                <SelectItem value="Entree">Entrée</SelectItem>
-                <SelectItem value="Interets">Intérêts</SelectItem>
-                <SelectItem value="Solde Initial">Solde Initial</SelectItem>
+                <SelectItem value="Sortie">{t("transactionEditor.sortie")}</SelectItem>
+                <SelectItem value="Entree">{t("transactionEditor.entree")}</SelectItem>
+                <SelectItem value="Interets">{t("transactionEditor.interets")}</SelectItem>
+                <SelectItem value="Solde Initial">{t("transactionEditor.soldeInitial")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -200,7 +203,7 @@ export function TransactionEditor({
             <Input
               value={draft.merchant}
               onChange={(event) => setDraft({ ...draft, merchant: event.target.value })}
-              placeholder="Marchand"
+              placeholder={t("transactionEditor.marchand")}
               className="h-9 text-xs"
             />
           </div>
@@ -208,10 +211,10 @@ export function TransactionEditor({
           <div className="w-[160px] shrink-0">
             <Select value={draft.category_id} onValueChange={(value) => setDraft({ ...draft, category_id: value })}>
               <SelectTrigger className="h-9 text-xs">
-                <SelectValue placeholder="Catégorie" />
+                <SelectValue placeholder={t("transactionEditor.categorie")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="none">Sans catégorie</SelectItem>
+                <SelectItem value="none">{t("transactionEditor.sansCategorie")}</SelectItem>
                 {categoryOptions.map((category) => (
                   <SelectItem key={category.id} value={String(category.id)}>
                     {category.name}
@@ -241,20 +244,20 @@ export function TransactionEditor({
             <Input
               value={draft.note}
               onChange={(event) => setDraft({ ...draft, note: event.target.value })}
-              placeholder="Note"
+              placeholder={t("transactionEditor.note")}
               className="h-9 text-xs"
             />
           </div>
 
           <div className="flex shrink-0 gap-2">
             {onDeleted && (
-              <Button aria-label="Supprimer" type="button" variant="outline" size="icon" onClick={remove} disabled={saving} className="h-9 w-9 text-rose-500 hover:bg-rose-50 hover:text-rose-600">
+              <Button aria-label={t("transactionEditor.supprimer")} type="button" variant="outline" size="icon" onClick={remove} disabled={saving} className="h-9 w-9 text-rose-500 hover:bg-rose-50 hover:text-rose-600">
                 <Trash2 className="h-4 w-4" />
               </Button>
             )}
             <Button type="button" size="sm" onClick={save} disabled={saving || !draft.merchant.trim() || Number(draft.amount) <= 0} className="h-9 shadow-sm">
               {saving ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-              Enregistrer
+              {t("transactionEditor.enregistrer")}
             </Button>
           </div>
         </div>
