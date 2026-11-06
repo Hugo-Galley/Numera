@@ -8,6 +8,7 @@ from datetime import datetime
 
 from sqlalchemy.orm import Session
 
+from app.core.i18n import tr
 from app.domain.holdings import EPSILON
 from app.domain.performance import xirr
 from app.domain.portfolio import MIN_XIRR_DAYS, PRE_INVENTORY_RATIO, uses_positions
@@ -49,13 +50,11 @@ def _performance(cap: Capital, baseline_date: datetime | None, opening: float, v
         if before_inventory > PRE_INVENTORY_RATIO * max(opening, 1.0):
             unreliable = True
             performance_pct = None
-            warnings.append(
-                f"Versements antérieurs à l'inventaire ({before_inventory:,.0f} {currency}) très supérieurs à sa "
-                f"valeur d'ouverture ({opening:,.0f} {currency}) : performance non calculée. "
-                "Définissez un Point Zéro valorisé pour la fiabiliser."
-            )
+            warnings.append(tr(
+                "portfolio.warn_pre_inventory", before=f"{before_inventory:,.0f}", opening=f"{opening:,.0f}", currency=currency,
+            ))
     if cash < -0.01 * max(value, 1.0):
-        warnings.append("Espèces négatives : il manque probablement un versement ou une vente dans l'historique.")
+        warnings.append(tr("portfolio.warn_negative_cash"))
     return performance_pct, unreliable
 
 
@@ -161,7 +160,7 @@ async def _compute_portfolio(db: Session, account: Account, *, fetch: bool, hist
     persist_fetched_prices(db)
     positions = await value_positions(replay, tickers, quotes, fx, holdings_meta)
     if positions.unpriced:
-        warnings.append(f"Aucun cours disponible pour {', '.join(positions.unpriced)} : valorisé au coût de revient.")
+        warnings.append(tr("portfolio.warn_no_quote", tickers=", ".join(positions.unpriced)))
 
     cap = capital(db, account.id, baseline_date)
     book = PriceBook()
@@ -170,7 +169,7 @@ async def _compute_portfolio(db: Session, account: Account, *, fetch: bool, hist
     await ensure_history(db, book, all_tickers, history_start, fetch)
     opening, opening_cash, opening_approx = await opening_value(db, account.id, replay, book, fx, currency)
     if opening_approx:
-        warnings.append("Cours du Point Zéro indisponibles : valeur d'ouverture estimée au coût de revient.")
+        warnings.append(tr("portfolio.warn_zero_point_quotes"))
     anchor_on_inventory(cap, baseline_date, opening)
 
     cash = opening_cash + sum(e.cash for e in cap.events)
@@ -189,7 +188,7 @@ async def _compute_portfolio(db: Session, account: Account, *, fetch: bool, hist
             db, account.id, replay, book, fx, cap, opening_cash, value, today_day, currency
         )
     elif history and valued and history_missing:
-        warnings.append(f"Historique de cours indisponible pour {', '.join(history_missing)} : courbe et rapprochement non calculés.")
+        warnings.append(tr("portfolio.warn_history_missing", tickers=", ".join(history_missing)))
 
     xirr_flows, xirr_value, period_days = _xirr(cap, value, today_day, valued and not unreliable)
     figures = {

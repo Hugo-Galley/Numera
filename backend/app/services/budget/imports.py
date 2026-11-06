@@ -93,13 +93,10 @@ def preview_import(db: Session, content: bytes, filename: str | None, sample_siz
 def _preview_warnings(rows: list[dict], repeated: Counter) -> list[str]:
     warnings: list[str] = []
     if not any((r.get("Type") or "").strip() for r in rows):
-        warnings.append("Colonne Type absente : le sens est déduit du signe du montant (négatif = Sortie).")
+        warnings.append(tr("import.warn_no_type"))
     repeated_in_file = sum(count - 1 for count in repeated.values() if count > 1)
     if repeated_in_file:
-        warnings.append(
-            f"{repeated_in_file} ligne(s) identique(s) à une autre du fichier : elles seront toutes importées "
-            "(deux achats identiques le même jour sont légitimes)."
-        )
+        warnings.append(tr("import.warn_repeated", count=repeated_in_file))
     return warnings
 
 
@@ -190,7 +187,7 @@ def _import_row(db: Session, run: _ImportRun, parsed: ParsedRow, raw_date: str |
     if tx_type == "Solde Initial":
         # Un seul Solde Initial par compte (il remet le solde à zéro à sa date)
         if run.has_initial_balance:
-            raise ValueError(f"Un Solde Initial existe déjà pour ce compte ({raw_date})")
+            raise ValueError(tr("import.row_initial_exists", value=raw_date))
         run.has_initial_balance = True
 
     run.running_balance = apply_transaction_to_balance(run.running_balance, tx_type, parsed.amount)

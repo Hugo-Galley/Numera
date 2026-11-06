@@ -173,35 +173,35 @@ def parse_row(row: dict[str, str]) -> ParsedRow:
     try:
         dt = parse_date(raw_date)
     except ValueError:
-        raise ImportRowError(f"Date invalide « {raw_date} » (formats acceptés : JJ/MM/AAAA, AAAA-MM-JJ)") from None
+        raise ImportRowError(tr("import.row_bad_date", value=raw_date)) from None
 
     raw_amount = (row.get("Montant") or "").strip()
     try:
         signed = parse_amount(raw_amount)
     except ValueError:
-        raise ImportRowError(f"Montant invalide « {raw_amount} »") from None
+        raise ImportRowError(tr("import.row_bad_amount", value=raw_amount)) from None
     if not math.isfinite(signed) or abs(signed) >= MAX_AMOUNT:
-        raise ImportRowError(f"Montant hors limites « {raw_amount} »")
+        raise ImportRowError(tr("import.row_amount_limits", value=raw_amount))
 
     raw_type = (row.get("Type") or "").strip()
     if raw_type:
         try:
             tx_type = normalize_transaction_type(raw_type)
         except ValueError:
-            raise ImportRowError(f"Type inconnu « {raw_type} » (Entree, Sortie, Interets ou Solde Initial)") from None
+            raise ImportRowError(tr("import.row_unknown_type", value=raw_type)) from None
     elif signed < 0:
         tx_type = "Sortie"
     elif signed > 0:
         tx_type = "Entree"
     else:
-        raise ImportRowError("Type absent et montant nul : impossible de déduire le sens")
+        raise ImportRowError(tr("import.row_no_direction"))
 
     amount = abs(signed)
     if amount == 0 and tx_type != "Solde Initial":
-        raise ImportRowError("Montant nul")
+        raise ImportRowError(tr("import.row_zero_amount"))
 
     if not 1900 <= dt.year < 2200:
-        raise ImportRowError(f"Date hors de la plage 1900-2200 « {raw_date} »")
+        raise ImportRowError(tr("import.row_date_range", value=raw_date))
 
     return ParsedRow(
         line=line,
