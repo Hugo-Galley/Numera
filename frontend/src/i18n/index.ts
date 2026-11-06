@@ -5,6 +5,8 @@ import frAccounts from "./locales/fr/accounts.json"
 import frAuth from "./locales/fr/auth.json"
 import frImport from "./locales/fr/import.json"
 import frLoans from "./locales/fr/loans.json"
+import frAccountDetail from "./locales/fr/accountDetail.json"
+import frTransactions from "./locales/fr/transactions.json"
 import frCommon from "./locales/fr/common.json"
 import frDashboard from "./locales/fr/dashboard.json"
 import frNav from "./locales/fr/nav.json"
@@ -13,6 +15,8 @@ import enAccounts from "./locales/en/accounts.json"
 import enAuth from "./locales/en/auth.json"
 import enImport from "./locales/en/import.json"
 import enLoans from "./locales/en/loans.json"
+import enAccountDetail from "./locales/en/accountDetail.json"
+import enTransactions from "./locales/en/transactions.json"
 import enCommon from "./locales/en/common.json"
 import enDashboard from "./locales/en/dashboard.json"
 import enNav from "./locales/en/nav.json"
@@ -25,8 +29,8 @@ const STORAGE_KEY = "language"
 
 /** Un catalogue (JSON) par domaine ; le français est la référence, l'anglais doit avoir les mêmes clés. */
 export const resources = {
-  fr: { common: frCommon, accounts: frAccounts, import: frImport, loans: frLoans, nav: frNav, auth: frAuth, settings: frSettings, dashboard: frDashboard },
-  en: { common: enCommon, accounts: enAccounts, import: enImport, loans: enLoans, nav: enNav, auth: enAuth, settings: enSettings, dashboard: enDashboard },
+  fr: { common: frCommon, accounts: frAccounts, accountDetail: frAccountDetail, import: frImport, loans: frLoans, transactions: frTransactions, nav: frNav, auth: frAuth, settings: frSettings, dashboard: frDashboard },
+  en: { common: enCommon, accounts: enAccounts, accountDetail: enAccountDetail, import: enImport, loans: enLoans, transactions: enTransactions, nav: enNav, auth: enAuth, settings: enSettings, dashboard: enDashboard },
 } as const
 
 const isLanguage = (value: unknown): value is Language => LANGUAGES.includes(value as Language)

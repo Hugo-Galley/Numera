@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import { ArrowDown, ArrowUp, Pencil, Trash2 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -9,11 +10,12 @@ import type { AccountDetailView } from "./useAccountDetail"
 
 /** Historique des flux d'un compte d'investissement. */
 export function InvestmentFlowsCard({ ctx }: { ctx: AccountDetailView }) {
+  const { t } = useTranslation("accountDetail")
   const { account, formatCurrency, formatValue, handleDeleteInvTransaction, handleDeleteTransaction, handleEditInvTransaction, handleInvSort, id, invSortField, invSortOrder, investmentData, sortedInvestmentTransactions, transactions } = ctx
   return (
     <>
       <Card className="min-w-0 shadow-sm">
-        <CardHeader><CardTitle className="text-lg">Historique des flux</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-lg">{t("investmentFlowsCard.historiqueDesFlux")}</CardTitle></CardHeader>
         <CardContent className="p-0">
           <div className="divide-y md:hidden">
             {sortedInvestmentTransactions.map((tx: any) => (
@@ -31,8 +33,8 @@ export function InvestmentFlowsCard({ ctx }: { ctx: AccountDetailView }) {
                     {tx.ticker && <span className="font-mono text-slate-400">· {tx.ticker}</span>}
                     {tx.quantity != null && <span className="text-slate-400">· {tx.quantity} part{tx.quantity > 1 ? "s" : ""}</span>}
                     {tx.unit_price != null && <span className="text-slate-400 amount-blur">@ {formatCurrency(tx.unit_price)}</span>}
-                    {tx.reinvested && <span className="text-emerald-600">· réinvesti</span>}
-                    {tx.reinvest_of_id && <span className="text-emerald-600">↳ dividende réinvesti</span>}
+                    {tx.reinvested && <span className="text-emerald-600">{t("investmentFlowsCard.reinvesti")}</span>}
+                    {tx.reinvest_of_id && <span className="text-emerald-600">{t("investmentFlowsCard.dividendeReinvesti")}</span>}
                     {tx.currency && tx.currency !== account.currency && (
                       <span className="text-slate-400 amount-blur">({formatValue(tx.original_amount || tx.amount, tx.currency)})</span>
                     )}
@@ -40,14 +42,14 @@ export function InvestmentFlowsCard({ ctx }: { ctx: AccountDetailView }) {
                 </div>
                 <div className="flex shrink-0 items-center">
                   {!tx.is_regular && (
-                    <Button variant="ghost" size="icon" aria-label="Modifier" onClick={() => handleEditInvTransaction(tx)} className="h-10 w-10"><Pencil className="h-4 w-4" /></Button>
+                    <Button variant="ghost" size="icon" aria-label={t("investmentFlowsCard.modifier")} onClick={() => handleEditInvTransaction(tx)} className="h-10 w-10"><Pencil className="h-4 w-4" /></Button>
                   )}
-                  <Button variant="ghost" size="icon" aria-label="Supprimer" onClick={() => tx.is_regular ? handleDeleteTransaction(tx.id) : handleDeleteInvTransaction(tx.id)} className="h-10 w-10 text-rose-500"><Trash2 className="h-4 w-4" /></Button>
+                  <Button variant="ghost" size="icon" aria-label={t("investmentFlowsCard.supprimer")} onClick={() => tx.is_regular ? handleDeleteTransaction(tx.id) : handleDeleteInvTransaction(tx.id)} className="h-10 w-10 text-rose-500"><Trash2 className="h-4 w-4" /></Button>
                 </div>
               </div>
             ))}
             {(investmentData?.transactions || []).length === 0 && (
-              <p className="py-10 text-center text-slate-400">Aucun flux enregistré.</p>
+              <p className="py-10 text-center text-slate-400">{t("investmentFlowsCard.aucunFluxEnregistre")}</p>
             )}
           </div>
           <div className="hidden overflow-x-auto md:block">
@@ -71,7 +73,7 @@ export function InvestmentFlowsCard({ ctx }: { ctx: AccountDetailView }) {
                     {invSortField === "amount" && (invSortOrder === "asc" ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />)}
                   </div>
                 </TableHead>
-                <TableHead className="text-right w-[80px]">Actions</TableHead>
+                <TableHead className="text-right w-[80px]">{t("investmentFlowsCard.actions")}</TableHead>
               </TableRow>
             </TableHeader>
              <TableBody>
@@ -96,8 +98,8 @@ export function InvestmentFlowsCard({ ctx }: { ctx: AccountDetailView }) {
                           {tx.withholding_tax ? (
                             <span>• retenue {formatValue(tx.withholding_tax, tx.currency || account.currency)}</span>
                           ) : null}
-                          {tx.reinvested && <span className="text-emerald-600">• réinvesti</span>}
-                          {tx.reinvest_of_id && <span className="text-emerald-600">↳ dividende réinvesti</span>}
+                          {tx.reinvested && <span className="text-emerald-600">{t("investmentFlowsCard.reinvesti2")}</span>}
+                          {tx.reinvest_of_id && <span className="text-emerald-600">{t("investmentFlowsCard.dividendeReinvesti")}</span>}
                         </div>
                       )}
                     </div>
@@ -115,19 +117,19 @@ export function InvestmentFlowsCard({ ctx }: { ctx: AccountDetailView }) {
                   <TableCell className="text-right">
                      {tx.is_regular ? (
                        <div className="flex items-center justify-end gap-1">
-                         <Button aria-label="Supprimer" variant="ghost" size="sm" onClick={() => handleDeleteTransaction(tx.id)} className="h-8 w-8 p-0 text-rose-500"><Trash2 className="h-3 w-3" /></Button>
+                         <Button aria-label={t("investmentFlowsCard.supprimer")} variant="ghost" size="sm" onClick={() => handleDeleteTransaction(tx.id)} className="h-8 w-8 p-0 text-rose-500"><Trash2 className="h-3 w-3" /></Button>
                        </div>
                      ) : (
                        <div className="flex items-center justify-end gap-1">
-                         <Button aria-label="Modifier" variant="ghost" size="sm" onClick={() => handleEditInvTransaction(tx)} className="h-8 w-8 p-0"><Pencil className="h-3 w-3" /></Button>
-                         <Button aria-label="Supprimer" variant="ghost" size="sm" onClick={() => handleDeleteInvTransaction(tx.id)} className="h-8 w-8 p-0 text-rose-500"><Trash2 className="h-3 w-3" /></Button>
+                         <Button aria-label={t("investmentFlowsCard.modifier")} variant="ghost" size="sm" onClick={() => handleEditInvTransaction(tx)} className="h-8 w-8 p-0"><Pencil className="h-3 w-3" /></Button>
+                         <Button aria-label={t("investmentFlowsCard.supprimer")} variant="ghost" size="sm" onClick={() => handleDeleteInvTransaction(tx.id)} className="h-8 w-8 p-0 text-rose-500"><Trash2 className="h-3 w-3" /></Button>
                        </div>
                      )}
                   </TableCell>
                 </TableRow>
               ))}
               {(investmentData?.transactions || []).length === 0 && (
-                <TableRow><TableCell colSpan={4} className="text-center py-10 text-slate-400">Aucun flux enregistré.</TableCell></TableRow>
+                <TableRow><TableCell colSpan={4} className="text-center py-10 text-slate-400">{t("investmentFlowsCard.aucunFluxEnregistre")}</TableCell></TableRow>
               )}
             </TableBody>
           </Table>

@@ -4,10 +4,13 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { CompanyLogo } from "@/components/ui/CompanyLogo"
 import { IconComponent } from "@/components/dashboard/IconComponent"
 import { format } from "date-fns"
+import { useTranslation } from "react-i18next"
 import type { AccountDetailView } from "./useAccountDetail"
 
 /** Liste des transactions en cartes (mobile). */
 export function TransactionsMobileList({ ctx }: { ctx: AccountDetailView }) {
+  const { t } = useTranslation("accountDetail")
+  const { t: tc } = useTranslation("common")
   const { account, filteredTransactions, formatCurrency, formatValue, id, renderTxMenu, selectedIds, setSelectedIds, txLoading } = ctx
   return (
     <>
@@ -18,7 +21,7 @@ export function TransactionsMobileList({ ctx }: { ctx: AccountDetailView }) {
               checked={selectedIds.length === filteredTransactions.length && filteredTransactions.length > 0}
               onCheckedChange={(checked) => setSelectedIds(checked ? filteredTransactions.map(t => t.id) : [])}
             />
-            Tout sélectionner
+            {t("tx.selectAll")}
           </label>
         )}
         {filteredTransactions.map((tx) => {
@@ -50,22 +53,22 @@ export function TransactionsMobileList({ ctx }: { ctx: AccountDetailView }) {
                 <div className="mt-1 flex flex-wrap items-center justify-between gap-x-2 gap-y-0.5 text-xs text-slate-500">
                   <div className="flex min-w-0 flex-wrap items-center gap-x-1.5">
                     <span className="shrink-0">{format(new Date(tx.date), "dd/MM/yy")}</span>
-                    {tx.is_upcoming && <Badge variant="outline" className="shrink-0 gap-1 whitespace-nowrap border-none bg-sky-50 px-1.5 py-0 text-[10px] text-sky-700"><CalendarClock className="h-3 w-3" />À venir</Badge>}
+                    {tx.is_upcoming && <Badge variant="outline" className="shrink-0 gap-1 whitespace-nowrap border-none bg-sky-50 px-1.5 py-0 text-[10px] text-sky-700"><CalendarClock className="h-3 w-3" />{t("tx.upcoming")}</Badge>}
                     <span className="text-slate-300">·</span>
                     {tx.type === "Solde Initial" ? (
-                      <span>Solde Initial</span>
+                      <span>{tc("txTypes.initial")}</span>
                     ) : tx.type === "Interets" ? (
-                      <span className="text-amber-700">Intérêts</span>
+                      <span className="text-amber-700">{tc("txTypes.Interets")}</span>
                     ) : (
                       <>
                         <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded" style={{ backgroundColor: tx.category?.color || "#cbd5e1" }}>
                           <IconComponent name={tx.category?.icon} className="h-2.5 w-2.5 text-white" />
                         </span>
-                        <span>{tx.splits?.length ? `Découpée · ${tx.splits.map((p: any) => p.category?.name ?? "?").join(", ")}` : tx.category?.name || "Sans catégorie"}</span>
+                        <span>{tx.splits?.length ? `${t("tx.split")} · ${tx.splits.map((p: any) => p.category?.name ?? "?").join(", ")}` : tx.category?.name || tc("txTypes.uncategorized")}</span>
                       </>
                     )}
                   </div>
-                  <span className="shrink-0 whitespace-nowrap tabular-nums text-slate-400 amount-blur">Solde {formatCurrency(tx.running_balance)}</span>
+                  <span className="shrink-0 whitespace-nowrap tabular-nums text-slate-400 amount-blur">{t("tx.balanceLabel", { amount: formatCurrency(tx.running_balance) })}</span>
                 </div>
                 {tx.merchant_obj && tx.merchant_obj.name !== tx.merchant && (
                   <p className="mt-0.5 truncate text-[11px] italic text-slate-400">{tx.merchant}</p>
@@ -76,10 +79,10 @@ export function TransactionsMobileList({ ctx }: { ctx: AccountDetailView }) {
                     {tx.tags?.map((tag: any) => (
                       <Badge key={tag.id} className="border-none px-1.5 py-0 text-[10px] font-bold text-white" style={{ backgroundColor: tag.color || "#64748b" }}>{tag.name}</Badge>
                     ))}
-                    {tx.is_transfer && <Badge variant="outline" className="gap-1 border-none bg-emerald-50 px-1.5 py-0 text-[10px] text-emerald-700"><ArrowRightLeft className="h-3 w-3" />Virement</Badge>}
+                    {tx.is_transfer && <Badge variant="outline" className="gap-1 border-none bg-emerald-50 px-1.5 py-0 text-[10px] text-emerald-700"><ArrowRightLeft className="h-3 w-3" />{tc("txTypes.Virement")}</Badge>}
                     {(tx.reimbursement_offset ?? 0) > 0 && (
                       <Badge variant="outline" className="gap-1 border-none bg-emerald-50 px-1.5 py-0 text-[10px] text-emerald-700 amount-blur">
-                        <HandCoins className="h-3 w-3" />net {formatCurrency(tx.amount - (tx.reimbursement_offset ?? 0))}
+                        <HandCoins className="h-3 w-3" />{t("tx.net", { amount: formatCurrency(tx.amount - (tx.reimbursement_offset ?? 0)) })}
                       </Badge>
                     )}
                     {tx.currency !== account.currency && (

@@ -3,6 +3,7 @@ import { PortfolioHolding } from "@/types/diversity"
 import { endOfDayParam, startOfDayParam } from "@/lib/dates"
 import { errorMessage } from "@/lib/utils"
 import { ApiError } from "@/lib/api"
+import i18n from "i18next"
 import { toast } from "sonner"
 import { useEffect, useRef, useState } from "react"
 import { Account, Category, TagType, Transaction, TX_PAGE_SIZE } from "./types"
@@ -54,7 +55,7 @@ export function useAccountDetailData(p: ReturnType<typeof useAccountDetailState>
       setTransactions(txData)
       setHasMoreTx(txData.length === limit)
     } catch (error) {
-      if (requestId === txRequestId.current) toast.error(errorMessage(error, "Erreur lors de la recherche"))
+      if (requestId === txRequestId.current) toast.error(errorMessage(error, i18n.t("load.searchError", { ns: "accountDetail" })))
     } finally {
       if (requestId === txRequestId.current) setTxLoading(false)
     }
@@ -73,7 +74,7 @@ export function useAccountDetailData(p: ReturnType<typeof useAccountDetailState>
     try {
       setTagTotals(await getAnalyticsTags<any[]>(tagTotalsQuery()))
     } catch (error) {
-      toast.error(errorMessage(error, "Erreur lors du chargement des tags"))
+      toast.error(errorMessage(error, i18n.t("load.tagsError", { ns: "accountDetail" })))
     }
   }
 
@@ -89,7 +90,7 @@ export function useAccountDetailData(p: ReturnType<typeof useAccountDetailState>
       setTransactions(prev => [...prev, ...more])
       setHasMoreTx(more.length === TX_PAGE_SIZE)
     } catch (error) {
-      if (requestId === txRequestId.current) toast.error(errorMessage(error, "Erreur lors du chargement des transactions"))
+      if (requestId === txRequestId.current) toast.error(errorMessage(error, i18n.t("load.txError", { ns: "accountDetail" })))
     } finally {
       setLoadingMoreTx(false)
     }
@@ -100,7 +101,7 @@ export function useAccountDetailData(p: ReturnType<typeof useAccountDetailState>
       try {
         setAllAccounts(await getAccounts<AccountLite[]>())
       } catch {
-        toast.error("Erreur lors du chargement des comptes")
+        toast.error(i18n.t("load.accountsError", { ns: "accountDetail" }))
         return
       }
     }
@@ -162,11 +163,11 @@ export function useAccountDetailData(p: ReturnType<typeof useAccountDetailState>
       if (error instanceof ApiError && error.status === 404) {
         setAccount(null)
       } else if (opts?.quiet) {
-        toast.error(errorMessage(error, "Erreur lors du chargement des données"))
+        toast.error(errorMessage(error, i18n.t("load.dataError", { ns: "accountDetail" })))
       } else {
         // Page entière en erreur (avec « Réessayer ») : jamais confondue avec un compte inexistant
         console.error("Failed to load account", error)
-        setLoadError(errorMessage(error, "Le compte n'a pas pu être chargé."))
+        setLoadError(errorMessage(error, i18n.t("load.accountError", { ns: "accountDetail" })))
       }
     } finally {
       if (isCurrent()) setLoading(false)

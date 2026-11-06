@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import { DividendsCard } from "@/components/investments/DividendsCard"
 import { HoldingsTable } from "@/components/investments/HoldingsTable"
 import { PortfolioSummary } from "@/components/investments/PortfolioSummary"
@@ -9,6 +10,7 @@ import { patchAccountsById } from "@/lib/api/accounts"
 
 /** Section d'un compte d'investissement : positions, synthèse, dividendes, flux et snapshots. */
 export function InvestmentSection({ ctx }: { ctx: AccountDetailView }) {
+  const { t } = useTranslation("accountDetail")
   const { account, handleAddDividend, holdings, id, isInvestment, loadData } = ctx
   return (
     <>
@@ -26,25 +28,25 @@ export function InvestmentSection({ ctx }: { ctx: AccountDetailView }) {
           {isInvestment && (
             <div className="flex flex-col gap-2 rounded-lg border bg-white p-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <p className="text-sm font-semibold text-slate-900">Valorisation du compte</p>
+                <p className="text-sm font-semibold text-slate-900">{t("investmentSection.valorisationDuCompte")}</p>
                 <p className="text-xs text-slate-500">
                   {account.valuation_mode === "snapshot"
-                    ? "La valeur vient de tes relevés (snapshots) : pas de suivi des positions pour le calcul."
-                    : "La valeur est calculée : positions × cours + espèces. Les relevés servent à vérifier."}
+                    ? t("investmentSection.laValeurVientDeTes")
+                    : t("investmentSection.laValeurEstCalculeePositions")}
                 </p>
               </div>
               <div className="flex shrink-0 items-center gap-1 rounded-lg bg-slate-100 p-1">
-                {([["positions", "Positions × cours"], ["snapshot", "Relevés"]] as const).map(([mode, label]) => (
+                {([["positions", t("investmentSection.byPositions")], ["snapshot", t("investmentSection.bySnapshots")]] as const).map(([mode, label]) => (
                   <button
                     key={mode}
                     onClick={async () => {
                       if ((account.valuation_mode ?? "positions") === mode) return
                       try {
                         await patchAccountsById(account.id, { valuation_mode: mode })
-                        toast.success(mode === "snapshot" ? "Valorisation par relevés" : "Valorisation par positions")
+                        toast.success(mode === "snapshot" ? t("investmentSection.valorisationParReleves") : t("investmentSection.valorisationParPositions"))
                         loadData({ quiet: true })
                       } catch (err: any) {
-                        toast.error(err?.message || "Impossible de changer la valorisation")
+                        toast.error(err?.message || t("investmentSection.impossibleDeChangerLaValorisation"))
                       }
                     }}
                     className={`rounded-md px-3 py-1 text-xs font-semibold transition-all ${

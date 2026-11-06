@@ -3,11 +3,14 @@ import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
+import { useTranslation } from "react-i18next"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import type { AccountDetailView } from "./useAccountDetail"
 
 /** Dialogue de modification groupée (catégorie, récurrence, tags). */
 export function BulkEditDialog({ ctx }: { ctx: AccountDetailView }) {
+  const { t } = useTranslation("accountDetail")
+  const { t: tc } = useTranslation("common")
   const { availableTags, bulkCategory, bulkRecurring, bulkTagAction, bulkTagIds, categories, handleBulkUpdate, id, isBulkEditDialogOpen, selectedIds, setBulkCategory, setBulkRecurring, setBulkTagAction, setBulkTagIds, setIsBulkEditDialogOpen, transactions } = ctx
   return (
     <>
@@ -15,22 +18,22 @@ export function BulkEditDialog({ ctx }: { ctx: AccountDetailView }) {
       <Dialog open={isBulkEditDialogOpen} onOpenChange={setIsBulkEditDialogOpen}>
         <DialogContent className="max-sm:[&_input]:text-base sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Modification groupée</DialogTitle>
+            <DialogTitle>{t("tx.bulk.editTitle")}</DialogTitle>
             <DialogDescription>
-              Appliquer ces changements aux {selectedIds.length} transactions sélectionnées.
+              {t("tx.bulk.editHint", { count: selectedIds.length })}
             </DialogDescription>
           </DialogHeader>
 
           <div className="grid gap-6 py-4">
             <div className="space-y-2">
-              <Label>Catégorie</Label>
+              <Label>{t("tx.bulk.category")}</Label>
               <Select value={bulkCategory} onValueChange={setBulkCategory}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="keep">Ne pas changer</SelectItem>
-                  <SelectItem value="none">Aucune catégorie</SelectItem>
+                  <SelectItem value="keep">{t("tx.bulk.keep")}</SelectItem>
+                  <SelectItem value="none">{t("tx.bulk.noCategory")}</SelectItem>
                   {categories.filter((cat) => !cat.archived).map((cat) => (
                     <SelectItem key={cat.id} value={String(cat.id)}>
                       <div className="flex items-center gap-2">
@@ -44,29 +47,29 @@ export function BulkEditDialog({ ctx }: { ctx: AccountDetailView }) {
             </div>
 
             <div className="space-y-2">
-              <Label>Caractère récurrent</Label>
+              <Label>{t("tx.bulk.recurring")}</Label>
               <Select value={bulkRecurring} onValueChange={setBulkRecurring}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="keep">Ne pas changer</SelectItem>
-                  <SelectItem value="true">Récurrente</SelectItem>
-                  <SelectItem value="false">Ponctuelle</SelectItem>
+                  <SelectItem value="keep">{t("tx.bulk.keep")}</SelectItem>
+                  <SelectItem value="true">{t("tx.bulk.recurringYes")}</SelectItem>
+                  <SelectItem value="false">{t("tx.bulk.recurringNo")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-4 pt-2 border-t">
               <div className="flex items-center justify-between">
-                <Label>Tags</Label>
+                <Label>{t("tx.tags")}</Label>
                 <Select value={bulkTagAction} onValueChange={(v: any) => setBulkTagAction(v)}>
                   <SelectTrigger className="w-[150px] h-8 text-xs">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="keep">Ne pas changer</SelectItem>
-                    <SelectItem value="replace">Remplacer par...</SelectItem>
+                    <SelectItem value="keep">{t("tx.bulk.keep")}</SelectItem>
+                    <SelectItem value="replace">{t("tx.bulk.replaceWith")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -101,7 +104,7 @@ export function BulkEditDialog({ ctx }: { ctx: AccountDetailView }) {
                     </div>
                   ))}
                   {availableTags.length === 0 && (
-                    <p className="text-[10px] text-slate-400">Aucun tag disponible.</p>
+                    <p className="text-[10px] text-slate-400">{t("tx.bulk.noTags")}</p>
                   )}
                 </div>
               )}
@@ -109,8 +112,8 @@ export function BulkEditDialog({ ctx }: { ctx: AccountDetailView }) {
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsBulkEditDialogOpen(false)}>Annuler</Button>
-            <Button onClick={handleBulkUpdate} className="bg-slate-900 text-white">Appliquer</Button>
+            <Button variant="outline" onClick={() => setIsBulkEditDialogOpen(false)}>{tc("actions.cancel")}</Button>
+            <Button onClick={handleBulkUpdate} className="bg-slate-900 text-white">{t("tx.bulk.apply")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
