@@ -5,6 +5,7 @@ import math
 import random
 from typing import Any
 
+from app.core.i18n import tr
 from app.schemas.insight import FirePoint, FireScenario, WealthForecastReturnItem, WealthSimulationPoint
 
 FIRE_MAX_YEARS = 80
@@ -121,11 +122,11 @@ def fire_scenarios(wealth: float, savings: float, expenses: float, rate: float,
         FireScenario(label=label, monthly_savings=round(m, 2), annual_expenses=round(a, 2),
                      years_to_fi=years_to_fi(wealth, m, a, rate, withdrawal_rate_pct))
         for label, m, a in (
-            ("Actuel", savings, expenses),
-            ("+100 €/mois", savings + 100, expenses),
-            ("+250 €/mois", savings + 250, expenses),
-            ("+500 €/mois", savings + 500, expenses),
-            ("Dépenses −10 %", savings + expenses * 0.10 / 12, expenses * 0.90),
+            (tr("projections.fire.current"), savings, expenses),
+            (tr("projections.fire.extra_savings", amount=100), savings + 100, expenses),
+            (tr("projections.fire.extra_savings", amount=250), savings + 250, expenses),
+            (tr("projections.fire.extra_savings", amount=500), savings + 500, expenses),
+            (tr("projections.fire.expenses_cut"), savings + expenses * 0.10 / 12, expenses * 0.90),
         )
     ]
 

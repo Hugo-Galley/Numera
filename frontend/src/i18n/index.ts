@@ -43,6 +43,7 @@ import enCommon from "./locales/en/common.json"
 import enDashboard from "./locales/en/dashboard.json"
 import enNav from "./locales/en/nav.json"
 import enSettings from "./locales/en/settings.json"
+import { resetApiCache } from "@/lib/apiCache"
 
 export const LANGUAGES = ["fr", "en"] as const
 export type Language = (typeof LANGUAGES)[number]
@@ -83,6 +84,8 @@ document.documentElement.lang = i18n.language
 /** Change la langue de l'interface et la retient pour cet appareil. */
 export function setLanguage(language: Language) {
   safeStorage.setItem(STORAGE_KEY, language)
+  // Les réponses mises en cache portent des textes du serveur dans l'ancienne langue
+  resetApiCache()
   return i18n.changeLanguage(language)
 }
 

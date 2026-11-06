@@ -78,6 +78,8 @@ async function request(endpoint: string, options?: RequestInit): Promise<Respons
       headers: {
         ...(isFormData ? {} : { "Content-Type": "application/json" }),
         ...(token ? { "Authorization": `Bearer ${token}` } : {}),
+        // Langue des textes produits par le serveur (conseils, alertes, erreurs) : celle de l'interface
+        "Accept-Language": i18n.language,
         ...options?.headers,
       },
     })
