@@ -67,6 +67,8 @@
   },
   "investmentFlowDialog": {
     "parcoursDeLArgentInvesti": "The path of invested money, from its source account to its destination.",
+    "parcoursDeLArgentSubscription": "The path of the money, from the debited account to the recipient of the payment.",
+    "beneficiary": "Recipient",
     "achat": "Purchase",
     "prochainPassage": "Next run:"
   },

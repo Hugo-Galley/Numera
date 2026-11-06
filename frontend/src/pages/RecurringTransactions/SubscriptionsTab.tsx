@@ -118,8 +118,8 @@ export function SubscriptionsTab({ ctx }: { ctx: RecurringTransactionsCtx }) {
                       activeSubs.map((sub: any, i: number) => (
                         <div
                           key={i}
-                          className={`p-4 flex items-center justify-between gap-3 hover:bg-slate-50 transition-colors group ${subTab === "investments" ? "cursor-pointer" : ""}`}
-                          onClick={subTab === "investments" ? () => setFlowSub(sub) : undefined}
+                          className={`p-4 flex items-center justify-between gap-3 hover:bg-slate-50 transition-colors group cursor-pointer`}
+                          onClick={() => setFlowSub(sub)}
                         >
                           <div className="flex items-center gap-3 md:gap-4 min-w-0">
                             <CompanyLogo
