@@ -1,3 +1,5 @@
+import i18n from "i18next"
+import { useTranslation } from "react-i18next"
 import { useCallback, useEffect, useState } from "react"
 import { HandCoins, Plus, Trash2, Users } from "lucide-react"
 import { format } from "date-fns"
@@ -24,6 +26,7 @@ const parseAmount = (value: string) => parseFloat(value.replace(",", "."))
 const errorMessage = (e: unknown, fallback: string) => (e instanceof ApiError && e.message ? e.message : fallback)
 
 export function ReimbursementDialog({ open, onOpenChange, transaction, onDone }: Props) {
+  const { t } = useTranslation("reimbursements")
   const confirm = useConfirm()
   const [claims, setClaims] = useState<Claim[]>([])
   const [entry, setEntry] = useState<EntryClaims | null>(null)
@@ -44,9 +47,9 @@ export function ReimbursementDialog({ open, onOpenChange, transaction, onDone }:
         setEntry(await api.get<EntryClaims>(`/reimbursements/entries/${transaction.id}/claims`))
       }
     } catch {
-      toast.error("Erreur lors du chargement des remboursements")
+      toast.error(t("reimbursementDialog.erreurLorsDuChargementDes"))
     }
-  }, [transaction])
+  }, [transaction, t])
 
   useEffect(() => {
     if (open) {
@@ -72,18 +75,18 @@ export function ReimbursementDialog({ open, onOpenChange, transaction, onDone }:
   async function handleAdd() {
     const amount = parseAmount(expected)
     if (!debtor.trim() || !(amount > 0)) {
-      toast.error("Indiquez un débiteur et un montant")
+      toast.error(t("reimbursementDialog.indiquezUnDebiteurEtUn"))
       return
     }
     try {
       await addClaim(debtor.trim(), amount)
-      toast.success("Créance ajoutée")
+      toast.success(t("reimbursementDialog.creanceAjoutee"))
       setDebtor("")
       setExpected("")
       load()
       onDone()
     } catch (e) {
-      toast.error(errorMessage(e, "Impossible d'ajouter la créance"))
+      toast.error(errorMessage(e, t("reimbursementDialog.impossibleDAjouterLaCreance")))
     }
   }
 
@@ -91,30 +94,30 @@ export function ReimbursementDialog({ open, onOpenChange, transaction, onDone }:
     if (!transaction) return
     const n = parseInt(splitCount)
     if (!(n >= 2)) {
-      toast.error("Indiquez au moins 2 personnes (vous compris)")
+      toast.error(t("reimbursementDialog.indiquezAuMoins2Personnes"))
       return
     }
     // La dépense est partagée entre n personnes dont vous : n − 1 créances d'une part chacune
     const share = Math.floor((transaction.amount / n) * 100) / 100
     try {
-      for (let i = 1; i < n; i++) await addClaim(`Personne ${i}`, share)
-      toast.success(`${n - 1} créances de ${formatCurrency(share, transaction.currency)} ajoutées : renommez les débiteurs`)
+      for (let i = 1; i < n; i++) await addClaim(i18n.t("misc.person", { ns: "reimbursements", index: i }), share)
+      toast.success(i18n.t("misc.splitDone", { ns: "reimbursements", count: n - 1, amount: formatCurrency(share, transaction.currency) }))
       load()
       onDone()
     } catch (e) {
-      toast.error(errorMessage(e, "Impossible de répartir la dépense"))
+      toast.error(errorMessage(e, t("reimbursementDialog.impossibleDeRepartirLaDepense")))
     }
   }
 
   async function handleDeleteClaim(claim: Claim) {
-    if (!(await confirm(`Supprimer la créance de ${claim.debtor} ?`))) return
+    if (!(await confirm(i18n.t("misc.deleteClaimConfirm", { ns: "reimbursements", debtor: claim.debtor })))) return
     try {
       await api.delete(`/reimbursements/claims/${claim.id}`)
-      toast.success("Créance supprimée")
+      toast.success(t("reimbursementDialog.creanceSupprimee"))
       load()
       onDone()
     } catch (e) {
-      toast.error(errorMessage(e, "Échec de la suppression"))
+      toast.error(errorMessage(e, t("reimbursementDialog.echecDeLaSuppression")))
     }
   }
 
@@ -122,10 +125,10 @@ export function ReimbursementDialog({ open, onOpenChange, transaction, onDone }:
     if (!name.trim() || name.trim() === claim.debtor) return
     try {
       await api.patch(`/reimbursements/claims/${claim.id}`, { debtor: name.trim() })
-      toast.success("Débiteur renommé")
+      toast.success(t("reimbursementDialog.debiteurRenomme"))
       load()
     } catch (e) {
-      toast.error(errorMessage(e, "Échec de la modification"))
+      toast.error(errorMessage(e, t("reimbursementDialog.echecDeLaModification")))
     }
   }
 
@@ -135,23 +138,23 @@ export function ReimbursementDialog({ open, onOpenChange, transaction, onDone }:
     const amount = raw ? parseAmount(raw) : undefined
     try {
       await api.post(`/reimbursements/claims/${claim.id}/allocations`, { entree_id: transaction.id, ...(amount ? { amount } : {}) })
-      toast.success(`Remboursement affecté à ${claim.debtor}`)
+      toast.success(i18n.t("misc.allocated", { ns: "reimbursements", debtor: claim.debtor }))
       setAllocInputs({ ...allocInputs, [claim.id]: "" })
       load()
       onDone()
     } catch (e) {
-      toast.error(errorMessage(e, "Échec de l'affectation"))
+      toast.error(errorMessage(e, t("reimbursementDialog.echecDeLAffectation")))
     }
   }
 
   async function handleRemoveAllocation(id: number) {
     try {
       await api.delete(`/reimbursements/allocations/${id}`)
-      toast.success("Affectation retirée")
+      toast.success(t("reimbursementDialog.affectationRetiree"))
       load()
       onDone()
     } catch (e) {
-      toast.error(errorMessage(e, "Échec de l'action"))
+      toast.error(errorMessage(e, t("reimbursementDialog.echecDeLAction")))
     }
   }
 
@@ -163,7 +166,7 @@ export function ReimbursementDialog({ open, onOpenChange, transaction, onDone }:
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <HandCoins className="h-5 w-5 text-emerald-600" />
-            {isSortie ? "On me doit" : "Affecter un remboursement"}
+            {isSortie ? t("reimbursementDialog.onMeDoit") : t("reimbursementDialog.affecterUnRemboursement")}
           </DialogTitle>
           <DialogDescription>
             {transaction.merchant} · {format(new Date(transaction.date), "dd/MM/yyyy")} ·{" "}
@@ -183,7 +186,7 @@ export function ReimbursementDialog({ open, onOpenChange, transaction, onDone }:
                       {" / "}
                       <span className="amount-blur">{formatCurrency(c.expected_amount, c.currency)}</span>
                     </span>
-                    <Button variant="ghost" size="sm" className="h-10 w-10 p-0 text-slate-400 hover:text-red-600 sm:h-8 sm:w-8" onClick={() => handleDeleteClaim(c)} aria-label="Supprimer la créance">
+                    <Button variant="ghost" size="sm" className="h-10 w-10 p-0 text-slate-400 hover:text-red-600 sm:h-8 sm:w-8" onClick={() => handleDeleteClaim(c)} aria-label={t("reimbursementDialog.supprimerLaCreance")}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
@@ -195,35 +198,35 @@ export function ReimbursementDialog({ open, onOpenChange, transaction, onDone }:
                   ))}
                 </div>
               ))}
-              {claims.length === 0 && <p className="p-4 text-center text-sm italic text-slate-400">Aucune créance sur cette dépense.</p>}
+              {claims.length === 0 && <p className="p-4 text-center text-sm italic text-slate-400">{t("reimbursementDialog.aucuneCreanceSurCetteDepense")}</p>}
             </div>
             <p className="text-xs text-slate-500">
-              Déclaré : <span className="amount-blur">{formatCurrency(declared, transaction.currency)}</span> sur{" "}
+              {t("reimbursementDialog.declare")} <span className="amount-blur">{formatCurrency(declared, transaction.currency)}</span> sur{" "}
               <span className="amount-blur">{formatCurrency(transaction.amount, transaction.currency)}</span>
             </p>
             <div className="grid grid-cols-1 items-end gap-2 sm:grid-cols-[1fr_8rem_auto]">
               <div className="grid gap-1">
-                <Label htmlFor="claim-debtor">Qui me doit</Label>
-                <Input id="claim-debtor" className="h-10 text-base sm:h-9 sm:text-sm" value={debtor} onChange={(e) => setDebtor(e.target.value)} placeholder="Denis, Sécu…" />
+                <Label htmlFor="claim-debtor">{t("reimbursementDialog.quiMeDoit")}</Label>
+                <Input id="claim-debtor" className="h-10 text-base sm:h-9 sm:text-sm" value={debtor} onChange={(e) => setDebtor(e.target.value)} placeholder={t("reimbursementDialog.denisSecu")} />
               </div>
               <div className="grid gap-1">
-                <Label htmlFor="claim-amount">Montant</Label>
+                <Label htmlFor="claim-amount">{t("reimbursementDialog.montant")}</Label>
                 <Input id="claim-amount" className="h-10 text-base sm:h-9 sm:text-sm" inputMode="decimal" value={expected} onChange={(e) => setExpected(e.target.value)} />
               </div>
               <Button className="h-10 gap-2 sm:h-9" onClick={() => submit(handleAdd)} disabled={submitting}>
                 <Plus className="h-4 w-4" />
-                Ajouter
+                {t("reimbursementDialog.ajouter")}
               </Button>
             </div>
             {claims.length === 0 && (
               <div className="flex flex-wrap items-end gap-2 rounded-xl bg-slate-50 p-3">
                 <div className="grid gap-1">
-                  <Label htmlFor="claim-split">Partager à parts égales entre (vous compris)</Label>
+                  <Label htmlFor="claim-split">{t("reimbursementDialog.partagerAPartsEgalesEntre")}</Label>
                   <Input id="claim-split" inputMode="numeric" className="h-10 w-24 text-base sm:h-9 sm:text-sm" value={splitCount} onChange={(e) => setSplitCount(e.target.value)} />
                 </div>
                 <Button variant="outline" className="h-10 gap-2 sm:h-9" onClick={() => submit(handleSplit)} disabled={submitting}>
                   <Users className="h-4 w-4" />
-                  Répartir
+                  {t("reimbursementDialog.repartir")}
                 </Button>
               </div>
             )}
@@ -231,14 +234,14 @@ export function ReimbursementDialog({ open, onOpenChange, transaction, onDone }:
         ) : (
           <div className="space-y-4">
             <p className="text-sm text-slate-600">
-              Disponible : <span className="amount-blur font-semibold">{formatCurrency(entry?.available ?? 0, transaction.currency)}</span>
+              {t("reimbursementDialog.disponible")} <span className="amount-blur font-semibold">{formatCurrency(entry?.available ?? 0, transaction.currency)}</span>
             </p>
             {entry?.allocations.map((a) => (
               <div key={a.id} className="flex items-center justify-between gap-2 rounded-lg bg-emerald-50 px-3 py-2 text-sm">
                 <span>
                   Affecté à {a.debtor} : <span className="amount-blur font-semibold">{formatCurrency(a.amount, transaction.currency)}</span>
                 </span>
-                <Button variant="ghost" size="sm" className="h-10 sm:h-9" onClick={() => handleRemoveAllocation(a.id)}>Retirer</Button>
+                <Button variant="ghost" size="sm" className="h-10 sm:h-9" onClick={() => handleRemoveAllocation(a.id)}>{t("reimbursementDialog.retirer")}</Button>
               </div>
             ))}
             <div className="max-h-[50dvh] sm:max-h-72 divide-y divide-slate-100 overflow-y-auto rounded-xl border border-slate-100">
@@ -247,8 +250,7 @@ export function ReimbursementDialog({ open, onOpenChange, transaction, onDone }:
                   <div className="min-w-0">
                     <p className="font-semibold text-slate-900">{c.debtor}</p>
                     <p className="break-words text-xs text-slate-500 sm:truncate">
-                      {format(new Date(c.expense.date), "dd/MM/yyyy")} · {c.expense.label} · reste{" "}
-                      <span className="amount-blur">{formatCurrency(c.remaining, c.currency)}</span>
+                      {i18n.t("misc.expenseRemaining", { ns: "reimbursements", date: format(new Date(c.expense.date), "dd/MM/yyyy"), label: c.expense.label, amount: formatCurrency(c.remaining, c.currency) })}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
@@ -259,12 +261,12 @@ export function ReimbursementDialog({ open, onOpenChange, transaction, onDone }:
                       value={allocInputs[c.id] ?? ""}
                       onChange={(e) => setAllocInputs({ ...allocInputs, [c.id]: e.target.value })}
                     />
-                    <Button size="sm" className="h-10 sm:h-9" onClick={() => handleAllocate(c)} disabled={entry.available <= 0}>Affecter</Button>
+                    <Button size="sm" className="h-10 sm:h-9" onClick={() => handleAllocate(c)} disabled={entry.available <= 0}>{t("reimbursementDialog.affecter")}</Button>
                   </div>
                 </div>
               ))}
               {entry && entry.open_claims.length === 0 && (
-                <p className="p-4 text-center text-sm italic text-slate-400">Aucune créance ouverte. Déclarez-la d'abord sur la dépense.</p>
+                <p className="p-4 text-center text-sm italic text-slate-400">{t("reimbursementDialog.aucuneCreanceOuverteDeclarezLa")}</p>
               )}
             </div>
           </div>

@@ -1,3 +1,5 @@
+import i18n from "i18next"
+import { useTranslation } from "react-i18next"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Calendar, Info, Layers, Pencil, Tag, Target, Trash2, Zap } from "lucide-react"
@@ -7,6 +9,7 @@ import type { SavingsCtx } from "./useSavings"
 
 /** Cartes des objectifs d'épargne. */
 export function GoalsGrid({ ctx }: { ctx: SavingsCtx }) {
+  const { t } = useTranslation("savings")
   const { accounts, categories, goals, handleDeleteGoal, openEditDialog } = ctx
   return (
     <>
@@ -34,10 +37,10 @@ export function GoalsGrid({ ctx }: { ctx: SavingsCtx }) {
                 </div>
               </div>
               <div className="-mr-2 -mt-1 flex shrink-0 gap-0 opacity-100 transition-opacity md:mr-0 md:mt-0 md:gap-1 md:opacity-0 md:group-hover:opacity-100">
-                <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full md:h-8 md:w-8" onClick={() => openEditDialog(goal)} aria-label="Modifier l'objectif">
+                <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full md:h-8 md:w-8" onClick={() => openEditDialog(goal)} aria-label={t("goalsGrid.modifierLObjectif")}>
                   <Pencil className="h-4 w-4 text-slate-400" />
                 </Button>
-                <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full hover:text-rose-600 md:h-8 md:w-8" onClick={() => handleDeleteGoal(goal.id)} aria-label="Supprimer l'objectif">
+                <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full hover:text-rose-600 md:h-8 md:w-8" onClick={() => handleDeleteGoal(goal.id)} aria-label={t("goalsGrid.supprimerLObjectif")}>
                   <Trash2 className="h-4 w-4 text-slate-400" />
                 </Button>
               </div>
@@ -46,7 +49,7 @@ export function GoalsGrid({ ctx }: { ctx: SavingsCtx }) {
               <div className="flex items-end justify-between">
                 <div>
                   <p className="whitespace-nowrap text-2xl font-black tabular-nums text-slate-900">{formatCurrency(goal.current_amount)}</p>
-                  <p className="text-xs text-slate-500 font-medium">sur {formatCurrency(goal.target_amount)}</p>
+                  <p className="text-xs text-slate-500 font-medium">{i18n.t("misc.goalOf", { ns: "savings", amount: formatCurrency(goal.target_amount) })}</p>
                 </div>
                 <div className="text-right">
                   <div className="flex flex-col items-end">
@@ -56,9 +59,9 @@ export function GoalsGrid({ ctx }: { ctx: SavingsCtx }) {
                       goal.status === 'behind' ? 'bg-rose-100 text-rose-700' :
                       'bg-slate-100 text-slate-700'
                     }`}>
-                      {goal.status === 'completed' ? 'Terminé' :
-                       goal.status === 'ahead' ? 'En avance' :
-                       goal.status === 'behind' ? 'En retard' : 'Dans les temps'}
+                      {goal.status === 'completed' ? i18n.t("misc.statusCompleted", { ns: "savings" }) :
+                       goal.status === 'ahead' ? i18n.t("misc.statusAhead", { ns: "savings" }) :
+                       goal.status === 'behind' ? i18n.t("misc.statusBehind", { ns: "savings" }) : i18n.t("misc.statusOnTrack", { ns: "savings" })}
                     </span>
                     <p className="text-xl font-black text-slate-900">{Math.round(goal.percentage)}%</p>
                   </div>
@@ -79,15 +82,15 @@ export function GoalsGrid({ ctx }: { ctx: SavingsCtx }) {
 
               {!!goal.monthly_required && goal.percentage < 100 && (
                 <div className="flex flex-wrap items-center justify-between gap-x-2 text-[11px] bg-slate-50 p-2 rounded-lg border border-slate-100">
-                  <span className="text-slate-500 font-medium italic">Besoin mensuel recommandé:</span>
-                  <span className="whitespace-nowrap font-bold text-slate-900">{formatCurrency(goal.monthly_required)} / mois</span>
+                  <span className="text-slate-500 font-medium italic">{t("goalsGrid.besoinMensuelRecommande")}</span>
+                  <span className="whitespace-nowrap font-bold text-slate-900">{i18n.t("misc.perMonth", { ns: "savings", amount: formatCurrency(goal.monthly_required) })}</span>
                 </div>
               )}
 
               {goal.percentage >= 100 && (
                 <div className="flex items-center gap-2 text-emerald-600 bg-emerald-50 p-2 rounded-xl text-xs font-bold justify-center border border-emerald-100">
                   <Zap className="h-3 w-3 fill-emerald-600" />
-                  Objectif atteint !
+                  {t("goalsGrid.objectifAtteint")}
                 </div>
               )}
 
@@ -101,7 +104,7 @@ export function GoalsGrid({ ctx }: { ctx: SavingsCtx }) {
                  {goal.category_id && (
                    <Badge variant="outline" className="text-[9px] py-0 h-5 bg-white border-slate-200">
                      <Tag className="h-2.5 w-2.5 mr-1 text-slate-400" />
-                     {categories.find(c => c.id === goal.category_id)?.name || "Catégorie"}
+                     {categories.find(c => c.id === goal.category_id)?.name || i18n.t("misc.categoryFallback", { ns: "savings" })}
                    </Badge>
                  )}
                  {goal.keyword && (
@@ -119,9 +122,9 @@ export function GoalsGrid({ ctx }: { ctx: SavingsCtx }) {
             <div className="mx-auto h-16 w-16 bg-white rounded-3xl shadow-sm flex items-center justify-center mb-4">
               <Target className="h-8 w-8 text-slate-300" />
             </div>
-            <h3 className="text-lg font-bold text-slate-900">Aucun objectif actif</h3>
+            <h3 className="text-lg font-bold text-slate-900">{t("goalsGrid.aucunObjectifActif")}</h3>
             <p className="text-slate-500 text-sm max-w-xs mx-auto mt-2">
-              Commencez par créer un objectif pour suivre vos projets financiers.
+              {t("goalsGrid.commencezParCreerUnObjectif")}
             </p>
           </div>
         )}

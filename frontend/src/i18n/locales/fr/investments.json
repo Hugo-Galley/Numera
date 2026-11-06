@@ -314,6 +314,14 @@
       "preset": "Préréglage",
       "manual": "Saisie"
     },
-    "avgCost": "PRU"
+    "avgCost": "PRU",
+    "applyAvgCost": "Appliquer le PRU de {{ticker}}",
+    "deletePosition": "Supprimer la position sur {{name}} ?",
+    "includingCash": "dont espèces {{amount}}",
+    "netInvestedHint": "Versements − retraits depuis l'origine",
+    "unknownCostSales": "{{count}} vente(s) sans coût connu",
+    "dividends12m": "{{amount}} sur 12 mois",
+    "feesHint": "Frais de tenue et courtage",
+    "annualizedOver": "Annualisé sur {{days}} j : à relativiser"
   }
 }

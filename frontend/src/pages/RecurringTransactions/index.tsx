@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import { CalendarDays, CreditCard, Repeat, Wallet } from "lucide-react"
 import { IncomeTab } from "@/components/recurring/IncomeTab"
 import { InvestmentFlowDialog } from "@/components/recurring/InvestmentFlowDialog"
@@ -13,6 +14,7 @@ import { RecurringFormDialog } from "./RecurringFormDialog"
 const FinancialCalendar = lazy(() => import("@/pages/Calendar"))
 
 export default function RecurringTransactions() {
+  const { t } = useTranslation("recurring")
   const ctx = useRecurringTransactions()
   const { accounts, activeTab, flowSub, recurringTxs, recurringView, setActiveTab, setFlowSub } = ctx
   return (
@@ -25,21 +27,21 @@ export default function RecurringTransactions() {
           {recurringView === "list" ? (
             <TabsTrigger value="recurring" className="rounded-lg gap-2">
               <Repeat className="h-4 w-4" />
-              <span className="md:hidden">Récurrences</span><span className="hidden md:inline">Liste des Récurrences</span>
+              <span className="md:hidden">{t("index.recurrences")}</span><span className="hidden md:inline">{t("index.listeDesRecurrences")}</span>
             </TabsTrigger>
           ) : (
             <TabsTrigger value="subscriptions" className="rounded-lg gap-2">
               <CreditCard className="h-4 w-4" />
-              <span className="md:hidden">Récurrences</span><span className="hidden md:inline">Analyse Récurrences</span>
+              <span className="md:hidden">{t("index.recurrences")}</span><span className="hidden md:inline">{t("index.analyseRecurrences")}</span>
             </TabsTrigger>
           )}
           <TabsTrigger value="calendar" className="rounded-lg gap-2">
             <CalendarDays className="h-4 w-4" />
-            Calendrier
+            {t("index.calendrier")}
           </TabsTrigger>
           <TabsTrigger value="salary" className="rounded-lg gap-2">
             <Wallet className="h-4 w-4" />
-            <span className="md:hidden">Salaire</span><span className="hidden md:inline">Salaire & Aides</span>
+            <span className="md:hidden">{t("index.salaire")}</span><span className="hidden md:inline">{t("index.salaireAides")}</span>
           </TabsTrigger>
         </TabsList>
         </div>

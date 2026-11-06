@@ -75,7 +75,7 @@ export function useHoldingsState(p: { accountId: HoldingsTableProps["accountId"]
   const totalValue = filteredHoldings.reduce((acc, h) => acc + (h.current_value_eur || 0), 0)
 
   const handleDelete = async (holdingId: number, name: string) => {
-    if (!(await confirm(`Supprimer la position sur ${name} ?`))) return
+    if (!(await confirm(i18n.t("misc.deletePosition", { ns: "investments", name: name })))) return
     try {
       await deleteHoldingsById(holdingId)
       toast.success(i18n.t("useHoldingsState.positionSupprimee", { ns: "investments" }))

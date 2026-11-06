@@ -84,6 +84,8 @@
     "newPayment": "New monthly payment: {{amount}} (excluding insurance).",
     "penalty": "Early repayment fees: at most {{amount}} (legal cap; your contract may provide for less or none).",
     "scheduleCount_one": "{{count}} payment. Tap a year for details.",
-    "scheduleCount_other": "{{count}} payments. Tap a year for details."
+    "scheduleCount_other": "{{count}} payments. Tap a year for details.",
+    "principalOf": "of {{amount}} borrowed",
+    "interestOf": "{{amount}} in interest"
   }
 }

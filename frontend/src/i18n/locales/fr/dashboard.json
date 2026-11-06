@@ -166,5 +166,8 @@
     "fieldNote": "Note (facultatif)",
     "fieldAccount": "Compte concerné (facultatif)"
   },
-  "partialLoadError": "Certaines données du tableau de bord n'ont pas pu être chargées."
+  "partialLoadError": "Certaines données du tableau de bord n'ont pas pu être chargées.",
+  "misc": {
+    "perDay": "{{amount}} / jour"
+  }
 }

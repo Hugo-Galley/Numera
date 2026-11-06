@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
 
@@ -66,6 +67,7 @@ interface Props {
 }
 
 export function BenefitDialog({ open, editing, accounts, onOpenChange, onSaved }: Props) {
+  const { t } = useTranslation("recurring")
   const [form, setForm] = useState<Form>(emptyForm)
   const set = (patch: Partial<Form>) => setForm((f) => ({ ...f, ...patch }))
 
@@ -77,15 +79,15 @@ export function BenefitDialog({ open, editing, accounts, onOpenChange, onSaved }
     const amount = parseFloat(form.amount.replace(",", "."))
     const hasDeclaration = form.declaration_interval_months !== "none"
     if (!form.name.trim() || !form.organization.trim() || !(amount > 0) || form.match_pattern.trim().length < 2) {
-      toast.error("Nom, organisme, montant et texte du libellé sont requis")
+      toast.error(t("benefitDialog.nomOrganismeMontantEtTexte"))
       return
     }
     if (hasDeclaration && !form.next_declaration_date) {
-      toast.error("Indiquez la date de la prochaine déclaration")
+      toast.error(t("benefitDialog.indiquezLaDateDeLa"))
       return
     }
     if (form.auto_generate && form.account_id === "none") {
-      toast.error("Choisissez le compte de réception pour générer les versements")
+      toast.error(t("benefitDialog.choisissezLeCompteDeReception"))
       return
     }
     const payload = {
@@ -105,11 +107,11 @@ export function BenefitDialog({ open, editing, accounts, onOpenChange, onSaved }
     try {
       if (editing) await api.patch(`/benefits/${editing.id}`, payload)
       else await api.post("/benefits", payload)
-      toast.success(editing ? "Aide mise à jour" : "Aide ajoutée")
+      toast.success(editing ? t("benefitDialog.aideMiseAJour") : t("benefitDialog.aideAjoutee"))
       onOpenChange(false)
       onSaved()
     } catch (error) {
-      toast.error(errorMessage(error, "Erreur lors de l'enregistrement"))
+      toast.error(errorMessage(error, t("benefitDialog.erreurLorsDeLEnregistrement")))
     }
   })
 
@@ -117,10 +119,9 @@ export function BenefitDialog({ open, editing, accounts, onOpenChange, onSaved }
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] overflow-y-auto rounded-2xl sm:max-w-[540px]">
         <DialogHeader>
-          <DialogTitle>{editing ? "Modifier l'aide" : "Nouvelle aide"}</DialogTitle>
+          <DialogTitle>{editing ? t("benefitDialog.modifierLAide") : t("benefitDialog.nouvelleAide")}</DialogTitle>
           <DialogDescription>
-            Chaque mois, une entrée est ajoutée à la date de versement. Quand le vrai versement arrive à l'import, il
-            la remplace grâce au texte du libellé bancaire.
+            {t("benefitDialog.rienNEstAjouteA")}
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-2">
@@ -128,27 +129,27 @@ export function BenefitDialog({ open, editing, accounts, onOpenChange, onSaved }
             <div className="flex flex-wrap gap-2">
               {(["prime", "apl", "other"] as const).map((key) => (
                 <Button key={key} type="button" variant="outline" size="sm" className="h-10 rounded-full md:h-8" onClick={() => set(PRESETS[key])}>
-                  {key === "other" ? "Autre aide" : PRESETS[key].name}
+                  {key === "other" ? t("benefitDialog.autreAide") : PRESETS[key].name}
                 </Button>
               ))}
             </div>
           )}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Field id="ben-name" label="Nom" placeholder="ex : Prime d'activité" value={form.name} onChange={(v) => set({ name: v })} />
-            <Field id="ben-org" label="Organisme" placeholder="CAF, CPAM, MSA…" value={form.organization} onChange={(v) => set({ organization: v })} />
+            <Field id="ben-name" label={t("benefitDialog.nom")} placeholder={t("benefitDialog.exPrimeDActivite")} value={form.name} onChange={(v) => set({ name: v })} />
+            <Field id="ben-org" label={t("benefitDialog.organisme")} placeholder={t("benefitDialog.cafCpamMsa")} value={form.organization} onChange={(v) => set({ organization: v })} />
           </div>
           <div className="grid grid-cols-2 gap-4">
-            <Field id="ben-amount" label="Montant mensuel (€)" placeholder="250" inputMode="decimal" value={form.amount} onChange={(v) => set({ amount: v })} />
-            <Field id="ben-day" label="Jour de versement" placeholder="5" inputMode="numeric" value={form.payment_day} onChange={(v) => set({ payment_day: v })} />
+            <Field id="ben-amount" label={t("benefitDialog.montantMensuel")} placeholder="250" inputMode="decimal" value={form.amount} onChange={(v) => set({ amount: v })} />
+            <Field id="ben-day" label={t("benefitDialog.jourDeVersement")} placeholder="5" inputMode="numeric" value={form.payment_day} onChange={(v) => set({ payment_day: v })} />
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Field id="ben-pattern" label="Texte du libellé bancaire" placeholder="ex : CAF" value={form.match_pattern} onChange={(v) => set({ match_pattern: v })} />
+            <Field id="ben-pattern" label={t("benefitDialog.texteDuLibelleBancaire")} placeholder={t("benefitDialog.exCaf")} value={form.match_pattern} onChange={(v) => set({ match_pattern: v })} />
             <div className="grid gap-2">
-              <Label>Compte de réception</Label>
+              <Label>{t("benefitDialog.compteDeReception")}</Label>
               <Select value={form.account_id} onValueChange={(v) => set({ account_id: v })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">Tous les comptes</SelectItem>
+                  <SelectItem value="none">{t("benefitDialog.tousLesComptes")}</SelectItem>
                   {accounts.map((a) => <SelectItem key={a.id} value={String(a.id)}>{a.name}</SelectItem>)}
                 </SelectContent>
               </Select>
@@ -156,37 +157,37 @@ export function BenefitDialog({ open, editing, accounts, onOpenChange, onSaved }
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="grid gap-2">
-              <Label>Déclaration</Label>
+              <Label>{t("benefitDialog.declaration")}</Label>
               <Select value={form.declaration_interval_months} onValueChange={(v) => set({ declaration_interval_months: v })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">Aucune</SelectItem>
-                  <SelectItem value="1">Mensuelle</SelectItem>
-                  <SelectItem value="3">Trimestrielle</SelectItem>
-                  <SelectItem value="12">Annuelle</SelectItem>
+                  <SelectItem value="none">{t("benefitDialog.aucune")}</SelectItem>
+                  <SelectItem value="1">{t("benefitDialog.mensuelle")}</SelectItem>
+                  <SelectItem value="3">{t("benefitDialog.trimestrielle")}</SelectItem>
+                  <SelectItem value="12">{t("benefitDialog.annuelle")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             {form.declaration_interval_months !== "none" && (
-              <Field id="ben-decl" label="Prochaine déclaration" type="date" value={form.next_declaration_date} onChange={(v) => set({ next_declaration_date: v })} />
+              <Field id="ben-decl" label={t("benefitDialog.prochaineDeclaration")} type="date" value={form.next_declaration_date} onChange={(v) => set({ next_declaration_date: v })} />
             )}
           </div>
           <div className="flex items-center gap-2">
             <Checkbox id="ben-generate" checked={form.auto_generate} onCheckedChange={(v) => set({ auto_generate: v === true })} />
-            <Label htmlFor="ben-generate">Ajouter l'entrée chaque mois (compte de réception requis)</Label>
+            <Label htmlFor="ben-generate">{t("benefitDialog.ajouterLEntreeChaqueMois")}</Label>
           </div>
           <div className="grid gap-2">
-            <Label>Logo</Label>
+            <Label>{t("benefitDialog.logo")}</Label>
             <LogoPicker value={form.logo} suggestFor={form.organization || form.name} onChange={(logo) => set({ logo })} />
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Field id="ben-start" label="Perçue depuis" type="date" value={form.start_date} onChange={(v) => set({ start_date: v })} />
-            <Field id="ben-note" label="Note" placeholder="facultatif" value={form.note} onChange={(v) => set({ note: v })} />
+            <Field id="ben-start" label={t("benefitDialog.percueDepuis")} type="date" value={form.start_date} onChange={(v) => set({ start_date: v })} />
+            <Field id="ben-note" label={t("benefitDialog.note")} placeholder={t("benefitDialog.facultatif")} value={form.note} onChange={(v) => set({ note: v })} />
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Annuler</Button>
-          <Button onClick={save} disabled={saving} className="bg-slate-900 text-white">Enregistrer</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>{t("benefitDialog.annuler")}</Button>
+          <Button onClick={save} disabled={saving} className="bg-slate-900 text-white">{t("benefitDialog.enregistrer")}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

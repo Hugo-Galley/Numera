@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { LogoPicker } from "@/components/ui/LogoPicker"
@@ -6,21 +7,22 @@ import type { RecurringTransactionsCtx } from "./useRecurringTransactions"
 
 /** Formulaire : nom, logo, compte et type. */
 export function FormMainFields({ ctx }: { ctx: RecurringTransactionsCtx }) {
+  const { t } = useTranslation("recurring")
   const { formData, isInvestment, setFormData } = ctx
   return (
     <>
       <div className="grid gap-2">
-        <Label htmlFor="name">Nom / Marchand</Label>
+        <Label htmlFor="name">{t("formMainFields.nomMarchand")}</Label>
         <Input
           id="name"
           value={formData.name}
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          placeholder="Ex: Loyer, Netflix, Salaire..."
+          placeholder={t("formMainFields.exLoyerNetflixSalaire")}
         />
       </div>
 
       <div className="grid gap-2">
-        <Label>Logo</Label>
+        <Label>{t("formMainFields.logo")}</Label>
         <LogoPicker
           value={formData.logo}
           suggestFor={formData.name}
@@ -30,7 +32,7 @@ export function FormMainFields({ ctx }: { ctx: RecurringTransactionsCtx }) {
 
       <div className="grid grid-cols-2 gap-4">
         <div className="grid gap-2">
-          <Label htmlFor="type">Type</Label>
+          <Label htmlFor="type">{t("formMainFields.type")}</Label>
           <Select
             value={formData.type}
             onValueChange={(v) => setFormData({ ...formData, type: v })}
@@ -41,22 +43,22 @@ export function FormMainFields({ ctx }: { ctx: RecurringTransactionsCtx }) {
             <SelectContent>
               {!isInvestment ? (
                 <>
-                  <SelectItem value="Sortie">Sortie</SelectItem>
-                  <SelectItem value="Entree">Entrée</SelectItem>
-                  <SelectItem value="Interets">Intérêts</SelectItem>
+                  <SelectItem value="Sortie">{t("formMainFields.sortie")}</SelectItem>
+                  <SelectItem value="Entree">{t("formMainFields.entree")}</SelectItem>
+                  <SelectItem value="Interets">{t("formMainFields.interets")}</SelectItem>
                 </>
               ) : (
                 <>
-                  <SelectItem value="versement">Versement</SelectItem>
-                  <SelectItem value="retrait">Retrait</SelectItem>
-                  <SelectItem value="dividende">Dividende</SelectItem>
+                  <SelectItem value="versement">{t("formMainFields.versement")}</SelectItem>
+                  <SelectItem value="retrait">{t("formMainFields.retrait")}</SelectItem>
+                  <SelectItem value="dividende">{t("formMainFields.dividende")}</SelectItem>
                 </>
               )}
             </SelectContent>
           </Select>
         </div>
         <div className="grid gap-2">
-          <Label htmlFor="amount">Montant</Label>
+          <Label htmlFor="amount">{t("formMainFields.montant")}</Label>
           <Input
             id="amount"
             type="number" inputMode="decimal"

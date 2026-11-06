@@ -1,3 +1,5 @@
+import i18n from "i18next"
+import { useTranslation } from "react-i18next"
 import { AlertTriangle, CalendarClock, PiggyBank, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -13,7 +15,7 @@ import { todayLocal } from "@/lib/dates"
 import { useCallback, useEffect, useState } from "react"
 import { useConfirm } from "@/providers/ConfirmProvider"
 import { useSubmit } from "@/hooks/useSubmit"
-import { INTERVALS, Provision, ProvisionCard } from "./ProvisionCard"
+import { intervals, Provision, ProvisionCard } from "./ProvisionCard"
 import { getAccounts } from "@/lib/api/accounts"
 import { getCategories } from "@/lib/api/classement"
 import { deleteProvisionsById, getProvisions, getProvisionsSummary, patchProvisionsById, postProvisions } from "@/lib/api/savings"
@@ -43,6 +45,7 @@ const emptyForm = () => ({
 })
 
 export function ProvisionsSection() {
+  const { t } = useTranslation("savings")
   const confirm = useConfirm()
   const [provisions, setProvisions] = useState<Provision[]>([])
   const [summary, setSummary] = useState<ProvisionSummary | null>(null)
@@ -103,7 +106,7 @@ export function ProvisionsSection() {
   const [save, saving] = useSubmit(async () => {
     const amount = parseFloat(form.amount.replace(",", "."))
     if (!form.name.trim() || !(amount > 0) || !form.due_date) {
-      toast.error("Nom, montant et date d'échéance sont requis")
+      toast.error(t("provisionsSection.nomMontantEtDateD"))
       return
     }
     const payload = {
@@ -118,22 +121,22 @@ export function ProvisionsSection() {
     try {
       if (editing) await patchProvisionsById(editing.id, payload)
       else await postProvisions(payload)
-      toast.success(editing ? "Provision mise à jour" : "Provision créée")
+      toast.success(editing ? t("provisionsSection.provisionMiseAJour") : t("provisionsSection.provisionCreee"))
       setDialogOpen(false)
       load()
     } catch (error) {
-      toast.error(errorMessage(error, "Erreur lors de l'enregistrement"))
+      toast.error(errorMessage(error, t("provisionsSection.erreurLorsDeLEnregistrement")))
     }
   })
 
   const remove = async (p: Provision) => {
-    if (!(await confirm(`Supprimer la provision « ${p.name} » ?`))) return
+    if (!(await confirm(i18n.t("misc.deleteProvision", { ns: "savings", name: p.name })))) return
     try {
       await deleteProvisionsById(p.id)
-      toast.success("Provision supprimée")
+      toast.success(t("provisionsSection.provisionSupprimee"))
       load()
     } catch (error) {
-      toast.error(errorMessage(error, "Erreur lors de la suppression"))
+      toast.error(errorMessage(error, t("provisionsSection.erreurLorsDeLaSuppression")))
     }
   }
 
@@ -142,7 +145,7 @@ export function ProvisionsSection() {
       await patchProvisionsById(p.id, { active: !p.active })
       load()
     } catch (error) {
-      toast.error(errorMessage(error, "Erreur lors de la mise à jour"))
+      toast.error(errorMessage(error, t("provisionsSection.erreurLorsDeLaMise")))
     }
   }
 
@@ -151,19 +154,19 @@ export function ProvisionsSection() {
       <div className="flex flex-col justify-between gap-3 border-b pb-3 sm:flex-row sm:items-center md:pb-2">
         <div className="flex items-center gap-2">
           <CalendarClock className="h-5 w-5 text-slate-400" />
-          <h2 className="text-xl font-bold text-slate-900">Provisions</h2>
+          <h2 className="text-xl font-bold text-slate-900">{t("provisionsSection.provisions")}</h2>
           {summary && summary.monthly_total > 0 && (
-            <span className="text-sm text-slate-500">· {formatCurrency(summary.monthly_total)} / mois à mettre de côté</span>
+            <span className="text-sm text-slate-500">{i18n.t("misc.monthlyToSet", { ns: "savings", amount: formatCurrency(summary.monthly_total) })}</span>
           )}
         </div>
         <Button className="h-11 w-full rounded-xl shadow-sm sm:h-10 sm:w-auto" onClick={openCreate}>
           <Plus className="mr-2 h-4 w-4" />
-          Nouvelle provision
+          {t("provisionsSection.nouvelleProvision")}
         </Button>
       </div>
 
       {failed ? (
-        <ErrorState message="Les provisions n'ont pas pu être chargées." onRetry={load} />
+        <ErrorState message={i18n.t("misc.provisionsLoadFailed", { ns: "savings" })} onRetry={load} />
       ) : loading ? (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {[0, 1, 2].map((i) => <Skeleton key={i} className="h-40 rounded-2xl" />)}
@@ -173,12 +176,11 @@ export function ProvisionsSection() {
           <CardContent className="flex flex-col items-center gap-3 py-10 text-center">
             <PiggyBank className="h-10 w-10 text-slate-300" />
             <p className="max-w-md text-sm text-slate-500">
-              Taxe foncière, assurance, vacances… Déclarez vos grosses dépenses périodiques pour savoir combien
-              mettre de côté chaque mois et vérifier que vous serez prêt à l'échéance.
+              {t("provisionsSection.taxeFonciereAssuranceVacancesDeclarez")}
             </p>
             <Button variant="outline" onClick={openCreate}>
               <Plus className="mr-2 h-4 w-4" />
-              Ajouter une provision
+              {t("provisionsSection.ajouterUneProvision")}
             </Button>
           </CardContent>
         </Card>
@@ -188,8 +190,7 @@ export function ProvisionsSection() {
             <div key={a.account_id} className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
               <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
               <span>
-                {a.account_name} : {formatCurrency(a.balance)} sur le compte pour {formatCurrency(a.target_now)} qui
-                devraient déjà être provisionnés. Il manque {formatCurrency(a.gap)}.
+                {i18n.t("misc.gapWarning", { ns: "savings", account: a.account_name, balance: formatCurrency(a.balance), target: formatCurrency(a.target_now), gap: formatCurrency(a.gap) })}
               </span>
             </div>
           ))}
@@ -204,68 +205,67 @@ export function ProvisionsSection() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="rounded-2xl sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle>{editing ? "Modifier la provision" : "Nouvelle provision"}</DialogTitle>
+            <DialogTitle>{editing ? t("provisionsSection.modifierLaProvision") : t("provisionsSection.nouvelleProvision")}</DialogTitle>
             <DialogDescription>
-              Rien n'est ajouté à vos transactions : la provision calcule seulement l'effort mensuel. Rattachez un
-              compte d'épargne pour suivre ce qui est réellement de côté.
+              {t("provisionsSection.rienNEstAjouteA")}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-2">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="grid gap-2">
-                <Label htmlFor="prov-name">Nom</Label>
-                <Input id="prov-name" placeholder="ex : Taxe foncière" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+                <Label htmlFor="prov-name">{t("provisionsSection.nom")}</Label>
+                <Input id="prov-name" placeholder={t("provisionsSection.exTaxeFonciere")} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="prov-amount">Montant par échéance (€)</Label>
+                <Label htmlFor="prov-amount">{t("provisionsSection.montantParEcheance")}</Label>
                 <Input id="prov-amount" inputMode="decimal" placeholder="1200" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} />
               </div>
             </div>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="grid gap-2">
-                <Label>Périodicité</Label>
+                <Label>{t("provisionsSection.periodicite")}</Label>
                 <Select value={form.interval_months} onValueChange={(v) => setForm({ ...form, interval_months: v })}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {INTERVALS.map((i) => <SelectItem key={i.value} value={i.value}>{i.label}</SelectItem>)}
+                    {intervals().map((i) => <SelectItem key={i.value} value={i.value}>{i.label}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="prov-due">Prochaine échéance</Label>
+                <Label htmlFor="prov-due">{t("provisionsSection.prochaineEcheance")}</Label>
                 <Input id="prov-due" type="date" value={form.due_date} onChange={(e) => setForm({ ...form, due_date: e.target.value })} />
               </div>
             </div>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="grid gap-2">
-                <Label>Catégorie de la dépense</Label>
+                <Label>{t("provisionsSection.categorieDeLaDepense")}</Label>
                 <Select value={form.category_id} onValueChange={(v) => setForm({ ...form, category_id: v })}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">Aucune</SelectItem>
+                    <SelectItem value="none">{t("provisionsSection.aucune")}</SelectItem>
                     {categories.map((c) => <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
               <div className="grid gap-2">
-                <Label>Compte de mise de côté</Label>
+                <Label>{t("provisionsSection.compteDeMiseDeCote")}</Label>
                 <Select value={form.account_id} onValueChange={(v) => setForm({ ...form, account_id: v })}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">Aucun (non suivi)</SelectItem>
+                    <SelectItem value="none">{t("provisionsSection.aucunNonSuivi")}</SelectItem>
                     {accounts.map((a) => <SelectItem key={a.id} value={String(a.id)}>{a.name}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="prov-note">Note</Label>
-              <Input id="prov-note" placeholder="facultatif" value={form.note} onChange={(e) => setForm({ ...form, note: e.target.value })} />
+              <Label htmlFor="prov-note">{t("provisionsSection.note")}</Label>
+              <Input id="prov-note" placeholder={t("provisionsSection.facultatif")} value={form.note} onChange={(e) => setForm({ ...form, note: e.target.value })} />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>Annuler</Button>
-            <Button onClick={save} disabled={saving} className="bg-slate-900 text-white">Enregistrer</Button>
+            <Button variant="outline" onClick={() => setDialogOpen(false)}>{t("provisionsSection.annuler")}</Button>
+            <Button onClick={save} disabled={saving} className="bg-slate-900 text-white">{t("provisionsSection.enregistrer")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
