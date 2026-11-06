@@ -48,6 +48,7 @@ from app.controllers.systeme.passkeys import router as passkeys_router
 from app.controllers.systeme.totp import router as totp_router
 from app.core.config import settings
 from app.core.errors import DomainError
+from app.core.i18n import LanguageMiddleware
 from app.core.logging import get_logger, setup_logging
 from app.core.login_events import client_ip
 from app.core.migrations import run_migrations
@@ -234,8 +235,10 @@ app.add_middleware(
     allow_origins=settings.cors_origins,
     allow_credentials=False,
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allow_headers=["Authorization", "Content-Type"],
+    allow_headers=["Authorization", "Content-Type", "Accept-Language"],
 )
+# Langue de la requête (Accept-Language) : posée avant tout le reste, gestionnaires d'erreurs compris
+app.add_middleware(LanguageMiddleware)
 
 app.include_router(health_router)
 app.include_router(auth_router)

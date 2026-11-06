@@ -49,7 +49,7 @@ backend/
                         (XIRR/TWR), portfolio, holdings, dividends, diversity, market, etf_profiles (+ etf_presets.json), ...
     integrations/       appels externes : currency (Frankfurter), yahoo_finance, notifications (ntfy, Telegram), logos, backup
     core/               transverse : config, errors, security, logging, login_events, login_rate_limit, totp,
-                        mcp_tokens, migrations, time
+                        mcp_tokens, migrations, time, i18n (+ locales/{fr,en}.json : textes de l'API selon Accept-Language)
     db/                 session SQLAlchemy, system_settings (get_setting/set_setting : set_setting ne fait que flush, le service commit)
     models/             modeles ORM
     schemas/            schemas Pydantic

@@ -2,12 +2,15 @@
 
 from typing import Any
 
+from app.core.i18n import get_language, tr
 from app.schemas.insight import HealthScore, MetricDetail
 
 
 def eur(value: float) -> str:
-    """Montant à la française pour les textes : « 1 234,56 € »."""
-    return f"{value:,.2f}".replace(",", " ").replace(".", ",") + " €"
+    """Montant pour les textes, dans la langue de la requête : « 1 234,56 € » ou « €1,234.56 »."""
+    if get_language() == "en":
+        return f"€{value:,.2f}"
+    return f"{value:,.2f}".replace(",", "\u202f").replace(".", ",") + "\u00a0€"
 
 
 def health_score(budget_data: dict[str, Any], runway_months: float) -> HealthScore:
@@ -29,19 +32,19 @@ def health_score(budget_data: dict[str, Any], runway_months: float) -> HealthSco
 
     metrics = [
         MetricDetail(
-            name="Taux d'Épargne", score=round(sr_score, 1), max_score=30.0, value=round(savings_rate, 1), unit="%",
+            name=tr("insights.health.savings_rate"), score=round(sr_score, 1), max_score=30.0, value=round(savings_rate, 1), unit="%",
             status="good" if savings_rate >= 20 else "warning" if savings_rate >= 10 else "critical"
         ),
         MetricDetail(
-            name="Fonds de Sécurité", score=round(runway_score, 1), max_score=30.0, value=round(runway_months, 1),
+            name=tr("insights.health.emergency_fund"), score=round(runway_score, 1), max_score=30.0, value=round(runway_months, 1),
             unit="mois", status="good" if runway_months >= 6 else "warning" if runway_months >= 3 else "critical"
         ),
         MetricDetail(
-            name="Flux de Trésorerie", score=cf_score, max_score=20.0, value=round(cashflow, 2), unit="€",
+            name=tr("insights.health.cash_flow"), score=cf_score, max_score=20.0, value=round(cashflow, 2), unit="€",
             status="good" if cashflow > 0 else "critical"
         ),
         MetricDetail(
-            name="Ratio d'Investissement", score=round(inv_score, 1), max_score=20.0, value=round(inv_ratio, 1),
+            name=tr("insights.health.investment_ratio"), score=round(inv_score, 1), max_score=20.0, value=round(inv_ratio, 1),
             unit="%", status="good" if inv_ratio >= 10 else "warning" if inv_ratio >= 5 else "critical"
         ),
     ]

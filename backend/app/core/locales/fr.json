@@ -1,0 +1,19 @@
+{
+  "insights.health.savings_rate": "Taux d'Épargne",
+  "insights.health.emergency_fund": "Fonds de Sécurité",
+  "insights.health.cash_flow": "Flux de Trésorerie",
+  "insights.health.investment_ratio": "Ratio d'Investissement",
+  "insights.subscription_increase.title": "Hausse des abonnements",
+  "insights.subscription_increase.description": "Vos abonnements ont augmenté de {amount} par rapport au mois dernier.",
+  "insights.large_expense.title": "Grosse dépense isolée",
+  "insights.large_expense.description": "La transaction '{merchant}' de {amount} est exceptionnellement élevée.",
+  "insights.category_alert.title": "Alerte catégorie : {category}",
+  "insights.category_alert.description": "Vos dépenses en '{category}' ({current}) sont plus de 2x supérieures à votre moyenne habituelle ({average}).",
+  "insights.high_savings.title": "Excellent taux d'épargne",
+  "insights.high_savings.description": "Félicitations ! Vous épargnez plus de 30 % de vos revenus ce mois-ci.",
+  "insights.long_runway.title": "Sérénité financière",
+  "insights.long_runway.description": "Votre fonds de sécurité couvre plus d'un an de dépenses. Vous êtes très bien protégé.",
+  "projections.fire.current": "Actuel",
+  "projections.fire.extra_savings": "+{amount} €/mois",
+  "projections.fire.expenses_cut": "Dépenses −10 %"
+}

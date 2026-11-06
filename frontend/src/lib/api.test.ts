@@ -5,6 +5,7 @@ import { apiUrl } from "@/test/handlers"
 import { recordRequests } from "@/test/recordRequests"
 import { server } from "@/test/server"
 import { makeToken } from "@/test/token"
+import { setLanguage } from "@/i18n"
 
 /** Erreur levée par la promesse (échoue si elle est résolue). */
 async function rejection(promise: Promise<unknown>): Promise<ApiError> {
@@ -19,6 +20,32 @@ async function rejection(promise: Promise<unknown>): Promise<ApiError> {
 }
 
 describe("apiFetch : en-têtes", () => {
+  describe("langue des textes renvoyés par le serveur", () => {
+    afterEach(() => setLanguage("fr"))
+
+    it("envoie la langue de l'interface dans Accept-Language", async () => {
+      const requests = recordRequests()
+
+      await apiFetch("/accounts")
+      await setLanguage("en")
+      await apiFetch("/accounts")
+
+      expect(requests.map((r) => r.headers.get("accept-language"))).toEqual(["fr", "en"])
+    })
+
+    it("relit le serveur après un changement de langue au lieu de resservir un texte mis en cache", async () => {
+      const requests = recordRequests()
+
+      await api.get("/analytics/insights")
+      await api.get("/analytics/insights")
+      expect(requests).toHaveLength(1)
+
+      await setLanguage("en")
+      await api.get("/analytics/insights")
+      expect(requests).toHaveLength(2)
+    })
+  })
+
   it("ajoute le Bearer du jeton stocké", async () => {
     const token = makeToken()
     safeStorage.setItem("token", token)

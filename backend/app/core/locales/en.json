@@ -1,0 +1,19 @@
+{
+  "insights.health.savings_rate": "Savings rate",
+  "insights.health.emergency_fund": "Emergency fund",
+  "insights.health.cash_flow": "Cash flow",
+  "insights.health.investment_ratio": "Investment ratio",
+  "insights.subscription_increase.title": "Subscription increase",
+  "insights.subscription_increase.description": "Your subscriptions increased by {amount} compared with last month.",
+  "insights.large_expense.title": "Large one-off expense",
+  "insights.large_expense.description": "The transaction '{merchant}' of {amount} is unusually high.",
+  "insights.category_alert.title": "Category alert: {category}",
+  "insights.category_alert.description": "Your spending on '{category}' ({current}) is more than 2x your usual average ({average}).",
+  "insights.high_savings.title": "Excellent savings rate",
+  "insights.high_savings.description": "Congratulations! You are saving more than 30% of your income this month.",
+  "insights.long_runway.title": "Financial peace of mind",
+  "insights.long_runway.description": "Your emergency fund covers more than a year of expenses. You are very well protected.",
+  "projections.fire.current": "Current",
+  "projections.fire.extra_savings": "+€{amount}/month",
+  "projections.fire.expenses_cut": "Expenses −10%"
+}
