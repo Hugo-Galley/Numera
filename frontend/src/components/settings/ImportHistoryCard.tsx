@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import { appLocale } from "@/i18n/locale"
 import { useEffect, useState } from "react"
 import { ChevronDown, ChevronUp, History } from "lucide-react"
@@ -19,6 +20,7 @@ type ImportLog = {
 
 // Historique des imports CSV (l'import lui-même se lance depuis la page d'un compte)
 export function ImportHistoryCard() {
+  const { t } = useTranslation("settings")
   const [importLogs, setImportLogs] = useState<ImportLog[]>([])
   const [showLogs, setShowLogs] = useState(false)
 
@@ -34,7 +36,7 @@ export function ImportHistoryCard() {
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 text-slate-900">
             <History className="h-5 w-5" />
-            <h3 className="font-bold text-base sm:text-lg">Historique des importations</h3>
+            <h3 className="font-bold text-base sm:text-lg">{t("importHistoryCard.historiqueDesImportations")}</h3>
           </div>
           <Button 
             variant="ghost" 
@@ -43,9 +45,9 @@ export function ImportHistoryCard() {
             className="h-10 shrink-0 text-slate-500 hover:text-slate-900"
           >
             {showLogs ? (
-              <><ChevronUp className="h-4 w-4 mr-2" /> Masquer</>
+              <><ChevronUp className="h-4 w-4 mr-2" /> {t("importHistoryCard.masquer")}</>
             ) : (
-              <><ChevronDown className="h-4 w-4 mr-2" /> <span className="sm:hidden">Afficher ({importLogs.length})</span><span className="hidden sm:inline">Afficher les {importLogs.length} dernières</span></>
+              <><ChevronDown className="h-4 w-4 mr-2" /> <span className="sm:hidden">{t("misc.showN", { count: importLogs.length })}</span><span className="hidden sm:inline">{t("misc.showLastN", { count: importLogs.length })}</span></>
             )}
           </Button>
         </div>
@@ -72,15 +74,15 @@ export function ImportHistoryCard() {
                 <CardContent className="p-4 pt-2">
                   <div className="grid grid-cols-3 gap-2">
                     <div className="text-center p-2 rounded-lg bg-emerald-50 border border-emerald-100">
-                      <p className="text-[9px] font-black text-emerald-600 uppercase">Succès</p>
+                      <p className="text-[9px] font-black text-emerald-600 uppercase">{t("importHistoryCard.succes")}</p>
                       <p className="text-lg font-bold text-emerald-700">{log.imported_count}</p>
                     </div>
                     <div className="text-center p-2 rounded-lg bg-amber-50 border border-amber-100">
-                      <p className="text-[9px] font-black text-amber-600 uppercase">Ignorés</p>
+                      <p className="text-[9px] font-black text-amber-600 uppercase">{t("importHistoryCard.ignores")}</p>
                       <p className="text-lg font-bold text-amber-700">{log.skipped_count}</p>
                     </div>
                     <div className="text-center p-2 rounded-lg bg-rose-50 border border-rose-100">
-                      <p className="text-[9px] font-black text-rose-600 uppercase">Erreurs</p>
+                      <p className="text-[9px] font-black text-rose-600 uppercase">{t("importHistoryCard.erreurs")}</p>
                       <p className="text-lg font-bold text-rose-700">{log.error_count}</p>
                     </div>
                   </div>
@@ -89,7 +91,7 @@ export function ImportHistoryCard() {
             ))}
             {importLogs.length === 0 && (
               <div className="col-span-full py-12 text-center bg-slate-50 rounded-2xl border-2 border-dashed border-slate-100">
-                <p className="text-sm text-slate-400 font-medium">Aucune importation enregistrée.</p>
+                <p className="text-sm text-slate-400 font-medium">{t("importHistoryCard.aucuneImportationEnregistree")}</p>
               </div>
             )}
           </div>

@@ -129,7 +129,9 @@
     "revenus": "Income",
     "depensesReelles": "Actual expenses",
     "misDeCote": "Set aside",
-    "epargneInvesti": "savings + invested"
+    "epargneInvesti": "savings + invested",
+    "unresolvedPoints_one": " · {{count}} unresolved item",
+    "unresolvedPoints_other": " · {{count}} unresolved items"
   },
   "misc": {
     "vsPrevious": "{{amount}} vs previous month",

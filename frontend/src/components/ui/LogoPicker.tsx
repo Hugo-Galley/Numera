@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import { useEffect, useRef, useState } from "react"
 import { Globe, Loader2, X } from "lucide-react"
 import { toast } from "sonner"
@@ -25,6 +26,7 @@ function LogoChip({ ref_, label }: { ref_: string; label: string }) {
 }
 
 export function LogoPicker({ value, onChange, suggestFor }: LogoPickerProps) {
+  const { t } = useTranslation("common")
   const [query, setQuery] = useState("")
   const [open, setOpen] = useState(false)
   const [results, setResults] = useState<Suggestion[]>([])
@@ -78,7 +80,7 @@ export function LogoPicker({ value, onChange, suggestFor }: LogoPickerProps) {
       const res = await api.post<{ ref: string }>("/logos/from-domain", { domain: query.trim() })
       select(res.ref)
     } catch {
-      toast.error("Aucun logo trouvé pour ce domaine")
+      toast.error(t("errors.logoNotFound"))
     } finally {
       setFetchingDomain(false)
     }
@@ -88,8 +90,8 @@ export function LogoPicker({ value, onChange, suggestFor }: LogoPickerProps) {
     <div ref={boxRef} className="relative">
       {value && (
         <div className="mb-2 flex items-center gap-2">
-          <LogoChip ref_={value} label="Logo sélectionné" />
-          <span className="text-xs text-slate-500">Logo sélectionné</span>
+          <LogoChip ref_={value} label={t("errors.logoSelected")} />
+          <span className="text-xs text-slate-500">{t("errors.logoSelected")}</span>
           <button
             type="button"
             onClick={() => select(null)}
@@ -106,7 +108,7 @@ export function LogoPicker({ value, onChange, suggestFor }: LogoPickerProps) {
           setOpen(true)
         }}
         onFocus={() => setOpen(true)}
-        placeholder="Entreprise ou produit (Claude, YouTube…) ou site (navigo.fr)"
+        placeholder={t("errors.logoSearch")}
         autoComplete="off"
       />
       {open && (

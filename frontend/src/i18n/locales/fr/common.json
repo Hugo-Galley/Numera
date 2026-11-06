@@ -17,7 +17,18 @@
     "retry": "Réessayer",
     "reload": "Recharger",
     "renderTitle": "Cette page a rencontré une erreur",
-    "renderText": "Vos données ne sont pas affectées. Réessayez ou rechargez la page."
+    "renderText": "Vos données ne sont pas affectées. Réessayez ou rechargez la page.",
+    "requestRefused": "Requête refusée",
+    "serverError": "Erreur du serveur ({{status}})",
+    "generic": "Une erreur est survenue",
+    "unreachable": "Impossible de se connecter au serveur. Vérifiez votre connexion.",
+    "sessionExpired": "Session expirée",
+    "passkeyFailed": "Connexion par passkey impossible",
+    "loginCancelled": "Connexion annulée",
+    "logoNotFound": "Aucun logo trouvé pour ce domaine",
+    "logoSelected": "Logo sélectionné",
+    "logoSearch": "Entreprise ou produit (Claude, YouTube…) ou site (navigo.fr)",
+    "workRateFailed": "Impossible de charger le taux horaire (prix en heures de travail indisponible)"
   },
   "workHours": {
     "minutes": "{{n}} min",

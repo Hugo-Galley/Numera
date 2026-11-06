@@ -1,3 +1,4 @@
+import i18n from "i18next"
 import { safeStorage } from "@/lib/storage"
 import { cachedRead, resetApiCache } from "@/lib/apiCache"
 import { getTokenExpiry } from "@/lib/utils"
@@ -58,10 +59,10 @@ function formatErrorMessage(response: Response, errorData: any): string {
       })
       .join(" ; ")
   }
-  if (detail && typeof detail === "object") return detail.message || detail.detail || "Requête refusée"
+  if (detail && typeof detail === "object") return detail.message || detail.detail || i18n.t("errors.requestRefused", { ns: "common" })
   if (typeof errorData?.message === "string" && errorData.message) return errorData.message
-  if (response.status >= 500) return `Erreur du serveur (${response.status})`
-  return response.statusText || "Une erreur est survenue"
+  if (response.status >= 500) return i18n.t("errors.serverError", { ns: "common", status: response.status })
+  return response.statusText || i18n.t("errors.generic", { ns: "common" })
 }
 
 async function request(endpoint: string, options?: RequestInit): Promise<Response> {
@@ -81,7 +82,7 @@ async function request(endpoint: string, options?: RequestInit): Promise<Respons
       },
     })
   } catch (err) {
-    throw new ApiError(0, "Impossible de se connecter au serveur. Vérifiez votre connexion.", err)
+    throw new ApiError(0, i18n.t("errors.unreachable", { ns: "common" }), err)
   }
 
   if (response.status === 401 || (response.status === 403 && endpoint !== "/auth/token")) {
@@ -96,7 +97,7 @@ async function request(endpoint: string, options?: RequestInit): Promise<Respons
         const back = encodeURIComponent(window.location.pathname + window.location.search)
         window.location.href = `/login?from=${back}`
       }
-      throw new ApiError(response.status, "Session expirée")
+      throw new ApiError(response.status, i18n.t("errors.sessionExpired", { ns: "common" }))
     }
   }
 

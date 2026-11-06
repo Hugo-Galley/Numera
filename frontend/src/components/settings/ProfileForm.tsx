@@ -1,3 +1,5 @@
+import i18n from "i18next"
+import { useTranslation } from "react-i18next"
 import { useState, useEffect } from "react"
 import { User, Lock, Camera, Save, AlertTriangle } from "lucide-react"
 import { useAuth } from "@/providers/AuthProvider"
@@ -32,12 +34,12 @@ function useProfileUpdate() {
     setLoading(true)
     try {
       await api.put("/admin/profile", payload)
-      toast.success("Profil mis à jour")
-      if (critical) toast.info("Déconnexion en cours suite au changement d'identifiants...")
+      toast.success(i18n.t("profileForm.profilMisAJour", { ns: "settings" }))
+      if (critical) toast.info(i18n.t("profileForm.deconnexionEnCoursSuiteAu", { ns: "settings" }))
       await refreshProfile()
       return true
     } catch (error) {
-      toast.error(error instanceof Error && error.message ? error.message : "Erreur lors de la mise à jour du profil")
+      toast.error(error instanceof Error && error.message ? error.message : i18n.t("profileForm.erreurLorsDeLaMise", { ns: "settings" }))
       console.error(error)
       return false
     } finally {
@@ -67,22 +69,22 @@ function LogoutConfirmDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <AlertTriangle className="h-5 w-5 text-amber-500" />
-            Confirmation de modification
+            {i18n.t("profileForm.confirmationDeModification", { ns: "settings" })}
           </DialogTitle>
           <DialogDescription className="py-2">
-            Tu es sur le point de modifier ton <strong>{what}</strong>.
+            {i18n.t("profileForm.tuEsSurLePoint", { ns: "settings" })} <strong>{what}</strong>.
             <br /><br />
-            Cette action entraînera une <strong>déconnexion immédiate</strong>. Tu devras te reconnecter avec tes nouveaux identifiants.
+            {i18n.t("profileForm.cetteActionEntraineraUne", { ns: "settings" })} <strong>{i18n.t("profileForm.deconnexionImmediate", { ns: "settings" })}</strong>{i18n.t("profileForm.tuDevrasTeReconnecterAvec", { ns: "settings" })}
             <br /><br />
-            Continuer ?
+            {i18n.t("profileForm.continuer", { ns: "settings" })}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="gap-2 sm:gap-0">
           <Button variant="outline" className="h-11 sm:h-10" onClick={() => onOpenChange(false)} disabled={loading}>
-            Annuler
+            {i18n.t("profileForm.annuler", { ns: "settings" })}
           </Button>
           <Button onClick={onConfirm} disabled={loading} className="h-11 sm:h-10 bg-amber-600 hover:bg-amber-700 text-white">
-            Confirmer et se déconnecter
+            {i18n.t("profileForm.confirmerEtSeDeconnecter", { ns: "settings" })}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -95,7 +97,7 @@ function SaveButton({ loading }: { loading: boolean }) {
     <div className="flex justify-end">
       <Button type="submit" disabled={loading} className="h-11 w-full sm:h-10 sm:w-auto bg-slate-900 hover:bg-slate-800 text-white gap-2">
         <Save className="h-4 w-4" />
-        {loading ? "Enregistrement..." : "Enregistrer"}
+        {loading ? i18n.t("profileForm.enregistrement", { ns: "settings" }) : i18n.t("profileForm.enregistrer", { ns: "settings" })}
       </Button>
     </div>
   )
@@ -103,6 +105,7 @@ function SaveButton({ loading }: { loading: boolean }) {
 
 /** Identifiant et photo (onglet Général). */
 export function ProfileInfoCard() {
+  const { t } = useTranslation("settings")
   const { profile } = useAuth()
   const { loading, update } = useProfileUpdate()
   const [showConfirmDialog, setShowConfirmDialog] = useState(false)
@@ -136,7 +139,7 @@ export function ProfileInfoCard() {
     e.preventDefault()
     if (!isUsernameChanged) return void save()
     if (!currentPassword) {
-      toast.error("Saisis ton mot de passe actuel pour changer d'identifiant")
+      toast.error(t("profileForm.saisisTonMotDePasse"))
       return
     }
     setShowConfirmDialog(true)
@@ -149,28 +152,28 @@ export function ProfileInfoCard() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <User className="h-5 w-5" />
-              Informations du profil
+              {t("profileForm.informationsDuProfil")}
             </CardTitle>
-            <CardDescription>Ton identifiant et ta photo.</CardDescription>
+            <CardDescription>{t("profileForm.tonIdentifiantEtTaPhoto")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex flex-col md:flex-row gap-6 items-center md:items-start">
               <div className="flex flex-col items-center gap-2">
                 <div className="h-20 w-20 md:h-24 md:w-24 rounded-full bg-slate-100 flex items-center justify-center overflow-hidden border-2 border-slate-200">
                   {profilePictureUrl ? (
-                    <img src={profilePictureUrl} alt="Profil" className="h-full w-full object-cover" />
+                    <img src={profilePictureUrl} alt={t("profileForm.profil")} className="h-full w-full object-cover" />
                   ) : (
                     <User className="h-12 w-12 text-slate-400" />
                   )}
                 </div>
                 <Label htmlFor="avatar-url" className="py-2 text-xs cursor-pointer text-slate-500 hover:text-slate-900 flex items-center gap-1">
-                  <Camera className="h-3 w-3" /> Changer la photo
+                  <Camera className="h-3 w-3" /> {t("profileForm.changerLaPhoto")}
                 </Label>
               </div>
 
               <div className="flex-1 space-y-4 w-full">
                 <div className="grid gap-2">
-                  <Label htmlFor="username">Nom d'utilisateur</Label>
+                  <Label htmlFor="username">{t("profileForm.nomDUtilisateur")}</Label>
                   <Input
                     id="username"
                     autoCapitalize="none"
@@ -183,19 +186,19 @@ export function ProfileInfoCard() {
                 </div>
                 {isUsernameChanged && (
                   <div className="grid gap-2">
-                    <Label htmlFor="profile-current-password">Mot de passe actuel</Label>
+                    <Label htmlFor="profile-current-password">{t("profileForm.motDePasseActuel")}</Label>
                     <Input
                       id="profile-current-password"
                       type="password"
                       autoComplete="current-password"
                       value={currentPassword}
                       onChange={(e) => setCurrentPassword(e.target.value)}
-                      placeholder="Requis pour changer d'identifiant"
+                      placeholder={t("profileForm.requisPourChangerDIdentifiant")}
                     />
                   </div>
                 )}
                 <div className="grid gap-2">
-                  <Label htmlFor="avatar-url">URL de la photo de profil</Label>
+                  <Label htmlFor="avatar-url">{t("profileForm.urlDeLaPhotoDe")}</Label>
                   <Input
                     id="avatar-url"
                     value={profilePictureUrl}
@@ -215,7 +218,7 @@ export function ProfileInfoCard() {
         onOpenChange={setShowConfirmDialog}
         onConfirm={save}
         loading={loading}
-        what="nom d'utilisateur"
+        what={t("misc.whatUsername")}
       />
     </>
   )
@@ -223,6 +226,7 @@ export function ProfileInfoCard() {
 
 /** Changement de mot de passe (onglet Sécurité). */
 export function PasswordCard() {
+  const { t } = useTranslation("settings")
   const { loading, update } = useProfileUpdate()
   const [showConfirmDialog, setShowConfirmDialog] = useState(false)
   const [currentPassword, setCurrentPassword] = useState("")
@@ -242,15 +246,15 @@ export function PasswordCard() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (password !== confirmPassword) {
-      toast.error("Les mots de passe ne correspondent pas")
+      toast.error(t("profileForm.lesMotsDePasseNe"))
       return
     }
     if (password.length < 8) {
-      toast.error("Le mot de passe doit contenir au moins 8 caractères")
+      toast.error(t("profileForm.leMotDePasseDoit"))
       return
     }
     if (!currentPassword) {
-      toast.error("Saisis ton mot de passe actuel")
+      toast.error(t("profileForm.saisisTonMotDePasse2"))
       return
     }
     setShowConfirmDialog(true)
@@ -263,15 +267,15 @@ export function PasswordCard() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Lock className="h-5 w-5" />
-              Mot de passe
+              {t("profileForm.motDePasse")}
             </CardTitle>
-            <CardDescription>Au moins 8 caractères. Tu seras déconnecté après le changement.</CardDescription>
+            <CardDescription>{t("profileForm.auMoins8CaracteresTu")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {/* Identifiant caché : aide le gestionnaire de mots de passe à rattacher le nouveau mot de passe */}
             <input type="text" name="username" autoComplete="username" className="hidden" readOnly />
             <div className="grid gap-2">
-              <Label htmlFor="current-password">Mot de passe actuel</Label>
+              <Label htmlFor="current-password">{t("profileForm.motDePasseActuel")}</Label>
               <Input
                 id="current-password"
                 type="password"
@@ -282,7 +286,7 @@ export function PasswordCard() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="grid gap-2">
-                <Label htmlFor="new-password">Nouveau mot de passe</Label>
+                <Label htmlFor="new-password">{t("profileForm.nouveauMotDePasse")}</Label>
                 <Input
                   id="new-password"
                   autoComplete="new-password"
@@ -294,7 +298,7 @@ export function PasswordCard() {
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="confirm-password">Confirmer le mot de passe</Label>
+                <Label htmlFor="confirm-password">{t("profileForm.confirmerLeMotDePasse")}</Label>
                 <Input
                   id="confirm-password"
                   autoComplete="new-password"
@@ -316,7 +320,7 @@ export function PasswordCard() {
         onOpenChange={setShowConfirmDialog}
         onConfirm={save}
         loading={loading}
-        what="mot de passe"
+        what={t("misc.whatPassword")}
       />
     </>
   )

@@ -17,7 +17,18 @@
     "retry": "Try again",
     "reload": "Reload",
     "renderTitle": "This page ran into an error",
-    "renderText": "Your data is not affected. Try again or reload the page."
+    "renderText": "Your data is not affected. Try again or reload the page.",
+    "requestRefused": "Request refused",
+    "serverError": "Server error ({{status}})",
+    "generic": "An error occurred",
+    "unreachable": "Unable to reach the server. Check your connection.",
+    "sessionExpired": "Session expired",
+    "passkeyFailed": "Passkey sign-in failed",
+    "loginCancelled": "Sign-in cancelled",
+    "logoNotFound": "No logo found for this domain",
+    "logoSelected": "Selected logo",
+    "logoSearch": "Company or product (Claude, YouTube…) or website (navigo.fr)",
+    "workRateFailed": "Unable to load the hourly rate (price in work hours unavailable)"
   },
   "workHours": {
     "minutes": "{{n}} min",
