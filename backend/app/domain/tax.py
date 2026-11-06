@@ -4,9 +4,9 @@ import unicodedata
 from datetime import date
 from typing import Any, NamedTuple
 
+from app.core.i18n import get_language, tr
 from app.domain.tax_rules import TaxRules
 
-_CAPITALISED_INTEREST_ALERT = "Plafond de versements du {name} atteint : les intérêts capitalisés peuvent légitimement le dépasser."
 PEA_MILESTONE_YEARS = 5
 AV_MILESTONE_YEARS = 8
 
@@ -41,14 +41,14 @@ def pea_status(contributions: float, opened_at: date | None, withdrawals: list[d
     alerts: list[str] = []
     age = reached = None
     if opened_at is None:
-        alerts.append("Date d'ouverture manquante : renseigne-la dans les paramètres du compte.")
+        alerts.append(tr("tax.alert.opening_date_missing"))
     else:
         age = years_between(opened_at, today)
         reached = age >= PEA_MILESTONE_YEARS
         if any(years_between(opened_at, w) < PEA_MILESTONE_YEARS for w in withdrawals):
-            alerts.append("Retrait avant 5 ans : la fiscalité avantageuse du PEA est perdue.")
+            alerts.append(tr("tax.alert.pea_early_withdrawal"))
     if contributions > rules.pea_ceiling:
-        alerts.append("Plafond de versements du PEA dépassé.")
+        alerts.append(tr("tax.alert.pea_ceiling"))
     return _blank(
         current=contributions, ceiling=rules.pea_ceiling, remaining=remaining, used_pct=used_pct,
         age_years=age, milestone_years=PEA_MILESTONE_YEARS, milestone_reached=reached, alerts=alerts,
@@ -66,7 +66,7 @@ def per_status(contributed_this_year: float, prior_year_income: float, tmi_pct: 
     remaining, used_pct = _room(contributed_this_year, ceiling)
     alerts = []
     if contributed_this_year > ceiling:
-        alerts.append("Versements supérieurs au plafond de déduction : l'excédent n'est pas déductible.")
+        alerts.append(tr("tax.alert.per_over_ceiling"))
     return _blank(
         current=contributed_this_year, ceiling=ceiling, remaining=remaining, used_pct=used_pct,
         estimated_tax_saving=min(contributed_this_year, ceiling) * tmi_pct / 100.0, alerts=alerts,
@@ -75,26 +75,26 @@ def per_status(contributed_this_year: float, prior_year_income: float, tmi_pct: 
 
 def livret_a_status(balance: float, rules: TaxRules) -> dict[str, Any]:
     remaining, used_pct = _room(balance, rules.livret_a_ceiling)
-    alerts = [_CAPITALISED_INTEREST_ALERT.format(name="Livret A")] if balance > rules.livret_a_ceiling else []
+    alerts = [tr("tax.alert.capitalised_interest", name="Livret A")] if balance > rules.livret_a_ceiling else []
     return _blank(current=balance, ceiling=rules.livret_a_ceiling, remaining=remaining, used_pct=used_pct, alerts=alerts)
 
 
 def livret_jeune_status(balance: float, rules: TaxRules) -> dict[str, Any]:
     remaining, used_pct = _room(balance, rules.livret_jeune_ceiling)
-    alerts = [_CAPITALISED_INTEREST_ALERT.format(name="Livret Jeune")] if balance > rules.livret_jeune_ceiling else []
+    alerts = [tr("tax.alert.capitalised_interest", name="Livret Jeune")] if balance > rules.livret_jeune_ceiling else []
     return _blank(current=balance, ceiling=rules.livret_jeune_ceiling, remaining=remaining, used_pct=used_pct, alerts=alerts)
 
 
 def ldds_status(balance: float, rules: TaxRules) -> dict[str, Any]:
     remaining, used_pct = _room(balance, rules.ldds_ceiling)
-    alerts = [_CAPITALISED_INTEREST_ALERT.format(name="LDDS")] if balance > rules.ldds_ceiling else []
+    alerts = [tr("tax.alert.capitalised_interest", name="LDDS")] if balance > rules.ldds_ceiling else []
     return _blank(current=balance, ceiling=rules.ldds_ceiling, remaining=remaining, used_pct=used_pct, alerts=alerts)
 
 
 def lep_status(balance: float, rules: TaxRules) -> dict[str, Any]:
     remaining, used_pct = _room(balance, rules.lep_ceiling)
-    alerts = [_CAPITALISED_INTEREST_ALERT.format(name="LEP")] if balance > rules.lep_ceiling else []
-    alerts.append("Le LEP est réservé aux foyers sous un plafond de revenus : à revérifier chaque année (non contrôlé ici).")
+    alerts = [tr("tax.alert.capitalised_interest", name="LEP")] if balance > rules.lep_ceiling else []
+    alerts.append(tr("tax.alert.lep_income"))
     return _blank(current=balance, ceiling=rules.lep_ceiling, remaining=remaining, used_pct=used_pct, alerts=alerts)
 
 
@@ -134,9 +134,9 @@ def pee_status(lots: list[PeeLot], withdrawn: float, gross_annual_salary: float,
         ceiling = gross_annual_salary * rules.pee_voluntary_rate
         remaining, used_pct = _room(voluntary, ceiling)
         if voluntary > ceiling:
-            alerts.append("Versements volontaires supérieurs au plafond de 25 % de la rémunération brute annuelle.")
+            alerts.append(tr("tax.alert.pee_over_ceiling"))
     else:
-        alerts.append("Renseigne ton salaire brut annuel dans les réglages pour suivre le plafond des versements volontaires.")
+        alerts.append(tr("tax.alert.pee_salary_missing"))
     return _blank(
         current=voluntary, ceiling=ceiling, remaining=remaining, used_pct=used_pct,
         total_contributed=sum(lot.amount for lot in lots), blocked=blocked, available=available,
@@ -151,7 +151,7 @@ def av_status(opened_at: date | None, household: str, today: date, rules: TaxRul
     if opened_at is None:
         return _blank(
             milestone_years=AV_MILESTONE_YEARS, allowance=allowance,
-            alerts=["Date d'ouverture manquante : renseigne-la dans les paramètres du compte."],
+            alerts=[tr("tax.alert.opening_date_missing")],
         )
     age = years_between(opened_at, today)
     return _blank(age_years=age, milestone_years=AV_MILESTONE_YEARS, milestone_reached=age >= AV_MILESTONE_YEARS, allowance=allowance)
@@ -192,8 +192,10 @@ PRECAUTION_TARGET_MONTHS = 6
 PER_MIN_TMI_PCT = 30
 
 
-def _fr(value: float) -> str:
-    return f"{value:.1f}".replace(".", ",")
+def _months(value: float) -> str:
+    """Nombre décimal dans un texte : virgule en français, point en anglais."""
+    text = f"{value:.1f}"
+    return text.replace(".", ",") if get_language() == "fr" else text
 
 
 def allocation_advice(cards: list[dict[str, Any]], months_of_expenses: float | None, tmi_pct: float | None) -> list[dict[str, Any]]:
@@ -220,34 +222,34 @@ def allocation_advice(cards: list[dict[str, Any]], months_of_expenses: float | N
 
     if months_of_expenses is None or months_of_expenses < PRECAUTION_TARGET_MONTHS:
         if months_of_expenses is None:
-            situation = f"Constitue d'abord {PRECAUTION_MIN_MONTHS} à {PRECAUTION_TARGET_MONTHS} mois de dépenses d'épargne de précaution"
+            situation = tr("tax.advice.precaution_none", min=PRECAUTION_MIN_MONTHS, target=PRECAUTION_TARGET_MONTHS)
         elif months_of_expenses < PRECAUTION_MIN_MONTHS:
-            situation = f"Ton épargne de précaution couvre {_fr(months_of_expenses)} mois de dépenses, sous le minimum de {PRECAUTION_MIN_MONTHS} mois"
+            situation = tr("tax.advice.precaution_low", months=_months(months_of_expenses), min=PRECAUTION_MIN_MONTHS)
         else:
-            situation = f"Ton épargne de précaution couvre {_fr(months_of_expenses)} mois de dépenses, l'objectif est {PRECAUTION_TARGET_MONTHS} mois"
+            situation = tr("tax.advice.precaution_mid", months=_months(months_of_expenses), target=PRECAUTION_TARGET_MONTHS)
         livret = next((room for kind in _LIVRET_ORDER if (room := with_room(kind))), None)
         has_livret = any(kind in by_kind for kind in _LIVRET_ORDER)
         if livret:
-            add(livret["kind"], livret, f"{situation} : verse sur ton {_LIVRET_NAMES[livret['kind']]}, disponible à tout moment et sans impôt.")
+            add(livret["kind"], livret, tr("tax.advice.livret_reason", situation=situation, name=_LIVRET_NAMES[livret["kind"]]))
         elif not has_livret:
-            add("livret_a", None, f"{situation} : ouvre un livret réglementé (LEP si tu y as droit, sinon Livret A).", "Livret A à ouvrir")
+            add("livret_a", None, tr("tax.advice.livret_open", situation=situation), tr("tax.advice.livret_open_name"))
 
     pea = with_room("pea")
     if pea:
-        add("pea", pea, "Actions sur le long terme : le PEA est exonéré d'impôt sur les gains après 5 ans (hors prélèvements sociaux).")
+        add("pea", pea, tr("tax.advice.pea"))
     elif "pea" not in by_kind:
-        add("pea", None, "Ouvre un PEA, même avec un petit versement, pour lancer le compteur des 5 ans de fiscalité avantageuse.", "PEA à ouvrir")
+        add("pea", None, tr("tax.advice.pea_open"), tr("tax.advice.pea_open_name"))
 
     if tmi_pct is not None and tmi_pct >= PER_MIN_TMI_PCT:
         per = with_room("per")
         if per:
-            add("per", per, f"Avec une tranche à {tmi_pct:.0f} %, chaque versement au PER réduit ton impôt (argent bloqué jusqu'à la retraite).")
+            add("per", per, tr("tax.advice.per", tmi=f"{tmi_pct:.0f}"))
         elif "per" not in by_kind:
-            add("per", None, f"Avec une tranche à {tmi_pct:.0f} %, un PER réduirait ton impôt (argent bloqué jusqu'à la retraite).", "PER à ouvrir")
+            add("per", None, tr("tax.advice.per_open", tmi=f"{tmi_pct:.0f}"), tr("tax.advice.per_open_name"))
 
     if "assurance_vie" not in by_kind:
-        add("assurance_vie", None, "Ouvre une assurance-vie pour prendre date : la fiscalité s'allège après 8 ans.", "Assurance-vie à ouvrir")
+        add("assurance_vie", None, tr("tax.advice.av_open"), tr("tax.advice.av_open_name"))
     else:
         cto = by_kind["cto"][0] if by_kind.get("cto") else None
-        add("cto", cto, "Enveloppes avantageuses remplies ou ouvertes : le compte-titres n'a pas de plafond.", None if cto else "Compte-titres")
+        add("cto", cto, tr("tax.advice.cto"), None if cto else tr("tax.advice.cto_name"))
     return steps
