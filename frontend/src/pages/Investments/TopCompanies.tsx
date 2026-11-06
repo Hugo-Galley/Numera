@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import { Badge } from "@/components/ui/badge"
 import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 import { Building } from "lucide-react"
@@ -8,6 +9,7 @@ import type { InvestmentsCtx } from "./useInvestments"
 
 /** Top 10 des entreprises en transparence. */
 export function TopCompanies({ ctx }: { ctx: InvestmentsCtx }) {
+  const { t } = useTranslation("investments")
   const { diversity, isMobile } = ctx
   return (
     <>
@@ -18,18 +20,18 @@ export function TopCompanies({ ctx }: { ctx: InvestmentsCtx }) {
             <div>
               <div className="flex items-center gap-2">
                 <Building className="h-4 w-4 text-slate-500" />
-                <CardTitle className="text-base font-bold">Top 10 Entreprises Détenues (Look-Through)</CardTitle>
+                <CardTitle className="text-base font-bold">{t("topCompanies.top10EntreprisesDetenuesLook")}</CardTitle>
               </div>
               <CardDescription className="text-xs mt-0.5">
-                Exposition consolidée : direct + sous-jacents de vos ETFs.
+                {t("topCompanies.expositionConsolideeDirectSousJacents")}
               </CardDescription>
             </div>
             <div className="flex items-center gap-3 text-xs text-muted-foreground">
               <span className="flex items-center gap-1.5">
-                <span className="h-2.5 w-2.5 rounded-sm bg-slate-900" /> Direct
+                <span className="h-2.5 w-2.5 rounded-sm bg-slate-900" /> {t("topCompanies.direct")}
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="h-2.5 w-2.5 rounded-sm bg-slate-400" /> Via ETFs
+                <span className="h-2.5 w-2.5 rounded-sm bg-slate-400" /> {t("topCompanies.viaEtfs")}
               </span>
             </div>
           </CardHeader>
@@ -118,24 +120,24 @@ export function TopCompanies({ ctx }: { ctx: InvestmentsCtx }) {
                                   </div>
                                   {d.has_overlap && (
                                     <Badge variant="outline" className="text-[9px] px-1 py-0 font-normal shrink-0">
-                                      Doublon
+                                      {t("topCompanies.doublon")}
                                     </Badge>
                                   )}
                                 </div>
                                 <div className="flex justify-between items-center text-slate-900 font-bold">
-                                  <span>Apport total :</span>
+                                  <span>{t("topCompanies.apportTotal")}</span>
                                   <span>{formatCurrency(d.total)} ({formatRate(d.pct, 1)})</span>
                                 </div>
                                 <div className="text-[11px] text-muted-foreground space-y-0.5 pt-1 border-t">
                                   <div className="flex justify-between">
                                     <span className="flex items-center gap-1.5">
-                                      <span className="h-2 w-2 rounded-full bg-slate-900 shrink-0" /> Détenu en direct :
+                                      <span className="h-2 w-2 rounded-full bg-slate-900 shrink-0" /> {t("topCompanies.detenuEnDirect")}
                                     </span>
                                     <span className="font-medium text-slate-700">{formatCurrency(d.direct)}</span>
                                   </div>
                                   <div className="flex justify-between">
                                     <span className="flex items-center gap-1.5">
-                                      <span className="h-2 w-2 rounded-full bg-slate-400 shrink-0" /> Détenu via ETFs :
+                                      <span className="h-2 w-2 rounded-full bg-slate-400 shrink-0" /> {t("topCompanies.detenuViaEtfs")}
                                     </span>
                                     <span className="font-medium text-slate-700">{formatCurrency(d.indirect)}</span>
                                   </div>

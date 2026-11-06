@@ -1,3 +1,5 @@
+import i18n from "i18next"
+import { useTranslation } from "react-i18next"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
 
@@ -44,6 +46,7 @@ interface CostEstimateDialogProps {
 }
 
 export function CostEstimateDialog({ open, onOpenChange, accountId, onApplied }: CostEstimateDialogProps) {
+  const { t } = useTranslation("investments")
   const [rows, setRows] = useState<CostEstimate[] | null>(null)
   const [lines, setLines] = useState<Record<string, Line>>({})
   const [saving, setSaving] = useState(false)
@@ -69,10 +72,10 @@ export function CostEstimateDialog({ open, onOpenChange, accountId, onApplied }:
         )
       })
       .catch(() => {
-        toast.error("Impossible d'estimer les PRU")
+        toast.error(t("costEstimateDialog.impossibleDEstimerLesPru"))
         onOpenChange(false)
       })
-  }, [open, accountId, onOpenChange])
+  }, [open, accountId, onOpenChange, t])
 
   const update = (ticker: string, patch: Partial<Line>) =>
     setLines((prev) => ({ ...prev, [ticker]: { ...prev[ticker], ...patch } }))
@@ -86,11 +89,11 @@ export function CostEstimateDialog({ open, onOpenChange, accountId, onApplied }:
         account_id: accountId,
         items: selected.map((r) => ({ ticker: r.ticker, buy_price_avg: Number(lines[r.ticker].value) })),
       })
-      toast.success(`${selected.length} PRU enregistré${selected.length > 1 ? "s" : ""}`)
+      toast.success(i18n.t("misc.prusSaved", { ns: "investments", count: selected.length }))
       onApplied()
       onOpenChange(false)
     } catch (err: any) {
-      toast.error(err?.message || "Erreur lors de l'enregistrement")
+      toast.error(err?.message || t("costEstimateDialog.erreurLorsDeLEnregistrement"))
     } finally {
       setSaving(false)
     }
@@ -100,16 +103,16 @@ export function CostEstimateDialog({ open, onOpenChange, accountId, onApplied }:
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl">
         <DialogHeader>
-          <DialogTitle>Estimer les PRU</DialogTitle>
+          <DialogTitle>{t("costEstimateDialog.estimerLesPru")}</DialogTitle>
           <DialogDescription>
-            Calculé depuis les achats saisis avant ton Point Zéro (prix × quantité + frais, moyenne pondérée). Compare avec ton courtier et corrige si besoin : rien n'est enregistré avant que tu valides.
+            {t("costEstimateDialog.calculeDepuisLesAchatsSaisis")}
           </DialogDescription>
         </DialogHeader>
 
         {rows === null ? (
           <Skeleton className="h-40 w-full" />
         ) : rows.length === 0 ? (
-          <p className="py-6 text-center text-sm text-slate-500">Aucune ligne dans l'inventaire du Point Zéro.</p>
+          <p className="py-6 text-center text-sm text-slate-500">{t("costEstimateDialog.aucuneLigneDansLInventaire")}</p>
         ) : (
           <div className="space-y-2">
             {rows.map((r) => {
@@ -135,21 +138,21 @@ export function CostEstimateDialog({ open, onOpenChange, accountId, onApplied }:
                     </p>
                     <div className="mt-1 flex flex-wrap gap-1">
                       {r.estimate === null ? (
-                        <Badge variant="outline" className="font-normal text-slate-500">Aucun achat saisi : à renseigner à la main</Badge>
+                        <Badge variant="outline" className="font-normal text-slate-500">{t("costEstimateDialog.aucunAchatSaisiARenseigner")}</Badge>
                       ) : (
-                        <Badge variant="secondary" className="font-normal">{r.buys} achat{r.buys > 1 ? "s" : ""}</Badge>
+                        <Badge variant="secondary" className="font-normal">{i18n.t("misc.buys", { ns: "investments", count: r.buys })}</Badge>
                       )}
                       {r.method === "amounts" && (
                         <Badge
                           variant="outline"
                           className="border-amber-300 font-normal text-amber-700"
-                          title="Tes anciens versements n'ont pas de quantité : PRU = total versé ÷ parts détenues. Exact si tous tes achats de ce titre sont saisis."
+                          title={t("costEstimateDialog.tesAnciensVersementsNOnt")}
                         >
-                          Estimé : total versé ÷ parts
+                          {t("costEstimateDialog.estimeTotalVerseParts")}
                         </Badge>
                       )}
                       {partial && (
-                        <Badge variant="outline" className="border-amber-300 font-normal text-amber-700" title="Des parts détenues avant le premier achat saisi ne sont pas prises en compte">
+                        <Badge variant="outline" className="border-amber-300 font-normal text-amber-700" title={t("costEstimateDialog.desPartsDetenuesAvantLe")}>
                           Couvre {Math.round((r.coverage ?? 0) * 100)} % des parts
                         </Badge>
                       )}
@@ -166,7 +169,7 @@ export function CostEstimateDialog({ open, onOpenChange, accountId, onApplied }:
                       className="h-11 w-full text-right font-mono text-base sm:h-8 sm:w-32 sm:text-sm"
                       value={line?.value ?? ""}
                       onChange={(e) => update(r.ticker, { value: e.target.value, checked: Number(e.target.value) > 0 })}
-                      placeholder="PRU"
+                      placeholder={t("costEstimateDialog.pru")}
                     />
                     <span className="w-9 shrink-0 text-xs text-slate-500">{r.currency}</span>
                   </div>
@@ -177,9 +180,9 @@ export function CostEstimateDialog({ open, onOpenChange, accountId, onApplied }:
         )}
 
         <DialogFooter>
-          <Button variant="outline" className="h-11 sm:h-10" onClick={() => onOpenChange(false)}>Annuler</Button>
+          <Button variant="outline" className="h-11 sm:h-10" onClick={() => onOpenChange(false)}>{t("costEstimateDialog.annuler")}</Button>
           <Button className="h-11 sm:h-10" onClick={apply} disabled={saving || selected.length === 0}>
-            {saving ? "Enregistrement..." : `Enregistrer ${selected.length} PRU`}
+            {saving ? t("costEstimateDialog.enregistrement") : `Enregistrer ${selected.length} PRU`}
           </Button>
         </DialogFooter>
       </DialogContent>

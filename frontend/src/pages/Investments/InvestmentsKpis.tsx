@@ -1,3 +1,5 @@
+import i18n from "i18next"
+import { useTranslation } from "react-i18next"
 import { appLocale } from "@/i18n/locale"
 import { Activity, AlertTriangle, ShieldCheck, TrendingUp, Wallet } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -6,6 +8,7 @@ import type { InvestmentsCtx } from "./useInvestments"
 
 /** Indicateurs et alertes de surexposition. */
 export function InvestmentsKpis({ ctx }: { ctx: InvestmentsCtx }) {
+  const { t } = useTranslation("investments")
   const { allocation, diversity } = ctx
   return (
     <>
@@ -13,20 +16,20 @@ export function InvestmentsKpis({ ctx }: { ctx: InvestmentsCtx }) {
       <div className={`grid gap-3 grid-cols-2 md:gap-4 ${diversity ? "md:grid-cols-4" : "md:grid-cols-3"}`}>
         <Card className="theme-island col-span-2 bg-slate-900 text-white shadow-md border-slate-800 md:col-span-1">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-slate-300">Valeur Totale</CardTitle>
+            <CardTitle className="text-sm font-medium text-slate-300">{t("investmentsKpis.valeurTotale")}</CardTitle>
             <TrendingUp className="h-4 w-4 text-slate-400" />
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold tabular-nums">
               <span className="amount-blur">{formatCurrency(allocation?.total_current_value || 0)}</span>
             </div>
-            <p className="text-xs text-slate-400 mt-1">Positions × cours (comptes titres) et derniers relevés (assurance-vie)</p>
+            <p className="text-xs text-slate-400 mt-1">{t("investmentsKpis.positionsCoursComptesTitresEt")}</p>
           </CardContent>
         </Card>
 
         <Card className="col-span-2 shadow-sm md:col-span-1">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Performance Globale</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("investmentsKpis.performanceGlobale")}</CardTitle>
             <Activity className="h-4 w-4 text-slate-400" />
           </CardHeader>
           <CardContent>
@@ -43,19 +46,19 @@ export function InvestmentsKpis({ ctx }: { ctx: InvestmentsCtx }) {
 
         <Card className={`shadow-sm ${diversity ? "" : "col-span-2 md:col-span-1"}`}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Supports</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("investmentsKpis.supports")}</CardTitle>
             <Wallet className="h-4 w-4 text-slate-400" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold md:text-3xl">{allocation?.items.length || 0}</div>
-            <p className="text-xs text-muted-foreground mt-1">Comptes d'investissement</p>
+            <p className="text-xs text-muted-foreground mt-1">{t("investmentsKpis.comptesDInvestissement")}</p>
           </CardContent>
         </Card>
 
         {diversity && (
           <Card className="shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Score de Diversité</CardTitle>
+              <CardTitle className="text-sm font-medium">{t("investmentsKpis.scoreDeDiversite")}</CardTitle>
               <ShieldCheck className="h-4 w-4 text-slate-400" />
             </CardHeader>
             <CardContent>
@@ -74,7 +77,7 @@ export function InvestmentsKpis({ ctx }: { ctx: InvestmentsCtx }) {
         <details className="group text-xs text-muted-foreground">
           <summary className="flex min-h-11 w-fit cursor-pointer select-none items-center gap-1.5 hover:text-foreground md:min-h-0">
             <AlertTriangle className="h-3 w-3" />
-            {diversity.alerts.length} alerte{diversity.alerts.length > 1 ? "s" : ""} de surexposition
+            {i18n.t("misc.alerts", { ns: "investments", count: diversity.alerts.length })}
           </summary>
           <ul className="mt-2 space-y-1 pl-4.5 border-l ml-1.5 pl-3">
             {diversity.alerts.map((alert, idx) => (

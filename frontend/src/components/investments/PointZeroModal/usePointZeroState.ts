@@ -1,3 +1,4 @@
+import i18n from "i18next"
 import { errorMessage } from "@/lib/utils"
 import { toast } from "sonner"
 import { useEffect, useState } from "react"
@@ -116,7 +117,7 @@ export function usePointZeroState(p: { open: PointZeroModalProps["open"]; onOpen
     setSearchQuery("")
 
     if (rows.some((r) => r.ticker.toUpperCase() === item.symbol.toUpperCase())) {
-      toast.info(`${item.symbol} est déjà dans votre liste`)
+      toast.info(i18n.t("misc.alreadyInList", { ns: "investments", symbol: item.symbol }))
       return
     }
 
@@ -137,7 +138,7 @@ export function usePointZeroState(p: { open: PointZeroModalProps["open"]; onOpen
     // If it's an ETF or fund without a known profile, auto-decompose it online!
     if (isFundOrEtf && !profileId) {
       try {
-        const toastId = toast.loading(`Décomposition de ${item.name || item.symbol} en ligne...`)
+        const toastId = toast.loading(i18n.t("misc.breakingDown", { ns: "investments", name: item.name || item.symbol }))
         const decomp = await postEtfProfilesAutoDecompose<any>({
           symbol: item.symbol,
           name: item.name,
@@ -145,7 +146,7 @@ export function usePointZeroState(p: { open: PointZeroModalProps["open"]; onOpen
         })
         if (decomp && decomp.id) {
           profileId = decomp.id
-          toast.success(`${decomp.name} décomposé avec succès !`, { id: toastId })
+          toast.success(i18n.t("misc.brokenDown", { ns: "investments", name: decomp.name }), { id: toastId })
         } else {
           toast.dismiss(toastId)
         }
@@ -184,7 +185,7 @@ export function usePointZeroState(p: { open: PointZeroModalProps["open"]; onOpen
   const handleSave = async () => {
     const validRows = rows.filter((r) => r.quantity > 0)
     if (validRows.length === 0) {
-      toast.error("Veuillez renseigner un nombre de parts (> 0) pour au moins un actif")
+      toast.error(i18n.t("usePointZeroState.veuillezRenseignerUnNombreDe", { ns: "investments" }))
       return
     }
 
@@ -202,11 +203,11 @@ export function usePointZeroState(p: { open: PointZeroModalProps["open"]; onOpen
           etf_profile_id: r.etf_profile_id,
         })),
       })
-      toast.success("État des lieux enregistré avec succès")
+      toast.success(i18n.t("usePointZeroState.etatDesLieuxEnregistreAvec", { ns: "investments" }))
       onBaselineSaved()
       onOpenChange(false)
     } catch (err: any) {
-      toast.error(errorMessage(err, "Erreur lors de l'enregistrement de l'état des lieux"))
+      toast.error(errorMessage(err, i18n.t("usePointZeroState.erreurLorsDeLEnregistrement", { ns: "investments" })))
     } finally {
       setSaving(false)
     }

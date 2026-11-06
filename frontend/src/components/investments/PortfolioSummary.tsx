@@ -1,3 +1,5 @@
+import i18n from "i18next"
+import { useTranslation } from "react-i18next"
 import { appLocale } from "@/i18n/locale"
 import { useEffect, useState } from "react"
 import { AlertTriangle, CheckCircle2, Scale } from "lucide-react"
@@ -22,6 +24,7 @@ const tone = (value: number | null) => (value === null ? "text-slate-900" : valu
 const pct = (value: number | null) => formatRate(value, 2, true)
 
 export function PortfolioSummary({ accountId, reloadKey }: PortfolioSummaryProps) {
+  const { t } = useTranslation("investments")
   const [data, setData] = useState<PortfolioRead | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -30,12 +33,12 @@ export function PortfolioSummary({ accountId, reloadKey }: PortfolioSummaryProps
     api
       .get<PortfolioRead>(`/analytics/portfolio/${accountId}`)
       .then((res) => !cancelled && setData(res))
-      .catch(() => !cancelled && toast.error("Impossible de calculer la valeur du portefeuille"))
+      .catch(() => !cancelled && toast.error(t("portfolioSummary.impossibleDeCalculerLaValeur")))
       .finally(() => !cancelled && setLoading(false))
     return () => {
       cancelled = true
     }
-  }, [accountId, reloadKey])
+  }, [accountId, reloadKey, t])
 
   if (loading) return <Skeleton className="h-48 w-full rounded-xl" />
   if (!data || !data.valued_by_positions) return null
@@ -47,9 +50,9 @@ export function PortfolioSummary({ accountId, reloadKey }: PortfolioSummaryProps
   return (
     <Card className="shadow-sm">
       <CardHeader>
-        <CardTitle className="text-lg">Valeur calculée</CardTitle>
+        <CardTitle className="text-lg">{t("portfolioSummary.valeurCalculee")}</CardTitle>
         <CardDescription>
-          Positions × derniers cours + espèces. Tes relevés servent à vérifier ce calcul, plus à le remplacer.
+          {t("portfolioSummary.positionsDerniersCoursEspecesTes")}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -74,44 +77,44 @@ export function PortfolioSummary({ accountId, reloadKey }: PortfolioSummaryProps
         )}
 
         <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
-          <Kpi label="Valeur" value={formatCurrency(data.value, data.currency)} hint={`dont espèces ${formatCurrency(data.cash, data.currency)}`} />
-          <Kpi label="Montant investi" value={formatCurrency(data.net_invested, data.currency)} hint="Versements − retraits depuis l'origine" />
+          <Kpi label={t("portfolioSummary.valeur")} value={formatCurrency(data.value, data.currency)} hint={`dont espèces ${formatCurrency(data.cash, data.currency)}`} />
+          <Kpi label={t("portfolioSummary.montantInvesti")} value={formatCurrency(data.net_invested, data.currency)} hint="Versements − retraits depuis l'origine" />
           <Kpi
-            label="Gain total"
+            label={t("portfolioSummary.gainTotal")}
             value={signed(data.gain)}
             hint={pct(data.performance_pct)}
             className={tone(data.gain)}
           />
           <Kpi
-            label="Plus-value latente"
+            label={t("portfolioSummary.plusValueLatente")}
             value={data.unrealized_eur === null ? "-" : signed(data.unrealized_eur)}
             hint={
               data.unrealized_eur === null
-                ? "PRU inconnu"
+                ? t("portfolioSummary.pruInconnu")
                 : `${pct(data.unrealized_pct)}${data.fx_effect_eur ? ` · dont change ${signed(data.fx_effect_eur)}` : ""}`
             }
             className={tone(data.unrealized_eur)}
           />
           <Kpi
-            label="Plus-value réalisée"
+            label={t("portfolioSummary.plusValueRealisee")}
             value={signed(data.realized_eur)}
-            hint={data.realized_unknown_sales > 0 ? `${data.realized_unknown_sales} vente(s) sans coût connu` : "Ventes cumulées"}
+            hint={data.realized_unknown_sales > 0 ? `${data.realized_unknown_sales} vente(s) sans coût connu` : t("portfolioSummary.ventesCumulees")}
             className={tone(data.realized_eur)}
           />
-          <Kpi label="Dividendes (net)" value={formatCurrency(data.dividends_eur)} hint={`${formatCurrency(data.dividends_12m_eur)} sur 12 mois`} />
-          <Kpi label="Frais" value={formatCurrency(data.fees_eur)} hint="Frais de tenue et courtage" />
+          <Kpi label={t("portfolioSummary.dividendesNet")} value={formatCurrency(data.dividends_eur)} hint={`${formatCurrency(data.dividends_12m_eur)} sur 12 mois`} />
+          <Kpi label={t("portfolioSummary.frais")} value={formatCurrency(data.fees_eur)} hint="Frais de tenue et courtage" />
           <Kpi
             label="XIRR · TWR"
             value={`${formatRate(data.xirr_pct, 1)} · ${formatRate(data.twr_pct, 1)}`}
-            hint={shortPeriod ? `Annualisé sur ${data.period_days} j : à relativiser` : "Rendement annualisé · hors effet des versements"}
+            hint={shortPeriod ? `Annualisé sur ${data.period_days} j : à relativiser` : t("portfolioSummary.rendementAnnualiseHorsEffetDes")}
           />
         </div>
 
         {data.realized_by_year.length > 0 && (
           <div className="flex flex-wrap gap-2">
             {data.realized_by_year.map((y) => (
-              <Badge key={y.year} variant="outline" className="gap-2 font-normal" title={`${y.sales} vente(s), produit ${formatCurrency(y.proceeds_eur)}`}>
-                <span className="font-semibold">Réalisé {y.year}</span>
+              <Badge key={y.year} variant="outline" className="gap-2 font-normal" title={i18n.t("misc.sales", { ns: "investments", count: y.sales, amount: formatCurrency(y.proceeds_eur) })}>
+                <span className="font-semibold">{i18n.t("misc.realizedYear", { ns: "investments", year: y.year })}</span>
                 <span className={`amount-blur ${tone(y.realized_eur)}`}>{signed(y.realized_eur)}</span>
               </Badge>
             ))}
@@ -121,11 +124,11 @@ export function PortfolioSummary({ accountId, reloadKey }: PortfolioSummaryProps
         {latest && (
           <div className="space-y-3">
             <div className="flex flex-wrap items-center gap-2 text-sm font-semibold text-slate-700">
-              <Scale className="h-4 w-4" /> Rapprochement : relevé du courtier vs Numera
+              <Scale className="h-4 w-4" /> {i18n.t("misc.reconciliation", { ns: "investments" })}
               {latest.flagged ? (
-                <Badge variant="destructive" className="font-normal">Écart {pct(latest.gap_pct)}</Badge>
+                <Badge variant="destructive" className="font-normal">{i18n.t("misc.gapPct", { ns: "investments", pct: pct(latest.gap_pct) })}</Badge>
               ) : (
-                <Badge variant="secondary" className="gap-1 font-normal"><CheckCircle2 className="h-3 w-3" /> Cohérent</Badge>
+                <Badge variant="secondary" className="gap-1 font-normal"><CheckCircle2 className="h-3 w-3" /> {t("portfolioSummary.coherent")}</Badge>
               )}
             </div>
             <ul className="space-y-2 md:hidden">
@@ -139,7 +142,7 @@ export function PortfolioSummary({ accountId, reloadKey }: PortfolioSummaryProps
                   </div>
                   <dl className="mt-1.5 grid grid-cols-2 gap-2 text-xs">
                     <div>
-                      <dt className="text-slate-500">Relevé</dt>
+                      <dt className="text-slate-500">{t("portfolioSummary.releve")}</dt>
                       <dd className="amount-blur whitespace-nowrap font-mono tabular-nums">{formatCurrency(r.snapshot_value, data.currency)}</dd>
                     </div>
                     <div>
@@ -154,10 +157,10 @@ export function PortfolioSummary({ accountId, reloadKey }: PortfolioSummaryProps
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Relevé du</TableHead>
-                    <TableHead className="text-right">Relevé</TableHead>
+                    <TableHead>{t("portfolioSummary.releveDu")}</TableHead>
+                    <TableHead className="text-right">{t("portfolioSummary.releve")}</TableHead>
                     <TableHead className="text-right">Numera</TableHead>
-                    <TableHead className="text-right">Écart</TableHead>
+                    <TableHead className="text-right">{t("portfolioSummary.ecart")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -176,7 +179,7 @@ export function PortfolioSummary({ accountId, reloadKey }: PortfolioSummaryProps
             </div>
             {latest.flagged && (
               <p className="text-xs text-slate-500">
-                Un écart de plus de 2 % signale en général une opération, un dividende ou des frais manquants dans l'historique.
+                {t("portfolioSummary.unEcartDePlusDe")}
               </p>
             )}
           </div>

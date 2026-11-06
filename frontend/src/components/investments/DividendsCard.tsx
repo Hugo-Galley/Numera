@@ -1,3 +1,6 @@
+import i18n from "i18next"
+import { Trans } from "react-i18next"
+import { useTranslation } from "react-i18next"
 import { appLocale } from "@/i18n/locale"
 import { useCallback, useEffect, useState } from "react"
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
@@ -67,6 +70,7 @@ const monthLabel = (key: string) => {
 const pct = (value: number | null) => formatRate(value)
 
 export function DividendsCard({ accountId, reloadKey, onChanged }: DividendsCardProps) {
+  const { t } = useTranslation("investments")
   const [data, setData] = useState<DividendSummary | null>(null)
   const [loading, setLoading] = useState(true)
   const [preview, setPreview] = useState<LinkPreview | null>(null)
@@ -76,11 +80,11 @@ export function DividendsCard({ accountId, reloadKey, onChanged }: DividendsCard
     try {
       setData(await api.get<DividendSummary>(`/analytics/dividends?account_id=${accountId}`))
     } catch {
-      toast.error("Impossible de charger les dividendes")
+      toast.error(t("dividendsCard.impossibleDeChargerLesDividendes"))
     } finally {
       setLoading(false)
     }
-  }, [accountId])
+  }, [accountId, t])
 
   useEffect(() => {
     load()
@@ -90,7 +94,7 @@ export function DividendsCard({ accountId, reloadKey, onChanged }: DividendsCard
     try {
       setPreview(await api.post<LinkPreview>(`/investment-transactions/link-dividends?account_id=${accountId}&dry_run=true`, {}))
     } catch (err: any) {
-      toast.error(err?.message || "Erreur lors de l'analyse des dividendes")
+      toast.error(err?.message || t("dividendsCard.erreurLorsDeLAnalyse"))
     }
   }
 
@@ -98,12 +102,12 @@ export function DividendsCard({ accountId, reloadKey, onChanged }: DividendsCard
     setApplying(true)
     try {
       await api.post(`/investment-transactions/link-dividends?account_id=${accountId}&dry_run=false`, {})
-      toast.success("Dividendes rattachés à leur titre")
+      toast.success(t("dividendsCard.dividendesRattachesALeurTitre"))
       setPreview(null)
       await load()
       onChanged?.()
     } catch (err: any) {
-      toast.error(err?.message || "Erreur lors du rattachement")
+      toast.error(err?.message || t("dividendsCard.erreurLorsDuRattachement"))
     } finally {
       setApplying(false)
     }
@@ -120,35 +124,33 @@ export function DividendsCard({ accountId, reloadKey, onChanged }: DividendsCard
       <Card className="shadow-sm">
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
-            <Coins className="h-5 w-5 text-emerald-600" /> Dividendes
+            <Coins className="h-5 w-5 text-emerald-600" /> {t("dividendsCard.dividendes")}
           </CardTitle>
           <CardDescription>
-            Saisis le montant net reçu (celui de ton courtier) avec le bouton <Coins className="inline h-3.5 w-3.5 -mt-0.5" /> d'une position.
+            {t("dividendsCard.saisisLeMontantNetRecu")} <Coins className="inline h-3.5 w-3.5 -mt-0.5" /> {t("dividendsCard.dUnePosition")}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           {unlinked.count > 0 && (
             <div className="flex flex-col gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-sm text-amber-900">
-                <strong>{unlinked.count} dividende{unlinked.count > 1 ? "s" : ""}</strong> (
-                <span className="amount-blur">{formatCurrency(unlinked.total_eur)}</span>) ne {unlinked.count > 1 ? "sont" : "est"} rattaché
-                {unlinked.count > 1 ? "s" : ""} à aucun titre : le rendement par ligne est incomplet.
+                <Trans i18n={i18n} ns="investments" i18nKey="misc.unlinked" count={unlinked.count} values={{ total: formatCurrency(unlinked.total_eur) }} components={{ strong: <strong />, amount: <span className="amount-blur" /> }} />
               </p>
               <Button size="sm" variant="outline" className="h-10 gap-2 shrink-0 md:h-9" onClick={openLinkPreview}>
-                <Link2 className="h-4 w-4" /> Rattacher automatiquement
+                <Link2 className="h-4 w-4" /> {t("dividendsCard.rattacherAutomatiquement")}
               </Button>
             </div>
           )}
 
           {!hasDividends ? (
-            <p className="py-6 text-center text-sm text-slate-500">Aucun dividende saisi sur ce compte.</p>
+            <p className="py-6 text-center text-sm text-slate-500">{t("dividendsCard.aucunDividendeSaisiSurCe")}</p>
           ) : (
             <>
               <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
-                <Kpi label="12 derniers mois" value={totals.last_12m_eur} />
-                <Kpi label="Total reçu (net)" value={totals.net_eur} />
-                <Kpi label="Total brut" value={totals.gross_eur} />
-                <Kpi label="Retenues à la source" value={totals.withholding_eur} />
+                <Kpi label={t("dividendsCard.12DerniersMois")} value={totals.last_12m_eur} />
+                <Kpi label={t("dividendsCard.totalRecuNet")} value={totals.net_eur} />
+                <Kpi label={t("dividendsCard.totalBrut")} value={totals.gross_eur} />
+                <Kpi label={t("dividendsCard.retenuesALaSource")} value={totals.withholding_eur} />
               </div>
 
               <div className="h-56">
@@ -169,33 +171,33 @@ export function DividendsCard({ accountId, reloadKey, onChanged }: DividendsCard
 
               {/* Mobile : une carte par titre */}
               <ul className="space-y-2 md:hidden">
-                {data.by_ticker.map((t) => (
-                  <li key={t.ticker} className="rounded-lg border p-3">
+                {data.by_ticker.map((row) => (
+                  <li key={row.ticker} className="rounded-lg border p-3">
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
-                        <div className="break-words text-sm font-semibold text-slate-900">{t.asset_name}</div>
+                        <div className="break-words text-sm font-semibold text-slate-900">{row.asset_name}</div>
                         <div className="font-mono text-[11px] text-slate-500">
-                          {t.ticker}
-                          {t.last_date && ` • dernier : ${new Date(t.last_date).toLocaleDateString(appLocale())}`}
+                          {row.ticker}
+                          {row.last_date && i18n.t("misc.lastDate", { ns: "investments", date: new Date(row.last_date).toLocaleDateString(appLocale()) })}
                         </div>
                       </div>
                       <div className="shrink-0 text-right">
-                        <div className="amount-blur whitespace-nowrap font-mono text-base font-bold tabular-nums">{formatCurrency(t.total_eur)}</div>
-                        <div className="text-[11px] text-slate-500">{t.count} versement{t.count > 1 ? "s" : ""}</div>
+                        <div className="amount-blur whitespace-nowrap font-mono text-base font-bold tabular-nums">{formatCurrency(row.total_eur)}</div>
+                        <div className="text-[11px] text-slate-500">{row.count} versement{row.count > 1 ? "s" : ""}</div>
                       </div>
                     </div>
                     <dl className="mt-2 grid grid-cols-3 gap-2 border-t pt-2 text-xs">
                       <div>
-                        <dt className="text-slate-500">12 mois</dt>
-                        <dd className="amount-blur whitespace-nowrap font-mono font-medium tabular-nums">{formatCurrency(t.last_12m_eur)}</dd>
+                        <dt className="text-slate-500">{t("dividendsCard.12Mois")}</dt>
+                        <dd className="amount-blur whitespace-nowrap font-mono font-medium tabular-nums">{formatCurrency(row.last_12m_eur)}</dd>
                       </div>
                       <div>
-                        <dt className="text-slate-500">Rdt / PRU</dt>
-                        <dd className="font-mono font-medium tabular-nums">{pct(t.yield_on_cost_pct)}</dd>
+                        <dt className="text-slate-500">{t("dividendsCard.rdtPru")}</dt>
+                        <dd className="font-mono font-medium tabular-nums">{pct(row.yield_on_cost_pct)}</dd>
                       </div>
                       <div>
-                        <dt className="text-slate-500">Rdt actuel</dt>
-                        <dd className="font-mono font-medium tabular-nums">{pct(t.current_yield_pct)}</dd>
+                        <dt className="text-slate-500">{t("dividendsCard.rdtActuel")}</dt>
+                        <dd className="font-mono font-medium tabular-nums">{pct(row.current_yield_pct)}</dd>
                       </div>
                     </dl>
                   </li>
@@ -206,35 +208,35 @@ export function DividendsCard({ accountId, reloadKey, onChanged }: DividendsCard
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Titre</TableHead>
-                      <TableHead className="text-right">Versements</TableHead>
-                      <TableHead className="text-right">Total reçu</TableHead>
-                      <TableHead className="text-right">12 mois</TableHead>
-                      <TableHead className="text-right" title="Dividendes des 12 derniers mois ÷ coût de revient">Rdt / PRU</TableHead>
-                      <TableHead className="text-right" title="Dividendes des 12 derniers mois ÷ valeur actuelle">Rdt actuel</TableHead>
+                      <TableHead>{t("dividendsCard.titre")}</TableHead>
+                      <TableHead className="text-right">{t("dividendsCard.versements")}</TableHead>
+                      <TableHead className="text-right">{t("dividendsCard.totalRecu")}</TableHead>
+                      <TableHead className="text-right">{t("dividendsCard.12Mois")}</TableHead>
+                      <TableHead className="text-right" title={t("dividendsCard.dividendesDes12DerniersMois")}>{t("dividendsCard.rdtPru")}</TableHead>
+                      <TableHead className="text-right" title={t("dividendsCard.dividendesDes12DerniersMois2")}>{t("dividendsCard.rdtActuel")}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {data.by_ticker.map((t) => (
-                      <TableRow key={t.ticker}>
+                    {data.by_ticker.map((row) => (
+                      <TableRow key={row.ticker}>
                         <TableCell>
                           <div className="flex flex-col">
-                            <span className="text-sm font-semibold text-slate-900">{t.asset_name}</span>
+                            <span className="text-sm font-semibold text-slate-900">{row.asset_name}</span>
                             <span className="font-mono text-[11px] text-slate-400">
-                              {t.ticker}
-                              {t.last_date && ` • dernier : ${new Date(t.last_date).toLocaleDateString(appLocale())}`}
+                              {row.ticker}
+                              {row.last_date && i18n.t("misc.lastDate", { ns: "investments", date: new Date(row.last_date).toLocaleDateString(appLocale()) })}
                             </span>
                           </div>
                         </TableCell>
-                        <TableCell className="text-right font-mono text-sm">{t.count}</TableCell>
+                        <TableCell className="text-right font-mono text-sm">{row.count}</TableCell>
                         <TableCell className="text-right font-mono text-sm font-semibold">
-                          <span className="amount-blur">{formatCurrency(t.total_eur)}</span>
+                          <span className="amount-blur">{formatCurrency(row.total_eur)}</span>
                         </TableCell>
                         <TableCell className="text-right font-mono text-sm">
-                          <span className="amount-blur">{formatCurrency(t.last_12m_eur)}</span>
+                          <span className="amount-blur">{formatCurrency(row.last_12m_eur)}</span>
                         </TableCell>
-                        <TableCell className="text-right font-mono text-sm">{pct(t.yield_on_cost_pct)}</TableCell>
-                        <TableCell className="text-right font-mono text-sm">{pct(t.current_yield_pct)}</TableCell>
+                        <TableCell className="text-right font-mono text-sm">{pct(row.yield_on_cost_pct)}</TableCell>
+                        <TableCell className="text-right font-mono text-sm">{pct(row.current_yield_pct)}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -245,8 +247,8 @@ export function DividendsCard({ accountId, reloadKey, onChanged }: DividendsCard
                 {data.by_year.map((y) => (
                   <Badge key={y.year} variant="outline" className="gap-2 font-normal">
                     <span className="font-semibold">{y.year}</span>
-                    <span className="amount-blur">{formatCurrency(y.net_eur)} net</span>
-                    {y.withholding_eur > 0 && <span className="amount-blur text-slate-400">({formatCurrency(y.gross_eur)} brut)</span>}
+                    <span className="amount-blur">{i18n.t("misc.netAmount", { ns: "investments", amount: formatCurrency(y.net_eur) })}</span>
+                    {y.withholding_eur > 0 && <span className="amount-blur text-slate-400">{i18n.t("misc.grossAmount", { ns: "investments", amount: formatCurrency(y.gross_eur) })}</span>}
                   </Badge>
                 ))}
               </div>
@@ -258,19 +260,19 @@ export function DividendsCard({ accountId, reloadKey, onChanged }: DividendsCard
       <Dialog open={preview !== null} onOpenChange={(open) => !open && setPreview(null)}>
         <DialogContent className="max-w-xl">
           <DialogHeader>
-            <DialogTitle>Rattacher les dividendes à leur titre</DialogTitle>
+            <DialogTitle>{t("dividendsCard.rattacherLesDividendesALeur")}</DialogTitle>
             <DialogDescription>
-              Le titre est déduit du libellé (« Dividende Apple » → AAPL). Rien n'est modifié avant que tu valides.
+              {t("dividendsCard.leTitreEstDeduitDu")}
             </DialogDescription>
           </DialogHeader>
           {preview && (
             <div className="space-y-4 text-sm">
               <div>
-                <p className="mb-2 font-semibold text-emerald-700">{preview.matched.length} à rattacher</p>
+                <p className="mb-2 font-semibold text-emerald-700">{i18n.t("misc.toLink", { ns: "investments", count: preview.matched.length })}</p>
                 <ul className="space-y-1">
                   {preview.matched.map((m) => (
                     <li key={m.id} className="flex items-center justify-between gap-3 rounded border px-3 py-1.5">
-                      <span className="min-w-0 truncate">{m.note || "(sans libellé)"}</span>
+                      <span className="min-w-0 truncate">{m.note || i18n.t("misc.noLabel", { ns: "investments" })}</span>
                       <Badge variant="secondary" className="shrink-0 font-mono">{m.ticker}</Badge>
                     </li>
                   ))}
@@ -278,11 +280,11 @@ export function DividendsCard({ accountId, reloadKey, onChanged }: DividendsCard
               </div>
               {preview.unmatched.length > 0 && (
                 <div>
-                  <p className="mb-2 font-semibold text-slate-600">{preview.unmatched.length} non reconnu{preview.unmatched.length > 1 ? "s" : ""} (à modifier à la main)</p>
+                  <p className="mb-2 font-semibold text-slate-600">{i18n.t("misc.unmatched", { ns: "investments", count: preview.unmatched.length })}</p>
                   <ul className="space-y-1">
                     {preview.unmatched.map((u) => (
                       <li key={u.id} className="rounded border border-dashed px-3 py-1.5 text-slate-500">
-                        {u.note || "(sans libellé)"} • {new Date(u.date).toLocaleDateString(appLocale())}
+                        {u.note || i18n.t("misc.noLabel", { ns: "investments" })} • {new Date(u.date).toLocaleDateString(appLocale())}
                       </li>
                     ))}
                   </ul>
@@ -291,9 +293,9 @@ export function DividendsCard({ accountId, reloadKey, onChanged }: DividendsCard
             </div>
           )}
           <DialogFooter>
-            <Button variant="outline" className="h-11 sm:h-10" onClick={() => setPreview(null)}>Annuler</Button>
+            <Button variant="outline" className="h-11 sm:h-10" onClick={() => setPreview(null)}>{t("dividendsCard.annuler")}</Button>
             <Button className="h-11 sm:h-10" onClick={applyLink} disabled={applying || !preview || preview.matched.length === 0}>
-              {applying ? "Rattachement..." : "Rattacher"}
+              {applying ? t("dividendsCard.rattachement") : t("dividendsCard.rattacher")}
             </Button>
           </DialogFooter>
         </DialogContent>

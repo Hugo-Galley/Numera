@@ -1,3 +1,5 @@
+import i18n from "i18next"
+import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { CostEstimateDialog } from "../CostEstimateDialog"
@@ -16,6 +18,7 @@ export function HoldingsTable({
   onRefresh,
   onAddDividend,
 }: HoldingsTableProps) {
+  const { t } = useTranslation("investments")
   const ctx = useHoldingsTable(accountId, accountName, holdings, onRefresh, onAddDividend)
   const { costEstimateOpen, filteredHoldings, hasActiveFilters, pointZeroOpen, resetFilters, setCostEstimateOpen, setPointZeroOpen } = ctx
   return (
@@ -30,9 +33,9 @@ export function HoldingsTable({
                 <Layers className="h-6 w-6" />
               </div>
               <div className="max-w-md mx-auto space-y-1">
-                <h4 className="font-semibold text-base text-slate-900">Aucune position active renseignée</h4>
+                <h4 className="font-semibold text-base text-slate-900">{t("index.aucunePositionActiveRenseignee")}</h4>
                 <p className="text-sm text-slate-500">
-                  Définissez votre <strong>Point Zéro</strong> en indiquant le nombre de parts détenues. Numera valorise vos positions au cours réel du marché.
+                  {t("index.definissezVotre")} <strong>{t("index.pointZero")}</strong> {t("index.enIndiquantLeNombreDe")}
                 </p>
               </div>
               <Button
@@ -41,7 +44,7 @@ export function HoldingsTable({
                 className="gap-2 mt-2"
               >
                 <SlidersHorizontal className="h-4 w-4" />
-                Définir l'état des lieux
+                {t("index.definirLEtatDesLieux")}
               </Button>
             </div>
           ) : filteredHoldings.length === 0 ? (
@@ -50,19 +53,19 @@ export function HoldingsTable({
               <div className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-slate-50 mb-3 text-slate-300">
                 <Search className="h-5 w-5" />
               </div>
-              <p className="text-slate-500 font-medium text-sm">Aucune position ne correspond aux filtres</p>
+              <p className="text-slate-500 font-medium text-sm">{t("index.aucunePositionNeCorrespondAux")}</p>
               <button
                 onClick={resetFilters}
                 className="mt-2 text-xs text-slate-400 hover:text-slate-600 underline underline-offset-2 transition-colors"
               >
-                Réinitialiser les filtres
+                {t("index.reinitialiserLesFiltres")}
               </button>
             </div>
           ) : (
             <div>
               {hasActiveFilters && (
                 <div className="px-4 py-2 text-xs text-slate-400 border-b bg-slate-50/50">
-                  {filteredHoldings.length} résultat{filteredHoldings.length > 1 ? "s" : ""} sur {holdings.length} position{holdings.length > 1 ? "s" : ""}
+                  {i18n.t("misc.resultsOf", { ns: "investments", results: i18n.t("misc.results", { ns: "investments", count: filteredHoldings.length }), positions: i18n.t("misc.positions", { ns: "investments", count: holdings.length }) })}
                 </div>
               )}
 

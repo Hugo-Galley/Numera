@@ -1,18 +1,21 @@
 import { ArrowRight } from "lucide-react"
+import { useTranslation } from "react-i18next"
 import { Badge } from "@/components/ui/badge"
 import { accountTypeLabel } from "@/lib/labels"
 import { cn, formatCurrency } from "@/lib/utils"
 import type { OmniboxCtx } from "./useOmnibox"
+import { navigationName } from "./types"
 
 /** Résultats : vues et comptes. */
 export function NavAccountResults({ ctx }: { ctx: OmniboxCtx }) {
+  const { t } = useTranslation("omnibox")
   const { activeIndex, filteredAccounts, filteredNavigation, handleSelect, isPrivacyMode, setActiveIndex } = ctx
   return (
     <>
       {filteredNavigation.length > 0 && (
         <div className="mb-4">
           <h3 className="px-3 py-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-            Navigation
+            {t("ui.navigation")}
           </h3>
           {filteredNavigation.map((item, idx) => {
             const resultIdx = idx
@@ -35,7 +38,7 @@ export function NavAccountResults({ ctx }: { ctx: OmniboxCtx }) {
                   )}>
                     <item.icon className="h-4 w-4" />
                   </div>
-                  <span className="truncate font-medium text-slate-900">{item.name}</span>
+                  <span className="truncate font-medium text-slate-900">{navigationName(item)}</span>
                 </div>
                 <ArrowRight className={cn(
                   "h-4 w-4 text-slate-300 transition-all",
@@ -50,7 +53,7 @@ export function NavAccountResults({ ctx }: { ctx: OmniboxCtx }) {
       {filteredAccounts.length > 0 && (
         <div className="mb-4">
           <h3 className="px-3 py-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-            Comptes
+            {t("ui.accounts")}
           </h3>
           {filteredAccounts.map((acc, idx) => {
             const resultIdx = filteredNavigation.length + idx

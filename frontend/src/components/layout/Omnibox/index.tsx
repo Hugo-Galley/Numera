@@ -1,6 +1,7 @@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import React from "react"
+import { useTranslation } from "react-i18next"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Search } from "lucide-react"
 import { useOmnibox } from "./useOmnibox"
@@ -9,6 +10,7 @@ import { QuickActionResults } from "./QuickActionResults"
 import { TransactionResults } from "./TransactionResults"
 
 export function Omnibox() {
+  const { t } = useTranslation("omnibox")
   const ctx = useOmnibox()
   const { handleKeyDown, isSearchOpen, loading, query, scrollRef, setActiveIndex, setQuery, setSearchOpen, viewport } = ctx
   return (
@@ -19,11 +21,11 @@ export function Omnibox() {
         onKeyDown={handleKeyDown}
       >
         <DialogHeader className="px-4 py-3 pr-12 border-b flex flex-row items-center gap-3 shrink-0 sm:py-4 sm:pr-4">
-          <DialogTitle className="sr-only">Recherche</DialogTitle>
-          <DialogDescription className="sr-only">Rechercher un compte, une vue ou une transaction</DialogDescription>
+          <DialogTitle className="sr-only">{t("ui.title")}</DialogTitle>
+          <DialogDescription className="sr-only">{t("ui.description")}</DialogDescription>
           <Search className="h-5 w-5 text-slate-400 shrink-0" />
           <Input
-            placeholder="Rechercher, ou saisir « 12,50 boulangerie »…"
+            placeholder={t("ui.placeholder")}
             className="border-none shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 text-lg p-0 h-11 sm:h-10"
             inputMode="search"
             enterKeyHint="search"
@@ -52,11 +54,11 @@ export function Omnibox() {
         </ScrollArea>
         <div className="hidden shrink-0 px-4 py-3 border-t bg-slate-50 text-[10px] text-slate-400 justify-between items-center sm:flex">
           <div className="flex gap-4">
-            <span className="flex items-center gap-1"><kbd className="bg-white border rounded px-1 text-slate-500 font-sans shadow-sm">↑↓</kbd> Naviguer</span>
-            <span className="flex items-center gap-1"><kbd className="bg-white border rounded px-1 text-slate-500 font-sans shadow-sm">Enter</kbd> Sélectionner</span>
+            <span className="flex items-center gap-1"><kbd className="bg-white border rounded px-1 text-slate-500 font-sans shadow-sm">↑↓</kbd> {t("ui.navigate")}</span>
+            <span className="flex items-center gap-1"><kbd className="bg-white border rounded px-1 text-slate-500 font-sans shadow-sm">Enter</kbd> {t("ui.select")}</span>
           </div>
           <div className="flex items-center gap-1">
-            <kbd className="bg-white border rounded px-1 text-slate-500 font-sans shadow-sm">ESC</kbd> Fermer
+            <kbd className="bg-white border rounded px-1 text-slate-500 font-sans shadow-sm">ESC</kbd> {t("ui.close")}
           </div>
         </div>
       </DialogContent>
