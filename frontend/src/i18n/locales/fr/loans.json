@@ -1,0 +1,40 @@
+{
+  "kind": {
+    "immobilier": "Immobilier",
+    "auto": "Auto",
+    "consommation": "Consommation",
+    "etudiant": "Étudiant",
+    "autre": "Autre"
+  },
+  "prepayment": {
+    "reduce_duration": "Réduire la durée",
+    "reduce_payment": "Réduire la mensualité"
+  },
+  "duration": {
+    "months_one": "{{count}} mois",
+    "months_other": "{{count}} mois",
+    "years_one": "{{count}} an",
+    "years_other": "{{count}} ans",
+    "yearsAndMonths": "{{years}} et {{months}}"
+  },
+  "dialog": {
+    "missingFields": "Renseignez le nom, le montant, le taux, la durée et la date de première échéance.",
+    "updated": "Crédit mis à jour",
+    "added": "Crédit ajouté",
+    "saveError": "Impossible d'enregistrer le crédit",
+    "editTitle": "Modifier le crédit",
+    "newTitle": "Nouveau crédit",
+    "hint": "Le capital restant dû est déduit de votre patrimoine. Les mensualités restent des dépenses de votre compte courant.",
+    "name": "Nom",
+    "namePlaceholder": "Ex : Prêt immobilier appartement",
+    "bank": "Banque",
+    "bankPlaceholder": "Ex : BRED",
+    "type": "Type",
+    "logo": "Logo",
+    "principal": "Montant emprunté (€)",
+    "rate": "Taux nominal annuel (%)",
+    "duration": "Durée (années)",
+    "firstPayment": "Première échéance",
+    "insurance": "Assurance emprunteur (€ / mois)"
+  }
+}

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
@@ -19,7 +20,9 @@ import { api } from "@/lib/api"
 import { todayLocal } from "@/lib/dates"
 import { errorMessage } from "@/lib/utils"
 
-import { LOAN_KIND_LABELS, type LoanKind, type LoanSummary } from "./types"
+import { loanKindLabel, type LoanKind, type LoanSummary } from "./types"
+
+const LOAN_KINDS: LoanKind[] = ["immobilier", "auto", "consommation", "etudiant", "autre"]
 
 interface LoanDialogProps {
   open: boolean
@@ -70,6 +73,8 @@ function fromLoan(loan: LoanSummary): FormState {
 const toNumber = (value: string) => Number(value.replace(",", ".").replace(/\s/g, ""))
 
 export function LoanDialog({ open, onOpenChange, loan, onSaved }: LoanDialogProps) {
+  const { t } = useTranslation("loans")
+  const { t: tc } = useTranslation("common")
   const [form, setForm] = useState<FormState>(EMPTY)
 
   useEffect(() => {
@@ -83,7 +88,7 @@ export function LoanDialog({ open, onOpenChange, loan, onSaved }: LoanDialogProp
     const rate = toNumber(form.annual_rate_pct || "0")
     const months = Math.round(toNumber(form.duration_years) * 12)
     if (!form.name.trim() || !(principal > 0) || !(months >= 1) || !(rate >= 0) || !form.start_date) {
-      toast.error("Renseignez le nom, le montant, le taux, la durée et la date de première échéance.")
+      toast.error(t("dialog.missingFields"))
       return
     }
     const payload = {
@@ -101,11 +106,11 @@ export function LoanDialog({ open, onOpenChange, loan, onSaved }: LoanDialogProp
       const saved = loan
         ? await api.patch<LoanSummary>(`/loans/${loan.id}`, payload)
         : await api.post<LoanSummary>("/loans", payload)
-      toast.success(loan ? "Crédit mis à jour" : "Crédit ajouté")
+      toast.success(loan ? t("dialog.updated") : t("dialog.added"))
       onSaved(saved)
       onOpenChange(false)
     } catch (error) {
-      toast.error(errorMessage(error, "Impossible d'enregistrer le crédit"))
+      toast.error(errorMessage(error, t("dialog.saveError")))
     }
   })
 
@@ -113,64 +118,64 @@ export function LoanDialog({ open, onOpenChange, loan, onSaved }: LoanDialogProp
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{loan ? "Modifier le crédit" : "Nouveau crédit"}</DialogTitle>
+          <DialogTitle>{loan ? t("dialog.editTitle") : t("dialog.newTitle")}</DialogTitle>
           <DialogDescription>
-            Le capital restant dû est déduit de votre patrimoine. Les mensualités restent des dépenses de votre compte courant.
+            {t("dialog.hint")}
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-2">
           <div className="grid gap-2">
-            <Label htmlFor="loan-name">Nom</Label>
-            <Input id="loan-name" placeholder="Ex : Prêt immobilier appartement" value={form.name} onChange={(e) => set("name", e.target.value)} />
+            <Label htmlFor="loan-name">{t("dialog.name")}</Label>
+            <Input id="loan-name" placeholder={t("dialog.namePlaceholder")} value={form.name} onChange={(e) => set("name", e.target.value)} />
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="grid gap-2">
-              <Label htmlFor="loan-institution">Banque</Label>
-              <Input id="loan-institution" placeholder="Ex : BRED" value={form.institution} onChange={(e) => set("institution", e.target.value)} />
+              <Label htmlFor="loan-institution">{t("dialog.bank")}</Label>
+              <Input id="loan-institution" placeholder={t("dialog.bankPlaceholder")} value={form.institution} onChange={(e) => set("institution", e.target.value)} />
             </div>
             <div className="grid gap-2">
-              <Label>Type</Label>
+              <Label>{t("dialog.type")}</Label>
               <Select value={form.kind} onValueChange={(v) => set("kind", v as LoanKind)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {(Object.keys(LOAN_KIND_LABELS) as LoanKind[]).map((kind) => (
-                    <SelectItem key={kind} value={kind}>{LOAN_KIND_LABELS[kind]}</SelectItem>
+                  {LOAN_KINDS.map((kind) => (
+                    <SelectItem key={kind} value={kind}>{loanKindLabel(kind)}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
           </div>
           <div className="grid gap-2">
-            <Label>Logo</Label>
+            <Label>{t("dialog.logo")}</Label>
             <LogoPicker value={form.logo} onChange={(logo) => set("logo", logo)} suggestFor={form.institution || form.name} />
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="grid gap-2">
-              <Label htmlFor="loan-principal">Montant emprunté (€)</Label>
+              <Label htmlFor="loan-principal">{t("dialog.principal")}</Label>
               <Input id="loan-principal" inputMode="decimal" placeholder="200000" value={form.principal} onChange={(e) => set("principal", e.target.value)} />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="loan-rate">Taux nominal annuel (%)</Label>
+              <Label htmlFor="loan-rate">{t("dialog.rate")}</Label>
               <Input id="loan-rate" inputMode="decimal" placeholder="3,6" value={form.annual_rate_pct} onChange={(e) => set("annual_rate_pct", e.target.value)} />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="loan-duration">Durée (années)</Label>
+              <Label htmlFor="loan-duration">{t("dialog.duration")}</Label>
               <Input id="loan-duration" inputMode="decimal" placeholder="25" value={form.duration_years} onChange={(e) => set("duration_years", e.target.value)} />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="loan-start">Première échéance</Label>
+              <Label htmlFor="loan-start">{t("dialog.firstPayment")}</Label>
               <Input id="loan-start" type="date" value={form.start_date} onChange={(e) => set("start_date", e.target.value)} />
             </div>
             <div className="grid gap-2 sm:col-span-2">
-              <Label htmlFor="loan-insurance">Assurance emprunteur (€ / mois)</Label>
+              <Label htmlFor="loan-insurance">{t("dialog.insurance")}</Label>
               <Input id="loan-insurance" inputMode="decimal" placeholder="0" value={form.insurance_monthly} onChange={(e) => set("insurance_monthly", e.target.value)} />
             </div>
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Annuler</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>{tc("actions.cancel")}</Button>
           <Button onClick={() => handleSave()} disabled={saving} className="bg-slate-900 text-white hover:bg-slate-800">
-            {saving ? "Enregistrement…" : "Enregistrer"}
+            {saving ? tc("actions.saving") : tc("actions.save")}
           </Button>
         </DialogFooter>
       </DialogContent>

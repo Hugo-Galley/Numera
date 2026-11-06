@@ -1,4 +1,5 @@
 import { type LoanSummary } from "@/components/loans/types"
+import i18n from "i18next"
 import { toast } from "sonner"
 import { useConfirm } from "@/providers/ConfirmProvider"
 import { useEffect, useState } from "react"
@@ -69,7 +70,7 @@ export function useAccountsState() {
       setEditingLoan(await getLoansByAccountById<LoanSummary>(account.id))
       setLoanDialogOpen(true)
     } catch (error) {
-      toast.error("Impossible de charger ce crédit")
+      toast.error(i18n.t("toast.loanLoadError", { ns: "accounts" }))
     }
   }
   const [archivedAccounts, setArchivedAccounts] = useState<Account[]>([])

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { CheckCircle2, Copy, Repeat, Search, AlertTriangle } from "lucide-react"
 import { format, parseISO } from "date-fns"
 import { toast } from "sonner"
@@ -53,6 +54,7 @@ const HINT_ICONS = {
 
 /** Compare le solde affiché par la banque à celui de Numera et liste les causes probables d'un écart. */
 export function ReconcileDialog({ account, open, onOpenChange, onVerified }: Props) {
+  const { t } = useTranslation("accounts")
   const [day, setDay] = useState(todayLocal())
   const [balance, setBalance] = useState("")
   const [result, setResult] = useState<ReconcileResult | null>(null)
@@ -69,18 +71,18 @@ export function ReconcileDialog({ account, open, onOpenChange, onVerified }: Pro
     if (!account) return
     const value = parseFloat(balance.replace(/\s/g, "").replace(",", "."))
     if (!Number.isFinite(value) || !day) {
-      toast.error("Saisissez la date et le solde affiché par la banque")
+      toast.error(t("reconcile.needInput"))
       return
     }
     try {
       const res = await api.post<ReconcileResult>(`/accounts/${account.id}/reconcile`, { date: day, bank_balance: value })
       setResult(res)
       if (res.verified) {
-        toast.success("Solde concordant : compte vérifié")
+        toast.success(t("reconcile.verified"))
         onVerified?.()
       }
     } catch (e) {
-      toast.error(errorMessage(e, "Impossible de rapprocher le compte"))
+      toast.error(errorMessage(e, t("reconcile.error")))
     }
   })
 
@@ -90,9 +92,9 @@ export function ReconcileDialog({ account, open, onOpenChange, onVerified }: Pro
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-sm:[&_input]:text-base sm:max-w-[480px] rounded-2xl max-h-[calc(100dvh-2rem)] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Rapprocher avec la banque</DialogTitle>
+          <DialogTitle>{t("reconcile.title")}</DialogTitle>
           <DialogDescription>
-            Saisissez le solde affiché par votre banque pour {account?.name ?? "ce compte"}. S'il concorde, le compte est marqué vérifié ; sinon Numera cherche d'où vient l'écart.
+            {t("reconcile.hint", { name: account?.name ?? t("reconcile.thisAccount") })}
           </DialogDescription>
         </DialogHeader>
 
@@ -101,11 +103,11 @@ export function ReconcileDialog({ account, open, onOpenChange, onVerified }: Pro
           onSubmit={(e) => { e.preventDefault(); handleCheck() }}
         >
           <div className="grid gap-2">
-            <Label htmlFor="reconcile-date">Date du solde</Label>
+            <Label htmlFor="reconcile-date">{t("reconcile.date")}</Label>
             <Input id="reconcile-date" type="date" value={day} max={todayLocal()} onChange={(e) => setDay(e.target.value)} />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="reconcile-balance">Solde banque ({currency})</Label>
+            <Label htmlFor="reconcile-balance">{t("reconcile.bankBalance", { currency })}</Label>
             <Input
               id="reconcile-balance"
               inputMode="decimal"
@@ -123,12 +125,12 @@ export function ReconcileDialog({ account, open, onOpenChange, onVerified }: Pro
             <div className={`rounded-xl border p-3 text-sm ${result.matches ? "border-emerald-200 bg-emerald-50 text-emerald-900" : "border-amber-200 bg-amber-50 text-amber-900"}`}>
               {result.matches ? (
                 <p className="flex items-center gap-2 font-medium">
-                  <CheckCircle2 className="h-4 w-4" /> Les soldes concordent au {format(parseISO(day), "dd/MM/yyyy")}.
+                  <CheckCircle2 className="h-4 w-4" /> {t("reconcile.match", { date: format(parseISO(day), "dd/MM/yyyy") })}
                 </p>
               ) : (
                 <div className="grid grid-cols-3 gap-2 text-center">
                   <div>
-                    <p className="text-xs opacity-75">Banque</p>
+                    <p className="text-xs opacity-75">{t("reconcile.bank")}</p>
                     <p className="font-semibold tabular-nums">{formatCurrency(result.bank_balance, currency)}</p>
                   </div>
                   <div>
@@ -136,7 +138,7 @@ export function ReconcileDialog({ account, open, onOpenChange, onVerified }: Pro
                     <p className="font-semibold tabular-nums">{formatCurrency(result.numera_balance, currency)}</p>
                   </div>
                   <div>
-                    <p className="text-xs opacity-75">Écart</p>
+                    <p className="text-xs opacity-75">{t("reconcile.gap")}</p>
                     <p className="font-bold tabular-nums">{result.gap > 0 ? "+" : ""}{formatCurrency(result.gap, currency)}</p>
                   </div>
                 </div>
@@ -170,9 +172,9 @@ export function ReconcileDialog({ account, open, onOpenChange, onVerified }: Pro
         )}
 
         <DialogFooter>
-          <Button variant="ghost" onClick={() => onOpenChange(false)}>Fermer</Button>
+          <Button variant="ghost" onClick={() => onOpenChange(false)}>{t("reconcile.close")}</Button>
           <Button onClick={() => handleCheck()} disabled={busy || !balance} className="bg-slate-900 text-white">
-            {busy ? "Vérification…" : "Vérifier"}
+            {busy ? t("reconcile.verifying") : t("reconcile.verify")}
           </Button>
         </DialogFooter>
       </DialogContent>

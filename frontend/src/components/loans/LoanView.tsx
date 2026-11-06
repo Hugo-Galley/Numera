@@ -25,8 +25,9 @@ import { LoanDialog } from "./LoanDialog"
 import {
   formatDateFr,
   formatMonths,
-  LOAN_KIND_LABELS,
-  PREPAYMENT_MODE_LABELS,
+  PREPAYMENT_MODES,
+  loanKindLabel,
+  prepaymentModeLabel,
   type LoanSummary,
   type PrepaymentMode,
   type ScheduleRow,
@@ -167,7 +168,7 @@ export function LoanView({ accountId }: { accountId: number }) {
             <h1 className="text-2xl font-bold tracking-tight">{loan.name}</h1>
             <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
               <Landmark className="h-4 w-4" />
-              <span>Crédit {LOAN_KIND_LABELS[loan.kind].toLowerCase()}</span>
+              <span>Crédit {loanKindLabel(loan.kind).toLowerCase()}</span>
               {loan.institution && <Badge variant="secondary">{loan.institution}</Badge>}
               <span>· {formatRate(loan.annual_rate_pct)} sur {formatMonths(loan.duration_months)}</span>
             </div>
@@ -232,8 +233,8 @@ export function LoanView({ accountId }: { accountId: number }) {
               <Select value={simMode} onValueChange={(v) => { setSimMode(v as PrepaymentMode); setSimulation(null) }}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {(Object.keys(PREPAYMENT_MODE_LABELS) as PrepaymentMode[]).map((mode) => (
-                    <SelectItem key={mode} value={mode}>{PREPAYMENT_MODE_LABELS[mode]}</SelectItem>
+                  {PREPAYMENT_MODES.map((mode) => (
+                    <SelectItem key={mode} value={mode}>{prepaymentModeLabel(mode)}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -267,7 +268,7 @@ export function LoanView({ accountId }: { accountId: number }) {
               <p className="text-sm font-medium">Remboursements anticipés effectués</p>
               {loan.prepayments.map((p) => (
                 <div key={p.id} className="flex items-center justify-between rounded-lg border px-3 py-2 text-sm">
-                  <span>{formatDateFr(p.date)} · {formatCurrency(p.amount)} · {PREPAYMENT_MODE_LABELS[p.mode].toLowerCase()}</span>
+                  <span>{formatDateFr(p.date)} · {formatCurrency(p.amount)} · {prepaymentModeLabel(p.mode).toLowerCase()}</span>
                   <Button variant="ghost" size="icon" className="h-9 w-9 text-rose-600" aria-label="Supprimer" onClick={() => deletePrepayment(p.id)}>
                     <Trash2 className="h-4 w-4" />
                   </Button>

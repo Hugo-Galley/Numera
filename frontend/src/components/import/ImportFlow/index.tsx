@@ -1,4 +1,5 @@
 import { Upload } from "lucide-react"
+import { useTranslation } from "react-i18next"
 import { ImportFlowProps } from "./types"
 import { useImportFlow } from "./useImportFlow"
 import { ImportSettingsCard } from "./ImportSettingsCard"
@@ -7,6 +8,7 @@ import { ImportResultCard } from "./ImportResultCard"
 import { ImportPreviewCard } from "./ImportPreviewCard"
 
 export function ImportFlow({ accountId, onImported }: ImportFlowProps) {
+  const { t } = useTranslation("import")
   const ctx = useImportFlow(accountId, onImported)
   const { preview, result } = ctx
   return (
@@ -27,9 +29,9 @@ export function ImportFlow({ accountId, onImported }: ImportFlowProps) {
             <div className="h-16 w-16 bg-white rounded-2xl flex items-center justify-center shadow-sm border border-slate-100 mb-6">
               <Upload className="h-8 w-8 text-slate-300" />
             </div>
-            <h3 className="text-xl font-bold text-slate-900">Aucun fichier en attente</h3>
+            <h3 className="text-xl font-bold text-slate-900">{t("waitingTitle")}</h3>
             <p className="text-sm text-slate-500 max-w-sm mx-auto mt-2 font-medium">
-              Veuillez sélectionner un fichier CSV sur la gauche pour commencer l'analyse et l'importation.
+              {t("waitingHint")}
             </p>
           </div>
         )}
