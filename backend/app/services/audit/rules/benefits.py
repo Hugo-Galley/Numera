@@ -1,4 +1,5 @@
 """Aides perçues : déclaration à faire, versement manquant, montant modifié."""
+from app.core.i18n import tr
 from app.domain.benefits import amount_changed
 from app.schemas.insight import ActionItem
 from app.services.audit.context import AuditContext
@@ -19,12 +20,9 @@ def _declaration(st: BenefitState) -> ActionItem | None:
         id=f"benefit-declaration-{b.id}-{b.next_declaration_date.isoformat()}",
         type="audit",
         severity="high" if overdue else "medium",
-        title=f"Déclaration {b.organization} en retard" if overdue else f"Déclaration {b.organization} à faire",
-        description=(
-            f"{b.name} : déclaration attendue le {due}. Sans elle, le versement peut être suspendu. "
-            "Marque-la comme faite une fois envoyée."
-        ),
-        action_label="Ouvrir les aides",
+        title=tr("audit.benefits.declaration_late" if overdue else "audit.benefits.declaration_due", organization=b.organization),
+        description=tr("audit.benefits.declaration_description", name=b.name, due=due),
+        action_label=tr("audit.benefits.action"),
         action_url=URL,
         action_type="link",
         metadata={"benefit_id": b.id, "due_date": b.next_declaration_date.isoformat()},
@@ -39,12 +37,12 @@ def _late(st: BenefitState) -> ActionItem | None:
         id=f"benefit-late-{b.id}-{st.expected_date.strftime('%Y-%m')}",
         type="audit",
         severity="medium",
-        title=f"{b.name} non reçue",
-        description=(
-            f"Aucun versement « {b.match_pattern} » depuis le {st.expected_date.strftime('%d/%m/%Y')}. "
-            f"Vérifie ton espace {b.organization} ou importe tes derniers relevés."
+        title=tr("audit.benefits.late_title", name=b.name),
+        description=tr(
+            "audit.benefits.late_description", pattern=b.match_pattern,
+            date=st.expected_date.strftime("%d/%m/%Y"), organization=b.organization,
         ),
-        action_label="Ouvrir les aides",
+        action_label=tr("audit.benefits.action"),
         action_url=URL,
         action_type="link",
         metadata={"benefit_id": b.id},
@@ -61,9 +59,12 @@ def _amount_changed(st: BenefitState) -> ActionItem | None:
         id=f"benefit-amount-{b.id}-{last.date.date().isoformat()}",
         type="audit",
         severity="low",
-        title=f"{b.name} : montant modifié",
-        description=f"Reçu {last.amount:.2f} le {last.date.strftime('%d/%m/%Y')} pour {b.amount:.2f} attendus. Mets à jour le montant si c'est le nouveau droit.",
-        action_label="Ouvrir les aides",
+        title=tr("audit.benefits.amount_title", name=b.name),
+        description=tr(
+            "audit.benefits.amount_description", received=f"{last.amount:.2f}",
+            date=last.date.strftime("%d/%m/%Y"), expected=f"{b.amount:.2f}",
+        ),
+        action_label=tr("audit.benefits.action"),
         action_url=URL,
         action_type="link",
         metadata={"benefit_id": b.id, "received": last.amount, "expected": b.amount},

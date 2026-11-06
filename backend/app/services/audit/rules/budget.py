@@ -1,4 +1,5 @@
 """Plafonds de budget dépassés ou presque atteints sur le mois en cours."""
+from app.core.i18n import tr
 from app.schemas.insight import ActionItem
 from app.services.analytics.budget import compute_budget_alerts
 from app.services.audit.context import AuditContext
@@ -12,9 +13,9 @@ async def detect(ctx: AuditContext) -> list[ActionItem]:
         id=f"budget-over-{alert.category_id}",
         type="budget",
         severity="high",
-        title=f"Budget dépassé : {alert.category_name}",
-        description=f"Vous avez dépensé {round(alert.monthly_spent, 2)}€ pour une limite de {alert.monthly_limit}€.",
-        action_label="Voir détails",
+        title=tr("audit.budget.over_title", category=alert.category_name),
+        description=tr("audit.budget.over_description", spent=round(alert.monthly_spent, 2), limit=alert.monthly_limit),
+        action_label=tr("audit.budget.over_action"),
         action_url="/accounts",  # Could be a specific category view if it existed
         action_type="link",
         metadata={"category_id": alert.category_id, "spent": alert.monthly_spent, "limit": alert.monthly_limit}
@@ -23,9 +24,9 @@ async def detect(ctx: AuditContext) -> list[ActionItem]:
         id=f"budget-near-{alert.category_id}",
         type="budget",
         severity="medium",
-        title=f"Budget presque atteint : {alert.category_name}",
-        description=f"Vous êtes à {round(alert.monthly_ratio * 100)}% de votre limite pour {alert.category_name}.",
-        action_label="Surveiller",
+        title=tr("audit.budget.near_title", category=alert.category_name),
+        description=tr("audit.budget.near_description", pct=round(alert.monthly_ratio * 100), category=alert.category_name),
+        action_label=tr("audit.budget.near_action"),
         action_url="/accounts",
         action_type="link",
         metadata={"category_id": alert.category_id, "spent": alert.monthly_spent, "limit": alert.monthly_limit}

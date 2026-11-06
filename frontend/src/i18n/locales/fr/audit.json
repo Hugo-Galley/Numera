@@ -123,6 +123,7 @@
     "deleteTx": "Supprimer la transaction « {{merchant}} » de {{amount}} ?",
     "allLinked": "Tous les virements rapprochés ({{count}}). Délier un lien automatique empêche la règle de le recréer.",
     "ruleHint": "Automatisez la catégorisation pour les futures transactions de \"{{merchant}}\".",
-    "merchantHint": "Créez un marchand canonique pour \"{{merchant}}\"."
+    "merchantHint": "Créez un marchand canonique pour \"{{merchant}}\".",
+    "lastAnalysis": "Dernière analyse : {{date}}"
   }
 }
