@@ -1,3 +1,4 @@
+import { appLocale } from "@/i18n/locale"
 import { useCallback, useEffect, useState } from "react"
 import { Bot, Check, Copy, KeyRound, Trash2, TriangleAlert } from "lucide-react"
 import { toast } from "sonner"
@@ -39,7 +40,7 @@ const CLIENTS: { id: McpClient; label: string }[] = [
 
 const formatDateTime = (value: string | null) =>
   value
-    ? new Date(`${value}Z`).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" })
+    ? new Date(`${value}Z`).toLocaleString(appLocale(), { dateStyle: "short", timeStyle: "short" })
     : "Jamais"
 
 function CopyBlock({ value, label }: { value: string; label: string }) {

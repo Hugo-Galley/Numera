@@ -1,7 +1,7 @@
+import { dateLocale } from "@/i18n/locale"
 import { useState } from "react"
 import { BookMarked, Pencil, Plus, Trash2 } from "lucide-react"
 import { format, parseISO } from "date-fns"
-import { fr } from "date-fns/locale"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
@@ -111,7 +111,7 @@ export function DecisionJournal({ events, accounts, onChanged }: Props) {
               <li key={event.id} className="group flex gap-3 rounded-xl border p-3">
                 <div className="min-w-0 flex-1">
                   <p className="text-xs font-semibold tabular-nums text-slate-500">
-                    {format(parseISO(event.date), "d MMM yyyy", { locale: fr })}
+                    {format(parseISO(event.date), "d MMM yyyy", { locale: dateLocale() })}
                     {event.account_name && <span className="font-normal text-slate-400"> · {event.account_name}</span>}
                   </p>
                   <p className="font-medium text-slate-900">{event.title}</p>

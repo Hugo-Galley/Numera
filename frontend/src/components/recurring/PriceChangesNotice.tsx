@@ -1,3 +1,4 @@
+import { appLocale } from "@/i18n/locale"
 import { TrendingUp } from "lucide-react"
 import { format, parseISO } from "date-fns"
 
@@ -30,7 +31,7 @@ export function PriceChangesNotice({ changes, className }: { changes?: Subscript
           <span className="min-w-0 truncate font-medium">{c.name}</span>
           <span className="tabular-nums">
             {formatCurrency(c.old_amount, c.currency)} → <strong>{formatCurrency(c.new_amount, c.currency)}</strong>
-            <span className="text-amber-700"> / {PERIOD_LABEL[c.frequency]} ({c.delta_pct > 0 ? "+" : ""}{c.delta_pct.toLocaleString("fr-FR")} %)</span>
+            <span className="text-amber-700"> / {PERIOD_LABEL[c.frequency]} ({c.delta_pct > 0 ? "+" : ""}{c.delta_pct.toLocaleString(appLocale())} %)</span>
           </span>
           <span className="w-full text-xs text-amber-700">
             Depuis le {format(parseISO(c.changed_on), "dd/MM/yyyy")} · {formatCurrency(c.annual_impact, c.currency)} de plus par an

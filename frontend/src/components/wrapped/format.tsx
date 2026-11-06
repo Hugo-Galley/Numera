@@ -1,3 +1,4 @@
+import { appLocale } from "@/i18n/locale"
 import { ArrowDownRight, ArrowUpRight } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { formatWorkDuration } from "@/components/ui/work-hours"
@@ -34,7 +35,7 @@ export function Delta({ value, unit = "%", higherIsBetter = true, vsYear, classN
   const up = value > 0
   const good = up === higherIsBetter
   const Icon = up ? ArrowUpRight : ArrowDownRight
-  const formatted = `${up ? "+" : ""}${value.toLocaleString("fr-FR", { maximumFractionDigits: 1 })}${unit === "%" ? " %" : " pts"}`
+  const formatted = `${up ? "+" : ""}${value.toLocaleString(appLocale(), { maximumFractionDigits: 1 })}${unit === "%" ? " %" : " pts"}`
   return (
     <span className={cn("inline-flex items-center gap-1 text-sm font-semibold", good ? "text-emerald-500" : "text-rose-500", className)}>
       <Icon className="h-4 w-4" />

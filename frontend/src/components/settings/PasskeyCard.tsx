@@ -1,3 +1,4 @@
+import { appLocale } from "@/i18n/locale"
 import { useCallback, useEffect, useState } from "react"
 import { Fingerprint, Trash2 } from "lucide-react"
 import { api } from "@/lib/api"
@@ -15,7 +16,7 @@ interface Passkey {
   last_used_at: string | null
 }
 
-const formatDate = (iso: string) => new Date(iso).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })
+const formatDate = (iso: string) => new Date(iso).toLocaleDateString(appLocale(), { day: "numeric", month: "short", year: "numeric" })
 
 export function PasskeyCard() {
   const [passkeys, setPasskeys] = useState<Passkey[]>([])

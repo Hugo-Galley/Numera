@@ -1,9 +1,9 @@
+import { dateLocale } from "@/i18n/locale"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { CheckCircle2, Download, Wallet } from "lucide-react"
 import { format } from "date-fns"
 import { formatCurrency } from "@/lib/utils"
-import { fr } from "date-fns/locale"
 import type { SalaryManagerCtx } from "./useSalaryManager"
 
 /** Synthèse du mois : salaire calculé, tickets et génération. */
@@ -20,7 +20,7 @@ export function MonthSummaryPanel({ ctx }: { ctx: SalaryManagerCtx }) {
                 Résumé du mois
               </span>
               <span className="text-sm font-medium text-muted-foreground">
-                {format(currentDate, "MMMM yyyy", { locale: fr })}
+                {format(currentDate, "MMMM yyyy", { locale: dateLocale() })}
               </span>
             </CardTitle>
           </CardHeader>

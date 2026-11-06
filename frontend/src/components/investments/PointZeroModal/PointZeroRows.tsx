@@ -1,3 +1,4 @@
+import { appLocale } from "@/i18n/locale"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { CompanyLogo } from "@/components/ui/CompanyLogo"
@@ -61,7 +62,7 @@ export function PointZeroRows({ ctx }: { ctx: PointZeroModalCtx }) {
                   <div className="grid grid-cols-[1fr_6.5rem] items-end gap-3">
                     <div className="min-w-0 text-xs text-slate-500">
                       <div>Cours : <span className="font-mono font-medium text-slate-800">{row.current_price ? `${row.current_price.toFixed(2)} ${row.currency}` : "-"}</span></div>
-                      <div className="mt-1">Valeur : <span className="whitespace-nowrap font-mono text-sm font-semibold text-slate-900">{new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(rowVal)}</span></div>
+                      <div className="mt-1">Valeur : <span className="whitespace-nowrap font-mono text-sm font-semibold text-slate-900">{new Intl.NumberFormat(appLocale(), { style: "currency", currency: "EUR" }).format(rowVal)}</span></div>
                     </div>
                     <label className="block text-xs text-slate-500">
                       Parts
@@ -145,7 +146,7 @@ export function PointZeroRows({ ctx }: { ctx: PointZeroModalCtx }) {
                   </div>
 
                   <div className="col-span-2 text-right font-mono text-xs font-semibold text-slate-900">
-                    {new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(rowVal)}
+                    {new Intl.NumberFormat(appLocale(), { style: "currency", currency: "EUR" }).format(rowVal)}
                   </div>
 
                   <div className="col-span-1 text-center">

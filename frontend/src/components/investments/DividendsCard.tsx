@@ -1,3 +1,4 @@
+import { appLocale } from "@/i18n/locale"
 import { useCallback, useEffect, useState } from "react"
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 import { Coins, Link2 } from "lucide-react"
@@ -60,7 +61,7 @@ interface DividendsCardProps {
 
 const monthLabel = (key: string) => {
   const [year, month] = key.split("-").map(Number)
-  return new Date(year, month - 1, 1).toLocaleDateString("fr-FR", { month: "short", year: "2-digit" })
+  return new Date(year, month - 1, 1).toLocaleDateString(appLocale(), { month: "short", year: "2-digit" })
 }
 
 const pct = (value: number | null) => formatRate(value)
@@ -175,7 +176,7 @@ export function DividendsCard({ accountId, reloadKey, onChanged }: DividendsCard
                         <div className="break-words text-sm font-semibold text-slate-900">{t.asset_name}</div>
                         <div className="font-mono text-[11px] text-slate-500">
                           {t.ticker}
-                          {t.last_date && ` • dernier : ${new Date(t.last_date).toLocaleDateString("fr-FR")}`}
+                          {t.last_date && ` • dernier : ${new Date(t.last_date).toLocaleDateString(appLocale())}`}
                         </div>
                       </div>
                       <div className="shrink-0 text-right">
@@ -221,7 +222,7 @@ export function DividendsCard({ accountId, reloadKey, onChanged }: DividendsCard
                             <span className="text-sm font-semibold text-slate-900">{t.asset_name}</span>
                             <span className="font-mono text-[11px] text-slate-400">
                               {t.ticker}
-                              {t.last_date && ` • dernier : ${new Date(t.last_date).toLocaleDateString("fr-FR")}`}
+                              {t.last_date && ` • dernier : ${new Date(t.last_date).toLocaleDateString(appLocale())}`}
                             </span>
                           </div>
                         </TableCell>
@@ -281,7 +282,7 @@ export function DividendsCard({ accountId, reloadKey, onChanged }: DividendsCard
                   <ul className="space-y-1">
                     {preview.unmatched.map((u) => (
                       <li key={u.id} className="rounded border border-dashed px-3 py-1.5 text-slate-500">
-                        {u.note || "(sans libellé)"} • {new Date(u.date).toLocaleDateString("fr-FR")}
+                        {u.note || "(sans libellé)"} • {new Date(u.date).toLocaleDateString(appLocale())}
                       </li>
                     ))}
                   </ul>

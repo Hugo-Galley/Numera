@@ -1,3 +1,4 @@
+import { appLocale } from "@/i18n/locale"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { CalendarCheck, Check, Coins, Globe, Pencil, Trash2, X } from "lucide-react"
@@ -74,7 +75,7 @@ export function HoldingsMobileList({ ctx }: { ctx: HoldingsTableCtx }) {
                             <span className="whitespace-nowrap font-medium">{formatCurrency(h.current_price_eur || h.current_price)}</span>
                             {h.price_date && (
                               <span className={cn("block text-[10px] font-normal", h.price_stale ? "text-amber-600" : "text-slate-400")}>
-                                {h.price_stale ? "⚠ " : ""}{new Date(h.price_date).toLocaleDateString("fr-FR")}
+                                {h.price_stale ? "⚠ " : ""}{new Date(h.price_date).toLocaleDateString(appLocale())}
                               </span>
                             )}
                           </>

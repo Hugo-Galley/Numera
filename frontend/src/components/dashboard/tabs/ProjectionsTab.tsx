@@ -1,6 +1,6 @@
+import { dateLocale } from "@/i18n/locale"
 import { TrendingUp, ArrowUpRight, ArrowDownRight, Sparkles } from "lucide-react"
 import { format } from "date-fns"
-import { fr } from "date-fns/locale"
 import { 
   Card, 
   CardContent, 
@@ -26,7 +26,7 @@ const safeFormat = (dateStr: string | null | undefined, formatStr: string) => {
   try {
     const d = new Date(dateStr)
     if (isNaN(d.getTime())) return "-"
-    return format(d, formatStr, { locale: fr })
+    return format(d, formatStr, { locale: dateLocale() })
   } catch (e) {
     return "-"
   }
@@ -69,7 +69,7 @@ export function ProjectionsTab({ projection, displayCurrency }: ProjectionsTabPr
               {formatCurrency(projection?.low_point || 0, displayCurrency)}
             </CardTitle>
             <p className="text-xs text-slate-400 mt-1 uppercase font-bold tracking-tight">
-              Prévu le {projection?.low_point_date ? format(new Date(projection.low_point_date), "d MMMM", { locale: fr }) : "-"}
+              Prévu le {projection?.low_point_date ? format(new Date(projection.low_point_date), "d MMMM", { locale: dateLocale() }) : "-"}
             </p>
           </CardContent>
         </Card>
@@ -119,7 +119,7 @@ export function ProjectionsTab({ projection, displayCurrency }: ProjectionsTabPr
               />
               <Tooltip 
                 contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} 
-                labelFormatter={(v) => format(new Date(v), "EEEE d MMMM", { locale: fr })}
+                labelFormatter={(v) => format(new Date(v), "EEEE d MMMM", { locale: dateLocale() })}
                 formatter={(v: number) => [formatCurrency(v, displayCurrency), "Solde estimé"]}
               />
               <Area type="monotone" dataKey="balance" name="Solde" stroke="#3b82f6" fill="url(#colorProj)" strokeWidth={4} />
@@ -145,7 +145,7 @@ export function ProjectionsTab({ projection, displayCurrency }: ProjectionsTabPr
                      </div>
                      <div className="min-w-0">
                        <p className="truncate text-sm font-bold text-slate-900">{ev.name}</p>
-                       <p className="text-[10px] text-slate-500 font-medium uppercase">{format(new Date(ev.date), "d MMMM", { locale: fr })}</p>
+                       <p className="text-[10px] text-slate-500 font-medium uppercase">{format(new Date(ev.date), "d MMMM", { locale: dateLocale() })}</p>
                      </div>
                    </div>
                    <span className={`shrink-0 whitespace-nowrap tabular-nums text-sm font-black amount-blur ${ev.is_income ? 'text-emerald-600' : 'text-slate-900'}`}>

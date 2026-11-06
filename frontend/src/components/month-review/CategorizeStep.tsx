@@ -1,3 +1,4 @@
+import { appLocale } from "@/i18n/locale"
 import { useEffect, useState } from "react"
 import { CheckCircle2 } from "lucide-react"
 import { toast } from "sonner"
@@ -64,7 +65,7 @@ export function CategorizeStep({
             <li key={tx.id} className="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
               <div className="flex items-baseline justify-between gap-3 sm:block sm:min-w-0">
                 <p className="min-w-0 truncate font-medium">{tx.merchant}</p>
-                <p className="shrink-0 text-xs text-slate-500">{new Date(tx.date).toLocaleDateString("fr-FR")}</p>
+                <p className="shrink-0 text-xs text-slate-500">{new Date(tx.date).toLocaleDateString(appLocale())}</p>
               </div>
               <div className="flex items-center gap-3">
                 <span className="amount-blur order-2 whitespace-nowrap font-semibold tabular-nums sm:order-none">{formatCurrency(tx.amount)}</span>

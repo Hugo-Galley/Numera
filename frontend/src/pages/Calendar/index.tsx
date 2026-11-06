@@ -1,3 +1,4 @@
+import { appLocale } from "@/i18n/locale"
 import { Button } from "@/components/ui/button"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { ErrorState } from "@/components/layout/ErrorState"
@@ -38,7 +39,7 @@ export default function Calendar({ embedded = false }: { embedded?: boolean }) {
               <ChevronLeft className="h-4 w-4" />
             </Button>
             <div className="px-4 py-1 text-sm font-medium flex-1 md:flex-none md:min-w-[140px] text-center capitalize">
-              {date.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}
+              {date.toLocaleDateString(appLocale(), { month: 'long', year: 'numeric' })}
             </div>
             <Button variant="ghost" size="icon" onClick={nextMonth} className="h-10 w-10 md:h-8 md:w-8" aria-label="Mois suivant">
               <ChevronRight className="h-4 w-4" />

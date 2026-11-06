@@ -1,5 +1,6 @@
 import { Component, type ErrorInfo, type ReactNode } from "react"
 import { AlertTriangle } from "lucide-react"
+import i18n from "i18next"
 import { Button } from "@/components/ui/button"
 
 interface Props {
@@ -30,12 +31,12 @@ export class ErrorBoundary extends Component<Props, State> {
       <div className={`flex flex-col items-center justify-center gap-4 p-8 text-center ${this.props.fullPage ? "min-h-dvh" : "h-[60vh]"}`}>
         <AlertTriangle className="h-10 w-10 text-amber-500" />
         <div>
-          <h2 className="text-lg font-semibold text-slate-900">Cette page a rencontré une erreur</h2>
-          <p className="mt-1 text-sm text-slate-500">Vos données ne sont pas affectées. Réessayez ou rechargez la page.</p>
+          <h2 className="text-lg font-semibold text-slate-900">{i18n.t("errors.renderTitle")}</h2>
+          <p className="mt-1 text-sm text-slate-500">{i18n.t("errors.renderText")}</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => this.setState({ error: null })}>Réessayer</Button>
-          <Button onClick={() => window.location.reload()}>Recharger</Button>
+          <Button variant="outline" onClick={() => this.setState({ error: null })}>{i18n.t("errors.retry")}</Button>
+          <Button onClick={() => window.location.reload()}>{i18n.t("errors.reload")}</Button>
         </div>
       </div>
     )

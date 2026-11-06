@@ -1,3 +1,4 @@
+import { appLocale } from "@/i18n/locale"
 import { ArrowDownCircle, ArrowUpCircle, Calendar as CalendarIcon, CheckCircle2 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -16,7 +17,7 @@ export function DayDetailDialog({ ctx }: { ctx: CalendarCtx }) {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <CalendarIcon className="h-5 w-5 text-slate-400" />
-              {selectedDay && new Date(selectedDay).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+              {selectedDay && new Date(selectedDay).toLocaleDateString(appLocale(), { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
             </DialogTitle>
             <DialogDescription>
               Flux financiers pour cette journée

@@ -1,3 +1,4 @@
+import { appLocale } from "@/i18n/locale"
 import { AlertTriangle, ArrowRight, ArrowRightLeft, CheckCircle2, Database, LayoutList, RefreshCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { resetApiCache } from "@/lib/apiCache"
@@ -144,7 +145,7 @@ export default function ActionCenter() {
 
       <div className="flex items-center gap-2 text-xs text-slate-400">
         <Database className="h-3.5 w-3.5" />
-        Dernière analyse : {new Date(data.summary.checked_at).toLocaleString("fr-FR")}
+        Dernière analyse : {new Date(data.summary.checked_at).toLocaleString(appLocale())}
       </div>
     </div>
   )

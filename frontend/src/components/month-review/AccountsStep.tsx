@@ -1,3 +1,4 @@
+import { appLocale } from "@/i18n/locale"
 import { useState } from "react"
 import { CheckCircle2 } from "lucide-react"
 import { toast } from "sonner"
@@ -42,7 +43,7 @@ export function AccountsStep({
               <div className="min-w-0">
                 <p className="truncate font-medium">{acc.name}</p>
                 <p className="text-xs text-slate-500">
-                  Dernière validation : {new Date(acc.last_verified_at).toLocaleDateString("fr-FR")}
+                  Dernière validation : {new Date(acc.last_verified_at).toLocaleDateString(appLocale())}
                 </p>
               </div>
               <div className="flex items-center justify-between gap-3">

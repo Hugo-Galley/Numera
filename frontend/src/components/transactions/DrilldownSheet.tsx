@@ -1,7 +1,7 @@
+import { dateLocale } from "@/i18n/locale"
 import { useEffect, useMemo, useState } from "react"
 import { Link, useSearchParams } from "react-router-dom"
 import { format, parseISO } from "date-fns"
-import { fr } from "date-fns/locale"
 import { ArrowRight, ListFilter, Split } from "lucide-react"
 
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet"
@@ -138,7 +138,7 @@ export function DrilldownSheet() {
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-medium text-slate-900">{tx.merchant_obj?.name ?? tx.merchant}</p>
                       <p className="truncate text-xs text-slate-500">
-                        {format(parseISO(tx.date), "d MMM", { locale: fr })}
+                        {format(parseISO(tx.date), "d MMM", { locale: dateLocale() })}
                         {accounts[tx.account_id] ? ` · ${accounts[tx.account_id].name}` : ""}
                         {!filters?.categoryId && tx.category ? ` · ${tx.category.name}` : ""}
                         {tx.note ? ` · ${tx.note}` : ""}

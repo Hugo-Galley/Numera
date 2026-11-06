@@ -1,0 +1,30 @@
+{
+  "title": "Tableau de bord",
+  "subtitle": "Toutes vos analyses financières en un coup d'œil.",
+  "payPeriod": "Période de paie : {{range}}",
+  "allAccounts": "Tous les comptes",
+  "placeholders": {
+    "account": "Comptes",
+    "month": "Mois",
+    "year": "Année"
+  },
+  "tabs": {
+    "overview": "Aperçu",
+    "budgets": "Budgets",
+    "spending": "Dépenses",
+    "analysis": "Analyse",
+    "projections": "Projections"
+  },
+  "failedBlocks_one": "{{count}} bloc du tableau de bord n'a pas pu être chargé.",
+  "failedBlocks_other": "{{count}} blocs du tableau de bord n'ont pas pu être chargés.",
+  "accountsLoadError": "Impossible de charger la liste des comptes.",
+  "kpi": {
+    "monthlyIncome": "Revenus Mensuels",
+    "moneyIn": "Entrées d'argent",
+    "monthlyExpenses": "Dépenses Mensuelles",
+    "moneyOut": "Sorties d'argent",
+    "savingsMade": "Épargne Réalisée",
+    "currentBalance": "Solde Actuel",
+    "trend": "Tendance 6 mois"
+  }
+}

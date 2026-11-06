@@ -1,0 +1,22 @@
+{
+  "notFound": {
+    "title": "Page not found",
+    "text": "This address doesn't exist or has been moved.",
+    "back": "Back to the dashboard"
+  },
+  "frequency": {
+    "weekly": "Weekly",
+    "monthly": "Monthly",
+    "quarterly": "Quarterly",
+    "yearly": "Yearly",
+    "annual": "Yearly",
+    "monthlyDetected": "Monthly (detected)"
+  },
+  "errors": {
+    "loadFailed": "Couldn't load this data.",
+    "retry": "Try again",
+    "reload": "Reload",
+    "renderTitle": "This page ran into an error",
+    "renderText": "Your data is not affected. Try again or reload the page."
+  }
+}

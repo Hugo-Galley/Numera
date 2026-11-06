@@ -1,9 +1,10 @@
+import { appLocale } from "@/i18n/locale"
 import { formatCurrency } from "@/lib/utils";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { NODE_WIDTH, SankeyData, computeLayout } from "./sankeyLayout";
 
 const formatCurrencyShort = (value: number, currency: string) =>
-  new Intl.NumberFormat("fr-FR", { style: "currency", currency, maximumFractionDigits: 0 }).format(value);
+  new Intl.NumberFormat(appLocale(), { style: "currency", currency, maximumFractionDigits: 0 }).format(value);
 
 interface SankeyFlowProps {
   data: SankeyData;

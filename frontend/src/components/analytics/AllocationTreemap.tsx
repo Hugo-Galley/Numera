@@ -1,3 +1,4 @@
+import { appLocale } from "@/i18n/locale"
 import React from 'react';
 import { Treemap, ResponsiveContainer, Tooltip } from 'recharts';
 import { formatAmountWithShare, formatRate } from '@/lib/utils';
@@ -66,7 +67,7 @@ const CustomizedContent = (props: any) => {
           fontWeight="bold"
           className="pointer-events-none select-none"
         >
-          {new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(value)}
+          {new Intl.NumberFormat(appLocale(), { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(value)}
         </text>
       )}
       {caption && height > 50 && (

@@ -1,5 +1,6 @@
 import { Suspense, useEffect, useRef } from "react"
 import { Outlet, useLocation } from "react-router-dom"
+import { useTranslation } from "react-i18next"
 import { Sidebar } from "./Sidebar"
 import { Omnibox } from "./Omnibox"
 import { Toaster } from "@/components/ui/sonner"
@@ -19,6 +20,7 @@ import { useDemoMode } from "@/hooks/useDemoMode"
 let privacyOnStartChecked = false
 
 export function AppLayout() {
+  const { t } = useTranslation("nav")
   const { isPrivacyMode, togglePrivacyMode, setPrivacyMode, setSearchOpen } = useUI()
   const { profile } = useAuth()
   const isDemo = useDemoMode()
@@ -41,10 +43,10 @@ export function AppLayout() {
             <span className="text-lg font-bold tracking-tight text-slate-900">Numera</span>
           </div>
           <div className="flex items-center">
-            <Button variant="ghost" size="icon" className="h-11 w-11" onClick={togglePrivacyMode} aria-label={isPrivacyMode ? "Afficher les montants" : "Masquer les montants"}>
+            <Button variant="ghost" size="icon" className="h-11 w-11" onClick={togglePrivacyMode} aria-label={isPrivacyMode ? t("privacy.showAmounts") : t("privacy.hideAmounts")}>
               {isPrivacyMode ? <Eye className="h-5 w-5" /> : <EyeOff className="h-5 w-5" />}
             </Button>
-            <Button variant="ghost" size="icon" className="h-11 w-11" onClick={() => setSearchOpen(true)} aria-label="Rechercher">
+            <Button variant="ghost" size="icon" className="h-11 w-11" onClick={() => setSearchOpen(true)} aria-label={t("search")}>
               <Search className="h-5 w-5" />
             </Button>
           </div>
@@ -58,7 +60,7 @@ export function AppLayout() {
           {isDemo && (
             <div className="flex items-center justify-center gap-2 border-b border-amber-200 bg-amber-50 px-4 py-1.5 text-xs font-medium text-amber-900">
               <FlaskConical className="h-3.5 w-3.5 shrink-0" />
-              <span>Démo — données fictives, remises à zéro chaque jour</span>
+              <span>{t("demoBanner")}</span>
             </div>
           )}
           <div className="container mx-auto p-4 md:p-8 max-w-7xl">

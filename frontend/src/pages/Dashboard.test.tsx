@@ -54,7 +54,7 @@ describe("Dashboard : échec partiel", () => {
     serveDashboard(["/analytics/top-merchants"])
     renderWithProviders(<Dashboard />, { auth: true })
 
-    expect(await screen.findByText("1 bloc(s) du tableau de bord n'ont pas pu être chargés.")).toBeInTheDocument()
+    expect(await screen.findByText("1 bloc du tableau de bord n'a pas pu être chargé.")).toBeInTheDocument()
     expect(screen.getByRole("region", { name: "Aperçu" })).toHaveTextContent("expensesByCategory: chargé")
     expect(screen.getByRole("region", { name: "Aperçu" })).toHaveTextContent("sankeyData: chargé")
     expect(screen.getByRole("region", { name: "KPI" })).toHaveTextContent("analytics: chargé")
@@ -65,7 +65,7 @@ describe("Dashboard : échec partiel", () => {
     const failing = ["/analytics/sankey"]
     const calls = serveDashboard(failing)
     const { user } = renderWithProviders(<Dashboard />, { auth: true })
-    await screen.findByText("1 bloc(s) du tableau de bord n'ont pas pu être chargés.")
+    await screen.findByText("1 bloc du tableau de bord n'a pas pu être chargé.")
     const sankeyCalls = calls.filter((c) => c === "/analytics/sankey").length
 
     failing.length = 0

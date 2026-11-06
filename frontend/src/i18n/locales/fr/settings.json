@@ -1,0 +1,37 @@
+{
+  "title": "Paramètres",
+  "subtitle": "Les réglages de l'application, ta sécurité et tes données.",
+  "tabs": {
+    "general": { "label": "Général", "intro": "Ton profil et le comportement de l'application." },
+    "notifications": { "label": "Notifications", "intro": "Ce qu'elle t'envoie sur ton téléphone." },
+    "security": { "label": "Sécurité", "intro": "Qui peut accéder à tes données, et comment." },
+    "data": { "label": "Données", "intro": "Sauvegarder, exporter ou effacer tes données." }
+  },
+  "display": {
+    "title": "Affichage",
+    "description": "La langue, le thème et les positions simplifiées sont propres à cet appareil ; le masquage au démarrage vaut pour tous.",
+    "language": {
+      "title": "Langue",
+      "hint": "Langue de l'interface. Les formats de dates et de montants la suivent ; tes données (libellés, catégories, notes) ne sont pas traduites.",
+      "aria": "Langue de l'interface"
+    },
+    "theme": {
+      "title": "Thème",
+      "hint": "« Auto » suit le réglage clair / sombre du système.",
+      "light": "Clair",
+      "dark": "Sombre",
+      "auto": "Auto"
+    },
+    "privacyOnStart": {
+      "label": "Ouvrir avec les montants masqués",
+      "hint": "Le mode confidentialité (l'œil) est activé à chaque ouverture de l'application, sur tous tes appareils. Tu peux toujours afficher les montants ensuite.",
+      "enabled": "L'application s'ouvrira montants masqués",
+      "disabled": "Les montants s'afficheront à l'ouverture",
+      "error": "Impossible d'enregistrer le réglage"
+    },
+    "simplifiedHoldings": {
+      "label": "Positions simplifiées (comptes titres)",
+      "hint": "N'affiche que le titre (logo, nom, ticker) et le nombre de parts : PRU, cours, valeurs, plus-values, dividendes et poids sont masqués."
+    }
+  }
+}

@@ -1,3 +1,4 @@
+import { appLocale } from "@/i18n/locale"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Eye, PiggyBank, ShieldCheck, Target, TrendingUp } from "lucide-react"
 import { formatCurrency, formatRate } from "@/lib/utils"
@@ -80,7 +81,7 @@ export function BalanceSection({ ctx }: { ctx: SavingsCtx }) {
             </CardHeader>
             <CardContent className="p-4 pt-0 md:p-6 md:pt-0">
               <CardTitle className="text-2xl sm:text-3xl font-bold text-slate-900">
-                {resilience?.months != null ? `${resilience.months.toLocaleString("fr-FR", { maximumFractionDigits: 1 })} mois` : "—"}
+                {resilience?.months != null ? `${resilience.months.toLocaleString(appLocale(), { maximumFractionDigits: 1 })} mois` : "—"}
               </CardTitle>
               <p className="text-xs text-slate-500 mt-2">
                 {resilience?.months != null

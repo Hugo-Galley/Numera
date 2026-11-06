@@ -1,6 +1,6 @@
+import { dateLocale } from "@/i18n/locale"
 import { useState, useEffect } from "react"
 import { format, getDaysInMonth, startOfMonth, getDay, isWeekend, addMonths, subMonths, isSameDay } from "date-fns"
-import { fr } from "date-fns/locale"
 import { ChevronLeft, ChevronRight, Home, Calendar as CalendarIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -47,7 +47,7 @@ export function TelecommutingCalendar({
               <ChevronLeft className="h-4 w-4" />
             </Button>
             <span className="flex-1 text-center font-medium capitalize sm:w-32 sm:flex-none">
-              {format(currentDate, "MMMM yyyy", { locale: fr })}
+              {format(currentDate, "MMMM yyyy", { locale: dateLocale() })}
             </span>
             <Button variant="outline" size="icon" className="h-10 w-10 md:h-9 md:w-9" aria-label="Mois suivant" onClick={() => onDateChange(addMonths(currentDate, 1))}>
               <ChevronRight className="h-4 w-4" />
@@ -84,7 +84,7 @@ export function TelecommutingCalendar({
                     selected={salaryDate || undefined}
                     onSelect={(d) => d && onSalaryDateChange(d)}
                     defaultMonth={currentDate}
-                    locale={fr}
+                    locale={dateLocale()}
                     weekStartsOn={1}
                   />
                 </PopoverContent>

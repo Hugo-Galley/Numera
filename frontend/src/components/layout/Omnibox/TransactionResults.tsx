@@ -1,3 +1,4 @@
+import { appLocale } from "@/i18n/locale"
 import { Receipt, Search } from "lucide-react"
 import { cn, formatCurrency } from "@/lib/utils"
 import type { OmniboxCtx } from "./useOmnibox"
@@ -38,7 +39,7 @@ export function TransactionResults({ ctx }: { ctx: OmniboxCtx }) {
                       {tx.merchant_obj?.name || tx.merchant}
                     </span>
                     <span className="text-[10px] text-slate-400 flex items-center gap-1.5 truncate">
-                      {new Date(tx.date).toLocaleDateString("fr-FR")}
+                      {new Date(tx.date).toLocaleDateString(appLocale())}
                       {tx.merchant_obj && tx.merchant_obj.name !== tx.merchant && <span className="italic">• {tx.merchant}</span>}
                       {tx.note && <span className="italic">• {tx.note}</span>}
                     </span>

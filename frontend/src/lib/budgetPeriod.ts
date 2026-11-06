@@ -1,3 +1,4 @@
+import { appLocale } from "@/i18n/locale"
 import { useEffect, useState } from "react"
 import { api } from "@/lib/api"
 
@@ -15,7 +16,7 @@ const SHORT_DATE: Intl.DateTimeFormatOptions = { day: "numeric", month: "short" 
 /** « 25 août → 25 sept. » : fenêtre du mois budgétaire (affichée seulement en mode paie). */
 export function formatPeriodRange(period: BudgetPeriod | null): string | null {
   if (!period || period.mode !== "salary") return null
-  const fmt = (iso: string) => new Date(`${iso}T00:00:00`).toLocaleDateString("fr-FR", SHORT_DATE)
+  const fmt = (iso: string) => new Date(`${iso}T00:00:00`).toLocaleDateString(appLocale(), SHORT_DATE)
   return `${fmt(period.start)} → ${fmt(period.end)}`
 }
 

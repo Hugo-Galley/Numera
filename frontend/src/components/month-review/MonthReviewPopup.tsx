@@ -1,3 +1,4 @@
+import { appLocale } from "@/i18n/locale"
 import { safeStorage } from "@/lib/storage"
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
@@ -75,7 +76,7 @@ export function MonthReviewPopup() {
   if (!review) return null
 
   const suffix = `${review.year}-${review.month}`
-  const label = new Date(review.year, review.month - 1, 1).toLocaleDateString("fr-FR", { month: "long" })
+  const label = new Date(review.year, review.month - 1, 1).toLocaleDateString(appLocale(), { month: "long" })
   const points = review.categorize.count + review.accounts.unverified_count
 
   return (

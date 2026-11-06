@@ -1,7 +1,7 @@
+import { appLocale } from "@/i18n/locale"
 import { Activity, ArrowDownRight, ArrowUpRight, Percent, Plus, Shield, Tag, Target, TrendingDown, TrendingUp } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { formatRate } from "@/lib/utils"
-import { fr } from "date-fns/locale"
 import { Account } from "./types"
 import type { AccountDetailView } from "./useAccountDetail"
 
@@ -23,7 +23,7 @@ export function AccountKpis({ ctx }: { ctx: AccountDetailView }) {
               {/* Date de la dernière validation explicite du solde (et non « aujourd'hui » codé en dur) */}
               <span>
                 {account.last_verified_at
-                  ? `Solde vérifié le ${new Date(account.last_verified_at).toLocaleDateString("fr-FR")}`
+                  ? `Solde vérifié le ${new Date(account.last_verified_at).toLocaleDateString(appLocale())}`
                   : "Solde jamais vérifié"}
               </span>
             </div>

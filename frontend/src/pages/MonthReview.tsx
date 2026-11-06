@@ -1,3 +1,4 @@
+import { appLocale } from "@/i18n/locale"
 import { ErrorState } from "@/components/layout/ErrorState"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { useSearchParams } from "react-router-dom"
@@ -116,7 +117,7 @@ export default function MonthReview() {
     }
   }
 
-  const label = new Date(year, month - 1, 1).toLocaleDateString("fr-FR", { month: "long", year: "numeric" })
+  const label = new Date(year, month - 1, 1).toLocaleDateString(appLocale(), { month: "long", year: "numeric" })
 
   function status(i: number): "ok" | "todo" | "neutral" {
     if (!review) return "neutral"

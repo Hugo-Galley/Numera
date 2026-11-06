@@ -1,3 +1,4 @@
+import { appLocale } from "@/i18n/locale"
 import { Clock } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useWorkTime } from "@/providers/WorkTimeProvider"
@@ -12,7 +13,7 @@ export function formatWorkDuration(hours: number, hoursPerDay: number): string {
     return min > 0 ? `${h} h ${String(min).padStart(2, "0")}` : `${h} h`
   }
   const days = hours / hoursPerDay
-  return `${days.toLocaleString("fr-FR", { maximumFractionDigits: days < 10 ? 1 : 0 })} j`
+  return `${days.toLocaleString(appLocale(), { maximumFractionDigits: days < 10 ? 1 : 0 })} j`
 }
 
 interface WorkHoursProps {
@@ -30,7 +31,7 @@ export function WorkHours({ amount, className, showIcon = true }: WorkHoursProps
   return (
     <span
       className={cn("inline-flex items-center gap-1 text-[10px] font-normal text-slate-400 amount-blur", className)}
-      title={`Au taux de ${workTime.hourly_rate.toLocaleString("fr-FR")} €/h net`}
+      title={`Au taux de ${workTime.hourly_rate.toLocaleString(appLocale())} €/h net`}
     >
       {showIcon && <Clock className="h-3 w-3" />}≈ {label} de travail
     </span>

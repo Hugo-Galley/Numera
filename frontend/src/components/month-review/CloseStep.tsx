@@ -1,3 +1,4 @@
+import { appLocale } from "@/i18n/locale"
 import { AlertTriangle, CheckCircle2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -28,7 +29,7 @@ export function CloseStep({
             <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0" />
             <div className="text-sm">
               <p className="font-semibold">
-                Clôturé le {new Date(review.closure.closed_at).toLocaleDateString("fr-FR")}
+                Clôturé le {new Date(review.closure.closed_at).toLocaleDateString(appLocale())}
               </p>
               {review.closure.unresolved_count > 0 && (
                 <p>{review.closure.unresolved_count} point(s) restaient à traiter à la clôture.</p>

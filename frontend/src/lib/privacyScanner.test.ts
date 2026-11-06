@@ -13,6 +13,9 @@ describe("looksSensitive", () => {
       "EUR 100",
       "3k€",
       "Solde : 2,5M€",
+      "€1,234.50", // sortie de formatCurrency en anglais
+      "-€12.00",
+      "£1,200",
     ])("avec devise : « %s »", (text) => {
       expect(looksSensitive(text)).toBe(true)
     })

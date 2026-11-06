@@ -1,3 +1,4 @@
+import { dateLocale } from "@/i18n/locale"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import { CalendarIcon, ChevronDown } from "lucide-react"
@@ -7,7 +8,6 @@ import { Label } from "@/components/ui/label"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
 import { format } from "date-fns"
-import { fr } from "date-fns/locale"
 import { MONTHS } from "./types"
 import type { RecurringTransactionsCtx } from "./useRecurringTransactions"
 
@@ -104,7 +104,7 @@ export function FormScheduleFields({ ctx }: { ctx: RecurringTransactionsCtx }) {
             >
               <CalendarIcon className="mr-2 h-4 w-4" />
               {formData.start_date 
-                ? format(new Date(formData.start_date), "dd MMMM yyyy", { locale: fr })
+                ? format(new Date(formData.start_date), "dd MMMM yyyy", { locale: dateLocale() })
                 : <span>Choisir une date...</span>
               }
             </Button>
