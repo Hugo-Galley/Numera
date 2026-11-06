@@ -10,7 +10,8 @@ from app.domain.recurring import transfer_credit_date
 from app.integrations.currency import get_exchange_rates
 from app.models.recurring_transaction import RecurringTransaction
 from app.repositories.analytics import metrics as repo
-from app.repositories.analytics.common import ticket_restaurant_account_ids
+from app.repositories.analytics.common import active_recurrings, ticket_restaurant_account_ids
+from app.repositories.comptes import balances
 
 
 async def compute_calendar(db: Session, month: int, year: int, account_id: int | None = None) -> dict:
@@ -41,11 +42,8 @@ async def compute_calendar(db: Session, month: int, year: int, account_id: int |
 def _opening_balances(db: Session, accounts: list, account_id: int | None, sim_start: datetime) -> dict[int, float]:
     """Dernier solde courant avant le début de la simulation (du compte, ou de chaque compte actif)."""
     ids = [account_id] if account_id else [a.id for a in accounts if a.active]
-    balances = {}
-    for acc_id in ids:
-        last_tx = repo.last_transaction_before(db, acc_id, sim_start)
-        balances[acc_id] = last_tx.running_balance if last_tx else 0.0
-    return balances
+    last = balances.latest_balances_by_account(db, ids, sim_start)
+    return {acc_id: (last[acc_id].running_balance or 0.0) if acc_id in last else 0.0 for acc_id in ids}
 
 
 def _projected_events(db: Session, start: datetime, end: datetime, account_id: int | None, tr_accounts: set[int],
@@ -58,7 +56,7 @@ def _projected_events(db: Session, start: datetime, end: datetime, account_id: i
     events = []
     by_id = {a.id: a for a in accounts}
     counted = {a.id for a in accounts if a.active and a.id not in tr_accounts}
-    for rd in repo.active_recurrings(db, account_id, tr_accounts):
+    for rd in active_recurrings(db, account_id, tr_accounts):
         incoming = account_id is not None and rd.account_id != account_id  # virement qui arrive sur ce compte
         # Vue globale : un virement entre deux comptes comptés est neutre pour le total
         if account_id is None and rd.transfer_to_account_id in counted:

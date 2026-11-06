@@ -14,6 +14,7 @@ from sqlalchemy.orm import Session
 from app.core import security
 from app.core.config import settings
 from app.core.errors import BusinessRuleError, ExternalTimeoutError, InternalError, InvalidOperationError, NotFoundError
+from app.core.i18n import tr
 from app.core.logging import get_logger
 from app.core.mcp_tokens import generate_token, hash_token
 from app.core.migrations import run_migrations
@@ -43,14 +44,14 @@ def _password_ok(db: Session, password: str | None) -> bool:
 
 def require_current_password(db: Session, password: str | None) -> None:
     if not _password_ok(db, password):
-        raise InvalidOperationError("Mot de passe actuel incorrect")
+        raise InvalidOperationError(tr("errors.current_password_wrong"))
 
 
 def require_reauth(db: Session, password: str | None, code: str | None) -> None:
     """Mot de passe, plus code TOTP (ou de secours) si la double authentification est active."""
     require_current_password(db, password)
     if is_enabled(db) and not (code and check_second_factor(db, code)):
-        raise InvalidOperationError("Code de double authentification incorrect")
+        raise InvalidOperationError(tr("errors.totp_code_wrong"))
     db.commit()  # étape TOTP ou code de secours consommé : enregistré tout de suite (anti-rejeu)
 
 
@@ -70,7 +71,7 @@ def update_admin_profile(db: Session, profile_in: AdminProfileUpdate) -> AdminPr
         # Un token volé ne doit pas suffire à prendre le contrôle du compte
         require_current_password(db, profile_in.current_password)
     if profile_in.password and len(profile_in.password) < MIN_PASSWORD_LENGTH:
-        raise BusinessRuleError(f"Le mot de passe doit contenir au moins {MIN_PASSWORD_LENGTH} caractères")
+        raise BusinessRuleError(tr("errors.password_too_short", min=MIN_PASSWORD_LENGTH))
 
     if profile_in.username:
         set_setting(db, "admin_username", profile_in.username)
@@ -118,7 +119,7 @@ def create_mcp_token(db: Session, payload: McpTokenCreate) -> McpTokenCreated:
 def revoke_mcp_token(db: Session, token_id: int) -> None:
     record = repo.get_mcp_token(db, token_id)
     if record is None:
-        raise NotFoundError("Token introuvable")
+        raise NotFoundError(tr("errors.token_not_found"))
     db.delete(record)
     db.commit()
 
@@ -133,14 +134,14 @@ def _snapshot_before_reset() -> None:
         logger.info("Instantané avant reset : %s", backup.name)
     except Exception:
         logger.exception("Instantané avant reset impossible : reset annulé")
-        raise InternalError("Sauvegarde préalable impossible, réinitialisation annulée") from None
+        raise InternalError(tr("errors.backup_before_reset_failed")) from None
 
 
 def reset_database(db: Session, confirm: bool, confirmation_code: str | None, current_password: str | None) -> dict:
     if not confirm:
-        raise InvalidOperationError("Confirmation required")
+        raise InvalidOperationError(tr("errors.confirmation_required"))
     if confirmation_code != RESET_CONFIRMATION_CODE:
-        raise InvalidOperationError("Invalid confirmation code. Please type 'EFFACER' to confirm.")
+        raise InvalidOperationError(tr("errors.reset_confirmation_code"))
     require_current_password(db, current_password)
     _snapshot_before_reset()
 
@@ -173,7 +174,7 @@ def run_backup_now() -> dict:
             env={**os.environ, "BACKUP_TRIGGER": "manual"},
         )
     except subprocess.TimeoutExpired:
-        raise ExternalTimeoutError("La sauvegarde a dépassé le délai imparti") from None
+        raise ExternalTimeoutError(tr("errors.backup_timeout")) from None
     if result.returncode != 0:
         errors = [line for line in result.stderr.splitlines() if "ERROR" in line]
         detail = errors[-1].split("ERROR - ", 1)[-1] if errors else "Échec de la sauvegarde"

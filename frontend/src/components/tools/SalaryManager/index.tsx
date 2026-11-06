@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import { ErrorState } from "@/components/layout/ErrorState"
 import { TelecommutingCalendar } from "../TelecommutingCalendar"
 import { WorkTimeSettings } from "../WorkTimeSettings"
@@ -6,6 +7,7 @@ import { SalaryConfigCard } from "./SalaryConfigCard"
 import { MonthSummaryPanel } from "./MonthSummaryPanel"
 
 export function SalaryManager() {
+  const { t } = useTranslation("tools")
   const ctx = useSalaryManager()
   const { config, configError, currentDate, handleSalaryDateChange, handleToggleDay, loadInitialData, loading, salaryDate, setCurrentDate, ttDays } = ctx
   if (loading) {
@@ -13,7 +15,7 @@ export function SalaryManager() {
   }
 
   if (configError) {
-    return <ErrorState message="La configuration du salaire n'a pas pu être chargée. Rien n'est modifié." onRetry={loadInitialData} />
+    return <ErrorState message={t("index.laConfigurationDuSalaireN")} onRetry={loadInitialData} />
   }
 
   // Montants calculés par le backend (core/salary.py) : jamais recalculés ici

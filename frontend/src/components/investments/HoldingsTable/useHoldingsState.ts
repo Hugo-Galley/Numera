@@ -1,3 +1,5 @@
+import i18n from "i18next"
+import { errorMessage } from "@/lib/utils"
 import { PortfolioHolding } from "@/types/diversity"
 import { toast } from "sonner"
 import { useConfirm } from "@/providers/ConfirmProvider"
@@ -46,7 +48,7 @@ export function useHoldingsState(p: { accountId: HoldingsTableProps["accountId"]
 
   const handleDecompose = async (h: PortfolioHolding) => {
     setDecomposingId(h.id)
-    const toastId = toast.loading(`Décomposition de ${h.ticker} en ligne...`)
+    const toastId = toast.loading(i18n.t("misc.breakingDown", { ns: "investments", name: h.ticker }))
     try {
       const res = await postEtfProfilesAutoDecompose<any>({
         symbol: h.ticker,
@@ -58,13 +60,13 @@ export function useHoldingsState(p: { accountId: HoldingsTableProps["accountId"]
           etf_profile_id: res.id,
           is_etf: true,
         })
-        toast.success(`${res.name} décomposé avec succès !`, { id: toastId })
+        toast.success(i18n.t("misc.brokenDown", { ns: "investments", name: res.name }), { id: toastId })
         onRefresh()
       } else {
-        toast.error("Impossible de décomposer ce fonds en ligne", { id: toastId })
+        toast.error(i18n.t("useHoldingsState.impossibleDeDecomposerCeFonds", { ns: "investments" }), { id: toastId })
       }
     } catch (err: any) {
-      toast.error(err?.response?.data?.detail || "Erreur de décomposition", { id: toastId })
+      toast.error(errorMessage(err, i18n.t("useHoldingsState.erreurDeDecomposition", { ns: "investments" })), { id: toastId })
     } finally {
       setDecomposingId(null)
     }
@@ -73,23 +75,23 @@ export function useHoldingsState(p: { accountId: HoldingsTableProps["accountId"]
   const totalValue = filteredHoldings.reduce((acc, h) => acc + (h.current_value_eur || 0), 0)
 
   const handleDelete = async (holdingId: number, name: string) => {
-    if (!(await confirm(`Supprimer la position sur ${name} ?`))) return
+    if (!(await confirm(i18n.t("misc.deletePosition", { ns: "investments", name: name })))) return
     try {
       await deleteHoldingsById(holdingId)
-      toast.success("Position supprimée")
+      toast.success(i18n.t("useHoldingsState.positionSupprimee", { ns: "investments" }))
       onRefresh()
     } catch (err: any) {
-      toast.error(err?.message || "Erreur lors de la suppression")
+      toast.error(err?.message || i18n.t("useHoldingsState.erreurLorsDeLaSuppression", { ns: "investments" }))
     }
   }
 
   const handleTogglePaysDividends = async (h: PortfolioHolding) => {
     try {
       await putHoldingsById(h.id, { pays_dividends: !h.pays_dividends })
-      toast.success(h.pays_dividends ? `${h.ticker} : ne distribue pas` : `${h.ticker} : titre distribuant (rappel si aucun dividende pendant 13 mois)`)
+      toast.success(h.pays_dividends ? i18n.t("misc.notDistributing", { ns: "investments", ticker: h.ticker }) : i18n.t("misc.distributing", { ns: "investments", ticker: h.ticker }))
       onRefresh()
     } catch (err: any) {
-      toast.error(err?.message || "Erreur lors de la mise à jour")
+      toast.error(err?.message || i18n.t("useHoldingsState.erreurLorsDeLaMise", { ns: "investments" }))
     }
   }
 
@@ -101,17 +103,17 @@ export function useHoldingsState(p: { accountId: HoldingsTableProps["accountId"]
   const saveCost = async (h: PortfolioHolding) => {
     const value = Number(costDraft.replace(",", "."))
     if (costDraft.trim() !== "" && !(value > 0)) {
-      toast.error("Le PRU doit être un nombre positif")
+      toast.error(i18n.t("useHoldingsState.lePruDoitEtreUn", { ns: "investments" }))
       return
     }
     try {
       // Vide = PRU inconnu ; le backend modifie la ligne du Point Zéro puis recalcule les positions
       await putHoldingsById(h.id, { buy_price_avg: costDraft.trim() === "" ? null : value })
-      toast.success(`PRU de ${h.ticker} mis à jour`)
+      toast.success(i18n.t("misc.prUpdated", { ns: "investments", ticker: h.ticker }))
       setEditingCostId(null)
       onRefresh()
     } catch (err: any) {
-      toast.error(err?.message || "Impossible de modifier le PRU")
+      toast.error(err?.message || i18n.t("useHoldingsState.impossibleDeModifierLePru", { ns: "investments" }))
     }
   }
 

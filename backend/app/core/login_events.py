@@ -2,6 +2,7 @@
 from fastapi import Request
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.core.logging import get_logger
 from app.models.login_event import LoginEvent
 
@@ -20,13 +21,15 @@ def client_ip(request: Request) -> str | None:
 
 def record_login(db: Session, request: Request, method: str, success: bool, reason: str | None = None) -> None:
     """Enregistre une tentative. Ne bloque jamais la connexion si l'écriture échoue."""
+    # Démo publique : l'IP et le navigateur des visiteurs ne sont ni gardés ni relisibles (RGPD, audit M3)
+    keep_identity = not settings.DEMO_MODE
     try:
         db.add(LoginEvent(
             method=method,
             success=success,
             reason=reason,
-            ip=client_ip(request),
-            user_agent=(request.headers.get("user-agent") or "")[:300] or None,
+            ip=client_ip(request) if keep_identity else None,
+            user_agent=(request.headers.get("user-agent") or "")[:300] or None if keep_identity else None,
         ))
         db.flush()
         stale = db.query(LoginEvent.id).order_by(LoginEvent.id.desc()).offset(MAX_EVENTS).all()

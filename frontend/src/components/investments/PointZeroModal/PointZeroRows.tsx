@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next"
+import { appLocale } from "@/i18n/locale"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { CompanyLogo } from "@/components/ui/CompanyLogo"
@@ -8,6 +10,7 @@ import type { PointZeroModalCtx } from "./usePointZeroModal"
 
 /** Tableau des lignes du point zéro. */
 export function PointZeroRows({ ctx }: { ctx: PointZeroModalCtx }) {
+  const { t } = useTranslation("investments")
   const { handleRemoveRow, handleUpdateRow, loadingSuggestions, rows } = ctx
   return (
     <>
@@ -16,21 +19,21 @@ export function PointZeroRows({ ctx }: { ctx: PointZeroModalCtx }) {
         {loadingSuggestions ? (
           <div className="p-8 text-center text-sm text-slate-500 flex flex-col items-center gap-2">
             <div className="h-5 w-5 rounded-full border-2 border-slate-300 border-t-slate-900 animate-spin" />
-            <span className="text-xs">Détection automatique de vos actifs...</span>
+            <span className="text-xs">{t("pointZeroRows.detectionAutomatiqueDeVosActifs")}</span>
           </div>
         ) : rows.length === 0 ? (
           <div className="p-8 text-center text-sm text-slate-500 space-y-2">
             <Layers className="h-7 w-7 text-slate-300 mx-auto" />
-            <p className="font-medium text-xs text-slate-700">Aucun actif dans cet état des lieux.</p>
-            <p className="text-[11px] text-slate-400">Recherchez vos actions et ETFs ci-dessus pour les ajouter.</p>
+            <p className="font-medium text-xs text-slate-700">{t("pointZeroRows.aucunActifDansCetEtat")}</p>
+            <p className="text-[11px] text-slate-400">{t("pointZeroRows.recherchezVosActionsEtEtfs")}</p>
           </div>
         ) : (
           <div className="divide-y divide-slate-100">
             <div className="hidden md:grid grid-cols-12 gap-2 px-3 py-2 text-xs font-semibold text-slate-500 bg-slate-50/80 border-b border-slate-100">
-              <div className="col-span-5">Actif / Symbole</div>
-              <div className="col-span-2 text-right">Cours Réel</div>
-              <div className="col-span-2 text-right">Nombre de parts</div>
-              <div className="col-span-2 text-right">Valeur Estimée</div>
+              <div className="col-span-5">{t("pointZeroRows.actifSymbole")}</div>
+              <div className="col-span-2 text-right">{t("pointZeroRows.coursReel")}</div>
+              <div className="col-span-2 text-right">{t("pointZeroRows.nombreDeParts")}</div>
+              <div className="col-span-2 text-right">{t("pointZeroRows.valeurEstimee")}</div>
               <div className="col-span-1 text-center"></div>
             </div>
 
@@ -48,23 +51,23 @@ export function PointZeroRows({ ctx }: { ctx: PointZeroModalCtx }) {
                       <div className="break-words text-sm font-semibold leading-snug text-slate-900">{row.asset_name || row.ticker}</div>
                       <div className="mt-0.5 flex flex-wrap items-center gap-1.5">
                         <span className="font-mono text-[11px] text-slate-500">{row.ticker}{row.isin ? ` • ${row.isin}` : ""}</span>
-                        <Badge variant={row.is_etf ? "secondary" : "outline"} className="px-1.5 py-0 text-[10px] font-normal">{row.is_etf ? "ETF" : "Action"}</Badge>
+                        <Badge variant={row.is_etf ? "secondary" : "outline"} className="px-1.5 py-0 text-[10px] font-normal">{row.is_etf ? "ETF" : t("pointZeroRows.action")}</Badge>
                         {row.is_suggestion && row.quantity === 0 && (
-                          <Badge variant="outline" className="border-amber-200 bg-amber-50 px-1.5 py-0 text-[10px] font-normal text-amber-700">Suggéré</Badge>
+                          <Badge variant="outline" className="border-amber-200 bg-amber-50 px-1.5 py-0 text-[10px] font-normal text-amber-700">{t("pointZeroRows.suggere")}</Badge>
                         )}
                       </div>
                     </div>
-                    <Button type="button" variant="ghost" size="icon" className="-mr-1 -mt-1 h-10 w-10 shrink-0 text-slate-400 hover:bg-rose-50 hover:text-rose-600" onClick={() => handleRemoveRow(idx)} aria-label="Retirer cette ligne">
+                    <Button type="button" variant="ghost" size="icon" className="-mr-1 -mt-1 h-10 w-10 shrink-0 text-slate-400 hover:bg-rose-50 hover:text-rose-600" onClick={() => handleRemoveRow(idx)} aria-label={t("pointZeroRows.retirerCetteLigne")}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
                   <div className="grid grid-cols-[1fr_6.5rem] items-end gap-3">
                     <div className="min-w-0 text-xs text-slate-500">
-                      <div>Cours : <span className="font-mono font-medium text-slate-800">{row.current_price ? `${row.current_price.toFixed(2)} ${row.currency}` : "-"}</span></div>
-                      <div className="mt-1">Valeur : <span className="whitespace-nowrap font-mono text-sm font-semibold text-slate-900">{new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(rowVal)}</span></div>
+                      <div>{t("pointZeroRows.cours")} <span className="font-mono font-medium text-slate-800">{row.current_price ? `${row.current_price.toFixed(2)} ${row.currency}` : "-"}</span></div>
+                      <div className="mt-1">{t("pointZeroRows.valeur")} <span className="whitespace-nowrap font-mono text-sm font-semibold text-slate-900">{new Intl.NumberFormat(appLocale(), { style: "currency", currency: "EUR" }).format(rowVal)}</span></div>
                     </div>
                     <label className="block text-xs text-slate-500">
-                      Parts
+                      {t("pointZeroRows.parts")}
                       <Input
                         type="number"
                         inputMode="decimal"
@@ -100,12 +103,12 @@ export function PointZeroRows({ ctx }: { ctx: PointZeroModalCtx }) {
                           </Badge>
                         ) : (
                           <Badge variant="outline" className="text-[9px] px-1 py-0 font-normal text-slate-500 border-slate-200">
-                            Action
+                            {t("pointZeroRows.action")}
                           </Badge>
                         )}
                         {row.is_suggestion && row.quantity === 0 && (
                           <Badge variant="outline" className="text-[9px] px-1 py-0 font-normal text-amber-700 bg-amber-50 border-amber-200">
-                            Suggéré
+                            {t("pointZeroRows.suggere")}
                           </Badge>
                         )}
                       </div>
@@ -145,11 +148,11 @@ export function PointZeroRows({ ctx }: { ctx: PointZeroModalCtx }) {
                   </div>
 
                   <div className="col-span-2 text-right font-mono text-xs font-semibold text-slate-900">
-                    {new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(rowVal)}
+                    {new Intl.NumberFormat(appLocale(), { style: "currency", currency: "EUR" }).format(rowVal)}
                   </div>
 
                   <div className="col-span-1 text-center">
-                    <Button aria-label="Supprimer"
+                    <Button aria-label={t("pointZeroRows.supprimer")}
                       type="button"
                       variant="ghost"
                       size="icon"

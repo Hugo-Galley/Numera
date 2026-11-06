@@ -1,3 +1,4 @@
+import { Trans, useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { ChevronDown } from "lucide-react"
@@ -9,6 +10,7 @@ import type { WealthForecastView } from "./useWealthForecast"
 
 /** Méthode de calcul détaillée (repliable). */
 export function ForecastMethodCard({ ctx }: { ctx: WealthForecastView }) {
+  const { t } = useTranslation("tools")
   const { boostedShown, data, investInput, otherInput, savingsInput, setInvestInput, setOtherInput, setSavingsInput, setShowMethod, setShowMonths, showMethod, showMonths, years } = ctx
   return (
     <>
@@ -20,28 +22,26 @@ export function ForecastMethodCard({ ctx }: { ctx: WealthForecastView }) {
           aria-expanded={showMethod}
         >
           <div className="space-y-1">
-            <p className="text-lg font-semibold text-slate-900">Comment c'est calculé</p>
-            <p className="text-sm text-slate-500">Les 3 hypothèses de la prévision, et comment les modifier.</p>
+            <p className="text-lg font-semibold text-slate-900">{t("forecastMethodCard.commentCEstCalcule")}</p>
+            <p className="text-sm text-slate-500">{t("forecastMethodCard.les3HypothesesDeLa")}</p>
           </div>
           <ChevronDown className={cn("h-5 w-5 shrink-0 text-slate-400 transition-transform", showMethod && "rotate-180")} />
         </button>
         {showMethod && (
           <CardContent className="space-y-6 pt-0">
-            <Step n={1} title="Ton point de départ">
+            <Step n={1} title={t("forecastMethodCard.tonPointDeDepart")}>
               <p>
-                Ce que valent tous tes comptes aujourd'hui (courant, épargne et investissements) :{" "}
-                <b className="text-slate-900 amount-blur">{formatCurrency(data.current_wealth, "EUR")}</b>.
+                <Trans t={t} i18nKey="misc.startWealth" values={{ amount: formatCurrency(data.current_wealth, "EUR") }} components={{ b: <b className="text-slate-900 amount-blur" /> }} />
               </p>
             </Step>
 
-            <Step n={2} title="Ce que tu mets de côté chaque mois">
+            <Step n={2} title={t("forecastMethodCard.ceQueTuMetsDe")}>
               <p>
-                C'est ce qu'il te reste en fin de mois : <b>revenus − dépenses</b>. Les virements vers ton épargne ou
-                tes investissements ne sont pas des dépenses (l'argent reste à toi), ils ne sont donc pas retirés.
-                {data.months_used > 0 && <> Moyenne des {data.months_used} derniers mois.</>}
+                {t("forecastMethodCard.cEstCeQuIl")} <b>{t("forecastMethodCard.revenusDepenses")}</b>. {t("misc.savingsNote")}
+                {data.months_used > 0 && <> {t("misc.avgLastMonths", { count: data.months_used })}</>}
               </p>
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-slate-700">Montant utilisé :</span>
+                <span className="text-slate-700">{t("forecastMethodCard.montantUtilise")}</span>
                 <Input
                   type="number" inputMode="decimal"
                   className="h-10 w-28 md:h-9"
@@ -49,13 +49,13 @@ export function ForecastMethodCard({ ctx }: { ctx: WealthForecastView }) {
                   value={savingsInput}
                   onChange={(e) => setSavingsInput(e.target.value)}
                 />
-                <span className="text-slate-500">€/mois</span>
+                <span className="text-slate-500">{t("forecastMethodCard.mois")}</span>
                 {data.savings_overridden ? (
                   <Button size="sm" variant="ghost" onClick={() => setSavingsInput("")}>
-                    Revenir au calcul ({formatCurrency(data.computed_monthly_savings, "EUR")})
+                    {t("misc.backToCalc", { amount: formatCurrency(data.computed_monthly_savings, "EUR") })}
                   </Button>
                 ) : (
-                  <span className="text-xs text-slate-400">calculé automatiquement, saisis un montant pour le remplacer</span>
+                  <span className="text-xs text-slate-400">{t("forecastMethodCard.calculeAutomatiquementSaisisUnMontant")}</span>
                 )}
               </div>
               {data.savings_months.length > 0 && (
@@ -65,17 +65,17 @@ export function ForecastMethodCard({ ctx }: { ctx: WealthForecastView }) {
                     className="text-xs font-medium text-blue-600 hover:underline"
                     onClick={() => setShowMonths((v) => !v)}
                   >
-                    {showMonths ? "Masquer le détail mois par mois" : "Voir le détail mois par mois"}
+                    {showMonths ? t("forecastMethodCard.masquerLeDetailMoisPar") : t("forecastMethodCard.voirLeDetailMoisPar")}
                   </button>
                   {showMonths && (
                     <div className="overflow-x-auto">
                       <table className="w-full text-xs tabular-nums">
                         <thead>
                           <tr className="text-left text-slate-500">
-                            <th className="py-1 pr-3 font-medium">Mois</th>
-                            <th className="py-1 pr-3 text-right font-medium">Revenus</th>
-                            <th className="py-1 pr-3 text-right font-medium">Dépenses</th>
-                            <th className="py-1 text-right font-medium">Reste</th>
+                            <th className="py-1 pr-3 font-medium">{t("forecastMethodCard.mois2")}</th>
+                            <th className="py-1 pr-3 text-right font-medium">{t("forecastMethodCard.revenus")}</th>
+                            <th className="py-1 pr-3 text-right font-medium">{t("forecastMethodCard.depenses")}</th>
+                            <th className="py-1 text-right font-medium">{t("forecastMethodCard.reste")}</th>
                           </tr>
                         </thead>
                         <tbody className="amount-blur">
@@ -95,11 +95,9 @@ export function ForecastMethodCard({ ctx }: { ctx: WealthForecastView }) {
               )}
             </Step>
 
-            <Step n={3} title="Ce que ton argent rapporte chaque année">
+            <Step n={3} title={t("forecastMethodCard.ceQueTonArgentRapporte")}>
               <p>
-                Chaque groupe de comptes a son propre taux. Pour tes investissements, c'est la performance réellement
-                mesurée sur tes comptes titres. Là où rien n'est mesurable (courant, épargne, comptes suivis par
-                simple relevé), on compte 0 % : saisis un taux si tu veux en tenir compte.
+                {t("forecastMethodCard.chaqueGroupeDeComptesA")}
               </p>
               <div className="divide-y divide-slate-100 rounded-lg border border-slate-100">
                 {data.return_breakdown.map((r) => {
@@ -113,7 +111,7 @@ export function ForecastMethodCard({ ctx }: { ctx: WealthForecastView }) {
                         <p className="text-xs tabular-nums text-slate-400">
                           <span className="amount-blur">{formatCurrency(r.balance, "EUR")}</span>
                           {" · "}
-                          {r.source === "manual" ? "taux saisi" : r.source === "observed" ? "taux mesuré" : "non mesuré"}
+                          {r.source === "manual" ? t("misc.rateManual") : r.source === "observed" ? t("misc.rateObserved") : t("misc.rateNone")}
                         </p>
                       </div>
                       <div className="flex items-center gap-2">
@@ -124,10 +122,10 @@ export function ForecastMethodCard({ ctx }: { ctx: WealthForecastView }) {
                           value={value}
                           onChange={(e) => setValue(e.target.value)}
                         />
-                        <span className="text-slate-500">%/an</span>
+                        <span className="text-slate-500">{t("forecastMethodCard.an")}</span>
                         {r.source === "manual" && (
                           <Button size="sm" variant="ghost" onClick={() => setValue("")}>
-                            Revenir à {isInvest && data.observed_investment_return_pct !== null ? formatRate(data.observed_investment_return_pct, 1) : "0 %"}
+                            {t("misc.backTo", { rate: isInvest && data.observed_investment_return_pct !== null ? formatRate(data.observed_investment_return_pct, 1) : t("forecastMethodCard.0") })}
                           </Button>
                         )}
                       </div>
@@ -136,16 +134,15 @@ export function ForecastMethodCard({ ctx }: { ctx: WealthForecastView }) {
                 })}
               </div>
               <p>
-                Taux global retenu : <b className="text-slate-900">{formatRate(data.annual_return_pct, 1)}</b> par an
-                (les comptes les plus gros pèsent le plus).
+                {t("forecastMethodCard.tauxGlobalRetenu")} <b className="text-slate-900">{formatRate(data.annual_return_pct, 1)}</b> {t("forecastMethodCard.parAnLesComptesLes")}
               </p>
             </Step>
 
             <div className="rounded-lg bg-slate-50 p-3 text-sm text-slate-600">
-              <p className="font-medium text-slate-700">Ensuite, mois après mois</p>
+              <p className="font-medium text-slate-700">{t("forecastMethodCard.ensuiteMoisApresMois")}</p>
               <p>
-                On part du point de départ, on ajoute ce que ton argent a rapporté, puis ce que tu mets de côté
-                {boostedShown ? ` (+${data.extra_monthly} € pour la courbe verte)` : ""}. On répète pendant {data.years} ans.
+                {t("forecastMethodCard.onPartDuPointDe")}
+                {boostedShown ? t("misc.boostedNote", { amount: data.extra_monthly }) : ""}{t("misc.repeatFor", { years: data.years })}
               </p>
             </div>
           </CardContent>

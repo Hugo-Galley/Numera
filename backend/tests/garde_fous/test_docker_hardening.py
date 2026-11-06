@@ -10,7 +10,7 @@ import yaml
 REPO_ROOT = Path(__file__).parents[3]
 # Images publiées ou construites pour la production (frontend/Dockerfile est l'image de développement).
 PROD_DOCKERFILES = ["backend/Dockerfile", "frontend/Dockerfile.prod", "mcp-server/Dockerfile"]
-COMPOSE_FILES = ["docker-compose.prod.yml", "docker-compose.images.yml", "docker-compose.demo.yml"]
+COMPOSE_FILES = ["infra/docker-compose.prod.yml", "infra/docker-compose.images.yml", "infra/docker-compose.demo.yml"]
 NON_ROOT = re.compile(r"^(?!root$|0$)\S+$")
 
 

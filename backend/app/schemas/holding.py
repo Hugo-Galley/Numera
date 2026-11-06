@@ -17,7 +17,7 @@ class PortfolioHoldingBase(BaseModel):
 
 
 class PortfolioHoldingCreate(PortfolioHoldingBase):
-    pass
+    cost_basis_eur: Quantity | None = None  # coût de revient EUR total de la ligne (prioritaire sur la conversion au taux du Point Zéro)
 
 
 class PortfolioHoldingUpdate(BaseModel):
@@ -29,6 +29,7 @@ class PortfolioHoldingUpdate(BaseModel):
     currency: str | None = None
     etf_profile_id: int | None = None
     pays_dividends: bool | None = None
+    cost_basis_eur: Quantity | None = None
 
 
 class PortfolioHoldingRead(PortfolioHoldingBase):
@@ -47,6 +48,7 @@ class PortfolioHoldingRead(PortfolioHoldingBase):
     gain_eur: float | None = None
     gain_pct: float | None = None
     is_etf: bool = False
+    cost_basis_eur: float | None = None  # coût de revient EUR total de la position
 
     # Dividendes (EUR) rattachés à ce titre
     pays_dividends: bool | None = None
@@ -67,6 +69,7 @@ class BaselineHoldingItem(BaseModel):
     buy_price_avg: Quantity | None = None
     currency: str = "EUR"
     etf_profile_id: int | None = None
+    cost_basis_eur: Quantity | None = None  # absent = on garde la valeur déjà saisie ; null = on l'efface
 
 
 class BaselineInventoryRequest(BaseModel):

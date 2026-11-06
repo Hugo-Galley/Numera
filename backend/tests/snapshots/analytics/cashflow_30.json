@@ -1,5 +1,5 @@
 {
- "current_balance": 24388.45,
+ "current_balance": 37944.81,
  "days": 30,
  "events": [
   {
@@ -84,195 +84,195 @@
    "type": "recurring"
   }
  ],
- "low_point": 24337.06,
+ "low_point": 37893.42,
  "low_point_date": "2026-06-20",
  "points": [
   {
-   "balance": 24388.45,
+   "balance": 37944.81,
    "change": 0.0,
    "date": "2026-06-15",
    "label": null
   },
   {
-   "balance": 24388.45,
+   "balance": 37944.81,
    "change": 0.0,
    "date": "2026-06-16",
    "label": null
   },
   {
-   "balance": 24388.45,
+   "balance": 37944.81,
    "change": 0.0,
    "date": "2026-06-17",
    "label": null
   },
   {
-   "balance": 24358.46,
+   "balance": 37914.82,
    "change": -29.99,
    "date": "2026-06-18",
    "label": null
   },
   {
-   "balance": 24358.46,
+   "balance": 37914.82,
    "change": 0.0,
    "date": "2026-06-19",
    "label": null
   },
   {
-   "balance": 24337.06,
+   "balance": 37893.42,
    "change": -21.4,
    "date": "2026-06-20",
    "label": null
   },
   {
-   "balance": 24337.06,
+   "balance": 37893.42,
    "change": 0.0,
    "date": "2026-06-21",
    "label": null
   },
   {
-   "balance": 24337.06,
+   "balance": 37893.42,
    "change": 0.0,
    "date": "2026-06-22",
    "label": null
   },
   {
-   "balance": 24337.06,
+   "balance": 37893.42,
    "change": 0.0,
    "date": "2026-06-23",
    "label": null
   },
   {
-   "balance": 24337.06,
+   "balance": 37893.42,
    "change": 0.0,
    "date": "2026-06-24",
    "label": null
   },
   {
-   "balance": 24337.06,
+   "balance": 37893.42,
    "change": 0.0,
    "date": "2026-06-25",
    "label": null
   },
   {
-   "balance": 24337.06,
+   "balance": 37893.42,
    "change": 0.0,
    "date": "2026-06-26",
    "label": null
   },
   {
-   "balance": 27077.06,
+   "balance": 40633.42,
    "change": 2740.0,
    "date": "2026-06-27",
    "label": null
   },
   {
-   "balance": 27077.06,
+   "balance": 40633.42,
    "change": 0.0,
    "date": "2026-06-28",
    "label": null
   },
   {
-   "balance": 27077.06,
+   "balance": 40633.42,
    "change": 0.0,
    "date": "2026-06-29",
    "label": null
   },
   {
-   "balance": 27077.06,
+   "balance": 40633.42,
    "change": 0.0,
    "date": "2026-06-30",
    "label": null
   },
   {
-   "balance": 27077.06,
+   "balance": 40633.42,
    "change": 0.0,
    "date": "2026-07-01",
    "label": null
   },
   {
-   "balance": 26187.06,
+   "balance": 39743.42,
    "change": -890.0,
    "date": "2026-07-02",
    "label": null
   },
   {
-   "balance": 26187.06,
+   "balance": 39743.42,
    "change": 0.0,
    "date": "2026-07-03",
    "label": null
   },
   {
-   "balance": 26187.06,
+   "balance": 39743.42,
    "change": 0.0,
    "date": "2026-07-04",
    "label": null
   },
   {
-   "balance": 26100.66,
+   "balance": 39657.02,
    "change": -86.4,
    "date": "2026-07-05",
    "label": null
   },
   {
-   "balance": 26100.66,
+   "balance": 39657.02,
    "change": 0.0,
    "date": "2026-07-06",
    "label": null
   },
   {
-   "balance": 26100.66,
+   "balance": 39657.02,
    "change": 0.0,
    "date": "2026-07-07",
    "label": null
   },
   {
-   "balance": 26080.67,
+   "balance": 39637.03,
    "change": -19.99,
    "date": "2026-07-08",
    "label": null
   },
   {
-   "balance": 26080.67,
+   "balance": 39637.03,
    "change": 0.0,
    "date": "2026-07-09",
    "label": null
   },
   {
-   "balance": 26067.18,
+   "balance": 39623.54,
    "change": -13.49,
    "date": "2026-07-10",
    "label": null
   },
   {
-   "balance": 26067.18,
+   "balance": 39623.54,
    "change": 0.0,
    "date": "2026-07-11",
    "label": null
   },
   {
-   "balance": 26056.06,
+   "balance": 39612.42,
    "change": -11.12,
    "date": "2026-07-12",
    "label": null
   },
   {
-   "balance": 26056.06,
+   "balance": 39612.42,
    "change": 0.0,
    "date": "2026-07-13",
    "label": null
   },
   {
-   "balance": 26056.06,
+   "balance": 39612.42,
    "change": 0.0,
    "date": "2026-07-14",
    "label": null
   },
   {
-   "balance": 25984.06,
+   "balance": 39540.42,
    "change": -72.0,
    "date": "2026-07-15",
    "label": null
   }
  ],
- "projected_balance": 25984.06
+ "projected_balance": 39540.42
 }

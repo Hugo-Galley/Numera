@@ -2,6 +2,7 @@
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
+from app.core.sync_bridge import run_async
 from app.db.session import get_db
 from app.schemas.holding import (
     ApplyCostsRequest,
@@ -17,42 +18,42 @@ router = APIRouter(prefix="/holdings", tags=["holdings"])
 
 
 @router.get("", response_model=list[PortfolioHoldingRead])
-async def list_holdings(
+def list_holdings(
     account_id: int | None = Query(default=None),
     db: Session = Depends(get_db),
 ):
-    return await service.list_holdings(db, account_id)
+    return run_async(service.list_holdings(db, account_id))
 
 
 @router.get("/suggestions")
-async def get_holding_suggestions(
+def get_holding_suggestions(
     account_id: int = Query(...),
     db: Session = Depends(get_db),
 ):
     """
     Suggests holdings for the Point Zéro baseline by analyzing historical transaction notes.
     """
-    return await service.suggestions(db, account_id)
+    return run_async(service.suggestions(db, account_id))
 
 
 @router.get("/estimate-costs", response_model=list[CostEstimateRead])
-async def get_cost_estimates(account_id: int = Query(...), db: Session = Depends(get_db)):
+def get_cost_estimates(account_id: int = Query(...), db: Session = Depends(get_db)):
     """
     PRU estimé de chaque ligne du Point Zéro, déduit des achats saisis avant sa date (moyenne pondérée,
     frais inclus). `coverage` = part de l'inventaire expliquée par ces achats : en dessous de 1, des titres
     détenus avant le premier achat saisi ne sont pas pris en compte. Aucune écriture.
     """
-    return await service.cost_estimates(db, account_id)
+    return run_async(service.cost_estimates(db, account_id))
 
 
 @router.post("/apply-costs", response_model=list[PortfolioHoldingRead])
-async def apply_costs(payload: ApplyCostsRequest, db: Session = Depends(get_db)):
+def apply_costs(payload: ApplyCostsRequest, db: Session = Depends(get_db)):
     """Enregistre les PRU validés dans l'inventaire Point Zéro, puis recalcule les positions."""
-    return await service.apply_costs(db, payload)
+    return run_async(service.apply_costs(db, payload))
 
 
 @router.post("/baseline", response_model=list[PortfolioHoldingRead])
-async def set_baseline_inventory(
+def set_baseline_inventory(
     payload: BaselineInventoryRequest,
     db: Session = Depends(get_db),
 ):
@@ -60,20 +61,20 @@ async def set_baseline_inventory(
     Point Zéro / état des lieux des positions d'un compte, à une date donnée (maintenant par défaut).
     Remplace l'inventaire ; les opérations sur titres postérieures à cette date sont rejouées par-dessus.
     """
-    return await service.set_baseline(db, payload)
+    return run_async(service.set_baseline(db, payload))
 
 
 @router.post("", response_model=PortfolioHoldingRead, status_code=201)
-async def create_holding(
+def create_holding(
     payload: PortfolioHoldingCreate,
     db: Session = Depends(get_db),
 ):
     """Ajoute une ligne à l'inventaire Point Zéro du compte, datée de maintenant."""
-    return await service.create_holding(db, payload)
+    return run_async(service.create_holding(db, payload))
 
 
 @router.put("/{holding_id}", response_model=PortfolioHoldingRead)
-async def update_holding(
+def update_holding(
     holding_id: int,
     payload: PortfolioHoldingUpdate,
     db: Session = Depends(get_db),
@@ -83,10 +84,10 @@ async def update_holding(
     Quantité, PRU, devise : modifient la ligne d'inventaire Point Zéro du titre, puis les positions sont
     recalculées (impossible pour une position qui ne vient que d'opérations : modifier les opérations).
     """
-    return await service.update_holding(db, holding_id, payload)
+    return run_async(service.update_holding(db, holding_id, payload))
 
 
 @router.delete("/{holding_id}", status_code=204)
-async def delete_holding(holding_id: int, db: Session = Depends(get_db)):
+def delete_holding(holding_id: int, db: Session = Depends(get_db)):
     """Retire le titre de l'inventaire Point Zéro (refusé s'il reste des opérations sur ce titre)."""
-    await service.delete_holding(db, holding_id)
+    run_async(service.delete_holding(db, holding_id))

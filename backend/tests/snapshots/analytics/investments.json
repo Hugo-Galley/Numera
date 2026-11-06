@@ -21,18 +21,18 @@
    "account_id": 4,
    "account_name": "Assurance-vie",
    "currency": "EUR",
-   "current_value": 10393.65,
-   "gain_eur": 493.65,
+   "current_value": 10470.29,
+   "gain_eur": 570.29,
    "net_invested": 9900.0,
-   "performance_pct": 4.99,
+   "performance_pct": 5.76,
    "total_retire": 0.0,
    "total_verse": 1900.0,
    "value_source": "snapshot",
    "value_stale": false
   }
  ],
- "total_current_value": 23379.72,
- "total_gain_eur": 1779.72,
+ "total_current_value": 23456.36,
+ "total_gain_eur": 1856.36,
  "total_net_invested": 21600.0,
- "total_performance_pct": 8.24
+ "total_performance_pct": 8.59
 }

@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import { useEffect, useMemo, useState } from "react"
 import { Plus, Split, Trash2 } from "lucide-react"
 import { toast } from "sonner"
@@ -53,6 +54,7 @@ const parseAmount = (value: string) => parseFloat(value.replace(",", "."))
 const toCents = (value: number) => Math.round(value * 100)
 
 export function SplitTransactionDialog({ open, onOpenChange, transaction, categories, onDone }: Props) {
+  const { t } = useTranslation("transactions")
   const [rows, setRows] = useState<Row[]>([])
 
   useEffect(() => {
@@ -91,11 +93,11 @@ export function SplitTransactionDialog({ open, onOpenChange, transaction, catego
       await api.put(`/transactions/${transaction.id}/splits`, {
         items: rows.map((r) => ({ category_id: Number(r.categoryId), amount: parseAmount(r.amount) })),
       })
-      toast.success("Dépense découpée")
+      toast.success(t("splitTransactionDialog.depenseDecoupee"))
       onOpenChange(false)
       onDone()
     } catch (error) {
-      toast.error(errorMessage(error, "Erreur lors du découpage"))
+      toast.error(errorMessage(error, t("splitTransactionDialog.erreurLorsDuDecoupage")))
     }
   })
 
@@ -103,11 +105,11 @@ export function SplitTransactionDialog({ open, onOpenChange, transaction, catego
     if (!transaction) return
     try {
       await api.put(`/transactions/${transaction.id}/splits`, { items: [] })
-      toast.success("Découpage annulé")
+      toast.success(t("splitTransactionDialog.decoupageAnnule"))
       onOpenChange(false)
       onDone()
     } catch (error) {
-      toast.error(errorMessage(error, "Erreur lors de l'annulation"))
+      toast.error(errorMessage(error, t("splitTransactionDialog.erreurLorsDeLAnnulation")))
     }
   })
 
@@ -119,11 +121,10 @@ export function SplitTransactionDialog({ open, onOpenChange, transaction, catego
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Split className="h-5 w-5 text-slate-500" />
-            Découper la dépense
+            {t("splitTransactionDialog.decouperLaDepense")}
           </DialogTitle>
           <DialogDescription>
-            {transaction?.merchant} · {formatCurrency(total, transaction?.currency)}. Chaque part compte dans sa catégorie
-            (budget, répartition, alertes) ; le total de la dépense ne change pas.
+            {t("splitTransactionDialog.hint", { merchant: transaction?.merchant ?? "", amount: formatCurrency(total, transaction?.currency) })}
           </DialogDescription>
         </DialogHeader>
 
@@ -132,7 +133,7 @@ export function SplitTransactionDialog({ open, onOpenChange, transaction, catego
             <div key={index} className="flex items-center gap-2">
               <Select value={row.categoryId} onValueChange={(v) => update(index, { categoryId: v })}>
                 <SelectTrigger className="flex-1">
-                  <SelectValue placeholder="Catégorie" />
+                  <SelectValue placeholder={t("splitTransactionDialog.categorie")} />
                 </SelectTrigger>
                 <SelectContent>
                   {options.map((c) => (
@@ -154,7 +155,7 @@ export function SplitTransactionDialog({ open, onOpenChange, transaction, catego
                 className="h-10 w-10 shrink-0"
                 disabled={rows.length <= 2}
                 onClick={() => setRows((prev) => prev.filter((_, i) => i !== index))}
-                title="Retirer la part"
+                title={t("splitTransactionDialog.retirerLaPart")}
               >
                 <Trash2 className="h-4 w-4 text-slate-400" />
               </Button>
@@ -163,27 +164,27 @@ export function SplitTransactionDialog({ open, onOpenChange, transaction, catego
           <div className="flex items-center justify-between pt-1">
             <Button variant="outline" size="sm" onClick={() => setRows((prev) => [...prev, { categoryId: "", amount: "" }])}>
               <Plus className="mr-1 h-4 w-4" />
-              Ajouter une part
+              {t("splitTransactionDialog.ajouterUnePart")}
             </Button>
             <span className={`text-sm tabular-nums ${remainingCents === 0 ? "text-emerald-600" : "text-amber-600"}`}>
               {remainingCents === 0
-                ? "Montant réparti"
-                : `Reste ${formatCurrency(remainingCents / 100, transaction?.currency)}`}
+                ? t("splitTransactionDialog.montantReparti")
+                : t("splitTransactionDialog.remaining", { amount: formatCurrency(remainingCents / 100, transaction?.currency) })}
             </span>
           </div>
-          <p className="text-xs text-slate-400">Double-cliquez sur un montant pour y reporter le reste.</p>
+          <p className="text-xs text-slate-400">{t("splitTransactionDialog.doubleCliquezSurUnMontant")}</p>
         </div>
 
         <DialogFooter className="gap-2 sm:justify-between">
           {hasSplits ? (
             <Button variant="ghost" className="text-rose-600" onClick={cancelSplit} disabled={cancelling}>
-              Annuler le découpage
+              {t("splitTransactionDialog.annulerLeDecoupage")}
             </Button>
           ) : <span />}
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => onOpenChange(false)}>Fermer</Button>
+            <Button variant="outline" onClick={() => onOpenChange(false)}>{t("splitTransactionDialog.fermer")}</Button>
             <Button onClick={save} disabled={!isValid || saving} className="bg-slate-900 text-white">
-              Enregistrer
+              {t("splitTransactionDialog.enregistrer")}
             </Button>
           </div>
         </DialogFooter>

@@ -8,6 +8,8 @@ from datetime import date, datetime
 from sqlalchemy.orm import Session
 
 from app.core.errors import BusinessRuleError, InvalidOperationError, NotFoundError
+from app.core.i18n import tr
+from app.core.time import utcnow_naive
 from app.domain.finance import month_label_from_date
 from app.domain.salary import month_key, salary_amount, salary_note
 from app.models.recurring_transaction import RecurringTransaction
@@ -32,7 +34,7 @@ from app.services.budget.work_time import load_work_time, save_work_time
 def _require_config(db: Session) -> SalaryConfig:
     config = repo.active_config(db)
     if not config:
-        raise NotFoundError("Salary config not found")
+        raise NotFoundError(tr("errors.salary_config_not_found"))
     return config
 
 
@@ -55,7 +57,7 @@ def sync_recurring_transactions(db: Session, config: SalaryConfig) -> None:
             category_id=config.salary_category_id,
             frequency="monthly",
             day_of_month=25,
-            start_date=datetime.utcnow().replace(day=25, hour=0, minute=0, second=0, microsecond=0),
+            start_date=utcnow_naive().replace(day=25, hour=0, minute=0, second=0, microsecond=0),
             auto_generate=False,
         )
         db.add(rt_salary)
@@ -122,7 +124,7 @@ def set_salary_month_date(db: Session, year: int, month: int, data: SalaryMonthU
             record.ticket_date = data.ticket_date
     else:
         if data.salary_date is None:
-            raise InvalidOperationError("salary_date is required for new month")
+            raise InvalidOperationError(tr("errors.salary_date_required"))
         record = SalaryMonth(salary_config_id=config.id, month_label=month_label,
                              salary_date=data.salary_date, ticket_date=data.ticket_date)
         db.add(record)
@@ -142,11 +144,11 @@ def _validated_dates(config: SalaryConfig, year: int, month: int, dates: list[da
     dates = sorted(set(dates))  # un jour en double ne compte qu'une fois
     for d in dates:
         if (d.year, d.month) != (year, month):
-            raise BusinessRuleError(f"Date {d} hors du mois {month_label}")
+            raise BusinessRuleError(tr("errors.date_outside_month", date=d, month=month_label))
         if d.weekday() >= 5:
-            raise InvalidOperationError(f"Date {d} is a weekend")
+            raise InvalidOperationError(tr("errors.date_weekend", date=d))
     if salary_amount(config.net_salary, len(dates), config.ticket_employee_share) <= 0:
-        raise BusinessRuleError("La déduction des tickets dépasse le salaire net de ce mois")
+        raise BusinessRuleError(tr("errors.salary_deduction_exceeds"))
     return dates
 
 
@@ -199,15 +201,15 @@ def trigger_generation(db: Session, year: int, month: int) -> dict:
     month_label = month_key(year, month)
     month_record = repo.month_record(db, config.id, month_label)
     if not month_record:
-        raise InvalidOperationError("Salary date not configured for this month")
+        raise InvalidOperationError(tr("errors.salary_date_not_configured"))
     if month_record.is_generated and is_salary_recorded(db, config, month_record):
-        raise InvalidOperationError("Already generated for this month")
+        raise InvalidOperationError(tr("errors.salary_already_generated"))
     # Saisie à l'avance : rien n'est créé avant la date de paie, la tâche de fond
     # (check_and_generate_pending_salaries) enregistre la transaction ce jour-là.
     if month_record.salary_date > date.today():
         return {"status": "scheduled", "salary_date": month_record.salary_date.isoformat()}
     if not generate_salary_transactions(db, config, month_record, month_label):
-        raise InvalidOperationError("Generation failed or transaction already exists")
+        raise InvalidOperationError(tr("errors.salary_generation_failed"))
     return {"status": "ok"}
 
 
@@ -219,7 +221,7 @@ def reset_generation(db: Session, year: int, month: int) -> dict:
     labels = [month_label, month_label_from_date(datetime(year, month, 1))]
     month_record = repo.month_record(db, config.id, month_label)
     if not month_record:
-        raise InvalidOperationError("Month record not found")
+        raise InvalidOperationError(tr("errors.salary_month_not_found"))
     month_record.is_generated = False
 
     recurring_ids = [i for i in (config.salary_recurring_id, config.ticket_recurring_id) if i]

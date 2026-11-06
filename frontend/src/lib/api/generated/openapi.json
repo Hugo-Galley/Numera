@@ -1456,6 +1456,19 @@
       ],
       "title": "Buy Price Avg"
      },
+     "cost_basis_eur": {
+      "anyOf": [
+       {
+        "exclusiveMaximum": 1000000000000.0,
+        "minimum": 0.0,
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Cost Basis Eur"
+     },
      "currency": {
       "default": "EUR",
       "title": "Currency",
@@ -1559,6 +1572,11 @@
       "title": "Amount",
       "type": "number"
      },
+     "auto_generate": {
+      "default": false,
+      "title": "Auto Generate",
+      "type": "boolean"
+     },
      "declaration_interval_months": {
       "anyOf": [
        {
@@ -1571,6 +1589,17 @@
        }
       ],
       "title": "Declaration Interval Months"
+     },
+     "logo": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Logo"
      },
      "match_pattern": {
       "maxLength": 120,
@@ -1731,6 +1760,11 @@
       "title": "Amount Changed",
       "type": "boolean"
      },
+     "auto_generate": {
+      "default": false,
+      "title": "Auto Generate",
+      "type": "boolean"
+     },
      "declaration_days_left": {
       "anyOf": [
        {
@@ -1773,6 +1807,17 @@
         "type": "null"
        }
       ]
+     },
+     "logo": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Logo"
      },
      "match_pattern": {
       "maxLength": 120,
@@ -1947,6 +1992,17 @@
       ],
       "title": "Amount"
      },
+     "auto_generate": {
+      "anyOf": [
+       {
+        "type": "boolean"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Auto Generate"
+     },
      "declaration_interval_months": {
       "anyOf": [
        {
@@ -1959,6 +2015,17 @@
        }
       ],
       "title": "Declaration Interval Months"
+     },
+     "logo": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Logo"
      },
      "match_pattern": {
       "anyOf": [
@@ -6548,6 +6615,14 @@
       "title": "Hide Amounts",
       "type": "boolean"
      },
+     "language": {
+      "enum": [
+       "fr",
+       "en"
+      ],
+      "title": "Language",
+      "type": "string"
+     },
      "min_severity": {
       "enum": [
        "low",
@@ -6605,7 +6680,8 @@
      "min_severity",
      "weekly_digest",
      "hide_amounts",
-     "public_url"
+     "public_url",
+     "language"
     ],
     "title": "NotificationSettingsRead",
     "type": "object"
@@ -6633,6 +6709,21 @@
        }
       ],
       "title": "Hide Amounts"
+     },
+     "language": {
+      "anyOf": [
+       {
+        "enum": [
+         "fr",
+         "en"
+        ],
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Language"
      },
      "min_severity": {
       "anyOf": [
@@ -6817,6 +6908,19 @@
       ],
       "title": "Buy Price Avg"
      },
+     "cost_basis_eur": {
+      "anyOf": [
+       {
+        "exclusiveMaximum": 1000000000000.0,
+        "minimum": 0.0,
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Cost Basis Eur"
+     },
      "currency": {
       "default": "EUR",
       "title": "Currency",
@@ -6886,6 +6990,17 @@
        }
       ],
       "title": "Buy Price Avg"
+     },
+     "cost_basis_eur": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Cost Basis Eur"
      },
      "created_at": {
       "format": "date-time",
@@ -7128,6 +7243,19 @@
        }
       ],
       "title": "Buy Price Avg"
+     },
+     "cost_basis_eur": {
+      "anyOf": [
+       {
+        "exclusiveMaximum": 1000000000000.0,
+        "minimum": 0.0,
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Cost Basis Eur"
      },
      "currency": {
       "anyOf": [
@@ -11466,6 +11594,17 @@
       "title": "Amount",
       "type": "number"
      },
+     "benefit_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Benefit Id"
+     },
      "category": {
       "anyOf": [
        {
@@ -11531,6 +11670,11 @@
      "is_exceptional": {
       "default": false,
       "title": "Is Exceptional",
+      "type": "boolean"
+     },
+     "is_provisional": {
+      "default": false,
+      "title": "Is Provisional",
       "type": "boolean"
      },
      "is_recurring": {

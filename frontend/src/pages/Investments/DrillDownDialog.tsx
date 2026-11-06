@@ -1,9 +1,12 @@
+import i18n from "i18next"
+import { useTranslation } from "react-i18next"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { formatCurrency, formatRate } from "@/lib/utils"
 import type { InvestmentsCtx } from "./useInvestments"
 
 /** Dialogue de détail d'une part du graphique. */
 export function DrillDownDialog({ ctx }: { ctx: InvestmentsCtx }) {
+  const { t } = useTranslation("investments")
   const { drillDown, handleAccountClick, setDrillDown } = ctx
   return (
     <>
@@ -12,7 +15,7 @@ export function DrillDownDialog({ ctx }: { ctx: InvestmentsCtx }) {
           <DialogHeader>
             <DialogTitle>{drillDown?.title}</DialogTitle>
             <DialogDescription>
-              Détail des comptes contribuant à cette catégorie.
+              {t("drillDownDialog.detailDesComptesContribuantA")}
             </DialogDescription>
           </DialogHeader>
           <div className="mt-2 space-y-2.5 md:mt-4 md:space-y-4">
@@ -26,8 +29,8 @@ export function DrillDownDialog({ ctx }: { ctx: InvestmentsCtx }) {
                 }}
               >
                 <div className="flex min-w-0 flex-col">
-                  <span className="font-medium text-sm break-words group-hover:text-slate-600 transition-colors">{item.account_name || "Compte sans nom"}</span>
-                  <span className="text-xs text-muted-foreground">{formatRate(Number(item.percentage_of_group) || 0, 1)} du groupe</span>
+                  <span className="font-medium text-sm break-words group-hover:text-slate-600 transition-colors">{item.account_name || i18n.t("misc.unnamedAccount", { ns: "investments" })}</span>
+                  <span className="text-xs text-muted-foreground">{i18n.t("misc.groupShare", { ns: "investments", pct: formatRate(Number(item.percentage_of_group) || 0, 1) })}</span>
                 </div>
                 <div className="shrink-0 text-right">
                   <span className="whitespace-nowrap font-bold text-sm tabular-nums amount-blur">{formatCurrency(item.value)}</span>

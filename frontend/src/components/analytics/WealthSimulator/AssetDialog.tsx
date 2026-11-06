@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -6,6 +7,7 @@ import type { WealthSimulatorCtx } from "./useWealthSimulator"
 
 /** Dialogue de modification d'une classe d'actifs. */
 export function AssetDialog({ ctx }: { ctx: WealthSimulatorCtx }) {
+  const { t } = useTranslation("tools")
   const { editingAsset, setEditingAsset, updateAsset } = ctx
   return (
     <>
@@ -14,27 +16,27 @@ export function AssetDialog({ ctx }: { ctx: WealthSimulatorCtx }) {
         <Dialog open={!!editingAsset} onOpenChange={(open) => { if (!open) setEditingAsset(null) }}>
           <DialogContent className="sm:max-w-[400px] bg-white border border-slate-200 shadow-xl rounded-lg">
             <DialogHeader>
-              <DialogTitle className="text-sm font-bold text-slate-900">Modifier l'actif</DialogTitle>
+              <DialogTitle className="text-sm font-bold text-slate-900">{t("assetDialog.modifierLActif")}</DialogTitle>
               <DialogDescription className="text-xs text-slate-500">
-                Ajustez les paramètres de rendement et de risque pour cette classe d'actifs.
+                {t("assetDialog.ajustezLesParametresDeRendement")}
               </DialogDescription>
             </DialogHeader>
 
             <div className="space-y-4 py-3">
               <div className="space-y-1">
-                <Label htmlFor="edit-name" className="text-xs font-semibold text-slate-700">Nom de l'actif</Label>
+                <Label htmlFor="edit-name" className="text-xs font-semibold text-slate-700">{t("assetDialog.nomDeLActif")}</Label>
                 <Input
                   id="edit-name"
                   value={editingAsset.name}
                   onChange={(e) => setEditingAsset({ ...editingAsset, name: e.target.value })}
                   className="h-11 md:h-9 text-base md:text-xs"
-                  placeholder="Ex: Actions ETF World, Assurance-vie..."
+                  placeholder={t("assetDialog.exActionsEtfWorldAssurance")}
                 />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <Label htmlFor="edit-return" className="text-xs font-semibold text-slate-700">Rendement Moyen (%)</Label>
+                  <Label htmlFor="edit-return" className="text-xs font-semibold text-slate-700">{t("assetDialog.rendementMoyen")}</Label>
                   <Input
                     id="edit-return"
                     type="number" inputMode="decimal"
@@ -45,7 +47,7 @@ export function AssetDialog({ ctx }: { ctx: WealthSimulatorCtx }) {
                   />
                 </div>
                 <div className="space-y-1">
-                  <Label htmlFor="edit-volatility" className="text-xs font-semibold text-slate-700">Volatilité (%)</Label>
+                  <Label htmlFor="edit-volatility" className="text-xs font-semibold text-slate-700">{t("assetDialog.volatilite")}</Label>
                   <Input
                     id="edit-volatility"
                     type="number" inputMode="decimal"
@@ -64,7 +66,7 @@ export function AssetDialog({ ctx }: { ctx: WealthSimulatorCtx }) {
                 onClick={() => setEditingAsset(null)}
                 className="border border-slate-200 rounded px-3 py-1.5 text-xs font-semibold hover:bg-slate-50 text-slate-705 h-11 md:h-9 transition-colors"
               >
-                Annuler
+                {t("assetDialog.annuler")}
               </button>
               <button
                 type="button"
@@ -75,11 +77,11 @@ export function AssetDialog({ ctx }: { ctx: WealthSimulatorCtx }) {
                     volatility: editingAsset.volatility
                   })
                   setEditingAsset(null)
-                  toast.success("Actif mis à jour")
+                  toast.success(t("assetDialog.actifMisAJour"))
                 }}
                 className="bg-indigo-600 text-white rounded px-4 py-1.5 text-xs font-semibold hover:bg-indigo-700 h-11 md:h-9 transition-colors"
               >
-                Enregistrer
+                {t("assetDialog.enregistrer")}
               </button>
             </div>
           </DialogContent>

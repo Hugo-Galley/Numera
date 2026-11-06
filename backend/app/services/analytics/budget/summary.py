@@ -9,6 +9,7 @@ from datetime import datetime
 from sqlalchemy.orm import Session
 
 from app.core.errors import BusinessRuleError, DomainError, InternalError, NotFoundError
+from app.core.i18n import tr
 from app.core.logging import get_logger
 from app.core.time import end_of_today
 from app.domain.budget import elapsed_days, savings_rate, to_eur
@@ -16,8 +17,10 @@ from app.integrations.currency import get_exchange_rates
 from app.models.account import Account
 from app.repositories.analytics import budget as repo
 from app.repositories.analytics.common import savings_account_ids, savings_events_by_account, ticket_restaurant_account_ids
+from app.repositories.comptes import balances
+from app.repositories.comptes.balances import active_accounts
 from app.services.budget.budget_period import period_bounds
-from app.services.comptes.wealth import account_values, active_accounts
+from app.services.comptes.wealth import account_values
 from app.services.investissement.portfolio import positions_values_eur
 
 logger = get_logger(__name__)
@@ -49,9 +52,9 @@ class _Wealth:
 async def compute_budget(db: Session, month: int | None = None, year: int | None = None,
                          account_id: int | None = None) -> dict:
     if account_id is not None and db.get(Account, account_id) is None:
-        raise NotFoundError("Account not found")
+        raise NotFoundError(tr("errors.account_not_found"))
     if bool(month) != bool(year):
-        raise BusinessRuleError("month et year doivent être fournis ensemble")
+        raise BusinessRuleError(tr("errors.month_year_together"))
     try:
         start = None
         end = end_of_today()
@@ -63,7 +66,7 @@ async def compute_budget(db: Session, month: int | None = None, year: int | None
         if account_id:
             account = db.query(Account).filter(Account.id == account_id).first()
             if not account:
-                raise NotFoundError("Account not found")
+                raise NotFoundError(tr("errors.account_not_found"))
             wealth = await _account_wealth(db, account, end, rates, is_current_period)
             flows = _account_flows(db, account, start, end, days)
         else:
@@ -75,7 +78,7 @@ async def compute_budget(db: Session, month: int | None = None, year: int | None
     except Exception:
         # Détail volontairement absent de la réponse : il reste dans les logs
         logger.exception("Erreur dans budget_analytics")
-        raise InternalError("Erreur interne lors du calcul du budget") from None
+        raise InternalError(tr("errors.budget_internal")) from None
 
 
 def _days(db: Session, start: datetime | None, end: datetime, monthly: bool) -> int:
@@ -175,10 +178,10 @@ async def _account_investment_value(db: Session, account: Account, end: datetime
         return 0.0
     if account.id in positions_values:
         return positions_values[account.id] * rates.get(account.currency, 1.0)
-    snapshot = repo.latest_snapshot(db, account.id, end)
+    snapshot = balances.latest_snapshot(db, account.id, before=end)
     if snapshot:
         return float(snapshot.current_value)
-    last_tx = repo.last_transaction(db, account.id, end)
+    last_tx = balances.latest_transaction(db, account.id, before=end)
     return float(last_tx.running_balance) if last_tx else 0.0
 
 

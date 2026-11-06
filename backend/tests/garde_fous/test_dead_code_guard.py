@@ -1,7 +1,7 @@
 """Garde-fou de code mort (vulture) : fonctions, classes, méthodes, propriétés et imports inutilisés dans `app/`.
 
 Les tests comptent comme usage ; les variables et attributs sont ignorés (trop de faux positifs : colonnes ORM,
-champs Pydantic). Un faux positif légitime se déclare dans `scripts/dead_code_allowlist.json` avec son motif.
+champs Pydantic). Un faux positif légitime se déclare dans `scripts/quality/baselines/dead_code_allowlist.json` avec son motif.
 """
 import importlib.util
 import json
@@ -9,7 +9,7 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).parents[3]
 
-_spec = importlib.util.spec_from_file_location("check_dead_code", REPO_ROOT / "scripts/check_dead_code.py")
+_spec = importlib.util.spec_from_file_location("check_dead_code", REPO_ROOT / "scripts/quality/check_dead_code.py")
 guard = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(guard)
 
@@ -44,10 +44,10 @@ def test_stale_allowlist_entry_must_be_removed():
 
 
 def test_every_allowlist_entry_has_a_reason():
-    allowlist = json.loads((REPO_ROOT / "scripts/dead_code_allowlist.json").read_text())
+    allowlist = json.loads((REPO_ROOT / "scripts/quality/baselines/dead_code_allowlist.json").read_text())
     assert all(reason.strip() for reason in allowlist.values())
 
 
 def test_repository_has_no_dead_code():
-    allowlist = json.loads((REPO_ROOT / "scripts/dead_code_allowlist.json").read_text())
+    allowlist = json.loads((REPO_ROOT / "scripts/quality/baselines/dead_code_allowlist.json").read_text())
     assert guard.check(guard.run_vulture(), allowlist) == []

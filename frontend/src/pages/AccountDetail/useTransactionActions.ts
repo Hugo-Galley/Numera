@@ -1,5 +1,6 @@
 import { nowLocalInput, toInputValue, toNaiveLocal } from "@/lib/dates"
 import { parsePositiveAmount } from "@/lib/utils"
+import i18n from "i18next"
 import { toast } from "sonner"
 import { useEffect } from "react"
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom"
@@ -36,12 +37,12 @@ export function useTransactionActions(p: ReturnType<typeof useAccountDetailState
     }
 
     if (!merchant) {
-      toast.error("Veuillez saisir un commerçant ou un libellé")
+      toast.error(i18n.t("tx.toast.needMerchant", { ns: "accountDetail" }))
       return
     }
     // Un Solde Initial peut valoir 0 ; toute autre opération doit avoir un montant strictement positif
     if (parsePositiveAmount(txAmount) === null && !(txType === "Solde Initial" && Number(txAmount) === 0 && txAmount !== "")) {
-      toast.error("Le montant doit être un nombre supérieur à 0")
+      toast.error(i18n.t("tx.toast.needAmount", { ns: "accountDetail" }))
       return
     }
 
@@ -62,12 +63,12 @@ export function useTransactionActions(p: ReturnType<typeof useAccountDetailState
         custom_color: txCustomColor || null
       }
       await postTransactions(payload)
-      toast.success("Transaction ajoutée")
+      toast.success(i18n.t("tx.toast.added", { ns: "accountDetail" }))
       setTxOpen(false)
       resetTxForm()
       await loadData({ quiet: true })
     } catch (error: any) {
-      toast.error(error.message || "Erreur lors de l'ajout")
+      toast.error(error.message || i18n.t("tx.toast.addError", { ns: "accountDetail" }))
     }
   })
 
@@ -80,12 +81,12 @@ export function useTransactionActions(p: ReturnType<typeof useAccountDetailState
     }
 
     if (!merchant) {
-      toast.error("Veuillez saisir un commerçant ou un libellé")
+      toast.error(i18n.t("tx.toast.needMerchant", { ns: "accountDetail" }))
       return
     }
     // Un Solde Initial peut valoir 0 ; toute autre opération doit avoir un montant strictement positif
     if (parsePositiveAmount(txAmount) === null && !(txType === "Solde Initial" && Number(txAmount) === 0 && txAmount !== "")) {
-      toast.error("Le montant doit être un nombre supérieur à 0")
+      toast.error(i18n.t("tx.toast.needAmount", { ns: "accountDetail" }))
       return
     }
 
@@ -105,12 +106,12 @@ export function useTransactionActions(p: ReturnType<typeof useAccountDetailState
         custom_color: txCustomColor || null
       }
       await patchTransactionsById(editTxId, payload)
-      toast.success("Transaction modifiée")
+      toast.success(i18n.t("tx.toast.updated", { ns: "accountDetail" }))
       setTxOpen(false)
       resetTxForm()
       await loadData({ quiet: true })
     } catch (error: any) {
-      toast.error(error.message || "Erreur lors de la modification")
+      toast.error(error.message || i18n.t("tx.toast.updateError", { ns: "accountDetail" }))
     }
   })
 
@@ -157,14 +158,14 @@ export function useTransactionActions(p: ReturnType<typeof useAccountDetailState
 
   const handleDeleteTransaction = async (txId: number) => {
     const target = transactions.find((t) => t.id === txId)
-    const detail = target ? ` « ${target.merchant} » de ${formatCurrency(target.amount)} (${toInputValue(target.date).slice(0, 10).split("-").reverse().join("/")})` : ""
-    if (!(await confirm(`Supprimer la transaction${detail} ?`))) return
+    const detail = target ? i18n.t("tx.toast.deleteDetail", { ns: "accountDetail", merchant: target.merchant, amount: formatCurrency(target.amount), date: toInputValue(target.date).slice(0, 10).split("-").reverse().join("/") }) : ""
+    if (!(await confirm(i18n.t("tx.toast.confirmDelete", { ns: "accountDetail", detail })))) return
     try {
       await deleteTransactionsById(txId)
-      toast.success("Transaction supprimée")
+      toast.success(i18n.t("tx.toast.deleted", { ns: "accountDetail" }))
       await loadData({ quiet: true })
     } catch (error: any) {
-      toast.error(error?.message || "Erreur lors de la suppression")
+      toast.error(error?.message || i18n.t("tx.toast.deleteError", { ns: "accountDetail" }))
     }
   }
 

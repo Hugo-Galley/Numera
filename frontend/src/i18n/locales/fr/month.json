@@ -1,0 +1,157 @@
+{
+  "accountsStep": {
+    "soldeValide": "Solde validé",
+    "echecDeLaValidation": "Échec de la validation",
+    "comparezLeSoldeAfficheAvec": "Comparez le solde affiché avec celui de votre relevé, puis validez chaque compte.",
+    "valide": "Validé",
+    "validerLeSolde": "Valider le solde"
+  },
+  "budgetStep": {
+    "marqueeExceptionnelle": "Marquée exceptionnelle",
+    "marquageRetire": "Marquage retiré",
+    "echecDeLaMiseA": "Échec de la mise à jour",
+    "revenus": "Revenus",
+    "depensesReelles": "Dépenses réelles",
+    "depensesHorsExceptionnelles": "Dépenses hors exceptionnelles",
+    "epargneDuMois": "Épargne du mois",
+    "tauxDEpargne": "Taux d'épargne",
+    "burnRateParJour": "Burn rate (par jour)",
+    "budgetsDepasses": "Budgets dépassés",
+    "plusGrossesDepensesDuMois": "Plus grosses dépenses du mois. Marquez un achat ponctuel comme",
+    "pourJugerLeMoisSans": "pour juger le mois sans lui (il reste dans les totaux et les soldes).",
+    "exceptionnelle": "Exceptionnelle",
+    "marquerExceptionnelle": "Marquer exceptionnelle",
+    "aucuneDepenseCeMoisCi": "Aucune dépense ce mois-ci."
+  },
+  "categorizeStep": {
+    "categorieEnregistree": "Catégorie enregistrée",
+    "echecDeLaCategorisation": "Échec de la catégorisation",
+    "toutesLesDepensesDuMois": "Toutes les dépenses du mois sont catégorisées.",
+    "choisir": "Choisir…"
+  },
+  "closeStep": {
+    "desTransactionsOntChangeDepuis": "Des transactions ont changé depuis la clôture. Vous pouvez re-clôturer pour mettre la photo à jour.",
+    "depensesSansCategorie": "Dépenses sans catégorie",
+    "comptesAValider": "Comptes à valider",
+    "depensesReelles": "Dépenses réelles",
+    "epargne": "Épargne",
+    "faitMarquant": "Fait marquant",
+    "reCloturerLeMois": "Re-clôturer le mois",
+    "cloturerLeMois": "Clôturer le mois",
+    "rouvrirLeMois": "Rouvrir le mois"
+  },
+  "monthReviewPopup": {
+    "toutSembleEnOrdreIl": "Tout semble en ordre : il ne reste qu'à vérifier le budget et à clôturer.",
+    "pasCeMoisCi": "Pas ce mois-ci",
+    "plusTard": "Plus tard",
+    "faireLaRevue": "Faire la revue"
+  },
+  "budgetSection": {
+    "budgetTenu": "Budget tenu ?",
+    "tousLesBudgetsRespectes": "Tous les budgets respectés"
+  },
+  "savingsSection": {
+    "misDeCote": "Mis de côté",
+    "epargne": "Épargne",
+    "investi": "Investi",
+    "tauxDEpargne": "Taux d'épargne",
+    "variationDuPatrimoine": "Variation du patrimoine"
+  },
+  "spendingSection": {
+    "ouEstPasseLArgent": "Où est passé l'argent ?",
+    "principalesCategories": "Principales catégories",
+    "aucuneDepenseCategoriseeCeMois": "Aucune dépense catégorisée ce mois-ci.",
+    "voirLesTransactions": "Voir les transactions",
+    "parts": {
+      "fixed_charges": "Charges fixes",
+      "variable_expenses": "Dépenses variables",
+      "savings": "Épargne",
+      "investments": "Investi",
+      "remainder": "Reste"
+    }
+  },
+  "watchSection": {
+    "aRegarder": "À regarder",
+    "rienDAnormalCeMois": "Rien d'anormal ce mois-ci."
+  },
+  "comparison": {
+    "voirLesTransactions": "Voir les transactions",
+    "erreurLorsDuChargementDe": "Erreur lors du chargement de la comparaison",
+    "comparaisonMensuelle": "Comparaison Mensuelle",
+    "comparezVosRevenusEtDepenses": "Comparez vos revenus et dépenses entre deux périodes.",
+    "periodeA": "Période A",
+    "periodeB": "Période B",
+    "laComparaisonNAPas": "La comparaison n'a pas pu être chargée.",
+    "ecartRevenus": "Écart Revenus",
+    "ecartDepenses": "Écart Dépenses",
+    "ecartEpargne": "Écart Épargne",
+    "evolutionNette": "Evolution nette",
+    "detailParCategorie": "Détail par catégorie",
+    "variationDesDepensesEntreLes": "Variation des dépenses entre les deux périodes. Cliquez sur un montant pour voir ses transactions.",
+    "selectionnezDeuxPeriodesPourComparer": "Sélectionnez deux périodes pour comparer.",
+    "categorie": "Catégorie",
+    "ecart": "Écart"
+  },
+  "monthHub": {
+    "bilan": "Bilan",
+    "revue": "Revue",
+    "comparaison": "Comparaison"
+  },
+  "monthReview": {
+    "impossibleDeChargerLaRevue": "Impossible de charger la revue du mois",
+    "moisCloture": "Mois clôturé",
+    "echecDeLaCloture": "Échec de la clôture",
+    "moisRouvert": "Mois rouvert",
+    "echecDeLaReouverture": "Échec de la réouverture",
+    "revueDeMois": "Revue de mois",
+    "passezLeMoisEnRevue": "Passez le mois en revue, étape par étape, puis clôturez-le.",
+    "moisPrecedent": "Mois précédent",
+    "moisSuivant": "Mois suivant",
+    "laRevueDuMoisN": "La revue du mois n'a pas pu être chargée.",
+    "unFaitMarquantARetenir": "Un fait marquant à retenir de ce mois (optionnel) : résiliation, grosse dépense, changement d'épargne…",
+    "steps": {
+      "categorize": "Catégoriser",
+      "accounts": "Soldes",
+      "budget": "Budget",
+      "highlight": "Fait marquant",
+      "close": "Clôturer"
+    }
+  },
+  "monthlyReport": {
+    "bilanDuMois": "Bilan du mois",
+    "moisCloture": "Mois clôturé",
+    "revueDeFinDeMois": "Revue de fin de mois à faire",
+    "moisPrecedent": "Mois précédent",
+    "moisSuivant": "Mois suivant",
+    "exporterEnPdf": "Exporter en PDF",
+    "impossibleDeChargerLeBilan": "Impossible de charger le bilan.",
+    "reessayer": "Réessayer",
+    "revenus": "Revenus",
+    "depensesReelles": "Dépenses réelles",
+    "misDeCote": "Mis de côté",
+    "epargneInvesti": "épargne + investi",
+    "unresolvedPoints_one": " · {{count}} point non résolu",
+    "unresolvedPoints_other": " · {{count}} points non résolus"
+  },
+  "misc": {
+    "vsPrevious": "{{amount}} vs mois précédent",
+    "uncategorized_one": "{{count}} dépense sans catégorie, soit",
+    "uncategorized_other": "{{count}} dépenses sans catégorie, soit",
+    "largestListed": " Les {{count}} plus grosses sont listées.",
+    "categoryOf": "Catégorie de {{merchant}}",
+    "popupPoints": "{{expenses}} dépense(s) sans catégorie et {{accounts}} compte(s) à valider.",
+    "popupTitle": "{{month}} n'est pas encore clôturé",
+    "over_one": "{{count}} dépassement",
+    "over_other": "{{count}} dépassements",
+    "exceededBy": "Dépassé de {{amount}}",
+    "remaining": "Reste {{amount}}",
+    "ofIncome": "{{pct}} des revenus",
+    "expensesOver": "Dépenses supérieures aux revenus de {{amount}}.",
+    "excludingExceptional": "{{pct}} hors exceptionnel",
+    "shareUnspent": "part des revenus non dépensée",
+    "lastValidation": "Dernière validation : {{date}}",
+    "closedOn": "Clôturé le {{date}}",
+    "unresolved": "Il reste {{count}} point(s) à traiter ; vous pouvez tout de même clôturer, ils seront notés.",
+    "closeAnyway": "Il reste {{count}} point(s) à traiter ; vous pouvez tout de même clôturer, ils seront notés."
+  }
+}

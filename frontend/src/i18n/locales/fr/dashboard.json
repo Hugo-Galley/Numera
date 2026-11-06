@@ -1,0 +1,173 @@
+{
+  "title": "Tableau de bord",
+  "subtitle": "Toutes vos analyses financières en un coup d'œil.",
+  "payPeriod": "Période de paie : {{range}}",
+  "allAccounts": "Tous les comptes",
+  "placeholders": {
+    "account": "Comptes",
+    "month": "Mois",
+    "year": "Année"
+  },
+  "tabs": {
+    "overview": "Aperçu",
+    "budgets": "Budgets",
+    "spending": "Dépenses",
+    "analysis": "Analyse",
+    "projections": "Projections"
+  },
+  "failedBlocks_one": "{{count}} bloc du tableau de bord n'a pas pu être chargé.",
+  "failedBlocks_other": "{{count}} blocs du tableau de bord n'ont pas pu être chargés.",
+  "accountsLoadError": "Impossible de charger la liste des comptes.",
+  "kpi": {
+    "monthlyIncome": "Revenus Mensuels",
+    "moneyIn": "Entrées d'argent",
+    "monthlyExpenses": "Dépenses Mensuelles",
+    "moneyOut": "Sorties d'argent",
+    "savingsMade": "Épargne Réalisée",
+    "currentBalance": "Solde Actuel",
+    "trend": "Tendance 6 mois"
+  },
+  "budgets": {
+    "title": "Suivi des budgets",
+    "subtitle": "Visualisez votre consommation par rapport aux limites fixées par catégorie.",
+    "viewTransactions": "Voir les transactions",
+    "over": "Dépassement",
+    "near": "Proche de la limite",
+    "ok": "Budget respecté",
+    "monthly": "Mensuel",
+    "annual": "Annuel",
+    "empty": "Aucun budget configuré. Ajoutez des limites dans les réglages des catégories."
+  },
+  "merchants": {
+    "title": "Top 10 Commerçants",
+    "subtitle": "Les établissements où vous dépensez le plus."
+  },
+  "subscriptions": {
+    "monthlyTitle": "Abonnements Mensuels",
+    "averageCost": "Coût mensuel moyen :",
+    "perYear": "par an",
+    "detected": "Détecté",
+    "lapsed": "Plus prélevé ?",
+    "empty": "Aucun abonnement détecté.",
+    "splitTitle": "Répartition Abonnements",
+    "splitSubtitle": "Poids de chaque service."
+  },
+  "priceChanges": {
+    "title": "Hausses de prix récentes",
+    "month": "mois",
+    "quarter": "trim.",
+    "year": "an",
+    "since": "Depuis le {{date}} · {{amount}} de plus par an"
+  },
+  "insights": {
+    "healthTitle": "Santé Financière",
+    "healthSubtitle": "Score global de votre situation.",
+    "outOf": "/ 100",
+    "analysisTitle": "Analyse & Conseils",
+    "dismiss": "Ne pas prendre en compte de façon permanente",
+    "dismissError": "Impossible de masquer cet insight",
+    "empty": "Tout semble sous contrôle ! Aucun conseil particulier ce mois-ci.",
+    "unitMonths": "mois"
+  },
+  "projections": {
+    "projectedBalance": "Solde Projeté (60j)",
+    "lowPoint": "Point le plus bas",
+    "expectedOn": "Prévu le {{date}}",
+    "recurringFlows": "Flux récurrents attendus",
+    "next60": "Prochains 60 jours",
+    "chartTitle": "Évolution du Solde Projeté",
+    "chartSubtitle": "Projection basée sur vos revenus et dépenses récurrentes sur les 2 prochains mois.",
+    "estimatedBalance": "Solde estimé",
+    "balance": "Solde",
+    "nextFlows": "Prochains flux",
+    "nextFlowsSubtitle": "Événements prévus dans les 30 prochains jours.",
+    "cashAnalysis": "Analyse de trésorerie",
+    "staysPositive": "Votre solde devrait rester <strong>positif</strong> sur toute la période projetée.",
+    "goesNegative": "Votre solde passerait <negative>sous zéro</negative> sur la période projetée.",
+    "lowPointIs": "Le point bas est estimé à <amount>{{value}}</amount>.",
+    "adviceLabel": "Conseil",
+    "advice": "Vous avez un excédent de trésorerie prévu de <amount>{{value}}</amount>. Envisagez un versement complémentaire vers votre compte d'épargne."
+  },
+  "overview": {
+    "expensesTitle": "Dépenses par catégorie",
+    "expensesSubtitle": "Où va votre argent ce mois-ci ? Cliquez sur une barre pour voir les transactions.",
+    "splitTitle": "Répartition",
+    "splitSubtitle": "Poids des catégories.",
+    "flowTitle": "Flux Financiers",
+    "flowSubtitle": "Visualisation des revenus vers les dépenses et l'épargne. Cliquez sur une catégorie pour voir ses transactions.",
+    "dragHint": "Faites glisser pour voir tout le diagramme →",
+    "tagsTitle": "Projets & Contextes (Tags)",
+    "tagsSubtitle": "Dépenses transverses sur la période.",
+    "wealthTitle": "Répartition du Patrimoine",
+    "wealthSubtitle": "Distribution de vos actifs sur l'ensemble de vos comptes actifs.",
+    "groupBy": {
+      "category": "Par Catégorie",
+      "mixed": "Mixte",
+      "account": "Par Compte",
+      "institution": "Par Établissement"
+    },
+    "total": "Total :",
+    "debts": "Dettes :",
+    "net": "Net :",
+    "noWealth": "Aucune donnée de patrimoine disponible.",
+    "wealthCenter": "Patrimoine",
+    "wealthGroup": {
+      "courant": "Comptes Courants",
+      "epargne": "Épargne",
+      "investissement": "Investissements",
+      "otherInstitution": "Autre / Non spécifié"
+    },
+    "accountType": {
+      "courant": "Courant",
+      "epargne": "Épargne",
+      "investissement": "Investissement"
+    }
+  },
+  "history": {
+    "cashFlowTitle": "Flux de trésorerie",
+    "cashFlowSubtitle": "Revenus vs Dépenses (6 mois).",
+    "revenues": "Revenus",
+    "realExpenses": "Dépenses réelles",
+    "burnTitle": "Évolution du Burn Rate",
+    "burnSubtitle": "Dépense moyenne journalière par mois.",
+    "burnName": "Burn Rate",
+    "salaryTitle": "Évolution du Salaire",
+    "salarySubtitle": "Stabilité et croissance des revenus principaux.",
+    "salaryName": "Salaire"
+  },
+  "verification": {
+    "accountsToUpdate_one": "{{count}} compte à mettre à jour",
+    "accountsToUpdate_other": "{{count}} comptes à mettre à jour",
+    "intro": "Cela fait plus de 15 jours que vous n'avez pas mis à jour ces comptes. Veuillez vérifier s'il y a de nouvelles transactions ou valider leur solde.",
+    "never": "Jamais vérifié",
+    "lastUpdate_one": "Dernière maj: il y a {{count}} jour",
+    "lastUpdate_other": "Dernière maj: il y a {{count}} jours",
+    "snapshot": "Faire un snapshot",
+    "nothingChanged": "Rien n'a bougé",
+    "enterBalance": "Saisir le solde",
+    "verifyError": "Impossible de valider le compte"
+  },
+  "journal": {
+    "title": "Journal des décisions",
+    "subtitle": "Résiliation, hausse d'épargne, changement d'allocation… repérés sur les courbes (⚑).",
+    "empty": "Notez vos décisions pour retrouver plus tard pourquoi une courbe a changé.",
+    "needDateTitle": "Indiquez une date et un intitulé",
+    "updated": "Décision modifiée",
+    "added": "Décision ajoutée au journal",
+    "saveError": "Impossible d'enregistrer la décision",
+    "confirmDelete": "Supprimer « {{title}} » du journal ?",
+    "deleted": "Décision supprimée",
+    "deleteError": "Impossible de supprimer la décision",
+    "editTitle": "Modifier la décision",
+    "newTitle": "Nouvelle décision",
+    "dialogHint": "Une note datée, sans effet sur les calculs.",
+    "fieldTitle": "Intitulé",
+    "titlePlaceholder": "Ex : résiliation de la salle de sport",
+    "fieldNote": "Note (facultatif)",
+    "fieldAccount": "Compte concerné (facultatif)"
+  },
+  "partialLoadError": "Certaines données du tableau de bord n'ont pas pu être chargées.",
+  "misc": {
+    "perDay": "{{amount}} / jour"
+  }
+}

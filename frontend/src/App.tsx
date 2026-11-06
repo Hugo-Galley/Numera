@@ -8,6 +8,7 @@ import { ProtectedRoute } from "@/components/layout/ProtectedRoute"
 import { PageLoader } from "@/components/layout/PageLoader"
 import { ErrorBoundary } from "@/components/layout/ErrorBoundary"
 import { RedirectKeepingSearch } from "@/components/layout/RedirectKeepingSearch"
+import { LanguageBoundary } from "@/i18n/LanguageBoundary"
 
 // Une page = un fichier JS chargé à la demande (le bundle unique pesait 1,7 Mo)
 const Dashboard = lazy(() => import("@/pages/Dashboard"))
@@ -36,6 +37,7 @@ export function App() {
     <UIProvider>
       <AuthProvider>
         <ConfirmProvider>
+        <LanguageBoundary>
         <BrowserRouter>
           <Suspense fallback={<PageLoader />}>
           <Routes>
@@ -76,6 +78,7 @@ export function App() {
           </Routes>
           </Suspense>
         </BrowserRouter>
+        </LanguageBoundary>
         </ConfirmProvider>
       </AuthProvider>
     </UIProvider>

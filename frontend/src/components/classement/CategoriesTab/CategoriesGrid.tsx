@@ -1,3 +1,5 @@
+import i18n from "i18next"
+import { useTranslation } from "react-i18next"
 import { Archive, ArchiveRestore, Pencil, Trash2 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -8,6 +10,7 @@ import type { CategoriesTabCtx } from "./useCategoriesTab"
 
 /** Cartes des catégories. */
 export function CategoriesGrid({ ctx }: { ctx: CategoriesTabCtx }) {
+  const { t } = useTranslation("classement")
   const { categories, handleDeleteCategory, handleEditClick, handleToggleArchiveCategory, showArchivedCats } = ctx
   return (
     <>
@@ -37,18 +40,18 @@ export function CategoriesGrid({ ctx }: { ctx: CategoriesTabCtx }) {
                     )}
                   </div>
                   {cat.monthly_limit != null && (
-                    <p className="text-[10px] text-amber-600 font-semibold mt-0.5">{cat.monthly_limit}€/mois</p>
+                    <p className="text-[10px] text-amber-600 font-semibold mt-0.5">{i18n.t("misc.perMonth", { ns: "classement", amount: cat.monthly_limit })}</p>
                   )}
-                  {cat.archived && <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Archivée</p>}
+                  {cat.archived && <p className="text-[10px] text-slate-400 font-semibold mt-0.5">{t("categoriesGrid.archivee")}</p>}
                 </div>
                 <div className="flex shrink-0 gap-0 md:hidden">
-                  <Button variant="ghost" size="sm" onClick={() => handleEditClick(cat)} aria-label="Modifier" className="h-10 w-10 p-0 text-slate-500">
+                  <Button variant="ghost" size="sm" onClick={() => handleEditClick(cat)} aria-label={t("categoriesGrid.modifier")} className="h-10 w-10 p-0 text-slate-500">
                     <Pencil className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" size="sm" onClick={() => handleToggleArchiveCategory(cat)} aria-label={cat.archived ? "Réactiver" : "Archiver"} title={cat.archived ? "Réactiver" : "Archiver"} className="h-10 w-10 p-0 text-slate-500">
+                  <Button variant="ghost" size="sm" onClick={() => handleToggleArchiveCategory(cat)} aria-label={cat.archived ? t("categoriesGrid.reactiver") : t("categoriesGrid.archiver")} title={cat.archived ? t("categoriesGrid.reactiver") : t("categoriesGrid.archiver")} className="h-10 w-10 p-0 text-slate-500">
                     {cat.archived ? <ArchiveRestore className="h-4 w-4" /> : <Archive className="h-4 w-4" />}
                   </Button>
-                  <Button variant="ghost" size="sm" onClick={() => handleDeleteCategory(cat.id)} aria-label="Supprimer" className="h-10 w-10 p-0 text-rose-500 hover:bg-rose-50">
+                  <Button variant="ghost" size="sm" onClick={() => handleDeleteCategory(cat.id)} aria-label={t("categoriesGrid.supprimer")} className="h-10 w-10 p-0 text-rose-500 hover:bg-rose-50">
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
@@ -56,13 +59,13 @@ export function CategoriesGrid({ ctx }: { ctx: CategoriesTabCtx }) {
               <div className="hidden md:flex px-4 py-3 bg-slate-50/50 border-t justify-between items-center md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                 <p className="text-[10px] text-slate-400 font-medium">ID: #{cat.id}</p>
                 <div className="flex gap-1">
-                  <Button aria-label="Modifier" variant="ghost" size="sm" onClick={() => handleEditClick(cat)} className="h-10 w-10 md:h-8 md:w-8 p-0 text-slate-500 hover:text-slate-900">
+                  <Button aria-label={t("categoriesGrid.modifier")} variant="ghost" size="sm" onClick={() => handleEditClick(cat)} className="h-10 w-10 md:h-8 md:w-8 p-0 text-slate-500 hover:text-slate-900">
                     <Pencil className="h-4 w-4" />
                   </Button>
-                  <Button aria-label={cat.archived ? "Réactiver" : "Archiver"} title={cat.archived ? "Réactiver" : "Archiver"} variant="ghost" size="sm" onClick={() => handleToggleArchiveCategory(cat)} className="h-10 w-10 md:h-8 md:w-8 p-0 text-slate-500 hover:text-slate-900">
+                  <Button aria-label={cat.archived ? t("categoriesGrid.reactiver") : t("categoriesGrid.archiver")} title={cat.archived ? t("categoriesGrid.reactiver") : t("categoriesGrid.archiver")} variant="ghost" size="sm" onClick={() => handleToggleArchiveCategory(cat)} className="h-10 w-10 md:h-8 md:w-8 p-0 text-slate-500 hover:text-slate-900">
                     {cat.archived ? <ArchiveRestore className="h-4 w-4" /> : <Archive className="h-4 w-4" />}
                   </Button>
-                  <Button aria-label="Supprimer" variant="ghost" size="sm" onClick={() => handleDeleteCategory(cat.id)} className="h-10 w-10 md:h-8 md:w-8 p-0 text-rose-500 hover:text-rose-600 hover:bg-rose-50">
+                  <Button aria-label={t("categoriesGrid.supprimer")} variant="ghost" size="sm" onClick={() => handleDeleteCategory(cat.id)} className="h-10 w-10 md:h-8 md:w-8 p-0 text-rose-500 hover:text-rose-600 hover:bg-rose-50">
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>

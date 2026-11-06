@@ -3,6 +3,7 @@ from datetime import date, datetime
 
 from sqlalchemy.orm import Session
 
+from app.core.i18n import tr
 from app.core.logging import get_logger
 from app.db.system_settings import get_setting, set_setting
 from app.domain.tax import (
@@ -33,7 +34,7 @@ from app.schemas.tax import (
     WrapperSuggestion,
 )
 from app.services.analytics.budget import compute_resilience
-from app.services.comptes.accounts import account_balance
+from app.services.comptes.wealth import account_values
 from app.services.investissement.dividends import load_dividends_eur
 from app.services.investissement.holdings.replay import replay_account
 
@@ -85,14 +86,11 @@ def _partial_history_alert(db: Session, account: Account) -> str | None:
         is not None
     )
     if account.holdings_baseline_date is not None or has_zero_point:
-        return (
-            "Le compte démarre d'un inventaire (Point Zéro) : les versements antérieurs n'étant pas saisis, "
-            "la place restante est probablement surestimée."
-        )
+        return tr("tax.partial_history")
     return None
 
 
-def build_overview(db: Session, today: date, precaution_months: float | None = None) -> TaxOverview:
+async def build_overview(db: Session, today: date, precaution_months: float | None = None) -> TaxOverview:
     """Cartes par enveloppe + ordre de remplissage conseillé (`precaution_months` = mois de dépenses couverts)."""
     rules = rules_for(today.year)
     settings = load_tax_settings(db)
@@ -102,6 +100,7 @@ def build_overview(db: Session, today: date, precaution_months: float | None = N
         .order_by(Account.id.asc())
         .all()
     )
+    values = await account_values(db, accounts)
     cards: list[WrapperCard] = []
     per_accounts = [a for a in accounts if a.tax_wrapper == "per"]
     for account in accounts:
@@ -123,13 +122,13 @@ def build_overview(db: Session, today: date, precaution_months: float | None = N
             status = per_status(versements, settings.prior_year_pro_income, settings.tmi_pct, rules)
             name = " + ".join(a.name for a in per_accounts)
         elif kind == "livret_a":
-            status = livret_a_status(account_balance(db, account.id), rules)
+            status = livret_a_status(values[account.id].value, rules)
         elif kind == "livret_jeune":
-            status = livret_jeune_status(account_balance(db, account.id), rules)
+            status = livret_jeune_status(values[account.id].value, rules)
         elif kind == "ldds":
-            status = ldds_status(account_balance(db, account.id), rules)
+            status = ldds_status(values[account.id].value, rules)
         elif kind == "lep":
-            status = lep_status(account_balance(db, account.id), rules)
+            status = lep_status(values[account.id].value, rules)
         elif kind == "pee":
             lots = [
                 PeeLot(t.date.date(), t.amount, "abondement" in (t.note or "").lower())
@@ -175,7 +174,7 @@ async def tax_overview(db: Session, today: date | None = None) -> TaxOverview:
     except Exception as exc:  # le conseil reste utile sans l'épargne de précaution
         logger.warning(f"Resilience unavailable for tax advice: {exc}")
         months = None
-    return build_overview(db, today, months)
+    return await build_overview(db, today, months)
 
 
 async def build_annual_report(db: Session, year: int) -> AnnualReport:
@@ -190,8 +189,11 @@ async def build_annual_report(db: Session, year: int) -> AnnualReport:
         unknown = sum(1 for sale in sales if sale.realized_eur is None)
         known = [sale for sale in sales if sale.realized_eur is not None]
         dividends = [d for d in await load_dividends_eur(db, account.id) if d.tx.date.year == year]
+        estimated = sorted({sale.ticker for sale in known if sale.cost_eur_estimated})
+        if estimated:
+            warnings.append(tr("tax.report.fx_estimated", account=account.name, tickers=", ".join(estimated)))
         if unknown:
-            warnings.append(f"{account.name} : {unknown} vente(s) sans coût de revient connu, plus-value non comptée.")
+            warnings.append(tr("tax.report.unknown_cost", account=account.name, count=unknown))
         rows.append(
             CtoYearRow(
                 account_id=account.id,

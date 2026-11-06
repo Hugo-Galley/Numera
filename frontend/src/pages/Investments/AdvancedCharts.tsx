@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import { AllocationTreemap } from "@/components/analytics/AllocationTreemap"
 import { Badge } from "@/components/ui/badge"
 import { Briefcase, Layers } from "lucide-react"
@@ -9,13 +10,14 @@ import type { InvestmentsCtx } from "./useInvestments"
 
 /** Analyses avancées : treemap, carte et répartitions. */
 export function AdvancedCharts({ ctx }: { ctx: InvestmentsCtx }) {
+  const { t } = useTranslation("investments")
   const { advancedAllocation, allocation, diversity, getDrilldownItems, getDrilldownTitle, setDrillDown } = ctx
   return (
     <>
       <Card className="shadow-sm">
         <CardHeader className="flex flex-row items-center justify-between gap-2 pb-2 border-b">
           <div>
-            <CardTitle className="text-base font-bold">Vue d'ensemble de l'allocation</CardTitle>
+            <CardTitle className="text-base font-bold">{t("advancedCharts.vueDEnsembleDeL")}</CardTitle>
           </div>
           <Badge variant="secondary" className="bg-slate-100 text-slate-900 pointer-events-none shadow-none border-none">Treemap</Badge>
         </CardHeader>
@@ -38,7 +40,7 @@ export function AdvancedCharts({ ctx }: { ctx: InvestmentsCtx }) {
           <CardHeader className="border-b pb-3">
             <div className="flex items-center gap-2">
               <Layers className="h-4 w-4 text-slate-500" />
-              <CardTitle className="text-base">Par Classe d'actif</CardTitle>
+              <CardTitle className="text-base">{t("advancedCharts.parClasseDActif")}</CardTitle>
             </div>
           </CardHeader>
           <CardContent className="p-5 flex flex-col items-center">
@@ -88,7 +90,7 @@ export function AdvancedCharts({ ctx }: { ctx: InvestmentsCtx }) {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Briefcase className="h-4 w-4 text-slate-500" />
-                <CardTitle className="text-base">Par Secteur</CardTitle>
+                <CardTitle className="text-base">{t("advancedCharts.parSecteur")}</CardTitle>
               </div>
               {diversity && diversity.sectors.length > 0 && (
                 <Badge variant="secondary" className="bg-slate-100 text-slate-600 text-[10px] pointer-events-none shadow-none border-none">Look-Through</Badge>

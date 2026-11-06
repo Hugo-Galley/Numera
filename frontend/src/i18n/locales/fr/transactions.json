@@ -1,0 +1,45 @@
+{
+  "splitTransactionDialog": {
+    "depenseDecoupee": "Dépense découpée",
+    "erreurLorsDuDecoupage": "Erreur lors du découpage",
+    "decoupageAnnule": "Découpage annulé",
+    "erreurLorsDeLAnnulation": "Erreur lors de l'annulation",
+    "decouperLaDepense": "Découper la dépense",
+    "categorie": "Catégorie",
+    "retirerLaPart": "Retirer la part",
+    "ajouterUnePart": "Ajouter une part",
+    "montantReparti": "Montant réparti",
+    "doubleCliquezSurUnMontant": "Double-cliquez sur un montant pour y reporter le reste.",
+    "annulerLeDecoupage": "Annuler le découpage",
+    "fermer": "Fermer",
+    "enregistrer": "Enregistrer",
+    "hint": "{{merchant}} · {{amount}}. Chaque part compte dans sa catégorie (budget, répartition, alertes) ; le total de la dépense ne change pas.",
+    "remaining": "Reste {{amount}}"
+  },
+  "drilldownSheet": {
+    "aucuneDepenseNeCorrespondLes": "Aucune dépense ne correspond (les versements d'investissement n'apparaissent pas ici).",
+    "expensesOf": "Dépenses de {{period}}",
+    "loadFailed": "Les transactions n'ont pas pu être chargées."
+  },
+  "transferLinkDialog": {
+    "erreurLorsDeLaRecherche": "Erreur lors de la recherche de candidates",
+    "virementLie": "Virement lié",
+    "echecDeLaLiaison": "Échec de la liaison",
+    "contrepartieCreeeEtLiee": "Contrepartie créée et liée",
+    "impossibleDeCreerLaContrepartie": "Impossible de créer la contrepartie",
+    "cetteLigneNeSeraPlus": "Cette ligne ne sera plus proposée comme virement",
+    "echecDeLAction": "Échec de l'action",
+    "virementInterne": "Virement interne",
+    "entrees": "Entrées",
+    "sorties": "Sorties",
+    "tousLesComptes": "Tous les comptes",
+    "lier": "Lier",
+    "creerLaContrepartieSur": "Créer la contrepartie sur",
+    "choisirUnCompte": "Choisir un compte",
+    "creerEtLier": "Créer et lier",
+    "ceNEstPasUn": "Ce n'est pas un virement",
+    "noCandidate": "Aucune candidate.",
+    "createBelow": "Vous pouvez créer la contrepartie ci-dessous.",
+    "unknownAccount": "Compte inconnu"
+  }
+}

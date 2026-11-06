@@ -1,7 +1,8 @@
+import { useTranslation } from "react-i18next"
+import { dateLocale, monthName } from "@/i18n/locale"
 import { useEffect, useMemo, useState } from "react"
 import { Link, useSearchParams } from "react-router-dom"
 import { format, parseISO } from "date-fns"
-import { fr } from "date-fns/locale"
 import { ArrowRight, ListFilter, Split } from "lucide-react"
 
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet"
@@ -32,10 +33,10 @@ interface AccountOption {
 
 // Taille de page demandée au backend : au-delà, la liste est tronquée et le total n'est pas affiché
 const DRILLDOWN_LIMIT = 500
-const MONTHS = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"]
 
 /** Panneau « transactions derrière ce chiffre », ouvert par `useDrilldown().openDrilldown`. */
 export function DrilldownSheet() {
+  const { t } = useTranslation("transactions")
   const [searchParams] = useSearchParams()
   const filters = useMemo(() => readDrilldown(searchParams), [searchParams])
   const { closeDrilldown } = useDrilldown()
@@ -109,7 +110,7 @@ export function DrilldownSheet() {
             {filters?.label}
           </SheetTitle>
           <SheetDescription>
-            Dépenses de {filters ? `${MONTHS[filters.month - 1]} ${filters.year}` : ""}
+            {t("drilldownSheet.expensesOf", { period: filters ? `${monthName(filters.month).toLowerCase()} ${filters.year}` : "" })}
             {filters?.accountId && accounts[filters.accountId] ? ` · ${accounts[filters.accountId].name}` : ""}
             {!loading && rows.length > 0 && sameCurrency && (truncated
               ? <> · {DRILLDOWN_LIMIT}+ opérations</>
@@ -118,11 +119,11 @@ export function DrilldownSheet() {
         </SheetHeader>
 
         {failed ? (
-          <ErrorState message="Les transactions n'ont pas pu être chargées." onRetry={() => setReload((n) => n + 1)} />
+          <ErrorState message={t("drilldownSheet.loadFailed")} onRetry={() => setReload((n) => n + 1)} />
         ) : loading ? (
           <div className="space-y-2">{[0, 1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-14 rounded-xl" />)}</div>
         ) : rows.length === 0 ? (
-          <p className="py-10 text-center text-sm text-slate-500">Aucune dépense ne correspond (les versements d'investissement n'apparaissent pas ici).</p>
+          <p className="py-10 text-center text-sm text-slate-500">{t("drilldownSheet.aucuneDepenseNeCorrespondLes")}</p>
         ) : (
           <ul className="divide-y rounded-xl border">
             {rows.map((tx) => {
@@ -138,7 +139,7 @@ export function DrilldownSheet() {
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-medium text-slate-900">{tx.merchant_obj?.name ?? tx.merchant}</p>
                       <p className="truncate text-xs text-slate-500">
-                        {format(parseISO(tx.date), "d MMM", { locale: fr })}
+                        {format(parseISO(tx.date), "d MMM", { locale: dateLocale() })}
                         {accounts[tx.account_id] ? ` · ${accounts[tx.account_id].name}` : ""}
                         {!filters?.categoryId && tx.category ? ` · ${tx.category.name}` : ""}
                         {tx.note ? ` · ${tx.note}` : ""}

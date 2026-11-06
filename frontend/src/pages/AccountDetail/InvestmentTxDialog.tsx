@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { COUNTRIES } from "@/lib/countries"
@@ -11,69 +12,70 @@ import type { AccountDetailView } from "./useAccountDetail"
 
 /** Dialogue des flux d'un compte d'investissement (versement, retrait, achat, vente, dividende, frais). */
 export function InvestmentTxDialog({ ctx }: { ctx: AccountDetailView }) {
+  const { t } = useTranslation("accountDetail")
   const { editInvTxId, handleCreateInvestmentTransaction, handleCreateInvestmentTransactionBusy, id, invTxAmount, invTxAssetClass, invTxCurrency, invTxDate, invTxFees, invTxIsin, invTxNote, invTxOpen, invTxQuantity, invTxReinvested, invTxSector, invTxTicker, invTxType, invTxUnitPrice, invTxWithholding, invTxZone, resetInvTxForm, setInvTxAmount, setInvTxAssetClass, setInvTxCurrency, setInvTxDate, setInvTxFees, setInvTxIsin, setInvTxNote, setInvTxOpen, setInvTxQuantity, setInvTxReinvested, setInvTxSector, setInvTxTicker, setInvTxType, setInvTxUnitPrice, setInvTxWithholding, setInvTxZone, suggestions } = ctx
   return (
     <>
       <Dialog open={invTxOpen} onOpenChange={(open) => { if (!open) { setInvTxOpen(false); resetInvTxForm(); } else { setInvTxOpen(true); } }}>
         <DialogTrigger asChild>
           <Button variant="outline" size="sm">
-            <Plus className="h-4 w-4 mr-2" /> Versement / Retrait
+            <Plus className="h-4 w-4 mr-2" /> {t("investmentTxDialog.versementRetrait")}
           </Button>
         </DialogTrigger>
         <DialogContent className="max-sm:[&_input]:text-base sm:max-w-[425px] max-h-[calc(100dvh-2*max(1rem,env(safe-area-inset-top)))] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-bold">{editInvTxId ? "Modifier le flux" : "Flux d'investissement"}</DialogTitle>
-            <DialogDescription>Enregistrez un mouvement de fonds sur ce compte.</DialogDescription>
+            <DialogTitle className="text-2xl font-bold">{editInvTxId ? t("investmentTxDialog.modifierLeFlux") : t("investmentTxDialog.fluxDInvestissement")}</DialogTitle>
+            <DialogDescription>{t("investmentTxDialog.enregistrezUnMouvementDeFonds")}</DialogDescription>
           </DialogHeader>
           <div className="grid gap-5 py-4 sm:gap-6 sm:py-6">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="grid gap-2">
-                <Label className="text-xs uppercase tracking-wider font-bold text-slate-500">Date</Label>
+                <Label className="text-xs uppercase tracking-wider font-bold text-slate-500">{t("investmentTxDialog.date")}</Label>
                 <Input type="datetime-local" value={invTxDate} onChange={(e) => setInvTxDate(e.target.value)} className="bg-slate-50 border-slate-200" />
               </div>
               <div className="grid gap-2">
-                <Label className="text-xs uppercase tracking-wider font-bold text-slate-500">Type</Label>
+                <Label className="text-xs uppercase tracking-wider font-bold text-slate-500">{t("investmentTxDialog.type")}</Label>
                 <Select value={invTxType} onValueChange={(v: any) => setInvTxType(v)}>
                   <SelectTrigger className="bg-slate-50 border-slate-200"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="versement">Versement (+)</SelectItem>
-                    <SelectItem value="retrait">Retrait (-)</SelectItem>
-                    <SelectItem value="dividende">Dividende (Gain)</SelectItem>
-                    <SelectItem value="achat">Achat de titres</SelectItem>
-                    <SelectItem value="vente">Vente de titres</SelectItem>
-                    <SelectItem value="frais">Frais</SelectItem>
+                    <SelectItem value="versement">{t("investmentTxDialog.versement")}</SelectItem>
+                    <SelectItem value="retrait">{t("investmentTxDialog.retrait")}</SelectItem>
+                    <SelectItem value="dividende">{t("investmentTxDialog.dividendeGain")}</SelectItem>
+                    <SelectItem value="achat">{t("investmentTxDialog.achatDeTitres")}</SelectItem>
+                    <SelectItem value="vente">{t("investmentTxDialog.venteDeTitres")}</SelectItem>
+                    <SelectItem value="frais">{t("investmentTxDialog.frais")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="grid gap-2">
-                <Label htmlFor="ival" className="text-xs uppercase tracking-wider font-bold text-slate-500">Montant</Label>
+                <Label htmlFor="ival" className="text-xs uppercase tracking-wider font-bold text-slate-500">{t("investmentTxDialog.montant")}</Label>
                 <Input id="ival" type="number" inputMode="decimal" step="0.01" value={invTxAmount} onChange={(e) => setInvTxAmount(e.target.value)} placeholder="0.00" className="bg-slate-50 border-slate-200 font-bold text-lg" />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="icurrency" className="text-xs uppercase tracking-wider font-bold text-slate-500">Devise</Label>
+                <Label htmlFor="icurrency" className="text-xs uppercase tracking-wider font-bold text-slate-500">{t("investmentTxDialog.devise")}</Label>
                 <Select value={invTxCurrency} onValueChange={setInvTxCurrency}>
-                  <SelectTrigger id="icurrency" className="bg-slate-50 border-slate-200"><SelectValue placeholder="Devise" /></SelectTrigger>
+                  <SelectTrigger id="icurrency" className="bg-slate-50 border-slate-200"><SelectValue placeholder={t("investmentTxDialog.devise")} /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="EUR">EUR (€)</SelectItem>
-                    <SelectItem value="USD">USD ($)</SelectItem>
-                    <SelectItem value="GBP">GBP (£)</SelectItem>
-                    <SelectItem value="CHF">CHF (CHF)</SelectItem>
-                    <SelectItem value="JPY">JPY (¥)</SelectItem>
+                    <SelectItem value="EUR">{t("investmentTxDialog.eur")}</SelectItem>
+                    <SelectItem value="USD">{t("investmentTxDialog.usd")}</SelectItem>
+                    <SelectItem value="GBP">{t("investmentTxDialog.gbp")}</SelectItem>
+                    <SelectItem value="CHF">{t("investmentTxDialog.chfChf")}</SelectItem>
+                    <SelectItem value="JPY">{t("investmentTxDialog.jpy")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="inote" className="text-xs uppercase tracking-wider font-bold text-slate-500">Note</Label>
-              <Input id="inote" value={invTxNote} onChange={(e) => setInvTxNote(e.target.value)} placeholder="Optionnel..." className="bg-slate-50 border-slate-200" />
+              <Label htmlFor="inote" className="text-xs uppercase tracking-wider font-bold text-slate-500">{t("investmentTxDialog.note")}</Label>
+              <Input id="inote" value={invTxNote} onChange={(e) => setInvTxNote(e.target.value)} placeholder={t("investmentTxDialog.optionnel")} className="bg-slate-50 border-slate-200" />
             </div>
 
             <div className="grid gap-3 pt-2 border-t">
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500">Actif Boursier / Titre (ETF, Action)</h3>
-                <Badge variant="outline" className="text-[10px]">{invTxType === "dividende" || invTxType === "achat" || invTxType === "vente" ? "Obligatoire" : "Optionnel"}</Badge>
+                <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500">{t("investmentTxDialog.actifBoursierTitreEtfAction")}</h3>
+                <Badge variant="outline" className="text-[10px]">{invTxType === "dividende" || invTxType === "achat" || invTxType === "vente" ? t("investmentTxDialog.obligatoire") : t("investmentTxDialog.optionnel2")}</Badge>
               </div>
 
               <SecuritySearchInput
@@ -106,12 +108,12 @@ export function InvestmentTxDialog({ ctx }: { ctx: AccountDetailView }) {
 
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 pt-1 border-t border-slate-100">
                 <div className="grid gap-1">
-                  <Label className="text-xs font-medium">{invTxType === "dividende" ? "Parts reçues (si réinvesti)" : "Nb de parts"}</Label>
+                  <Label className="text-xs font-medium">{invTxType === "dividende" ? t("investmentTxDialog.partsRecuesSiReinvesti") : t("investmentTxDialog.nbDeParts")}</Label>
                   <Input
                     type="number" inputMode="decimal"
                     step="any"
                     min="0"
-                    placeholder="Ex: 2"
+                    placeholder={t("investmentTxDialog.ex2")}
                     value={invTxQuantity}
                     onChange={(e) => {
                       const q = e.target.value
@@ -125,12 +127,12 @@ export function InvestmentTxDialog({ ctx }: { ctx: AccountDetailView }) {
                 </div>
                 {invTxType !== "dividende" && (
                 <div className="grid gap-1">
-                  <Label className="text-xs font-medium">Prix unitaire</Label>
+                  <Label className="text-xs font-medium">{t("investmentTxDialog.prixUnitaire")}</Label>
                   <Input
                     type="number" inputMode="decimal"
                     step="any"
                     min="0"
-                    placeholder="Cours..."
+                    placeholder={t("investmentTxDialog.cours")}
                     value={invTxUnitPrice}
                     onChange={(e) => {
                       const p = e.target.value
@@ -158,7 +160,7 @@ export function InvestmentTxDialog({ ctx }: { ctx: AccountDetailView }) {
                       onChange={(e) => setInvTxWithholding(e.target.value)}
                       className="bg-white border-slate-200 text-xs font-mono"
                     />
-                    <p className="text-[11px] text-slate-500">Le montant saisi plus haut est le <strong>net reçu</strong>, comme dans l'appli de ton courtier.</p>
+                    <p className="text-[11px] text-slate-500">{t("investmentTxDialog.leMontantSaisiPlusHaut")} <strong>{t("investmentTxDialog.netRecu")}</strong>{t("investmentTxDialog.commeDansLAppliDe")}</p>
                   </div>
                   <label className="flex items-center gap-2 text-xs font-medium text-slate-700">
                     <input
@@ -167,7 +169,7 @@ export function InvestmentTxDialog({ ctx }: { ctx: AccountDetailView }) {
                       onChange={(e) => setInvTxReinvested(e.target.checked)}
                       className="h-4 w-4 rounded border-slate-300"
                     />
-                    Dividende réinvesti (achat de parts avec ce montant)
+                    {t("investmentTxDialog.dividendeReinvestiAchatDeParts")}
                   </label>
                 </div>
               )}
@@ -184,7 +186,7 @@ export function InvestmentTxDialog({ ctx }: { ctx: AccountDetailView }) {
                     onChange={(e) => setInvTxFees(e.target.value)}
                     className="bg-slate-50 border-slate-200 text-xs font-mono"
                   />
-                  <p className="text-[11px] text-slate-500">Inclus dans le PRU. Le montant correspond au total débité (achat) ou crédité (vente).</p>
+                  <p className="text-[11px] text-slate-500">{t("investmentTxDialog.inclusDansLePruLe")}</p>
                 </div>
               )}
 
@@ -196,15 +198,15 @@ export function InvestmentTxDialog({ ctx }: { ctx: AccountDetailView }) {
             </div>
 
             <div className="grid gap-4 pt-2 border-t">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500">Asset Allocation</h3>
+              <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500">{t("investmentTxDialog.assetAllocation")}</h3>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="grid gap-2">
-                  <Label htmlFor="aclass" className="text-xs uppercase tracking-wider font-bold text-slate-500">Classe d'actif</Label>
+                  <Label htmlFor="aclass" className="text-xs uppercase tracking-wider font-bold text-slate-500">{t("investmentTxDialog.classeDActif")}</Label>
                   <Input 
                     id="aclass" 
                     value={invTxAssetClass} 
                     onChange={(e) => setInvTxAssetClass(e.target.value)} 
-                    placeholder="Ex: Actions..." 
+                    placeholder={t("investmentTxDialog.exActions")} 
                     className="bg-slate-50 border-slate-200" 
                     list="classes-list"
                   />
@@ -213,12 +215,12 @@ export function InvestmentTxDialog({ ctx }: { ctx: AccountDetailView }) {
                   </datalist>
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="asector" className="text-xs uppercase tracking-wider font-bold text-slate-500">Secteur</Label>
+                  <Label htmlFor="asector" className="text-xs uppercase tracking-wider font-bold text-slate-500">{t("investmentTxDialog.secteur")}</Label>
                   <Input 
                     id="asector" 
                     value={invTxSector} 
                     onChange={(e) => setInvTxSector(e.target.value)} 
-                    placeholder="Ex: Tech..." 
+                    placeholder={t("investmentTxDialog.exTech")} 
                     className="bg-slate-50 border-slate-200" 
                     list="sectors-list"
                   />
@@ -228,10 +230,10 @@ export function InvestmentTxDialog({ ctx }: { ctx: AccountDetailView }) {
                 </div>
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="azone" className="text-xs uppercase tracking-wider font-bold text-slate-500">Zone Géo / Pays</Label>
+                <Label htmlFor="azone" className="text-xs uppercase tracking-wider font-bold text-slate-500">{t("investmentTxDialog.zoneGeoPays")}</Label>
                 <Select value={invTxZone} onValueChange={setInvTxZone}>
                   <SelectTrigger className="bg-slate-50 border-slate-200">
-                    <SelectValue placeholder="Sélectionner un pays..." />
+                    <SelectValue placeholder={t("investmentTxDialog.selectionnerUnPays")} />
                   </SelectTrigger>
                   <SelectContent>
                     {COUNTRIES.map((c) => (
@@ -243,8 +245,8 @@ export function InvestmentTxDialog({ ctx }: { ctx: AccountDetailView }) {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="ghost" onClick={() => { setInvTxOpen(false); resetInvTxForm(); }}>Annuler</Button>
-            <Button onClick={() => handleCreateInvestmentTransaction()} disabled={handleCreateInvestmentTransactionBusy} className="bg-slate-900 text-white shadow-lg">{handleCreateInvestmentTransactionBusy ? "Enregistrement…" : "Confirmer"}</Button>
+            <Button variant="ghost" onClick={() => { setInvTxOpen(false); resetInvTxForm(); }}>{t("investmentTxDialog.annuler")}</Button>
+            <Button onClick={() => handleCreateInvestmentTransaction()} disabled={handleCreateInvestmentTransactionBusy} className="bg-slate-900 text-white shadow-lg">{handleCreateInvestmentTransactionBusy ? t("investmentTxDialog.enregistrement") : t("investmentTxDialog.confirmer")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

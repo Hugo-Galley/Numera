@@ -1,3 +1,6 @@
+import i18n from "i18next"
+import { useTranslation } from "react-i18next"
+import { appLocale } from "@/i18n/locale"
 import { useEffect, useState } from "react"
 import { AlertTriangle, CheckCircle2, DatabaseBackup, XCircle } from "lucide-react"
 import { api } from "@/lib/api"
@@ -23,13 +26,13 @@ interface BackupStatus {
 }
 
 function formatAgo(value: string | null): string {
-  if (!value) return "jamais"
+  if (!value) return i18n.t("misc.never", { ns: "settings" })
   const date = new Date(value)
   const hours = Math.floor((Date.now() - date.getTime()) / 3_600_000)
-  const label = date.toLocaleString("fr-FR", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })
-  if (hours < 1) return `à l'instant (${label})`
-  if (hours < 48) return `il y a ${hours} h (${label})`
-  return `il y a ${Math.floor(hours / 24)} jours (${label})`
+  const label = date.toLocaleString(appLocale(), { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })
+  if (hours < 1) return i18n.t("misc.justNow", { ns: "settings", label })
+  if (hours < 48) return i18n.t("misc.hoursAgo", { ns: "settings", hours, label })
+  return i18n.t("misc.daysAgo", { ns: "settings", days: Math.floor(hours / 24), label })
 }
 
 function StatusRow({ label, value, tone = "default" }: { label: string; value: string; tone?: "default" | "ok" | "warn" | "bad" }) {
@@ -43,6 +46,7 @@ function StatusRow({ label, value, tone = "default" }: { label: string; value: s
 }
 
 export function BackupCard() {
+  const { t } = useTranslation("settings")
   const [running, setRunning] = useState(false)
   const [outcome, setOutcome] = useState<Outcome | null>(null)
   const [status, setStatus] = useState<BackupStatus | null>(null)
@@ -58,7 +62,7 @@ export function BackupCard() {
       const res = await api.post<{ ok: boolean; github: boolean }>("/admin/backup/run")
       setOutcome({ ok: true, github: res.github })
     } catch (err: any) {
-      setOutcome({ ok: false, message: err?.message || "Échec de la sauvegarde" })
+      setOutcome({ ok: false, message: err?.message || t("backupCard.echecDeLaSauvegarde") })
     } finally {
       setRunning(false)
       loadStatus()
@@ -70,10 +74,10 @@ export function BackupCard() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <DatabaseBackup className="h-5 w-5" />
-          Sauvegarde
+          {t("backupCard.sauvegarde")}
         </CardTitle>
         <CardDescription>
-          Une sauvegarde chiffrée est faite toutes les 24 h, puis envoyée vers le dépôt GitHub privé s'il est configuré. Le Centre d'actions te prévient si elle n'a pas tourné depuis 2 jours.
+          {t("backupCard.uneSauvegardeChiffreeEstFaite")}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -84,48 +88,48 @@ export function BackupCard() {
                 <div className="flex gap-2 rounded-lg bg-rose-50 p-3 text-sm text-rose-700">
                   <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
                   <span>
-                    {status.stale ? "Aucune sauvegarde depuis plus de 2 jours." : "La dernière sauvegarde a échoué."}
+                    {status.stale ? t("backupCard.aucuneSauvegardeDepuisPlusDe") : t("backupCard.laDerniereSauvegardeAEchoue")}
                     {status.last_error && ` Erreur : ${status.last_error}`}
                   </span>
                 </div>
               )}
               <div className="divide-y divide-slate-100">
                 <StatusRow
-                  label="Dernière sauvegarde"
+                  label={t("backupCard.derniereSauvegarde")}
                   value={formatAgo(status.last_backup_at)}
                   tone={status.stale ? "bad" : "ok"}
                 />
                 <StatusRow
-                  label="Dernière sauvegarde automatique"
+                  label={t("backupCard.derniereSauvegardeAutomatique")}
                   value={formatAgo(status.last_auto_success_at)}
                   tone={status.last_auto_success_at ? "default" : "warn"}
                 />
                 <StatusRow
-                  label="Chiffrement"
-                  value={status.encrypted ? "Chiffrée (BACKUP_KEY)" : "Non chiffrée"}
+                  label={t("backupCard.chiffrement")}
+                  value={status.encrypted ? t("backupCard.chiffreeBackupKey") : t("backupCard.nonChiffree")}
                   tone={status.encrypted ? "ok" : "warn"}
                 />
                 <StatusRow
-                  label="Copie sur GitHub"
+                  label={t("backupCard.copieSurGithub")}
                   value={
-                    !status.github_configured ? "Non configurée"
-                    : status.github_error ? `En échec : ${status.github_error}`
+                    !status.github_configured ? t("backupCard.nonConfiguree")
+                    : status.github_error ? t("misc.githubFailed", { error: status.github_error })
                     : formatAgo(status.github_last_sync_at)
                   }
                   tone={!status.github_configured ? "warn" : status.github_error ? "bad" : "default"}
                 />
-                <StatusRow label="Sauvegardes conservées sur le serveur" value={String(status.backup_count)} />
+                <StatusRow label={t("backupCard.sauvegardesConserveesSurLeServeur")} value={String(status.backup_count)} />
               </div>
             </div>
           ) : (
             <p className="rounded-lg bg-slate-50 p-3 text-sm text-slate-500">
-              Aucune sauvegarde trouvée sur ce serveur : les sauvegardes automatiques tournent avec le conteneur <code>backup</code> (Docker).
+              {t("backupCard.aucuneSauvegardeTrouveeSurCe")} <code>backup</code> {t("backupCard.docker")}
             </p>
           )
         )}
         <Button type="button" variant="outline" onClick={run} disabled={running} className="h-11 w-full sm:w-auto">
           <DatabaseBackup className="mr-2 h-4 w-4" />
-          {running ? "Sauvegarde en cours..." : "Sauvegarder maintenant"}
+          {running ? t("backupCard.sauvegardeEnCours") : t("backupCard.sauvegarderMaintenant")}
         </Button>
       </CardContent>
 
@@ -134,18 +138,18 @@ export function BackupCard() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               {outcome?.ok ? <CheckCircle2 className="h-5 w-5 text-emerald-600" /> : <XCircle className="h-5 w-5 text-destructive" />}
-              {outcome?.ok ? "Sauvegarde terminée" : "Sauvegarde échouée"}
+              {outcome?.ok ? t("backupCard.sauvegardeTerminee") : t("backupCard.sauvegardeEchouee")}
             </DialogTitle>
             <DialogDescription>
               {outcome?.ok
                 ? outcome.github
-                  ? "La sauvegarde a été créée et envoyée sur GitHub."
-                  : "La sauvegarde a été créée localement (envoi GitHub non configuré)."
+                  ? t("backupCard.laSauvegardeAEteCreee")
+                  : t("misc.backupLocal")
                 : outcome?.message}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button onClick={() => setOutcome(null)}>Fermer</Button>
+            <Button onClick={() => setOutcome(null)}>{t("backupCard.fermer")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

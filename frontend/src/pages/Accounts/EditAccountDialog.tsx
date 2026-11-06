@@ -4,26 +4,29 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { LogoPicker } from "@/components/ui/LogoPicker"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useTranslation } from "react-i18next"
 import { TAX_WRAPPERS, TaxWrapper } from "./types"
 import type { AccountsCtx } from "./useAccounts"
 
 /** Dialogue de modification d'un compte. */
 export function EditAccountDialog({ ctx }: { ctx: AccountsCtx }) {
+  const { t } = useTranslation("accounts")
+  const { t: tc } = useTranslation("common")
   const { CURRENCIES, editingAccount, handleUpdateAccount, handleUpdateAccountBusy, isEditDialogOpen, setEditingAccount, setIsEditDialogOpen, suggestions } = ctx
   return (
     <>
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Modifier le compte</DialogTitle>
+            <DialogTitle>{t("form.editTitle")}</DialogTitle>
             <DialogDescription>
-              Mettez à jour les informations du compte.
+              {t("form.editSubtitle")}
             </DialogDescription>
           </DialogHeader>
           {editingAccount && (
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
-                <Label htmlFor="edit-name">Nom du compte</Label>
+                <Label htmlFor="edit-name">{t("form.name")}</Label>
                 <Input 
                   id="edit-name" 
                   value={editingAccount.name}
@@ -31,10 +34,10 @@ export function EditAccountDialog({ ctx }: { ctx: AccountsCtx }) {
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="edit-institution">Établissement / Banque</Label>
+                <Label htmlFor="edit-institution">{t("form.institution")}</Label>
                 <Input 
                   id="edit-institution" 
-                  placeholder="Ex: BRED, SG, Boursorama, Fortuneo..." 
+                  placeholder={t("form.institutionPlaceholder")} 
                   value={editingAccount.institution || ""}
                   onChange={(e) => setEditingAccount({...editingAccount, institution: e.target.value})}
                   list="edit-institutions-list"
@@ -53,7 +56,7 @@ export function EditAccountDialog({ ctx }: { ctx: AccountsCtx }) {
                 </datalist>
               </div>
               <div className="grid gap-2">
-                <Label>Logo de la banque</Label>
+                <Label>{t("form.logo")}</Label>
                 <LogoPicker
                   value={editingAccount.logo || null}
                   onChange={(logo) => setEditingAccount({...editingAccount, logo})}
@@ -61,7 +64,7 @@ export function EditAccountDialog({ ctx }: { ctx: AccountsCtx }) {
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="edit-type">Type de compte</Label>
+                <Label htmlFor="edit-type">{t("form.type")}</Label>
                 <Select 
                   value={editingAccount.type} 
                   onValueChange={(v) => setEditingAccount({...editingAccount, type: v as any})}
@@ -70,10 +73,10 @@ export function EditAccountDialog({ ctx }: { ctx: AccountsCtx }) {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="courant">Compte Courant</SelectItem>
-                    <SelectItem value="epargne">Épargne</SelectItem>
-                    <SelectItem value="investissement">Investissement</SelectItem>
-                    <SelectItem value="assurance_vie">Assurance-Vie</SelectItem>
+                    <SelectItem value="courant">{tc("accountTypes.courant")}</SelectItem>
+                    <SelectItem value="epargne">{tc("accountTypes.epargne")}</SelectItem>
+                    <SelectItem value="investissement">{tc("accountTypes.investissement")}</SelectItem>
+                    <SelectItem value="assurance_vie">{tc("accountTypes.assurance_vie")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -81,13 +84,13 @@ export function EditAccountDialog({ ctx }: { ctx: AccountsCtx }) {
               {editingAccount.type === "assurance_vie" && (
                 <div className="grid grid-cols-1 gap-4 pt-2 border-t mt-2 sm:grid-cols-2">
                   <div className="grid gap-2">
-                    <Label htmlFor="edit-fonds_euros_pct">Fonds Euros (%)</Label>
+                    <Label htmlFor="edit-fonds_euros_pct">{t("form.euroFunds")}</Label>
                     <Input 
                       id="edit-fonds_euros_pct" 
                       type="number" inputMode="decimal"
                       min="0"
                       max="100"
-                      placeholder="Ex: 60" 
+                      placeholder={t("form.example", { value: 60 })} 
                       value={editingAccount.fonds_euros_pct !== undefined && editingAccount.fonds_euros_pct !== null ? editingAccount.fonds_euros_pct : ""} 
                       onChange={(e) => {
                         const val = e.target.value;
@@ -102,13 +105,13 @@ export function EditAccountDialog({ ctx }: { ctx: AccountsCtx }) {
                     />
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="edit-fonds_investis_pct">Fonds Investis (%)</Label>
+                    <Label htmlFor="edit-fonds_investis_pct">{t("form.investedFunds")}</Label>
                     <Input 
                       id="edit-fonds_investis_pct" 
                       type="number" inputMode="decimal"
                       min="0"
                       max="100"
-                      placeholder="Ex: 40" 
+                      placeholder={t("form.example", { value: 40 })} 
                       value={editingAccount.fonds_investis_pct !== undefined && editingAccount.fonds_investis_pct !== null ? editingAccount.fonds_investis_pct : ""} 
                       onChange={(e) => {
                         const val = e.target.value;
@@ -125,7 +128,7 @@ export function EditAccountDialog({ ctx }: { ctx: AccountsCtx }) {
                 </div>
               )}
               <div className="grid gap-2">
-                <Label htmlFor="edit-currency">Devise</Label>
+                <Label htmlFor="edit-currency">{t("form.currency")}</Label>
                 <Select 
                   value={editingAccount.currency} 
                   onValueChange={(v) => setEditingAccount({...editingAccount, currency: v})}
@@ -143,25 +146,25 @@ export function EditAccountDialog({ ctx }: { ctx: AccountsCtx }) {
 
               {(editingAccount.type === "investissement" || editingAccount.type === "assurance_vie") && (
                 <div className="grid gap-2 pt-2 border-t mt-2">
-                  <Label htmlFor="edit-valuation_mode">Valorisation du compte</Label>
+                  <Label htmlFor="edit-valuation_mode">{t("form.valuation")}</Label>
                   <Select value={editingAccount.valuation_mode ?? (editingAccount.type === "assurance_vie" ? "snapshot" : "positions")} onValueChange={(v) => setEditingAccount({...editingAccount, valuation_mode: v as "positions" | "snapshot"})}>
                     <SelectTrigger id="edit-valuation_mode">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="positions">Calculée : positions × cours + espèces</SelectItem>
-                      <SelectItem value="snapshot">Par relevés (snapshots) saisis</SelectItem>
+                      <SelectItem value="positions">{t("form.valuationPositions")}</SelectItem>
+                      <SelectItem value="snapshot">{t("form.valuationSnapshot")}</SelectItem>
                     </SelectContent>
                   </Select>
                   <p className="text-xs text-slate-500">
-                    Choisis si la valeur du compte est calculée à partir des positions ou reprise du dernier relevé.
+                    {t("form.valuationHint")}
                   </p>
                 </div>
               )}
 
               {editingAccount.type !== "courant" && (
                 <div className="grid gap-2 pt-2 border-t mt-2">
-                  <Label htmlFor="edit-tax_wrapper">Enveloppe fiscale</Label>
+                  <Label htmlFor="edit-tax_wrapper">{t("form.taxWrapper")}</Label>
                   <Select
                     value={editingAccount.tax_wrapper ?? "none"}
                     onValueChange={(v) => setEditingAccount({ ...editingAccount, tax_wrapper: v === "none" ? null : (v as TaxWrapper) })}
@@ -170,15 +173,15 @@ export function EditAccountDialog({ ctx }: { ctx: AccountsCtx }) {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="none">Aucune</SelectItem>
+                      <SelectItem value="none">{t("form.taxWrapperNone")}</SelectItem>
                       {TAX_WRAPPERS.map(w => (
-                        <SelectItem key={w.value} value={w.value}>{w.label}</SelectItem>
+                        <SelectItem key={w.value} value={w.value}>{t(`taxWrapper.${w.value}`)}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                   {editingAccount.tax_wrapper && (
                     <>
-                      <Label htmlFor="edit-opened_at">Date d'ouverture</Label>
+                      <Label htmlFor="edit-opened_at">{t("form.openedAt")}</Label>
                       <Input
                         id="edit-opened_at"
                         type="date"
@@ -188,16 +191,16 @@ export function EditAccountDialog({ ctx }: { ctx: AccountsCtx }) {
                     </>
                   )}
                   <p className="text-xs text-slate-500">
-                    Active le suivi des plafonds et des dates clés dans la page Fiscalité.
+                    {t("form.taxWrapperHint")}
                   </p>
                 </div>
               )}
 
               {editingAccount.type === "investissement" && (
                 <div className="grid gap-4 pt-2 border-t mt-2">
-                  <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500">Asset Allocation</h3>
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500">{t("form.allocation")}</h3>
                   <div className="grid gap-2">
-                    <Label htmlFor="edit-asset_class">Classe d'actif</Label>
+                    <Label htmlFor="edit-asset_class">{t("form.assetClass")}</Label>
                     <Input 
                       id="edit-asset_class" 
                       value={editingAccount.asset_class || ""} 
@@ -209,7 +212,7 @@ export function EditAccountDialog({ ctx }: { ctx: AccountsCtx }) {
                     </datalist>
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="edit-sector">Secteur</Label>
+                    <Label htmlFor="edit-sector">{t("form.sector")}</Label>
                     <Input 
                       id="edit-sector" 
                       value={editingAccount.sector || ""} 
@@ -221,7 +224,7 @@ export function EditAccountDialog({ ctx }: { ctx: AccountsCtx }) {
                     </datalist>
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="edit-zone">Zone Géographique</Label>
+                    <Label htmlFor="edit-zone">{t("form.zone")}</Label>
                     <Input 
                       id="edit-zone" 
                       value={editingAccount.geographic_zone || ""} 
@@ -237,8 +240,8 @@ export function EditAccountDialog({ ctx }: { ctx: AccountsCtx }) {
             </div>
           )}
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>Annuler</Button>
-            <Button onClick={() => handleUpdateAccount()} disabled={handleUpdateAccountBusy} className="bg-slate-900 text-white">{handleUpdateAccountBusy ? "Enregistrement…" : "Enregistrer"}</Button>
+            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>{tc("actions.cancel")}</Button>
+            <Button onClick={() => handleUpdateAccount()} disabled={handleUpdateAccountBusy} className="bg-slate-900 text-white">{handleUpdateAccountBusy ? tc("actions.saving") : tc("actions.save")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

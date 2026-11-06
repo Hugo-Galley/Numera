@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -7,54 +8,54 @@ import type { WealthForecastView } from "./useWealthForecast"
 
 /** Montant projeté, répartition, horizon et versement en plus. */
 export function ForecastSummaryCard({ ctx }: { ctx: WealthForecastView }) {
+  const { t } = useTranslation("tools")
   const { boostedShown, data, extra, final, setExtra, setYears, years } = ctx
   return (
     <>
       <Card className="shadow-sm border-slate-100">
         <CardHeader>
-          <CardDescription>Dans {data.years} ans, tu auras environ</CardDescription>
+          <CardDescription>{t("misc.inYearsYouHave", { count: data.years })}</CardDescription>
           <CardTitle className="text-4xl sm:text-5xl font-black tracking-tight tabular-nums text-slate-900 amount-blur">
             {formatCurrency(final, "EUR")}
           </CardTitle>
           {boostedShown && (
             <p className="text-sm font-bold text-emerald-600 amount-blur">
               {data.gain_from_extra >= 0 ? "+" : ""}
-              {formatCurrency(data.gain_from_extra, "EUR")} grâce à {data.extra_monthly > 0 ? "+" : ""}
-              {data.extra_monthly} €/mois
+              {t("misc.gainFromExtra", { gain: formatCurrency(data.gain_from_extra, "EUR"), extra: `${data.extra_monthly > 0 ? "+" : ""}${data.extra_monthly}` })}
             </p>
           )}
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
             <div className="rounded-lg bg-slate-50 px-3 py-2">
-              <p className="text-xs text-slate-500">Tu pars de</p>
+              <p className="text-xs text-slate-500">{t("forecastSummaryCard.tuParsDe")}</p>
               <p className="font-bold tabular-nums text-slate-900 amount-blur">{formatCurrency(data.current_wealth, "EUR")}</p>
             </div>
             <div className="rounded-lg bg-slate-50 px-3 py-2">
-              <p className="text-xs text-slate-500">Tu mets de côté{data.savings_overridden ? " (saisi)" : ""}</p>
+              <p className="text-xs text-slate-500">{data.savings_overridden ? t("misc.youSaveEntered") : t("misc.youSave")}</p>
               <p className="font-bold tabular-nums text-slate-900 amount-blur">
                 {formatCurrency(data.avg_monthly_savings, "EUR")}
-                <span className="text-xs font-normal text-slate-500"> /mois</span>
+                <span className="text-xs font-normal text-slate-500"> {t("forecastSummaryCard.mois")}</span>
               </p>
             </div>
             <div className="rounded-lg bg-slate-50 px-3 py-2">
               <p className="text-xs text-slate-500">
-                Ton argent rapporte{data.return_breakdown.some((r) => r.source === "manual") ? " (en partie saisi)" : ""}
+                {t("misc.yourMoneyEarns")}{data.return_breakdown.some((r) => r.source === "manual") ? t("misc.partlyEntered") : ""}
               </p>
               <p className="font-bold tabular-nums text-slate-900 amount-blur">
                 {formatRate(data.annual_return_pct, 1)}
-                <span className="text-xs font-normal text-slate-500"> /an</span>
+                <span className="text-xs font-normal text-slate-500"> {t("forecastSummaryCard.an")}</span>
               </p>
             </div>
           </div>
           {data.avg_monthly_savings < 0 && (
             <p className="text-sm font-medium text-amber-600">
-              Tu dépenses plus que tu ne gagnes en moyenne : le patrimoine diminue dans cette prévision.
+              {t("forecastSummaryCard.tuDepensesPlusQueTu")}
             </p>
           )}
 
           <div className="flex flex-wrap items-center gap-2">
-            <span className="mr-1 w-full text-sm font-medium text-slate-700 sm:w-auto">J'épargne en plus :</span>
+            <span className="mr-1 w-full text-sm font-medium text-slate-700 sm:w-auto">{t("forecastSummaryCard.jEpargneEnPlus")}</span>
             {EXTRA_PRESETS.map((v) => (
               <Button
                 key={v}
@@ -63,24 +64,24 @@ export function ForecastSummaryCard({ ctx }: { ctx: WealthForecastView }) {
                 variant={extra === v ? "default" : "outline"}
                 onClick={() => setExtra(v)}
               >
-                {v === 0 ? "Rien" : `+${v} €`}
+                {v === 0 ? t("forecastSummaryCard.rien") : `+${v} €`}
               </Button>
             ))}
             <Input
               type="number" inputMode="decimal"
               className="h-10 w-28 md:h-9"
-              placeholder="Autre"
+              placeholder={t("forecastSummaryCard.autre")}
               value={EXTRA_PRESETS.includes(extra) ? "" : extra}
               onChange={(e) => setExtra(Number(e.target.value) || 0)}
             />
-            <span className="text-sm text-slate-500">€/mois</span>
+            <span className="text-sm text-slate-500">{t("forecastSummaryCard.mois2")}</span>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <span className="mr-1 w-full text-sm font-medium text-slate-700 sm:w-auto">Horizon :</span>
+            <span className="mr-1 w-full text-sm font-medium text-slate-700 sm:w-auto">{t("forecastSummaryCard.horizon")}</span>
             {HORIZONS.map((h) => (
               <Button key={h} size="sm" className="h-10 flex-1 sm:flex-none md:h-9" variant={years === h ? "default" : "outline"} onClick={() => setYears(h)}>
-                {h} ans
+                {t("misc.nYears", { count: h })}
               </Button>
             ))}
           </div>

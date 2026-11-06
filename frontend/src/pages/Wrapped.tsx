@@ -1,6 +1,8 @@
+import { useTranslation } from "react-i18next"
+import { appLocale, percentSuffix } from "@/i18n/locale"
 import { toast } from "sonner"
 import { ErrorState } from "@/components/layout/ErrorState"
-import { useCallback, useEffect, useState, type ReactNode } from "react"
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react"
 import { useSearchParams } from "react-router-dom"
 import { Gift, Play, Receipt, Store, TrendingUp, Repeat, CalendarRange } from "lucide-react"
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
@@ -44,6 +46,7 @@ function Section({ icon, title, description, children }: { icon: ReactNode; titl
 }
 
 export default function Wrapped() {
+  const { t } = useTranslation("wrapped")
   const [params, setParams] = useSearchParams()
   const year = Number(params.get("year")) || new Date().getFullYear()
   const [report, setReport] = useState<WrappedReport | null>(null)
@@ -60,20 +63,25 @@ export default function Wrapped() {
     return () => mq.removeEventListener("change", onChange)
   }, [])
 
+  // Numéro de la dernière requête : la réponse d'une année quittée entre-temps est ignorée
+  const requestId = useRef(0)
   const load = useCallback(async () => {
+    const id = ++requestId.current
     setLoading(true)
     setLoadFailed(false)
     setReport(null)
     try {
-      setReport(await api.get<WrappedReport>(`/analytics/wrapped?year=${year}`))
+      const data = await api.get<WrappedReport>(`/analytics/wrapped?year=${year}`)
+      if (id === requestId.current) setReport(data)
     } catch (error) {
+      if (id !== requestId.current) return
       console.error("Erreur lors du chargement du bilan annuel", error)
       setLoadFailed(true)
-      toast.error("Impossible de charger le bilan annuel")
+      toast.error(t("wrapped.impossibleDeChargerLeBilan"))
     } finally {
-      setLoading(false)
+      if (id === requestId.current) setLoading(false)
     }
-  }, [year])
+  }, [year, t])
 
   useEffect(() => {
     load()
@@ -81,14 +89,14 @@ export default function Wrapped() {
 
   const years = report?.available_years.length ? report.available_years : [year]
   const prev = report?.previous ?? null
-  const period = report?.is_partial ? `Janvier → ${monthName(report.months_covered)}` : "Année complète"
+  const period = report?.is_partial ? t("wrappedPage.periodPartial", { month: monthName(report.months_covered) }) : t("wrappedPage.periodFull")
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-2xl font-black tracking-tight md:text-3xl">Bilan annuel</h1>
-          <p className="text-muted-foreground">Ton année en chiffres, comparée à la précédente.</p>
+          <h1 className="text-2xl font-black tracking-tight md:text-3xl">{t("wrapped.bilanAnnuel")}</h1>
+          <p className="text-muted-foreground">{t("wrapped.tonAnneeEnChiffresComparee")}</p>
         </div>
         <Select value={String(year)} onValueChange={(v) => setParams({ year: v })}>
           <SelectTrigger className="h-11 w-full text-base sm:h-10 sm:w-32 sm:text-sm">
@@ -115,13 +123,13 @@ export default function Wrapped() {
           <Skeleton className="h-72 w-full" />
         </div>
       ) : loadFailed ? (
-        <ErrorState message="Le bilan annuel n'a pas pu être chargé." onRetry={load} />
+        <ErrorState message={t("wrapped.leBilanAnnuelNA")} onRetry={load} />
       ) : !report || !report.has_data ? (
         <Card>
           <CardContent className="flex flex-col items-center gap-3 py-16 text-center">
             <Gift className="h-10 w-10 text-slate-300" />
-            <p className="font-semibold">Aucune donnée pour {year}</p>
-            <p className="text-sm text-muted-foreground">Importe ou saisis des transactions pour générer ce bilan.</p>
+            <p className="font-semibold">{t("wrappedPage.noData", { year })}</p>
+            <p className="text-sm text-muted-foreground">{t("wrapped.importeOuSaisisDesTransactions")}</p>
           </CardContent>
         </Card>
       ) : (
@@ -132,39 +140,39 @@ export default function Wrapped() {
                 <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/60">{period}</p>
                 <p className="text-5xl font-black tracking-tight sm:text-6xl">{report.year}</p>
                 <p className="text-white/70">
-                  {report.totals.expense_count.toLocaleString("fr-FR")} dépenses, {report.top_merchants.length ? `${report.top_merchants[0].merchant} en tête` : "aucun marchand"}.
+                  {t("wrappedPage.lead", { count: report.totals.expense_count.toLocaleString(appLocale()), top: report.top_merchants.length ? t("wrappedPage.leadTop", { merchant: report.top_merchants[0].merchant }) : t("wrappedPage.leadNone") })}
                 </p>
               </div>
               <Button size="lg" onClick={() => setStoryOpen(true)} className="h-12 w-full bg-white sm:w-auto text-slate-950 hover:bg-white/90">
-                <Play className="mr-2 h-4 w-4" /> Revivre mon année
+                <Play className="mr-2 h-4 w-4" /> {t("wrapped.revivreMonAnnee")}
               </Button>
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
             <Kpi
-              label="Revenus"
+              label={t("wrapped.revenus")}
               value={formatCurrency(report.totals.income)}
               delta={prev && <Delta value={prev.income_change_pct} vsYear={prev.year} />}
             />
             <Kpi
-              label="Dépenses réelles"
+              label={t("wrapped.depensesReelles")}
               value={formatCurrency(report.totals.real_expenses)}
               delta={prev && <Delta value={prev.real_expenses_change_pct} higherIsBetter={false} vsYear={prev.year} />}
             />
             <Kpi
-              label="Taux d'épargne"
-              value={`${report.totals.savings_rate.toLocaleString("fr-FR")} %`}
+              label={t("wrapped.tauxDEpargne")}
+              value={`${report.totals.savings_rate.toLocaleString(appLocale())}${percentSuffix()}`}
               delta={prev && <Delta value={prev.savings_rate_change_pts} unit="pts" vsYear={prev.year} />}
             />
             <Kpi
-              label="Patrimoine"
+              label={t("wrapped.patrimoine")}
               value={`${report.totals.net_worth_change >= 0 ? "+" : ""}${formatCurrency(report.totals.net_worth_change)}`}
               delta={
                 report.net_worth_change_pct !== null && (
                   <span className="text-sm text-muted-foreground">
                     {report.net_worth_change_pct > 0 ? "+" : ""}
-                    {report.net_worth_change_pct.toLocaleString("fr-FR")} % sur l'année
+                    {t("wrappedPage.onTheYear", { pct: report.net_worth_change_pct.toLocaleString(appLocale()) + percentSuffix() })}
                   </span>
                 )
               }
@@ -173,35 +181,35 @@ export default function Wrapped() {
 
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
             <div className="lg:col-span-2">
-              <Section icon={<CalendarRange className="h-5 w-5 text-slate-400" />} title="Mois par mois">
+              <Section icon={<CalendarRange className="h-5 w-5 text-slate-400" />} title={t("wrapped.moisParMois")}>
                 <div className="h-60 sm:h-72">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={report.months} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                       <XAxis dataKey="month" tickFormatter={(m: number) => (narrow ? monthShort(m).charAt(0).toUpperCase() : monthShort(m))} axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "#64748b" }} interval={0} />
-                      <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "#64748b" }} tickFormatter={(v: number) => `${Number((v / 1000).toFixed(1))}k`} width={40} />
+                      <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "#64748b" }} tickFormatter={(v: number) => `${Number((v / 1000).toFixed(1))} k€`} width={52} />
                       <Tooltip
                         labelFormatter={(m: number) => monthName(m)}
                         formatter={(v: number) => formatCurrency(v)}
                         contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }}
                       />
                       <Legend wrapperStyle={{ fontSize: 12 }} />
-                      <Bar dataKey="income" name="Revenus" fill="#10b981" radius={[4, 4, 0, 0]} />
-                      <Bar dataKey="real_expenses" name="Dépenses" fill="#f43f5e" radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="income" name={t("wrapped.revenus")} fill="#10b981" radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="real_expenses" name={t("wrapped.depenses")} fill="#f43f5e" radius={[4, 4, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
                 <div className="mt-4 grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
                   {report.most_expensive_month && (
                     <p>
-                      <span className="text-muted-foreground">Mois le plus cher : </span>
+                      <span className="text-muted-foreground">{t("wrapped.moisLePlusCher")} </span>
                       <span className="font-semibold capitalize">{monthName(report.most_expensive_month.month)}</span>{" "}
                       <span className="amount-blur">({formatCurrency(report.most_expensive_month.real_expenses)})</span>
                     </p>
                   )}
                   {report.thriftiest_month && (
                     <p>
-                      <span className="text-muted-foreground">Mois le plus sobre : </span>
+                      <span className="text-muted-foreground">{t("wrapped.moisLePlusSobre")} </span>
                       <span className="font-semibold capitalize">{monthName(report.thriftiest_month.month)}</span>{" "}
                       <span className="amount-blur">({formatCurrency(report.thriftiest_month.real_expenses)})</span>
                     </p>
@@ -210,7 +218,7 @@ export default function Wrapped() {
               </Section>
             </div>
 
-            <Section icon={<Receipt className="h-5 w-5 text-slate-400" />} title="Plus gros postes">
+            <Section icon={<Receipt className="h-5 w-5 text-slate-400" />} title={t("wrapped.plusGrosPostes")}>
               <ol className="space-y-3">
                 {report.top_categories.map((c) => (
                   <li key={c.name} className="space-y-1">
@@ -231,7 +239,7 @@ export default function Wrapped() {
           </div>
 
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            <Section icon={<Store className="h-5 w-5 text-slate-400" />} title="Top marchands">
+            <Section icon={<Store className="h-5 w-5 text-slate-400" />} title={t("wrapped.topMarchands")}>
               <ol className="space-y-2">
                 {report.top_merchants.map((m, i) => (
                   <li key={m.merchant} className="flex items-center justify-between gap-3 text-sm">
@@ -245,12 +253,12 @@ export default function Wrapped() {
               </ol>
               {report.biggest_expense && (
                 <div className="mt-5 rounded-xl border bg-slate-50/60 p-4 text-sm">
-                  <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Plus grosse dépense</p>
+                  <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">{t("wrapped.plusGrosseDepense")}</p>
                   <p className="mt-1">
                     <span className="font-black amount-blur">{formatCurrency(report.biggest_expense.amount)}</span> · {report.biggest_expense.merchant}
                     <span className="text-muted-foreground">
                       {" "}
-                      le {new Date(report.biggest_expense.date).toLocaleDateString("fr-FR", { day: "numeric", month: "long" })}
+                      {t("wrappedPage.onDate", { date: new Date(report.biggest_expense.date).toLocaleDateString(appLocale(), { day: "numeric", month: "long" }) })}
                     </span>
                   </p>
                   {hoursLabel(report.biggest_expense.work_hours, hoursPerDay) && (
@@ -261,13 +269,13 @@ export default function Wrapped() {
             </Section>
 
             <div className="space-y-6">
-              <Section icon={<TrendingUp className="h-5 w-5 text-slate-400" />} title="Patrimoine & investissements">
+              <Section icon={<TrendingUp className="h-5 w-5 text-slate-400" />} title={t("wrapped.patrimoineInvestissements")}>
                 <dl className="grid grid-cols-2 gap-4 text-sm">
                   {[
-                    ["Début d'année", formatCurrency(report.totals.net_worth_start)],
-                    [report.is_partial ? "Aujourd'hui" : "Fin d'année", formatCurrency(report.totals.net_worth_end)],
-                    ["Investi / épargné", formatCurrency(report.totals.invested)],
-                    ["Dividendes", formatCurrency(report.totals.dividends)],
+                    [t("wrappedPage.startOfYear"), formatCurrency(report.totals.net_worth_start)],
+                    [report.is_partial ? t("wrapped.aujourdHui") : t("wrappedPage.endOfYear"), formatCurrency(report.totals.net_worth_end)],
+                    [t("wrappedPage.invested"), formatCurrency(report.totals.invested)],
+                    [t("wrappedPage.dividends"), formatCurrency(report.totals.dividends)],
                   ].map(([label, value]) => (
                     <div key={label}>
                       <dt className="text-muted-foreground">{label}</dt>
@@ -280,12 +288,12 @@ export default function Wrapped() {
 
               <Section
                 icon={<Repeat className="h-5 w-5 text-slate-400" />}
-                title="Abonnements"
-                description={`${formatCurrency(report.totals.subscriptions_cost)} payés sur la période`}
+                title={t("wrapped.abonnements")}
+                description={t("wrappedPage.paidPeriod", { amount: formatCurrency(report.totals.subscriptions_cost) })}
               >
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
-                    <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Nouveaux</p>
+                    <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">{t("wrapped.nouveaux")}</p>
                     {report.new_subscriptions.length ? (
                       <ul className="mt-1 space-y-0.5">
                         {report.new_subscriptions.map((s) => (
@@ -293,11 +301,11 @@ export default function Wrapped() {
                         ))}
                       </ul>
                     ) : (
-                      <p className="mt-1 text-muted-foreground">Aucun</p>
+                      <p className="mt-1 text-muted-foreground">{t("wrapped.aucun")}</p>
                     )}
                   </div>
                   <div>
-                    <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Arrêtés</p>
+                    <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">{t("wrapped.arretes")}</p>
                     {report.stopped_subscriptions.length ? (
                       <>
                         <ul className="mt-1 space-y-0.5">
@@ -306,11 +314,11 @@ export default function Wrapped() {
                           ))}
                         </ul>
                         <p className="mt-1 font-semibold text-emerald-600 amount-blur">
-                          {formatCurrency(report.stopped_subscriptions_yearly_saving)} / an économisés
+                          {t("wrappedPage.savedPerYear", { amount: formatCurrency(report.stopped_subscriptions_yearly_saving) })}
                         </p>
                       </>
                     ) : (
-                      <p className="mt-1 text-muted-foreground">Aucun</p>
+                      <p className="mt-1 text-muted-foreground">{t("wrapped.aucun")}</p>
                     )}
                   </div>
                 </div>

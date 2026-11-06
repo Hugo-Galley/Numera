@@ -21,15 +21,15 @@ export type Account = {
 }
 
 export const TAX_WRAPPERS = [
-  { value: "pea", label: "PEA" },
-  { value: "per", label: "PER" },
-  { value: "cto", label: "CTO" },
-  { value: "assurance_vie", label: "Assurance-vie" },
-  { value: "livret_a", label: "Livret A" },
-  { value: "livret_jeune", label: "Livret Jeune" },
-  { value: "ldds", label: "LDDS" },
-  { value: "lep", label: "LEP" },
-  { value: "pee", label: "PEE" },
+  { value: "pea" },
+  { value: "per" },
+  { value: "cto" },
+  { value: "assurance_vie" },
+  { value: "livret_a" },
+  { value: "livret_jeune" },
+  { value: "ldds" },
+  { value: "lep" },
+  { value: "pee" },
 ] as const
 
 export type TaxWrapper = (typeof TAX_WRAPPERS)[number]["value"]

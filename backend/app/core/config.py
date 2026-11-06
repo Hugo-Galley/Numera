@@ -25,7 +25,7 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60  # 1 hour
     SESSION_MAX_HOURS: int = 12  # au-delà, /auth/refresh refuse : nouvelle connexion par mot de passe
     ADMIN_USERNAME: str = "admin"
-    # To generate a hash: python scripts/change_password.py your-password
+    # To generate a hash: python scripts/ops/change_password.py your-password
     ADMIN_PASSWORD_HASH: str = "placeholder-hash-to-be-replaced-in-env"
     CORS_ORIGINS: str = "http://localhost:5173,http://localhost:8082"
     LOGIN_MAX_ATTEMPTS: int = 5

@@ -1,4 +1,5 @@
 """Rapprochement : dernier relevé du courtier vs valeur calculée par Numera."""
+from app.core.i18n import tr
 from app.core.logging import get_logger
 from app.domain.portfolio import RECONCILIATION_THRESHOLD_PCT, uses_positions
 from app.repositories.analytics import audit as repo
@@ -26,13 +27,13 @@ async def detect(ctx: AuditContext) -> list[ActionItem]:
                 id=f"reconciliation-gap-{account.id}-{latest['date'][:10]}",
                 type="investments",
                 severity="medium",
-                title=f"Écart avec le relevé du courtier : {account.name}",
-                description=(
-                    f"Le relevé du {latest['date'][:10]} indique {latest['snapshot_value']:.2f} {account.currency}, "
-                    f"Numera calcule {latest['computed_value']:.2f} ({latest['gap_pct']:+.1f} %, seuil {RECONCILIATION_THRESHOLD_PCT:.0f} %). "
-                    "Une opération, des frais ou un dividende manquent probablement."
+                title=tr("audit.broker_reconciliation.title", account=account.name),
+                description=tr(
+                    "audit.broker_reconciliation.description", date=latest["date"][:10], currency=account.currency,
+                    snapshot=f"{latest['snapshot_value']:.2f}", computed=f"{latest['computed_value']:.2f}",
+                    gap=f"{latest['gap_pct']:+.1f}", threshold=f"{RECONCILIATION_THRESHOLD_PCT:.0f}",
                 ),
-                action_label="Vérifier le compte",
+                action_label=tr("audit.broker_reconciliation.action"),
                 action_url=f"/accounts/{account.id}",
                 action_type="link",
                 metadata={"account_id": account.id, **latest},

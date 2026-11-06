@@ -15,6 +15,7 @@ from datetime import date, datetime, timedelta
 from sqlalchemy.orm import Session
 
 from app.core.errors import NotFoundError
+from app.core.i18n import tr
 from app.integrations.currency import get_exchange_rates
 from app.models.provision import Provision
 from app.repositories.budget import provisions as repo
@@ -84,17 +85,30 @@ def _base_state(p: Provision, today: date) -> ProvisionState:
     )
 
 
-async def _last_payment(db: Session, p: Provision, around: date, rates: dict[str, float]) -> dict | None:
-    """Plus grosse dépense de la catégorie près de l'échéance précédente (parts de découpage comprises)."""
-    if p.category_id is None:
-        return None
+def _payment_window(around: date) -> tuple[datetime, datetime]:
     start = datetime.combine(around - timedelta(days=PAYMENT_WINDOW_DAYS), datetime.min.time())
     end = datetime.combine(around + timedelta(days=PAYMENT_WINDOW_DAYS + 1), datetime.min.time())
-    rows = repo.category_expenses_between(db, p.category_id, start, end)
-    if not rows:
-        return None
-    best = max(rows, key=lambda r: r.net_amount / rates.get(r.currency, 1.0))
-    return {"date": best.date.date(), "amount": round(best.net_amount / rates.get(best.currency, 1.0), 2)}
+    return start, end
+
+
+def _last_payments(db: Session, states: list[ProvisionState], rates: dict[str, float]) -> dict[int, dict]:
+    """Plus grosse dépense de la catégorie près de l'échéance précédente (parts de découpage comprises), par provision.
+
+    Une seule requête pour toutes les provisions (catégories sur la fenêtre englobante), filtrée en mémoire."""
+    wanted = [(st.provision, *_payment_window(st.previous_due)) for st in states if st.provision.category_id is not None]
+    if not wanted:
+        return {}
+    rows = repo.category_expenses_between(
+        db, {p.category_id for p, _, _ in wanted if p.category_id is not None}, min(start for _, start, _ in wanted), max(end for _, _, end in wanted)
+    )
+    payments: dict[int, dict] = {}
+    for provision, start, end in wanted:
+        mine = [r for r in rows if r.category_id == provision.category_id and start <= r.date < end]
+        if not mine:
+            continue
+        best = max(mine, key=lambda r: r.net_amount / rates.get(r.currency, 1.0))
+        payments[provision.id] = {"date": best.date.date(), "amount": round(best.net_amount / rates.get(best.currency, 1.0), 2)}
+    return payments
 
 
 async def compute_states(db: Session, provisions: list[Provision], today: date | None = None) -> list[ProvisionState]:
@@ -116,9 +130,10 @@ async def compute_states(db: Session, provisions: list[Provision], today: date |
         for st in group:
             st.funded = st.target_now * ratio
 
+    payments = _last_payments(db, states, rates)
     for st in states:
         p = st.provision
-        st.last_payment = await _last_payment(db, p, st.previous_due, rates)
+        st.last_payment = payments.get(p.id)
         if not p.active:
             st.status = "inactive"
             st.monthly_needed = 0.0
@@ -197,15 +212,15 @@ async def summary(db: Session, today: date | None = None) -> dict:
 
 def _check_refs(db: Session, category_id: int | None, account_id: int | None) -> None:
     if category_id is not None and not repo.category_exists(db, category_id):
-        raise NotFoundError("Catégorie introuvable")
+        raise NotFoundError(tr("errors.category_not_found"))
     if account_id is not None and not repo.account_exists(db, account_id):
-        raise NotFoundError("Compte introuvable")
+        raise NotFoundError(tr("errors.account_not_found"))
 
 
 def _require(db: Session, provision_id: int) -> Provision:
     provision = repo.get(db, provision_id)
     if provision is None:
-        raise NotFoundError("Provision introuvable")
+        raise NotFoundError(tr("errors.provision_not_found"))
     return provision
 
 

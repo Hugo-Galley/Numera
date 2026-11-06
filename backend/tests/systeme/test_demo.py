@@ -110,3 +110,43 @@ def test_seed_demo_script_imports():
     module = importlib.import_module("scripts.seed_demo")
     assert module.generate_demo_data is generate_demo_data
     assert module.wipe_database is wipe_database
+
+
+# --- Démo publique : vie privée des visiteurs et plafonds d'écriture (audit M3, M4) ---
+
+
+def test_demo_login_events_do_not_store_visitor_ip_or_user_agent(client, monkeypatch):
+    monkeypatch.setattr(settings, "DEMO_MODE", True)
+    response = client.post(
+        "/auth/token",
+        data={"username": "admin", "password": "admin"},
+        headers={"x-real-ip": "203.0.113.7", "user-agent": "Mozilla/5.0 visiteur"},
+    )
+    assert response.status_code == 200
+    events = client.get("/admin/login-events").json()
+    assert events and all(e["ip"] is None and e["user_agent"] is None for e in events)
+    assert "203.0.113.7" not in str(events)
+
+
+def test_login_events_keep_ip_outside_demo(client):
+    client.post("/auth/token", data={"username": "admin", "password": "admin"}, headers={"x-real-ip": "203.0.113.7"})
+    assert any(e["ip"] == "203.0.113.7" for e in client.get("/admin/login-events").json())
+
+
+def test_demo_import_is_capped_at_200_kb(client, monkeypatch):
+    monkeypatch.setattr(settings, "DEMO_MODE", True)
+    big = b"date;amount;merchant\n" + b"2025-01-01;1;x\n" * 20_000  # ~300 Ko
+    response = client.post("/import/preview", data={"sample_size": "3"}, files={"file": ("big.csv", big, "text/csv")})
+    assert response.status_code == 413
+
+
+def test_demo_write_quota_returns_429_per_ip(client, monkeypatch):
+    from app.services.systeme.demo import guard
+
+    monkeypatch.setattr(settings, "DEMO_MODE", True)
+    monkeypatch.setattr(guard, "demo_write_limiter", guard.LoginRateLimiter(3, 60, 60))
+    codes = [client.post("/transactions", json={}, headers={"x-real-ip": "198.51.100.1"}).status_code for _ in range(5)]
+    assert 429 in codes and codes[-1] == 429
+    # une autre IP n'est pas touchée, et les lectures restent libres
+    assert client.post("/transactions", json={}, headers={"x-real-ip": "198.51.100.2"}).status_code != 429
+    assert client.get("/accounts", headers={"x-real-ip": "198.51.100.1"}).status_code != 429

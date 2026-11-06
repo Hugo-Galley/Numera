@@ -23,7 +23,7 @@ def test_login_invalid_password(client: TestClient):
         data={"username": settings.ADMIN_USERNAME, "password": "wrongpassword"}
     )
     assert response.status_code == 401
-    assert response.json()["detail"] == "Incorrect username or password"
+    assert response.json()["detail"] == "Identifiant ou mot de passe incorrect"
 
 def test_login_invalid_username(client: TestClient):
     response = client.post(
@@ -31,7 +31,7 @@ def test_login_invalid_username(client: TestClient):
         data={"username": "wronguser", "password": "password"}
     )
     assert response.status_code == 401
-    assert response.json()["detail"] == "Incorrect username or password"
+    assert response.json()["detail"] == "Identifiant ou mot de passe incorrect"
 
 
 def test_login_is_rate_limited(client: TestClient):

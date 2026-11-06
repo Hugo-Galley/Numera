@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next"
+import { appLocale } from "@/i18n/locale"
 import { ErrorState } from "@/components/layout/ErrorState"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { useSearchParams } from "react-router-dom"
@@ -16,7 +18,7 @@ import { cn } from "@/lib/utils"
 import { fetchCurrentBudgetMonth } from "@/lib/budgetPeriod"
 import type { MonthReview as MonthReviewData } from "@/types/monthReview"
 
-const STEPS = ["Catégoriser", "Soldes", "Budget", "Fait marquant", "Clôturer"] as const
+const STEPS = ["categorize", "accounts", "budget", "highlight", "close"] as const
 
 function previousMonth() {
   const d = new Date()
@@ -26,6 +28,7 @@ function previousMonth() {
 }
 
 export default function MonthReview() {
+  const { t } = useTranslation("month")
   const [params, setParams] = useSearchParams()
   const [fallback, setFallback] = useState(previousMonth)
   // Mois de paie : le dernier mois terminé est celui qui précède le mois budgétaire en cours.
@@ -68,10 +71,10 @@ export default function MonthReview() {
       if (requestId !== loadRequestId.current) return false
       setReview(null)  // pas l'ancien mois sous le nouveau libellé
       setLoadFailed(true)
-      toast.error("Impossible de charger la revue du mois")
+      toast.error(t("monthReview.impossibleDeChargerLaRevue"))
     }
     return true
-  }, [year, month])
+  }, [year, month, t])
 
   useEffect(() => {
     setLoading(true)
@@ -95,9 +98,9 @@ export default function MonthReview() {
         highlight: highlight.trim() || null,
       })
       setReview(data)
-      toast.success("Mois clôturé")
+      toast.success(t("monthReview.moisCloture"))
     } catch {
-      toast.error("Échec de la clôture")
+      toast.error(t("monthReview.echecDeLaCloture"))
     } finally {
       setBusy(false)
     }
@@ -107,16 +110,16 @@ export default function MonthReview() {
     setBusy(true)
     try {
       await api.delete(`/month-review?year=${year}&month=${month}`)
-      toast.success("Mois rouvert")
+      toast.success(t("monthReview.moisRouvert"))
       await load()
     } catch {
-      toast.error("Échec de la réouverture")
+      toast.error(t("monthReview.echecDeLaReouverture"))
     } finally {
       setBusy(false)
     }
   }
 
-  const label = new Date(year, month - 1, 1).toLocaleDateString("fr-FR", { month: "long", year: "numeric" })
+  const label = new Date(year, month - 1, 1).toLocaleDateString(appLocale(), { month: "long", year: "numeric" })
 
   function status(i: number): "ok" | "todo" | "neutral" {
     if (!review) return "neutral"
@@ -133,16 +136,16 @@ export default function MonthReview() {
         <div>
           <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight md:text-3xl">
             <ClipboardCheck className="h-7 w-7 text-emerald-600" />
-            Revue de mois
+            {t("monthReview.revueDeMois")}
           </h1>
-          <p className="text-sm text-slate-500 md:text-base">Passez le mois en revue, étape par étape, puis clôturez-le.</p>
+          <p className="text-sm text-slate-500 md:text-base">{t("monthReview.passezLeMoisEnRevue")}</p>
         </div>
         <div className="flex items-center justify-between gap-2 rounded-xl border border-slate-200 bg-white p-1 md:justify-start md:border-0 md:bg-transparent md:p-0">
-          <Button variant="outline" size="icon" className="h-11 w-11 md:h-10 md:w-10" onClick={() => go(-1)} aria-label="Mois précédent">
+          <Button variant="outline" size="icon" className="h-11 w-11 md:h-10 md:w-10" onClick={() => go(-1)} aria-label={t("monthReview.moisPrecedent")}>
             <ChevronLeft className="h-4 w-4" />
           </Button>
           <span className="min-w-36 flex-1 text-center font-semibold capitalize md:flex-none">{label}</span>
-          <Button variant="outline" size="icon" className="h-11 w-11 md:h-10 md:w-10" onClick={() => go(1)} aria-label="Mois suivant" disabled={atLatest}>
+          <Button variant="outline" size="icon" className="h-11 w-11 md:h-10 md:w-10" onClick={() => go(1)} aria-label={t("monthReview.moisSuivant")} disabled={atLatest}>
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
@@ -162,14 +165,14 @@ export default function MonthReview() {
                 step !== i && s === "todo" && "border-amber-300 text-amber-700"
               )}
             >
-              {i + 1}. {name}
+              {i + 1}. {t(`monthReview.steps.${name}`)}
             </button>
           )
         })}
       </div>
 
       {loadFailed && !loading ? (
-        <ErrorState message="La revue du mois n'a pas pu être chargée." onRetry={() => { setLoading(true); load().then((current) => current && setLoading(false)) }} />
+        <ErrorState message={t("monthReview.laRevueDuMoisN")} onRetry={() => { setLoading(true); load().then((current) => current && setLoading(false)) }} />
       ) : loading || !review ? (
         <Skeleton className="h-64 w-full" />
       ) : (
@@ -181,7 +184,7 @@ export default function MonthReview() {
             <Card>
               <CardContent className="space-y-3 p-4 md:p-6">
                 <label htmlFor="highlight" className="text-sm text-slate-600">
-                  Un fait marquant à retenir de ce mois (optionnel) : résiliation, grosse dépense, changement d'épargne…
+                  {t("monthReview.unFaitMarquantARetenir")}
                 </label>
                 <textarea
                   id="highlight"

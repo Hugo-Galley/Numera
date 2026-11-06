@@ -10,6 +10,7 @@ import {
   CardTitle,
   CardDescription
 } from "@/components/ui/card"
+import { useTranslation } from "react-i18next"
 import { formatCurrency } from "@/lib/utils"
 import { AreaChart, Area, ResponsiveContainer } from "recharts"
 
@@ -43,12 +44,13 @@ export function DashboardKPIs({
   analytics,
   kpiHistory
 }: DashboardKPIsProps) {
+  const { t } = useTranslation("dashboard")
   return (
     <div className="grid gap-3 md:gap-6 grid-cols-2 md:grid-cols-3">
       <Card className="shadow-sm border-slate-100 hover:border-emerald-200 transition-colors cursor-pointer group">
         <CardHeader className="p-3 pb-1 sm:p-6 sm:pb-2 flex flex-row items-center justify-between gap-2 space-y-0">
           <CardDescription className="text-xs sm:text-sm font-medium group-hover:text-emerald-600 transition-colors">
-            {selectedAccountId === "all" ? "Revenus Mensuels" : "Entrées d'argent"}
+            {selectedAccountId === "all" ? t("kpi.monthlyIncome") : t("kpi.moneyIn")}
           </CardDescription>
           <div className="hidden sm:flex h-8 w-8 bg-emerald-50 rounded-full items-center justify-center group-hover:bg-emerald-100 transition-colors">
             <ArrowUpRight className="h-4 w-4 text-emerald-600" />
@@ -59,14 +61,14 @@ export function DashboardKPIs({
             <span className="amount-blur">{formatCurrency(analytics?.revenus_totaux || 0, displayCurrency)}</span>
           </CardTitle>
           <Sparkline data={kpiHistory} dataKey="revenus" color="#10b981" />
-          <p className="hidden sm:block text-[10px] text-slate-400 mt-2 uppercase tracking-wider font-bold">Tendance 6 mois</p>
+          <p className="hidden sm:block text-[10px] text-slate-400 mt-2 uppercase tracking-wider font-bold">{t("kpi.trend")}</p>
         </CardContent>
       </Card>
 
       <Card className="shadow-sm border-slate-100 hover:border-rose-200 transition-colors cursor-pointer group">
         <CardHeader className="p-3 pb-1 sm:p-6 sm:pb-2 flex flex-row items-center justify-between gap-2 space-y-0">
           <CardDescription className="text-xs sm:text-sm font-medium group-hover:text-rose-600 transition-colors">
-            {selectedAccountId === "all" ? "Dépenses Mensuelles" : "Sorties d'argent"}
+            {selectedAccountId === "all" ? t("kpi.monthlyExpenses") : t("kpi.moneyOut")}
           </CardDescription>
           <div className="hidden sm:flex h-8 w-8 bg-rose-50 rounded-full items-center justify-center group-hover:bg-rose-100 transition-colors">
             <ArrowDownRight className="h-4 w-4 text-rose-600" />
@@ -77,14 +79,14 @@ export function DashboardKPIs({
             <span className="amount-blur">{formatCurrency((selectedAccountId === "all" ? analytics?.depenses_reelles : analytics?.depenses_totales) || 0, displayCurrency)}</span>
           </CardTitle>
           <Sparkline data={kpiHistory} dataKey={selectedAccountId === "all" ? "depenses_reelles" : "depenses"} color="#f43f5e" />
-          <p className="hidden sm:block text-[10px] text-slate-400 mt-2 uppercase tracking-wider font-bold">Tendance 6 mois</p>
+          <p className="hidden sm:block text-[10px] text-slate-400 mt-2 uppercase tracking-wider font-bold">{t("kpi.trend")}</p>
         </CardContent>
       </Card>
 
       <Card className="col-span-2 md:col-span-1 shadow-sm border-slate-100 hover:border-blue-200 transition-colors cursor-pointer group">
         <CardHeader className="p-3 pb-1 sm:p-6 sm:pb-2 flex flex-row items-center justify-between gap-2 space-y-0">
           <CardDescription className="text-xs sm:text-sm font-medium group-hover:text-blue-600 transition-colors">
-            {selectedAccountId === "all" ? "Épargne Réalisée" : "Solde Actuel"}
+            {selectedAccountId === "all" ? t("kpi.savingsMade") : t("kpi.currentBalance")}
           </CardDescription>
           <div className="hidden sm:flex h-8 w-8 bg-blue-50 rounded-full items-center justify-center group-hover:bg-blue-100 transition-colors">
             <Wallet className="h-4 w-4 text-blue-600" />
@@ -97,7 +99,7 @@ export function DashboardKPIs({
             </span>
           </CardTitle>
           <Sparkline data={kpiHistory} dataKey="epargne_flow" color="#3b82f6" />
-          <p className="hidden sm:block text-[10px] text-slate-400 mt-2 uppercase tracking-wider font-bold">Tendance 6 mois</p>
+          <p className="hidden sm:block text-[10px] text-slate-400 mt-2 uppercase tracking-wider font-bold">{t("kpi.trend")}</p>
         </CardContent>
       </Card>
     </div>

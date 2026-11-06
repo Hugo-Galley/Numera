@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.controllers.deps import require_interactive_session
+from app.core.sync_bridge import run_async
 from app.db.session import get_db
 from app.schemas.notification import (
     NotificationSettingsRead,
@@ -26,6 +27,6 @@ def update_notification_settings(payload: NotificationSettingsUpdate, db: Sessio
 
 
 @router.post("/test", response_model=NotificationTestResult)
-async def send_test_notification(payload: NotificationTestRequest, db: Session = Depends(get_db)):
+def send_test_notification(payload: NotificationTestRequest, db: Session = Depends(get_db)):
     """Message d'essai sur un canal configuré, même désactivé (pour valider les réglages avant de l'activer)."""
-    return await service.send_test_notification(db, payload)
+    return run_async(service.send_test_notification(db, payload))

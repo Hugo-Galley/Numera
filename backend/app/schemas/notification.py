@@ -2,6 +2,8 @@ from typing import Literal
 
 from pydantic import BaseModel, Field, field_validator
 
+from app.core.i18n import tr
+
 Severity = Literal["low", "medium", "high"]
 
 
@@ -18,6 +20,7 @@ class NotificationSettingsRead(BaseModel):
     weekly_digest: bool
     hide_amounts: bool
     public_url: str
+    language: Literal["fr", "en"]
 
 
 class NotificationSettingsUpdate(BaseModel):
@@ -32,6 +35,8 @@ class NotificationSettingsUpdate(BaseModel):
     weekly_digest: bool | None = None
     hide_amounts: bool | None = None
     public_url: str | None = Field(default=None, max_length=300)
+    # Langue des messages envoyés par la tâche de fond (sans requête HTTP, donc sans Accept-Language) ; pas sensible
+    language: Literal["fr", "en"] | None = None
     # Exigé quand une destination d'envoi ou le masquage des montants change (jeton de session volé)
     current_password: str | None = None
 
@@ -39,7 +44,7 @@ class NotificationSettingsUpdate(BaseModel):
     @classmethod
     def _http_url(cls, value: str | None) -> str | None:
         if value and not value.strip().lower().startswith(("http://", "https://")):
-            raise ValueError("L'adresse doit commencer par http:// ou https://")
+            raise ValueError(tr("validation.url_scheme"))
         return value
 
 

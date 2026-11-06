@@ -2,6 +2,7 @@
 from sqlalchemy.orm import Session
 
 from app.core.errors import BusinessRuleError, InvalidOperationError, NotFoundError
+from app.core.i18n import tr
 from app.models.transaction import Transaction
 from app.repositories.budget import transactions as repo
 from app.repositories.comptes import accounts as account_repo
@@ -11,21 +12,19 @@ from app.services.budget.balances import recalculate_running_balances
 from app.services.budget.transactions import require
 from app.services.budget.transfers import create_counterpart, link_pair, unlink_pair
 
-REIMBURSED_CANNOT_TRANSFER = "Une transaction qui porte des remboursements ne peut pas être un virement interne"
-
 
 async def create_transfer_counterpart(db: Session, transaction_id: int, payload: TransferCounterpartCreate) -> TransferCounterpartRead:
     """Crée la contrepartie manquante d'une sortie sur un autre compte et la relie."""
     tx = require(db, transaction_id)
     if tx.type != "Sortie":
-        raise BusinessRuleError("Only a Sortie can get a counterpart")
+        raise BusinessRuleError(tr("errors.counterpart_sortie_only"))
     if remb.has_reimbursement(db, tx.id):
-        raise InvalidOperationError(REIMBURSED_CANNOT_TRANSFER)
+        raise InvalidOperationError(tr("errors.reimbursed_cannot_transfer"))
     dest = account_repo.get(db, payload.account_id)
     if not dest:
-        raise NotFoundError("Account not found")
+        raise NotFoundError(tr("errors.account_not_found"))
     if dest.id == tx.account_id:
-        raise BusinessRuleError("Destination must be another account")
+        raise BusinessRuleError(tr("errors.destination_other_account"))
 
     leg, kind = await create_counterpart(db, tx, dest, date=payload.date, amount=payload.amount)
     db.commit()
@@ -38,20 +37,20 @@ async def create_transfer_counterpart(db: Session, transaction_id: int, payload:
 def link_transactions(db: Session, transaction_id: int, other_id: int, type: str) -> dict:
     tx1 = require(db, transaction_id)
     if type not in ("regular", "investment"):
-        raise BusinessRuleError("type must be 'regular' or 'investment'")
+        raise BusinessRuleError(tr("errors.link_type"))
     if type == "regular" and other_id == transaction_id:
-        raise BusinessRuleError("A transaction cannot be linked to itself")
+        raise BusinessRuleError(tr("errors.link_to_itself"))
     if type == "regular":
         other = repo.get(db, other_id)
         if not other:
-            raise NotFoundError("Secondary transaction not found")
+            raise NotFoundError(tr("errors.secondary_tx_not_found"))
     else:
         other = repo.get_investment(db, other_id)
         if not other:
-            raise NotFoundError("Investment transaction not found")
+            raise NotFoundError(tr("errors.investment_tx_not_found"))
 
     if remb.has_reimbursement(db, tx1.id) or (type == "regular" and remb.has_reimbursement(db, other.id)):
-        raise InvalidOperationError(REIMBURSED_CANNOT_TRANSFER)
+        raise InvalidOperationError(tr("errors.reimbursed_cannot_transfer"))
     link_pair(db, tx1, other, type, "manual")
     db.commit()
     return {"status": "ok"}

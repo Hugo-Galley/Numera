@@ -1,0 +1,48 @@
+{
+  "groups": {
+    "overview": "Overview",
+    "wealth": "Wealth",
+    "management": "Management"
+  },
+  "items": {
+    "dashboard": "Dashboard",
+    "month": "Month",
+    "wrapped": "Yearly review",
+    "actions": "Action center",
+    "accounts": "Accounts",
+    "savings": "Savings",
+    "investments": "Investments",
+    "tax": "Taxes",
+    "recurring": "Scheduled",
+    "reimbursements": "Reimbursements",
+    "classement": "Organize",
+    "simulator": "Simulator"
+  },
+  "mobile": {
+    "label": "Main navigation",
+    "home": "Home",
+    "month": "Month",
+    "accounts": "Accounts",
+    "investments": "Investing",
+    "more": "More",
+    "menuTitle": "Navigation",
+    "menuDescription": "All Numera pages"
+  },
+  "urgentActions_one": "{{count}} urgent action",
+  "urgentActions_other": "{{count}} urgent actions",
+  "privacy": {
+    "show": "Show",
+    "hide": "Hide",
+    "showAmounts": "Show amounts",
+    "hideAmounts": "Hide amounts"
+  },
+  "search": "Search",
+  "user": {
+    "fallbackName": "User",
+    "role": "Administrator",
+    "myAccount": "My account",
+    "settings": "Settings",
+    "logout": "Log out"
+  },
+  "demoBanner": "Demo — sample data, reset every day"
+}

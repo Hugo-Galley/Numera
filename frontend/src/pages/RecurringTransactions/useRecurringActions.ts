@@ -1,6 +1,7 @@
+import i18n from "i18next"
+import { dateLocale } from "@/i18n/locale"
 import { format } from "date-fns"
 import { errorMessage, formatCurrency } from "@/lib/utils"
-import { fr } from "date-fns/locale"
 import { toNaiveLocal } from "@/lib/dates"
 import { toast } from "sonner"
 import { useEffect } from "react"
@@ -34,7 +35,7 @@ export function useRecurringActions(p: ReturnType<typeof useRecurringState> & Re
       if (suggestionsData) setSuggestions(suggestionsData)
     } catch (error) {
       console.error("Error loading data:", error)
-      toast.error("Erreur lors du chargement des données")
+      toast.error(i18n.t("useRecurringActions.erreurLorsDuChargementDes", { ns: "recurring" }))
     } finally {
       setLoading(false)
     }
@@ -115,7 +116,7 @@ export function useRecurringActions(p: ReturnType<typeof useRecurringState> & Re
 
   const [handleSubmit, handleSubmitBusy] = useSubmit(async () => {
     if (!formData.name || !formData.amount || !formData.account_id) {
-      toast.error("Veuillez remplir les champs obligatoires")
+      toast.error(i18n.t("useRecurringActions.veuillezRemplirLesChampsObligatoires", { ns: "recurring" }))
       return
     }
 
@@ -145,39 +146,39 @@ export function useRecurringActions(p: ReturnType<typeof useRecurringState> & Re
     try {
       if (editingTx) {
         await patchRecurringTransactionsById(editingTx.id, payload)
-        toast.success("Transaction récurrente mise à jour")
+        toast.success(i18n.t("useRecurringActions.transactionRecurrenteMiseAJour", { ns: "recurring" }))
       } else {
         await postRecurringTransactions(payload)
-        toast.success("Transaction récurrente créée")
+        toast.success(i18n.t("useRecurringActions.transactionRecurrenteCreee", { ns: "recurring" }))
       }
       setIsFormOpen(false)
       loadData()
     } catch (error) {
       console.error("Error saving recurring tx:", error)
-      toast.error(errorMessage(error, "Erreur lors de l'enregistrement"))
+      toast.error(errorMessage(error, i18n.t("useRecurringActions.erreurLorsDeLEnregistrement", { ns: "recurring" })))
     }
   })
 
   const handleDelete = async (id: number) => {
-    if (!(await confirm("Êtes-vous sûr de vouloir supprimer cette récurrence ?"))) return
+    if (!(await confirm(i18n.t("useRecurringActions.etesVousSurDeVouloir", { ns: "recurring" })))) return
     try {
       await deleteRecurringTransactionsById(id)
-      toast.success("Transaction récurrente supprimée")
+      toast.success(i18n.t("useRecurringActions.transactionRecurrenteSupprimee", { ns: "recurring" }))
       loadData()
     } catch (error) {
       console.error("Error deleting recurring tx:", error)
-      toast.error("Erreur lors de la suppression")
+      toast.error(i18n.t("useRecurringActions.erreurLorsDeLaSuppression", { ns: "recurring" }))
     }
   }
 
   const [handleTrigger, handleTriggerBusy] = useSubmit(async () => {
     try {
       const count = await postRecurringTransactionsTrigger<number>({})
-      toast.success(`${count} transaction(s) générée(s)`)
+      toast.success(i18n.t("misc.generated", { ns: "recurring", count: count }))
       loadData()
     } catch (error) {
       console.error("Error triggering generation:", error)
-      toast.error("Erreur lors de la génération")
+      toast.error(i18n.t("useRecurringActions.erreurLorsDeLaGeneration", { ns: "recurring" }))
     }
   })
 
@@ -186,7 +187,7 @@ export function useRecurringActions(p: ReturnType<typeof useRecurringState> & Re
       await patchRecurringTransactionsById(tx.id, { is_active: !tx.is_active })
       loadData()
     } catch (error) {
-      toast.error("Erreur lors de la modification")
+      toast.error(i18n.t("useRecurringActions.erreurLorsDeLaModification", { ns: "recurring" }))
     }
   }
 
@@ -230,17 +231,17 @@ export function useRecurringActions(p: ReturnType<typeof useRecurringState> & Re
   }
 
   const handleIgnoreDetection = async (potential: any) => {
-    if (!(await confirm(`Ne plus suggérer "${potential.name}" (${formatCurrency(potential.amount)}) comme abonnement ?`, { title: "Ignorer la suggestion", confirmLabel: "Ne plus suggérer", destructive: false }))) return
+    if (!(await confirm(i18n.t("misc.ignoreConfirm", { ns: "recurring", name: potential.name, amount: formatCurrency(potential.amount) }), { title: i18n.t("misc.ignoreTitle", { ns: "recurring" }), confirmLabel: i18n.t("misc.ignoreLabel", { ns: "recurring" }), destructive: false }))) return
     try {
       await postAnalyticsSubscriptionsIgnore({
         merchant: potential.name,
         amount: potential.amount
       })
-      toast.success("Suggestion ignorée")
+      toast.success(i18n.t("useRecurringActions.suggestionIgnoree", { ns: "recurring" }))
       loadData()
     } catch (error) {
       console.error("Error ignoring detection:", error)
-      toast.error("Erreur lors de l'opération")
+      toast.error(i18n.t("useRecurringActions.erreurLorsDeLOperation", { ns: "recurring" }))
     }
   }
 
@@ -249,7 +250,7 @@ export function useRecurringActions(p: ReturnType<typeof useRecurringState> & Re
     try {
       const d = new Date(dateStr)
       if (isNaN(d.getTime())) return "-"
-      return format(d, formatStr, { locale: fr })
+      return format(d, formatStr, { locale: dateLocale() })
     } catch (e) {
       return "-"
     }

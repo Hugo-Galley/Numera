@@ -4,6 +4,7 @@ from typing import Annotated
 
 from pydantic import AfterValidator, Field
 
+from app.core.i18n import tr
 from app.core.time import to_naive_utc
 
 MAX_AMOUNT = 1e12
@@ -21,7 +22,7 @@ Quantity = Annotated[float, Field(ge=0, lt=MAX_AMOUNT, allow_inf_nan=False)]
 def _check_date_range(value: datetime) -> datetime:
     naive = to_naive_utc(value) if value.tzinfo else value
     if not (MIN_DATE <= naive < MAX_DATE):
-        raise ValueError("date hors de la plage 1900-2200")
+        raise ValueError(tr("validation.date_range"))
     return value
 
 

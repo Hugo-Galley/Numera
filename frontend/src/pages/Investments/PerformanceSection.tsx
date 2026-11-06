@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 import { Card, CardContent } from "@/components/ui/card"
 import { formatCurrency } from "@/lib/utils"
@@ -5,14 +6,15 @@ import type { InvestmentsCtx } from "./useInvestments"
 
 /** Section 2 : performance détaillée. */
 export function PerformanceSection({ ctx }: { ctx: InvestmentsCtx }) {
+  const { t } = useTranslation("investments")
   const { chartData, handleAccountClick, isMobile } = ctx
   return (
     <>
       {/* Section 2: Performance détaillée */}
       <div className="space-y-4">
         <div>
-          <h2 className="text-xl font-bold tracking-tight">Performance détaillée</h2>
-          <p className="text-sm text-muted-foreground">Historique et évolution de vos supports.</p>
+          <h2 className="text-xl font-bold tracking-tight">{t("performanceSection.performanceDetaillee")}</h2>
+          <p className="text-sm text-muted-foreground">{t("performanceSection.historiqueEtEvolutionDeVos")}</p>
         </div>
         <Card className="shadow-sm">
           <CardContent className="h-[260px] px-2 sm:px-6 pt-6 md:h-[300px]">

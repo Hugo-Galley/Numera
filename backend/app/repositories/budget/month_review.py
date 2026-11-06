@@ -1,11 +1,6 @@
 from sqlalchemy.orm import Session
 
-from app.models.account import Account
 from app.models.month_closure import MonthClosure
-
-
-def active_accounts(db: Session) -> list[Account]:
-    return db.query(Account).filter(Account.active.is_(True)).order_by(Account.id.asc()).all()
 
 
 def get_closure(db: Session, year: int, month: int) -> MonthClosure | None:

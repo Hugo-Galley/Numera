@@ -1,3 +1,5 @@
+import i18n from "i18next"
+import { Trans, useTranslation } from "react-i18next"
 import { useEffect, useState } from "react"
 import { Flame, Info } from "lucide-react"
 import { Area, CartesianGrid, ComposedChart, Legend, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
@@ -40,18 +42,21 @@ interface FireData {
 const RATES = [3, 3.5, 4]
 
 const formatYears = (years: number | null) => {
-  if (years === null) return "plus de 80 ans"
-  if (years === 0) return "déjà atteinte"
+  if (years === null) return i18n.t("misc.overYears", { ns: "tools" })
+  if (years === 0) return i18n.t("misc.alreadyReached", { ns: "tools" })
   const whole = Math.floor(years)
   const months = Math.round((years - whole) * 12)
-  if (whole === 0) return `${months} mois`
-  return months > 0 ? `${whole} ans et ${months} mois` : `${whole} ans`
+  const monthsText = i18n.t("misc.months", { ns: "tools", count: months })
+  const yearsText = i18n.t("misc.years", { ns: "tools", count: whole })
+  if (whole === 0) return monthsText
+  return months > 0 ? i18n.t("misc.yearsAndMonths", { ns: "tools", years: yearsText, months: monthsText }) : yearsText
 }
 
 const numberOrNull = (value: string) => (value.trim() !== "" && !Number.isNaN(Number(value)) ? value : null)
 
 /** Indépendance financière (règle du taux de retrait) sur les dépenses et l'épargne réelles. */
 export function FireProjection() {
+  const { t } = useTranslation("tools")
   const isMobile = useIsMobile()
   const [rate, setRate] = useState(4)
   const [expensesInput, setExpensesInput] = useState("")
@@ -96,37 +101,37 @@ export function FireProjection() {
   }, [rate, expensesInput, savingsInput, returnInput, inflationInput, reload])
 
   if (loading && !data) return <Skeleton className="h-[420px] w-full rounded-xl" />
-  if (error || !data) return <ErrorState message="Impossible de calculer la projection d'indépendance financière." onRetry={() => setReload((n) => n + 1)} />
+  if (error || !data) return <ErrorState message={t("fireProjection.impossibleDeCalculerLaProjection")} onRetry={() => setReload((n) => n + 1)} />
 
   return (
     <Card className="shadow-sm border-slate-100">
       <CardHeader>
         <div className="flex items-center gap-2">
           <Flame className="h-5 w-5 text-amber-500" />
-          <CardTitle className="text-lg">Indépendance financière</CardTitle>
+          <CardTitle className="text-lg">{t("fireProjection.independanceFinanciere")}</CardTitle>
         </div>
         <CardDescription>
-          Le jour où ton patrimoine couvre tes dépenses : {formatRate(data.withdrawal_rate_pct, 1)} retirés chaque année suffisent à vivre.
+          {t("misc.fireIntro", { rate: formatRate(data.withdrawal_rate_pct, 1) })}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="grid gap-4 sm:grid-cols-3">
           <div className="rounded-xl bg-slate-50 p-4">
-            <p className="text-xs font-medium text-slate-500">Objectif</p>
+            <p className="text-xs font-medium text-slate-500">{t("fireProjection.objectif")}</p>
             <p className="text-2xl font-black tabular-nums text-slate-900">{formatCurrency(data.target)}</p>
-            <p className="text-xs text-slate-500">{formatCurrency(data.annual_expenses)} de dépenses par an</p>
+            <p className="text-xs text-slate-500">{t("misc.expensesPerYear", { amount: formatCurrency(data.annual_expenses) })}</p>
           </div>
           <div className="rounded-xl bg-slate-50 p-4">
-            <p className="text-xs font-medium text-slate-500">Atteint aujourd'hui</p>
+            <p className="text-xs font-medium text-slate-500">{t("fireProjection.atteintAujourdHui")}</p>
             <p className="text-2xl font-black tabular-nums text-slate-900"><span className="amount-blur">{formatRate(data.progress_pct, 1)}</span></p>
             <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-200">
               <div className="h-full rounded-full bg-amber-500" style={{ width: `${data.progress_pct}%` }} />
             </div>
           </div>
           <div className="rounded-xl bg-amber-50 p-4">
-            <p className="text-xs font-medium text-amber-700">À ce rythme</p>
+            <p className="text-xs font-medium text-amber-700">{t("fireProjection.aCeRythme")}</p>
             <p className="text-2xl font-black text-slate-900">{formatYears(data.years_to_fi)}</p>
-            {data.fi_year && data.years_to_fi !== 0 && <p className="text-xs text-amber-700">vers {data.fi_year}</p>}
+            {data.fi_year && data.years_to_fi !== 0 && <p className="text-xs text-amber-700">{t("misc.aroundYear", { year: data.fi_year })}</p>}
           </div>
         </div>
 
@@ -134,12 +139,12 @@ export function FireProjection() {
           <div className="flex flex-col gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800 sm:flex-row sm:items-center sm:justify-between">
             <span>
               {data.real_return_pct <= 0
-                ? `Avec un rendement réel de ${formatRate(data.real_return_pct, 1)} (patrimoine surtout en liquidités), l'inflation ronge l'épargne : l'objectif n'est pas atteignable.`
-                : "À ce rythme d'épargne, l'objectif n'est pas atteint avant 80 ans."}
+                ? t("misc.negativeReal", { rate: formatRate(data.real_return_pct, 1) })
+                : t("fireProjection.aCeRythmeDEpargne")}
             </span>
             {returnInput !== "5" && (
               <Button size="sm" variant="outline" className="h-10 shrink-0 bg-white md:h-9" onClick={() => setReturnInput("5")}>
-                Essayer avec 5 % de rendement
+                {t("fireProjection.essayerAvec5DeRendement")}
               </Button>
             )}
           </div>
@@ -159,14 +164,14 @@ export function FireProjection() {
               <YAxis width={isMobile ? 48 : 70} axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "#64748b" }} tickFormatter={(v) => `${Math.round(v / 1000)} k€`} />
               <Tooltip formatter={(v: number) => formatCurrency(v)} contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} />
               <Legend wrapperStyle={{ fontSize: 12 }} />
-              <Area type="monotone" dataKey="wealth" name="Patrimoine (euros d'aujourd'hui)" stroke="#f59e0b" fill="url(#fireWealth)" strokeWidth={3} />
-              <Line type="monotone" dataKey="target" name="Objectif" stroke="#0f172a" strokeDasharray="5 4" dot={false} strokeWidth={2} />
+              <Area type="monotone" dataKey="wealth" name={t("fireProjection.patrimoineEurosDAujourdHui")} stroke="#f59e0b" fill="url(#fireWealth)" strokeWidth={3} />
+              <Line type="monotone" dataKey="target" name={t("fireProjection.objectif")} stroke="#0f172a" strokeDasharray="5 4" dot={false} strokeWidth={2} />
             </ComposedChart>
           </ResponsiveContainer>
         </div>
 
         <div>
-          <p className="mb-2 text-sm font-medium text-slate-700">Et si…</p>
+          <p className="mb-2 text-sm font-medium text-slate-700">{t("fireProjection.etSi")}</p>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
             {data.scenarios.map((s) => (
               <div key={s.label} className={`rounded-xl border p-3 ${s.label === "Actuel" ? "border-amber-300 bg-amber-50/50" : ""}`}>
@@ -181,14 +186,23 @@ export function FireProjection() {
           <p className="flex items-start gap-2 text-sm text-slate-500">
             <Info className="mt-0.5 h-4 w-4 shrink-0" />
             <span>
-              Dépenses {data.expenses_overridden ? "saisies" : `réelles moyennes sur ${data.months_used} mois`}, épargne de{" "}
-              <b className="amount-blur">{formatCurrency(data.monthly_savings)}</b> par mois{data.savings_overridden ? " (saisie)" : ""}, rendement{" "}
-              {formatRate(data.nominal_return_pct, 1)} moins {formatRate(data.inflation_pct, 1)} d'inflation, soit{" "}
-              <b>{formatRate(data.real_return_pct, 1)}</b> réel. Tout est exprimé en euros d'aujourd'hui.
+              <Trans
+                t={t}
+                i18nKey="misc.fireNote"
+                values={{
+                  expenses: data.expenses_overridden ? t("misc.expensesEntered") : t("misc.expensesAvg", { count: data.months_used }),
+                  savings: formatCurrency(data.monthly_savings),
+                  savingsNote: data.savings_overridden ? t("misc.entered") : "",
+                  nominal: formatRate(data.nominal_return_pct, 1),
+                  inflation: formatRate(data.inflation_pct, 1),
+                  real: formatRate(data.real_return_pct, 1),
+                }}
+                components={{ amount: <b className="amount-blur" />, real: <b /> }}
+              />
             </span>
           </p>
           <div className="flex flex-wrap items-center gap-2">
-            <span className="mr-1 w-full text-sm font-medium text-slate-700 sm:w-auto">Taux de retrait :</span>
+            <span className="mr-1 w-full text-sm font-medium text-slate-700 sm:w-auto">{t("fireProjection.tauxDeRetrait")}</span>
             {RATES.map((r) => (
               <Button key={r} size="sm" className="h-10 md:h-9" variant={rate === r ? "default" : "outline"} onClick={() => setRate(r)}>
                 {formatRate(r, 1)}
@@ -197,19 +211,19 @@ export function FireProjection() {
           </div>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             <label className="space-y-1 text-xs text-slate-500">
-              Dépenses / an (€)
+              {t("fireProjection.depensesAn")}
               <Input type="number" inputMode="decimal" className="h-10 md:h-9" placeholder={String(Math.round(data.annual_expenses))} value={expensesInput} onChange={(e) => setExpensesInput(e.target.value)} />
             </label>
             <label className="space-y-1 text-xs text-slate-500">
-              Épargne / mois (€)
+              {t("fireProjection.epargneMois")}
               <Input type="number" inputMode="decimal" className="h-10 md:h-9" placeholder={String(Math.round(data.monthly_savings))} value={savingsInput} onChange={(e) => setSavingsInput(e.target.value)} />
             </label>
             <label className="space-y-1 text-xs text-slate-500">
-              Rendement (%)
+              {t("fireProjection.rendement")}
               <Input type="number" inputMode="decimal" className="h-10 md:h-9" placeholder={String(data.nominal_return_pct)} value={returnInput} onChange={(e) => setReturnInput(e.target.value)} />
             </label>
             <label className="space-y-1 text-xs text-slate-500">
-              Inflation (%)
+              {t("fireProjection.inflation")}
               <Input type="number" inputMode="decimal" className="h-10 md:h-9" placeholder={String(data.inflation_pct)} value={inflationInput} onChange={(e) => setInflationInput(e.target.value)} />
             </label>
           </div>

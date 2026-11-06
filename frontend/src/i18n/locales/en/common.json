@@ -1,0 +1,77 @@
+{
+  "notFound": {
+    "title": "Page not found",
+    "text": "This address doesn't exist or has been moved.",
+    "back": "Back to the dashboard"
+  },
+  "frequency": {
+    "weekly": "Weekly",
+    "monthly": "Monthly",
+    "quarterly": "Quarterly",
+    "yearly": "Yearly",
+    "annual": "Yearly",
+    "monthlyDetected": "Monthly (detected)"
+  },
+  "errors": {
+    "loadFailed": "Couldn't load this data.",
+    "retry": "Try again",
+    "reload": "Reload",
+    "renderTitle": "This page ran into an error",
+    "renderText": "Your data is not affected. Try again or reload the page.",
+    "requestRefused": "Request refused",
+    "serverError": "Server error ({{status}})",
+    "generic": "An error occurred",
+    "unreachable": "Unable to reach the server. Check your connection.",
+    "sessionExpired": "Session expired",
+    "passkeyFailed": "Passkey sign-in failed",
+    "loginCancelled": "Sign-in cancelled",
+    "logoNotFound": "No logo found for this domain",
+    "logoSelected": "Selected logo",
+    "logoSearch": "Company or product (Claude, YouTube…) or website (navigo.fr)",
+    "workRateFailed": "Unable to load the hourly rate (price in work hours unavailable)"
+  },
+  "workHours": {
+    "minutes": "{{n}} min",
+    "hours": "{{n}} h",
+    "hoursMinutes": "{{h}} h {{min}}",
+    "days": "{{value}} d",
+    "rate": "At a rate of {{rate}} €/h net",
+    "approx": "≈ {{duration}} of work"
+  },
+  "actions": {
+    "add": "Add",
+    "edit": "Edit",
+    "delete": "Delete",
+    "cancel": "Cancel",
+    "save": "Save",
+    "saving": "Saving…",
+    "none": "None",
+    "date": "Date",
+    "actions": "Actions"
+  },
+  "accountTypes": {
+    "courant": "Checking Account",
+    "epargne": "Savings",
+    "investissement": "Investment",
+    "assurance_vie": "Life Insurance",
+    "credit": "Loan",
+    "bank": "Bank account",
+    "other": "Other"
+  },
+  "categoryTypes": {
+    "depense": "Expense",
+    "revenu": "Income",
+    "neutre": "Neutral"
+  },
+  "txTypes": {
+    "Entree": "Income",
+    "Sortie": "Expense",
+    "Interets": "Interest",
+    "initial": "Opening Balance",
+    "Virement": "Transfer",
+    "uncategorized": "Uncategorized"
+  },
+  "pwaExtras": {
+    "horsLigneLesDonneesAffichees": "Offline — the displayed data may be out of date"
+  }
+}

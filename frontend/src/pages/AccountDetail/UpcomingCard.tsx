@@ -1,14 +1,12 @@
 import { useEffect, useState } from "react"
 import { format } from "date-fns"
-import { CalendarClock, Repeat } from "lucide-react"
+import { CalendarClock, ChevronRight, Repeat } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { getAnalyticsCashflowProjection } from "@/lib/api/analytics"
 import { cn, formatCurrency } from "@/lib/utils"
 
 const HORIZON_DAYS = 30
-const VISIBLE = 5
 
 interface UpcomingEvent {
   date: string
@@ -31,7 +29,7 @@ interface Projection {
 export function UpcomingCard({ accountId, currency, refreshKey }: { accountId: number; currency: string; refreshKey: unknown }) {
   const [projection, setProjection] = useState<Projection | null>(null)
   const [failed, setFailed] = useState(false)
-  const [expanded, setExpanded] = useState(false)
+  const [open, setOpen] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -45,21 +43,36 @@ export function UpcomingCard({ accountId, currency, refreshKey }: { accountId: n
   if (failed) return <p className="text-xs text-slate-400">Transactions à venir indisponibles pour le moment.</p>
   if (!projection || projection.events.length === 0) return null
 
-  const events = expanded ? projection.events : projection.events.slice(0, VISIBLE)
+  const { events } = projection
   return (
     <section aria-label="À venir">
-      <Card className="border-slate-200 shadow-sm">
-        <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
-          <CardTitle className="flex items-center gap-2 text-base font-bold text-slate-900">
-            <CalendarClock className="h-4 w-4 text-slate-500" />
-            À venir
-            <Badge variant="outline" className="border-none bg-slate-100 text-slate-600">{projection.events.length}</Badge>
-          </CardTitle>
-          <p className="text-xs text-slate-500">
-            Solde projeté à {HORIZON_DAYS} jours : <span className="font-bold text-slate-900">{formatCurrency(projection.projected_balance, currency)}</span>
-          </p>
-        </CardHeader>
-        <CardContent>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="flex w-full items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-left shadow-sm transition-colors hover:bg-slate-50"
+      >
+        <span className="flex items-center gap-2 text-sm font-bold text-slate-900">
+          <CalendarClock className="h-4 w-4 text-slate-500" />
+          À venir
+          <Badge variant="outline" className="border-none bg-slate-100 text-slate-600">{events.length}</Badge>
+        </span>
+        <span className="flex items-center gap-2 text-xs text-slate-500">
+          <span className="hidden sm:inline">Solde projeté à {HORIZON_DAYS} jours :</span>
+          <span className="amount-blur font-bold text-slate-900">{formatCurrency(projection.projected_balance, currency)}</span>
+          <ChevronRight className="h-4 w-4" />
+        </span>
+      </button>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-h-[85vh] max-w-md overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-xl font-black">
+              <CalendarClock className="h-5 w-5 text-slate-500" />
+              À venir
+            </DialogTitle>
+            <DialogDescription>
+              Solde projeté à {HORIZON_DAYS} jours : <span className="amount-blur font-bold text-slate-900">{formatCurrency(projection.projected_balance, currency)}</span>
+            </DialogDescription>
+          </DialogHeader>
           <ul className="divide-y divide-slate-100">
             {events.map((ev, i) => (
               <li key={`${ev.type}-${ev.transaction_id ?? ev.date}-${i}`} className="flex items-center gap-3 py-2 text-sm">
@@ -73,19 +86,14 @@ export function UpcomingCard({ accountId, currency, refreshKey }: { accountId: n
                     <Badge variant="outline" className="border-none bg-amber-50 px-1.5 py-0 text-[10px] text-amber-700">Doublon possible</Badge>
                   )}
                 </span>
-                <span className={cn("shrink-0 font-bold", ev.is_income ? "text-emerald-600" : "text-rose-600")}>
+                <span className={cn("amount-blur shrink-0 font-bold", ev.is_income ? "text-emerald-600" : "text-rose-600")}>
                   {ev.is_income ? "+" : "−"}{formatCurrency(ev.amount, currency)}
                 </span>
               </li>
             ))}
           </ul>
-          {projection.events.length > VISIBLE && (
-            <Button variant="ghost" size="sm" className="mt-1 h-9 w-full text-xs text-slate-500" onClick={() => setExpanded(e => !e)}>
-              {expanded ? "Réduire" : `Voir les ${projection.events.length} échéances`}
-            </Button>
-          )}
-        </CardContent>
-      </Card>
+        </DialogContent>
+      </Dialog>
     </section>
   )
 }

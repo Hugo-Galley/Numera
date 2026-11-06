@@ -9,6 +9,7 @@ from datetime import date, datetime
 from sqlalchemy.orm import Session
 
 from app.core.errors import InvalidOperationError
+from app.core.i18n import tr
 from app.domain.budget import to_eur
 from app.domain.finance import is_lapsed
 from app.domain.wrapped import MONTHLY_FACTOR, NON_EXPENSE_CATEGORIES, hours, pct_change, period
@@ -40,7 +41,7 @@ async def compute_wrapped(db: Session, year: int) -> WrappedReport:
 async def _build_wrapped(year: int, db: Session) -> WrappedReport:
     today = date.today()
     if year > today.year:
-        raise InvalidOperationError("Le bilan d'une année future n'est pas disponible")
+        raise InvalidOperationError(tr("errors.wrapped_future_year"))
     is_partial = year == today.year
     last_month = today.month if is_partial else 12
     rates = await get_exchange_rates("EUR")

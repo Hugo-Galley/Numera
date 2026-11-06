@@ -11,6 +11,18 @@ Le système utilise un script Python `backend/scripts/backup.py` qui peut être 
 - `BACKUP_DIR` : Dossier où stocker les sauvegardes (défaut: `/app/backups`)
 - `BACKUP_KEY` : (Optionnel) Clé Fernet pour chiffrer la sauvegarde.
 - `RETENTION_DAYS` : Nombre de jours de rétention des sauvegardes (défaut: 7).
+- `BACKUP_INTERVAL_SECONDS` : délai entre deux sauvegardes automatiques du conteneur `backup` (défaut: 86400).
+- `GITHUB_BACKUP_KEEP_DAYS` : jours conservés sur GitHub (défaut: 30).
+
+Ces trois réglages se placent dans `.env` ; les fichiers compose les transmettent aux conteneurs `backend` et `backup`.
+
+### Sauvegarde avant migration
+
+Au démarrage, `run_migrations()` (`backend/app/core/migrations.py`) compare la révision Alembic de la base à la tête des migrations. Si le schéma doit changer (mise à jour de version), la base est copiée dans `BACKUP_DIR` sous `pre_migration_<révision>_<date>.db` (`.db.enc` chiffré avec `BACKUP_KEY` si elle est définie) avant tout `alembic upgrade`. Les 5 plus récentes sont conservées ; elles ne sont ni envoyées sur GitHub ni touchées par la rotation `RETENTION_DAYS`. Si la copie échoue, l'application refuse de démarrer plutôt que de migrer sans filet. Base vierge ou déjà à jour : aucune copie. Restauration : voir plus bas, comme pour une sauvegarde normale.
+
+### Mise à jour Docker
+
+`install.sh --upgrade` sauvegarde (conteneur `backup`), retélécharge le compose de la release, vérifie `SHA256SUMS`, tire les images et redémarre. Voir le README, section « Mettre à jour ».
 
 ### Exécution manuelle
 ```bash
@@ -23,7 +35,7 @@ Le bouton « Sauvegarder maintenant » (Paramètres → Données) lance la même
 
 Chaque exécution de `backup.py` met à jour `BACKUP_DIR/status.json` (dernière tentative, dernière réussite, dernière réussite automatique, dernière erreur, dernier envoi GitHub ou son erreur). L'API le lit avec les fichiers `suivi_budget_*` (`GET /admin/backup/status`) : la carte Sauvegarde l'affiche et le Centre d'actions lève « Sauvegarde en retard » (aucune sauvegarde depuis 2 jours) ou « Dernière sauvegarde en échec ». Sans aucune sauvegarde ni `status.json` (dev local), rien n'est signalé.
 
-Après chaque sauvegarde (toutes les 24 h via le conteneur `backup`), `backend/scripts/git_sync.py` pousse les fichiers `.enc` vers un dépôt GitHub **privé et dédié** (jamais le dépôt du code, qui est public). Seules les sauvegardes chiffrées sont envoyées : sans `BACKUP_KEY`, rien ne part.
+Après chaque sauvegarde (toutes les 24 h via le conteneur `backup`), `backend/scripts/git_sync.py` (le token passe à `git` par l'environnement `GIT_CONFIG_*`, jamais dans `argv`) pousse les fichiers `.enc` vers un dépôt GitHub **privé et dédié** (jamais le dépôt du code, qui est public). Seules les sauvegardes chiffrées sont envoyées : sans `BACKUP_KEY`, rien ne part.
 
 1. Créer un dépôt privé vide (ex. `numera-backups`).
 2. Créer un token fine-grained limité à ce dépôt, permission *Contents : Read and write*.

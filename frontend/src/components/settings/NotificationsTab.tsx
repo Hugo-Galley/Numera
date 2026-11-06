@@ -1,3 +1,5 @@
+import i18n from "i18next"
+import { useTranslation } from "react-i18next"
 import { useEffect, useState } from "react"
 import { Send } from "lucide-react"
 import { toast } from "sonner"
@@ -11,7 +13,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Skeleton } from "@/components/ui/skeleton"
 import { Switch } from "@/components/ui/switch"
 import { useSubmit } from "@/hooks/useSubmit"
+import { type Language } from "@/i18n"
 import { api } from "@/lib/api"
+import { syncServerLanguage } from "@/lib/serverLanguage"
 import { errorMessage } from "@/lib/utils"
 import { useReauth } from "./ReauthDialog"
 
@@ -34,12 +38,13 @@ interface NotificationSettings {
   weekly_digest: boolean
   hide_amounts: boolean
   public_url: string
+  language?: Language
 }
 
 const SEVERITY_LABELS: Record<Severity, string> = {
-  high: "Urgentes seulement",
-  medium: "Importantes et urgentes",
-  low: "Toutes",
+  get high() { return i18n.t("misc.sevHigh", { ns: "settings" }) },
+  get medium() { return i18n.t("misc.sevMedium", { ns: "settings" }) },
+  get low() { return i18n.t("misc.sevLow", { ns: "settings" }) },
 }
 
 function ToggleRow({ label, hint, checked, onChange }: { label: string; hint?: string; checked: boolean; onChange: (v: boolean) => void }) {
@@ -55,6 +60,7 @@ function ToggleRow({ label, hint, checked, onChange }: { label: string; hint?: s
 }
 
 export function NotificationsTab() {
+  const { t } = useTranslation("settings")
   const [settings, setSettings] = useState<NotificationSettings | null>(null)
   const [draft, setDraft] = useState<NotificationSettings | null>(null)
   const [failed, setFailed] = useState(false)
@@ -63,7 +69,13 @@ export function NotificationsTab() {
   const load = async () => {
     setFailed(false)
     try {
-      const data = await api.get<NotificationSettings>("/notifications/settings")
+      let data = await api.get<NotificationSettings>("/notifications/settings")
+      if (data.language && data.language !== i18n.language) {
+        // Les notifications partent du serveur : elles suivent la langue choisie dans l'interface
+        const language = i18n.language as Language
+        await syncServerLanguage(language)
+        data = { ...data, language }
+      }
       setSettings(data)
       setDraft(data)
     } catch (error) {
@@ -82,17 +94,17 @@ export function NotificationsTab() {
     const sensitiveChanged = SENSITIVE_FIELDS.some((field) => draft[field] !== settings[field])
     let auth: { current_password: string } | null = null
     if (sensitiveChanged) {
-      auth = await ask("Confirmer la modification", "Ces réglages décident où partent vos alertes : confirmez avec votre mot de passe.")
+      auth = await ask(t("misc.confirmChange"), t("misc.confirmChangeHint"))
       if (!auth) return false
     }
     try {
       const saved = await api.put<NotificationSettings>("/notifications/settings", { ...draft, ...(auth ? { current_password: auth.current_password } : {}) })
       setSettings(saved)
       setDraft(saved)
-      toast.success("Réglages des notifications enregistrés")
+      toast.success(t("notificationsTab.reglagesDesNotificationsEnregistres"))
       return true
     } catch (error) {
-      toast.error(errorMessage(error, "Enregistrement impossible"))
+      toast.error(errorMessage(error, t("notificationsTab.enregistrementImpossible")))
       return false
     }
   }
@@ -104,15 +116,15 @@ export function NotificationsTab() {
     if (dirty && !(await persist())) return
     try {
       await api.post("/notifications/test", { channel })
-      toast.success(`Message de test envoyé sur ${channel === "ntfy" ? "ntfy" : "Telegram"}`)
+      toast.success(t("misc.testSent", { channel: channel === "ntfy" ? "ntfy" : "Telegram" }))
     } catch (error) {
-      toast.error(errorMessage(error, "Envoi impossible"))
+      toast.error(errorMessage(error, t("notificationsTab.envoiImpossible")))
     }
   })
 
   const dirty = JSON.stringify(draft) !== JSON.stringify(settings)
 
-  if (failed) return <ErrorState message="Impossible de charger les réglages des notifications." onRetry={load} />
+  if (failed) return <ErrorState message={t("notificationsTab.impossibleDeChargerLesReglages")} onRetry={load} />
   if (!draft || !settings) return <Skeleton className="h-96" />
 
   const busy = testing || saving
@@ -123,7 +135,7 @@ export function NotificationsTab() {
     <div className="space-y-6">
       <div>
         <p className="text-sm text-muted-foreground">
-          Les nouvelles alertes du Centre d'Actions (budget, hausse d'abonnement, compte à vérifier…) arrivent sur votre téléphone, une seule fois chacune. Vérification toutes les heures.
+          {t("notificationsTab.lesNouvellesAlertesDuCentre")}
         </p>
       </div>
 
@@ -132,27 +144,27 @@ export function NotificationsTab() {
           <CardHeader>
             <CardTitle className="text-base">ntfy</CardTitle>
             <CardDescription>
-              Installez l'app ntfy, abonnez-vous à un sujet difficile à deviner, puis renseignez-le ici. Vous pouvez aussi utiliser votre propre serveur ntfy.
+              {t("notificationsTab.installezLAppNtfyAbonnez")}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <ToggleRow label="Activer ntfy" checked={draft.ntfy_enabled} onChange={(v) => set("ntfy_enabled", v)} />
+            <ToggleRow label={t("notificationsTab.activerNtfy")} checked={draft.ntfy_enabled} onChange={(v) => set("ntfy_enabled", v)} />
             <div className="grid gap-2">
-              <Label htmlFor="ntfy-server">Serveur</Label>
+              <Label htmlFor="ntfy-server">{t("notificationsTab.serveur")}</Label>
               <Input id="ntfy-server" value={draft.ntfy_server} onChange={(e) => set("ntfy_server", e.target.value)} placeholder="https://ntfy.sh" />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="ntfy-topic">Sujet</Label>
+              <Label htmlFor="ntfy-topic">{t("notificationsTab.sujet")}</Label>
               <Input id="ntfy-topic" value={draft.ntfy_topic} onChange={(e) => set("ntfy_topic", e.target.value)} placeholder="numera-a8f3k2" autoComplete="off" />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="ntfy-token">Jeton d'accès (facultatif)</Label>
+              <Label htmlFor="ntfy-token">{t("notificationsTab.jetonDAccesFacultatif")}</Label>
               <Input id="ntfy-token" type="password" value={draft.ntfy_token} onChange={(e) => set("ntfy_token", e.target.value)} autoComplete="off" />
             </div>
             <Button variant="outline" className="h-10" disabled={busy || !ntfyReady} onClick={() => handleTest("ntfy")}>
-              <Send className="mr-2 h-4 w-4" /> {dirty ? "Enregistrer et tester" : "Envoyer un test"}
+              <Send className="mr-2 h-4 w-4" /> {dirty ? t("notificationsTab.enregistrerEtTester") : t("notificationsTab.envoyerUnTest")}
             </Button>
-            {!ntfyReady && <p className="text-xs text-muted-foreground">Renseignez un sujet pour envoyer un test.</p>}
+            {!ntfyReady && <p className="text-xs text-muted-foreground">{t("notificationsTab.renseignezUnSujetPourEnvoyer")}</p>}
           </CardContent>
         </Card>
 
@@ -160,17 +172,17 @@ export function NotificationsTab() {
           <CardHeader>
             <CardTitle className="text-base">Telegram</CardTitle>
             <CardDescription>
-              Créez un bot avec @BotFather, envoyez-lui un message, puis renseignez son jeton et votre identifiant de conversation (chat id).
+              {t("notificationsTab.creezUnBotAvecBotfather")}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <ToggleRow label="Activer Telegram" checked={draft.telegram_enabled} onChange={(v) => set("telegram_enabled", v)} />
+            <ToggleRow label={t("notificationsTab.activerTelegram")} checked={draft.telegram_enabled} onChange={(v) => set("telegram_enabled", v)} />
             <div className="grid gap-2">
-              <Label htmlFor="tg-token">Jeton du bot</Label>
+              <Label htmlFor="tg-token">{t("notificationsTab.jetonDuBot")}</Label>
               <Input id="tg-token" type="password" value={draft.telegram_bot_token} onChange={(e) => set("telegram_bot_token", e.target.value)} autoComplete="off" />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="tg-chat">Chat id</Label>
+              <Label htmlFor="tg-chat">{t("notificationsTab.chatId")}</Label>
               <Input id="tg-chat" inputMode="numeric" value={draft.telegram_chat_id} onChange={(e) => set("telegram_chat_id", e.target.value)} autoComplete="off" />
             </div>
             <Button
@@ -179,20 +191,20 @@ export function NotificationsTab() {
               disabled={busy || !telegramReady}
               onClick={() => handleTest("telegram")}
             >
-              <Send className="mr-2 h-4 w-4" /> {dirty ? "Enregistrer et tester" : "Envoyer un test"}
+              <Send className="mr-2 h-4 w-4" /> {dirty ? t("notificationsTab.enregistrerEtTester") : t("notificationsTab.envoyerUnTest")}
             </Button>
-            {!telegramReady && <p className="text-xs text-muted-foreground">Renseignez le jeton du bot et le chat id pour envoyer un test.</p>}
+            {!telegramReady && <p className="text-xs text-muted-foreground">{t("notificationsTab.renseignezLeJetonDuBot")}</p>}
           </CardContent>
         </Card>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Quoi envoyer</CardTitle>
+          <CardTitle className="text-base">{t("notificationsTab.quoiEnvoyer")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-2 sm:max-w-sm">
-            <Label>Alertes</Label>
+            <Label>{t("notificationsTab.alertes")}</Label>
             <Select value={draft.min_severity} onValueChange={(v) => set("min_severity", v as Severity)}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -201,30 +213,30 @@ export function NotificationsTab() {
             </Select>
           </div>
           <ToggleRow
-            label="Résumé de la semaine"
-            hint="Le dimanche soir : dépenses et revenus du mois, actions en cours, échéances des 7 jours à venir."
+            label={t("notificationsTab.resumeDeLaSemaine")}
+            hint={t("notificationsTab.leDimancheSoirDepensesEt")}
             checked={draft.weekly_digest}
             onChange={(v) => set("weekly_digest", v)}
           />
           <ToggleRow
-            label="Masquer les montants"
-            hint="Remplace les montants par ••• dans les messages (écran verrouillé, montre…)."
+            label={t("notificationsTab.masquerLesMontants")}
+            hint={t("notificationsTab.remplaceLesMontantsParDans")}
             checked={draft.hide_amounts}
             onChange={(v) => set("hide_amounts", v)}
           />
           <div className="grid gap-2">
-            <Label htmlFor="notify-url">Adresse de votre instance Numera (facultatif)</Label>
-            <Input id="notify-url" value={draft.public_url} onChange={(e) => set("public_url", e.target.value)} placeholder="https://numera.mondomaine.fr" />
-            <p className="text-xs text-muted-foreground">Rend les notifications cliquables vers la bonne page.</p>
+            <Label htmlFor="notify-url">{t("notificationsTab.adresseDeVotreInstanceNumera")}</Label>
+            <Input id="notify-url" value={draft.public_url} onChange={(e) => set("public_url", e.target.value)} placeholder={t("notificationsTab.httpsNumeraMondomaineFr")} />
+            <p className="text-xs text-muted-foreground">{t("notificationsTab.rendLesNotificationsCliquablesVers")}</p>
           </div>
         </CardContent>
       </Card>
 
       <div className="flex gap-2">
         <Button className="h-11 bg-slate-900 text-white hover:bg-slate-800 sm:h-10" disabled={!dirty || saving} onClick={() => handleSave()}>
-          {saving ? "Enregistrement…" : "Enregistrer"}
+          {saving ? t("notificationsTab.enregistrement") : t("notificationsTab.enregistrer")}
         </Button>
-        {dirty && <Button variant="ghost" className="h-11 sm:h-10" onClick={() => setDraft(settings)}>Annuler</Button>}
+        {dirty && <Button variant="ghost" className="h-11 sm:h-10" onClick={() => setDraft(settings)}>{t("notificationsTab.annuler")}</Button>}
       </div>
       {dialog}
     </div>

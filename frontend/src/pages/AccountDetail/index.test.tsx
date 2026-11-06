@@ -179,6 +179,30 @@ describe("AccountDetail : chargement", () => {
     expect(screen.getByRole("heading", { name: /Livret/ })).toBeInTheDocument()
     expect(screen.queryByRole("heading", { name: /Compte joint/ })).not.toBeInTheDocument()
   })
+
+  it("changement de compte : la recherche est remise à zéro (audit F-06)", async () => {
+    serveAccount()
+    server.use(
+      http.get(apiUrl("/accounts/:id"), ({ params }) =>
+        HttpResponse.json(makeAccount({ id: Number(params.id), name: params.id === "1" ? "Compte joint" : "Livret" })),
+      ),
+    )
+    const { user } = renderWithProviders(
+      <WorkTimeProvider>
+        <Link to="/accounts/2">Autre compte</Link>
+        <Routes>
+          <Route path="/accounts/:id" element={<AccountDetail />} />
+        </Routes>
+      </WorkTimeProvider>,
+      { route: "/accounts/1", auth: true },
+    )
+    await screen.findByRole("heading", { name: /Compte joint/ })
+    await user.type(screen.getByPlaceholderText("Rechercher..."), "loyer")
+
+    await user.click(screen.getByRole("link", { name: "Autre compte" }))
+    expect(await screen.findByRole("heading", { name: /Livret/ })).toBeInTheDocument()
+    expect(screen.getByPlaceholderText("Rechercher...")).toHaveValue("")
+  })
 })
 
 describe("AccountDetail : transactions", () => {

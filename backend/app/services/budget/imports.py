@@ -12,6 +12,7 @@ from dataclasses import dataclass, field
 from sqlalchemy.orm import Session
 
 from app.core.errors import BusinessRuleError, NotFoundError
+from app.core.i18n import tr
 from app.core.logging import get_logger
 from app.domain.csv_import import (
     ImportRowError,
@@ -30,8 +31,10 @@ from app.models.transaction import Transaction
 from app.repositories.budget import categorization_rules as rule_repo
 from app.repositories.budget import imports as repo
 from app.repositories.comptes import accounts as account_repo
+from app.repositories.comptes import balances as balances_repo
 from app.services.budget import merchants as merchant_service
 from app.services.budget.balances import recalculate_running_balances
+from app.services.budget.benefit_generation import reconcile_provisional
 from app.services.budget.transfers import auto_link_transfers
 
 logger = get_logger(__name__)
@@ -90,13 +93,10 @@ def preview_import(db: Session, content: bytes, filename: str | None, sample_siz
 def _preview_warnings(rows: list[dict], repeated: Counter) -> list[str]:
     warnings: list[str] = []
     if not any((r.get("Type") or "").strip() for r in rows):
-        warnings.append("Colonne Type absente : le sens est déduit du signe du montant (négatif = Sortie).")
+        warnings.append(tr("import.warn_no_type"))
     repeated_in_file = sum(count - 1 for count in repeated.values() if count > 1)
     if repeated_in_file:
-        warnings.append(
-            f"{repeated_in_file} ligne(s) identique(s) à une autre du fichier : elles seront toutes importées "
-            "(deux achats identiques le même jour sont légitimes)."
-        )
+        warnings.append(tr("import.warn_repeated", count=repeated_in_file))
     return warnings
 
 
@@ -134,7 +134,7 @@ def _parse_mapping(category_mapping: str | None) -> dict:
     try:
         return json.loads(category_mapping)
     except Exception:
-        raise BusinessRuleError("Invalid category_mapping JSON") from None
+        raise BusinessRuleError(tr("errors.category_mapping_json")) from None
 
 
 def _create_category(db: Session, run: _ImportRun, name: str) -> Category:
@@ -187,7 +187,7 @@ def _import_row(db: Session, run: _ImportRun, parsed: ParsedRow, raw_date: str |
     if tx_type == "Solde Initial":
         # Un seul Solde Initial par compte (il remet le solde à zéro à sa date)
         if run.has_initial_balance:
-            raise ValueError(f"Un Solde Initial existe déjà pour ce compte ({raw_date})")
+            raise ValueError(tr("import.row_initial_exists", value=raw_date))
         run.has_initial_balance = True
 
     run.running_balance = apply_transaction_to_balance(run.running_balance, tx_type, parsed.amount)
@@ -230,7 +230,7 @@ def _log_import(db: Session, run: _ImportRun, filename: str | None, delimiter: s
 
 
 def _start_run(db: Session, account: Account, mapping: dict, create_missing_categories: bool) -> _ImportRun:
-    last = account_repo.latest_transaction(db, account.id)
+    last = balances_repo.latest_transaction(db, account.id)
     run = _ImportRun(
         account=account,
         categories=repo.categories_by_name(db),
@@ -250,7 +250,7 @@ async def commit_import(db: Session, account_id: int, read_content: Callable[[],
     logger.info(f"Starting CSV import: file={filename}, account_id={account_id}")
     account = account_repo.get(db, account_id)
     if not account:
-        raise NotFoundError("Account not found")
+        raise NotFoundError(tr("errors.account_not_found"))
     mapping = _parse_mapping(category_mapping)
     rows, delimiter, raw_headers = parse_csv(await read_content())
 
@@ -270,6 +270,7 @@ async def commit_import(db: Session, account_id: int, read_content: Callable[[],
         logger.info(f"Recalculating running balances for account_id={account_id}")
         recalculate_running_balances(db, account_id)
         db.commit()
+        reconcile_provisional(db)  # un vrai versement d'aide remplace son entrée provisoire
         await auto_link_transfers(db)
 
     logger.info(

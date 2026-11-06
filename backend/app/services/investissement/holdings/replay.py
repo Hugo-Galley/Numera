@@ -12,7 +12,8 @@ rejoue dans l'ordre chronologique les opérations postérieures à la date du Po
 - `dividende`, `frais` : aucun effet sur la position.
 
 Le PRU est exprimé dans la devise de la position ; `cost_basis_eur` cumule les coûts convertis en EUR
-au taux du jour de chaque achat (taux du Point Zéro pour l'inventaire).
+au taux du jour de chaque achat ; pour l'inventaire, le `cost_basis_eur` saisi, sinon le taux du Point Zéro
+(approximation, signalée par `cost_eur_estimated` pour les titres en devise).
 """
 from dataclasses import replace
 from datetime import datetime
@@ -23,6 +24,7 @@ from app.core.logging import get_logger
 from app.core.time import end_of_today
 from app.domain.holdings import BUY_TYPES, EPSILON, SELL_TYPES, Position, RealizedSale, Replay, normalize_ticker
 from app.integrations.currency import CurrencyConversionError
+from app.models.holding_baseline_item import HoldingBaselineItem
 from app.models.investment_transaction import InvestmentTransaction
 from app.repositories.investissement import holdings as repo
 from app.repositories.investissement import investment_transactions as tx_repo
@@ -49,18 +51,27 @@ async def convert(db: Session, amount: float, from_cur: str, to_cur: str, when: 
         return None
 
 
+async def _baseline_cost_eur(db: Session, item: HoldingBaselineItem, cost: float | None) -> float | None:
+    """Coût EUR saisi de la ligne, sinon son coût converti au taux du Point Zéro."""
+    if item.cost_basis_eur:
+        return item.cost_basis_eur
+    return await convert(db, cost, item.currency, "EUR", item.baseline_date) if cost else None
+
+
 async def _load_baseline(db: Session, account_id: int, account_cutoff: datetime | None) -> tuple[dict[str, Position], datetime | None]:
     """Positions de l'inventaire Point Zéro et date du Point Zéro du compte."""
     positions: dict[str, Position] = {}
     items = repo.baseline_items(db, account_id)
     for item in items:
         cost = item.quantity * item.buy_price_avg if item.buy_price_avg else None
+        cost_eur = await _baseline_cost_eur(db, item, cost)
         positions[item.ticker] = Position(
             ticker=item.ticker,
             currency=item.currency,
             quantity=item.quantity,
             cost=cost,
-            cost_eur=await convert(db, cost, item.currency, "EUR", item.baseline_date) if cost else None,
+            cost_eur=cost_eur,
+            cost_eur_estimated=bool(cost_eur) and not item.cost_basis_eur and item.currency.upper() != "EUR",
             isin=item.isin,
             asset_name=item.asset_name,
             etf_profile_id=item.etf_profile_id,
@@ -108,13 +119,14 @@ async def _apply_sell(db: Session, pos: Position, tx: InvestmentTransaction, tic
             quantity=sold,
             proceeds_eur=proceeds_eur,
             cost_eur=pos.cost_eur * (1 - ratio) if pos.cost_eur is not None else None,
+            cost_eur_estimated=pos.cost_eur_estimated,
         )
     pos.cost = pos.cost * ratio if pos.cost is not None else None
     pos.cost_eur = pos.cost_eur * ratio if pos.cost_eur is not None else None
     pos.quantity -= sold
     if pos.quantity <= EPSILON:
         # Position soldée : un rachat ultérieur repart d'un coût nul (PRU de nouveau calculable)
-        pos.quantity, pos.cost, pos.cost_eur = 0.0, 0.0, 0.0
+        pos.quantity, pos.cost, pos.cost_eur, pos.cost_eur_estimated = 0.0, 0.0, 0.0, False
     return sale
 
 

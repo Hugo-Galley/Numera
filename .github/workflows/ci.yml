@@ -32,14 +32,48 @@ jobs:
         working-directory: backend
         run: uv run ruff check app tests scripts alembic
       - name: Types (mypy)
-        run: uv run --project backend python scripts/check_types.py
+        run: uv run --project backend python scripts/quality/check_types.py
       - name: Plafonds de taille
-        run: uv run --project backend python scripts/check_code_size.py
+        run: uv run --project backend python scripts/quality/check_code_size.py
       - name: Tests
         working-directory: backend
         env:
           PYTHONPATH: .
         run: uv run python -m pytest tests -q -n auto --cov
+
+  mcp-server:
+    name: Serveur MCP (lint + tests)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          python-version: "3.12"
+          enable-cache: true
+          cache-dependency-glob: mcp-server/uv.lock
+      - run: uv sync --frozen
+        working-directory: mcp-server
+      - name: Lint (ruff)
+        working-directory: mcp-server
+        run: uv run --with ruff ruff check .
+      - name: Tests
+        working-directory: mcp-server
+        run: uv run --with pytest python -m pytest tests -q
+
+  # Les cliquets (baselines, seuils de couverture) ne se relâchent pas : comparaison à la branche de base.
+  ratchets:
+    name: Cliquets (baselines et seuils)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Aucune baseline relevée, aucun seuil baissé
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE: ${{ github.event.pull_request.base.sha }}
+        run: |
+          if [ "$EVENT" != "pull_request" ]; then echo "Hors PR : rien à comparer."; exit 0; fi
+          git fetch --depth=1 origin "$BASE"
+          python3 scripts/quality/check_ratchets.py --base "$BASE"
 
   frontend:
     name: Frontend (tests + typecheck + build)
@@ -96,7 +130,7 @@ jobs:
           E2E_PYTHON: .venv/bin/python
 
   # Quelles images scanner et faut-il relancer hadolint : seulement si une PR touche ce qui les compose
-  # (Dockerfile, dépendances, .trivyignore, ce workflow ; classement dans scripts/ci_changes.py). Hors PR, tout.
+  # (Dockerfile, dépendances, .trivyignore, ce workflow ; classement dans scripts/ci/ci_changes.py). Hors PR, tout.
   changes:
     name: Fichiers modifiés
     runs-on: ubuntu-latest
@@ -111,11 +145,11 @@ jobs:
           BASE: ${{ github.event.pull_request.base.sha }}
         run: |
           if [ "$EVENT" != "pull_request" ]; then
-            echo ".github/workflows/ci.yml" | python3 scripts/ci_changes.py | tee -a "$GITHUB_OUTPUT"
+            echo ".github/workflows/ci.yml" | python3 scripts/ci/ci_changes.py | tee -a "$GITHUB_OUTPUT"
             exit 0
           fi
           git fetch --depth=1 origin "$BASE"
-          git diff --name-only "$BASE" HEAD | python3 scripts/ci_changes.py | tee -a "$GITHUB_OUTPUT"
+          git diff --name-only "$BASE" HEAD | python3 scripts/ci/ci_changes.py | tee -a "$GITHUB_OUTPUT"
 
   docker-lint:
     name: Dockerfiles (hadolint)
@@ -189,7 +223,7 @@ jobs:
   ci-ok:
     name: CI ok
     if: always()
-    needs: [changes, backend, frontend, e2e, docker-lint, trivy-repo, trivy-images]
+    needs: [changes, backend, mcp-server, ratchets, frontend, e2e, docker-lint, trivy-repo, trivy-images]
     runs-on: ubuntu-latest
     steps:
       - name: Tous les jobs sont en succès

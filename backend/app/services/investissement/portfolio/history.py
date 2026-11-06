@@ -26,6 +26,9 @@ async def history_series(db: Session, account_id: int, replay: Replay, book: Pri
     snapshot_days = {s.date.date() for s in snapshots}
     days = sample_days(baseline_date.date(), today_day, flow_days | snapshot_days)
 
+    if days:
+        await fx.preload(book.currencies(), currency, days[0], days[-1])
+
     quantities = {t: p.quantity for t, p in replay.baseline.items()}
     qty_events = sorted(replay.quantity_events, key=lambda e: e[0])
     cash_sorted = sorted(cap.events, key=lambda e: e.date)

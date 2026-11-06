@@ -48,16 +48,19 @@ from app.controllers.systeme.passkeys import router as passkeys_router
 from app.controllers.systeme.totp import router as totp_router
 from app.core.config import settings
 from app.core.errors import DomainError
+from app.core.i18n import LanguageMiddleware
 from app.core.logging import get_logger, setup_logging
+from app.core.login_events import client_ip
 from app.core.migrations import run_migrations
 from app.db.session import SessionLocal
 from app.integrations.currency import CurrencyConversionError
+from app.services.budget.benefit_generation import generate_benefit_transactions, reconcile_provisional
 from app.services.budget.recurring import generate_recurring_transactions
 from app.services.budget.salary_generation import check_and_generate_pending_salaries
 from app.services.investissement.etf_profiles import refresh_held_etf_profiles
 from app.services.investissement.holdings.rebuild import rebuild_due_holdings
 from app.services.investissement.market.quotes import refresh_held_prices
-from app.services.systeme.demo import ensure_demo_data, is_blocked_in_demo
+from app.services.systeme.demo import demo_write_allowed, ensure_demo_data, is_blocked_in_demo
 from app.services.systeme.notifications import run_notifications
 from app.services.systeme.seeds import seed_all
 
@@ -91,6 +94,9 @@ async def recurring_transactions_task():
             else:
                 await _run_step(db, "récurrences", generate_recurring_transactions)
                 await _run_step(db, "salaires", check_and_generate_pending_salaries)
+                # Aides : le vrai versement remplace l'entrée provisoire, puis celle du mois est créée
+                await _run_step(db, "aides", reconcile_provisional)
+                await _run_step(db, "aides (génération)", generate_benefit_transactions)
                 # Opérations sur titres arrivées à échéance : positions stockées (règle 12)
                 await _run_step(db, "positions", rebuild_due_holdings)
                 # Cours des titres détenus enregistrés en base (historique de valorisation)
@@ -159,7 +165,7 @@ app = FastAPI(title=settings.app_name, lifespan=lifespan, **docs_kwargs(settings
 
 @app.exception_handler(DomainError)
 async def domain_error_handler(_: Request, exc: DomainError):
-    return JSONResponse(status_code=exc.status_code, content=exc.to_content())
+    return JSONResponse(status_code=exc.status_code, content=exc.to_content(), headers=exc.headers)
 
 
 @app.exception_handler(CurrencyConversionError)
@@ -192,6 +198,8 @@ async def demo_guard(request: Request, call_next):
     if settings.DEMO_MODE and is_blocked_in_demo(request.method, request.url.path):
         # 403 avec un détail métier : le client n'y voit pas une session expirée (cf. lib/api.ts)
         return JSONResponse(status_code=403, content={"detail": "Action désactivée sur l'instance de démonstration"})
+    if settings.DEMO_MODE and not demo_write_allowed(request.method, client_ip(request) or "unknown"):
+        return JSONResponse(status_code=429, content={"detail": "Trop d'écritures sur l'instance de démonstration, réessayez dans une minute"})
     return await call_next(request)
 
 
@@ -227,8 +235,10 @@ app.add_middleware(
     allow_origins=settings.cors_origins,
     allow_credentials=False,
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allow_headers=["Authorization", "Content-Type"],
+    allow_headers=["Authorization", "Content-Type", "Accept-Language"],
 )
+# Langue de la requête (Accept-Language) : posée avant tout le reste, gestionnaires d'erreurs compris
+app.add_middleware(LanguageMiddleware)
 
 app.include_router(health_router)
 app.include_router(auth_router)

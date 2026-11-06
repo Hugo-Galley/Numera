@@ -7,10 +7,13 @@ import { CompanyLogo } from "@/components/ui/CompanyLogo"
 import { IconComponent } from "@/components/dashboard/IconComponent"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { format } from "date-fns"
+import { useTranslation } from "react-i18next"
 import type { AccountDetailView } from "./useAccountDetail"
 
 /** Tableau des transactions (bureau). */
 export function TransactionsTable({ ctx }: { ctx: AccountDetailView }) {
+  const { t } = useTranslation("accountDetail")
+  const { t: tc } = useTranslation("common")
   const { account, filteredTransactions, formatCurrency, formatValue, handleSort, hasMoreTx, id, loadMoreTransactions, loadingMoreTx, renderTxMenu, selectedIds, setSelectedIds, sortField, sortOrder, transactions, txLoading } = ctx
   return (
     <>
@@ -33,35 +36,35 @@ export function TransactionsTable({ ctx }: { ctx: AccountDetailView }) {
             </TableHead>
             <TableHead className="w-[150px] cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => handleSort("date")}>
               <div className="flex items-center gap-2">
-                Date
+                {t("tx.columns.date")}
                 {sortField === "date" && (sortOrder === "asc" ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />)}
               </div>
             </TableHead>
             <TableHead className="cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => handleSort("merchant")}>
               <div className="flex items-center gap-2">
-                Commerçant
+                {t("tx.columns.merchant")}
                 {sortField === "merchant" && (sortOrder === "asc" ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />)}
               </div>
             </TableHead>
             <TableHead className="cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => handleSort("category")}>
               <div className="flex items-center gap-2">
-                Catégorie / Type
+                {t("tx.columns.categoryType")}
                 {sortField === "category" && (sortOrder === "asc" ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />)}
               </div>
             </TableHead>
             <TableHead className="text-right cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => handleSort("amount")}>
               <div className="flex items-center justify-end gap-2">
-                Montant
+                {t("tx.columns.amount")}
                 {sortField === "amount" && (sortOrder === "asc" ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />)}
               </div>
             </TableHead>
             <TableHead className="text-right cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => handleSort("running_balance")}>
               <div className="flex items-center justify-end gap-2">
-                Solde
+                {t("tx.columns.balance")}
                 {sortField === "running_balance" && (sortOrder === "asc" ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />)}
               </div>
             </TableHead>
-            <TableHead className="text-right w-[100px]">Actions</TableHead>
+            <TableHead className="text-right w-[100px]">{tc("actions.actions")}</TableHead>
           </TableRow>
         </TableHeader>
           <TableBody>
@@ -92,7 +95,7 @@ export function TransactionsTable({ ctx }: { ctx: AccountDetailView }) {
                       )}
                       <span className="font-bold text-slate-900">{tx.merchant_obj?.name || tx.merchant}</span>
                       {tx.is_recurring && <Repeat className="h-3 w-3 text-indigo-500" />}
-                      {tx.is_upcoming && <Badge variant="outline" className="shrink-0 gap-1 whitespace-nowrap border-none bg-sky-50 px-1.5 py-0 text-[10px] text-sky-700"><CalendarClock className="h-3 w-3" />À venir</Badge>}
+                      {tx.is_upcoming && <Badge variant="outline" className="shrink-0 gap-1 whitespace-nowrap border-none bg-sky-50 px-1.5 py-0 text-[10px] text-sky-700"><CalendarClock className="h-3 w-3" />{t("tx.upcoming")}</Badge>}
                     </div>
                     {tx.note && <span className="text-[10px] text-slate-400 truncate max-w-[200px]">{tx.note}</span>}
                     {tx.merchant_obj && tx.merchant_obj.name !== tx.merchant && (
@@ -116,16 +119,16 @@ export function TransactionsTable({ ctx }: { ctx: AccountDetailView }) {
                 </TableCell>
                 <TableCell>
                   {tx.type === "Solde Initial" ? (
-                    <Badge variant="outline" className="bg-slate-100 text-slate-600 border-none">Solde Initial</Badge>
+                    <Badge variant="outline" className="bg-slate-100 text-slate-600 border-none">{tc("txTypes.initial")}</Badge>
                   ) : tx.type === "Interets" ? (
-                    <Badge variant="outline" className="bg-amber-50 text-amber-700 border-none">Intérêts</Badge>
+                    <Badge variant="outline" className="bg-amber-50 text-amber-700 border-none">{tc("txTypes.Interets")}</Badge>
                   ) : (
                     <div className="flex items-center gap-2">
                       <div className="h-6 w-6 rounded-md flex items-center justify-center" style={{ backgroundColor: tx.category?.color || "#f1f5f9" }}>
                         <IconComponent name={tx.category?.icon} className="h-3.5 w-3.5 text-white" />
                       </div>
                       <span className="text-sm font-medium text-slate-600" title={tx.splits?.length ? tx.splits.map((p: any) => `${p.category?.name ?? "?"} : ${formatCurrency(p.amount)}`).join("\n") : undefined}>
-                        {tx.category?.name || "Sans catégorie"}
+                        {tx.category?.name || tc("txTypes.uncategorized")}
                         {tx.splits?.length ? <span className="ml-1 inline-flex items-center gap-0.5 text-xs text-slate-400"><Split className="h-3 w-3" />+{tx.splits.length - 1}</span> : null}
                       </span>
                     </div>
@@ -138,17 +141,17 @@ export function TransactionsTable({ ctx }: { ctx: AccountDetailView }) {
                     </span>
                     {(tx.reimbursement_offset ?? 0) > 0 && (
                       <span className="text-[10px] font-normal text-slate-400 amount-blur">
-                        net {formatCurrency(tx.amount - (tx.reimbursement_offset ?? 0))}
+                        {t("tx.net", { amount: formatCurrency(tx.amount - (tx.reimbursement_offset ?? 0)) })}
                       </span>
                     )}
                     {tx.type === "Sortie" && tx.has_claims && (() => {
                       const received = tx.reimbursement_offset ?? 0
                       const expected = tx.reimbursement_expected ?? 0
                       const [label, tone] = received <= 0
-                        ? ["À rembourser", "bg-amber-50 text-amber-700"]
+                        ? [t("tx.reimb.toRefund"), "bg-amber-50 text-amber-700"]
                         : received < expected - 0.005
-                          ? ["Partiel", "bg-sky-50 text-sky-700"]
-                          : ["Remboursé", "bg-emerald-50 text-emerald-700"]
+                          ? [t("tx.reimb.partial"), "bg-sky-50 text-sky-700"]
+                          : [t("tx.reimb.refunded"), "bg-emerald-50 text-emerald-700"]
                       return <Badge variant="outline" className={`mt-0.5 border-none px-1 py-0 text-[10px] ${tone}`}>{label}</Badge>
                     })()}
                     {tx.currency !== account.currency && (
@@ -165,12 +168,12 @@ export function TransactionsTable({ ctx }: { ctx: AccountDetailView }) {
                   <div className="flex items-center justify-end gap-1">
                     {/* Seuls les liens actifs restent visibles ; les actions sont dans le menu */}
                     {(tx.has_claims || (tx.reimbursement_offset ?? 0) > 0) && (
-                      <span title="Remboursement lié" className="flex h-8 w-6 items-center justify-center">
+                      <span title={t("tx.reimbursementLinked")} className="flex h-8 w-6 items-center justify-center">
                         <HandCoins className="h-3.5 w-3.5 text-emerald-600" />
                       </span>
                     )}
                     {tx.is_transfer && (
-                      <span title="Virement interne lié" className="flex h-8 w-6 items-center justify-center">
+                      <span title={t("tx.transferLinked")} className="flex h-8 w-6 items-center justify-center">
                         <ArrowRightLeft className="h-3.5 w-3.5 text-emerald-600" />
                       </span>
                     )}
@@ -185,7 +188,7 @@ export function TransactionsTable({ ctx }: { ctx: AccountDetailView }) {
         {hasMoreTx && (
           <div className="hidden justify-center border-t p-3 md:flex">
             <Button variant="outline" size="sm" onClick={loadMoreTransactions} disabled={loadingMoreTx}>
-              {loadingMoreTx ? "Chargement…" : "Charger plus de transactions"}
+              {loadingMoreTx ? t("tx.loading") : t("tx.loadMore")}
             </Button>
           </div>
         )}

@@ -1,20 +1,22 @@
+import { appLocale } from "@/i18n/locale"
 import { Activity, ArrowDownRight, ArrowUpRight, Percent, Plus, Shield, Tag, Target, TrendingDown, TrendingUp } from "lucide-react"
+import { useTranslation } from "react-i18next"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { formatRate } from "@/lib/utils"
-import { fr } from "date-fns/locale"
 import { Account } from "./types"
 import type { AccountDetailView } from "./useAccountDetail"
 
 /** Indicateurs du compte et totaux par tag. */
 export function AccountKpis({ ctx }: { ctx: AccountDetailView }) {
-  const { account, currentBalance, formatCurrency, id, investmentData, isInvestment, stats, tagTotals } = ctx
+  const { t } = useTranslation("accountDetail")
+  const { account, currentBalance, formatCurrency, formatValue, id, investmentData, isInvestment, stats, tagTotals } = ctx
   return (
     <>
       {/* Account KPIs : 2 colonnes compactes sur mobile pour que la liste ne soit pas repoussée de deux écrans */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 max-sm:[&_.text-2xl]:text-lg max-sm:[&_p.text-xs]:hidden">
         <Card className="theme-island col-span-2 lg:col-span-1 border-none shadow-md bg-slate-900 text-white">
           <CardHeader className="pb-2">
-            <CardDescription className="text-slate-400 font-medium">Solde Actuel</CardDescription>
+            <CardDescription className="text-slate-400 font-medium">{t("kpi.currentBalance")}</CardDescription>
             <CardTitle className="text-3xl font-bold">{formatCurrency(currentBalance || 0)}</CardTitle>
           </CardHeader>
           <CardContent>
@@ -23,8 +25,8 @@ export function AccountKpis({ ctx }: { ctx: AccountDetailView }) {
               {/* Date de la dernière validation explicite du solde (et non « aujourd'hui » codé en dur) */}
               <span>
                 {account.last_verified_at
-                  ? `Solde vérifié le ${new Date(account.last_verified_at).toLocaleDateString("fr-FR")}`
-                  : "Solde jamais vérifié"}
+                  ? t("kpi.verifiedOn", { date: new Date(account.last_verified_at).toLocaleDateString(appLocale()) })
+                  : t("kpi.neverVerified")}
               </span>
             </div>
           </CardContent>
@@ -34,38 +36,38 @@ export function AccountKpis({ ctx }: { ctx: AccountDetailView }) {
           <>
             <Card className="shadow-sm border border-slate-100 hover:border-slate-200 transition-all">
               <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
-                <CardDescription className="font-medium text-slate-500">Fonds Euro ({account.fonds_euros_pct || 0}%)</CardDescription>
+                <CardDescription className="font-medium text-slate-500">{t("kpi.euroFund", { pct: account.fonds_euros_pct || 0 })}</CardDescription>
                 <Shield className="h-4 w-4 text-emerald-500" />
               </CardHeader>
               <CardContent>
                 <CardTitle className="text-2xl font-bold text-slate-900 amount-blur">
                   {formatCurrency((currentBalance || 0) * ((account.fonds_euros_pct || 0) / 100))}
                 </CardTitle>
-                <p className="text-xs text-slate-400 mt-2">Capital garanti</p>
+                <p className="text-xs text-slate-400 mt-2">{t("kpi.guaranteed")}</p>
               </CardContent>
             </Card>
             <Card className="shadow-sm border border-slate-100 hover:border-slate-200 transition-all">
               <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
-                <CardDescription className="font-medium text-slate-500">Unités de Compte ({account.fonds_investis_pct || 0}%)</CardDescription>
+                <CardDescription className="font-medium text-slate-500">{t("kpi.ucFunds", { pct: account.fonds_investis_pct || 0 })}</CardDescription>
                 <TrendingUp className="h-4 w-4 text-amber-500" />
               </CardHeader>
               <CardContent>
                 <CardTitle className="text-2xl font-bold text-slate-900 amount-blur">
                   {formatCurrency((currentBalance || 0) * ((account.fonds_investis_pct || 0) / 100))}
                 </CardTitle>
-                <p className="text-xs text-slate-400 mt-2">Fonds investis (UC)</p>
+                <p className="text-xs text-slate-400 mt-2">{t("kpi.investedFunds")}</p>
               </CardContent>
             </Card>
             <Card className="shadow-sm border border-slate-100 hover:border-slate-200 transition-all">
               <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
-                <CardDescription className="font-medium text-slate-500">Plus-value Latente</CardDescription>
+                <CardDescription className="font-medium text-slate-500">{t("kpi.unrealizedGain")}</CardDescription>
                 <Activity className={`h-4 w-4 ${((investmentData?.totals?.gain_eur || 0) >= 0) ? "text-emerald-500" : "text-rose-500"}`} />
               </CardHeader>
               <CardContent>
                 <CardTitle className={`text-2xl font-bold ${((investmentData?.totals?.gain_eur || 0) >= 0) ? "text-emerald-600" : "text-rose-600"} amount-blur`}>
-                  {((investmentData?.totals?.gain_eur || 0) >= 0) ? "+" : ""}{formatCurrency(investmentData?.totals?.gain_eur || 0)}
+                  {((investmentData?.totals?.gain_eur || 0) >= 0) ? "+" : ""}{formatValue(investmentData?.totals?.gain_eur || 0, "EUR")}
                 </CardTitle>
-                <p className="text-xs text-slate-400 mt-2">Evolution du capital</p>
+                <p className="text-xs text-slate-400 mt-2">{t("kpi.capitalChange")}</p>
               </CardContent>
             </Card>
           </>
@@ -73,38 +75,38 @@ export function AccountKpis({ ctx }: { ctx: AccountDetailView }) {
           <>
             <Card className="shadow-sm">
               <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
-                <CardDescription className="font-medium">Net Investi</CardDescription>
+                <CardDescription className="font-medium">{t("kpi.netInvested")}</CardDescription>
                 <Target className="h-4 w-4 text-slate-400" />
               </CardHeader>
               <CardContent>
                 <CardTitle className="text-2xl font-bold text-slate-900">
-                  {formatCurrency(investmentData?.totals?.net_invested || 0)}
+                  {formatValue(investmentData?.totals?.net_invested || 0, "EUR")}
                 </CardTitle>
-                <p className="text-xs text-slate-400 mt-2">Versements - Retraits</p>
+                <p className="text-xs text-slate-400 mt-2">{t("kpi.depositsMinusWithdrawals")}</p>
               </CardContent>
             </Card>
             <Card className="shadow-sm">
               <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
-                <CardDescription className="font-medium">Gain total</CardDescription>
+                <CardDescription className="font-medium">{t("kpi.totalGain")}</CardDescription>
                 <Activity className="h-4 w-4 text-emerald-500" />
               </CardHeader>
               <CardContent>
                 <CardTitle className={`text-2xl font-bold ${(investmentData?.totals?.gain_eur || 0) >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
-                  {formatCurrency(investmentData?.totals?.gain_eur || 0)}
+                  {formatValue(investmentData?.totals?.gain_eur || 0, "EUR")}
                 </CardTitle>
-                <p className="text-xs text-slate-400 mt-2">Valeur − net investi (détail plus bas)</p>
+                <p className="text-xs text-slate-400 mt-2">{t("kpi.gainHint")}</p>
               </CardContent>
             </Card>
             <Card className="shadow-sm">
               <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
-                <CardDescription className="font-medium">Performance</CardDescription>
+                <CardDescription className="font-medium">{t("kpi.performance")}</CardDescription>
                 <Percent className="h-4 w-4 text-slate-400" />
               </CardHeader>
               <CardContent>
                 <CardTitle className={`text-2xl font-bold ${(investmentData?.totals?.performance_pct || 0) >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
                   {formatRate(investmentData?.totals?.performance_pct)}
                 </CardTitle>
-                <p className="text-xs text-slate-400 mt-2">Rendement global</p>
+                <p className="text-xs text-slate-400 mt-2">{t("kpi.globalReturn")}</p>
               </CardContent>
             </Card>
           </>
@@ -112,7 +114,7 @@ export function AccountKpis({ ctx }: { ctx: AccountDetailView }) {
           <>
             <Card className="shadow-sm">
               <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
-                <CardDescription className="font-medium">Flux Net du Mois</CardDescription>
+                <CardDescription className="font-medium">{t("kpi.monthlyNetFlow")}</CardDescription>
                 {(stats?.monthlyNetFlow || 0) >= 0 
                   ? <TrendingUp className="h-4 w-4 text-emerald-500" />
                   : <TrendingDown className="h-4 w-4 text-rose-500" />}
@@ -121,12 +123,12 @@ export function AccountKpis({ ctx }: { ctx: AccountDetailView }) {
                 <CardTitle className={`text-2xl font-bold ${(stats?.monthlyNetFlow || 0) >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
                   {(stats?.monthlyNetFlow || 0) >= 0 ? "+" : ""}{formatCurrency(stats?.monthlyNetFlow || 0)}
                 </CardTitle>
-                <p className="text-xs text-slate-400 mt-2">Entrées − Sorties ce mois</p>
+                <p className="text-xs text-slate-400 mt-2">{t("kpi.inMinusOut")}</p>
               </CardContent>
             </Card>
             <Card className="shadow-sm">
               <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
-                <CardDescription className="font-medium">Variation Mensuelle</CardDescription>
+                <CardDescription className="font-medium">{t("kpi.monthlyChange")}</CardDescription>
                 {stats?.monthlyVariation !== null && stats?.monthlyVariation !== undefined
                   ? (stats.monthlyVariation >= 0 
                       ? <ArrowUpRight className="h-4 w-4 text-emerald-500" />
@@ -139,17 +141,17 @@ export function AccountKpis({ ctx }: { ctx: AccountDetailView }) {
                     ? formatRate(stats.monthlyVariation, 1, true)
                     : "—"}
                 </CardTitle>
-                <p className="text-xs text-slate-400 mt-2">vs mois précédent</p>
+                <p className="text-xs text-slate-400 mt-2">{t("kpi.vsPrevious")}</p>
               </CardContent>
             </Card>
             <Card className="shadow-sm">
               <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
-                <CardDescription className="font-medium">Panier Moyen</CardDescription>
+                <CardDescription className="font-medium">{t("kpi.avgBasket")}</CardDescription>
                 <Activity className="h-4 w-4 text-slate-400" />
               </CardHeader>
               <CardContent>
                 <CardTitle className="text-2xl font-bold">{formatCurrency(stats?.avgTx || 0)}</CardTitle>
-                <p className="text-xs text-slate-400 mt-2">Par dépense effectuée</p>
+                <p className="text-xs text-slate-400 mt-2">{t("kpi.perExpense")}</p>
               </CardContent>
             </Card>
           </>
@@ -162,7 +164,7 @@ export function AccountKpis({ ctx }: { ctx: AccountDetailView }) {
             <CardHeader className="pb-3 border-b border-slate-50 bg-slate-50/30">
               <div className="flex items-center gap-2">
                 <Tag className="h-4 w-4 text-slate-400" />
-                <CardTitle className="text-sm font-bold uppercase tracking-wider text-slate-500">Dépenses par tag</CardTitle>
+                <CardTitle className="text-sm font-bold uppercase tracking-wider text-slate-500">{t("kpi.expensesByTag")}</CardTitle>
               </div>
             </CardHeader>
             <CardContent className="pt-4">
@@ -174,7 +176,7 @@ export function AccountKpis({ ctx }: { ctx: AccountDetailView }) {
                     </div>
                     <div>
                       <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 leading-none mb-1">{t.name}</p>
-                      <p className="text-lg font-black text-slate-900 leading-none">{formatCurrency(t.total_eur)}</p>
+                      <p className="text-lg font-black text-slate-900 leading-none">{formatValue(t.total_eur, "EUR")}</p>
                     </div>
                   </div>
                 ))}

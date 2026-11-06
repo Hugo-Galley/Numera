@@ -1,3 +1,5 @@
+import i18n from "i18next"
+import { useTranslation } from "react-i18next"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -5,12 +7,13 @@ import type { RecurringTransactionsCtx } from "./useRecurringTransactions"
 
 /** Formulaire : montant, catégorie, virement et fréquence. */
 export function FormAmountFields({ ctx }: { ctx: RecurringTransactionsCtx }) {
+  const { t } = useTranslation("recurring")
   const { accounts, categories, formData, selectedAccount, setFormData, transferToInvestment } = ctx
   return (
     <>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="grid gap-2">
-          <Label htmlFor="account">Compte</Label>
+          <Label htmlFor="account">{t("formAmountFields.compte")}</Label>
           <Select
             value={formData.account_id}
             onValueChange={(v) => setFormData({ ...formData, account_id: v })}
@@ -28,7 +31,7 @@ export function FormAmountFields({ ctx }: { ctx: RecurringTransactionsCtx }) {
           </Select>
         </div>
         <div className="grid gap-2">
-          <Label htmlFor="category">Catégorie</Label>
+          <Label htmlFor="category">{t("formAmountFields.categorie")}</Label>
           <Select
             value={formData.category_id}
             onValueChange={(v) => setFormData({ ...formData, category_id: v })}
@@ -37,7 +40,7 @@ export function FormAmountFields({ ctx }: { ctx: RecurringTransactionsCtx }) {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="none">Sans catégorie</SelectItem>
+              <SelectItem value="none">{t("formAmountFields.sansCategorie")}</SelectItem>
               {categories.map((cat) => (
                 <SelectItem key={cat.id} value={cat.id.toString()}>
                   {cat.name}
@@ -50,7 +53,7 @@ export function FormAmountFields({ ctx }: { ctx: RecurringTransactionsCtx }) {
 
       {formData.type === "Sortie" && selectedAccount?.type !== "investissement" && (
         <div className="grid gap-2">
-          <Label htmlFor="transfer-to">Virement vers un compte (optionnel)</Label>
+          <Label htmlFor="transfer-to">{t("formAmountFields.virementVersUnCompteOptionnel")}</Label>
           <Select
             value={formData.transfer_to_account_id}
             onValueChange={(v) => setFormData({ ...formData, transfer_to_account_id: v })}
@@ -59,7 +62,7 @@ export function FormAmountFields({ ctx }: { ctx: RecurringTransactionsCtx }) {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="none">Non, c'est une dépense</SelectItem>
+              <SelectItem value="none">{t("formAmountFields.nonCEstUneDepense")}</SelectItem>
               {accounts
                 .filter((acc) => acc.id.toString() !== formData.account_id)
                 .map((acc) => (
@@ -72,26 +75,26 @@ export function FormAmountFields({ ctx }: { ctx: RecurringTransactionsCtx }) {
           {formData.transfer_to_account_id !== "none" && (
             <p className="text-xs text-slate-500">
               {transferToInvestment
-                ? "Chaque échéance crée la sortie, le dépôt et l'achat des parts (au cours de clôture de la date), déjà liés : renseignez le titre ci-dessous."
-                : "Chaque échéance crée la sortie et l'entrée correspondante, déjà liées : le montant n'est pas compté deux fois."}
+                ? t("formAmountFields.chaqueEcheanceCreeLaSortie")
+                : t("formAmountFields.chaqueEcheanceCreeLaSortie2")}
             </p>
           )}
           {formData.transfer_to_account_id !== "none" && (
             <div className="grid gap-2 pt-1">
-              <Label htmlFor="transfer_credit_day">Arrivée sur le compte destination (jour du mois)</Label>
+              <Label htmlFor="transfer_credit_day">{t("formAmountFields.arriveeSurLeCompteDestination")}</Label>
               <Input
                 id="transfer_credit_day"
                 type="number" inputMode="decimal"
                 min="1"
                 max="31"
-                placeholder="Le jour même"
+                placeholder={t("formAmountFields.leJourMeme")}
                 value={formData.transfer_credit_day}
                 onChange={(e) => setFormData({ ...formData, transfer_credit_day: e.target.value })}
               />
               <p className="text-xs text-slate-500">
                 {formData.transfer_credit_day
-                  ? `Débité le ${formData.day_of_month || "…"}, crédité le ${formData.transfer_credit_day} suivant : d'ici là l'argent est en transit, rien n'est crédité.`
-                  : "Vide : crédité le jour du débit. Renseignez un jour si le virement met du temps à arriver."}
+                  ? i18n.t("misc.transitNote", { ns: "recurring", debit: formData.day_of_month || "…", credit: formData.transfer_credit_day })
+                  : t("formAmountFields.videCrediteLeJourDu")}
               </p>
             </div>
           )}
@@ -100,7 +103,7 @@ export function FormAmountFields({ ctx }: { ctx: RecurringTransactionsCtx }) {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="grid gap-2">
-          <Label htmlFor="frequency">Fréquence</Label>
+          <Label htmlFor="frequency">{t("formAmountFields.frequence")}</Label>
           <Select
             value={formData.frequency}
             onValueChange={(v) => setFormData({ ...formData, frequency: v })}
@@ -109,15 +112,15 @@ export function FormAmountFields({ ctx }: { ctx: RecurringTransactionsCtx }) {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="weekly">Hebdomadaire</SelectItem>
-              <SelectItem value="monthly">Mensuelle</SelectItem>
-              <SelectItem value="quarterly">Trimestrielle</SelectItem>
-              <SelectItem value="yearly">Annuelle</SelectItem>
+              <SelectItem value="weekly">{t("formAmountFields.hebdomadaire")}</SelectItem>
+              <SelectItem value="monthly">{t("formAmountFields.mensuelle")}</SelectItem>
+              <SelectItem value="quarterly">{t("formAmountFields.trimestrielle")}</SelectItem>
+              <SelectItem value="yearly">{t("formAmountFields.annuelle")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
         <div className="grid gap-2">
-          <Label htmlFor="day_of_month">Jour du mois</Label>
+          <Label htmlFor="day_of_month">{t("formAmountFields.jourDuMois")}</Label>
           <Input
             id="day_of_month"
             type="number" inputMode="decimal"

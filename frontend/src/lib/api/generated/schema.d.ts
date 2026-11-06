@@ -3523,6 +3523,8 @@ export interface components {
             asset_name: string;
             /** Buy Price Avg */
             buy_price_avg?: number | null;
+            /** Cost Basis Eur */
+            cost_basis_eur?: number | null;
             /**
              * Currency
              * @default EUR
@@ -3557,8 +3559,15 @@ export interface components {
             active?: boolean;
             /** Amount */
             amount: number;
+            /**
+             * Auto Generate
+             * @default false
+             */
+            auto_generate?: boolean;
             /** Declaration Interval Months */
             declaration_interval_months?: number | null;
+            /** Logo */
+            logo?: string | null;
             /** Match Pattern */
             match_pattern: string;
             /** Name */
@@ -3614,6 +3623,11 @@ export interface components {
             amount: number;
             /** Amount Changed */
             amount_changed: boolean;
+            /**
+             * Auto Generate
+             * @default false
+             */
+            auto_generate?: boolean;
             /** Declaration Days Left */
             declaration_days_left?: number | null;
             /** Declaration Interval Months */
@@ -3626,6 +3640,8 @@ export interface components {
             /** Id */
             id: number;
             last_payment?: components["schemas"]["BenefitPayment"] | null;
+            /** Logo */
+            logo?: string | null;
             /** Match Pattern */
             match_pattern: string;
             /** Name */
@@ -3675,8 +3691,12 @@ export interface components {
             active?: boolean | null;
             /** Amount */
             amount?: number | null;
+            /** Auto Generate */
+            auto_generate?: boolean | null;
             /** Declaration Interval Months */
             declaration_interval_months?: number | null;
+            /** Logo */
+            logo?: string | null;
             /** Match Pattern */
             match_pattern?: string | null;
             /** Name */
@@ -5171,6 +5191,11 @@ export interface components {
             /** Hide Amounts */
             hide_amounts: boolean;
             /**
+             * Language
+             * @enum {string}
+             */
+            language: "fr" | "en";
+            /**
              * Min Severity
              * @enum {string}
              */
@@ -5200,6 +5225,8 @@ export interface components {
             current_password?: string | null;
             /** Hide Amounts */
             hide_amounts?: boolean | null;
+            /** Language */
+            language?: ("fr" | "en") | null;
             /** Min Severity */
             min_severity?: ("low" | "medium" | "high") | null;
             /** Ntfy Enabled */
@@ -5244,6 +5271,8 @@ export interface components {
             asset_name: string;
             /** Buy Price Avg */
             buy_price_avg?: number | null;
+            /** Cost Basis Eur */
+            cost_basis_eur?: number | null;
             /**
              * Currency
              * @default EUR
@@ -5266,6 +5295,8 @@ export interface components {
             asset_name: string;
             /** Buy Price Avg */
             buy_price_avg?: number | null;
+            /** Cost Basis Eur */
+            cost_basis_eur?: number | null;
             /**
              * Created At
              * Format: date-time
@@ -5342,6 +5373,8 @@ export interface components {
             asset_name?: string | null;
             /** Buy Price Avg */
             buy_price_avg?: number | null;
+            /** Cost Basis Eur */
+            cost_basis_eur?: number | null;
             /** Currency */
             currency?: string | null;
             /** Etf Profile Id */
@@ -6713,6 +6746,8 @@ export interface components {
             account_id: number;
             /** Amount */
             amount: number;
+            /** Benefit Id */
+            benefit_id?: number | null;
             category?: components["schemas"]["CategoryRead"] | null;
             /** Category Id */
             category_id?: number | null;
@@ -6742,6 +6777,11 @@ export interface components {
              * @default false
              */
             is_exceptional?: boolean;
+            /**
+             * Is Provisional
+             * @default false
+             */
+            is_provisional?: boolean;
             /**
              * Is Recurring
              * @default false

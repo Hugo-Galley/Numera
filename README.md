@@ -111,7 +111,7 @@ cd numera
 
 ```bash
 make setup                                        # crée .env, génère SECRET_KEY et BACKUP_KEY
-python3 scripts/change_password.py 'mot-de-passe' # nécessite bcrypt (pip install bcrypt)
+python3 scripts/ops/change_password.py 'mot-de-passe' # nécessite bcrypt (pip install bcrypt)
 ```
 
 Collez le hash obtenu dans `.env` **entre guillemets simples**, sinon Docker Compose prend les `$` pour des variables et la connexion échoue :
@@ -135,13 +135,15 @@ Par défaut, l'appli n'écoute que sur `127.0.0.1:8082`. Pour l'ouvrir depuis l'
 
 ### Mettre à jour
 
-**Mode Docker** : relancez le script d'installation (il garde votre configuration), ou, dans `./numera` :
+**Mode Docker** : dans `./numera` (ou en relançant le script d'installation, qui garde votre configuration) :
 
 ```bash
-docker compose --env-file .env pull && docker compose --env-file .env up -d
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/Hugo-Galley/numera/main/install.sh)" _ --upgrade
 ```
 
-Pour une version précise (ou revenir en arrière), préfixez par `NUMERA_VERSION=0.1.0`. Les migrations de la base ne se défont pas toutes seules : restaurez aussi une sauvegarde faite avant la mise à jour.
+(depuis un clone du dépôt : `./install.sh --upgrade`)
+
+Le `docker-compose.yml` publié avec chaque release fixe la version des images : un simple `docker compose pull && up -d` retélécharge la **même** version et ne met donc rien à jour. `--upgrade` retélécharge le compose de la dernière release (somme de contrôle `SHA256SUMS` vérifiée), sauvegarde la base, tire les images puis redémarre. Pour une version précise ou pour revenir en arrière : `NUMERA_VERSION=0.1.0 NUMERA_UPGRADE=1 bash -c "$(curl -fsSL …/install.sh)"`. Les migrations de la base ne se défont pas toutes seules : au retour arrière, restaurez la sauvegarde `pre_migration_*` faite avant la mise à jour.
 
 **Depuis les sources** :
 
@@ -149,11 +151,11 @@ Pour une version précise (ou revenir en arrière), préfixez par `NUMERA_VERSIO
 make upgrade
 ```
 
-La dernière version est récupérée et les conteneurs reconstruits. Dans les deux cas, la base se met à jour toute seule au démarrage.
+La dernière version est récupérée et les conteneurs reconstruits. Dans les deux cas, la base se met à jour toute seule au démarrage, après une copie de sécurité dans `backups/` (`pre_migration_<révision>_<date>.db[.enc]`, les 5 dernières sont conservées) quand le schéma doit changer.
 
 ### Sauvegardes
 
-Toutes les 24 heures, une copie chiffrée de la base est déposée dans `backups/`, et les 7 derniers jours sont conservés (réglables via `BACKUP_INTERVAL_SECONDS` et `RETENTION_DAYS` dans `.env`).
+Toutes les 24 heures, une copie chiffrée de la base est déposée dans `backups/`, et les 7 derniers jours sont conservés (réglables via `BACKUP_INTERVAL_SECONDS`, `RETENTION_DAYS` et, pour GitHub, `GITHUB_BACKUP_KEEP_DAYS` dans `.env` ; relancer `docker compose up -d` après modification).
 
 <details>
 <summary><strong>Sauvegarder ou restaurer à la main</strong></summary>

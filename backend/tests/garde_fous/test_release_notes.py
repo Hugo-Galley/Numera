@@ -4,7 +4,7 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).parents[3]
 
-_spec = importlib.util.spec_from_file_location("release_notes", REPO_ROOT / "scripts/release_notes.py")
+_spec = importlib.util.spec_from_file_location("release_notes", REPO_ROOT / "scripts/release/release_notes.py")
 rn = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(rn)
 

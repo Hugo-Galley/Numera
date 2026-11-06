@@ -1,16 +1,18 @@
+import { useTranslation } from "react-i18next"
 import { ArrowRight, Zap } from "lucide-react"
 import { cn, formatCurrency } from "@/lib/utils"
 import type { OmniboxCtx } from "./useOmnibox"
 
 /** Résultats : saisie rapide et actions. */
 export function QuickActionResults({ ctx }: { ctx: OmniboxCtx }) {
+  const { t } = useTranslation("omnibox")
   const { activeIndex, filteredAccounts, filteredActions, filteredNavigation, handleSelect, mainAccount, quickResults, setActiveIndex } = ctx
   return (
     <>
       {quickResults.length > 0 && (
         <div className="mb-4">
           <h3 className="px-3 py-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-            Saisie rapide
+            {t("ui.quickEntry")}
           </h3>
           {quickResults.map((entry) => {
             const resultIdx = filteredNavigation.length + filteredAccounts.length
@@ -36,11 +38,11 @@ export function QuickActionResults({ ctx }: { ctx: OmniboxCtx }) {
                   </div>
                   <div className="flex min-w-0 flex-col">
                     <span className="truncate font-medium text-slate-900">
-                      {isIncome ? "Ajouter un revenu" : "Ajouter une dépense"} de {formatCurrency(entry.amount)}
+                      {t(isIncome ? "ui.addIncome" : "ui.addExpense", { amount: formatCurrency(entry.amount) })}
                       {entry.merchant && <> · {entry.merchant}</>}
                     </span>
                     <span className="text-[10px] text-slate-400">
-                      {mainAccount ? `Sur ${mainAccount.name}, à vérifier avant d'enregistrer` : "Aucun compte courant actif"}
+                      {mainAccount ? t("ui.onAccount", { name: mainAccount.name }) : t("ui.noCheckingAccount")}
                     </span>
                   </div>
                 </div>
@@ -54,7 +56,7 @@ export function QuickActionResults({ ctx }: { ctx: OmniboxCtx }) {
       {filteredActions.length > 0 && (
         <div className="mb-4">
           <h3 className="px-3 py-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-            Actions
+            {t("ui.actions")}
           </h3>
           {filteredActions.map((action, idx) => {
             const resultIdx = filteredNavigation.length + filteredAccounts.length + quickResults.length + idx

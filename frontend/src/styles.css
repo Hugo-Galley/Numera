@@ -117,6 +117,12 @@ body.privacy-enabled textarea.privacy-masked:focus {
   }
 }
 
+/* Contraste (WCAG AA) : `text-slate-400` (2,6:1 sur blanc) est réservé aux icônes et décorations ; sur un élément
+   de texte il est relevé d'un cran (slate-500, 4,8:1). Les icônes SVG gardent la teinte d'origine. */
+:is(p, span, div, td, th, li, label, small, dt, dd, h1, h2, h3, h4, h5, h6, a, button, summary).text-slate-400 {
+  color: rgb(var(--c-slate-500));
+}
+
 /* Mode sombre des graphiques : les couleurs neutres sont écrites en dur dans les attributs SVG (Recharts,
    Sankey…) ; une règle CSS l'emporte sur un attribut de présentation, on les rebranche donc sur la palette
    ardoise (inversée en sombre, cf. theme-colors.css). Les couleurs de séries (émeraude, rose…) restent. */

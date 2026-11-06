@@ -1,4 +1,5 @@
 import { Briefcase } from "lucide-react"
+import { useTranslation } from "react-i18next"
 import { PriceChangesNotice } from "@/components/recurring/PriceChangesNotice"
 import { 
   Card, 
@@ -27,6 +28,7 @@ interface SubscriptionsTabProps {
 }
 
 export function SubscriptionsTab({ subscriptions, displayCurrency }: SubscriptionsTabProps) {
+  const { t } = useTranslation("dashboard")
   const isMobile = useIsMobile()
   // Filter out investments & savings, and only show active or potential subscriptions
   const items = (subscriptions?.subscriptions || []).filter((sub: any) => {
@@ -44,13 +46,13 @@ export function SubscriptionsTab({ subscriptions, displayCurrency }: Subscriptio
         <CardHeader className="bg-slate-50/50 border-b p-4 pb-3 md:p-6 md:pb-4">
           <div className="flex items-center gap-2">
             <Briefcase className="h-5 w-5 text-slate-400" />
-            <CardTitle className="text-lg">Abonnements Mensuels</CardTitle>
+            <CardTitle className="text-lg">{t("subscriptions.monthlyTitle")}</CardTitle>
           </div>
-          <CardDescription>Coût mensuel moyen : <span className="text-slate-900 font-bold amount-blur">{formatCurrency(total, displayCurrency)}</span></CardDescription>
+          <CardDescription>{t("subscriptions.averageCost")} <span className="text-slate-900 font-bold amount-blur">{formatCurrency(total, displayCurrency)}</span></CardDescription>
           {displayCurrency === "EUR" && (
             <div className="flex flex-wrap gap-x-3 text-xs text-slate-500">
               <WorkHours amount={total} className="text-xs" />
-              <span className="inline-flex items-center gap-1">par an <WorkHours amount={annualTotal} className="text-xs" showIcon={false} /></span>
+              <span className="inline-flex items-center gap-1">{t("subscriptions.perYear")} <WorkHours amount={annualTotal} className="text-xs" showIcon={false} /></span>
             </div>
           )}
         </CardHeader>
@@ -65,12 +67,12 @@ export function SubscriptionsTab({ subscriptions, displayCurrency }: Subscriptio
                     <span className="block truncate font-medium text-slate-900">{sub.name}</span>
                     {sub.status === "potential" && (
                       <span className="text-[9px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider">
-                        Détecté
+                        {t("subscriptions.detected")}
                       </span>
                     )}
                     {sub.status === "lapsed" && (
                       <span className="text-[9px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider">
-                        Plus prélevé ?
+                        {t("subscriptions.lapsed")}
                       </span>
                     )}
                   </div>
@@ -78,15 +80,15 @@ export function SubscriptionsTab({ subscriptions, displayCurrency }: Subscriptio
                 <span className="shrink-0 whitespace-nowrap tabular-nums font-bold text-slate-900 amount-blur">{formatCurrency(sub.monthly_cost, displayCurrency)}</span>
               </div>
             ))}
-            {items.length === 0 && <p className="text-center text-slate-400 py-10">Aucun abonnement détecté.</p>}
+            {items.length === 0 && <p className="text-center text-slate-400 py-10">{t("subscriptions.empty")}</p>}
           </div>
         </CardContent>
       </Card>
 
       <Card className="shadow-sm border-slate-100 overflow-hidden">
         <CardHeader className="bg-slate-50/50 border-b p-4 pb-3 md:p-6 md:pb-4">
-          <CardTitle className="text-lg">Répartition Abonnements</CardTitle>
-          <CardDescription>Poids de chaque service.</CardDescription>
+          <CardTitle className="text-lg">{t("subscriptions.splitTitle")}</CardTitle>
+          <CardDescription>{t("subscriptions.splitSubtitle")}</CardDescription>
         </CardHeader>
         <CardContent className="p-3 md:p-6 md:h-[400px]">
           <div className="h-[220px] md:h-full">

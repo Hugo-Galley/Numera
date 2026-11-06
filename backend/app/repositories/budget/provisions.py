@@ -34,16 +34,16 @@ def accounts_in(db: Session, account_ids: Iterable[int]) -> list[Account]:
     return db.query(Account).filter(Account.id.in_(list(account_ids))).all()
 
 
-def category_expenses_between(db: Session, category_id: int, start: datetime, end: datetime) -> list:
-    """(date, devise, montant net) des dépenses de la catégorie dans [start, end), parts de découpage comprises."""
+def category_expenses_between(db: Session, category_ids: set[int], start: datetime, end: datetime) -> list:
+    """(catégorie, date, devise, montant net) des dépenses de ces catégories dans [start, end), parts de découpage comprises."""
     lines = category_lines()
     return (
-        db.query(Transaction.date, Account.currency, lines.c.net_amount)
+        db.query(lines.c.category_id, Transaction.date, Account.currency, lines.c.net_amount)
         .select_from(Transaction)
         .join(lines, lines.c.transaction_id == Transaction.id)
         .join(Account, Transaction.account_id == Account.id)
         .filter(
-            lines.c.category_id == category_id,
+            lines.c.category_id.in_(category_ids),
             Transaction.type == "Sortie",
             Transaction.is_transfer == False,
             Transaction.date >= start,

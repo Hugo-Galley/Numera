@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import { useEffect, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { ChevronLeft, RefreshCw, WifiOff } from "lucide-react"
@@ -8,6 +9,7 @@ const SWIPE_BACK_DISTANCE = 70
 
 /** Bandeau hors-ligne, tirer pour actualiser et balayage depuis le bord gauche = retour (la PWA iOS n'offre ni l'un ni l'autre en natif). */
 export function PwaExtras({ scrollRef }: { scrollRef: React.RefObject<HTMLElement | null> }) {
+  const { t } = useTranslation("common")
   const [online, setOnline] = useState(() => navigator.onLine)
   const [pull, setPull] = useState(0)
   const [refreshing, setRefreshing] = useState(false)
@@ -124,7 +126,7 @@ export function PwaExtras({ scrollRef }: { scrollRef: React.RefObject<HTMLElemen
       {!online && (
         <div className="fixed inset-x-0 top-[env(safe-area-inset-top)] z-[60] flex items-center justify-center gap-2 bg-amber-500 px-3 py-1 text-xs font-semibold text-white md:hidden" role="status">
           <WifiOff className="h-3.5 w-3.5" />
-          Hors ligne — les données affichées peuvent être obsolètes
+          {t("pwaExtras.horsLigneLesDonneesAffichees")}
         </div>
       )}
       {(pull > 0 || refreshing) && (

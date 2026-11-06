@@ -1,3 +1,5 @@
+import i18n from "i18next"
+import { useTranslation } from "react-i18next"
 import { AlertCircle, Clock, Plus, Trash2, TrendingUp } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -11,6 +13,7 @@ import type { RecurringTransactionsCtx } from "./useRecurringTransactions"
 
 /** Onglet analyse : abonnements, investissements et autres flux récurrents. */
 export function SubscriptionsTab({ ctx }: { ctx: RecurringTransactionsCtx }) {
+  const { t } = useTranslation("recurring")
   const { activeSubs, handleIgnoreDetection, handleOpenValidate, annualTotal, monthlyBreakdown, monthlyTotal, potentialSubs, safeFormat, setFlowSub, setSubTab, subTab, subsData } = ctx
   return (
     <>
@@ -24,7 +27,7 @@ export function SubscriptionsTab({ ctx }: { ctx: RecurringTransactionsCtx }) {
               className={`h-9 rounded-lg font-bold text-xs px-4 ${subTab === "subscriptions" ? "shadow-sm" : "text-slate-500 hover:text-slate-900"}`}
               onClick={() => setSubTab("subscriptions")}
              >
-               Abonnements
+               {t("subscriptionsTab.abonnements")}
              </Button>
              <Button 
               variant={subTab === "investments" ? "white" : "ghost"} 
@@ -32,7 +35,7 @@ export function SubscriptionsTab({ ctx }: { ctx: RecurringTransactionsCtx }) {
               className={`rounded-lg font-bold text-xs px-4 ${subTab === "investments" ? "shadow-sm" : "text-slate-500 hover:text-slate-900"}`}
               onClick={() => setSubTab("investments")}
              >
-               Investissements
+               {t("subscriptionsTab.investissements")}
              </Button>
              <Button 
               variant={subTab === "other" ? "white" : "ghost"} 
@@ -40,11 +43,11 @@ export function SubscriptionsTab({ ctx }: { ctx: RecurringTransactionsCtx }) {
               className={`rounded-lg font-bold text-xs px-4 ${subTab === "other" ? "shadow-sm" : "text-slate-500 hover:text-slate-900"}`}
               onClick={() => setSubTab("other")}
              >
-               Autres récurrences
+               {t("subscriptionsTab.autresRecurrences")}
              </Button>
            </div>
            <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-             {activeSubs.length} Confirmés • {potentialSubs.length} Potentiels
+             {i18n.t("misc.confirmedPotential", { ns: "recurring", active: activeSubs.length, potential: potentialSubs.length })}
            </div>
          </div>
 
@@ -52,7 +55,7 @@ export function SubscriptionsTab({ ctx }: { ctx: RecurringTransactionsCtx }) {
            <Card className="shadow-sm border-slate-100">
              <CardHeader className="pb-2">
                <CardDescription className="font-medium text-slate-500">
-                  {subTab === "subscriptions" ? "Coût Mensuel Total" : subTab === "other" ? "Flux Mensuel" : "Versement Mensuel"}
+                  {subTab === "subscriptions" ? t("subscriptionsTab.coutMensuelTotal") : subTab === "other" ? t("subscriptionsTab.fluxMensuel") : t("subscriptionsTab.versementMensuel")}
                </CardDescription>
              </CardHeader>
              <CardContent>
@@ -60,7 +63,7 @@ export function SubscriptionsTab({ ctx }: { ctx: RecurringTransactionsCtx }) {
                  {formatCurrency(monthlyTotal)}
                </CardTitle>
                <p className="text-xs text-slate-400 mt-1">
-                 {subTab === "subscriptions" ? "Prélevé automatiquement chaque mois" : subTab === "other" ? "Moyenne mensuelle des flux récurrents" : "Moyenne mensuelle investie"}
+                 {subTab === "subscriptions" ? t("subscriptionsTab.preleveAutomatiquementChaqueMois") : subTab === "other" ? t("subscriptionsTab.moyenneMensuelleDesFluxRecurrents") : t("subscriptionsTab.moyenneMensuelleInvestie")}
                </p>
              </CardContent>
            </Card>
@@ -68,7 +71,7 @@ export function SubscriptionsTab({ ctx }: { ctx: RecurringTransactionsCtx }) {
            <Card className="shadow-sm border-slate-100">
              <CardHeader className="pb-2">
                <CardDescription className="font-medium text-slate-500">
-                 {subTab === "subscriptions" ? "Impact Annuel" : subTab === "other" ? "Total Annuel" : "Total Annuel Projeté"}
+                 {subTab === "subscriptions" ? t("subscriptionsTab.impactAnnuel") : subTab === "other" ? t("subscriptionsTab.totalAnnuel") : t("subscriptionsTab.totalAnnuelProjete")}
                </CardDescription>
              </CardHeader>
              <CardContent>
@@ -76,7 +79,7 @@ export function SubscriptionsTab({ ctx }: { ctx: RecurringTransactionsCtx }) {
                  {formatCurrency(annualTotal)}
                </CardTitle>
                <p className="text-xs text-slate-400 mt-1">
-                 {subTab === "subscriptions" ? "Budget total sur 12 mois" : subTab === "other" ? "Projection sur 12 mois" : "Objectif d'investissement annuel"}
+                 {subTab === "subscriptions" ? t("subscriptionsTab.budgetTotalSur12Mois") : subTab === "other" ? t("subscriptionsTab.projectionSur12Mois") : t("subscriptionsTab.objectifDInvestissementAnnuel")}
                </p>
              </CardContent>
            </Card>
@@ -84,14 +87,14 @@ export function SubscriptionsTab({ ctx }: { ctx: RecurringTransactionsCtx }) {
            <Card className="shadow-sm border-slate-100 col-span-2 md:col-span-1">
              <CardHeader className="pb-2">
                <CardDescription className="font-medium text-slate-500">
-                 {subTab === "subscriptions" ? "Services actifs" : subTab === "other" ? "Récurrences actives" : "Plans d'investissement"}
+                 {subTab === "subscriptions" ? t("subscriptionsTab.servicesActifs") : subTab === "other" ? t("subscriptionsTab.recurrencesActives") : t("subscriptionsTab.plansDInvestissement")}
                </CardDescription>
              </CardHeader>
              <CardContent>
                <CardTitle className="text-2xl md:text-3xl font-bold text-slate-900">
                  {activeSubs.filter((s: any) => s.status !== "lapsed").length}
                </CardTitle>
-               <p className="text-xs text-slate-400 mt-1">{potentialSubs.length} détections en attente</p>
+               <p className="text-xs text-slate-400 mt-1">{i18n.t("misc.pendingDetections", { ns: "recurring", count: potentialSubs.length })}</p>
              </CardContent>
            </Card>
          </div>
@@ -101,7 +104,7 @@ export function SubscriptionsTab({ ctx }: { ctx: RecurringTransactionsCtx }) {
               <Card className="shadow-sm border-slate-100 overflow-hidden">
                 <CardHeader className="border-b bg-slate-50/30">
                   <CardTitle className="text-lg">
-                    {subTab === "subscriptions" ? "Abonnements confirmés" : subTab === "other" ? "Autres récurrences" : "Investissements programmés"}
+                    {subTab === "subscriptions" ? t("subscriptionsTab.abonnementsConfirmes") : subTab === "other" ? t("subscriptionsTab.autresRecurrences") : t("subscriptionsTab.investissementsProgrammes")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-0">
@@ -109,14 +112,14 @@ export function SubscriptionsTab({ ctx }: { ctx: RecurringTransactionsCtx }) {
                     {activeSubs.length === 0 ? (
                       <div className="p-12 text-center">
                         <Clock className="h-8 w-8 text-slate-200 mx-auto mb-3" />
-                        <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Aucun élément</p>
+                        <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">{t("subscriptionsTab.aucunElement")}</p>
                       </div>
                     ) : (
                       activeSubs.map((sub: any, i: number) => (
                         <div
                           key={i}
-                          className={`p-4 flex items-center justify-between gap-3 hover:bg-slate-50 transition-colors group ${subTab === "investments" ? "cursor-pointer" : ""}`}
-                          onClick={subTab === "investments" ? () => setFlowSub(sub) : undefined}
+                          className={`p-4 flex items-center justify-between gap-3 hover:bg-slate-50 transition-colors group cursor-pointer`}
+                          onClick={() => setFlowSub(sub)}
                         >
                           <div className="flex items-center gap-3 md:gap-4 min-w-0">
                             <CompanyLogo
@@ -129,9 +132,9 @@ export function SubscriptionsTab({ ctx }: { ctx: RecurringTransactionsCtx }) {
                               <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
                                 <p className="font-bold text-slate-900 break-words">{sub.name}</p>
                                 {sub.status === "lapsed" ? (
-                                  <Badge title="Aucun prélèvement depuis plus de deux échéances : à désactiver si l'abonnement est arrêté" className="bg-slate-100 text-slate-600 hover:bg-slate-100 border-none text-[9px] h-4 px-1.5 font-black uppercase">Plus prélevé ?</Badge>
+                                  <Badge title={t("subscriptionsTab.aucunPrelevementDepuisPlusDe")} className="bg-slate-100 text-slate-600 hover:bg-slate-100 border-none text-[9px] h-4 px-1.5 font-black uppercase">{t("subscriptionsTab.plusPreleve")}</Badge>
                                 ) : (
-                                  <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-none text-[9px] h-4 px-1.5 font-black uppercase">Certifié</Badge>
+                                  <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-none text-[9px] h-4 px-1.5 font-black uppercase">{t("subscriptionsTab.certifie")}</Badge>
                                 )}
                               </div>
                               <div className="flex flex-wrap items-center gap-x-2 mt-0.5">
@@ -143,7 +146,7 @@ export function SubscriptionsTab({ ctx }: { ctx: RecurringTransactionsCtx }) {
                           </div>
                           <div className="text-right flex items-center gap-6 shrink-0">
                             <div className="hidden sm:block text-right">
-                              <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Prochain</p>
+                              <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">{t("subscriptionsTab.prochain")}</p>
                               <p className="text-sm font-bold text-slate-700">
                                 {safeFormat(sub.next_occurrence, "d MMM")}
                               </p>
@@ -151,7 +154,7 @@ export function SubscriptionsTab({ ctx }: { ctx: RecurringTransactionsCtx }) {
                             <div>
                               <p className="text-base md:text-lg font-black text-slate-900 whitespace-nowrap tabular-nums">{formatCurrency(sub.amount)}</p>
                               <p className="text-[10px] font-bold text-slate-400 text-right whitespace-nowrap">
-                                {subTab === "subscriptions" ? `${formatCurrency(sub.monthly_cost)}/mois` : subTab === "other" ? `${formatCurrency(sub.monthly_cost)}/mois` : "Versé"}
+                                {subTab === "subscriptions" ? i18n.t("misc.perMonth", { ns: "recurring", amount: formatCurrency(sub.monthly_cost) }) : subTab === "other" ? i18n.t("misc.perMonth", { ns: "recurring", amount: formatCurrency(sub.monthly_cost) }) : t("subscriptionsTab.verse")}
                               </p>
                             </div>
                           </div>
@@ -168,10 +171,10 @@ export function SubscriptionsTab({ ctx }: { ctx: RecurringTransactionsCtx }) {
                     <div>
                       <CardTitle className={`text-lg flex items-center gap-2 ${subTab === 'subscriptions' ? 'text-amber-900' : 'text-indigo-900'}`}>
                         {subTab === 'subscriptions' ? <AlertCircle className="h-5 w-5 text-amber-500" /> : <TrendingUp className="h-5 w-5 text-indigo-500" />}
-                        Détections intelligentes
+                        {t("subscriptionsTab.detectionsIntelligentes")}
                       </CardTitle>
                       <CardDescription className={subTab === 'subscriptions' ? 'text-amber-700/70' : 'text-indigo-700/70'}>
-                        {subTab === 'subscriptions' ? "Abonnements potentiels trouvés dans votre historique." : "Investissements réguliers détectés."}
+                        {subTab === 'subscriptions' ? t("subscriptionsTab.abonnementsPotentielsTrouvesDansVotre") : t("subscriptionsTab.investissementsReguliersDetectes")}
                       </CardDescription>
                     </div>
                   </CardHeader>
@@ -189,26 +192,26 @@ export function SubscriptionsTab({ ctx }: { ctx: RecurringTransactionsCtx }) {
                             <div className="min-w-0 flex-1">
                               <p className="font-bold text-slate-900 break-words">{sub.name}</p>
                               <div className="flex items-center gap-2 mt-0.5">
-                                <span className={`text-[10px] font-black uppercase tracking-widest ${subTab === 'subscriptions' ? 'text-amber-600' : 'text-indigo-600'}`}>Récurrence détectée</span>
+                                <span className={`text-[10px] font-black uppercase tracking-widest ${subTab === 'subscriptions' ? 'text-amber-600' : 'text-indigo-600'}`}>{t("subscriptionsTab.recurrenceDetectee")}</span>
                               </div>
                             </div>
                           </div>
                           <div className="flex flex-wrap items-center justify-between gap-3 sm:justify-end sm:gap-4">
                             <div className="text-right">
                               <p className="text-lg font-black text-slate-900 whitespace-nowrap tabular-nums">{formatCurrency(sub.amount)}</p>
-                              <p className="text-[10px] font-bold text-slate-400 uppercase">Valider ?</p>
+                              <p className="text-[10px] font-bold text-slate-400 uppercase">{t("subscriptionsTab.valider")}</p>
                             </div>
                             <div className="flex items-center gap-2">
-                              <Button size="sm" variant="ghost" aria-label="Ignorer" className="text-slate-400 hover:text-red-600 h-10 w-10 px-2 md:h-8 md:w-auto" onClick={() => handleIgnoreDetection(sub)}>
+                              <Button size="sm" variant="ghost" aria-label={t("subscriptionsTab.ignorer")} className="text-slate-400 hover:text-red-600 h-10 w-10 px-2 md:h-8 md:w-auto" onClick={() => handleIgnoreDetection(sub)}>
                                 <Trash2 className="h-3.5 w-3.5" />
                               </Button>
                               {subTab === "subscriptions" && (
                                 <Button size="sm" variant="outline" className="border-slate-200 text-slate-600 hover:bg-slate-100 rounded-xl font-bold h-10 md:h-8 text-xs md:text-[11px]" onClick={() => handleOpenValidate(sub, true)}>
-                                  Invest.
+                                  {t("subscriptionsTab.invest")}
                                 </Button>
                               )}
                               <Button size="sm" variant="outline" className={`rounded-xl font-bold h-10 md:h-8 text-xs md:text-[11px] ${subTab === 'subscriptions' ? 'border-amber-200 text-amber-700 hover:bg-amber-100' : 'border-indigo-200 text-indigo-700 hover:bg-indigo-100'}`} onClick={() => handleOpenValidate(sub, subTab === "investments")}>
-                                Confirmer
+                                {t("subscriptionsTab.confirmer")}
                               </Button>
                             </div>
                           </div>
@@ -223,16 +226,16 @@ export function SubscriptionsTab({ ctx }: { ctx: RecurringTransactionsCtx }) {
            {subTab !== "other" && <div className="lg:col-span-4 space-y-6">
               <Card className="shadow-sm border-slate-100">
                 <CardHeader className="border-b pb-4">
-                  <CardTitle className="text-lg">Répartition mensuelle</CardTitle>
+                  <CardTitle className="text-lg">{t("subscriptionsTab.repartitionMensuelle")}</CardTitle>
                   {monthlyTotal > 0 && (
                     <CardDescription>
-                      {subTab === "subscriptions" ? "Part de chaque abonnement" : "Part de chaque plan"} dans les {formatCurrency(monthlyTotal)} par mois
+                      {i18n.t("misc.shareInMonthly", { ns: "recurring", label: subTab === "subscriptions" ? t("subscriptionsTab.partDeChaqueAbonnement") : t("subscriptionsTab.partDeChaquePlan"), amount: formatCurrency(monthlyTotal) })}
                     </CardDescription>
                   )}
                 </CardHeader>
                 <CardContent className="p-4 md:p-6">
                   {monthlyBreakdown.length === 0 || monthlyTotal <= 0 ? (
-                    <p className="text-sm text-slate-400">Aucun montant mensuel à répartir.</p>
+                    <p className="text-sm text-slate-400">{t("subscriptionsTab.aucunMontantMensuelARepartir")}</p>
                   ) : (
                     <ul className="space-y-4">
                       {monthlyBreakdown.map((sub: any) => {

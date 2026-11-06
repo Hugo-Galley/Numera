@@ -1,6 +1,7 @@
 """Insights du mois : score de santé financière et anomalies (abonnements, grosses dépenses, catégories)."""
 from sqlalchemy.orm import Session
 
+from app.core.i18n import tr
 from app.domain.insights import category_anomalies, eur, health_score
 from app.domain.transactions import net_amount
 from app.integrations.currency import get_exchange_rates
@@ -54,8 +55,8 @@ async def _subscription_increase(db: Session, month: int, year: int) -> list[Ins
     return [Insight(
         type="anomaly",
         key=f"subs-increase-{year}-{month:02d}",
-        title="Hausse des abonnements",
-        description=f"Vos abonnements ont augmenté de {eur(diff)} par rapport au mois dernier.",
+        title=tr("insights.subscription_increase.title"),
+        description=tr("insights.subscription_increase.description", amount=eur(diff)),
         severity="medium",
         value=diff
     )]
@@ -73,8 +74,8 @@ def _large_expenses(db: Session, start, end, account_id: int | None, revenus: fl
             insights.append(Insight(
                 type="anomaly",
                 key=f"large-expense-{tx.id}",
-                title="Grosse dépense isolée",
-                description=f"La transaction '{tx.merchant}' de {eur(val_eur)} est exceptionnellement élevée.",
+                title=tr("insights.large_expense.title"),
+                description=tr("insights.large_expense.description", merchant=tx.merchant, amount=eur(val_eur)),
                 severity="high" if val_eur > revenus * 0.3 else "medium",
                 value=val_eur
             ))
@@ -98,8 +99,8 @@ async def _category_anomalies(db: Session, month: int, year: int, account_id: in
         insights.append(Insight(
             type="anomaly",
             key=f"category-anomaly-{year}-{month:02d}-{cat_id}",
-            title=f"Alerte catégorie : {cat_obj.name}",
-            description=f"Vos dépenses en '{cat_obj.name}' ({eur(current_total)}) sont plus de 2x supérieures à votre moyenne habituelle ({eur(avg)}).",
+            title=tr("insights.category_alert.title", category=cat_obj.name),
+            description=tr("insights.category_alert.description", category=cat_obj.name, current=eur(current_total), average=eur(avg)),
             severity="medium",
             value=current_total,
             category_id=cat_obj.id,
@@ -113,8 +114,8 @@ def _positive_insights(savings_rate: float, runway_months: float, month: int, ye
         insights.append(Insight(
             type="positive",
             key=f"high-savings-rate-{year}-{month:02d}",
-            title="Excellent taux d'épargne",
-            description="Félicitations ! Vous épargnez plus de 30 % de vos revenus ce mois-ci.",
+            title=tr("insights.high_savings.title"),
+            description=tr("insights.high_savings.description"),
             severity="low",
             value=savings_rate,
             unit="%",
@@ -123,8 +124,8 @@ def _positive_insights(savings_rate: float, runway_months: float, month: int, ye
         insights.append(Insight(
             type="positive",
             key=f"long-runway-{year}-{month:02d}",
-            title="Sérénité financière",
-            description="Votre fonds de sécurité couvre plus d'un an de dépenses. Vous êtes très bien protégé.",
+            title=tr("insights.long_runway.title"),
+            description=tr("insights.long_runway.description"),
             severity="low",
             value=runway_months,
             unit="mois",

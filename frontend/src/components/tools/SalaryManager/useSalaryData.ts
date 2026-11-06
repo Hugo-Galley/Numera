@@ -1,5 +1,7 @@
+import i18n from "i18next"
 import { ApiError } from "@/lib/api"
 import { format, isSameDay } from "date-fns"
+import { appLocale } from "@/i18n/locale"
 import { toast } from "sonner"
 import { useEffect, useState } from "react"
 import { useWorkTime } from "@/providers/WorkTimeProvider"
@@ -73,7 +75,7 @@ export function useSalaryData() {
     } catch (error) {
       console.error("Failed to load initial data", error)
       setConfigError(true)
-      toast.error("Impossible de charger la configuration du salaire")
+      toast.error(i18n.t("useSalaryData.impossibleDeChargerLaConfiguration", { ns: "tools" }))
     } finally {
       setLoading(false)
     }
@@ -98,7 +100,7 @@ export function useSalaryData() {
       setTtDays(days.map((d: any) => new Date(d.date)))
     } catch (error) {
       console.error("Failed to load month data", error)
-      toast.error("Impossible de charger les données du mois")
+      toast.error(i18n.t("useSalaryData.impossibleDeChargerLesDonnees", { ns: "tools" }))
       setMonthLoadFailed(true)
       setSummary(null)
       setSalaryDate(null)
@@ -111,7 +113,7 @@ export function useSalaryData() {
     setSaving(true)
     try {
       if (!config.salary_account_id || !config.net_salary) {
-        toast.error("Veuillez remplir les champs obligatoires")
+        toast.error(i18n.t("useSalaryData.veuillezRemplirLesChampsObligatoires", { ns: "tools" }))
         return
       }
 
@@ -137,11 +139,11 @@ export function useSalaryData() {
         salary_category_id: res.salary_category_id || "",
         ticket_category_id: res.ticket_category_id || "",
       })
-      toast.success("Configuration sauvegardée")
+      toast.success(i18n.t("useSalaryData.configurationSauvegardee", { ns: "tools" }))
       loadMonthData(currentDate)
       refreshWorkTime()
     } catch (error) {
-      toast.error("Impossible de sauvegarder")
+      toast.error(i18n.t("useSalaryData.impossibleDeSauvegarder", { ns: "tools" }))
     } finally {
       setSaving(false)
     }
@@ -170,7 +172,7 @@ export function useSalaryData() {
       })
       loadMonthData(currentDate)
     } catch (error) {
-      toast.error("Impossible de sauvegarder le jour")
+      toast.error(i18n.t("useSalaryData.impossibleDeSauvegarderLeJour", { ns: "tools" }))
       loadMonthData(currentDate)
     }
   }
@@ -187,7 +189,7 @@ export function useSalaryData() {
         salary_date: format(date, "yyyy-MM-dd")
       })
     } catch (error) {
-      toast.error("Impossible de sauvegarder la date")
+      toast.error(i18n.t("useSalaryData.impossibleDeSauvegarderLaDate", { ns: "tools" }))
     }
   }
 
@@ -196,16 +198,16 @@ export function useSalaryData() {
       const year = currentDate.getFullYear()
       const month = currentDate.getMonth() + 1
       await deleteSalaryGenerateById(year, month)
-      toast.success("Mois réinitialisé !")
+      toast.success(i18n.t("useSalaryData.moisReinitialise", { ns: "tools" }))
       setIsGenerated(false)
     } catch (error: any) {
-      toast.error(error.message || "Erreur de réinitialisation")
+      toast.error(error.message || i18n.t("useSalaryData.erreurDeReinitialisation", { ns: "tools" }))
     }
   }
 
   const handleGenerate = async () => {
     if (!salaryDate) {
-      toast.error("Veuillez définir une date de versement")
+      toast.error(i18n.t("useSalaryData.veuillezDefinirUneDateDe", { ns: "tools" }))
       return
     }
     
@@ -215,13 +217,13 @@ export function useSalaryData() {
       const month = currentDate.getMonth() + 1
       const res = await postSalaryGenerateById<{ status: string }>(year, month)
       if (res?.status === "scheduled") {
-        toast.success(`Salaire programmé : la transaction sera créée le ${format(new Date(salaryDate), "dd/MM/yyyy")}`)
+        toast.success(i18n.t("misc.salaryScheduled", { ns: "tools", date: new Date(salaryDate).toLocaleDateString(appLocale()) }))
       } else {
-        toast.success("Transactions générées avec succès !")
+        toast.success(i18n.t("useSalaryData.transactionsGenereesAvecSucces", { ns: "tools" }))
         setIsGenerated(true)
       }
     } catch (error: any) {
-      toast.error(error.message || "Erreur de génération")
+      toast.error(error.message || i18n.t("useSalaryData.erreurDeGeneration", { ns: "tools" }))
     } finally {
       setGenerating(false)
     }

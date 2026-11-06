@@ -43,10 +43,22 @@ if grep -q "generate-a-fernet-key-using-python" .env; then
     fi
 fi
 
-# Les conteneurs backend tournent en non-root avec l'UID de l'utilisateur courant (accès à data/ et backups/)
-if ! grep -q '^NUMERA_UID=' .env 2>/dev/null; then
-    printf 'NUMERA_UID=%s\nNUMERA_GID=%s\n' "$(id -u)" "$(id -g)" >> .env
-fi
+# Les conteneurs backend tournent en non-root avec l'UID de l'utilisateur courant (accès à data/ et backups/) :
+# le gabarit contient 1000 par défaut, on le remplace par les valeurs réelles (macOS : 501, 2e utilisateur Linux…).
+set_env() {
+    local key="$1" value="$2"
+    if grep -q "^${key}=" .env; then
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+            sed -i '' "s/^${key}=.*/${key}=${value}/" .env
+        else
+            sed -i "s/^${key}=.*/${key}=${value}/" .env
+        fi
+    else
+        printf '%s=%s\n' "$key" "$value" >> .env
+    fi
+}
+set_env NUMERA_UID "$(id -u)"
+set_env NUMERA_GID "$(id -g)"
 
 # 4. Créer les dossiers nécessaires
 echo "📁 Création des dossiers de données et sauvegardes..."

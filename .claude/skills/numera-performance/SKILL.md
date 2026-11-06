@@ -34,7 +34,8 @@ Références mesurées le 2026-11-01 (44 600 transactions) : audit 117 ms, sugge
 | `async def` | Seulement s'il y a un `await`. Une coroutine qui travaille en synchrone **bloque tout le serveur** ; garde-fou : `tests/garde_fous/test_async_endpoints.py` | — |
 | Résultat coûteux relu par plusieurs routes | Cache bref **invalidé par les écritures** (voir §3), jamais un cache « au cas où » | `services/investissement/portfolio/cache.py` |
 | « Il faudrait un index » | `EXPLAIN QUERY PLAN` d'abord ; corriger le N+1 avant. Les clés étrangères, `date`, `merchant` sont déjà indexées. Un index composite ne s'ajoute (migration Alembic, `test_migrations.py`) que si le plan montre un scan complet sur une requête **unique** et lente | — |
-| Recalcul intégral des soldes (`recalculate_running_balances`, O(n) par écriture) | Acceptable ; ne l'optimiser (fenêtre SQL) que si un import réel devient lent | — |
+| Recalcul intégral des soldes (`recalculate_running_balances`, O(n) par écriture) | Lecture par colonnes + `UPDATE` en masse des seules lignes modifiées (1 requête, 0,2 s à 44 000 transactions) ; jamais d'objets ORM (7 relations `selectin`) | `repositories/budget/balances.py` |
+| Appel réseau (Yahoo, Frankfurter) | Cache négatif + disjoncteur + concurrence bornée ; route `def` qui appelle le service par `run_async` | `core/circuit_breaker.py`, `core/sync_bridge.py`, `market/quotes.py` |
 
 Chaque correctif backend vient avec un **test de nombre de requêtes** : fixture `measure_queries` (`tests/conftest.py`) sur un jeu volumineux (≥ 1 000 lignes), borne large mais qui échoue au N+1 (modèles : `tests/audit/test_data_audit_transfers.py`, `tests/budget/test_export_queries.py`, `tests/budget/test_potential_transfers_queries.py`). Le test passe d'abord au rouge sur l'ancien code, pour la bonne raison (le nombre de requêtes, pas une erreur d'import). Le résultat renvoyé reste identique : instantanés intacts.
 

@@ -1,3 +1,6 @@
+import i18n from "i18next"
+import { useTranslation } from "react-i18next"
+import { appLocale } from "@/i18n/locale"
 import { AlertTriangle, CheckCircle2 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { formatCurrency, formatRate } from "@/lib/utils"
@@ -17,6 +20,7 @@ export function Gauge({ pct }: { pct: number }) {
 }
 
 export function WrapperCardView({ card }: { card: WrapperCard }) {
+  const { t } = useTranslation("tax")
   return (
     <Card>
       <CardHeader className="pb-3">
@@ -30,11 +34,11 @@ export function WrapperCardView({ card }: { card: WrapperCard }) {
           <div className="space-y-2">
             <Gauge pct={card.used_pct ?? 0} />
             <div className="flex flex-wrap justify-between gap-x-3">
-              <span><Money value={card.current} /> sur <Money value={card.ceiling} /></span>
+              <span><Money value={card.current} /> {i18n.t("misc.ofCeiling", { ns: "tax" })} <Money value={card.ceiling} /></span>
               <span className="text-slate-500">{formatRate(card.used_pct ?? 0, 1)}</span>
             </div>
             <div className="text-slate-600">
-              Place restante : <strong><Money value={card.remaining ?? 0} /></strong>
+              {t("taxWidgets.placeRestante")} <strong><Money value={card.remaining ?? 0} /></strong>
             </div>
           </div>
         )}
@@ -43,28 +47,28 @@ export function WrapperCardView({ card }: { card: WrapperCard }) {
             {card.milestone_reached && <CheckCircle2 className="h-4 w-4 text-emerald-600" />}
             {card.age_years !== null ? (
               <span>
-                Ancienneté : {card.age_years.toLocaleString("fr-FR", { maximumFractionDigits: 1 })} an(s) / {card.milestone_years} ans
-                {card.milestone_reached ? " — atteint" : ""}
+                {i18n.t("misc.age", { ns: "tax", years: card.age_years.toLocaleString(appLocale(), { maximumFractionDigits: 1 }), milestone: card.milestone_years })}
+                {card.milestone_reached ? i18n.t("misc.reached", { ns: "tax" }) : ""}
               </span>
             ) : (
-              <span className="text-slate-500">Ancienneté inconnue (seuil : {card.milestone_years} ans)</span>
+              <span className="text-slate-500">{i18n.t("misc.ageUnknown", { ns: "tax", milestone: card.milestone_years })}</span>
             )}
           </div>
         )}
         {card.estimated_tax_saving !== null && (
-          <div>Économie d'impôt estimée : <strong><Money value={card.estimated_tax_saving} /></strong></div>
+          <div>{t("taxWidgets.economieDImpotEstimee")} <strong><Money value={card.estimated_tax_saving} /></strong></div>
         )}
         {card.allowance !== null && (
-          <div>Abattement annuel sur les gains de rachat : <strong><Money value={card.allowance} /></strong></div>
+          <div>{t("taxWidgets.abattementAnnuelSurLesGains")} <strong><Money value={card.allowance} /></strong></div>
         )}
         {card.total_contributed !== null && (
           <div className="space-y-1">
-            <div>Total versé : <strong><Money value={card.total_contributed} /></strong></div>
-            <div>Disponible : <strong><Money value={card.available ?? 0} /></strong></div>
+            <div>{t("taxWidgets.totalVerse")} <strong><Money value={card.total_contributed} /></strong></div>
+            <div>{t("taxWidgets.disponible")} <strong><Money value={card.available ?? 0} /></strong></div>
             <div>
-              Bloqué (moins de 5 ans) : <strong><Money value={card.blocked ?? 0} /></strong>
+              {t("taxWidgets.bloqueMoinsDe5Ans")} <strong><Money value={card.blocked ?? 0} /></strong>
               {card.next_unlock_date && (
-                <span className="text-slate-500"> — prochain déblocage le {new Date(card.next_unlock_date).toLocaleDateString("fr-FR")}</span>
+                <span className="text-slate-500">{i18n.t("misc.nextUnlock", { ns: "tax", date: new Date(card.next_unlock_date).toLocaleDateString(appLocale()) })}</span>
               )}
             </div>
           </div>

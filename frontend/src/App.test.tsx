@@ -159,7 +159,7 @@ describe("App : Sidebar", () => {
 })
 
 describe("App : destinations de l'Omnibox", () => {
-  it.each(NAVIGATION.map((item) => [item.name, item.href]))("« %s » (%s) mène à une route déclarée", async (_, href) => {
+  it.each(NAVIGATION.map((item) => [item.key, item.href]))("« %s » (%s) mène à une route déclarée", async (_, href) => {
     renderApp(href)
 
     const [heading] = await screen.findAllByRole("heading", { level: 1 })

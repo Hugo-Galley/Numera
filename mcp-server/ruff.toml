@@ -1,0 +1,28 @@
+target-version = "py311"
+line-length = 140
+
+[lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "C4", "PERF", "RUF", "S"]
+ignore = [
+    "E501",  # longueur de ligne : pas de formateur imposé, la taille est bornée par scripts/quality/check_code_size.py
+    "B008",  # Depends()/Query() en valeur par défaut : idiome FastAPI
+    "E711",  # `== None` / `== True` requis dans les filtres SQLAlchemy
+    "E712",
+    "RUF001",  # caractères Unicode « ambigus » : typographie française voulue (guillemets, tirets, ×) dans les libellés
+    "RUF002",
+    "RUF003",
+    "S101",  # assert : omniprésent dans les tests, et invariants internes assumés dans app/
+    "S105",  # faux positifs sur les noms (token_type, SECRET_KEY_SETTING, préfixe de token) : les vrais secrets viennent de l'environnement
+    "S106",
+    "S107",
+    "W291",  # espaces en fin de ligne dans les docstrings d'outils : ils font partie de la description MCP figée par tests/test_surface.py
+    "W293",
+    "PERF401",  # refactor à comportement constant : boucles d'origine conservées
+]
+
+[lint.per-file-ignores]
+# Les tests posent MCP_TRANSPORT/MCP_API_URL avant d'importer le serveur
+"tests/*.py" = ["E402"]
+
+[lint.isort]
+known-first-party = ["numera_mcp"]

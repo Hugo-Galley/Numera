@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 
 from app.core.errors import ConflictError, NotFoundError
+from app.core.i18n import tr
 from app.models.category import Category
 from app.repositories.budget import categories as repo
 from app.schemas.category import CategoryCreate, CategoryUpdate
@@ -9,13 +10,13 @@ from app.schemas.category import CategoryCreate, CategoryUpdate
 def _require(db: Session, category_id: int) -> Category:
     category = repo.get(db, category_id)
     if not category:
-        raise NotFoundError("Category not found", code="category_not_found", context={"category_id": category_id})
+        raise NotFoundError(tr("errors.category_not_found"), code="category_not_found", context={"category_id": category_id})
     return category
 
 
 def _ensure_name_free(db: Session, name: str) -> None:
     if repo.get_by_name(db, name):
-        raise ConflictError("Category already exists", code="category_already_exists", context={"name": name})
+        raise ConflictError(tr("errors.category_exists"), code="category_already_exists", context={"name": name})
 
 
 def list_categories(db: Session, include_archived: bool) -> list[Category]:

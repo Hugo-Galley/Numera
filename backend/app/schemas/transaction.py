@@ -105,6 +105,8 @@ class TransactionRead(TransactionBase):
     transfer_rule_id: int | None = None
     transfer_credit_due: datetime | None = None
     recurring_logo: str | None = None
+    benefit_id: int | None = None
+    is_provisional: bool = False
     linked_account_id: int | None = None
     reimbursement_offset: float = 0.0
     reimbursement_expected: float = 0.0

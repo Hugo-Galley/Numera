@@ -5,10 +5,12 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.core.errors import NotFoundError
+from app.core.i18n import tr
 from app.domain.transactions import tx_read, tx_sample
 from app.domain.transfers import strict_matches
 from app.models.transaction import Transaction
 from app.repositories.analytics import audit as repo
+from app.repositories.comptes import balances
 from app.schemas.insight import DataAuditIssue, DataAuditResponse, DataAuditSummary
 from app.services.audit.context import unallocated_reimbursements_query
 
@@ -17,7 +19,7 @@ def compute_data_audit(db: Session) -> DataAuditResponse:
     now = datetime.now()
     total_transactions = repo.transaction_count(db)
     active_accounts = repo.active_account_count(db)
-    accounts = repo.active_accounts(db, by_name=True)
+    accounts = balances.active_accounts(db, by_name=True)
     checks = [
         _uncategorized(db), _missing_merchants(db), _unnormalized_merchants(db), _duplicates(db),
         _missing_initial_balances(db, accounts), _stale_snapshots(db, accounts, now), _unused_categories(db),
@@ -47,10 +49,10 @@ def _uncategorized(db: Session) -> DataAuditIssue | None:
         id="uncategorized-expenses",
         type="categorization",
         severity="high",
-        title="Transactions sans categorie",
-        description="Ces depenses ne sont pas prises en compte correctement dans les budgets et les analyses par categorie.",
+        title=tr("audit.data.uncategorized.title"),
+        description=tr("audit.data.uncategorized.description"),
         count=count,
-        action_label="Voir les transactions",
+        action_label=tr("audit.data.uncategorized.action"),
         action_url="/accounts",
         samples=[tx_sample(tx) for tx in query.limit(5).all()],
     )
@@ -65,10 +67,10 @@ def _missing_merchants(db: Session) -> DataAuditIssue | None:
         id="missing-merchants",
         type="merchant",
         severity="medium",
-        title="Transactions sans marchand",
-        description="Les recherches, les top marchands et les futures regles automatiques seront moins fiables.",
+        title=tr("audit.data.missing_merchants.title"),
+        description=tr("audit.data.missing_merchants.description"),
         count=count,
-        action_label="Voir les transactions",
+        action_label=tr("audit.data.missing_merchants.action"),
         action_url="/accounts",
         samples=[tx_sample(tx) for tx in query.limit(5).all()],
     )
@@ -87,10 +89,10 @@ def _unnormalized_merchants(db: Session) -> DataAuditIssue | None:
         id="unnormalized-merchants",
         type="merchant",
         severity="low",
-        title="Marchands non normalisés",
-        description="Certains marchands fréquents ne sont pas encore reliés à un marchand canonique.",
+        title=tr("audit.data.unnormalized_merchants.title"),
+        description=tr("audit.data.unnormalized_merchants.description"),
         count=count,
-        action_label="Normaliser",
+        action_label=tr("audit.data.unnormalized_merchants.action"),
         action_url="/classement?tab=merchants",
         samples=[{"merchant": r.merchant, "count": r.count} for r in query.limit(5).all()],
     )
@@ -116,10 +118,10 @@ def _duplicates(db: Session) -> DataAuditIssue | None:
         id="duplicate-transactions",
         type="duplicates",
         severity="high",
-        title="Doublons suspects",
-        description="Plusieurs transactions ont exactement le meme compte, la meme date, le meme marchand et le meme montant.",
+        title=tr("audit.data.duplicates.title"),
+        description=tr("audit.data.duplicates.description"),
         count=sum(int(row.count) for row in groups),
-        action_label="Verifier les comptes",
+        action_label=tr("audit.data.duplicates.action"),
         action_url="/accounts",
         samples=samples,
     )
@@ -136,10 +138,10 @@ def _missing_initial_balances(db: Session, accounts: list) -> DataAuditIssue | N
         id="missing-initial-balances",
         type="accounts",
         severity="medium",
-        title="Comptes sans solde initial",
-        description="Le running balance peut etre difficile a auditer si un compte actif commence sans transaction de solde initial.",
+        title=tr("audit.data.initial_balances.title"),
+        description=tr("audit.data.initial_balances.description"),
         count=len(missing),
-        action_label="Ouvrir les comptes",
+        action_label=tr("audit.data.initial_balances.action"),
         action_url="/accounts",
         samples=[{"id": acc.id, "name": acc.name, "type": acc.type, "currency": acc.currency} for acc in missing[:5]],
     )
@@ -164,10 +166,10 @@ def _stale_snapshots(db: Session, accounts: list, now: datetime) -> DataAuditIss
         id="stale-investment-snapshots",
         type="investments",
         severity="medium",
-        title="Snapshots investissement a mettre a jour",
-        description="Les performances et le patrimoine net peuvent etre obsoletes si les valeurs de marche ne sont pas rafraichies.",
+        title=tr("audit.data.investment_snapshots.title"),
+        description=tr("audit.data.investment_snapshots.description"),
         count=len(stale),
-        action_label="Mettre a jour",
+        action_label=tr("audit.data.investment_snapshots.action"),
         action_url="/investments",
         samples=stale[:5],
     )
@@ -181,10 +183,10 @@ def _unused_categories(db: Session) -> DataAuditIssue | None:
         id="unused-categories",
         type="cleanup",
         severity="low",
-        title="Categories inutilisees",
-        description="Ces categories ajoutent du bruit dans les formulaires et les filtres : archivez-les (historique conserve) ou supprimez-les.",
+        title=tr("audit.data.unused_categories.title"),
+        description=tr("audit.data.unused_categories.description"),
         count=len(unused),
-        action_label="Archiver ou supprimer",
+        action_label=tr("audit.data.unused_categories.action"),
         action_url="/classement?tab=categories",
         samples=[{"id": cat.id, "name": cat.name, "type": cat.type} for cat in unused[:8]],
     )
@@ -215,10 +217,10 @@ def _unmatched_transfers(db: Session, now: datetime) -> DataAuditIssue | None:
         id="unmatched-transfers",
         type="transfers",
         severity="medium",
-        title="Transferts internes possibles",
-        description="Ces mouvements ressemblent a des virements entre comptes et peuvent fausser les depenses s'ils ne sont pas rapproches.",
+        title=tr("audit.data.transfers.title"),
+        description=tr("audit.data.transfers.description"),
         count=count,
-        action_label="Rapprocher",
+        action_label=tr("audit.data.transfers.action"),
         action_url="/audit?vue=virements",
         samples=samples,
     )
@@ -233,10 +235,10 @@ def _unallocated_reimbursements(db: Session, now: datetime) -> DataAuditIssue | 
         id="unallocated-reimbursements",
         type="reimbursements",
         severity="low",
-        title="Remboursements à affecter",
-        description="Ces remboursements reçus ne sont rattachés à aucune créance : ils comptent encore comme revenus et la dépense d'origine reste comptée en entier.",
+        title=tr("audit.data.reimbursements.title"),
+        description=tr("audit.data.reimbursements.description"),
         count=len(unallocated),
-        action_label="Affecter",
+        action_label=tr("audit.data.reimbursements.action"),
         action_url="/reimbursements",
         samples=[tx_sample(t) for t in unallocated[:5]],
     )
@@ -258,7 +260,7 @@ def compute_data_audit_issue(db: Session, issue_id: str) -> dict:
         query = unallocated_reimbursements_query(db, datetime.now())
         transactions = query.limit(200).all() if query is not None else []
         return {"issue_id": issue_id, "transactions": [tx_read(tx) for tx in transactions]}
-    raise NotFoundError("Audit issue not found or not editable")
+    raise NotFoundError(tr("errors.audit_issue_not_found"))
 
 
 def _duplicate_groups(db: Session) -> list[dict]:

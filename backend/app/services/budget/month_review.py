@@ -14,10 +14,11 @@ from app.models.month_closure import MonthClosure
 from app.models.transaction import Transaction
 from app.repositories.analytics.common import NET_AMOUNT, ticket_restaurant_account_ids
 from app.repositories.budget import month_review as repo
+from app.repositories.comptes import balances
 from app.schemas.month_review import CloseRequest, ClosureRead
 from app.services.analytics.budget import compute_budget, compute_budget_alerts
 from app.services.budget.budget_period import period_bounds
-from app.services.comptes.accounts import account_balance
+from app.services.comptes.wealth import account_values
 
 # Même liste que budget_analytics : ces catégories ne sont pas de la consommation
 INVESTMENT_CATEGORIES = ["Investissement", "Epargne"]
@@ -170,17 +171,18 @@ def month_fingerprint(db: Session, start: datetime, end: datetime) -> dict[str, 
 
 # --- Revue d'un mois (routes /month-review) ------------------------------------------------------
 
-def _accounts_step(db: Session, end: datetime) -> dict:
+async def _accounts_step(db: Session, end: datetime) -> dict:
     """Étape 2 : un compte est « vérifié » s'il l'a été depuis la fin du mois (ou aujourd'hui si le mois n'est pas fini)."""
     now = utcnow_naive()
     reference = min(end, datetime(now.year, now.month, now.day))
-    accounts = repo.active_accounts(db)
+    accounts = balances.active_accounts(db)
+    values = await account_values(db, accounts)
     items = [
         {
             "id": acc.id,
             "name": acc.name,
             "currency": acc.currency,
-            "balance": round(account_balance(db, acc.id), 2),
+            "balance": round(values[acc.id].value, 2),
             "last_verified_at": acc.last_verified_at,
             "verified_since_month_end": acc.last_verified_at >= reference,
         }
@@ -199,7 +201,7 @@ async def _build_review(db: Session, year: int, month: int) -> tuple[dict, dict]
     rates = await get_exchange_rates("EUR")
 
     categorize = categorize_step(db, start, end)
-    accounts = _accounts_step(db, end)
+    accounts = await _accounts_step(db, end)
     current = {
         "tx_count": tx_count(db, start, end),
         "income": round(float(budget["revenus_totaux"]), 2),

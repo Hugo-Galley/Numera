@@ -1,10 +1,12 @@
 from sqlalchemy.orm import Session
 
 from app.core.errors import BusinessRuleError, NotFoundError
+from app.core.i18n import tr
 from app.core.time import utcnow_naive
 from app.models.account import Account
 from app.models.balance_snapshot import BalanceSnapshot
 from app.repositories.comptes import balance_snapshots as repo
+from app.repositories.comptes import balances
 from app.schemas.investment import BalanceSnapshotCreate, BalanceSnapshotUpdate, SetZeroPointRequest
 
 VALUED_ACCOUNT_TYPES = ("investissement", "assurance_vie")
@@ -13,16 +15,16 @@ VALUED_ACCOUNT_TYPES = ("investissement", "assurance_vie")
 def _require_valued_account(db: Session, account_id: int) -> Account:
     account = repo.get_account(db, account_id)
     if not account:
-        raise NotFoundError("Account not found")
+        raise NotFoundError(tr("errors.account_not_found"))
     if account.type not in VALUED_ACCOUNT_TYPES:
-        raise BusinessRuleError("Account must be of type investissement or assurance_vie")
+        raise BusinessRuleError(tr("errors.account_must_be_investment"))
     return account
 
 
 def _require(db: Session, snapshot_id: int) -> BalanceSnapshot:
     snapshot = repo.get(db, snapshot_id)
     if not snapshot:
-        raise NotFoundError("Balance snapshot not found")
+        raise NotFoundError(tr("errors.snapshot_not_found"))
     return snapshot
 
 
@@ -68,7 +70,7 @@ def update_balance_snapshot(db: Session, snapshot_id: int, payload: BalanceSnaps
 def set_zero_point(db: Session, payload: SetZeroPointRequest) -> BalanceSnapshot:
     _require_valued_account(db, payload.account_id)
     repo.clear_zero_points(db, payload.account_id)
-    latest_snapshot = repo.latest(db, payload.account_id)
+    latest_snapshot = balances.latest_snapshot(db, payload.account_id)
     snapshot = BalanceSnapshot(
         account_id=payload.account_id,
         date=payload.date or utcnow_naive(),

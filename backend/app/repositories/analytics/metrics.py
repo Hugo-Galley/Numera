@@ -8,7 +8,6 @@ from app.models.account import Account
 from app.models.category import Category
 from app.models.investment_transaction import InvestmentTransaction
 from app.models.merchant import Merchant
-from app.models.recurring_transaction import RecurringTransaction
 from app.models.salary_config import SalaryConfig
 from app.models.salary_month import SalaryMonth
 from app.models.tag import Tag, transaction_tags
@@ -323,17 +322,6 @@ def investment_transactions_between(db: Session, start: datetime, end: datetime,
     return query.all()
 
 
-def active_recurrings(db: Session, account_id: int | None, tr_accounts: set[int]) -> list[RecurringTransaction]:
-    query = db.query(RecurringTransaction).filter(RecurringTransaction.is_active == True)
-    if account_id:
-        # Y compris les virements récurrents qui arrivent sur ce compte
-        query = query.filter(or_(RecurringTransaction.account_id == account_id,
-                                 RecurringTransaction.transfer_to_account_id == account_id))
-    elif tr_accounts:
-        query = query.filter(RecurringTransaction.account_id.notin_(tr_accounts))
-    return query.all()
-
-
 def salary_config_for_recurring(db: Session, recurring_id: int) -> SalaryConfig | None:
     return db.query(SalaryConfig).filter(
         (SalaryConfig.salary_recurring_id == recurring_id) | (SalaryConfig.ticket_recurring_id == recurring_id)
@@ -354,9 +342,3 @@ def telecommuting_count(db: Session, config_id: int, label: str) -> int:
 
 def all_accounts(db: Session) -> list[Account]:
     return db.query(Account).all()
-
-
-def last_transaction_before(db: Session, account_id: int, before: datetime) -> Transaction | None:
-    return db.query(Transaction).filter(
-        Transaction.account_id == account_id, Transaction.date < before
-    ).order_by(Transaction.date.desc(), Transaction.id.desc()).first()

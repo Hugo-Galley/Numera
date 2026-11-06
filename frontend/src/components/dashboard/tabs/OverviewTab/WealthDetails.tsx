@@ -1,9 +1,11 @@
+import { useTranslation } from "react-i18next"
 import { AccountLogo } from "@/components/ui/AccountLogo"
 import { formatCurrency, formatRate } from "@/lib/utils"
 import type { OverviewTabCtx } from "./useOverviewTab"
 
 /** Détail du patrimoine selon le regroupement choisi. */
 export function WealthDetails({ ctx }: { ctx: OverviewTabCtx }) {
+  const { t } = useTranslation("dashboard")
   const { CATEGORY_COLORS, CATEGORY_LABELS, flatItems, groupBy, groupedItems, institutionData, mixedItems, patrimoineAllocation } = ctx
   return (
     <>
@@ -147,7 +149,7 @@ export function WealthDetails({ ctx }: { ctx: OverviewTabCtx }) {
                   </span>
                   <div className="flex items-center gap-2 mt-0.5">
                     <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-slate-100 text-slate-500">
-                      {item.type === "courant" ? "Courant" : item.type === "epargne" ? "Épargne" : "Investissement"}
+                      {item.type === "courant" ? t("overview.accountType.courant") : item.type === "epargne" ? t("overview.accountType.epargne") : t("overview.accountType.investissement")}
                     </span>
                     {item.original_item && item.original_item.currency !== "EUR" && (
                       <span className="text-[10px] text-slate-400 font-medium">
@@ -184,7 +186,7 @@ export function WealthDetails({ ctx }: { ctx: OverviewTabCtx }) {
                   </span>
                   <div className="flex items-center gap-2 mt-0.5">
                     <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-slate-100 text-slate-500">
-                      {item.type === "courant" ? "Courant" : item.type === "epargne" ? "Épargne" : "Investissement"}
+                      {item.type === "courant" ? t("overview.accountType.courant") : item.type === "epargne" ? t("overview.accountType.epargne") : t("overview.accountType.investissement")}
                     </span>
                     {item.original_item && item.original_item.currency !== "EUR" && (
                       <span className="text-[10px] text-slate-400 font-medium">

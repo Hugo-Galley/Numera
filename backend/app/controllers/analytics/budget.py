@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
+from app.core.sync_bridge import run_async
 from app.db.session import get_db
 from app.schemas.category import BudgetAlert
 from app.services.analytics.budget import compute_budget, compute_budget_alerts, compute_resilience
@@ -13,32 +14,32 @@ router = APIRouter()
 
 
 @router.get("/budget")
-async def budget_analytics(
+def budget_analytics(
     month: int | None = Query(default=None, ge=1, le=12),
     year: int | None = Query(default=None, ge=2000, le=2200),
     account_id: int | None = Query(default=None),
     db: Session = Depends(get_db),
 ):
-    return await compute_budget(db, month=month, year=year, account_id=account_id)
+    return run_async(compute_budget(db, month=month, year=year, account_id=account_id))
 
 
 @router.get("/resilience")
-async def resilience(
+def resilience(
     month: int = Query(ge=1, le=12),
     year: int = Query(ge=2000, le=2200),
     db: Session = Depends(get_db),
 ):
-    return await compute_resilience(db, year, month)
+    return run_async(compute_resilience(db, year, month))
 
 
 @router.get("/budget-alerts", response_model=list[BudgetAlert])
-async def budget_alerts(
+def budget_alerts(
     year: int = Query(..., ge=2000, le=2200),
     month: int = Query(..., ge=1, le=12),
     account_id: int | None = Query(default=None),
     db: Session = Depends(get_db),
 ):
-    return await compute_budget_alerts(db, year=year, month=month, account_id=account_id)
+    return run_async(compute_budget_alerts(db, year=year, month=month, account_id=account_id))
 
 
 class BudgetPeriodModeUpdate(BaseModel):

@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
 
@@ -7,6 +8,7 @@ import { api } from "@/lib/api"
 import { formatPeriodRange, type BudgetPeriod } from "@/lib/budgetPeriod"
 
 export function BudgetPeriodCard() {
+  const { t } = useTranslation("settings")
   const [period, setPeriod] = useState<BudgetPeriod | null>(null)
   const [saving, setSaving] = useState(false)
 
@@ -20,9 +22,9 @@ export function BudgetPeriodCard() {
     setSaving(true)
     try {
       setPeriod(await api.put<BudgetPeriod>("/analytics/budget-period", { mode: checked ? "salary" : "civil" }))
-      toast.success(checked ? "Mois de paie activé" : "Mois civil rétabli")
+      toast.success(checked ? t("budgetPeriodCard.moisDePaieActive") : t("budgetPeriodCard.moisCivilRetabli"))
     } catch {
-      toast.error("Impossible de changer le mode de découpage")
+      toast.error(t("budgetPeriodCard.impossibleDeChangerLeMode"))
     } finally {
       setSaving(false)
     }
@@ -31,17 +33,16 @@ export function BudgetPeriodCard() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Découpage des mois</CardTitle>
+        <CardTitle>{t("budgetPeriodCard.decoupageDesMois")}</CardTitle>
         <CardDescription>
-          Chaque salaire reçu ouvre un nouveau mois : le salaire du 25 août finance septembre, comme les
-          investissements du 29. Les dates et les soldes des transactions ne changent pas.
+          {t("budgetPeriodCard.chaqueSalaireRecuOuvreUn")}
         </CardDescription>
       </CardHeader>
       <CardContent className="flex items-center justify-between gap-4">
         <div className="min-w-0 text-sm text-slate-600">
-          {salaryMode ? "Mois de paie" : "Mois civil"}
+          {salaryMode ? t("budgetPeriodCard.moisDePaie") : t("budgetPeriodCard.moisCivil")}
           {salaryMode && formatPeriodRange(period) && (
-            <span className="block text-slate-400 sm:ml-2 sm:inline">Période en cours : {formatPeriodRange(period)}</span>
+            <span className="block text-slate-400 sm:ml-2 sm:inline">{t("misc.currentPeriod", { range: formatPeriodRange(period) })}</span>
           )}
         </div>
         <Switch checked={salaryMode} disabled={saving || !period} onCheckedChange={toggle} />

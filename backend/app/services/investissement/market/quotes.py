@@ -1,10 +1,13 @@
 """Cours des titres : cotation actuelle (cache mémoire 1 h, enregistrée en base), historique et cours à une date."""
+import copy
 from datetime import date as date_type
 from datetime import datetime, timedelta
 from typing import Any
 
+import anyio
 from sqlalchemy.orm import Session
 
+from app.core.circuit_breaker import CircuitBreaker
 from app.core.config import settings
 from app.core.logging import get_logger
 from app.domain.market import guess_quote_currency, normalize_price, to_eur
@@ -18,6 +21,14 @@ logger = get_logger(__name__)
 # symbol -> {"price": float, "currency": str, "name": str, "type": str, "price_eur": float, "expires_at": datetime}
 _QUOTES_CACHE: dict[str, dict[str, Any]] = {}
 CACHE_TTL = timedelta(hours=1)
+# Cache négatif : une cotation de repli (Yahoo en panne ou sans cours) est mémorisée aussi longtemps que son `expires_at`
+FAILURE_TTL = timedelta(minutes=10)
+# symbole -> fin du cache négatif. On ne mémorise que l'échec, pas la cotation de repli : elle est relue en base à
+# chaque appel (un cours enregistré entre-temps doit être pris en compte).
+_FAILED_SYMBOLS: dict[str, datetime] = {}
+MAX_CONCURRENT_QUOTES = 4
+# Disjoncteur Yahoo : 3 échecs réseau consécutifs coupent les appels pendant 10 min
+_yahoo_breaker = CircuitBreaker(threshold=3, cooldown=FAILURE_TTL)
 
 
 def _demo_stored_quote(db: Session | None, sym: str) -> dict[str, Any] | None:
@@ -59,7 +70,7 @@ def _cached_or_demo(symbols: list[str], db: Session | None, now: datetime) -> tu
             continue
         cached = _QUOTES_CACHE.get(sym)
         if cached and cached.get("expires_at", now) > now:
-            output[sym] = cached
+            output[sym] = copy.deepcopy(cached)  # l'appelant peut modifier ce qu'il reçoit
         else:
             missing_symbols.append(sym)
     return output, missing_symbols
@@ -106,7 +117,7 @@ def _fallback_quote(db: Session | None, sym: str, rates: dict[str, float], now: 
             "type": "UNKNOWN",
             "price_date": last.date.isoformat(),
             "stale": True,
-            "expires_at": now + timedelta(minutes=5),
+            "expires_at": now + FAILURE_TTL,
         }
     return {
         "symbol": sym,
@@ -117,7 +128,7 @@ def _fallback_quote(db: Session | None, sym: str, rates: dict[str, float], now: 
         "type": "UNKNOWN",
         "price_date": None,
         "stale": True,
-        "expires_at": now + timedelta(minutes=5),
+        "expires_at": now + FAILURE_TTL,
     }
 
 
@@ -129,6 +140,31 @@ def persist_fetched_prices(db: Session) -> None:
     un commit inutile viderait le cache de valorisation)."""
     if db.info.pop(_UNCOMMITTED_PRICES, False):
         db.commit()
+
+
+async def _fetch_all(symbols: list[str], rates: dict[str, float], now: datetime) -> dict[str, Any]:
+    """Cotations Yahoo en parallèle (concurrence bornée) : `{symbole: (cotation, jour, cours) | None}`.
+    Aucune requête quand le disjoncteur est ouvert ; une erreur réseau compte comme un échec du service."""
+    limiter = anyio.CapacityLimiter(MAX_CONCURRENT_QUOTES)
+    results: dict[str, Any] = {}
+
+    async def one(client, sym: str) -> None:
+        results[sym] = None
+        if not _yahoo_breaker.allow():
+            return
+        async with limiter:
+            try:
+                results[sym] = await _fetch_quote(client, sym, rates, now)
+            except Exception as e:
+                _yahoo_breaker.failure()
+                logger.warning(f"Error fetching quote for '{sym}': {e}")
+                return
+        _yahoo_breaker.success()
+
+    async with yahoo_finance.client(8.0) as client, anyio.create_task_group() as tasks:
+        for sym in symbols:
+            tasks.start_soon(one, client, sym)
+    return {sym: results[sym] for sym in symbols}
 
 
 async def get_market_quotes(symbols: list[str], db: Session | None = None) -> dict[str, dict[str, Any]]:
@@ -147,22 +183,23 @@ async def get_market_quotes(symbols: list[str], db: Session | None = None) -> di
         return output
 
     rates = await get_exchange_rates("EUR")
-    stored_any = False
+    to_fetch = [sym for sym in missing_symbols if _FAILED_SYMBOLS.get(sym, now) <= now]
+    fetched_quotes = await _fetch_all(to_fetch, rates, now)
 
-    async with yahoo_finance.client(8.0) as client:
-        for sym in missing_symbols:
-            try:
-                fetched = await _fetch_quote(client, sym, rates, now)
-                if fetched:
-                    quote_data, price_day, price = fetched
-                    _QUOTES_CACHE[sym] = quote_data
-                    output[sym] = quote_data
-                    if db is not None:
-                        security_prices.store_price(db, sym, price_day, round(price, 6), quote_data["currency"])
-                        stored_any = True
-                    continue
-            except Exception as e:
-                logger.warning(f"Error fetching quote for '{sym}': {e}")
+    stored_any = False
+    for sym, fetched in fetched_quotes.items():
+        if fetched:
+            _FAILED_SYMBOLS.pop(sym, None)
+            quote_data, price_day, price = fetched
+            _QUOTES_CACHE[sym] = copy.deepcopy(quote_data)
+            output[sym] = quote_data
+            if db is not None:
+                security_prices.store_price(db, sym, price_day, round(price, 6), quote_data["currency"])
+                stored_any = True
+        else:
+            _FAILED_SYMBOLS[sym] = now + FAILURE_TTL  # cache négatif : pas de nouvel appel avant ce délai
+    for sym in missing_symbols:
+        if sym not in output:
             output[sym] = _fallback_quote(db, sym, rates, now)
 
     if stored_any and db is not None:

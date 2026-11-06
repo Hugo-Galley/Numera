@@ -1,3 +1,4 @@
+import i18n from "i18next"
 import { useCallback, useRef, useState } from "react"
 
 import { Button } from "@/components/ui/button"
@@ -62,16 +63,16 @@ export function useReauth() {
             <DialogDescription>{request?.description}</DialogDescription>
           </DialogHeader>
           <div className="grid gap-2">
-            <Label htmlFor="reauth-password">Mot de passe actuel</Label>
+            <Label htmlFor="reauth-password">{i18n.t("reauthDialog.motDePasseActuel", { ns: "settings" })}</Label>
             <Input id="reauth-password" type="password" autoComplete="current-password" autoFocus value={password} onChange={(e) => setPassword(e.target.value)} />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="reauth-code">Code de double authentification (si activée)</Label>
+            <Label htmlFor="reauth-code">{i18n.t("reauthDialog.codeDeDoubleAuthentificationSi", { ns: "settings" })}</Label>
             <Input id="reauth-code" inputMode="text" autoComplete="one-time-code" value={code} onChange={(e) => setCode(e.target.value)} />
           </div>
           <DialogFooter className="gap-2 sm:gap-0">
-            <Button type="button" variant="ghost" onClick={() => close(null)}>Annuler</Button>
-            <Button type="submit" disabled={!password}>Confirmer</Button>
+            <Button type="button" variant="ghost" onClick={() => close(null)}>{i18n.t("reauthDialog.annuler", { ns: "settings" })}</Button>
+            <Button type="submit" disabled={!password}>{i18n.t("reauthDialog.confirmer", { ns: "settings" })}</Button>
           </DialogFooter>
         </form>
       </DialogContent>

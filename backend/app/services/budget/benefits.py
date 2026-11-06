@@ -1,8 +1,9 @@
 """Aides perçues (prime d'activité, APL…) : versements reçus, statut du mois, déclaration périodique.
 
-Aucune transaction n'est créée : les versements sont les entrées dont le libellé (ou la note) contient
+Les versements sont les entrées dont le libellé (ou la note) contient
 le motif de l'aide. Une entrée qui correspond à plusieurs aides (deux aides CAF) est rattachée à celle
-dont le montant attendu est le plus proche. Les aides restent des revenus ordinaires dans les KPI.
+dont le montant attendu est le plus proche. La génération des entrées provisoires est dans
+`benefit_generation.py`. Les aides restent des revenus ordinaires dans les KPI.
 """
 from collections import defaultdict
 from dataclasses import dataclass, field
@@ -11,6 +12,7 @@ from datetime import date, datetime, time, timedelta
 from sqlalchemy.orm import Session
 
 from app.core.errors import BusinessRuleError, NotFoundError
+from app.core.i18n import tr
 from app.domain import benefits as calc
 from app.models.benefit import Benefit
 from app.models.transaction import Transaction
@@ -86,6 +88,8 @@ def to_read(st: BenefitState, today: date | None = None) -> dict:
         "declaration_interval_months": b.declaration_interval_months,
         "next_declaration_date": b.next_declaration_date,
         "note": b.note,
+        "logo": b.logo,
+        "auto_generate": b.auto_generate,
         "active": b.active,
         "account_name": b.account.name if b.account else None,
         "status": st.status,
@@ -102,7 +106,7 @@ def to_read(st: BenefitState, today: date | None = None) -> dict:
 def _require(db: Session, benefit_id: int) -> Benefit:
     benefit = repo.get(db, benefit_id)
     if benefit is None:
-        raise NotFoundError("Aide introuvable")
+        raise NotFoundError(tr("errors.benefit_not_found"))
     return benefit
 
 
@@ -130,13 +134,19 @@ def benefits_summary(db: Session, today: date | None = None) -> dict:
 
 def _check_declaration(interval: int | None, next_date: date | None) -> None:
     if (interval is None) != (next_date is None):
-        raise BusinessRuleError("Indiquez à la fois la périodicité et la date de la prochaine déclaration")
+        raise BusinessRuleError(tr("errors.benefit_frequency_and_date"))
+
+
+def _check_generation(auto_generate: bool, account_id: int | None) -> None:
+    if auto_generate and account_id is None:
+        raise BusinessRuleError(tr("errors.benefit_choose_account"))
 
 
 def create_benefit(db: Session, payload: BenefitCreate) -> dict:
     if payload.account_id is not None and not repo.account_exists(db, payload.account_id):
-        raise NotFoundError("Compte introuvable")
+        raise NotFoundError(tr("errors.account_not_found"))
     _check_declaration(payload.declaration_interval_months, payload.next_declaration_date)
+    _check_generation(payload.auto_generate, payload.account_id)
     benefit = Benefit(**payload.model_dump())
     repo.add(db, benefit)
     db.commit()
@@ -147,14 +157,15 @@ def update_benefit(db: Session, benefit_id: int, payload: BenefitUpdate) -> dict
     benefit = _require(db, benefit_id)
     data = payload.model_dump(exclude_unset=True)
     if data.get("account_id") is not None and not repo.account_exists(db, data["account_id"]):
-        raise NotFoundError("Compte introuvable")
-    for name in ("name", "organization", "amount", "payment_day", "match_pattern", "active"):
+        raise NotFoundError(tr("errors.account_not_found"))
+    for name in ("name", "organization", "amount", "payment_day", "match_pattern", "active", "auto_generate"):
         if name in data and data[name] is None:
             data.pop(name)  # colonnes non nullables : `null` = ne pas modifier
     _check_declaration(
         data.get("declaration_interval_months", benefit.declaration_interval_months),
         data.get("next_declaration_date", benefit.next_declaration_date),
     )
+    _check_generation(data.get("auto_generate", benefit.auto_generate), data.get("account_id", benefit.account_id))
     for name, value in data.items():
         setattr(benefit, name, value)
     db.commit()
@@ -166,7 +177,7 @@ def mark_declared(db: Session, benefit_id: int, payload: BenefitDeclared, today:
     today = today or date.today()
     benefit = _require(db, benefit_id)
     if benefit.declaration_interval_months is None or benefit.next_declaration_date is None:
-        raise BusinessRuleError("Cette aide n'a pas de déclaration périodique")
+        raise BusinessRuleError(tr("errors.benefit_no_declaration"))
     benefit.next_declaration_date = calc.advance_declaration(benefit.next_declaration_date, benefit.declaration_interval_months, today)
     if payload.amount is not None:
         benefit.amount = payload.amount

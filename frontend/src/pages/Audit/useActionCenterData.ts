@@ -1,3 +1,4 @@
+import i18n from "i18next"
 import { toast } from "sonner"
 import { useEffect, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
@@ -37,7 +38,7 @@ export function useActionCenterData() {
       setCategories(categoryRows || [])
       setAccounts(accountRows || [])
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Données indisponibles")
+      setError(err instanceof Error ? err.message : i18n.t("useActionCenterData.donneesIndisponibles", { ns: "audit" }))
     } finally {
       setLoading(false)
     }
@@ -51,9 +52,9 @@ export function useActionCenterData() {
         ...prev,
         actions: prev.actions.filter(a => a.id !== actionId)
       } : null)
-      toast.success("Action masquée")
+      toast.success(i18n.t("useActionCenterData.actionMasquee", { ns: "audit" }))
     } catch(err) {
-      toast.error("Impossible de masquer l'action")
+      toast.error(i18n.t("useActionCenterData.impossibleDeMasquerLAction", { ns: "audit" }))
     }
   }
 
@@ -85,7 +86,7 @@ export function useActionCenterData() {
         const result = await getAnalyticsAuditById<IssueDetails>(issueId)
         setDetails((prev) => ({ ...prev, [issueId]: result }))
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : "Chargement impossible")
+        toast.error(err instanceof Error ? err.message : i18n.t("useActionCenterData.chargementImpossible", { ns: "audit" }))
       } finally {
         setLoadingIssueId(null)
       }
@@ -147,30 +148,30 @@ export function useActionCenterData() {
   async function linkTransfer(sortieId: number, entreeId: number) {
     try {
       await postTransactionsLinkById(sortieId, entreeId, "?type=regular", {})
-      toast.success("Transfert rapproché")
+      toast.success(i18n.t("useActionCenterData.transfertRapproche", { ns: "audit" }))
       if (activeIssueId) await refreshIssue(activeIssueId)
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Rapprochement impossible")
+      toast.error(err instanceof Error ? err.message : i18n.t("useActionCenterData.rapprochementImpossible", { ns: "audit" }))
     }
   }
 
   async function ignoreTransfer(sortieId: number) {
     try {
       await postTransactionsIgnore(sortieId, {})
-      toast.success("Suggestion ignorée")
+      toast.success(i18n.t("useActionCenterData.suggestionIgnoree", { ns: "audit" }))
       if (activeIssueId) await refreshIssue(activeIssueId)
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Action impossible")
+      toast.error(err instanceof Error ? err.message : i18n.t("useActionCenterData.actionImpossible", { ns: "audit" }))
     }
   }
 
   async function ignoreDuplicate(transactions: Transaction[]) {
     try {
       await Promise.all(transactions.map((tx) => postTransactionsIgnoreDuplicate(tx.id, {})))
-      toast.success("Doublons ignorés")
+      toast.success(i18n.t("useActionCenterData.doublonsIgnores", { ns: "audit" }))
       if (activeIssueId) await refreshIssue(activeIssueId)
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Action impossible")
+      toast.error(err instanceof Error ? err.message : i18n.t("useActionCenterData.actionImpossible", { ns: "audit" }))
     }
   }
 

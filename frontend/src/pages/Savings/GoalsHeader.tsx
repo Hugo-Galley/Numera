@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
@@ -9,13 +10,14 @@ import type { SavingsCtx } from "./useSavings"
 
 /** En-tête des objectifs et dialogue de création / modification. */
 export function GoalsHeader({ ctx }: { ctx: SavingsCtx }) {
+  const { t } = useTranslation("savings")
   const { accounts, categories, editingGoal, goalForm, handleCreateOrUpdateGoal, handleCreateOrUpdateGoalBusy, isDialogOpen, setEditingGoal, setGoalForm, setIsDialogOpen } = ctx
   return (
     <>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b pb-3 md:gap-4 md:pb-2">
         <div className="flex items-center gap-2">
           <Target className="h-5 w-5 text-slate-400" />
-          <h2 className="text-xl font-bold text-slate-900">Mes Objectifs</h2>
+          <h2 className="text-xl font-bold text-slate-900">{t("goalsHeader.mesObjectifs")}</h2>
         </div>
 
         <Dialog open={isDialogOpen} onOpenChange={(open) => {
@@ -28,29 +30,29 @@ export function GoalsHeader({ ctx }: { ctx: SavingsCtx }) {
           <DialogTrigger asChild>
             <Button className="h-11 w-full rounded-xl shadow-sm sm:h-10 sm:w-auto">
               <Plus className="h-4 w-4 mr-2" />
-              Nouvel Objectif
+              {t("goalsHeader.nouvelObjectif")}
             </Button>
           </DialogTrigger>
           <DialogContent className="rounded-2xl sm:max-w-[500px]">
             <DialogHeader>
-              <DialogTitle>{editingGoal ? "Modifier l'objectif" : "Créer un objectif"}</DialogTitle>
+              <DialogTitle>{editingGoal ? t("goalsHeader.modifierLObjectif") : t("goalsHeader.creerUnObjectif")}</DialogTitle>
               <DialogDescription>
-                Liez votre objectif à un mot-clé, un compte ou une catégorie pour suivre l'accumulation.
+                {t("goalsHeader.liezVotreObjectifAUn")}
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="grid gap-2">
-                  <Label htmlFor="name">Nom de l'objectif</Label>
+                  <Label htmlFor="name">{t("goalsHeader.nomDeLObjectif")}</Label>
                   <Input 
                     id="name" 
-                    placeholder="ex: Vacances Japon" 
+                    placeholder={t("goalsHeader.exVacancesJapon")} 
                     value={goalForm.name}
                     onChange={(e) => setGoalForm({ ...goalForm, name: e.target.value })}
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="target">Montant cible (€)</Label>
+                  <Label htmlFor="target">{t("goalsHeader.montantCible")}</Label>
                   <Input 
                     id="target" 
                     type="number" inputMode="decimal" 
@@ -63,13 +65,13 @@ export function GoalsHeader({ ctx }: { ctx: SavingsCtx }) {
 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="grid gap-2">
-                  <Label>Lier à un compte (optionnel)</Label>
+                  <Label>{t("goalsHeader.lierAUnCompteOptionnel")}</Label>
                   <Select value={goalForm.account_id} onValueChange={(v) => setGoalForm({ ...goalForm, account_id: v })}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Choisir un compte" />
+                      <SelectValue placeholder={t("goalsHeader.choisirUnCompte")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="none">Aucun compte</SelectItem>
+                      <SelectItem value="none">{t("goalsHeader.aucunCompte")}</SelectItem>
                       {accounts.map(acc => (
                         <SelectItem key={acc.id} value={String(acc.id)}>{acc.name}</SelectItem>
                       ))}
@@ -77,13 +79,13 @@ export function GoalsHeader({ ctx }: { ctx: SavingsCtx }) {
                   </Select>
                 </div>
                 <div className="grid gap-2">
-                  <Label>Lier à une catégorie (optionnel)</Label>
+                  <Label>{t("goalsHeader.lierAUneCategorieOptionnel")}</Label>
                   <Select value={goalForm.category_id} onValueChange={(v) => setGoalForm({ ...goalForm, category_id: v })}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Choisir une catégorie" />
+                      <SelectValue placeholder={t("goalsHeader.choisirUneCategorie")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="none">Aucune catégorie</SelectItem>
+                      <SelectItem value="none">{t("goalsHeader.aucuneCategorie")}</SelectItem>
                       {categories.map(cat => (
                         <SelectItem key={cat.id} value={String(cat.id)}>{cat.name}</SelectItem>
                       ))}
@@ -94,16 +96,16 @@ export function GoalsHeader({ ctx }: { ctx: SavingsCtx }) {
 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="grid gap-2">
-                  <Label htmlFor="keyword">Mot-clé Tag (optionnel)</Label>
+                  <Label htmlFor="keyword">{t("goalsHeader.motCleTagOptionnel")}</Label>
                   <Input 
                     id="keyword" 
-                    placeholder="ex: japon" 
+                    placeholder={t("goalsHeader.exJapon")} 
                     value={goalForm.keyword}
                     onChange={(e) => setGoalForm({ ...goalForm, keyword: e.target.value })}
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="deadline">Date cible (optionnel)</Label>
+                  <Label htmlFor="deadline">{t("goalsHeader.dateCibleOptionnel")}</Label>
                   <Input 
                     id="deadline" 
                     type="date" 
@@ -114,7 +116,7 @@ export function GoalsHeader({ ctx }: { ctx: SavingsCtx }) {
               </div>
 
               <div className="grid gap-2">
-                <Label>Couleur</Label>
+                <Label>{t("goalsHeader.couleur")}</Label>
                 <div className="flex flex-wrap gap-2">
                   {GOAL_COLORS.map((c) => (
                     <button
@@ -131,7 +133,7 @@ export function GoalsHeader({ ctx }: { ctx: SavingsCtx }) {
             </div>
             <DialogFooter>
               <Button onClick={() => handleCreateOrUpdateGoal()} disabled={handleCreateOrUpdateGoalBusy} className="h-11 w-full rounded-xl sm:h-10">
-                {editingGoal ? "Mettre à jour" : "Créer l'objectif"}
+                {editingGoal ? t("goalsHeader.mettreAJour") : t("goalsHeader.creerLObjectif")}
               </Button>
             </DialogFooter>
           </DialogContent>

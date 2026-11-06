@@ -1,13 +1,12 @@
 """Requêtes des rapports : flux du money-flow, nœuds du Sankey, soldes et récurrences de la projection de trésorerie."""
 from datetime import datetime
 
-from sqlalchemy import func, or_
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.models.account import Account
 from app.models.category import Category
 from app.models.investment_transaction import InvestmentTransaction
-from app.models.recurring_transaction import RecurringTransaction
 from app.models.transaction import Transaction
 from app.repositories.analytics.budget import INVESTMENT_CATEGORIES
 from app.repositories.analytics.common import NET_AMOUNT, budget_versement_ids, category_lines, income_criterion
@@ -103,29 +102,6 @@ def dividend_rows(db: Session, start: datetime, end: datetime, account_id: int |
 
 def get_account(db: Session, account_id: int) -> Account | None:
     return db.query(Account).filter(Account.id == account_id).first()
-
-
-def active_accounts(db: Session) -> list[Account]:
-    return db.query(Account).filter(Account.active == True).all()
-
-
-def last_transaction(db: Session, account_id: int, before: datetime | None = None) -> Transaction | None:
-    """Dernière transaction du compte (strictement avant `before` si donné)."""
-    query = db.query(Transaction).filter(Transaction.account_id == account_id)
-    if before is not None:
-        query = query.filter(Transaction.date < before)
-    return query.order_by(Transaction.date.desc(), Transaction.id.desc()).first()
-
-
-def active_recurrings(db: Session, account_id: int | None, tr_accounts: set[int]) -> list[RecurringTransaction]:
-    query = db.query(RecurringTransaction).filter(RecurringTransaction.is_active == True)
-    if account_id:
-        # Y compris les virements récurrents qui arrivent sur ce compte
-        query = query.filter(or_(RecurringTransaction.account_id == account_id,
-                                 RecurringTransaction.transfer_to_account_id == account_id))
-    elif tr_accounts:
-        query = query.filter(RecurringTransaction.account_id.notin_(tr_accounts))
-    return query.all()
 
 
 def last_occurrence(db: Session, recurring_id: int) -> datetime | None:

@@ -1,3 +1,6 @@
+import i18n from "i18next"
+import { Trans, useTranslation } from "react-i18next"
+import { appLocale } from "@/i18n/locale"
 import { useCallback, useEffect, useState } from "react"
 import { Bot, Check, Copy, KeyRound, Trash2, TriangleAlert } from "lucide-react"
 import { toast } from "sonner"
@@ -39,15 +42,16 @@ const CLIENTS: { id: McpClient; label: string }[] = [
 
 const formatDateTime = (value: string | null) =>
   value
-    ? new Date(`${value}Z`).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" })
-    : "Jamais"
+    ? new Date(`${value}Z`).toLocaleString(appLocale(), { dateStyle: "short", timeStyle: "short" })
+    : i18n.t("misc.neverCap", { ns: "settings" })
 
 function CopyBlock({ value, label }: { value: string; label: string }) {
+  const { t } = useTranslation("settings")
   const [copied, setCopied] = useState(false)
   const copy = async () => {
     await navigator.clipboard.writeText(value)
     setCopied(true)
-    toast.success(`${label} copié`)
+    toast.success(t("misc.copied", { label }))
     setTimeout(() => setCopied(false), 2000)
   }
   return (
@@ -64,6 +68,7 @@ function CopyBlock({ value, label }: { value: string; label: string }) {
 
 /** Accès en lecture seule de Claude (Code / Desktop) au serveur MCP, par tokens générés ici et révocables. */
 export function McpAccessCard() {
+  const { t } = useTranslation("settings")
   const { profile, refreshProfile } = useAuth()
   const [enabled, setEnabled] = useState(true)
   const [tokens, setTokens] = useState<McpToken[] | null>(null)
@@ -80,10 +85,10 @@ export function McpAccessCard() {
     try {
       setTokens(await api.get<McpToken[]>("/admin/mcp-tokens"))
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Impossible de charger les tokens MCP")
+      toast.error(error instanceof Error ? error.message : t("mcpAccessCard.impossibleDeChargerLesTokens"))
       setTokens([])
     }
-  }, [])
+  }, [t])
 
   useEffect(() => {
     loadTokens()
@@ -97,11 +102,11 @@ export function McpAccessCard() {
     setEnabled(value)
     try {
       await api.put("/admin/profile", { mcp_enabled: value })
-      toast.success(value ? "Accès MCP activé" : "Accès MCP coupé : tous les tokens sont refusés")
+      toast.success(value ? t("mcpAccessCard.accesMcpActive") : t("mcpAccessCard.accesMcpCoupeTousLes"))
       await refreshProfile()
     } catch (error) {
       setEnabled(!value)
-      toast.error(error instanceof Error ? error.message : "Erreur lors de la mise à jour")
+      toast.error(error instanceof Error ? error.message : t("mcpAccessCard.erreurLorsDeLaMise"))
     }
   }
 
@@ -116,7 +121,7 @@ export function McpAccessCard() {
       setClient(name.toLowerCase().includes("desktop") ? "claude-desktop" : "claude-code")
       await loadTokens()
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Impossible de générer le token")
+      toast.error(error instanceof Error ? error.message : t("mcpAccessCard.impossibleDeGenererLeToken"))
     } finally {
       setCreating(false)
     }
@@ -126,11 +131,11 @@ export function McpAccessCard() {
     if (!toRevoke) return
     try {
       await api.delete(`/admin/mcp-tokens/${toRevoke.id}`)
-      toast.success(`Token « ${toRevoke.name} » révoqué`)
+      toast.success(t("misc.tokenRevoked", { name: toRevoke.name }))
       if (created?.id === toRevoke.id) setCreated(null)
       await loadTokens()
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Impossible de révoquer le token")
+      toast.error(error instanceof Error ? error.message : t("mcpAccessCard.impossibleDeRevoquerLeToken"))
     } finally {
       setToRevoke(null)
     }
@@ -164,34 +169,33 @@ export function McpAccessCard() {
           Claude (MCP)
         </CardTitle>
         <CardDescription>
-          Donnez à Claude Code ou Claude Desktop un accès en <strong>lecture seule</strong> à vos données via le
-          serveur MCP. Chaque token est révocable ; aucun ne permet de modifier quoi que ce soit.
+          {t("mcpAccessCard.donnezAClaudeCodeOu")} <strong>{t("mcpAccessCard.lectureSeule")}</strong> {t("misc.mcpIntro")}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="flex items-center justify-between gap-4">
           <div className="min-w-0 space-y-0.5">
-            <Label className="text-base">Accès MCP</Label>
+            <Label className="text-base">{t("mcpAccessCard.accesMcp")}</Label>
             <p className="text-sm text-slate-500">
-              Désactivé, tous les tokens sont refusés immédiatement (sans les supprimer).
+              {t("mcpAccessCard.desactiveTousLesTokensSont")}
             </p>
           </div>
           <Switch checked={enabled} onCheckedChange={toggleAccess} />
         </div>
 
         <form onSubmit={createToken} className="border-t pt-4 space-y-2">
-          <Label htmlFor="mcp-token-name" className="text-sm font-semibold">Nouveau token</Label>
+          <Label htmlFor="mcp-token-name" className="text-sm font-semibold">{t("mcpAccessCard.nouveauToken")}</Label>
           <div className="flex flex-col sm:flex-row gap-2">
             <Input
               id="mcp-token-name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Ex. Claude Desktop — MacBook"
+              placeholder={t("mcpAccessCard.exClaudeDesktopMacbook")}
               maxLength={100}
             />
             <Button type="submit" disabled={creating || !name.trim() || !password} className="h-11 gap-2 shrink-0 sm:h-10">
               <KeyRound className="h-4 w-4" />
-              {creating ? "Génération..." : "Générer un token"}
+              {creating ? t("mcpAccessCard.generation") : t("mcpAccessCard.genererUnToken")}
             </Button>
           </div>
           <Input
@@ -199,8 +203,8 @@ export function McpAccessCard() {
             autoComplete="current-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="Mot de passe actuel (requis)"
-            aria-label="Mot de passe actuel"
+            placeholder={t("mcpAccessCard.motDePasseActuelRequis")}
+            aria-label={t("mcpAccessCard.motDePasseActuel")}
           />
         </form>
 
@@ -208,7 +212,7 @@ export function McpAccessCard() {
           <div className="rounded-md border border-amber-200 bg-amber-50 p-4 space-y-3">
             <p className="flex items-center gap-2 text-sm font-semibold text-amber-900">
               <TriangleAlert className="h-4 w-4" />
-              Copiez-le maintenant : ce token ne sera plus affiché.
+              {t("mcpAccessCard.copiezLeMaintenantCeToken")}
             </p>
             <div className="flex flex-wrap gap-2">
               {CLIENTS.map((item) => (
@@ -227,45 +231,43 @@ export function McpAccessCard() {
             {client === "claude-code" ? (
               <div className="space-y-1.5">
                 <p className="text-xs font-medium text-slate-700">
-                  Dans un terminal, ajoutez Numera à Claude Code :
+                  {t("mcpAccessCard.dansUnTerminalAjoutezNumera")}
                 </p>
-                <CopyBlock value={command} label="Commande" />
+                <CopyBlock value={command} label={t("mcpAccessCard.commande")} />
                 <p className="text-xs text-slate-600">
-                  Vérifiez ensuite avec <code>claude mcp list</code>.
+                  {t("mcpAccessCard.verifiezEnsuiteAvec")} <code>claude mcp list</code>.
                 </p>
               </div>
             ) : (
               <div className="space-y-1.5">
                 <p className="text-xs font-medium text-slate-700">
-                  Claude Desktop → Réglages → Développeur → Modifier la configuration, puis fusionnez ce bloc dans{" "}
-                  <code>claude_desktop_config.json</code> :
+                  <Trans t={t} i18nKey="misc.desktopSteps" components={{ code: <code /> }} />
                 </p>
-                <CopyBlock value={desktopConfig} label="Configuration" />
+                <CopyBlock value={desktopConfig} label={t("mcpAccessCard.configuration")} />
                 <p className="text-xs text-slate-600">
-                  Node.js doit être installé (le pont <code>mcp-remote</code> transmet le token). Redémarrez ensuite
-                  Claude Desktop.
+                  {t("mcpAccessCard.nodeJsDoitEtreInstalle")} <code>mcp-remote</code> {t("mcpAccessCard.transmetLeTokenRedemarrezEnsuite")}
                 </p>
               </div>
             )}
             <div className="space-y-1.5">
-              <p className="text-xs font-medium text-slate-700">Token seul :</p>
-              <CopyBlock value={created.token} label="Token" />
+              <p className="text-xs font-medium text-slate-700">{t("mcpAccessCard.tokenSeul")}</p>
+              <CopyBlock value={created.token} label={t("mcpAccessCard.token")} />
             </div>
             <p className="text-xs text-slate-600">
-              Serveur MCP : <code>{mcpUrl}</code>
+              {t("mcpAccessCard.serveurMcp")} <code>{mcpUrl}</code>
             </p>
             <Button type="button" variant="outline" className="h-11 w-full sm:h-9 sm:w-auto" onClick={() => setCreated(null)}>
-              J'ai copié le token
+              {t("mcpAccessCard.jAiCopieLeToken")}
             </Button>
           </div>
         )}
 
         <div className="border-t pt-4 space-y-2">
-          <Label className="text-sm font-semibold">Tokens actifs</Label>
+          <Label className="text-sm font-semibold">{t("mcpAccessCard.tokensActifs")}</Label>
           {tokens === null ? (
             <Skeleton className="h-12 w-full" />
           ) : tokens.length === 0 ? (
-            <p className="text-sm text-slate-500 py-2">Aucun token : générez-en un pour connecter Claude.</p>
+            <p className="text-sm text-slate-500 py-2">{t("mcpAccessCard.aucunTokenGenerezEnUn")}</p>
           ) : (
             <ul className="divide-y rounded-md border">
               {tokens.map((token) => (
@@ -273,8 +275,8 @@ export function McpAccessCard() {
                   <div className="min-w-0">
                     <p className="text-sm font-medium truncate">{token.name}</p>
                     <p className="text-xs text-slate-500">
-                      <code>{token.token_prefix}…</code> · créé le {formatDateTime(token.created_at)}
-                      <span className="block sm:inline"><span className="hidden sm:inline"> · </span>dernière utilisation : {formatDateTime(token.last_used_at)}</span>
+                      <code>{token.token_prefix}…</code> · {t("misc.createdOn", { date: formatDateTime(token.created_at) })}
+                      <span className="block sm:inline"><span className="hidden sm:inline"> · </span>{t("misc.lastUsed", { date: formatDateTime(token.last_used_at) })}</span>
                     </p>
                   </div>
                   <Button
@@ -283,7 +285,7 @@ export function McpAccessCard() {
                     size="sm"
                     className="h-10 w-10 shrink-0 p-0 text-rose-600 hover:text-rose-700 hover:bg-rose-50"
                     onClick={() => setToRevoke(token)}
-                    aria-label={`Révoquer ${token.name}`}
+                    aria-label={t("misc.revokeAria", { name: token.name })}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
@@ -297,14 +299,14 @@ export function McpAccessCard() {
       <Dialog open={toRevoke !== null} onOpenChange={(open) => !open && setToRevoke(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Révoquer « {toRevoke?.name} » ?</DialogTitle>
+            <DialogTitle>{t("misc.revokeTitle", { name: toRevoke?.name ?? "" })}</DialogTitle>
             <DialogDescription>
-              Les clients qui utilisent ce token perdent l'accès immédiatement. Cette action est définitive.
+              {t("mcpAccessCard.lesClientsQuiUtilisentCe")}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2 sm:gap-0">
-            <Button variant="outline" className="h-11 sm:h-10" onClick={() => setToRevoke(null)}>Annuler</Button>
-            <Button variant="destructive" className="h-11 sm:h-10" onClick={revokeToken}>Révoquer</Button>
+            <Button variant="outline" className="h-11 sm:h-10" onClick={() => setToRevoke(null)}>{t("mcpAccessCard.annuler")}</Button>
+            <Button variant="destructive" className="h-11 sm:h-10" onClick={revokeToken}>{t("mcpAccessCard.revoquer")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

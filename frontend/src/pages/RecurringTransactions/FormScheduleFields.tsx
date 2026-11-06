@@ -1,3 +1,6 @@
+import i18n from "i18next"
+import { useTranslation } from "react-i18next"
+import { dateLocale } from "@/i18n/locale"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import { CalendarIcon, ChevronDown } from "lucide-react"
@@ -7,12 +10,12 @@ import { Label } from "@/components/ui/label"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
 import { format } from "date-fns"
-import { fr } from "date-fns/locale"
 import { MONTHS } from "./types"
 import type { RecurringTransactionsCtx } from "./useRecurringTransactions"
 
 /** Formulaire : jour et mois exclus, date de début, génération automatique et note. */
 export function FormScheduleFields({ ctx }: { ctx: RecurringTransactionsCtx }) {
+  const { t } = useTranslation("recurring")
   const { formData, isIrregularSubmenuOpen, setFormData, setIsIrregularSubmenuOpen } = ctx
   return (
     <>
@@ -28,14 +31,13 @@ export function FormScheduleFields({ ctx }: { ctx: RecurringTransactionsCtx }) {
                 <CalendarIcon className="h-3.5 w-3.5" />
               </span>
               <div>
-                <span>Mois irréguliers (exclusions)</span>
+                <span>{t("formScheduleFields.moisIrreguliersExclusions")}</span>
                 {formData.excluded_months.length > 0 ? (
                   <span className="ml-2 text-[10px] font-bold text-amber-600 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded-full">
-                    {formData.excluded_months.length} exclu{formData.excluded_months.length > 1 ? "s" : ""} (
-                    {formData.excluded_months.map(m => MONTHS.find(mon => mon.value === m)?.label).join(", ")})
+                    {i18n.t("misc.excludedList", { ns: "recurring", count: formData.excluded_months.length, months: formData.excluded_months.map(m => MONTHS.find(mon => mon.value === m)?.label).join(", ") })}
                   </span>
                 ) : (
-                  <span className="ml-2 text-[10px] text-slate-400 font-normal">Optionnel</span>
+                  <span className="ml-2 text-[10px] text-slate-400 font-normal">{t("formScheduleFields.optionnel")}</span>
                 )}
               </div>
             </div>
@@ -45,7 +47,7 @@ export function FormScheduleFields({ ctx }: { ctx: RecurringTransactionsCtx }) {
           {isIrregularSubmenuOpen && (
             <div className="pt-2 border-t border-slate-200/60 space-y-2">
               <p className="text-[11px] text-slate-500">
-                Sélectionnez les mois où ce montant ne sera <strong className="font-semibold text-slate-700">pas débité</strong> (ex: non prélevé en mai et octobre).
+                {t("formScheduleFields.selectionnezLesMoisOuCe")} <strong className="font-semibold text-slate-700">{t("formScheduleFields.pasDebite")}</strong> {t("formScheduleFields.exNonPreleveEnMai")}
               </p>
               <div className="grid grid-cols-4 sm:grid-cols-6 gap-1.5 pt-1">
                 {MONTHS.map((m) => {
@@ -68,7 +70,7 @@ export function FormScheduleFields({ ctx }: { ctx: RecurringTransactionsCtx }) {
                           ? "bg-rose-50 border-rose-300 text-rose-700 font-bold shadow-xs line-through"
                           : "bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50"
                       )}
-                      title={isExcluded ? `Mois exclu (${m.label})` : `Mois actif (${m.label})`}
+                      title={isExcluded ? i18n.t("misc.monthExcluded", { ns: "recurring", label: m.label }) : i18n.t("misc.monthActive", { ns: "recurring", label: m.label })}
                     >
                       {m.label}
                     </button>
@@ -82,7 +84,7 @@ export function FormScheduleFields({ ctx }: { ctx: RecurringTransactionsCtx }) {
                     onClick={() => setFormData(prev => ({ ...prev, excluded_months: [] }))}
                     className="text-[10px] text-slate-400 hover:text-slate-600 underline"
                   >
-                    Réinitialiser les exclusions
+                    {t("formScheduleFields.reinitialiserLesExclusions")}
                   </button>
                 </div>
               )}
@@ -92,7 +94,7 @@ export function FormScheduleFields({ ctx }: { ctx: RecurringTransactionsCtx }) {
       )}
 
       <div className="grid gap-2">
-        <Label>Date de début</Label>
+        <Label>{t("formScheduleFields.dateDeDebut")}</Label>
         <Popover>
           <PopoverTrigger asChild>
             <Button
@@ -104,8 +106,8 @@ export function FormScheduleFields({ ctx }: { ctx: RecurringTransactionsCtx }) {
             >
               <CalendarIcon className="mr-2 h-4 w-4" />
               {formData.start_date 
-                ? format(new Date(formData.start_date), "dd MMMM yyyy", { locale: fr })
-                : <span>Choisir une date...</span>
+                ? format(new Date(formData.start_date), "dd MMMM yyyy", { locale: dateLocale() })
+                : <span>{t("formScheduleFields.choisirUneDate")}</span>
               }
             </Button>
           </PopoverTrigger>
@@ -121,8 +123,8 @@ export function FormScheduleFields({ ctx }: { ctx: RecurringTransactionsCtx }) {
 
       <div className="flex items-center justify-between p-3 border rounded-md bg-slate-50">
         <div className="space-y-0.5">
-          <Label>Génération automatique</Label>
-          <p className="text-xs text-slate-500">Créer les transactions sans intervention.</p>
+          <Label>{t("formScheduleFields.generationAutomatique")}</Label>
+          <p className="text-xs text-slate-500">{t("formScheduleFields.creerLesTransactionsSansIntervention")}</p>
         </div>
         <Checkbox 
           checked={formData.auto_generate}
@@ -130,12 +132,12 @@ export function FormScheduleFields({ ctx }: { ctx: RecurringTransactionsCtx }) {
         />
       </div>
       <div className="grid gap-2">
-        <Label htmlFor="note">Note</Label>
+        <Label htmlFor="note">{t("formScheduleFields.note")}</Label>
         <Input
           id="note"
           value={formData.note}
           onChange={(e) => setFormData({ ...formData, note: e.target.value })}
-          placeholder="Note facultative..."
+          placeholder={t("formScheduleFields.noteFacultative")}
         />
       </div>
     </>

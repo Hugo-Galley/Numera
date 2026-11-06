@@ -1,4 +1,5 @@
 import { Users } from "lucide-react"
+import { useTranslation } from "react-i18next"
 import { 
   Card, 
   CardContent, 
@@ -28,13 +29,14 @@ interface MerchantsTabProps {
 }
 
 export function MerchantsTab({ topMerchants, displayCurrency, drilldownScope }: MerchantsTabProps) {
+  const { t } = useTranslation("dashboard")
   const isMobile = useIsMobile()
   const { openDrilldown } = useDrilldown()
   const { workTime } = useWorkTime()
   const rate = displayCurrency === "EUR" ? workTime?.hourly_rate : null
   const formatTooltip = (v: number) => {
     const amount = formatAmountWithShare(v, topMerchants.reduce((s: number, m: any) => s + (m.total || 0), 0), displayCurrency)
-    return rate ? `${amount} (≈ ${formatWorkDuration(v / rate, workTime!.work_hours_per_day)} de travail)` : amount
+    return rate ? `${amount} (${t("workHours.approx", { ns: "common", duration: formatWorkDuration(v / rate, workTime!.work_hours_per_day) })})` : amount
   }
 
   return (
@@ -42,9 +44,9 @@ export function MerchantsTab({ topMerchants, displayCurrency, drilldownScope }: 
       <CardHeader className="bg-slate-50/50 border-b p-4 pb-3 md:p-6 md:pb-4">
         <div className="flex items-center gap-2">
           <Users className="h-5 w-5 text-slate-400" />
-          <CardTitle className="text-lg">Top 10 Commerçants</CardTitle>
+          <CardTitle className="text-lg">{t("merchants.title")}</CardTitle>
         </div>
-        <CardDescription>Les établissements où vous dépensez le plus.</CardDescription>
+        <CardDescription>{t("merchants.subtitle")}</CardDescription>
       </CardHeader>
       <CardContent className="p-2 pt-4 sm:p-6" style={{ height: isMobile ? Math.max(240, topMerchants.length * 36 + 24) : 500 }}>
         <ResponsiveContainer width="100%" height="100%">

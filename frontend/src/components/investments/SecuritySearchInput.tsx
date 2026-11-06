@@ -1,3 +1,5 @@
+import i18n from "i18next"
+import { useTranslation } from "react-i18next"
 import { formatCurrency } from "@/lib/utils"
 import React, { useState, useEffect, useRef } from "react"
 import { api } from "@/lib/api"
@@ -41,6 +43,7 @@ export function SecuritySearchInput({
   onChangeName,
   className = "",
 }: SecuritySearchInputProps) {
+  const { t } = useTranslation("investments")
   const [query, setQuery] = useState("")
   const [results, setResults] = useState<any[]>([])
   const [isSearching, setIsSearching] = useState(false)
@@ -155,10 +158,10 @@ export function SecuritySearchInput({
       {/* 1. Main Autocomplete Search Bar */}
       <div className="relative">
         <Label htmlFor="asset-search" className="text-xs font-semibold text-slate-700 flex items-center justify-between">
-          <span>Recherche par Titre, Ticker ou ISIN</span>
+          <span>{t("securitySearchInput.rechercheParTitreTickerOu")}</span>
           {isSearching && (
             <span className="flex items-center gap-1 text-[11px] text-slate-400 font-normal">
-              <RefreshCw className="h-3 w-3 animate-spin" /> Recherche...
+              <RefreshCw className="h-3 w-3 animate-spin" /> {t("securitySearchInput.recherche")}
             </span>
           )}
         </Label>
@@ -166,7 +169,7 @@ export function SecuritySearchInput({
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
           <Input
             id="asset-search"
-            placeholder="Apple, AAPL, CW8.PA, FR0010315770…"
+            placeholder={t("securitySearchInput.appleAaplCw8PaFr0010315770")}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onFocus={() => {
@@ -183,7 +186,7 @@ export function SecuritySearchInput({
                 setIsOpen(false)
               }}
               className="absolute right-0 top-1/2 flex h-11 w-10 -translate-y-1/2 items-center justify-center text-slate-400 hover:text-slate-600 sm:right-2.5 sm:h-auto sm:w-auto"
-              aria-label="Effacer la recherche"
+              aria-label={t("securitySearchInput.effacerLaRecherche")}
             >
               <X className="h-3.5 w-3.5" />
             </button>
@@ -218,7 +221,7 @@ export function SecuritySearchInput({
                 </div>
                 <div className="text-right shrink-0 flex flex-col items-end gap-0.5">
                   <Badge variant="secondary" className="text-[9px] px-1.5 py-0 h-4">
-                    {asset.type === "ETF" ? "ETF" : "Action"}
+                    {asset.type === "ETF" ? "ETF" : t("securitySearchInput.action")}
                   </Badge>
                   {asset.exchange && (
                     <span className="text-[10px] text-slate-400 uppercase">{asset.exchange}</span>
@@ -234,12 +237,12 @@ export function SecuritySearchInput({
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div className="grid gap-1">
           <Label htmlFor="sec-ticker" className="text-xs text-slate-500 font-medium">
-            Ticker / Code
+            {t("securitySearchInput.tickerCode")}
           </Label>
           <div className="relative">
             <Input
               id="sec-ticker"
-              placeholder="Ex: CW8.PA"
+              placeholder={t("securitySearchInput.exCw8Pa")}
               value={ticker}
               onChange={(e) => onChangeTicker(e.target.value.toUpperCase())}
               className="h-11 bg-white uppercase font-mono text-base pr-8 border-slate-200 sm:h-9 sm:text-xs sm:pr-7"
@@ -254,11 +257,11 @@ export function SecuritySearchInput({
 
         <div className="grid gap-1">
           <Label htmlFor="sec-isin" className="text-xs text-slate-500 font-medium">
-            Code ISIN
+            {t("securitySearchInput.codeIsin")}
           </Label>
           <Input
             id="sec-isin"
-            placeholder="Ex: FR0010315770"
+            placeholder={t("securitySearchInput.exFr0010315770")}
             value={isin || ""}
             onChange={(e) => onChangeIsin && onChangeIsin(e.target.value.toUpperCase())}
             className="h-11 bg-white uppercase font-mono text-base border-slate-200 sm:h-9 sm:text-xs"
@@ -272,7 +275,7 @@ export function SecuritySearchInput({
           {isValidating ? (
             <div className="flex items-center gap-2 p-2 rounded-lg bg-slate-50 border border-slate-200 text-slate-500 text-xs">
               <RefreshCw className="h-3.5 w-3.5 animate-spin text-slate-400" />
-              <span>Vérification de l'actif sur les marchés...</span>
+              <span>{t("securitySearchInput.verificationDeLActifSur")}</span>
             </div>
           ) : validationInfo?.valid ? (
             <div className="flex items-center justify-between p-2.5 rounded-lg bg-emerald-50/70 border border-emerald-200 text-xs">
@@ -290,7 +293,7 @@ export function SecuritySearchInput({
                       {validationInfo.name || validationInfo.symbol}
                     </span>
                     <Badge className="bg-emerald-600 hover:bg-emerald-600 text-white text-[9px] px-1 py-0 h-4">
-                      Reconnu
+                      {t("securitySearchInput.reconnu")}
                     </Badge>
                   </div>
                   <div className="text-[11px] text-emerald-700/80 flex flex-wrap items-center gap-x-2 mt-0.5">
@@ -298,7 +301,7 @@ export function SecuritySearchInput({
                     {validationInfo.price_eur != null && (
                       <>
                         <span>•</span>
-                        <span>Cours : {formatCurrency(validationInfo.price_eur)}</span>
+                        <span>{i18n.t("misc.priceLabel", { ns: "investments", price: formatCurrency(validationInfo.price_eur) })}</span>
                       </>
                     )}
                   </div>
@@ -310,7 +313,7 @@ export function SecuritySearchInput({
               <div className="flex items-center gap-2">
                 <AlertCircle className="h-4 w-4 text-amber-500 shrink-0" />
                 <span>
-                  Actif non coté en direct (titre personnalisé ou hors marché). La saisie manuelle est conservée.
+                  {t("securitySearchInput.actifNonCoteEnDirect")}
                 </span>
               </div>
             </div>

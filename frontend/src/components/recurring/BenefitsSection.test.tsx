@@ -20,6 +20,8 @@ const benefit = (overrides: Partial<Benefit> = {}): Benefit => ({
   declaration_interval_months: null,
   next_declaration_date: null,
   note: null,
+  logo: null,
+  auto_generate: false,
   active: true,
   account_name: null,
   status: "received",
@@ -83,6 +85,7 @@ describe("BenefitsSection", () => {
     await user.type(within(dialog).getByLabelText("Organisme"), "CAF")
     await user.type(within(dialog).getByLabelText("Montant mensuel (€)"), "0")
     await user.type(within(dialog).getByLabelText("Texte du libellé bancaire"), "C")
+    await user.click(within(dialog).getByLabelText("Ajouter l'entrée chaque mois (compte de réception requis)"))
     await user.click(within(dialog).getByRole("button", { name: "Enregistrer" }))
 
     expect(await screen.findByText("Nom, organisme, montant et texte du libellé sont requis")).toBeInTheDocument()
@@ -97,6 +100,7 @@ describe("BenefitsSection", () => {
     expect(within(dialog).getByLabelText("Nom")).toHaveValue("Prime d'activité")
     expect(within(dialog).getByLabelText("Organisme")).toHaveValue("CAF")
     await user.type(within(dialog).getByLabelText("Montant mensuel (€)"), "180")
+    await user.click(within(dialog).getByLabelText("Ajouter l'entrée chaque mois (compte de réception requis)"))
     await user.click(within(dialog).getByRole("button", { name: "Enregistrer" }))
 
     expect(await screen.findByText("Indiquez la date de la prochaine déclaration")).toBeInTheDocument()
@@ -113,6 +117,7 @@ describe("BenefitsSection", () => {
     await user.clear(within(dialog).getByLabelText("Jour de versement"))
     await user.type(within(dialog).getByLabelText("Jour de versement"), "45")
     await user.type(within(dialog).getByLabelText("Prochaine déclaration"), "2026-07-01")
+    await user.click(within(dialog).getByLabelText("Ajouter l'entrée chaque mois (compte de réception requis)"))
     await user.click(within(dialog).getByRole("button", { name: "Enregistrer" }))
 
     expect(await screen.findByText("Aide ajoutée")).toBeInTheDocument()
@@ -128,6 +133,8 @@ describe("BenefitsSection", () => {
         declaration_interval_months: 3,
         next_declaration_date: "2026-07-01",
         note: null,
+        logo: null,
+        auto_generate: false,
       },
     ])
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument())
@@ -145,6 +152,7 @@ describe("BenefitsSection", () => {
 
     await user.click(within(dialog).getByRole("button", { name: "APL" }))
     await user.type(within(dialog).getByLabelText("Montant mensuel (€)"), "250")
+    await user.click(within(dialog).getByLabelText("Ajouter l'entrée chaque mois (compte de réception requis)"))
     const save = within(dialog).getByRole("button", { name: "Enregistrer" })
     await user.click(save)
 
@@ -161,6 +169,7 @@ describe("BenefitsSection", () => {
 
     await user.click(within(dialog).getByRole("button", { name: "APL" }))
     await user.type(within(dialog).getByLabelText("Montant mensuel (€)"), "250")
+    await user.click(within(dialog).getByLabelText("Ajouter l'entrée chaque mois (compte de réception requis)"))
     await user.click(within(dialog).getByRole("button", { name: "Enregistrer" }))
 
     expect(await screen.findByText("Organisme inconnu")).toBeInTheDocument()
@@ -207,5 +216,19 @@ describe("BenefitsSection", () => {
     await user.click(await screen.findByRole("button", { name: "Supprimer" }))
     expect(await screen.findByText("Aide supprimée")).toBeInTheDocument()
     expect(deleted).toHaveLength(1)
+  })
+})
+
+describe("génération des versements", () => {
+  it("exige le compte de réception quand l'entrée mensuelle est demandée", async () => {
+    const { user, posted } = setup()
+    const dialog = await openCreate(user)
+
+    await user.click(within(dialog).getByRole("button", { name: "APL" }))
+    await user.type(within(dialog).getByLabelText("Montant mensuel (€)"), "250")
+    await user.click(within(dialog).getByRole("button", { name: "Enregistrer" }))
+
+    expect(await screen.findByText("Choisissez le compte de réception pour générer les versements")).toBeInTheDocument()
+    expect(posted).toHaveLength(0)
   })
 })

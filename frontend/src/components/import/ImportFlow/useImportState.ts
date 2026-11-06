@@ -1,3 +1,4 @@
+import i18n from "i18next"
 import { toast } from "sonner"
 import { useEffect, useState } from "react"
 import { Account, Category, ImportFlowProps, PreviewData } from "./types"
@@ -33,7 +34,7 @@ export function useImportState(p: { accountId: ImportFlowProps["accountId"]; onI
         setCategories(cats)
       }
     } catch (error) {
-      toast.error("Erreur chargement données initiales")
+      toast.error(i18n.t("loadError", { ns: "import" }))
     }
   }
 
@@ -65,7 +66,7 @@ export function useImportState(p: { accountId: ImportFlowProps["accountId"]; onI
       })
       setCategoryMapping(initialMapping)
     } catch (error: any) {
-      toast.error(error?.message || "Erreur lors de l'analyse du fichier")
+      toast.error(error?.message || i18n.t("analyzeError", { ns: "import" }))
     } finally {
       setLoading(false)
     }
@@ -84,10 +85,10 @@ export function useImportState(p: { accountId: ImportFlowProps["accountId"]; onI
     try {
       const data = await uploadImportCommit<any>(formData)
       setResult(data)
-      toast.success("Import terminé avec succès")
+      toast.success(i18n.t("done", { ns: "import" }))
       if (data.imported > 0) onImported?.()
     } catch (error: any) {
-      toast.error(error?.message || "Erreur lors de l'importation")
+      toast.error(error?.message || i18n.t("importError", { ns: "import" }))
     } finally {
       setImporting(false)
     }

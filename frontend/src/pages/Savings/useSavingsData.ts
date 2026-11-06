@@ -1,7 +1,9 @@
+import { monthName } from "@/i18n/locale"
+import i18n from "i18next"
 import { errorMessage, formatAmountWithShare, formatCurrency } from "@/lib/utils"
 import { toast } from "sonner"
 import { useConfirm } from "@/providers/ConfirmProvider"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useIsMobile } from "@/hooks/useIsMobile"
 import { useSubmit } from "@/hooks/useSubmit"
 import { GOAL_COLORS, Resilience } from "./types"
@@ -40,9 +42,15 @@ export function useSavingsData() {
     category_id: "none"
   })
 
+  // Numéro de la dernière requête : la réponse d'une période quittée entre-temps est ignorée
+  const loadRequestId = useRef(0)
+
   const loadData = async () => {
+    const requestId = ++loadRequestId.current
+    const isCurrent = () => requestId === loadRequestId.current
     setLoading(true)
     setLoadFailed(false)
+    setAnalytics(null)
     try {
       const queryParams = period === "monthly" 
         ? `month=${month}&year=${year}`
@@ -59,6 +67,7 @@ export function useSavingsData() {
           ? `?month=${month}&year=${year}`
           : `?month=${now.getMonth() + 1}&year=${now.getFullYear()}`),
       ])
+      if (!isCurrent()) return
       setAnalytics(budget)
       setResilience(resilienceData)
       setHistory(kpiHistory)
@@ -66,11 +75,12 @@ export function useSavingsData() {
       setAccounts(accs)
       setCategories(cats)
     } catch (error) {
+      if (!isCurrent()) return
       console.error("Failed to load savings data", error)
       setLoadFailed(true)
-      toast.error("Impossible de charger les données d'épargne")
+      toast.error(i18n.t("useSavingsData.impossibleDeChargerLesDonnees", { ns: "savings" }))
     } finally {
-      setLoading(false)
+      if (isCurrent()) setLoading(false)
     }
   }
 
@@ -80,7 +90,7 @@ export function useSavingsData() {
 
   const [handleCreateOrUpdateGoal, handleCreateOrUpdateGoalBusy] = useSubmit(async () => {
     if (!goalForm.name || !goalForm.target_amount) {
-      toast.error("Veuillez remplir les champs obligatoires (Nom et Montant)")
+      toast.error(i18n.t("useSavingsData.veuillezRemplirLesChampsObligatoires", { ns: "savings" }))
       return
     }
 
@@ -98,10 +108,10 @@ export function useSavingsData() {
 
       if (editingGoal) {
         await patchGoalsById(editingGoal.id, payload)
-        toast.success("Objectif mis à jour")
+        toast.success(i18n.t("useSavingsData.objectifMisAJour", { ns: "savings" }))
       } else {
         await postGoals(payload)
-        toast.success("Objectif créé")
+        toast.success(i18n.t("useSavingsData.objectifCree", { ns: "savings" }))
       }
       setIsDialogOpen(false)
       setEditingGoal(null)
@@ -109,18 +119,18 @@ export function useSavingsData() {
       loadData()
     } catch (error) {
       console.error("Error saving goal:", error)
-      toast.error(errorMessage(error, "Une erreur est survenue lors de l'enregistrement"))
+      toast.error(errorMessage(error, i18n.t("useSavingsData.uneErreurEstSurvenueLors", { ns: "savings" })))
     }
   })
 
   const handleDeleteGoal = async (id: number) => {
-    if (!(await confirm("Supprimer cet objectif ?"))) return
+    if (!(await confirm(i18n.t("useSavingsData.supprimerCetObjectif", { ns: "savings" })))) return
     try {
       await deleteGoalsById(id)
-      toast.success("Objectif supprimé")
+      toast.success(i18n.t("useSavingsData.objectifSupprime", { ns: "savings" }))
       loadData()
     } catch (error) {
-      toast.error("Erreur lors de la suppression")
+      toast.error(i18n.t("useSavingsData.erreurLorsDeLaSuppression", { ns: "savings" }))
     }
   }
 
@@ -155,10 +165,7 @@ export function useSavingsData() {
     return "text-rose-600"
   }
 
-  const months = [
-    "Janvier", "Février", "Mars", "Avril", "Mai", "Juin", 
-    "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"
-  ]
+  const months = Array.from({ length: 12 }, (_, i) => monthName(i + 1))
 
 
   return { confirm, isMobile, analytics, setAnalytics, resilience, setResilience, history, setHistory, goals, setGoals, accounts, setAccounts, categories, setCategories, loading, setLoading, loadFailed, setLoadFailed, month, setMonth, year, setYear, period, setPeriod, isDialogOpen, setIsDialogOpen, editingGoal, setEditingGoal, goalForm, setGoalForm, loadData, handleCreateOrUpdateGoal, handleCreateOrUpdateGoalBusy, handleDeleteGoal, openEditDialog, shareLabel, savingsRate, hasIncome, getRateColor, months }

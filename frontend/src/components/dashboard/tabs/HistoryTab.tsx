@@ -1,3 +1,6 @@
+import i18n from "i18next"
+import { useTranslation } from "react-i18next"
+import { monthShort } from "@/i18n/locale"
 import { History as HistoryIcon, Activity, Layers, Flag } from "lucide-react"
 import type { FinancialEvent, Milestone } from "@/components/dashboard/useDashboardData"
 import { DecisionJournal } from "@/components/dashboard/DecisionJournal"
@@ -23,9 +26,6 @@ import {
   Line,
   ReferenceLine
 } from "recharts"
-
-// Abréviations usuelles : « juin » et « juil. » se distinguent (les 3 premières lettres donnaient « Jui » deux fois)
-const SHORT_MONTHS = ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."]
 
 interface HistoryTabProps {
   kpiHistory: any[]
@@ -56,6 +56,7 @@ export function HistoryTab({
   onEventsChanged,
   accounts
 }: HistoryTabProps) {
+  const { t } = useTranslation("dashboard")
   // Jalons visibles : faits marquants des mois clôturés + journal des décisions, sur les mois présents
   // sur la courbe (libellé « m/aaaa » de kpi-history ; une décision est rangée dans son mois civil)
   const shownLabels = new Set(kpiHistory.map((p: any) => p.label))
@@ -64,7 +65,7 @@ export function HistoryTab({
       key: `closure-${m.year}-${m.month}`,
       label: `${m.month}/${m.year}`,
       sortKey: `${m.year}-${String(m.month).padStart(2, "0")}-00`,
-      period: `${SHORT_MONTHS[m.month - 1]} ${m.year}`,
+      period: `${monthShort(m.month)} ${m.year}`,
       text: m.highlight ?? "",
     })),
     ...events.map((e) => {
@@ -73,7 +74,7 @@ export function HistoryTab({
         key: `event-${e.id}`,
         label: `${mo}/${y}`,
         sortKey: e.date,
-        period: `${d} ${SHORT_MONTHS[mo - 1]} ${y}`,
+        period: `${d} ${monthShort(mo)} ${y}`,
         text: e.title,
       }
     }),
@@ -92,9 +93,9 @@ export function HistoryTab({
         <CardHeader className="bg-slate-50/50 border-b p-4 pb-3 md:p-6 md:pb-4">
           <div className="flex items-center gap-2">
             <HistoryIcon className="h-5 w-5 text-slate-400" />
-            <CardTitle className="text-lg">Flux de trésorerie</CardTitle>
+            <CardTitle className="text-lg">{t("history.cashFlowTitle")}</CardTitle>
           </div>
-          <CardDescription>Revenus vs Dépenses (6 mois).</CardDescription>
+          <CardDescription>{t("history.cashFlowSubtitle")}</CardDescription>
         </CardHeader>
         <CardContent className="p-2 pt-4 sm:p-6 h-[280px] md:h-[400px]">
           <ResponsiveContainer width="100%" height="100%">
@@ -108,8 +109,8 @@ export function HistoryTab({
               <YAxis width={yWidth} axisLine={false} tickLine={false} tick={{ fontSize: axisFont, fill: '#64748b' }} tickFormatter={(v) => `${v}${displayCurrency === 'EUR' ? '€' : displayCurrency}`} />
               <Tooltip contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} />
               <Legend verticalAlign={isMobile ? "bottom" : "top"} height={36} wrapperStyle={isMobile ? { fontSize: 12 } : undefined}/>
-              <Area type="monotone" dataKey="revenus" name="Revenus" stroke="#10b981" fill="url(#colorRev)" strokeWidth={3} />
-              <Area type="monotone" dataKey="depenses_reelles" name="Dépenses réelles" stroke="#f43f5e" fill="url(#colorDep)" strokeWidth={3} />
+              <Area type="monotone" dataKey="revenus" name={t("history.revenues")} stroke="#10b981" fill="url(#colorRev)" strokeWidth={3} />
+              <Area type="monotone" dataKey="depenses_reelles" name={t("history.realExpenses")} stroke="#f43f5e" fill="url(#colorDep)" strokeWidth={3} />
               {markerLabels.map((label) => (
                 <ReferenceLine
                   key={label}
@@ -139,9 +140,9 @@ export function HistoryTab({
         <CardHeader className="bg-slate-50/50 border-b p-4 pb-3 md:p-6 md:pb-4">
           <div className="flex items-center gap-2">
             <Activity className="h-5 w-5 text-slate-400" />
-            <CardTitle className="text-lg">Évolution du Burn Rate</CardTitle>
+            <CardTitle className="text-lg">{t("history.burnTitle")}</CardTitle>
           </div>
-          <CardDescription>Dépense moyenne journalière par mois.</CardDescription>
+          <CardDescription>{t("history.burnSubtitle")}</CardDescription>
         </CardHeader>
         <CardContent className="p-2 pt-4 sm:p-6 h-[280px] md:h-[400px]">
           <ResponsiveContainer width="100%" height="100%">
@@ -151,12 +152,12 @@ export function HistoryTab({
                 dataKey="month" 
                 axisLine={false} 
                 tickLine={false} 
-                tickFormatter={(v) => SHORT_MONTHS[v-1] || v} 
+                tickFormatter={(v) => monthShort(v) || v} 
                 tick={{ fontSize: axisFont, fill: '#64748b' }} 
               />
               <YAxis width={yWidth} axisLine={false} tickLine={false} tick={{ fontSize: axisFont, fill: '#64748b' }} tickFormatter={(v) => `${v}${displayCurrency === 'EUR' ? '€' : displayCurrency}`} />
-              <Tooltip contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} formatter={(v: number) => `${v.toFixed(2)}${displayCurrency === 'EUR' ? '€' : displayCurrency} / jour`} />
-              <Line type="monotone" dataKey="burn_rate" name="Burn Rate" stroke="#0f172a" strokeWidth={isMobile ? 3 : 4} dot={{ r: isMobile ? 3 : 4, fill: "#0f172a" }} />
+              <Tooltip contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} formatter={(v: number) => i18n.t("misc.perDay", { ns: "dashboard", amount: `${v.toFixed(2)}${displayCurrency === 'EUR' ? '€' : displayCurrency}` })} />
+              <Line type="monotone" dataKey="burn_rate" name={t("history.burnName")} stroke="#0f172a" strokeWidth={isMobile ? 3 : 4} dot={{ r: isMobile ? 3 : 4, fill: "#0f172a" }} />
             </LineChart>
           </ResponsiveContainer>
         </CardContent>
@@ -166,9 +167,9 @@ export function HistoryTab({
         <CardHeader className="bg-slate-50/50 border-b p-4 pb-3 md:p-6 md:pb-4">
           <div className="flex items-center gap-2">
             <Layers className="h-5 w-5 text-slate-400" />
-            <CardTitle className="text-lg">Évolution du Salaire</CardTitle>
+            <CardTitle className="text-lg">{t("history.salaryTitle")}</CardTitle>
           </div>
-          <CardDescription>Stabilité et croissance des revenus principaux.</CardDescription>
+          <CardDescription>{t("history.salarySubtitle")}</CardDescription>
         </CardHeader>
         <CardContent className="p-2 pt-4 sm:p-6 h-[280px] md:h-[400px]">
           <ResponsiveContainer width="100%" height="100%">
@@ -178,12 +179,12 @@ export function HistoryTab({
                 dataKey="month" 
                 axisLine={false} 
                 tickLine={false} 
-                tickFormatter={(v) => SHORT_MONTHS[v-1] || v} 
+                tickFormatter={(v) => monthShort(v) || v} 
                 tick={{ fontSize: axisFont, fill: '#64748b' }} 
               />
               <YAxis width={yWidth} axisLine={false} tickLine={false} tick={{ fontSize: axisFont, fill: '#64748b' }} tickFormatter={(v) => `${v}${displayCurrency === 'EUR' ? '€' : displayCurrency}`} />
               <Tooltip contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} formatter={(v: number) => formatCurrency(v, displayCurrency)} />
-              <Line type="stepAfter" dataKey="salary" name="Salaire" stroke="#0f172a" strokeWidth={isMobile ? 3 : 4} dot={{ r: isMobile ? 3 : 4, fill: "#0f172a" }} />
+              <Line type="stepAfter" dataKey="salary" name={t("history.salaryName")} stroke="#0f172a" strokeWidth={isMobile ? 3 : 4} dot={{ r: isMobile ? 3 : 4, fill: "#0f172a" }} />
             </LineChart>
           </ResponsiveContainer>
         </CardContent>

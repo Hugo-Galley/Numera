@@ -1,9 +1,11 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { CheckCircle2 } from "lucide-react"
+import { useTranslation } from "react-i18next"
 import type { ImportFlowCtx } from "./useImportFlow"
 
 /** Résultat de l'import. */
 export function ImportResultCard({ ctx }: { ctx: ImportFlowCtx }) {
+  const { t } = useTranslation("import")
   const { result } = ctx
   return (
     <>
@@ -12,33 +14,33 @@ export function ImportResultCard({ ctx }: { ctx: ImportFlowCtx }) {
           <div className="flex items-center gap-2 text-emerald-600">
             <CheckCircle2 className="h-5 w-5" />
             <CardTitle className="text-lg">
-              {result.imported === 0 && result.errors > 0 ? "Aucune ligne importée" : result.errors > 0 ? "Importation partielle" : "Importation réussie"}
+              {result.imported === 0 && result.errors > 0 ? t("resultNone") : result.errors > 0 ? t("resultPartial") : t("resultOk")}
             </CardTitle>
           </div>
           <CardDescription className="text-emerald-600/70">
-            {result.errors > 0 ? "Certaines lignes n'ont pas pu être importées (détail ci-dessous)." : "Les données ont été traitées avec succès."}
+            {result.errors > 0 ? t("resultPartialHint") : t("resultOkHint")}
           </CardDescription>
         </CardHeader>
         <CardContent className="p-4 sm:p-6 grid gap-3 sm:gap-4 grid-cols-3">
           <div className="bg-white p-3 sm:p-4 rounded-2xl border border-emerald-100 shadow-sm">
-            <p className="text-[10px] uppercase font-black text-slate-400 tracking-widest">Transactions</p>
+            <p className="text-[10px] uppercase font-black text-slate-400 tracking-widest">{t("transactions")}</p>
             <p className="text-2xl sm:text-3xl font-extrabold text-emerald-600 mt-1">{result.imported}</p>
           </div>
           <div className="bg-white p-3 sm:p-4 rounded-2xl border border-amber-100 shadow-sm">
-            <p className="text-[10px] uppercase font-black text-slate-400 tracking-widest">Doublons</p>
+            <p className="text-[10px] uppercase font-black text-slate-400 tracking-widest">{t("duplicates")}</p>
             <p className="text-2xl sm:text-3xl font-extrabold text-amber-500 mt-1">{result.skipped}</p>
           </div>
           <div className="bg-white p-3 sm:p-4 rounded-2xl border border-rose-100 shadow-sm">
-            <p className="text-[10px] uppercase font-black text-slate-400 tracking-widest">Erreurs</p>
+            <p className="text-[10px] uppercase font-black text-slate-400 tracking-widest">{t("errors")}</p>
             <p className="text-2xl sm:text-3xl font-extrabold text-rose-500 mt-1">{result.errors}</p>
           </div>
           {result.error_details?.length > 0 && (
             <ul className="col-span-3 space-y-1 rounded-2xl border border-rose-100 bg-white p-3 text-xs text-slate-700">
               {result.error_details.map((d: { line: number; reason: string }, i: number) => (
-                <li key={i}><span className="font-bold text-rose-500">Ligne {d.line}</span> — {d.reason}</li>
+                <li key={i}><span className="font-bold text-rose-500">{t("lineError", { line: d.line })}</span> — {d.reason}</li>
               ))}
               {result.errors > result.error_details.length && (
-                <li className="text-slate-400">… et {result.errors - result.error_details.length} autre(s)</li>
+                <li className="text-slate-400">{t("andMore", { count: result.errors - result.error_details.length })}</li>
               )}
             </ul>
           )}

@@ -5,33 +5,33 @@ COMPOSE_FILE=infra/docker-compose.yml
 # Surchargeable : make test PYTHON=...
 PYTHON ?= $(shell for p in $(CURDIR)/backend/.venv/bin/python $(CURDIR)/backend/venv/bin/python; do if [ -x $$p ]; then echo $$p; exit; fi; done; command -v python3.12 || command -v python3.11)
 
-.PHONY: setup dev down prod prod-down demo demo-down backend-install frontend-install backend-seed-demo test coverage test-front test-e2e lint lint-fix lint-front typecheck check-size validate hooks pre-commit-all api-contract backup-now backup-restore release-check release dead-code knip
+.PHONY: setup dev down prod prod-down demo demo-down backend-install frontend-install backend-seed-demo test test-mcp coverage test-front test-e2e lint lint-fix lint-front typecheck check-size validate hooks pre-commit-all api-contract backup-now backup-restore release-check release dead-code knip
 
 setup:
 	chmod +x setup.sh
 	./setup.sh
 
 dev:
-	scripts/check_volumes.sh backend/data backups
+	scripts/ops/check_volumes.sh backend/data backups
 	docker compose --env-file .env -f infra/docker-compose.yml up --build
 
 down:
 	docker compose --env-file .env -f infra/docker-compose.yml down
 
 prod:
-	scripts/check_volumes.sh backend/data backups
-	docker compose --env-file .env -f docker-compose.prod.yml up -d --build
+	scripts/ops/check_volumes.sh backend/data backups
+	docker compose --env-file .env -f infra/docker-compose.prod.yml up -d --build
 
 prod-down:
-	docker compose --env-file .env -f docker-compose.prod.yml down
+	docker compose --env-file .env -f infra/docker-compose.prod.yml down
 
 # Instance de démonstration publique (données fictives, base séparée, port 8090)
 demo:
-	scripts/check_volumes.sh backend/data-demo
-	docker compose --env-file .env -p numera-demo -f docker-compose.demo.yml up -d --build
+	scripts/ops/check_volumes.sh backend/data-demo
+	docker compose --env-file .env -p numera-demo -f infra/docker-compose.demo.yml up -d --build
 
 demo-down:
-	docker compose --env-file .env -p numera-demo -f docker-compose.demo.yml down
+	docker compose --env-file .env -p numera-demo -f infra/docker-compose.demo.yml down
 
 backend-install:
 	cd backend && uv sync --frozen
@@ -46,6 +46,10 @@ backend-seed-demo:
 test:
 	cd backend && PYTHONPATH=. $(PYTHON) -m pytest tests/ -q -n auto
 
+# Tests du serveur MCP (surface figée, auth, lecture seule)
+test-mcp:
+	cd mcp-server && uv run --with pytest python -m pytest tests -q
+
 # Tests + couverture avec seuil à cliquet : backend (backend/.coveragerc) puis frontend (frontend/vitest.config.ts)
 coverage:
 	cd backend && PYTHONPATH=. $(PYTHON) -m pytest tests/ -q -n auto --cov --cov-report=term:skip-covered
@@ -54,17 +58,19 @@ coverage:
 # Lint Python du backend (règles dans backend/ruff.toml) ; `make lint-fix` corrige ce qui est sûr
 lint:
 	cd backend && $(PYTHON) -m ruff check app tests scripts alembic
+	cd mcp-server && uv run --with ruff ruff check .
 
 lint-fix:
 	cd backend && $(PYTHON) -m ruff check app tests scripts alembic --fix
+	cd mcp-server && uv run --with ruff ruff check . --fix
 
 # Lint frontend (ESLint, frontend/eslint.config.js) : erreurs bloquantes, avertissements plafonnés par frontend/eslint-baseline.json
 lint-front:
 	cd frontend && npm run lint
 
-# Types Python (mypy, backend/mypy.ini) : strict sur app/domain et app/core, baseline à cliquet ailleurs (scripts/mypy_baseline.json)
+# Types Python (mypy, backend/mypy.ini) : strict sur app/domain et app/core, baseline à cliquet ailleurs (scripts/quality/baselines/mypy_baseline.json)
 typecheck:
-	PYTHON=$(PYTHON) $(PYTHON) scripts/check_types.py
+	PYTHON=$(PYTHON) $(PYTHON) scripts/quality/check_types.py
 
 # Tests frontend (Vitest + Testing Library + MSW, cf. frontend/src/CLAUDE.md § Vérification)
 test-front:
@@ -78,7 +84,7 @@ frontend-build:
 	cd frontend && npm run build
 
 check-size:
-	python3 scripts/check_code_size.py
+	python3 scripts/quality/check_code_size.py
 
 # Garde-fous locaux avant commit / push (.pre-commit-config.yaml) ; `pre-commit` s'installe avec `brew install pre-commit` ou `uv tool install pre-commit`
 hooks:
@@ -92,15 +98,15 @@ api-contract:
 	cd backend && PYTHONPATH=. $(PYTHON) scripts/export_openapi.py
 	cd frontend && npm run api:types
 
-# Code mort backend (vulture, scripts/check_dead_code.py) : fonctions, classes, méthodes et imports inutilisés ; faux positifs déclarés dans scripts/dead_code_allowlist.json
+# Code mort backend (vulture, scripts/quality/check_dead_code.py) : fonctions, classes, méthodes et imports inutilisés ; faux positifs déclarés dans scripts/quality/baselines/dead_code_allowlist.json
 dead-code:
-	PYTHON=$(PYTHON) $(PYTHON) scripts/check_dead_code.py
+	PYTHON=$(PYTHON) $(PYTHON) scripts/quality/check_dead_code.py
 
 # Code mort frontend (knip, frontend/knip.json) : fichiers, dépendances, exports et types inutilisés
 knip:
 	cd frontend && npm run knip
 
-validate: lint lint-front knip typecheck check-size dead-code coverage frontend-build
+validate: lint lint-front knip typecheck check-size dead-code test-mcp coverage frontend-build
 	@echo "Validation complete: Backend and Frontend tests passed, Frontend builds successfully."
 
 backup-now:
@@ -111,6 +117,7 @@ backup-restore:
 	PYTHONPATH=backend python3 backend/scripts/restore.py $(FILE)
 
 upgrade:
+	-docker exec numera-backup-prod python scripts/backup.py
 	make prod-down
 	git pull origin main
 	make prod
@@ -119,8 +126,8 @@ upgrade:
 # Releases (cf. skill numera-release) : tag vX.Y.Z sur main, le workflow release.yml publie images et notes
 release-check:
 	@git fetch --tags --quiet
-	@echo "Bump suggéré : $$($(PYTHON) scripts/release_notes.py --bump) → v$$($(PYTHON) scripts/release_notes.py --next)"
-	@$(PYTHON) scripts/release_notes.py --notes "v$$($(PYTHON) scripts/release_notes.py --next)"
+	@echo "Bump suggéré : $$($(PYTHON) scripts/release/release_notes.py --bump) → v$$($(PYTHON) scripts/release/release_notes.py --next)"
+	@$(PYTHON) scripts/release/release_notes.py --notes "v$$($(PYTHON) scripts/release/release_notes.py --next)"
 
 release:
 	@test -n "$(V)" || { echo "usage : make release V=X.Y.Z"; exit 1; }

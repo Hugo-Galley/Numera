@@ -1,7 +1,9 @@
 from sqlalchemy import func, select, union
 from sqlalchemy.orm import Session
 
+from app.models.account import Account
 from app.models.reimbursement import ReimbursementAllocation, ReimbursementClaim
+from app.models.transaction import Transaction
 
 
 def locked_transaction_ids():
@@ -54,3 +56,29 @@ def get_claim(db: Session, claim_id: int) -> ReimbursementClaim | None:
 
 def get_allocation(db: Session, allocation_id: int) -> ReimbursementAllocation | None:
     return db.get(ReimbursementAllocation, allocation_id)
+
+
+def received_by_claim(db: Session, claim_ids: list[int]) -> dict[int, float]:
+    """Total affecté à chaque créance, en une requête groupée."""
+    if not claim_ids:
+        return {}
+    rows = (
+        db.query(ReimbursementAllocation.claim_id, func.coalesce(func.sum(ReimbursementAllocation.amount), 0.0))
+        .filter(ReimbursementAllocation.claim_id.in_(claim_ids))
+        .group_by(ReimbursementAllocation.claim_id)
+        .all()
+    )
+    return {claim_id: float(total) for claim_id, total in rows}
+
+
+def transactions_with_currency(db: Session, tx_ids: set[int]) -> dict[int, tuple[Transaction, str]]:
+    """Transactions et devise de leur compte, en une requête."""
+    if not tx_ids:
+        return {}
+    rows = (
+        db.query(Transaction, Account.currency)
+        .join(Account, Transaction.account_id == Account.id)
+        .filter(Transaction.id.in_(tx_ids))
+        .all()
+    )
+    return {tx.id: (tx, currency or "EUR") for tx, currency in rows}

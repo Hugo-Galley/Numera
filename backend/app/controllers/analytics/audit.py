@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
+from app.core.sync_bridge import run_async
 from app.db.session import get_db
 from app.schemas.insight import ActionCenterResponse, DataAuditResponse
 from app.services import audit as service
@@ -20,8 +21,8 @@ def data_audit_issue_details(issue_id: str, db: Session = Depends(get_db)):
 
 
 @router.get("/actions", response_model=ActionCenterResponse)
-async def get_action_center(db: Session = Depends(get_db)):
-    return await service.compute_action_center(db)
+def get_action_center(db: Session = Depends(get_db)):
+    return run_async(service.compute_action_center(db))
 
 
 class DismissActionRequest(BaseModel):

@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -9,17 +10,18 @@ import type { ImportFlowCtx } from "./useImportFlow"
 
 /** Choix du compte et du fichier. */
 export function ImportSettingsCard({ ctx }: { ctx: ImportFlowCtx }) {
+  const { t } = useTranslation("import")
   const { accountId, accounts, createMissingCategories, file, handleFileChange, handleImport, importing, selectedAccountId, setCreateMissingCategories, setSelectedAccountId } = ctx
   return (
     <>
       <Card className="shadow-sm border-slate-100 overflow-hidden">
         <CardHeader className="bg-slate-50/50 border-b">
-          <CardTitle className="text-lg">Source des données</CardTitle>
-          <CardDescription>Sélectionnez le compte et le fichier CSV.</CardDescription>
+          <CardTitle className="text-lg">{t("source")}</CardTitle>
+          <CardDescription>{t("sourceHint")}</CardDescription>
         </CardHeader>
         <CardContent className="p-4 sm:p-6 space-y-4">
           <div className="space-y-2">
-            <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">Compte de destination</Label>
+            <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">{t("destination")}</Label>
             {accountId ? (
               <p className="flex h-11 items-center rounded-md border border-slate-200 bg-slate-50 px-3 text-sm font-medium text-slate-900 sm:h-10">
                 {accounts.find((acc) => acc.id === accountId)?.name ?? "…"}
@@ -27,7 +29,7 @@ export function ImportSettingsCard({ ctx }: { ctx: ImportFlowCtx }) {
             ) : (
             <Select value={selectedAccountId} onValueChange={setSelectedAccountId}>
               <SelectTrigger className="h-11 bg-slate-50 border-slate-200 sm:h-10">
-                <SelectValue placeholder="Choisir un compte" />
+                <SelectValue placeholder={t("pickAccount")} />
               </SelectTrigger>
               <SelectContent>
                 {accounts.map((acc) => (
@@ -41,15 +43,15 @@ export function ImportSettingsCard({ ctx }: { ctx: ImportFlowCtx }) {
           </div>
 
           <div className="space-y-2">
-            <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">Fichier CSV</Label>
+            <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">{t("csvFile")}</Label>
             <div className="flex items-center justify-center w-full">
               <label className="flex flex-col items-center justify-center w-full h-36 sm:h-32 border-2 border-dashed rounded-xl cursor-pointer bg-slate-50 hover:bg-slate-100 transition-colors border-slate-200">
                 <div className="flex flex-col items-center justify-center pt-5 pb-6">
                   <Upload className="w-8 h-8 mb-3 text-slate-400" />
                   <p className="mb-2 text-sm text-slate-500">
-                    <span className="font-semibold text-center px-4"><span className="md:hidden">Touchez pour choisir un fichier</span><span className="hidden md:inline">Cliquez pour uploader</span></span>
+                    <span className="font-semibold text-center px-4"><span className="md:hidden">{t("tapToChoose")}</span><span className="hidden md:inline">{t("clickToUpload")}</span></span>
                   </p>
-                  <p className="text-xs text-slate-400">CSV (format Numbers)</p>
+                  <p className="text-xs text-slate-400">{t("csvFormat")}</p>
                 </div>
                 <input type="file" className="hidden" accept=".csv" onChange={handleFileChange} />
               </label>
@@ -69,7 +71,7 @@ export function ImportSettingsCard({ ctx }: { ctx: ImportFlowCtx }) {
               onCheckedChange={(checked) => setCreateMissingCategories(!!checked)} 
             />
             <Label htmlFor="categories" className="text-xs font-bold text-slate-700 cursor-pointer">
-              Créer les catégories manquantes
+              {t("createMissing")}
             </Label>
           </div>
 
@@ -78,7 +80,7 @@ export function ImportSettingsCard({ ctx }: { ctx: ImportFlowCtx }) {
             disabled={!file || !selectedAccountId || importing}
             onClick={handleImport}
           >
-            {importing ? "Importation en cours..." : "Lancer l'importation"}
+            {importing ? t("importing") : t("start")}
           </Button>
         </CardContent>
       </Card>

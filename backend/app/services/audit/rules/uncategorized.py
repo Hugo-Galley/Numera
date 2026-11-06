@@ -1,4 +1,5 @@
 """Dépenses sans catégorie."""
+from app.core.i18n import tr, trn
 from app.domain.transactions import tx_sample
 from app.models.transaction import Transaction
 from app.repositories.analytics import audit as repo
@@ -15,9 +16,9 @@ def detect(ctx: AuditContext) -> list[ActionItem]:
         id="uncategorized-expenses",
         type="audit",
         severity="high",
-        title="Transactions sans catégorie",
-        description=f"Vous avez {count} dépenses sans catégorie.",
-        action_label="Catégoriser",
+        title=tr("audit.uncategorized.title"),
+        description=trn("audit.uncategorized.description", count),
+        action_label=tr("audit.uncategorized.action"),
         action_url="/audit",  # Pointing to the audit/actions page
         action_type="modal_categorize",
         samples=[tx_sample(tx) for tx in query.limit(5).all()],

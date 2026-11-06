@@ -1,20 +1,22 @@
 import { useState } from "react"
 import { NavLink, useLocation } from "react-router-dom"
 import { LayoutDashboard, ClipboardCheck, Wallet, TrendingUp, Menu } from "lucide-react"
+import { useTranslation } from "react-i18next"
 import { cn } from "@/lib/utils"
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { Sidebar } from "./Sidebar"
 
 // Les 4 destinations les plus consultées ; tout le reste est dans « Plus » (même menu que le bureau).
 const tabs = [
-  { name: "Accueil", href: "/", icon: LayoutDashboard, end: true },
-  { name: "Mois", href: "/month", icon: ClipboardCheck, end: false },
-  { name: "Comptes", href: "/accounts", icon: Wallet, end: false },
-  { name: "Placements", href: "/investments", icon: TrendingUp, end: false },
-]
+  { name: "home", href: "/", icon: LayoutDashboard, end: true },
+  { name: "month", href: "/month", icon: ClipboardCheck, end: false },
+  { name: "accounts", href: "/accounts", icon: Wallet, end: false },
+  { name: "investments", href: "/investments", icon: TrendingUp, end: false },
+] as const
 
 /** Barre d'onglets fixe en bas de l'écran, visible uniquement sous le breakpoint `md`. */
 export function MobileNav() {
+  const { t } = useTranslation("nav")
   const [open, setOpen] = useState(false)
   const { pathname } = useLocation()
   const inTabs = tabs.some((t) => (t.end ? pathname === t.href : pathname.startsWith(t.href)))
@@ -23,7 +25,7 @@ export function MobileNav() {
     <>
       <nav
         className="fixed inset-x-0 bottom-0 z-40 flex border-t bg-white/95 backdrop-blur md:hidden pb-[calc(env(safe-area-inset-bottom)*0.45)]"
-        aria-label="Navigation principale"
+        aria-label={t("mobile.label")}
       >
         {tabs.map((tab) => (
           <NavLink
@@ -38,7 +40,7 @@ export function MobileNav() {
             }
           >
             <tab.icon className="h-5 w-5" aria-hidden="true" />
-            {tab.name}
+            {t(`mobile.${tab.name}`)}
           </NavLink>
         ))}
         <button
@@ -50,14 +52,14 @@ export function MobileNav() {
           )}
         >
           <Menu className="h-5 w-5" aria-hidden="true" />
-          Plus
+          {t("mobile.more")}
         </button>
       </nav>
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent side="bottom" className="max-h-[85dvh] rounded-t-2xl p-0 pb-[env(safe-area-inset-bottom)]">
           <SheetHeader className="sr-only">
-            <SheetTitle>Navigation</SheetTitle>
-            <SheetDescription>Toutes les pages de Numera</SheetDescription>
+            <SheetTitle>{t("mobile.menuTitle")}</SheetTitle>
+            <SheetDescription>{t("mobile.menuDescription")}</SheetDescription>
           </SheetHeader>
           <Sidebar className="border-none" hideBrand onItemClick={() => setOpen(false)} />
         </SheetContent>

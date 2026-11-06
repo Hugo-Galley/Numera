@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
 import { AlertCircle, CheckCircle2, ArrowRight, ChevronDown, Scale } from "lucide-react"
 import { ReconcileDialog } from "@/components/accounts/ReconcileDialog"
 import { Button } from "@/components/ui/button"
@@ -23,6 +24,7 @@ export function AccountVerificationBanner({
   accounts: Account[]
   onAccountVerified: () => void
 }) {
+  const { t } = useTranslation("dashboard")
   const navigate = useNavigate()
   const [verifying, setVerifying] = useState<number | null>(null)
   // Replié par défaut : la liste dépliée occupait la moitié du tableau de bord
@@ -51,7 +53,7 @@ export function AccountVerificationBanner({
       onAccountVerified()
     } catch (e) {
       console.error(e)
-      toast.error(errorMessage(e, "Impossible de valider le compte"))
+      toast.error(errorMessage(e, t("verification.verifyError")))
     } finally {
       setVerifying(null)
     }
@@ -67,7 +69,7 @@ export function AccountVerificationBanner({
       >
         <AlertCircle className="h-4 w-4 shrink-0 text-amber-600" />
         <span className="whitespace-nowrap font-semibold text-amber-800">
-          {unverifiedAccounts.length} compte{unverifiedAccounts.length > 1 ? "s" : ""} à mettre à jour
+          {t("verification.accountsToUpdate", { count: unverifiedAccounts.length })}
         </span>
         <span className="hidden min-w-0 truncate text-amber-700 sm:inline">
           · {unverifiedAccounts.map((a) => a.name).join(", ")}
@@ -75,7 +77,7 @@ export function AccountVerificationBanner({
         <ChevronDown className={`ml-auto h-4 w-4 shrink-0 text-amber-700 transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
       {open && <div className="space-y-4 px-4 pb-4 text-sm">
-        <p>Cela fait plus de 15 jours que vous n'avez pas mis à jour ces comptes. Veuillez vérifier s'il y a de nouvelles transactions ou valider leur solde.</p>
+        <p>{t("verification.intro")}</p>
         
         <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
           {unverifiedAccounts.map(acc => (
@@ -83,7 +85,7 @@ export function AccountVerificationBanner({
               <div>
                 <button type="button" onClick={() => navigate(`/accounts/${acc.id}`)} className="font-medium text-amber-900 hover:underline text-left">{acc.name}</button>
                 <p className="text-xs text-amber-700 opacity-80">
-                  {daysDiff(acc.last_verified_at) === null ? "Jamais vérifié" : `Dernière maj: il y a ${daysDiff(acc.last_verified_at)} jours`}
+                  {daysDiff(acc.last_verified_at) === null ? t("verification.never") : t("verification.lastUpdate", { count: daysDiff(acc.last_verified_at) ?? 0 })}
                 </p>
               </div>
               
@@ -95,7 +97,7 @@ export function AccountVerificationBanner({
                     className="w-full bg-white hover:bg-amber-100 hover:text-amber-900 border-amber-200 text-amber-800 h-10 md:h-8 text-xs"
                     onClick={() => navigate(`/accounts/${acc.id}`)}
                   >
-                    Faire un snapshot
+                    {t("verification.snapshot")}
                     <ArrowRight className="ml-1.5 h-3 w-3" />
                   </Button>
                 ) : (
@@ -108,7 +110,7 @@ export function AccountVerificationBanner({
                       disabled={verifying === acc.id}
                     >
                       <CheckCircle2 className="mr-1.5 h-3 w-3" />
-                      Rien n'a bougé
+                      {t("verification.nothingChanged")}
                     </Button>
                     <Button
                       size="sm"
@@ -117,7 +119,7 @@ export function AccountVerificationBanner({
                       onClick={() => setReconciling(acc)}
                     >
                       <Scale className="mr-1.5 h-3 w-3" />
-                      Saisir le solde
+                      {t("verification.enterBalance")}
                     </Button>
                   </>
                 )}

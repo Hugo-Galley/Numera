@@ -1,8 +1,11 @@
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
+from app.core.sync_bridge import run_async
 from app.db.session import get_db
 from app.services.budget import imports as service
+from app.services.systeme.demo import DEMO_MAX_UPLOAD_BYTES
 
 router = APIRouter(prefix="/import", tags=["import"])
 
@@ -11,12 +14,13 @@ MAX_UPLOAD_BYTES = 10 * 1024 * 1024
 
 async def _read_upload(file: UploadFile) -> bytes:
     """Lit le fichier par blocs et refuse (413) au-delà de MAX_UPLOAD_BYTES, sans tout charger en mémoire."""
+    limit = DEMO_MAX_UPLOAD_BYTES if settings.DEMO_MODE else MAX_UPLOAD_BYTES
     chunks: list[bytes] = []
     total = 0
     while chunk := await file.read(1024 * 1024):
         total += len(chunk)
-        if total > MAX_UPLOAD_BYTES:
-            raise HTTPException(status_code=413, detail="Fichier trop volumineux (10 Mo maximum)")
+        if total > limit:
+            raise HTTPException(status_code=413, detail=f"Fichier trop volumineux ({limit // 1024} Ko maximum)" if settings.DEMO_MODE else "Fichier trop volumineux (10 Mo maximum)")
         chunks.append(chunk)
     return b"".join(chunks)
 
@@ -36,13 +40,13 @@ async def preview_import(
 
 
 @router.post("/commit")
-async def commit_import(
+def commit_import(
     account_id: int = Form(...),
     file: UploadFile = File(...),
     create_missing_categories: bool = Form(default=True),
     category_mapping: str | None = Form(default=None),
     db: Session = Depends(get_db),
 ):
-    return await service.commit_import(
+    return run_async(service.commit_import(
         db, account_id, lambda: _read_upload(file), file.filename, create_missing_categories, category_mapping,
-    )
+    ))

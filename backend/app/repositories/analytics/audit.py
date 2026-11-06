@@ -65,11 +65,6 @@ def duplicate_group_transactions(db: Session, row) -> list[Transaction]:
     )
 
 
-def active_accounts(db: Session, by_name: bool = False) -> list[Account]:
-    query = db.query(Account).filter(Account.active.is_(True))
-    return query.order_by(Account.name.asc()).all() if by_name else query.all()
-
-
 def latest_snapshot_date(db: Session, account_id: int, id_tiebreak: bool = False) -> datetime | None:
     order = (BalanceSnapshot.date.desc(), BalanceSnapshot.id.desc()) if id_tiebreak else (BalanceSnapshot.date.desc(),)
     snapshot = db.query(BalanceSnapshot).filter(BalanceSnapshot.account_id == account_id).order_by(*order).first()
@@ -90,19 +85,6 @@ def recent_unlinked_sorties(db: Session, since: datetime, strict: bool, limit: i
     if strict:
         query = query.order_by(Transaction.date.desc())
     return query.limit(limit).all()
-
-
-def transfer_match(db: Session, sortie: Transaction) -> Transaction | None:
-    """Entrée d'un autre compte, même montant, à ±3 jours (contrôle rapide du Centre d'Actions)."""
-    return db.query(Transaction).filter(
-        Transaction.id != sortie.id,
-        Transaction.account_id != sortie.account_id,
-        Transaction.type == "Entree",
-        Transaction.amount == sortie.amount,
-        Transaction.is_transfer.is_(False),
-        Transaction.date >= sortie.date - timedelta(days=3),
-        Transaction.date <= sortie.date + timedelta(days=3),
-    ).first()
 
 
 def strict_transfer_candidates(db: Session, sorties: list[Transaction]) -> list[Transaction]:

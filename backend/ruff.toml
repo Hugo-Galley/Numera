@@ -4,7 +4,7 @@ line-length = 140
 [lint]
 select = ["E", "F", "W", "I", "B", "UP", "SIM", "C4", "PERF", "RUF", "S"]
 ignore = [
-    "E501",  # longueur de ligne : pas de formateur imposé, la taille est bornée par scripts/check_code_size.py
+    "E501",  # longueur de ligne : pas de formateur imposé, la taille est bornée par scripts/quality/check_code_size.py
     "B008",  # Depends()/Query() en valeur par défaut : idiome FastAPI
     "E711",  # `== None` / `== True` requis dans les filtres SQLAlchemy
     "E712",

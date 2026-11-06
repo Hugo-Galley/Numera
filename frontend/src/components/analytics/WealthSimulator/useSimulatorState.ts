@@ -1,3 +1,4 @@
+import i18n from "i18next"
 import { safeStorage } from "@/lib/storage"
 import { toast } from "sonner"
 import { useEffect, useState } from "react"
@@ -133,7 +134,7 @@ export function useSimulatorState(p: { initialCapitalDefault: number }) {
         const res = await getAnalyticsWealthSimulation(`?${queryParams.toString()}`)
         setData(res)
       } catch (error) {
-        toast.error("Erreur lors de la simulation")
+        toast.error(i18n.t("useSimulatorState.erreurLorsDeLaSimulation", { ns: "tools" }))
       } finally {
         setLoading(false)
       }

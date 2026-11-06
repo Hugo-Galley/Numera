@@ -1,0 +1,173 @@
+{
+  "title": "Dashboard",
+  "subtitle": "All your financial insights at a glance.",
+  "payPeriod": "Pay period: {{range}}",
+  "allAccounts": "All accounts",
+  "placeholders": {
+    "account": "Accounts",
+    "month": "Month",
+    "year": "Year"
+  },
+  "tabs": {
+    "overview": "Overview",
+    "budgets": "Budgets",
+    "spending": "Spending",
+    "analysis": "Analysis",
+    "projections": "Projections"
+  },
+  "failedBlocks_one": "{{count}} dashboard block could not be loaded.",
+  "failedBlocks_other": "{{count}} dashboard blocks could not be loaded.",
+  "accountsLoadError": "Couldn't load the list of accounts.",
+  "kpi": {
+    "monthlyIncome": "Monthly Income",
+    "moneyIn": "Money In",
+    "monthlyExpenses": "Monthly Expenses",
+    "moneyOut": "Money Out",
+    "savingsMade": "Savings Made",
+    "currentBalance": "Current Balance",
+    "trend": "6-month trend"
+  },
+  "budgets": {
+    "title": "Budget tracking",
+    "subtitle": "See your spending against the limits set for each category.",
+    "viewTransactions": "View transactions",
+    "over": "Over budget",
+    "near": "Close to the limit",
+    "ok": "Within budget",
+    "monthly": "Monthly",
+    "annual": "Yearly",
+    "empty": "No budget set up. Add limits in the category settings."
+  },
+  "merchants": {
+    "title": "Top 10 Merchants",
+    "subtitle": "Where you spend the most."
+  },
+  "subscriptions": {
+    "monthlyTitle": "Monthly Subscriptions",
+    "averageCost": "Average monthly cost:",
+    "perYear": "per year",
+    "detected": "Detected",
+    "lapsed": "No longer charged?",
+    "empty": "No subscription detected.",
+    "splitTitle": "Subscription Breakdown",
+    "splitSubtitle": "Weight of each service."
+  },
+  "priceChanges": {
+    "title": "Recent price increases",
+    "month": "month",
+    "quarter": "qtr",
+    "year": "year",
+    "since": "Since {{date}} · {{amount}} more per year"
+  },
+  "insights": {
+    "healthTitle": "Financial Health",
+    "healthSubtitle": "Overall score of your situation.",
+    "outOf": "/ 100",
+    "analysisTitle": "Analysis & Tips",
+    "dismiss": "Permanently ignore this",
+    "dismissError": "Couldn't hide this insight",
+    "empty": "Everything looks under control! No particular advice this month.",
+    "unitMonths": "months"
+  },
+  "projections": {
+    "projectedBalance": "Projected Balance (60d)",
+    "lowPoint": "Lowest point",
+    "expectedOn": "Expected on {{date}}",
+    "recurringFlows": "Expected recurring flows",
+    "next60": "Next 60 days",
+    "chartTitle": "Projected Balance Over Time",
+    "chartSubtitle": "Projection based on your recurring income and expenses over the next 2 months.",
+    "estimatedBalance": "Estimated balance",
+    "balance": "Balance",
+    "nextFlows": "Upcoming flows",
+    "nextFlowsSubtitle": "Events expected in the next 30 days.",
+    "cashAnalysis": "Cash flow analysis",
+    "staysPositive": "Your balance should stay <strong>positive</strong> throughout the projected period.",
+    "goesNegative": "Your balance would go <negative>below zero</negative> during the projected period.",
+    "lowPointIs": "The lowest point is estimated at <amount>{{value}}</amount>.",
+    "adviceLabel": "Tip",
+    "advice": "You have an expected cash surplus of <amount>{{value}}</amount>. Consider an extra transfer to your savings account."
+  },
+  "overview": {
+    "expensesTitle": "Spending by category",
+    "expensesSubtitle": "Where is your money going this month? Click a bar to see the transactions.",
+    "splitTitle": "Breakdown",
+    "splitSubtitle": "Weight of each category.",
+    "flowTitle": "Cash Flow",
+    "flowSubtitle": "How income flows into expenses and savings. Click a category to see its transactions.",
+    "dragHint": "Drag to see the whole diagram →",
+    "tagsTitle": "Projects & Contexts (Tags)",
+    "tagsSubtitle": "Cross-cutting spending over the period.",
+    "wealthTitle": "Wealth Breakdown",
+    "wealthSubtitle": "Distribution of your assets across all your active accounts.",
+    "groupBy": {
+      "category": "By Category",
+      "mixed": "Mixed",
+      "account": "By Account",
+      "institution": "By Institution"
+    },
+    "total": "Total:",
+    "debts": "Debts:",
+    "net": "Net:",
+    "noWealth": "No wealth data available.",
+    "wealthCenter": "Wealth",
+    "wealthGroup": {
+      "courant": "Checking Accounts",
+      "epargne": "Savings",
+      "investissement": "Investments",
+      "otherInstitution": "Other / Unspecified"
+    },
+    "accountType": {
+      "courant": "Checking",
+      "epargne": "Savings",
+      "investissement": "Investment"
+    }
+  },
+  "history": {
+    "cashFlowTitle": "Cash Flow",
+    "cashFlowSubtitle": "Income vs Expenses (6 months).",
+    "revenues": "Income",
+    "realExpenses": "Actual expenses",
+    "burnTitle": "Burn Rate Over Time",
+    "burnSubtitle": "Average daily spending per month.",
+    "burnName": "Burn Rate",
+    "salaryTitle": "Salary Over Time",
+    "salarySubtitle": "Stability and growth of your main income.",
+    "salaryName": "Salary"
+  },
+  "verification": {
+    "accountsToUpdate_one": "{{count}} account to update",
+    "accountsToUpdate_other": "{{count}} accounts to update",
+    "intro": "It's been more than 15 days since you updated these accounts. Check for new transactions or confirm their balance.",
+    "never": "Never verified",
+    "lastUpdate_one": "Last updated {{count}} day ago",
+    "lastUpdate_other": "Last updated {{count}} days ago",
+    "snapshot": "Take a snapshot",
+    "nothingChanged": "Nothing changed",
+    "enterBalance": "Enter balance",
+    "verifyError": "Couldn't confirm the account"
+  },
+  "journal": {
+    "title": "Decision Journal",
+    "subtitle": "Cancellations, higher savings, allocation changes… marked on the charts (⚑).",
+    "empty": "Write down your decisions to remember later why a curve changed.",
+    "needDateTitle": "Enter a date and a title",
+    "updated": "Decision updated",
+    "added": "Decision added to the journal",
+    "saveError": "Couldn't save the decision",
+    "confirmDelete": "Delete “{{title}}” from the journal?",
+    "deleted": "Decision deleted",
+    "deleteError": "Couldn't delete the decision",
+    "editTitle": "Edit decision",
+    "newTitle": "New decision",
+    "dialogHint": "A dated note, with no effect on calculations.",
+    "fieldTitle": "Title",
+    "titlePlaceholder": "E.g. cancelling the gym membership",
+    "fieldNote": "Note (optional)",
+    "fieldAccount": "Related account (optional)"
+  },
+  "partialLoadError": "Some dashboard data couldn't be loaded.",
+  "misc": {
+    "perDay": "{{amount}} / day"
+  }
+}

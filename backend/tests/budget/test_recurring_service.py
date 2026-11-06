@@ -73,10 +73,10 @@ def test_transfer_to_same_account_is_rejected(db_session):
     payload = RecurringTransactionCreate(account_id=account.id, name="Épargne", type="Sortie", amount=100.0,
                                          frequency="monthly", start_date=datetime(2026, 1, 1),
                                          transfer_to_account_id=account.id)
-    with pytest.raises(BusinessRuleError, match="Source and destination accounts must differ"):
+    with pytest.raises(BusinessRuleError, match="Les comptes source et destination doivent être différents"):
         asyncio.run(service.create_recurring_transaction(db_session, payload))
 
 
 def test_unknown_recurrence_is_not_found(db_session):
-    with pytest.raises(NotFoundError, match="Recurring transaction not found"):
+    with pytest.raises(NotFoundError, match="Transaction récurrente introuvable"):
         service.delete_recurring_transaction(db_session, 1)

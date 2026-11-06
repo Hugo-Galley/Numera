@@ -1,3 +1,7 @@
+import i18n from "i18next"
+import { accountTypeLabel } from "@/lib/labels"
+import { useTranslation } from "react-i18next"
+import { appLocale } from "@/i18n/locale"
 import { ArrowRight, CalendarClock, ChevronRight, Repeat } from "lucide-react"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { CompanyLogo } from "@/components/ui/CompanyLogo"
@@ -32,14 +36,9 @@ interface Props {
   recurring: FlowRecurring | null
   accounts: FlowAccount[]
   nextOccurrence?: string | null
+  /** « subscription » : l'argent part du compte vers un bénéficiaire (marchand), sans titre acheté */
+  variant?: "investment" | "subscription"
   onClose: () => void
-}
-
-const TYPE_LABELS: Record<string, string> = {
-  courant: "Compte courant",
-  epargne: "Épargne",
-  investissement: "Investissement",
-  assurance_vie: "Assurance vie",
 }
 
 function Node({ title, subtitle, logo, name, ticker, isin, tone }: {
@@ -81,7 +80,9 @@ function Link({ label }: { label?: string }) {
   )
 }
 
-export function InvestmentFlowDialog({ recurring, accounts, nextOccurrence, onClose }: Props) {
+export function InvestmentFlowDialog({ recurring, accounts, nextOccurrence, variant = "investment", onClose }: Props) {
+  const isSub = variant === "subscription"
+  const { t } = useTranslation("recurring")
   const source = recurring ? accounts.find((a) => a.id === recurring.account_id) : undefined
   const destId = recurring?.transfer_to_account_id
   const dest = destId ? accounts.find((a) => a.id === destId) : undefined
@@ -92,7 +93,7 @@ export function InvestmentFlowDialog({ recurring, accounts, nextOccurrence, onCl
   const accountNode = (acc: FlowAccount | undefined, tone: "rose" | "indigo") => (
     <Node
       title={acc?.name ?? "Compte inconnu"}
-      subtitle={acc ? TYPE_LABELS[acc.type] ?? acc.type : ""}
+      subtitle={acc ? accountTypeLabel(acc.type) ?? acc.type : ""}
       logo={acc?.logo}
       name={acc?.institution || acc?.name || "?"}
       tone={tone}
@@ -109,7 +110,7 @@ export function InvestmentFlowDialog({ recurring, accounts, nextOccurrence, onCl
                 <CompanyLogo logo={recurring.logo} name={recurring.name} ticker={recurring.ticker ?? undefined} className="h-8 w-8 rounded-lg" />
                 {recurring.name}
               </DialogTitle>
-              <DialogDescription>Parcours de l'argent investi, de son compte d'origine à sa destination.</DialogDescription>
+              <DialogDescription>{t(isSub ? "investmentFlowDialog.parcoursDeLArgentSubscription" : "investmentFlowDialog.parcoursDeLArgentInvesti")}</DialogDescription>
             </DialogHeader>
 
             <div className="rounded-2xl border border-indigo-100 bg-gradient-to-br from-indigo-50/60 to-white p-4 md:p-6">
@@ -120,20 +121,24 @@ export function InvestmentFlowDialog({ recurring, accounts, nextOccurrence, onCl
                 <p className="mt-1 flex items-center justify-center gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-500">
                   <Repeat className="h-3.5 w-3.5" />
                   {frequencyLabel(recurring.frequency)}
-                  {recurring.day_of_month ? ` · le ${recurring.day_of_month}` : ""}
+                  {recurring.day_of_month ? i18n.t("misc.onDay", { ns: "recurring", day: recurring.day_of_month }) : ""}
                 </p>
               </div>
 
               <div className="flex items-start justify-center gap-1 overflow-x-auto px-2 pb-1 pt-2">
                 {!startsOnInvestment && accountNode(source, "rose")}
                 {!startsOnInvestment && <Link label={formatCurrency(recurring.amount, recurring.currency)} />}
-                {accountNode(dest ?? (startsOnInvestment ? source : undefined), "indigo")}
-                {hasSecurity && (
+                {isSub ? (
+                  <Node title={recurring.name} subtitle={t("investmentFlowDialog.beneficiary")} logo={recurring.logo} name={recurring.name} tone="emerald" />
+                ) : (
+                  accountNode(dest ?? (startsOnInvestment ? source : undefined), "indigo")
+                )}
+                {hasSecurity && !isSub && (
                   <>
-                    <Link label={recurring.quantity ? `${recurring.quantity} part(s)` : "Achat"} />
+                    <Link label={recurring.quantity ? `${recurring.quantity} part(s)` : t("investmentFlowDialog.achat")} />
                     <Node
                       title={recurring.security_name || recurring.name}
-                      subtitle={recurring.ticker || recurring.isin || "Titre acheté"}
+                      subtitle={recurring.ticker || recurring.isin || i18n.t("misc.boughtSecurity", { ns: "recurring" })}
                       logo={recurring.logo}
                       name={recurring.name}
                       ticker={recurring.ticker}
@@ -148,7 +153,7 @@ export function InvestmentFlowDialog({ recurring, accounts, nextOccurrence, onCl
             {nextOccurrence && (
               <p className="flex items-center justify-center gap-2 text-sm text-slate-500">
                 <CalendarClock className="h-4 w-4" />
-                Prochain passage : <span className="font-bold text-slate-800">{new Date(nextOccurrence).toLocaleDateString("fr-FR", { day: "numeric", month: "long" })}</span>
+                {t("investmentFlowDialog.prochainPassage")} <span className="font-bold text-slate-800">{new Date(nextOccurrence).toLocaleDateString(appLocale(), { day: "numeric", month: "long" })}</span>
                 <ArrowRight className="h-3.5 w-3.5 text-slate-300" />
               </p>
             )}

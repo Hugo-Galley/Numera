@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import { useState } from "react"
 import { Check, Plus, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -27,6 +28,7 @@ interface Props {
 
 /** Liste fermée des groupes Sankey existants, avec « Nouveau groupe » en bas pour en créer un. */
 export function SankeyGroupSelect({ id, value, onChange, groups }: Props) {
+  const { t } = useTranslation("classement")
   const [creating, setCreating] = useState(false)
   const [draft, setDraft] = useState("")
   // Un groupe tout juste créé (pas encore enregistré) doit rester sélectionnable
@@ -49,8 +51,8 @@ export function SankeyGroupSelect({ id, value, onChange, groups }: Props) {
         <Input
           id={id}
           autoFocus
-          aria-label="Nom du nouveau groupe"
-          placeholder="Ex: Vie courante, Loisirs..."
+          aria-label={t("sankeyGroupSelect.nomDuNouveauGroupe")}
+          placeholder={t("sankeyGroupSelect.exVieCouranteLoisirs")}
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={(e) => {
@@ -59,10 +61,10 @@ export function SankeyGroupSelect({ id, value, onChange, groups }: Props) {
           }}
           className="bg-slate-50 border-slate-200"
         />
-        <Button type="button" size="icon" variant="outline" aria-label="Valider le groupe" onClick={confirm}>
+        <Button type="button" size="icon" variant="outline" aria-label={t("sankeyGroupSelect.validerLeGroupe")} onClick={confirm}>
           <Check className="h-4 w-4" />
         </Button>
-        <Button type="button" size="icon" variant="ghost" aria-label="Annuler" onClick={() => { setCreating(false); setDraft("") }}>
+        <Button type="button" size="icon" variant="ghost" aria-label={t("sankeyGroupSelect.annuler")} onClick={() => { setCreating(false); setDraft("") }}>
           <X className="h-4 w-4" />
         </Button>
       </div>
@@ -81,13 +83,13 @@ export function SankeyGroupSelect({ id, value, onChange, groups }: Props) {
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value={NONE}>Aucun groupe</SelectItem>
+        <SelectItem value={NONE}>{t("sankeyGroupSelect.aucunGroupe")}</SelectItem>
         {options.map((g) => (
           <SelectItem key={g} value={g}>{g}</SelectItem>
         ))}
         <SelectSeparator />
         <SelectItem value={NEW}>
-          <span className="flex items-center gap-2 text-slate-500"><Plus className="h-4 w-4" /> Nouveau groupe</span>
+          <span className="flex items-center gap-2 text-slate-500"><Plus className="h-4 w-4" /> {t("sankeyGroupSelect.nouveauGroupe")}</span>
         </SelectItem>
       </SelectContent>
     </Select>

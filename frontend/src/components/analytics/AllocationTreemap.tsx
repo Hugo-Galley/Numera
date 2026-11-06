@@ -1,3 +1,5 @@
+import i18n from "i18next"
+import { appLocale } from "@/i18n/locale"
 import React from 'react';
 import { Treemap, ResponsiveContainer, Tooltip } from 'recharts';
 import { formatAmountWithShare, formatRate } from '@/lib/utils';
@@ -66,7 +68,7 @@ const CustomizedContent = (props: any) => {
           fontWeight="bold"
           className="pointer-events-none select-none"
         >
-          {new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(value)}
+          {new Intl.NumberFormat(appLocale(), { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(value)}
         </text>
       )}
       {caption && height > 50 && (
@@ -90,7 +92,7 @@ export const AllocationTreemap: React.FC<AllocationTreemapProps> = ({ data, onIt
   if (!data || data.length === 0) {
     return (
       <div className="flex items-center justify-center h-[260px] md:h-[400px] bg-slate-50 rounded-xl border border-dashed border-slate-200">
-        <p className="text-slate-400 font-medium">Aucune donnée d'allocation disponible.</p>
+        <p className="text-slate-400 font-medium">{i18n.t("allocationTreemap.aucuneDonneeDAllocationDisponible", { ns: "settings" })}</p>
       </div>
     );
   }

@@ -29,6 +29,7 @@ def enrich_holding(holding: PortfolioHolding, quotes: dict, rates: dict, divs: H
         quantity=holding.quantity,
         buy_price_avg=holding.buy_price_avg,
         currency=holding.currency,
+        cost_basis_eur=holding.cost_basis_eur,
         etf_profile_id=holding.etf_profile_id,
         created_at=holding.created_at,
         updated_at=holding.updated_at,

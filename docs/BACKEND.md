@@ -85,6 +85,12 @@ Au démarrage de l'application (événement `lifespan` configuré dans [backend/
    - Générer automatiquement les instances de transactions récurrentes (abonnements, charges fixes) définies par l'utilisateur (`backend/app/services/budget/recurring.py`).
    - Vérifier et générer les transactions liées aux salaires configurés et jours de télétravail déclarés (`backend/app/services/budget/salary_generation.py`).
 
+### Worker unique et état en mémoire
+
+Le backend doit tourner avec **un seul worker uvicorn** (`docker-compose.prod.yml`). Plusieurs états vivent dans la mémoire du processus et ne sont pas partagés entre workers : cache des taux (`integrations/currency.py`), cache des cotations et cache négatif (`services/investissement/market/quotes.py`), cache de valorisation (`services/investissement/portfolio/cache.py`), disjoncteurs (`core/circuit_breaker.py`) et limiteurs de connexion (`core/login_rate_limit.py`). Avec `--workers N`, chaque worker aurait ses propres copies : valorisation périmée après une écriture traitée par un autre worker, limite de tentatives de connexion multipliée par N. Passer à plusieurs workers suppose d'abord de déplacer ces états en base ou dans un cache partagé.
+
+Les routes sont des `def` (threadpool) : le calcul et SQLAlchemy ne bloquent pas la boucle d'événements. Les services qui attendent du réseau restent `async` et sont appelés par `run_async` (`core/sync_bridge.py`).
+
 ### Règles Métier Majeures
 
 - **Calcul du Solde Cumulé (Running Balance)** : Contrairement à d'autres architectures, le solde cumulé à un instant T (`running_balance`) est stocké directement sur chaque transaction financière. Lors de l'ajout, modification ou suppression d'une transaction, le backend recalcule récursivement et chronologiquement les soldes cumulés du compte concerné via `recalculate_running_balances` (`backend/app/services/budget/balances.py`, appelée aussi par l'import CSV et la génération de salaire) afin de garantir l'intégrité absolue des graphiques temporels.
@@ -105,7 +111,7 @@ L'application implémente un système d'authentification simple mais robuste :
 - **Authentification Unique** : Un compte administrateur unique est géré par les variables d'environnement `ADMIN_USERNAME` (par défaut `admin`) et `ADMIN_PASSWORD_HASH`.
 - **Génération de mot de passe** : Pour générer ou modifier le mot de passe, un script utilitaire est fourni. Vous devez hacher le mot de passe avant de l'ajouter dans votre fichier `.env` :
   ```bash
-  python3 scripts/change_password.py "votre_mot_de_passe"   # depuis la racine du dépôt
+  python3 scripts/ops/change_password.py "votre_mot_de_passe"   # depuis la racine du dépôt
   ```
 - **JWT (JSON Web Tokens)** : Lors de la connexion (`POST /auth/token`), un token JWT signé en `HS256` avec la clé `SECRET_KEY` est généré. Sa validité est fixée à **60 minutes** (configurable via `ACCESS_TOKEN_EXPIRE_MINUTES` dans [backend/app/core/config.py](file:///Users/hugogalley/DEV/numera/backend/app/core/config.py)).
 - **Dépendance de Sécurité** : Toutes les routes métier incluent la dépendance `Depends(get_current_user)` (`app/controllers/deps.py`) qui valide le jeton (`401` si invalide/expiré, `403` si le `sub` ne correspond pas à l'admin courant). `POST /auth/token` est limité par `LoginRateLimiter` (5 échecs / 15 min par défaut, configurable via `LOGIN_*`). Le nom et le hash du mot de passe peuvent aussi être modifiés depuis l'UI (`PUT /admin/profile`, stockés dans `system_settings` et prioritaires sur le `.env`).
@@ -193,7 +199,7 @@ make prod-down
 
 #### Durcissement des images et des conteneurs
 - **Non-root** : backend et MCP (UID 1000, surchargeable pour le backend par `NUMERA_UID`/`NUMERA_GID` afin de suivre le propriétaire de `data/` et `backups/`), nginx via `nginx-unprivileged` (port 8080 dans le conteneur, publié sur 8082).
-- **Migration depuis une version root** : les fichiers de `data/` et `backups/` créés par les anciens conteneurs appartiennent à root ; une seule fois, `sudo chown -R "$(id -u):$(id -g)" data backups` (ou `backend/data`) puis renseigner `NUMERA_UID`/`NUMERA_GID` dans `.env`. `make dev`, `make prod` (donc `make upgrade`) et `make demo` passent d'abord par `scripts/check_volumes.sh` : il crée les dossiers montés manquants (sinon Docker les crée en root) et refuse de lancer, en donnant la commande `chown`, si un fichier n'appartient pas à `NUMERA_UID` (symptôme sinon : `Backup failed: unable to open database file`).
+- **Migration depuis une version root** : les fichiers de `data/` et `backups/` créés par les anciens conteneurs appartiennent à root ; une seule fois, `sudo chown -R "$(id -u):$(id -g)" data backups` (ou `backend/data`) puis renseigner `NUMERA_UID`/`NUMERA_GID` dans `.env`. `make dev`, `make prod` (donc `make upgrade`) et `make demo` passent d'abord par `scripts/ops/check_volumes.sh` : il crée les dossiers montés manquants (sinon Docker les crée en root) et refuse de lancer, en donnant la commande `chown`, si un fichier n'appartient pas à `NUMERA_UID` (symptôme sinon : `Backup failed: unable to open database file`).
 - **Compose** : `read_only`, `tmpfs: /tmp`, `cap_drop: ALL`, `no-new-privileges`, `pids_limit` sur tous les services ; seuls `data/` et `backups/` sont inscriptibles. Verrouillé par `tests/garde_fous/test_docker_hardening.py`.
 - **Images** : multi-stage (ni compilateur ni `uv` ni `curl` à l'exécution), `HEALTHCHECK` intégré, bases épinglées par digest.
 - **CI** (`ci.yml`) : hadolint sur les Dockerfile, Trivy sur le dépôt (dépendances, secrets, configuration) et sur chaque image (HIGH/CRITICAL corrigeables bloquent). Exceptions justifiées dans `.trivyignore.yaml`. `security.yml` rescanne chaque semaine le dépôt et les images publiées (résultats dans l'onglet Security).
@@ -211,7 +217,7 @@ Une seconde instance, totalement séparée de la prod (projet Compose `numera-de
 make demo        # démarre sur 127.0.0.1:8090
 make demo-down
 ```
-Prérequis dans `.env` : `DEMO_SECRET_KEY` (distincte de `SECRET_KEY`, `openssl rand -hex 32`) et, si le domaine diffère, `DEMO_CORS_ORIGINS`. Publier ensuite le port 8090 sur le domaine voulu (tunnel / reverse proxy, ex. `demo-budget.galleyhugo.com` → `http://localhost:8090`). Identifiants publics : `demo` / `demo`, affichés sur la page de connexion. Changement d'identifiants, 2FA, passkeys, jetons MCP, sauvegardes et notifications y sont désactivés (403). Pour régénérer la démo en local : `make backend-seed-demo` (écrit dans `backend/data/demo.db`).
+Prérequis dans `.env` : `DEMO_SECRET_KEY` (distincte de `SECRET_KEY`, `openssl rand -hex 32`) et, si le domaine diffère, `DEMO_CORS_ORIGINS`. Publier ensuite le port 8090 sur le domaine voulu (tunnel / reverse proxy, ex. `demo-budget.galleyhugo.com` → `http://localhost:8090`). Identifiants publics : `demo` / `demo`, affichés sur la page de connexion. Changement d'identifiants, 2FA, passkeys, jetons MCP, sauvegardes et notifications y sont désactivés (403). Les IP et navigateurs des visiteurs ne sont pas journalisés ; imports plafonnés à 200 Ko (413), 120 écritures par minute et par IP (429), backend limité à 512 Mo / 1 CPU. Pour régénérer la démo en local : `make backend-seed-demo` (écrit dans `backend/data/demo.db`).
 
 ---
 
@@ -219,7 +225,7 @@ Prérequis dans `.env` : `DEMO_SECRET_KEY` (distincte de `SECRET_KEY`, `openssl 
 
 ### Le Service de Sauvegarde (Backup)
 
-Dans la configuration de production ([docker-compose.prod.yml](file:///Users/hugogalley/DEV/numera/docker-compose.prod.yml)), un service nommé `backup` s'exécute de manière isolée. Il lance le planificateur de sauvegarde [backend/scripts/backup_scheduler.py](file:///Users/hugogalley/DEV/numera/backend/scripts/backup_scheduler.py).
+Dans la configuration de production ([infra/docker-compose.prod.yml](../infra/docker-compose.prod.yml)), un service nommé `backup` s'exécute de manière isolée. Il lance le planificateur de sauvegarde [backend/scripts/backup_scheduler.py](file:///Users/hugogalley/DEV/numera/backend/scripts/backup_scheduler.py).
 
 - **Intervalle** : Par défaut, le script effectue une sauvegarde toutes les 24 heures (configurable via la variable `BACKUP_INTERVAL_SECONDS`).
 - **Chiffrement** : Si `BACKUP_KEY` est défini dans le fichier `.env`, le fichier SQLite est chiffré en utilisant l'algorithme symétrique Fernet (AES-128 en mode CBC avec signature HMAC) avant d'être écrit sur le disque. Le fichier de sauvegarde prend alors l'extension `.db.enc`.

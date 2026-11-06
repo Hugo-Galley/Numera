@@ -10,6 +10,7 @@ la dépense) ; la transaction prend la catégorie de sa plus grosse part.
 from sqlalchemy.orm import Session
 
 from app.core.errors import InvalidOperationError, NotFoundError
+from app.core.i18n import tr
 from app.models.category import Category
 from app.models.transaction import Transaction
 from app.models.transaction_split import TransactionSplit
@@ -24,14 +25,14 @@ def set_splits(db: Session, tx: Transaction, items: list[TransactionSplitItem]) 
         tx.splits = []
         return
     if tx.type != "Sortie" or tx.is_transfer:
-        raise InvalidOperationError("Seule une dépense (hors virement interne) peut être découpée")
+        raise InvalidOperationError(tr("errors.split_expense_only"))
     if len(items) < 2:
-        raise InvalidOperationError("Un découpage compte au moins deux parts")
+        raise InvalidOperationError(tr("errors.split_min_two"))
 
     total_cents = sum(round(item.amount * 100) for item in items)
     if total_cents != round(tx.amount * 100):
         raise InvalidOperationError(
-            f"La somme des parts ({total_cents / 100:.2f}) doit égaler le montant de la dépense ({tx.amount:.2f})",
+            tr("errors.split_sum", total=f"{total_cents / 100:.2f}", amount=f"{tx.amount:.2f}"),
         )
 
     category_ids = {item.category_id for item in items}
@@ -39,10 +40,10 @@ def set_splits(db: Session, tx: Transaction, items: list[TransactionSplitItem]) 
     for category_id in category_ids:
         category = categories.get(category_id)
         if category is None:
-            raise NotFoundError(f"Catégorie {category_id} introuvable")
+            raise NotFoundError(tr("errors.split_category_missing", id=category_id))
         if category.name in NON_SPLITTABLE_CATEGORY_NAMES or category.type == "revenu":
             raise InvalidOperationError(
-                f"La catégorie « {category.name} » ne peut pas recevoir une part de dépense",
+                tr("errors.split_category_forbidden", name=category.name),
             )
 
     tx.splits = [
@@ -57,6 +58,6 @@ def check_split_compatible(tx: Transaction, new_type: str, new_amount: float, is
     if not tx.splits:
         return
     if new_type != "Sortie" or is_transfer:
-        raise InvalidOperationError("Annulez le découpage avant de changer le type de cette dépense")
+        raise InvalidOperationError(tr("errors.split_cancel_before_retype"))
     if round(new_amount * 100) != round(tx.amount * 100):
-        raise InvalidOperationError("Annulez ou ajustez le découpage avant de changer le montant")
+        raise InvalidOperationError(tr("errors.split_adjust_before_amount"))

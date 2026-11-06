@@ -1,3 +1,4 @@
+import i18n from "i18next"
 import { toast } from "sonner"
 import { useConfirm } from "@/providers/ConfirmProvider"
 import { useEffect, useState } from "react"
@@ -40,7 +41,7 @@ export function useMerchantsData() {
       setCategories(categoriesData)
       setSuggestions(suggestionsData)
     } catch (error) {
-      toast.error("Erreur chargement données")
+      toast.error(i18n.t("useMerchantsData.erreurChargementDonnees", { ns: "classement" }))
     } finally {
       setLoading(false)
     }
@@ -60,7 +61,7 @@ export function useMerchantsData() {
         color: newColor,
         aliases: aliases
       })
-      toast.success("Marchand ajouté")
+      toast.success(i18n.t("useMerchantsData.marchandAjoute", { ns: "classement" }))
       setNewName("")
       setNewCategoryId("none")
       setNewColor("#64748b")
@@ -68,7 +69,7 @@ export function useMerchantsData() {
       setNewOpen(false)
       loadData()
     } catch (error) {
-      toast.error("Erreur lors de l'ajout")
+      toast.error(i18n.t("useMerchantsData.erreurLorsDeLAjout", { ns: "classement" }))
     }
   }
 
@@ -88,22 +89,22 @@ export function useMerchantsData() {
         category_id: editCategoryId === "none" ? null : parseInt(editCategoryId),
         color: editColor
       })
-      toast.success("Marchand mis à jour")
+      toast.success(i18n.t("useMerchantsData.marchandMisAJour", { ns: "classement" }))
       setEditOpen(false)
       loadData()
     } catch (error) {
-      toast.error("Erreur lors de la mise à jour")
+      toast.error(i18n.t("useMerchantsData.erreurLorsDeLaMise", { ns: "classement" }))
     }
   }
 
   const handleDeleteMerchant = async (id: number) => {
-    if (!(await confirm("Supprimer ce marchand canonique ?"))) return
+    if (!(await confirm(i18n.t("useMerchantsData.supprimerCeMarchandCanonique", { ns: "classement" })))) return
     try {
       await deleteMerchantsById(id)
-      toast.success("Marchand supprimé")
+      toast.success(i18n.t("useMerchantsData.marchandSupprime", { ns: "classement" }))
       loadData()
     } catch (error) {
-      toast.error("Erreur lors de la suppression")
+      toast.error(i18n.t("useMerchantsData.erreurLorsDeLaSuppression", { ns: "classement" }))
     }
   }
 
@@ -117,9 +118,9 @@ export function useMerchantsData() {
       setEditingMerchant(updated)
       // Also update in list to avoid extra reload
       setMerchants(merchants.map(m => m.id === updated.id ? updated : m))
-      toast.success("Alias ajouté")
+      toast.success(i18n.t("useMerchantsData.aliasAjoute", { ns: "classement" }))
     } catch (error) {
-      toast.error("L'alias existe déjà ou erreur")
+      toast.error(i18n.t("useMerchantsData.lAliasExisteDejaOu", { ns: "classement" }))
     }
   }
 
@@ -131,19 +132,19 @@ export function useMerchantsData() {
         setEditingMerchant({ ...editingMerchant, aliases: updatedAliases })
         setMerchants(merchants.map(m => m.id === editingMerchant.id ? { ...m, aliases: updatedAliases } : m))
       }
-      toast.success("Alias supprimé")
+      toast.success(i18n.t("useMerchantsData.aliasSupprime", { ns: "classement" }))
     } catch (error) {
-      toast.error("Erreur suppression alias")
+      toast.error(i18n.t("useMerchantsData.erreurSuppressionAlias", { ns: "classement" }))
     }
   }
 
   const handleAutoNormalize = async () => {
     try {
       const result = await postMerchantsAutoNormalize<{ normalized_count: number }>({})
-      toast.success(`${result.normalized_count} transactions normalisées`)
+      toast.success(i18n.t("misc.normalized", { ns: "classement", count: result.normalized_count }))
       loadData()
     } catch (error) {
-      toast.error("Erreur lors de la normalisation")
+      toast.error(i18n.t("useMerchantsData.erreurLorsDeLaNormalisation", { ns: "classement" }))
     }
   }
 

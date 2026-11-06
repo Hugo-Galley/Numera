@@ -7,6 +7,7 @@ from datetime import datetime
 from sqlalchemy.orm import Session
 
 from app.core.errors import BusinessRuleError, ConflictError, NotFoundError
+from app.core.i18n import format_datetime, tr
 from app.core.time import utcnow_naive
 from app.domain.dividends import match_dividend_ticker
 from app.domain.holdings import SELL_TYPES, is_trade
@@ -24,20 +25,21 @@ from app.services.investissement.holdings.replay import trade_cutoff
 VALID_TYPES = {"versement", "retrait", "dividende", "achat", "vente", "frais"}
 TRADE_FIELDS = {"type", "date", "ticker", "quantity", "unit_price", "price_currency", "fees"}
 DIVIDEND_FIELDS = {"type", "date", "ticker", "quantity", "amount", "currency", "reinvested"}
-TYPE_ERROR = "Investment transaction type must be one of: " + ", ".join(sorted(VALID_TYPES))
 
 
 def _check_trade(db: Session, account_id: int, tx_type: str, date: datetime, ticker: str | None, quantity: float | None) -> None:
     """Un achat/une vente exige un titre et une quantité, et ne peut précéder l'inventaire Point Zéro."""
     if tx_type in {"achat", "vente"} and (not ticker or not quantity or quantity <= 0):
-        raise BusinessRuleError("Un achat ou une vente exige un titre (ticker) et une quantité > 0")
+        raise BusinessRuleError(tr("errors.trade_needs_ticker_qty"))
     if not is_trade(tx_type, ticker, quantity):
         return
     cutoff = trade_cutoff(db, account_id, ticker)
     if cutoff and date <= cutoff:
         raise BusinessRuleError(
-            f"Opération sur {ticker.upper()} antérieure au Point Zéro des positions ({cutoff:%d/%m/%Y %H:%M}) : "
-            "elle est déjà couverte par l'inventaire, modifie plutôt l'inventaire du Point Zéro"
+            tr(
+                "errors.trade_before_zero_point", ticker=ticker.upper(),
+                cutoff=format_datetime(cutoff),
+            )
         )
 
 
@@ -46,18 +48,18 @@ def _check_dividend(db: Session, account_id: int, *, tx_type: str, date: datetim
     """Retenue et réinvestissement n'existent que pour un dividende ; réinvestir exige titre + parts reçues."""
     if tx_type != "dividende":
         if reinvested or withholding_tax:
-            raise BusinessRuleError("Retenue à la source et réinvestissement ne concernent que les dividendes")
+            raise BusinessRuleError(tr("errors.dividend_only_options"))
         return
     if reinvested:
         if not ticker or not quantity or quantity <= 0:
-            raise BusinessRuleError("Un dividende réinvesti exige un titre et le nombre de parts reçues")
+            raise BusinessRuleError(tr("errors.reinvest_needs_ticker_qty"))
         _check_trade(db, account_id, "achat", date, ticker, quantity)
 
 
 def _check_zero_point(db: Session, account_id: int, day: datetime) -> None:
     active_zero_point = portfolio_repo.latest_zero_point(db, account_id)
     if active_zero_point and day < active_zero_point.date:
-        raise BusinessRuleError("Transaction date cannot be before active zero point")
+        raise BusinessRuleError(tr("errors.before_zero_point"))
 
 
 def _flag_distributing(db: Session, account_id: int, ticker: str | None) -> None:
@@ -116,7 +118,7 @@ def link_dividends(db: Session, account_id: int, dry_run: bool) -> dict:
     `dry_run` se contente de proposer ; les libellés ambigus ou inconnus restent non rattachés.
     """
     if not accounts_repo.get(db, account_id):
-        raise NotFoundError("Account not found")
+        raise NotFoundError(tr("errors.account_not_found"))
     candidates = repo.dividend_link_candidates(db, account_id)
     matched, unmatched = [], []
     for tx in repo.unlinked_dividends(db, account_id):
@@ -139,15 +141,15 @@ def link_dividends(db: Session, account_id: int, dry_run: bool) -> dict:
 def _validate_new(db: Session, payload: InvestmentTransactionCreate) -> tuple[Account, str]:
     account = accounts_repo.get(db, payload.account_id)
     if not account:
-        raise NotFoundError("Account not found")
+        raise NotFoundError(tr("errors.account_not_found"))
     if account.type not in {"investissement", "assurance_vie"}:
-        raise BusinessRuleError("Account must be of type investissement or assurance_vie")
+        raise BusinessRuleError(tr("errors.account_must_be_investment"))
     tx_type = payload.type.strip().lower()
     if tx_type not in VALID_TYPES:
-        raise BusinessRuleError(TYPE_ERROR)
+        raise BusinessRuleError(tr("errors.invalid_investment_type", types=", ".join(sorted(VALID_TYPES))))
     _check_trade(db, payload.account_id, tx_type, payload.date, payload.ticker, payload.quantity)
     if tx_type == "dividende" and not payload.ticker:
-        raise BusinessRuleError("Un dividende doit être rattaché à un titre (ticker)")
+        raise BusinessRuleError(tr("errors.dividend_needs_ticker"))
     _check_dividend(
         db, payload.account_id, tx_type=tx_type, date=payload.date, ticker=payload.ticker,
         quantity=payload.quantity, reinvested=payload.reinvested, withholding_tax=payload.withholding_tax,
@@ -187,17 +189,17 @@ async def create_transaction(db: Session, payload: InvestmentTransactionCreate) 
     return await _finish(db, tx, sync_dividend=tx_type == "dividende")
 
 
-def _get_editable(db: Session, tx_id: int, reinvest_message: str) -> InvestmentTransaction:
+def _get_editable(db: Session, tx_id: int, reinvest_key: str) -> InvestmentTransaction:
     tx = repo.get(db, tx_id)
     if not tx:
-        raise NotFoundError("Investment transaction not found")
+        raise NotFoundError(tr("errors.investment_tx_not_found"))
     if tx.reinvest_of_id is not None:
-        raise ConflictError(reinvest_message)
+        raise ConflictError(tr(reinvest_key))
     return tx
 
 
 async def delete_transaction(db: Session, tx_id: int) -> None:
-    tx = _get_editable(db, tx_id, "Cet achat vient d'un dividende réinvesti : modifie ou supprime le dividende")
+    tx = _get_editable(db, tx_id, "errors.reinvest_edit_or_delete")
     account_id = tx.account_id
     repo.delete_reinvestments(db, tx.id)
     for linked in repo.linked_bank_transactions(db, tx.id):
@@ -216,7 +218,7 @@ async def _normalize_update(db: Session, tx: InvestmentTransaction, account: Acc
     if "type" in data and data["type"] is not None:
         tx_type = data["type"].strip().lower()
         if tx_type not in VALID_TYPES:
-            raise BusinessRuleError(TYPE_ERROR)
+            raise BusinessRuleError(tr("errors.invalid_investment_type", types=", ".join(sorted(VALID_TYPES))))
         data["type"] = tx_type
     new_date = data.get("date", tx.date)
     _check_zero_point(db, tx.account_id, new_date)
@@ -251,7 +253,7 @@ async def _normalize_update(db: Session, tx: InvestmentTransaction, account: Acc
 
 
 async def update_transaction(db: Session, tx_id: int, payload: InvestmentTransactionUpdate) -> InvestmentTransaction:
-    tx = _get_editable(db, tx_id, "Cet achat vient d'un dividende réinvesti : modifie le dividende")
+    tx = _get_editable(db, tx_id, "errors.reinvest_edit")
     account = accounts_repo.get(db, tx.account_id)
     data = payload.model_dump(exclude_unset=True)
     await _normalize_update(db, tx, account, data)

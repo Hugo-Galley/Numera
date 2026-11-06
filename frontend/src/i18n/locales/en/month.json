@@ -1,0 +1,157 @@
+{
+  "accountsStep": {
+    "soldeValide": "Balance confirmed",
+    "echecDeLaValidation": "Confirmation failed",
+    "comparezLeSoldeAfficheAvec": "Compare the displayed balance with your statement, then confirm each account.",
+    "valide": "Confirmed",
+    "validerLeSolde": "Confirm balance"
+  },
+  "budgetStep": {
+    "marqueeExceptionnelle": "Marked as exceptional",
+    "marquageRetire": "Mark removed",
+    "echecDeLaMiseA": "Update failed",
+    "revenus": "Income",
+    "depensesReelles": "Actual expenses",
+    "depensesHorsExceptionnelles": "Expenses excluding exceptional",
+    "epargneDuMois": "Savings of the month",
+    "tauxDEpargne": "Savings rate",
+    "burnRateParJour": "Burn rate (per day)",
+    "budgetsDepasses": "Budgets exceeded",
+    "plusGrossesDepensesDuMois": "Biggest expenses of the month. Mark a one-off purchase as",
+    "pourJugerLeMoisSans": "to judge the month without it (it stays in the totals and balances).",
+    "exceptionnelle": "Exceptional",
+    "marquerExceptionnelle": "Mark as exceptional",
+    "aucuneDepenseCeMoisCi": "No expenses this month."
+  },
+  "categorizeStep": {
+    "categorieEnregistree": "Category saved",
+    "echecDeLaCategorisation": "Categorization failed",
+    "toutesLesDepensesDuMois": "All of this month's expenses are categorized.",
+    "choisir": "Choose…"
+  },
+  "closeStep": {
+    "desTransactionsOntChangeDepuis": "Transactions changed since the month was closed. You can close it again to update the snapshot.",
+    "depensesSansCategorie": "Uncategorized expenses",
+    "comptesAValider": "Accounts to confirm",
+    "depensesReelles": "Actual expenses",
+    "epargne": "Savings",
+    "faitMarquant": "Highlight",
+    "reCloturerLeMois": "Close the month again",
+    "cloturerLeMois": "Close the month",
+    "rouvrirLeMois": "Reopen the month"
+  },
+  "monthReviewPopup": {
+    "toutSembleEnOrdreIl": "Everything looks fine: all that's left is to check the budget and close the month.",
+    "pasCeMoisCi": "Not this month",
+    "plusTard": "Later",
+    "faireLaRevue": "Start the review"
+  },
+  "budgetSection": {
+    "budgetTenu": "Budget respected?",
+    "tousLesBudgetsRespectes": "All budgets respected"
+  },
+  "savingsSection": {
+    "misDeCote": "Set aside",
+    "epargne": "Savings",
+    "investi": "Invested",
+    "tauxDEpargne": "Savings rate",
+    "variationDuPatrimoine": "Change in net worth"
+  },
+  "spendingSection": {
+    "ouEstPasseLArgent": "Where did the money go?",
+    "principalesCategories": "Top categories",
+    "aucuneDepenseCategoriseeCeMois": "No categorized expense this month.",
+    "voirLesTransactions": "View transactions",
+    "parts": {
+      "fixed_charges": "Fixed charges",
+      "variable_expenses": "Variable expenses",
+      "savings": "Savings",
+      "investments": "Invested",
+      "remainder": "Remaining"
+    }
+  },
+  "watchSection": {
+    "aRegarder": "Worth a look",
+    "rienDAnormalCeMois": "Nothing unusual this month."
+  },
+  "comparison": {
+    "voirLesTransactions": "View transactions",
+    "erreurLorsDuChargementDe": "Error loading the comparison",
+    "comparaisonMensuelle": "Monthly Comparison",
+    "comparezVosRevenusEtDepenses": "Compare your income and expenses between two periods.",
+    "periodeA": "Period A",
+    "periodeB": "Period B",
+    "laComparaisonNAPas": "The comparison couldn't be loaded.",
+    "ecartRevenus": "Income Gap",
+    "ecartDepenses": "Expense Gap",
+    "ecartEpargne": "Savings Gap",
+    "evolutionNette": "Net change",
+    "detailParCategorie": "Breakdown by category",
+    "variationDesDepensesEntreLes": "Change in spending between the two periods. Click an amount to see its transactions.",
+    "selectionnezDeuxPeriodesPourComparer": "Select two periods to compare.",
+    "categorie": "Category",
+    "ecart": "Gap"
+  },
+  "monthHub": {
+    "bilan": "Report",
+    "revue": "Review",
+    "comparaison": "Comparison"
+  },
+  "monthReview": {
+    "impossibleDeChargerLaRevue": "Couldn't load the month review",
+    "moisCloture": "Month closed",
+    "echecDeLaCloture": "Closing failed",
+    "moisRouvert": "Month reopened",
+    "echecDeLaReouverture": "Reopening failed",
+    "revueDeMois": "Month Review",
+    "passezLeMoisEnRevue": "Go through the month step by step, then close it.",
+    "moisPrecedent": "Previous month",
+    "moisSuivant": "Next month",
+    "laRevueDuMoisN": "The month review couldn't be loaded.",
+    "unFaitMarquantARetenir": "A highlight to remember from this month (optional): cancellation, big expense, savings change…",
+    "steps": {
+      "categorize": "Categorize",
+      "accounts": "Balances",
+      "budget": "Budget",
+      "highlight": "Highlight",
+      "close": "Close"
+    }
+  },
+  "monthlyReport": {
+    "bilanDuMois": "Month Report",
+    "moisCloture": "Month closed",
+    "revueDeFinDeMois": "End-of-month review to do",
+    "moisPrecedent": "Previous month",
+    "moisSuivant": "Next month",
+    "exporterEnPdf": "Export to PDF",
+    "impossibleDeChargerLeBilan": "Couldn't load the report.",
+    "reessayer": "Try again",
+    "revenus": "Income",
+    "depensesReelles": "Actual expenses",
+    "misDeCote": "Set aside",
+    "epargneInvesti": "savings + invested",
+    "unresolvedPoints_one": " · {{count}} unresolved item",
+    "unresolvedPoints_other": " · {{count}} unresolved items"
+  },
+  "misc": {
+    "vsPrevious": "{{amount}} vs previous month",
+    "uncategorized_one": "{{count}} uncategorized expense, totaling",
+    "uncategorized_other": "{{count}} uncategorized expenses, totaling",
+    "largestListed": " The {{count}} largest are listed.",
+    "categoryOf": "Category of {{merchant}}",
+    "popupPoints": "{{expenses}} uncategorized expense(s) and {{accounts}} account(s) to confirm.",
+    "popupTitle": "{{month}} isn't closed yet",
+    "over_one": "{{count}} over budget",
+    "over_other": "{{count}} over budget",
+    "exceededBy": "Over by {{amount}}",
+    "remaining": "{{amount}} left",
+    "ofIncome": "{{pct}} of income",
+    "expensesOver": "Expenses exceed income by {{amount}}.",
+    "excludingExceptional": "{{pct}} excluding exceptional",
+    "shareUnspent": "share of income not spent",
+    "lastValidation": "Last confirmed: {{date}}",
+    "closedOn": "Closed on {{date}}",
+    "unresolved": "{{count}} item(s) left to handle; you can still close the month, they will be noted.",
+    "closeAnyway": "{{count}} item(s) left to handle; you can still close the month, they will be noted."
+  }
+}

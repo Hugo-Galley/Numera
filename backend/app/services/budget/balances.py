@@ -1,20 +1,17 @@
 from sqlalchemy.orm import Session
 
 from app.domain.finance import apply_transaction_to_balance
-from app.models.transaction import Transaction
+from app.repositories.budget import balances as repo
 
 
 def recalculate_running_balances(db: Session, account_id: int):
-    """Recalcule les soldes courants du compte par ordre chronologique. Ne commit pas : l'appelant porte la transaction."""
-    transactions = (
-        db.query(Transaction)
-        .filter(Transaction.account_id == account_id)
-        .order_by(Transaction.date.asc(), Transaction.id.asc())
-        .all()
-    )
+    """Recalcule les soldes courants du compte par ordre chronologique. Ne commit pas : l'appelant porte la transaction.
 
+    Lecture par colonnes et mise à jour en masse des seules lignes dont le solde change."""
     current_balance = 0.0
-    for tx in transactions:
-        current_balance = apply_transaction_to_balance(current_balance, tx.type, tx.amount)
-        tx.running_balance = current_balance
-    db.flush()
+    changed: list[tuple[int, float]] = []
+    for tx_id, tx_type, amount, stored in repo.account_ledger_chronological(db, account_id):
+        current_balance = apply_transaction_to_balance(current_balance, tx_type, amount)
+        if stored != current_balance:
+            changed.append((tx_id, current_balance))
+    repo.update_running_balances(db, account_id, changed)

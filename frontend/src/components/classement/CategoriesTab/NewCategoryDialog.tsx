@@ -1,3 +1,5 @@
+import i18n from "i18next"
+import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { ICON_OPTIONS, IconComponent } from "@/components/dashboard/IconComponent"
@@ -11,63 +13,64 @@ import type { CategoriesTabCtx } from "./useCategoriesTab"
 
 /** Dialogue de création d'une catégorie. */
 export function NewCategoryDialog({ ctx }: { ctx: CategoriesTabCtx }) {
+  const { t } = useTranslation("classement")
   const { sankeyGroupOptions, handleAddCategory, handleAddCategoryBusy, newAnnualLimit, newCatColor, newCatGroup, newCatIcon, newCatName, newCatType, newMonthlyLimit, newOpen, setNewAnnualLimit, setNewCatColor, setNewCatGroup, setNewCatIcon, setNewCatName, setNewCatType, setNewMonthlyLimit, setNewOpen } = ctx
   return (
     <>
       <Dialog open={newOpen} onOpenChange={setNewOpen}>
         <DialogTrigger asChild>
           <Button className="bg-slate-900 text-white hover:bg-slate-800 shadow-lg w-full sm:w-auto h-11 sm:h-10">
-            <Plus className="h-4 w-4 mr-2" /> Nouvelle catégorie
+            <Plus className="h-4 w-4 mr-2" /> {t("newCategoryDialog.nouvelleCategorie")}
           </Button>
         </DialogTrigger>
         <DialogContent className="[&_input]:text-base md:[&_input]:text-sm sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-bold">Nouvelle catégorie</DialogTitle>
+            <DialogTitle className="text-2xl font-bold">{t("newCategoryDialog.nouvelleCategorie")}</DialogTitle>
             <DialogDescription>
-              Créez une catégorie personnalisée avec son icône et sa couleur.
+              {t("newCategoryDialog.creezUneCategoriePersonnaliseeAvec")}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-5 py-2 sm:gap-6 sm:py-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="grid gap-2">
-                <Label htmlFor="new-name" className="text-xs font-bold uppercase tracking-wider text-slate-500">Nom</Label>
+                <Label htmlFor="new-name" className="text-xs font-bold uppercase tracking-wider text-slate-500">{t("newCategoryDialog.nom")}</Label>
                 <Input 
                   id="new-name" 
-                  placeholder="Ex: Streaming..." 
+                  placeholder={t("newCategoryDialog.exStreaming")} 
                   value={newCatName}
                   onChange={(e) => setNewCatName(e.target.value)}
                   className="bg-slate-50 border-slate-200"
                 />
               </div>
               <div className="grid gap-2">
-                <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">Nature</Label>
+                <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">{t("newCategoryDialog.nature")}</Label>
                 <Select value={newCatType} onValueChange={(v: any) => setNewCatType(v)}>
                   <SelectTrigger className="bg-slate-50 border-slate-200">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="depense">Dépense (-)</SelectItem>
-                    <SelectItem value="revenu">Revenu (+)</SelectItem>
-                    <SelectItem value="neutre">Neutre</SelectItem>
+                    <SelectItem value="depense">{t("newCategoryDialog.depense")}</SelectItem>
+                    <SelectItem value="revenu">{t("newCategoryDialog.revenu")}</SelectItem>
+                    <SelectItem value="neutre">{t("newCategoryDialog.neutre")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="new-group" className="text-xs font-bold uppercase tracking-wider text-slate-500">Groupe (pour Sankey)</Label>
+              <Label htmlFor="new-group" className="text-xs font-bold uppercase tracking-wider text-slate-500">{t("newCategoryDialog.groupePourSankey")}</Label>
               <SankeyGroupSelect id="new-group" value={newCatGroup} onChange={setNewCatGroup} groups={sankeyGroupOptions} />
             </div>
 
             <div className="grid gap-2">
-              <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">Icône</Label>
+              <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">{t("newCategoryDialog.icone")}</Label>
               <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
                 <div className="grid grid-cols-6 sm:grid-cols-10 gap-1 sm:gap-2 max-h-[200px] overflow-y-auto pr-2 custom-scrollbar">
                   {ICON_OPTIONS.map((iconName) => (
                     <button
                       key={iconName}
                       type="button"
-                      aria-label={`Icône ${iconName}`}
+                      aria-label={i18n.t("misc.iconLabel", { ns: "classement", name: iconName })}
                       aria-pressed={newCatIcon === iconName}
                       onClick={() => setNewCatIcon(iconName)}
                       className={`p-3 sm:p-2 rounded-lg flex items-center justify-center transition-all ${newCatIcon === iconName ? 'bg-slate-900 text-white' : 'hover:bg-slate-200 text-slate-500'}`}
@@ -80,7 +83,7 @@ export function NewCategoryDialog({ ctx }: { ctx: CategoriesTabCtx }) {
             </div>
 
             <div className="grid gap-2">
-              <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">Couleur</Label>
+              <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">{t("newCategoryDialog.couleur")}</Label>
               <div className="flex flex-wrap gap-2 p-3 bg-slate-50 rounded-xl border border-slate-200 justify-center sm:justify-start">
                 {COLOR_OPTIONS.map((opt) => (
                   <button
@@ -97,24 +100,24 @@ export function NewCategoryDialog({ ctx }: { ctx: CategoriesTabCtx }) {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="grid gap-2">
-                <Label htmlFor="new-monthly-limit" className="text-xs font-bold uppercase tracking-wider text-slate-500">Limite mensuelle (€)</Label>
+                <Label htmlFor="new-monthly-limit" className="text-xs font-bold uppercase tracking-wider text-slate-500">{t("newCategoryDialog.limiteMensuelle")}</Label>
                 <Input
                   id="new-monthly-limit"
                   type="number" inputMode="decimal"
                   min="0"
-                  placeholder="Ex: 200"
+                  placeholder={t("newCategoryDialog.ex200")}
                   value={newMonthlyLimit}
                   onChange={(e) => setNewMonthlyLimit(e.target.value)}
                   className="bg-slate-50 border-slate-200"
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="new-annual-limit" className="text-xs font-bold uppercase tracking-wider text-slate-500">Limite annuelle (€)</Label>
+                <Label htmlFor="new-annual-limit" className="text-xs font-bold uppercase tracking-wider text-slate-500">{t("newCategoryDialog.limiteAnnuelle")}</Label>
                 <Input
                   id="new-annual-limit"
                   type="number" inputMode="decimal"
                   min="0"
-                  placeholder="Ex: 2400"
+                  placeholder={t("newCategoryDialog.ex2400")}
                   value={newAnnualLimit}
                   onChange={(e) => setNewAnnualLimit(e.target.value)}
                   className="bg-slate-50 border-slate-200"
@@ -127,14 +130,14 @@ export function NewCategoryDialog({ ctx }: { ctx: CategoriesTabCtx }) {
                 <IconComponent name={newCatIcon} className="h-6 w-6 text-white" />
               </div>
               <div>
-                <p className="text-sm font-bold">{newCatName || "Nom de la catégorie"}</p>
+                <p className="text-sm font-bold">{newCatName || i18n.t("misc.categoryNamePreview", { ns: "classement" })}</p>
                 <p className="text-[10px] uppercase font-black opacity-50 tracking-widest">{newCatType}</p>
               </div>
             </div>
           </div>
           <DialogFooter className="gap-2 sm:gap-0">
-            <Button variant="ghost" className="h-11 sm:h-10" onClick={() => setNewOpen(false)}>Annuler</Button>
-            <Button onClick={() => handleAddCategory()} disabled={handleAddCategoryBusy} className="h-11 bg-slate-900 text-white shadow-lg sm:h-10">Créer la catégorie</Button>
+            <Button variant="ghost" className="h-11 sm:h-10" onClick={() => setNewOpen(false)}>{t("newCategoryDialog.annuler")}</Button>
+            <Button onClick={() => handleAddCategory()} disabled={handleAddCategoryBusy} className="h-11 bg-slate-900 text-white shadow-lg sm:h-10">{t("newCategoryDialog.creerLaCategorie")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

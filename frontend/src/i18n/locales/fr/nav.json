@@ -1,0 +1,48 @@
+{
+  "groups": {
+    "overview": "Vue d'ensemble",
+    "wealth": "Patrimoine",
+    "management": "Gestion"
+  },
+  "items": {
+    "dashboard": "Tableau de bord",
+    "month": "Mois",
+    "wrapped": "Bilan annuel",
+    "actions": "Centre d'actions",
+    "accounts": "Comptes",
+    "savings": "Épargne",
+    "investments": "Investissements",
+    "tax": "Fiscalité",
+    "recurring": "Échéances",
+    "reimbursements": "Remboursements",
+    "classement": "Classement",
+    "simulator": "Simulateur"
+  },
+  "mobile": {
+    "label": "Navigation principale",
+    "home": "Accueil",
+    "month": "Mois",
+    "accounts": "Comptes",
+    "investments": "Placements",
+    "more": "Plus",
+    "menuTitle": "Navigation",
+    "menuDescription": "Toutes les pages de Numera"
+  },
+  "urgentActions_one": "{{count}} action urgente",
+  "urgentActions_other": "{{count}} actions urgentes",
+  "privacy": {
+    "show": "Afficher",
+    "hide": "Masquer",
+    "showAmounts": "Afficher les montants",
+    "hideAmounts": "Masquer les montants"
+  },
+  "search": "Rechercher",
+  "user": {
+    "fallbackName": "Utilisateur",
+    "role": "Administrateur",
+    "myAccount": "Mon Compte",
+    "settings": "Paramètres",
+    "logout": "Se déconnecter"
+  },
+  "demoBanner": "Démo — données fictives, remises à zéro chaque jour"
+}

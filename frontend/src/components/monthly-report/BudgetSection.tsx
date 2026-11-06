@@ -1,8 +1,11 @@
+import i18n from "i18next"
+import { useTranslation } from "react-i18next"
 import { Card, CardContent } from "@/components/ui/card"
 import { formatCurrency } from "@/lib/utils"
 import type { BudgetLine } from "./types"
 
 export function BudgetSection({ lines }: { lines: BudgetLine[] }) {
+  const { t } = useTranslation("month")
   const budgeted = lines
     .filter((l) => l.monthly_limit !== null && l.monthly_limit > 0)
     .sort((a, b) => (b.monthly_ratio ?? 0) - (a.monthly_ratio ?? 0))
@@ -12,9 +15,9 @@ export function BudgetSection({ lines }: { lines: BudgetLine[] }) {
   return (
     <section className="space-y-3">
       <div className="flex items-baseline justify-between">
-        <h2 className="text-lg font-black text-slate-900">Budget tenu ?</h2>
+        <h2 className="text-lg font-black text-slate-900">{t("budgetSection.budgetTenu")}</h2>
         <span className={`text-xs font-semibold ${over ? "text-rose-600" : "text-emerald-600"}`}>
-          {over ? `${over} dépassement${over > 1 ? "s" : ""}` : "Tous les budgets respectés"}
+          {over ? i18n.t("misc.over", { ns: "month", count: over }) : t("budgetSection.tousLesBudgetsRespectes")}
         </span>
       </div>
       <Card>
@@ -37,7 +40,7 @@ export function BudgetSection({ lines }: { lines: BudgetLine[] }) {
                   <div className={`h-full rounded-full ${tone}`} style={{ width: `${Math.min(100, ratio * 100)}%` }} />
                 </div>
                 <div className={`amount-blur text-xs ${left < 0 ? "font-semibold text-rose-600" : "text-slate-500"}`}>
-                  {left < 0 ? `Dépassé de ${formatCurrency(-left)}` : `Reste ${formatCurrency(left)}`}
+                  {left < 0 ? i18n.t("misc.exceededBy", { ns: "month", amount: formatCurrency(-left) }) : i18n.t("misc.remaining", { ns: "month", amount: formatCurrency(left) })}
                 </div>
               </div>
             )
