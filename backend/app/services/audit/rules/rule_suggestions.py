@@ -6,6 +6,7 @@ leur propre catégorie) ne comptent pas.
 """
 from datetime import timedelta
 
+from app.core.i18n import tr, trn
 from app.repositories.analytics import audit as repo
 from app.schemas.insight import ActionItem
 from app.services.audit.context import AuditContext
@@ -36,12 +37,9 @@ def detect(ctx: AuditContext) -> list[ActionItem]:
             id=f"suggest-rule-{merchant}",
             type="rule",
             severity="low",
-            title=f"Nouvelle règle suggérée : {merchant}",
-            description=(
-                f"{stats['uncategorized']} transaction(s) sans catégorie chez '{merchant}' "
-                f"(sur {stats['total']}). Une règle les catégoriserait, ainsi que les prochains imports."
-            ),
-            action_label="Créer la règle",
+            title=tr("audit.rule_suggestions.title", merchant=merchant),
+            description=trn("audit.rule_suggestions.description", stats["uncategorized"], merchant=merchant, total=stats["total"]),
+            action_label=tr("audit.rule_suggestions.action"),
             action_url="/classement?tab=rules",
             action_type="modal_rule",
             metadata={"merchant": merchant, "suggested_category_id": suggested_cat_id}

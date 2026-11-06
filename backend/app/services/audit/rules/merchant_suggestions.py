@@ -3,6 +3,7 @@
 Un marchand canonique sert à regrouper plusieurs écritures d'un même commerçant : on ne le propose
 que si le même nom apparaît sous au moins deux libellés (casse, accents, chiffres, ponctuation).
 """
+from app.core.i18n import tr
 from app.domain.audit import merchant_variants
 from app.repositories.analytics import audit as repo
 from app.schemas.insight import ActionItem
@@ -18,12 +19,12 @@ def detect(ctx: AuditContext) -> list[ActionItem]:
             id=f"suggest-normalization-{main_label}",
             type="merchant",
             severity="low",
-            title=f"Normalisation suggérée : {main_label}",
-            description=(
-                f"{len(labels)} écritures pour le même marchand ({', '.join(repr(label) for label, _ in labels[:4])}), "
-                f"{total} transactions. Les regrouper sous un marchand canonique ?"
+            title=tr("audit.merchant_suggestions.title", merchant=main_label),
+            description=tr(
+                "audit.merchant_suggestions.description", entries=len(labels), total=total,
+                labels=", ".join(repr(label) for label, _ in labels[:4]),
             ),
-            action_label="Normaliser",
+            action_label=tr("audit.merchant_suggestions.action"),
             action_url="/classement?tab=merchants",
             action_type="modal_merchant",
             metadata={"merchant": main_label, "count": total, "variants": [label for label, _ in labels]}

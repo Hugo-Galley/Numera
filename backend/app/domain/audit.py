@@ -2,8 +2,8 @@
 import re
 import unicodedata
 
-_MONTH_NAMES = ("janvier", "février", "mars", "avril", "mai", "juin",
-                "juillet", "août", "septembre", "octobre", "novembre", "décembre")
+from app.core.i18n import tr
+
 SEVERITY_ORDER = {"high": 0, "medium": 1, "low": 2}
 
 
@@ -14,9 +14,9 @@ def merchant_key(label: str) -> str:
 
 
 def month_name(label: str) -> str:
-    """« 2026-10 » → « octobre 2026 » (FRENCH_MONTHS, sans accents, sert aux libellés stockés)."""
+    """« 2026-10 » → « octobre 2026 » / « October 2026 » selon la langue de la requête."""
     year, month = label.split("-")
-    return f"{_MONTH_NAMES[int(month) - 1]} {year}"
+    return f"{tr(f'common.month.{int(month)}')} {year}"
 
 
 def merchant_variants(rows: list[tuple[str, int]]) -> list[list[tuple[str, int]]]:

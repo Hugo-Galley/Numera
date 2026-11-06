@@ -123,6 +123,7 @@
     "deleteTx": "Delete the transaction “{{merchant}}” of {{amount}}?",
     "allLinked": "All reconciled transfers ({{count}}). Unlinking an automatic link stops the rule from recreating it.",
     "ruleHint": "Automate categorization for future transactions of \"{{merchant}}\".",
-    "merchantHint": "Create a canonical merchant for \"{{merchant}}\"."
+    "merchantHint": "Create a canonical merchant for \"{{merchant}}\".",
+    "lastAnalysis": "Last analysis: {{date}}"
   }
 }
