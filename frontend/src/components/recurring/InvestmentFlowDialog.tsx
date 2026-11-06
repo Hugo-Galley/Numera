@@ -36,6 +36,8 @@ interface Props {
   recurring: FlowRecurring | null
   accounts: FlowAccount[]
   nextOccurrence?: string | null
+  /** « subscription » : l'argent part du compte vers un bénéficiaire (marchand), sans titre acheté */
+  variant?: "investment" | "subscription"
   onClose: () => void
 }
 
@@ -78,7 +80,8 @@ function Link({ label }: { label?: string }) {
   )
 }
 
-export function InvestmentFlowDialog({ recurring, accounts, nextOccurrence, onClose }: Props) {
+export function InvestmentFlowDialog({ recurring, accounts, nextOccurrence, variant = "investment", onClose }: Props) {
+  const isSub = variant === "subscription"
   const { t } = useTranslation("recurring")
   const source = recurring ? accounts.find((a) => a.id === recurring.account_id) : undefined
   const destId = recurring?.transfer_to_account_id
@@ -107,7 +110,7 @@ export function InvestmentFlowDialog({ recurring, accounts, nextOccurrence, onCl
                 <CompanyLogo logo={recurring.logo} name={recurring.name} ticker={recurring.ticker ?? undefined} className="h-8 w-8 rounded-lg" />
                 {recurring.name}
               </DialogTitle>
-              <DialogDescription>{t("investmentFlowDialog.parcoursDeLArgentInvesti")}</DialogDescription>
+              <DialogDescription>{t(isSub ? "investmentFlowDialog.parcoursDeLArgentSubscription" : "investmentFlowDialog.parcoursDeLArgentInvesti")}</DialogDescription>
             </DialogHeader>
 
             <div className="rounded-2xl border border-indigo-100 bg-gradient-to-br from-indigo-50/60 to-white p-4 md:p-6">
@@ -125,8 +128,12 @@ export function InvestmentFlowDialog({ recurring, accounts, nextOccurrence, onCl
               <div className="flex items-start justify-center gap-1 overflow-x-auto px-2 pb-1 pt-2">
                 {!startsOnInvestment && accountNode(source, "rose")}
                 {!startsOnInvestment && <Link label={formatCurrency(recurring.amount, recurring.currency)} />}
-                {accountNode(dest ?? (startsOnInvestment ? source : undefined), "indigo")}
-                {hasSecurity && (
+                {isSub ? (
+                  <Node title={recurring.name} subtitle={t("investmentFlowDialog.beneficiary")} logo={recurring.logo} name={recurring.name} tone="emerald" />
+                ) : (
+                  accountNode(dest ?? (startsOnInvestment ? source : undefined), "indigo")
+                )}
+                {hasSecurity && !isSub && (
                   <>
                     <Link label={recurring.quantity ? `${recurring.quantity} part(s)` : t("investmentFlowDialog.achat")} />
                     <Node

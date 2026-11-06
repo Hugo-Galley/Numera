@@ -67,6 +67,8 @@
   },
   "investmentFlowDialog": {
     "parcoursDeLArgentInvesti": "Parcours de l'argent investi, de son compte d'origine à sa destination.",
+    "parcoursDeLArgentSubscription": "Parcours de l'argent, du compte débité jusqu'au bénéficiaire du prélèvement.",
+    "beneficiary": "Bénéficiaire",
     "achat": "Achat",
     "prochainPassage": "Prochain passage :"
   },

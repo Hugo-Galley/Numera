@@ -16,7 +16,7 @@ const FinancialCalendar = lazy(() => import("@/pages/Calendar"))
 export default function RecurringTransactions() {
   const { t } = useTranslation("recurring")
   const ctx = useRecurringTransactions()
-  const { accounts, activeTab, flowSub, recurringTxs, recurringView, setActiveTab, setFlowSub } = ctx
+  const { accounts, activeTab, flowSub, recurringTxs, recurringView, setActiveTab, setFlowSub, subTab } = ctx
   return (
     <div className="space-y-6">
       <RecurringHeader ctx={ctx} />
@@ -66,6 +66,7 @@ export default function RecurringTransactions() {
         recurring={flowSub ? (recurringTxs.find((r) => r.name === flowSub.name && Math.abs(r.amount - flowSub.amount) < 0.005) ?? recurringTxs.find((r) => r.name === flowSub.name) ?? null) : null}
         accounts={accounts}
         nextOccurrence={flowSub?.next_occurrence}
+        variant={subTab === "investments" ? "investment" : "subscription"}
         onClose={() => setFlowSub(null)}
       />
       <RecurringFormDialog ctx={ctx} />

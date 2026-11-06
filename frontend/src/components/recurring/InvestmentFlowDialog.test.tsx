@@ -19,4 +19,10 @@ describe("InvestmentFlowDialog", () => {
     render(<InvestmentFlowDialog recurring={base} accounts={accounts} onClose={() => {}} />)
     expect(screen.getAllByText("DCA mensuel").length).toBeGreaterThan(1)
   })
+
+  it("en mode abonnement, montre le bénéficiaire et pas de titre acheté", () => {
+    render(<InvestmentFlowDialog variant="subscription" recurring={{ ...base, name: "Netflix", ticker: null, isin: null }} accounts={accounts} nextOccurrence="2026-12-05" onClose={() => {}} />)
+    expect(screen.getByText("Bénéficiaire")).toBeInTheDocument()
+    expect(screen.getByText(/Prochain passage/)).toBeInTheDocument()
+  })
 })
