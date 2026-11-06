@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import { useParams } from "react-router-dom"
 import { LoanView } from "@/components/loans/LoanView"
 import { ErrorState } from "@/components/layout/ErrorState"
@@ -20,6 +21,7 @@ export default function AccountDetail() {
 }
 
 function AccountDetailPage() {
+  const { t } = useTranslation("accountDetail")
   const ctx = useAccountDetail()
   const { loading, account, investmentData, loadError, loadData } = ctx
 
@@ -27,13 +29,13 @@ function AccountDetailPage() {
     <div className="flex items-center justify-center h-[60vh]">
       <div className="flex flex-col items-center gap-4">
         <div className="h-12 w-12 rounded-full border-4 border-slate-200 border-t-slate-900 animate-spin" />
-        <p className="text-slate-500 font-medium">Chargement du compte...</p>
+        <p className="text-slate-500 font-medium">{t("index.chargementDuCompte")}</p>
       </div>
     </div>
   )
   
   if (loadError) return <ErrorState message={loadError} onRetry={() => loadData()} />
-  if (!account) return <div>Compte non trouvé</div>
+  if (!account) return <div>{t("index.compteNonTrouve")}</div>
   // Un compte crédit n'a pas d'opérations : échéancier, capital restant dû et simulateur
   if (account.type === "credit") return <LoanView accountId={account.id} />
 

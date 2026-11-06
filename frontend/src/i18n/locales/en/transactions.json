@@ -1,0 +1,45 @@
+{
+  "splitTransactionDialog": {
+    "depenseDecoupee": "Expense split",
+    "erreurLorsDuDecoupage": "Error while splitting",
+    "decoupageAnnule": "Split cancelled",
+    "erreurLorsDeLAnnulation": "Error while cancelling",
+    "decouperLaDepense": "Split the expense",
+    "categorie": "Category",
+    "retirerLaPart": "Remove share",
+    "ajouterUnePart": "Add a share",
+    "montantReparti": "Amount allocated",
+    "doubleCliquezSurUnMontant": "Double-click an amount to put the remainder there.",
+    "annulerLeDecoupage": "Cancel the split",
+    "fermer": "Close",
+    "enregistrer": "Save",
+    "hint": "{{merchant}} · {{amount}}. Each share counts in its own category (budget, breakdown, alerts); the total expense doesn't change.",
+    "remaining": "{{amount}} left"
+  },
+  "drilldownSheet": {
+    "aucuneDepenseNeCorrespondLes": "No expense matches (investment deposits don't appear here).",
+    "expensesOf": "Expenses for {{period}}",
+    "loadFailed": "Transactions couldn't be loaded."
+  },
+  "transferLinkDialog": {
+    "erreurLorsDeLaRecherche": "Error searching for candidates",
+    "virementLie": "Transfer linked",
+    "echecDeLaLiaison": "Linking failed",
+    "contrepartieCreeeEtLiee": "Counterpart created and linked",
+    "impossibleDeCreerLaContrepartie": "Couldn't create the counterpart",
+    "cetteLigneNeSeraPlus": "This line will no longer be suggested as a transfer",
+    "echecDeLAction": "Action failed",
+    "virementInterne": "Internal transfer",
+    "entrees": "Money in",
+    "sorties": "Money out",
+    "tousLesComptes": "All accounts",
+    "lier": "Link",
+    "creerLaContrepartieSur": "Create the counterpart on",
+    "choisirUnCompte": "Choose an account",
+    "creerEtLier": "Create and link",
+    "ceNEstPasUn": "This is not a transfer",
+    "noCandidate": "No candidate.",
+    "createBelow": "You can create the counterpart below.",
+    "unknownAccount": "Unknown account"
+  }
+}

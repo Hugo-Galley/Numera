@@ -35,7 +35,8 @@
     "save": "Save",
     "saving": "Saving…",
     "none": "None",
-    "date": "Date"
+    "date": "Date",
+    "actions": "Actions"
   },
   "accountTypes": {
     "courant": "Checking Account",
@@ -50,5 +51,13 @@
     "depense": "Expense",
     "revenu": "Income",
     "neutre": "Neutral"
+  },
+  "txTypes": {
+    "Entree": "Income",
+    "Sortie": "Expense",
+    "Interets": "Interest",
+    "initial": "Opening Balance",
+    "Virement": "Transfer",
+    "uncategorized": "Uncategorized"
   }
 }

@@ -1,3 +1,4 @@
+import i18n from "i18next"
 import { PortfolioHolding } from "@/types/diversity"
 import { errorMessage } from "@/lib/utils"
 import { nowLocalInput, toInputValue, toNaiveLocal, todayLocal } from "@/lib/dates"
@@ -35,15 +36,15 @@ export function useInvestmentActions(p: ReturnType<typeof useAccountDetailState>
 
   const [handleCreateInvestmentTransaction, handleCreateInvestmentTransactionBusy] = useSubmit(async () => {
     if (!invTxAmount && (!invTxQuantity || !invTxUnitPrice)) {
-      toast.error("Veuillez saisir un montant ou un nombre de parts")
+      toast.error(i18n.t("useInvestmentActions.veuillezSaisirUnMontantOu", { ns: "accountDetail" }))
       return
     }
     if (invTxType === "dividende" && !invTxTicker) {
-      toast.error("Un dividende doit être rattaché à un titre")
+      toast.error(i18n.t("useInvestmentActions.unDividendeDoitEtreRattache", { ns: "accountDetail" }))
       return
     }
     if (invTxType === "dividende" && invTxReinvested && !invTxQuantity) {
-      toast.error("Indique le nombre de parts reçues pour un dividende réinvesti")
+      toast.error(i18n.t("useInvestmentActions.indiqueLeNombreDeParts", { ns: "accountDetail" }))
       return
     }
     try {
@@ -74,17 +75,17 @@ export function useInvestmentActions(p: ReturnType<typeof useAccountDetailState>
       
       if (editInvTxId) {
         await patchInvestmentTransactionsById(editInvTxId, payload)
-        toast.success("Opération modifiée")
+        toast.success(i18n.t("useInvestmentActions.operationModifiee", { ns: "accountDetail" }))
       } else {
         await postInvestmentTransactions(payload)
-        toast.success("Opération enregistrée")
+        toast.success(i18n.t("useInvestmentActions.operationEnregistree", { ns: "accountDetail" }))
       }
       
       setInvTxOpen(false)
       resetInvTxForm()
       await loadData({ quiet: true })
     } catch (error: any) {
-      toast.error(error.message || "Erreur lors de l'enregistrement")
+      toast.error(error.message || i18n.t("useInvestmentActions.erreurLorsDeLEnregistrement", { ns: "accountDetail" }))
     }
   })
 
@@ -119,13 +120,13 @@ export function useInvestmentActions(p: ReturnType<typeof useAccountDetailState>
   }
 
   const handleDeleteInvTransaction = async (txId: number) => {
-    if (!(await confirm("Supprimer ce flux ?"))) return
+    if (!(await confirm(i18n.t("useInvestmentActions.supprimerCeFlux", { ns: "accountDetail" })))) return
     try {
       await deleteInvestmentTransactionsById(txId)
-      toast.success("Flux supprimé")
+      toast.success(i18n.t("useInvestmentActions.fluxSupprime", { ns: "accountDetail" }))
       await loadData({ quiet: true })
     } catch (error: any) {
-      toast.error(error?.message || "Erreur lors de la suppression")
+      toast.error(error?.message || i18n.t("useInvestmentActions.erreurLorsDeLaSuppression", { ns: "accountDetail" }))
     }
   }
 
@@ -139,7 +140,7 @@ export function useInvestmentActions(p: ReturnType<typeof useAccountDetailState>
 
   const [handleCreateSnapshot, handleCreateSnapshotBusy] = useSubmit(async () => {
     if (snapValue === "" || !Number.isFinite(Number(String(snapValue).replace(",", "."))) || Number(String(snapValue).replace(",", ".")) < 0) {
-      toast.error("Saisissez une valeur valide (nombre positif ou nul)")
+      toast.error(i18n.t("useInvestmentActions.saisissezUneValeurValideNombre", { ns: "accountDetail" }))
       return
     }
     try {
@@ -153,17 +154,17 @@ export function useInvestmentActions(p: ReturnType<typeof useAccountDetailState>
 
       if (editSnapId) {
         await patchBalanceSnapshotsById(editSnapId, payload)
-        toast.success("Snapshot modifié")
+        toast.success(i18n.t("useInvestmentActions.snapshotModifie", { ns: "accountDetail" }))
       } else {
         await postBalanceSnapshots(payload)
-        toast.success("Snapshot enregistré")
+        toast.success(i18n.t("useInvestmentActions.snapshotEnregistre", { ns: "accountDetail" }))
       }
       
       setSnapOpen(false)
       resetSnapForm()
       await loadData({ quiet: true })
     } catch (error) {
-      toast.error(errorMessage(error, "Erreur lors de l'enregistrement"))
+      toast.error(errorMessage(error, i18n.t("useInvestmentActions.erreurLorsDeLEnregistrement", { ns: "accountDetail" })))
     }
   })
 
@@ -176,13 +177,13 @@ export function useInvestmentActions(p: ReturnType<typeof useAccountDetailState>
   }
 
   const handleDeleteSnapshot = async (snapId: number) => {
-    if (!(await confirm("Supprimer ce snapshot ?"))) return
+    if (!(await confirm(i18n.t("useInvestmentActions.supprimerCeSnapshot", { ns: "accountDetail" })))) return
     try {
       await deleteBalanceSnapshotsById(snapId)
-      toast.success("Snapshot supprimé")
+      toast.success(i18n.t("useInvestmentActions.snapshotSupprime", { ns: "accountDetail" }))
       await loadData({ quiet: true })
     } catch (error) {
-      toast.error(errorMessage(error, "Erreur lors de la suppression"))
+      toast.error(errorMessage(error, i18n.t("useInvestmentActions.erreurLorsDeLaSuppression", { ns: "accountDetail" })))
     }
   }
 
@@ -200,12 +201,12 @@ export function useInvestmentActions(p: ReturnType<typeof useAccountDetailState>
       }
 
       await patchTransactionsBulk(payload)
-      toast.success(`${selectedIds.length} transactions mises à jour`)
+      toast.success(i18n.t("investmentActions.bulkUpdated", { ns: "accountDetail", count: selectedIds.length }))
       setSelectedIds([])
       setIsBulkEditDialogOpen(false)
       await loadData({ quiet: true })
     } catch (error) {
-      toast.error(errorMessage(error, "Erreur lors de la mise à jour groupée"))
+      toast.error(errorMessage(error, i18n.t("useInvestmentActions.erreurLorsDeLaMise", { ns: "accountDetail" })))
     }
   })
 
@@ -218,7 +219,7 @@ export function useInvestmentActions(p: ReturnType<typeof useAccountDetailState>
 
   const [handleSetZeroPoint, handleSetZeroPointBusy] = useSubmit(async () => {
     if (zeroValue === "" || !Number.isFinite(Number(String(zeroValue).replace(",", "."))) || Number(String(zeroValue).replace(",", ".")) < 0) {
-      toast.error("Saisissez une valeur d'ouverture valide (nombre positif ou nul)")
+      toast.error(i18n.t("useInvestmentActions.saisissezUneValeurDOuverture", { ns: "accountDetail" }))
       return
     }
     try {
@@ -229,12 +230,12 @@ export function useInvestmentActions(p: ReturnType<typeof useAccountDetailState>
         note: zeroNote || null
       }
       await postBalanceSnapshotsSetZeroPoint(payload)
-      toast.success("Nouveau point zéro défini")
+      toast.success(i18n.t("useInvestmentActions.nouveauPointZeroDefini", { ns: "accountDetail" }))
       setZeroOpen(false)
       resetZeroForm()
       await loadData({ quiet: true })
     } catch (error) {
-      toast.error(errorMessage(error, "Erreur lors de la définition du point zéro"))
+      toast.error(errorMessage(error, i18n.t("useInvestmentActions.erreurLorsDeLaDefinition", { ns: "accountDetail" })))
     }
   })
 

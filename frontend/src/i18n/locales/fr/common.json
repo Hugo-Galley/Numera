@@ -35,7 +35,8 @@
     "save": "Enregistrer",
     "saving": "Enregistrement…",
     "none": "Aucun",
-    "date": "Date"
+    "date": "Date",
+    "actions": "Actions"
   },
   "accountTypes": {
     "courant": "Compte Courant",
@@ -50,5 +51,13 @@
     "depense": "Dépense",
     "revenu": "Revenu",
     "neutre": "Neutre"
+  },
+  "txTypes": {
+    "Entree": "Entrée",
+    "Sortie": "Sortie",
+    "Interets": "Intérêts",
+    "initial": "Solde Initial",
+    "Virement": "Virement",
+    "uncategorized": "Sans catégorie"
   }
 }

@@ -1,3 +1,4 @@
+import i18n from "i18next"
 import { ArrowRightLeft, HandCoins, MoreHorizontal, Pencil, Split, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
@@ -48,9 +49,9 @@ export function useTransactionView(p: ReturnType<typeof useAccountDetailState> &
             break
           case "category": {
             const getDisplayCategory = (tx: Transaction) => {
-              if (tx.type === "Solde Initial") return "Solde Initial"
-              if (tx.type === "Interets") return "Intérêts"
-              return tx.category?.name || "Sans catégorie"
+              if (tx.type === "Solde Initial") return i18n.t("txTypes.initial", { ns: "common" })
+              if (tx.type === "Interets") return i18n.t("txTypes.Interets", { ns: "common" })
+              return tx.category?.name || i18n.t("txTypes.uncategorized", { ns: "common" })
             }
             comparison = getDisplayCategory(a).localeCompare(getDisplayCategory(b))
             break
@@ -119,29 +120,29 @@ export function useTransactionView(p: ReturnType<typeof useAccountDetailState> &
           {(tx.type === "Sortie" || tx.type === "Entree") && !tx.is_transfer && (
             <DropdownMenuItem onClick={() => setReimbursementTx(tx)}>
               <HandCoins className="mr-2 h-4 w-4" />
-              {tx.type === "Sortie" ? "On me doit…" : "Affecter à une créance…"}
+              {tx.type === "Sortie" ? i18n.t("tx.menu.owedToMe", { ns: "accountDetail" }) : i18n.t("tx.menu.assignClaim", { ns: "accountDetail" })}
             </DropdownMenuItem>
           )}
           {tx.type === "Sortie" && !tx.is_transfer && (
             <DropdownMenuItem onClick={() => setSplitTx(tx)}>
               <Split className="mr-2 h-4 w-4" />
-              {tx.splits?.length ? "Modifier le découpage…" : "Découper entre catégories…"}
+              {tx.splits?.length ? i18n.t("tx.menu.editSplit", { ns: "accountDetail" }) : i18n.t("tx.menu.split", { ns: "accountDetail" })}
             </DropdownMenuItem>
           )}
           {(tx.type === "Sortie" || tx.type === "Entree") && (
             <DropdownMenuItem onClick={() => openTransferDialog(tx)}>
               <ArrowRightLeft className="mr-2 h-4 w-4" />
-              {tx.is_transfer ? "Virement interne lié…" : "Virement interne…"}
+              {tx.is_transfer ? i18n.t("tx.menu.transferLinked", { ns: "accountDetail" }) : i18n.t("tx.menu.transfer", { ns: "accountDetail" })}
             </DropdownMenuItem>
           )}
           <DropdownMenuItem onClick={() => handleEditTransaction(tx)}>
             <Pencil className="mr-2 h-4 w-4" />
-            Modifier
+            {i18n.t("actions.edit", { ns: "common" })}
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => handleDeleteTransaction(tx.id)} className="text-rose-600 focus:text-rose-600">
             <Trash2 className="mr-2 h-4 w-4" />
-            Supprimer
+            {i18n.t("actions.delete", { ns: "common" })}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
