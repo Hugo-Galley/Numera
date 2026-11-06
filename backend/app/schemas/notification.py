@@ -2,6 +2,8 @@ from typing import Literal
 
 from pydantic import BaseModel, Field, field_validator
 
+from app.core.i18n import tr
+
 Severity = Literal["low", "medium", "high"]
 
 
@@ -42,7 +44,7 @@ class NotificationSettingsUpdate(BaseModel):
     @classmethod
     def _http_url(cls, value: str | None) -> str | None:
         if value and not value.strip().lower().startswith(("http://", "https://")):
-            raise ValueError("L'adresse doit commencer par http:// ou https://")
+            raise ValueError(tr("validation.url_scheme"))
         return value
 
 

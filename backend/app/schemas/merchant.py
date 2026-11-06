@@ -1,11 +1,13 @@
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from app.core.i18n import tr
+
 
 def _clean_label(value: str) -> str:
     value = (value or "").strip()
     if not value:
-        raise ValueError("ne peut pas être vide")
+        raise ValueError(tr("validation.empty"))
     return value
 
 
@@ -39,7 +41,7 @@ class MerchantCreate(MerchantBase):
     def _aliases(cls, value):
         cleaned = [_clean_label(a) for a in (value or [])]
         if len(set(cleaned)) != len(cleaned):
-            raise ValueError("alias en double dans la liste")
+            raise ValueError(tr("validation.duplicate_aliases"))
         return cleaned
 
 class MerchantUpdate(BaseModel):

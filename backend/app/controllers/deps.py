@@ -5,6 +5,7 @@ from pydantic import ValidationError
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
+from app.core.i18n import tr
 from app.core.mcp_tokens import authenticate_mcp_token, is_mcp_token
 from app.db.session import get_db
 from app.db.system_settings import get_setting
@@ -37,7 +38,7 @@ def get_current_user(
         if request.method not in MCP_ALLOWED_METHODS:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Accès MCP en lecture seule",
+                detail=tr("auth.mcp_read_only"),
             )
         return current_admin
 
@@ -76,5 +77,5 @@ def require_interactive_session(token: str | None = Depends(optional_oauth2)) ->
     if is_mcp_token(token):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Action réservée à l'interface web",
+            detail=tr("auth.web_only"),
         )

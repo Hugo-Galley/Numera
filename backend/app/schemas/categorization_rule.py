@@ -1,6 +1,7 @@
 
 from pydantic import BaseModel, Field, field_validator
 
+from app.core.i18n import tr
 from app.domain.finance import normalize_transaction_type
 
 
@@ -9,7 +10,7 @@ def _check_pattern(value: str | None) -> str | None:
         return value
     value = value.strip()
     if not value:
-        raise ValueError("pattern ne peut pas être vide (il correspondrait à toutes les transactions)")
+        raise ValueError(tr("validation.pattern_empty"))
     return value
 
 
@@ -22,7 +23,7 @@ def _check_type(value: str | None) -> str | None:
     except ValueError as exc:
         raise ValueError(str(exc)) from exc
     if normalized == "Solde Initial":
-        raise ValueError("Solde Initial ne peut pas être cible d'une règle")
+        raise ValueError(tr("validation.initial_balance_rule_target"))
     return normalized
 
 

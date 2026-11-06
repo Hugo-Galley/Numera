@@ -4,6 +4,7 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
+from app.core.i18n import tr
 from app.schemas.category import CategoryRead
 from app.schemas.types import Amount, BoundedDatetime, Quantity
 
@@ -27,7 +28,7 @@ Month = Annotated[int, Field(ge=1, le=12)]
 
 def _check_period(start: datetime | None, end: datetime | None) -> None:
     if start is not None and end is not None and end < start:
-        raise ValueError("end_date doit être postérieure à start_date")
+        raise ValueError(tr("errors.end_after_start"))
 
 
 class RecurringTransactionBase(BaseModel):

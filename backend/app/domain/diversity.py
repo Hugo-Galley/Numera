@@ -6,6 +6,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any
 
+from app.core.i18n import tr
 from app.core.logging import get_logger
 from app.domain.etf_profiles import load_sources
 from app.models.etf_profile import EtfProfile
@@ -74,12 +75,12 @@ def hhi_score(weights: list[float]) -> float:
 
 def score_label(score: float) -> str:
     if score < 40:
-        return "Concentration critique"
+        return tr("diversity.score_critical")
     if score < 60:
-        return "Concentration modérée"
+        return tr("diversity.score_moderate")
     if score < 80:
-        return "Bonne diversification globale"
-    return "Excellente diversification"
+        return tr("diversity.score_good")
+    return tr("diversity.score_excellent")
 
 
 @dataclass
@@ -224,8 +225,8 @@ def _company_alerts(companies: list[dict[str, Any]]) -> list[dict[str, Any]]:
             alerts.append({
                 "type": "danger",
                 "category": "company",
-                "title": f"Concentration critique sur {comp['name']}",
-                "message": f"{comp['name']} pèse {comp['pct_stocks']}% de votre portefeuille boursier ({comp['pct_total_wealth']}% du patrimoine total). Ce niveau de concentration sur un seul titre présente un risque spécifique élevé.",
+                "title": tr("diversity.company_critical_title", name=comp["name"]),
+                "message": tr("diversity.company_critical_message", name=comp["name"], pct_stocks=comp["pct_stocks"], pct_total=comp["pct_total_wealth"]),
                 "item_name": comp["name"],
                 "value_pct": comp["pct_stocks"],
             })
@@ -233,8 +234,8 @@ def _company_alerts(companies: list[dict[str, Any]]) -> list[dict[str, Any]]:
             alerts.append({
                 "type": "warning",
                 "category": "company",
-                "title": f"Forte exposition sur {comp['name']}",
-                "message": f"{comp['name']} représente {comp['pct_stocks']}% de vos actions/ETFs ({comp['pct_total_wealth']}% du patrimoine total).",
+                "title": tr("diversity.company_high_title", name=comp["name"]),
+                "message": tr("diversity.company_high_message", name=comp["name"], pct_stocks=comp["pct_stocks"], pct_total=comp["pct_total_wealth"]),
                 "item_name": comp["name"],
                 "value_pct": comp["pct_stocks"],
             })
@@ -246,8 +247,8 @@ def _company_alerts(companies: list[dict[str, Any]]) -> list[dict[str, Any]]:
         alerts.append({
             "type": "info",
             "category": "overlap",
-            "title": f"Doublons d'exposition détectés ({len(overlap_companies)} titres)",
-            "message": f"Vous détenez des titres simultanément en direct et/ou à travers plusieurs ETFs (notamment {sources_str}). Leur pondération réelle s'additionne discrètement.",
+            "title": tr("diversity.overlap_title", count=len(overlap_companies)),
+            "message": tr("diversity.overlap_message", sources=sources_str),
             "item_name": sources_str,
             "value_pct": sum(c["pct_stocks"] for c in overlap_companies[:3]),
         })
@@ -261,8 +262,8 @@ def _geography_and_sector_alerts(countries: list[dict[str, Any]], sectors: list[
             alerts.append({
                 "type": "warning",
                 "category": "country",
-                "title": f"Forte prépondérance américaine ({country['percentage_stocks']}%)",
-                "message": f"{country['percentage_stocks']}% de votre exposition boursière est concentrée sur les États-Unis. Sensibilité accrue au dollar et aux marchés US.",
+                "title": tr("diversity.us_title", pct=country["percentage_stocks"]),
+                "message": tr("diversity.us_message", pct=country["percentage_stocks"]),
                 "item_name": country["name"],
                 "value_pct": country["percentage_stocks"],
             })
@@ -270,8 +271,8 @@ def _geography_and_sector_alerts(countries: list[dict[str, Any]], sectors: list[
             alerts.append({
                 "type": "warning",
                 "category": "country",
-                "title": f"Biais domestique français ({country['percentage_stocks']}%)",
-                "message": f"Votre portefeuille actions alloue {country['percentage_stocks']}% à la France. Pensez à diversifier géographiquement.",
+                "title": tr("diversity.fr_title", pct=country["percentage_stocks"]),
+                "message": tr("diversity.fr_message", pct=country["percentage_stocks"]),
                 "item_name": country["name"],
                 "value_pct": country["percentage_stocks"],
             })
@@ -279,8 +280,8 @@ def _geography_and_sector_alerts(countries: list[dict[str, Any]], sectors: list[
         {
             "type": "warning",
             "category": "sector",
-            "title": f"Sur-exposition sectorielle : {sector['name']} ({sector['percentage_stocks']}%)",
-            "message": f"Le secteur {sector['name']} domine {sector['percentage_stocks']}% de vos investissements en actions.",
+            "title": tr("diversity.sector_title", name=sector["name"], pct=sector["percentage_stocks"]),
+            "message": tr("diversity.sector_message", name=sector["name"], pct=sector["percentage_stocks"]),
             "item_name": sector["name"],
             "value_pct": sector["percentage_stocks"],
         }
