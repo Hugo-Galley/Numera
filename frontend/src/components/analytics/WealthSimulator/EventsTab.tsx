@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Plus, Trash2 } from "lucide-react"
@@ -6,6 +7,7 @@ import type { WealthSimulatorCtx } from "./useWealthSimulator"
 
 /** Onglet événements de vie. */
 export function EventsTab({ ctx }: { ctx: WealthSimulatorCtx }) {
+  const { t } = useTranslation("tools")
   const { activeEventsCount, events, formatCurrency, handleAddEvent, handleRemoveEvent, newEvent, params, setNewEvent } = ctx
   return (
     <>
@@ -14,21 +16,21 @@ export function EventsTab({ ctx }: { ctx: WealthSimulatorCtx }) {
         <div className="bg-white p-3 rounded-lg border border-slate-150 shadow-inner space-y-3">
           <span className="text-xs font-bold text-slate-700 flex items-center gap-1">
             <Plus className="h-3.5 w-3.5 text-indigo-600" />
-            Ajouter un événement (achat, héritage...)
+            {t("eventsTab.ajouterUnEvenementAchatHeritage")}
           </span>
 
           <div className="grid grid-cols-3 gap-2">
             <div className="col-span-2 space-y-1">
-              <Label className="text-[10px]">Libellé</Label>
+              <Label className="text-[10px]">{t("eventsTab.libelle")}</Label>
               <Input
-                placeholder="Achat voiture, Achat RP..."
+                placeholder={t("eventsTab.achatVoitureAchatRp")}
                 value={newEvent.label}
                 onChange={(e) => setNewEvent({ ...newEvent, label: e.target.value })}
                 className="h-10 md:h-8 text-base md:text-xs bg-slate-50/50"
               />
             </div>
             <div className="space-y-1">
-              <Label className="text-[10px]">Année</Label>
+              <Label className="text-[10px]">{t("eventsTab.annee")}</Label>
               <Input
                 type="number" inputMode="decimal"
                 min={1}
@@ -42,10 +44,10 @@ export function EventsTab({ ctx }: { ctx: WealthSimulatorCtx }) {
 
           <div className="flex gap-2 items-end justify-between">
             <div className="space-y-1 flex-1">
-              <Label className="text-[10px]">Montant (€) (négatif = dépense)</Label>
+              <Label className="text-[10px]">{t("eventsTab.montantNegatifDepense")}</Label>
               <Input
                 type="number" inputMode="decimal"
-                placeholder="Ex: -25000"
+                placeholder={t("eventsTab.ex25000")}
                 value={newEvent.amount}
                 onChange={(e) => setNewEvent({ ...newEvent, amount: Number(e.target.value) })}
                 className="h-10 md:h-8 text-base md:text-xs bg-slate-50/50"
@@ -56,17 +58,17 @@ export function EventsTab({ ctx }: { ctx: WealthSimulatorCtx }) {
               onClick={handleAddEvent}
               className="bg-indigo-600 text-white rounded px-3 py-1.5 text-xs font-semibold hover:bg-indigo-700 h-10 md:h-8 flex items-center gap-1 shrink-0"
             >
-              Ajouter
+              {t("eventsTab.ajouter")}
             </button>
           </div>
         </div>
 
         <div className="space-y-2 max-h-[160px] overflow-y-auto pr-1">
-          <h4 className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Événements ajoutés ({activeEventsCount})</h4>
+          <h4 className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">{t("misc.eventsAdded", { count: activeEventsCount })}</h4>
 
           {activeEventsCount === 0 ? (
             <div className="text-center py-4 border border-dashed rounded text-[11px] text-slate-400 bg-white">
-              Aucun événement ponctuel configuré.
+              {t("eventsTab.aucunEvenementPonctuelConfigure")}
             </div>
           ) : (
             events
@@ -75,13 +77,13 @@ export function EventsTab({ ctx }: { ctx: WealthSimulatorCtx }) {
                 <div key={index} className="flex justify-between items-center p-2 border bg-white rounded-md text-xs hover:border-slate-300 group">
                   <div className="flex flex-col gap-0.5">
                     <span className="font-semibold text-slate-700">{ev.label}</span>
-                    <span className="text-[10px] text-slate-455">Année {ev.year}</span>
+                    <span className="text-[10px] text-slate-455">{t("misc.yearN", { year: ev.year })}</span>
                   </div>
                   <div className="flex items-center gap-3">
                     <span className={`font-bold ${ev.amount >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
                       {ev.amount >= 0 ? "+" : ""}{formatCurrency(ev.amount)}
                     </span>
-                    <button aria-label="Supprimer"
+                    <button aria-label={t("eventsTab.supprimer")}
                       type="button"
                       onClick={() => handleRemoveEvent(index)}
                       className="text-slate-400 hover:text-rose-650 opacity-0 group-hover:opacity-100 transition-opacity"

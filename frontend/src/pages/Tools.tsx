@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 import { useState, useEffect } from "react"
 import { api } from "@/lib/api"
@@ -7,6 +8,7 @@ import { FireProjection } from "@/components/tools/FireProjection"
 import { Button } from "@/components/ui/button"
 
 export default function Tools() {
+  const { t } = useTranslation("tools")
   const [totalValue, setTotalValue] = useState(0)
   const [loading, setLoading] = useState(true)
   const [advanced, setAdvanced] = useState(false)
@@ -18,19 +20,19 @@ export default function Tools() {
         setTotalValue(basic.total_current_value || 0)
       } catch (error) {
         console.error("Erreur lors du chargement de l'allocation", error)
-        toast.error("Impossible de charger l'allocation du patrimoine")
+        toast.error(t("tools.impossibleDeChargerLAllocation"))
       } finally {
         setLoading(false)
       }
     }
     loadData()
-  }, [])
+  }, [t])
 
   return (
     <div className="space-y-6 md:space-y-8">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight md:text-3xl">Outils</h1>
-        <p className="text-sm text-muted-foreground md:text-base">Simulez et projetez l'évolution de votre patrimoine.</p>
+        <h1 className="text-2xl font-bold tracking-tight md:text-3xl">{t("tools.outils")}</h1>
+        <p className="text-sm text-muted-foreground md:text-base">{t("tools.simulezEtProjetezLEvolution")}</p>
       </div>
 
       {advanced ? (
@@ -50,7 +52,7 @@ export default function Tools() {
 
       <div className="flex justify-center">
         <Button variant="ghost" size="sm" className="h-11 md:h-9" onClick={() => setAdvanced((v) => !v)}>
-          {advanced ? "Retour à la vue simple" : "Mode avancé"}
+          {advanced ? t("tools.retourALaVueSimple") : t("tools.modeAvance")}
         </Button>
       </div>
     </div>

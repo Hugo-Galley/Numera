@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -7,6 +8,7 @@ import type { WealthSimulatorCtx } from "./useWealthSimulator"
 
 /** Onglet risque et fiscalité. */
 export function AdvancedTab({ ctx }: { ctx: WealthSimulatorCtx }) {
+  const { t } = useTranslation("tools")
   const { computedVolatility, params, setParams, useAllocation } = ctx
   return (
     <>
@@ -16,10 +18,10 @@ export function AdvancedTab({ ctx }: { ctx: WealthSimulatorCtx }) {
           <Label htmlFor="volatility_pct" className="flex items-center justify-between text-xs font-semibold text-slate-700">
             <span className="flex items-center gap-1.5">
               <Sparkles className="h-3.5 w-3.5 text-slate-400" />
-              Volatilité Annuelle (%)
+              {t("advancedTab.volatiliteAnnuelle")}
             </span>
             {useAllocation && (
-              <Badge variant="outline" className="text-[9px] text-emerald-600 bg-emerald-50/50 border-emerald-200">Calculé</Badge>
+              <Badge variant="outline" className="text-[9px] text-emerald-600 bg-emerald-50/50 border-emerald-200">{t("advancedTab.calcule")}</Badge>
             )}
           </Label>
           <Input
@@ -32,7 +34,7 @@ export function AdvancedTab({ ctx }: { ctx: WealthSimulatorCtx }) {
             className="h-11 md:h-9 text-base md:text-sm bg-white"
           />
           <p className="text-[10px] text-slate-400 leading-normal">
-            Une volatilité supérieure à 0% déclenche une simulation de Monte Carlo avec 1000 tirages mensuels aléatoires.
+            {t("advancedTab.uneVolatiliteSuperieureA0")}
           </p>
         </div>
 
@@ -40,7 +42,7 @@ export function AdvancedTab({ ctx }: { ctx: WealthSimulatorCtx }) {
           <div className="space-y-2">
             <Label htmlFor="inflation_rate_pct" className="flex items-center gap-1.5 text-xs font-semibold text-slate-700">
               <TrendingDown className="h-3.5 w-3.5 text-slate-400" />
-              Inflation Annuelle (%)
+              {t("advancedTab.inflationAnnuelle")}
             </Label>
             <Input
               id="inflation_rate_pct"
@@ -54,7 +56,7 @@ export function AdvancedTab({ ctx }: { ctx: WealthSimulatorCtx }) {
           <div className="space-y-2">
             <Label htmlFor="contribution_indexation_pct" className="flex items-center gap-1.5 text-xs font-semibold text-slate-700">
               <Plus className="h-3.5 w-3.5 text-slate-400" />
-              Indexation Versements (%)
+              {t("advancedTab.indexationVersements")}
             </Label>
             <Input
               id="contribution_indexation_pct"
@@ -72,7 +74,7 @@ export function AdvancedTab({ ctx }: { ctx: WealthSimulatorCtx }) {
             <div className="space-y-2">
               <Label htmlFor="tax_rate_pct" className="flex items-center gap-1.5 text-xs font-semibold text-slate-700">
                 <Scale className="h-3.5 w-3.5 text-slate-400" />
-                Taux d'Impôt (%)
+                {t("advancedTab.tauxDImpot")}
               </Label>
               <Input
                 id="tax_rate_pct"
@@ -85,7 +87,7 @@ export function AdvancedTab({ ctx }: { ctx: WealthSimulatorCtx }) {
             </div>
             <div className="space-y-2">
               <Label htmlFor="tax_deferred" className="text-xs font-semibold text-slate-700">
-                Régime Fiscal
+                {t("advancedTab.regimeFiscal")}
               </Label>
               <select
                 id="tax_deferred"
@@ -93,8 +95,8 @@ export function AdvancedTab({ ctx }: { ctx: WealthSimulatorCtx }) {
                 onChange={(e) => setParams({ ...params, tax_deferred: e.target.value === "true" })}
                 className="flex h-11 md:h-9 w-full rounded-md border border-slate-200 bg-white px-3 py-1 text-base md:text-xs shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-950"
               >
-                <option value="true">Capitalisation (PEA / Assur-vie)</option>
-                <option value="false">Prélèvement Annuel (Compte-titres)</option>
+                <option value="true">{t("advancedTab.capitalisationPeaAssurVie")}</option>
+                <option value="false">{t("advancedTab.prelevementAnnuelCompteTitres")}</option>
               </select>
             </div>
           </div>

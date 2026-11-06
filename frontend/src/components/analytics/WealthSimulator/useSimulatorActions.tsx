@@ -1,3 +1,4 @@
+import i18n from "i18next"
 import { Info } from "lucide-react"
 import { formatCurrency as formatCurrencyBase } from "@/lib/utils"
 import { toast } from "sonner"
@@ -11,21 +12,21 @@ export function useSimulatorActions(p: { initialCapitalDefault: number } & Retur
 
   const handleAddEvent = () => {
     if (!newEvent.label.trim()) {
-      toast.error("Veuillez saisir un libellé pour l'événement.")
+      toast.error(i18n.t("useSimulatorActions.veuillezSaisirUnLibellePour", { ns: "tools" }))
       return
     }
     if (newEvent.year < 1 || newEvent.year > params.years) {
-      toast.error(`L'année de l'événement doit être comprise entre 1 et ${params.years}.`)
+      toast.error(i18n.t("misc.eventYearRange", { ns: "tools", max: params.years }))
       return
     }
     setEvents(prev => [...prev, newEvent].sort((a, b) => a.year - b.year))
     setNewEvent({ year: Math.min(newEvent.year + 1, params.years), amount: -10000, label: "" })
-    toast.success("Événement ajouté à la simulation")
+    toast.success(i18n.t("useSimulatorActions.evenementAjouteALaSimulation", { ns: "tools" }))
   }
 
   const handleRemoveEvent = (index: number) => {
     setEvents(prev => prev.filter((_, i) => i !== index))
-    toast.success("Événement supprimé")
+    toast.success(i18n.t("useSimulatorActions.evenementSupprime", { ns: "tools" }))
   }
 
   const updateAsset = (id: string, updates: Partial<AssetClass>) => {
@@ -46,11 +47,11 @@ export function useSimulatorActions(p: { initialCapitalDefault: number } & Retur
 
   const handleDeleteAsset = (id: string) => {
     if (assetClasses.length <= 1) {
-      toast.error("Vous devez conserver au moins une classe d'actifs.")
+      toast.error(i18n.t("useSimulatorActions.vousDevezConserverAuMoins", { ns: "tools" }))
       return
     }
     setAssetClasses(prev => prev.filter(item => item.id !== id))
-    toast.success("Actif supprimé")
+    toast.success(i18n.t("useSimulatorActions.actifSupprime", { ns: "tools" }))
   }
 
   const handlePresetAllocation = (preset: "balanced_60_40" | "all_actions" | "all_weather" | "crypto_tilted") => {
@@ -77,7 +78,7 @@ export function useSimulatorActions(p: { initialCapitalDefault: number } & Retur
         { id: "3", name: "Assurance-Vie / Fonds Euro", pct: 20, expectedReturn: 2.5, volatility: 0 }
       ])
     }
-    toast.success("Preset d'allocation appliqué")
+    toast.success(i18n.t("useSimulatorActions.presetDAllocationApplique", { ns: "tools" }))
   }
 
   const isVolatile = useAllocation ? computedVolatility > 0 : params.volatility_pct > 0
@@ -91,60 +92,60 @@ export function useSimulatorActions(p: { initialCapitalDefault: number } & Retur
       
       return (
         <div className="bg-white p-3 border rounded-lg shadow-md text-xs space-y-2 max-w-[280px]">
-          <p className="font-bold border-b pb-1">Année {label}</p>
+          <p className="font-bold border-b pb-1">{i18n.t("misc.yearN", { ns: "tools", year: label })}</p>
           
           {isVolatile && showMonteCarlo ? (
             <div className="space-y-1">
               <div className="flex justify-between gap-4">
-                <span className="text-slate-500">Optimiste (P90):</span>
+                <span className="text-slate-500">{i18n.t("useSimulatorActions.optimisteP90", { ns: "tools" })}</span>
                 <span className="font-semibold text-emerald-600 amount-blur">
                   {formatCurrency(showInflationAdjusted ? point.total_value_p90_real : point.total_value_p90)}
                 </span>
               </div>
               <div className="flex justify-between gap-4">
-                <span className="text-slate-500">Médian (P50):</span>
+                <span className="text-slate-500">{i18n.t("useSimulatorActions.medianP50", { ns: "tools" })}</span>
                 <span className="font-bold text-indigo-600 amount-blur">
                   {formatCurrency(showInflationAdjusted ? point.total_value_p50_real : point.total_value_p50)}
                 </span>
               </div>
               <div className="flex justify-between gap-4">
-                <span className="text-slate-500">Pessimiste (P10):</span>
+                <span className="text-slate-500">{i18n.t("useSimulatorActions.pessimisteP10", { ns: "tools" })}</span>
                 <span className="font-semibold text-rose-600 amount-blur">
                   {formatCurrency(showInflationAdjusted ? point.total_value_p10_real : point.total_value_p10)}
                 </span>
               </div>
               <div className="border-t pt-1 mt-1 flex justify-between gap-4 text-[10px] text-slate-400">
-                <span>Versements cum.:</span>
+                <span>{i18n.t("useSimulatorActions.versementsCum", { ns: "tools" })}</span>
                 <span className="amount-blur">{formatCurrency(point.total_contributions)}</span>
               </div>
             </div>
           ) : (
             <div className="space-y-1">
               <div className="flex justify-between gap-4">
-                <span className="text-slate-500">Capital Initial:</span>
+                <span className="text-slate-500">{i18n.t("useSimulatorActions.capitalInitial", { ns: "tools" })}</span>
                 <span className="font-medium amount-blur">{formatCurrency(point.initial_capital)}</span>
               </div>
               <div className="flex justify-between gap-4">
-                <span className="text-slate-500">Versements:</span>
+                <span className="text-slate-500">{i18n.t("useSimulatorActions.versements", { ns: "tools" })}</span>
                 <span className="font-medium amount-blur">{formatCurrency(point.total_contributions)}</span>
               </div>
               <div className="flex justify-between gap-4">
-                <span className="text-slate-500">Intérêts (Nets):</span>
+                <span className="text-slate-500">{i18n.t("useSimulatorActions.interetsNets", { ns: "tools" })}</span>
                 <span className="font-medium text-emerald-600 amount-blur">{formatCurrency(point.total_interest)}</span>
               </div>
               {point.total_tax_paid > 0 && (
                 <div className="flex justify-between gap-4">
-                  <span className="text-slate-500">Impôts dues:</span>
+                  <span className="text-slate-500">{i18n.t("useSimulatorActions.impotsDues", { ns: "tools" })}</span>
                   <span className="font-medium text-rose-600 amount-blur">-{formatCurrency(point.total_tax_paid)}</span>
                 </div>
               )}
               <div className="pt-1 mt-1 border-t flex justify-between gap-4">
-                <span className="font-bold">Total (Nominal):</span>
+                <span className="font-bold">{i18n.t("useSimulatorActions.totalNominal", { ns: "tools" })}</span>
                 <span className="font-bold amount-blur">{formatCurrency(point.total_value)}</span>
               </div>
               {showInflationAdjusted && (
                 <div className="flex justify-between gap-4 text-slate-500">
-                  <span>Total (Réel/Ajusté):</span>
+                  <span>{i18n.t("useSimulatorActions.totalReelAjuste", { ns: "tools" })}</span>
                   <span className="font-bold amount-blur">{formatCurrency(point.total_value_real)}</span>
                 </div>
               )}
@@ -154,7 +155,7 @@ export function useSimulatorActions(p: { initialCapitalDefault: number } & Retur
           {eventStr && (
             <div className="mt-1.5 pt-1.5 border-t border-dashed border-slate-200 text-amber-600 font-medium text-[10px] flex items-start gap-1">
               <Info className="h-3 w-3 mt-0.5 shrink-0" />
-              <span>Événement : {eventStr}</span>
+              <span>{i18n.t("misc.eventLine", { ns: "tools", event: eventStr })}</span>
             </div>
           )}
         </div>

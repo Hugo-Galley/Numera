@@ -1,3 +1,5 @@
+import i18n from "i18next"
+
 
 
 export interface ForecastPoint {
@@ -20,10 +22,11 @@ export interface ReturnItem {
   source: "observed" | "manual" | "none"
 }
 
+/** Libellés d'affichage des groupes de comptes (évalués à la lecture : la langue peut changer). */
 export const TYPE_LABELS: Record<string, string> = {
-  investissement: "Comptes d'investissement",
-  investissement_non_mesure: "Investissements sans rendement mesuré",
-  autres: "Courant et épargne",
+  get investissement() { return i18n.t("misc.typeInvest", { ns: "tools" }) },
+  get investissement_non_mesure() { return i18n.t("misc.typeInvestUnmeasured", { ns: "tools" }) },
+  get autres() { return i18n.t("misc.typeOther", { ns: "tools" }) },
 }
 
 export interface Forecast {

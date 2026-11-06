@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import { Area, AreaChart, CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 import { Info, LineChart as LucideLineChart } from "lucide-react"
 import { Label } from "@/components/ui/label"
@@ -6,6 +7,7 @@ import type { WealthSimulatorCtx } from "./useWealthSimulator"
 
 /** Graphique de projection, filtres d'affichage et notes. */
 export function SimulatorChart({ ctx }: { ctx: WealthSimulatorCtx }) {
+  const { t } = useTranslation("tools")
   const { CustomTooltip, data, isVolatile, params, setShowInflationAdjusted, setShowMonteCarlo, showInflationAdjusted, showMonteCarlo } = ctx
   return (
     <>
@@ -13,7 +15,7 @@ export function SimulatorChart({ ctx }: { ctx: WealthSimulatorCtx }) {
       <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-3">
         <h3 className="text-xs font-bold text-slate-700 flex items-center gap-1">
           <LucideLineChart className="h-3.5 w-3.5 text-slate-500" />
-          Courbe de projection patrimoniale
+          {t("simulatorChart.courbeDeProjectionPatrimoniale")}
         </h3>
 
         <div className="flex items-center gap-4">
@@ -26,7 +28,7 @@ export function SimulatorChart({ ctx }: { ctx: WealthSimulatorCtx }) {
                 className="scale-75"
               />
               <Label htmlFor="toggle-inflation" className="text-[11px] font-semibold cursor-pointer text-slate-600">
-                Ajuster inflation
+                {t("simulatorChart.ajusterInflation")}
               </Label>
             </div>
           )}
@@ -40,7 +42,7 @@ export function SimulatorChart({ ctx }: { ctx: WealthSimulatorCtx }) {
                 className="scale-75"
               />
               <Label htmlFor="toggle-montecarlo" className="text-[11px] font-semibold cursor-pointer text-slate-600">
-                Montrer scénarios
+                {t("simulatorChart.montrerScenarios")}
               </Label>
             </div>
           )}
@@ -70,7 +72,7 @@ export function SimulatorChart({ ctx }: { ctx: WealthSimulatorCtx }) {
               <Line
                 type="monotone"
                 dataKey={showInflationAdjusted ? "total_value_p90_real" : "total_value_p90"}
-                name="Optimiste (P90)"
+                name={t("simulatorChart.optimisteP90")}
                 stroke="#10b981"
                 strokeDasharray="4 4"
                 strokeWidth={1.5}
@@ -79,7 +81,7 @@ export function SimulatorChart({ ctx }: { ctx: WealthSimulatorCtx }) {
               <Line
                 type="monotone"
                 dataKey={showInflationAdjusted ? "total_value_p50_real" : "total_value_p50"}
-                name="Médian (P50)"
+                name={t("simulatorChart.medianP50")}
                 stroke="#6366f1"
                 strokeWidth={2.5}
                 dot={false}
@@ -87,7 +89,7 @@ export function SimulatorChart({ ctx }: { ctx: WealthSimulatorCtx }) {
               <Line
                 type="monotone"
                 dataKey={showInflationAdjusted ? "total_value_p10_real" : "total_value_p10"}
-                name="Pessimiste (P10)"
+                name={t("simulatorChart.pessimisteP10")}
                 stroke="#f43f5e"
                 strokeDasharray="4 4"
                 strokeWidth={1.5}
@@ -124,7 +126,7 @@ export function SimulatorChart({ ctx }: { ctx: WealthSimulatorCtx }) {
               <Area
                 type="monotone"
                 dataKey="initial_capital"
-                name="Capital Initial"
+                name={t("simulatorChart.capitalInitial")}
                 stackId="1"
                 stroke="#94a3b8"
                 fill="#f1f5f9"
@@ -133,7 +135,7 @@ export function SimulatorChart({ ctx }: { ctx: WealthSimulatorCtx }) {
               <Area
                 type="monotone"
                 dataKey="total_contributions"
-                name="Versements"
+                name={t("simulatorChart.versements")}
                 stackId="1"
                 stroke="#3b82f6"
                 fill="url(#colorContributions)"
@@ -141,7 +143,7 @@ export function SimulatorChart({ ctx }: { ctx: WealthSimulatorCtx }) {
               <Area
                 type="monotone"
                 dataKey="total_interest"
-                name="Intérêts"
+                name={t("simulatorChart.interets")}
                 stackId="1"
                 stroke="#10b981"
                 fill="url(#colorInterest)"
@@ -150,7 +152,7 @@ export function SimulatorChart({ ctx }: { ctx: WealthSimulatorCtx }) {
                 <Line
                   type="monotone"
                   dataKey="total_value_real"
-                  name="Total Réel (Inflation)"
+                  name={t("simulatorChart.totalReelInflation")}
                   stroke="#ef4444"
                   strokeWidth={2}
                   strokeDasharray="5 5"
@@ -166,8 +168,7 @@ export function SimulatorChart({ ctx }: { ctx: WealthSimulatorCtx }) {
       <div className="flex items-start gap-2 text-[10px] text-slate-400 bg-slate-50/50 p-2.5 rounded-lg border border-slate-100 border-dashed">
         <Info className="h-3.5 w-3.5 text-slate-400 mt-0.5 shrink-0" />
         <p className="leading-relaxed">
-          Calculs financiers sous-jacents basés sur une composition mensuelle. Les prévisions de Monte Carlo utilisent des écarts-types normaux basés sur les classes d'actifs ou entrées manuelles. 
-          Ces courbes sont informatives et ne présagent pas de la performance future de vos capitaux réels.
+          {t("simulatorChart.calculsFinanciersSousJacentsBases")}
         </p>
       </div>
     </>

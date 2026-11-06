@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import { Pencil, Plus, Trash2 } from "lucide-react"
 import { Switch } from "@/components/ui/switch"
 import { TabsContent } from "@/components/ui/tabs"
@@ -5,6 +6,7 @@ import type { WealthSimulatorCtx } from "./useWealthSimulator"
 
 /** Onglet allocation d'actifs. */
 export function AllocationTab({ ctx }: { ctx: WealthSimulatorCtx }) {
+  const { t } = useTranslation("tools")
   const { assetClasses, handleAddAsset, handleDeleteAsset, handlePresetAllocation, setEditingAsset, setUseAllocation, totalAlloc, updateAsset, useAllocation } = ctx
   return (
     <>
@@ -12,8 +14,8 @@ export function AllocationTab({ ctx }: { ctx: WealthSimulatorCtx }) {
       <TabsContent value="allocation" className="space-y-4 m-0 outline-none">
         <div className="flex items-center justify-between bg-white p-2.5 rounded-lg border border-slate-100 shadow-sm">
           <div className="flex flex-col gap-0.5">
-            <span className="text-xs font-bold text-slate-800">Simuler selon une allocation d'actifs</span>
-            <span className="text-[10px] text-slate-400">Rendement et risque calculés selon les pondérations</span>
+            <span className="text-xs font-bold text-slate-800">{t("allocationTab.simulerSelonUneAllocationD")}</span>
+            <span className="text-[10px] text-slate-400">{t("allocationTab.rendementEtRisqueCalculesSelon")}</span>
           </div>
           <Switch 
             checked={useAllocation}
@@ -26,12 +28,12 @@ export function AllocationTab({ ctx }: { ctx: WealthSimulatorCtx }) {
 
             {/* PRESETS D'ALLOCATION */}
             <div className="space-y-1">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Presets d'allocations</span>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{t("allocationTab.presetsDAllocations")}</span>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-1.5">
-                <button type="button" onClick={() => handlePresetAllocation("balanced_60_40")} className="text-[11px] md:text-[10px] font-semibold py-2.5 md:py-1 px-1.5 border rounded bg-white hover:bg-slate-50 transition-colors text-slate-700 text-center truncate">60/40 Portefeuille</button>
-                <button type="button" onClick={() => handlePresetAllocation("all_actions")} className="text-[11px] md:text-[10px] font-semibold py-2.5 md:py-1 px-1.5 border rounded bg-white hover:bg-slate-50 transition-colors text-slate-700 text-center truncate">100% Actions</button>
-                <button type="button" onClick={() => handlePresetAllocation("all_weather")} className="text-[11px] md:text-[10px] font-semibold py-2.5 md:py-1 px-1.5 border rounded bg-white hover:bg-slate-50 transition-colors text-slate-700 text-center truncate">All-Weather</button>
-                <button type="button" onClick={() => handlePresetAllocation("crypto_tilted")} className="text-[11px] md:text-[10px] font-semibold py-2.5 md:py-1 px-1.5 border rounded bg-white hover:bg-slate-50 transition-colors text-slate-700 text-center truncate">Crypto Tilted</button>
+                <button type="button" onClick={() => handlePresetAllocation("balanced_60_40")} className="text-[11px] md:text-[10px] font-semibold py-2.5 md:py-1 px-1.5 border rounded bg-white hover:bg-slate-50 transition-colors text-slate-700 text-center truncate">{t("allocationTab.6040Portefeuille")}</button>
+                <button type="button" onClick={() => handlePresetAllocation("all_actions")} className="text-[11px] md:text-[10px] font-semibold py-2.5 md:py-1 px-1.5 border rounded bg-white hover:bg-slate-50 transition-colors text-slate-700 text-center truncate">{t("allocationTab.100Actions")}</button>
+                <button type="button" onClick={() => handlePresetAllocation("all_weather")} className="text-[11px] md:text-[10px] font-semibold py-2.5 md:py-1 px-1.5 border rounded bg-white hover:bg-slate-50 transition-colors text-slate-700 text-center truncate">{t("allocationTab.allWeather")}</button>
+                <button type="button" onClick={() => handlePresetAllocation("crypto_tilted")} className="text-[11px] md:text-[10px] font-semibold py-2.5 md:py-1 px-1.5 border rounded bg-white hover:bg-slate-50 transition-colors text-slate-700 text-center truncate">{t("allocationTab.cryptoTilted")}</button>
               </div>
             </div>
 
@@ -47,7 +49,7 @@ export function AllocationTab({ ctx }: { ctx: WealthSimulatorCtx }) {
                         type="button"
                         onClick={() => setEditingAsset(item)}
                         className="p-2.5 md:p-1 -m-1.5 md:m-0 hover:bg-slate-100 rounded text-slate-500 hover:text-slate-800 transition-colors"
-                        title="Modifier les hypothèses de cet actif"
+                        title={t("allocationTab.modifierLesHypothesesDeCet")}
                       >
                         <Pencil className="h-3 w-3" />
                       </button>
@@ -55,7 +57,7 @@ export function AllocationTab({ ctx }: { ctx: WealthSimulatorCtx }) {
                         type="button"
                         onClick={() => handleDeleteAsset(item.id)}
                         className="p-1 hover:bg-slate-100 rounded text-slate-400 hover:text-rose-600 transition-colors"
-                        title="Supprimer cet actif"
+                        title={t("allocationTab.supprimerCetActif")}
                       >
                         <Trash2 className="h-3 w-3" />
                       </button>
@@ -81,20 +83,20 @@ export function AllocationTab({ ctx }: { ctx: WealthSimulatorCtx }) {
               className="w-full border border-dashed border-indigo-200 hover:border-indigo-400 text-indigo-650 hover:bg-indigo-50/50 rounded-lg py-2 text-xs font-bold transition-all flex items-center justify-center gap-1"
             >
               <Plus className="h-4 w-4" />
-              Ajouter une classe d'actifs
+              {t("allocationTab.ajouterUneClasseDActifs")}
             </button>
 
             {/* STATUT PONDERATION */}
             <div className="flex items-center justify-between text-xs px-1 border-t border-slate-100 pt-3">
-              <span className="font-semibold text-slate-600">Pondération totale :</span>
+              <span className="font-semibold text-slate-600">{t("allocationTab.ponderationTotale")}</span>
               <span className={`font-bold ${totalAlloc === 100 ? "text-emerald-600" : "text-rose-600"}`}>
-                {totalAlloc}% {totalAlloc === 100 ? "✓" : "(doit être de 100%)"}
+                {totalAlloc}% {totalAlloc === 100 ? "✓" : t("misc.mustBe100")}
               </span>
             </div>
           </div>
         ) : (
           <div className="text-center py-6 text-xs text-slate-400 bg-white border border-dashed rounded-lg">
-            Activez le commutateur ci-dessus pour utiliser une allocation d'actifs personnalisable.
+            {t("allocationTab.activezLeCommutateurCiDessus")}
           </div>
         )}
       </TabsContent>
