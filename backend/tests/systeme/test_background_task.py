@@ -53,6 +53,8 @@ def test_etape_en_echec_ne_saute_pas_les_suivantes(monkeypatch):
 
     monkeypatch.setattr(main, "generate_recurring_transactions", failing)
     monkeypatch.setattr(main, "check_and_generate_pending_salaries", ok_sync("salaries"))
+    monkeypatch.setattr(main, "reconcile_provisional", ok_sync("aides"))
+    monkeypatch.setattr(main, "generate_benefit_transactions", ok_sync("aides-generation"))
     monkeypatch.setattr(main, "rebuild_due_holdings", ok_async("holdings"))
     monkeypatch.setattr(main, "refresh_held_prices", ok_async("prices"))
     monkeypatch.setattr(main, "refresh_held_etf_profiles", ok_async("etf"))
@@ -60,4 +62,4 @@ def test_etape_en_echec_ne_saute_pas_les_suivantes(monkeypatch):
 
     _run_one_cycle(monkeypatch)
 
-    assert ran == ["recurring", "rollback", "salaries", "holdings", "prices", "etf", "notifications"]
+    assert ran == ["recurring", "rollback", "salaries", "aides", "aides-generation", "holdings", "prices", "etf", "notifications"]

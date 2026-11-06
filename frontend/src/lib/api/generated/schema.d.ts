@@ -3559,8 +3559,15 @@ export interface components {
             active?: boolean;
             /** Amount */
             amount: number;
+            /**
+             * Auto Generate
+             * @default false
+             */
+            auto_generate?: boolean;
             /** Declaration Interval Months */
             declaration_interval_months?: number | null;
+            /** Logo */
+            logo?: string | null;
             /** Match Pattern */
             match_pattern: string;
             /** Name */
@@ -3616,6 +3623,11 @@ export interface components {
             amount: number;
             /** Amount Changed */
             amount_changed: boolean;
+            /**
+             * Auto Generate
+             * @default false
+             */
+            auto_generate?: boolean;
             /** Declaration Days Left */
             declaration_days_left?: number | null;
             /** Declaration Interval Months */
@@ -3628,6 +3640,8 @@ export interface components {
             /** Id */
             id: number;
             last_payment?: components["schemas"]["BenefitPayment"] | null;
+            /** Logo */
+            logo?: string | null;
             /** Match Pattern */
             match_pattern: string;
             /** Name */
@@ -3677,8 +3691,12 @@ export interface components {
             active?: boolean | null;
             /** Amount */
             amount?: number | null;
+            /** Auto Generate */
+            auto_generate?: boolean | null;
             /** Declaration Interval Months */
             declaration_interval_months?: number | null;
+            /** Logo */
+            logo?: string | null;
             /** Match Pattern */
             match_pattern?: string | null;
             /** Name */
@@ -6721,6 +6739,8 @@ export interface components {
             account_id: number;
             /** Amount */
             amount: number;
+            /** Benefit Id */
+            benefit_id?: number | null;
             category?: components["schemas"]["CategoryRead"] | null;
             /** Category Id */
             category_id?: number | null;
@@ -6750,6 +6770,11 @@ export interface components {
              * @default false
              */
             is_exceptional?: boolean;
+            /**
+             * Is Provisional
+             * @default false
+             */
+            is_provisional?: boolean;
             /**
              * Is Recurring
              * @default false

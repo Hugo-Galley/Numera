@@ -7,6 +7,7 @@
     {
      "account_id": 1,
      "amount": 12.4,
+     "benefit_id": null,
      "category": null,
      "category_id": null,
      "currency": "EUR",
@@ -16,6 +17,7 @@
      "has_claims": false,
      "id": 605,
      "is_exceptional": false,
+     "is_provisional": false,
      "is_recurring": false,
      "is_subscription_ignored": false,
      "is_transfer": false,
@@ -45,6 +47,7 @@
     {
      "account_id": 1,
      "amount": 12.4,
+     "benefit_id": null,
      "category": null,
      "category_id": null,
      "currency": "EUR",
@@ -54,6 +57,7 @@
      "has_claims": false,
      "id": 606,
      "is_exceptional": false,
+     "is_provisional": false,
      "is_recurring": false,
      "is_subscription_ignored": false,
      "is_transfer": false,

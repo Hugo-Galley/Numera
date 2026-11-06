@@ -1,7 +1,8 @@
 from datetime import date
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from app.schemas.recurring_transaction import _check_logo
 from app.schemas.types import Amount
 
 
@@ -16,7 +17,11 @@ class BenefitBase(BaseModel):
     declaration_interval_months: int | None = Field(default=None, ge=1, le=12)
     next_declaration_date: date | None = None
     note: str | None = Field(default=None, max_length=255)
+    logo: str | None = None
+    auto_generate: bool = False
     active: bool = True
+
+    _validate_logo = field_validator("logo")(_check_logo)
 
 
 class BenefitCreate(BenefitBase):
@@ -34,7 +39,11 @@ class BenefitUpdate(BaseModel):
     declaration_interval_months: int | None = Field(default=None, ge=1, le=12)
     next_declaration_date: date | None = None
     note: str | None = Field(default=None, max_length=255)
+    logo: str | None = None
+    auto_generate: bool | None = None
     active: bool | None = None
+
+    _validate_logo = field_validator("logo")(_check_logo)
 
 
 class BenefitDeclared(BaseModel):

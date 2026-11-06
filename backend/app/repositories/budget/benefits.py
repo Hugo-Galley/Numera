@@ -30,6 +30,7 @@ def matching_entries(db: Session, benefit: Benefit, since: datetime) -> list[Tra
     query = db.query(Transaction).filter(
         Transaction.type == "Entree",
         Transaction.is_transfer == False,
+        Transaction.is_provisional == False,  # l'entrée générée n'est pas un versement reçu
         Transaction.date >= since,
         or_(Transaction.merchant.ilike(pattern), Transaction.note.ilike(pattern)),
     )
@@ -38,6 +39,25 @@ def matching_entries(db: Session, benefit: Benefit, since: datetime) -> list[Tra
     if benefit.start_date is not None:
         query = query.filter(Transaction.date >= datetime.combine(benefit.start_date, datetime.min.time()))
     return query.order_by(Transaction.date.desc(), Transaction.id.desc()).all()
+
+
+def provisional_entries(db: Session) -> list[Transaction]:
+    return (
+        db.query(Transaction)
+        .filter(Transaction.is_provisional == True, Transaction.benefit_id.isnot(None))
+        .order_by(Transaction.date, Transaction.id)
+        .all()
+    )
+
+
+def has_generated_in(db: Session, benefit_id: int, start: datetime, end: datetime) -> bool:
+    """Une entrée générée (provisoire ou déjà remplacée) existe pour l'aide dans [start, end[."""
+    return (
+        db.query(Transaction.id)
+        .filter(Transaction.benefit_id == benefit_id, Transaction.date >= start, Transaction.date < end)
+        .first()
+        is not None
+    )
 
 
 def add(db: Session, benefit: Benefit) -> None:

@@ -76,7 +76,7 @@ Un seul `is_zero_point` par compte investissement (`POST /balance-snapshots/set-
 
 ## Aides perçues
 
-`benefits` (`/benefits`, onglet Échéances › Salaire › Aides, `?tab=salary&vue=aides`) : prime d'activité, APL… Aucune transaction créée : les versements sont retrouvés dans les entrées dont le libellé ou la note contient `match_pattern` (rattachement à l'aide au montant le plus proche si plusieurs correspondent). Statut du mois, montant modifié et rappel de déclaration (prime d'activité : trimestrielle, « Déclaration faite » avance l'échéance) → Centre d'Actions et notifications. Les aides restent des revenus ordinaires (règle 11) ; aucun calcul du droit CAF.
+`benefits` (`/benefits`, onglet Échéances › Salaire › Aides, `?tab=salary&vue=aides`) : prime d'activité, APL… Les versements sont retrouvés dans les entrées dont le libellé ou la note contient `match_pattern` (rattachement à l'aide au montant le plus proche si plusieurs correspondent). Statut du mois, montant modifié et rappel de déclaration (prime d'activité : trimestrielle, « Déclaration faite » avance l'échéance) → Centre d'Actions et notifications. Les aides restent des revenus ordinaires (règle 11) ; aucun calcul du droit CAF. **Génération** (`auto_generate`, compte de réception requis) : `services/budget/benefit_generation.py` crée au jour de versement une `Entree` provisoire (`is_provisional`, montant attendu, logo de l'aide) ; l'import CSV et la tâche horaire appellent `reconcile_provisional`, qui la remplace par le vrai versement (libellé contenant le motif, ±10 j) sans doublon de revenu. Une provisoire n'est jamais un versement reçu.
 
 ## Mois de paie
 

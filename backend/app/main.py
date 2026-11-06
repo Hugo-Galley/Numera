@@ -53,6 +53,7 @@ from app.core.login_events import client_ip
 from app.core.migrations import run_migrations
 from app.db.session import SessionLocal
 from app.integrations.currency import CurrencyConversionError
+from app.services.budget.benefit_generation import generate_benefit_transactions, reconcile_provisional
 from app.services.budget.recurring import generate_recurring_transactions
 from app.services.budget.salary_generation import check_and_generate_pending_salaries
 from app.services.investissement.etf_profiles import refresh_held_etf_profiles
@@ -92,6 +93,9 @@ async def recurring_transactions_task():
             else:
                 await _run_step(db, "récurrences", generate_recurring_transactions)
                 await _run_step(db, "salaires", check_and_generate_pending_salaries)
+                # Aides : le vrai versement remplace l'entrée provisoire, puis celle du mois est créée
+                await _run_step(db, "aides", reconcile_provisional)
+                await _run_step(db, "aides (génération)", generate_benefit_transactions)
                 # Opérations sur titres arrivées à échéance : positions stockées (règle 12)
                 await _run_step(db, "positions", rebuild_due_holdings)
                 # Cours des titres détenus enregistrés en base (historique de valorisation)
