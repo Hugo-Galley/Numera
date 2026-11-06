@@ -1,9 +1,11 @@
+import { useTranslation } from "react-i18next"
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts"
 import { formatAmountWithShare, formatCurrency } from "@/lib/utils"
 import type { OverviewTabCtx } from "./useOverviewTab"
 
 /** Camembert du patrimoine et total au centre. */
 export function WealthPie({ ctx }: { ctx: OverviewTabCtx }) {
+  const { t } = useTranslation("dashboard")
   const { chartData, chartDataKey, isMobile, patrimoineAllocation } = ctx
   return (
     <>
@@ -33,7 +35,7 @@ export function WealthPie({ ctx }: { ctx: OverviewTabCtx }) {
         </ResponsiveContainer>
         {/* Center Text (Total) */}
         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-          <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Patrimoine</span>
+          <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{t("overview.wealthCenter")}</span>
           <span className="text-base md:text-lg font-black text-slate-800 amount-blur">
             {formatCurrency(patrimoineAllocation.total_patrimoine, "EUR")}
           </span>

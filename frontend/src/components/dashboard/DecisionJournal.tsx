@@ -1,5 +1,6 @@
 import { dateLocale } from "@/i18n/locale"
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
 import { BookMarked, Pencil, Plus, Trash2 } from "lucide-react"
 import { format, parseISO } from "date-fns"
 import { toast } from "sonner"
@@ -33,6 +34,8 @@ const NO_ACCOUNT = "none"
 
 /** Journal des décisions financières : notes datées affichées comme repères sur les courbes. */
 export function DecisionJournal({ events, accounts, onChanged }: Props) {
+  const { t } = useTranslation("dashboard")
+  const { t: tc } = useTranslation()
   const confirm = useConfirm()
   const [editing, setEditing] = useState<FinancialEvent | null>(null)
   const [open, setOpen] = useState(false)
@@ -52,7 +55,7 @@ export function DecisionJournal({ events, accounts, onChanged }: Props) {
 
   const [handleSave, saving] = useSubmit(async () => {
     if (!title.trim() || !day) {
-      toast.error("Indiquez une date et un intitulé")
+      toast.error(t("journal.needDateTitle"))
       return
     }
     const payload = {
@@ -64,22 +67,22 @@ export function DecisionJournal({ events, accounts, onChanged }: Props) {
     try {
       if (editing) await api.patch(`/financial-events/${editing.id}`, payload)
       else await api.post("/financial-events", payload)
-      toast.success(editing ? "Décision modifiée" : "Décision ajoutée au journal")
+      toast.success(editing ? t("journal.updated") : t("journal.added"))
       setOpen(false)
       onChanged()
     } catch (e) {
-      toast.error(errorMessage(e, "Impossible d'enregistrer la décision"))
+      toast.error(errorMessage(e, t("journal.saveError")))
     }
   })
 
   const handleDelete = async (event: FinancialEvent) => {
-    if (!(await confirm(`Supprimer « ${event.title} » du journal ?`))) return
+    if (!(await confirm(t("journal.confirmDelete", { title: event.title })))) return
     try {
       await api.delete(`/financial-events/${event.id}`)
-      toast.success("Décision supprimée")
+      toast.success(t("journal.deleted"))
       onChanged()
     } catch (e) {
-      toast.error(errorMessage(e, "Impossible de supprimer la décision"))
+      toast.error(errorMessage(e, t("journal.deleteError")))
     }
   }
 
@@ -91,19 +94,19 @@ export function DecisionJournal({ events, accounts, onChanged }: Props) {
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <BookMarked className="h-5 w-5 text-slate-400" />
-            <CardTitle className="text-lg">Journal des décisions</CardTitle>
+            <CardTitle className="text-lg">{t("journal.title")}</CardTitle>
           </div>
           <Button size="sm" variant="outline" className="h-10 md:h-8" onClick={() => openForm(null)}>
-            <Plus className="mr-1.5 h-4 w-4" /> Ajouter
+            <Plus className="mr-1.5 h-4 w-4" /> {tc("actions.add")}
           </Button>
         </div>
-        <CardDescription>Résiliation, hausse d'épargne, changement d'allocation… repérés sur les courbes (⚑).</CardDescription>
+        <CardDescription>{t("journal.subtitle")}</CardDescription>
       </CardHeader>
       <CardContent className="p-3 md:p-6">
         {events.length === 0 ? (
           <div className="flex flex-col items-center gap-2 py-8 text-center text-sm text-slate-400">
             <BookMarked className="h-8 w-8 text-slate-300" />
-            <p>Notez vos décisions pour retrouver plus tard pourquoi une courbe a changé.</p>
+            <p>{t("journal.empty")}</p>
           </div>
         ) : (
           <ul className="max-h-[360px] space-y-2 overflow-y-auto">
@@ -118,10 +121,10 @@ export function DecisionJournal({ events, accounts, onChanged }: Props) {
                   {event.note && <p className="whitespace-pre-line text-sm text-slate-500">{event.note}</p>}
                 </div>
                 <div className="flex shrink-0 gap-1 md:opacity-0 md:transition-opacity md:group-hover:opacity-100">
-                  <Button size="icon" variant="ghost" className="h-10 w-10 md:h-8 md:w-8" aria-label="Modifier" onClick={() => openForm(event)}>
+                  <Button size="icon" variant="ghost" className="h-10 w-10 md:h-8 md:w-8" aria-label={tc("actions.edit")} onClick={() => openForm(event)}>
                     <Pencil className="h-4 w-4" />
                   </Button>
-                  <Button size="icon" variant="ghost" className="h-10 w-10 md:h-8 md:w-8 text-rose-600" aria-label="Supprimer" onClick={() => handleDelete(event)}>
+                  <Button size="icon" variant="ghost" className="h-10 w-10 md:h-8 md:w-8 text-rose-600" aria-label={tc("actions.delete")} onClick={() => handleDelete(event)}>
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
@@ -134,20 +137,20 @@ export function DecisionJournal({ events, accounts, onChanged }: Props) {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-sm:[&_input]:text-base sm:max-w-[440px] rounded-2xl">
           <DialogHeader>
-            <DialogTitle>{editing ? "Modifier la décision" : "Nouvelle décision"}</DialogTitle>
-            <DialogDescription>Une note datée, sans effet sur les calculs.</DialogDescription>
+            <DialogTitle>{editing ? t("journal.editTitle") : t("journal.newTitle")}</DialogTitle>
+            <DialogDescription>{t("journal.dialogHint")}</DialogDescription>
           </DialogHeader>
           <div className="grid gap-4">
             <div className="grid gap-2">
-              <Label htmlFor="event-date">Date</Label>
+              <Label htmlFor="event-date">{tc("actions.date")}</Label>
               <Input id="event-date" type="date" value={day} onChange={(e) => setDay(e.target.value)} />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="event-title">Intitulé</Label>
-              <Input id="event-title" maxLength={200} placeholder="Ex : résiliation de la salle de sport" value={title} onChange={(e) => setTitle(e.target.value)} />
+              <Label htmlFor="event-title">{t("journal.fieldTitle")}</Label>
+              <Input id="event-title" maxLength={200} placeholder={t("journal.titlePlaceholder")} value={title} onChange={(e) => setTitle(e.target.value)} />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="event-note">Note (facultatif)</Label>
+              <Label htmlFor="event-note">{t("journal.fieldNote")}</Label>
               <textarea
                 id="event-note"
                 maxLength={1000}
@@ -158,11 +161,11 @@ export function DecisionJournal({ events, accounts, onChanged }: Props) {
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="event-account">Compte concerné (facultatif)</Label>
+              <Label htmlFor="event-account">{t("journal.fieldAccount")}</Label>
               <Select value={accountId} onValueChange={setAccountId}>
                 <SelectTrigger id="event-account"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value={NO_ACCOUNT}>Aucun</SelectItem>
+                  <SelectItem value={NO_ACCOUNT}>{tc("actions.none")}</SelectItem>
                   {selectableAccounts.map((a) => (
                     <SelectItem key={a.id} value={String(a.id)}>{a.name}</SelectItem>
                   ))}
@@ -171,9 +174,9 @@ export function DecisionJournal({ events, accounts, onChanged }: Props) {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setOpen(false)}>Annuler</Button>
+            <Button variant="ghost" onClick={() => setOpen(false)}>{tc("actions.cancel")}</Button>
             <Button onClick={() => handleSave()} disabled={saving} className="bg-slate-900 text-white">
-              {saving ? "Enregistrement…" : "Enregistrer"}
+              {saving ? tc("actions.saving") : tc("actions.save")}
             </Button>
           </DialogFooter>
         </DialogContent>

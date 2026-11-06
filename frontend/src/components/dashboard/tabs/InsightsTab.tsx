@@ -1,5 +1,6 @@
 import { appLocale } from "@/i18n/locale"
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
 import { HeartPulse, Sparkles, AlertTriangle, X } from "lucide-react"
 import { 
   Card, 
@@ -13,12 +14,15 @@ import { Button } from "@/components/ui/button"
 import { formatCurrency } from "@/lib/utils"
 import { toast } from "sonner"
 import { apiFetch } from "@/lib/api"
+import i18n from "i18next"
 
 /** Valeur d'un indicateur avec son unité, à la française : « 1 480,99 € », « 64,3 % », « 19,1 mois ». */
 function formatValue(value: number, unit?: string) {
   if (unit === "€" || !unit) return formatCurrency(value)
   const text = value.toLocaleString(appLocale(), { maximumFractionDigits: 1 })
-  return `${text}\u00a0${unit}`
+  // L'API renvoie l'unité « mois » en français : on la rend dans la langue de l'interface
+  const label = unit === "mois" ? i18n.t("insights.unitMonths", { ns: "dashboard" }) : unit
+  return `${text}\u00a0${label}`
 }
 
 interface InsightsTabProps {
@@ -26,6 +30,7 @@ interface InsightsTabProps {
 }
 
 export function InsightsTab({ insights }: InsightsTabProps) {
+  const { t } = useTranslation("dashboard")
   const [dismissedKeys, setDismissedKeys] = useState<string[]>([])
 
   const handleDismiss = async (key: string) => {
@@ -39,7 +44,7 @@ export function InsightsTab({ insights }: InsightsTabProps) {
       console.error('Failed to dismiss insight permanently', err)
       // Rejet optimiste annulé : l'insight revient et l'utilisateur est prévenu
       setDismissedKeys(prev => prev.filter(k => k !== key))
-      toast.error("Impossible de masquer cet insight")
+      toast.error(t("insights.dismissError"))
     }
   }
 
@@ -53,9 +58,9 @@ export function InsightsTab({ insights }: InsightsTabProps) {
         <CardHeader className="pb-2">
           <CardTitle className="text-lg flex items-center gap-2">
             <HeartPulse className="h-5 w-5 text-emerald-400" />
-            Santé Financière
+            {t("insights.healthTitle")}
           </CardTitle>
-          <CardDescription className="text-slate-400">Score global de votre situation.</CardDescription>
+          <CardDescription className="text-slate-400">{t("insights.healthSubtitle")}</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col items-center justify-center py-6 md:py-10">
           <div className="relative flex items-center justify-center">
@@ -86,7 +91,7 @@ export function InsightsTab({ insights }: InsightsTabProps) {
             </svg>
             <div className="absolute text-center">
               <span className="text-5xl font-black">{Math.round(insights?.health_score?.total_score || 0)}</span>
-              <span className="text-slate-400 block text-sm font-bold mt-1">/ 100</span>
+              <span className="text-slate-400 block text-sm font-bold mt-1">{t("insights.outOf")}</span>
             </div>
           </div>
           
@@ -107,7 +112,7 @@ export function InsightsTab({ insights }: InsightsTabProps) {
       <div className="lg:col-span-8 space-y-4 md:space-y-6">
         <h3 className="text-lg md:text-xl font-bold text-slate-900 flex items-center gap-2">
           <Sparkles className="h-5 w-5 text-amber-500" />
-          Analyse & Conseils
+          {t("insights.analysisTitle")}
         </h3>
         <div className="grid grid-cols-1 gap-4">
           {visibleInsights.map((insight: any, i: number) => (
@@ -143,7 +148,7 @@ export function InsightsTab({ insights }: InsightsTabProps) {
                       size="icon"
                       className="h-10 w-10 md:h-8 md:w-8 text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
                       onClick={() => handleDismiss(insight.key)}
-                      title="Ne pas prendre en compte de façon permanente"
+                      title={t("insights.dismiss")}
                     >
                       <X className="h-4 w-4" />
                     </Button>
@@ -154,7 +159,7 @@ export function InsightsTab({ insights }: InsightsTabProps) {
           ))}
           {visibleInsights.length === 0 && (
             <div className="py-12 md:py-20 px-4 text-center bg-slate-50 rounded-3xl border border-dashed">
-              <p className="text-slate-400 font-medium">Tout semble sous contrôle ! Aucun conseil particulier ce mois-ci.</p>
+              <p className="text-slate-400 font-medium">{t("insights.empty")}</p>
             </div>
           )}
         </div>

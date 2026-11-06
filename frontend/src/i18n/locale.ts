@@ -22,3 +22,8 @@ export function monthName(month: number): string {
   const name = new Date(2000, month - 1, 1).toLocaleDateString(appLocale(), { month: "long" })
   return name.charAt(0).toLocaleUpperCase(appLocale()) + name.slice(1)
 }
+
+/** Nom court du mois (1 à 12) : « janv. », « juin » en français, « Jan », « Jun » en anglais. */
+export function monthShort(month: number): string {
+  return new Date(2000, month - 1, 1).toLocaleDateString(appLocale(), { month: "short" })
+}
