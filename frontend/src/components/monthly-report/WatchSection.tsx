@@ -1,18 +1,20 @@
+import { useTranslation } from "react-i18next"
 import { AlertTriangle, CheckCircle2 } from "lucide-react"
 
 import { Card, CardContent } from "@/components/ui/card"
 import type { Insight } from "./types"
 
 export function WatchSection({ insights }: { insights: Insight[] }) {
+  const { t } = useTranslation("month")
   const items = insights.filter((i) => i.type === "anomaly").slice(0, 5)
   return (
     <section className="space-y-3">
-      <h2 className="text-lg font-black text-slate-900">À regarder</h2>
+      <h2 className="text-lg font-black text-slate-900">{t("watchSection.aRegarder")}</h2>
       {items.length === 0 ? (
         <Card>
           <CardContent className="flex items-center gap-3 p-5 text-sm text-slate-500">
             <CheckCircle2 className="h-5 w-5 text-emerald-500" />
-            Rien d'anormal ce mois-ci.
+            {t("watchSection.rienDAnormalCeMois")}
           </CardContent>
         </Card>
       ) : (

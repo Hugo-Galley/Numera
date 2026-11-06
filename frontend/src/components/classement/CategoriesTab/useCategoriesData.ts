@@ -1,3 +1,4 @@
+import i18n from "i18next"
 import { toast } from "sonner"
 import { useConfirm } from "@/providers/ConfirmProvider"
 import { useEffect, useMemo, useState } from "react"
@@ -38,7 +39,7 @@ export function useCategoriesData() {
       const data = await getCategories<Category[]>()
       setCategories(data)
     } catch (error) {
-      toast.error("Erreur chargement catégories")
+      toast.error(i18n.t("useCategoriesData.erreurChargementCategories", { ns: "classement" }))
     } finally {
       setLoading(false)
     }
@@ -60,7 +61,7 @@ export function useCategoriesData() {
         monthly_limit: newMonthlyLimit ? parseFloat(newMonthlyLimit) : null,
         annual_limit: newAnnualLimit ? parseFloat(newAnnualLimit) : null,
       })
-      toast.success("Catégorie ajoutée")
+      toast.success(i18n.t("useCategoriesData.categorieAjoutee", { ns: "classement" }))
       setNewCatName("")
       setNewCatType("depense")
       setNewCatIcon("Tag")
@@ -71,7 +72,7 @@ export function useCategoriesData() {
       setNewOpen(false)
       loadCategories()
     } catch (error) {
-      toast.error("Erreur lors de l'ajout")
+      toast.error(i18n.t("useCategoriesData.erreurLorsDeLAjout", { ns: "classement" }))
     }
   })
 
@@ -99,11 +100,11 @@ export function useCategoriesData() {
         monthly_limit: editMonthlyLimit ? parseFloat(editMonthlyLimit) : null,
         annual_limit: editAnnualLimit ? parseFloat(editAnnualLimit) : null,
       })
-      toast.success("Catégorie mise à jour")
+      toast.success(i18n.t("useCategoriesData.categorieMiseAJour", { ns: "classement" }))
       setEditOpen(false)
       loadCategories()
     } catch (error) {
-      toast.error("Erreur lors de la mise à jour")
+      toast.error(i18n.t("useCategoriesData.erreurLorsDeLaMise", { ns: "classement" }))
     }
   })
 
@@ -114,21 +115,21 @@ export function useCategoriesData() {
   const handleToggleArchiveCategory = async (cat: Category) => {
     try {
       await patchCategoriesById(cat.id, { archived: !cat.archived })
-      toast.success(cat.archived ? "Catégorie réactivée" : "Catégorie archivée : masquée des sélecteurs, historique conservé")
+      toast.success(cat.archived ? i18n.t("useCategoriesData.categorieReactivee", { ns: "classement" }) : i18n.t("useCategoriesData.categorieArchiveeMasqueeDesSelecteurs", { ns: "classement" }))
       loadCategories()
     } catch (error) {
-      toast.error("Erreur lors de l'archivage")
+      toast.error(i18n.t("useCategoriesData.erreurLorsDeLArchivage", { ns: "classement" }))
     }
   }
 
   const handleDeleteCategory = async (categoryId: number) => {
-    if (!(await confirm("Supprimer cette catégorie ? Les transactions associées n'auront plus de catégorie."))) return
+    if (!(await confirm(i18n.t("useCategoriesData.supprimerCetteCategorieLesTransactions", { ns: "classement" })))) return
     try {
       await deleteCategoriesById(categoryId)
-      toast.success("Catégorie supprimée")
+      toast.success(i18n.t("useCategoriesData.categorieSupprimee", { ns: "classement" }))
       loadCategories()
     } catch (error) {
-      toast.error("Erreur lors de la suppression")
+      toast.error(i18n.t("useCategoriesData.erreurLorsDeLaSuppression", { ns: "classement" }))
     }
   }
 

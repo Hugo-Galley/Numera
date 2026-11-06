@@ -1,3 +1,5 @@
+import i18n from "i18next"
+import { useTranslation } from "react-i18next"
 import { appLocale } from "@/i18n/locale"
 import { useEffect, useState } from "react"
 import { CheckCircle2 } from "lucide-react"
@@ -21,6 +23,7 @@ export function CategorizeStep({
   step: MonthReview["categorize"]
   onChanged: () => void
 }) {
+  const { t } = useTranslation("month")
   const [categories, setCategories] = useState<CategoryOption[]>([])
 
   useEffect(() => {
@@ -34,10 +37,10 @@ export function CategorizeStep({
     if (!categoryId) return
     try {
       await api.patch(`/transactions/${id}`, { category_id: Number(categoryId) })
-      toast.success("Catégorie enregistrée")
+      toast.success(t("categorizeStep.categorieEnregistree"))
       onChanged()
     } catch {
-      toast.error("Échec de la catégorisation")
+      toast.error(t("categorizeStep.echecDeLaCategorisation"))
     }
   }
 
@@ -46,7 +49,7 @@ export function CategorizeStep({
       <Card>
         <CardContent className="flex items-center gap-3 p-6 text-emerald-700">
           <CheckCircle2 className="h-5 w-5" />
-          Toutes les dépenses du mois sont catégorisées.
+          {t("categorizeStep.toutesLesDepensesDuMois")}
         </CardContent>
       </Card>
     )
@@ -56,9 +59,9 @@ export function CategorizeStep({
     <Card>
       <CardContent className="space-y-4 p-4 md:p-6">
         <p className="text-sm text-slate-600">
-          {step.count} dépense{step.count > 1 ? "s" : ""} sans catégorie, soit{" "}
+          {i18n.t("misc.uncategorized", { ns: "month", count: step.count })}{" "}
           <span className="amount-blur font-semibold">{formatCurrency(step.total)}</span>.
-          {step.count > step.items.length && ` Les ${step.items.length} plus grosses sont listées.`}
+          {step.count > step.items.length && i18n.t("misc.largestListed", { ns: "month", count: step.items.length })}
         </p>
         <ul className="divide-y">
           {step.items.map((tx) => (
@@ -73,9 +76,9 @@ export function CategorizeStep({
                   defaultValue=""
                   onChange={(e) => assign(tx.id, e.target.value)}
                   className="h-11 min-w-0 flex-1 rounded-md border border-slate-200 bg-white px-2 text-base sm:h-9 sm:flex-none sm:text-sm"
-                  aria-label={`Catégorie de ${tx.merchant}`}
+                  aria-label={i18n.t("misc.categoryOf", { ns: "month", merchant: tx.merchant })}
                 >
-                  <option value="">Choisir…</option>
+                  <option value="">{t("categorizeStep.choisir")}</option>
                   {categories.map((c) => (
                     <option key={c.id} value={c.id}>
                       {c.name}

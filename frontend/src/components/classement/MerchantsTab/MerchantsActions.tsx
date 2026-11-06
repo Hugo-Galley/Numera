@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
@@ -9,32 +10,33 @@ import type { MerchantsTabCtx } from "./useMerchantsTab"
 
 /** Boutons d'en-tête : normalisation automatique et dialogue de création. */
 export function MerchantsActions({ ctx }: { ctx: MerchantsTabCtx }) {
+  const { t } = useTranslation("classement")
   const { categories, handleAddMerchant, handleAutoNormalize, newAliases, newCategoryId, newColor, newName, newOpen, setNewAliases, setNewCategoryId, setNewColor, setNewName, setNewOpen } = ctx
   return (
     <>
       <div className="grid grid-cols-1 gap-2 sm:flex">
         <Button variant="outline" onClick={handleAutoNormalize} className="h-11 border-slate-200 px-3 sm:h-10 sm:px-4">
-          <Wand2 className="h-4 w-4 mr-2" /> Auto-normaliser
+          <Wand2 className="h-4 w-4 mr-2" /> {t("merchantsActions.autoNormaliser")}
         </Button>
         <Dialog open={newOpen} onOpenChange={setNewOpen}>
           <DialogTrigger asChild>
             <Button className="h-11 w-full bg-slate-900 px-3 text-white hover:bg-slate-800 shadow-lg sm:h-10 sm:w-auto sm:px-4">
-              <Plus className="h-4 w-4 mr-2" /> Nouveau marchand
+              <Plus className="h-4 w-4 mr-2" /> {t("merchantsActions.nouveauMarchand")}
             </Button>
           </DialogTrigger>
           <DialogContent className="[&_input]:text-base md:[&_input]:text-sm sm:max-w-[500px]">
             <DialogHeader>
-              <DialogTitle className="text-2xl font-bold">Nouveau marchand canonique</DialogTitle>
+              <DialogTitle className="text-2xl font-bold">{t("merchantsActions.nouveauMarchandCanonique")}</DialogTitle>
               <DialogDescription>
-                Définissez un nom propre et ses variantes de libellés.
+                {t("merchantsActions.definissezUnNomPropreEt")}
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-5 py-2 sm:gap-6 sm:py-4">
               <div className="grid gap-2">
-                <Label htmlFor="new-m-name" className="text-xs font-bold uppercase tracking-wider text-slate-500">Nom Canonique</Label>
+                <Label htmlFor="new-m-name" className="text-xs font-bold uppercase tracking-wider text-slate-500">{t("merchantsActions.nomCanonique")}</Label>
                 <Input 
                   id="new-m-name" 
-                  placeholder="Ex: Amazon, Starbucks, Netflix..." 
+                  placeholder={t("merchantsActions.exAmazonStarbucksNetflix")} 
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
                   className="bg-slate-50 border-slate-200"
@@ -43,13 +45,13 @@ export function MerchantsActions({ ctx }: { ctx: MerchantsTabCtx }) {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="grid gap-2">
-                  <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">Catégorie par défaut</Label>
+                  <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">{t("merchantsActions.categorieParDefaut")}</Label>
                   <Select value={newCategoryId} onValueChange={setNewCategoryId}>
                     <SelectTrigger className="bg-slate-50 border-slate-200">
-                      <SelectValue placeholder="Aucune" />
+                      <SelectValue placeholder={t("merchantsActions.aucune")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="none">Aucune</SelectItem>
+                      <SelectItem value="none">{t("merchantsActions.aucune")}</SelectItem>
                       {categories.map(c => (
                         <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
                       ))}
@@ -57,7 +59,7 @@ export function MerchantsActions({ ctx }: { ctx: MerchantsTabCtx }) {
                   </Select>
                 </div>
                 <div className="grid gap-2">
-                  <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">Couleur</Label>
+                  <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">{t("merchantsActions.couleur")}</Label>
                   <Select value={newColor} onValueChange={setNewColor}>
                     <SelectTrigger className="bg-slate-50 border-slate-200">
                       <SelectValue />
@@ -77,10 +79,10 @@ export function MerchantsActions({ ctx }: { ctx: MerchantsTabCtx }) {
               </div>
 
               <div className="grid gap-2">
-                <Label htmlFor="new-aliases" className="text-xs font-bold uppercase tracking-wider text-slate-500">Variantes (séparées par des virgules)</Label>
+                <Label htmlFor="new-aliases" className="text-xs font-bold uppercase tracking-wider text-slate-500">{t("merchantsActions.variantesSepareesParDesVirgules")}</Label>
                 <Input 
                   id="new-aliases" 
-                  placeholder="Ex: AMZN Digital, AMAZON.FR, AMZN FR..." 
+                  placeholder={t("merchantsActions.exAmznDigitalAmazonFr")} 
                   value={newAliases}
                   onChange={(e) => setNewAliases(e.target.value)}
                   className="bg-slate-50 border-slate-200"
@@ -88,8 +90,8 @@ export function MerchantsActions({ ctx }: { ctx: MerchantsTabCtx }) {
               </div>
             </div>
             <DialogFooter className="gap-2 sm:gap-0">
-              <Button variant="ghost" className="h-11 sm:h-10" onClick={() => setNewOpen(false)}>Annuler</Button>
-              <Button onClick={handleAddMerchant} className="h-11 sm:h-10 bg-slate-900 text-white shadow-lg">Créer le marchand</Button>
+              <Button variant="ghost" className="h-11 sm:h-10" onClick={() => setNewOpen(false)}>{t("merchantsActions.annuler")}</Button>
+              <Button onClick={handleAddMerchant} className="h-11 sm:h-10 bg-slate-900 text-white shadow-lg">{t("merchantsActions.creerLeMarchand")}</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>

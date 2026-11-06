@@ -1,3 +1,5 @@
+import i18n from "i18next"
+import { useTranslation } from "react-i18next"
 import { appLocale } from "@/i18n/locale"
 import { toast } from "sonner"
 
@@ -20,6 +22,7 @@ function Row({ label, value, extra }: { label: string; value: string; extra?: st
 }
 
 export function BudgetStep({ budget, onChanged }: { budget: ReviewBudget; onChanged: () => void }) {
+  const { t } = useTranslation("month")
   const hasExceptional = budget.exceptional_expenses > 0
   const diff = budget.real_expenses - budget.previous_real_expenses
   const overruns = budget.alerts.filter((a) => a.monthly_ratio !== null && a.monthly_ratio >= 1)
@@ -27,10 +30,10 @@ export function BudgetStep({ budget, onChanged }: { budget: ReviewBudget; onChan
   async function toggle(id: number, value: boolean) {
     try {
       await api.patch(`/transactions/${id}`, { is_exceptional: value })
-      toast.success(value ? "Marquée exceptionnelle" : "Marquage retiré")
+      toast.success(value ? t("budgetStep.marqueeExceptionnelle") : t("budgetStep.marquageRetire"))
       onChanged()
     } catch {
-      toast.error("Échec de la mise à jour")
+      toast.error(t("budgetStep.echecDeLaMiseA"))
     }
   }
 
@@ -38,31 +41,31 @@ export function BudgetStep({ budget, onChanged }: { budget: ReviewBudget; onChan
     <div className="space-y-4">
       <Card>
         <CardContent className="divide-y p-4 md:p-6">
-          <Row label="Revenus" value={formatCurrency(budget.income)} />
+          <Row label={t("budgetStep.revenus")} value={formatCurrency(budget.income)} />
           <Row
-            label="Dépenses réelles"
+            label={t("budgetStep.depensesReelles")}
             value={formatCurrency(budget.real_expenses)}
-            extra={`${diff >= 0 ? "+" : ""}${formatCurrency(diff)} vs mois précédent`}
+            extra={i18n.t("misc.vsPrevious", { ns: "month", amount: `${diff >= 0 ? "+" : ""}${formatCurrency(diff)}` })}
           />
           {hasExceptional && (
             <Row
-              label="Dépenses hors exceptionnelles"
+              label={t("budgetStep.depensesHorsExceptionnelles")}
               value={formatCurrency(budget.real_expenses_excl_exceptional)}
               extra={`dont ${formatCurrency(budget.exceptional_expenses)} exceptionnelles`}
             />
           )}
           <Row
-            label="Épargne du mois"
+            label={t("budgetStep.epargneDuMois")}
             value={formatCurrency(budget.savings)}
             extra={hasExceptional ? `${formatCurrency(budget.savings_excl_exceptional)} hors exceptionnelles` : undefined}
           />
           <Row
-            label="Taux d'épargne"
+            label={t("budgetStep.tauxDEpargne")}
             value={formatRate(budget.savings_rate, 1)}
             extra={hasExceptional ? `${formatRate(budget.savings_rate_excl_exceptional, 1)} hors exceptionnelles` : undefined}
           />
           <Row
-            label="Burn rate (par jour)"
+            label={t("budgetStep.burnRateParJour")}
             value={formatCurrency(budget.burn_rate)}
             extra={hasExceptional ? `${formatCurrency(budget.burn_rate_excl_exceptional)} hors exceptionnelles` : undefined}
           />
@@ -72,7 +75,7 @@ export function BudgetStep({ budget, onChanged }: { budget: ReviewBudget; onChan
       {overruns.length > 0 && (
         <Card>
           <CardContent className="space-y-2 p-4 md:p-6">
-            <p className="text-sm font-semibold">Budgets dépassés</p>
+            <p className="text-sm font-semibold">{t("budgetStep.budgetsDepasses")}</p>
             {overruns.map((a) => (
               <div key={a.category_id} className="flex justify-between gap-3 text-sm">
                 <span className="min-w-0 truncate">{a.category_name}</span>
@@ -88,8 +91,7 @@ export function BudgetStep({ budget, onChanged }: { budget: ReviewBudget; onChan
       <Card>
         <CardContent className="space-y-3 p-4 md:p-6">
           <p className="text-sm text-slate-600">
-            Plus grosses dépenses du mois. Marquez un achat ponctuel comme <strong>exceptionnel</strong> pour
-            juger le mois sans lui (il reste dans les totaux et les soldes).
+            {t("budgetStep.plusGrossesDepensesDuMois")} <strong>exceptionnel</strong> {t("budgetStep.pourJugerLeMoisSans")}
           </p>
           <ul className="divide-y">
             {budget.top_expenses.map((tx) => (
@@ -109,13 +111,13 @@ export function BudgetStep({ budget, onChanged }: { budget: ReviewBudget; onChan
                     variant={tx.is_exceptional ? "default" : "outline"}
                     onClick={() => toggle(tx.id, !tx.is_exceptional)}
                   >
-                    {tx.is_exceptional ? "Exceptionnelle" : "Marquer exceptionnelle"}
+                    {tx.is_exceptional ? t("budgetStep.exceptionnelle") : t("budgetStep.marquerExceptionnelle")}
                   </Button>
                 </div>
               </li>
             ))}
             {budget.top_expenses.length === 0 && (
-              <li className="py-3 text-sm text-slate-500">Aucune dépense ce mois-ci.</li>
+              <li className="py-3 text-sm text-slate-500">{t("budgetStep.aucuneDepenseCeMoisCi")}</li>
             )}
           </ul>
         </CardContent>

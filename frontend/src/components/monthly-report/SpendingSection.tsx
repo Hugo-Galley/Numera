@@ -1,3 +1,5 @@
+import i18n from "i18next"
+import { useTranslation } from "react-i18next"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { IconComponent } from "@/components/dashboard/IconComponent"
 import { formatCurrency, formatRate } from "@/lib/utils"
@@ -6,14 +8,15 @@ import type { MonthlyReportData } from "./types"
 import { useDrilldown } from "@/hooks/useDrilldown"
 
 const PARTS = [
-  { key: "fixed_charges", label: "Charges fixes", bar: "bg-slate-700" },
-  { key: "variable_expenses", label: "Dépenses variables", bar: "bg-rose-400" },
-  { key: "savings", label: "Épargne", bar: "bg-emerald-500" },
-  { key: "investments", label: "Investi", bar: "bg-sky-500" },
-  { key: "remainder", label: "Reste", bar: "bg-slate-200" },
+  { key: "fixed_charges", bar: "bg-slate-700" },
+  { key: "variable_expenses", bar: "bg-rose-400" },
+  { key: "savings", bar: "bg-emerald-500" },
+  { key: "investments", bar: "bg-sky-500" },
+  { key: "remainder", bar: "bg-slate-200" },
 ] as const
 
 export function SpendingSection({ data, month, year }: { data: MonthlyReportData; month: number; year: number }) {
+  const { t } = useTranslation("month")
   const { openDrilldown } = useDrilldown()
   const flow = data.money_flow
   const parts = flow
@@ -24,7 +27,7 @@ export function SpendingSection({ data, month, year }: { data: MonthlyReportData
 
   return (
     <section className="space-y-3">
-      <h2 className="text-lg font-black text-slate-900">Où est passé l'argent ?</h2>
+      <h2 className="text-lg font-black text-slate-900">{t("spendingSection.ouEstPasseLArgent")}</h2>
       <Card>
         <CardContent className="space-y-6 p-4 md:p-5">
           {flow && total > 0 && (
@@ -35,7 +38,7 @@ export function SpendingSection({ data, month, year }: { data: MonthlyReportData
                     key={p.key}
                     className={p.bar}
                     style={{ width: `${(p.block.amount / total) * 100}%` }}
-                    title={`${p.label} : ${formatCurrency(p.block.amount)}`}
+                    title={`${t(`spendingSection.parts.${p.key}`)} : ${formatCurrency(p.block.amount)}`}
                   />
                 ))}
               </div>
@@ -44,19 +47,18 @@ export function SpendingSection({ data, month, year }: { data: MonthlyReportData
                   <div key={p.key}>
                     <div className="flex items-center gap-1.5 text-xs text-slate-500">
                       <span className={`h-2 w-2 rounded-full ${p.bar}`} />
-                      {p.label}
+                      {t(`spendingSection.parts.${p.key}`)}
                     </div>
                     <div className="amount-blur text-sm font-bold">{formatCurrency(p.block.amount)}</div>
                     {flow.remainder.amount >= 0 && (
-                      <div className="text-[11px] text-slate-400">{formatRate(p.block.percentage, 1)} des revenus</div>
+                      <div className="text-[11px] text-slate-400">{i18n.t("misc.ofIncome", { ns: "month", pct: formatRate(p.block.percentage, 1) })}</div>
                     )}
                   </div>
                 ))}
               </div>
               {flow.remainder.amount < 0 && (
                 <p className="text-xs font-medium text-rose-600">
-                  Dépenses supérieures aux revenus de{" "}
-                  <span className="amount-blur">{formatCurrency(Math.abs(flow.remainder.amount))}</span>.
+                  {i18n.t("misc.expensesOver", { ns: "month", amount: formatCurrency(Math.abs(flow.remainder.amount)) })}
                 </p>
               )}
             </div>
@@ -65,11 +67,11 @@ export function SpendingSection({ data, month, year }: { data: MonthlyReportData
           <div>
             <CardHeader className="p-0 pb-2">
               <CardTitle className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                Principales catégories
+                {t("spendingSection.principalesCategories")}
               </CardTitle>
             </CardHeader>
             {data.top_categories.length === 0 ? (
-              <p className="py-4 text-sm italic text-slate-400">Aucune dépense catégorisée ce mois-ci.</p>
+              <p className="py-4 text-sm italic text-slate-400">{t("spendingSection.aucuneDepenseCategoriseeCeMois")}</p>
             ) : (
               <ul className="divide-y divide-slate-100">
                 {data.top_categories.map((c) => (
@@ -77,7 +79,7 @@ export function SpendingSection({ data, month, year }: { data: MonthlyReportData
                     key={c.name}
                     role="button"
                     tabIndex={0}
-                    title="Voir les transactions"
+                    title={t("spendingSection.voirLesTransactions")}
                     onClick={() => openDrilldown({ month, year, label: c.name, categoryId: c.id ?? null })}
                     onKeyDown={(e) => e.key === "Enter" && openDrilldown({ month, year, label: c.name, categoryId: c.id ?? null })}
                     className="flex min-h-12 cursor-pointer items-center gap-3 rounded-lg py-2.5 hover:bg-slate-50"

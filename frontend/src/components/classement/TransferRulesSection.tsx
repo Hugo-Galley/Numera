@@ -1,3 +1,5 @@
+import i18n from "i18next"
+import { useTranslation } from "react-i18next"
 import { useCallback, useEffect, useState } from "react"
 import { ArrowRight, ArrowRightLeft, History, Pencil, Plus, Trash2 } from "lucide-react"
 import { format } from "date-fns"
@@ -26,6 +28,7 @@ const EMPTY_FORM = { source: "", dest: "", pattern: "", amount: "", tolerance: "
 
 // Règles de virement interne (les suggestions et virements liés sont dans le Centre d'actions)
 export function TransferRulesSection() {
+  const { t } = useTranslation("classement")
   const confirm = useConfirm()
   const [rules, setRules] = useState<TransferRule[]>([])
   const [accounts, setAccounts] = useState<AccountLite[]>([])
@@ -47,11 +50,11 @@ export function TransferRulesSection() {
       setAccounts(accs)
     } catch (error) {
       console.error("Failed to load transfer rules", error)
-      toast.error("Erreur lors du chargement des règles de virement")
+      toast.error(t("transferRulesSection.erreurLorsDuChargementDes"))
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [t])
 
   useEffect(() => {
     loadData()
@@ -80,7 +83,7 @@ export function TransferRulesSection() {
 
   async function saveRule() {
     if (!form.source || !form.dest) {
-      toast.error("Choisissez un compte source et un compte destination")
+      toast.error(t("transferRulesSection.choisissezUnCompteSourceEt"))
       return
     }
     const payload = {
@@ -94,17 +97,17 @@ export function TransferRulesSection() {
     try {
       if (editingId === null) {
         await api.post("/transfer-rules", payload)
-        toast.success("Règle créée")
+        toast.success(t("transferRulesSection.regleCreee"))
       } else {
         await api.patch(`/transfer-rules/${editingId}`, payload)
-        toast.success("Règle modifiée")
+        toast.success(t("transferRulesSection.regleModifiee"))
       }
       setFormOpen(false)
       setEditingId(null)
       setForm(EMPTY_FORM)
       loadData()
     } catch {
-      toast.error(editingId === null ? "Impossible de créer la règle" : "Impossible de modifier la règle")
+      toast.error(editingId === null ? t("transferRulesSection.impossibleDeCreerLaRegle") : t("transferRulesSection.impossibleDeModifierLaRegle"))
     }
   }
 
@@ -113,18 +116,18 @@ export function TransferRulesSection() {
       await api.patch(`/transfer-rules/${rule.id}`, { is_active: !rule.is_active })
       loadData()
     } catch {
-      toast.error("Échec de l'action")
+      toast.error(t("transferRulesSection.echecDeLAction"))
     }
   }
 
   async function deleteRule(rule: TransferRule) {
-    if (!(await confirm("Supprimer cette règle ? Les virements déjà liés restent liés."))) return
+    if (!(await confirm(t("transferRulesSection.supprimerCetteRegleLesVirements")))) return
     try {
       await api.delete(`/transfer-rules/${rule.id}`)
-      toast.success("Règle supprimée")
+      toast.success(t("transferRulesSection.regleSupprimee"))
       loadData()
     } catch {
-      toast.error("Échec de la suppression")
+      toast.error(t("transferRulesSection.echecDeLaSuppression"))
     }
   }
 
@@ -132,32 +135,32 @@ export function TransferRulesSection() {
     try {
       const result = await api.post<TransferApplyResult>("/transfer-rules/apply?dry_run=true", {})
       if (result.count === 0) {
-        toast.info("Aucun virement à rattraper avec les règles actives")
+        toast.info(t("transferRulesSection.aucunVirementARattraperAvec"))
         return
       }
       setPreview(result)
     } catch {
-      toast.error("Échec de l'aperçu")
+      toast.error(t("transferRulesSection.echecDeLApercu"))
     }
   }
 
   async function applyCatchUp() {
     try {
       const result = await api.post<TransferApplyResult>("/transfer-rules/apply", {})
-      toast.success(`${result.count} virement${result.count > 1 ? "s" : ""} lié${result.count > 1 ? "s" : ""}`)
+      toast.success(i18n.t("misc.transfersLinked", { ns: "classement", count: result.count }))
       setPreview(null)
       loadData()
     } catch {
-      toast.error("Échec du rattrapage")
+      toast.error(t("transferRulesSection.echecDuRattrapage"))
     }
   }
 
-  if (loading) return <div className="p-8 text-center text-slate-500">Chargement...</div>
+  if (loading) return <div className="p-8 text-center text-slate-500">{t("transferRulesSection.chargement")}</div>
 
   const accountSelect = (value: string, onChange: (v: string) => void, exclude?: string) => (
     <Select value={value} onValueChange={onChange}>
       <SelectTrigger>
-        <SelectValue placeholder="Choisir un compte" />
+        <SelectValue placeholder={t("transferRulesSection.choisirUnCompte")} />
       </SelectTrigger>
       <SelectContent>
         {accounts
@@ -178,20 +181,20 @@ export function TransferRulesSection() {
           <div>
             <h3 className="flex items-center gap-2 text-lg font-bold text-slate-900">
               <ArrowRightLeft className="h-5 w-5 text-indigo-500" />
-              Règles de virement
+              {t("transferRulesSection.reglesDeVirement")}
             </h3>
             <p className="mt-1 text-sm text-slate-500">
-              Une règle relie automatiquement les sorties d'un compte aux entrées d'un autre (import, saisie, récurrences) dès que le couple est sans ambiguïté.
+              {t("transferRulesSection.uneRegleRelieAutomatiquementLes")}
             </p>
           </div>
           <div className="grid grid-cols-2 gap-2 sm:flex">
             <Button variant="outline" size="sm" className="h-11 gap-2 px-2 sm:h-9 sm:px-3" onClick={previewCatchUp} disabled={rules.length === 0}>
               <History className="h-4 w-4" />
-              Rattraper le passé
+              {t("transferRulesSection.rattraperLePasse")}
             </Button>
             <Button size="sm" className="h-11 gap-2 bg-indigo-600 px-2 hover:bg-indigo-700 sm:h-9 sm:px-3" onClick={openCreate}>
               <Plus className="h-4 w-4" />
-              Nouvelle règle
+              {t("transferRulesSection.nouvelleRegle")}
             </Button>
           </div>
         </div>
@@ -207,16 +210,16 @@ export function TransferRulesSection() {
                     <span className="break-words">{accountName(rule.dest_account_id)}</span>
                   </p>
                   <p className="text-xs text-slate-500">
-                    {rule.pattern ? `Libellé contient « ${rule.pattern} » · ` : "Tout libellé · "}
-                    {rule.amount ? `≈ ${formatCurrency(rule.amount)} · ` : "Tout montant · "}±{rule.amount_tolerance_pct} % · ±{rule.day_tolerance} j
+                    {rule.pattern ? i18n.t("misc.labelContains", { ns: "classement", pattern: rule.pattern }) : t("transferRulesSection.toutLibelle")}
+                    {rule.amount ? i18n.t("misc.approx", { ns: "classement", amount: formatCurrency(rule.amount) }) : t("transferRulesSection.toutMontant")}±{rule.amount_tolerance_pct} % · ±{rule.day_tolerance} j
                   </p>
                 </div>
                 <div className="flex shrink-0 items-center justify-between gap-1 border-t border-slate-100 pt-2 sm:justify-start sm:gap-3 sm:border-0 sm:pt-0">
                   <Switch checked={rule.is_active} onCheckedChange={() => toggleRule(rule)} />
-                  <Button variant="ghost" size="sm" className="h-10 w-10 p-0 text-slate-400 md:h-8 md:w-8 hover:bg-indigo-50 hover:text-indigo-600" onClick={() => openEdit(rule)} aria-label="Modifier la règle">
+                  <Button variant="ghost" size="sm" className="h-10 w-10 p-0 text-slate-400 md:h-8 md:w-8 hover:bg-indigo-50 hover:text-indigo-600" onClick={() => openEdit(rule)} aria-label={t("transferRulesSection.modifierLaRegle")}>
                     <Pencil className="h-4 w-4" />
                   </Button>
-                  <Button aria-label="Supprimer" variant="ghost" size="sm" className="h-10 w-10 p-0 text-slate-400 md:h-8 md:w-8 hover:bg-red-50 hover:text-red-600" onClick={() => deleteRule(rule)}>
+                  <Button aria-label={t("transferRulesSection.supprimer")} variant="ghost" size="sm" className="h-10 w-10 p-0 text-slate-400 md:h-8 md:w-8 hover:bg-red-50 hover:text-red-600" onClick={() => deleteRule(rule)}>
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
@@ -225,7 +228,7 @@ export function TransferRulesSection() {
           ))}
           {rules.length === 0 && (
             <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-8 text-center text-sm italic text-slate-400">
-              Aucune règle. Créez-en une pour vos répartitions régulières (ex. Principal → Livret A).
+              {t("transferRulesSection.aucuneRegleCreezEnUne")}
             </div>
           )}
         </div>
@@ -235,45 +238,45 @@ export function TransferRulesSection() {
       <Dialog open={formOpen} onOpenChange={setFormOpen}>
         <DialogContent className="[&_input]:text-base md:[&_input]:text-sm">
           <DialogHeader>
-            <DialogTitle>{editingId === null ? "Nouvelle règle de virement" : "Modifier la règle de virement"}</DialogTitle>
+            <DialogTitle>{editingId === null ? t("transferRulesSection.nouvelleRegleDeVirement") : t("transferRulesSection.modifierLaRegleDeVirement")}</DialogTitle>
             <DialogDescription>
-              Les sorties du compte source seront reliées aux entrées du compte destination.
-              {editingId !== null && " Les virements déjà liés ne changent pas : utilisez « Rattraper le passé » pour appliquer la règle modifiée à l'historique."}
+              {t("transferRulesSection.lesSortiesDuCompteSource")}
+              {editingId !== null && i18n.t("misc.modifiedHint", { ns: "classement" })}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="grid gap-2">
-                <Label>Compte source</Label>
+                <Label>{t("transferRulesSection.compteSource")}</Label>
                 {accountSelect(form.source, (v) => setForm({ ...form, source: v }), form.dest)}
               </div>
               <div className="grid gap-2">
-                <Label>Compte destination</Label>
+                <Label>{t("transferRulesSection.compteDestination")}</Label>
                 {accountSelect(form.dest, (v) => setForm({ ...form, dest: v }), form.source)}
               </div>
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="rule-pattern">Le libellé de la sortie contient (optionnel)</Label>
-              <Input id="rule-pattern" value={form.pattern} onChange={(e) => setForm({ ...form, pattern: e.target.value })} placeholder="ex. LIVRET" />
+              <Label htmlFor="rule-pattern">{t("transferRulesSection.leLibelleDeLaSortie")}</Label>
+              <Input id="rule-pattern" value={form.pattern} onChange={(e) => setForm({ ...form, pattern: e.target.value })} placeholder={t("transferRulesSection.exLivret")} />
             </div>
             <div className="grid grid-cols-2 items-end gap-4 sm:grid-cols-3">
               <div className="col-span-2 grid gap-2 sm:col-span-1">
-                <Label htmlFor="rule-amount">Montant (optionnel)</Label>
+                <Label htmlFor="rule-amount">{t("transferRulesSection.montantOptionnel")}</Label>
                 <Input id="rule-amount" inputMode="decimal" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} placeholder="500" />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="rule-tol">Tolérance montant %</Label>
+                <Label htmlFor="rule-tol">{t("transferRulesSection.toleranceMontant")}</Label>
                 <Input id="rule-tol" inputMode="decimal" value={form.tolerance} onChange={(e) => setForm({ ...form, tolerance: e.target.value })} />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="rule-days">Tolérance jours</Label>
+                <Label htmlFor="rule-days">{t("transferRulesSection.toleranceJours")}</Label>
                 <Input id="rule-days" inputMode="numeric" value={form.days} onChange={(e) => setForm({ ...form, days: e.target.value })} />
               </div>
             </div>
           </div>
           <DialogFooter className="gap-2 sm:gap-0">
-            <Button variant="outline" className="h-11 sm:h-10" onClick={() => setFormOpen(false)}>Annuler</Button>
-            <Button className="h-11 bg-indigo-600 sm:h-10 hover:bg-indigo-700" onClick={saveRule}>{editingId === null ? "Créer la règle" : "Enregistrer"}</Button>
+            <Button variant="outline" className="h-11 sm:h-10" onClick={() => setFormOpen(false)}>{t("transferRulesSection.annuler")}</Button>
+            <Button className="h-11 bg-indigo-600 sm:h-10 hover:bg-indigo-700" onClick={saveRule}>{editingId === null ? t("transferRulesSection.creerLaRegle") : t("transferRulesSection.enregistrer")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -282,9 +285,9 @@ export function TransferRulesSection() {
       <Dialog open={preview !== null} onOpenChange={(o) => !o && setPreview(null)}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Rattraper le passé</DialogTitle>
+            <DialogTitle>{t("transferRulesSection.rattraperLePasse")}</DialogTitle>
             <DialogDescription>
-              {preview?.count} virement{(preview?.count ?? 0) > 1 ? "s" : ""} seront liés sur tout l'historique. Les cas ambigus sont laissés en suggestions.
+              {i18n.t("misc.catchUp", { ns: "classement", count: preview?.count ?? 0 })}
             </DialogDescription>
           </DialogHeader>
           <div className="max-h-80 divide-y divide-slate-100 overflow-y-auto rounded-xl border border-slate-100">
@@ -301,8 +304,8 @@ export function TransferRulesSection() {
             ))}
           </div>
           <DialogFooter className="gap-2 sm:gap-0">
-            <Button variant="outline" className="h-11 sm:h-10" onClick={() => setPreview(null)}>Annuler</Button>
-            <Button className="h-11 bg-indigo-600 sm:h-10 hover:bg-indigo-700" onClick={applyCatchUp}>Lier ces virements</Button>
+            <Button variant="outline" className="h-11 sm:h-10" onClick={() => setPreview(null)}>{t("transferRulesSection.annuler")}</Button>
+            <Button className="h-11 bg-indigo-600 sm:h-10 hover:bg-indigo-700" onClick={applyCatchUp}>{t("transferRulesSection.lierCesVirements")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import { useEffect, useRef, useState } from "react"
 import { useSearchParams } from "react-router-dom"
 import { Filter, Hash, ShoppingBag, Tag } from "lucide-react"
@@ -10,10 +11,10 @@ import { TagsTab } from "@/components/classement/TagsTab"
 import { TransferRulesSection } from "@/components/classement/TransferRulesSection"
 
 const TABS = [
-  { value: "categories", label: "Catégories", icon: Tag },
-  { value: "tags", label: "Tags", icon: Hash },
-  { value: "merchants", label: "Marchands", icon: ShoppingBag },
-  { value: "rules", label: "Règles", icon: Filter },
+  { value: "categories", icon: Tag },
+  { value: "tags", icon: Hash },
+  { value: "merchants", icon: ShoppingBag },
+  { value: "rules", icon: Filter },
 ] as const
 
 type TabValue = (typeof TABS)[number]["value"]
@@ -24,6 +25,7 @@ function resolveTab(tab: string | null): TabValue {
 
 // Tout ce qui sert à ranger les transactions : catégories, tags, marchands et règles automatiques
 export default function Classement() {
+  const { t } = useTranslation("classement")
   const [searchParams, setSearchParams] = useSearchParams()
   const requested = searchParams.get("tab")
   const [activeTab, setActiveTab] = useState<TabValue>(resolveTab(requested))
@@ -52,16 +54,16 @@ export default function Classement() {
   return (
     <div className="space-y-6 pb-10 md:space-y-8">
       <div>
-        <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900">Classement</h1>
-        <p className="text-slate-500 mt-1">Catégories, tags, marchands et règles qui rangent tes transactions.</p>
+        <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900">{t("classement.classement")}</h1>
+        <p className="text-slate-500 mt-1">{t("classement.categoriesTagsMarchandsEtRegles")}</p>
       </div>
 
       <Tabs value={activeTab} onValueChange={changeTab} className="w-full">
         <div className="-mx-4 px-4 md:mx-0 md:px-0">
           <TabsList ref={tabsListRef} className="scroll-fade-x bg-slate-100 p-1 rounded-xl mb-4 sm:mb-6 flex h-12 w-full justify-start gap-1 sm:inline-flex sm:h-10 sm:w-auto [ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {TABS.map(({ value, label, icon: Icon }) => (
+            {TABS.map(({ value, icon: Icon }) => (
               <TabsTrigger key={value} value={value} className="h-10 shrink-0 rounded-lg px-2.5 sm:h-auto sm:px-6">
-                <Icon className="hidden h-4 w-4 mr-2 sm:inline" /> {label}
+                <Icon className="hidden h-4 w-4 mr-2 sm:inline" /> {t(`classement.tabs.${value}`)}
               </TabsTrigger>
             ))}
           </TabsList>

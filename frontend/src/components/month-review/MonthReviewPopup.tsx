@@ -1,3 +1,5 @@
+import i18n from "i18next"
+import { useTranslation } from "react-i18next"
 import { appLocale } from "@/i18n/locale"
 import { safeStorage } from "@/lib/storage"
 import { useEffect, useState } from "react"
@@ -37,6 +39,7 @@ function writeStorage(key: string, value: string) {
 const todayKey = () => new Date().toLocaleDateString("sv-SE")
 
 export function MonthReviewPopup() {
+  const { t } = useTranslation("month")
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)
   const [review, setReview] = useState<MonthReview | null>(null)
@@ -86,12 +89,12 @@ export function MonthReviewPopup() {
           <DialogTitle className="flex items-center gap-2 pr-6 text-left">
             <ClipboardCheck className="h-5 w-5 text-emerald-600" />
             {/* `capitalize` mettait une majuscule à chaque mot : seul le mois en prend une */}
-            {label.charAt(0).toUpperCase() + label.slice(1)} n'est pas encore clôturé
+            {i18n.t("misc.popupTitle", { ns: "month", month: label.charAt(0).toUpperCase() + label.slice(1) })}
           </DialogTitle>
           <DialogDescription>
             {points > 0
-              ? `${review.categorize.count} dépense(s) sans catégorie et ${review.accounts.unverified_count} compte(s) à valider.`
-              : "Tout semble en ordre : il ne reste qu'à vérifier le budget et à clôturer."}
+              ? i18n.t("misc.popupPoints", { ns: "month", expenses: review.categorize.count, accounts: review.accounts.unverified_count })
+              : t("monthReviewPopup.toutSembleEnOrdreIl")}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="gap-2 sm:justify-between">
@@ -103,7 +106,7 @@ export function MonthReviewPopup() {
               setOpen(false)
             }}
           >
-            Pas ce mois-ci
+            {t("monthReviewPopup.pasCeMoisCi")}
           </Button>
           <div className="flex flex-col-reverse gap-2 sm:flex-row">
             <Button
@@ -114,10 +117,10 @@ export function MonthReviewPopup() {
                 setOpen(false)
               }}
             >
-              Plus tard
+              {t("monthReviewPopup.plusTard")}
             </Button>
             <Button className="h-11 sm:h-10" onClick={() => navigate(`/month/revue?year=${review.year}&month=${review.month}`)}>
-              Faire la revue
+              {t("monthReviewPopup.faireLaRevue")}
             </Button>
           </div>
         </DialogFooter>
