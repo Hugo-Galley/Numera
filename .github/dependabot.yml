@@ -55,6 +55,22 @@ updates:
         update-types: ["version-update:semver-major"]
       - dependency-name: typescript
         update-types: ["version-update:semver-major"]
+      # Migrations majeures à faire à la main, en PR dédiée (les PR Dependabot échouent sinon au build/E2E) :
+      # React 19 (+ types), Tailwind 4 (config et syntaxe), @vitejs/plugin-react 6 (exige une autre version de Vite), MSW 3.
+      - dependency-name: react
+        update-types: ["version-update:semver-major"]
+      - dependency-name: react-dom
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@types/react"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@types/react-dom"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: tailwindcss
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@vitejs/plugin-react"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: msw
+        update-types: ["version-update:semver-major"]
     commit-message: { prefix: "build(deps)" }
     groups:
       npm-minor-patch:
