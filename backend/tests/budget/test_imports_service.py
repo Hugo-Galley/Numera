@@ -61,7 +61,7 @@ def test_commit_import_rejects_unknown_account_and_bad_mapping(client):
     account_id = client.post("/accounts", json={"name": "C", "type": "courant", "currency": "EUR"}).json()["id"]
     files = {"file": ("x.csv", CSV.encode(), "text/csv")}
     response = client.post("/import/commit", data={"account_id": str(account_id), "category_mapping": "{oops"}, files=files)
-    assert response.status_code == 422 and response.json() == {"detail": "Invalid category_mapping JSON"}
+    assert response.status_code == 422 and response.json() == {"detail": "JSON category_mapping invalide"}
 
 
 def test_preview_reports_errors_and_repeats(client):

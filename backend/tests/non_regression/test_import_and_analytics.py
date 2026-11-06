@@ -259,7 +259,7 @@ def test_investment_transaction_rejected_before_zero_point(client):
         json={"account_id": account["id"], "date": "2026-03-01T10:00:00", "type": "versement", "amount": 100, "note": None},
     )
     assert rejected.status_code == 422
-    assert "before active zero point" in rejected.json()["detail"]
+    assert "précéder le Point Zéro actif" in rejected.json()["detail"]
 
 
 def test_export_csv_numbers_compatibility(client):

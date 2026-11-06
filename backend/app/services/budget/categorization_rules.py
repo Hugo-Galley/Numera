@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 
 from app.core.errors import InvalidOperationError, NotFoundError
+from app.core.i18n import tr
 from app.models.categorization_rule import CategorizationRule
 from app.models.transaction import Transaction
 from app.repositories.budget import categorization_rules as repo
@@ -14,7 +15,7 @@ from app.services.budget.splits import check_split_compatible
 def _require(db: Session, rule_id: int) -> CategorizationRule:
     rule = repo.get(db, rule_id)
     if not rule:
-        raise NotFoundError("Rule not found")
+        raise NotFoundError(tr("errors.rule_not_found"))
     return rule
 
 

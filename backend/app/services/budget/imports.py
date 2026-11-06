@@ -12,6 +12,7 @@ from dataclasses import dataclass, field
 from sqlalchemy.orm import Session
 
 from app.core.errors import BusinessRuleError, NotFoundError
+from app.core.i18n import tr
 from app.core.logging import get_logger
 from app.domain.csv_import import (
     ImportRowError,
@@ -136,7 +137,7 @@ def _parse_mapping(category_mapping: str | None) -> dict:
     try:
         return json.loads(category_mapping)
     except Exception:
-        raise BusinessRuleError("Invalid category_mapping JSON") from None
+        raise BusinessRuleError(tr("errors.category_mapping_json")) from None
 
 
 def _create_category(db: Session, run: _ImportRun, name: str) -> Category:
@@ -252,7 +253,7 @@ async def commit_import(db: Session, account_id: int, read_content: Callable[[],
     logger.info(f"Starting CSV import: file={filename}, account_id={account_id}")
     account = account_repo.get(db, account_id)
     if not account:
-        raise NotFoundError("Account not found")
+        raise NotFoundError(tr("errors.account_not_found"))
     mapping = _parse_mapping(category_mapping)
     rows, delimiter, raw_headers = parse_csv(await read_content())
 

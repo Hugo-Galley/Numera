@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 
 from app.core.errors import BusinessRuleError, NotFoundError
+from app.core.i18n import tr
 from app.core.time import utcnow_naive
 from app.models.account import Account
 from app.models.balance_snapshot import BalanceSnapshot
@@ -14,16 +15,16 @@ VALUED_ACCOUNT_TYPES = ("investissement", "assurance_vie")
 def _require_valued_account(db: Session, account_id: int) -> Account:
     account = repo.get_account(db, account_id)
     if not account:
-        raise NotFoundError("Account not found")
+        raise NotFoundError(tr("errors.account_not_found"))
     if account.type not in VALUED_ACCOUNT_TYPES:
-        raise BusinessRuleError("Account must be of type investissement or assurance_vie")
+        raise BusinessRuleError(tr("errors.account_must_be_investment"))
     return account
 
 
 def _require(db: Session, snapshot_id: int) -> BalanceSnapshot:
     snapshot = repo.get(db, snapshot_id)
     if not snapshot:
-        raise NotFoundError("Balance snapshot not found")
+        raise NotFoundError(tr("errors.snapshot_not_found"))
     return snapshot
 
 

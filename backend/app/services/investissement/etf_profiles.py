@@ -4,6 +4,7 @@ import json
 from sqlalchemy.orm import Session
 
 from app.core.errors import ExternalServiceError, InvalidOperationError, NotFoundError
+from app.core.i18n import tr
 from app.core.logging import get_logger
 from app.core.time import utcnow_naive
 from app.domain.etf_presets import SYSTEM_ETF_PRESETS
@@ -32,7 +33,7 @@ def list_profiles(db: Session) -> list[EtfProfileRead]:
 def _get(db: Session, profile_id: int) -> EtfProfile:
     profile = repo.get(db, profile_id)
     if not profile:
-        raise NotFoundError("ETF profile not found")
+        raise NotFoundError(tr("errors.etf_profile_not_found"))
     return profile
 
 
@@ -42,7 +43,7 @@ def get_profile(db: Session, profile_id: int) -> EtfProfileRead:
 
 def create_profile(db: Session, payload: EtfProfileCreate) -> EtfProfileRead:
     if repo.find_by_ticker_or_name(db, payload.ticker.upper(), payload.name):
-        raise InvalidOperationError("An ETF profile with this name or ticker already exists")
+        raise InvalidOperationError(tr("errors.etf_profile_exists"))
     profile = new_profile(payload)
     repo.add(db, profile)
     db.commit()
@@ -61,7 +62,7 @@ def update_profile(db: Session, profile_id: int, payload: EtfProfileUpdate) -> E
 def delete_profile(db: Session, profile_id: int) -> None:
     profile = _get(db, profile_id)
     if profile.is_system:
-        raise InvalidOperationError("Cannot delete system preset ETF profiles")
+        raise InvalidOperationError(tr("errors.etf_preset_undeletable"))
     repo.delete(db, profile)
     db.commit()
 
@@ -81,7 +82,7 @@ async def refresh_profile(db: Session, profile_id: int) -> EtfProfileRead:
     try:
         await refresh_etf_profile(db, profile)
     except yahoo_finance.YahooUnavailable:
-        raise ExternalServiceError("Yahoo Finance est injoignable, réessayez plus tard") from None
+        raise ExternalServiceError(tr("errors.yahoo_unreachable")) from None
     db.refresh(profile)
     return to_read(profile)
 
@@ -163,7 +164,7 @@ async def auto_decompose(db: Session, payload: AutoDecomposeRequest) -> EtfProfi
     """Crée le profil d'un ETF ou fonds inconnu à partir de la composition publiée par Yahoo."""
     profile = await auto_decompose_and_create_profile(db=db, symbol=payload.symbol, name=payload.name, isin=payload.isin)
     if not profile:
-        raise InvalidOperationError("Could not decompose ETF profile online")
+        raise InvalidOperationError(tr("errors.etf_decompose_failed"))
     return to_read(profile)
 
 

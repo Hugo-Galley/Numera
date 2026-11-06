@@ -15,6 +15,7 @@ from sqlalchemy.orm import Session
 from app.core import security, totp
 from app.core.config import settings
 from app.core.errors import AuthenticationError, ConflictError, InvalidOperationError, RateLimitedError
+from app.core.i18n import tr
 from app.core.logging import get_logger
 from app.core.login_events import record_login
 from app.core.login_rate_limit import totp_rate_limiter
@@ -40,12 +41,12 @@ def _read_mfa_token(db: Session, token: str) -> str:
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
     except jwt.PyJWTError:
-        raise AuthenticationError("Étape de connexion expirée, recommencez") from None
+        raise AuthenticationError(tr("errors.login_step_expired")) from None
     if payload.get("purpose") != "totp" or not payload.get("u"):
-        raise AuthenticationError("Étape de connexion invalide")
+        raise AuthenticationError(tr("errors.login_step_invalid"))
     # Un changement de mot de passe entre les deux étapes invalide l'étape en cours
     if int(payload.get("iat") or 0) < int(get_setting(db, "auth_valid_after", "0") or 0):
-        raise AuthenticationError("Étape de connexion expirée, recommencez")
+        raise AuthenticationError(tr("errors.login_step_expired"))
     return payload["u"]
 
 
@@ -59,7 +60,7 @@ def _require_current_password(db: Session, password: str) -> None:
     """400 (jamais 401/403 : le client API déconnecte sur ces codes)."""
     current_hash = get_setting(db, "admin_password_hash", settings.ADMIN_PASSWORD_HASH)
     if not security.verify_password(password, current_hash):
-        raise InvalidOperationError("Mot de passe actuel incorrect")
+        raise InvalidOperationError(tr("errors.current_password_wrong"))
 
 
 def status(db: Session) -> TotpStatus:
@@ -71,7 +72,7 @@ def setup(db: Session, body: TotpSetupBody, user: str) -> TotpSetup:
     """Prépare un secret ; il n'est actif qu'après confirmation d'un premier code (`enable`)."""
     _require_current_password(db, body.current_password)
     if is_enabled(db):
-        raise ConflictError("Double authentification déjà activée")
+        raise ConflictError(tr("errors.totp_already_enabled"))
     secret = totp.generate_secret()
     set_setting(db, PENDING_KEY_SETTING, secret)
     db.commit()
@@ -82,10 +83,10 @@ def setup(db: Session, body: TotpSetupBody, user: str) -> TotpSetup:
 def enable(db: Session, body: CodeBody) -> RecoveryCodes:
     pending = get_setting(db, PENDING_KEY_SETTING)
     if not pending:
-        raise InvalidOperationError("Aucune configuration en cours")
+        raise InvalidOperationError(tr("errors.totp_no_setup"))
     step = totp.verify(pending, body.code)
     if step is None:
-        raise InvalidOperationError("Code incorrect")
+        raise InvalidOperationError(tr("errors.code_wrong"))
     set_setting(db, SECRET_KEY_SETTING, pending)
     set_setting(db, PENDING_KEY_SETTING, "")
     set_setting(db, LAST_STEP_SETTING, str(step))
@@ -99,9 +100,9 @@ def disable(db: Session, body: DisableBody) -> TotpStatus:
     """Mot de passe + code exigés : un jeton de session volé ne suffit pas à retirer le second facteur."""
     _require_current_password(db, body.current_password)
     if not is_enabled(db):
-        raise InvalidOperationError("Double authentification non activée")
+        raise InvalidOperationError(tr("errors.totp_not_enabled"))
     if not check_second_factor(db, body.code):
-        raise InvalidOperationError("Code incorrect")
+        raise InvalidOperationError(tr("errors.code_wrong"))
     for key in (SECRET_KEY_SETTING, PENDING_KEY_SETTING, RECOVERY_SETTING):
         set_setting(db, key, "")
     set_setting(db, LAST_STEP_SETTING, "-1")
@@ -113,9 +114,9 @@ def disable(db: Session, body: DisableBody) -> TotpStatus:
 def regenerate_recovery_codes(db: Session, body: CodeBody) -> RecoveryCodes:
     """Remplace tous les codes de secours (les anciens deviennent invalides)."""
     if not is_enabled(db):
-        raise InvalidOperationError("Double authentification non activée")
+        raise InvalidOperationError(tr("errors.totp_not_enabled"))
     if not check_second_factor(db, body.code):
-        raise InvalidOperationError("Code incorrect")
+        raise InvalidOperationError(tr("errors.code_wrong"))
     codes = _new_recovery_codes(db)
     db.commit()
     return RecoveryCodes(recovery_codes=codes)
@@ -127,15 +128,15 @@ def login(db: Session, body: TotpLoginBody, request: Any) -> AccessToken:
     key = f"{client_host}:totp"
     if not totp_rate_limiter.is_allowed(key):
         record_login(db, request, "password_totp", False, "rate_limited")
-        raise RateLimitedError("Too many login attempts. Try again later.", settings.LOGIN_LOCKOUT_SECONDS)
+        raise RateLimitedError(tr("errors.too_many_attempts"), settings.LOGIN_LOCKOUT_SECONDS)
     username = _read_mfa_token(db, body.mfa_token)
     if username != get_setting(db, "admin_username", settings.ADMIN_USERNAME):
-        raise AuthenticationError("Étape de connexion invalide")
+        raise AuthenticationError(tr("errors.login_step_invalid"))
     if not check_second_factor(db, body.code):
         totp_rate_limiter.record_failure(key)
         logger.warning("Failed login attempt: invalid TOTP code")
         record_login(db, request, "password_totp", False, "invalid_totp")
-        raise AuthenticationError("Code incorrect")
+        raise AuthenticationError(tr("errors.code_wrong"))
     db.commit()  # pas de rejeu : l'étape TOTP consommée est enregistrée
     totp_rate_limiter.reset(key)
     logger.info("Successful login (password + TOTP)")

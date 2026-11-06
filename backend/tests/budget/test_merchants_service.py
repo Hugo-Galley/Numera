@@ -50,7 +50,7 @@ def test_duplicate_alias_is_conflict(db_session):
 
 
 def test_unknown_merchant_is_not_found(db_session):
-    with pytest.raises(NotFoundError, match="Merchant not found"):
+    with pytest.raises(NotFoundError, match="Marchand introuvable"):
         merchant_service.get_merchant(db_session, 1)
 
 

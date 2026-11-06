@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 
 from app.core.errors import BusinessRuleError, NotFoundError
+from app.core.i18n import tr
 from app.domain.transfers import Pair
 from app.models.transfer_rule import TransferRule
 from app.repositories.budget import transfer_rules as repo
@@ -16,15 +17,15 @@ from app.services.budget.transfers import apply_rules
 
 def _check_accounts(db: Session, source_id: int, dest_id: int) -> None:
     if source_id == dest_id:
-        raise BusinessRuleError("Source and destination accounts must differ")
+        raise BusinessRuleError(tr("errors.source_destination_differ"))
     if {source_id, dest_id} - repo.existing_account_ids(db, [source_id, dest_id]):
-        raise NotFoundError("Account not found")
+        raise NotFoundError(tr("errors.account_not_found"))
 
 
 def _require(db: Session, rule_id: int) -> TransferRule:
     rule = repo.get(db, rule_id)
     if not rule:
-        raise NotFoundError("Rule not found")
+        raise NotFoundError(tr("errors.rule_not_found"))
     return rule
 
 

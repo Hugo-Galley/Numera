@@ -170,7 +170,7 @@ def allocate(db: Session, claim: ReimbursementClaim, entree_id: int, amount: flo
     if entree.type != "Entree":
         _refuse(tr("reimbursements.only_entree_repays"))
     if entree.is_transfer:
-        _refuse("Un virement interne ne peut pas servir de remboursement")
+        _refuse(tr("errors.transfer_not_reimbursement"))
     sortie = get_transaction(db, claim.transaction_id)
     if account_currency(db, entree) != account_currency(db, sortie):
         _refuse(tr("reimbursements.same_currency"))

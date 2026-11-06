@@ -4,6 +4,7 @@ from datetime import date, datetime, timedelta
 from sqlalchemy.orm import Session
 
 from app.core.errors import NotFoundError
+from app.core.i18n import tr
 from app.core.time import end_of_today
 from app.domain.finance import get_recurring_occurrences, is_lapsed
 from app.domain.recurring import transfer_credit_date
@@ -50,7 +51,7 @@ async def _current_balance(db: Session, account_id: int | None, rates: dict) -> 
     if account_id:
         account = repo.get_account(db, account_id)
         if not account:
-            raise NotFoundError("Account not found")
+            raise NotFoundError(tr("errors.account_not_found"))
         return (await account_values(db, [account]))[account_id].value, counted_ids
     tr_accounts = ticket_restaurant_account_ids(db)
     accounts = [acc for acc in active_accounts(db) if acc.id not in tr_accounts]

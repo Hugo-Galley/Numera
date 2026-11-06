@@ -14,6 +14,7 @@ from datetime import datetime
 from typing import Any
 
 from app.core.errors import BusinessRuleError
+from app.core.i18n import tr
 from app.domain.finance import normalize_transaction_type
 from app.schemas.types import MAX_AMOUNT
 
@@ -99,15 +100,14 @@ def parse_csv(file_bytes: bytes) -> tuple[list[dict[str, str]], str, list[str]]:
         content = file_bytes.decode("cp1252", errors="replace")
     rows, delimiter, raw_headers = read_csv(content)
     if not raw_headers:
-        raise BusinessRuleError("Fichier CSV vide")
+        raise BusinessRuleError(tr("errors.csv_empty"))
 
     canonical_rows = [canonicalize_row(row) for row in rows]
     available = {k for row in canonical_rows for k, v in row.items() if (v or "").strip() != ""}
     missing = [col for col in MANDATORY_COLUMNS if col not in available]
     if missing:
         raise BusinessRuleError(
-            f"Colonnes manquantes dans le fichier : {', '.join(missing)}. "
-            "Colonnes attendues : Date, Commercant, Montant (Type, Categorie, Mois et Note sont facultatives).",
+            tr("errors.csv_missing_columns", missing=", ".join(missing)),
         )
     return canonical_rows, delimiter, raw_headers
 

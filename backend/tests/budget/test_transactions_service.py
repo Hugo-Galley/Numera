@@ -75,7 +75,7 @@ def test_service_matches_http_route(client, db_session, data, params):
 def test_unknown_transaction_candidates_is_not_found(db_session):
     import asyncio
 
-    with pytest.raises(NotFoundError, match="Transaction not found"):
+    with pytest.raises(NotFoundError, match="Transaction introuvable"):
         asyncio.run(service.transfer_candidates(db_session, 999, days=15, amount_tolerance_pct=5.0, account_id=None))
 
 
@@ -97,7 +97,7 @@ def _create(db, account, type_, amount, date):
 def test_second_initial_balance_is_rejected(db_session):
     account = _account(db_session, "Courant")
     _create(db_session, account, "Solde Initial", 100.0, datetime(2026, 1, 1))
-    with pytest.raises(BusinessRuleError, match="A Solde Initial already exists for this account"):
+    with pytest.raises(BusinessRuleError, match="Un Solde Initial existe déjà pour ce compte"):
         _create(db_session, account, "Solde Initial", 50.0, datetime(2025, 1, 1))
 
 

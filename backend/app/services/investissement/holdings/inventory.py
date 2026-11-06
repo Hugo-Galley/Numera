@@ -6,6 +6,7 @@ Quantité, PRU et devise ne s'écrivent jamais sur une position : on modifie l'i
 from sqlalchemy.orm import Session
 
 from app.core.errors import BusinessRuleError, ConflictError, NotFoundError
+from app.core.i18n import tr
 from app.core.time import utcnow_naive
 from app.domain.holdings import normalize_ticker
 from app.models.account import Account
@@ -30,7 +31,7 @@ from app.services.investissement.market.suggestions import suggest_holdings_from
 def _get_account(db: Session, account_id: int) -> Account:
     account = accounts_repo.get(db, account_id)
     if not account:
-        raise NotFoundError("Account not found")
+        raise NotFoundError(tr("errors.account_not_found"))
     return account
 
 
@@ -88,7 +89,7 @@ async def apply_costs(db: Session, payload: ApplyCostsRequest) -> list[Portfolio
     for line in payload.items:
         item = items.get(normalize_ticker(line.ticker))
         if item is None:
-            raise BusinessRuleError(f"{line.ticker} n'est pas dans l'inventaire du Point Zéro")
+            raise BusinessRuleError(tr("errors.ticker_not_in_inventory", ticker=line.ticker))
         item.buy_price_avg = line.buy_price_avg
     return await _rebuild_and_list(db, payload.account_id)
 
@@ -126,7 +127,7 @@ async def create_holding(db: Session, payload: PortfolioHoldingCreate) -> Portfo
 
     holding = repo.holding(db, payload.account_id, ticker)
     if holding is None:
-        raise BusinessRuleError("Position nulle : rien à ajouter")
+        raise BusinessRuleError(tr("errors.holding_zero_nothing_to_add"))
     return (await enrich_all(db, [holding]))[0]
 
 
@@ -134,9 +135,9 @@ async def update_holding(db: Session, holding_id: int, payload: PortfolioHolding
     """Métadonnées modifiées directement ; quantité, PRU, devise via la ligne d'inventaire du titre."""
     holding = repo.get(db, holding_id)
     if not holding:
-        raise NotFoundError("Holding not found")
+        raise NotFoundError(tr("errors.holding_not_found"))
     if payload.ticker is not None and normalize_ticker(payload.ticker) != holding.ticker:
-        raise BusinessRuleError("Le ticker d'une position ne peut pas être modifié")
+        raise BusinessRuleError(tr("errors.holding_ticker_locked"))
 
     item = repo.baseline_item(db, holding.account_id, holding.ticker)
     if payload.isin is not None:
@@ -153,7 +154,7 @@ async def update_holding(db: Session, holding_id: int, payload: PortfolioHolding
     if {"quantity", "buy_price_avg", "currency", "cost_basis_eur"} & payload.model_fields_set:
         if item is None:
             raise BusinessRuleError(
-                "Cette position provient uniquement d'opérations : modifie les opérations, ou refais l'inventaire du Point Zéro"
+                tr("errors.holding_from_operations_only")
             )
         if payload.quantity is not None:
             item.quantity = payload.quantity
@@ -169,7 +170,7 @@ async def update_holding(db: Session, holding_id: int, payload: PortfolioHolding
     db.commit()
     holding = repo.get(db, holding_id)
     if holding is None:
-        raise BusinessRuleError("La position est désormais nulle")
+        raise BusinessRuleError(tr("errors.holding_now_zero"))
     return (await enrich_all(db, [holding]))[0]
 
 
@@ -177,10 +178,10 @@ async def delete_holding(db: Session, holding_id: int) -> None:
     """Retire le titre de l'inventaire Point Zéro (refusé s'il reste des opérations sur ce titre)."""
     holding = repo.get(db, holding_id)
     if not holding:
-        raise NotFoundError("Holding not found")
+        raise NotFoundError(tr("errors.holding_not_found"))
     cutoff = trade_cutoff(db, holding.account_id, holding.ticker)
     if repo.later_trade_exists(db, holding.account_id, holding.ticker, cutoff):
-        raise ConflictError("Des opérations portent sur ce titre après le Point Zéro : supprime-les ou enregistre une vente")
+        raise ConflictError(tr("errors.holding_has_later_operations"))
     account_id = holding.account_id
     repo.delete_baseline(db, account_id, holding.ticker)
     db.flush()

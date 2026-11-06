@@ -4,6 +4,7 @@ from datetime import datetime
 from sqlalchemy.orm import Session
 
 from app.core.errors import NotFoundError
+from app.core.i18n import tr
 from app.domain.metrics import net_flow, variation_pct
 from app.repositories.analytics import metrics as repo
 from app.services.budget.budget_period import current_period, period_bounds
@@ -16,7 +17,7 @@ def compute_account_flow_summary(db: Session, account_id: int, start_date: datet
     """
     account = repo.get_account(db, account_id)
     if not account:
-        raise NotFoundError("Account not found")
+        raise NotFoundError(tr("errors.account_not_found"))
 
     year, month = current_period(db)
     month_start, next_start = period_bounds(db, year, month)

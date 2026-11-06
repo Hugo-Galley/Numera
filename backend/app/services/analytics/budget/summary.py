@@ -9,6 +9,7 @@ from datetime import datetime
 from sqlalchemy.orm import Session
 
 from app.core.errors import BusinessRuleError, DomainError, InternalError, NotFoundError
+from app.core.i18n import tr
 from app.core.logging import get_logger
 from app.core.time import end_of_today
 from app.domain.budget import elapsed_days, savings_rate, to_eur
@@ -51,9 +52,9 @@ class _Wealth:
 async def compute_budget(db: Session, month: int | None = None, year: int | None = None,
                          account_id: int | None = None) -> dict:
     if account_id is not None and db.get(Account, account_id) is None:
-        raise NotFoundError("Account not found")
+        raise NotFoundError(tr("errors.account_not_found"))
     if bool(month) != bool(year):
-        raise BusinessRuleError("month et year doivent être fournis ensemble")
+        raise BusinessRuleError(tr("errors.month_year_together"))
     try:
         start = None
         end = end_of_today()
@@ -65,7 +66,7 @@ async def compute_budget(db: Session, month: int | None = None, year: int | None
         if account_id:
             account = db.query(Account).filter(Account.id == account_id).first()
             if not account:
-                raise NotFoundError("Account not found")
+                raise NotFoundError(tr("errors.account_not_found"))
             wealth = await _account_wealth(db, account, end, rates, is_current_period)
             flows = _account_flows(db, account, start, end, days)
         else:
@@ -77,7 +78,7 @@ async def compute_budget(db: Session, month: int | None = None, year: int | None
     except Exception:
         # Détail volontairement absent de la réponse : il reste dans les logs
         logger.exception("Erreur dans budget_analytics")
-        raise InternalError("Erreur interne lors du calcul du budget") from None
+        raise InternalError(tr("errors.budget_internal")) from None
 
 
 def _days(db: Session, start: datetime | None, end: datetime, monthly: bool) -> int:

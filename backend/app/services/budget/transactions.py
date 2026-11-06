@@ -4,6 +4,7 @@ from dataclasses import replace
 from sqlalchemy.orm import Session
 
 from app.core.errors import NotFoundError
+from app.core.i18n import tr
 from app.models.transaction import Transaction
 from app.repositories.budget import transactions as repo
 from app.repositories.budget.transactions import TransactionFilters
@@ -14,7 +15,7 @@ from app.services.budget.transfers import candidates_for, find_pairs
 def require(db: Session, transaction_id: int) -> Transaction:
     tx = repo.get(db, transaction_id)
     if not tx:
-        raise NotFoundError("Transaction not found")
+        raise NotFoundError(tr("errors.transaction_not_found"))
     return tx
 
 

@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 
 from app.core.errors import ConflictError, NotFoundError
+from app.core.i18n import tr
 from app.models.merchant import Merchant, MerchantAlias
 from app.repositories.budget import merchants as repo
 from app.schemas.merchant import MerchantAliasCreate, MerchantCreate, MerchantUpdate
@@ -9,7 +10,7 @@ from app.schemas.merchant import MerchantAliasCreate, MerchantCreate, MerchantUp
 def _require(db: Session, merchant_id: int) -> Merchant:
     merchant = repo.get(db, merchant_id)
     if not merchant:
-        raise NotFoundError("Merchant not found")
+        raise NotFoundError(tr("errors.merchant_not_found"))
     return merchant
 
 
@@ -19,10 +20,10 @@ def get_merchants(db: Session, skip: int, limit: int, search: str | None) -> lis
 
 def create_merchant(db: Session, merchant_in: MerchantCreate) -> Merchant:
     if repo.name_taken(db, merchant_in.name):
-        raise ConflictError("Un marchand porte déjà ce nom")
+        raise ConflictError(tr("errors.merchant_name_exists"))
     taken = repo.taken_aliases(db, merchant_in.aliases or [])
     if taken:
-        raise ConflictError(f"Alias déjà utilisé : {', '.join(taken)}")
+        raise ConflictError(tr("errors.alias_taken", aliases=", ".join(taken)))
 
     merchant = Merchant(
         name=merchant_in.name,
@@ -61,7 +62,7 @@ def update_merchant(db: Session, merchant_id: int, merchant_in: MerchantUpdate) 
         del update_data["name"]
     new_name = update_data.get("name")
     if new_name and new_name != merchant.name and repo.name_taken(db, new_name):
-        raise ConflictError("Un marchand porte déjà ce nom")
+        raise ConflictError(tr("errors.merchant_name_exists"))
     for field, value in update_data.items():
         setattr(merchant, field, value)
     db.commit()
@@ -77,7 +78,7 @@ def delete_merchant(db: Session, merchant_id: int) -> None:
 def add_alias(db: Session, merchant_id: int, alias_in: MerchantAliasCreate) -> MerchantAlias:
     _require(db, merchant_id)
     if repo.taken_aliases(db, [alias_in.label]):
-        raise ConflictError("Cet alias existe déjà")
+        raise ConflictError(tr("errors.alias_exists"))
     alias = MerchantAlias(merchant_id=merchant_id, label=alias_in.label)
     db.add(alias)
     repo.link_unnormalized_transactions(db, merchant_id, [alias_in.label])
@@ -89,7 +90,7 @@ def add_alias(db: Session, merchant_id: int, alias_in: MerchantAliasCreate) -> M
 def remove_alias(db: Session, alias_id: int) -> None:
     alias = repo.get_alias(db, alias_id)
     if not alias:
-        raise NotFoundError("Alias not found")
+        raise NotFoundError(tr("errors.alias_not_found"))
     repo.delete(db, alias)
     db.commit()
 

@@ -3,6 +3,7 @@ from datetime import date
 from sqlalchemy.orm import Session
 
 from app.core.errors import NotFoundError
+from app.core.i18n import tr
 from app.domain.savings_goals import goal_status, percentage, signed_total_eur
 from app.integrations.currency import get_exchange_rates
 from app.models.savings_goal import SavingsGoal as SavingsGoalModel
@@ -13,7 +14,7 @@ from app.schemas.savings_goal import SavingsGoalCreate, SavingsGoalProgress, Sav
 def _require(db: Session, goal_id: int) -> SavingsGoalModel:
     goal = repo.get(db, goal_id)
     if not goal:
-        raise NotFoundError("Goal not found")
+        raise NotFoundError(tr("errors.goal_not_found"))
     return goal
 
 

@@ -30,6 +30,7 @@ from webauthn.helpers.structs import (
 from app.core import security
 from app.core.config import settings
 from app.core.errors import AuthenticationError, ConflictError, InvalidOperationError, NotFoundError, RateLimitedError
+from app.core.i18n import tr
 from app.core.logging import get_logger
 from app.core.login_events import record_login
 from app.core.login_rate_limit import client_key, login_rate_limiter
@@ -69,14 +70,14 @@ def _origin(request: Any) -> tuple[str, str]:
     origin = (request.headers.get("origin") or "").rstrip("/")
     host = urlparse(origin).hostname
     if not host:
-        raise InvalidOperationError("Origine invalide")
+        raise InvalidOperationError(tr("errors.passkey_origin_invalid"))
     served = {
         urlparse(f"//{value.split(',')[0].strip()}").hostname
         for value in (request.headers.get("x-forwarded-host"), request.headers.get("host"))
         if value
     }
     if origin not in settings.cors_origins and host not in served:
-        raise InvalidOperationError("Origine non autorisée pour les passkeys")
+        raise InvalidOperationError(tr("errors.passkey_origin_forbidden"))
     return origin, host
 
 
@@ -93,11 +94,11 @@ def _read_challenge(state: str, purpose: str) -> bytes:
     try:
         payload = jwt.decode(state, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
     except jwt.PyJWTError:
-        raise InvalidOperationError("Défi expiré ou invalide") from None
+        raise InvalidOperationError(tr("errors.passkey_challenge_expired")) from None
     if payload.get("purpose") != purpose:
-        raise InvalidOperationError("Défi invalide")
+        raise InvalidOperationError(tr("errors.passkey_challenge_invalid"))
     if not payload.get("ch"):
-        raise InvalidOperationError("Défi invalide")
+        raise InvalidOperationError(tr("errors.passkey_challenge_invalid"))
     return base64url_to_bytes(payload["ch"])
 
 
@@ -122,7 +123,7 @@ def delete_passkey(db: Session, credential_id: str, body: ReauthBody | None = No
     credentials = _load(db)
     remaining = [c for c in credentials if c["id"] != credential_id]
     if len(remaining) == len(credentials):
-        raise NotFoundError("Passkey introuvable")
+        raise NotFoundError(tr("errors.passkey_not_found"))
     _save(db, remaining)
     return {"ok": True}
 
@@ -158,12 +159,12 @@ def register_verify(db: Session, body: RegisterVerifyBody, request: Any) -> dict
         )
     except InvalidRegistrationResponse as exc:
         logger.warning("Passkey registration refused: %s", exc)
-        raise InvalidOperationError("Enregistrement de la passkey refusé") from exc
+        raise InvalidOperationError(tr("errors.passkey_register_refused")) from exc
 
     credentials = _load(db)
     credential_id = bytes_to_base64url(verified.credential_id)
     if any(c["id"] == credential_id for c in credentials):
-        raise ConflictError("Passkey déjà enregistrée")
+        raise ConflictError(tr("errors.passkey_exists"))
     credentials.append(
         {
             "id": credential_id,
@@ -182,7 +183,7 @@ def login_options(db: Session, request: Any) -> dict:
     _, rp_id = _origin(request)
     credentials = _load(db)
     if not credentials:
-        raise NotFoundError("Aucune passkey enregistrée")
+        raise NotFoundError(tr("errors.passkey_none_registered"))
     options = generate_authentication_options(
         rp_id=rp_id,
         allow_credentials=[PublicKeyCredentialDescriptor(id=base64url_to_bytes(c["id"])) for c in credentials],
@@ -195,7 +196,7 @@ def login_verify(db: Session, body: LoginVerifyBody, request: Any) -> dict:
     key = client_key(request, "passkey")
     if not login_rate_limiter.is_allowed(key):
         record_login(db, request, "passkey", False, "rate_limited")
-        raise RateLimitedError("Too many login attempts. Try again later.", settings.LOGIN_LOCKOUT_SECONDS)
+        raise RateLimitedError(tr("errors.too_many_attempts"), settings.LOGIN_LOCKOUT_SECONDS)
     origin, rp_id = _origin(request)
     challenge = _read_challenge(body.state, "login")
 
@@ -204,7 +205,7 @@ def login_verify(db: Session, body: LoginVerifyBody, request: Any) -> dict:
     if stored is None:
         login_rate_limiter.record_failure(key)
         record_login(db, request, "passkey", False, "invalid_passkey")
-        raise AuthenticationError("Passkey inconnue")
+        raise AuthenticationError(tr("errors.passkey_unknown"))
     try:
         verified = verify_authentication_response(
             credential=body.credential,
@@ -219,7 +220,7 @@ def login_verify(db: Session, body: LoginVerifyBody, request: Any) -> dict:
         login_rate_limiter.record_failure(key)
         logger.warning("Passkey login refused: %s", exc)
         record_login(db, request, "passkey", False, "invalid_passkey")
-        raise AuthenticationError("Connexion par passkey refusée") from exc
+        raise AuthenticationError(tr("errors.passkey_login_refused")) from exc
 
     stored["sign_count"] = verified.new_sign_count
     stored["last_used_at"] = utcnow_aware().isoformat()

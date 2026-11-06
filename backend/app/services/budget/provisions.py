@@ -15,6 +15,7 @@ from datetime import date, datetime, timedelta
 from sqlalchemy.orm import Session
 
 from app.core.errors import NotFoundError
+from app.core.i18n import tr
 from app.integrations.currency import get_exchange_rates
 from app.models.provision import Provision
 from app.repositories.budget import provisions as repo
@@ -211,15 +212,15 @@ async def summary(db: Session, today: date | None = None) -> dict:
 
 def _check_refs(db: Session, category_id: int | None, account_id: int | None) -> None:
     if category_id is not None and not repo.category_exists(db, category_id):
-        raise NotFoundError("Catégorie introuvable")
+        raise NotFoundError(tr("errors.category_not_found"))
     if account_id is not None and not repo.account_exists(db, account_id):
-        raise NotFoundError("Compte introuvable")
+        raise NotFoundError(tr("errors.account_not_found"))
 
 
 def _require(db: Session, provision_id: int) -> Provision:
     provision = repo.get(db, provision_id)
     if provision is None:
-        raise NotFoundError("Provision introuvable")
+        raise NotFoundError(tr("errors.provision_not_found"))
     return provision
 
 

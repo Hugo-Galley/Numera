@@ -15,11 +15,11 @@ def _account(db, name):
 
 def test_rule_with_same_source_and_destination_is_rejected(db_session):
     account = _account(db_session, "Courant")
-    with pytest.raises(BusinessRuleError, match="Source and destination accounts must differ"):
+    with pytest.raises(BusinessRuleError, match="Les comptes source et destination doivent être différents"):
         service.create_rule(db_session, TransferRuleCreate(source_account_id=account.id, dest_account_id=account.id))
 
 
 def test_rule_on_unknown_account_is_not_found(db_session):
     account = _account(db_session, "Courant")
-    with pytest.raises(NotFoundError, match="Account not found"):
+    with pytest.raises(NotFoundError, match="Compte introuvable"):
         service.create_rule(db_session, TransferRuleCreate(source_account_id=account.id, dest_account_id=999))

@@ -61,7 +61,7 @@ def test_delete_unknown_category_is_structured_not_found(db_session):
 
 def test_duplicate_tag_name_is_invalid_operation(db_session):
     tag_service.create_tag(db_session, TagCreate(name="Vacances", color="#123456"))
-    with pytest.raises(InvalidOperationError, match="Tag name already exists"):
+    with pytest.raises(InvalidOperationError, match="Ce nom de tag existe déjà"):
         tag_service.create_tag(db_session, TagCreate(name="Vacances", color="#654321"))
 
 
@@ -73,6 +73,6 @@ def test_renaming_tag_to_existing_name_is_invalid_operation(db_session):
 
 
 def test_unknown_tag_is_not_found(db_session):
-    with pytest.raises(NotFoundError, match="Tag not found"):
+    with pytest.raises(NotFoundError, match="Tag introuvable"):
         tag_service.delete_tag(db_session, 1)
     assert db_session.query(Tag).count() == 0
