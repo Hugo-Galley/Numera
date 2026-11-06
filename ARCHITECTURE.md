@@ -6,7 +6,7 @@ Decrire l'architecture actuelle du depot pour permettre a un humain ou a un agen
 
 ## Vue D'ensemble
 
-- Frontend: SPA React 18 + Vite + TypeScript + Tailwind + Recharts.
+- Frontend: SPA React 18 + Vite 8 + TypeScript + Tailwind + Recharts.
 - Backend: FastAPI + SQLAlchemy + Alembic + Pydantic v2.
 - Base: SQLite locale dans `backend/data/suivi_budget.db` en dev Docker.
 - Auth: mono-admin JWT, routes metier protegees ; tokens MCP (`nmr_…`) acceptés à la place du JWT en lecture seule (`GET`), jamais sur `/admin`.
