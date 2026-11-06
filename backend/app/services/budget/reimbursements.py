@@ -10,6 +10,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.core.errors import InvalidOperationError, NotFoundError
+from app.core.i18n import tr
 from app.models.account import Account
 from app.models.reimbursement import ReimbursementAllocation, ReimbursementClaim
 from app.models.transaction import Transaction
@@ -33,21 +34,21 @@ def _refuse(detail: str) -> None:
 def get_transaction(db: Session, tx_id: int) -> Transaction:
     tx = db.get(Transaction, tx_id)
     if tx is None:
-        raise NotFoundError("Transaction introuvable")
+        raise NotFoundError(tr("reimbursements.transaction_not_found"))
     return tx
 
 
 def require_claim(db: Session, claim_id: int) -> ReimbursementClaim:
     claim = repo.get_claim(db, claim_id)
     if not claim:
-        raise NotFoundError("Créance introuvable")
+        raise NotFoundError(tr("reimbursements.claim_not_found"))
     return claim
 
 
 def require_allocation(db: Session, allocation_id: int) -> ReimbursementAllocation:
     allocation = repo.get_allocation(db, allocation_id)
     if not allocation:
-        raise NotFoundError("Affectation introuvable")
+        raise NotFoundError(tr("reimbursements.allocation_not_found"))
     return allocation
 
 
@@ -99,11 +100,11 @@ def check_transaction_change(db: Session, tx: Transaction, new_type: str, new_am
     if expected <= 0 and allocated <= 0:
         return
     if new_type != tx.type:
-        _refuse("Cette transaction porte des remboursements : retirez-les avant de changer son type")
+        _refuse(tr("reimbursements.has_claims_type"))
     if expected > 0 and cents(new_amount) < expected - EPS:
-        _refuse("Le montant ne peut pas être inférieur au total des créances déclarées")
+        _refuse(tr("reimbursements.amount_below_claims"))
     if allocated > 0 and cents(new_amount) < allocated - EPS:
-        _refuse("Le montant ne peut pas être inférieur au total déjà affecté à des créances")
+        _refuse(tr("reimbursements.amount_below_allocated"))
 
 
 def detach_before_delete(db: Session, tx: Transaction) -> set[int]:
@@ -122,14 +123,14 @@ def detach_before_delete(db: Session, tx: Transaction) -> set[int]:
 def create_claim(db: Session, transaction_id: int, debtor: str, expected_amount: float, note: str | None = None) -> ReimbursementClaim:
     sortie = get_transaction(db, transaction_id)
     if sortie.type != "Sortie":
-        _refuse("Une créance ne peut porter que sur une dépense (Sortie)")
+        _refuse(tr("reimbursements.claim_on_expense_only"))
     if sortie.is_transfer:
-        _refuse("Un virement interne ne peut pas porter de créance")
+        _refuse(tr("reimbursements.claim_on_transfer"))
     expected = cents(expected_amount)
     if expected <= 0:
-        _refuse("Le montant attendu doit être positif")
+        _refuse(tr("reimbursements.expected_positive"))
     if sortie_expected(db, sortie.id) + expected > cents(sortie.amount) + EPS:
-        _refuse("Le total des créances dépasse le montant de la dépense")
+        _refuse(tr("reimbursements.claims_exceed_expense"))
     claim = ReimbursementClaim(transaction_id=sortie.id, debtor=debtor.strip(), expected_amount=expected, note=note)
     db.add(claim)
     db.commit()
@@ -141,12 +142,12 @@ def update_claim(db: Session, claim: ReimbursementClaim, data: dict) -> Reimburs
     if data.get("expected_amount") is not None:
         expected = cents(data["expected_amount"])
         if expected <= 0:
-            _refuse("Le montant attendu doit être positif")
+            _refuse(tr("reimbursements.expected_positive"))
         if expected < claim_received(db, claim.id) - EPS:
-            _refuse("Le montant attendu ne peut pas être inférieur au montant déjà reçu : retirez d'abord des remboursements")
+            _refuse(tr("reimbursements.expected_below_received"))
         sortie = get_transaction(db, claim.transaction_id)
         if sortie_expected(db, sortie.id, exclude_claim_id=claim.id) + expected > cents(sortie.amount) + EPS:
-            _refuse("Le total des créances dépasse le montant de la dépense")
+            _refuse(tr("reimbursements.claims_exceed_expense"))
         claim.expected_amount = expected
     if data.get("debtor"):
         claim.debtor = data["debtor"].strip()
@@ -167,12 +168,12 @@ def delete_claim(db: Session, claim: ReimbursementClaim) -> None:
 def allocate(db: Session, claim: ReimbursementClaim, entree_id: int, amount: float | None = None) -> ReimbursementAllocation:
     entree = get_transaction(db, entree_id)
     if entree.type != "Entree":
-        _refuse("Seule une entrée (Entree) peut rembourser une créance")
+        _refuse(tr("reimbursements.only_entree_repays"))
     if entree.is_transfer:
         _refuse("Un virement interne ne peut pas servir de remboursement")
     sortie = get_transaction(db, claim.transaction_id)
     if account_currency(db, entree) != account_currency(db, sortie):
-        _refuse("La dépense et le remboursement doivent être dans la même devise")
+        _refuse(tr("reimbursements.same_currency"))
 
     existing = (
         db.query(ReimbursementAllocation)
@@ -184,11 +185,11 @@ def allocate(db: Session, claim: ReimbursementClaim, entree_id: int, amount: flo
     entree_room = cents(entree.amount - (entree_allocated(db, entree.id) - current))
     value = cents(min(claim_room, entree_room) if amount is None else amount)
     if value <= 0:
-        _refuse("Rien à affecter : la créance est soldée ou l'entrée est déjà entièrement affectée")
+        _refuse(tr("reimbursements.nothing_to_allocate"))
     if value > claim_room + EPS:
-        _refuse("Le montant dépasse le reste dû de la créance")
+        _refuse(tr("reimbursements.exceeds_claim_remaining"))
     if value > entree_room + EPS:
-        _refuse("Le montant dépasse la part non affectée de l'entrée")
+        _refuse(tr("reimbursements.exceeds_entree_unallocated"))
 
     if existing:
         existing.amount = value
@@ -317,7 +318,7 @@ def candidates(db: Session, claim: ReimbursementClaim) -> list[dict]:
 def claims_for_entree(db: Session, entree: Transaction) -> dict:
     """Créances ouvertes auxquelles affecter `entree` (débiteur reconnu dans le libellé d'abord)."""
     if entree.type != "Entree":
-        _refuse("Seule une entrée (Entree) peut rembourser une créance")
+        _refuse(tr("reimbursements.only_entree_repays"))
     currency = account_currency(db, entree)
     label = _label(entree).lower()
     open_claims = [v for v in list_claims(db, "open") if v["currency"] == currency]

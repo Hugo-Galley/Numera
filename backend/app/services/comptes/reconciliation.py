@@ -10,6 +10,7 @@ from datetime import date, datetime, timedelta
 
 from sqlalchemy.orm import Session
 
+from app.core.i18n import get_language, tr
 from app.models.transaction import Transaction
 from app.repositories.comptes import reconciliation as repo
 
@@ -56,7 +57,14 @@ def _signed_effect(tx: Transaction) -> float:
 
 
 def _fmt(amount: float, currency: str) -> str:
-    return f"{abs(amount):,.2f} {currency}".replace(",", " ").replace(".", ",")
+    text = f"{abs(amount):,.2f} {currency}"
+    if get_language() == "en":
+        return text
+    return text.replace(",", " ").replace(".", ",")
+
+
+def _fmt_date(day: date) -> str:
+    return day.isoformat() if get_language() == "en" else day.strftime("%d/%m/%Y")
 
 
 def _is_duplicate(tx: Transaction, other: Transaction) -> bool:
@@ -85,9 +93,9 @@ def _duplicate_hints(window: list[Transaction], gap: float, currency: str, seen:
                     seen.update({tx.id, other.id})
                     hints.append(Hint(
                         kind="duplicate",
-                        message=(
-                            f"Doublon probable : « {tx.merchant} » ({_fmt(effect, currency)}) apparaît deux fois"
-                            + (" et explique exactement l'écart." if explains else ".")
+                        message=tr(
+                            "reconciliation.duplicate", merchant=tx.merchant, amount=_fmt(effect, currency),
+                            explains=tr("reconciliation.duplicate_explains" if explains else "reconciliation.duplicate_plain"),
                         ),
                         transactions=[tx, other],
                     ))
@@ -105,10 +113,7 @@ def _single_line_hints(window: list[Transaction], gap: float, currency: str, see
             seen.add(tx.id)
             hints.append(Hint(
                 kind="extra_or_missing",
-                message=(
-                    f"« {tx.merchant} » ({_fmt(effect, currency)}) correspond exactement à l'écart : "
-                    "ligne en trop, ou pas encore passée à la banque à cette date ?"
-                ),
+                message=tr("reconciliation.extra_or_missing", merchant=tx.merchant, amount=_fmt(effect, currency)),
                 transactions=[tx],
             ))
     for tx in window:
@@ -117,10 +122,7 @@ def _single_line_hints(window: list[Transaction], gap: float, currency: str, see
             seen.add(tx.id)
             hints.append(Hint(
                 kind="wrong_sign",
-                message=(
-                    f"« {tx.merchant} » ({_fmt(effect, currency)}) est peut-être enregistrée dans le mauvais sens "
-                    f"({tx.type}) : l'inverser comblerait l'écart."
-                ),
+                message=tr("reconciliation.wrong_sign", merchant=tx.merchant, amount=_fmt(effect, currency), type=tx.type),
                 transactions=[tx],
             ))
     return hints
@@ -128,13 +130,10 @@ def _single_line_hints(window: list[Transaction], gap: float, currency: str, see
 
 def _missing_hint(gap: float, currency: str, day: date) -> Hint:
     """Repli : sans piste, l'écart est probablement une transaction absente de Numera."""
-    kind_label = "une entrée" if gap > 0 else "une dépense"
+    kind_label = tr("reconciliation.kind_entry" if gap > 0 else "reconciliation.kind_expense")
     return Hint(
         kind="missing",
-        message=(
-            f"Aucune ligne n'explique l'écart : il manque probablement {kind_label} de "
-            f"{_fmt(gap, currency)} (ou plusieurs) avant le {day.strftime('%d/%m/%Y')}."
-        ),
+        message=tr("reconciliation.missing", kind=kind_label, amount=_fmt(gap, currency), date=_fmt_date(day)),
     )
 
 
