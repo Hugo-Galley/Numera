@@ -63,7 +63,7 @@ export function UpcomingCard({ accountId, currency, refreshKey }: { accountId: n
         </span>
       </button>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-h-[85vh] max-w-md overflow-y-auto">
+        <DialogContent className="max-h-[85vh] max-w-2xl overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-xl font-black">
               <CalendarClock className="h-5 w-5 text-slate-500" />
@@ -75,8 +75,8 @@ export function UpcomingCard({ accountId, currency, refreshKey }: { accountId: n
           </DialogHeader>
           <ul className="divide-y divide-slate-100">
             {events.map((ev, i) => (
-              <li key={`${ev.type}-${ev.transaction_id ?? ev.date}-${i}`} className="flex items-center gap-3 py-2 text-sm">
-                <span className="w-12 shrink-0 text-xs text-slate-400">{format(new Date(ev.date), "dd/MM")}</span>
+              <li key={`${ev.type}-${ev.transaction_id ?? ev.date}-${i}`} className="flex items-center gap-3 py-3 text-base">
+                <span className="w-14 shrink-0 text-sm text-slate-400">{format(new Date(ev.date), "dd/MM")}</span>
                 <span className="flex min-w-0 flex-1 items-center gap-1.5">
                   <span className="truncate font-medium text-slate-900">{ev.name}</span>
                   {ev.type === "recurring" && (
