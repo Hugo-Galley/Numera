@@ -5191,6 +5191,11 @@ export interface components {
             /** Hide Amounts */
             hide_amounts: boolean;
             /**
+             * Language
+             * @enum {string}
+             */
+            language: "fr" | "en";
+            /**
              * Min Severity
              * @enum {string}
              */
@@ -5220,6 +5225,8 @@ export interface components {
             current_password?: string | null;
             /** Hide Amounts */
             hide_amounts?: boolean | null;
+            /** Language */
+            language?: ("fr" | "en") | null;
             /** Min Severity */
             min_severity?: ("low" | "medium" | "high") | null;
             /** Ntfy Enabled */

@@ -13,7 +13,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Skeleton } from "@/components/ui/skeleton"
 import { Switch } from "@/components/ui/switch"
 import { useSubmit } from "@/hooks/useSubmit"
+import { type Language } from "@/i18n"
 import { api } from "@/lib/api"
+import { syncServerLanguage } from "@/lib/serverLanguage"
 import { errorMessage } from "@/lib/utils"
 import { useReauth } from "./ReauthDialog"
 
@@ -36,6 +38,7 @@ interface NotificationSettings {
   weekly_digest: boolean
   hide_amounts: boolean
   public_url: string
+  language?: Language
 }
 
 const SEVERITY_LABELS: Record<Severity, string> = {
@@ -66,7 +69,13 @@ export function NotificationsTab() {
   const load = async () => {
     setFailed(false)
     try {
-      const data = await api.get<NotificationSettings>("/notifications/settings")
+      let data = await api.get<NotificationSettings>("/notifications/settings")
+      if (data.language && data.language !== i18n.language) {
+        // Les notifications partent du serveur : elles suivent la langue choisie dans l'interface
+        const language = i18n.language as Language
+        await syncServerLanguage(language)
+        data = { ...data, language }
+      }
       setSettings(data)
       setDraft(data)
     } catch (error) {

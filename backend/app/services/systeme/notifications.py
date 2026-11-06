@@ -13,13 +13,15 @@ from __future__ import annotations
 
 import hashlib
 import re
+from collections.abc import Iterator
+from contextlib import contextmanager
 from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
 
 from sqlalchemy.orm import Session
 
 from app.core.errors import ExternalServiceError, InvalidOperationError
-from app.core.i18n import tr
+from app.core.i18n import LANGUAGES, get_language, set_language, tr
 from app.core.logging import get_logger
 from app.db.system_settings import get_setting, set_setting
 from app.integrations.notifications import DEFAULT_NTFY_SERVER, Channel, NtfyChannel, TelegramChannel, send_all
@@ -49,6 +51,7 @@ KEYS = {
     "weekly_digest": "notify.weekly_digest",
     "hide_amounts": "notify.hide_amounts",
     "public_url": "notify.public_url",
+    "language": "notify.language",
 }
 SECRET_FIELDS = ("ntfy_token", "telegram_bot_token")
 SENSITIVE_FIELDS = (
@@ -72,6 +75,7 @@ class NotificationSettings:
     weekly_digest: bool = False
     hide_amounts: bool = False
     public_url: str = ""
+    language: str = "fr"
 
 
 def load_settings(db: Session) -> NotificationSettings:
@@ -87,6 +91,8 @@ def load_settings(db: Session) -> NotificationSettings:
             values[field] = raw
     if values["min_severity"] not in SEVERITY_RANK:
         values["min_severity"] = defaults.min_severity
+    if values["language"] not in LANGUAGES:
+        values["language"] = defaults.language
     return NotificationSettings(**values)
 
 
@@ -124,7 +130,12 @@ def enabled_channels(db: Session) -> list[Channel]:
     return [channel for name in names if (channel := build_channel(db, name))]
 
 
-_AMOUNT = re.compile(r"\d{1,3}(?:[   .]\d{3})+(?:,\d+)?|\d+(?:[.,]\d+)?(?=\s?(?:€|EUR|\$|£|CHF))")
+_AMOUNT = re.compile(
+    r"[€$£]\s?\d[\d,]*(?:\.\d+)?"  # anglais : « €1,234.50 »
+    r"|\d{1,3}(?:,\d{3})+(?:\.\d+)?"
+    r"|\d{1,3}(?:[ \u00a0\u202f.]\d{3})+(?:,\d+)?"
+    r"|\d+(?:[.,]\d+)?(?=\s?(?:€|EUR|\$|£|CHF))"
+)
 
 
 def mask_amounts(text: str) -> str:
@@ -138,6 +149,25 @@ def fingerprint(action: ActionItem) -> str:
 
 async def current_actions(db: Session) -> list[ActionItem]:
     return (await compute_action_center(db=db)).actions
+
+
+@contextmanager
+def _language(language: str) -> Iterator[None]:
+    """Fixe la langue le temps d'un bloc (la tâche de fond n'a pas d'en-tête Accept-Language), puis la restaure."""
+    previous = get_language()
+    set_language(language)
+    try:
+        yield
+    finally:
+        set_language(previous)
+
+
+async def _localized(db: Session, actions: list[ActionItem], language: str) -> dict[str, ActionItem]:
+    """Les mêmes actions rédigées dans `language`, par id (les empreintes restent calculées sur le français)."""
+    if language == "fr":
+        return {a.id: a for a in actions}
+    with _language(language):
+        return {a.id: a for a in await current_actions(db)}
 
 
 def _link(settings: NotificationSettings, path: str | None) -> str | None:
@@ -160,15 +190,21 @@ async def run_notifications(db: Session, now: datetime | None = None) -> int:
         return 0
     settings = load_settings(db)
     clean = mask_amounts if settings.hide_amounts else (lambda text: text)
+    language = settings.language
     floor = SEVERITY_RANK[settings.min_severity]
-    actions = [a for a in await current_actions(db) if SEVERITY_RANK.get(a.severity, 0) >= floor]
+    # Empreintes sur le texte français : changer de langue ne renvoie pas les alertes déjà envoyées
+    with _language("fr"):
+        all_actions = await current_actions(db)
+    actions = [a for a in all_actions if SEVERITY_RANK.get(a.severity, 0) >= floor]
+    shown = await _localized(db, all_actions, language)
     known = {row.fingerprint for row in db.query(NotificationLog.fingerprint).all()}
     fresh = [(fingerprint(a), a) for a in actions if fingerprint(a) not in known]
     sent = 0
 
     if get_setting(db, INITIALIZED_KEY) != "1":
-        body = f"Notifications activées : {len(actions)} action(s) en cours dans le Centre d'Actions."
-        if await send_all(channels, "Numera connecté", body, "default", _link(settings, "/audit")):
+        with _language(language):
+            title, body = tr("notifications.hello_title"), tr("notifications.hello_body", count=len(actions))
+        if await send_all(channels, title, body, "default", _link(settings, "/audit")):
             _log(db, [(p, a.id) for p, a in fresh], "init")
             set_setting(db, INITIALIZED_KEY, "1")
             db.commit()
@@ -177,19 +213,22 @@ async def run_notifications(db: Session, now: datetime | None = None) -> int:
 
     if len(fresh) > GROUP_THRESHOLD:
         top = max(fresh, key=lambda item: SEVERITY_RANK.get(item[1].severity, 0))[1]
-        body = "\n".join(f"• {clean(a.title)}" for _, a in fresh)
-        delivered = await send_all(channels, f"{len(fresh)} nouvelles alertes Numera", body, top.severity, _link(settings, "/audit"))
+        body = "\n".join(f"• {clean(shown.get(a.id, a).title)}" for _, a in fresh)
+        with _language(language):
+            title = tr("notifications.grouped_title", count=len(fresh))
+        delivered = await send_all(channels, title, body, top.severity, _link(settings, "/audit"))
         if delivered:
             _log(db, [(p, a.id) for p, a in fresh], ",".join(delivered))
             sent += 1
     else:
-        for print_, action in fresh:
+        for print_, french in fresh:
+            action = shown.get(french.id, french)
             delivered = await send_all(
                 channels, clean(action.title), clean(action.description), action.severity,
                 _link(settings, action.action_url or "/audit"),
             )
             if delivered:
-                _log(db, [(print_, action.id)], ",".join(delivered))
+                _log(db, [(print_, french.id)], ",".join(delivered))
                 sent += 1
 
     if await send_weekly_digest(db, now):
@@ -198,6 +237,8 @@ async def run_notifications(db: Session, now: datetime | None = None) -> int:
 
 
 def _eur(value: float) -> str:
+    if get_language() == "en":
+        return f"€{value:,.2f}"
     return f"{value:,.2f}".replace(",", "\u202f").replace(".", ",") + " €"
 
 
@@ -210,13 +251,13 @@ async def _digest_body(db: Session, now: datetime) -> str:
     lines: list[str] = []
     try:
         budget = await compute_budget(month=now.month, year=now.year, account_id=None, db=db)
-        lines.append(f"Ce mois-ci : {_eur(budget['depenses_reelles'])} de dépenses réelles, {_eur(budget['revenus_totaux'])} de revenus.")
+        lines.append(tr("notifications.digest_budget", spent=_eur(budget["depenses_reelles"]), income=_eur(budget["revenus_totaux"])))
     except Exception as exc:
         logger.warning(f"Digest budget skipped: {exc}")
     try:
         actions = await current_actions(db)
         urgent = sum(1 for a in actions if a.severity == "high")
-        lines.append(f"Centre d'Actions : {len(actions)} action(s) en cours, dont {urgent} urgente(s).")
+        lines.append(tr("notifications.digest_actions", count=len(actions), urgent=urgent))
     except Exception as exc:
         logger.warning(f"Digest actions skipped: {exc}")
     try:
@@ -224,11 +265,11 @@ async def _digest_body(db: Session, now: datetime) -> str:
         limit = (now + timedelta(days=7)).date().isoformat()
         upcoming = [e for e in projection.events if e.date[:10] <= limit][:5]
         if upcoming:
-            lines.append("Échéances des 7 prochains jours :")
+            lines.append(tr("notifications.digest_upcoming"))
             lines += [f"• {e.date[:10]} {e.name} : {'+' if e.is_income else '−'}{_eur(e.amount)}" for e in upcoming]
     except Exception as exc:
         logger.warning(f"Digest projection skipped: {exc}")
-    return "\n".join(lines) or "Rien de particulier cette semaine."
+    return "\n".join(lines) or tr("notifications.digest_empty")
 
 
 async def send_weekly_digest(db: Session, now: datetime) -> bool:
@@ -241,10 +282,12 @@ async def send_weekly_digest(db: Session, now: datetime) -> bool:
     channels = enabled_channels(db)
     if not channels:
         return False
-    body = await _digest_body(db, now)
+    with _language(settings.language):
+        body = await _digest_body(db, now)
+        title = tr("notifications.digest_title")
     if settings.hide_amounts:
         body = mask_amounts(body)
-    if not await send_all(channels, "Ta semaine avec Numera", body, "low", _link(settings, "/")):
+    if not await send_all(channels, title, body, "low", _link(settings, "/")):
         return False
     set_setting(db, LAST_DIGEST_KEY, week)
     db.commit()
@@ -290,7 +333,7 @@ async def send_test_notification(db: Session, payload) -> dict:
     channel = build_channel(db, payload.channel)
     if channel is None:
         raise InvalidOperationError(tr("errors.channel_incomplete"))
-    delivered = await send_all([channel], "Test Numera", "Les notifications fonctionnent.", "default")
+    delivered = await send_all([channel], tr("notifications.test_title"), tr("notifications.test_body"), "default")
     if not delivered:
         raise ExternalServiceError(tr("errors.send_failed"))
     return {"channel": payload.channel, "delivered": True}

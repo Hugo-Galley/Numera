@@ -6,6 +6,7 @@ import { classementHandlers } from "./classement"
 import { investmentsHandlers } from "./investments"
 import { recurringHandlers } from "./recurring"
 import { savingsHandlers } from "./savings"
+import { settingsHandlers } from "./settings"
 import { transactionsHandlers } from "./transactions"
 
 export const handlers = [
@@ -17,6 +18,7 @@ export const handlers = [
   ...savingsHandlers,
   ...investmentsHandlers,
   ...analyticsHandlers,
+  ...settingsHandlers,
 ]
 
 export { apiUrl } from "./apiUrl"

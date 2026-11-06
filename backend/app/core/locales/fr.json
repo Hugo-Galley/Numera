@@ -293,5 +293,15 @@
   "errors.invalid_investment_type": "Le type d'opération d'investissement doit être l'un de : {types}",
   "errors.reinvest_edit_or_delete": "Cet achat vient d'un dividende réinvesti : modifie ou supprime le dividende",
   "errors.reinvest_edit": "Cet achat vient d'un dividende réinvesti : modifie le dividende",
-  "errors.csv_missing_columns": "Colonnes manquantes dans le fichier : {missing}. Colonnes attendues : Date, Commercant, Montant (Type, Categorie, Mois et Note sont facultatives)."
+  "errors.csv_missing_columns": "Colonnes manquantes dans le fichier : {missing}. Colonnes attendues : Date, Commercant, Montant (Type, Categorie, Mois et Note sont facultatives).",
+  "notifications.hello_title": "Numera connecté",
+  "notifications.hello_body": "Notifications activées : {count} action(s) en cours dans le Centre d'Actions.",
+  "notifications.grouped_title": "{count} nouvelles alertes Numera",
+  "notifications.digest_title": "Ta semaine avec Numera",
+  "notifications.digest_budget": "Ce mois-ci : {spent} de dépenses réelles, {income} de revenus.",
+  "notifications.digest_actions": "Centre d'Actions : {count} action(s) en cours, dont {urgent} urgente(s).",
+  "notifications.digest_upcoming": "Échéances des 7 prochains jours :",
+  "notifications.digest_empty": "Rien de particulier cette semaine.",
+  "notifications.test_title": "Test Numera",
+  "notifications.test_body": "Les notifications fonctionnent."
 }
