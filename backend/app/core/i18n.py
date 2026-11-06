@@ -11,6 +11,8 @@ les mêmes variables en français et en anglais.
 """
 import json
 from contextvars import ContextVar
+from dataclasses import dataclass
+from datetime import date, datetime
 from functools import cache
 from pathlib import Path
 from typing import Any
@@ -55,9 +57,59 @@ def tr(key: str, **params: Any) -> str:
     return text.format(**params) if params else text
 
 
+@dataclass(frozen=True)
+class Formats:
+    """Conventions d'une langue pour les nombres, montants, dates et pluriels dans les textes."""
+
+    decimal: str  # séparateur décimal
+    thousands: str  # séparateur de milliers (fine insécable en français)
+    thousands_plain: str  # variante « espace ordinaire » (messages où l'insécable gênerait)
+    symbol_first: bool  # « €1,234.56 » (True) ou « 1 234,56 € » (False)
+    symbol_gap: str  # espace entre nombre et symbole quand le symbole suit
+    date: str  # format strftime d'une date
+    datetime: str  # format strftime d'une date et heure
+    zero_is_singular: bool  # « 0 action » au singulier (français) ou au pluriel (anglais)
+
+
+# Ajouter une langue : une entrée ici, son catalogue `locales/<code>.json`, et son code dans LANGUAGES.
+FORMATS: dict[str, Formats] = {
+    "fr": Formats(",", "\u202f", " ", False, "\u00a0", "%d/%m/%Y", "%d/%m/%Y %H:%M", True),
+    "en": Formats(".", ",", ",", True, "", "%Y-%m-%d", "%Y-%m-%d %H:%M", False),
+}
+
+
+def formats() -> Formats:
+    """Conventions de la langue courante."""
+    return FORMATS[get_language()]
+
+
+def format_number(value: float, decimals: int = 2, thousands: str | None = None) -> str:
+    """Nombre au format de la langue courante ; `thousands` remplace le séparateur de milliers (« » : aucun)."""
+    fmt = formats()
+    sep = fmt.thousands if thousands is None else thousands
+    return f"{value:,.{decimals}f}".translate(str.maketrans({",": sep, ".": fmt.decimal}))
+
+
+def format_money(value: float, symbol: str = "€", gap: str | None = None) -> str:
+    """Montant avec symbole : « 1 234,56 € » en français, « €1,234.56 » en anglais (`gap` : espace avant le symbole)."""
+    fmt = formats()
+    number = format_number(value)
+    if fmt.symbol_first:
+        return f"{symbol}{number}"
+    return f"{number}{fmt.symbol_gap if gap is None else gap}{symbol}"
+
+
+def format_date(value: date) -> str:
+    return value.strftime(formats().date)
+
+
+def format_datetime(value: datetime) -> str:
+    return value.strftime(formats().datetime)
+
+
 def trn(key: str, count: int, **params: Any) -> str:
     """Texte avec pluriel : `key_one` ou `key_other` (le français compte 0 et 1 au singulier), `{count}` fourni."""
-    one = count == 1 or (get_language() == "fr" and count == 0)
+    one = count == 1 or (formats().zero_is_singular and count == 0)
     return tr(f"{key}_{'one' if one else 'other'}", count=count, **params)
 
 

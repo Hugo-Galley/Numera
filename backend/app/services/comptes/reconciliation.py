@@ -10,7 +10,7 @@ from datetime import date, datetime, timedelta
 
 from sqlalchemy.orm import Session
 
-from app.core.i18n import get_language, tr
+from app.core.i18n import format_date, format_number, formats, tr
 from app.models.transaction import Transaction
 from app.repositories.comptes import reconciliation as repo
 
@@ -57,14 +57,7 @@ def _signed_effect(tx: Transaction) -> float:
 
 
 def _fmt(amount: float, currency: str) -> str:
-    text = f"{abs(amount):,.2f} {currency}"
-    if get_language() == "en":
-        return text
-    return text.replace(",", " ").replace(".", ",")
-
-
-def _fmt_date(day: date) -> str:
-    return day.isoformat() if get_language() == "en" else day.strftime("%d/%m/%Y")
+    return f"{format_number(abs(amount), thousands=formats().thousands_plain)} {currency}"
 
 
 def _is_duplicate(tx: Transaction, other: Transaction) -> bool:
@@ -133,7 +126,7 @@ def _missing_hint(gap: float, currency: str, day: date) -> Hint:
     kind_label = tr("reconciliation.kind_entry" if gap > 0 else "reconciliation.kind_expense")
     return Hint(
         kind="missing",
-        message=tr("reconciliation.missing", kind=kind_label, amount=_fmt(gap, currency), date=_fmt_date(day)),
+        message=tr("reconciliation.missing", kind=kind_label, amount=_fmt(gap, currency), date=format_date(day)),
     )
 
 

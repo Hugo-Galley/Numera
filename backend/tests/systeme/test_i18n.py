@@ -111,3 +111,55 @@ def test_route_answers_in_the_language_of_the_request(client):
     en_labels = [s["label"] for s in client.get(query, headers={"Accept-Language": "en"}).json()["scenarios"]]
     assert fr_labels == ["Actuel", "+100 €/mois", "+250 €/mois", "+500 €/mois", "Dépenses −10 %"]
     assert en_labels == ["Current", "+€100/month", "+€250/month", "+€500/month", "Expenses −10%"]
+
+
+# --- Formats par langue : ajouter une langue ne demande qu'une entrée de table, un catalogue et un code ---
+
+def test_every_language_has_formats_and_catalog():
+    from app.core.i18n import FORMATS, LANGUAGES, load_catalog
+
+    assert set(FORMATS) == set(LANGUAGES)
+    assert all(load_catalog(code) for code in LANGUAGES)
+
+
+def test_number_money_and_date_formats():
+    from datetime import date, datetime
+
+    from app.core.i18n import format_date, format_datetime, format_money, format_number, set_language
+
+    set_language("fr")
+    assert format_number(1234.5) == "1 234,50"
+    assert format_number(2.5, 1, thousands="") == "2,5"
+    assert format_money(1234.5) == "1 234,50 €"
+    assert format_money(1234.5, gap=" ") == "1 234,50 €"
+    assert format_date(date(2026, 10, 20)) == "20/10/2026"
+    assert format_datetime(datetime(2026, 10, 20, 9, 5)) == "20/10/2026 09:05"
+    set_language("en")
+    assert format_number(1234.5) == "1,234.50" and format_number(2.5, 1, thousands="") == "2.5"
+    assert format_money(1234.5) == "€1,234.50"
+    assert format_date(date(2026, 10, 20)) == "2026-10-20"
+    assert format_datetime(datetime(2026, 10, 20, 9, 5)) == "2026-10-20 09:05"
+    set_language("fr")
+
+
+def test_new_language_only_needs_a_formats_entry(monkeypatch):
+    import app.core.i18n as i18n
+
+    monkeypatch.setattr(i18n, "LANGUAGES", ("fr", "en", "xx"))
+    monkeypatch.setitem(i18n.FORMATS, "xx", i18n.Formats(",", ".", ".", False, " ", "%d.%m.%Y", "%d.%m.%Y %H:%M", False))
+    i18n.set_language("xx")
+    try:
+        assert i18n.format_number(1234.5) == "1.234,50"
+        assert i18n.format_money(5) == "5,00 €"
+    finally:
+        i18n.set_language("fr")
+
+
+def test_notification_language_schema_matches_supported_languages():
+    """Le schéma des réglages de notification énumère les langues : à garder aligné sur LANGUAGES."""
+    from typing import get_args
+
+    from app.core.i18n import LANGUAGES
+    from app.schemas.notification import NotificationSettingsRead
+
+    assert set(get_args(NotificationSettingsRead.model_fields["language"].annotation)) == set(LANGUAGES)
