@@ -1,4 +1,5 @@
 import { AlertCircle } from "lucide-react"
+import { useTranslation } from "react-i18next"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
@@ -7,26 +8,27 @@ import type { ImportFlowCtx } from "./useImportFlow"
 
 /** Correspondance des catégories du fichier. */
 export function CategoryMappingCard({ ctx }: { ctx: ImportFlowCtx }) {
+  const { t } = useTranslation("import")
   const { categories, categoryMapping, handleMappingChange, preview } = ctx
   return (
     <>
       {preview && (
          <Card className="shadow-sm border-slate-100 overflow-hidden">
            <CardHeader className="bg-slate-50/50 border-b">
-             <CardTitle className="text-sm font-bold">Analyse du fichier</CardTitle>
+             <CardTitle className="text-sm font-bold">{t("analysis")}</CardTitle>
            </CardHeader>
            <CardContent className="p-4 sm:p-6 space-y-4">
              <div className="flex justify-between items-center">
-               <span className="text-sm text-slate-500 font-medium">Lignes totales</span>
+               <span className="text-sm text-slate-500 font-medium">{t("totalRows")}</span>
                <Badge variant="secondary" className="font-bold">{preview.total_rows}</Badge>
              </div>
              <div className="flex justify-between items-center">
-               <span className="text-sm text-slate-500 font-medium">Séparateur</span>
+               <span className="text-sm text-slate-500 font-medium">{t("delimiter")}</span>
                <code className="bg-slate-100 px-2 py-1 rounded text-xs font-bold">"{preview.delimiter}"</code>
              </div>
              {preview.invalid_rows > 0 && (
                <div className="flex justify-between items-center">
-                 <span className="text-sm text-rose-600 font-medium">Lignes invalides (ignorées)</span>
+                 <span className="text-sm text-rose-600 font-medium">{t("invalidRows")}</span>
                  <Badge variant="destructive" className="font-bold">{preview.invalid_rows}</Badge>
                </div>
              )}
@@ -40,7 +42,7 @@ export function CategoryMappingCard({ ctx }: { ctx: ImportFlowCtx }) {
                <div className="space-y-4 pt-4 border-t">
                  <div className="flex items-center gap-2 text-amber-600">
                    <AlertCircle className="h-4 w-4" />
-                   <span className="text-xs font-bold uppercase tracking-wider">Mapping catégories</span>
+                   <span className="text-xs font-bold uppercase tracking-wider">{t("mapping")}</span>
                  </div>
                  <div className="space-y-3">
                    {preview.unknown_categories.map((csvCat, i) => (
@@ -54,7 +56,7 @@ export function CategoryMappingCard({ ctx }: { ctx: ImportFlowCtx }) {
                            <SelectValue />
                          </SelectTrigger>
                          <SelectContent>
-                           <SelectItem value="CREATE" className="text-emerald-600 font-bold">Créer nouvelle</SelectItem>
+                           <SelectItem value="CREATE" className="text-emerald-600 font-bold">{t("createNew")}</SelectItem>
                            {categories.map(cat => (
                              <SelectItem key={cat.id} value={String(cat.id)}>{cat.name}</SelectItem>
                            ))}

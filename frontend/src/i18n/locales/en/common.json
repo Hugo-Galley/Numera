@@ -36,5 +36,19 @@
     "saving": "Saving…",
     "none": "None",
     "date": "Date"
+  },
+  "accountTypes": {
+    "courant": "Checking Account",
+    "epargne": "Savings",
+    "investissement": "Investment",
+    "assurance_vie": "Life Insurance",
+    "credit": "Loan",
+    "bank": "Bank account",
+    "other": "Other"
+  },
+  "categoryTypes": {
+    "depense": "Expense",
+    "revenu": "Income",
+    "neutre": "Neutral"
   }
 }

@@ -1,6 +1,7 @@
 import { Landmark, PiggyBank, Shield, TrendingUp, Wallet } from "lucide-react"
 import { accountTypeLabel } from "@/lib/labels"
 import { invalidateAccountLogos } from "@/components/ui/AccountLogo"
+import i18n from "i18next"
 import { toast } from "sonner"
 import { useEffect, useMemo } from "react"
 import { useSubmit } from "@/hooks/useSubmit"
@@ -27,7 +28,7 @@ export function useAccountsActions(p: ReturnType<typeof useAccountsState>) {
       }
     } catch (error) {
       console.error("Error loading accounts:", error)
-      toast.error("Erreur lors du chargement des comptes")
+      toast.error(i18n.t("toast.loadError", { ns: "accounts" }))
       setAccounts([])
     } finally {
       setLoading(false)
@@ -40,7 +41,7 @@ export function useAccountsActions(p: ReturnType<typeof useAccountsState>) {
       if (data) setSuggestions(data)
     } catch (error) {
       console.error("Error loading suggestions:", error)
-      toast.error("Impossible de charger les suggestions d'allocation")
+      toast.error(i18n.t("toast.suggestionsError", { ns: "accounts" }))
     }
   }
 
@@ -85,7 +86,7 @@ export function useAccountsActions(p: ReturnType<typeof useAccountsState>) {
 
   const [handleCreateAccount, handleCreateAccountBusy] = useSubmit(async () => {
     if (!newName.trim()) {
-      toast.error("Le nom du compte est requis")
+      toast.error(i18n.t("toast.nameRequired", { ns: "accounts" }))
       return
     }
     try {
@@ -105,7 +106,7 @@ export function useAccountsActions(p: ReturnType<typeof useAccountsState>) {
         fonds_investis_pct: newType === "assurance_vie" ? (newInvestisPct ? parseFloat(newInvestisPct) : 0) : null
       })
       invalidateAccountLogos()
-      toast.success("Compte créé avec succès")
+      toast.success(i18n.t("toast.created", { ns: "accounts" }))
       setIsDialogOpen(false)
       setNewName("")
       setNewCurrency("EUR")
@@ -121,7 +122,7 @@ export function useAccountsActions(p: ReturnType<typeof useAccountsState>) {
       setNewInvestisPct("")
       loadAccounts()
     } catch (error) {
-      toast.error("Erreur lors de la création du compte")
+      toast.error(i18n.t("toast.createError", { ns: "accounts" }))
     }
   })
 
@@ -150,44 +151,44 @@ export function useAccountsActions(p: ReturnType<typeof useAccountsState>) {
         : []
       await Promise.all(siblings.map((x) => patchAccountsById(x.id, { logo: editingAccount.logo })))
       invalidateAccountLogos()
-      toast.success(siblings.length ? `Compte mis à jour (logo appliqué à ${siblings.length} autre(s) compte(s))` : "Compte mis à jour")
+      toast.success(siblings.length ? i18n.t("toast.updatedWithLogo", { ns: "accounts", count: siblings.length }) : i18n.t("toast.updated", { ns: "accounts" }))
       setIsEditDialogOpen(false)
       setEditingAccount(null)
       loadAccounts()
     } catch (error) {
-      toast.error("Erreur lors de la mise à jour")
+      toast.error(i18n.t("toast.updateError", { ns: "accounts" }))
     }
   })
 
   // DELETE /accounts/{id} archive le compte (active = false) : l'historique reste dans les analyses passées
   const handleDeleteAccount = async (accountId: number) => {
-    if (!(await confirm("Archiver ce compte ? Il disparaît des listes et du patrimoine ; son historique est conservé et vous pourrez le réactiver."))) return
+    if (!(await confirm(i18n.t("toast.confirmArchive", { ns: "accounts" })))) return
     try {
       await deleteAccountsById(accountId)
-      toast.success("Compte archivé")
+      toast.success(i18n.t("toast.archived", { ns: "accounts" }))
       loadAccounts()
     } catch (error) {
-      toast.error("Erreur lors de l'archivage du compte")
+      toast.error(i18n.t("toast.archiveError", { ns: "accounts" }))
     }
   }
 
   const handleRestoreAccount = async (accountId: number) => {
     try {
       await patchAccountsById(accountId, { active: true })
-      toast.success("Compte réactivé")
+      toast.success(i18n.t("toast.restored", { ns: "accounts" }))
       loadAccounts()
     } catch (error) {
-      toast.error("Erreur lors de la réactivation du compte")
+      toast.error(i18n.t("toast.restoreError", { ns: "accounts" }))
     }
   }
 
   const handleToggleMain = async (accountId: number, currentIsMain: boolean) => {
     try {
       await patchAccountsById(accountId, { is_main: !currentIsMain })
-      toast.success(currentIsMain ? "Compte retiré des favoris" : "Compte défini comme principal")
+      toast.success(currentIsMain ? i18n.t("toast.mainRemoved", { ns: "accounts" }) : i18n.t("toast.mainSet", { ns: "accounts" }))
       loadAccounts()
     } catch (error) {
-      toast.error("Erreur lors de la modification")
+      toast.error(i18n.t("toast.mainError", { ns: "accounts" }))
     }
   }
 

@@ -176,7 +176,7 @@ describe("ImportFlow : commit", () => {
 
     expect(await screen.findByText("Importation partielle")).toBeInTheDocument()
     expect(screen.getByText("Ligne 4")).toBeInTheDocument()
-    expect(screen.getByText("… et 2 autre(s)")).toBeInTheDocument()
+    expect(screen.getByText("… et 2 autres")).toBeInTheDocument()
   })
 
   it("commit en échec : message du serveur, l'aperçu reste affiché", async () => {

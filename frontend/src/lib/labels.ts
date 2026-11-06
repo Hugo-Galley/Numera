@@ -1,17 +1,16 @@
-/** Libellés affichés des valeurs techniques stockées en base. */
+/** Libellés affichés des valeurs techniques stockées en base, dans la langue de l'interface. */
+import i18n from "i18next"
+
+const ACCOUNT_TYPES = ["courant", "epargne", "investissement", "assurance_vie", "credit", "bank"] as const
+const CATEGORY_TYPES = ["depense", "revenu", "neutre"] as const
 
 export function accountTypeLabel(type: string | null | undefined) {
-  switch (type) {
-    case "courant": return "Compte Courant"
-    case "epargne": return "Épargne"
-    case "investissement": return "Investissement"
-    case "assurance_vie": return "Assurance-Vie"
-    case "credit": return "Crédit"
-    case "bank": return "Compte bancaire"
-    default: return type ? type.charAt(0).toUpperCase() + type.slice(1) : "Autre"
-  }
+  if (!type) return i18n.t("accountTypes.other", { ns: "common" })
+  const known = ACCOUNT_TYPES.find((t) => t === type)
+  return known ? i18n.t(`accountTypes.${known}`, { ns: "common" }) : type.charAt(0).toUpperCase() + type.slice(1)
 }
 
-const CATEGORY_TYPE_LABELS: Record<string, string> = { depense: "Dépense", revenu: "Revenu", neutre: "Neutre" }
-
-export const categoryTypeLabel = (type: string) => CATEGORY_TYPE_LABELS[type] ?? type
+export const categoryTypeLabel = (type: string) => {
+  const known = CATEGORY_TYPES.find((t) => t === type)
+  return known ? i18n.t(`categoryTypes.${known}`, { ns: "common" }) : type
+}

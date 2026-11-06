@@ -1,0 +1,40 @@
+{
+  "kind": {
+    "immobilier": "Mortgage",
+    "auto": "Car",
+    "consommation": "Consumer",
+    "etudiant": "Student",
+    "autre": "Other"
+  },
+  "prepayment": {
+    "reduce_duration": "Shorten the term",
+    "reduce_payment": "Lower the payment"
+  },
+  "duration": {
+    "months_one": "{{count}} month",
+    "months_other": "{{count}} months",
+    "years_one": "{{count}} year",
+    "years_other": "{{count}} years",
+    "yearsAndMonths": "{{years}} and {{months}}"
+  },
+  "dialog": {
+    "missingFields": "Fill in the name, amount, rate, term and first payment date.",
+    "updated": "Loan updated",
+    "added": "Loan added",
+    "saveError": "Couldn't save the loan",
+    "editTitle": "Edit loan",
+    "newTitle": "New loan",
+    "hint": "The remaining balance is deducted from your net worth. Monthly payments remain expenses on your checking account.",
+    "name": "Name",
+    "namePlaceholder": "E.g. Apartment mortgage",
+    "bank": "Bank",
+    "bankPlaceholder": "E.g. BRED",
+    "type": "Type",
+    "logo": "Logo",
+    "principal": "Amount borrowed (€)",
+    "rate": "Annual nominal rate (%)",
+    "duration": "Term (years)",
+    "firstPayment": "First payment",
+    "insurance": "Borrower insurance (€ / month)"
+  }
+}
