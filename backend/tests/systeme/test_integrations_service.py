@@ -29,10 +29,10 @@ def test_send_test_notification_without_configuration_is_400(db_session):
 
 
 def test_logo_from_invalid_domain_is_422():
-    with pytest.raises(BusinessRuleError, match="Invalid domain"):
+    with pytest.raises(BusinessRuleError, match="Domaine invalide"):
         asyncio.run(logo_service.logo_from_domain("pas un domaine"))
 
 
 def test_unknown_logo_image_is_not_found():
-    with pytest.raises(NotFoundError, match="Logo not found"):
+    with pytest.raises(NotFoundError, match="Logo introuvable"):
         logo_service.get_logo_image("fav-0000000000000000.png")

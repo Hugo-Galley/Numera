@@ -19,6 +19,7 @@ from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 
 from app.core.errors import ExternalServiceError, InvalidOperationError
+from app.core.i18n import tr
 from app.core.logging import get_logger
 from app.db.system_settings import get_setting, set_setting
 from app.integrations.notifications import DEFAULT_NTFY_SERVER, Channel, NtfyChannel, TelegramChannel, send_all
@@ -288,8 +289,8 @@ async def send_test_notification(db: Session, payload) -> dict:
     """Message d'essai sur un canal configuré, même désactivé (pour valider les réglages avant de l'activer)."""
     channel = build_channel(db, payload.channel)
     if channel is None:
-        raise InvalidOperationError("Canal incomplet : renseignez ses paramètres puis enregistrez.")
+        raise InvalidOperationError(tr("errors.channel_incomplete"))
     delivered = await send_all([channel], "Test Numera", "Les notifications fonctionnent.", "default")
     if not delivered:
-        raise ExternalServiceError("Envoi impossible : vérifiez l'adresse, le sujet ou le jeton.")
+        raise ExternalServiceError(tr("errors.send_failed"))
     return {"channel": payload.channel, "delivered": True}

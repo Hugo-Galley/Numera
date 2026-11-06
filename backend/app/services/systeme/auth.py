@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from app.core import security
 from app.core.config import settings
 from app.core.errors import AuthenticationError, RateLimitedError
+from app.core.i18n import tr
 from app.core.logging import get_logger
 from app.core.login_events import record_login
 from app.core.login_rate_limit import client_key, login_rate_limiter
@@ -26,7 +27,7 @@ def login(db: Session, request: Any, username: str, password: str) -> dict[str, 
     if not login_rate_limiter.is_allowed(key):
         logger.warning("Login temporarily blocked due to repeated failed attempts")
         record_login(db, request, "password", False, "rate_limited")
-        raise RateLimitedError("Too many login attempts. Try again later.", settings.LOGIN_LOCKOUT_SECONDS)
+        raise RateLimitedError(tr("errors.too_many_attempts"), settings.LOGIN_LOCKOUT_SECONDS)
 
     # Try to get admin credentials from database
     db_username = get_setting(db, "admin_username", settings.ADMIN_USERNAME)
@@ -42,7 +43,7 @@ def login(db: Session, request: Any, username: str, password: str) -> dict[str, 
         login_rate_limiter.record_failure(key)
         logger.warning("Failed login attempt: invalid credentials")
         record_login(db, request, "password", False, "invalid_password")
-        raise AuthenticationError("Incorrect username or password", www_authenticate=True)
+        raise AuthenticationError(tr("errors.bad_credentials"), www_authenticate=True)
 
     login_rate_limiter.reset(key)
     # Double authentification active : pas encore de session, seulement un jeton pour l'étape du code
@@ -69,14 +70,14 @@ def refresh_access_token(username: str, token: str | None) -> dict[str, Any]:
     par `SESSION_MAX_HOURS` depuis la connexion par mot de passe (`auth_time`). Jamais pour un jeton MCP.
     """
     if token is None:
-        raise AuthenticationError("Session expirée, reconnectez-vous", www_authenticate=True)
+        raise AuthenticationError(tr("errors.session_expired"), www_authenticate=True)
     payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
     # Sans auth_time, la durée totale de la session ne serait pas bornée : pas de renouvellement
     if not payload.get("auth_time"):
-        raise AuthenticationError("Session expirée, reconnectez-vous", www_authenticate=True)
+        raise AuthenticationError(tr("errors.session_expired"), www_authenticate=True)
     auth_time = int(payload["auth_time"])
     if time.time() - auth_time > settings.SESSION_MAX_HOURS * 3600:
-        raise AuthenticationError("Session expirée, reconnectez-vous", www_authenticate=True)
+        raise AuthenticationError(tr("errors.session_expired"), www_authenticate=True)
     return {
         "access_token": security.create_access_token(username, auth_time=auth_time),
         "token_type": "bearer",

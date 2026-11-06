@@ -3,6 +3,7 @@ from datetime import date
 from sqlalchemy.orm import Session
 
 from app.core.errors import NotFoundError
+from app.core.i18n import tr
 from app.models.financial_event import FinancialEvent
 from app.repositories.comptes import financial_events as repo
 from app.schemas.financial_event import FinancialEventCreate, FinancialEventRead, FinancialEventUpdate
@@ -10,13 +11,13 @@ from app.schemas.financial_event import FinancialEventCreate, FinancialEventRead
 
 def _check_account(db: Session, account_id: int | None) -> None:
     if account_id is not None and not repo.account_exists(db, account_id):
-        raise NotFoundError("Compte introuvable")
+        raise NotFoundError(tr("errors.account_not_found"))
 
 
 def _require(db: Session, event_id: int) -> FinancialEvent:
     event = repo.get(db, event_id)
     if event is None:
-        raise NotFoundError("Événement introuvable")
+        raise NotFoundError(tr("errors.event_not_found"))
     return event
 
 

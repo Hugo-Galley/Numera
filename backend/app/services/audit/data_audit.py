@@ -260,7 +260,7 @@ def compute_data_audit_issue(db: Session, issue_id: str) -> dict:
         query = unallocated_reimbursements_query(db, datetime.now())
         transactions = query.limit(200).all() if query is not None else []
         return {"issue_id": issue_id, "transactions": [tx_read(tx) for tx in transactions]}
-    raise NotFoundError("Audit issue not found or not editable")
+    raise NotFoundError(tr("errors.audit_issue_not_found"))
 
 
 def _duplicate_groups(db: Session) -> list[dict]:

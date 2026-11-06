@@ -52,7 +52,7 @@ def test_get_account_unknown_raises_structured_not_found(db_session):
     with pytest.raises(NotFoundError) as exc:
         asyncio.run(service.get_account(db_session, 999))
     assert exc.value.to_content() == {
-        "detail": {"code": "account_not_found", "detail": "Account not found", "context": {"account_id": 999}}}
+        "detail": {"code": "account_not_found", "detail": "Compte introuvable", "context": {"account_id": 999}}}
 
 
 def test_setting_main_account_clears_previous_main(db_session):

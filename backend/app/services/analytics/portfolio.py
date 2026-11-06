@@ -2,6 +2,7 @@
 from sqlalchemy.orm import Session
 
 from app.core.errors import BusinessRuleError, NotFoundError
+from app.core.i18n import tr
 from app.domain.performance import xirr
 from app.domain.portfolio import uses_positions
 from app.repositories.analytics import investments as repo
@@ -65,7 +66,7 @@ async def portfolio_account(db: Session, account_id: int) -> PortfolioRead:
     """Valeur calculée (positions × cours + espèces), plus-values, XIRR/TWR, courbe reconstituée et rapprochement."""
     account = accounts_repo.get(db, account_id)
     if not account:
-        raise NotFoundError("Account not found")
+        raise NotFoundError(tr("errors.account_not_found"))
     if account.type not in ("investissement", "assurance_vie"):
-        raise BusinessRuleError("Account must be investissement or assurance_vie")
+        raise BusinessRuleError(tr("errors.account_must_be_investment"))
     return PortfolioRead(**await compute_portfolio(db, account))

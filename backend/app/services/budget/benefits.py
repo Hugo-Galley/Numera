@@ -12,6 +12,7 @@ from datetime import date, datetime, time, timedelta
 from sqlalchemy.orm import Session
 
 from app.core.errors import BusinessRuleError, NotFoundError
+from app.core.i18n import tr
 from app.domain import benefits as calc
 from app.models.benefit import Benefit
 from app.models.transaction import Transaction
@@ -105,7 +106,7 @@ def to_read(st: BenefitState, today: date | None = None) -> dict:
 def _require(db: Session, benefit_id: int) -> Benefit:
     benefit = repo.get(db, benefit_id)
     if benefit is None:
-        raise NotFoundError("Aide introuvable")
+        raise NotFoundError(tr("errors.benefit_not_found"))
     return benefit
 
 
@@ -133,17 +134,17 @@ def benefits_summary(db: Session, today: date | None = None) -> dict:
 
 def _check_declaration(interval: int | None, next_date: date | None) -> None:
     if (interval is None) != (next_date is None):
-        raise BusinessRuleError("Indiquez à la fois la périodicité et la date de la prochaine déclaration")
+        raise BusinessRuleError(tr("errors.benefit_frequency_and_date"))
 
 
 def _check_generation(auto_generate: bool, account_id: int | None) -> None:
     if auto_generate and account_id is None:
-        raise BusinessRuleError("Choisissez le compte de réception pour générer les versements")
+        raise BusinessRuleError(tr("errors.benefit_choose_account"))
 
 
 def create_benefit(db: Session, payload: BenefitCreate) -> dict:
     if payload.account_id is not None and not repo.account_exists(db, payload.account_id):
-        raise NotFoundError("Compte introuvable")
+        raise NotFoundError(tr("errors.account_not_found"))
     _check_declaration(payload.declaration_interval_months, payload.next_declaration_date)
     _check_generation(payload.auto_generate, payload.account_id)
     benefit = Benefit(**payload.model_dump())
@@ -156,7 +157,7 @@ def update_benefit(db: Session, benefit_id: int, payload: BenefitUpdate) -> dict
     benefit = _require(db, benefit_id)
     data = payload.model_dump(exclude_unset=True)
     if data.get("account_id") is not None and not repo.account_exists(db, data["account_id"]):
-        raise NotFoundError("Compte introuvable")
+        raise NotFoundError(tr("errors.account_not_found"))
     for name in ("name", "organization", "amount", "payment_day", "match_pattern", "active", "auto_generate"):
         if name in data and data[name] is None:
             data.pop(name)  # colonnes non nullables : `null` = ne pas modifier
@@ -176,7 +177,7 @@ def mark_declared(db: Session, benefit_id: int, payload: BenefitDeclared, today:
     today = today or date.today()
     benefit = _require(db, benefit_id)
     if benefit.declaration_interval_months is None or benefit.next_declaration_date is None:
-        raise BusinessRuleError("Cette aide n'a pas de déclaration périodique")
+        raise BusinessRuleError(tr("errors.benefit_no_declaration"))
     benefit.next_declaration_date = calc.advance_declaration(benefit.next_declaration_date, benefit.declaration_interval_months, today)
     if payload.amount is not None:
         benefit.amount = payload.amount

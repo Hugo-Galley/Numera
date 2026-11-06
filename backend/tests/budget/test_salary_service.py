@@ -22,7 +22,7 @@ def test_regenerating_salary_month_keeps_single_salary(client, db_session):
     _setup(client)
     assert client.post("/salary/generate/2026/9").json() == {"status": "ok"}
     again = client.post("/salary/generate/2026/9")
-    assert again.status_code == 400 and again.json() == {"detail": "Already generated for this month"}
+    assert again.status_code == 400 and again.json() == {"detail": "Déjà généré pour ce mois"}
     [salary] = _salaries(db_session)
     assert salary.amount == 2500.0 and salary.running_balance == 2500.0
 
@@ -57,7 +57,7 @@ def test_reset_generation_deletes_salary_and_allows_regeneration(client, db_sess
 
 def test_missing_config_is_404(client):
     response = client.get("/salary/config")
-    assert response.status_code == 404 and response.json() == {"detail": "Salary config not found"}
+    assert response.status_code == 404 and response.json() == {"detail": "Configuration du salaire introuvable"}
 
 
 def test_salary_amount_subtracts_telework_tickets():

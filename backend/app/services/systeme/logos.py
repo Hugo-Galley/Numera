@@ -1,5 +1,6 @@
 """Logos de comptes : recherche d'icônes Simple Icons, favicon d'un domaine, lecture d'une image."""
 from app.core.errors import BusinessRuleError, NotFoundError
+from app.core.i18n import tr
 from app.integrations import logos
 
 
@@ -11,7 +12,7 @@ async def logo_from_domain(domain: str) -> dict:
     try:
         normalized = logos.normalize_domain(domain)
     except ValueError:
-        raise BusinessRuleError("Invalid domain") from None
+        raise BusinessRuleError(tr("errors.invalid_domain")) from None
     try:
         return {"ref": await logos.fetch_favicon_ref(normalized)}
     except logos.LogoError as exc:
@@ -28,4 +29,4 @@ def get_logo_image(ref: str) -> tuple[bytes | str, str]:
     path = logos.favicon_path(ref)
     if path and path.is_file():
         return path.read_bytes(), "image/png"
-    raise NotFoundError("Logo not found")
+    raise NotFoundError(tr("errors.logo_not_found"))

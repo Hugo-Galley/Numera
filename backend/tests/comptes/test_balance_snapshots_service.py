@@ -22,7 +22,7 @@ def _account(db, type_):
 
 def test_snapshot_on_current_account_is_rejected(db_session):
     account = _account(db_session, "courant")
-    with pytest.raises(BusinessRuleError, match="Account must be of type investissement or assurance_vie"):
+    with pytest.raises(BusinessRuleError, match="Le compte doit être de type investissement ou assurance_vie"):
         snapshot_service.create_balance_snapshot(
             db_session, BalanceSnapshotCreate(account_id=account.id, date=datetime(2026, 10, 1), current_value=10.0))
 

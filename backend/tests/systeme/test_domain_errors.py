@@ -13,7 +13,7 @@ def _handle(exc):
 
 
 def test_not_found_keeps_plain_detail():
-    assert _handle(NotFoundError("Account not found")) == (404, {"detail": "Account not found"})
+    assert _handle(NotFoundError("Compte introuvable")) == (404, {"detail": "Compte introuvable"})
 
 
 def test_business_rule_with_code_gives_structured_shape():
@@ -62,7 +62,7 @@ def test_internal_error_keeps_json_detail():
 def test_invalid_operation_is_400():
     from app.core.errors import InvalidOperationError
 
-    assert _handle(InvalidOperationError("Tag name already exists")) == (400, {"detail": "Tag name already exists"})
+    assert _handle(InvalidOperationError("Ce nom de tag existe déjà")) == (400, {"detail": "Ce nom de tag existe déjà"})
 
 
 def test_external_service_is_502():

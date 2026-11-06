@@ -4,6 +4,7 @@ from datetime import datetime
 from sqlalchemy.orm import Session
 
 from app.core.errors import BusinessRuleError, NotFoundError
+from app.core.i18n import tr
 from app.core.time import end_of_today
 from app.domain.portfolio import regular_flow_direction, uses_positions
 from app.models.account import Account
@@ -18,9 +19,9 @@ from app.services.investissement.portfolio import compute_portfolio
 def _require_investment_account(db: Session, account_id: int) -> Account:
     account = repo.get_account(db, account_id)
     if not account:
-        raise NotFoundError("Account not found")
+        raise NotFoundError(tr("errors.account_not_found"))
     if account.type not in repo.INVESTMENT_TYPES:
-        raise BusinessRuleError("Account must be investissement or assurance_vie")
+        raise BusinessRuleError(tr("errors.account_must_be_investment"))
     return account
 
 

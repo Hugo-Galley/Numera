@@ -7,6 +7,7 @@ from datetime import datetime
 from sqlalchemy.orm import Session
 
 from app.core.errors import BusinessRuleError, NotFoundError
+from app.core.i18n import tr
 from app.core.time import utcnow_naive
 from app.domain.finance import month_label_from_date, normalize_transaction_type
 from app.models.account import Account
@@ -33,10 +34,10 @@ def validate_solde_initial(db: Session, account_id: int, date: datetime, exclude
     """Un compte n'a qu'un seul Solde Initial et il doit être la première transaction
     (il remet le solde à zéro à sa date, cf. apply_transaction_to_balance)."""
     if repo.other_initial_balance(db, account_id, exclude_id):
-        raise BusinessRuleError("A Solde Initial already exists for this account")
+        raise BusinessRuleError(tr("errors.initial_balance_exists"))
     earliest = repo.earliest_other(db, account_id, exclude_id)
     if earliest and date >= earliest.date:
-        raise BusinessRuleError("Solde Initial must be the chronologically first transaction")
+        raise BusinessRuleError(tr("errors.initial_balance_first"))
 
 
 def _normalized_type(value: str) -> str:
@@ -55,7 +56,7 @@ async def _in_account_currency(db: Session, account: Account, amount: float, cur
 async def create_transaction(db: Session, payload: TransactionCreate) -> Transaction:
     account = account_repo.get(db, payload.account_id)
     if not account:
-        raise NotFoundError("Account not found")
+        raise NotFoundError(tr("errors.account_not_found"))
     transaction_type = _normalized_type(payload.type)
     if transaction_type == "Solde Initial":
         validate_solde_initial(db, payload.account_id, payload.date)
@@ -97,9 +98,9 @@ def _bulk_type(payload: TransactionBulkUpdate, transactions: list[Transaction], 
         return None
     bulk_type = _normalized_type(payload.type)
     if bulk_type == "Solde Initial":
-        raise BusinessRuleError("Solde Initial cannot be set through bulk update")
+        raise BusinessRuleError(tr("errors.initial_balance_bulk_set"))
     if any(tx.type == "Solde Initial" for tx in transactions):
-        raise BusinessRuleError("A Solde Initial transaction cannot be bulk-retyped")
+        raise BusinessRuleError(tr("errors.initial_balance_bulk_retype"))
     for tx in transactions:
         remb.check_transaction_change(db, tx, bulk_type, tx.amount)
         check_split_compatible(tx, bulk_type, tx.amount, tx.is_transfer)

@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 
 from app.core.errors import NotFoundError
+from app.core.i18n import tr
 from app.core.time import utcnow_naive
 from app.models.account import Account
 from app.repositories.comptes import accounts as repo
@@ -25,7 +26,7 @@ async def account_balance(db: Session, account_id: int) -> float:
 def _require(db: Session, account_id: int) -> Account:
     account = repo.get(db, account_id)
     if not account:
-        raise NotFoundError("Account not found", code="account_not_found", context={"account_id": account_id})
+        raise NotFoundError(tr("errors.account_not_found"), code="account_not_found", context={"account_id": account_id})
     return account
 
 

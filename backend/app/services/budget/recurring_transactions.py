@@ -2,6 +2,7 @@
 from sqlalchemy.orm import Session
 
 from app.core.errors import BusinessRuleError, NotFoundError
+from app.core.i18n import tr
 from app.core.logging import get_logger
 from app.models.recurring_transaction import RecurringTransaction
 from app.repositories.budget import recurring as repo
@@ -22,31 +23,31 @@ def _validate_transfer_target(
     """Une récurrence « virement » est une Sortie d'un compte non titres vers un autre compte."""
     if dest_id is None:
         if credit_day is not None:
-            raise BusinessRuleError("A credit day requires a transfer destination")
+            raise BusinessRuleError(tr("errors.credit_day_needs_destination"))
         return
     source = repo.get_account(db, account_id)
     dest = repo.get_account(db, dest_id)
     if not dest:
-        raise NotFoundError("Destination account not found")
+        raise NotFoundError(tr("errors.destination_account_not_found"))
     if dest_id == account_id:
-        raise BusinessRuleError("Source and destination accounts must differ")
+        raise BusinessRuleError(tr("errors.source_destination_differ"))
     if type_ != "Sortie":
-        raise BusinessRuleError("A transfer recurrence must be a Sortie")
+        raise BusinessRuleError(tr("errors.recurrence_must_be_sortie"))
     if source and source.type == "investissement":
-        raise BusinessRuleError("A transfer recurrence cannot come from a securities account")
+        raise BusinessRuleError(tr("errors.recurrence_not_from_securities"))
     if ticker and dest.type != "investissement":
-        raise BusinessRuleError("A security can only be bought through a transfer to an investment account")
+        raise BusinessRuleError(tr("errors.security_needs_investment_transfer"))
 
 
 def _require_account(db: Session, account_id: int) -> None:
     if repo.get_account(db, account_id) is None:
-        raise NotFoundError("Account not found")
+        raise NotFoundError(tr("errors.account_not_found"))
 
 
 def _require(db: Session, rule_id: int) -> RecurringTransaction:
     rule = repo.get_rule(db, rule_id)
     if not rule:
-        raise NotFoundError("Recurring transaction not found")
+        raise NotFoundError(tr("errors.recurring_not_found"))
     return rule
 
 
@@ -122,7 +123,7 @@ async def update_recurring_transaction(db: Session, recurring_tx_id: int,
     start = update_data.get("start_date", rule.start_date)
     end = update_data.get("end_date", rule.end_date)
     if start and end and end < start:
-        raise BusinessRuleError("end_date doit être postérieure à start_date")
+        raise BusinessRuleError(tr("errors.end_after_start"))
     if "excluded_months" in update_data:
         update_data["excluded_months"] = _months_csv(update_data["excluded_months"])
     _validate_transfer_target(

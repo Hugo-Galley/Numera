@@ -4,6 +4,7 @@ from datetime import date
 from sqlalchemy.orm import Session
 
 from app.core.errors import NotFoundError
+from app.core.i18n import tr
 from app.domain.loans import add_months, build_schedule, monthly_payment, remaining_principal, simulate_prepayment, terms_of
 from app.models.account import Account
 from app.models.loan import Loan, LoanPrepayment
@@ -39,7 +40,7 @@ def loan_remaining(db: Session, account_id: int, at: date) -> float | None:
 def _get(db: Session, loan_id: int) -> Loan:
     loan = repo.get(db, loan_id)
     if loan is None:
-        raise NotFoundError("Crédit introuvable")
+        raise NotFoundError(tr("errors.loan_not_found"))
     return loan
 
 
@@ -84,7 +85,7 @@ def create_loan(db: Session, payload: LoanCreate) -> LoanSummary:
 def get_loan_by_account(db: Session, account_id: int) -> LoanSummary:
     loan = repo.get_by_account(db, account_id)
     if loan is None:
-        raise NotFoundError("Crédit introuvable")
+        raise NotFoundError(tr("errors.loan_not_found"))
     return _summary(loan)
 
 
@@ -135,6 +136,6 @@ def add_prepayment(db: Session, loan_id: int, payload: PrepaymentCreate) -> Loan
 def delete_prepayment(db: Session, loan_id: int, prepayment_id: int) -> None:
     prepayment = repo.get_prepayment(db, prepayment_id)
     if prepayment is None or prepayment.loan_id != loan_id:
-        raise NotFoundError("Remboursement anticipé introuvable")
+        raise NotFoundError(tr("errors.early_repayment_not_found"))
     repo.delete(db, prepayment)
     db.commit()
