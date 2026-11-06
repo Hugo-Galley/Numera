@@ -1,0 +1,74 @@
+{
+  "allocationAdviceCard": {
+    "ouPlacerTonProchainEuro": "Where to put your next euro",
+    "ordreDeRemplissageConseilleSelon": "Suggested filling order based on your remaining ceilings",
+    "regleGeneralePasUnConseil": "General rule of thumb, not personalized advice.",
+    "encore": "· still",
+    "dePlace": "of room"
+  },
+  "annualReportSection": {
+    "declaration": "Declaration",
+    "anneeDeDeclaration": "Declaration year",
+    "aucunCompteCtoConfigure": "No CTO account set up.",
+    "dividendesBruts2dc": "Gross dividends (2DC)",
+    "plusValuesRealisees": "Realized gains",
+    "compte": "Account",
+    "cessions": "Disposals",
+    "case2dcDividendes": "Box 2DC (dividends)",
+    "case3vgPlusValues": "Box 3VG (capital gains)",
+    "case3vhMoinsValues": "Box 3VH (capital losses)",
+    "estimationIndicativeNeRemplacePas": "Indicative estimate: doesn't replace your tax return."
+  },
+  "taxSettingsCard": {
+    "reglagesFiscaux": "Tax Settings",
+    "serventAuCalculDuPlafond": "Used to compute the PER ceiling, the tax saving and the life-insurance allowance.",
+    "trancheMarginaleTmi": "Marginal tax bracket (TMI)",
+    "revenusProfessionnelsDeLAnnee": "Professional income of the previous year (€)",
+    "foyer": "Household",
+    "seul": "Single",
+    "couple": "Couple",
+    "salaireBrutAnnuelPourLe": "Gross annual salary (€), for the PEE ceiling",
+    "enregistrer": "Save"
+  },
+  "taxWidgets": {
+    "placeRestante": "Room left:",
+    "economieDImpotEstimee": "Estimated tax saving:",
+    "abattementAnnuelSurLesGains": "Yearly allowance on withdrawal gains:",
+    "totalVerse": "Total paid in:",
+    "disponible": "Available:",
+    "bloqueMoinsDe5Ans": "Locked (under 5 years):"
+  },
+  "wrappersSection": {
+    "plafondsEtDatesCles": "Ceilings and Key Dates",
+    "cesComptesNOntPas": "These accounts have no tax wrapper: their ceilings and key dates aren't tracked.",
+    "aucunCompteNAD": "No account has a tax wrapper. Set the wrapper in an account's settings.",
+    "allerAuxComptes": "Go to accounts"
+  },
+  "index": {
+    "fiscalite": "Taxes",
+    "plafondsDatesClesEtDeclaration": "Ceilings, key dates and tax return for your wrappers.",
+    "reglages": "Settings"
+  },
+  "useTaxData": {
+    "impossibleDeChargerLesEnveloppes": "Couldn't load tax wrappers",
+    "impossibleDeChargerLeRecapitulatif": "Couldn't load the yearly summary",
+    "reglagesEnregistres": "Settings saved",
+    "erreurLorsDeLEnregistrement": "Error saving the settings",
+    "impossibleDEnregistrerLEnveloppe": "Couldn't save the wrapper"
+  },
+  "misc": {
+    "wrapperAV": "Life insurance",
+    "tracked": "{{account}} tracked as {{kind}}",
+    "probable": " — likely wrapper: {{kind}}",
+    "trackAs": "Track as {{kind}}",
+    "sales_one": "{{count}} disposal",
+    "sales_other": "{{count}} disposals",
+    "estimatedTax": "Estimated tax (PFU {{dividends}} on dividends, {{gains}} on gains)",
+    "precautionPart": " and your emergency savings ({{months}} months of expenses)",
+    "ofCeiling": "of",
+    "age": "Age: {{years}} yr(s) / {{milestone}} yrs",
+    "reached": " — reached",
+    "ageUnknown": "Age unknown (threshold: {{milestone}} yrs)",
+    "nextUnlock": " — next unlock on {{date}}"
+  }
+}

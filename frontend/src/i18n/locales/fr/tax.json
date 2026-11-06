@@ -1,0 +1,74 @@
+{
+  "allocationAdviceCard": {
+    "ouPlacerTonProchainEuro": "Où placer ton prochain euro",
+    "ordreDeRemplissageConseilleSelon": "Ordre de remplissage conseillé selon tes plafonds restants",
+    "regleGeneralePasUnConseil": "Règle générale, pas un conseil personnalisé.",
+    "encore": "· encore",
+    "dePlace": "de place"
+  },
+  "annualReportSection": {
+    "declaration": "Déclaration",
+    "anneeDeDeclaration": "Année de déclaration",
+    "aucunCompteCtoConfigure": "Aucun compte CTO configuré.",
+    "dividendesBruts2dc": "Dividendes bruts (2DC)",
+    "plusValuesRealisees": "Plus-values réalisées",
+    "compte": "Compte",
+    "cessions": "Cessions",
+    "case2dcDividendes": "Case 2DC (dividendes)",
+    "case3vgPlusValues": "Case 3VG (plus-values)",
+    "case3vhMoinsValues": "Case 3VH (moins-values)",
+    "estimationIndicativeNeRemplacePas": "Estimation indicative : ne remplace pas ta déclaration."
+  },
+  "taxSettingsCard": {
+    "reglagesFiscaux": "Réglages fiscaux",
+    "serventAuCalculDuPlafond": "Servent au calcul du plafond PER, de l'économie d'impôt et de l'abattement assurance-vie.",
+    "trancheMarginaleTmi": "Tranche marginale (TMI)",
+    "revenusProfessionnelsDeLAnnee": "Revenus professionnels de l'année précédente (€)",
+    "foyer": "Foyer",
+    "seul": "Seul",
+    "couple": "Couple",
+    "salaireBrutAnnuelPourLe": "Salaire brut annuel (€), pour le plafond du PEE",
+    "enregistrer": "Enregistrer"
+  },
+  "taxWidgets": {
+    "placeRestante": "Place restante :",
+    "economieDImpotEstimee": "Économie d'impôt estimée :",
+    "abattementAnnuelSurLesGains": "Abattement annuel sur les gains de rachat :",
+    "totalVerse": "Total versé :",
+    "disponible": "Disponible :",
+    "bloqueMoinsDe5Ans": "Bloqué (moins de 5 ans) :"
+  },
+  "wrappersSection": {
+    "plafondsEtDatesCles": "Plafonds et dates clés",
+    "cesComptesNOntPas": "Ces comptes n'ont pas d'enveloppe fiscale : leurs plafonds et dates clés ne sont pas suivis.",
+    "aucunCompteNAD": "Aucun compte n'a d'enveloppe fiscale. Renseigne l'enveloppe dans les paramètres d'un compte.",
+    "allerAuxComptes": "Aller aux comptes"
+  },
+  "index": {
+    "fiscalite": "Fiscalité",
+    "plafondsDatesClesEtDeclaration": "Plafonds, dates clés et déclaration de tes enveloppes.",
+    "reglages": "Réglages"
+  },
+  "useTaxData": {
+    "impossibleDeChargerLesEnveloppes": "Impossible de charger les enveloppes fiscales",
+    "impossibleDeChargerLeRecapitulatif": "Impossible de charger le récapitulatif annuel",
+    "reglagesEnregistres": "Réglages enregistrés",
+    "erreurLorsDeLEnregistrement": "Erreur lors de l'enregistrement des réglages",
+    "impossibleDEnregistrerLEnveloppe": "Impossible d'enregistrer l'enveloppe"
+  },
+  "misc": {
+    "wrapperAV": "Assurance-vie",
+    "tracked": "{{account}} suivi comme {{kind}}",
+    "probable": " — enveloppe probable : {{kind}}",
+    "trackAs": "Suivre comme {{kind}}",
+    "sales_one": "{{count}} cession",
+    "sales_other": "{{count}} cessions",
+    "estimatedTax": "Impôt estimé (PFU {{dividends}} dividendes, {{gains}} plus-values)",
+    "precautionPart": " et ton épargne de précaution ({{months}} mois de dépenses)",
+    "ofCeiling": "sur",
+    "age": "Ancienneté : {{years}} an(s) / {{milestone}} ans",
+    "reached": " — atteint",
+    "ageUnknown": "Ancienneté inconnue (seuil : {{milestone}} ans)",
+    "nextUnlock": " — prochain déblocage le {{date}}"
+  }
+}

@@ -1,3 +1,5 @@
+import i18n from "i18next"
+import { useTranslation } from "react-i18next"
 import { ArrowRight, CheckCircle2, Link2, RefreshCw, Wrench } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -8,6 +10,7 @@ import type { AuditCtx } from "./useAudit"
 
 /** Vue détaillée d'une action : transactions, doublons ou virements à traiter. */
 export function ActionDetail({ ctx }: { ctx: AuditCtx }) {
+  const { t } = useTranslation("audit")
   const { accounts, activeActionId, activeIssueId, categories, detail, ignoreDuplicate, ignoreTransfer, linkTransfer, loadingIssueId, removeTransactionFromDetails, setActiveActionId, updateTransactionInDetails } = ctx
   const activeAction = ctx.activeAction!
   return (
@@ -16,7 +19,7 @@ export function ActionDetail({ ctx }: { ctx: AuditCtx }) {
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="sm" onClick={() => setActiveActionId(null)} className="-ml-2 h-10 px-2 text-slate-500 md:h-8">
             <ArrowRight className="mr-2 h-4 w-4 rotate-180" />
-            Retour au centre d'actions
+            {t("actionDetail.retourAuCentreDActions")}
           </Button>
         </div>
 
@@ -39,7 +42,7 @@ export function ActionDetail({ ctx }: { ctx: AuditCtx }) {
           {loadingIssueId === activeActionId && (
             <div className="flex h-40 items-center justify-center gap-3 text-slate-500">
               <RefreshCw className="h-5 w-5 animate-spin" />
-              <span>Chargement des détails...</span>
+              <span>{t("actionDetail.chargementDesDetails")}</span>
             </div>
           )}
 
@@ -62,7 +65,7 @@ export function ActionDetail({ ctx }: { ctx: AuditCtx }) {
               {detail.duplicate_groups.map((group) => (
                 <div key={group.key} className="space-y-3">
                   <div className="flex flex-col gap-2 px-1 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
-                    <p className="text-sm font-bold text-slate-900">{group.count} transactions identiques détectées</p>
+                    <p className="text-sm font-bold text-slate-900">{i18n.t("misc.identical", { ns: "audit", count: group.count })}</p>
                     <div className="flex flex-wrap items-center gap-2">
                       <Button
                         size="sm"
@@ -70,10 +73,10 @@ export function ActionDetail({ ctx }: { ctx: AuditCtx }) {
                         onClick={() => ignoreDuplicate(group.transactions)}
                         className="h-10 text-[10px] font-bold uppercase tracking-wider sm:h-7"
                       >
-                        Marquer comme OK
+                        {t("actionDetail.marquerCommeOk")}
                       </Button>
                       <Badge variant="secondary" className="bg-amber-100 text-amber-700 hover:bg-amber-100">
-                        Action requise
+                        {t("actionDetail.actionRequise")}
                       </Badge>
                     </div>
                   </div>
@@ -107,10 +110,10 @@ export function ActionDetail({ ctx }: { ctx: AuditCtx }) {
                     <div className="grid grid-cols-2 gap-2 md:flex">
                       <Button size="sm" className="h-11 md:h-9" onClick={() => linkTransfer(pair.sortie.id, pair.entree.id)}>
                         <Link2 className="h-4 w-4" />
-                        Rapprocher
+                        {t("actionDetail.rapprocher")}
                       </Button>
                       <Button size="sm" variant="outline" className="h-11 md:h-9" onClick={() => ignoreTransfer(pair.sortie.id)}>
-                        Ignorer
+                        {t("actionDetail.ignorer")}
                       </Button>
                     </div>
                   </div>
@@ -137,11 +140,11 @@ export function ActionDetail({ ctx }: { ctx: AuditCtx }) {
             <div className="flex h-40 flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed border-slate-200 bg-white p-8 text-center">
               <CheckCircle2 className="h-10 w-10 text-emerald-500" />
               <div className="space-y-1">
-                <p className="font-bold text-slate-900">Tout est corrigé !</p>
-                <p className="text-sm text-slate-500">Il ne reste plus d'éléments à traiter pour cette action.</p>
+                <p className="font-bold text-slate-900">{t("actionDetail.toutEstCorrige")}</p>
+                <p className="text-sm text-slate-500">{t("actionDetail.ilNeRestePlusD")}</p>
               </div>
               <Button variant="outline" onClick={() => setActiveActionId(null)} className="mt-2">
-                Retourner à la liste
+                {t("actionDetail.retournerALaListe")}
               </Button>
             </div>
           )}

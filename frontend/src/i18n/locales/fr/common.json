@@ -59,5 +59,8 @@
     "initial": "Solde Initial",
     "Virement": "Virement",
     "uncategorized": "Sans catégorie"
+  },
+  "pwaExtras": {
+    "horsLigneLesDonneesAffichees": "Hors ligne — les données affichées peuvent être obsolètes"
   }
 }

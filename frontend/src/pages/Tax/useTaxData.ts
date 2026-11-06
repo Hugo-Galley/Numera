@@ -1,3 +1,4 @@
+import i18n from "i18next"
 import { toast } from "sonner"
 import { useEffect, useState } from "react"
 import { AnnualReport, KIND_LABELS, TaxOverview, TaxSettings, WrapperSuggestion } from "./types"
@@ -21,7 +22,7 @@ export function useTaxData() {
       setOverview(data)
       setDraft(data.settings)
     } catch {
-      toast.error("Impossible de charger les enveloppes fiscales")
+      toast.error(i18n.t("useTaxData.impossibleDeChargerLesEnveloppes", { ns: "tax" }))
     } finally {
       setLoadingOverview(false)
     }
@@ -36,7 +37,7 @@ export function useTaxData() {
     setLoadingReport(true)
     getTaxAnnualReport<AnnualReport>(`?year=${year}`)
       .then((data) => !cancelled && setReport(data))
-      .catch(() => !cancelled && toast.error("Impossible de charger le récapitulatif annuel"))
+      .catch(() => !cancelled && toast.error(i18n.t("useTaxData.impossibleDeChargerLeRecapitulatif", { ns: "tax" })))
       .finally(() => !cancelled && setLoadingReport(false))
     return () => {
       cancelled = true
@@ -47,20 +48,20 @@ export function useTaxData() {
     if (!draft) return
     try {
       await patchTaxSettings(draft)
-      toast.success("Réglages enregistrés")
+      toast.success(i18n.t("useTaxData.reglagesEnregistres", { ns: "tax" }))
       await loadOverview()
     } catch {
-      toast.error("Erreur lors de l'enregistrement des réglages")
+      toast.error(i18n.t("useTaxData.erreurLorsDeLEnregistrement", { ns: "tax" }))
     }
   }
 
   const applySuggestion = async (s: WrapperSuggestion) => {
     try {
       await patchAccountsById(s.account_id, { tax_wrapper: s.kind })
-      toast.success(`${s.account_name} suivi comme ${KIND_LABELS[s.kind]}`)
+      toast.success(i18n.t("misc.tracked", { ns: "tax", account: s.account_name, kind: KIND_LABELS[s.kind] }))
       await loadOverview()
     } catch {
-      toast.error("Impossible d'enregistrer l'enveloppe")
+      toast.error(i18n.t("useTaxData.impossibleDEnregistrerLEnveloppe", { ns: "tax" }))
     }
   }
 

@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import { ArrowRight, Wrench, X } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -7,6 +8,7 @@ import type { AuditCtx } from "./useAudit"
 
 /** Liste des actions à traiter. */
 export function ActionList({ ctx }: { ctx: AuditCtx }) {
+  const { t } = useTranslation("audit")
   const { dismissAction, handleAction } = ctx
   const data = ctx.data!
   return (
@@ -57,7 +59,7 @@ export function ActionList({ ctx }: { ctx: AuditCtx }) {
                     size="icon"
                     className="h-11 w-11 text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors sm:h-8 sm:w-8"
                     onClick={(e) => dismissAction(e, action.id)}
-                    title="Masquer cette action définitivement"
+                    title={t("actionList.masquerCetteActionDefinitivement")}
                   >
                     <X className="h-4 w-4" />
                   </Button>

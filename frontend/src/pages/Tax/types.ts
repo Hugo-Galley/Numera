@@ -1,3 +1,4 @@
+import i18n from "i18next"
 
 
 export type Kind = "pea" | "per" | "cto" | "assurance_vie" | "livret_a" | "livret_jeune" | "pee" | "ldds" | "lep"
@@ -82,7 +83,7 @@ export const KIND_LABELS: Record<Kind, string> = {
   pea: "PEA",
   per: "PER",
   cto: "CTO",
-  assurance_vie: "Assurance-vie",
+  get assurance_vie() { return i18n.t("misc.wrapperAV", { ns: "tax" }) },
   livret_a: "Livret A",
   livret_jeune: "Livret Jeune",
   pee: "PEE",
