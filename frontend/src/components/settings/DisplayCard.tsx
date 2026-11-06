@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { api } from "@/lib/api"
 import { type Language, LANGUAGES, setLanguage } from "@/i18n"
+import { syncServerLanguage } from "@/lib/serverLanguage"
 import { cn, errorMessage } from "@/lib/utils"
 import { useAuth } from "@/providers/AuthProvider"
 import { type ThemePreference, useUI } from "@/providers/UIProvider"
@@ -64,7 +65,7 @@ export function DisplayCard() {
                 role="radio"
                 lang={code}
                 aria-checked={i18n.language === code}
-                onClick={() => void setLanguage(code)}
+                onClick={() => { void setLanguage(code); void syncServerLanguage(code) }}
                 className={cn(
                   "flex h-10 items-center justify-center rounded-lg px-3 text-sm font-medium transition-colors sm:h-8",
                   i18n.language === code ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-900",

@@ -6615,6 +6615,14 @@
       "title": "Hide Amounts",
       "type": "boolean"
      },
+     "language": {
+      "enum": [
+       "fr",
+       "en"
+      ],
+      "title": "Language",
+      "type": "string"
+     },
      "min_severity": {
       "enum": [
        "low",
@@ -6672,7 +6680,8 @@
      "min_severity",
      "weekly_digest",
      "hide_amounts",
-     "public_url"
+     "public_url",
+     "language"
     ],
     "title": "NotificationSettingsRead",
     "type": "object"
@@ -6700,6 +6709,21 @@
        }
       ],
       "title": "Hide Amounts"
+     },
+     "language": {
+      "anyOf": [
+       {
+        "enum": [
+         "fr",
+         "en"
+        ],
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Language"
      },
      "min_severity": {
       "anyOf": [

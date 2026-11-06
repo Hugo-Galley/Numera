@@ -18,6 +18,7 @@ class NotificationSettingsRead(BaseModel):
     weekly_digest: bool
     hide_amounts: bool
     public_url: str
+    language: Literal["fr", "en"]
 
 
 class NotificationSettingsUpdate(BaseModel):
@@ -32,6 +33,8 @@ class NotificationSettingsUpdate(BaseModel):
     weekly_digest: bool | None = None
     hide_amounts: bool | None = None
     public_url: str | None = Field(default=None, max_length=300)
+    # Langue des messages envoyés par la tâche de fond (sans requête HTTP, donc sans Accept-Language) ; pas sensible
+    language: Literal["fr", "en"] | None = None
     # Exigé quand une destination d'envoi ou le masquage des montants change (jeton de session volé)
     current_password: str | None = None
 

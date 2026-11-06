@@ -1,6 +1,7 @@
 /** Réglages des notifications : chargement, enregistrement (seulement si modifié), test d'un canal, erreurs. */
 import { screen, waitFor } from "@testing-library/react"
 import { http, HttpResponse } from "msw"
+import { setLanguage } from "@/i18n"
 import { apiUrl } from "@/test/handlers"
 import { renderWithProviders } from "@/test/render"
 import { server } from "@/test/server"
@@ -20,6 +21,7 @@ const settings = {
   weekly_digest: true,
   hide_amounts: false,
   public_url: "",
+  language: "fr",
 }
 
 function setup(onPut: (body: Body) => Response | Promise<Response> = (body) => HttpResponse.json(body)) {
@@ -143,6 +145,22 @@ describe("NotificationsTab", () => {
     await user.click(screen.getByRole("button", { name: "Enregistrer" }))
     await user.click(await screen.findByRole("button", { name: "Annuler", hidden: false }))
 
+    expect(calls).toEqual([])
+  })
+})
+
+describe("langue des notifications", () => {
+  afterEach(() => setLanguage("fr"))
+
+  it("aligne la langue enregistrée sur celle de l'interface à l'ouverture", async () => {
+    await setLanguage("en")
+    const { calls } = setup()
+    await waitFor(() => expect(calls).toEqual([{ method: "PUT", path: "/notifications/settings", body: { language: "en" } }]))
+  })
+
+  it("ne renvoie rien quand la langue enregistrée est déjà la bonne", async () => {
+    const { calls } = setup()
+    await screen.findByText(/Activer ntfy/)
     expect(calls).toEqual([])
   })
 })

@@ -293,5 +293,15 @@
   "errors.invalid_investment_type": "Investment transaction type must be one of: {types}",
   "errors.reinvest_edit_or_delete": "This purchase comes from a reinvested dividend: edit or delete the dividend",
   "errors.reinvest_edit": "This purchase comes from a reinvested dividend: edit the dividend",
-  "errors.csv_missing_columns": "Missing columns in the file: {missing}. Expected columns: Date, Commercant, Montant (Type, Categorie, Mois and Note are optional)."
+  "errors.csv_missing_columns": "Missing columns in the file: {missing}. Expected columns: Date, Commercant, Montant (Type, Categorie, Mois and Note are optional).",
+  "notifications.hello_title": "Numera connected",
+  "notifications.hello_body": "Notifications enabled: {count} action(s) in progress in the Action Center.",
+  "notifications.grouped_title": "{count} new Numera alerts",
+  "notifications.digest_title": "Your week with Numera",
+  "notifications.digest_budget": "This month: {spent} of actual spending, {income} of income.",
+  "notifications.digest_actions": "Action Center: {count} action(s) in progress, {urgent} urgent.",
+  "notifications.digest_upcoming": "Due in the next 7 days:",
+  "notifications.digest_empty": "Nothing in particular this week.",
+  "notifications.test_title": "Numera test",
+  "notifications.test_body": "Notifications are working."
 }
