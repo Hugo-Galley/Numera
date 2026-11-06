@@ -215,3 +215,18 @@ body.privacy-enabled textarea.privacy-masked:focus {
 .dark .theme-island {
   box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.08);
 }
+
+/* Carte du monde (WorldMap) : react-simple-maps 5 ne gère plus les états hover/pressed en style inline */
+.world-map-country {
+  outline: none;
+  transition: all 250ms;
+}
+.world-map-country:hover {
+  fill: rgb(var(--c-slate-300));
+}
+.world-map-country--data {
+  cursor: pointer;
+}
+.world-map-country--data:hover {
+  fill: rgb(var(--c-indigo-700));
+}

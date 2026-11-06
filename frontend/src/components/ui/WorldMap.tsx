@@ -6,7 +6,8 @@ import {
   Geography,
   Sphere,
   Graticule,
-  ZoomableGroup
+  ZoomableGroup,
+  type ZoomPanCallbackProps,
 } from "react-simple-maps";
 import { scaleLinear } from "d3-scale";
 import { useUI } from "@/providers/UIProvider";
@@ -115,8 +116,8 @@ const WorldMap: React.FC<WorldMapProps> = ({ data }) => {
     return map;
   }, [data]);
 
-  const handleMoveEnd = (position: { coordinates: [number, number]; zoom: number }) => {
-    setPosition(position);
+  const handleMoveEnd = ({ coordinates, zoom }: ZoomPanCallbackProps) => {
+    if (coordinates && zoom !== undefined) setPosition({ coordinates, zoom });
   };
 
   return (
@@ -165,11 +166,8 @@ const WorldMap: React.FC<WorldMapProps> = ({ data }) => {
                       }
                     }}
                     onMouseLeave={() => setHoveredCountry(null)}
-                    style={{
-                      default: { outline: "none", transition: "all 250ms" },
-                      hover: { fill: d ? "rgb(var(--c-indigo-700))" : "rgb(var(--c-slate-300))", outline: "none", cursor: d ? "pointer" : "default" },
-                      pressed: { outline: "none" }
-                    }}
+                    // react-simple-maps 5 n'a plus d'états default/hover/pressed en style : le survol est dans styles.css
+                    className={d ? "world-map-country world-map-country--data" : "world-map-country"}
                   />
                 );
               })

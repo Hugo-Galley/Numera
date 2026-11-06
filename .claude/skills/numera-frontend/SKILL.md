@@ -32,7 +32,11 @@ Créer `components/dashboard/tabs/<Nom>Tab.tsx` (onglets actuels : Overview, His
 
 ## Ajouter un graphique
 
-`recharts`, couleurs de la palette, `Tooltip` et légende toujours présents, valeurs formatées via `formatCurrency`. Rendre les éléments cliquables pour naviguer vers la vue filtrée quand elle existe. Sankey / treemap / simulateur : `components/analytics/`.
+`recharts`, couleurs de la palette, `Tooltip` et légende toujours présents, valeurs formatées via `formatCurrency`. Rendre les éléments cliquables pour naviguer vers la vue filtrée quand elle existe. Sankey / treemap / simulateur : `components/analytics/`. Carte du monde : `components/ui/WorldMap.tsx` (`react-simple-maps` 5, survol en CSS dans `styles.css`).
+
+## React 19
+
+Version 19 : `ref` est une prop ordinaire (pas de `forwardRef` dans le code nouveau), pas de `defaultProps` / `propTypes`, `useRef` avec valeur initiale, `React.JSX`. Détail et exceptions : `frontend/src/CLAUDE.md`. Une montée de version de `react` ou `recharts` : vérifier l'override `react-is` de `package.json`.
 
 ## Pages à connaître
 
