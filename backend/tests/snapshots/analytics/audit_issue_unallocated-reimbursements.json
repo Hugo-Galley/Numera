@@ -4,6 +4,7 @@
   {
    "account_id": 1,
    "amount": 30.0,
+   "benefit_id": null,
    "category": {
     "annual_limit": null,
     "archived": false,
@@ -23,6 +24,7 @@
    "has_claims": false,
    "id": 609,
    "is_exceptional": false,
+   "is_provisional": false,
    "is_recurring": false,
    "is_subscription_ignored": false,
    "is_transfer": false,
@@ -52,6 +54,7 @@
   {
    "account_id": 1,
    "amount": 16.5,
+   "benefit_id": null,
    "category": {
     "annual_limit": null,
     "archived": false,
@@ -71,6 +74,7 @@
    "has_claims": false,
    "id": 529,
    "is_exceptional": false,
+   "is_provisional": false,
    "is_recurring": false,
    "is_subscription_ignored": false,
    "is_transfer": false,
@@ -100,6 +104,7 @@
   {
    "account_id": 1,
    "amount": 16.5,
+   "benefit_id": null,
    "category": {
     "annual_limit": null,
     "archived": false,
@@ -119,6 +124,7 @@
    "has_claims": false,
    "id": 501,
    "is_exceptional": false,
+   "is_provisional": false,
    "is_recurring": false,
    "is_subscription_ignored": false,
    "is_transfer": false,
@@ -148,6 +154,7 @@
   {
    "account_id": 1,
    "amount": 16.5,
+   "benefit_id": null,
    "category": {
     "annual_limit": null,
     "archived": false,
@@ -167,6 +174,7 @@
    "has_claims": false,
    "id": 440,
    "is_exceptional": false,
+   "is_provisional": false,
    "is_recurring": false,
    "is_subscription_ignored": false,
    "is_transfer": false,

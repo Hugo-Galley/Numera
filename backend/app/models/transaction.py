@@ -1,10 +1,14 @@
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import Boolean, DateTime, Float, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
 from app.models.tag import transaction_tags
+
+if TYPE_CHECKING:
+    from app.models.benefit import Benefit
 
 
 class Transaction(Base):
@@ -43,10 +47,15 @@ class Transaction(Base):
     merchant_id: Mapped[int | None] = mapped_column(ForeignKey("merchants.id", ondelete="SET NULL"), nullable=True, index=True)
     # Total remboursé (Sortie) ou affecté à des créances (Entree) ; maintenu par services/reimbursements.py
     reimbursement_offset: Mapped[float] = mapped_column(Float, default=0.0, server_default="0", nullable=False)
+    # Aide (prime d'activité, APL…) à l'origine de l'entrée ; `is_provisional` : générée au montant attendu,
+    # remplacée par le vrai versement à l'import (services/budget/benefit_generation.py)
+    benefit_id: Mapped[int | None] = mapped_column(ForeignKey("benefits.id", ondelete="SET NULL"), nullable=True, index=True)
+    is_provisional: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0", nullable=False)
     # Dépense hors norme (achat ponctuel) : reste dans les totaux, isolée dans la lecture « hors exceptionnel »
     is_exceptional: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0", nullable=False)
 
     category: Mapped["Category"] = relationship("Category", lazy="selectin")
+    benefit: Mapped["Benefit"] = relationship("Benefit", lazy="selectin")
     recurring_transaction: Mapped["RecurringTransaction"] = relationship("RecurringTransaction", lazy="selectin")
     linked_transaction: Mapped["Transaction"] = relationship("Transaction", remote_side=[id], post_update=True, foreign_keys=[linked_transaction_id])
     linked_investment_transaction: Mapped["InvestmentTransaction"] = relationship("InvestmentTransaction", lazy="selectin", post_update=True, foreign_keys=[linked_investment_transaction_id])
@@ -70,8 +79,10 @@ class Transaction(Base):
 
     @property
     def recurring_logo(self) -> str | None:
-        """Logo de la récurrence d'origine (exposé par TransactionRead)."""
-        return self.recurring_transaction.logo if self.recurring_transaction else None
+        """Logo de la récurrence (ou de l'aide) d'origine (exposé par TransactionRead)."""
+        if self.recurring_transaction and self.recurring_transaction.logo:
+            return self.recurring_transaction.logo
+        return self.benefit.logo if self.benefit else None
 
     @property
     def has_claims(self) -> bool:

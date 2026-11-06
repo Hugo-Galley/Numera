@@ -1572,6 +1572,11 @@
       "title": "Amount",
       "type": "number"
      },
+     "auto_generate": {
+      "default": false,
+      "title": "Auto Generate",
+      "type": "boolean"
+     },
      "declaration_interval_months": {
       "anyOf": [
        {
@@ -1584,6 +1589,17 @@
        }
       ],
       "title": "Declaration Interval Months"
+     },
+     "logo": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Logo"
      },
      "match_pattern": {
       "maxLength": 120,
@@ -1744,6 +1760,11 @@
       "title": "Amount Changed",
       "type": "boolean"
      },
+     "auto_generate": {
+      "default": false,
+      "title": "Auto Generate",
+      "type": "boolean"
+     },
      "declaration_days_left": {
       "anyOf": [
        {
@@ -1786,6 +1807,17 @@
         "type": "null"
        }
       ]
+     },
+     "logo": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Logo"
      },
      "match_pattern": {
       "maxLength": 120,
@@ -1960,6 +1992,17 @@
       ],
       "title": "Amount"
      },
+     "auto_generate": {
+      "anyOf": [
+       {
+        "type": "boolean"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Auto Generate"
+     },
      "declaration_interval_months": {
       "anyOf": [
        {
@@ -1972,6 +2015,17 @@
        }
       ],
       "title": "Declaration Interval Months"
+     },
+     "logo": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Logo"
      },
      "match_pattern": {
       "anyOf": [
@@ -11516,6 +11570,17 @@
       "title": "Amount",
       "type": "number"
      },
+     "benefit_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Benefit Id"
+     },
      "category": {
       "anyOf": [
        {
@@ -11581,6 +11646,11 @@
      "is_exceptional": {
       "default": false,
       "title": "Is Exceptional",
+      "type": "boolean"
+     },
+     "is_provisional": {
+      "default": false,
+      "title": "Is Provisional",
       "type": "boolean"
      },
      "is_recurring": {

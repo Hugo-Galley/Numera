@@ -33,6 +33,7 @@ from app.repositories.comptes import accounts as account_repo
 from app.repositories.comptes import balances as balances_repo
 from app.services.budget import merchants as merchant_service
 from app.services.budget.balances import recalculate_running_balances
+from app.services.budget.benefit_generation import reconcile_provisional
 from app.services.budget.transfers import auto_link_transfers
 
 logger = get_logger(__name__)
@@ -271,6 +272,7 @@ async def commit_import(db: Session, account_id: int, read_content: Callable[[],
         logger.info(f"Recalculating running balances for account_id={account_id}")
         recalculate_running_balances(db, account_id)
         db.commit()
+        reconcile_provisional(db)  # un vrai versement d'aide remplace son entrée provisoire
         await auto_link_transfers(db)
 
     logger.info(

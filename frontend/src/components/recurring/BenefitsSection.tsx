@@ -7,6 +7,7 @@ import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { CompanyLogo } from "@/components/ui/CompanyLogo"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ErrorState } from "@/components/layout/ErrorState"
 import { api } from "@/lib/api"
@@ -33,6 +34,8 @@ export interface Benefit {
   declaration_interval_months: number | null
   next_declaration_date: string | null
   note: string | null
+  logo: string | null
+  auto_generate: boolean
   active: boolean
   account_name: string | null
   status: "received" | "pending" | "late" | "inactive"
@@ -174,7 +177,8 @@ function BenefitCard({ benefit: b, actions }: { benefit: Benefit; actions: CardA
     <Card className={`rounded-2xl shadow-sm ${b.active ? "" : "opacity-60"}`}>
       <CardContent className="space-y-3 p-4 md:p-5">
         <div className="flex items-start justify-between gap-2">
-          <div className="min-w-0">
+          <CompanyLogo logo={b.logo} name={b.name} className="h-10 w-10 shrink-0 rounded-lg shadow-2xs" />
+          <div className="min-w-0 flex-1">
             <p className="truncate font-semibold text-slate-900">{b.name}</p>
             <p className="text-xs text-slate-500">
               {b.organization} · {formatCurrency(b.amount)} / mois · vers le {b.payment_day}

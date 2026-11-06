@@ -2,9 +2,11 @@ import { useEffect, useState } from "react"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { LogoPicker } from "@/components/ui/LogoPicker"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useSubmit } from "@/hooks/useSubmit"
 import { api } from "@/lib/api"
@@ -34,6 +36,8 @@ const emptyForm = () => ({
   declaration_interval_months: "none",
   next_declaration_date: "",
   note: "",
+  logo: null as string | null,
+  auto_generate: true,
 })
 
 type Form = ReturnType<typeof emptyForm>
@@ -49,6 +53,8 @@ const formFrom = (b: Benefit): Form => ({
   declaration_interval_months: b.declaration_interval_months ? String(b.declaration_interval_months) : "none",
   next_declaration_date: b.next_declaration_date ?? "",
   note: b.note ?? "",
+  logo: b.logo,
+  auto_generate: b.auto_generate,
 })
 
 interface Props {
@@ -78,6 +84,10 @@ export function BenefitDialog({ open, editing, accounts, onOpenChange, onSaved }
       toast.error("Indiquez la date de la prochaine déclaration")
       return
     }
+    if (form.auto_generate && form.account_id === "none") {
+      toast.error("Choisissez le compte de réception pour générer les versements")
+      return
+    }
     const payload = {
       name: form.name.trim(),
       organization: form.organization.trim(),
@@ -89,6 +99,8 @@ export function BenefitDialog({ open, editing, accounts, onOpenChange, onSaved }
       declaration_interval_months: hasDeclaration ? Number(form.declaration_interval_months) : null,
       next_declaration_date: hasDeclaration ? form.next_declaration_date : null,
       note: form.note.trim() || null,
+      logo: form.logo,
+      auto_generate: form.auto_generate,
     }
     try {
       if (editing) await api.patch(`/benefits/${editing.id}`, payload)
@@ -107,8 +119,8 @@ export function BenefitDialog({ open, editing, accounts, onOpenChange, onSaved }
         <DialogHeader>
           <DialogTitle>{editing ? "Modifier l'aide" : "Nouvelle aide"}</DialogTitle>
           <DialogDescription>
-            Rien n'est ajouté à vos transactions : les versements sont retrouvés dans vos entrées grâce au texte du
-            libellé bancaire.
+            Chaque mois, une entrée est ajoutée à la date de versement. Quand le vrai versement arrive à l'import, il
+            la remplace grâce au texte du libellé bancaire.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-2">
@@ -158,6 +170,14 @@ export function BenefitDialog({ open, editing, accounts, onOpenChange, onSaved }
             {form.declaration_interval_months !== "none" && (
               <Field id="ben-decl" label="Prochaine déclaration" type="date" value={form.next_declaration_date} onChange={(v) => set({ next_declaration_date: v })} />
             )}
+          </div>
+          <div className="flex items-center gap-2">
+            <Checkbox id="ben-generate" checked={form.auto_generate} onCheckedChange={(v) => set({ auto_generate: v === true })} />
+            <Label htmlFor="ben-generate">Ajouter l'entrée chaque mois (compte de réception requis)</Label>
+          </div>
+          <div className="grid gap-2">
+            <Label>Logo</Label>
+            <LogoPicker value={form.logo} suggestFor={form.organization || form.name} onChange={(logo) => set({ logo })} />
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Field id="ben-start" label="Perçue depuis" type="date" value={form.start_date} onChange={(v) => set({ start_date: v })} />
