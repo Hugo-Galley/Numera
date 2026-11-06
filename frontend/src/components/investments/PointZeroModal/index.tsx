@@ -1,3 +1,5 @@
+import i18n from "i18next"
+import { useTranslation } from "react-i18next"
 import { CustomEtfModal } from "../CustomEtfModal"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { SlidersHorizontal } from "lucide-react"
@@ -14,6 +16,7 @@ export function PointZeroModal({
   accountName,
   onBaselineSaved,
 }: PointZeroModalProps) {
+  const { t } = useTranslation("investments")
   const ctx = usePointZeroModal(open, onOpenChange, accountId, accountName, onBaselineSaved)
   const { customEtfOpen, handleSelectSearchResult, pendingEtfSearch, setCustomEtfOpen } = ctx
   return (
@@ -23,10 +26,10 @@ export function PointZeroModal({
           <DialogHeader>
             <div className="flex items-center gap-2">
               <SlidersHorizontal className="h-5 w-5 shrink-0 text-slate-800" />
-              <DialogTitle className="pr-6 text-left text-lg font-bold text-slate-900">Point Zéro : {accountName}</DialogTitle>
+              <DialogTitle className="pr-6 text-left text-lg font-bold text-slate-900">{i18n.t("misc.zeroPointTitle", { ns: "investments", name: accountName })}</DialogTitle>
             </div>
             <DialogDescription className="hidden text-xs text-slate-500 sm:block">
-              Déclarez vos positions actuelles. Les cours boursiers en direct valoriseront automatiquement votre portefeuille sans altérer vos transactions passées.
+              {t("index.declarezVosPositionsActuellesLes")}
             </DialogDescription>
           </DialogHeader>
 

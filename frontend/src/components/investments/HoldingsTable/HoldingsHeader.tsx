@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { Calculator, Layers, Search, SlidersHorizontal, X } from "lucide-react"
 import { CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -8,6 +9,7 @@ import type { HoldingsTableCtx } from "./useHoldingsTable"
 
 /** En-tête : titre, actions (point zéro, estimation des frais) et barre de filtres. */
 export function HoldingsHeader({ ctx }: { ctx: HoldingsTableCtx }) {
+  const { t } = useTranslation("investments")
   const { hasActiveFilters, hideHoldingValues, holdings, perfFilter, resetFilters, search, setCostEstimateOpen, setPerfFilter, setPointZeroOpen, setSearch, setTypeFilter, typeFilter } = ctx
   return (
     <>
@@ -17,19 +19,19 @@ export function HoldingsHeader({ ctx }: { ctx: HoldingsTableCtx }) {
           <div>
             <div className="flex items-center gap-2">
               <Layers className="h-5 w-5 text-slate-500" />
-              <CardTitle className="text-base font-bold md:text-lg">Positions Actuelles (Actions & ETFs)</CardTitle>
+              <CardTitle className="text-base font-bold md:text-lg">{t("holdingsHeader.positionsActuellesActionsEtfs")}</CardTitle>
             </div>
             <CardDescription className="text-sm mt-1">
               {hideHoldingValues
-                ? "Titres détenus et nombre de parts."
-                : "Valorisation en direct de vos lignes boursières au cours de marché."}
+                ? t("holdingsHeader.titresDetenusEtNombreDe")
+                : t("holdingsHeader.valorisationEnDirectDeVos")}
             </CardDescription>
           </div>
           <div className="flex flex-col gap-2 shrink-0 sm:flex-row sm:flex-wrap">
             {!hideHoldingValues && holdings.some((h) => !h.buy_price_avg) && (
               <Button size="sm" variant="outline" onClick={() => setCostEstimateOpen(true)} className="h-10 gap-2 md:h-9">
                 <Calculator className="h-4 w-4" />
-                Estimer les PRU
+                {t("holdingsHeader.estimerLesPru")}
               </Button>
             )}
             <Button
@@ -38,7 +40,7 @@ export function HoldingsHeader({ ctx }: { ctx: HoldingsTableCtx }) {
               className="h-10 gap-2 md:h-9"
             >
               <SlidersHorizontal className="h-4 w-4" />
-              Point Zéro / État des Lieux
+              {t("holdingsHeader.pointZeroEtatDesLieux")}
             </Button>
           </div>
         </div>
@@ -50,7 +52,7 @@ export function HoldingsHeader({ ctx }: { ctx: HoldingsTableCtx }) {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 pointer-events-none" />
               <Input
-                placeholder="Nom, ticker, ISIN…"
+                placeholder={t("holdingsHeader.nomTickerIsin")}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="h-10 pl-8 text-base md:h-8 md:text-sm bg-slate-50 border-slate-200 focus-visible:ring-1 focus-visible:ring-slate-300"
@@ -59,7 +61,7 @@ export function HoldingsHeader({ ctx }: { ctx: HoldingsTableCtx }) {
                 <button
                   onClick={() => setSearch("")}
                   className="absolute right-0 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center text-slate-400 hover:text-slate-600 md:right-2 md:h-auto md:w-auto"
-                  aria-label="Effacer la recherche"
+                  aria-label={t("holdingsHeader.effacerLaRecherche")}
                 >
                   <X className="h-3.5 w-3.5" />
                 </button>
@@ -79,7 +81,7 @@ export function HoldingsHeader({ ctx }: { ctx: HoldingsTableCtx }) {
                       : "text-slate-500 hover:text-slate-700"
                   )}
                 >
-                  {v === "all" ? "Tous" : v === "action" ? "Actions" : "ETFs"}
+                  {v === "all" ? t("holdingsHeader.tous") : v === "action" ? t("holdingsHeader.actions") : t("holdingsHeader.etfs")}
                 </button>
               ))}
             </div>
@@ -99,7 +101,7 @@ export function HoldingsHeader({ ctx }: { ctx: HoldingsTableCtx }) {
                     perfFilter !== v && "text-slate-500 hover:text-slate-700",
                   )}
                 >
-                  {v === "all" ? "Tous" : v === "gain" ? "📈 En gain" : "📉 En perte"}
+                  {v === "all" ? t("holdingsHeader.tous") : v === "gain" ? "📈 En gain" : "📉 En perte"}
                 </button>
               ))}
             </div>
@@ -111,7 +113,7 @@ export function HoldingsHeader({ ctx }: { ctx: HoldingsTableCtx }) {
                 onClick={resetFilters}
                 className="text-xs text-slate-500 hover:text-slate-600 transition-colors shrink-0 flex items-center justify-center gap-1 min-h-10 md:min-h-0"
               >
-                <X className="h-3 w-3" /> Réinitialiser
+                <X className="h-3 w-3" /> {t("holdingsHeader.reinitialiser")}
               </button>
             )}
           </div>

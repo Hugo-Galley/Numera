@@ -1,3 +1,5 @@
+import i18n from "i18next"
+import { useTranslation } from "react-i18next"
 import { appLocale } from "@/i18n/locale"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -10,6 +12,7 @@ import type { HoldingsTableCtx } from "./useHoldingsTable"
 
 /** Tableau des positions (bureau). */
 export function HoldingsDesktopTable({ ctx }: { ctx: HoldingsTableCtx }) {
+  const { t } = useTranslation("investments")
   const { costDraft, decomposingId, editingCostId, filteredHoldings, handleDecompose, handleDelete, handleTogglePaysDividends, hideHoldingValues, onAddDividend, saveCost, setCostDraft, setEditingCostId, startEditCost, totalValue } = ctx
   return (
     <>
@@ -18,22 +21,22 @@ export function HoldingsDesktopTable({ ctx }: { ctx: HoldingsTableCtx }) {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="font-semibold text-slate-600">Actif / Symbole</TableHead>
-            <TableHead className="font-semibold text-slate-600">Type</TableHead>
-            <TableHead className="text-right font-semibold text-slate-600">Parts</TableHead>
+            <TableHead className="font-semibold text-slate-600">{t("holdingsDesktopTable.actifSymbole")}</TableHead>
+            <TableHead className="font-semibold text-slate-600">{t("holdingsDesktopTable.type")}</TableHead>
+            <TableHead className="text-right font-semibold text-slate-600">{t("holdingsDesktopTable.parts")}</TableHead>
             {!hideHoldingValues && (
               <>
-              <TableHead className="text-right font-semibold text-slate-600" title="Prix de revient unitaire moyen, frais inclus">PRU</TableHead>
-              <TableHead className="text-right font-semibold text-slate-600">Cours actuel</TableHead>
-              <TableHead className="text-right font-semibold text-slate-600" title="Coût de revient en EUR (taux de change des achats)">Investi</TableHead>
-              <TableHead className="text-right font-semibold text-slate-600">Valeur totale</TableHead>
-              <TableHead className="text-right font-semibold text-slate-600">Plus-value latente</TableHead>
-              <TableHead className="text-right font-semibold text-slate-600">Dividendes reçus</TableHead>
-              <TableHead className="text-right font-semibold text-slate-600">Rendement total</TableHead>
-              <TableHead className="text-right font-semibold text-slate-600">Poids</TableHead>
+              <TableHead className="text-right font-semibold text-slate-600" title={t("holdingsDesktopTable.prixDeRevientUnitaireMoyen")}>{i18n.t("misc.avgCost", { ns: "investments" })}</TableHead>
+              <TableHead className="text-right font-semibold text-slate-600">{t("holdingsDesktopTable.coursActuel")}</TableHead>
+              <TableHead className="text-right font-semibold text-slate-600" title={t("holdingsDesktopTable.coutDeRevientEnEur")}>{t("holdingsDesktopTable.investi")}</TableHead>
+              <TableHead className="text-right font-semibold text-slate-600">{t("holdingsDesktopTable.valeurTotale")}</TableHead>
+              <TableHead className="text-right font-semibold text-slate-600">{t("holdingsDesktopTable.plusValueLatente")}</TableHead>
+              <TableHead className="text-right font-semibold text-slate-600">{t("holdingsDesktopTable.dividendesRecus")}</TableHead>
+              <TableHead className="text-right font-semibold text-slate-600">{t("holdingsDesktopTable.rendementTotal")}</TableHead>
+              <TableHead className="text-right font-semibold text-slate-600">{t("holdingsDesktopTable.poids")}</TableHead>
               </>
             )}
-            <TableHead className="text-right w-[90px] font-semibold text-slate-600">Actions</TableHead>
+            <TableHead className="text-right w-[90px] font-semibold text-slate-600">{t("holdingsDesktopTable.actions")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -70,11 +73,11 @@ export function HoldingsDesktopTable({ ctx }: { ctx: HoldingsTableCtx }) {
                 <TableCell>
                   {h.is_etf || h.etf_profile_id ? (
                     <Badge variant="secondary" className="font-normal text-xs">
-                      {h.etf_profile_id ? "ETF (décomposé)" : "ETF"}
+                      {h.etf_profile_id ? t("holdingsDesktopTable.etfDecompose") : "ETF"}
                     </Badge>
                   ) : (
                     <Badge variant="outline" className="font-normal text-xs text-slate-600">
-                      Action
+                      {t("holdingsDesktopTable.action")}
                     </Badge>
                   )}
                 </TableCell>
@@ -99,12 +102,12 @@ export function HoldingsDesktopTable({ ctx }: { ctx: HoldingsTableCtx }) {
                             if (e.key === "Escape") setEditingCostId(null)
                           }}
                           className="h-7 w-24 text-right font-mono text-xs"
-                          placeholder={`PRU (${h.currency})`}
+                          placeholder={`${i18n.t("misc.avgCost", { ns: "investments" })} (${h.currency})`}
                         />
-                        <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-emerald-600" onClick={() => saveCost(h)} title="Enregistrer">
+                        <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-emerald-600" onClick={() => saveCost(h)} title={t("holdingsDesktopTable.enregistrer")}>
                           <Check className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-slate-400" onClick={() => setEditingCostId(null)} title="Annuler">
+                        <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-slate-400" onClick={() => setEditingCostId(null)} title={t("holdingsDesktopTable.annuler")}>
                           <X className="h-4 w-4" />
                         </Button>
                       </div>
@@ -113,12 +116,12 @@ export function HoldingsDesktopTable({ ctx }: { ctx: HoldingsTableCtx }) {
                         type="button"
                         onClick={() => startEditCost(h)}
                         className="group inline-flex items-center gap-1.5 hover:text-slate-900"
-                        title="Modifier le PRU"
+                        title={t("holdingsDesktopTable.modifierLePru")}
                       >
                         {h.buy_price_avg ? (
                           <span className="text-slate-700">{h.buy_price_avg.toFixed(2)} {h.currency}</span>
                         ) : (
-                          <span className="text-amber-600 italic text-xs">à renseigner</span>
+                          <span className="text-amber-600 italic text-xs">{t("holdingsDesktopTable.aRenseigner")}</span>
                         )}
                         <Pencil className="h-3 w-3 text-slate-300 group-hover:text-slate-600" />
                       </button>
@@ -139,7 +142,7 @@ export function HoldingsDesktopTable({ ctx }: { ctx: HoldingsTableCtx }) {
                         {h.price_date && (
                           <span
                             className={cn("text-[10px] font-normal", h.price_stale ? "text-amber-600" : "text-slate-400")}
-                            title={h.price_stale ? "Cours non rafraîchi : dernier cours connu" : "Cours du marché"}
+                            title={h.price_stale ? t("holdingsDesktopTable.coursNonRafraichiDernierCours") : t("holdingsDesktopTable.coursDuMarche")}
                           >
                             {h.price_stale ? "⚠ " : ""}{new Date(h.price_date).toLocaleDateString(appLocale())}
                           </span>
@@ -219,7 +222,7 @@ export function HoldingsDesktopTable({ ctx }: { ctx: HoldingsTableCtx }) {
                         size="sm"
                         className="h-8 w-8 p-0 text-slate-500 hover:text-emerald-600"
                         onClick={() => onAddDividend(h)}
-                        title="Saisir un dividende"
+                        title={t("holdingsDesktopTable.saisirUnDividende")}
                       >
                         <Coins className="h-4 w-4" />
                       </Button>
@@ -229,7 +232,7 @@ export function HoldingsDesktopTable({ ctx }: { ctx: HoldingsTableCtx }) {
                       size="sm"
                       className={cn("h-8 w-8 p-0", h.pays_dividends ? "text-emerald-600 hover:text-emerald-700" : "text-slate-300 hover:text-slate-600")}
                       onClick={() => handleTogglePaysDividends(h)}
-                      title={h.pays_dividends ? "Titre distribuant : cliquer pour désactiver le rappel" : "Marquer comme titre distribuant (rappel de dividende)"}
+                      title={h.pays_dividends ? t("holdingsDesktopTable.titreDistribuantCliquerPourDesactiver") : t("holdingsDesktopTable.marquerCommeTitreDistribuantRappel")}
                     >
                       <CalendarCheck className="h-4 w-4" />
                     </Button>
@@ -240,7 +243,7 @@ export function HoldingsDesktopTable({ ctx }: { ctx: HoldingsTableCtx }) {
                         className="h-8 w-8 p-0 text-slate-500 hover:text-slate-900"
                         onClick={() => handleDecompose(h)}
                         disabled={decomposingId === h.id}
-                        title="Décomposer en ligne"
+                        title={t("holdingsDesktopTable.decomposerEnLigne")}
                       >
                         <Globe className="h-4 w-4" />
                       </Button>
@@ -250,7 +253,7 @@ export function HoldingsDesktopTable({ ctx }: { ctx: HoldingsTableCtx }) {
                       size="sm"
                       className="h-8 w-8 p-0 text-slate-400 hover:text-rose-600"
                       onClick={() => handleDelete(h.id, h.asset_name)}
-                      title="Supprimer la position"
+                      title={t("holdingsDesktopTable.supprimerLaPosition")}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>

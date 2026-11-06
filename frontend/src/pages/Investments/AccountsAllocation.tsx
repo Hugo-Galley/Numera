@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts"
 import { formatAmountWithShare, formatCurrency, formatRate } from "@/lib/utils"
@@ -6,20 +7,21 @@ import type { InvestmentsCtx } from "./useInvestments"
 
 /** Section 1 : répartition par comptes. */
 export function AccountsAllocation({ ctx }: { ctx: InvestmentsCtx }) {
+  const { t } = useTranslation("investments")
   const { allocation, chartData, handleAccountClick } = ctx
   return (
     <>
       {/* Section 1: Répartition par comptes */}
       <div className="space-y-4">
         <div>
-          <h2 className="text-xl font-bold tracking-tight">Répartition par compte</h2>
-          <p className="text-sm text-muted-foreground">Vos investissements séparés par enveloppe.</p>
+          <h2 className="text-xl font-bold tracking-tight">{t("accountsAllocation.repartitionParCompte")}</h2>
+          <p className="text-sm text-muted-foreground">{t("accountsAllocation.vosInvestissementsSeparesParEnveloppe")}</p>
         </div>
         <Card className="shadow-sm border-slate-100 overflow-hidden">
           <CardHeader className="flex flex-col items-start justify-between gap-2 border-b bg-slate-50/50 pb-4 sm:flex-row sm:items-center">
-            <CardTitle className="text-base font-bold">Détails de l'allocation</CardTitle>
+            <CardTitle className="text-base font-bold">{t("accountsAllocation.detailsDeLAllocation")}</CardTitle>
             <span className="text-sm font-semibold text-slate-500 bg-slate-100/80 px-3 py-1 rounded-lg">
-              Total : <span className="amount-blur text-slate-900 font-bold">{formatCurrency(allocation?.total_current_value || 0)}</span>
+              {t("accountsAllocation.total")} <span className="amount-blur text-slate-900 font-bold">{formatCurrency(allocation?.total_current_value || 0)}</span>
             </span>
           </CardHeader>
           <CardContent className="p-4 md:p-6">
@@ -52,7 +54,7 @@ export function AccountsAllocation({ ctx }: { ctx: InvestmentsCtx }) {
                 </ResponsiveContainer>
                 {/* Center Text (Total) */}
                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                  <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total</span>
+                  <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{t("accountsAllocation.total2")}</span>
                   <span className="text-lg font-bold text-slate-800 amount-blur">
                     {formatCurrency(allocation?.total_current_value || 0)}
                   </span>
@@ -88,8 +90,8 @@ export function AccountsAllocation({ ctx }: { ctx: InvestmentsCtx }) {
                     <div className="flex flex-wrap justify-between gap-x-2 text-xs text-muted-foreground pl-5.5">
                       <span className="amount-blur font-medium whitespace-nowrap">{formatCurrency(item.current_value)}</span>
                       {item.gain_eur == null ? (
-                        <span className="font-medium whitespace-nowrap text-amber-600" title="Aucune valorisation postérieure aux derniers flux de la période">
-                          Valeur à actualiser
+                        <span className="font-medium whitespace-nowrap text-amber-600" title={t("accountsAllocation.aucuneValorisationPosterieureAuxDerniers")}>
+                          {t("accountsAllocation.valeurAActualiser")}
                         </span>
                       ) : (
                         <span className={`amount-blur font-medium whitespace-nowrap ${item.gain_eur >= 0 ? "text-emerald-600" : "text-rose-600"}`}>

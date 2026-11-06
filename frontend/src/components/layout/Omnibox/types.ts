@@ -1,27 +1,31 @@
+import i18n from "i18next"
 import { ArrowLeftRight, Bell, Calculator, CalendarDays, ClipboardCheck, Gift, HandCoins, Landmark, LayoutDashboard, PiggyBank, Repeat, Settings, ShieldCheck, Sparkles, Tags, TrendingUp, Wallet } from "lucide-react"
 
 // Mêmes destinations que la barre latérale, plus des raccourcis vers les onglets (⌘K « calendrier »…)
 export const NAVIGATION = [
-  { name: "Tableau de bord", href: "/", icon: LayoutDashboard },
-  { name: "Bilan du mois", href: "/month/bilan", icon: Sparkles },
-  { name: "Revue de mois", href: "/month/revue", icon: ClipboardCheck },
-  { name: "Comparaison mensuelle", href: "/month/comparaison", icon: ArrowLeftRight },
-  { name: "Bilan annuel", href: "/wrapped", icon: Gift },
-  { name: "Centre d'actions", href: "/audit", icon: ShieldCheck },
-  { name: "Comptes", href: "/accounts", icon: Wallet },
-  { name: "Épargne", href: "/savings", icon: PiggyBank },
-  { name: "Investissements", href: "/investments", icon: TrendingUp },
-  { name: "Fiscalité", href: "/tax", icon: Landmark },
-  { name: "Échéances (récurrences)", href: "/recurring", icon: Repeat },
-  { name: "Calendrier", href: "/recurring?tab=calendar", icon: CalendarDays },
-  { name: "Salaire et aides (CAF, prime d'activité, APL)", href: "/recurring?tab=salary", icon: Wallet },
-  { name: "Remboursements", href: "/reimbursements", icon: HandCoins },
-  { name: "Simulateur", href: "/tools", icon: Calculator },
-  { name: "Classement : catégories", href: "/classement?tab=categories", icon: Tags },
-  { name: "Classement : tags", href: "/classement?tab=tags", icon: Tags },
-  { name: "Classement : marchands", href: "/classement?tab=merchants", icon: Tags },
-  { name: "Classement : règles (catégorisation, virements)", href: "/classement?tab=rules", icon: Tags },
-  { name: "Virements internes (suggestions, liés)", href: "/audit?vue=virements", icon: ArrowLeftRight },
-  { name: "Notifications (ntfy, Telegram)", href: "/settings?tab=notifications", icon: Bell },
-  { name: "Paramètres", href: "/settings", icon: Settings },
+  { key: "dashboard" as const, href: "/", icon: LayoutDashboard },
+  { key: "monthReport" as const, href: "/month/bilan", icon: Sparkles },
+  { key: "monthReview" as const, href: "/month/revue", icon: ClipboardCheck },
+  { key: "monthComparison" as const, href: "/month/comparaison", icon: ArrowLeftRight },
+  { key: "wrapped" as const, href: "/wrapped", icon: Gift },
+  { key: "actions" as const, href: "/audit", icon: ShieldCheck },
+  { key: "accounts" as const, href: "/accounts", icon: Wallet },
+  { key: "savings" as const, href: "/savings", icon: PiggyBank },
+  { key: "investments" as const, href: "/investments", icon: TrendingUp },
+  { key: "tax" as const, href: "/tax", icon: Landmark },
+  { key: "recurring" as const, href: "/recurring", icon: Repeat },
+  { key: "calendar" as const, href: "/recurring?tab=calendar", icon: CalendarDays },
+  { key: "salary" as const, href: "/recurring?tab=salary", icon: Wallet },
+  { key: "reimbursements" as const, href: "/reimbursements", icon: HandCoins },
+  { key: "simulator" as const, href: "/tools", icon: Calculator },
+  { key: "categories" as const, href: "/classement?tab=categories", icon: Tags },
+  { key: "tags" as const, href: "/classement?tab=tags", icon: Tags },
+  { key: "merchants" as const, href: "/classement?tab=merchants", icon: Tags },
+  { key: "rules" as const, href: "/classement?tab=rules", icon: Tags },
+  { key: "transfers" as const, href: "/audit?vue=virements", icon: ArrowLeftRight },
+  { key: "notifications" as const, href: "/settings?tab=notifications", icon: Bell },
+  { key: "settings" as const, href: "/settings", icon: Settings },
 ]
+
+/** Libellé d'une destination, dans la langue de l'interface (lu à l'appel : les recherches se font sur le texte affiché). */
+export const navigationName = (item: (typeof NAVIGATION)[number]): string => i18n.t(`nav.${item.key}`, { ns: "omnibox" })

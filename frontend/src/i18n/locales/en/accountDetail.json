@@ -175,7 +175,10 @@
     "supprimer": "Delete",
     "aucunFluxEnregistre": "No flows recorded.",
     "actions": "Actions",
-    "reinvesti2": "• reinvested"
+    "reinvesti2": "• reinvested",
+    "colDate": "Date",
+    "colLabelType": "Label / Type",
+    "colAmount": "Amount"
   },
   "investmentSection": {
     "valorisationDuCompte": "Account valuation",

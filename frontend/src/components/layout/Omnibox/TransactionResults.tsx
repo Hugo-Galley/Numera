@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import { appLocale } from "@/i18n/locale"
 import { Receipt, Search } from "lucide-react"
 import { cn, formatCurrency } from "@/lib/utils"
@@ -5,13 +6,14 @@ import type { OmniboxCtx } from "./useOmnibox"
 
 /** Résultats : transactions et état vide. */
 export function TransactionResults({ ctx }: { ctx: OmniboxCtx }) {
+  const { t } = useTranslation("omnibox")
   const { activeIndex, asTransactionResult, filteredAccounts, filteredActions, filteredNavigation, handleSelect, isPrivacyMode, loading, query, quickResults, results, searchFailed, setActiveIndex, transactions } = ctx
   return (
     <>
       {transactions.length > 0 && (
         <div className="mb-2">
           <h3 className="px-3 py-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-            Transactions récentes
+            {t("ui.recentTransactions")}
           </h3>
           {transactions.map((tx, idx) => {
             const resultIdx = filteredNavigation.length + filteredAccounts.length + quickResults.length + filteredActions.length + idx
@@ -65,8 +67,8 @@ export function TransactionResults({ ctx }: { ctx: OmniboxCtx }) {
           <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-slate-50 mb-3 text-slate-300">
              <Search className="h-6 w-6" />
           </div>
-          <p className="text-slate-500 font-medium">{searchFailed ? "La recherche est momentanément indisponible." : `Aucun résultat pour "${query}"`}</p>
-          <p className="text-xs text-slate-400 mt-1">Essayez un autre mot-clé ou vérifiez l'orthographe.</p>
+          <p className="text-slate-500 font-medium">{searchFailed ? t("ui.searchUnavailable") : t("ui.noResultFor", { query })}</p>
+          <p className="text-xs text-slate-400 mt-1">{t("ui.tryAnother")}</p>
         </div>
       )}
     </>

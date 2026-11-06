@@ -57,19 +57,19 @@ export function InvestmentFlowsCard({ ctx }: { ctx: AccountDetailView }) {
               <TableRow>
                 <TableHead className="cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => handleInvSort("date")}>
                   <div className="flex items-center gap-2">
-                    Date
+                    {t("investmentFlowsCard.colDate")}
                     {invSortField === "date" && (invSortOrder === "asc" ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />)}
                   </div>
                 </TableHead>
                 <TableHead className="cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => handleInvSort("type")}>
                   <div className="flex items-center gap-2">
-                    Libellé / Type
+                    {t("investmentFlowsCard.colLabelType")}
                     {invSortField === "type" && (invSortOrder === "asc" ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />)}
                   </div>
                 </TableHead>
                 <TableHead className="text-right cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => handleInvSort("amount")}>
                   <div className="flex items-center justify-end gap-2">
-                    Montant
+                    {t("investmentFlowsCard.colAmount")}
                     {invSortField === "amount" && (invSortOrder === "asc" ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />)}
                   </div>
                 </TableHead>

@@ -4,7 +4,8 @@ import { parseQuickEntry } from "@/lib/quickEntry"
 import { toast } from "sonner"
 import { useNavigate } from "react-router-dom"
 import { useUI } from "@/providers/UIProvider"
-import { NAVIGATION } from "./types"
+import i18n from "i18next"
+import { NAVIGATION, navigationName } from "./types"
 import { getAccounts } from "@/lib/api/accounts"
 import { getTransactions } from "@/lib/api/transactions"
 
@@ -96,7 +97,7 @@ export function useOmniboxSearch() {
   const asTransactionResult = (tx: any) => ({ ...tx, type: 'transaction', txType: tx.type })
 
   const filteredNavigation = NAVIGATION.filter((item) =>
-    item.name.toLowerCase().includes(query.toLowerCase())
+    navigationName(item).toLowerCase().includes(query.toLowerCase())
   ).map(item => ({ ...item, type: 'nav' }))
 
   const filteredAccounts = accounts.filter((acc) =>
@@ -111,11 +112,11 @@ export function useOmniboxSearch() {
     : []
 
   const ACTIONS = [
-    { id: "new-tx", name: "Nouvelle transaction", hint: mainAccount?.name, icon: Plus, run: () => openNewTransaction() },
-    { id: "import", name: "Importer un relevé CSV", icon: Upload, run: () => navigate("/accounts?import=1") },
-    { id: "review", name: "Démarrer la revue du mois", icon: ClipboardList, run: () => navigate("/month/revue") },
-    { id: "privacy", name: isPrivacyMode ? "Afficher les montants" : "Masquer les montants (mode confidentialité)", icon: EyeOff, run: () => togglePrivacyMode() },
-    { id: "loan", name: "Ajouter un crédit", icon: LandmarkIcon, run: () => navigate("/accounts?new=loan") },
+    { id: "new-tx", name: i18n.t("action.newTx", { ns: "omnibox" }), hint: mainAccount?.name, icon: Plus, run: () => openNewTransaction() },
+    { id: "import", name: i18n.t("action.import", { ns: "omnibox" }), icon: Upload, run: () => navigate("/accounts?import=1") },
+    { id: "review", name: i18n.t("action.review", { ns: "omnibox" }), icon: ClipboardList, run: () => navigate("/month/revue") },
+    { id: "privacy", name: isPrivacyMode ? i18n.t("action.showAmounts", { ns: "omnibox" }) : i18n.t("action.hideAmounts", { ns: "omnibox" }), icon: EyeOff, run: () => togglePrivacyMode() },
+    { id: "loan", name: i18n.t("action.loan", { ns: "omnibox" }), icon: LandmarkIcon, run: () => navigate("/accounts?new=loan") },
   ]
   const filteredActions = ACTIONS.filter((action) =>
     action.name.toLowerCase().includes(query.toLowerCase())
@@ -131,7 +132,7 @@ export function useOmniboxSearch() {
 
   function openNewTransaction(params: Record<string, string> = {}) {
     if (!mainAccount) {
-      toast.error("Aucun compte courant actif pour enregistrer la transaction")
+      toast.error(i18n.t("ui.noCheckingToast", { ns: "omnibox" }))
       return
     }
     navigate(`/accounts/${mainAccount.id}?${new URLSearchParams({ new: "tx", ...params }).toString()}`)

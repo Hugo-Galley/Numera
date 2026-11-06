@@ -1,3 +1,4 @@
+import i18n from "i18next"
 import { DiversityScannerResponse } from "@/types/diversity"
 import { toast } from "sonner"
 import { useEffect, useState } from "react"
@@ -23,9 +24,9 @@ const [loading, setLoading] = useState(true)
       const res = await postEtfProfilesRefreshHeld<{ refreshed: number }>({})
       const div = await getAnalyticsDiversityScanner<DiversityScannerResponse>()
       if (div && div.totals.holdings_count > 0) setDiversity(div)
-      toast.success(`${res.refreshed} composition${res.refreshed > 1 ? "s" : ""} actualisée${res.refreshed > 1 ? "s" : ""} depuis Yahoo`)
+      toast.success(i18n.t("misc.refreshedCount", { ns: "investments", count: res.refreshed }))
     } catch {
-      toast.error("Impossible d'actualiser les compositions")
+      toast.error(i18n.t("useInvestmentsData.impossibleDActualiserLesCompositions", { ns: "investments" }))
     } finally {
       setRefreshingCompositions(false)
     }
@@ -46,7 +47,7 @@ const [loading, setLoading] = useState(true)
           if (div && div.totals.holdings_count > 0) setDiversity(div)
         } catch { /* No holdings yet, that's fine */ }
       } catch (error) {
-        toast.error("Erreur lors du chargement de l'allocation")
+        toast.error(i18n.t("useInvestmentsData.erreurLorsDuChargementDe", { ns: "investments" }))
       } finally {
         setLoading(false)
       }
