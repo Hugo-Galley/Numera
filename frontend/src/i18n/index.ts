@@ -16,6 +16,8 @@ import frMonth from "./locales/fr/month.json"
 import frClassement from "./locales/fr/classement.json"
 import frAudit from "./locales/fr/audit.json"
 import frTax from "./locales/fr/tax.json"
+import frTools from "./locales/fr/tools.json"
+import frWrapped from "./locales/fr/wrapped.json"
 import frCommon from "./locales/fr/common.json"
 import frDashboard from "./locales/fr/dashboard.json"
 import frNav from "./locales/fr/nav.json"
@@ -35,6 +37,8 @@ import enMonth from "./locales/en/month.json"
 import enClassement from "./locales/en/classement.json"
 import enAudit from "./locales/en/audit.json"
 import enTax from "./locales/en/tax.json"
+import enTools from "./locales/en/tools.json"
+import enWrapped from "./locales/en/wrapped.json"
 import enCommon from "./locales/en/common.json"
 import enDashboard from "./locales/en/dashboard.json"
 import enNav from "./locales/en/nav.json"
@@ -47,8 +51,8 @@ const STORAGE_KEY = "language"
 
 /** Un catalogue (JSON) par domaine ; le français est la référence, l'anglais doit avoir les mêmes clés. */
 export const resources = {
-  fr: { common: frCommon, accounts: frAccounts, accountDetail: frAccountDetail, import: frImport, loans: frLoans, transactions: frTransactions, investments: frInvestments, omnibox: frOmnibox, savings: frSavings, recurring: frRecurring, reimbursements: frReimbursements, month: frMonth, classement: frClassement, audit: frAudit, tax: frTax, nav: frNav, auth: frAuth, settings: frSettings, dashboard: frDashboard },
-  en: { common: enCommon, accounts: enAccounts, accountDetail: enAccountDetail, import: enImport, loans: enLoans, transactions: enTransactions, investments: enInvestments, omnibox: enOmnibox, savings: enSavings, recurring: enRecurring, reimbursements: enReimbursements, month: enMonth, classement: enClassement, audit: enAudit, tax: enTax, nav: enNav, auth: enAuth, settings: enSettings, dashboard: enDashboard },
+  fr: { common: frCommon, accounts: frAccounts, accountDetail: frAccountDetail, import: frImport, loans: frLoans, transactions: frTransactions, investments: frInvestments, omnibox: frOmnibox, savings: frSavings, recurring: frRecurring, reimbursements: frReimbursements, month: frMonth, classement: frClassement, audit: frAudit, tax: frTax, tools: frTools, wrapped: frWrapped, nav: frNav, auth: frAuth, settings: frSettings, dashboard: frDashboard },
+  en: { common: enCommon, accounts: enAccounts, accountDetail: enAccountDetail, import: enImport, loans: enLoans, transactions: enTransactions, investments: enInvestments, omnibox: enOmnibox, savings: enSavings, recurring: enRecurring, reimbursements: enReimbursements, month: enMonth, classement: enClassement, audit: enAudit, tax: enTax, tools: enTools, wrapped: enWrapped, nav: enNav, auth: enAuth, settings: enSettings, dashboard: enDashboard },
 } as const
 
 const isLanguage = (value: unknown): value is Language => LANGUAGES.includes(value as Language)

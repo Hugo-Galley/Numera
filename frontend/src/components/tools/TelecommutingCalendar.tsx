@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import { dateLocale } from "@/i18n/locale"
 import { useState, useEffect } from "react"
 import { format, getDaysInMonth, startOfMonth, getDay, isWeekend, addMonths, subMonths, isSameDay } from "date-fns"
@@ -25,6 +26,7 @@ export function TelecommutingCalendar({
   ttDays,
   onToggleDay
 }: TelecommutingCalendarProps) {
+  const { t } = useTranslation("tools")
   const daysInMonth = getDaysInMonth(currentDate)
   const firstDayOfMonth = startOfMonth(currentDate)
   const startingDayOfWeek = (getDay(firstDayOfMonth) + 6) % 7 // Lundi = 0
@@ -39,17 +41,17 @@ export function TelecommutingCalendar({
       <CardHeader className="flex flex-col items-stretch gap-3 space-y-0 pb-3 border-b sm:flex-row sm:items-center sm:justify-between">
         <CardTitle className="text-lg font-medium flex items-center gap-2">
           <CalendarIcon className="h-5 w-5" />
-          Calendrier Télétravail
+          {t("telecommutingCalendar.calendrierTeletravail")}
         </CardTitle>
         <div className="flex items-center gap-4">
           <div className="flex w-full items-center justify-between gap-2 sm:w-auto sm:justify-start">
-            <Button variant="outline" size="icon" className="h-10 w-10 md:h-9 md:w-9" aria-label="Mois précédent" onClick={() => onDateChange(subMonths(currentDate, 1))}>
+            <Button variant="outline" size="icon" className="h-10 w-10 md:h-9 md:w-9" aria-label={t("telecommutingCalendar.moisPrecedent")} onClick={() => onDateChange(subMonths(currentDate, 1))}>
               <ChevronLeft className="h-4 w-4" />
             </Button>
             <span className="flex-1 text-center font-medium capitalize sm:w-32 sm:flex-none">
               {format(currentDate, "MMMM yyyy", { locale: dateLocale() })}
             </span>
-            <Button variant="outline" size="icon" className="h-10 w-10 md:h-9 md:w-9" aria-label="Mois suivant" onClick={() => onDateChange(addMonths(currentDate, 1))}>
+            <Button variant="outline" size="icon" className="h-10 w-10 md:h-9 md:w-9" aria-label={t("telecommutingCalendar.moisSuivant")} onClick={() => onDateChange(addMonths(currentDate, 1))}>
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
@@ -59,12 +61,12 @@ export function TelecommutingCalendar({
         <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center mb-6 gap-4">
           <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/50 px-3 py-1.5 rounded-full max-w-full">
             <Home className="h-4 w-4 text-primary" />
-            <span className="font-semibold text-foreground">{ttDays.length}</span> jours de TT = <span className="font-semibold text-foreground">{ttDays.length}</span> tickets
+            <span className="font-semibold text-foreground">{ttDays.length}</span> {t("telecommutingCalendar.joursDeTt")} <span className="font-semibold text-foreground">{ttDays.length}</span> tickets
           </div>
           
           <div className="flex w-full flex-col sm:w-auto sm:flex-row items-start sm:items-center gap-4">
             <div className="flex w-full items-center justify-between gap-2 sm:w-auto">
-              <span className="text-sm font-medium">Versement Salaire:</span>
+              <span className="text-sm font-medium">{t("telecommutingCalendar.versementSalaire")}</span>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
@@ -75,7 +77,7 @@ export function TelecommutingCalendar({
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {salaryDate ? format(salaryDate, "dd/MM/yyyy") : <span>Choisir...</span>}
+                    {salaryDate ? format(salaryDate, "dd/MM/yyyy") : <span>{t("telecommutingCalendar.choisir")}</span>}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">

@@ -1,4 +1,6 @@
-import { appLocale } from "@/i18n/locale"
+import i18n from "i18next"
+import { Trans } from "react-i18next"
+import { appLocale, percentSuffix } from "@/i18n/locale"
 import { Bar, BarChart, Cell, ResponsiveContainer, Tooltip, XAxis } from "recharts"
 import { Delta, hoursLabel, monthName, monthShort } from "./format"
 import { type ReactNode } from "react"
@@ -25,8 +27,9 @@ export function Sub({ children }: { children: ReactNode }) {
 }
 
 export function buildSlides(report: WrappedReport, hoursPerDay: number): Slide[] {
+  const t = i18n.getFixedT(null, "wrapped")
   const { totals, previous: prev, year } = report
-  const period = report.is_partial ? `de janvier à ${monthName(report.months_covered)}` : "de janvier à décembre"
+  const period = report.is_partial ? t("wrappedSlides.periodPartial", { month: monthName(report.months_covered) }) : t("wrappedSlides.periodFull")
   const slides: Slide[] = []
 
   slides.push({
@@ -34,10 +37,10 @@ export function buildSlides(report: WrappedReport, hoursPerDay: number): Slide[]
     tone: "from-slate-950 via-indigo-950 to-slate-900",
     content: (
       <>
-        <Eyebrow>Ton bilan</Eyebrow>
+        <Eyebrow>{t("wrappedSlides.tonBilan")}</Eyebrow>
         <Big className="sm:text-8xl" blur={false}>{year}</Big>
         <Sub>
-          {period}, {totals.expense_count.toLocaleString(appLocale())} dépenses passées au crible.
+          {t("wrappedSlides.introSub", { period, count: totals.expense_count.toLocaleString(appLocale()) })}
         </Sub>
       </>
     ),
@@ -48,11 +51,11 @@ export function buildSlides(report: WrappedReport, hoursPerDay: number): Slide[]
     tone: "from-emerald-950 via-slate-950 to-slate-900",
     content: (
       <>
-        <Eyebrow>Ce qui est entré</Eyebrow>
+        <Eyebrow>{t("wrappedSlides.ceQuiEstEntre")}</Eyebrow>
         <Big>{formatCurrency(totals.income)}</Big>
         {prev && <Delta value={prev.income_change_pct} vsYear={prev.year} />}
         <div className="mt-6 space-y-2">
-          <Eyebrow>Ce qui est sorti</Eyebrow>
+          <Eyebrow>{t("wrappedSlides.ceQuiEstSorti")}</Eyebrow>
           <p className="text-3xl font-black text-white min-[400px]:text-4xl sm:text-5xl amount-blur">{formatCurrency(totals.real_expenses)}</p>
           {prev && <Delta value={prev.real_expenses_change_pct} higherIsBetter={false} vsYear={prev.year} />}
           {hoursLabel(report.real_expenses_work_hours, hoursPerDay) && (
@@ -68,10 +71,10 @@ export function buildSlides(report: WrappedReport, hoursPerDay: number): Slide[]
     tone: totals.saved >= 0 ? "from-teal-900 via-emerald-950 to-slate-950" : "from-rose-950 via-slate-950 to-slate-900",
     content: (
       <>
-        <Eyebrow>Tu as mis de côté</Eyebrow>
-        <Big className="sm:text-8xl">{totals.savings_rate.toLocaleString(appLocale())} %</Big>
+        <Eyebrow>{t("wrappedSlides.tuAsMisDeCote")}</Eyebrow>
+        <Big className="sm:text-8xl">{totals.savings_rate.toLocaleString(appLocale())}{percentSuffix()}</Big>
         <Sub>
-          de tes revenus, soit <span className="font-bold text-white amount-blur">{formatCurrency(totals.saved)}</span>.
+          {t("wrappedSlides.deTesRevenusSoit")} <span className="font-bold text-white amount-blur">{formatCurrency(totals.saved)}</span>.
         </Sub>
         {prev && <Delta value={prev.savings_rate_change_pts} unit="pts" vsYear={prev.year} />}
       </>
@@ -85,10 +88,10 @@ export function buildSlides(report: WrappedReport, hoursPerDay: number): Slide[]
       tone: "from-amber-900 via-slate-950 to-slate-950",
       content: (
         <>
-          <Eyebrow>Ton plus gros poste</Eyebrow>
+          <Eyebrow>{t("wrappedSlides.tonPlusGrosPoste")}</Eyebrow>
           <Big blur={false}>{topCat.name}</Big>
           <Sub>
-            <span className="font-bold text-white amount-blur">{formatCurrency(topCat.total)}</span>, {topCat.percentage.toLocaleString(appLocale())} % de tes dépenses.
+            <span className="font-bold text-white amount-blur">{formatCurrency(topCat.total)}</span>{t("wrappedSlides.topCatShare", { pct: topCat.percentage.toLocaleString(appLocale()) })}
           </Sub>
           {hoursLabel(topCat.work_hours, hoursPerDay) && <p className="text-white/60 amount-blur">{hoursLabel(topCat.work_hours, hoursPerDay)}</p>}
           {report.top_categories.length > 1 && (
@@ -112,7 +115,7 @@ export function buildSlides(report: WrappedReport, hoursPerDay: number): Slide[]
       tone: "from-violet-950 via-slate-950 to-slate-900",
       content: (
         <>
-          <Eyebrow>Là où tu as le plus dépensé</Eyebrow>
+          <Eyebrow>{t("wrappedSlides.laOuTuAsLe")}</Eyebrow>
           <ol className="mt-4 w-full max-w-md space-y-4 text-left">
             {report.top_merchants.map((m, i) => (
               <li key={m.merchant} className="flex items-baseline gap-3">
@@ -136,11 +139,11 @@ export function buildSlides(report: WrappedReport, hoursPerDay: number): Slide[]
       tone: "from-rose-950 via-slate-950 to-slate-900",
       content: (
         <>
-          <Eyebrow>Ta plus grosse dépense</Eyebrow>
+          <Eyebrow>{t("wrappedSlides.taPlusGrosseDepense")}</Eyebrow>
           <Big>{formatCurrency(big.amount)}</Big>
           <Sub>
             {big.merchant}
-            {big.category ? ` · ${big.category}` : ""}, le {new Date(big.date).toLocaleDateString(appLocale(), { day: "numeric", month: "long" })}.
+            {big.category ? ` · ${big.category}` : ""}{t("wrappedSlides.biggestExpenseDate", { date: new Date(big.date).toLocaleDateString(appLocale(), { day: "numeric", month: "long" }) })}
           </Sub>
           {hoursLabel(big.work_hours, hoursPerDay) && <p className="text-white/60 amount-blur">{hoursLabel(big.work_hours, hoursPerDay)}</p>}
         </>
@@ -155,13 +158,13 @@ export function buildSlides(report: WrappedReport, hoursPerDay: number): Slide[]
       tone: "from-sky-950 via-slate-950 to-slate-900",
       content: (
         <>
-          <Eyebrow>Ton mois le plus cher</Eyebrow>
+          <Eyebrow>{t("wrappedSlides.tonMoisLePlusCher")}</Eyebrow>
           <Big className="capitalize" blur={false}>{monthName(peak)}</Big>
           <Sub>
-            <span className="font-bold text-white amount-blur">{formatCurrency(report.most_expensive_month.real_expenses)}</span> de dépenses
+            <span className="font-bold text-white amount-blur">{formatCurrency(report.most_expensive_month.real_expenses)}</span> {t("wrappedSlides.expensesOf")}
             {report.thriftiest_month && (
               <>
-                , contre <span className="font-bold text-white amount-blur">{formatCurrency(report.thriftiest_month.real_expenses)}</span> en {monthName(report.thriftiest_month.month)}, ton mois le plus sobre
+                {t("wrappedSlides.contre")} <span className="font-bold text-white amount-blur">{formatCurrency(report.thriftiest_month.real_expenses)}</span>{t("wrappedSlides.thriftiest", { month: monthName(report.thriftiest_month.month) })}
               </>
             )}
             .
@@ -173,7 +176,7 @@ export function buildSlides(report: WrappedReport, hoursPerDay: number): Slide[]
                 <Tooltip
                   cursor={{ fill: "rgba(255,255,255,0.05)" }}
                   labelFormatter={(m: number) => monthName(m)}
-                  formatter={(v: number) => [formatCurrency(v), "Dépenses"]}
+                  formatter={(v: number) => [formatCurrency(v), t("wrappedSlides.expensesLabel")]}
                   contentStyle={{ borderRadius: "12px", border: "none" }}
                 />
                 <Bar dataKey="real_expenses" radius={[4, 4, 0, 0]}>
@@ -194,24 +197,23 @@ export function buildSlides(report: WrappedReport, hoursPerDay: number): Slide[]
     tone: "from-indigo-950 via-slate-950 to-emerald-950",
     content: (
       <>
-        <Eyebrow>Ton patrimoine</Eyebrow>
+        <Eyebrow>{t("wrappedSlides.tonPatrimoine")}</Eyebrow>
         <Big>
           {totals.net_worth_change >= 0 ? "+" : ""}
           {formatCurrency(totals.net_worth_change)}
         </Big>
         <Sub>
-          de <span className="amount-blur">{formatCurrency(totals.net_worth_start)}</span> à{" "}
-          <span className="font-bold text-white amount-blur">{formatCurrency(totals.net_worth_end)}</span>
-          {report.net_worth_change_pct !== null && ` (${report.net_worth_change_pct > 0 ? "+" : ""}${report.net_worth_change_pct.toLocaleString(appLocale())} %)`}.
+          <Trans t={t} i18nKey="wrappedSlides.wealthFromTo" values={{ start: formatCurrency(totals.net_worth_start), end: formatCurrency(totals.net_worth_end) }} components={{ start: <span className="amount-blur" />, end: <span className="font-bold text-white amount-blur" /> }} />
+          {report.net_worth_change_pct !== null && ` (${report.net_worth_change_pct > 0 ? "+" : ""}${report.net_worth_change_pct.toLocaleString(appLocale())}${percentSuffix()})`}.
         </Sub>
         <div className="mt-6 grid grid-cols-2 gap-6 text-left">
           <div>
-            <Eyebrow>Investi / épargné</Eyebrow>
+            <Eyebrow>{t("wrappedSlides.investiEpargne")}</Eyebrow>
             <p className="whitespace-nowrap text-xl font-black text-white min-[400px]:text-2xl amount-blur">{formatCurrency(totals.invested)}</p>
             {prev && <Delta value={prev.invested_change_pct} vsYear={prev.year} />}
           </div>
           <div>
-            <Eyebrow>Dividendes</Eyebrow>
+            <Eyebrow>{t("wrappedSlides.dividendes")}</Eyebrow>
             <p className="whitespace-nowrap text-xl font-black text-white min-[400px]:text-2xl amount-blur">{formatCurrency(totals.dividends)}</p>
           </div>
         </div>
@@ -225,25 +227,25 @@ export function buildSlides(report: WrappedReport, hoursPerDay: number): Slide[]
       tone: "from-fuchsia-950 via-slate-950 to-slate-900",
       content: (
         <>
-          <Eyebrow>Tes abonnements t'ont coûté</Eyebrow>
+          <Eyebrow>{t("wrappedSlides.tesAbonnementsTOntCoute")}</Eyebrow>
           <Big>{formatCurrency(totals.subscriptions_cost)}</Big>
           <div className="mt-6 grid w-full max-w-lg grid-cols-1 gap-6 text-left sm:grid-cols-2">
             <div>
-              <Eyebrow>Nouveaux</Eyebrow>
+              <Eyebrow>{t("wrappedSlides.nouveaux")}</Eyebrow>
               {report.new_subscriptions.length ? (
                 <ul className="mt-2 space-y-1 text-white/80">
                   {report.new_subscriptions.slice(0, 5).map((s) => (
                     <li key={s.name}>
-                      {s.name} <span className="text-white/50 amount-blur">{formatCurrency(s.monthly_cost)}/mois</span>
+                      {s.name} <span className="text-white/50 amount-blur">{formatCurrency(s.monthly_cost)}{t("wrappedSlides.perMonth")}</span>
                     </li>
                   ))}
                 </ul>
               ) : (
-                <p className="mt-2 text-white/50">Aucun</p>
+                <p className="mt-2 text-white/50">{t("wrappedSlides.aucun")}</p>
               )}
             </div>
             <div>
-              <Eyebrow>Arrêtés</Eyebrow>
+              <Eyebrow>{t("wrappedSlides.arretes")}</Eyebrow>
               {report.stopped_subscriptions.length ? (
                 <>
                   <ul className="mt-2 space-y-1 text-white/80">
@@ -252,11 +254,11 @@ export function buildSlides(report: WrappedReport, hoursPerDay: number): Slide[]
                     ))}
                   </ul>
                   <p className="mt-2 font-semibold text-emerald-400 amount-blur">
-                    {formatCurrency(report.stopped_subscriptions_yearly_saving)} économisés par an
+                    {t("wrappedSlides.savedPerYear", { amount: formatCurrency(report.stopped_subscriptions_yearly_saving) })}
                   </p>
                 </>
               ) : (
-                <p className="mt-2 text-white/50">Aucun</p>
+                <p className="mt-2 text-white/50">{t("wrappedSlides.aucun")}</p>
               )}
             </div>
           </div>
@@ -270,13 +272,13 @@ export function buildSlides(report: WrappedReport, hoursPerDay: number): Slide[]
     tone: "from-slate-950 via-indigo-950 to-slate-900",
     content: (
       <>
-        <Eyebrow>{year} en un coup d'œil</Eyebrow>
+        <Eyebrow>{t("wrappedSlides.outroTitle", { year })}</Eyebrow>
         <div className="mt-4 grid w-full max-w-lg grid-cols-2 gap-6 text-left">
           {[
-            ["Revenus", formatCurrency(totals.income)],
-            ["Dépenses", formatCurrency(totals.real_expenses)],
-            ["Taux d'épargne", `${totals.savings_rate.toLocaleString(appLocale())} %`],
-            ["Patrimoine", `${totals.net_worth_change >= 0 ? "+" : ""}${formatCurrency(totals.net_worth_change)}`],
+            [t("wrapped.revenus"), formatCurrency(totals.income)],
+            [t("wrapped.depenses"), formatCurrency(totals.real_expenses)],
+            [t("wrapped.tauxDEpargne"), `${totals.savings_rate.toLocaleString(appLocale())}${percentSuffix()}`],
+            [t("wrapped.patrimoine"), `${totals.net_worth_change >= 0 ? "+" : ""}${formatCurrency(totals.net_worth_change)}`],
           ].map(([label, value]) => (
             <div key={label}>
               <Eyebrow>{label}</Eyebrow>
@@ -284,7 +286,7 @@ export function buildSlides(report: WrappedReport, hoursPerDay: number): Slide[]
             </div>
           ))}
         </div>
-        <Sub>{report.is_partial ? "La suite au prochain bilan." : `À l'année prochaine pour ${year + 1}.`}</Sub>
+        <Sub>{report.is_partial ? t("wrappedSlides.laSuiteAuProchainBilan") : t("wrappedSlides.outroNext", { next: year + 1 })}</Sub>
       </>
     ),
   })
