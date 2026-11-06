@@ -4,6 +4,7 @@ import { cleanup } from "@testing-library/react"
 import { toast } from "sonner"
 import { File as NodeFile } from "node:buffer"
 import { resetApiCache } from "@/lib/apiCache"
+import { i18n } from "@/i18n"
 import { server } from "./server"
 
 // jsdom n'implémente pas ces API, utilisées par Radix (Dialog, Select…) et Recharts
@@ -99,6 +100,11 @@ async function settleRequests() {
   const deadline = Date.now() + 2000
   while (inFlight > 0 && Date.now() < deadline) await new Promise((resolve) => setTimeout(resolve, 5))
 }
+
+// Les tests cherchent des libellés français : la langue est réinitialisée avant chaque test (jsdom annonce « en-US »)
+beforeEach(async () => {
+  await i18n.changeLanguage("fr")
+})
 
 afterEach(async () => {
   cleanup()

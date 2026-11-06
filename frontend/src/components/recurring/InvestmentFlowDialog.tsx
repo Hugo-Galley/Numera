@@ -1,3 +1,4 @@
+import { appLocale } from "@/i18n/locale"
 import { ArrowRight, CalendarClock, ChevronRight, Repeat } from "lucide-react"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { CompanyLogo } from "@/components/ui/CompanyLogo"
@@ -148,7 +149,7 @@ export function InvestmentFlowDialog({ recurring, accounts, nextOccurrence, onCl
             {nextOccurrence && (
               <p className="flex items-center justify-center gap-2 text-sm text-slate-500">
                 <CalendarClock className="h-4 w-4" />
-                Prochain passage : <span className="font-bold text-slate-800">{new Date(nextOccurrence).toLocaleDateString("fr-FR", { day: "numeric", month: "long" })}</span>
+                Prochain passage : <span className="font-bold text-slate-800">{new Date(nextOccurrence).toLocaleDateString(appLocale(), { day: "numeric", month: "long" })}</span>
                 <ArrowRight className="h-3.5 w-3.5 text-slate-300" />
               </p>
             )}

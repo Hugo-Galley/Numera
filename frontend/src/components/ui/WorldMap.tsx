@@ -1,3 +1,4 @@
+import { appLocale } from "@/i18n/locale"
 import React, { useMemo, useState } from "react";
 import {
   ComposableMap,
@@ -188,7 +189,7 @@ const WorldMap: React.FC<WorldMapProps> = ({ data }) => {
             <div className="flex justify-between gap-4 text-xs">
               <span className="text-slate-400">Investi</span>
               <span className="font-mono font-bold">
-                {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(hoveredCountry.value)}
+                {new Intl.NumberFormat(appLocale(), { style: 'currency', currency: 'EUR' }).format(hoveredCountry.value)}
               </span>
             </div>
             <div className="flex justify-between gap-4 text-xs">

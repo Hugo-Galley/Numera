@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import { Navigate, useSearchParams } from "react-router-dom"
+import { useTranslation } from "react-i18next"
 import { Bell, Database, ShieldCheck, SlidersHorizontal } from "lucide-react"
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -17,10 +18,10 @@ import { PasswordCard, ProfileInfoCard } from "@/components/settings/ProfileForm
 import { TotpCard } from "@/components/settings/TotpCard"
 
 const TABS = [
-  { value: "general", label: "Général", icon: SlidersHorizontal, intro: "Ton profil et le comportement de l'application." },
-  { value: "notifications", label: "Notifications", icon: Bell, intro: "Ce qu'elle t'envoie sur ton téléphone." },
-  { value: "security", label: "Sécurité", icon: ShieldCheck, intro: "Qui peut accéder à tes données, et comment." },
-  { value: "data", label: "Données", icon: Database, intro: "Sauvegarder, exporter ou effacer tes données." },
+  { value: "general", icon: SlidersHorizontal },
+  { value: "notifications", icon: Bell },
+  { value: "security", icon: ShieldCheck },
+  { value: "data", icon: Database },
 ] as const
 
 type TabValue = (typeof TABS)[number]["value"]
@@ -44,6 +45,7 @@ function resolveTab(tab: string | null): TabValue {
 }
 
 export default function Settings() {
+  const { t } = useTranslation("settings")
   const [searchParams, setSearchParams] = useSearchParams()
   const requested = searchParams.get("tab")
   const [activeTab, setActiveTab] = useState<TabValue>(resolveTab(requested))
@@ -75,24 +77,24 @@ export default function Settings() {
   return (
     <div className="space-y-6 pb-10 md:space-y-8 [&_input]:text-base md:[&_input]:text-sm">
       <div>
-        <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900">Paramètres</h1>
-        <p className="text-slate-500 mt-1">Les réglages de l'application, ta sécurité et tes données.</p>
+        <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900">{t("title")}</h1>
+        <p className="text-slate-500 mt-1">{t("subtitle")}</p>
       </div>
 
       <Tabs value={activeTab} onValueChange={changeTab} className="w-full">
         <div className="-mx-4 px-4 md:mx-0 md:px-0">
           <TabsList ref={tabsListRef} className="scroll-fade-x bg-slate-100 p-1 rounded-xl mb-4 sm:mb-6 flex h-12 w-full justify-start gap-1 sm:inline-flex sm:h-10 sm:w-auto [ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {TABS.map(({ value, label, icon: Icon }) => (
+            {TABS.map(({ value, icon: Icon }) => (
               <TabsTrigger key={value} value={value} className="h-10 shrink-0 rounded-lg px-2.5 sm:h-auto sm:px-6">
-                <Icon className="hidden h-4 w-4 mr-2 sm:inline" /> {label}
+                <Icon className="hidden h-4 w-4 mr-2 sm:inline" /> {t(`tabs.${value}.label`)}
               </TabsTrigger>
             ))}
           </TabsList>
         </div>
 
-        {TABS.map(({ value, intro }) => (
+        {TABS.map(({ value }) => (
           <TabsContent key={value} value={value} className="space-y-6">
-            {value !== "notifications" && <p className="text-sm text-slate-500">{intro}</p>}
+            {value !== "notifications" && <p className="text-sm text-slate-500">{t(`tabs.${value}.intro`)}</p>}
             {value === "general" && (
               <>
                 <ProfileInfoCard />

@@ -1,3 +1,4 @@
+import { appLocale } from "@/i18n/locale"
 export type LoanKind = "immobilier" | "auto" | "consommation" | "etudiant" | "autre"
 export type PrepaymentMode = "reduce_duration" | "reduce_payment"
 
@@ -74,5 +75,5 @@ export function formatMonths(months: number): string {
 
 export function formatDateFr(iso: string): string {
   const [y, m, d] = iso.split("-").map(Number)
-  return new Date(y, m - 1, d).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })
+  return new Date(y, m - 1, d).toLocaleDateString(appLocale(), { day: "numeric", month: "long", year: "numeric" })
 }

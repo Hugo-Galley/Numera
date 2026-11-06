@@ -1,3 +1,4 @@
+import { appLocale } from "@/i18n/locale"
 import { Badge } from "@/components/ui/badge"
 import { COUNTRIES } from "@/lib/countries"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -75,7 +76,7 @@ export function FormSecurityFields({ ctx }: { ctx: RecurringTransactionsCtx }) {
               </p>
               {formData.amount && formData.unit_price && Number(formData.unit_price) > 0 && (
                 <div className="pt-1.5 text-[11px] font-semibold text-blue-900 flex items-center justify-between border-t border-blue-200/40">
-                  <span className="text-blue-700/80">Estimation au cours actuel ({Number(formData.unit_price).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €) :</span>
+                  <span className="text-blue-700/80">Estimation au cours actuel ({Number(formData.unit_price).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €) :</span>
                   <span className="font-mono font-bold text-blue-950 bg-white px-2 py-0.5 rounded shadow-xs">
                     ~ {(Number(formData.amount) / Number(formData.unit_price)).toFixed(4)} parts
                   </span>

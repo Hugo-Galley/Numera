@@ -1,0 +1,22 @@
+{
+  "notFound": {
+    "title": "Page introuvable",
+    "text": "Cette adresse n'existe pas ou a été déplacée.",
+    "back": "Retour au tableau de bord"
+  },
+  "frequency": {
+    "weekly": "Hebdomadaire",
+    "monthly": "Mensuelle",
+    "quarterly": "Trimestrielle",
+    "yearly": "Annuelle",
+    "annual": "Annuelle",
+    "monthlyDetected": "Mensuelle (détectée)"
+  },
+  "errors": {
+    "loadFailed": "Impossible de charger ces données.",
+    "retry": "Réessayer",
+    "reload": "Recharger",
+    "renderTitle": "Cette page a rencontré une erreur",
+    "renderText": "Vos données ne sont pas affectées. Réessayez ou rechargez la page."
+  }
+}

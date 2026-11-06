@@ -1,3 +1,4 @@
+import { appLocale } from "@/i18n/locale"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Clock, Info, Plus } from "lucide-react"
@@ -30,7 +31,7 @@ export function CalendarSummary({ ctx }: { ctx: CalendarCtx }) {
                         {isEvNegative ? "-" : "+"}{isPrivacyMode ? "***" : formatCurrency(ev.amount, ev.currency)}
                       </span>
                       <span className="text-[10px] text-slate-400">
-                        {new Date(ev.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
+                        {new Date(ev.date).toLocaleDateString(appLocale(), { day: 'numeric', month: 'short' })}
                       </span>
                     </div>
                   </div>

@@ -1,3 +1,4 @@
+import { appLocale } from "@/i18n/locale"
 import { useState } from "react"
 import { HeartPulse, Sparkles, AlertTriangle, X } from "lucide-react"
 import { 
@@ -16,7 +17,7 @@ import { apiFetch } from "@/lib/api"
 /** Valeur d'un indicateur avec son unité, à la française : « 1 480,99 € », « 64,3 % », « 19,1 mois ». */
 function formatValue(value: number, unit?: string) {
   if (unit === "€" || !unit) return formatCurrency(value)
-  const text = value.toLocaleString("fr-FR", { maximumFractionDigits: 1 })
+  const text = value.toLocaleString(appLocale(), { maximumFractionDigits: 1 })
   return `${text}\u00a0${unit}`
 }
 

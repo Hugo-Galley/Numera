@@ -2,6 +2,7 @@ import { safeStorage } from "@/lib/storage"
 import { useState, useCallback, useEffect } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { toast } from "sonner"
+import { useTranslation } from "react-i18next"
 import { api } from "@/lib/api"
 import { useDashboardData } from "@/components/dashboard/useDashboardData"
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader"
@@ -20,6 +21,7 @@ import type { DrilldownScope } from "@/hooks/useDrilldown"
 import { fetchCurrentBudgetMonth, formatPeriodRange, useBudgetPeriod } from "@/lib/budgetPeriod"
 
 export default function Dashboard() {
+  const { t } = useTranslation("dashboard")
   const [month, setMonth] = useState(new Date().getMonth() + 1)
   const [year, setYear] = useState(new Date().getFullYear())
   const [accounts, setAccounts] = useState<any[]>([])
@@ -67,9 +69,9 @@ export default function Dashboard() {
       )
     } catch (error) {
       console.error("Failed to load accounts", error)
-      toast.error("Impossible de charger la liste des comptes.")
+      toast.error(t("accountsLoadError"))
     }
-  }, [])
+  }, [t])
 
   useEffect(() => {
     fetchAccounts()
@@ -121,7 +123,7 @@ export default function Dashboard() {
 
       {failedCount > 0 && (
         <ErrorState
-          message={`${failedCount} bloc(s) du tableau de bord n'ont pas pu être chargés.`}
+          message={t("failedBlocks", { count: failedCount })}
           onRetry={reload}
         />
       )}
@@ -151,11 +153,11 @@ export default function Dashboard() {
       >
         <div className="-mx-4 px-4 md:mx-0 md:px-0 overflow-x-auto pb-2 [ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <TabsList className="bg-slate-50/50 border border-slate-100 p-1 rounded-xl inline-flex w-max">
-            <TabsTrigger value="overview" className="rounded-lg whitespace-nowrap h-9 px-4 md:h-auto md:px-3">Aperçu</TabsTrigger>
-            <TabsTrigger value="budgets" className="rounded-lg whitespace-nowrap h-9 px-4 md:h-auto md:px-3">Budgets</TabsTrigger>
-            <TabsTrigger value="spending" className="rounded-lg whitespace-nowrap h-9 px-4 md:h-auto md:px-3">Dépenses</TabsTrigger>
-            <TabsTrigger value="analysis" className="rounded-lg whitespace-nowrap h-9 px-4 md:h-auto md:px-3">Analyse</TabsTrigger>
-            <TabsTrigger value="projections" className="rounded-lg whitespace-nowrap h-9 px-4 md:h-auto md:px-3">Projections</TabsTrigger>
+            <TabsTrigger value="overview" className="rounded-lg whitespace-nowrap h-9 px-4 md:h-auto md:px-3">{t("tabs.overview")}</TabsTrigger>
+            <TabsTrigger value="budgets" className="rounded-lg whitespace-nowrap h-9 px-4 md:h-auto md:px-3">{t("tabs.budgets")}</TabsTrigger>
+            <TabsTrigger value="spending" className="rounded-lg whitespace-nowrap h-9 px-4 md:h-auto md:px-3">{t("tabs.spending")}</TabsTrigger>
+            <TabsTrigger value="analysis" className="rounded-lg whitespace-nowrap h-9 px-4 md:h-auto md:px-3">{t("tabs.analysis")}</TabsTrigger>
+            <TabsTrigger value="projections" className="rounded-lg whitespace-nowrap h-9 px-4 md:h-auto md:px-3">{t("tabs.projections")}</TabsTrigger>
           </TabsList>
         </div>
 

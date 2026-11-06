@@ -20,6 +20,7 @@ import {
   ClipboardCheck,
   Gift,
 } from "lucide-react"
+import { useTranslation } from "react-i18next"
 import { cn } from "@/lib/utils"
 import { api } from "@/lib/api"
 import { useUI } from "@/providers/UIProvider"
@@ -38,33 +39,33 @@ import {
 // le calendrier et le salaire des onglets d'« Échéances ».
 const navigationGroups = [
   {
-    title: "Vue d'ensemble",
+    title: "overview",
     items: [
-      { name: "Tableau de bord", href: "/", icon: LayoutDashboard },
-      { name: "Mois", href: "/month", icon: ClipboardCheck },
-      { name: "Bilan annuel", href: "/wrapped", icon: Gift },
-      { name: "Centre d'actions", href: "/audit", icon: ShieldCheck, badge: "actions" as const },
+      { name: "dashboard", href: "/", icon: LayoutDashboard },
+      { name: "month", href: "/month", icon: ClipboardCheck },
+      { name: "wrapped", href: "/wrapped", icon: Gift },
+      { name: "actions", href: "/audit", icon: ShieldCheck, badge: "actions" as const },
     ]
   },
   {
-    title: "Patrimoine",
+    title: "wealth",
     items: [
-      { name: "Comptes", href: "/accounts", icon: Wallet },
-      { name: "Épargne", href: "/savings", icon: PiggyBank },
-      { name: "Investissements", href: "/investments", icon: TrendingUp },
-      { name: "Fiscalité", href: "/tax", icon: Landmark },
+      { name: "accounts", href: "/accounts", icon: Wallet },
+      { name: "savings", href: "/savings", icon: PiggyBank },
+      { name: "investments", href: "/investments", icon: TrendingUp },
+      { name: "tax", href: "/tax", icon: Landmark },
     ]
   },
   {
-    title: "Gestion",
+    title: "management",
     items: [
-      { name: "Échéances", href: "/recurring", icon: Repeat },
-      { name: "Remboursements", href: "/reimbursements", icon: HandCoins },
-      { name: "Classement", href: "/classement", icon: Tags },
-      { name: "Simulateur", href: "/tools", icon: Calculator },
+      { name: "recurring", href: "/recurring", icon: Repeat },
+      { name: "reimbursements", href: "/reimbursements", icon: HandCoins },
+      { name: "classement", href: "/classement", icon: Tags },
+      { name: "simulator", href: "/tools", icon: Calculator },
     ]
   }
-]
+] as const
 
 /** Nombre d'actions urgentes du Centre d'actions, relu au plus une fois par minute en naviguant. */
 function useUrgentActionCount(): number {
@@ -84,6 +85,7 @@ function useUrgentActionCount(): number {
 }
 
 export function Sidebar({ className, onItemClick, hideBrand }: { className?: string, onItemClick?: () => void, hideBrand?: boolean }) {
+  const { t } = useTranslation("nav")
   const { isPrivacyMode, togglePrivacyMode, setSearchOpen } = useUI()
   const { logout, username, profile } = useAuth()
   
@@ -105,7 +107,7 @@ export function Sidebar({ className, onItemClick, hideBrand }: { className?: str
           {navigationGroups.map((group, i) => (
             <div key={i} className="space-y-1">
               <p className="px-3 pt-2 pb-1 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                {group.title}
+                {t(`groups.${group.title}`)}
               </p>
               <div className="space-y-1">
                 {group.items.map((item) => (
@@ -129,11 +131,11 @@ export function Sidebar({ className, onItemClick, hideBrand }: { className?: str
                       )}
                       aria-hidden="true"
                     />
-                    {item.name}
+                    {t(`items.${item.name}`)}
                     {"badge" in item && urgentActions > 0 && (
                       <span
                         className="ml-auto rounded-full bg-rose-600 px-2 py-0.5 text-[10px] font-bold text-white"
-                        aria-label={`${urgentActions} actions urgentes`}
+                        aria-label={t("urgentActions", { count: urgentActions })}
                       >
                         {urgentActions}
                       </span>
@@ -155,16 +157,16 @@ export function Sidebar({ className, onItemClick, hideBrand }: { className?: str
           {isPrivacyMode ? (
             <>
               <Eye className="h-4 w-4" />
-              <span className="truncate">Afficher</span>
+              <span className="truncate">{t("privacy.show")}</span>
             </>
           ) : (
             <>
               <EyeOff className="h-4 w-4" />
-              <span className="truncate">Masquer</span>
+              <span className="truncate">{t("privacy.hide")}</span>
             </>
           )}
         </Button>
-        <Button aria-label="Rechercher"
+        <Button aria-label={t("search")}
           variant="outline"
           size="sm"
           className="px-3 text-slate-600 border-slate-200"
@@ -180,10 +182,10 @@ export function Sidebar({ className, onItemClick, hideBrand }: { className?: str
             <div className="h-8 w-8 rounded-full bg-slate-900 flex items-center justify-center text-white text-xs font-bold overflow-hidden">
               {profilePicture ? <img src={profilePicture} alt={username || ""} className="h-full w-full object-cover" /> : initials}
             </div>
-            <span className="truncate text-sm font-medium text-slate-900">{username || "Utilisateur"}</span>
+            <span className="truncate text-sm font-medium text-slate-900">{username || t("user.fallbackName")}</span>
           </div>
           {[
-            { name: "Paramètres", href: "/settings", icon: Settings },
+            { name: t("user.settings"), href: "/settings", icon: Settings },
           ].map((item) => (
             <NavLink
               key={item.href}
@@ -204,7 +206,7 @@ export function Sidebar({ className, onItemClick, hideBrand }: { className?: str
             className="flex min-h-11 w-full items-center rounded-md px-3 text-sm font-medium text-red-600 active:bg-red-50"
           >
             <LogOut className="mr-3 h-5 w-5" aria-hidden="true" />
-            Se déconnecter
+            {t("user.logout")}
           </button>
         </div>
       ) : (
@@ -220,24 +222,24 @@ export function Sidebar({ className, onItemClick, hideBrand }: { className?: str
                 )}
               </div>
               <div className="flex flex-col flex-1 min-w-0">
-                <span className="text-sm font-medium text-slate-900 truncate">{username || "Utilisateur"}</span>
-                <span className="text-xs text-slate-500 truncate">Administrateur</span>
+                <span className="text-sm font-medium text-slate-900 truncate">{username || t("user.fallbackName")}</span>
+                <span className="text-xs text-slate-500 truncate">{t("user.role")}</span>
               </div>
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent side="right" align="end" className="w-56 max-md:mb-2">
-            <DropdownMenuLabel>Mon Compte</DropdownMenuLabel>
+            <DropdownMenuLabel>{t("user.myAccount")}</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <NavLink to="/settings">
               <DropdownMenuItem className="cursor-pointer">
                 <Settings className="mr-2 h-4 w-4" />
-                <span>Paramètres</span>
+                <span>{t("user.settings")}</span>
               </DropdownMenuItem>
             </NavLink>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={logout} className="text-red-600 focus:text-red-600 cursor-pointer">
               <LogOut className="mr-2 h-4 w-4" />
-              <span>Se déconnecter</span>
+              <span>{t("user.logout")}</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

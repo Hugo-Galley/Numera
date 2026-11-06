@@ -1,3 +1,4 @@
+import { appLocale } from "@/i18n/locale"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
@@ -96,7 +97,7 @@ export function BudgetStep({ budget, onChanged }: { budget: ReviewBudget; onChan
                 <div className="min-w-0">
                   <p className="truncate font-medium">{tx.merchant}</p>
                   <p className="text-xs text-slate-500">
-                    {new Date(tx.date).toLocaleDateString("fr-FR")}
+                    {new Date(tx.date).toLocaleDateString(appLocale())}
                     {tx.category_name ? ` · ${tx.category_name}` : ""}
                   </p>
                 </div>

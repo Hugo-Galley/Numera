@@ -1,9 +1,9 @@
+import { dateLocale } from "@/i18n/locale"
 import { Activity, Plus } from "lucide-react"
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { format } from "date-fns"
-import { fr } from "date-fns/locale"
 import type { AccountDetailView } from "./useAccountDetail"
 
 /** Graphiques d'évolution du compte (et de performance pour un compte d'investissement). */
@@ -33,7 +33,7 @@ export function AccountCharts({ ctx }: { ctx: AccountDetailView }) {
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                   <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#94a3b8' }} tickFormatter={(val) => format(new Date(val), "dd/MM")} minTickGap={40} />
                   <YAxis hide domain={['auto', 'auto']} />
-                  <Tooltip labelFormatter={(val) => format(new Date(val), "PPP", { locale: fr })} formatter={(val: number, name: string) => [formatCurrency(val), name === "net_invested" ? "Investi" : "Valeur"]} contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} />
+                  <Tooltip labelFormatter={(val) => format(new Date(val), "PPP", { locale: dateLocale() })} formatter={(val: number, name: string) => [formatCurrency(val), name === "net_invested" ? "Investi" : "Valeur"]} contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} />
                   <Area type="monotone" dataKey="current_value" stroke="#0f172a" fillOpacity={1} fill="url(#colorInv)" strokeWidth={4} />
                   {investmentData?.totals?.value_source === "positions" && (
                     <Area type="stepAfter" dataKey="net_invested" stroke="#94a3b8" strokeDasharray="5 4" fill="none" strokeWidth={2} />
@@ -47,7 +47,7 @@ export function AccountCharts({ ctx }: { ctx: AccountDetailView }) {
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                   <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#94a3b8' }} tickFormatter={(val) => format(new Date(val), "dd/MM")} minTickGap={40} />
                   <YAxis hide domain={['auto', 'auto']} />
-                  <Tooltip labelFormatter={(val) => format(new Date(val), "PPP", { locale: fr })} formatter={(val: number) => [formatCurrency(val), "Solde"]} contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} />
+                  <Tooltip labelFormatter={(val) => format(new Date(val), "PPP", { locale: dateLocale() })} formatter={(val: number) => [formatCurrency(val), "Solde"]} contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} />
                   <Area type="monotone" dataKey="running_balance" stroke="#0f172a" fillOpacity={1} fill="url(#colorBalance)" strokeWidth={4} />
                 </AreaChart>
               )}
@@ -73,7 +73,7 @@ export function AccountCharts({ ctx }: { ctx: AccountDetailView }) {
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                   <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#94a3b8' }} tickFormatter={(val) => format(new Date(val), "dd/MM")} minTickGap={40} />
                   <YAxis hide domain={['auto', 'auto']} />
-                  <Tooltip labelFormatter={(val) => format(new Date(val), "PPP", { locale: fr })} formatter={(val: number) => [formatCurrency(val), "Performance"]} contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} />
+                  <Tooltip labelFormatter={(val) => format(new Date(val), "PPP", { locale: dateLocale() })} formatter={(val: number) => [formatCurrency(val), "Performance"]} contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} />
                   <Area type="monotone" dataKey="gain_eur" stroke="#10b981" fillOpacity={1} fill="url(#colorPerf)" strokeWidth={4} />
                 </AreaChart>
               </ResponsiveContainer>

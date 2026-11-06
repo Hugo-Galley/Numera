@@ -1,5 +1,7 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
+import i18n from "i18next"
+import { appLocale, percentSuffix } from "@/i18n/locale"
 
 export function formatCurrency(
   value: number | null | undefined,
@@ -9,10 +11,10 @@ export function formatCurrency(
   // Un montant qui s'arrondit à zéro (-0, -0,001) s'affiche « 0,00 € », jamais « -0,00 € »
   const safeValue = Number.isFinite(value) && Math.abs(value as number) >= 0.005 ? (value as number) : 0
   try {
-    return new Intl.NumberFormat("fr-FR", { style: "currency", currency: currencyCode || "EUR", ...options }).format(safeValue)
+    return new Intl.NumberFormat(appLocale(), { style: "currency", currency: currencyCode || "EUR", ...options }).format(safeValue)
   } catch {
     // Code devise invalide (RangeError) : ne jamais faire planter le rendu pour un libellé
-    return new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", ...options }).format(safeValue)
+    return new Intl.NumberFormat(appLocale(), { style: "currency", currency: "EUR", ...options }).format(safeValue)
   }
 }
 
@@ -20,7 +22,7 @@ export function formatCurrency(
 export function formatPercent(value: number, total: number) {
   if (!Number.isFinite(value) || !Number.isFinite(total) || total <= 0) return ""
   const pct = (value / total) * 100
-  return `${pct.toLocaleString("fr-FR", { maximumFractionDigits: pct < 10 ? 1 : 0 })} %`
+  return `${pct.toLocaleString(appLocale(), { maximumFractionDigits: pct < 10 ? 1 : 0 })}${percentSuffix()}`
 }
 
 /** Montant formaté suivi de sa part du total : « 1 234,00 € (12 %) ». */
@@ -33,8 +35,8 @@ export function formatAmountWithShare(value: number, total: number, currencyCode
 /** Pourcentage à la française : « 12,35 % » (virgule décimale, espace insécable). */
 export function formatRate(value: number | null | undefined, digits = 2, withSign = false) {
   if (value === null || value === undefined || !Number.isFinite(value)) return "-"
-  const text = new Intl.NumberFormat("fr-FR", { minimumFractionDigits: digits, maximumFractionDigits: digits }).format(value)
-  return `${withSign && value >= 0 ? "+" : ""}${text}\u00a0%`
+  const text = new Intl.NumberFormat(appLocale(), { minimumFractionDigits: digits, maximumFractionDigits: digits }).format(value)
+  return `${withSign && value >= 0 ? "+" : ""}${text}${percentSuffix(true)}`
 }
 
 export function cn(...inputs: ClassValue[]) {
@@ -68,18 +70,19 @@ export function isTokenExpired(token: string | null): boolean {
   return Date.now() >= expiry - 10000
 }
 
-const FREQUENCY_LABELS: Record<string, string> = {
-  weekly: "Hebdomadaire",
-  monthly: "Mensuelle",
-  quarterly: "Trimestrielle",
-  yearly: "Annuelle",
-  annual: "Annuelle",
-  "monthly (detected)": "Mensuelle (détectée)",
-}
+const FREQUENCY_KEYS = {
+  weekly: "weekly",
+  monthly: "monthly",
+  quarterly: "quarterly",
+  yearly: "yearly",
+  annual: "annual",
+  "monthly (detected)": "monthlyDetected",
+} as const
 
-/** Libellé français d'une fréquence renvoyée par l'API (`monthly`, `yearly`…). */
+/** Libellé d'une fréquence renvoyée par l'API (`monthly`, `yearly`…), dans la langue de l'interface. */
 export function frequencyLabel(frequency: string): string {
-  return FREQUENCY_LABELS[frequency] ?? frequency
+  const key = FREQUENCY_KEYS[frequency as keyof typeof FREQUENCY_KEYS]
+  return key ? i18n.t(`frequency.${key}`, { ns: "common" }) : frequency
 }
 
 

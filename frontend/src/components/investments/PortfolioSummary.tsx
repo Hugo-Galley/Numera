@@ -1,3 +1,4 @@
+import { appLocale } from "@/i18n/locale"
 import { useEffect, useState } from "react"
 import { AlertTriangle, CheckCircle2, Scale } from "lucide-react"
 import { toast } from "sonner"
@@ -131,7 +132,7 @@ export function PortfolioSummary({ accountId, reloadKey }: PortfolioSummaryProps
               {[...reconciliation].reverse().slice(0, 5).map((r) => (
                 <li key={r.date} className="rounded-lg border p-3 text-sm">
                   <div className="flex items-baseline justify-between gap-2">
-                    <span className="font-medium">{new Date(r.date).toLocaleDateString("fr-FR")}</span>
+                    <span className="font-medium">{new Date(r.date).toLocaleDateString(appLocale())}</span>
                     <span className={`whitespace-nowrap font-mono text-xs tabular-nums ${r.flagged ? "font-semibold text-rose-600" : "text-slate-500"}`}>
                       <span className="amount-blur">{signed(r.gap)}</span> ({pct(r.gap_pct)})
                     </span>
@@ -162,7 +163,7 @@ export function PortfolioSummary({ accountId, reloadKey }: PortfolioSummaryProps
                 <TableBody>
                   {[...reconciliation].reverse().slice(0, 5).map((r) => (
                     <TableRow key={r.date}>
-                      <TableCell className="text-sm">{new Date(r.date).toLocaleDateString("fr-FR")}</TableCell>
+                      <TableCell className="text-sm">{new Date(r.date).toLocaleDateString(appLocale())}</TableCell>
                       <TableCell className="text-right font-mono text-sm"><span className="amount-blur">{formatCurrency(r.snapshot_value, data.currency)}</span></TableCell>
                       <TableCell className="text-right font-mono text-sm"><span className="amount-blur">{formatCurrency(r.computed_value, data.currency)}</span></TableCell>
                       <TableCell className={`text-right font-mono text-sm ${r.flagged ? "font-semibold text-rose-600" : "text-slate-500"}`}>

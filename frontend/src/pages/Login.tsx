@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import { Navigate, useNavigate, useLocation, useSearchParams } from "react-router-dom"
+import { useTranslation } from "react-i18next"
 import { useAuth } from "@/providers/AuthProvider"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -12,6 +13,7 @@ import { loginWithPasskey, passkeySupported } from "@/lib/passkey"
 import { DEMO_CREDENTIALS, useDemoMode } from "@/hooks/useDemoMode"
 
 export default function Login() {
+  const { t } = useTranslation("auth")
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
@@ -52,7 +54,7 @@ export default function Login() {
     setLoading(true)
     try {
       login(await loginWithPasskey())
-      toast.success("Connexion réussie")
+      toast.success(t("success"))
       navigate(from, { replace: true })
     } catch (err: any) {
       if (err?.name !== "NotAllowedError") toast.error(err.message)
@@ -81,8 +83,8 @@ export default function Login() {
       if (!response.ok) {
         const error = await response.json().catch(() => null)
         const detail = error?.detail
-        if (response.status === 429) throw new Error("Trop de tentatives. Réessaie dans quelques minutes.")
-        throw new Error(typeof detail === "string" && detail ? detail : "Identifiants incorrects")
+        if (response.status === 429) throw new Error(t("tooManyAttempts"))
+        throw new Error(typeof detail === "string" && detail ? detail : t("badCredentials"))
       }
 
       const data = await response.json()
@@ -92,7 +94,7 @@ export default function Login() {
         return
       }
       login(data.access_token)
-      toast.success("Connexion réussie")
+      toast.success(t("success"))
       navigate(from, { replace: true })
     } catch (err: any) {
       toast.error(err.message)
@@ -112,12 +114,12 @@ export default function Login() {
       })
       if (!response.ok) {
         const detail = (await response.json().catch(() => null))?.detail
-        if (response.status === 429) throw new Error("Trop de tentatives. Réessaie dans quelques minutes.")
+        if (response.status === 429) throw new Error(t("tooManyAttempts"))
         if (typeof detail === "string" && detail.startsWith("Étape de connexion")) setMfaToken(null)
-        throw new Error(typeof detail === "string" && detail ? detail : "Code incorrect")
+        throw new Error(typeof detail === "string" && detail ? detail : t("mfa.badCode"))
       }
       login((await response.json()).access_token)
-      toast.success("Connexion réussie")
+      toast.success(t("success"))
       navigate(from, { replace: true })
     } catch (err: any) {
       setCode("")
@@ -133,14 +135,14 @@ export default function Login() {
         <Card className="w-full max-w-sm">
           <CardHeader className="space-y-1 text-center">
             <ShieldCheck className="mx-auto h-8 w-8 text-primary" />
-            <CardTitle className="text-2xl font-bold">Vérification</CardTitle>
+            <CardTitle className="text-2xl font-bold">{t("mfa.title")}</CardTitle>
             <p className="text-sm text-muted-foreground">
-              Saisis le code à 6 chiffres de ton application d'authentification, ou un code de secours.
+              {t("mfa.hint")}
             </p>
           </CardHeader>
           <form onSubmit={handleCode}>
             <CardContent>
-              <Label htmlFor="totp-code" className="sr-only">Code</Label>
+              <Label htmlFor="totp-code" className="sr-only">{t("mfa.codeLabel")}</Label>
               <Input
                 id="totp-code"
                 autoFocus
@@ -157,10 +159,10 @@ export default function Login() {
             </CardContent>
             <CardFooter className="flex-col gap-3">
               <Button className="h-12 w-full text-base sm:h-10 lg:text-sm" type="submit" disabled={loading || !code.trim()}>
-                {loading ? "Vérification..." : "Valider"}
+                {loading ? t("mfa.verifying") : t("mfa.validate")}
               </Button>
               <Button type="button" variant="ghost" className="h-11 w-full" onClick={() => setMfaToken(null)} disabled={loading}>
-                Retour
+                {t("mfa.back")}
               </Button>
             </CardFooter>
           </form>
@@ -175,14 +177,14 @@ export default function Login() {
         <CardHeader className="space-y-1 text-center">
           <CardTitle className="text-3xl font-bold sm:text-2xl">Numera</CardTitle>
           <p className="text-sm text-muted-foreground">
-            Saisis tes identifiants pour te connecter
+            {t("subtitle")}
           </p>
           {isDemo && (
             <div className="mt-3 flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 p-3 text-left text-sm text-amber-900">
               <FlaskConical className="mt-0.5 h-4 w-4 shrink-0" />
               <p>
-                Instance de démonstration : données fictives, remises à zéro chaque jour. Identifiants
-                <span className="font-semibold"> {DEMO_CREDENTIALS.username} / {DEMO_CREDENTIALS.password}</span> (déjà remplis).
+                {t("demoIntro")}
+                <span className="font-semibold"> {DEMO_CREDENTIALS.username} / {DEMO_CREDENTIALS.password}</span> {t("demoFilled")}
               </p>
             </div>
           )}
@@ -190,7 +192,7 @@ export default function Login() {
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="username">Utilisateur</Label>
+              <Label htmlFor="username">{t("username")}</Label>
               <Input
                 id="username"
                 type="text"
@@ -204,7 +206,7 @@ export default function Login() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Mot de passe</Label>
+              <Label htmlFor="password">{t("password")}</Label>
               <Input
                 id="password"
                 type="password"
@@ -218,12 +220,12 @@ export default function Login() {
           </CardContent>
           <CardFooter className="flex-col gap-3">
             <Button className="h-12 w-full text-base sm:h-10 lg:text-sm" type="submit" disabled={loading}>
-              {loading ? "Connexion..." : isDemo ? "Entrer dans la démo" : "Se connecter"}
+              {loading ? t("submitting") : isDemo ? t("demoSubmit") : t("submit")}
             </Button>
             {passkeyAvailable && (
               <Button type="button" variant="outline" className="h-12 w-full text-base sm:h-10 lg:text-sm" onClick={handlePasskey} disabled={loading}>
                 <Fingerprint className="mr-2 h-4 w-4" />
-                Face ID / Touch ID
+                {t("passkey")}
               </Button>
             )}
           </CardFooter>

@@ -1,6 +1,6 @@
+import { dateLocale } from "@/i18n/locale"
 import { useEffect, useState } from "react"
 import { format } from "date-fns"
-import { fr } from "date-fns/locale"
 import { ArrowRightLeft, Ban, Link as LinkIcon, PlusCircle } from "lucide-react"
 import { toast } from "sonner"
 
@@ -105,7 +105,7 @@ export function TransferLinkDialog({ open, onOpenChange, transaction, accounts, 
             Virement interne
           </DialogTitle>
           <DialogDescription>
-            {transaction.merchant} · {format(new Date(transaction.date), "dd MMMM yyyy", { locale: fr })} ·{" "}
+            {transaction.merchant} · {format(new Date(transaction.date), "dd MMMM yyyy", { locale: dateLocale() })} ·{" "}
             <span className="amount-blur">{formatCurrency(transaction.amount, transaction.currency)}</span>
           </DialogDescription>
         </DialogHeader>

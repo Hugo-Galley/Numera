@@ -1,3 +1,4 @@
+import { appLocale } from "@/i18n/locale"
 import { Button } from "@/components/ui/button"
 import { CheckCircle2 } from "lucide-react"
 import type { PointZeroModalCtx } from "./usePointZeroModal"
@@ -12,7 +13,7 @@ export function PointZeroFooter({ ctx }: { ctx: PointZeroModalCtx }) {
         <div className="flex flex-col">
           <span className="text-xs text-slate-500">Valeur totale estimée :</span>
           <span className="text-base font-bold font-mono text-slate-900">
-            {new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(totalCalculatedEur)}
+            {new Intl.NumberFormat(appLocale(), { style: "currency", currency: "EUR" }).format(totalCalculatedEur)}
           </span>
         </div>
 

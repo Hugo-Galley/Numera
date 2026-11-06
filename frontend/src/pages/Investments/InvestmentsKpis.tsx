@@ -1,3 +1,4 @@
+import { appLocale } from "@/i18n/locale"
 import { Activity, AlertTriangle, ShieldCheck, TrendingUp, Wallet } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { formatCurrency, formatRate } from "@/lib/utils"
@@ -59,7 +60,7 @@ export function InvestmentsKpis({ ctx }: { ctx: InvestmentsCtx }) {
             </CardHeader>
             <CardContent>
               <div className="flex items-baseline gap-2">
-                <span className="text-2xl font-bold md:text-3xl">{Number(diversity.score).toLocaleString("fr-FR", { maximumFractionDigits: 1 })}</span>
+                <span className="text-2xl font-bold md:text-3xl">{Number(diversity.score).toLocaleString(appLocale(), { maximumFractionDigits: 1 })}</span>
                 <span className="text-sm text-muted-foreground">/100</span>
               </div>
               <p className="text-xs text-muted-foreground mt-1">{diversity.score_label}</p>

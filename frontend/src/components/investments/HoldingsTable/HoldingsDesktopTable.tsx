@@ -1,3 +1,4 @@
+import { appLocale } from "@/i18n/locale"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { CalendarCheck, Check, Coins, Globe, Pencil, Trash2, X } from "lucide-react"
@@ -140,7 +141,7 @@ export function HoldingsDesktopTable({ ctx }: { ctx: HoldingsTableCtx }) {
                             className={cn("text-[10px] font-normal", h.price_stale ? "text-amber-600" : "text-slate-400")}
                             title={h.price_stale ? "Cours non rafraîchi : dernier cours connu" : "Cours du marché"}
                           >
-                            {h.price_stale ? "⚠ " : ""}{new Date(h.price_date).toLocaleDateString("fr-FR")}
+                            {h.price_stale ? "⚠ " : ""}{new Date(h.price_date).toLocaleDateString(appLocale())}
                           </span>
                         )}
                       </div>

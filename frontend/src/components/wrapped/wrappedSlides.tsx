@@ -1,3 +1,4 @@
+import { appLocale } from "@/i18n/locale"
 import { Bar, BarChart, Cell, ResponsiveContainer, Tooltip, XAxis } from "recharts"
 import { Delta, hoursLabel, monthName, monthShort } from "./format"
 import { type ReactNode } from "react"
@@ -36,7 +37,7 @@ export function buildSlides(report: WrappedReport, hoursPerDay: number): Slide[]
         <Eyebrow>Ton bilan</Eyebrow>
         <Big className="sm:text-8xl" blur={false}>{year}</Big>
         <Sub>
-          {period}, {totals.expense_count.toLocaleString("fr-FR")} dépenses passées au crible.
+          {period}, {totals.expense_count.toLocaleString(appLocale())} dépenses passées au crible.
         </Sub>
       </>
     ),
@@ -68,7 +69,7 @@ export function buildSlides(report: WrappedReport, hoursPerDay: number): Slide[]
     content: (
       <>
         <Eyebrow>Tu as mis de côté</Eyebrow>
-        <Big className="sm:text-8xl">{totals.savings_rate.toLocaleString("fr-FR")} %</Big>
+        <Big className="sm:text-8xl">{totals.savings_rate.toLocaleString(appLocale())} %</Big>
         <Sub>
           de tes revenus, soit <span className="font-bold text-white amount-blur">{formatCurrency(totals.saved)}</span>.
         </Sub>
@@ -87,7 +88,7 @@ export function buildSlides(report: WrappedReport, hoursPerDay: number): Slide[]
           <Eyebrow>Ton plus gros poste</Eyebrow>
           <Big blur={false}>{topCat.name}</Big>
           <Sub>
-            <span className="font-bold text-white amount-blur">{formatCurrency(topCat.total)}</span>, {topCat.percentage.toLocaleString("fr-FR")} % de tes dépenses.
+            <span className="font-bold text-white amount-blur">{formatCurrency(topCat.total)}</span>, {topCat.percentage.toLocaleString(appLocale())} % de tes dépenses.
           </Sub>
           {hoursLabel(topCat.work_hours, hoursPerDay) && <p className="text-white/60 amount-blur">{hoursLabel(topCat.work_hours, hoursPerDay)}</p>}
           {report.top_categories.length > 1 && (
@@ -139,7 +140,7 @@ export function buildSlides(report: WrappedReport, hoursPerDay: number): Slide[]
           <Big>{formatCurrency(big.amount)}</Big>
           <Sub>
             {big.merchant}
-            {big.category ? ` · ${big.category}` : ""}, le {new Date(big.date).toLocaleDateString("fr-FR", { day: "numeric", month: "long" })}.
+            {big.category ? ` · ${big.category}` : ""}, le {new Date(big.date).toLocaleDateString(appLocale(), { day: "numeric", month: "long" })}.
           </Sub>
           {hoursLabel(big.work_hours, hoursPerDay) && <p className="text-white/60 amount-blur">{hoursLabel(big.work_hours, hoursPerDay)}</p>}
         </>
@@ -201,7 +202,7 @@ export function buildSlides(report: WrappedReport, hoursPerDay: number): Slide[]
         <Sub>
           de <span className="amount-blur">{formatCurrency(totals.net_worth_start)}</span> à{" "}
           <span className="font-bold text-white amount-blur">{formatCurrency(totals.net_worth_end)}</span>
-          {report.net_worth_change_pct !== null && ` (${report.net_worth_change_pct > 0 ? "+" : ""}${report.net_worth_change_pct.toLocaleString("fr-FR")} %)`}.
+          {report.net_worth_change_pct !== null && ` (${report.net_worth_change_pct > 0 ? "+" : ""}${report.net_worth_change_pct.toLocaleString(appLocale())} %)`}.
         </Sub>
         <div className="mt-6 grid grid-cols-2 gap-6 text-left">
           <div>
@@ -274,7 +275,7 @@ export function buildSlides(report: WrappedReport, hoursPerDay: number): Slide[]
           {[
             ["Revenus", formatCurrency(totals.income)],
             ["Dépenses", formatCurrency(totals.real_expenses)],
-            ["Taux d'épargne", `${totals.savings_rate.toLocaleString("fr-FR")} %`],
+            ["Taux d'épargne", `${totals.savings_rate.toLocaleString(appLocale())} %`],
             ["Patrimoine", `${totals.net_worth_change >= 0 ? "+" : ""}${formatCurrency(totals.net_worth_change)}`],
           ].map(([label, value]) => (
             <div key={label}>

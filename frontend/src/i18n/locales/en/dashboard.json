@@ -1,0 +1,30 @@
+{
+  "title": "Dashboard",
+  "subtitle": "All your financial insights at a glance.",
+  "payPeriod": "Pay period: {{range}}",
+  "allAccounts": "All accounts",
+  "placeholders": {
+    "account": "Accounts",
+    "month": "Month",
+    "year": "Year"
+  },
+  "tabs": {
+    "overview": "Overview",
+    "budgets": "Budgets",
+    "spending": "Spending",
+    "analysis": "Analysis",
+    "projections": "Projections"
+  },
+  "failedBlocks_one": "{{count}} dashboard block could not be loaded.",
+  "failedBlocks_other": "{{count}} dashboard blocks could not be loaded.",
+  "accountsLoadError": "Couldn't load the list of accounts.",
+  "kpi": {
+    "monthlyIncome": "Monthly Income",
+    "moneyIn": "Money In",
+    "monthlyExpenses": "Monthly Expenses",
+    "moneyOut": "Money Out",
+    "savingsMade": "Savings Made",
+    "currentBalance": "Current Balance",
+    "trend": "6-month trend"
+  }
+}

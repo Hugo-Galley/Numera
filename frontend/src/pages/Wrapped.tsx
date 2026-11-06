@@ -1,3 +1,4 @@
+import { appLocale } from "@/i18n/locale"
 import { toast } from "sonner"
 import { ErrorState } from "@/components/layout/ErrorState"
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react"
@@ -137,7 +138,7 @@ export default function Wrapped() {
                 <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/60">{period}</p>
                 <p className="text-5xl font-black tracking-tight sm:text-6xl">{report.year}</p>
                 <p className="text-white/70">
-                  {report.totals.expense_count.toLocaleString("fr-FR")} dépenses, {report.top_merchants.length ? `${report.top_merchants[0].merchant} en tête` : "aucun marchand"}.
+                  {report.totals.expense_count.toLocaleString(appLocale())} dépenses, {report.top_merchants.length ? `${report.top_merchants[0].merchant} en tête` : "aucun marchand"}.
                 </p>
               </div>
               <Button size="lg" onClick={() => setStoryOpen(true)} className="h-12 w-full bg-white sm:w-auto text-slate-950 hover:bg-white/90">
@@ -159,7 +160,7 @@ export default function Wrapped() {
             />
             <Kpi
               label="Taux d'épargne"
-              value={`${report.totals.savings_rate.toLocaleString("fr-FR")} %`}
+              value={`${report.totals.savings_rate.toLocaleString(appLocale())} %`}
               delta={prev && <Delta value={prev.savings_rate_change_pts} unit="pts" vsYear={prev.year} />}
             />
             <Kpi
@@ -169,7 +170,7 @@ export default function Wrapped() {
                 report.net_worth_change_pct !== null && (
                   <span className="text-sm text-muted-foreground">
                     {report.net_worth_change_pct > 0 ? "+" : ""}
-                    {report.net_worth_change_pct.toLocaleString("fr-FR")} % sur l'année
+                    {report.net_worth_change_pct.toLocaleString(appLocale())} % sur l'année
                   </span>
                 )
               }
@@ -255,7 +256,7 @@ export default function Wrapped() {
                     <span className="font-black amount-blur">{formatCurrency(report.biggest_expense.amount)}</span> · {report.biggest_expense.merchant}
                     <span className="text-muted-foreground">
                       {" "}
-                      le {new Date(report.biggest_expense.date).toLocaleDateString("fr-FR", { day: "numeric", month: "long" })}
+                      le {new Date(report.biggest_expense.date).toLocaleDateString(appLocale(), { day: "numeric", month: "long" })}
                     </span>
                   </p>
                   {hoursLabel(report.biggest_expense.work_hours, hoursPerDay) && (

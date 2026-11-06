@@ -1,3 +1,4 @@
+import { appLocale } from "@/i18n/locale"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -68,7 +69,7 @@ export function EtfCompositions({ ctx }: { ctx: InvestmentsCtx }) {
                       {c.tickers.join(", ")} · <span className="amount-blur">{formatCurrency(c.value_eur)}</span>
                       {" · "}
                       {c.refreshed_at
-                        ? `actualisé le ${new Date(c.refreshed_at + "Z").toLocaleDateString("fr-FR")}`
+                        ? `actualisé le ${new Date(c.refreshed_at + "Z").toLocaleDateString(appLocale())}`
                         : "jamais actualisé"}
                     </div>
                   </div>

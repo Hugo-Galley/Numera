@@ -1,3 +1,4 @@
+import { appLocale, dateLocale } from "@/i18n/locale"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -7,7 +8,6 @@ import { CompanyLogo } from "@/components/ui/CompanyLogo"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { TabsContent } from "@/components/ui/tabs"
 import { format } from "date-fns"
-import { fr } from "date-fns/locale"
 import { frequencyLabel } from "@/lib/utils"
 import type { RecurringTransactionsCtx } from "./useRecurringTransactions"
 
@@ -55,14 +55,14 @@ export function RecurringListTab({ ctx }: { ctx: RecurringTransactionsCtx }) {
                         </div>
                         <p className={`font-black text-base whitespace-nowrap tabular-nums ${positive ? "text-emerald-600" : "text-slate-900"}`}>
                           {(tx.type === "Sortie" || tx.type === "retrait") ? "-" : "+"}
-                          {tx.amount.toLocaleString("fr-FR", { style: "currency", currency: tx.currency })}
+                          {tx.amount.toLocaleString(appLocale(), { style: "currency", currency: tx.currency })}
                         </p>
                       </div>
                       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-600">
                         <Badge variant={positive ? "default" : "secondary"} className="text-[10px] h-5">{tx.type}</Badge>
                         <span className="font-medium">{frequencyLabel(tx.frequency)} • jour {tx.day_of_month}</span>
                         <span className="text-slate-400">
-                          Dernière : {tx.last_generated_date ? format(new Date(tx.last_generated_date), "dd MMM yyyy", { locale: fr }) : "aucune"}
+                          Dernière : {tx.last_generated_date ? format(new Date(tx.last_generated_date), "dd MMM yyyy", { locale: dateLocale() }) : "aucune"}
                         </span>
                         {tx.excluded_months && tx.excluded_months.length > 0 && (
                           <Badge variant="outline" className="text-[9px] h-4 px-1.5 text-amber-700 border-amber-200 bg-amber-50">
@@ -177,7 +177,7 @@ export function RecurringListTab({ ctx }: { ctx: RecurringTransactionsCtx }) {
                       </TableCell>
                       <TableCell className={`font-black ${(tx.type === "Entree" || tx.type === "Interets" || tx.type === "versement" || tx.type === "dividende") ? "text-emerald-600" : "text-slate-900"}`}>
                         {(tx.type === "Sortie" || tx.type === "retrait") ? "-" : "+"}
-                        {tx.amount.toLocaleString("fr-FR", { style: "currency", currency: tx.currency })}
+                        {tx.amount.toLocaleString(appLocale(), { style: "currency", currency: tx.currency })}
                       </TableCell>
                       <TableCell>
                         <div className="text-sm font-medium text-slate-700">{frequencyLabel(tx.frequency)}</div>
@@ -193,7 +193,7 @@ export function RecurringListTab({ ctx }: { ctx: RecurringTransactionsCtx }) {
                       <TableCell>
                         <div className="text-sm text-slate-600">
                           {tx.last_generated_date 
-                            ? format(new Date(tx.last_generated_date), "dd MMM yyyy", { locale: fr })
+                            ? format(new Date(tx.last_generated_date), "dd MMM yyyy", { locale: dateLocale() })
                             : "Aucune"
                           }
                         </div>

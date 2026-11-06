@@ -1,3 +1,4 @@
+import { appLocale } from "@/i18n/locale"
 import { AlertTriangle, CheckCircle2 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { formatCurrency, formatRate } from "@/lib/utils"
@@ -43,7 +44,7 @@ export function WrapperCardView({ card }: { card: WrapperCard }) {
             {card.milestone_reached && <CheckCircle2 className="h-4 w-4 text-emerald-600" />}
             {card.age_years !== null ? (
               <span>
-                Ancienneté : {card.age_years.toLocaleString("fr-FR", { maximumFractionDigits: 1 })} an(s) / {card.milestone_years} ans
+                Ancienneté : {card.age_years.toLocaleString(appLocale(), { maximumFractionDigits: 1 })} an(s) / {card.milestone_years} ans
                 {card.milestone_reached ? " — atteint" : ""}
               </span>
             ) : (
@@ -64,7 +65,7 @@ export function WrapperCardView({ card }: { card: WrapperCard }) {
             <div>
               Bloqué (moins de 5 ans) : <strong><Money value={card.blocked ?? 0} /></strong>
               {card.next_unlock_date && (
-                <span className="text-slate-500"> — prochain déblocage le {new Date(card.next_unlock_date).toLocaleDateString("fr-FR")}</span>
+                <span className="text-slate-500"> — prochain déblocage le {new Date(card.next_unlock_date).toLocaleDateString(appLocale())}</span>
               )}
             </div>
           </div>

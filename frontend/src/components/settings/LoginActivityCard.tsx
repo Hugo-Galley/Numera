@@ -1,3 +1,4 @@
+import { appLocale } from "@/i18n/locale"
 import { useEffect, useState } from "react"
 import { CheckCircle2, History, LogOut, XCircle } from "lucide-react"
 import { toast } from "sonner"
@@ -62,7 +63,7 @@ function parseUtc(value: string): Date {
 }
 
 function formatWhen(value: string): string {
-  return parseUtc(value).toLocaleString("fr-FR", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })
+  return parseUtc(value).toLocaleString(appLocale(), { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })
 }
 
 export function LoginActivityCard() {

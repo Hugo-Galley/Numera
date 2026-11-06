@@ -1,3 +1,4 @@
+import { appLocale } from "@/i18n/locale"
 import { useEffect, useState } from "react"
 import { ChevronDown, ChevronUp, History } from "lucide-react"
 
@@ -60,7 +61,7 @@ export function ImportHistoryCard() {
                         {log.source_file}
                       </CardTitle>
                       <CardDescription className="text-[10px] uppercase font-bold text-slate-400 mt-1">
-                        {new Date(log.created_at).toLocaleString('fr-FR')}
+                        {new Date(log.created_at).toLocaleString(appLocale())}
                       </CardDescription>
                     </div>
                     <Badge variant="outline" className="text-[9px] font-black h-5 shrink-0">

@@ -1,6 +1,6 @@
+import { dateLocale } from "@/i18n/locale"
 import { useCallback, useEffect, useState } from "react"
 import { format, parseISO } from "date-fns"
-import { fr } from "date-fns/locale"
 import { AlertTriangle, CalendarCheck, CheckCircle2, Clock, HandCoins, Pencil, Plus, Trash2 } from "lucide-react"
 import { toast } from "sonner"
 
@@ -52,7 +52,7 @@ interface BenefitSummary {
   late_count: number
 }
 
-const formatDay = (iso: string) => format(parseISO(iso), "d MMM yyyy", { locale: fr })
+const formatDay = (iso: string) => format(parseISO(iso), "d MMM yyyy", { locale: dateLocale() })
 
 export function BenefitsSection() {
   const confirm = useConfirm()
@@ -212,7 +212,7 @@ function BenefitCard({ benefit: b, actions }: { benefit: Benefit; actions: CardA
           <div className="flex flex-wrap gap-1.5" title="Derniers versements">
             {b.payments.slice(0, 6).reverse().map((p) => (
               <span key={p.transaction_id} className="rounded-md bg-slate-100 px-2 py-0.5 text-[11px] tabular-nums text-slate-600">
-                {format(parseISO(p.date), "MMM", { locale: fr })} {formatCurrency(p.amount)}
+                {format(parseISO(p.date), "MMM", { locale: dateLocale() })} {formatCurrency(p.amount)}
               </span>
             ))}
           </div>

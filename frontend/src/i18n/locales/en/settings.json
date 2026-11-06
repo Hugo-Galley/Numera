@@ -1,0 +1,37 @@
+{
+  "title": "Settings",
+  "subtitle": "App preferences, your security and your data.",
+  "tabs": {
+    "general": { "label": "General", "intro": "Your profile and how the app behaves." },
+    "notifications": { "label": "Notifications", "intro": "What it sends to your phone." },
+    "security": { "label": "Security", "intro": "Who can access your data, and how." },
+    "data": { "label": "Data", "intro": "Back up, export or erase your data." }
+  },
+  "display": {
+    "title": "Display",
+    "description": "Language, theme and simplified holdings are specific to this device; hiding amounts at startup applies everywhere.",
+    "language": {
+      "title": "Language",
+      "hint": "Interface language. Date and amount formats follow it; your own data (labels, categories, notes) is not translated.",
+      "aria": "Interface language"
+    },
+    "theme": {
+      "title": "Theme",
+      "hint": "“Auto” follows your system's light / dark setting.",
+      "light": "Light",
+      "dark": "Dark",
+      "auto": "Auto"
+    },
+    "privacyOnStart": {
+      "label": "Open with amounts hidden",
+      "hint": "Privacy mode (the eye) is turned on every time the app opens, on all your devices. You can still show amounts afterwards.",
+      "enabled": "The app will open with amounts hidden",
+      "disabled": "Amounts will be shown when the app opens",
+      "error": "Couldn't save the setting"
+    },
+    "simplifiedHoldings": {
+      "label": "Simplified holdings (brokerage accounts)",
+      "hint": "Shows only the security (logo, name, ticker) and the number of shares: cost basis, prices, values, gains, dividends and weights are hidden."
+    }
+  }
+}

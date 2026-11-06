@@ -1,6 +1,6 @@
+import { dateLocale } from "@/i18n/locale"
 import { format } from "date-fns"
 import { errorMessage, formatCurrency } from "@/lib/utils"
-import { fr } from "date-fns/locale"
 import { toNaiveLocal } from "@/lib/dates"
 import { toast } from "sonner"
 import { useEffect } from "react"
@@ -249,7 +249,7 @@ export function useRecurringActions(p: ReturnType<typeof useRecurringState> & Re
     try {
       const d = new Date(dateStr)
       if (isNaN(d.getTime())) return "-"
-      return format(d, formatStr, { locale: fr })
+      return format(d, formatStr, { locale: dateLocale() })
     } catch (e) {
       return "-"
     }

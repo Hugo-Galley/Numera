@@ -1,3 +1,4 @@
+import { appLocale } from "@/i18n/locale"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Compass } from "lucide-react"
 import { Link } from "react-router-dom"
@@ -18,7 +19,7 @@ export function AllocationAdviceCard({ ctx }: { ctx: TaxCtx }) {
             </CardTitle>
             <CardDescription>
               Ordre de remplissage conseillé selon tes plafonds restants
-              {overview?.precaution_months != null && <> et ton épargne de précaution ({overview.precaution_months.toLocaleString("fr-FR", { maximumFractionDigits: 1 })} mois de dépenses)</>}.
+              {overview?.precaution_months != null && <> et ton épargne de précaution ({overview.precaution_months.toLocaleString(appLocale(), { maximumFractionDigits: 1 })} mois de dépenses)</>}.
               Règle générale, pas un conseil personnalisé.
             </CardDescription>
           </CardHeader>

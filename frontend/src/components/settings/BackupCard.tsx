@@ -1,3 +1,4 @@
+import { appLocale } from "@/i18n/locale"
 import { useEffect, useState } from "react"
 import { AlertTriangle, CheckCircle2, DatabaseBackup, XCircle } from "lucide-react"
 import { api } from "@/lib/api"
@@ -26,7 +27,7 @@ function formatAgo(value: string | null): string {
   if (!value) return "jamais"
   const date = new Date(value)
   const hours = Math.floor((Date.now() - date.getTime()) / 3_600_000)
-  const label = date.toLocaleString("fr-FR", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })
+  const label = date.toLocaleString(appLocale(), { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })
   if (hours < 1) return `à l'instant (${label})`
   if (hours < 48) return `il y a ${hours} h (${label})`
   return `il y a ${Math.floor(hours / 24)} jours (${label})`

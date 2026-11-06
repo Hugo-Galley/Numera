@@ -1,10 +1,10 @@
+import { dateLocale } from "@/i18n/locale"
 import { AlertTriangle, CheckCircle2, Pencil, Trash2 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { format, parseISO } from "date-fns"
 import { formatCurrency } from "@/lib/utils"
-import { fr } from "date-fns/locale"
 
 export interface Provision {
   id: number
@@ -40,7 +40,7 @@ export const INTERVALS: { value: string; label: string }[] = [
 export const intervalLabel = (months: number) =>
   INTERVALS.find((i) => Number(i.value) === months)?.label ?? `Tous les ${months} mois`
 
-export const formatDay = (iso: string) => format(parseISO(iso), "d MMM yyyy", { locale: fr })
+export const formatDay = (iso: string) => format(parseISO(iso), "d MMM yyyy", { locale: dateLocale() })
 
 
 export function ProvisionCard({ provision: p, onEdit, onDelete, onToggle }: { provision: Provision; onEdit: () => void; onDelete: () => void; onToggle: () => void }) {

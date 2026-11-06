@@ -1,3 +1,4 @@
+import { dateLocale } from "@/i18n/locale"
 import { useCallback, useEffect, useRef, useState } from "react"
 import {
   AlertCircle,
@@ -11,7 +12,6 @@ import {
   Wallet,
 } from "lucide-react"
 import { format } from "date-fns"
-import { fr } from "date-fns/locale"
 import { toast } from "sonner"
 
 import { Badge } from "@/components/ui/badge"
@@ -161,7 +161,7 @@ export function TransferReview() {
                     <p className="break-words font-bold text-slate-900">{pair.sortie.merchant}</p>
                     <div className="flex items-center gap-2 text-xs text-slate-400">
                       <Calendar className="h-3 w-3" />
-                      {format(new Date(pair.sortie.date), "dd MMMM yyyy", { locale: fr })}
+                      {format(new Date(pair.sortie.date), "dd MMMM yyyy", { locale: dateLocale() })}
                       <span className="font-medium text-red-500 amount-blur">-{formatCurrency(pair.sortie.amount, pair.sortie.currency)}</span>
                     </div>
                   </div>
@@ -185,7 +185,7 @@ export function TransferReview() {
                     <p className="break-words font-bold text-slate-900">{pair.entree.merchant || pair.entree.note || "Versement"}</p>
                     <div className="flex items-center gap-2 text-xs text-slate-400 md:justify-end">
                       <span className="font-medium text-emerald-500 amount-blur">+{formatCurrency(pair.entree.amount, pair.entree.currency)}</span>
-                      {format(new Date(pair.entree.date), "dd MMMM yyyy", { locale: fr })}
+                      {format(new Date(pair.entree.date), "dd MMMM yyyy", { locale: dateLocale() })}
                       <Calendar className="h-3 w-3" />
                     </div>
                   </div>
