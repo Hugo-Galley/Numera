@@ -1,3 +1,5 @@
+import i18n from "i18next"
+import { useTranslation } from "react-i18next"
 import { Activity, TrendingUp, Zap } from "lucide-react"
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Legend, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -6,6 +8,7 @@ import type { SavingsCtx } from "./useSavings"
 
 /** Section 2 : dynamique et flux. */
 export function FlowsSection({ ctx }: { ctx: SavingsCtx }) {
+  const { t } = useTranslation("savings")
   const { analytics, history, isMobile, period, shareLabel } = ctx
   return (
     <>
@@ -13,7 +16,7 @@ export function FlowsSection({ ctx }: { ctx: SavingsCtx }) {
       <section className="space-y-4 md:space-y-6">
         <div className="flex items-center gap-2 border-b pb-2">
           <Activity className="h-5 w-5 text-slate-400" />
-          <h2 className="text-xl font-bold text-slate-900">Dynamique & Flux</h2>
+          <h2 className="text-xl font-bold text-slate-900">{t("flowsSection.dynamiqueFlux")}</h2>
         </div>
 
         <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2">
@@ -25,7 +28,7 @@ export function FlowsSection({ ctx }: { ctx: SavingsCtx }) {
                     <Zap className="h-5 w-5 text-blue-600" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-slate-500">Flux d'Épargne {period === "all-time" ? "Total" : "Mensuel"}</p>
+                    <p className="text-sm font-medium text-slate-500">{i18n.t("misc.flowTitle", { ns: "savings", period: period === "all-time" ? t("flowsSection.total") : t("flowsSection.mensuel") })}</p>
                     <p className="whitespace-nowrap text-2xl font-bold tabular-nums text-slate-900">
                       {formatCurrency(analytics?.epargne_realisee || 0)}
                     </p>
@@ -44,8 +47,8 @@ export function FlowsSection({ ctx }: { ctx: SavingsCtx }) {
                       <YAxis dataKey="name" type="category" hide />
                       <Tooltip cursor={{fill: 'transparent'}} formatter={(v: number, _n: string, item: any) => shareLabel(v, item?.payload, ['Cash', 'Investissements'])} contentStyle={{ fontSize: '12px', borderRadius: '8px', border: 'none', boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} />
                       <ReferenceLine x={0} stroke="#e2e8f0" />
-                      <Bar dataKey="Cash" stackId="a" fill={(analytics?.reste_tresorerie || 0) >= 0 ? "#94a3b8" : "#f43f5e"} radius={[4, 4, 4, 4]} barSize={12} />
-                      <Bar dataKey="Investissements" stackId="a" fill="#0f172a" radius={[4, 4, 4, 4]} barSize={12} />
+                      <Bar dataKey="Cash" name={i18n.t("misc.cash", { ns: "savings" })} stackId="a" fill={(analytics?.reste_tresorerie || 0) >= 0 ? "#94a3b8" : "#f43f5e"} radius={[4, 4, 4, 4]} barSize={12} />
+                      <Bar dataKey="Investissements" name={i18n.t("misc.investments", { ns: "savings" })} stackId="a" fill="#0f172a" radius={[4, 4, 4, 4]} barSize={12} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -53,14 +56,14 @@ export function FlowsSection({ ctx }: { ctx: SavingsCtx }) {
                   <div>
                     <div className="flex items-center gap-1.5">
                       <div className={`w-2 h-2 rounded-full ${(analytics?.reste_tresorerie || 0) >= 0 ? 'bg-slate-400' : 'bg-rose-500'}`} />
-                      <p className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Reste en trésorerie</p>
+                      <p className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">{t("flowsSection.resteEnTresorerie")}</p>
                     </div>
                     <p className="font-semibold text-slate-700 text-sm mt-0.5">{formatCurrency(analytics?.reste_tresorerie || 0)}</p>
                   </div>
                   <div className="text-right">
                     <div className="flex items-center justify-end gap-1.5">
                       <div className="w-2 h-2 rounded-full bg-slate-900" />
-                      <p className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Investissements</p>
+                      <p className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">{t("flowsSection.investissements")}</p>
                     </div>
                     <p className="font-semibold text-slate-700 text-sm mt-0.5">{formatCurrency(analytics?.investissements_du_mois || 0)}</p>
                   </div>
@@ -77,7 +80,7 @@ export function FlowsSection({ ctx }: { ctx: SavingsCtx }) {
                     <TrendingUp className="h-5 w-5 text-amber-600" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-slate-500">Intérêts Perçus {period === "all-time" ? "Cumulés" : "du Mois"}</p>
+                    <p className="text-sm font-medium text-slate-500">{i18n.t("misc.interestTitle", { ns: "savings", period: period === "all-time" ? t("flowsSection.cumules") : i18n.t("misc.ofMonth", { ns: "savings" }) })}</p>
                     <p className="whitespace-nowrap text-2xl font-bold tabular-nums text-slate-900">
                       {formatCurrency(analytics?.interets_totaux || 0)}
                     </p>
@@ -86,7 +89,7 @@ export function FlowsSection({ ctx }: { ctx: SavingsCtx }) {
               </div>
               <div className="pt-4 border-t border-slate-100">
                  <p className="text-sm text-slate-500">
-                   L'argent qui travaille pour vous. Ces gains passifs augmentent votre capital sans effort supplémentaire.
+                   {t("flowsSection.lArgentQuiTravaillePour")}
                  </p>
               </div>
             </CardContent>
@@ -96,8 +99,8 @@ export function FlowsSection({ ctx }: { ctx: SavingsCtx }) {
         <div className="grid gap-4 md:gap-6 grid-cols-1 lg:grid-cols-2">
           <Card className="shadow-sm border-slate-100">
             <CardHeader className="pb-4">
-              <CardTitle className="text-base">Historique des Flux d'Épargne</CardTitle>
-              <CardDescription>Répartition de votre épargne mensuelle sur l'année.</CardDescription>
+              <CardTitle className="text-base">{t("flowsSection.historiqueDesFluxDEpargne")}</CardTitle>
+              <CardDescription>{t("flowsSection.repartitionDeVotreEpargneMensuelle")}</CardDescription>
             </CardHeader>
             <CardContent className="h-[260px] px-2 md:h-[300px] md:px-6">
               <ResponsiveContainer width="100%" height="100%">
@@ -107,9 +110,9 @@ export function FlowsSection({ ctx }: { ctx: SavingsCtx }) {
                   <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} tickFormatter={(v) => `${v}€`} />
                   <Tooltip cursor={{ fill: '#f8fafc' }} formatter={(v: number, _n: string, item: any) => shareLabel(v, item?.payload, ['cash_flow', 'investissements', 'interets'])} contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} />
                   <Legend verticalAlign="top" height={36} wrapperStyle={{ fontSize: '12px', paddingBottom: '20px' }}/>
-                  <Bar dataKey="cash_flow" name="Cash Restant" stackId="a" fill="#94a3b8" radius={[0, 0, 0, 0]} maxBarSize={40} />
-                  <Bar dataKey="investissements" name="Investissements" stackId="a" fill="#0f172a" radius={[0, 0, 0, 0]} maxBarSize={40} />
-                  <Bar dataKey="interets" name="Intérêts" stackId="a" fill="#f59e0b" radius={[4, 4, 0, 0]} maxBarSize={40} />
+                  <Bar dataKey="cash_flow" name={i18n.t("misc.cashLeft", { ns: "savings" })} stackId="a" fill="#94a3b8" radius={[0, 0, 0, 0]} maxBarSize={40} />
+                  <Bar dataKey="investissements" name={i18n.t("misc.investments", { ns: "savings" })} stackId="a" fill="#0f172a" radius={[0, 0, 0, 0]} maxBarSize={40} />
+                  <Bar dataKey="interets" name={i18n.t("misc.interest", { ns: "savings" })} stackId="a" fill="#f59e0b" radius={[4, 4, 0, 0]} maxBarSize={40} />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
@@ -117,8 +120,8 @@ export function FlowsSection({ ctx }: { ctx: SavingsCtx }) {
 
           <Card className="shadow-sm border-slate-100">
             <CardHeader className="pb-4">
-              <CardTitle className="text-base">Évolution du Taux d'Épargne (%)</CardTitle>
-              <CardDescription>Visualisez la régularité de vos efforts.</CardDescription>
+              <CardTitle className="text-base">{t("flowsSection.evolutionDuTauxDEpargne")}</CardTitle>
+              <CardDescription>{t("flowsSection.visualisezLaRegulariteDeVos")}</CardDescription>
             </CardHeader>
             <CardContent className="h-[260px] px-2 md:h-[300px] md:px-6">
               <ResponsiveContainer width="100%" height="100%">

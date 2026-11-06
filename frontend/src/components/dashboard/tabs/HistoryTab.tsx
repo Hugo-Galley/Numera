@@ -1,3 +1,4 @@
+import i18n from "i18next"
 import { useTranslation } from "react-i18next"
 import { monthShort } from "@/i18n/locale"
 import { History as HistoryIcon, Activity, Layers, Flag } from "lucide-react"
@@ -155,7 +156,7 @@ export function HistoryTab({
                 tick={{ fontSize: axisFont, fill: '#64748b' }} 
               />
               <YAxis width={yWidth} axisLine={false} tickLine={false} tick={{ fontSize: axisFont, fill: '#64748b' }} tickFormatter={(v) => `${v}${displayCurrency === 'EUR' ? '€' : displayCurrency}`} />
-              <Tooltip contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} formatter={(v: number) => `${v.toFixed(2)}${displayCurrency === 'EUR' ? '€' : displayCurrency} / jour`} />
+              <Tooltip contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} formatter={(v: number) => i18n.t("misc.perDay", { ns: "dashboard", amount: `${v.toFixed(2)}${displayCurrency === 'EUR' ? '€' : displayCurrency}` })} />
               <Line type="monotone" dataKey="burn_rate" name={t("history.burnName")} stroke="#0f172a" strokeWidth={isMobile ? 3 : 4} dot={{ r: isMobile ? 3 : 4, fill: "#0f172a" }} />
             </LineChart>
           </ResponsiveContainer>

@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import { appLocale } from "@/i18n/locale"
 import { ArrowDownCircle, ArrowUpCircle, Calendar as CalendarIcon, CheckCircle2 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
@@ -9,6 +10,7 @@ import type { CalendarCtx } from "./useCalendar"
 
 /** Dialogue du détail d'un jour. */
 export function DayDetailDialog({ ctx }: { ctx: CalendarCtx }) {
+  const { t } = useTranslation("recurring")
   const { getBalanceForDay, handleValidate, isDayDetailOpen, isPrivacyMode, month, selectedDay, selectedDayEvents, setIsDayDetailOpen, validating, year } = ctx
   return (
     <>
@@ -20,7 +22,7 @@ export function DayDetailDialog({ ctx }: { ctx: CalendarCtx }) {
               {selectedDay && new Date(selectedDay).toLocaleDateString(appLocale(), { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
             </DialogTitle>
             <DialogDescription>
-              Flux financiers pour cette journée
+              {t("dayDetailDialog.fluxFinanciersPourCetteJournee")}
             </DialogDescription>
           </DialogHeader>
 
@@ -48,8 +50,8 @@ export function DayDetailDialog({ ctx }: { ctx: CalendarCtx }) {
                                 <span className="text-slate-300">•</span>
                               </>
                             )}
-                            {ev.is_projected && <Badge variant="secondary" className="h-4 text-[9px] px-1 bg-amber-100 text-amber-700 hover:bg-amber-100 border-none">PRÉVU</Badge>}
-                            {!ev.is_projected && ev.is_upcoming && <Badge variant="secondary" className="h-4 text-[9px] px-1 bg-sky-100 text-sky-700 hover:bg-sky-100 border-none">À VENIR</Badge>}
+                            {ev.is_projected && <Badge variant="secondary" className="h-4 text-[9px] px-1 bg-amber-100 text-amber-700 hover:bg-amber-100 border-none">{t("dayDetailDialog.prevu")}</Badge>}
+                            {!ev.is_projected && ev.is_upcoming && <Badge variant="secondary" className="h-4 text-[9px] px-1 bg-sky-100 text-sky-700 hover:bg-sky-100 border-none">{t("dayDetailDialog.aVenir")}</Badge>}
                             <span className="text-[10px] text-slate-500 uppercase font-medium tracking-wider">{ev.type}</span>
                             {ev.quantity && (
                               <span className="text-[10px] text-slate-400 font-mono">• {ev.quantity} part(s)</span>
@@ -73,7 +75,7 @@ export function DayDetailDialog({ ctx }: { ctx: CalendarCtx }) {
                             disabled={validating}
                           >
                             <CheckCircle2 className="h-3 w-3" />
-                            Valider
+                            {t("dayDetailDialog.valider")}
                           </Button>
                         )}
                       </div>
@@ -83,13 +85,13 @@ export function DayDetailDialog({ ctx }: { ctx: CalendarCtx }) {
               </div>
             ) : (
               <div className="text-center py-8 text-slate-400 italic">
-                Aucune transaction ce jour
+                {t("dayDetailDialog.aucuneTransactionCeJour")}
               </div>
             )}
 
             {selectedDay && (
               <div className="pt-4 border-t flex items-center justify-between text-sm">
-                <span className="text-slate-500 font-medium">Solde estimé fin de journée</span>
+                <span className="text-slate-500 font-medium">{t("dayDetailDialog.soldeEstimeFinDeJournee")}</span>
                 <span className={cn(
                   "font-bold",
                   (getBalanceForDay(new Date(selectedDay).getDate()) || 0) < 0 ? "text-red-600" : "text-slate-900"

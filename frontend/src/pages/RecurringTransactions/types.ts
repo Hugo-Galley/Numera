@@ -1,19 +1,14 @@
+import { monthShort } from "@/i18n/locale"
 
 
-export const MONTHS = [
-  { value: 1, label: "Jan" },
-  { value: 2, label: "Fév" },
-  { value: 3, label: "Mar" },
-  { value: 4, label: "Avr" },
-  { value: 5, label: "Mai" },
-  { value: 6, label: "Juin" },
-  { value: 7, label: "Juil" },
-  { value: 8, label: "Août" },
-  { value: 9, label: "Sep" },
-  { value: 10, label: "Oct" },
-  { value: 11, label: "Nov" },
-  { value: 12, label: "Déc" },
-]
+/** Mois (1 à 12) avec leur libellé abrégé dans la langue courante (lu à l'accès : pas figé à l'import). */
+export const MONTHS = Array.from({ length: 12 }, (_, i) => ({
+  value: i + 1,
+  get label() {
+    const label = monthShort(i + 1).replace(/\.$/, "")
+    return label.charAt(0).toUpperCase() + label.slice(1)
+  },
+}))
 export type Category = {
   id: number
   name: string

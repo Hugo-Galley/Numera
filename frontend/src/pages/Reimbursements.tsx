@@ -1,3 +1,5 @@
+import i18n from "i18next"
+import { useTranslation } from "react-i18next"
 import { useCallback, useEffect, useState } from "react"
 import { HandCoins, Link, Pencil, Trash2, X } from "lucide-react"
 import { format } from "date-fns"
@@ -18,6 +20,7 @@ import type { AccountLite } from "@/types/transfers"
 import { useConfirm } from "@/providers/ConfirmProvider"
 
 export default function Reimbursements() {
+  const { t } = useTranslation("reimbursements")
   const confirm = useConfirm()
   const [status, setStatus] = useState<"open" | "settled">("open")
   const [debtor, setDebtor] = useState<string | null>(null)
@@ -41,11 +44,11 @@ export default function Reimbursements() {
       setSummary(s)
       setAccounts(a)
     } catch {
-      toast.error("Erreur lors du chargement des remboursements")
+      toast.error(t("reimbursements.erreurLorsDuChargementDes"))
     } finally {
       setLoading(false)
     }
-  }, [status, debtor])
+  }, [status, debtor, t])
 
   useEffect(() => {
     load()
@@ -66,27 +69,27 @@ export default function Reimbursements() {
     if (!editingClaim) return
     const amount = parsePositiveAmount(editValue)
     if (amount === null) {
-      toast.error("Le montant doit être un nombre supérieur à 0")
+      toast.error(t("reimbursements.leMontantDoitEtreUn"))
       return
     }
     try {
       await api.patch(`/reimbursements/claims/${editingClaim.id}`, { expected_amount: amount })
-      toast.success("Créance modifiée")
+      toast.success(t("reimbursements.creanceModifiee"))
       setEditingClaim(null)
       load()
     } catch (e) {
-      toast.error(e instanceof ApiError && e.message ? e.message : "Échec de la modification")
+      toast.error(e instanceof ApiError && e.message ? e.message : t("reimbursements.echecDeLaModification"))
     }
   }
 
   async function remove(claim: Claim) {
-    if (!(await confirm(`Supprimer la créance de ${claim.debtor} ? La dépense redevient entièrement à votre charge.`))) return
+    if (!(await confirm(i18n.t("misc.deleteClaimFull", { ns: "reimbursements", debtor: claim.debtor })))) return
     try {
       await api.delete(`/reimbursements/claims/${claim.id}`)
-      toast.success("Créance supprimée")
+      toast.success(t("reimbursements.creanceSupprimee"))
       load()
     } catch {
-      toast.error("Échec de la suppression")
+      toast.error(t("reimbursements.echecDeLaSuppression"))
     }
   }
 
@@ -95,17 +98,17 @@ export default function Reimbursements() {
       <div>
         <h1 className="flex items-center gap-2 text-2xl md:text-3xl font-bold tracking-tight">
           <HandCoins className="h-7 w-7 text-emerald-600" />
-          Remboursements
+          {t("reimbursements.remboursements")}
         </h1>
         <p className="text-slate-500">
-          Dépenses avancées pour d'autres et ce qu'on vous doit encore. Les remboursements liés sont déduits de vos dépenses, sur le mois de la dépense.
+          {t("reimbursements.depensesAvanceesPourDAutres")}
         </p>
       </div>
 
       <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
         <Card className="col-span-2 border-slate-100 shadow-sm lg:col-span-1">
           <CardContent className="p-4">
-            <p className="text-xs font-bold uppercase tracking-wider text-slate-500">On me doit</p>
+            <p className="text-xs font-bold uppercase tracking-wider text-slate-500">{t("reimbursements.onMeDoit")}</p>
             <p className="mt-1 text-2xl font-black text-emerald-600 amount-blur">{formatCurrency(summary?.total_due ?? 0)}</p>
           </CardContent>
         </Card>
@@ -122,7 +125,7 @@ export default function Reimbursements() {
           >
             <p className="break-words font-bold text-slate-900 md:truncate">{d.debtor}</p>
             <p className="text-sm text-slate-500">
-              <span className="amount-blur font-semibold">{formatCurrency(d.due)}</span> · {d.claims} créance{d.claims > 1 ? "s" : ""}
+              {i18n.t("misc.debtorClaims", { ns: "reimbursements", amount: formatCurrency(d.due), count: d.claims })}
             </p>
           </button>
         ))}
@@ -131,15 +134,15 @@ export default function Reimbursements() {
       <div className="flex flex-wrap items-center gap-3">
         <Tabs className="max-sm:w-full" value={status} onValueChange={(v) => setStatus(v as "open" | "settled")}>
           <TabsList className="max-sm:grid max-sm:w-full max-sm:grid-cols-2 max-sm:h-11">
-            <TabsTrigger value="open">À recevoir</TabsTrigger>
-            <TabsTrigger value="settled">Soldées</TabsTrigger>
+            <TabsTrigger value="open">{t("reimbursements.aRecevoir")}</TabsTrigger>
+            <TabsTrigger value="settled">{t("reimbursements.soldees")}</TabsTrigger>
           </TabsList>
         </Tabs>
         {debtor && (
           <Button variant="outline" size="sm" className="h-10 gap-2 md:h-9" onClick={() => setDebtor(null)}>
             {debtor}
             <X className="h-3.5 w-3.5" />
-            <span className="sr-only">Retirer le filtre</span>
+            <span className="sr-only">{t("reimbursements.retirerLeFiltre")}</span>
           </Button>
         )}
       </div>
@@ -152,8 +155,8 @@ export default function Reimbursements() {
         <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-6 md:p-12 text-center text-sm text-slate-400">
           <HandCoins className="mx-auto mb-3 h-8 w-8 text-slate-300" />
           {status === "open"
-            ? "Personne ne vous doit rien. Déclarez une créance depuis une dépense (icône « On me doit » dans le détail d'un compte)."
-            : "Aucune créance soldée."}
+            ? t("reimbursements.personneNeVousDoitRien")
+            : t("reimbursements.aucuneCreanceSoldee")}
         </div>
       ) : (
         <div className="grid gap-3">
@@ -172,8 +175,7 @@ export default function Reimbursements() {
                       <div className="h-full rounded-full bg-emerald-500" style={{ width: `${pct}%` }} />
                     </div>
                     <p className="text-xs text-slate-500">
-                      <span className="amount-blur">{formatCurrency(c.received, c.currency)}</span> reçu sur{" "}
-                      <span className="amount-blur">{formatCurrency(c.expected_amount, c.currency)}</span>
+                      {i18n.t("misc.receivedOf", { ns: "reimbursements", received: formatCurrency(c.received, c.currency), expected: formatCurrency(c.expected_amount, c.currency) })}
                     </p>
                   </div>
                   <div className="flex flex-wrap items-center gap-2 md:gap-3">
@@ -181,13 +183,13 @@ export default function Reimbursements() {
                     {c.remaining > 0 && (
                       <Button size="sm" className="h-10 flex-1 gap-2 md:h-9 md:flex-none" onClick={() => setLinking(c)}>
                         <Link className="h-4 w-4" />
-                        Lier un remboursement
+                        {t("reimbursements.lierUnRemboursement")}
                       </Button>
                     )}
-                    <Button variant="ghost" size="sm" className="h-10 w-10 p-0 text-slate-400 hover:text-indigo-600 md:h-8 md:w-8" onClick={() => editExpected(c)} aria-label="Modifier le montant attendu">
+                    <Button variant="ghost" size="sm" className="h-10 w-10 p-0 text-slate-400 hover:text-indigo-600 md:h-8 md:w-8" onClick={() => editExpected(c)} aria-label={t("reimbursements.modifierLeMontantAttendu")}>
                       <Pencil className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="sm" className="h-10 w-10 p-0 text-slate-400 hover:text-red-600 md:h-8 md:w-8" onClick={() => remove(c)} aria-label="Supprimer la créance">
+                    <Button variant="ghost" size="sm" className="h-10 w-10 p-0 text-slate-400 hover:text-red-600 md:h-8 md:w-8" onClick={() => remove(c)} aria-label={t("reimbursements.supprimerLaCreance")}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
@@ -207,7 +209,7 @@ export default function Reimbursements() {
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-2">
-            <Label htmlFor="expected-amount">Montant attendu</Label>
+            <Label htmlFor="expected-amount">{t("reimbursements.montantAttendu")}</Label>
             <Input
               id="expected-amount"
               inputMode="decimal"
@@ -218,8 +220,8 @@ export default function Reimbursements() {
             />
           </div>
           <DialogFooter className="gap-2 sm:gap-0">
-            <Button variant="ghost" onClick={() => setEditingClaim(null)}>Annuler</Button>
-            <Button onClick={saveExpected}>Enregistrer</Button>
+            <Button variant="ghost" onClick={() => setEditingClaim(null)}>{t("reimbursements.annuler")}</Button>
+            <Button onClick={saveExpected}>{t("reimbursements.enregistrer")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -84,6 +84,8 @@
     "newPayment": "Nouvelle mensualité : {{amount}} (hors assurance).",
     "penalty": "Indemnités de remboursement anticipé : au plus {{amount}} (plafond légal ; votre contrat peut prévoir moins ou rien).",
     "scheduleCount_one": "{{count}} échéance. Touchez une année pour le détail.",
-    "scheduleCount_other": "{{count}} échéances. Touchez une année pour le détail."
+    "scheduleCount_other": "{{count}} échéances. Touchez une année pour le détail.",
+    "principalOf": "sur {{amount}} empruntés",
+    "interestOf": "{{amount}} d'intérêts"
   }
 }

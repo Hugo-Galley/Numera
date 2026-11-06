@@ -1,3 +1,4 @@
+import i18n from "i18next"
 import { toNaiveLocal } from "@/lib/dates"
 import { toast } from "sonner"
 import { useEffect, useState } from "react"
@@ -34,7 +35,7 @@ export function useCalendarData(p: { embedded: boolean }) {
         setAccounts(accs)
       } catch (error) {
         console.error("Failed to fetch accounts", error)
-        toast.error("Impossible de charger les comptes")
+        toast.error(i18n.t("useCalendarData.impossibleDeChargerLesComptes", { ns: "recurring" }))
       }
     }
     fetchAccounts()
@@ -54,7 +55,7 @@ export function useCalendarData(p: { embedded: boolean }) {
         console.error("Failed to fetch calendar data", error)
         if (!cancelled) {
           setLoadFailed(true)
-          toast.error("Impossible de charger le calendrier")
+          toast.error(i18n.t("useCalendarData.impossibleDeChargerLeCalendrier", { ns: "recurring" }))
         }
       } finally {
         if (!cancelled) setLoading(false)
@@ -111,7 +112,7 @@ export function useCalendarData(p: { embedded: boolean }) {
       const account = recurringTx && accounts.find(a => a.id === recurringTx.account_id)
       
       if (!account) {
-        toast.error("Compte non trouvé")
+        toast.error(i18n.t("useCalendarData.compteNonTrouve", { ns: "recurring" }))
         return
       }
 
@@ -153,14 +154,14 @@ export function useCalendarData(p: { embedded: boolean }) {
         })
       }
       
-      toast.success("Transaction validée !")
+      toast.success(i18n.t("useCalendarData.transactionValidee", { ns: "recurring" }))
       // Refresh data
       const query = `month=${month}&year=${year}${selectedAccountId !== "all" ? `&account_id=${selectedAccountId}` : ""}`
       const res = await getAnalyticsCalendar<CalendarData>(`?${query}`)
       setData(res)
     } catch (error) {
       console.error("Failed to validate transaction", error)
-      toast.error("Erreur lors de la validation")
+      toast.error(i18n.t("useCalendarData.erreurLorsDeLaValidation", { ns: "recurring" }))
     }
   })
 

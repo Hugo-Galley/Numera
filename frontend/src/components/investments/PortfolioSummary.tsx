@@ -77,8 +77,8 @@ export function PortfolioSummary({ accountId, reloadKey }: PortfolioSummaryProps
         )}
 
         <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
-          <Kpi label={t("portfolioSummary.valeur")} value={formatCurrency(data.value, data.currency)} hint={`dont espèces ${formatCurrency(data.cash, data.currency)}`} />
-          <Kpi label={t("portfolioSummary.montantInvesti")} value={formatCurrency(data.net_invested, data.currency)} hint="Versements − retraits depuis l'origine" />
+          <Kpi label={t("portfolioSummary.valeur")} value={formatCurrency(data.value, data.currency)} hint={i18n.t("misc.includingCash", { ns: "investments", amount: formatCurrency(data.cash, data.currency) })} />
+          <Kpi label={t("portfolioSummary.montantInvesti")} value={formatCurrency(data.net_invested, data.currency)} hint={i18n.t("misc.netInvestedHint", { ns: "investments" })} />
           <Kpi
             label={t("portfolioSummary.gainTotal")}
             value={signed(data.gain)}
@@ -98,15 +98,15 @@ export function PortfolioSummary({ accountId, reloadKey }: PortfolioSummaryProps
           <Kpi
             label={t("portfolioSummary.plusValueRealisee")}
             value={signed(data.realized_eur)}
-            hint={data.realized_unknown_sales > 0 ? `${data.realized_unknown_sales} vente(s) sans coût connu` : t("portfolioSummary.ventesCumulees")}
+            hint={data.realized_unknown_sales > 0 ? i18n.t("misc.unknownCostSales", { ns: "investments", count: data.realized_unknown_sales }) : t("portfolioSummary.ventesCumulees")}
             className={tone(data.realized_eur)}
           />
-          <Kpi label={t("portfolioSummary.dividendesNet")} value={formatCurrency(data.dividends_eur)} hint={`${formatCurrency(data.dividends_12m_eur)} sur 12 mois`} />
-          <Kpi label={t("portfolioSummary.frais")} value={formatCurrency(data.fees_eur)} hint="Frais de tenue et courtage" />
+          <Kpi label={t("portfolioSummary.dividendesNet")} value={formatCurrency(data.dividends_eur)} hint={i18n.t("misc.dividends12m", { ns: "investments", amount: formatCurrency(data.dividends_12m_eur) })} />
+          <Kpi label={t("portfolioSummary.frais")} value={formatCurrency(data.fees_eur)} hint={i18n.t("misc.feesHint", { ns: "investments" })} />
           <Kpi
             label="XIRR · TWR"
             value={`${formatRate(data.xirr_pct, 1)} · ${formatRate(data.twr_pct, 1)}`}
-            hint={shortPeriod ? `Annualisé sur ${data.period_days} j : à relativiser` : t("portfolioSummary.rendementAnnualiseHorsEffetDes")}
+            hint={shortPeriod ? i18n.t("misc.annualizedOver", { ns: "investments", days: data.period_days }) : t("portfolioSummary.rendementAnnualiseHorsEffetDes")}
           />
         </div>
 

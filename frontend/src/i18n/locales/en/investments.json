@@ -314,6 +314,14 @@
       "preset": "Preset",
       "manual": "Manual"
     },
-    "avgCost": "Avg. cost"
+    "avgCost": "Avg. cost",
+    "applyAvgCost": "Apply the average cost of {{ticker}}",
+    "deletePosition": "Delete the position in {{name}}?",
+    "includingCash": "incl. cash {{amount}}",
+    "netInvestedHint": "Deposits − withdrawals since inception",
+    "unknownCostSales": "{{count}} sale(s) with unknown cost",
+    "dividends12m": "{{amount}} over 12 months",
+    "feesHint": "Account and brokerage fees",
+    "annualizedOver": "Annualized over {{days}} d: take with caution"
   }
 }

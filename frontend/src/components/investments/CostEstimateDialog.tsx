@@ -127,7 +127,7 @@ export function CostEstimateDialog({ open, onOpenChange, accountId, onApplied }:
                     className="h-5 w-5 shrink-0 sm:h-4 sm:w-4"
                     checked={line?.checked ?? false}
                     onChange={(e) => update(r.ticker, { checked: e.target.checked })}
-                    aria-label={`Appliquer le PRU de ${r.ticker}`}
+                    aria-label={i18n.t("misc.applyAvgCost", { ns: "investments", ticker: r.ticker })}
                   />
                   </label>
                   <div className="min-w-0 flex-1">

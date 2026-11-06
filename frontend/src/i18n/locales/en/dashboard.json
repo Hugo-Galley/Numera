@@ -166,5 +166,8 @@
     "fieldNote": "Note (optional)",
     "fieldAccount": "Related account (optional)"
   },
-  "partialLoadError": "Some dashboard data couldn't be loaded."
+  "partialLoadError": "Some dashboard data couldn't be loaded.",
+  "misc": {
+    "perDay": "{{amount}} / day"
+  }
 }

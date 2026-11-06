@@ -1,3 +1,4 @@
+import i18n from "i18next"
 import { useTranslation } from "react-i18next"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
@@ -185,14 +186,14 @@ export function LoanView({ accountId }: { accountId: number }) {
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Stat label={t("loanView.capitalRestantDu")} value={formatCurrency(loan.remaining_principal)} hint={`sur ${formatCurrency(loan.principal)} empruntés`} />
+        <Stat label={t("loanView.capitalRestantDu")} value={formatCurrency(loan.remaining_principal)} hint={i18n.t("loanView.principalOf", { ns: "loans", amount: formatCurrency(loan.principal) })} />
         <Stat
           label={t("loanView.mensualite")}
           value={formatCurrency(loan.monthly_payment + loan.insurance_monthly)}
           hint={loan.insurance_monthly ? t("loanView.includesInsurance", { amount: formatCurrency(loan.insurance_monthly) }) : t("loanView.excludesInsurance")}
         />
         <Stat label={t("loanView.finDuCredit")} value={formatDateFr(loan.end_date)} />
-        <Stat label={t("loanView.coutTotal")} value={formatCurrency(loan.total_cost)} hint={`${formatCurrency(loan.total_interest)} d'intérêts`} />
+        <Stat label={t("loanView.coutTotal")} value={formatCurrency(loan.total_cost)} hint={i18n.t("loanView.interestOf", { ns: "loans", amount: formatCurrency(loan.total_interest) })} />
       </div>
 
       <Card>
