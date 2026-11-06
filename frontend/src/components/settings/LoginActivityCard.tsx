@@ -1,3 +1,5 @@
+import i18n from "i18next"
+import { useTranslation } from "react-i18next"
 import { appLocale } from "@/i18n/locale"
 import { useEffect, useState } from "react"
 import { CheckCircle2, History, LogOut, XCircle } from "lucide-react"
@@ -22,16 +24,16 @@ interface LoginEvent {
 }
 
 const METHOD_LABEL: Record<string, string> = {
-  password: "Mot de passe",
-  password_totp: "Mot de passe + code",
+  get password() { return i18n.t("misc.methodPassword", { ns: "settings" }) },
+  get password_totp() { return i18n.t("misc.methodPasswordTotp", { ns: "settings" }) },
   passkey: "Face ID / Touch ID",
 }
 
 const REASON_LABEL: Record<string, string> = {
-  invalid_password: "mauvais identifiant ou mot de passe",
-  invalid_totp: "code incorrect",
-  invalid_passkey: "passkey refusée",
-  rate_limited: "trop de tentatives, bloquée",
+  get invalid_password() { return i18n.t("misc.reasonInvalidPassword", { ns: "settings" }) },
+  get invalid_totp() { return i18n.t("misc.reasonInvalidTotp", { ns: "settings" }) },
+  get invalid_passkey() { return i18n.t("misc.reasonInvalidPasskey", { ns: "settings" }) },
+  get rate_limited() { return i18n.t("misc.reasonRateLimited", { ns: "settings" }) },
 }
 
 const VISIBLE = 8
@@ -67,6 +69,7 @@ function formatWhen(value: string): string {
 }
 
 export function LoginActivityCard() {
+  const { t } = useTranslation("settings")
   const confirm = useConfirm()
   const { logout } = useAuth()
   const [events, setEvents] = useState<LoginEvent[] | null>(null)
@@ -81,16 +84,16 @@ export function LoginActivityCard() {
 
   const logoutEverywhere = async () => {
     const ok = await confirm(
-      "Toutes les sessions ouvertes seront fermées, y compris celle-ci : il faudra te reconnecter partout. Les tokens Claude (MCP) ne sont pas touchés.",
-      { title: "Déconnecter tous les appareils", confirmLabel: "Tout déconnecter" },
+      t("loginActivityCard.toutesLesSessionsOuvertesSeront"),
+      { title: t("misc.signOutAllTitle"), confirmLabel: t("loginActivityCard.toutDeconnecter") },
     )
     if (!ok) return
     try {
       await api.post("/admin/logout-all")
-      toast.success("Tous les appareils sont déconnectés")
+      toast.success(t("loginActivityCard.tousLesAppareilsSontDeconnectes"))
       logout()
     } catch (error) {
-      toast.error(errorMessage(error, "Impossible de déconnecter les appareils"))
+      toast.error(errorMessage(error, t("loginActivityCard.impossibleDeDeconnecterLesAppareils")))
     }
   }
 
@@ -104,25 +107,25 @@ export function LoginActivityCard() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <History className="h-5 w-5" />
-          Connexions
+          {t("loginActivityCard.connexions")}
         </CardTitle>
         <CardDescription>
-          Les dernières tentatives de connexion, réussies ou non. Un appareil que tu ne reconnais pas : change ton mot de passe et déconnecte tout.
+          {t("loginActivityCard.lesDernieresTentativesDeConnexion")}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {recentFailures > 0 && (
           <p className="rounded-lg bg-amber-50 p-3 text-sm text-amber-800">
-            {recentFailures} tentative{recentFailures > 1 ? "s" : ""} échouée{recentFailures > 1 ? "s" : ""} ces 7 derniers jours.
+            {t("misc.failedAttempts", { count: recentFailures })}
           </p>
         )}
 
         {failed ? (
-          <p className="text-sm text-rose-600">Impossible de charger l'historique des connexions.</p>
+          <p className="text-sm text-rose-600">{t("loginActivityCard.impossibleDeChargerLHistorique")}</p>
         ) : events === null ? (
-          <p className="text-sm text-slate-400">Chargement…</p>
+          <p className="text-sm text-slate-400">{t("loginActivityCard.chargement")}</p>
         ) : events.length === 0 ? (
-          <p className="text-sm text-slate-500">Aucune connexion enregistrée pour l'instant.</p>
+          <p className="text-sm text-slate-500">{t("loginActivityCard.aucuneConnexionEnregistreePourL")}</p>
         ) : (
           <ul className="divide-y divide-slate-100 rounded-lg border border-slate-100">
             {visible.map((event) => (
@@ -140,14 +143,14 @@ export function LoginActivityCard() {
                     </p>
                     <p className="text-xs text-slate-500">
                       {METHOD_LABEL[event.method] ?? event.method}
-                      {!event.success && ` · ${REASON_LABEL[event.reason ?? ""] ?? "échec"}`}
+                      {!event.success && ` · ${REASON_LABEL[event.reason ?? ""] ?? t("misc.reasonFailed")}`}
                     </p>
                   </div>
                 </div>
                 <div className="flex shrink-0 flex-col items-end gap-1">
                   <span className="text-xs tabular-nums text-slate-500">{formatWhen(event.created_at)}</span>
                   {!event.success && (
-                    <Badge variant="outline" className="border-rose-100 bg-rose-50 px-1.5 py-0 text-[10px] text-rose-700">Échec</Badge>
+                    <Badge variant="outline" className="border-rose-100 bg-rose-50 px-1.5 py-0 text-[10px] text-rose-700">{t("loginActivityCard.echec")}</Badge>
                   )}
                 </div>
               </li>
@@ -158,12 +161,12 @@ export function LoginActivityCard() {
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           {events && events.length > VISIBLE ? (
             <Button variant="ghost" size="sm" className="h-10 self-start text-slate-500" onClick={() => setShowAll(!showAll)}>
-              {showAll ? "Afficher moins" : `Afficher les ${events.length}`}
+              {showAll ? t("loginActivityCard.afficherMoins") : t("misc.showAllN", { count: events.length })}
             </Button>
           ) : <span />}
           <Button variant="outline" className="h-11 gap-2 text-rose-600 hover:bg-rose-50 hover:text-rose-700 sm:h-10" onClick={logoutEverywhere}>
             <LogOut className="h-4 w-4" />
-            Déconnecter tous les appareils
+            {t("loginActivityCard.deconnecterTousLesAppareils")}
           </Button>
         </div>
       </CardContent>

@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import { appLocale } from "@/i18n/locale"
 import { formatCurrency } from "@/lib/utils";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -20,6 +21,7 @@ interface TooltipState {
 }
 
 export function SankeyFlow({ data, currency = "EUR", onCategoryClick }: SankeyFlowProps) {
+  const { t } = useTranslation("settings")
   const containerRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
   const [tooltip, setTooltip] = useState<TooltipState | null>(null);
@@ -47,7 +49,7 @@ export function SankeyFlow({ data, currency = "EUR", onCategoryClick }: SankeyFl
     return (
       <div className="flex items-center justify-center h-[200px] text-slate-400">
         {/* `data` vaut null tant que l'API n'a pas répondu : ce n'est pas encore « pas de données » */}
-        {data ? "Pas assez de données pour générer le diagramme de flux." : "Chargement du diagramme…"}
+        {data ? t("sankeyFlow.pasAssezDeDonneesPour") : t("sankeyFlow.chargementDuDiagramme")}
       </div>
     );
   }

@@ -1,3 +1,4 @@
+import i18n from "i18next"
 import { appLocale } from "@/i18n/locale"
 import React from 'react';
 import { Treemap, ResponsiveContainer, Tooltip } from 'recharts';
@@ -91,7 +92,7 @@ export const AllocationTreemap: React.FC<AllocationTreemapProps> = ({ data, onIt
   if (!data || data.length === 0) {
     return (
       <div className="flex items-center justify-center h-[260px] md:h-[400px] bg-slate-50 rounded-xl border border-dashed border-slate-200">
-        <p className="text-slate-400 font-medium">Aucune donnée d'allocation disponible.</p>
+        <p className="text-slate-400 font-medium">{i18n.t("allocationTreemap.aucuneDonneeDAllocationDisponible", { ns: "settings" })}</p>
       </div>
     );
   }

@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react"
+import { useTranslation } from "react-i18next"
+import { useCallback, useEffect, useState } from "react"
 import { ArrowRight, Download } from "lucide-react"
 import { toast } from "sonner"
 
@@ -16,10 +17,11 @@ type Account = {
 }
 
 export function ExportCard() {
+  const { t } = useTranslation("settings")
   const [accounts, setAccounts] = useState<Account[]>([])
   const [selectedAccounts, setSelectedAccounts] = useState<number[]>([])
 
-  const loadAccounts = async () => {
+  const loadAccounts = useCallback(async () => {
     try {
       const data = await api.get<Account[]>("/accounts")
       const activeAccounts = data.filter((a) => a.active)
@@ -28,13 +30,13 @@ export function ExportCard() {
       setSelectedAccounts(activeAccounts.map(a => a.id))
     } catch (error) {
       console.error("Erreur chargement comptes", error)
-      toast.error("Impossible de charger les comptes")
+      toast.error(t("exportCard.impossibleDeChargerLesComptes"))
     }
-  }
+  }, [t])
 
   useEffect(() => {
     loadAccounts()
-  }, [])
+  }, [loadAccounts])
 
   const handleExport = async () => {
     // Téléchargement authentifié (le JWT ne peut pas passer par window.location)
@@ -51,20 +53,20 @@ export function ExportCard() {
       a.click()
       URL.revokeObjectURL(url)
     } catch (error: any) {
-      toast.error(error?.message || "Erreur lors de l'export")
+      toast.error(error?.message || t("exportCard.erreurLorsDeLExport"))
     }
   }
 
   return (
     <Card className="shadow-sm border-slate-100 overflow-hidden">
       <CardHeader className="bg-slate-50/50 border-b">
-        <CardTitle className="text-lg">Données et Export</CardTitle>
-        <CardDescription>Téléchargez vos données pour les utiliser ailleurs.</CardDescription>
+        <CardTitle className="text-lg">{t("exportCard.donneesEtExport")}</CardTitle>
+        <CardDescription>{t("exportCard.telechargezVosDonneesPourLes")}</CardDescription>
       </CardHeader>
       <CardContent className="p-4 sm:p-6 space-y-6">
         <div className="space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            <Label className="text-sm font-bold text-slate-700 uppercase tracking-wider">Comptes à inclure</Label>
+            <Label className="text-sm font-bold text-slate-700 uppercase tracking-wider">{t("exportCard.comptesAInclure")}</Label>
             <div className="flex gap-2">
               <Button 
                 variant="ghost" 
@@ -72,7 +74,7 @@ export function ExportCard() {
                 className="h-10 sm:h-7 text-[10px] uppercase font-bold px-3 sm:px-2"
                 onClick={() => setSelectedAccounts(accounts.map(a => a.id))}
               >
-                Tout sélectionner
+                {t("exportCard.toutSelectionner")}
               </Button>
               <Button 
                 variant="ghost" 
@@ -80,7 +82,7 @@ export function ExportCard() {
                 className="h-10 sm:h-7 text-[10px] uppercase font-bold px-3 sm:px-2"
                 onClick={() => setSelectedAccounts([])}
               >
-                Tout désélectionner
+                {t("exportCard.toutDeselectionner")}
               </Button>
             </div>
           </div>
@@ -124,9 +126,9 @@ export function ExportCard() {
                 <Download className="h-5 w-5" />
               </div>
               <div className="text-left">
-                <p className="font-bold">Exporter en CSV</p>
+                <p className="font-bold">{t("exportCard.exporterEnCsv")}</p>
                 <p className="text-[10px] opacity-70 uppercase tracking-widest">
-                  {selectedAccounts.length} compte(s) sélectionné(s)
+                  {t("misc.accountsSelected", { count: selectedAccounts.length })}
                 </p>
               </div>
             </div>

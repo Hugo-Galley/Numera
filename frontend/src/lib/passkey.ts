@@ -1,4 +1,5 @@
 // WebAuthn (Face ID / Touch ID) : conversions base64url <-> ArrayBuffer autour de navigator.credentials.
+import i18n from "i18next"
 import { API_BASE } from "@/lib/api"
 
 export const passkeySupported = () => typeof window !== "undefined" && !!window.PublicKeyCredential && !!navigator.credentials
@@ -66,12 +67,12 @@ export async function loginWithPasskey(): Promise<string> {
       body: body ? JSON.stringify(body) : undefined,
     })
     const data = await response.json().catch(() => ({}))
-    if (!response.ok) throw new Error(typeof data.detail === "string" ? data.detail : "Connexion par passkey impossible")
+    if (!response.ok) throw new Error(typeof data.detail === "string" ? data.detail : i18n.t("errors.passkeyFailed", { ns: "common" }))
     return data
   }
   const { options, state } = await post("login/options")
   const credential = await getCredential(options)
-  if (!credential) throw new Error("Connexion annulée")
+  if (!credential) throw new Error(i18n.t("errors.loginCancelled", { ns: "common" }))
   const { access_token } = await post("login/verify", { state, credential: serializeCredential(credential) })
   return access_token
 }

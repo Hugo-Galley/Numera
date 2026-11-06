@@ -129,7 +129,9 @@
     "revenus": "Revenus",
     "depensesReelles": "Dépenses réelles",
     "misDeCote": "Mis de côté",
-    "epargneInvesti": "épargne + investi"
+    "epargneInvesti": "épargne + investi",
+    "unresolvedPoints_one": " · {{count}} point non résolu",
+    "unresolvedPoints_other": " · {{count}} points non résolus"
   },
   "misc": {
     "vsPrevious": "{{amount}} vs mois précédent",

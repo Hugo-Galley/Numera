@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import { useCallback, useEffect, useState } from "react"
 import { Copy, KeyRound, ShieldCheck } from "lucide-react"
 import { api } from "@/lib/api"
@@ -24,6 +25,7 @@ type Step = "idle" | "password" | "scan" | "disable" | "regenerate"
 const codeInputClass = "h-11 font-mono tracking-widest sm:h-10"
 
 export function TotpCard() {
+  const { t } = useTranslation("settings")
   const [status, setStatus] = useState<TotpStatus | null>(null)
   const [step, setStep] = useState<Step>("idle")
   const [password, setPassword] = useState("")
@@ -56,7 +58,7 @@ export function TotpCard() {
     try {
       await action()
     } catch (err: any) {
-      toast.error(err?.message || "Opération impossible")
+      toast.error(err?.message || t("totpCard.operationImpossible"))
     } finally {
       setBusy(false)
     }
@@ -77,7 +79,7 @@ export function TotpCard() {
       const { recovery_codes } = await api.post<{ recovery_codes: string[] }>("/auth/totp/enable", { code })
       setRecoveryCodes(recovery_codes)
       reset()
-      toast.success("Double authentification activée")
+      toast.success(t("totpCard.doubleAuthentificationActivee"))
       load()
     })
   }
@@ -88,7 +90,7 @@ export function TotpCard() {
       await api.post("/auth/totp/disable", { current_password: password, code })
       setRecoveryCodes(null)
       reset()
-      toast.success("Double authentification désactivée")
+      toast.success(t("totpCard.doubleAuthentificationDesactivee"))
       load()
     })
   }
@@ -99,7 +101,7 @@ export function TotpCard() {
       const { recovery_codes } = await api.post<{ recovery_codes: string[] }>("/auth/totp/recovery-codes", { code })
       setRecoveryCodes(recovery_codes)
       reset()
-      toast.success("Nouveaux codes de secours générés")
+      toast.success(t("totpCard.nouveauxCodesDeSecoursGeneres"))
       load()
     })
   }
@@ -108,9 +110,9 @@ export function TotpCard() {
     if (!recoveryCodes) return
     try {
       await navigator.clipboard.writeText(recoveryCodes.join("\n"))
-      toast.success("Codes copiés")
+      toast.success(t("totpCard.codesCopies"))
     } catch {
-      toast.error("Copie impossible")
+      toast.error(t("totpCard.copieImpossible"))
     }
   }
 
@@ -133,7 +135,7 @@ export function TotpCard() {
 
   const passwordField = (
     <div className="space-y-2">
-      <Label htmlFor="totp-settings-password">Mot de passe actuel</Label>
+      <Label htmlFor="totp-settings-password">{t("totpCard.motDePasseActuel")}</Label>
       <Input
         id="totp-settings-password"
         type="password"
@@ -149,10 +151,10 @@ export function TotpCard() {
   const actions = (submitLabel: string) => (
     <div className="flex flex-col gap-2 sm:flex-row">
       <Button type="submit" disabled={busy} className="h-11 sm:h-10">
-        {busy ? "En cours..." : submitLabel}
+        {busy ? t("totpCard.enCours") : submitLabel}
       </Button>
       <Button type="button" variant="ghost" onClick={reset} disabled={busy} className="h-11 sm:h-10">
-        Annuler
+        {t("totpCard.annuler")}
       </Button>
     </div>
   )
@@ -162,21 +164,19 @@ export function TotpCard() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <ShieldCheck className="h-5 w-5" />
-          Double authentification
-          {status?.enabled && <Badge variant="secondary">Activée</Badge>}
+          {t("totpCard.doubleAuthentification")}
+          {status?.enabled && <Badge variant="secondary">{t("totpCard.activee")}</Badge>}
         </CardTitle>
         <CardDescription>
-          Un code de Google Authenticator (ou équivalent) est demandé après le mot de passe. La connexion par passkey
-          n'est pas concernée : elle suffit à elle seule.
+          {t("totpCard.unCodeDeGoogleAuthenticator")}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {recoveryCodes && (
           <div className="space-y-3 rounded-lg border border-amber-500/40 bg-amber-500/5 p-4" data-privacy-ignore>
-            <p className="text-sm font-semibold">Codes de secours</p>
+            <p className="text-sm font-semibold">{t("totpCard.codesDeSecours")}</p>
             <p className="text-sm text-muted-foreground">
-              Garde-les en lieu sûr : chacun permet une connexion sans ton téléphone, une seule fois. Ils ne seront plus
-              affichés.
+              {t("totpCard.gardeLesEnLieuSur")}
             </p>
             <div className="grid grid-cols-2 gap-2 font-mono text-sm">
               {recoveryCodes.map((c) => (
@@ -186,10 +186,10 @@ export function TotpCard() {
             <div className="flex flex-col gap-2 sm:flex-row">
               <Button type="button" variant="outline" onClick={copyCodes} className="h-11 sm:h-10">
                 <Copy className="mr-2 h-4 w-4" />
-                Copier
+                {t("totpCard.copier")}
               </Button>
               <Button type="button" variant="ghost" onClick={() => setRecoveryCodes(null)} className="h-11 sm:h-10">
-                Je les ai notés
+                {t("totpCard.jeLesAiNotes")}
               </Button>
             </div>
           </div>
@@ -198,23 +198,22 @@ export function TotpCard() {
         {step === "idle" && status && !status.enabled && (
           <Button type="button" variant="outline" onClick={() => setStep("password")} className="h-11 w-full sm:w-auto">
             <ShieldCheck className="mr-2 h-4 w-4" />
-            Activer
+            {t("totpCard.activer")}
           </Button>
         )}
 
         {step === "idle" && status?.enabled && (
           <div className="space-y-3">
             <p className="text-sm text-muted-foreground">
-              {status.recovery_codes_left} code{status.recovery_codes_left > 1 ? "s" : ""} de secours restant
-              {status.recovery_codes_left > 1 ? "s" : ""}.
+              {t("misc.recoveryLeft", { count: status.recovery_codes_left })}
             </p>
             <div className="flex flex-col gap-2 sm:flex-row">
               <Button type="button" variant="outline" onClick={() => setStep("regenerate")} className="h-11 sm:h-10">
                 <KeyRound className="mr-2 h-4 w-4" />
-                Nouveaux codes de secours
+                {t("totpCard.nouveauxCodesDeSecours")}
               </Button>
               <Button type="button" variant="ghost" onClick={() => setStep("disable")} className="h-11 text-destructive sm:h-10">
-                Désactiver
+                {t("totpCard.desactiver")}
               </Button>
             </div>
           </div>
@@ -230,14 +229,14 @@ export function TotpCard() {
         {step === "scan" && setup && (
           <form onSubmit={confirmSetup} className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Scanne ce QR code avec Google Authenticator, puis saisis le code affiché pour confirmer.
+              {t("totpCard.scanneCeQrCodeAvec")}
             </p>
-            <img src={setup.qr_svg} alt="QR code de configuration" className="h-48 w-48 rounded-lg bg-white p-1" />
+            <img src={setup.qr_svg} alt={t("totpCard.qrCodeDeConfiguration")} className="h-48 w-48 rounded-lg bg-white p-1" />
             <div className="space-y-1">
-              <p className="text-xs text-muted-foreground">Ou saisis cette clé à la main :</p>
+              <p className="text-xs text-muted-foreground">{t("totpCard.ouSaisisCetteCleA")}</p>
               <p className="break-all font-mono text-sm">{setup.secret.match(/.{1,4}/g)?.join(" ")}</p>
             </div>
-            {codeField("Code à 6 chiffres")}
+            {codeField(t("misc.code6"))}
             {actions("Activer")}
           </form>
         )}
@@ -245,16 +244,16 @@ export function TotpCard() {
         {step === "disable" && (
           <form onSubmit={disable} className="space-y-3">
             {passwordField}
-            {codeField("Code de l'application ou code de secours")}
-            {actions("Désactiver")}
+            {codeField(t("misc.codeAppOrBackup"))}
+            {actions(t("misc.disable"))}
           </form>
         )}
 
         {step === "regenerate" && (
           <form onSubmit={regenerate} className="space-y-3">
-            <p className="text-sm text-muted-foreground">Les anciens codes de secours ne fonctionneront plus.</p>
-            {codeField("Code de l'application")}
-            {actions("Générer")}
+            <p className="text-sm text-muted-foreground">{t("totpCard.lesAnciensCodesDeSecours")}</p>
+            {codeField(t("misc.codeApp"))}
+            {actions(t("misc.generate"))}
           </form>
         )}
       </CardContent>

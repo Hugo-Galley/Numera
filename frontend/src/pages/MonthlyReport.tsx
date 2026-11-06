@@ -111,7 +111,7 @@ export default function IntelligentReport() {
               <Link to={reviewLink} className="inline-flex min-h-8 items-center gap-1.5 text-xs font-medium text-emerald-600 hover:underline md:min-h-0">
                 <CheckCircle2 className="h-3.5 w-3.5" />
                 {t("monthlyReport.moisCloture")}
-                {closure.unresolved_count > 0 && ` · ${closure.unresolved_count} point(s) non résolus`}
+                {closure.unresolved_count > 0 && t("monthlyReport.unresolvedPoints", { count: closure.unresolved_count })}
               </Link>
             ) : (
               <Link to={reviewLink} className="inline-flex min-h-8 items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-slate-900 hover:underline md:min-h-0">
