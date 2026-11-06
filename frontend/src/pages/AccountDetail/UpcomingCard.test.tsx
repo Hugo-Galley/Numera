@@ -1,5 +1,6 @@
 /** Carte « À venir » du compte : saisies futures et échéances récurrentes, solde projeté. */
 import { screen, within } from "@testing-library/react"
+import userEvent from "@testing-library/user-event"
 import { http, HttpResponse } from "msw"
 import { apiUrl } from "@/test/handlers"
 import { renderWithProviders } from "@/test/render"
@@ -25,11 +26,15 @@ describe("UpcomingCard", () => {
     renderWithProviders(<UpcomingCard accountId={1} currency="EUR" refreshKey={0} />, { auth: true })
 
     const card = await screen.findByRole("region", { name: "À venir" })
-    expect(within(card).getByText("Loyer")).toBeInTheDocument()
-    expect(within(card).getByText("Netflix")).toBeInTheDocument()
-    expect(within(card).getByText("Récurrent")).toBeInTheDocument()
-    expect(within(card).getByText(/Solde projeté/)).toBeInTheDocument()
     expect(within(card).getByText(/1\s?185,00/)).toBeInTheDocument()
+    expect(screen.queryByText("Loyer")).not.toBeInTheDocument()
+
+    await userEvent.click(within(card).getByRole("button", { name: /À venir/ }))
+    const dialog = await screen.findByRole("dialog") // popover Radix
+    expect(within(dialog).getByText("Loyer")).toBeInTheDocument()
+    expect(within(dialog).getByText("Netflix")).toBeInTheDocument()
+    expect(within(dialog).getByText("Récurrent")).toBeInTheDocument()
+    expect(within(dialog).getByText(/Solde projeté/)).toBeInTheDocument()
   })
 
   it("demande la projection du compte sur 30 jours", async () => {
@@ -50,6 +55,7 @@ describe("UpcomingCard", () => {
     ])
     renderWithProviders(<UpcomingCard accountId={1} currency="EUR" refreshKey={0} />, { auth: true })
 
+    await userEvent.click(await screen.findByRole("button", { name: /À venir/ }))
     expect(await screen.findAllByText("Doublon possible")).toHaveLength(2)
   })
 
