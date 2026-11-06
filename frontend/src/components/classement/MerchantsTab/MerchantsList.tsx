@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -7,6 +8,7 @@ import type { MerchantsTabCtx } from "./useMerchantsTab"
 
 /** Recherche et liste des marchands. */
 export function MerchantsList({ ctx }: { ctx: MerchantsTabCtx }) {
+  const { t } = useTranslation("classement")
   const { filteredMerchants, handleDeleteMerchant, handleEditClick, loading, search, setSearch } = ctx
   return (
     <>
@@ -14,7 +16,7 @@ export function MerchantsList({ ctx }: { ctx: MerchantsTabCtx }) {
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
           <Input 
-            placeholder="Rechercher un marchand ou un libellé..." 
+            placeholder={t("merchantsList.rechercherUnMarchandOuUn")} 
             className="pl-10 bg-white border-slate-200 h-12 rounded-xl"
             type="search"
             enterKeyHint="search"
@@ -24,7 +26,7 @@ export function MerchantsList({ ctx }: { ctx: MerchantsTabCtx }) {
         </div>
 
         {loading ? (
-          <div className="text-center py-20 text-slate-400">Chargement...</div>
+          <div className="text-center py-20 text-slate-400">{t("merchantsList.chargement")}</div>
         ) : (
           <div className="grid gap-4">
             {filteredMerchants.map(m => (
@@ -45,16 +47,16 @@ export function MerchantsList({ ctx }: { ctx: MerchantsTabCtx }) {
                               </Badge>
                             ))
                           ) : (
-                            <p className="text-[10px] text-slate-400 italic">Aucune variante définie</p>
+                            <p className="text-[10px] text-slate-400 italic">{t("merchantsList.aucuneVarianteDefinie")}</p>
                           )}
                         </div>
                       </div>
                     </div>
                     <div className="flex shrink-0 gap-1 md:gap-2 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
-                      <Button aria-label="Modifier" variant="ghost" size="sm" onClick={() => handleEditClick(m)} className="h-10 w-10 md:h-8 md:w-8 p-0 text-slate-500 hover:text-slate-900">
+                      <Button aria-label={t("merchantsList.modifier")} variant="ghost" size="sm" onClick={() => handleEditClick(m)} className="h-10 w-10 md:h-8 md:w-8 p-0 text-slate-500 hover:text-slate-900">
                         <Pencil className="h-4 w-4" />
                       </Button>
-                      <Button aria-label="Supprimer" variant="ghost" size="sm" onClick={() => handleDeleteMerchant(m.id)} className="h-10 w-10 md:h-8 md:w-8 p-0 text-rose-500 hover:text-rose-600 hover:bg-rose-50">
+                      <Button aria-label={t("merchantsList.supprimer")} variant="ghost" size="sm" onClick={() => handleDeleteMerchant(m.id)} className="h-10 w-10 md:h-8 md:w-8 p-0 text-rose-500 hover:text-rose-600 hover:bg-rose-50">
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
@@ -65,7 +67,7 @@ export function MerchantsList({ ctx }: { ctx: MerchantsTabCtx }) {
             {filteredMerchants.length === 0 && (
               <div className="py-20 text-center bg-slate-50 rounded-3xl border-2 border-dashed border-slate-200">
                 <ShoppingBag className="h-10 w-10 text-slate-300 mx-auto mb-4" />
-                <p className="text-slate-500 font-medium">Aucun marchand trouvé.</p>
+                <p className="text-slate-500 font-medium">{t("merchantsList.aucunMarchandTrouve")}</p>
               </div>
             )}
           </div>

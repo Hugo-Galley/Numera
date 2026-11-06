@@ -1,3 +1,5 @@
+import i18n from "i18next"
+import { useTranslation } from "react-i18next"
 import { useEffect, useState } from "react"
 import { ErrorState } from "@/components/layout/ErrorState"
 import {
@@ -43,6 +45,7 @@ import { toast } from "sonner"
 import { useConfirm } from "@/providers/ConfirmProvider"
 
 export function RulesTab() {
+  const { t } = useTranslation("classement")
   const confirm = useConfirm()
   const [rules, setRules] = useState<any[]>([])
   const [categories, setCategories] = useState<any[]>([])
@@ -88,7 +91,7 @@ export function RulesTab() {
         category_id: newRule.category_id ? parseInt(newRule.category_id) : null,
         transaction_type: newRule.transaction_type === "none" ? null : newRule.transaction_type,
       })
-      toast.success("Règle créée avec succès")
+      toast.success(t("rulesTab.regleCreeeAvecSucces"))
       setIsAddOpen(false)
       setNewRule({
         pattern: "",
@@ -99,76 +102,76 @@ export function RulesTab() {
       })
       loadData()
     } catch (error) {
-      toast.error("Échec de la création")
+      toast.error(t("rulesTab.echecDeLaCreation"))
     }
   }
 
   async function handleDelete(id: number) {
-    if (!(await confirm("Supprimer cette règle ?"))) return
+    if (!(await confirm(t("rulesTab.supprimerCetteRegle")))) return
     try {
       await api.delete(`/categorization-rules/${id}`)
-      toast.success("Règle supprimée")
+      toast.success(t("rulesTab.regleSupprimee"))
       loadData()
     } catch (error) {
-      toast.error("Échec de la suppression")
+      toast.error(t("rulesTab.echecDeLaSuppression"))
     }
   }
 
   async function handleApplyAll() {
     try {
       const res = await api.post<any>("/categorization-rules/apply-all", {})
-      toast.success(`${res.modified_count} transactions mises à jour`)
+      toast.success(i18n.t("misc.updated", { ns: "classement", count: res.modified_count }))
     } catch (error) {
-      toast.error("Échec de l'application des règles")
+      toast.error(t("rulesTab.echecDeLApplicationDes"))
     }
   }
 
-  if (loading) return <div className="p-8 text-center text-slate-500">Chargement...</div>
-  if (loadFailed) return <ErrorState message="Impossible de charger les règles." onRetry={() => { setLoading(true); loadData() }} />
+  if (loading) return <div className="p-8 text-center text-slate-500">{t("rulesTab.chargement")}</div>
+  if (loadFailed) return <ErrorState message={t("rulesTab.impossibleDeChargerLesRegles")} onRetry={() => { setLoading(true); loadData() }} />
 
   return (
     <div className="space-y-6 [&_input]:text-base md:[&_input]:text-sm">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h3 className="text-lg font-bold text-slate-900">Règles d'auto-catégorisation</h3>
-          <p className="text-sm text-slate-500 mt-1">Définissez des règles pour automatiser le tri de vos transactions lors de l'import.</p>
+          <h3 className="text-lg font-bold text-slate-900">{t("rulesTab.reglesDAutoCategorisation")}</h3>
+          <p className="text-sm text-slate-500 mt-1">{t("rulesTab.definissezDesReglesPourAutomatiser")}</p>
         </div>
         <div className="grid grid-cols-2 gap-2 sm:flex">
            <Button variant="outline" size="sm" className="h-11 gap-2 sm:h-9" onClick={handleApplyAll}>
              <RefreshCw className="h-4 w-4" />
-             Appliquer à l'existant
+             {t("rulesTab.appliquerALExistant")}
            </Button>
            <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
              <DialogTrigger asChild>
                <Button size="sm" className="h-11 w-full gap-2 sm:h-9 sm:w-auto">
                  <Plus className="h-4 w-4" />
-                 Nouvelle règle
+                 {t("rulesTab.nouvelleRegle")}
                </Button>
              </DialogTrigger>
              <DialogContent className="[&_input]:text-base md:[&_input]:text-sm sm:max-w-[425px]">
                <DialogHeader>
-                 <DialogTitle>Ajouter une règle</DialogTitle>
+                 <DialogTitle>{t("rulesTab.ajouterUneRegle")}</DialogTitle>
                  <DialogDescription>
-                   Les transactions dont le marchand ou la note contient ce texte seront automatiquement modifiées.
+                   {t("rulesTab.lesTransactionsDontLeMarchand")}
                  </DialogDescription>
                </DialogHeader>
                <div className="grid gap-4 py-4">
                  <div className="space-y-2">
-                   <label className="text-sm font-bold">Mot-clé (Pattern)</label>
+                   <label className="text-sm font-bold">{t("rulesTab.motClePattern")}</label>
                    <Input 
-                     placeholder="Ex: Uber, Netflix, Carrefour..." 
+                     placeholder={t("rulesTab.exUberNetflixCarrefour")} 
                      value={newRule.pattern}
                      onChange={e => setNewRule({...newRule, pattern: e.target.value})}
                    />
                  </div>
                  <div className="space-y-2">
-                   <label className="text-sm font-bold">Catégorie cible</label>
+                   <label className="text-sm font-bold">{t("rulesTab.categorieCible")}</label>
                    <Select 
                      value={newRule.category_id} 
                      onValueChange={v => setNewRule({...newRule, category_id: v})}
                    >
                      <SelectTrigger>
-                       <SelectValue placeholder="Choisir une catégorie" />
+                       <SelectValue placeholder={t("rulesTab.choisirUneCategorie")} />
                      </SelectTrigger>
                      <SelectContent>
                        {categories.map(c => (
@@ -178,16 +181,16 @@ export function RulesTab() {
                    </Select>
                  </div>
                  <div className="space-y-2">
-                   <label className="text-sm font-bold">Renommer le marchand (Optionnel)</label>
+                   <label className="text-sm font-bold">{t("rulesTab.renommerLeMarchandOptionnel")}</label>
                    <Input 
-                     placeholder="Nom propre du marchand" 
+                     placeholder={t("rulesTab.nomPropreDuMarchand")} 
                      value={newRule.merchant_name}
                      onChange={e => setNewRule({...newRule, merchant_name: e.target.value})}
                    />
                  </div>
                  <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <label className="text-sm font-bold">Type</label>
+                      <label className="text-sm font-bold">{t("rulesTab.type")}</label>
                       <Select 
                         value={newRule.transaction_type} 
                         onValueChange={v => setNewRule({...newRule, transaction_type: v})}
@@ -196,14 +199,14 @@ export function RulesTab() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="none">Aucun changement</SelectItem>
-                          <SelectItem value="Sortie">Forcer en Sortie</SelectItem>
-                          <SelectItem value="Entree">Forcer en Entrée</SelectItem>
+                          <SelectItem value="none">{t("rulesTab.aucunChangement")}</SelectItem>
+                          <SelectItem value="Sortie">{t("rulesTab.forcerEnSortie")}</SelectItem>
+                          <SelectItem value="Entree">{t("rulesTab.forcerEnEntree")}</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                     <div className="space-y-2">
-                      <label className="text-sm font-bold">Priorité</label>
+                      <label className="text-sm font-bold">{t("rulesTab.priorite")}</label>
                       <Input 
                         type="number" inputMode="decimal" 
                         value={newRule.priority}
@@ -213,8 +216,8 @@ export function RulesTab() {
                  </div>
                </div>
                <DialogFooter className="gap-2 sm:gap-0">
-                 <Button variant="outline" className="h-11 sm:h-10" onClick={() => setIsAddOpen(false)}>Annuler</Button>
-                 <Button className="h-11 sm:h-10" onClick={handleCreate}>Créer la règle</Button>
+                 <Button variant="outline" className="h-11 sm:h-10" onClick={() => setIsAddOpen(false)}>{t("rulesTab.annuler")}</Button>
+                 <Button className="h-11 sm:h-10" onClick={handleCreate}>{t("rulesTab.creerLaRegle")}</Button>
                </DialogFooter>
              </DialogContent>
            </Dialog>
@@ -247,15 +250,15 @@ export function RulesTab() {
                         )}
                         {rule.transaction_type && (
                           <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 border-amber-200 text-amber-700">
-                            Type → {rule.transaction_type === "Entree" ? "Entrée" : rule.transaction_type}
+                            Type → {rule.transaction_type === "Entree" ? t("rulesTab.entree") : rule.transaction_type}
                           </Badge>
                         )}
-                        <span className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">Priorité: {rule.priority}</span>
+                        <span className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">{i18n.t("misc.priority", { ns: "classement", value: rule.priority })}</span>
                       </div>
                     </div>
                   </div>
                   <div className="flex shrink-0 items-center gap-2">
-                    <Button aria-label="Supprimer" variant="ghost" size="sm" className="h-10 w-10 md:h-8 md:w-8 p-0 text-slate-400 hover:text-red-600 hover:bg-red-50" onClick={() => handleDelete(rule.id)}>
+                    <Button aria-label={t("rulesTab.supprimer")} variant="ghost" size="sm" className="h-10 w-10 md:h-8 md:w-8 p-0 text-slate-400 hover:text-red-600 hover:bg-red-50" onClick={() => handleDelete(rule.id)}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
@@ -264,7 +267,7 @@ export function RulesTab() {
             })}
             {rules.length === 0 && (
               <div className="p-12 text-center text-slate-400 italic bg-slate-50/50">
-                Aucune règle définie. Automatisez votre gestion en créant votre première règle.
+                {t("rulesTab.aucuneRegleDefinieAutomatisezVotre")}
               </div>
             )}
           </div>
@@ -274,7 +277,7 @@ export function RulesTab() {
       <div className="p-4 bg-amber-50 rounded-xl border border-amber-100 flex gap-3">
          <AlertCircle className="h-5 w-5 text-amber-600 shrink-0" />
          <p className="text-xs text-amber-800 leading-relaxed">
-           Les règles sont appliquées dans l'ordre de <strong>priorité</strong> décroissante. La première règle qui correspond à une transaction arrête le processus pour cette transaction.
+           {t("rulesTab.lesReglesSontAppliqueesDans")} <strong>{t("rulesTab.priorite2")}</strong> {t("rulesTab.decroissanteLaPremiereRegleQui")}
          </p>
       </div>
     </div>

@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -10,17 +11,18 @@ import type { MerchantsTabCtx } from "./useMerchantsTab"
 
 /** Dialogue de modification d'un marchand et de ses alias. */
 export function EditMerchantDialog({ ctx }: { ctx: MerchantsTabCtx }) {
+  const { t } = useTranslation("classement")
   const { categories, editCategoryId, editColor, editName, editOpen, editingMerchant, handleAddAlias, handleRemoveAlias, handleUpdateMerchant, newAliasLabel, setEditCategoryId, setEditColor, setEditName, setEditOpen, setNewAliasLabel } = ctx
   return (
     <>
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent className="[&_input]:text-base md:[&_input]:text-sm sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-bold">Modifier le marchand</DialogTitle>
+            <DialogTitle className="text-2xl font-bold">{t("editMerchantDialog.modifierLeMarchand")}</DialogTitle>
           </DialogHeader>
           <div className="grid gap-5 py-2 sm:gap-6 sm:py-4">
             <div className="grid gap-2">
-              <Label htmlFor="edit-m-name" className="text-xs font-bold uppercase tracking-wider text-slate-500">Nom Canonique</Label>
+              <Label htmlFor="edit-m-name" className="text-xs font-bold uppercase tracking-wider text-slate-500">{t("editMerchantDialog.nomCanonique")}</Label>
               <Input 
                 id="edit-m-name" 
                 value={editName}
@@ -31,13 +33,13 @@ export function EditMerchantDialog({ ctx }: { ctx: MerchantsTabCtx }) {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="grid gap-2">
-                <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">Catégorie par défaut</Label>
+                <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">{t("editMerchantDialog.categorieParDefaut")}</Label>
                 <Select value={editCategoryId} onValueChange={setEditCategoryId}>
                   <SelectTrigger className="bg-slate-50 border-slate-200">
-                    <SelectValue placeholder="Aucune" />
+                    <SelectValue placeholder={t("editMerchantDialog.aucune")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">Aucune</SelectItem>
+                    <SelectItem value="none">{t("editMerchantDialog.aucune")}</SelectItem>
                     {categories.map(c => (
                       <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
                     ))}
@@ -45,7 +47,7 @@ export function EditMerchantDialog({ ctx }: { ctx: MerchantsTabCtx }) {
                 </Select>
               </div>
               <div className="grid gap-2">
-                <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">Couleur</Label>
+                <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">{t("editMerchantDialog.couleur")}</Label>
                 <Select value={editColor} onValueChange={setEditColor}>
                   <SelectTrigger className="bg-slate-50 border-slate-200">
                     <SelectValue />
@@ -65,12 +67,12 @@ export function EditMerchantDialog({ ctx }: { ctx: MerchantsTabCtx }) {
             </div>
 
             <div className="space-y-3">
-              <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">Variantes de libellés</Label>
+              <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">{t("editMerchantDialog.variantesDeLibelles")}</Label>
               <div className="flex flex-wrap gap-2 p-3 bg-slate-50 rounded-xl border border-slate-200 min-h-[60px]">
                 {editingMerchant?.aliases.map(a => (
                   <Badge key={a.id} className="bg-white text-slate-700 border-slate-200 shadow-sm flex items-center gap-2 pr-1 h-9 sm:h-7">
                     {a.label}
-                    <button aria-label="Fermer" 
+                    <button aria-label={t("editMerchantDialog.fermer")} 
                       onClick={() => handleRemoveAlias(a.id)}
                       className="h-7 w-7 sm:h-5 sm:w-5 rounded-md hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-rose-500 transition-colors"
                     >
@@ -79,27 +81,27 @@ export function EditMerchantDialog({ ctx }: { ctx: MerchantsTabCtx }) {
                   </Badge>
                 ))}
                 {editingMerchant?.aliases.length === 0 && (
-                  <p className="text-xs text-slate-400 italic">Aucune variante.</p>
+                  <p className="text-xs text-slate-400 italic">{t("editMerchantDialog.aucuneVariante")}</p>
                 )}
               </div>
 
               <div className="flex gap-2">
                 <Input 
-                  placeholder="Nouvelle variante..." 
+                  placeholder={t("editMerchantDialog.nouvelleVariante")} 
                   className="bg-white h-11 sm:h-9"
                   value={newAliasLabel}
                   onChange={(e) => setNewAliasLabel(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleAddAlias()}
                 />
-                <Button aria-label="Ajouter" size="sm" onClick={handleAddAlias} variant="secondary" className="h-11 w-11 px-3 sm:h-9 sm:w-auto">
+                <Button aria-label={t("editMerchantDialog.ajouter")} size="sm" onClick={handleAddAlias} variant="secondary" className="h-11 w-11 px-3 sm:h-9 sm:w-auto">
                   <Plus className="h-4 w-4" />
                 </Button>
               </div>
             </div>
           </div>
           <DialogFooter className="gap-2 sm:gap-0">
-            <Button variant="ghost" className="h-11 sm:h-10" onClick={() => setEditOpen(false)}>Annuler</Button>
-            <Button onClick={handleUpdateMerchant} className="h-11 sm:h-10 bg-slate-900 text-white shadow-lg">Enregistrer</Button>
+            <Button variant="ghost" className="h-11 sm:h-10" onClick={() => setEditOpen(false)}>{t("editMerchantDialog.annuler")}</Button>
+            <Button onClick={handleUpdateMerchant} className="h-11 sm:h-10 bg-slate-900 text-white shadow-lg">{t("editMerchantDialog.enregistrer")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

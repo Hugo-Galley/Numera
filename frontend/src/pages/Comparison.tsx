@@ -1,3 +1,5 @@
+import { monthName } from "@/i18n/locale"
+import { useTranslation } from "react-i18next"
 import { formatCurrency, formatRate } from "@/lib/utils"
 import { useState, useEffect, useMemo, useRef } from "react"
 import { 
@@ -40,6 +42,7 @@ import { toast } from "sonner"
 import { yearOptions } from "@/lib/years"
 
 export default function Comparison() {
+  const { t } = useTranslation("month")
   const [loading, setLoading] = useState(false)
   const [failed, setFailed] = useState(false)
   // Dernière requête lancée : une réponse en retard d'une combinaison précédente est ignorée
@@ -49,7 +52,7 @@ export default function Comparison() {
   const amountButton = (row: { name: string; id: number | null }, value: number, month: string, year: string, className = "") => (
     <button
       type="button"
-      title="Voir les transactions"
+      title={t("comparison.voirLesTransactions")}
       disabled={value <= 0}
       onClick={() => openDrilldown({ month: Number(month), year: Number(year), label: row.name, categoryId: row.id })}
       className={`amount-blur rounded tabular-nums underline-offset-2 enabled:hover:underline disabled:cursor-default ${className}`}
@@ -70,10 +73,7 @@ export default function Comparison() {
   const [yearB, setYearB] = useState(String(prevDate.getFullYear()))
   const [dataB, setDataB] = useState<any>(null)
 
-  const months = [
-    "Janvier", "Février", "Mars", "Avril", "Mai", "Juin", 
-    "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"
-  ]
+  const months = Array.from({ length: 12 }, (_, i) => monthName(i + 1))
 
   const loadComparisonData = async () => {
     const id = ++requestId.current
@@ -106,7 +106,7 @@ export default function Comparison() {
       if (id !== requestId.current) return
       console.error("Comparison load error:", error)
       setFailed(true)
-      toast.error("Erreur lors du chargement de la comparaison")
+      toast.error(t("comparison.erreurLorsDuChargementDe"))
     } finally {
       if (id === requestId.current) setLoading(false)
     }
@@ -149,13 +149,13 @@ export default function Comparison() {
   return (
     <div className="space-y-6 pb-10 md:space-y-8">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight md:text-3xl">Comparaison Mensuelle</h1>
-        <p className="text-slate-500 mt-1">Comparez vos revenus et dépenses entre deux périodes.</p>
+        <h1 className="text-2xl font-bold tracking-tight md:text-3xl">{t("comparison.comparaisonMensuelle")}</h1>
+        <p className="text-slate-500 mt-1">{t("comparison.comparezVosRevenusEtDepenses")}</p>
       </div>
 
       <div className="flex flex-col gap-3 rounded-2xl border bg-white p-4 shadow-sm md:flex-row md:flex-wrap md:items-center md:gap-4">
         <div className="grid grid-cols-[1fr_6.5rem] items-center gap-2 md:flex md:gap-3">
-          <Badge className="col-span-2 w-fit bg-slate-900">Période A</Badge>
+          <Badge className="col-span-2 w-fit bg-slate-900">{t("comparison.periodeA")}</Badge>
           <Select value={monthA} onValueChange={setMonthA}>
             <SelectTrigger className="h-11 w-full text-base md:h-10 md:w-[130px] md:text-sm"><SelectValue /></SelectTrigger>
             <SelectContent>{months.map((m, i) => <SelectItem key={i+1} value={String(i+1)}>{m}</SelectItem>)}</SelectContent>
@@ -171,7 +171,7 @@ export default function Comparison() {
         </div>
 
         <div className="grid grid-cols-[1fr_6.5rem] items-center gap-2 md:flex md:gap-3">
-          <Badge variant="outline" className="col-span-2 w-fit border-slate-300 text-slate-500">Période B</Badge>
+          <Badge variant="outline" className="col-span-2 w-fit border-slate-300 text-slate-500">{t("comparison.periodeB")}</Badge>
           <Select value={monthB} onValueChange={setMonthB}>
             <SelectTrigger className="h-11 w-full text-base md:h-10 md:w-[130px] md:text-sm"><SelectValue /></SelectTrigger>
             <SelectContent>{months.map((m, i) => <SelectItem key={i+1} value={String(i+1)}>{m}</SelectItem>)}</SelectContent>
@@ -183,11 +183,11 @@ export default function Comparison() {
         </div>
       </div>
 
-      {failed && <ErrorState message="La comparaison n'a pas pu être chargée." onRetry={loadComparisonData} />}
+      {failed && <ErrorState message={t("comparison.laComparaisonNAPas")} onRetry={loadComparisonData} />}
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-6 [&>*:last-child]:col-span-2 md:[&>*:last-child]:col-span-1">
         <Card>
-          <CardHeader className="p-4 pb-2 md:p-6 md:pb-2"><CardDescription>Écart Revenus</CardDescription></CardHeader>
+          <CardHeader className="p-4 pb-2 md:p-6 md:pb-2"><CardDescription>{t("comparison.ecartRevenus")}</CardDescription></CardHeader>
           <CardContent className="p-4 pt-0 md:p-6 md:pt-0">
             <CardTitle className="whitespace-nowrap text-xl font-bold tabular-nums md:text-2xl">
               <span className="amount-blur">
@@ -209,7 +209,7 @@ export default function Comparison() {
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="p-4 pb-2 md:p-6 md:pb-2"><CardDescription>Écart Dépenses</CardDescription></CardHeader>
+          <CardHeader className="p-4 pb-2 md:p-6 md:pb-2"><CardDescription>{t("comparison.ecartDepenses")}</CardDescription></CardHeader>
           <CardContent className="p-4 pt-0 md:p-6 md:pt-0">
             <CardTitle className="whitespace-nowrap text-xl font-bold tabular-nums md:text-2xl">
               <span className="amount-blur">
@@ -231,7 +231,7 @@ export default function Comparison() {
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="p-4 pb-2 md:p-6 md:pb-2"><CardDescription>Écart Épargne</CardDescription></CardHeader>
+          <CardHeader className="p-4 pb-2 md:p-6 md:pb-2"><CardDescription>{t("comparison.ecartEpargne")}</CardDescription></CardHeader>
           <CardContent className="p-4 pt-0 md:p-6 md:pt-0">
             <CardTitle className="whitespace-nowrap text-xl font-bold tabular-nums md:text-2xl">
               <span className="amount-blur">
@@ -246,7 +246,7 @@ export default function Comparison() {
                   <ArrowDownRight className="h-4 w-4 text-rose-500" />
                 )}
                 <span className={`text-xs font-bold ${(dataA.revenus_apres_depenses - dataB.revenus_apres_depenses) >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
-                  Evolution nette
+                  {t("comparison.evolutionNette")}
                 </span>
               </div>
             )}
@@ -256,8 +256,8 @@ export default function Comparison() {
 
       <Card>
         <CardHeader className="p-4 md:p-6">
-          <CardTitle>Détail par catégorie</CardTitle>
-          <CardDescription>Variation des dépenses entre les deux périodes. Cliquez sur un montant pour voir ses transactions.</CardDescription>
+          <CardTitle>{t("comparison.detailParCategorie")}</CardTitle>
+          <CardDescription>{t("comparison.variationDesDepensesEntreLes")}</CardDescription>
         </CardHeader>
         <CardContent className="p-4 pt-0 md:p-6 md:pt-0">
           <ul className="divide-y divide-slate-100 md:hidden">
@@ -288,17 +288,17 @@ export default function Comparison() {
               </li>
             ))}
             {comparisonRows.length === 0 && !loading && (
-              <li className="py-10 text-center text-slate-400">Sélectionnez deux périodes pour comparer.</li>
+              <li className="py-10 text-center text-slate-400">{t("comparison.selectionnezDeuxPeriodesPourComparer")}</li>
             )}
           </ul>
           <div className="hidden overflow-x-auto md:block">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Catégorie</TableHead>
+                  <TableHead>{t("comparison.categorie")}</TableHead>
                   <TableHead className="text-right">{months[parseInt(monthB, 10)-1] || "B"} {yearB}</TableHead>
                   <TableHead className="text-right">{months[parseInt(monthA, 10)-1] || "A"} {yearA}</TableHead>
-                  <TableHead className="text-right">Écart</TableHead>
+                  <TableHead className="text-right">{t("comparison.ecart")}</TableHead>
                   <TableHead className="text-right">%</TableHead>
                 </TableRow>
               </TableHeader>
@@ -325,7 +325,7 @@ export default function Comparison() {
                   </TableRow>
                 ))}
                 {comparisonRows.length === 0 && !loading && (
-                  <TableRow><TableCell colSpan={5} className="text-center py-10 text-slate-400">Sélectionnez deux périodes pour comparer.</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={5} className="text-center py-10 text-slate-400">{t("comparison.selectionnezDeuxPeriodesPourComparer")}</TableCell></TableRow>
                 )}
               </TableBody>
             </Table>

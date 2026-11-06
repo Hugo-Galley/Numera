@@ -12,6 +12,8 @@ import frOmnibox from "./locales/fr/omnibox.json"
 import frSavings from "./locales/fr/savings.json"
 import frRecurring from "./locales/fr/recurring.json"
 import frReimbursements from "./locales/fr/reimbursements.json"
+import frMonth from "./locales/fr/month.json"
+import frClassement from "./locales/fr/classement.json"
 import frCommon from "./locales/fr/common.json"
 import frDashboard from "./locales/fr/dashboard.json"
 import frNav from "./locales/fr/nav.json"
@@ -27,6 +29,8 @@ import enOmnibox from "./locales/en/omnibox.json"
 import enSavings from "./locales/en/savings.json"
 import enRecurring from "./locales/en/recurring.json"
 import enReimbursements from "./locales/en/reimbursements.json"
+import enMonth from "./locales/en/month.json"
+import enClassement from "./locales/en/classement.json"
 import enCommon from "./locales/en/common.json"
 import enDashboard from "./locales/en/dashboard.json"
 import enNav from "./locales/en/nav.json"
@@ -39,8 +43,8 @@ const STORAGE_KEY = "language"
 
 /** Un catalogue (JSON) par domaine ; le français est la référence, l'anglais doit avoir les mêmes clés. */
 export const resources = {
-  fr: { common: frCommon, accounts: frAccounts, accountDetail: frAccountDetail, import: frImport, loans: frLoans, transactions: frTransactions, investments: frInvestments, omnibox: frOmnibox, savings: frSavings, recurring: frRecurring, reimbursements: frReimbursements, nav: frNav, auth: frAuth, settings: frSettings, dashboard: frDashboard },
-  en: { common: enCommon, accounts: enAccounts, accountDetail: enAccountDetail, import: enImport, loans: enLoans, transactions: enTransactions, investments: enInvestments, omnibox: enOmnibox, savings: enSavings, recurring: enRecurring, reimbursements: enReimbursements, nav: enNav, auth: enAuth, settings: enSettings, dashboard: enDashboard },
+  fr: { common: frCommon, accounts: frAccounts, accountDetail: frAccountDetail, import: frImport, loans: frLoans, transactions: frTransactions, investments: frInvestments, omnibox: frOmnibox, savings: frSavings, recurring: frRecurring, reimbursements: frReimbursements, month: frMonth, classement: frClassement, nav: frNav, auth: frAuth, settings: frSettings, dashboard: frDashboard },
+  en: { common: enCommon, accounts: enAccounts, accountDetail: enAccountDetail, import: enImport, loans: enLoans, transactions: enTransactions, investments: enInvestments, omnibox: enOmnibox, savings: enSavings, recurring: enRecurring, reimbursements: enReimbursements, month: enMonth, classement: enClassement, nav: enNav, auth: enAuth, settings: enSettings, dashboard: enDashboard },
 } as const
 
 const isLanguage = (value: unknown): value is Language => LANGUAGES.includes(value as Language)
