@@ -56,15 +56,7 @@ updates:
       - dependency-name: typescript
         update-types: ["version-update:semver-major"]
       # Migrations majeures à faire à la main, en PR dédiée (les PR Dependabot échouent sinon au build/E2E) :
-      # React 19 (+ types), Tailwind 4 (config et syntaxe), MSW 3.
-      - dependency-name: react
-        update-types: ["version-update:semver-major"]
-      - dependency-name: react-dom
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "@types/react"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "@types/react-dom"
-        update-types: ["version-update:semver-major"]
+      # Tailwind 4 (config et syntaxe), MSW 3.
       - dependency-name: tailwindcss
         update-types: ["version-update:semver-major"]
       # Vite et son plugin React montent ensemble (le plugin déclare le Vite majeur qu'il supporte) : une majeure
