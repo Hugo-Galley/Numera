@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { IconComponent } from "../../IconComponent"
@@ -7,14 +8,15 @@ import type { OverviewTabCtx } from "./useOverviewTab"
 
 /** Dépenses par catégorie (graphique et liste). */
 export function ExpensesCards({ ctx }: { ctx: OverviewTabCtx }) {
+  const { t } = useTranslation("dashboard")
   const { displayCurrency, expensesByCategory, isMobile, openCategory } = ctx
   return (
     <>
       <div className="grid grid-cols-1 gap-5 md:gap-8 lg:grid-cols-12">
         <Card className="lg:col-span-8 shadow-sm border-slate-100 overflow-hidden">
           <CardHeader className="bg-slate-50/50 border-b p-4 pb-3 md:p-6 md:pb-4">
-            <CardTitle className="text-lg">Dépenses par catégorie</CardTitle>
-            <CardDescription>Où va votre argent ce mois-ci ? Cliquez sur une barre pour voir les transactions.</CardDescription>
+            <CardTitle className="text-lg">{t("overview.expensesTitle")}</CardTitle>
+            <CardDescription>{t("overview.expensesSubtitle")}</CardDescription>
           </CardHeader>
           <CardContent className="p-2 sm:p-6" style={{ height: isMobile ? Math.max(220, expensesByCategory.length * 34 + 30) : 400 }}>
             <ResponsiveContainer width="100%" height="100%">
@@ -47,8 +49,8 @@ export function ExpensesCards({ ctx }: { ctx: OverviewTabCtx }) {
 
         <Card className="lg:col-span-4 shadow-sm border-slate-100 overflow-hidden">
           <CardHeader className="bg-slate-50/50 border-b p-4 pb-3 md:p-6 md:pb-4">
-            <CardTitle className="text-lg">Répartition</CardTitle>
-            <CardDescription>Poids des catégories.</CardDescription>
+            <CardTitle className="text-lg">{t("overview.splitTitle")}</CardTitle>
+            <CardDescription>{t("overview.splitSubtitle")}</CardDescription>
           </CardHeader>
           <CardContent className="p-4 md:p-6 flex flex-col items-center">
             <div className="h-[220px] md:h-[250px] w-full">

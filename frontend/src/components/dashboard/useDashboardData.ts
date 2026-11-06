@@ -1,3 +1,4 @@
+import i18n from "i18next"
 import { useState, useEffect, useCallback } from "react"
 import { toast } from "sonner"
 import { api } from "@/lib/api"
@@ -122,7 +123,7 @@ export function useDashboardData(selectedAccountId: string, month: number, year:
       if (cancelled) return
       setLoading(false)
       setFailedCount(failed)
-      if (failed > 0) toast.error("Certaines données du tableau de bord n'ont pas pu être chargées.")
+      if (failed > 0) toast.error(i18n.t("partialLoadError", { ns: "dashboard" }))
     })
 
     return () => {

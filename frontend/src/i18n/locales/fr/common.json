@@ -18,5 +18,23 @@
     "reload": "Recharger",
     "renderTitle": "Cette page a rencontré une erreur",
     "renderText": "Vos données ne sont pas affectées. Réessayez ou rechargez la page."
+  },
+  "workHours": {
+    "minutes": "{{n}} min",
+    "hours": "{{n}} h",
+    "hoursMinutes": "{{h}} h {{min}}",
+    "days": "{{value}} j",
+    "rate": "Au taux de {{rate}} €/h net",
+    "approx": "≈ {{duration}} de travail"
+  },
+  "actions": {
+    "add": "Ajouter",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "cancel": "Annuler",
+    "save": "Enregistrer",
+    "saving": "Enregistrement…",
+    "none": "Aucun",
+    "date": "Date"
   }
 }

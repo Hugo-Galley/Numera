@@ -1,16 +1,18 @@
+import { useTranslation } from "react-i18next"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { SankeyFlow } from "@/components/analytics/SankeyFlow"
 import type { OverviewTabCtx } from "./useOverviewTab"
 
 /** Flux d'argent (Sankey). */
 export function SankeyCard({ ctx }: { ctx: OverviewTabCtx }) {
+  const { t } = useTranslation("dashboard")
   const { displayCurrency, drilldownScope, isMobile, openDrilldown, sankeyData } = ctx
   return (
     <>
       <Card className="shadow-sm border-slate-100 overflow-hidden">
         <CardHeader className="bg-slate-50/50 border-b p-4 pb-3 md:p-6 md:pb-4">
-          <CardTitle className="text-lg">Flux Financiers</CardTitle>
-          <CardDescription>Visualisation des revenus vers les dépenses et l'épargne. Cliquez sur une catégorie pour voir ses transactions.</CardDescription>
+          <CardTitle className="text-lg">{t("overview.flowTitle")}</CardTitle>
+          <CardDescription>{t("overview.flowSubtitle")}</CardDescription>
         </CardHeader>
         <CardContent className="p-3 md:p-6">
           {isMobile ? (
@@ -21,7 +23,7 @@ export function SankeyCard({ ctx }: { ctx: OverviewTabCtx }) {
                   <SankeyFlow data={sankeyData} currency={displayCurrency} onCategoryClick={(categoryId, label) => openDrilldown({ ...drilldownScope, label, categoryId })} />
                 </div>
               </div>
-              <p className="mt-1 text-center text-xs text-slate-400">Faites glisser pour voir tout le diagramme →</p>
+              <p className="mt-1 text-center text-xs text-slate-400">{t("overview.dragHint")}</p>
             </div>
           ) : (
             <SankeyFlow data={sankeyData} currency={displayCurrency} onCategoryClick={(categoryId, label) => openDrilldown({ ...drilldownScope, label, categoryId })} />

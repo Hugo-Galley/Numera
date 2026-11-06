@@ -1,7 +1,15 @@
 import { useDrilldown } from "@/hooks/useDrilldown"
 import { useIsMobile } from "@/hooks/useIsMobile"
+import i18n from "i18next"
 import { useMemo, useState } from "react"
 import { COLORS, OverviewTabProps } from "./types"
+
+/** Libellés des types de compte, dans la langue courante (lus à l'appel : pas une dépendance de hook). */
+const wealthLabels = (): Record<string, string> => ({
+  courant: i18n.t("overview.wealthGroup.courant", { ns: "dashboard" }),
+  epargne: i18n.t("overview.wealthGroup.epargne", { ns: "dashboard" }),
+  investissement: i18n.t("overview.wealthGroup.investissement", { ns: "dashboard" }),
+})
 
 /** Regroupements du patrimoine (compte, catégorie, mixte, établissement) et données des graphiques. */
 export function useOverviewData(p: { sankeyData: OverviewTabProps["sankeyData"]; expensesByCategory: OverviewTabProps["expensesByCategory"]; displayCurrency: OverviewTabProps["displayCurrency"]; tagTotals: OverviewTabProps["tagTotals"]; patrimoineAllocation: OverviewTabProps["patrimoineAllocation"]; drilldownScope: OverviewTabProps["drilldownScope"] }) {
@@ -52,31 +60,27 @@ export function useOverviewData(p: { sankeyData: OverviewTabProps["sankeyData"];
     investissement: "#6366f1" // Indigo
   }
 
-  const CATEGORY_LABELS: Record<string, string> = {
-    courant: "Comptes Courants",
-    epargne: "Épargne",
-    investissement: "Investissements"
-  }
+  const CATEGORY_LABELS = wealthLabels()
 
   const categoryData = useMemo(() => {
     const total = patrimoineAllocation?.total_patrimoine || 0
     return [
       {
-        name: "Comptes Courants",
+        name: wealthLabels().courant,
         type: "courant",
         value: groupedItems.courant?.total_eur || 0,
         percentage: total > 0 ? Number(((groupedItems.courant?.total_eur || 0) / total * 100).toFixed(2)) : 0,
         color: CATEGORY_COLORS.courant,
       },
       {
-        name: "Épargne",
+        name: wealthLabels().epargne,
         type: "epargne",
         value: groupedItems.epargne?.total_eur || 0,
         percentage: total > 0 ? Number(((groupedItems.epargne?.total_eur || 0) / total * 100).toFixed(2)) : 0,
         color: CATEGORY_COLORS.epargne,
       },
       {
-        name: "Investissements",
+        name: wealthLabels().investissement,
         type: "investissement",
         value: groupedItems.investissement?.total_eur || 0,
         percentage: total > 0 ? Number(((groupedItems.investissement?.total_eur || 0) / total * 100).toFixed(2)) : 0,
@@ -112,7 +116,7 @@ export function useOverviewData(p: { sankeyData: OverviewTabProps["sankeyData"];
     if (totalCourant > 0) {
       result.push({
         id: "group-courant",
-        name: "Comptes Courants",
+        name: wealthLabels().courant,
         type: "courant",
         balance_eur: totalCourant,
         isGroup: true,
@@ -123,7 +127,7 @@ export function useOverviewData(p: { sankeyData: OverviewTabProps["sankeyData"];
     if (totalEpargne > 0) {
       result.push({
         id: "group-epargne",
-        name: "Épargne",
+        name: wealthLabels().epargne,
         type: "epargne",
         balance_eur: totalEpargne,
         isGroup: true,
@@ -154,7 +158,7 @@ export function useOverviewData(p: { sankeyData: OverviewTabProps["sankeyData"];
     const grouped: Record<string, { name: string; value: number; items: any[] }> = {}
     
     patrimoineAllocation.items.forEach((item: any) => {
-      const instName = item.institution ? item.institution.trim() : "Autre / Non spécifié"
+      const instName = item.institution ? item.institution.trim() : i18n.t("overview.wealthGroup.otherInstitution", { ns: "dashboard" })
       if (!grouped[instName]) {
         grouped[instName] = {
           name: instName,

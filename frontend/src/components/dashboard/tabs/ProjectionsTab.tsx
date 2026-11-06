@@ -1,6 +1,7 @@
 import { dateLocale } from "@/i18n/locale"
 import { TrendingUp, ArrowUpRight, ArrowDownRight, Sparkles } from "lucide-react"
 import { format } from "date-fns"
+import { Trans, useTranslation } from "react-i18next"
 import { 
   Card, 
   CardContent, 
@@ -38,13 +39,14 @@ interface ProjectionsTabProps {
 }
 
 export function ProjectionsTab({ projection, displayCurrency }: ProjectionsTabProps) {
+  const { t } = useTranslation("dashboard")
   const isMobile = useIsMobile()
   return (
     <div className="space-y-5 md:space-y-8">
       <div className="grid grid-cols-2 gap-3 md:gap-6 md:grid-cols-3">
         <Card className="shadow-sm border-slate-100">
           <CardHeader className="p-3 pb-1 md:p-6 md:pb-2">
-            <CardDescription className="font-medium text-slate-500">Solde Projeté (60j)</CardDescription>
+            <CardDescription className="font-medium text-slate-500">{t("projections.projectedBalance")}</CardDescription>
           </CardHeader>
           <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
             <CardTitle className="text-xl md:text-2xl font-bold text-slate-900 whitespace-nowrap tabular-nums amount-blur">
@@ -62,35 +64,35 @@ export function ProjectionsTab({ projection, displayCurrency }: ProjectionsTabPr
 
         <Card className="shadow-sm border-slate-100">
           <CardHeader className="p-3 pb-1 md:p-6 md:pb-2">
-            <CardDescription className="font-medium text-slate-500">Point le plus bas</CardDescription>
+            <CardDescription className="font-medium text-slate-500">{t("projections.lowPoint")}</CardDescription>
           </CardHeader>
           <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
             <CardTitle className="text-xl md:text-2xl font-bold text-slate-900 whitespace-nowrap tabular-nums amount-blur">
               {formatCurrency(projection?.low_point || 0, displayCurrency)}
             </CardTitle>
             <p className="text-xs text-slate-400 mt-1 uppercase font-bold tracking-tight">
-              Prévu le {projection?.low_point_date ? format(new Date(projection.low_point_date), "d MMMM", { locale: dateLocale() }) : "-"}
+              {t("projections.expectedOn", { date: projection?.low_point_date ? format(new Date(projection.low_point_date), "d MMMM", { locale: dateLocale() }) : "-" })}
             </p>
           </CardContent>
         </Card>
 
         <Card className="col-span-2 md:col-span-1 shadow-sm border-slate-100">
           <CardHeader className="p-3 pb-1 md:p-6 md:pb-2">
-            <CardDescription className="font-medium text-slate-500">Flux récurrents attendus</CardDescription>
+            <CardDescription className="font-medium text-slate-500">{t("projections.recurringFlows")}</CardDescription>
           </CardHeader>
           <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
             <CardTitle className="text-2xl font-bold text-slate-900">
               {projection?.events?.length || 0}
             </CardTitle>
-            <p className="text-xs text-slate-400 mt-1 uppercase font-bold tracking-tight">Prochains 60 jours</p>
+            <p className="text-xs text-slate-400 mt-1 uppercase font-bold tracking-tight">{t("projections.next60")}</p>
           </CardContent>
         </Card>
       </div>
 
       <Card className="shadow-sm border-slate-100 overflow-hidden">
         <CardHeader className="bg-slate-50/50 border-b p-4 pb-3 md:p-6 md:pb-4">
-          <CardTitle className="text-lg">Évolution du Solde Projeté</CardTitle>
-          <CardDescription>Projection basée sur vos revenus et dépenses récurrentes sur les 2 prochains mois.</CardDescription>
+          <CardTitle className="text-lg">{t("projections.chartTitle")}</CardTitle>
+          <CardDescription>{t("projections.chartSubtitle")}</CardDescription>
         </CardHeader>
         <CardContent className="p-2 pt-4 sm:p-6 h-[280px] md:h-[400px]">
           <ResponsiveContainer width="100%" height="100%">
@@ -120,9 +122,9 @@ export function ProjectionsTab({ projection, displayCurrency }: ProjectionsTabPr
               <Tooltip 
                 contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} 
                 labelFormatter={(v) => format(new Date(v), "EEEE d MMMM", { locale: dateLocale() })}
-                formatter={(v: number) => [formatCurrency(v, displayCurrency), "Solde estimé"]}
+                formatter={(v: number) => [formatCurrency(v, displayCurrency), t("projections.estimatedBalance")]}
               />
-              <Area type="monotone" dataKey="balance" name="Solde" stroke="#3b82f6" fill="url(#colorProj)" strokeWidth={4} />
+              <Area type="monotone" dataKey="balance" name={t("projections.balance")} stroke="#3b82f6" fill="url(#colorProj)" strokeWidth={4} />
               <ReferenceLine y={0} stroke="#f43f5e" strokeDasharray="3 3" />
             </AreaChart>
           </ResponsiveContainer>
@@ -132,8 +134,8 @@ export function ProjectionsTab({ projection, displayCurrency }: ProjectionsTabPr
       <div className="grid grid-cols-1 gap-5 md:gap-8 lg:grid-cols-2">
          <Card className="shadow-sm border-slate-100">
            <CardHeader className="p-4 md:p-6">
-             <CardTitle className="text-lg">Prochains flux</CardTitle>
-             <CardDescription>Événements prévus dans les 30 prochains jours.</CardDescription>
+             <CardTitle className="text-lg">{t("projections.nextFlows")}</CardTitle>
+             <CardDescription>{t("projections.nextFlowsSubtitle")}</CardDescription>
            </CardHeader>
            <CardContent className="p-0">
              <div className="divide-y">
@@ -162,22 +164,22 @@ export function ProjectionsTab({ projection, displayCurrency }: ProjectionsTabPr
               <CardHeader className="p-4 md:p-6">
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Sparkles className="h-5 w-5 text-blue-500" />
-                  Analyse de trésorerie
+                  {t("projections.cashAnalysis")}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4 p-4 pt-0 md:p-6 md:pt-0">
                 <p className="text-sm text-slate-600 leading-relaxed">
                   {(projection?.low_point || 0) >= 0 ? (
-                    <>Votre solde devrait rester <strong>positif</strong> sur toute la période projetée. </>
+                    <Trans t={t} i18nKey="projections.staysPositive" components={{ strong: <strong /> }} />
                   ) : (
-                    <>Votre solde passerait <strong className="text-rose-600">sous zéro</strong> sur la période projetée. </>
-                  )}
-                  Le point bas est estimé à <span className="font-bold text-slate-900 amount-blur">{formatCurrency(projection?.low_point || 0, displayCurrency)}</span>.
+                    <Trans t={t} i18nKey="projections.goesNegative" components={{ negative: <strong className="text-rose-600" /> }} />
+                  )}{" "}
+                  <Trans t={t} i18nKey="projections.lowPointIs" values={{ value: formatCurrency(projection?.low_point || 0, displayCurrency) }} components={{ amount: <span className="font-bold text-slate-900 amount-blur" /> }} />
                 </p>
                 {(projection?.projected_balance || 0) > (projection?.current_balance || 0) && (
                   <div className="p-4 bg-white rounded-xl border border-blue-100 shadow-sm">
-                     <p className="text-xs font-bold text-blue-800 uppercase mb-2">Conseil</p>
-                     <p className="text-sm text-slate-700">Vous avez un excédent de trésorerie prévu de <span className="font-bold amount-blur">{formatCurrency((projection?.projected_balance || 0) - (projection?.current_balance || 0), displayCurrency)}</span>. Envisagez un versement complémentaire vers votre compte d'épargne.</p>
+                     <p className="text-xs font-bold text-blue-800 uppercase mb-2">{t("projections.adviceLabel")}</p>
+                     <p className="text-sm text-slate-700"><Trans t={t} i18nKey="projections.advice" values={{ value: formatCurrency((projection?.projected_balance || 0) - (projection?.current_balance || 0), displayCurrency) }} components={{ amount: <span className="font-bold amount-blur" /> }} /></p>
                   </div>
                 )}
               </CardContent>
