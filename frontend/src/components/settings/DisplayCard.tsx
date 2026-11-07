@@ -21,8 +21,8 @@ const THEMES = [
 ] as const satisfies readonly { value: ThemePreference; label: string; icon: typeof Sun }[]
 
 // Chaque langue s'écrit dans sa propre langue, pour rester repérable quand l'interface est illisible pour l'utilisateur
-const LANGUAGE_NAMES: Record<Language, string> = { fr: "Français", en: "English" }
-const LANGUAGE_FLAGS: Record<Language, string> = { fr: "🇫🇷", en: "🇬🇧" }
+const LANGUAGE_NAMES: Record<Language, string> = { fr: "Français", en: "English", es: "Español" }
+const LANGUAGE_FLAGS: Record<Language, string> = { fr: "🇫🇷", en: "🇬🇧", es: "🇪🇸" }
 
 export function DisplayCard() {
   const { t, i18n } = useTranslation("settings")

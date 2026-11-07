@@ -1,0 +1,48 @@
+{
+  "groups": {
+    "overview": "Resumen",
+    "wealth": "Patrimonio",
+    "management": "Gestión"
+  },
+  "items": {
+    "dashboard": "Panel",
+    "month": "Mes",
+    "wrapped": "Resumen anual",
+    "actions": "Centro de acciones",
+    "accounts": "Cuentas",
+    "savings": "Ahorro",
+    "investments": "Inversiones",
+    "tax": "Fiscalidad",
+    "recurring": "Vencimientos",
+    "reimbursements": "Reembolsos",
+    "classement": "Clasificación",
+    "simulator": "Simulador"
+  },
+  "mobile": {
+    "label": "Navegación principal",
+    "home": "Inicio",
+    "month": "Mes",
+    "accounts": "Cuentas",
+    "investments": "Inversiones",
+    "more": "Más",
+    "menuTitle": "Navegación",
+    "menuDescription": "Todas las páginas de Numera"
+  },
+  "urgentActions_one": "{{count}} acción urgente",
+  "urgentActions_other": "{{count}} acciones urgentes",
+  "privacy": {
+    "show": "Mostrar",
+    "hide": "Ocultar",
+    "showAmounts": "Mostrar los importes",
+    "hideAmounts": "Ocultar los importes"
+  },
+  "search": "Buscar",
+  "user": {
+    "fallbackName": "Usuario",
+    "role": "Administrador",
+    "myAccount": "Mi cuenta",
+    "settings": "Ajustes",
+    "logout": "Cerrar sesión"
+  },
+  "demoBanner": "Demo — datos ficticios, restablecidos cada día"
+}

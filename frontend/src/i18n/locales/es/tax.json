@@ -1,0 +1,74 @@
+{
+  "allocationAdviceCard": {
+    "ouPlacerTonProchainEuro": "Dónde colocar tu próximo euro",
+    "ordreDeRemplissageConseilleSelon": "Orden de aportación recomendado según tus límites restantes",
+    "regleGeneralePasUnConseil": "Regla general, no un consejo personalizado.",
+    "encore": "· aún",
+    "dePlace": "de margen"
+  },
+  "annualReportSection": {
+    "declaration": "Declaración",
+    "anneeDeDeclaration": "Año de declaración",
+    "aucunCompteCtoConfigure": "No hay ninguna cuenta CTO configurada.",
+    "dividendesBruts2dc": "Dividendos brutos (2DC)",
+    "plusValuesRealisees": "Plusvalías realizadas",
+    "compte": "Cuenta",
+    "cessions": "Ventas",
+    "case2dcDividendes": "Casilla 2DC (dividendos)",
+    "case3vgPlusValues": "Casilla 3VG (plusvalías)",
+    "case3vhMoinsValues": "Casilla 3VH (minusvalías)",
+    "estimationIndicativeNeRemplacePas": "Estimación orientativa: no sustituye a tu declaración."
+  },
+  "taxSettingsCard": {
+    "reglagesFiscaux": "Ajustes fiscales",
+    "serventAuCalculDuPlafond": "Sirven para calcular el límite del PER, el ahorro fiscal y la reducción del seguro de vida.",
+    "trancheMarginaleTmi": "Tipo marginal (TMI)",
+    "revenusProfessionnelsDeLAnnee": "Ingresos profesionales del año anterior (€)",
+    "foyer": "Hogar",
+    "seul": "Solo",
+    "couple": "Pareja",
+    "salaireBrutAnnuelPourLe": "Salario bruto anual (€), para el límite del PEE",
+    "enregistrer": "Guardar"
+  },
+  "taxWidgets": {
+    "placeRestante": "Margen restante:",
+    "economieDImpotEstimee": "Ahorro fiscal estimado:",
+    "abattementAnnuelSurLesGains": "Reducción anual sobre las ganancias de rescate:",
+    "totalVerse": "Total aportado:",
+    "disponible": "Disponible:",
+    "bloqueMoinsDe5Ans": "Bloqueado (menos de 5 años):"
+  },
+  "wrappersSection": {
+    "plafondsEtDatesCles": "Límites y fechas clave",
+    "cesComptesNOntPas": "Estas cuentas no tienen producto fiscal: sus límites y fechas clave no se siguen.",
+    "aucunCompteNAD": "Ninguna cuenta tiene producto fiscal. Indica el producto en los ajustes de una cuenta.",
+    "allerAuxComptes": "Ir a las cuentas"
+  },
+  "index": {
+    "fiscalite": "Fiscalidad",
+    "plafondsDatesClesEtDeclaration": "Límites, fechas clave y declaración de tus productos fiscales.",
+    "reglages": "Ajustes"
+  },
+  "useTaxData": {
+    "impossibleDeChargerLesEnveloppes": "No se pueden cargar los productos fiscales",
+    "impossibleDeChargerLeRecapitulatif": "No se puede cargar el resumen anual",
+    "reglagesEnregistres": "Ajustes guardados",
+    "erreurLorsDeLEnregistrement": "Error al guardar los ajustes",
+    "impossibleDEnregistrerLEnveloppe": "No se puede guardar el producto fiscal"
+  },
+  "misc": {
+    "wrapperAV": "Seguro de vida",
+    "tracked": "{{account}} seguida como {{kind}}",
+    "probable": " — producto probable: {{kind}}",
+    "trackAs": "Seguir como {{kind}}",
+    "sales_one": "{{count}} venta",
+    "sales_other": "{{count}} ventas",
+    "estimatedTax": "Impuesto estimado (PFU {{dividends}} dividendos, {{gains}} plusvalías)",
+    "precautionPart": " y tu ahorro de precaución ({{months}} meses de gastos)",
+    "ofCeiling": "de",
+    "age": "Antigüedad: {{years}} año(s) / {{milestone}} años",
+    "reached": " — alcanzado",
+    "ageUnknown": "Antigüedad desconocida (umbral: {{milestone}} años)",
+    "nextUnlock": " — próximo desbloqueo el {{date}}"
+  }
+}

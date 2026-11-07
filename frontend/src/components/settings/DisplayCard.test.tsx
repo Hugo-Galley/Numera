@@ -8,7 +8,7 @@ import { renderWithProviders } from "@/test/render"
 import { server } from "@/test/server"
 
 async function selectLanguage(user: ReturnType<typeof renderWithProviders>["user"], name: RegExp) {
-  await user.click(screen.getByRole("combobox", { name: /Langue de l'interface|Interface language/ }))
+  await user.click(screen.getByRole("combobox", { name: /Langue de l'interface|Interface language|Idioma de la interfaz/ }))
   await user.click(await screen.findByRole("option", { name }))
 }
 
@@ -23,6 +23,7 @@ describe("DisplayCard : choix de la langue", () => {
     await user.click(trigger)
     const listbox = await screen.findByRole("listbox")
     expect(within(listbox).getByRole("option", { name: /English/ })).toHaveTextContent("🇬🇧")
+    expect(within(listbox).getByRole("option", { name: /Español/ })).toHaveTextContent("🇪🇸")
   })
 
   it("passe l'interface en anglais, retient le choix puis revient au français", async () => {
@@ -37,6 +38,14 @@ describe("DisplayCard : choix de la langue", () => {
     await selectLanguage(user, /Français/)
     expect(await screen.findByText("Affichage")).toBeInTheDocument()
     expect(safeStorage.getItem("language")).toBe("fr")
+  })
+
+  it("passe l'interface en espagnol", async () => {
+    const { user } = renderWithProviders(<DisplayCard />, { auth: true })
+    await selectLanguage(user, /Español/)
+    expect(await screen.findByText("Visualización")).toBeInTheDocument()
+    expect(screen.getByRole("combobox", { name: "Idioma de la interfaz" })).toHaveTextContent("Español")
+    expect(safeStorage.getItem("language")).toBe("es")
   })
 
   it("enregistre la langue côté serveur pour les notifications envoyées sans requête", async () => {

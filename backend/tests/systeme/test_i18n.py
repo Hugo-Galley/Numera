@@ -24,6 +24,8 @@ def test_default_language_is_french():
 def test_tr_follows_current_language():
     set_language("en")
     assert tr("insights.health.savings_rate") == "Savings rate"
+    set_language("es")
+    assert tr("insights.health.savings_rate") == "Tasa de ahorro"
 
 
 def test_unknown_language_falls_back_to_french():
@@ -79,7 +81,7 @@ def _app() -> TestClient:
 
 @pytest.mark.parametrize(
     ("header", "expected"),
-    [(None, "fr"), ("fr", "fr"), ("en", "en"), ("en-GB,en;q=0.9", "en"), ("EN-us", "en"), ("de,en;q=0.5", "fr"), ("", "fr")],
+    [(None, "fr"), ("fr", "fr"), ("en", "en"), ("en-GB,en;q=0.9", "en"), ("EN-us", "en"), ("es-ES,es;q=0.9", "es"), ("de,en;q=0.5", "fr"), ("", "fr")],
 )
 def test_middleware_reads_accept_language(header, expected):
     headers = {"Accept-Language": header} if header is not None else {}
@@ -92,16 +94,18 @@ def test_language_does_not_leak_between_requests():
     assert client.get("/lang").json() == {"lang": "fr"}
 
 
-def test_catalogs_have_the_same_keys_and_placeholders():
-    fr, en = load_catalog("fr"), load_catalog("en")
-    assert set(fr) == set(en), sorted(set(fr) ^ set(en))
+@pytest.mark.parametrize("language", [code for code in LANGUAGES if code != "fr"])
+def test_catalogs_have_the_same_keys_and_placeholders(language):
+    fr, other = load_catalog("fr"), load_catalog(language)
+    assert set(fr) == set(other), sorted(set(fr) ^ set(other))
     var = re.compile(r"\{(\w+)\}")
     for key in fr:
-        assert set(var.findall(fr[key])) == set(var.findall(en[key])), key
+        assert other[key].strip(), key
+        assert set(var.findall(fr[key])) == set(var.findall(other[key])), key
 
 
 def test_supported_languages():
-    assert LANGUAGES == ("fr", "en")
+    assert LANGUAGES == ("fr", "en", "es")
 
 
 def test_route_answers_in_the_language_of_the_request(client):
@@ -139,6 +143,11 @@ def test_number_money_and_date_formats():
     assert format_money(1234.5) == "€1,234.50"
     assert format_date(date(2026, 10, 20)) == "2026-10-20"
     assert format_datetime(datetime(2026, 10, 20, 9, 5)) == "2026-10-20 09:05"
+    set_language("es")
+    assert format_number(1234.5) == "1.234,50" and format_number(2.5, 1, thousands="") == "2,5"
+    assert format_money(1234.5) == "1.234,50\u00a0€"
+    assert format_date(date(2026, 10, 20)) == "20/10/2026"
+    assert format_datetime(datetime(2026, 10, 20, 9, 5)) == "20/10/2026 09:05"
     set_language("fr")
 
 

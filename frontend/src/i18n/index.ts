@@ -43,27 +43,50 @@ import enCommon from "./locales/en/common.json"
 import enDashboard from "./locales/en/dashboard.json"
 import enNav from "./locales/en/nav.json"
 import enSettings from "./locales/en/settings.json"
+import esAccounts from "./locales/es/accounts.json"
+import esAuth from "./locales/es/auth.json"
+import esImport from "./locales/es/import.json"
+import esLoans from "./locales/es/loans.json"
+import esAccountDetail from "./locales/es/accountDetail.json"
+import esTransactions from "./locales/es/transactions.json"
+import esInvestments from "./locales/es/investments.json"
+import esOmnibox from "./locales/es/omnibox.json"
+import esSavings from "./locales/es/savings.json"
+import esRecurring from "./locales/es/recurring.json"
+import esReimbursements from "./locales/es/reimbursements.json"
+import esMonth from "./locales/es/month.json"
+import esClassement from "./locales/es/classement.json"
+import esAudit from "./locales/es/audit.json"
+import esTax from "./locales/es/tax.json"
+import esTools from "./locales/es/tools.json"
+import esWrapped from "./locales/es/wrapped.json"
+import esCommon from "./locales/es/common.json"
+import esDashboard from "./locales/es/dashboard.json"
+import esNav from "./locales/es/nav.json"
+import esSettings from "./locales/es/settings.json"
 import { resetApiCache } from "@/lib/apiCache"
 
-export const LANGUAGES = ["fr", "en"] as const
+export const LANGUAGES = ["fr", "en", "es"] as const
 export type Language = (typeof LANGUAGES)[number]
 
 const STORAGE_KEY = "language"
 
-/** Un catalogue (JSON) par domaine ; le français est la référence, l'anglais doit avoir les mêmes clés. */
+/** Un catalogue (JSON) par domaine ; le français est la référence, les autres langues doivent avoir les mêmes clés. */
 export const resources = {
   fr: { common: frCommon, accounts: frAccounts, accountDetail: frAccountDetail, import: frImport, loans: frLoans, transactions: frTransactions, investments: frInvestments, omnibox: frOmnibox, savings: frSavings, recurring: frRecurring, reimbursements: frReimbursements, month: frMonth, classement: frClassement, audit: frAudit, tax: frTax, tools: frTools, wrapped: frWrapped, nav: frNav, auth: frAuth, settings: frSettings, dashboard: frDashboard },
   en: { common: enCommon, accounts: enAccounts, accountDetail: enAccountDetail, import: enImport, loans: enLoans, transactions: enTransactions, investments: enInvestments, omnibox: enOmnibox, savings: enSavings, recurring: enRecurring, reimbursements: enReimbursements, month: enMonth, classement: enClassement, audit: enAudit, tax: enTax, tools: enTools, wrapped: enWrapped, nav: enNav, auth: enAuth, settings: enSettings, dashboard: enDashboard },
+  es: { common: esCommon, accounts: esAccounts, accountDetail: esAccountDetail, import: esImport, loans: esLoans, transactions: esTransactions, investments: esInvestments, omnibox: esOmnibox, savings: esSavings, recurring: esRecurring, reimbursements: esReimbursements, month: esMonth, classement: esClassement, audit: esAudit, tax: esTax, tools: esTools, wrapped: esWrapped, nav: esNav, auth: esAuth, settings: esSettings, dashboard: esDashboard },
 } as const
 
 const isLanguage = (value: unknown): value is Language => LANGUAGES.includes(value as Language)
 
-/** Langue enregistrée sur cet appareil, sinon celle du navigateur (français ou, par défaut, anglais). */
+/** Langue enregistrée sur cet appareil, sinon celle du navigateur si elle est prise en charge, par défaut l'anglais. */
 export function detectLanguage(): Language {
   const saved = safeStorage.getItem(STORAGE_KEY)
   if (isLanguage(saved)) return saved
   const browser = typeof navigator === "undefined" ? "" : navigator.language
-  return browser.toLowerCase().startsWith("fr") ? "fr" : "en"
+  const code = browser.toLowerCase().slice(0, 2)
+  return isLanguage(code) ? code : "en"
 }
 
 void i18n.use(initReactI18next).init({

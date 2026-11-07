@@ -1,0 +1,173 @@
+{
+  "title": "Panel",
+  "subtitle": "Todos tus análisis financieros de un vistazo.",
+  "payPeriod": "Periodo de pago: {{range}}",
+  "allAccounts": "Todas las cuentas",
+  "placeholders": {
+    "account": "Cuentas",
+    "month": "Mes",
+    "year": "Año"
+  },
+  "tabs": {
+    "overview": "Resumen",
+    "budgets": "Presupuestos",
+    "spending": "Gastos",
+    "analysis": "Análisis",
+    "projections": "Proyecciones"
+  },
+  "failedBlocks_one": "No se ha podido cargar {{count}} bloque del panel.",
+  "failedBlocks_other": "No se han podido cargar {{count}} bloques del panel.",
+  "accountsLoadError": "No se puede cargar la lista de cuentas.",
+  "kpi": {
+    "monthlyIncome": "Ingresos mensuales",
+    "moneyIn": "Entradas de dinero",
+    "monthlyExpenses": "Gastos mensuales",
+    "moneyOut": "Salidas de dinero",
+    "savingsMade": "Ahorro realizado",
+    "currentBalance": "Saldo actual",
+    "trend": "Tendencia 6 meses"
+  },
+  "budgets": {
+    "title": "Seguimiento de presupuestos",
+    "subtitle": "Visualiza tu consumo respecto a los límites fijados por categoría.",
+    "viewTransactions": "Ver las transacciones",
+    "over": "Superado",
+    "near": "Cerca del límite",
+    "ok": "Presupuesto cumplido",
+    "monthly": "Mensual",
+    "annual": "Anual",
+    "empty": "No hay ningún presupuesto configurado. Añade límites en los ajustes de las categorías."
+  },
+  "merchants": {
+    "title": "Top 10 comercios",
+    "subtitle": "Los establecimientos donde más gastas."
+  },
+  "subscriptions": {
+    "monthlyTitle": "Suscripciones mensuales",
+    "averageCost": "Coste mensual medio:",
+    "perYear": "al año",
+    "detected": "Detectada",
+    "lapsed": "¿Ya no se cobra?",
+    "empty": "No se ha detectado ninguna suscripción.",
+    "splitTitle": "Distribución de suscripciones",
+    "splitSubtitle": "Peso de cada servicio."
+  },
+  "priceChanges": {
+    "title": "Subidas de precio recientes",
+    "month": "mes",
+    "quarter": "trim.",
+    "year": "año",
+    "since": "Desde el {{date}} · {{amount}} más al año"
+  },
+  "insights": {
+    "healthTitle": "Salud financiera",
+    "healthSubtitle": "Puntuación global de tu situación.",
+    "outOf": "/ 100",
+    "analysisTitle": "Análisis y consejos",
+    "dismiss": "No volver a tener en cuenta",
+    "dismissError": "No se puede ocultar este análisis",
+    "empty": "¡Todo parece bajo control! Ningún consejo especial este mes.",
+    "unitMonths": "meses"
+  },
+  "projections": {
+    "projectedBalance": "Saldo previsto (60 d)",
+    "lowPoint": "Punto más bajo",
+    "expectedOn": "Previsto el {{date}}",
+    "recurringFlows": "Flujos periódicos previstos",
+    "next60": "Próximos 60 días",
+    "chartTitle": "Evolución del saldo previsto",
+    "chartSubtitle": "Proyección basada en tus ingresos y gastos periódicos de los 2 próximos meses.",
+    "estimatedBalance": "Saldo estimado",
+    "balance": "Saldo",
+    "nextFlows": "Próximos flujos",
+    "nextFlowsSubtitle": "Eventos previstos en los próximos 30 días.",
+    "cashAnalysis": "Análisis de tesorería",
+    "staysPositive": "Tu saldo debería mantenerse <strong>positivo</strong> durante todo el periodo previsto.",
+    "goesNegative": "Tu saldo pasaría <negative>por debajo de cero</negative> en el periodo previsto.",
+    "lowPointIs": "El punto más bajo se estima en <amount>{{value}}</amount>.",
+    "adviceLabel": "Consejo",
+    "advice": "Tienes un excedente de tesorería previsto de <amount>{{value}}</amount>. Plantéate una aportación adicional a tu cuenta de ahorro."
+  },
+  "overview": {
+    "expensesTitle": "Gastos por categoría",
+    "expensesSubtitle": "¿Adónde va tu dinero este mes? Haz clic en una barra para ver las transacciones.",
+    "splitTitle": "Distribución",
+    "splitSubtitle": "Peso de las categorías.",
+    "flowTitle": "Flujos financieros",
+    "flowSubtitle": "Visualización de los ingresos hacia los gastos y el ahorro. Haz clic en una categoría para ver sus transacciones.",
+    "dragHint": "Desliza para ver todo el diagrama →",
+    "tagsTitle": "Proyectos y contextos (etiquetas)",
+    "tagsSubtitle": "Gastos transversales del periodo.",
+    "wealthTitle": "Distribución del patrimonio",
+    "wealthSubtitle": "Distribución de tus activos en el conjunto de tus cuentas activas.",
+    "groupBy": {
+      "category": "Por categoría",
+      "mixed": "Mixto",
+      "account": "Por cuenta",
+      "institution": "Por entidad"
+    },
+    "total": "Total:",
+    "debts": "Deudas:",
+    "net": "Neto:",
+    "noWealth": "No hay datos de patrimonio disponibles.",
+    "wealthCenter": "Patrimonio",
+    "wealthGroup": {
+      "courant": "Cuentas corrientes",
+      "epargne": "Ahorro",
+      "investissement": "Inversiones",
+      "otherInstitution": "Otra / Sin especificar"
+    },
+    "accountType": {
+      "courant": "Corriente",
+      "epargne": "Ahorro",
+      "investissement": "Inversión"
+    }
+  },
+  "history": {
+    "cashFlowTitle": "Flujo de caja",
+    "cashFlowSubtitle": "Ingresos vs gastos (6 meses).",
+    "revenues": "Ingresos",
+    "realExpenses": "Gastos reales",
+    "burnTitle": "Evolución del ritmo de gasto",
+    "burnSubtitle": "Gasto medio diario por mes.",
+    "burnName": "Ritmo de gasto",
+    "salaryTitle": "Evolución del salario",
+    "salarySubtitle": "Estabilidad y crecimiento de los ingresos principales.",
+    "salaryName": "Salario"
+  },
+  "verification": {
+    "accountsToUpdate_one": "{{count}} cuenta por actualizar",
+    "accountsToUpdate_other": "{{count}} cuentas por actualizar",
+    "intro": "Hace más de 15 días que no actualizas estas cuentas. Comprueba si hay transacciones nuevas o valida su saldo.",
+    "never": "Nunca verificada",
+    "lastUpdate_one": "Última actualización: hace {{count}} día",
+    "lastUpdate_other": "Última actualización: hace {{count}} días",
+    "snapshot": "Registrar el saldo",
+    "nothingChanged": "No ha cambiado nada",
+    "enterBalance": "Introducir el saldo",
+    "verifyError": "No se puede validar la cuenta"
+  },
+  "journal": {
+    "title": "Diario de decisiones",
+    "subtitle": "Cancelaciones, más ahorro, cambio de asignación… señalados en las curvas (⚑).",
+    "empty": "Anota tus decisiones para recordar más adelante por qué cambió una curva.",
+    "needDateTitle": "Indica una fecha y un título",
+    "updated": "Decisión modificada",
+    "added": "Decisión añadida al diario",
+    "saveError": "No se puede guardar la decisión",
+    "confirmDelete": "¿Eliminar «{{title}}» del diario?",
+    "deleted": "Decisión eliminada",
+    "deleteError": "No se puede eliminar la decisión",
+    "editTitle": "Editar la decisión",
+    "newTitle": "Nueva decisión",
+    "dialogHint": "Una nota con fecha, sin efecto en los cálculos.",
+    "fieldTitle": "Título",
+    "titlePlaceholder": "Ej.: baja del gimnasio",
+    "fieldNote": "Nota (opcional)",
+    "fieldAccount": "Cuenta afectada (opcional)"
+  },
+  "partialLoadError": "No se han podido cargar algunos datos del panel.",
+  "misc": {
+    "perDay": "{{amount}} / día"
+  }
+}

@@ -6618,7 +6618,8 @@
      "language": {
       "enum": [
        "fr",
-       "en"
+       "en",
+       "es"
       ],
       "title": "Language",
       "type": "string"
@@ -6715,7 +6716,8 @@
        {
         "enum": [
          "fr",
-         "en"
+         "en",
+         "es"
         ],
         "type": "string"
        },

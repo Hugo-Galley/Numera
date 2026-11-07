@@ -33,6 +33,19 @@ describe("langue de l'interface et formats", () => {
     expect(document.documentElement.lang).toBe("en")
   })
 
+  it("passe aux formats espagnols (virgule décimale, point des milliers, euro après)", async () => {
+    await setLanguage("es")
+    expect(appLocale()).toBe("es-ES")
+    expect(norm(formatCurrency(1234.5))).toBe("1234,50 €")
+    expect(norm(formatCurrency(12345.5))).toBe("12.345,50 €")
+    expect(norm(formatRate(12.345))).toBe("12,35 %")
+    expect(percentSuffix(true)).toBe("\u00a0%")
+    expect(monthName(1)).toBe("Enero")
+    expect(frequencyLabel("monthly")).toBe("Mensual")
+    expect(dateLocale().code).toBe("es")
+    expect(document.documentElement.lang).toBe("es")
+  })
+
   it("garde une clé manquante en français plutôt que d'afficher la clé", async () => {
     await i18n.changeLanguage("en")
     expect(i18n.t("nav:items.dashboard")).toBe("Dashboard")

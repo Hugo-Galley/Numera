@@ -1,0 +1,45 @@
+{
+  "splitTransactionDialog": {
+    "depenseDecoupee": "Gasto repartido",
+    "erreurLorsDuDecoupage": "Error al repartir",
+    "decoupageAnnule": "Reparto anulado",
+    "erreurLorsDeLAnnulation": "Error al anular",
+    "decouperLaDepense": "Repartir el gasto",
+    "categorie": "Categoría",
+    "retirerLaPart": "Quitar la parte",
+    "ajouterUnePart": "Añadir una parte",
+    "montantReparti": "Importe repartido",
+    "doubleCliquezSurUnMontant": "Haz doble clic en un importe para asignarle el resto.",
+    "annulerLeDecoupage": "Anular el reparto",
+    "fermer": "Cerrar",
+    "enregistrer": "Guardar",
+    "hint": "{{merchant}} · {{amount}}. Cada parte cuenta en su categoría (presupuesto, distribución, alertas); el total del gasto no cambia.",
+    "remaining": "Quedan {{amount}}"
+  },
+  "drilldownSheet": {
+    "aucuneDepenseNeCorrespondLes": "Ningún gasto coincide (las aportaciones de inversión no aparecen aquí).",
+    "expensesOf": "Gastos de {{period}}",
+    "loadFailed": "No se pudieron cargar las transacciones."
+  },
+  "transferLinkDialog": {
+    "erreurLorsDeLaRecherche": "Error al buscar candidatas",
+    "virementLie": "Transferencia vinculada",
+    "echecDeLaLiaison": "Error al vincular",
+    "contrepartieCreeeEtLiee": "Contrapartida creada y vinculada",
+    "impossibleDeCreerLaContrepartie": "No se puede crear la contrapartida",
+    "cetteLigneNeSeraPlus": "Esta línea ya no se propondrá como transferencia",
+    "echecDeLAction": "Error en la acción",
+    "virementInterne": "Transferencia interna",
+    "entrees": "Ingresos",
+    "sorties": "Gastos",
+    "tousLesComptes": "Todas las cuentas",
+    "lier": "Vincular",
+    "creerLaContrepartieSur": "Crear la contrapartida en",
+    "choisirUnCompte": "Elegir una cuenta",
+    "creerEtLier": "Crear y vincular",
+    "ceNEstPasUn": "No es una transferencia",
+    "noCandidate": "Ninguna candidata.",
+    "createBelow": "Puedes crear la contrapartida a continuación.",
+    "unknownAccount": "Cuenta desconocida"
+  }
+}

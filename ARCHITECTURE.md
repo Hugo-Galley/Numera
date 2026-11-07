@@ -63,7 +63,7 @@ frontend/
     types/              types partages (diversity.ts)
     pages/              routes principales
     providers/          AuthProvider, UIProvider
-    i18n/               i18next (fr/en), catalogues par domaine, formats de dates et montants
+    i18n/               i18next (fr/en/es), catalogues par domaine, formats de dates et montants
 mcp-server/             serveur MCP en lecture seule (server.py + package numera_mcp/ : tools/<domaine>.py, resources, prompts, api_client, auth)
 infra/                  docker-compose.yml (dev), .prod.yml, .demo.yml, .images.yml (joint aux releases)
 Makefile, setup.sh, install.sh

@@ -1,0 +1,157 @@
+{
+  "accountsStep": {
+    "soldeValide": "Saldo validado",
+    "echecDeLaValidation": "Error al validar",
+    "comparezLeSoldeAfficheAvec": "Compara el saldo mostrado con el de tu extracto y valida cada cuenta.",
+    "valide": "Validado",
+    "validerLeSolde": "Validar el saldo"
+  },
+  "budgetStep": {
+    "marqueeExceptionnelle": "Marcado como excepcional",
+    "marquageRetire": "Marca quitada",
+    "echecDeLaMiseA": "Error al actualizar",
+    "revenus": "Ingresos",
+    "depensesReelles": "Gastos reales",
+    "depensesHorsExceptionnelles": "Gastos sin excepcionales",
+    "epargneDuMois": "Ahorro del mes",
+    "tauxDEpargne": "Tasa de ahorro",
+    "burnRateParJour": "Ritmo de gasto (por día)",
+    "budgetsDepasses": "Presupuestos superados",
+    "plusGrossesDepensesDuMois": "Mayores gastos del mes. Marca una compra puntual como",
+    "pourJugerLeMoisSans": "para valorar el mes sin ella (sigue contando en los totales y los saldos).",
+    "exceptionnelle": "Excepcional",
+    "marquerExceptionnelle": "Marcar como excepcional",
+    "aucuneDepenseCeMoisCi": "Ningún gasto este mes."
+  },
+  "categorizeStep": {
+    "categorieEnregistree": "Categoría guardada",
+    "echecDeLaCategorisation": "Error al categorizar",
+    "toutesLesDepensesDuMois": "Todos los gastos del mes están categorizados.",
+    "choisir": "Elegir…"
+  },
+  "closeStep": {
+    "desTransactionsOntChangeDepuis": "Algunas transacciones han cambiado desde el cierre. Puedes volver a cerrar para actualizar la foto.",
+    "depensesSansCategorie": "Gastos sin categoría",
+    "comptesAValider": "Cuentas por validar",
+    "depensesReelles": "Gastos reales",
+    "epargne": "Ahorro",
+    "faitMarquant": "Hecho destacado",
+    "reCloturerLeMois": "Volver a cerrar el mes",
+    "cloturerLeMois": "Cerrar el mes",
+    "rouvrirLeMois": "Reabrir el mes"
+  },
+  "monthReviewPopup": {
+    "toutSembleEnOrdreIl": "Todo parece en orden: solo queda revisar el presupuesto y cerrar.",
+    "pasCeMoisCi": "Este mes no",
+    "plusTard": "Más tarde",
+    "faireLaRevue": "Hacer la revisión"
+  },
+  "budgetSection": {
+    "budgetTenu": "¿Presupuesto cumplido?",
+    "tousLesBudgetsRespectes": "Todos los presupuestos cumplidos"
+  },
+  "savingsSection": {
+    "misDeCote": "Apartado",
+    "epargne": "Ahorro",
+    "investi": "Invertido",
+    "tauxDEpargne": "Tasa de ahorro",
+    "variationDuPatrimoine": "Variación del patrimonio"
+  },
+  "spendingSection": {
+    "ouEstPasseLArgent": "¿Adónde ha ido el dinero?",
+    "principalesCategories": "Principales categorías",
+    "aucuneDepenseCategoriseeCeMois": "Ningún gasto categorizado este mes.",
+    "voirLesTransactions": "Ver las transacciones",
+    "parts": {
+      "fixed_charges": "Gastos fijos",
+      "variable_expenses": "Gastos variables",
+      "savings": "Ahorro",
+      "investments": "Invertido",
+      "remainder": "Resto"
+    }
+  },
+  "watchSection": {
+    "aRegarder": "A tener en cuenta",
+    "rienDAnormalCeMois": "Nada anormal este mes."
+  },
+  "comparison": {
+    "voirLesTransactions": "Ver las transacciones",
+    "erreurLorsDuChargementDe": "Error al cargar la comparación",
+    "comparaisonMensuelle": "Comparación mensual",
+    "comparezVosRevenusEtDepenses": "Compara tus ingresos y gastos entre dos periodos.",
+    "periodeA": "Periodo A",
+    "periodeB": "Periodo B",
+    "laComparaisonNAPas": "No se ha podido cargar la comparación.",
+    "ecartRevenus": "Diferencia de ingresos",
+    "ecartDepenses": "Diferencia de gastos",
+    "ecartEpargne": "Diferencia de ahorro",
+    "evolutionNette": "Evolución neta",
+    "detailParCategorie": "Detalle por categoría",
+    "variationDesDepensesEntreLes": "Variación de los gastos entre los dos periodos. Haz clic en un importe para ver sus transacciones.",
+    "selectionnezDeuxPeriodesPourComparer": "Selecciona dos periodos para comparar.",
+    "categorie": "Categoría",
+    "ecart": "Diferencia"
+  },
+  "monthHub": {
+    "bilan": "Balance",
+    "revue": "Revisión",
+    "comparaison": "Comparación"
+  },
+  "monthReview": {
+    "impossibleDeChargerLaRevue": "No se puede cargar la revisión del mes",
+    "moisCloture": "Mes cerrado",
+    "echecDeLaCloture": "Error al cerrar",
+    "moisRouvert": "Mes reabierto",
+    "echecDeLaReouverture": "Error al reabrir",
+    "revueDeMois": "Revisión del mes",
+    "passezLeMoisEnRevue": "Revisa el mes paso a paso y después ciérralo.",
+    "moisPrecedent": "Mes anterior",
+    "moisSuivant": "Mes siguiente",
+    "laRevueDuMoisN": "No se ha podido cargar la revisión del mes.",
+    "unFaitMarquantARetenir": "Un hecho destacado de este mes (opcional): cancelación, gasto grande, cambio en el ahorro…",
+    "steps": {
+      "categorize": "Categorizar",
+      "accounts": "Saldos",
+      "budget": "Presupuesto",
+      "highlight": "Hecho destacado",
+      "close": "Cerrar"
+    }
+  },
+  "monthlyReport": {
+    "bilanDuMois": "Balance del mes",
+    "moisCloture": "Mes cerrado",
+    "revueDeFinDeMois": "Revisión de fin de mes pendiente",
+    "moisPrecedent": "Mes anterior",
+    "moisSuivant": "Mes siguiente",
+    "exporterEnPdf": "Exportar a PDF",
+    "impossibleDeChargerLeBilan": "No se puede cargar el balance.",
+    "reessayer": "Reintentar",
+    "revenus": "Ingresos",
+    "depensesReelles": "Gastos reales",
+    "misDeCote": "Apartado",
+    "epargneInvesti": "ahorro + invertido",
+    "unresolvedPoints_one": " · {{count}} punto sin resolver",
+    "unresolvedPoints_other": " · {{count}} puntos sin resolver"
+  },
+  "misc": {
+    "vsPrevious": "{{amount}} vs mes anterior",
+    "uncategorized_one": "{{count}} gasto sin categoría, es decir",
+    "uncategorized_other": "{{count}} gastos sin categoría, es decir",
+    "largestListed": " Se muestran los {{count}} mayores.",
+    "categoryOf": "Categoría de {{merchant}}",
+    "popupPoints": "{{expenses}} gasto(s) sin categoría y {{accounts}} cuenta(s) por validar.",
+    "popupTitle": "{{month}} aún no está cerrado",
+    "over_one": "{{count}} exceso",
+    "over_other": "{{count}} excesos",
+    "exceededBy": "Superado en {{amount}}",
+    "remaining": "Quedan {{amount}}",
+    "ofIncome": "{{pct}} de los ingresos",
+    "expensesOver": "Gastos superiores a los ingresos en {{amount}}.",
+    "excludingExceptional": "{{pct}} sin excepcionales",
+    "shareUnspent": "parte de los ingresos no gastada",
+    "lastValidation": "Última validación: {{date}}",
+    "closedOn": "Cerrado el {{date}}",
+    "unresolved": "Quedan {{count}} punto(s) por tratar; aun así puedes cerrar, quedarán anotados.",
+    "closeAnyway": "Quedan {{count}} punto(s) por tratar; aun así puedes cerrar, quedarán anotados."
+  }
+}
