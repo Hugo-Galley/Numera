@@ -1,85 +1,85 @@
-# Procédure de Sauvegarde et Restauration
+# Backup and restore procedure
 
-Ce document décrit comment sauvegarder et restaurer la base de données SQLite de l'application.
+This document describes how to back up and restore the application's SQLite database.
 
-## Sauvegarde
+## Backup
 
-Le système utilise un script Python `backend/scripts/backup.py` qui peut être exécuté manuellement ou via Docker.
+The system uses a Python script, `backend/scripts/backup.py`, which can be run manually or through Docker.
 
-### Variables d'environnement
-- `DB_PATH` : Chemin vers la base de données (défaut: `/app/data/suivi_budget.db`)
-- `BACKUP_DIR` : Dossier où stocker les sauvegardes (défaut: `/app/backups`)
-- `BACKUP_KEY` : (Optionnel) Clé Fernet pour chiffrer la sauvegarde.
-- `RETENTION_DAYS` : Nombre de jours de rétention des sauvegardes (défaut: 7).
-- `BACKUP_INTERVAL_SECONDS` : délai entre deux sauvegardes automatiques du conteneur `backup` (défaut: 86400).
-- `GITHUB_BACKUP_KEEP_DAYS` : jours conservés sur GitHub (défaut: 30).
+### Environment variables
+- `DB_PATH`: path to the database (default: `/app/data/suivi_budget.db`)
+- `BACKUP_DIR`: folder where backups are stored (default: `/app/backups`)
+- `BACKUP_KEY`: (optional) Fernet key used to encrypt the backup.
+- `RETENTION_DAYS`: number of days backups are kept (default: 7).
+- `BACKUP_INTERVAL_SECONDS`: delay between two automatic backups of the `backup` container (default: 86400).
+- `GITHUB_BACKUP_KEEP_DAYS`: days kept on GitHub (default: 30).
 
-Ces trois réglages se placent dans `.env` ; les fichiers compose les transmettent aux conteneurs `backend` et `backup`.
+These settings go in `.env`; the compose files pass them on to the `backend` and `backup` containers.
 
-### Sauvegarde avant migration
+### Backup before migration
 
-Au démarrage, `run_migrations()` (`backend/app/core/migrations.py`) compare la révision Alembic de la base à la tête des migrations. Si le schéma doit changer (mise à jour de version), la base est copiée dans `BACKUP_DIR` sous `pre_migration_<révision>_<date>.db` (`.db.enc` chiffré avec `BACKUP_KEY` si elle est définie) avant tout `alembic upgrade`. Les 5 plus récentes sont conservées ; elles ne sont ni envoyées sur GitHub ni touchées par la rotation `RETENTION_DAYS`. Si la copie échoue, l'application refuse de démarrer plutôt que de migrer sans filet. Base vierge ou déjà à jour : aucune copie. Restauration : voir plus bas, comme pour une sauvegarde normale.
+At startup, `run_migrations()` (`backend/app/core/migrations.py`) compares the database's Alembic revision with the head of the migrations. If the schema has to change (version update), the database is copied into `BACKUP_DIR` as `pre_migration_<revision>_<date>.db` (`.db.enc`, encrypted with `BACKUP_KEY`, if it is set) before any `alembic upgrade`. The 5 most recent are kept; they are neither sent to GitHub nor touched by the `RETENTION_DAYS` rotation. If the copy fails, the application refuses to start rather than migrate without a safety net. Brand-new or already up-to-date database: no copy. Restore: see below, as for a normal backup.
 
-### Mise à jour Docker
+### Docker update
 
-`install.sh --upgrade` sauvegarde (conteneur `backup`), retélécharge le compose de la release, vérifie `SHA256SUMS`, tire les images et redémarre. Voir le README, section « Mettre à jour ».
+`install.sh --upgrade` backs up (`backup` container), downloads the release's compose file again, verifies `SHA256SUMS`, pulls the images and restarts. See the README, "Updating" section.
 
-### Exécution manuelle
+### Manual run
 ```bash
 PYTHONPATH=backend python3 backend/scripts/backup.py
 ```
 
-## Envoi automatique vers GitHub
+## Automatic upload to GitHub
 
-Le bouton « Sauvegarder maintenant » (Paramètres → Données) lance la même chaîne à la demande (`POST /admin/backup/run`, `BACKUP_TRIGGER=manual`) et affiche une popin à la fin.
+The "Sauvegarder maintenant" ("Back up now") button (Paramètres → Données / Settings → Data) triggers the same chain on demand (`POST /admin/backup/run`, `BACKUP_TRIGGER=manual`) and shows a dialog when it finishes.
 
-Chaque exécution de `backup.py` met à jour `BACKUP_DIR/status.json` (dernière tentative, dernière réussite, dernière réussite automatique, dernière erreur, dernier envoi GitHub ou son erreur). L'API le lit avec les fichiers `suivi_budget_*` (`GET /admin/backup/status`) : la carte Sauvegarde l'affiche et le Centre d'actions lève « Sauvegarde en retard » (aucune sauvegarde depuis 2 jours) ou « Dernière sauvegarde en échec ». Sans aucune sauvegarde ni `status.json` (dev local), rien n'est signalé.
+Each run of `backup.py` updates `BACKUP_DIR/status.json` (last attempt, last success, last automatic success, last error, last GitHub upload or its error). The API reads it together with the `suivi_budget_*` files (`GET /admin/backup/status`): the Backup card displays it and the Action Center raises "Sauvegarde en retard" ("Backup overdue", no backup for 2 days) or "Dernière sauvegarde en échec" ("Last backup failed"). With no backup and no `status.json` at all (local dev), nothing is reported.
 
-Après chaque sauvegarde (toutes les 24 h via le conteneur `backup`), `backend/scripts/git_sync.py` (le token passe à `git` par l'environnement `GIT_CONFIG_*`, jamais dans `argv`) pousse les fichiers `.enc` vers un dépôt GitHub **privé et dédié** (jamais le dépôt du code, qui est public). Seules les sauvegardes chiffrées sont envoyées : sans `BACKUP_KEY`, rien ne part.
+After each backup (every 24 h through the `backup` container), `backend/scripts/git_sync.py` (the token is passed to `git` through the `GIT_CONFIG_*` environment, never in `argv`) pushes the `.enc` files to a **private, dedicated** GitHub repository (never the code repository, which is public). Only encrypted backups are sent: without `BACKUP_KEY`, nothing leaves the machine.
 
-1. Créer un dépôt privé vide (ex. `numera-backups`).
-2. Créer un token fine-grained limité à ce dépôt, permission *Contents : Read and write*.
-3. Renseigner dans `.env` : `GITHUB_BACKUP_REPO=Hugo-Galley/numera-backups` et `GITHUB_BACKUP_TOKEN=...`, puis `docker compose up -d --build backup`.
+1. Create an empty private repository (e.g. `numera-backups`).
+2. Create a fine-grained token limited to that repository, with the *Contents: Read and write* permission.
+3. Set in `.env`: `GITHUB_BACKUP_REPO=Hugo-Galley/numera-backups` and `GITHUB_BACKUP_TOKEN=...`, then `docker compose up -d --build backup`.
 
-Le dépôt garde **une sauvegarde par jour** (la dernière du jour), rangée par mois (`2026-10/…`), sur `GITHUB_BACKUP_KEEP_DAYS` jours (30 par défaut) ; l'historique git conserve les anciennes versions. Un échec d'envoi sort en code 2 sans annuler la sauvegarde locale. **Conservez `BACKUP_KEY` ailleurs** (gestionnaire de mots de passe) : sans elle, les sauvegardes GitHub sont illisibles.
+The repository keeps **one backup per day** (the last of the day), organised by month (`2026-10/…`), for `GITHUB_BACKUP_KEEP_DAYS` days (30 by default); git history keeps older versions. An upload failure exits with code 2 without cancelling the local backup. **Keep `BACKUP_KEY` somewhere else** (password manager): without it, the GitHub backups are unreadable.
 
-## Restauration
+## Restore
 
-Pour restaurer une sauvegarde, utilisez le script `backend/scripts/restore.py`.
+To restore a backup, use the `backend/scripts/restore.py` script.
 
-### Syntaxe
+### Syntax
 ```bash
-PYTHONPATH=backend python3 backend/scripts/restore.py <fichier_sauvegarde> --dest <destination> --key <cle_si_chiffre>
+PYTHONPATH=backend python3 backend/scripts/restore.py <backup_file> --dest <destination> --key <key_if_encrypted>
 ```
 
-### Exemple de restauration (non chiffrée)
+### Restore example (unencrypted)
 ```bash
 PYTHONPATH=backend python3 backend/scripts/restore.py backups/suivi_budget_20260605_120000.db --dest backend/data/suivi_budget.db
 ```
 
-### Exemple de restauration (chiffrée)
+### Restore example (encrypted)
 ```bash
-export BACKUP_KEY=votre_cle_secrete
+export BACKUP_KEY=your_secret_key
 PYTHONPATH=backend python3 backend/scripts/restore.py backups/suivi_budget_20260605_120000.db.enc --dest backend/data/suivi_budget.db
 ```
 
-## Validation de la procédure
+## Procedure validation
 
-La procédure a été validée le 5 juin 2026 :
-1. Création d'une base factice.
-2. Exécution de `backup.py`.
-3. Suppression de la base factice.
-4. Exécution de `restore.py`.
-5. Vérification de l'intégrité des données restaurées.
+The procedure was validated on 5 June 2026:
+1. Creation of a dummy database.
+2. Run of `backup.py`.
+3. Deletion of the dummy database.
+4. Run of `restore.py`.
+5. Integrity check of the restored data.
 
 
-## Garanties de `restore.py`
+## Guarantees of `restore.py`
 
-- La sauvegarde est déchiffrée et vérifiée (`PRAGMA integrity_check`) dans un fichier temporaire **avant** toute écriture : une mauvaise clé ou un fichier corrompu laisse la base actuelle intacte.
-- La base remplacée est conservée à côté (`<destination>.pre-restore-<horodatage>`), puis le remplacement est atomique.
-- Le script sort avec un code non nul en cas d'échec.
-- Arrêtez le backend avant de restaurer (`docker compose stop backend`). Les logos (`backend/data/logos`) ne sont pas inclus dans les sauvegardes.
+- The backup is decrypted and checked (`PRAGMA integrity_check`) in a temporary file **before** anything is written: a wrong key or a corrupted file leaves the current database untouched.
+- The replaced database is kept alongside (`<destination>.pre-restore-<timestamp>`), then the replacement is atomic.
+- The script exits with a non-zero code on failure.
+- Stop the backend before restoring (`docker compose stop backend`). Logos (`backend/data/logos`) are not included in backups.
 
-## Vérification automatique
+## Automatic verification
 
-`backend/tests/systeme/test_backup_roundtrip.py` (suite pytest, donc CI) fait un aller-retour réel : base migrée par Alembic en mode WAL avec une écriture encore dans le `-wal`, `backup.py` (en clair et chiffré), `restore.py`, puis comparaison table par table, schéma identique aux modèles et `PRAGMA integrity_check`. Une sauvegarde qui ne se restaure plus fait échouer la CI.
+`backend/tests/systeme/test_backup_roundtrip.py` (part of the pytest suite, hence CI) does a real round trip: a database migrated by Alembic in WAL mode with a write still in the `-wal` file, `backup.py` (plain and encrypted), `restore.py`, then a table-by-table comparison, a schema identical to the models, and `PRAGMA integrity_check`. A backup that can no longer be restored fails the CI.

@@ -1,141 +1,141 @@
-# 🔌 Serveur MCP — Numera
+# 🔌 MCP server — Numera
 
-Serveur [MCP (Model Context Protocol)](https://modelcontextprotocol.io) permettant à Claude (Claude Code, Claude Desktop) d'interroger les données du suivi budgétaire, **en lecture seule**.
+An [MCP (Model Context Protocol)](https://modelcontextprotocol.io) server that lets Claude (Claude Code, Claude Desktop) query the budget-tracking data, **read-only**.
 
-Le serveur est un **proxy de l'API FastAPI** : il appelle l'API avec un **token MCP** généré dans Numera et reprend les KPI calculés par le backend (exposé sur `/mcp` par Nginx). **48 outils, 4 ressources, 6 prompts.** Le point d'entrée est `server.py`, le code vit dans le package `numera_mcp/` (voir [Structure](#-structure)).
+The server is a **proxy of the FastAPI API**: it calls the API with an **MCP token** generated in Numera and reuses the KPIs computed by the backend (exposed on `/mcp` by Nginx). **48 tools, 4 resources, 6 prompts.** The entry point is `server.py`, the code lives in the `numera_mcp/` package (see [Structure](#-structure)).
 
-> Règle du projet : les KPI sont calculés par le backend. Le serveur MCP n'a pas d'accès direct à la base et ne recalcule rien.
+> Project rule: KPIs are computed by the backend. The MCP server has no direct database access and recomputes nothing.
 
 ---
 
-## 🧰 Outils
+## 🧰 Tools
 
-**Lecture seule.** Aucun outil ne crée, modifie ou supprime de données, et l'API le garantit aussi : avec un token MCP, toute requête autre que `GET` reçoit un 403 (`Accès MCP en lecture seule`). Les modifications se font dans l'interface Numera.
+**Read-only.** No tool creates, modifies or deletes data, and the API guarantees it too: with an MCP token, any request other than `GET` receives a 403 (`Accès MCP en lecture seule`, "MCP access is read-only"). Changes are made in the Numera interface.
 
-**Données**
+**Data**
 `list_accounts`, `list_categories`, `list_transactions`, `get_transaction`, `search_transactions`, `list_merchants`, `list_recurring_transactions`, `list_savings_goals`, `list_provisions`, `list_benefits`, `list_financial_events`, `list_tags`, `list_transfer_rules`, `list_reimbursement_claims`
 
 **Analyses (via `/analytics/*`)**
 `get_budget_summary`, `get_expenses_by_category`, `get_top_merchants`, `get_subscriptions`, `get_budget_alerts`, `get_insights`, `get_monthly_report`, `get_budget_period`, `get_resilience`, `get_month_review`, `get_wrapped`, `list_month_closures`, `get_kpi_history`, `get_cashflow_projection`, `get_wealth_forecast`, `get_fire_projection`, `get_money_flow`, `get_tax_overview`, `get_work_time`
 
-**Investissements**
-`get_portfolio`, `get_dividends`, `list_holdings`, `list_investment_transactions`, `list_etf_profiles`, `get_etf_profile`, `get_investments_summary`, `get_investment_performance` (gains, baseline point zéro, PRU), `get_investment_performance_history`, `get_investments_allocation`, `get_investments_allocation_advanced`, `get_patrimoine_allocation`, `get_diversity_scanner`
+**Investments**
+`get_portfolio`, `get_dividends`, `list_holdings`, `list_investment_transactions`, `list_etf_profiles`, `get_etf_profile`, `get_investments_summary`, `get_investment_performance` (gains, zero-point baseline, average cost), `get_investment_performance_history`, `get_investments_allocation`, `get_investments_allocation_advanced`, `get_patrimoine_allocation`, `get_diversity_scanner`
 
-**Ressources** : `data://accounts`, `data://categories`, `data://tags`, `data://recurring-transactions`
+**Resources**: `data://accounts`, `data://categories`, `data://tags`, `data://recurring-transactions`
 
-**Prompts** : `analyze_month`, `audit_subscriptions`, `budget_review`, `categorize_uncategorized` (propose des catégories, à appliquer dans l'interface), `analyze_portfolio`, `analyze_etf_lookthrough`
+**Prompts**: `analyze_month`, `audit_subscriptions`, `budget_review`, `categorize_uncategorized` (suggests categories, to be applied in the interface), `analyze_portfolio`, `analyze_etf_lookthrough`
 
 ---
 
-## 🔑 Connexion de Claude (Code / Desktop)
+## 🔑 Connecting Claude (Code / Desktop)
 
-En production, `infra/docker-compose.prod.yml` lance `mcp-server` (transport `streamable-http`, sans état) ; Nginx l'expose sur `https://<domaine>/mcp`. Aucun port publié, aucun secret dans le conteneur.
+In production, `infra/docker-compose.prod.yml` starts `mcp-server` (`streamable-http` transport, stateless); Nginx exposes it on `https://<domain>/mcp`. No published port, no secret in the container.
 
-1. Numera → **Paramètres → Sécurité → Claude (MCP)** → **Générer un token** (`nmr_…`, affiché une seule fois).
-2. Lancer la commande affichée :
+1. Numera → **Settings → Security → Claude (MCP)** (French UI: *Paramètres → Sécurité*) → **Generate a token** (`nmr_…`, shown only once).
+2. Run the displayed command:
    ```bash
-   claude mcp add --transport http --scope user numera https://<domaine>/mcp \
+   claude mcp add --transport http --scope user numera https://<domain>/mcp \
      --header "Authorization: Bearer nmr_…"
    ```
-3. `claude mcp list` doit afficher `numera` connecté.
+3. `claude mcp list` must show `numera` as connected.
 
 ### Claude Desktop
 
-Claude Desktop ne sait pas envoyer d'en-tête `Authorization` à un serveur distant (ses « connecteurs personnalisés » attendent OAuth). On passe donc par le pont local [`mcp-remote`](https://www.npmjs.com/package/mcp-remote) (**Node.js requis**). L'interface génère le bloc à fusionner dans `claude_desktop_config.json` (Réglages → Développeur → Modifier la configuration ; macOS : `~/Library/Application Support/Claude/`) :
+Claude Desktop cannot send an `Authorization` header to a remote server (its "custom connectors" expect OAuth). So we go through the local [`mcp-remote`](https://www.npmjs.com/package/mcp-remote) bridge (**Node.js required**). The interface generates the block to merge into `claude_desktop_config.json` (Settings → Developer → Edit config; macOS: `~/Library/Application Support/Claude/`):
 
 ```json
 {
   "mcpServers": {
     "numera": {
       "command": "npx",
-      "args": ["-y", "mcp-remote", "https://<domaine>/mcp", "--header", "Authorization:${NUMERA_AUTH}"],
+      "args": ["-y", "mcp-remote", "https://<domain>/mcp", "--header", "Authorization:${NUMERA_AUTH}"],
       "env": { "NUMERA_AUTH": "Bearer nmr_…" }
     }
   }
 }
 ```
 
-Le token passe par la variable d'environnement (`Authorization:${NUMERA_AUTH}` sans espace : contourne un bug d'échappement des arguments de Claude Desktop). Redémarrer Claude Desktop ensuite.
+The token goes through the environment variable (`Authorization:${NUMERA_AUTH}` with no space: works around an argument-escaping bug in Claude Desktop). Restart Claude Desktop afterwards.
 
-Chaîne d'authentification :
+Authentication chain:
 
 ```
 Claude Code ──Bearer nmr_…──▶ Nginx /mcp ──▶ mcp-server
-   numera_mcp/auth.py : GET /auth/whoami avec ce token (refus 401 sinon, validation gardée 30 s)
-   chaque outil   : appel API avec ce même token (numera_mcp.api_client.APIClient)
-backend : get_current_user accepte le token (empreinte SHA-256 dans mcp_tokens),
-          le refuse s'il est révoqué ou si l'accès MCP est coupé, et /admin le refuse toujours (403)
+   numera_mcp/auth.py: GET /auth/whoami with this token (401 otherwise, validation cached for 30 s)
+   each tool     : API call with the same token (numera_mcp.api_client.APIClient)
+backend: get_current_user accepts the token (SHA-256 fingerprint in mcp_tokens),
+         refuses it if revoked or if MCP access is switched off, and /admin always refuses it (403)
 ```
 
-Révoquer un token ou couper « Accès MCP » prend effet immédiatement pour les données : les appels d'outils sont refusés par l'API, même pendant les 30 s où la validation du middleware est gardée en cache.
+Revoking a token or switching off "Accès MCP" ("MCP access") takes effect immediately for data: tool calls are refused by the API, even during the 30 s in which the middleware validation is cached.
 
-En dev (`make dev`), le service `mcp-server` écoute sur `8100` et Vite proxifie `/mcp` : la commande affichée par l'interface (`http://localhost:5173/mcp`) fonctionne telle quelle.
+In dev (`make dev`), the `mcp-server` service listens on `8100` and Vite proxies `/mcp`: the command displayed by the interface (`http://localhost:5173/mcp`) works as is.
 
 ---
 
-## 📦 Installation locale (stdio)
+## 📦 Local installation (stdio)
 
-Prérequis : Python 3.12+.
+Prerequisite: Python 3.12+.
 
 ```bash
 cd mcp-server
-uv sync                             # mcp[cli]>=1.9.0 (httpx arrive avec mcp), figé par uv.lock
+uv sync                             # mcp[cli]>=1.9.0 (httpx comes with mcp), pinned by uv.lock
 
-# Tester avec l'Inspector MCP
+# Test with the MCP Inspector
 npx -y @modelcontextprotocol/inspector uv run python server.py
 ```
 
-## ⚙️ Variables d'environnement
+## ⚙️ Environment variables
 
-| Variable | Portée | Description | Défaut |
-|----------|--------|-------------|--------|
-| `MCP_SERVER_NAME` | tous | Nom affiché | `Numera` |
-| `MCP_TRANSPORT` | tous | `stdio`, `streamable-http`, `sse` | `stdio` (l'image Docker met `streamable-http`) |
-| `MCP_HOST` / `MCP_PORT` | HTTP/SSE | Écoute | `127.0.0.1` / `8100` (l'image Docker met `0.0.0.0`) |
-| `MCP_API_URL` | tous | URL de l'API : `http://backend:8001` dans Docker, `https://domaine/api` via Nginx | `http://localhost:8001` (l'image Docker met `http://backend:8001`) |
-| `MCP_API_TOKEN` | stdio | Token MCP généré dans l'interface — **obligatoire en stdio**. En HTTP, ignoré : chaque client envoie le sien | — |
+| Variable | Scope | Description | Default |
+|----------|-------|-------------|---------|
+| `MCP_SERVER_NAME` | all | Displayed name | `Numera` |
+| `MCP_TRANSPORT` | all | `stdio`, `streamable-http`, `sse` | `stdio` (the Docker image sets `streamable-http`) |
+| `MCP_HOST` / `MCP_PORT` | HTTP/SSE | Listening address | `127.0.0.1` / `8100` (the Docker image sets `0.0.0.0`) |
+| `MCP_API_URL` | all | API URL: `http://backend:8001` in Docker, `https://domain/api` through Nginx | `http://localhost:8001` (the Docker image sets `http://backend:8001`) |
+| `MCP_API_TOKEN` | stdio | MCP token generated in the interface — **required in stdio**. In HTTP, ignored: each client sends its own | — |
 
-Plus aucun mot de passe : `MCP_API_USERNAME`, `MCP_API_PASSWORD` et `MCP_AUTH_TOKEN` n'existent plus.
+No more passwords: `MCP_API_USERNAME`, `MCP_API_PASSWORD` and `MCP_AUTH_TOKEN` no longer exist.
 
-### Client local en stdio (optionnel)
+### Local stdio client (optional)
 
-Par exemple pour Claude Code sans passer par `/mcp` :
+For example for Claude Code without going through `/mcp`:
 
 ```bash
 claude mcp add --scope user numera-local \
-  -e MCP_API_URL=https://<domaine>/api -e MCP_API_TOKEN=nmr_… \
-  -- python3 /chemin/absolu/numera/mcp-server/server.py
+  -e MCP_API_URL=https://<domain>/api -e MCP_API_TOKEN=nmr_… \
+  -- python3 /absolute/path/numera/mcp-server/server.py
 ```
 
 ---
 
 ## 🐳 Docker
 
-Service `mcp-server` de `infra/docker-compose.prod.yml` (toujours lancé, frontend Nginx en dépend) : `streamable-http` sur `8100` dans le réseau Docker seulement, `MCP_API_URL=http://backend:8001`. Bloc Nginx : `location = /mcp` dans `frontend/nginx.conf` (`proxy_buffering off` pour le flux SSE).
+`mcp-server` service of `infra/docker-compose.prod.yml` (always started, the Nginx frontend depends on it): `streamable-http` on `8100` inside the Docker network only, `MCP_API_URL=http://backend:8001`. Nginx block: `location = /mcp` in `frontend/nginx.conf` (`proxy_buffering off` for the SSE stream).
 
-Le serveur est construit en `stateless_http` (pas d'affinité de session) et sans protection DNS rebinding de la lib `mcp` (elle n'accepte que `Host: localhost`, ce qui casse derrière Nginx ; inutile puisque l'accès repose sur un token bearer explicite).
+The server is built with `stateless_http` (no session affinity) and without the `mcp` library's DNS-rebinding protection (it only accepts `Host: localhost`, which breaks behind Nginx; unnecessary since access relies on an explicit bearer token).
 
-Build manuel : `docker build -t numera-mcp ./mcp-server`.
-
----
-
-## 🔒 Sécurité
-
-- **Tokens MCP** : 256 bits aléatoires préfixés `nmr_`, seule l'empreinte SHA-256 est stockée (`mcp_tokens`), affichés une seule fois, révocables un par un, `last_used_at` mis à jour (au plus une fois par minute). Interrupteur global « Accès MCP » (`system_settings.mcp_enabled`).
-- **Périmètre** : un token MCP est en **lecture seule** (`GET` uniquement, 403 sinon) et n'a **aucun accès à `/admin`** (profil, mot de passe, reset de la base, gestion des tokens).
-- **Transport** : le token circule dans un en-tête ; en production, n'exposer Numera qu'en HTTPS.
-- Logs sur stderr.
-
-Tests : `cd mcp-server && uv run --with pytest python -m pytest tests -q` (surface MCP figée, middleware d'authentification, lecture seule, transport HTTP) et `backend/tests/systeme/test_mcp_tokens.py` (tokens côté API).
+Manual build: `docker build -t numera-mcp ./mcp-server`.
 
 ---
 
-## 🧪 Exemples
+## 🔒 Security
 
-- « Analyse mon budget de mai 2026 » → `get_budget_summary`, `get_expenses_by_category`, `get_top_merchants` (ou prompt `analyze_month`).
-- « Audit de mes abonnements » → prompt `audit_subscriptions` (`get_subscriptions`).
-- « Combien chez Amazon cette année ? » → `search_transactions`.
-- « Analyse mon portefeuille » → prompts `analyze_portfolio` / `analyze_etf_lookthrough`.
+- **MCP tokens**: 256 random bits prefixed `nmr_`, only the SHA-256 fingerprint is stored (`mcp_tokens`), shown only once, revocable one by one, `last_used_at` updated (at most once a minute). Global "Accès MCP" switch (`system_settings.mcp_enabled`).
+- **Scope**: an MCP token is **read-only** (`GET` only, 403 otherwise) and has **no access to `/admin`** (profile, password, database reset, token management).
+- **Transport**: the token travels in a header; in production, only expose Numera over HTTPS.
+- Logs on stderr.
+
+Tests: `cd mcp-server && uv run --with pytest python -m pytest tests -q` (frozen MCP surface, authentication middleware, read-only, HTTP transport) and `backend/tests/systeme/test_mcp_tokens.py` (tokens on the API side).
+
+---
+
+## 🧪 Examples
+
+- "Analyse my May 2026 budget" → `get_budget_summary`, `get_expenses_by_category`, `get_top_merchants` (or the `analyze_month` prompt).
+- "Audit my subscriptions" → `audit_subscriptions` prompt (`get_subscriptions`).
+- "How much at Amazon this year?" → `search_transactions`.
+- "Analyse my portfolio" → `analyze_portfolio` / `analyze_etf_lookthrough` prompts.
 
 ---
 
@@ -143,28 +143,28 @@ Tests : `cd mcp-server && uv run --with pytest python -m pytest tests -q` (surfa
 
 ```
 mcp-server/
-├── server.py              # Point d'entrée (stdio ou HTTP + middleware d'authentification)
+├── server.py              # Entry point (stdio or HTTP + authentication middleware)
 ├── numera_mcp/
-│   ├── config.py          # Variables d'environnement, transport, logs
-│   ├── auth.py            # Validation des tokens par l'API (transports HTTP)
-│   ├── api_client.py      # Client HTTP en lecture seule (GET) + gestion des erreurs API
+│   ├── config.py          # Environment variables, transport, logs
+│   ├── auth.py            # Token validation by the API (HTTP transports)
+│   ├── api_client.py      # Read-only HTTP client (GET) + API error handling
 │   ├── formatting.py      # serialize, format_table
-│   ├── budget_period.py   # Mois budgétaire courant
-│   ├── resources.py       # Ressources data://…
-│   ├── prompts.py         # Prompts d'analyse
-│   ├── app.py             # Assemblage : enregistrement des modules, application HTTP
-│   └── tools/             # Un module par domaine du backend, chacun expose register(mcp)
-│       ├── budget.py, budget_revue.py        # transactions, catégories, marchands, revue de mois…
-│       ├── comptes.py                        # comptes, prêts, événements financiers
-│       ├── investissement.py, etf.py         # portefeuille, positions, dividendes, ETF
-│       └── analytics.py, projections.py      # budget, KPI, projections, flux, patrimoine
-├── tests/                 # surface MCP figée (snapshot), auth, lecture seule, transport HTTP
+│   ├── budget_period.py   # Current budget month
+│   ├── resources.py       # data://… resources
+│   ├── prompts.py         # Analysis prompts
+│   ├── app.py             # Assembly: module registration, HTTP application
+│   └── tools/             # One module per backend domain, each exposes register(mcp)
+│       ├── budget.py, budget_revue.py        # transactions, categories, merchants, month review…
+│       ├── comptes.py                        # accounts, loans, financial events
+│       ├── investissement.py, etf.py         # portfolio, positions, dividends, ETFs
+│       └── analytics.py, projections.py      # budget, KPIs, projections, flows, net worth
+├── tests/                 # frozen MCP surface (snapshot), auth, read-only, HTTP transport
 ├── ruff.toml
-├── pyproject.toml         # Dépendances (uv)
+├── pyproject.toml         # Dependencies (uv)
 ├── uv.lock
 ├── Dockerfile
 ├── .env.example
 └── README.md
 ```
 
-Ajouter un outil : une fonction dans le module du domaine, l'ajouter à sa liste `TOOLS`, puis régénérer le snapshot de `tests/` après revue (`tests/surface_snapshot.json`).
+Adding a tool: a function in the domain module, add it to its `TOOLS` list, then regenerate the `tests/` snapshot after review (`tests/surface_snapshot.json`).

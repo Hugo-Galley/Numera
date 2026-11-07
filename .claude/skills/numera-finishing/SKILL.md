@@ -1,47 +1,47 @@
 ---
 name: numera-finishing
-description: Use when a Numera change seems done and before saying "c'est terminé", committing, or handing back to the user — including small fixes, refactors and doc-only changes.
+description: Use when a Numera change seems done and before saying "done" ("c'est terminé"), committing, or handing back to the user — including small fixes, refactors and doc-only changes.
 ---
 
-# Numera — avant de dire « terminé »
+# Numera — before saying "done"
 
-## Principe
+## Principle
 
-Terminé = vérifié par une commande lancée **maintenant**, docs à jour, commit propre. Pas d'affirmation sans sortie de commande (`superpowers:verification-before-completion`).
+Done = verified by a command run **now**, docs up to date, clean commit. No claim without command output (`superpowers:verification-before-completion`).
 
-## Checklist (dans cet ordre)
+## Checklist (in this order)
 
-1. **Tests** — le test du comportement ajouté existe et a été vu rouge (`numera-tdd`).
-2. **Validation** selon ce qui a changé :
+1. **Tests** — the test for the added behaviour exists and was seen failing (`numera-tdd`).
+2. **Validation** depending on what changed:
 
-   | Changé | Commande |
+   | Changed | Command |
    |---|---|
    | `backend/` | `make lint && make check-size && make dead-code && make test` |
-   | `frontend/` | `make check-size && make knip && cd frontend && npm test && npm run build` (le build seul ne lance pas les tests) |
-   | les deux, ou un déplacement de fichier | `make validate` |
-   | modèle SQLAlchemy | + migration Alembic relue ; `tests/garde_fous/test_migrations.py` vert |
-   | une route ou un schéma Pydantic | + `make api-contract` (régénère `openapi.json` et `schema.d.ts`, à commiter) ; `test_openapi_routes.py` et `test_openapi_contract.py` mis à jour volontairement |
-   | performance (requêtes, cache, bundle, nginx) | skill `numera-performance` : mesure avant/après sur jeu volumineux, test de nombre de requêtes, chiffres et limites dans le message de commit |
+   | `frontend/` | `make check-size && make knip && cd frontend && npm test && npm run build` (the build alone does not run the tests) |
+   | both, or a file move | `make validate` |
+   | SQLAlchemy model | + reviewed Alembic migration; `tests/garde_fous/test_migrations.py` green |
+   | a route or a Pydantic schema | + `make api-contract` (regenerates `openapi.json` and `schema.d.ts`, to be committed); `test_openapi_routes.py` and `test_openapi_contract.py` updated deliberately |
+   | performance (queries, cache, bundle, nginx) | `numera-performance` skill: before/after measurement on a large dataset, query-count test, figures and limits in the commit message |
 
-   Les hooks pre-commit (`make hooks`) rejouent lint, tailles et secrets au commit : ne jamais les contourner avec `--no-verify`.
+   The pre-commit hooks (`make hooks`) replay lint, sizes and secrets at commit time: never bypass them with `--no-verify`.
 
-   Une commande rouge = pas terminé. Ne pas commiter « en attendant ».
-3. **Diff relu** — `git diff --stat` puis `git diff` : pas de `print`, de code commenté, de `TODO` sans suite, de fichier hors sujet, de `*.db`, de `.env`, de secret, de baseline ou d'instantané régénéré sans justification, de tag flottant (action GitHub sans SHA, image Docker sans digest : règle dans `CLAUDE.md`).
-4. **Docs dans le même commit** quand le code change :
+   A red command = not done. Do not commit "for now".
+3. **Diff reviewed** — `git diff --stat` then `git diff`: no `print`, commented-out code, `TODO` without follow-up, off-topic file, `*.db`, `.env`, secret, baseline or snapshot regenerated without justification, floating tag (GitHub Action without SHA, Docker image without digest: rule in `CLAUDE.md`).
+4. **Docs in the same commit** when the code changes:
 
-   | Changement | À mettre à jour |
+   | Change | To update |
    |---|---|
-   | route, modèle, commande | `ARCHITECTURE.md` |
-   | route de lecture exposable | `mcp-server/numera_mcp/tools/<domaine>.py` + snapshot `tests/surface_snapshot.json` (+ `mcp-server/README.md`) |
-   | règle métier | `CLAUDE.md` (règles critiques) et skill `numera-expert` |
-   | convention, emplacement, procédure | `backend/CLAUDE.md` / `frontend/src/CLAUDE.md` / skill concerné |
-   | notion à source unique | tableau de `numera-clean-architecture` |
-   | Centre d'Actions | `docs/ACTION_CENTER.md` |
+   | route, model, command | `ARCHITECTURE.md` |
+   | exposable read route | `mcp-server/numera_mcp/tools/<domain>.py` + snapshot `tests/surface_snapshot.json` (+ `mcp-server/README.md`) |
+   | business rule | `CLAUDE.md` (critical rules) and the `numera-expert` skill |
+   | convention, location, procedure | `backend/CLAUDE.md` / `frontend/src/CLAUDE.md` / the relevant skill |
+   | single-source notion | table in `numera-clean-architecture` |
+   | Action Center | `docs/ACTION_CENTER.md` |
 
-   Une doc qui cite un chemin déplacé est une doc fausse : `grep` l'ancien chemin dans `*.md` et `.claude/`.
-5. **Commit puis PR** — `main` est protégée (`docs/WORKFLOW_GIT.md`) : jamais de push direct. Branche `type/sujet-court` depuis `main` à jour, un commit par changement cohérent, message en français au format du dépôt : `type(portée): description` (`feat`, `fix`, `refactor`, `test`, `docs`, `chore`). Le corps dit *pourquoi*, et pourquoi un chiffre d'instantané change si c'est le cas. Puis `git push -u origin <branche>` et `gh pr create` : le **titre** de la PR (même format, `!` si incompatible) devient le commit squashé et la ligne des notes de version ; remplir le template sans en supprimer de section. Merge (`gh pr merge --squash`) seulement quand `CI ok` et `Titre de PR` sont verts.
-6. **Compte rendu** — ce qui est vérifié (commandes et résultat), ce qui ne l'est pas (ex. rendu visuel, mobile, mode sombre non regardés).
+   A doc that cites a moved path is a wrong doc: `grep` the old path in `*.md` and `.claude/`.
+5. **Commit then PR** — `main` is protected (`docs/WORKFLOW_GIT.md`): never a direct push. Branch `type/short-topic` from an up-to-date `main`, one commit per coherent change, message in English in the repository format: `type(scope): description` (`feat`, `fix`, `refactor`, `test`, `docs`, `chore`). The body says *why*, and why a snapshot figure changes if it does. Then `git push -u origin <branch>` and `gh pr create`: the PR **title** (same format, `!` if breaking) becomes the squashed commit and the release-notes line; fill in the template without removing any section. Merge (`gh pr merge --squash`) only when `CI ok` and `Titre de PR` are green.
+6. **Report** — what is verified (commands and result), what is not (e.g. visual rendering, mobile, dark mode not looked at).
 
-## Signaux d'arrêt
+## Stop signals
 
-« Ça devrait passer » · tests lancés avant la dernière modification · build frontend non lancé après un changement de type · doc « à mettre à jour plus tard » · commit qui mélange refactor et changement de comportement.
+"It should pass" · tests run before the last change · frontend build not run after a type change · doc "to update later" · a commit that mixes a refactor and a behaviour change.

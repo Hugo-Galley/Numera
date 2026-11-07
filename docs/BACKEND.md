@@ -1,68 +1,68 @@
-# Documentation Complète du Backend Numera
+# Numera Backend: Complete Documentation
 
-Ce document fournit une vue d'ensemble technique, opérationnelle et architecturale du backend de l'application **Numera**. Il est destiné aux développeurs et aux administrateurs système pour comprendre comment le système fonctionne, comment le monitorer et comment le déployer.
+This document gives a technical, operational and architectural overview of the backend of the **Numera** application. It is intended for developers and system administrators who need to understand how the system works, how to monitor it and how to deploy it.
 
 ---
 
-## 1. Stack Technique & Choix Architecturaux
+## 1. Tech Stack and Architectural Choices
 
-Le backend de Numera est conçu selon le principe **Local-First & Privacy**. Il s'exécute localement et stocke les données sans faire appel à des services cloud tiers (à l'exception des taux de change Frankfurter et des cotations/profils de titres Yahoo Finance).
+Numera's backend follows a **local-first and privacy** principle. It runs locally and stores data without relying on third-party cloud services (apart from Frankfurter exchange rates and Yahoo Finance quotes/security profiles).
 
-### La Stack Technique
+### The tech stack
 
-| Technologie | Composant / Rôle | Version / Détails |
+| Technology | Component / Role | Version / Details |
 | :--- | :--- | :--- |
-| **Langage** | [Python](https://www.python.org/) | Python 3.12 (image Docker) ; 3.11 fonctionne en local, 3.14 est incompatible avec pydantic-core |
-| **Framework Web** | [FastAPI](https://fastapi.tiangolo.com/) | `0.116.1` (ASGI, asynchrone) |
-| **Serveur ASGI** | [Uvicorn](https://www.uvicorn.org/) | `0.35.0` (standard) |
-| **Base de Données** | [SQLite](https://sqlite.org/) | Fichier local `suivi_budget.db` |
-| **ORM** | [SQLAlchemy](https://www.sqlalchemy.org/) | `2.0.43` (syntaxe moderne 2.0 `Mapped`) |
+| **Language** | [Python](https://www.python.org/) | Python 3.12 (Docker image); 3.11 works locally, 3.14 is incompatible with pydantic-core |
+| **Web framework** | [FastAPI](https://fastapi.tiangolo.com/) | `0.116.1` (ASGI, asynchronous) |
+| **ASGI server** | [Uvicorn](https://www.uvicorn.org/) | `0.35.0` (standard) |
+| **Database** | [SQLite](https://sqlite.org/) | Local file `suivi_budget.db` |
+| **ORM** | [SQLAlchemy](https://www.sqlalchemy.org/) | `2.0.43` (modern 2.0 `Mapped` syntax) |
 | **Migrations** | [Alembic](https://alembic.sqlalchemy.org/) | `1.16.5` |
-| **Validation & Schémas** | [Pydantic](https://docs.pydantic.dev/) | `v2.11.7` & `pydantic-settings` |
-| **Sécurité** | [PyJWT](https://pyjwt.readthedocs.io) & [bcrypt](https://github.com/pyca/bcrypt) | JWT token HS256 / Hashage de mot de passe |
-| **Tests** | [Pytest](https://docs.pytest.org/) | `8.3.3` — `PYTHONPATH=. python3.11 -m pytest tests` depuis `backend/` (`make test` attend un `backend/venv` absent ici) |
+| **Validation and schemas** | [Pydantic](https://docs.pydantic.dev/) | `v2.11.7` and `pydantic-settings` |
+| **Security** | [PyJWT](https://pyjwt.readthedocs.io) and [bcrypt](https://github.com/pyca/bcrypt) | HS256 JWT token / password hashing |
+| **Tests** | [Pytest](https://docs.pytest.org/) | `8.3.3` — `PYTHONPATH=. python3.11 -m pytest tests` from `backend/` (`make test` expects a `backend/venv` that is absent here) |
 
-### Pourquoi cette Stack ?
+### Why this stack?
 
-1. **FastAPI & Pydantic v2** : Offrent des performances exceptionnelles (grâce au cœur de validation de Pydantic v2 écrit en Rust) et un typage fort. La génération automatique de la documentation interactive Swagger UI (`/docs`) et ReDoc (`/redoc`) facilite grandement l'intégration avec le frontend.
-2. **SQLite** : Parfaitement adapté au modèle **mono-utilisateur** (Single Admin). SQLite élimine le besoin d'installer, configurer et administrer un serveur de base de données complet comme PostgreSQL ou MySQL. Cela garantit une empreinte système minimale et un respect total de la vie privée (les données restent sur la machine de l'utilisateur).
-3. **SQLAlchemy 2.0 & Alembic** : Permettent de modéliser proprement les relations complexes (par exemple, le chaînage des virements internes, les liaisons de transactions récurrentes) tout en conservant une flexibilité totale de migration de schéma lors des mises à jour applicatives.
-4. **Authentification JWT simple** : Conforme au modèle de déploiement privé, l'application utilise un unique compte d'administration ; le jeton expire après une heure d'inactivité (renouvelé pendant l'utilisation, session bornée à 12 h).
+1. **FastAPI and Pydantic v2**: exceptional performance (thanks to Pydantic v2's validation core written in Rust) and strong typing. Automatic generation of the interactive Swagger UI (`/docs`) and ReDoc (`/redoc`) documentation greatly eases integration with the frontend.
+2. **SQLite**: a perfect fit for the **single-user** (single admin) model. SQLite removes the need to install, configure and administer a full database server such as PostgreSQL or MySQL. This guarantees a minimal system footprint and full privacy (data stays on the user's machine).
+3. **SQLAlchemy 2.0 and Alembic**: they model complex relationships cleanly (for example the chaining of internal transfers, links between recurring transactions) while keeping full flexibility for schema migration during application updates.
+4. **Simple JWT authentication**: in line with the private deployment model, the application uses a single administration account; the token expires after one hour of inactivity (renewed during use, session capped at 12 h).
 
 ---
 
-## 2. Architecture & Fonctionnement Interne
+## 2. Architecture and Internals
 
-### Arborescence du Code Backend
+### Backend code tree
 
 ```text
 backend/
-├── alembic/                # Scripts de migrations de schéma de base de données
-├── app/                    # Code source principal de l'application
-│   ├── controllers/        # Routers FastAPI, par domaine (budget, comptes, investissement, analytics, systeme) + deps.py
-│   ├── services/           # Cas d'usage (commit, erreurs métier), même arborescence par domaine (+ audit/)
-│   ├── repositories/       # Requêtes SQLAlchemy, même arborescence par domaine, sans commit
-│   ├── domain/             # Calculs purs (sans Session)
-│   ├── integrations/       # Appels externes (Frankfurter, Yahoo Finance, ntfy/Telegram, logos, backup)
-│   ├── core/               # Transverse : configuration, sécurité, erreurs, logs, migrations
-│   ├── db/                 # Connexion et session SQLAlchemy
-│   ├── models/             # Modèles de l'ORM SQLAlchemy
-│   ├── schemas/            # Schémas de validation Pydantic (v2)
-│   └── main.py             # Point d'entrée de l'application FastAPI
-├── data/                   # Répertoire contenant le fichier SQLite (exclu de Git)
-├── scripts/                # Scripts utilitaires (backups, seeds, migrations)
-├── tests/                  # Tests unitaires et d'intégration avec Pytest
-├── Dockerfile              # Dockerfile pour le conteneur backend
-├── pyproject.toml          # Dépendances Python (uv) ; groupe dev : pytest, ruff, mypy
-├── uv.lock                 # Versions figées (uv sync --frozen)
-└── alembic.ini             # Configuration d'Alembic
+├── alembic/                # Database schema migration scripts
+├── app/                    # Main application source code
+│   ├── controllers/        # FastAPI routers, by domain (budget, comptes, investissement, analytics, systeme) + deps.py
+│   ├── services/           # Use cases (commit, business errors), same tree by domain (+ audit/)
+│   ├── repositories/       # SQLAlchemy queries, same tree by domain, no commit
+│   ├── domain/             # Pure calculations (no Session)
+│   ├── integrations/       # External calls (Frankfurter, Yahoo Finance, ntfy/Telegram, logos, backup)
+│   ├── core/               # Cross-cutting: configuration, security, errors, logs, migrations
+│   ├── db/                 # SQLAlchemy connection and session
+│   ├── models/             # SQLAlchemy ORM models
+│   ├── schemas/            # Pydantic (v2) validation schemas
+│   └── main.py             # FastAPI application entry point
+├── data/                   # Directory holding the SQLite file (excluded from Git)
+├── scripts/                # Utility scripts (backups, seeds, migrations)
+├── tests/                  # Unit and integration tests with Pytest
+├── Dockerfile              # Dockerfile for the backend container
+├── pyproject.toml          # Python dependencies (uv); dev group: pytest, ruff, mypy
+├── uv.lock                 # Pinned versions (uv sync --frozen)
+└── alembic.ini             # Alembic configuration
 ```
 
-### Diagramme des Flux Applicatifs
+### Application flow diagram
 
 ```mermaid
 graph TD
-    Client[Client Frontend React] -->|HTTPS Requests + JWT| API[FastAPI Gateway app/main.py]
+    Client[React Frontend Client] -->|HTTPS Requests + JWT| API[FastAPI Gateway app/main.py]
     API -->|Validation & Security Depends| Auth[Security Middleware app/controllers/deps.py]
     API -->|Routing| Controllers[API Routers app/controllers/*]
     Controllers -->|Use cases| Services[Services app/services/*]
@@ -76,74 +76,74 @@ graph TD
     DB -->|Source data| BackupService
 ```
 
-### Cycle de vie & Tâches d'arrière-plan
+### Lifecycle and background tasks
 
-Au démarrage de l'application (événement `lifespan` configuré dans [backend/app/main.py](file:///Users/hugogalley/DEV/numera/backend/app/main.py)) :
-1. **Migrations automatiques** : Si `APP_ENV` n'est pas configuré sur `test`, Alembic est exécuté automatiquement via `run_migrations()` dans [backend/app/core/migrations.py](file:///Users/hugogalley/DEV/numera/backend/app/core/migrations.py) pour mettre à jour la structure de la base de données.
-2. **Peuplement par défaut (Seeding)** : Les catégories fondamentales et les profils ETF système sont insérés s'ils sont absents via `seed_all()` dans `backend/app/services/systeme/seeds.py`.
-3. **Tâche récurrente asynchrone** : Une boucle asynchrone permanente (`recurring_transactions_task`) est lancée en tâche de fond. Elle s'exécute toutes les heures pour :
-   - Générer automatiquement les instances de transactions récurrentes (abonnements, charges fixes) définies par l'utilisateur (`backend/app/services/budget/recurring.py`).
-   - Vérifier et générer les transactions liées aux salaires configurés et jours de télétravail déclarés (`backend/app/services/budget/salary_generation.py`).
+When the application starts (`lifespan` event configured in [backend/app/main.py](../backend/app/main.py)):
+1. **Automatic migrations**: if `APP_ENV` is not set to `test`, Alembic is run automatically through `run_migrations()` in [backend/app/core/migrations.py](../backend/app/core/migrations.py) to update the database structure.
+2. **Default seeding**: the core categories and the system ETF profiles are inserted if absent, through `seed_all()` in `backend/app/services/systeme/seeds.py`.
+3. **Asynchronous recurring task**: a permanent asynchronous loop (`recurring_transactions_task`) is started in the background. It runs every hour to:
+   - Automatically generate the instances of recurring transactions (subscriptions, fixed charges) defined by the user (`backend/app/services/budget/recurring.py`).
+   - Check and generate the transactions linked to configured salaries and declared remote-work days (`backend/app/services/budget/salary_generation.py`).
 
-### Worker unique et état en mémoire
+### Single worker and in-memory state
 
-Le backend doit tourner avec **un seul worker uvicorn** (`docker-compose.prod.yml`). Plusieurs états vivent dans la mémoire du processus et ne sont pas partagés entre workers : cache des taux (`integrations/currency.py`), cache des cotations et cache négatif (`services/investissement/market/quotes.py`), cache de valorisation (`services/investissement/portfolio/cache.py`), disjoncteurs (`core/circuit_breaker.py`) et limiteurs de connexion (`core/login_rate_limit.py`). Avec `--workers N`, chaque worker aurait ses propres copies : valorisation périmée après une écriture traitée par un autre worker, limite de tentatives de connexion multipliée par N. Passer à plusieurs workers suppose d'abord de déplacer ces états en base ou dans un cache partagé.
+The backend must run with **a single uvicorn worker** (`docker-compose.prod.yml`). Several states live in the process memory and are not shared between workers: rate cache (`integrations/currency.py`), quote cache and negative cache (`services/investissement/market/quotes.py`), valuation cache (`services/investissement/portfolio/cache.py`), circuit breakers (`core/circuit_breaker.py`) and login limiters (`core/login_rate_limit.py`). With `--workers N`, each worker would have its own copies: stale valuation after a write handled by another worker, login attempt limit multiplied by N. Moving to several workers first requires moving this state into the database or a shared cache.
 
-Les routes sont des `def` (threadpool) : le calcul et SQLAlchemy ne bloquent pas la boucle d'événements. Les services qui attendent du réseau restent `async` et sont appelés par `run_async` (`core/sync_bridge.py`).
+Routes are `def` (threadpool): computation and SQLAlchemy do not block the event loop. Services that wait on the network stay `async` and are called through `run_async` (`core/sync_bridge.py`).
 
-### Règles Métier Majeures
+### Major business rules
 
-- **Calcul du Solde Cumulé (Running Balance)** : Contrairement à d'autres architectures, le solde cumulé à un instant T (`running_balance`) est stocké directement sur chaque transaction financière. Lors de l'ajout, modification ou suppression d'une transaction, le backend recalcule récursivement et chronologiquement les soldes cumulés du compte concerné via `recalculate_running_balances` (`backend/app/services/budget/balances.py`, appelée aussi par l'import CSV et la génération de salaire) afin de garantir l'intégrité absolue des graphiques temporels.
-- **Gestion Multidevises** :
-  - L'application supporte nativement les transactions en devises étrangères (USD, GBP, CHF, etc.).
-  - Le taux de change de référence est l'**EUR**. Les conversions s'effectuent via l'API publique Frankfurter.
-  - Les taux courants sont mis en cache mémoire pendant 6 heures. Les taux historiques sont mis en cache de manière prévisible dans la table SQL `historical_exchange_rates`.
-  - En cas d'indisponibilité réseau, le système bascule sur des taux de secours (fallback offline) codés en dur dans [backend/app/integrations/currency.py](file:///Users/hugogalley/DEV/numera/backend/app/integrations/currency.py).
-- **Auto-catégorisation & Normalisation** :
-  - Le moteur de catégorisation automatique applique des motifs textuels basés sur les marchands via la table `categorization_rules`.
-  - Les alias de commerçants sont normalisés à l'aide des tables `merchants` et `merchant_aliases` afin de nettoyer les libellés bancaires bruts (par exemple, mapper `INTERMARCHE PARIS 15` et `INTERMARCHE LYON` vers le marchand canonique `Intermarché`).
+- **Running balance**: unlike other architectures, the running balance at a point in time (`running_balance`) is stored directly on each financial transaction. When a transaction is added, modified or deleted, the backend recursively and chronologically recomputes the running balances of the account concerned through `recalculate_running_balances` (`backend/app/services/budget/balances.py`, also called by the CSV import and the salary generation) to guarantee the absolute integrity of time-based charts.
+- **Multi-currency handling**:
+  - The application natively supports transactions in foreign currencies (USD, GBP, CHF, etc.).
+  - The reference currency is the **EUR**. Conversions go through the public Frankfurter API.
+  - Current rates are cached in memory for 6 hours. Historical rates are cached predictably in the SQL table `historical_exchange_rates`.
+  - If the network is unavailable, the system falls back to hard-coded fallback rates in [backend/app/integrations/currency.py](../backend/app/integrations/currency.py).
+- **Auto-categorisation and normalisation**:
+  - The automatic categorisation engine applies text patterns based on merchants through the `categorization_rules` table.
+  - Merchant aliases are normalised using the `merchants` and `merchant_aliases` tables to clean raw bank labels (for example, mapping `INTERMARCHE PARIS 15` and `INTERMARCHE LYON` to the canonical merchant `Intermarché`).
 
 ---
 
-## 3. Sécurité & Authentification
+## 3. Security and Authentication
 
-L'application implémente un système d'authentification simple mais robuste :
-- **Authentification Unique** : Un compte administrateur unique est géré par les variables d'environnement `ADMIN_USERNAME` (par défaut `admin`) et `ADMIN_PASSWORD_HASH`.
-- **Génération de mot de passe** : Pour générer ou modifier le mot de passe, un script utilitaire est fourni. Vous devez hacher le mot de passe avant de l'ajouter dans votre fichier `.env` :
+The application implements a simple but robust authentication system:
+- **Single authentication**: a single administrator account is managed through the `ADMIN_USERNAME` (default `admin`) and `ADMIN_PASSWORD_HASH` environment variables.
+- **Password generation**: to generate or change the password, a utility script is provided. You must hash the password before adding it to your `.env` file:
   ```bash
-  python3 scripts/ops/change_password.py "votre_mot_de_passe"   # depuis la racine du dépôt
+  python3 scripts/ops/change_password.py "your_password"   # from the repository root
   ```
-- **JWT (JSON Web Tokens)** : Lors de la connexion (`POST /auth/token`), un token JWT signé en `HS256` avec la clé `SECRET_KEY` est généré. Sa validité est fixée à **60 minutes** (configurable via `ACCESS_TOKEN_EXPIRE_MINUTES` dans [backend/app/core/config.py](file:///Users/hugogalley/DEV/numera/backend/app/core/config.py)).
-- **Dépendance de Sécurité** : Toutes les routes métier incluent la dépendance `Depends(get_current_user)` (`app/controllers/deps.py`) qui valide le jeton (`401` si invalide/expiré, `403` si le `sub` ne correspond pas à l'admin courant). `POST /auth/token` est limité par `LoginRateLimiter` (5 échecs / 15 min par défaut, configurable via `LOGIN_*`). Le nom et le hash du mot de passe peuvent aussi être modifiés depuis l'UI (`PUT /admin/profile`, stockés dans `system_settings` et prioritaires sur le `.env`).
+- **JWT (JSON Web Tokens)**: on login (`POST /auth/token`), a JWT signed with `HS256` using the `SECRET_KEY` is generated. Its validity is set to **60 minutes** (configurable through `ACCESS_TOKEN_EXPIRE_MINUTES` in [backend/app/core/config.py](../backend/app/core/config.py)).
+- **Security dependency**: all business routes include the `Depends(get_current_user)` dependency (`app/controllers/deps.py`), which validates the token (`401` if invalid/expired, `403` if the `sub` does not match the current admin). `POST /auth/token` is limited by `LoginRateLimiter` (5 failures / 15 min by default, configurable through `LOGIN_*`). The name and password hash can also be changed from the UI (`PUT /admin/profile`, stored in `system_settings` and taking priority over `.env`).
 
 ---
 
-## 4. Monitoring & Journalisation
+## 4. Monitoring and Logging
 
-### Journalisation (Logging)
+### Logging
 
-L'application utilise le module de journalisation natif de Python configuré dans [backend/app/core/logging.py](file:///Users/hugogalley/DEV/numera/backend/app/core/logging.py).
+The application uses Python's native logging module configured in [backend/app/core/logging.py](../backend/app/core/logging.py).
 
 > [!NOTE]
-> En mode développement (`APP_ENV=dev`), le niveau de log par défaut est `DEBUG`. En production (`APP_ENV=prod`), il est limité à `INFO`.
+> In development mode (`APP_ENV=dev`), the default log level is `DEBUG`. In production (`APP_ENV=prod`), it is limited to `INFO`.
 
-Les logs sont envoyés sur la sortie standard `sys.stdout`. En environnement conteneurisé, ces logs sont capturés par Docker et peuvent être consultés avec :
+Logs are sent to standard output `sys.stdout`. In a containerised environment, these logs are captured by Docker and can be read with:
 ```bash
 docker logs -f numera-backend-prod
 ```
 
-#### Middleware de log automatique
-Un middleware HTTP personnalisé intercepte toutes les requêtes :
-- **Suivi des requêtes** : Chaque requête reçoit une ligne de log récapitulative contenant la méthode HTTP, le chemin de la ressource, le code de statut HTTP et le temps de traitement en millisecondes.
+#### Automatic logging middleware
+A custom HTTP middleware intercepts all requests:
+- **Request tracking**: each request gets one summary log line containing the HTTP method, the resource path, the HTTP status code and the processing time in milliseconds.
   ```text
   2026-06-24 18:00:00,000 - app.main - INFO - method=GET path=/accounts status=200 duration=12.45ms
   ```
-- **Gestion des exceptions** : Toutes les erreurs non gérées au niveau des endpoints sont attrapées par le middleware, journalisées au niveau `ERROR` avec la trace d'exécution complète (traceback) avant d'être renvoyées sous forme d'erreur HTTP 500 pour préserver la stabilité de l'application.
-- **Filtrage de bruit** : Les appels de surveillance de santé réussis (`GET /health` retournant un statut `200`) sont exclus des logs pour éviter de polluer les fichiers de journalisation.
+- **Exception handling**: all errors not handled at endpoint level are caught by the middleware, logged at `ERROR` level with the full traceback, before being returned as an HTTP 500 error to preserve application stability.
+- **Noise filtering**: successful health-monitoring calls (`GET /health` returning a `200` status) are excluded from the logs to avoid polluting the log files.
 
-### Surveillance de l'état (Healthcheck)
+### Health monitoring (healthcheck)
 
-Le conteneur de production intègre une directive de surveillance `healthcheck` :
+The production container includes a `healthcheck` directive:
 ```yaml
 healthcheck:
   test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
@@ -152,119 +152,119 @@ healthcheck:
   retries: 5
   start_period: 20s
 ```
-L'endpoint `/health` vérifie simplement que l'application répond correctement. Si 5 vérifications consécutives échouent, Docker marque le conteneur comme `unhealthy` et le redémarre automatiquement si `restart: always` est configuré.
+The `/health` endpoint simply checks that the application responds correctly. If 5 consecutive checks fail, Docker marks the container as `unhealthy` and restarts it automatically if `restart: always` is configured.
 
 ---
 
-## 5. Procédures de Déploiement
+## 5. Deployment Procedures
 
-Le déploiement est entièrement orchestré via **Docker** et **Docker Compose** pour une installation et des mises à jour en un clic.
+Deployment is fully orchestrated through **Docker** and **Docker Compose** for one-click installation and updates.
 
-### Configuration Initiale
+### Initial configuration
 
-Avant de lancer le serveur de production, exécutez le script d'initialisation :
+Before starting the production server, run the initialisation script:
 ```bash
 make setup
-# ou
+# or
 ./setup.sh
 ```
-Ce script effectue les tâches suivantes :
-1. Crée un fichier de configuration `.env` à partir de `.env.example` si celui-ci n'existe pas.
-2. Génère de manière sécurisée une clé aléatoire pour `SECRET_KEY`.
-3. Génère une clé de chiffrement symétrique Fernet (`BACKUP_KEY`) nécessaire aux sauvegardes de bases de données.
-4. Crée les dossiers locaux `backend/data/` (base de données active) et `backups/` (sauvegardes chiffrées).
+This script does the following:
+1. Creates a `.env` configuration file from `.env.example` if it does not exist.
+2. Securely generates a random key for `SECRET_KEY`.
+3. Generates a symmetric Fernet encryption key (`BACKUP_KEY`) needed for database backups.
+4. Creates the local folders `backend/data/` (live database) and `backups/` (encrypted backups).
 
-### Exécution du Serveur
+### Running the server
 
-Le projet propose deux configurations d'exécution gérées par le [Makefile](file:///Users/hugogalley/DEV/numera/Makefile) :
+The project offers two run configurations, managed by the [Makefile](../Makefile):
 
-#### Mode Développement
-Démarre l'application en mode local interactif avec rechargement à chaud (hot reload) lors de modifications du code :
+#### Development mode
+Starts the application in interactive local mode with hot reload when the code changes:
 ```bash
 make dev
 ```
-*Le backend écoute sur le port `8001` et le frontend sur le port `5173`.*
+*The backend listens on port `8001` and the frontend on port `5173`.*
 
-#### Mode Production
-Construit et démarre les images Docker optimisées en arrière-plan (mode détaché) avec redémarrage automatique en cas de panne :
+#### Production mode
+Builds and starts the optimised Docker images in the background (detached mode) with automatic restart on failure:
 ```bash
 make prod
 ```
-*Le frontend de production écoute sur le port `8082` et communique avec le backend sur le port `8001`.*
+*The production frontend listens on port `8082` and talks to the backend on port `8001`.*
 
-Pour arrêter la production :
+To stop production:
 ```bash
 make prod-down
 ```
 
-#### Durcissement des images et des conteneurs
-- **Non-root** : backend et MCP (UID 1000, surchargeable pour le backend par `NUMERA_UID`/`NUMERA_GID` afin de suivre le propriétaire de `data/` et `backups/`), nginx via `nginx-unprivileged` (port 8080 dans le conteneur, publié sur 8082).
-- **Migration depuis une version root** : les fichiers de `data/` et `backups/` créés par les anciens conteneurs appartiennent à root ; une seule fois, `sudo chown -R "$(id -u):$(id -g)" data backups` (ou `backend/data`) puis renseigner `NUMERA_UID`/`NUMERA_GID` dans `.env`. `make dev`, `make prod` (donc `make upgrade`) et `make demo` passent d'abord par `scripts/ops/check_volumes.sh` : il crée les dossiers montés manquants (sinon Docker les crée en root) et refuse de lancer, en donnant la commande `chown`, si un fichier n'appartient pas à `NUMERA_UID` (symptôme sinon : `Backup failed: unable to open database file`).
-- **Compose** : `read_only`, `tmpfs: /tmp`, `cap_drop: ALL`, `no-new-privileges`, `pids_limit` sur tous les services ; seuls `data/` et `backups/` sont inscriptibles. Verrouillé par `tests/garde_fous/test_docker_hardening.py`.
-- **Images** : multi-stage (ni compilateur ni `uv` ni `curl` à l'exécution), `HEALTHCHECK` intégré, bases épinglées par digest.
-- **CI** (`ci.yml`) : hadolint sur les Dockerfile, Trivy sur le dépôt (dépendances, secrets, configuration) et sur chaque image (HIGH/CRITICAL corrigeables bloquent). Exceptions justifiées dans `.trivyignore.yaml`. `security.yml` rescanne chaque semaine le dépôt et les images publiées (résultats dans l'onglet Security).
-- **Release** (`release.yml`) : scan Trivy avant publication, SBOM SPDX et provenance SLSA attachés à l'image, signature cosign sans clé. Vérifier une image :
+#### Hardening of images and containers
+- **Non-root**: backend and MCP (UID 1000, overridable for the backend with `NUMERA_UID`/`NUMERA_GID` to follow the owner of `data/` and `backups/`), nginx via `nginx-unprivileged` (port 8080 in the container, published on 8082).
+- **Migrating from a root version**: files in `data/` and `backups/` created by the old containers belong to root; once, run `sudo chown -R "$(id -u):$(id -g)" data backups` (or `backend/data`) then set `NUMERA_UID`/`NUMERA_GID` in `.env`. `make dev`, `make prod` (hence `make upgrade`) and `make demo` first go through `scripts/ops/check_volumes.sh`: it creates missing mounted folders (otherwise Docker creates them as root) and refuses to start, giving the `chown` command, if a file does not belong to `NUMERA_UID` (symptom otherwise: `Backup failed: unable to open database file`).
+- **Compose**: `read_only`, `tmpfs: /tmp`, `cap_drop: ALL`, `no-new-privileges`, `pids_limit` on all services; only `data/` and `backups/` are writable. Locked by `tests/garde_fous/test_docker_hardening.py`.
+- **Images**: multi-stage (no compiler, `uv` or `curl` at runtime), built-in `HEALTHCHECK`, bases pinned by digest.
+- **CI** (`ci.yml`): hadolint on the Dockerfiles, Trivy on the repository (dependencies, secrets, configuration) and on each image (fixable HIGH/CRITICAL findings block). Justified exceptions in `.trivyignore.yaml`. `security.yml` rescans the repository and the published images every week (results in the Security tab).
+- **Release** (`release.yml`): Trivy scan before publication, SPDX SBOM and SLSA provenance attached to the image, keyless cosign signature. Verify an image:
   ```bash
   cosign verify ghcr.io/hugo-galley/numera-backend:<version> \
     --certificate-identity-regexp '^https://github.com/Hugo-Galley/numera/\.github/workflows/release\.yml@' \
     --certificate-oidc-issuer https://token.actions.githubusercontent.com
   ```
-- **Dependabot** (`.github/dependabot.yml`) met à jour les digests Docker, SHA d'actions, npm et uv.
+- **Dependabot** (`.github/dependabot.yml`) updates Docker digests, action SHAs, npm and uv.
 
-#### Instance de démonstration publique
-Une seconde instance, totalement séparée de la prod (projet Compose `numera-demo`, base `backend/data-demo/demo.db`), sert une démo avec des données fictives régénérées chaque jour :
+#### Public demo instance
+A second instance, entirely separate from production (Compose project `numera-demo`, database `backend/data-demo/demo.db`), serves a demo with fictitious data regenerated every day:
 ```bash
-make demo        # démarre sur 127.0.0.1:8090
+make demo        # starts on 127.0.0.1:8090
 make demo-down
 ```
-Prérequis dans `.env` : `DEMO_SECRET_KEY` (distincte de `SECRET_KEY`, `openssl rand -hex 32`) et, si le domaine diffère, `DEMO_CORS_ORIGINS`. Publier ensuite le port 8090 sur le domaine voulu (tunnel / reverse proxy, ex. `demo-budget.galleyhugo.com` → `http://localhost:8090`). Identifiants publics : `demo` / `demo`, affichés sur la page de connexion. Changement d'identifiants, 2FA, passkeys, jetons MCP, sauvegardes et notifications y sont désactivés (403). Les IP et navigateurs des visiteurs ne sont pas journalisés ; imports plafonnés à 200 Ko (413), 120 écritures par minute et par IP (429), backend limité à 512 Mo / 1 CPU. Pour régénérer la démo en local : `make backend-seed-demo` (écrit dans `backend/data/demo.db`).
+Prerequisites in `.env`: `DEMO_SECRET_KEY` (distinct from `SECRET_KEY`, `openssl rand -hex 32`) and, if the domain differs, `DEMO_CORS_ORIGINS`. Then publish port 8090 on the desired domain (tunnel / reverse proxy, e.g. `demo-budget.galleyhugo.com` → `http://localhost:8090`). Public credentials: `demo` / `demo`, shown on the login page. Credential changes, 2FA, passkeys, MCP tokens, backups and notifications are disabled there (403). Visitors' IPs and browsers are not logged; imports capped at 200 KB (413), 120 writes per minute per IP (429), backend limited to 512 MB / 1 CPU. To regenerate the demo locally: `make backend-seed-demo` (writes to `backend/data/demo.db`).
 
 ---
 
-## 6. Sauvegardes & Restauration
+## 6. Backups and Restore
 
-### Le Service de Sauvegarde (Backup)
+### The backup service
 
-Dans la configuration de production ([infra/docker-compose.prod.yml](../infra/docker-compose.prod.yml)), un service nommé `backup` s'exécute de manière isolée. Il lance le planificateur de sauvegarde [backend/scripts/backup_scheduler.py](file:///Users/hugogalley/DEV/numera/backend/scripts/backup_scheduler.py).
+In the production configuration ([infra/docker-compose.prod.yml](../infra/docker-compose.prod.yml)), a service named `backup` runs in isolation. It starts the backup scheduler [backend/scripts/backup_scheduler.py](../backend/scripts/backup_scheduler.py).
 
-- **Intervalle** : Par défaut, le script effectue une sauvegarde toutes les 24 heures (configurable via la variable `BACKUP_INTERVAL_SECONDS`).
-- **Chiffrement** : Si `BACKUP_KEY` est défini dans le fichier `.env`, le fichier SQLite est chiffré en utilisant l'algorithme symétrique Fernet (AES-128 en mode CBC avec signature HMAC) avant d'être écrit sur le disque. Le fichier de sauvegarde prend alors l'extension `.db.enc`.
-- **Rétention** : Le script purge automatiquement les sauvegardes de plus de 7 jours (configurable via `RETENTION_DAYS`, par défaut 7 jours).
+- **Interval**: by default, the script makes a backup every 24 hours (configurable through the `BACKUP_INTERVAL_SECONDS` variable).
+- **Encryption**: if `BACKUP_KEY` is set in the `.env` file, the SQLite file is encrypted with the symmetric Fernet algorithm (AES-128 in CBC mode with HMAC signature) before being written to disk. The backup file then gets the `.db.enc` extension.
+- **Retention**: the script automatically purges backups older than 7 days (configurable through `RETENTION_DAYS`, 7 days by default).
 
-### Commandes Utiles de Sauvegarde
+### Useful backup commands
 
-#### Déclencher une sauvegarde immédiate
-Vous pouvez forcer une sauvegarde à tout moment sans attendre le planificateur via la commande :
+#### Trigger an immediate backup
+You can force a backup at any time without waiting for the scheduler with:
 ```bash
 make backup-now
 ```
-Cette commande exécute le script [backend/scripts/backup.py](file:///Users/hugogalley/DEV/numera/backend/scripts/backup.py) au sein du conteneur en cours d'exécution.
+This command runs the script [backend/scripts/backup.py](../backend/scripts/backup.py) inside the running container.
 
-#### Restaurer une sauvegarde
-Pour restaurer la base de données à partir d'un fichier de sauvegarde chiffré, utilisez la commande suivante :
+#### Restore a backup
+To restore the database from an encrypted backup file, use the following command:
 ```bash
 make backup-restore FILE=backups/suivi_budget_YYYYMMDD_HHMMSS.db.enc
 ```
-Le script de restauration [backend/scripts/restore.py](file:///Users/hugogalley/DEV/numera/backend/scripts/restore.py) effectue les étapes de sécurité suivantes :
-1. Il recherche la clé `BACKUP_KEY` pour déchiffrer le fichier.
-2. Il tente d'ouvrir une connexion de test SQLite sur la base déchiffrée pour valider son intégrité.
-3. Si la base est valide, il remplace de manière atomique la base de données active `backend/data/suivi_budget.db`.
+The restore script [backend/scripts/restore.py](../backend/scripts/restore.py) performs the following safety steps:
+1. It looks up the `BACKUP_KEY` key to decrypt the file.
+2. It tries to open a SQLite test connection on the decrypted database to validate its integrity.
+3. If the database is valid, it atomically replaces the live database `backend/data/suivi_budget.db`.
 
 > [!CAUTION]
-> Conservez impérativement la clé `BACKUP_KEY` présente dans votre fichier `.env`. Sans cette clé, les sauvegardes chiffrées existantes ne pourront plus jamais être déchiffrées ou restaurées.
+> Keep the `BACKUP_KEY` present in your `.env` file at all costs. Without this key, existing encrypted backups can never again be decrypted or restored.
 
 ---
 
-## 7. Tests & Validation
+## 7. Tests and Validation
 
-La validation de la qualité et de la régularité du code backend s'effectue via des tests automatisés :
-- Les tests unitaires et d'intégration sont exécutés en utilisant **Pytest**.
-- La configuration de test utilise une base de données SQLite en mémoire ou un fichier de base temporaire jetable (configuré dans les fixtures Pytest).
-- Pour exécuter les tests localement :
+Backend code quality and consistency are validated through automated tests:
+- Unit and integration tests are run with **Pytest**.
+- The test configuration uses an in-memory SQLite database or a disposable temporary database file (configured in the Pytest fixtures).
+- To run the tests locally:
   ```bash
   make test
   ```
-- Pour valider la conformité complète (tests backend et build frontend réussi) avant de pousser sur la production :
+- To validate full compliance (backend tests and successful frontend build) before pushing to production:
   ```bash
   make validate
   ```

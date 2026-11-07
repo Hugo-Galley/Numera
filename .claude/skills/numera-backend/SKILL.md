@@ -1,51 +1,51 @@
 ---
 name: numera-backend
-description: Procédures pour modifier le backend Numera (FastAPI, SQLAlchemy 2, Alembic, Pydantic v2) : ajouter un endpoint ou un router, un modèle + migration, un KPI analytics, une tâche de fond. À charger dès qu'on édite backend/app/.
+description: Procedures for modifying the Numera backend (FastAPI, SQLAlchemy 2, Alembic, Pydantic v2): adding an endpoint or a router, a model + migration, an analytics KPI, a background task. Load as soon as editing backend/app/.
 ---
 
-# Numera backend — procédures
+# Numera backend — procedures
 
-Conventions et pièges : `backend/CLAUDE.md` (à lire d'abord). Règles métier : skill `numera-expert`. Code qui lit beaucoup de lignes, boucle sur la base ou met en cache : skill `numera-performance`. Toute procédure ci-dessous commence par un test rouge (`numera-tdd`) ; où placer le code et comment déplacer : `numera-clean-architecture`.
+Conventions and pitfalls: `backend/CLAUDE.md` (read first). Business rules: `numera-expert` skill. Code that reads many rows, loops over the database or caches: `numera-performance` skill. Every procedure below starts with a failing test (`numera-tdd`); where to put code and how to move it: `numera-clean-architecture`.
 
-## Ajouter un endpoint dans un router existant
+## Adding an endpoint to an existing router
 
-1. Schémas `Create` / `Update` / `Read` dans `app/schemas/<domaine>.py` (`ConfigDict(from_attributes=True)` sur `Read`).
-2. Requêtes dans `app/repositories/<domaine>/<sujet>.py` (sans `commit`), logique dans `app/services/<domaine>/<sujet>.py` (commit, erreurs `NotFoundError`/`BusinessRuleError`/`ConflictError` de `app.core.errors`, jamais `HTTPException`), calcul pur dans `app/domain/`. Modèle : `accounts` (`comptes/accounts.py` dans les trois couches). Domaines : `budget`, `comptes`, `investissement`, `analytics`, `audit` (services), `systeme` ; même arborescence dans les trois couches.
-3. Endpoint dans `app/controllers/<domaine>/<sujet>.py` : `response_model`, `db: Session = Depends(get_db)`, une ligne qui appelle le service. Pas de `Depends(get_current_user)` à ajouter : le router est déjà protégé dans `main.py`.
-4. Mutation de transactions → `recalculate_running_balances(db, account_id)` (`app.services.budget.balances`) pour chaque compte touché, **puis `db.commit()`** : le recalcul ne fait qu'un `flush`.
-5. Ordre des routes FastAPI : déclarer les chemins fixes (`/bulk`, `/merchants`, `/potential-transfers`, `/auto-normalize`) **avant** `/{id}`.
-6. Tests : service (`db_session`, sans HTTP) et route (`client`) dans `backend/tests/<domaine>/test_<sujet>.py`. `tests/garde_fous/test_architecture.py` (un controller n'importe pas un controller d'un autre domaine) et `scripts/quality/check_code_size.py` doivent rester verts.
-7. Mettre à jour `ARCHITECTURE.md` (routes) et, si le serveur MCP expose le domaine, `mcp-server/numera_mcp/tools/<domaine>.py`.
+1. `Create` / `Update` / `Read` schemas in `app/schemas/<domain>.py` (`ConfigDict(from_attributes=True)` on `Read`).
+2. Queries in `app/repositories/<domain>/<subject>.py` (no `commit`), logic in `app/services/<domain>/<subject>.py` (commit, `NotFoundError`/`BusinessRuleError`/`ConflictError` from `app.core.errors`, never `HTTPException`), pure calculation in `app/domain/`. Model: `accounts` (`comptes/accounts.py` in the three layers). Domains: `budget`, `comptes`, `investissement`, `analytics`, `audit` (services), `systeme`; same tree in the three layers.
+3. Endpoint in `app/controllers/<domain>/<subject>.py`: `response_model`, `db: Session = Depends(get_db)`, one line that calls the service. No `Depends(get_current_user)` to add: the router is already protected in `main.py`.
+4. Transaction mutation → `recalculate_running_balances(db, account_id)` (`app.services.budget.balances`) for each account touched, **then `db.commit()`**: the recomputation only does a `flush`.
+5. FastAPI route order: declare fixed paths (`/bulk`, `/merchants`, `/potential-transfers`, `/auto-normalize`) **before** `/{id}`.
+6. Tests: service (`db_session`, no HTTP) and route (`client`) in `backend/tests/<domain>/test_<subject>.py`. `tests/garde_fous/test_architecture.py` (a controller does not import another domain's controller) and `scripts/quality/check_code_size.py` must stay green.
+7. Update `ARCHITECTURE.md` (routes) and, if the MCP server exposes the domain, `mcp-server/numera_mcp/tools/<domain>.py`.
 
-## Ajouter un nouveau router
+## Adding a new router
 
-Créer `app/controllers/<domaine>/<nom>.py` (`APIRouter(prefix="/<nom>", tags=[...])`, avec ses `services/<domaine>/<nom>.py` et `repositories/<domaine>/<nom>.py`), l'importer dans `app/main.py` **et** l'ajouter à `protected_routers`. Sans ça la route n'existe pas / ou n'est pas protégée.
+Create `app/controllers/<domain>/<name>.py` (`APIRouter(prefix="/<name>", tags=[...])`, with its `services/<domain>/<name>.py` and `repositories/<domain>/<name>.py`), import it in `app/main.py` **and** add it to `protected_routers`. Without that the route does not exist / or is not protected.
 
-## Modifier le schéma de base
+## Changing the database schema
 
-1. Modèle dans `app/models/` (nouveau fichier → l'importer dans `app/models/__init__.py` sinon Alembic et les tests ne le voient pas).
-2. `cd backend && alembic revision --autogenerate -m "description"` ; relire le fichier généré dans `alembic/versions/` (SQLite : `batch_alter_table` pour altérer/supprimer des colonnes).
-3. Les migrations tournent au démarrage (`core/migrations.py`) ; tester en local avec `alembic upgrade head` sur une copie de la base.
+1. Model in `app/models/` (new file → import it in `app/models/__init__.py`, otherwise Alembic and the tests do not see it).
+2. `cd backend && alembic revision --autogenerate -m "description"`; review the generated file in `alembic/versions/` (SQLite: `batch_alter_table` to alter/drop columns).
+3. Migrations run at startup (`core/migrations.py`); test locally with `alembic upgrade head` on a copy of the database.
 
-## Ajouter un KPI / graphe
+## Adding a KPI / chart
 
-1. Calcul dans `app/services/analytics/` (nouveau KPI) (route dans `app/controllers/analytics/`, une ligne qui appelle le service) ; requêtes partagées : `app/repositories/analytics/common.py` (`NET_AMOUNT`, `income_criterion`, `category_lines`…), calculs purs : `app/domain/`. Appeler un autre KPI via son service (`compute_budget`…), jamais via une fonction de route. Ne jamais déplacer le calcul côté frontend.
-2. Schéma de réponse dans `app/schemas/insight.py` (ou `investment.py`) et `response_model`.
-3. Respecter : exclusion de `Solde Initial` des revenus/dépenses, exclusion des transferts internes pour les « dépenses réelles », filtres `account_id` / `month` / `year` cohérents avec les endpoints voisins.
-4. Test dans `tests/` (cf. `test_import_and_analytics.py`, `test_money_flow.py`, `test_sankey.py`), puis consommer l'endpoint dans le frontend.
+1. Calculation in `app/services/analytics/` (new KPI) (route in `app/controllers/analytics/`, one line that calls the service); shared queries: `app/repositories/analytics/common.py` (`NET_AMOUNT`, `income_criterion`, `category_lines`…), pure calculations: `app/domain/`. Call another KPI through its service (`compute_budget`…), never through a route function. Never move the calculation to the frontend.
+2. Response schema in `app/schemas/insight.py` (or `investment.py`) and `response_model`.
+3. Respect: exclusion of `Solde Initial` from income/expenses, exclusion of internal transfers for "real expenses", `account_id` / `month` / `year` filters consistent with the neighbouring endpoints.
+4. Test in `tests/` (see `test_import_and_analytics.py`, `test_money_flow.py`, `test_sankey.py`), then consume the endpoint in the frontend.
 
-## Ajouter un type d'action au Centre d'Actions
+## Adding an action type to the Action Center
 
-Créer `services/audit/rules/<nom>.py` avec `detect(ctx)`, l'ajouter à `RULES` (`services/audit/__init__.py`) ; requêtes dans `repositories/analytics/audit.py`. Détails : `docs/ACTION_CENTER.md` ; `ActionItem.id` doit être déterministe.
+Create `services/audit/rules/<name>.py` with `detect(ctx)`, add it to `RULES` (`services/audit/__init__.py`); queries in `repositories/analytics/audit.py`. Details: `docs/ACTION_CENTER.md`; `ActionItem.id` must be deterministic.
 
-## Tâche de fond
+## Background task
 
-`recurring_transactions_task` dans `app/main.py` (toutes les heures). Y ajouter du travail périodique plutôt que de créer une nouvelle boucle ; ouvrir/fermer sa propre `SessionLocal()`.
+`recurring_transactions_task` in `app/main.py` (every hour). Add periodic work there rather than creating a new loop; open/close your own `SessionLocal()`.
 
-## À ne pas faire
+## Do not
 
-- `db.execute(text(...))` sauf nécessité de performance.
-- Logique métier dans les modèles.
-- Logger/retourner `SECRET_KEY`, hash de mot de passe, JWT.
-- Appels réseau sortants autres que Frankfurter / Yahoo Finance / canaux de notification activés par l'utilisateur (ntfy, Telegram) ; toute nouvelle dépendance externe doit être discutée (principe local-first).
-- Modifier la base `*.db` directement ou la committer.
+- `db.execute(text(...))` except for a performance need.
+- Business logic in models.
+- Log/return `SECRET_KEY`, a password hash, a JWT.
+- Outbound network calls other than Frankfurter / Yahoo Finance / notification channels enabled by the user (ntfy, Telegram); any new external dependency must be discussed (local-first principle).
+- Modify the `*.db` database directly or commit it.

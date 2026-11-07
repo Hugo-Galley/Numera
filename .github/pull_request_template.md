@@ -1,42 +1,42 @@
 <!--
-Le TITRE de la PR devient le message du commit (merge en squash) et alimente les notes de version.
-Format obligatoire : type(portée): description   ex. fix(budget): arrondi du solde courant
-Types : feat fix perf refactor test docs build ci chore revert style · `!` avant `:` = changement incompatible
+The PR TITLE becomes the commit message (squash merge) and feeds the release notes.
+Required format: type(scope): description   e.g. fix(budget): rounding of the current balance
+Types: feat fix perf refactor test docs build ci chore revert style · `!` before `:` = breaking change
 -->
 
-## Pourquoi
+## Why
 
-<!-- Le problème ou le besoin, pas la liste des fichiers modifiés. Lien vers l'issue : « Closes #123 ». -->
+<!-- The problem or the need, not the list of modified files. Link the issue: "Closes #123". -->
 
-## Ce qui change
+## What changes
 
-<!-- Comportement visible, décisions de conception, alternatives écartées. -->
+<!-- Visible behaviour, design decisions, discarded alternatives. -->
 
-## Zones touchées
+## Areas touched
 
 - [ ] Backend
 - [ ] Frontend
-- [ ] Migration Alembic
+- [ ] Alembic migration
 - [ ] Docker / CI / workflows
-- [ ] Docs / skills uniquement
+- [ ] Docs / skills only
 
-## Vérification
+## Verification
 
-<!-- Ce qui a été lancé et son résultat (commande + sortie utile). Ce qui n'a PAS été vérifié, dit franchement. -->
+<!-- What was run and its result (command + useful output). What was NOT verified, stated frankly. -->
 
-- [ ] `make validate` vert en local
-- [ ] Test rouge écrit avant le code (backend, skill `numera-tdd`)
-- [ ] Rendu vérifié à la main : clair/sombre, mobile, mode confidentialité (si UI)
+- [ ] `make validate` green locally
+- [ ] Failing test written before the code (backend, skill `numera-tdd`)
+- [ ] Rendering checked by hand: light/dark, mobile, privacy mode (if UI)
 
-## Check-list
+## Checklist
 
-- [ ] `ARCHITECTURE.md`, `CLAUDE.md` ou le skill concerné mis à jour (route, modèle, commande, règle métier)
-- [ ] Aucun seuil à cliquet baissé (couverture, tailles, mypy, ESLint) ni baseline augmentée
-- [ ] Aucun tag flottant : actions épinglées par SHA, images par digest
-- [ ] Migration réversible et testée sur une base existante (si schéma modifié)
-- [ ] Mesures avant/après dans cette description (si optimisation, skill `numera-performance`)
-- [ ] Un seul sujet : pas de refactor mélangé à un changement de comportement
+- [ ] `ARCHITECTURE.md`, `CLAUDE.md` or the relevant skill updated (route, model, command, business rule)
+- [ ] No ratchet threshold lowered (coverage, sizes, mypy, ESLint) and no baseline raised
+- [ ] No floating tag: actions pinned by SHA, images by digest
+- [ ] Reversible migration, tested on an existing database (if schema changed)
+- [ ] Before/after measurements in this description (if optimisation, skill `numera-performance`)
+- [ ] A single topic: no refactor mixed with a behaviour change
 
-## Risques et retour arrière
+## Risks and rollback
 
-<!-- Migration irréversible, changement de format de données, variable d'environnement nouvelle ? Sinon « aucun ». -->
+<!-- Irreversible migration, data format change, new environment variable? Otherwise "none". -->

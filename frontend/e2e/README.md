@@ -1,47 +1,47 @@
-# Tests E2E (Playwright)
+# E2E tests (Playwright)
 
-Parcours critiques de bout en bout : vrai navigateur, vrai frontend (Vite), vrai backend.
-Ils complètent Vitest + MSW (qui mocke l'API) et les tests pytest : ils attrapent ce que les mocks ne voient pas
-(contrat front ↔ back, auth JWT, redirections).
+End-to-end critical journeys: real browser, real frontend (Vite), real backend.
+They complement Vitest + MSW (which mocks the API) and the pytest tests: they catch what mocks cannot see
+(front ↔ back contract, JWT auth, redirects).
 
 ```bash
-make test-e2e                 # ou : cd frontend && npm run test:e2e
-cd frontend && npx playwright test login --ui    # un scénario, en mode interactif
-cd frontend && npx playwright show-report        # rapport (CI) ; trace : npx playwright show-trace <trace.zip>
+make test-e2e                 # or: cd frontend && npm run test:e2e
+cd frontend && npx playwright test login --ui    # one scenario, in interactive mode
+cd frontend && npx playwright show-report        # report (CI); trace: npx playwright show-trace <trace.zip>
 ```
 
-Premier lancement : `cd frontend && npx playwright install chromium`.
+First run: `cd frontend && npx playwright install chromium`.
 
-## Scénarios
+## Scenarios
 
-| Fichier | Vérifie |
+| File | Checks |
 |---|---|
-| `login.spec.ts`, `logout.spec.ts` | connexion, mauvais mot de passe, retour à la page demandée, déconnexion |
-| `navigation.spec.ts` | chaque route se charge : pas de page blanche, d'exception JS, d'erreur console ni de 5xx |
-| `import-csv.spec.ts` | aperçu, import, lignes visibles, ré-import sans doublon |
-| `transaction.spec.ts` | saisie manuelle d'une opération |
-| `rules.spec.ts` | création et suppression d'une règle de catégorisation |
-| `privacy.spec.ts` | mode confidentialité (activation, persistance, désactivation) |
+| `login.spec.ts`, `logout.spec.ts` | login, wrong password, return to the requested page, logout |
+| `navigation.spec.ts` | every route loads: no blank page, JS exception, console error or 5xx |
+| `import-csv.spec.ts` | preview, import, visible rows, re-import without duplicates |
+| `transaction.spec.ts` | manual entry of a transaction |
+| `rules.spec.ts` | creation and deletion of a categorisation rule |
+| `privacy.spec.ts` | privacy mode (enable, persistence, disable) |
 
-Nouvelle route dans `App.tsx` : l'ajouter à `ROUTES` dans `navigation.spec.ts`.
+New route in `App.tsx`: add it to `ROUTES` in `navigation.spec.ts`.
 
-## Fonctionnement
+## How it works
 
-- `playwright.config.ts` lance deux serveurs : le backend (`e2e/backend.sh`) sur **8101** et Vite sur **5174**
-  (ports distincts du dev, on peut lancer les E2E pendant un `make dev`).
-- `e2e/backend.sh` régénère à chaque lancement `backend/data/e2e-demo.db` (mode démo, identifiants `demo` / `demo`,
-  fichier ignoré par git). La vraie base n'est jamais touchée. `E2E_PYTHON=...` force l'interpréteur.
-- `auth.setup.ts` se connecte une fois ; les scénarios réutilisent la session. Un scénario qui teste la connexion
-  repart d'un navigateur vierge (`test.use({ storageState: { cookies: [], origins: [] } })`).
-- Un seul worker : les scénarios qui écrivent partagent la même base.
+- `playwright.config.ts` starts two servers: the backend (`e2e/backend.sh`) on **8101** and Vite on **5174**
+  (ports distinct from dev, so E2E can run during a `make dev`).
+- `e2e/backend.sh` regenerates `backend/data/e2e-demo.db` on every run (demo mode, credentials `demo` / `demo`,
+  file ignored by git). The real database is never touched. `E2E_PYTHON=...` forces the interpreter.
+- `auth.setup.ts` logs in once; scenarios reuse the session. A scenario that tests login
+  starts from a clean browser (`test.use({ storageState: { cookies: [], origins: [] } })`).
+- A single worker: scenarios that write share the same database.
 
-## Écrire un scénario
+## Writing a scenario
 
-- Sélecteurs par rôle / libellé (`getByRole`, `getByLabel`), jamais par classe CSS.
-- Attentes explicites (`expect(...).toBeVisible()`), pas de `waitForTimeout`.
-- Données créées par le scénario avec un préfixe `E2E ` ; dates relatives à aujourd'hui.
-- Peu de scénarios, uniquement des parcours critiques ; pas de captures d'écran de référence.
+- Selectors by role / label (`getByRole`, `getByLabel`), never by CSS class.
+- Explicit waits (`expect(...).toBeVisible()`), no `waitForTimeout`.
+- Data created by the scenario uses an `E2E ` prefix; dates are relative to today.
+- Few scenarios, critical journeys only; no reference screenshots.
 
-## Captures du README
+## README screenshots
 
-`npm run screenshots` régénère `docs/screenshots/*.png` (1440×900 en @2x) sur la base de démo jetable. Ignoré par `npm run test:e2e`.
+`npm run screenshots` regenerates `docs/screenshots/*.png` (1440×900 at @2x) on the throwaway demo database. Ignored by `npm run test:e2e`.

@@ -1,19 +1,19 @@
-# Politique de sécurité
+# Security policy
 
-## Signaler une vulnérabilité
+## Reporting a vulnerability
 
-Merci de **ne pas ouvrir d'issue publique**. Utilise le signalement privé de GitHub : onglet **Security** du dépôt → **Report a vulnerability** (<https://github.com/Hugo-Galley/Numera/security/advisories/new>).
+Please **do not open a public issue**. Use GitHub's private reporting: the **Security** tab of the repository → **Report a vulnerability** (<https://github.com/Hugo-Galley/Numera/security/advisories/new>).
 
-Indique la version (ou le commit), les étapes pour reproduire et l'impact que tu estimes. Numera est un projet personnel maintenu sur le temps libre : attends un premier retour sous une semaine, sans engagement de délai de correction.
+Include the version (or commit), the steps to reproduce and the impact you estimate. Numera is a personal project maintained in spare time: expect a first reply within a week, with no commitment on fix timing.
 
-## Versions supportées
+## Supported versions
 
-Seule la **dernière version publiée** reçoit des correctifs de sécurité (voir les [releases](https://github.com/Hugo-Galley/Numera/releases)). Une branche `release/X.Y` n'est ouverte que pour un correctif critique sur une version plus ancienne.
+Only the **latest published version** receives security fixes (see the [releases](https://github.com/Hugo-Galley/Numera/releases)). A `release/X.Y` branch is opened only for a critical fix on an older version.
 
-## Périmètre
+## Scope
 
-Numera est une application **self-hostée, mono-utilisateur**, destinée à tourner derrière ton propre réseau ou un reverse proxy. Sont dans le périmètre : authentification (JWT, TOTP, passkeys), jetons MCP (lecture seule), import de fichiers, chiffrement des sauvegardes, images Docker. L'instance de démo publique ne contient que des données fictives.
+Numera is a **self-hosted, single-user** application, meant to run behind your own network or a reverse proxy. In scope: authentication (JWT, TOTP, passkeys), MCP tokens (read-only), file import, backup encryption, Docker images. The public demo instance only holds fictitious data.
 
-## Ce qui est en place
+## What is in place
 
-Images non-root en lecture seule, dépendances et images scannées par Trivy à chaque PR et chaque semaine, images publiées signées (cosign) avec SBOM, actions GitHub et images de base épinglées par SHA / digest, secrets en variables d'environnement validées au démarrage en production.
+Non-root, read-only images; dependencies and images scanned by Trivy on every PR and every week; published images signed (cosign) with an SBOM; GitHub Actions and base images pinned by SHA / digest; secrets provided as environment variables, validated at startup in production.

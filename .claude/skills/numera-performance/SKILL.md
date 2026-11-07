@@ -5,74 +5,74 @@ description: Use when optimizing or reviewing performance in Numera — a slow r
 
 # Numera — performance
 
-## Principe
+## Principle
 
-**Mesurer, corriger la cause, prouver le gain.** Une optimisation sans chiffre avant/après est une opinion. La base réelle est petite (≈ 200 transactions) : tout y est instantané, donc les problèmes se voient seulement sur un jeu volumineux. Procédure de test : `numera-tdd` ; où va le code : `numera-clean-architecture` ; validation : `numera-finishing`.
+**Measure, fix the cause, prove the gain.** An optimisation without a before/after figure is an opinion. The real database is small (≈ 200 transactions): everything is instantaneous there, so problems only show on a large dataset. Test procedure: `numera-tdd`; where the code goes: `numera-clean-architecture`; validation: `numera-finishing`.
 
-## 1. Mesurer d'abord
+## 1. Measure first
 
 ```bash
 cd backend && export PYTHONPATH=.
-python3.11 scripts/perf_profile.py seed --db /tmp/perf_demo.db --months 240 --multiply 6   # ≈ 50 000 transactions
-python3.11 scripts/perf_profile.py bench --db /tmp/perf_demo.db                              # toutes les routes GET, les plus lentes d'abord
-python3.11 scripts/perf_profile.py profile --db /tmp/perf_demo.db /analytics/audit           # requêtes SQL + fonctions coûteuses
+python3.11 scripts/perf_profile.py seed --db /tmp/perf_demo.db --months 240 --multiply 6   # ≈ 50,000 transactions
+python3.11 scripts/perf_profile.py bench --db /tmp/perf_demo.db                              # all GET routes, slowest first
+python3.11 scripts/perf_profile.py profile --db /tmp/perf_demo.db /analytics/audit           # SQL queries + costly functions
 ```
 
-- Le nom de la base contient « demo » (garde `DEMO_MODE`) : jamais `backend/data/suivi_budget.db`. Bases temporaires dans le scratchpad ou `/tmp`.
-- `bench` garde le meilleur de deux appels : le second profite des caches. Pour un coût à froid, `profile` (un appel de chauffe puis un appel mesuré, profileur actif donc durées gonflées : lire les proportions).
-- Lire d'abord le **nombre de requêtes SQL** : des centaines de requêtes de quelques ms = N+1 ; peu de requêtes mais beaucoup de temps = objets ORM instanciés ou calcul Python.
-- Navigateur : octets transférés, requêtes, temps du Dashboard à froid et au retour (Chromium/Playwright ou navigateur intégré). Un `localhost` ne mesure pas un vrai réseau : le dire.
+- The database name contains "demo" (`DEMO_MODE` guard): never `backend/data/suivi_budget.db`. Temporary databases in the scratchpad or `/tmp`.
+- `bench` keeps the best of two calls: the second benefits from caches. For a cold cost, `profile` (a warm-up call then a measured call, profiler active so durations are inflated: read the proportions).
+- First read the **number of SQL queries**: hundreds of queries of a few ms = N+1; few queries but a lot of time = instantiated ORM objects or Python computation.
+- Browser: bytes transferred, requests, Dashboard time cold and on return (Chromium/Playwright or the built-in browser). A `localhost` does not measure a real network: say so.
 
-Références mesurées le 2026-11-01 (44 600 transactions) : audit 117 ms, suggestions de virements 279 ms, export CSV 473 ms ; Dashboard à froid 2 171 → 739 ms, 1 230 → 394 Ko transférés, retour sur le Dashboard 0 requête. Une route qui dépasse ces ordres de grandeur sur le même jeu est une régression.
+References measured on 2026-11-01 (44,600 transactions): audit 117 ms, transfer suggestions 279 ms, CSV export 473 ms; Dashboard cold 2,171 → 739 ms, 1,230 → 394 KB transferred, return to the Dashboard 0 requests. A route that exceeds these orders of magnitude on the same dataset is a regression.
 
-## 2. Backend : règles
+## 2. Backend: rules
 
-| Situation | Règle | Modèle dans le code |
+| Situation | Rule | Model in the code |
 |---|---|---|
-| Une requête par ligne d'une boucle (`db.query/get` dans un `for`) | Charger en **une** requête les candidats pour tout le lot, apparier en mémoire (fonction pure dans `domain/`) | `repositories/analytics/audit.py::strict_transfer_candidates` + `domain/transfers.py::strict_matches` |
-| Lecture seule de beaucoup de lignes (export, appariement) | Requêter des **colonnes** (`db.query(M.a, M.b)`), pas des objets ORM (chaque objet charge ses relations `selectin`) ; recharger en entier seulement les lignes retenues | `repositories/budget/exports.py`, `MATCH_COLUMNS` + `load_legs` dans `repositories/budget/transfers.py` |
-| `async def` | Seulement s'il y a un `await`. Une coroutine qui travaille en synchrone **bloque tout le serveur** ; garde-fou : `tests/garde_fous/test_async_endpoints.py` | — |
-| Résultat coûteux relu par plusieurs routes | Cache bref **invalidé par les écritures** (voir §3), jamais un cache « au cas où » | `services/investissement/portfolio/cache.py` |
-| « Il faudrait un index » | `EXPLAIN QUERY PLAN` d'abord ; corriger le N+1 avant. Les clés étrangères, `date`, `merchant` sont déjà indexées. Un index composite ne s'ajoute (migration Alembic, `test_migrations.py`) que si le plan montre un scan complet sur une requête **unique** et lente | — |
-| Recalcul intégral des soldes (`recalculate_running_balances`, O(n) par écriture) | Lecture par colonnes + `UPDATE` en masse des seules lignes modifiées (1 requête, 0,2 s à 44 000 transactions) ; jamais d'objets ORM (7 relations `selectin`) | `repositories/budget/balances.py` |
-| Appel réseau (Yahoo, Frankfurter) | Cache négatif + disjoncteur + concurrence bornée ; route `def` qui appelle le service par `run_async` | `core/circuit_breaker.py`, `core/sync_bridge.py`, `market/quotes.py` |
+| One query per row in a loop (`db.query/get` in a `for`) | Load the candidates for the whole batch in **one** query, match in memory (pure function in `domain/`) | `repositories/analytics/audit.py::strict_transfer_candidates` + `domain/transfers.py::strict_matches` |
+| Read-only load of many rows (export, matching) | Query **columns** (`db.query(M.a, M.b)`), not ORM objects (each object loads its `selectin` relationships); fully reload only the retained rows | `repositories/budget/exports.py`, `MATCH_COLUMNS` + `load_legs` in `repositories/budget/transfers.py` |
+| `async def` | Only if there is an `await`. A coroutine that works synchronously **blocks the whole server**; safeguard: `tests/garde_fous/test_async_endpoints.py` | — |
+| Costly result re-read by several routes | Short cache **invalidated by writes** (see §3), never a "just in case" cache | `services/investissement/portfolio/cache.py` |
+| "We need an index" | `EXPLAIN QUERY PLAN` first; fix the N+1 before. Foreign keys, `date`, `merchant` are already indexed. A composite index is only added (Alembic migration, `test_migrations.py`) if the plan shows a full scan on a **single** slow query | — |
+| Full recomputation of balances (`recalculate_running_balances`, O(n) per write) | Column read + bulk `UPDATE` of only the modified rows (1 query, 0.2 s at 44,000 transactions); never ORM objects (7 `selectin` relationships) | `repositories/budget/balances.py` |
+| Network call (Yahoo, Frankfurter) | Negative cache + circuit breaker + bounded concurrency; a `def` route that calls the service through `run_async` | `core/circuit_breaker.py`, `core/sync_bridge.py`, `market/quotes.py` |
 
-Chaque correctif backend vient avec un **test de nombre de requêtes** : fixture `measure_queries` (`tests/conftest.py`) sur un jeu volumineux (≥ 1 000 lignes), borne large mais qui échoue au N+1 (modèles : `tests/audit/test_data_audit_transfers.py`, `tests/budget/test_export_queries.py`, `tests/budget/test_potential_transfers_queries.py`). Le test passe d'abord au rouge sur l'ancien code, pour la bonne raison (le nombre de requêtes, pas une erreur d'import). Le résultat renvoyé reste identique : instantanés intacts.
+Every backend fix comes with a **query-count test**: `measure_queries` fixture (`tests/conftest.py`) on a large dataset (≥ 1,000 rows), a wide bound that nevertheless fails on the N+1 (models: `tests/audit/test_data_audit_transfers.py`, `tests/budget/test_export_queries.py`, `tests/budget/test_potential_transfers_queries.py`). The test first goes red on the old code, for the right reason (the number of queries, not an import error). The returned result stays identical: snapshots intact.
 
-## 3. Ajouter un cache : cahier des charges
+## 3. Adding a cache: specification
 
-Un cache est un risque de donnée périmée. Il faut **tous** ces points, chacun testé :
+A cache is a risk of stale data. **All** of these points are required, each tested:
 
-1. Durée courte (`TTL`), clé complète (compte, options, base : `id(db.get_bind())`).
-2. **Invalidation sur écriture** : `after_flush` et `after_commit` de `Session`, toutes sessions et tâches de fond confondues. Écriture par connexion brute (`exec_driver_sql`) : appeler `invalidate()`.
-3. **Génération** : un calcul démarré avant une écriture ne s'enregistre pas (sinon il remet l'ancien état dans le cache).
-4. **Copie profonde** à l'entrée et à la sortie : l'appelant peut modifier ce qu'il reçoit.
-5. Une fixture `autouse` de `conftest.py` le vide entre deux tests (ids de moteur réutilisés).
-6. Tests : 2ᵉ appel sans requête SQL, écriture invalide, flush sans commit invalide, modification de la copie sans effet, erreur non mémorisée (modèle : `tests/investissement/test_portfolio_cache.py`).
+1. Short duration (`TTL`), complete key (account, options, database: `id(db.get_bind())`).
+2. **Invalidation on write**: `after_flush` and `after_commit` of `Session`, all sessions and background tasks included. Write through a raw connection (`exec_driver_sql`): call `invalidate()`.
+3. **Generation**: a computation started before a write does not get stored (otherwise it puts the old state back in the cache).
+4. **Deep copy** on entry and on exit: the caller can modify what it receives.
+5. An `autouse` fixture in `conftest.py` empties it between two tests (engine ids reused).
+6. Tests: 2nd call without an SQL query, write invalidates, flush without commit invalidates, modifying the copy has no effect, error not memoised (model: `tests/investissement/test_portfolio_cache.py`).
 
-## 4. Frontend et exploitation
+## 4. Frontend and operations
 
-- **Lecture** : `api.get` ressert 30 s la même URL et dédoublonne (`lib/apiCache.ts`). Toute écriture, la déconnexion et un 401 invalident. Un bouton « Actualiser » / « Réessayer » ou un `reload()` qui **relit sans écrire** appelle `resetApiCache()` d'abord, avec un test rouge qui compte les requêtes (modèle : `pages/Audit/Audit.test.tsx`). `queryClient.clear()` est interdit : il annule les lectures en vol (`CancelledError`).
-- **Bundle** : `build.rolldownOptions.output.codeSplitting.groups` dans `vite.config.ts` (Vite 8 / Rolldown, `includeDependenciesRecursively: false` : les dépendances de recharts sont listées à la main dans `vendor-charts`, sinon cycle d'import qui ne plante qu'en production ; `manualChunks` est déprécié). Après une nouvelle dépendance ou un nouvel import, vérifier les `modulepreload` de `dist/index.html` : les graphiques (`vendor-charts`, ~140 Ko gzip) ne doivent pas y figurer. Un utilitaire partagé avec recharts (`clsx`…) se range dans `vendor-ui`. Comparer `npm run build` avant/après (octets gzip du chargement initial).
-- **nginx** (`frontend/nginx.conf`) : `gzip` actif sauf `/api/auth/` (BREACH) ; ne pas l'ajouter au flux MCP. Vérification : `docker run --rm --add-host backend:127.0.0.1 --add-host mcp-server:127.0.0.1 -v $PWD/frontend/nginx.conf:/etc/nginx/conf.d/default.conf:ro nginx:alpine nginx -t`, puis `curl -H 'Accept-Encoding: gzip' -I` sur un fichier de `dist/assets/`.
-- **Aucun calcul de KPI côté frontend** pour « gagner du temps » : règle critique n° 2.
+- **Read**: `api.get` serves the same URL for 30 s and de-duplicates (`lib/apiCache.ts`). Any write, logout and 401 invalidate. An "Actualiser" / "Réessayer" button or a `reload()` that **re-reads without writing** calls `resetApiCache()` first, with a failing test that counts requests (model: `pages/Audit/Audit.test.tsx`). `queryClient.clear()` is forbidden: it cancels in-flight reads (`CancelledError`).
+- **Bundle**: `build.rolldownOptions.output.codeSplitting.groups` in `vite.config.ts` (Vite 8 / Rolldown, `includeDependenciesRecursively: false`: recharts' dependencies are listed by hand in `vendor-charts`, otherwise an import cycle that only crashes in production; `manualChunks` is deprecated). After a new dependency or a new import, check the `modulepreload`s of `dist/index.html`: charts (`vendor-charts`, ~140 KB gzip) must not be there. A utility shared with recharts (`clsx`…) goes in `vendor-ui`. Compare `npm run build` before/after (gzip bytes of the initial load).
+- **nginx** (`frontend/nginx.conf`): `gzip` enabled except `/api/auth/` (BREACH); do not add it to the MCP stream. Check: `docker run --rm --add-host backend:127.0.0.1 --add-host mcp-server:127.0.0.1 -v $PWD/frontend/nginx.conf:/etc/nginx/conf.d/default.conf:ro nginx:alpine nginx -t`, then `curl -H 'Accept-Encoding: gzip' -I` on a file in `dist/assets/`.
+- **No KPI computation on the frontend** to "save time": critical rule no. 2.
 
-## 5. Terminer
+## 5. Finishing
 
-`make validate` (lint, types, tailles, couverture, tests, build). Le message de commit donne les chiffres (`perf(audit): … ~1 s → ~130 ms à 44 000 transactions`) et les limites de la mesure. Si un nouveau cache ou une nouvelle règle de performance est ajouté, mettre à jour `backend/CLAUDE.md` / `frontend/src/CLAUDE.md` et ce skill dans le même commit.
+`make validate` (lint, types, sizes, coverage, tests, build). The commit message gives the figures (`perf(audit): … ~1 s → ~130 ms at 44,000 transactions`) and the limits of the measurement. If a new cache or a new performance rule is added, update `backend/CLAUDE.md` / `frontend/src/CLAUDE.md` and this skill in the same commit.
 
 ## Rationalisations
 
-| Excuse | Réalité |
+| Excuse | Reality |
 |---|---|
-| « C'est sûrement l'index qui manque » | Sur ce code, c'était un N+1 : 251 requêtes de 4 ms. L'index n'aurait rien changé au nombre de requêtes. |
-| « Je cache le résultat, ce sera plus rapide » | Sans invalidation sur écriture, c'est une donnée fausse pendant la durée du cache. Cahier des charges §3. |
-| « Ma base de dev est instantanée » | 220 transactions. Mesurer sur le jeu volumineux de `perf_profile.py seed`. |
-| « Je passe en `async` pour que ça ne bloque pas » | `async def` sans `await` bloque davantage. |
-| « Je régénère l'instantané, le chiffre a bougé » | Une optimisation ne change aucun chiffre. Un écart d'instantané est un bug. |
-| « Le gain est évident, pas besoin de mesurer après » | Le premier découpage du bundle chargeait les graphiques dès l'entrée : plus lourd qu'avant. Toujours rejouer la mesure. |
-| « Un `reload()` n'a pas besoin de test » | Il resservirait la réponse en cache. Test qui compte les requêtes. |
+| "It's surely a missing index" | On this code it was an N+1: 251 queries of 4 ms. The index would not have changed the number of queries. |
+| "I cache the result, it will be faster" | Without invalidation on write, it is wrong data for the duration of the cache. Specification §3. |
+| "My dev database is instantaneous" | 220 transactions. Measure on the large dataset of `perf_profile.py seed`. |
+| "I switch to `async` so it doesn't block" | `async def` without `await` blocks more. |
+| "I regenerate the snapshot, the figure moved" | An optimisation changes no figure. A snapshot difference is a bug. |
+| "The gain is obvious, no need to measure afterwards" | The first bundle split loaded the charts at entry: heavier than before. Always replay the measurement. |
+| "A `reload()` doesn't need a test" | It would serve the cached response again. Test that counts requests. |
 
-## Signaux d'arrêt
+## Stop signals
 
-`db.query` / `db.get` dans une boucle · `.all()` d'objets ORM pour n'en lire que quelques colonnes · `async def` sans `await` · cache sans invalidation sur écriture ou sans copie · index ajouté sans `EXPLAIN QUERY PLAN` · `queryClient.clear()` · bouton « Actualiser » qui relit via le cache · optimisation annoncée sans chiffre avant/après · instantané régénéré.
+`db.query` / `db.get` in a loop · `.all()` of ORM objects to read only a few columns · `async def` without `await` · cache without invalidation on write or without a copy · index added without `EXPLAIN QUERY PLAN` · `queryClient.clear()` · "Actualiser" button that re-reads through the cache · optimisation announced without a before/after figure · regenerated snapshot.

@@ -1,65 +1,65 @@
 ---
 name: numera-testing
-description: Comment lancer, écrire et déboguer les tests de Numera (pytest backend, Vitest frontend) et ce qu'il faut vérifier avant de considérer une tâche terminée. À charger avant toute validation ou pour corriger un test en échec.
+description: How to run, write and debug Numera's tests (backend pytest, frontend Vitest) and what to check before considering a task done. Load before any validation or to fix a failing test.
 ---
 
-# Numera — tests et validation
+# Numera — tests and validation
 
-## Lancer les tests backend
+## Running backend tests
 
-Depuis `backend/` (le `PYTHONPATH` est obligatoire, sinon `ModuleNotFoundError: app`) :
+From `backend/` (`PYTHONPATH` is mandatory, otherwise `ModuleNotFoundError: app`):
 
 ```bash
-PYTHONPATH=. python3.11 -m pytest tests -q                       # tout : ~950 tests, ~2 min 40 en série ; ajouter -n auto (pytest-xdist) : ~80 s
-PYTHONPATH=. python3.11 -m pytest tests/budget/test_merchants.py -v     # un fichier
-PYTHONPATH=. python3.11 -m pytest tests/budget/test_tags.py::test_x -v  # un test
+PYTHONPATH=. python3.11 -m pytest tests -q                       # everything: ~950 tests, ~2 min 40 serially; add -n auto (pytest-xdist): ~80 s
+PYTHONPATH=. python3.11 -m pytest tests/budget/test_merchants.py -v     # one file
+PYTHONPATH=. python3.11 -m pytest tests/budget/test_tags.py::test_x -v  # one test
 ```
 
-- `make test` / `make validate` choisissent l'interpréteur automatiquement : `backend/.venv/bin/python` (créé par `make backend-install`, i.e. `uv sync`), puis l'ancien `backend/venv`, sinon `python3.12`, sinon `python3.11` (surchargeable : `make test PYTHON=...`). `backend/venv_new` est en Python 3.14 sans pytest, et pydantic-core ne supporte pas 3.14.
-- Dépendances : `backend/pyproject.toml` + `backend/uv.lock` (groupe `dev` pour pytest/ruff/mypy). Ajouter une dépendance : `cd backend && uv add <pkg>` (ou `uv add --dev`), commiter `uv.lock`.
+- `make test` / `make validate` pick the interpreter automatically: `backend/.venv/bin/python` (created by `make backend-install`, i.e. `uv sync`), then the old `backend/venv`, otherwise `python3.12`, otherwise `python3.11` (overridable: `make test PYTHON=...`). `backend/venv_new` is Python 3.14 without pytest, and pydantic-core does not support 3.14.
+- Dependencies: `backend/pyproject.toml` + `backend/uv.lock` (`dev` group for pytest/ruff/mypy). Adding a dependency: `cd backend && uv add <pkg>` (or `uv add --dev`), commit `uv.lock`.
 
-## Rangement (`backend/tests/`)
+## Layout (`backend/tests/`)
 
-Un dossier par domaine, comme `app/services/` : `budget/`, `comptes/`, `investissement/`, `analytics/`, `audit/`, `systeme/`, plus `garde_fous/` (architecture, tailles, migrations, routes, épinglage, réseau) et `non_regression/` (instantanés, lots d'audit transverses). `conftest.py` et `snapshots/` à la racine. Lancer un domaine : `PYTHONPATH=. python3.11 -m pytest tests/budget -q`. Noms de fichiers uniques (pas de `__init__.py`).
+One folder per domain, like `app/services/`: `budget/`, `comptes/`, `investissement/`, `analytics/`, `audit/`, `systeme/`, plus `garde_fous/` (architecture, sizes, migrations, routes, pinning, network) and `non_regression/` (snapshots, cross-cutting audit batches). `conftest.py` and `snapshots/` at the root. Run one domain: `PYTHONPATH=. python3.11 -m pytest tests/budget -q`. Unique file names (no `__init__.py`).
 
-## Infrastructure de test (`tests/conftest.py`)
+## Test infrastructure (`tests/conftest.py`)
 
-- `APP_ENV=test` : pas de migrations ni de seed au démarrage ; tables créées par `Base.metadata.create_all` sur une SQLite temporaire (`tmp_path`) propre à chaque test.
-- `ADMIN_PASSWORD_HASH` fixé sur le mot de passe `admin`.
-- Fixtures : `db_session` (Session) et `client` (TestClient avec `get_db` — deux chemins d'import — et `get_current_user` surchargés ; le rate limiter de login est réinitialisé).
-- Un `401` en test signifie presque toujours que `client` n'est pas utilisé ou que l'override n'est pas actif.
-- `database is locked` : un autre process garde la base ouverte.
+- `APP_ENV=test`: no migrations or seed at startup; tables created by `Base.metadata.create_all` on a temporary SQLite (`tmp_path`) specific to each test.
+- `ADMIN_PASSWORD_HASH` set to the password `admin`.
+- Fixtures: `db_session` (Session) and `client` (TestClient with `get_db` — two import paths — and `get_current_user` overridden; the login rate limiter is reset).
+- A `401` in a test almost always means `client` is not used or the override is not active.
+- `database is locked`: another process keeps the database open.
 
-## Écrire un test
+## Writing a test
 
-Le test s'écrit **avant** le code et doit être vu rouge (skill `numera-tdd`, qui dit aussi quel niveau choisir : `domain`, service, route). Fichier `tests/<domaine>/test_<sujet>.py`. Créer les données via `db_session` ou l'API (`client.post`), appeler l'endpoint, vérifier le code HTTP **et** l'état en base (soldes, flags, liens). Un test par bug corrigé.
+The test is written **before** the code and must be seen failing (`numera-tdd` skill, which also says which level to choose: `domain`, service, route). File `tests/<domain>/test_<subject>.py`. Create the data through `db_session` or the API (`client.post`), call the endpoint, check the HTTP code **and** the state in the database (balances, flags, links). One test per fixed bug.
 
-## Points de vérification selon le changement
+## Checkpoints depending on the change
 
-- Transactions : `running_balance` cohérent après create/update/delete/bulk/import (`test_import_and_analytics.py`, `test_transfers.py`).
-- Devises : `original_amount` + `currency` conservés, `amount` converti dans la devise du compte.
-- Marchands / règles / tags : `test_merchants.py`, `test_categorization_rules.py`, `test_tags.py`.
-- Salaire : transaction unique « Salaire », `is_generated` posé, pas de doublon (`test_p0_features.py` à consulter).
-- Centre d'Actions / audit : l'issue résolue disparaît de `/analytics/actions` (`test_data_audit.py`, `test_anomaly_detection.py`).
-- Analytics, filet de non-régression : `tests/non_regression/test_analytics_snapshots.py` compare la sortie JSON de toutes les routes analytics (budget, Centre d'Actions, métriques, rapports, insights, abonnements, bilan annuel, investissements, projections, fiscalité, revue de mois) aux instantanés de `tests/snapshots/analytics/`, sur les données de démo à date figée (`freezegun`, 2026-06-15 10:00) complétées pour déclencher chaque règle du Centre d'Actions. Un écart est un bug : **ne jamais régénérer les instantanés pour faire passer le test**. Régénération volontaire seulement pour un changement de chiffre voulu et justifié dans le commit : `UPDATE_SNAPSHOTS=1 PYTHONPATH=. python3.11 -m pytest tests/non_regression/test_analytics_snapshots.py`.
-- Portefeuille, même principe : `tests/non_regression/test_portfolio_snapshots.py` (réutilise la fixture ci-dessus et ajoute un compte titres « CTO Instantané » avec Point Zéro, achat, vente en USD, frais, dividende avec retenue et relevés du courtier) fige `/analytics/portfolio[/{id}]`, `/analytics/dividends`, `/holdings`, `/holdings/estimate-costs`, `/investment-transactions`, `/analytics/diversity-scanner`, `/etf-profiles` et le rapprochement courtier (`/analytics/actions`) dans `tests/snapshots/portfolio/`. Les appels Yahoo sont neutralisés par patch de `integrations/yahoo_finance.py` (`fetch_chart`, `fetch_composition`), jamais en désactivant `block_network`.
-- Analytics : `test_money_flow.py`, `test_sankey.py`, `test_cashflow_projection.py`, `test_asset_allocation.py`, `test_diversity_scanner.py`, `test_simulation.py`, `test_subscriptions.py`, `test_savings_goals.py`, `test_calendar.py`, `test_excluded_months.py`, `test_filtering.py`.
-- Auth / config : `test_auth.py`, `test_config.py`.
+- Transactions: consistent `running_balance` after create/update/delete/bulk/import (`test_import_and_analytics.py`, `test_transfers.py`).
+- Currencies: `original_amount` + `currency` kept, `amount` converted to the account currency.
+- Merchants / rules / tags: `test_merchants.py`, `test_categorization_rules.py`, `test_tags.py`.
+- Salary: single "Salaire" transaction, `is_generated` set, no duplicate (see `test_p0_features.py`).
+- Action Center / audit: the resolved issue disappears from `/analytics/actions` (`test_data_audit.py`, `test_anomaly_detection.py`).
+- Analytics, non-regression net: `tests/non_regression/test_analytics_snapshots.py` compares the JSON output of all analytics routes (budget, Action Center, metrics, reports, insights, subscriptions, yearly review, investments, projections, taxation, month review) with the snapshots in `tests/snapshots/analytics/`, on the demo data at a frozen date (`freezegun`, 2026-06-15 10:00) completed to trigger each Action Center rule. A difference is a bug: **never regenerate the snapshots to make the test pass**. Deliberate regeneration only for an intended figure change justified in the commit: `UPDATE_SNAPSHOTS=1 PYTHONPATH=. python3.11 -m pytest tests/non_regression/test_analytics_snapshots.py`.
+- Portfolio, same principle: `tests/non_regression/test_portfolio_snapshots.py` (reuses the fixture above and adds a securities account "CTO Instantané" with Zero Point, purchase, USD sale, fees, dividend with withholding and broker statements) freezes `/analytics/portfolio[/{id}]`, `/analytics/dividends`, `/holdings`, `/holdings/estimate-costs`, `/investment-transactions`, `/analytics/diversity-scanner`, `/etf-profiles` and the broker reconciliation (`/analytics/actions`) in `tests/snapshots/portfolio/`. Yahoo calls are neutralised by patching `integrations/yahoo_finance.py` (`fetch_chart`, `fetch_composition`), never by disabling `block_network`.
+- Analytics: `test_money_flow.py`, `test_sankey.py`, `test_cashflow_projection.py`, `test_asset_allocation.py`, `test_diversity_scanner.py`, `test_simulation.py`, `test_subscriptions.py`, `test_savings_goals.py`, `test_calendar.py`, `test_excluded_months.py`, `test_filtering.py`.
+- Auth / config: `test_auth.py`, `test_config.py`.
 
 ## Frontend
 
 ```bash
-cd frontend && npm test                                   # tout (vitest run) ; make test-front depuis la racine
-cd frontend && npx vitest run src/lib/utils.test.ts       # un fichier
-cd frontend && npx vitest run -t "formatCurrency"         # par nom de test
-cd frontend && npm run test:watch                         # en continu
-cd frontend && npm run build                              # tsc app + tests (0 erreur), puis vite build
+cd frontend && npm test                                   # everything (vitest run); make test-front from the root
+cd frontend && npx vitest run src/lib/utils.test.ts       # one file
+cd frontend && npx vitest run -t "formatCurrency"         # by test name
+cd frontend && npm run test:watch                         # continuous
+cd frontend && npm run build                              # tsc app + tests (0 errors), then vite build
 ```
 
-Les deux sont obligatoires : `npm test` ne vérifie pas les types, le build ne lance pas les tests. Conventions (emplacement `X.test.tsx`, `renderWithProviders`, handlers MSW par domaine, fabriques, horloge figée) : `frontend/src/CLAUDE.md` § Vérification.
+Both are mandatory: `npm test` does not check types, the build does not run the tests. Conventions (location `X.test.tsx`, `renderWithProviders`, MSW handlers per domain, factories, frozen clock): `frontend/src/CLAUDE.md` § Verification.
 
-Débogage : « Requête(s) sans handler MSW : GET … » = ajouter un handler (`server.use(...)` dans le test, ou `src/test/handlers/<domaine>.ts`) ; `localStorage` indéfini sous Node ≥ 25 = lancer via `npm test` / `vitest.config.ts` (option `--no-experimental-webstorage`) ; un élément introuvable : `screen.debug()`, et `findBy…` pour ce qui s'affiche après une requête. E2E (Playwright, `make test-e2e`, parcours critiques sur base de démo jetable) : `frontend/e2e/README.md`. Contrôles manuels en plus : mode confidentialité, toasts, thème sombre, mobile.
+Debugging: "Requête(s) sans handler MSW : GET …" (request(s) without an MSW handler) = add a handler (`server.use(...)` in the test, or `src/test/handlers/<domain>.ts`); `localStorage` undefined under Node ≥ 25 = run through `npm test` / `vitest.config.ts` (option `--no-experimental-webstorage`); an element not found: `screen.debug()`, and `findBy…` for what appears after a request. E2E (Playwright, `make test-e2e`, critical journeys on a throwaway demo database): `frontend/e2e/README.md`. Additional manual checks: privacy mode, toasts, dark theme, mobile.
 
-## Définition de « terminé »
+## Definition of "done"
 
-Checklist complète (validation selon le changement, docs, commit) : skill `numera-finishing`.
+Full checklist (validation depending on the change, docs, commit): `numera-finishing` skill.

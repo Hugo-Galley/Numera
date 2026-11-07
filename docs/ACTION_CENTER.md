@@ -1,98 +1,100 @@
-# Centre d'Actions — Documentation & Tests
+# Action Center: documentation and tests
 
-Ce document détaille le fonctionnement du **Centre d'Actions** (Priorité 2) et fournit les instructions pour tester et maintenir cette fonctionnalité sans encombre.
+This document details how the **Action Center** (Priority 2) works and gives the instructions to test and maintain it smoothly.
+
+Note: user-facing labels (action titles, buttons) are in French in the interface; they are quoted below with an English gloss.
 
 ## 1. Architecture
 
-Le Centre d'Actions centralise trois types de flux :
-1.  **Audit (Data Integrity)** : Problèmes de structure (catégories manquantes, doublons).
-2.  **Budget** : Alertes de dépassement basées sur les limites mensuelles.
-3.  **Règles (Smart Suggestions)** : Suggestions de création de règles basées sur la récurrence des marchands.
+The Action Center centralises three kinds of flows:
+1.  **Audit (data integrity)**: structural problems (missing categories, duplicates).
+2.  **Budget**: overrun alerts based on monthly limits.
+3.  **Rules (smart suggestions)**: suggestions to create rules based on merchant recurrence.
 
 ### Backend
-- **Endpoint unique** : `/analytics/actions`
-- **Modèle de données** : Utilise les schémas Pydantic `ActionItem` et `ActionCenterResponse` dans `backend/app/schemas/insight.py`.
-- **Logique** : Agrégation de fonctions de calcul existantes (`budget_alerts`, `data_audit`) et de nouvelles requêtes (suggestions de règles).
+- **Single endpoint**: `/analytics/actions`
+- **Data model**: uses the Pydantic schemas `ActionItem` and `ActionCenterResponse` in `backend/app/schemas/insight.py`.
+- **Logic**: aggregation of existing calculation functions (`budget_alerts`, `data_audit`) and new queries (rule suggestions).
 
-### Notifications push
-- `services/systeme/notifications.py (canaux : integrations/notifications.py)::run_notifications`, appelée par la tâche horaire : envoie vers ntfy et/ou Telegram les actions dont la sévérité atteint le minimum choisi (`notify.min_severity`, `medium` par défaut) et dont l'empreinte (`id|title|description`) n'est pas dans `notification_log`. Un `ActionItem.id` déterministe et une description qui reflète l'état (ex. « 104 % du budget ») sont donc nécessaires : changer la description renvoie l'alerte. Les textes des règles passent par `tr()` (`core/i18n.py`, clés `audit.*` dans `core/locales/`) et suivent `Accept-Language` ; la tâche de fond n'a pas de requête : elle rédige les messages dans la langue enregistrée (`notify.language`, réglage `language` de `/notifications/settings`, que le frontend renseigne au changement de langue), mais calcule toujours les empreintes sur le texte français (les actions sont générées deux fois quand la langue n'est pas le français) : changer de langue ne renvoie donc pas les alertes déjà envoyées. L'`id` ne dépend jamais de la langue.
-- Première activation : actions existantes marquées connues, un seul message de bienvenue. Plus de 5 nouvelles actions → un message groupé. Résumé le dimanche après 18 h (une fois par semaine ISO). Un canal en échec n'est jamais marqué envoyé.
+### Push notifications
+- `services/systeme/notifications.py (channels: integrations/notifications.py)::run_notifications`, called by the hourly task: sends to ntfy and/or Telegram the actions whose severity reaches the chosen minimum (`notify.min_severity`, `medium` by default) and whose fingerprint (`id|title|description`) is not in `notification_log`. A deterministic `ActionItem.id` and a description that reflects the state (e.g. "104 % of the budget") are therefore required: changing the description sends the alert again. Rule texts go through `tr()` (`core/i18n.py`, `audit.*` keys in `core/locales/`) and follow `Accept-Language`; the background task has no request: it writes messages in the saved language (`notify.language`, `language` setting of `/notifications/settings`, which the frontend fills in when the language changes), but always computes fingerprints on the French text (actions are generated twice when the language is not French): changing language therefore does not resend alerts already sent. The `id` never depends on the language.
+- First activation: existing actions are marked as known, and a single welcome message is sent. More than 5 new actions → one grouped message. Summary on Sunday after 6 pm (once per ISO week). A failing channel is never marked as sent.
 
 ### Frontend
-- **Page** : `frontend/src/pages/Audit.tsx`, route `/audit` (Centre d'actions).
-- **Composants clés** : 
-    - `ActionCenter` : Gère le chargement et le routage des actions.
-    - `TransactionEditor` : Interface de correction en ligne pour les audits.
-    - `RuleCreatorModal` : Formulaire rapide pour transformer une suggestion en règle réelle.
+- **Page**: `frontend/src/pages/Audit.tsx`, route `/audit` (Action Center).
+- **Key components**:
+    - `ActionCenter`: handles loading and routing of actions.
+    - `TransactionEditor`: inline correction interface for audits.
+    - `RuleCreatorModal`: quick form to turn a suggestion into a real rule.
 
 ---
 
-## 2. Procédure de Test
+## 2. Test procedure
 
-### 2.1 Backend (Logique métier)
-Pour tester sans problèmes d'environnement, assurez-vous de définir le `PYTHONPATH` et d'utiliser une base de données de test propre.
+### 2.1 Backend (business logic)
+To test without environment problems, make sure to set `PYTHONPATH` and use a clean test database.
 
-**Commande recommandée :**
+**Recommended command:**
 ```bash
 cd backend
 PYTHONPATH=. python3.11 -m pytest tests/audit/test_data_audit.py tests/non_regression/test_import_and_analytics.py
 ```
 
-*Note : Si vous avez des erreurs de module (`jwt`, etc.), vérifiez que votre `.venv` est bien activé (`uv sync`).*
+*Note: if you get module errors (`jwt`, etc.), check that your `.venv` is activated (`uv sync`).*
 
-**Points de vérification critiques :**
-- L'endpoint doit retourner un `200 OK` même si la liste d'actions est vide.
-- Les doublons doivent être ignorés s'ils ont le flag `is_duplicate_ignored`.
-- Les suggestions de règles ne doivent pas apparaître pour des marchands ayant déjà une règle active.
-- Une règle ne s'applique qu'à l'import (et via « appliquer à tout ») : `suggest-rule-{merchant}` n'apparaît que si le marchand a au moins 5 transactions sur 6 mois **dont au moins une sans catégorie** (virements et lignes générées par une récurrence exclus) ; catégorie proposée = la plus fréquente.
-- `suggest-normalization-{libellé}` n'apparaît que si un même marchand existe sous au moins deux écritures (clé `audit.py::merchant_key` : sans accents, casse, chiffres ni ponctuation) ; `metadata.variants` liste les libellés, tous ajoutés comme alias par la modale.
+**Critical checkpoints:**
+- The endpoint must return `200 OK` even when the list of actions is empty.
+- Duplicates must be ignored when they have the `is_duplicate_ignored` flag.
+- Rule suggestions must not appear for merchants that already have an active rule.
+- A rule only applies at import time (and through "apply to all"): `suggest-rule-{merchant}` only appears if the merchant has at least 5 transactions over 6 months **of which at least one is uncategorised** (transfers and lines generated by a recurrence excluded); the proposed category is the most frequent one.
+- `suggest-normalization-{label}` only appears if one merchant exists under at least two spellings (key `audit.py::merchant_key`: ignoring accents, case, digits and punctuation); `metadata.variants` lists the labels, all added as aliases by the modal.
 
-### 2.2 Frontend (UI & Workflows)
-Le test manuel est privilégié ici pour valider les interactions.
+### 2.2 Frontend (UI and workflows)
+Manual testing is preferred here to validate interactions.
 
-**Scénarios à tester :**
-1.  **Action Audit** : Cliquer sur "Catégoriser" -> Modifier une transaction -> Vérifier que l'action disparaît après actualisation.
-2.  **Action Budget** : Créer une dépense dépassant une limite -> L'action "Budget dépassé" doit apparaître.
-3.  **Action Règle** : Créer 5 transactions avec le même marchand, dont une sans catégorie -> Une suggestion doit apparaître -> Cliquer sur "Créer la règle" -> Vérifier la création dans les paramètres.
+**Scenarios to test:**
+1.  **Audit action**: click "Catégoriser" ("Categorise") → edit a transaction → check that the action disappears after refresh.
+2.  **Budget action**: create an expense exceeding a limit → the "Budget dépassé" ("Budget exceeded") action must appear.
+3.  **Rule action**: create 5 transactions with the same merchant, one of them uncategorised → a suggestion must appear → click "Créer la règle" ("Create the rule") → check the creation in the settings.
 
 ---
 
-## 3. Bonnes Pratiques & Maintenance
+## 3. Best practices and maintenance
 
 ### Performance
-L'endpoint `/actions` effectue plusieurs scans de la base de données. 
-- **Optimisation** : Les scans de transferts internes et de doublons sont limités aux 90 derniers jours pour éviter des lenteurs sur de grosses bases de données.
-- **Index** : Assurez-vous que les colonnes `merchant`, `date` et `category_id` sont indexées.
+The `/actions` endpoint performs several database scans.
+- **Optimisation**: internal-transfer and duplicate scans are limited to the last 90 days to avoid slowness on large databases.
+- **Indexes**: make sure the `merchant`, `date` and `category_id` columns are indexed.
 
-### Ajout d'une nouvelle action
-Pour ajouter un nouveau type d'action :
-1.  Choisissez un `action_type` (chaîne libre dans `ActionItem`, schéma `insight.py` : `link`, `modal_categorize`, `modal_rule`, `modal_snapshot`, `modal_merchant`).
-2.  Créez `backend/app/services/audit/rules/<nom>.py` exposant `detect(ctx) -> list[ActionItem]` (`async def` si la règle attend un calcul asynchrone ; `ctx` = `AuditContext` : `db`, `now`), requêtes dans `repositories/analytics/audit.py`, puis ajoutez-la à `RULES` (`services/audit/__init__.py`) : l'ordre du registre fixe l'ordre d'affichage à sévérité égale. Une règle qui lève est journalisée et ignorée, les autres s'affichent (`tests/audit/test_audit_rules.py`). La route `/analytics/actions` ne fait qu'appeler `compute_action_center`. Les actions écartées sont filtrées via `dismissed_insights` (`POST /analytics/actions/dismiss`, `dismiss_action`).
-3.  Si une modale spécifique est requise, ajoutez-la dans `Audit.tsx` et gérez le `action_type`.
+### Adding a new action
+To add a new kind of action:
+1.  Choose an `action_type` (free string in `ActionItem`, schema `insight.py`: `link`, `modal_categorize`, `modal_rule`, `modal_snapshot`, `modal_merchant`).
+2.  Create `backend/app/services/audit/rules/<name>.py` exposing `detect(ctx) -> list[ActionItem]` (`async def` if the rule waits on an asynchronous computation; `ctx` = `AuditContext`: `db`, `now`), with queries in `repositories/analytics/audit.py`, then add it to `RULES` (`services/audit/__init__.py`): the registry order sets the display order at equal severity. A rule that raises is logged and skipped, the others are still displayed (`tests/audit/test_audit_rules.py`). The `/analytics/actions` route only calls `compute_action_center`. Dismissed actions are filtered through `dismissed_insights` (`POST /analytics/actions/dismiss`, `dismiss_action`).
+3.  If a specific modal is needed, add it in `Audit.tsx` and handle the `action_type`.
 
-### Actions « dividendes » (`type: investments`)
-- `dividends-unlinked-{account_id}` : dividendes sans titre (rattachement via `POST /investment-transactions/link-dividends`).
-- `reconciliation-gap-{account_id}-{date}` : le dernier snapshot (relevé du courtier) s'écarte de plus de 2 % de la valeur calculée par Numera (opération, frais ou dividende manquant) ; calcul sans appel réseau d'historique.
-- `dividend-missing-{account_id}-{ticker}` : position marquée distribuante (`pays_dividends`) sans dividende saisi depuis plus de 13 mois (saisie manuelle, aucun appel externe).
+### "Dividends" actions (`type: investments`)
+- `dividends-unlinked-{account_id}`: dividends with no security attached (linking through `POST /investment-transactions/link-dividends`).
+- `reconciliation-gap-{account_id}-{date}`: the latest snapshot (broker statement) differs by more than 2 % from the value computed by Numera (missing transaction, fee or dividend); computed without any history network call.
+- `dividend-missing-{account_id}-{ticker}`: a position flagged as distributing (`pays_dividends`) with no dividend entered for more than 13 months (manual entry, no external call).
 
-### Action « remboursements » (`type: audit`)
-- `unallocated-reimbursements` : entrées de catégorie « Remboursement… » des 180 derniers jours non affectées à une créance (`reimbursement_offset = 0`), remontée seulement s'il existe au moins une créance ouverte. `action_type: link` vers `/reimbursements`. Aussi présente dans `/analytics/audit` (détail : `GET /analytics/audit/unallocated-reimbursements`). Requête partagée : `unallocated_reimbursements_query` (`services/audit/context.py`).
+### "Reimbursements" action (`type: audit`)
+- `unallocated-reimbursements`: inflows in a "Remboursement…" category over the last 180 days not allocated to a claim (`reimbursement_offset = 0`), raised only if at least one claim is open. `action_type: link` to `/reimbursements`. Also present in `/analytics/audit` (detail: `GET /analytics/audit/unallocated-reimbursements`). Shared query: `unallocated_reimbursements_query` (`services/audit/context.py`).
 
-### Action « salaire absent » (`type: audit`, `severity: high`)
-- `missing-salary-{YYYY-MM}` (dernier mois manquant) : config de salaire active, mois des 3 derniers (et pas avant la création de la config) dont le jour de paie est passé, sans `SalaryMonth` et sans entrée de type salaire (marchand ou catégorie « Salaire… », ou `salary_category_id`) sur le compte de salaire. Jour de paie = celui du dernier `SalaryMonth`, sinon le 28. Rien n'est généré automatiquement (montant ou emploi peuvent avoir changé). `action_type: link` vers `/recurring?tab=salary`. Logique : `services/budget/salary_generation.py::find_missing_salary_months`.
+### "Missing salary" action (`type: audit`, `severity: high`)
+- `missing-salary-{YYYY-MM}` (latest missing month): an active salary config, a month among the last 3 (and not before the config was created) whose pay day has passed, with no `SalaryMonth` and no salary-type entry (merchant or category "Salaire…", or `salary_category_id`) on the salary account. Pay day = that of the latest `SalaryMonth`, otherwise the 28th. Nothing is generated automatically (the amount or the job may have changed). `action_type: link` to `/recurring?tab=salary`. Logic: `services/budget/salary_generation.py::find_missing_salary_months`.
 
-### Actions « aides perçues » (`type: audit`)
-- `benefit-declaration-{id}-{date}` : déclaration périodique (prime d'activité : trimestrielle) dans 7 jours ou moins (`medium`), en retard (`high`, le titre change, donc une seule nouvelle notification). « Déclaration faite » (`POST /benefits/{id}/declared`) avance l'échéance et change l'id.
-- `benefit-late-{id}-{AAAA-MM}` (`medium`) : aucun versement 5 jours après la date habituelle.
-- `benefit-amount-{id}-{date du versement}` (`low`) : dernier versement différent du montant attendu (> 1 € et > 5 %).
-Toutes pointent vers `/recurring?tab=salary&vue=aides`. Logique : `services/budget/benefits.py`, règle `services/audit/rules/benefits.py`.
+### "Benefits received" actions (`type: audit`)
+- `benefit-declaration-{id}-{date}`: periodic declaration (activity bonus: quarterly) due in 7 days or less (`medium`), or late (`high`, the title changes, so only one new notification). "Déclaration faite" ("Declaration done", `POST /benefits/{id}/declared`) moves the due date forward and changes the id.
+- `benefit-late-{id}-{YYYY-MM}` (`medium`): no payment 5 days after the usual date.
+- `benefit-amount-{id}-{payment date}` (`low`): latest payment differs from the expected amount (> €1 and > 5 %).
+All point to `/recurring?tab=salary&vue=aides`. Logic: `services/budget/benefits.py`, rule `services/audit/rules/benefits.py`.
 
-### Action « hausse de prix » (`type: subscription`, `severity: medium`)
-- `subscription-price-{account_id}-{clé}-{date}` : un abonnement ou prélèvement régulier a augmenté (détection `services/budget/subscription_prices.py::detect_price_changes` (détection d'une série : `domain/subscription_prices.py::series_change`), mêmes données que `price_changes` de `/analytics/subscriptions`). La date de la hausse fait partie de l'id : une hausse écartée ne revient pas, une nouvelle hausse si. `action_type: link` vers `/recurring?tab=subscriptions`. Les transactions `is_subscription_ignored` et les virements sont exclus.
+### "Price increase" action (`type: subscription`, `severity: medium`)
+- `subscription-price-{account_id}-{key}-{date}`: a subscription or regular direct debit has gone up (detection `services/budget/subscription_prices.py::detect_price_changes` (series detection: `domain/subscription_prices.py::series_change`), same data as `price_changes` of `/analytics/subscriptions`). The date of the increase is part of the id: a dismissed increase does not come back, a new one does. `action_type: link` to `/recurring?tab=subscriptions`. Transactions flagged `is_subscription_ignored` and transfers are excluded.
 
-### Action « sauvegarde » (`type: audit`, `severity: high`)
-`backup-failing-<AAAAMMJJ de la dernière sauvegarde>` : aucune sauvegarde depuis 2 jours ou dernière tentative en échec (`integrations/backup.py::backup_status`). L'id change avec la sauvegarde suivante, masquer l'alerte ne la fait donc pas taire pour toujours. Rien tant que les sauvegardes ne sont pas en place.
+### "Backup" action (`type: audit`, `severity: high`)
+`backup-failing-<YYYYMMDD of the last backup>`: no backup for 2 days, or the last attempt failed (`integrations/backup.py::backup_status`). The id changes with the next backup, so hiding the alert does not silence it forever. Nothing is raised as long as backups are not set up.
 
-### Pièges à éviter
-- **Doubles appels** : Ne pas rafraîchir la liste complète (`loadActions`) trop souvent ; privilégier le rafraîchissement ciblé si possible.
-- **IDs stables** : L'ID de l'action doit être déterministe (ex: `suggest-rule-{merchant}`) pour permettre au frontend de garder l'état local si nécessaire.
+### Pitfalls to avoid
+- **Double calls**: do not refresh the whole list (`loadActions`) too often; prefer a targeted refresh when possible.
+- **Stable IDs**: the action ID must be deterministic (e.g. `suggest-rule-{merchant}`) so the frontend can keep local state if needed.
