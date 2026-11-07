@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { api } from "@/lib/api"
 import { type Language, LANGUAGES, setLanguage } from "@/i18n"
@@ -21,6 +22,7 @@ const THEMES = [
 
 // Chaque langue s'écrit dans sa propre langue, pour rester repérable quand l'interface est illisible pour l'utilisateur
 const LANGUAGE_NAMES: Record<Language, string> = { fr: "Français", en: "English" }
+const LANGUAGE_FLAGS: Record<Language, string> = { fr: "🇫🇷", en: "🇬🇧" }
 
 export function DisplayCard() {
   const { t, i18n } = useTranslation("settings")
@@ -57,24 +59,24 @@ export function DisplayCard() {
             <p className="font-bold text-slate-900">{t("display.language.title")}</p>
             <p className="text-sm text-slate-500">{t("display.language.hint")}</p>
           </div>
-          <div role="radiogroup" aria-label={t("display.language.aria")} className="grid shrink-0 grid-cols-2 gap-1 rounded-xl bg-slate-100 p-1">
-            {LANGUAGES.map((code) => (
-              <button
-                key={code}
-                type="button"
-                role="radio"
-                lang={code}
-                aria-checked={i18n.language === code}
-                onClick={() => { void setLanguage(code); void syncServerLanguage(code) }}
-                className={cn(
-                  "flex h-10 items-center justify-center rounded-lg px-3 text-sm font-medium transition-colors sm:h-8",
-                  i18n.language === code ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-900",
-                )}
-              >
-                {LANGUAGE_NAMES[code]}
-              </button>
-            ))}
-          </div>
+          <Select
+            value={i18n.language}
+            onValueChange={(code) => { void setLanguage(code as Language); void syncServerLanguage(code as Language) }}
+          >
+            <SelectTrigger aria-label={t("display.language.aria")} className="w-full shrink-0 sm:w-44">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {LANGUAGES.map((code) => (
+                <SelectItem key={code} value={code} lang={code}>
+                  <span className="flex items-center gap-2">
+                    <span aria-hidden="true">{LANGUAGE_FLAGS[code]}</span>
+                    {LANGUAGE_NAMES[code]}
+                  </span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
