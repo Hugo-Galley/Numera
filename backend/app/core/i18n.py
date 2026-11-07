@@ -7,7 +7,7 @@ interface (serveur MCP, scripts) restent donc en français, comme avant.
 Les textes vivent dans `core/locales/<langue>.json` (clés plates `domaine.sujet`, variables `{nom}`) ;
 `tr("clé", nom=valeur)` lit la langue de la requête en cours. Une clé inconnue est rendue telle quelle
 (un texte manquant ne casse pas une réponse) ; `tests/systeme/test_i18n.py` impose les mêmes clés et
-les mêmes variables en français et en anglais.
+les mêmes variables dans toutes les langues.
 """
 import json
 from contextvars import ContextVar
@@ -17,7 +17,7 @@ from functools import cache
 from pathlib import Path
 from typing import Any
 
-LANGUAGES = ("fr", "en")
+LANGUAGES = ("fr", "en", "es")
 DEFAULT_LANGUAGE = "fr"
 _LOCALES_DIR = Path(__file__).parent / "locales"
 
@@ -75,6 +75,7 @@ class Formats:
 FORMATS: dict[str, Formats] = {
     "fr": Formats(",", "\u202f", " ", False, "\u00a0", "%d/%m/%Y", "%d/%m/%Y %H:%M", True),
     "en": Formats(".", ",", ",", True, "", "%Y-%m-%d", "%Y-%m-%d %H:%M", False),
+    "es": Formats(",", ".", ".", False, "\u00a0", "%d/%m/%Y", "%d/%m/%Y %H:%M", False),
 }
 
 

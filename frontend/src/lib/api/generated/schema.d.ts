@@ -5194,7 +5194,7 @@ export interface components {
              * Language
              * @enum {string}
              */
-            language: "fr" | "en";
+            language: "fr" | "en" | "es";
             /**
              * Min Severity
              * @enum {string}
@@ -5226,7 +5226,7 @@ export interface components {
             /** Hide Amounts */
             hide_amounts?: boolean | null;
             /** Language */
-            language?: ("fr" | "en") | null;
+            language?: ("fr" | "en" | "es") | null;
             /** Min Severity */
             min_severity?: ("low" | "medium" | "high") | null;
             /** Ntfy Enabled */

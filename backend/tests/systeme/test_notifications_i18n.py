@@ -49,6 +49,7 @@ def test_language_setting_defaults_to_french_and_is_saved(client, db_session):
     res = client.put("/notifications/settings", json={"language": "en"})  # pas sensible : sans mot de passe
     assert res.status_code == 200 and res.json()["language"] == "en"
     assert get_setting(db_session, "notify.language") == "en"
+    assert client.put("/notifications/settings", json={"language": "es"}).json()["language"] == "es"
     assert client.put("/notifications/settings", json={"language": "de"}).status_code == 422
 
 

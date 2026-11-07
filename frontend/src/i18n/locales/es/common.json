@@ -1,0 +1,77 @@
+{
+  "notFound": {
+    "title": "Página no encontrada",
+    "text": "Esta dirección no existe o se ha movido.",
+    "back": "Volver al panel"
+  },
+  "frequency": {
+    "weekly": "Semanal",
+    "monthly": "Mensual",
+    "quarterly": "Trimestral",
+    "yearly": "Anual",
+    "annual": "Anual",
+    "monthlyDetected": "Mensual (detectada)"
+  },
+  "errors": {
+    "loadFailed": "No se pueden cargar estos datos.",
+    "retry": "Reintentar",
+    "reload": "Recargar",
+    "renderTitle": "Esta página ha encontrado un error",
+    "renderText": "Tus datos no se han visto afectados. Vuelve a intentarlo o recarga la página.",
+    "requestRefused": "Solicitud rechazada",
+    "serverError": "Error del servidor ({{status}})",
+    "generic": "Se ha producido un error",
+    "unreachable": "No se puede conectar con el servidor. Revisa tu conexión.",
+    "sessionExpired": "Sesión caducada",
+    "passkeyFailed": "No se pudo iniciar sesión con passkey",
+    "loginCancelled": "Inicio de sesión cancelado",
+    "logoNotFound": "No se ha encontrado ningún logo para este dominio",
+    "logoSelected": "Logo seleccionado",
+    "logoSearch": "Empresa o producto (Claude, YouTube…) o sitio web (navigo.fr)",
+    "workRateFailed": "No se puede cargar la tarifa por hora (precio en horas de trabajo no disponible)"
+  },
+  "workHours": {
+    "minutes": "{{n}} min",
+    "hours": "{{n}} h",
+    "hoursMinutes": "{{h}} h {{min}}",
+    "days": "{{value}} d",
+    "rate": "A una tarifa de {{rate}} €/h neto",
+    "approx": "≈ {{duration}} de trabajo"
+  },
+  "actions": {
+    "add": "Añadir",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "saving": "Guardando…",
+    "none": "Ninguno",
+    "date": "Fecha",
+    "actions": "Acciones"
+  },
+  "accountTypes": {
+    "courant": "Cuenta corriente",
+    "epargne": "Ahorro",
+    "investissement": "Inversión",
+    "assurance_vie": "Seguro de vida",
+    "credit": "Préstamo",
+    "bank": "Cuenta bancaria",
+    "other": "Otro"
+  },
+  "categoryTypes": {
+    "depense": "Gasto",
+    "revenu": "Ingreso",
+    "neutre": "Neutro"
+  },
+  "txTypes": {
+    "Entree": "Ingreso",
+    "Sortie": "Gasto",
+    "Interets": "Intereses",
+    "initial": "Saldo inicial",
+    "Virement": "Transferencia",
+    "uncategorized": "Sin categoría"
+  },
+  "pwaExtras": {
+    "horsLigneLesDonneesAffichees": "Sin conexión — los datos mostrados pueden estar desactualizados"
+  }
+}

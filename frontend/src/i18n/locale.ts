@@ -4,7 +4,7 @@
  * Avant l'initialisation de i18n (ou sans langue), le français reste le repli.
  */
 import i18n from "i18next"
-import { enGB, fr } from "date-fns/locale"
+import { enGB, es, fr } from "date-fns/locale"
 import type { Locale } from "date-fns"
 
 interface LocaleConfig {
@@ -23,6 +23,7 @@ interface LocaleConfig {
 const LOCALES = {
   fr: { intl: "fr-FR", date: fr, percent: { regular: " %", nonBreaking: "\u00a0%" } }, // euro d'abord, jour avant mois
   en: { intl: "en-GB", date: enGB, percent: { regular: "%", nonBreaking: "%" } },
+  es: { intl: "es-ES", date: es, percent: { regular: " %", nonBreaking: "\u00a0%" } },
 } satisfies Record<string, LocaleConfig>
 
 type LocaleCode = keyof typeof LOCALES

@@ -1,4 +1,4 @@
-import { resources } from "./index"
+import { LANGUAGES, resources } from "./index"
 
 type Tree = { [key: string]: string | Tree }
 
@@ -18,19 +18,22 @@ describe("catalogues de traduction", () => {
   for (const namespace of Object.keys(resources.fr) as (keyof typeof resources.fr)[]) {
     describe(namespace, () => {
       const fr = resources.fr[namespace] as Tree
-      const en = resources.en[namespace] as Tree
 
-      it("l'anglais a exactement les clés du français", () => {
-        expect(keys(en).sort()).toEqual(keys(fr).sort())
-      })
+      for (const language of LANGUAGES.filter((code) => code !== "fr")) {
+        const other = resources[language][namespace] as Tree
 
-      it("chaque clé a un texte non vide et les mêmes variables {{…}} dans les deux langues", () => {
-        for (const key of keys(fr)) {
-          expect(lookup(fr, key).trim(), `fr ${namespace}.${key}`).not.toBe("")
-          expect(lookup(en, key).trim(), `en ${namespace}.${key}`).not.toBe("")
-          expect(placeholders(lookup(en, key)), `variables de ${namespace}.${key}`).toEqual(placeholders(lookup(fr, key)))
-        }
-      })
+        it(`${language} a exactement les clés du français`, () => {
+          expect(keys(other).sort()).toEqual(keys(fr).sort())
+        })
+
+        it(`${language} : chaque clé a un texte non vide et les mêmes variables {{…}} qu'en français`, () => {
+          for (const key of keys(fr)) {
+            expect(lookup(fr, key).trim(), `fr ${namespace}.${key}`).not.toBe("")
+            expect(lookup(other, key).trim(), `${language} ${namespace}.${key}`).not.toBe("")
+            expect(placeholders(lookup(other, key)), `variables de ${namespace}.${key}`).toEqual(placeholders(lookup(fr, key)))
+          }
+        })
+      }
     })
   }
 })
