@@ -7,26 +7,34 @@ import { apiUrl } from "@/test/handlers"
 import { renderWithProviders } from "@/test/render"
 import { server } from "@/test/server"
 
+async function selectLanguage(user: ReturnType<typeof renderWithProviders>["user"], name: RegExp) {
+  await user.click(screen.getByRole("combobox", { name: /Langue de l'interface|Interface language/ }))
+  await user.click(await screen.findByRole("option", { name }))
+}
+
 describe("DisplayCard : choix de la langue", () => {
   afterEach(() => setLanguage("fr"))
 
-  it("propose Français et English, le français étant sélectionné", () => {
-    renderWithProviders(<DisplayCard />, { auth: true })
-    const group = screen.getByRole("radiogroup", { name: "Langue de l'interface" })
-    expect(within(group).getByRole("radio", { name: "Français" })).toBeChecked()
-    expect(within(group).getByRole("radio", { name: "English" })).not.toBeChecked()
+  it("propose Français et English avec leur drapeau, le français étant sélectionné", async () => {
+    const { user } = renderWithProviders(<DisplayCard />, { auth: true })
+    const trigger = screen.getByRole("combobox", { name: "Langue de l'interface" })
+    expect(trigger).toHaveTextContent("Français")
+    expect(trigger).toHaveTextContent("🇫🇷")
+    await user.click(trigger)
+    const listbox = await screen.findByRole("listbox")
+    expect(within(listbox).getByRole("option", { name: /English/ })).toHaveTextContent("🇬🇧")
   })
 
   it("passe l'interface en anglais, retient le choix puis revient au français", async () => {
     const { user } = renderWithProviders(<DisplayCard />, { auth: true })
 
-    await user.click(screen.getByRole("radio", { name: "English" }))
+    await selectLanguage(user, /English/)
     expect(await screen.findByText("Display")).toBeInTheDocument()
-    expect(screen.getByRole("radiogroup", { name: "Interface language" })).toBeInTheDocument()
+    expect(screen.getByRole("combobox", { name: "Interface language" })).toBeInTheDocument()
     expect(screen.getByRole("radio", { name: "Dark" })).toBeInTheDocument()
     expect(safeStorage.getItem("language")).toBe("en")
 
-    await user.click(screen.getByRole("radio", { name: "Français" }))
+    await selectLanguage(user, /Français/)
     expect(await screen.findByText("Affichage")).toBeInTheDocument()
     expect(safeStorage.getItem("language")).toBe("fr")
   })
@@ -38,7 +46,7 @@ describe("DisplayCard : choix de la langue", () => {
       return HttpResponse.json({})
     }))
     const { user } = renderWithProviders(<DisplayCard />, { auth: true })
-    await user.click(screen.getByRole("radio", { name: "English" }))
+    await selectLanguage(user, /English/)
     await waitFor(() => expect(bodies).toEqual([{ language: "en" }]))
   })
 })
