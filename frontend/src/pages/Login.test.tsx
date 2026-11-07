@@ -10,6 +10,9 @@ import { server } from "@/test/server"
 import { makeToken } from "@/test/token"
 import Login from "./Login"
 
+const passkey = vi.hoisted(() => ({ supported: false, loginWithPasskey: vi.fn() }))
+vi.mock("@/lib/passkey", () => ({ passkeySupported: () => passkey.supported, loginWithPasskey: passkey.loginWithPasskey }))
+
 function renderLogin(route = "/login?from=/accounts") {
   return renderWithProviders(
     <Routes>
@@ -192,5 +195,45 @@ describe("Login : étape TOTP", () => {
     await user.click(await screen.findByRole("button", { name: "Retour" }))
 
     expect(screen.getByRole("button", { name: "Se connecter" })).toBeInTheDocument()
+  })
+})
+
+describe("Login : passkey", () => {
+  beforeEach(() => {
+    passkey.supported = true
+    passkey.loginWithPasskey.mockReset()
+  })
+  afterEach(() => {
+    passkey.supported = false
+  })
+  const available = (value: boolean) => server.use(http.get(apiUrl("/auth/passkey/available"), () => HttpResponse.json({ available: value })))
+
+  it("clé enregistrée : Face ID / Touch ID proposé tout de suite, sans clic", async () => {
+    available(true)
+    passkey.loginWithPasskey.mockResolvedValue(makeToken())
+    renderLogin()
+
+    await waitFor(() => expect(address()).toBe("/accounts"))
+    expect(passkey.loginWithPasskey).toHaveBeenCalledTimes(1)
+  })
+
+  it("annulation : pas d'erreur, le bouton reste disponible, pas de second appel", async () => {
+    available(true)
+    passkey.loginWithPasskey.mockRejectedValue(Object.assign(new Error("annulé"), { name: "NotAllowedError" }))
+    renderLogin()
+
+    expect(await screen.findByRole("button", { name: "Face ID / Touch ID" })).toBeEnabled()
+    await waitFor(() => expect(passkey.loginWithPasskey).toHaveBeenCalledTimes(1))
+    expect(screen.queryByText("annulé")).not.toBeInTheDocument()
+  })
+
+  it("aucune clé enregistrée : rien n'est déclenché", async () => {
+    available(false)
+    renderLogin()
+
+    await screen.findByLabelText("Mot de passe")
+    await new Promise((r) => setTimeout(r, 50))
+    expect(passkey.loginWithPasskey).not.toHaveBeenCalled()
+    expect(screen.queryByRole("button", { name: "Face ID / Touch ID" })).not.toBeInTheDocument()
   })
 })

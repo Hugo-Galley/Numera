@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Navigate, useNavigate, useLocation, useSearchParams } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import { useAuth } from "@/providers/AuthProvider"
@@ -48,8 +48,6 @@ export default function Login() {
       .catch(() => {})
   }, [])
 
-  if (isAuthenticated) return <Navigate to={from} replace />
-
   const handlePasskey = async () => {
     setLoading(true)
     try {
@@ -57,11 +55,24 @@ export default function Login() {
       toast.success(t("success"))
       navigate(from, { replace: true })
     } catch (err: any) {
+      // Annulation (ou navigateur exigeant un geste) : le bouton reste disponible, sans message d'erreur.
       if (err?.name !== "NotAllowedError") toast.error(err.message)
     } finally {
       setLoading(false)
     }
   }
+
+  // Une clé enregistrée : on propose Face ID / Touch ID dès l'ouverture de la page, une seule fois.
+  const autoPrompted = useRef(false)
+  const promptPasskey = useRef(handlePasskey)
+  promptPasskey.current = handlePasskey
+  useEffect(() => {
+    if (!passkeyAvailable || autoPrompted.current || isAuthenticated) return
+    autoPrompted.current = true
+    void promptPasskey.current()
+  }, [passkeyAvailable, isAuthenticated])
+
+  if (isAuthenticated) return <Navigate to={from} replace />
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
