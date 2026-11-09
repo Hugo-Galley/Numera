@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.controllers import deps
 from app.schemas import merchant as merchant_schemas
+from app.schemas.budget_tools import NormalizedCount, UnnormalizedLabel
 from app.services.budget import merchants as service
 
 router = APIRouter(prefix="/merchants", tags=["merchants"])
@@ -49,13 +50,13 @@ def remove_alias(alias_id: int, db: Session = Depends(deps.get_db)):
     service.remove_alias(db, alias_id)
 
 
-@router.post("/auto-normalize")
+@router.post("/auto-normalize", response_model=NormalizedCount)
 def auto_normalize_transactions(db: Session = Depends(deps.get_db)):
     """Match transactions with merchants based on aliases."""
     return service.auto_normalize_transactions(db)
 
 
-@router.get("/suggestions/unnormalized")
+@router.get("/suggestions/unnormalized", response_model=list[UnnormalizedLabel])
 def get_unnormalized_merchant_labels(db: Session = Depends(deps.get_db), min_count: int = 5):
     """Find merchant labels in transactions that are not yet normalized."""
     return service.get_unnormalized_merchant_labels(db, min_count)

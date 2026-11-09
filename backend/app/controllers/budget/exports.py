@@ -8,7 +8,10 @@ from app.services.budget import exports as service
 router = APIRouter(prefix="/export", tags=["export"])
 
 
-@router.get("/transactions.csv")
+@router.get(
+    "/transactions.csv",
+    responses={200: {"content": {"text/csv": {"schema": {"type": "string"}}}, "description": "Export CSV des transactions"}},
+)
 def export_transactions_csv(
     account_ids: str | None = Query(default=None, description="Comma-separated list of account IDs"),
     db: Session = Depends(get_db),

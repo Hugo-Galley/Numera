@@ -32,7 +32,13 @@ def logo_from_domain(body: DomainIn) -> dict:
     return run_async(service.logo_from_domain(body.domain))
 
 
-@public_router.get("/img/{ref}")
+@public_router.get(
+    "/img/{ref}",
+    responses={200: {"content": {
+        "image/svg+xml": {"schema": {"type": "string", "format": "binary"}},
+        "image/png": {"schema": {"type": "string", "format": "binary"}},
+    }, "description": "Image du logo"}},
+)
 def get_logo_image(ref: str) -> Response:
     content, media_type = service.get_logo_image(ref)
     headers = {"Cache-Control": "public, max-age=86400", "X-Content-Type-Options": "nosniff"}

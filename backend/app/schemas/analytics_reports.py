@@ -47,10 +47,6 @@ class AuditIssueDetails(BaseModel):
     transfer_pairs: list[TransferPair] | None = None
 
 
-class StatusResponse(BaseModel):
-    status: str  # « success » ou « ok »
-
-
 class DiversityHolding(BaseModel):
     id: int
     account_id: int

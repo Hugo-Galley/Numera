@@ -3508,6 +3508,13 @@ export interface components {
             /** Symbol */
             symbol: string;
         };
+        /** BackupRunResult */
+        BackupRunResult: {
+            /** Github */
+            github: boolean;
+            /** Ok */
+            ok: boolean;
+        };
         /** BackupStatus */
         BackupStatus: {
             /**
@@ -4560,6 +4567,43 @@ export interface components {
             /** Wealth Eur */
             wealth_eur: number;
         };
+        /** DividendLinkEntry */
+        DividendLinkEntry: {
+            /** Amount */
+            amount: number;
+            /** Currency */
+            currency: string;
+            /** Date */
+            date: string;
+            /** Id */
+            id: number;
+            /** Note */
+            note: string | null;
+        };
+        /** DividendLinkMatch */
+        DividendLinkMatch: {
+            /** Amount */
+            amount: number;
+            /** Currency */
+            currency: string;
+            /** Date */
+            date: string;
+            /** Id */
+            id: number;
+            /** Note */
+            note: string | null;
+            /** Ticker */
+            ticker: string;
+        };
+        /** DividendLinkResult */
+        DividendLinkResult: {
+            /** Applied */
+            applied: boolean;
+            /** Matched */
+            matched: components["schemas"]["DividendLinkMatch"][];
+            /** Unmatched */
+            unmatched: components["schemas"]["DividendLinkEntry"][];
+        };
         /** DividendMonth */
         DividendMonth: {
             /** Month */
@@ -4950,6 +4994,13 @@ export interface components {
             /** Total Score */
             total_score: number;
         };
+        /** HealthStatus */
+        HealthStatus: {
+            /** Demo */
+            demo: boolean;
+            /** Status */
+            status: string;
+        };
         /** HistoryPoint */
         HistoryPoint: {
             /** Date */
@@ -4962,6 +5013,104 @@ export interface components {
             performance_pct?: number | null;
             /** Value */
             value: number;
+        };
+        /** HoldingSuggestion */
+        HoldingSuggestion: {
+            /** Etf Profile Id */
+            etf_profile_id: number | null;
+            /** Historical Net Invested */
+            historical_net_invested: number;
+            /** Is Etf */
+            is_etf: boolean;
+            /** Isin */
+            isin: string | null;
+            /** Name */
+            name: string;
+            /** Ticker */
+            ticker: string;
+            /** Tx Count */
+            tx_count: number;
+        };
+        /** ImportErrorDetail */
+        ImportErrorDetail: {
+            /** Line */
+            line: number;
+            /** Reason */
+            reason: string;
+        };
+        /** ImportLogRead */
+        ImportLogRead: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Error Count */
+            error_count: number;
+            /** Id */
+            id: number;
+            /** Imported Count */
+            imported_count: number;
+            /** Skipped Count */
+            skipped_count: number;
+            /** Source File */
+            source_file: string;
+            /** Summary Json */
+            summary_json: string | null;
+        };
+        /** ImportPreview */
+        ImportPreview: {
+            /** Delimiter */
+            delimiter: string;
+            /** Filename */
+            filename: string | null;
+            /** Invalid Rows */
+            invalid_rows: number;
+            /** Preview */
+            preview: components["schemas"]["ImportPreviewRow"][];
+            /** Raw Headers */
+            raw_headers: string[];
+            /** Total Rows */
+            total_rows: number;
+            /** Unknown Categories */
+            unknown_categories: string[];
+            /** Warnings */
+            warnings: string[];
+        };
+        /**
+         * ImportPreviewRow
+         * @description Ligne du CSV telle qu'elle a été lue : les colonnes gardent le nom (capitalisé) de leur en-tête.
+         */
+        ImportPreviewRow: {
+            /** Categorie */
+            Categorie: string | null;
+            /** Commercant */
+            Commercant: string | null;
+            /** Date */
+            Date: string | null;
+            /** Montant */
+            Montant: string | null;
+            /** Type */
+            Type: string | null;
+            /** Error */
+            error: string | null;
+            /** Line */
+            line: number;
+        };
+        /** ImportResult */
+        ImportResult: {
+            /** Created Categories */
+            created_categories: number;
+            /** Error Details */
+            error_details: components["schemas"]["ImportErrorDetail"][];
+            /** Error Samples */
+            error_samples: string[];
+            /** Errors */
+            errors: number;
+            /** Imported */
+            imported: number;
+            /** Skipped */
+            skipped: number;
         };
         /** Insight */
         Insight: {
@@ -5501,6 +5650,52 @@ export interface components {
             /** Title */
             title: string;
         };
+        /**
+         * MarketAsset
+         * @description Résultat de recherche : profil ETF local ou valeur Yahoo Finance.
+         */
+        MarketAsset: {
+            /** Currency */
+            currency: string;
+            /** Etf Profile Id */
+            etf_profile_id: number | null;
+            /** Exchange */
+            exchange: string;
+            /** Is Custom Etf */
+            is_custom_etf: boolean;
+            /** Isin */
+            isin: string | null;
+            /** Name */
+            name: string;
+            /** Symbol */
+            symbol: string;
+            /** Type */
+            type: string;
+        };
+        /**
+         * MarketQuote
+         * @description Cotation du jour. `price == 0` signifie « aucun cours connu » ; `stale` : dernier cours enregistré.
+         */
+        MarketQuote: {
+            /** Currency */
+            currency: string;
+            /** Expires At */
+            expires_at?: string | null;
+            /** Name */
+            name: string;
+            /** Price */
+            price: number;
+            /** Price Date */
+            price_date: string | null;
+            /** Price Eur */
+            price_eur: number;
+            /** Stale */
+            stale: boolean;
+            /** Symbol */
+            symbol: string;
+            /** Type */
+            type: string;
+        };
         /** McpTokenCreate */
         McpTokenCreate: {
             /** Current Password */
@@ -5622,6 +5817,11 @@ export interface components {
             unit: string;
             /** Value */
             value: number;
+        };
+        /** ModifiedCount */
+        ModifiedCount: {
+            /** Modified Count */
+            modified_count: number;
         };
         /** MoneyFlowBlock */
         MoneyFlowBlock: {
@@ -5766,6 +5966,11 @@ export interface components {
             /** Year */
             year: number;
         };
+        /** NormalizedCount */
+        NormalizedCount: {
+            /** Normalized Count */
+            normalized_count: number;
+        };
         /**
          * NotificationSettingsRead
          * @description Réglages des notifications ; les jetons sont masqués (`••••` + 4 derniers caractères).
@@ -5845,6 +6050,11 @@ export interface components {
             channel: string;
             /** Delivered */
             delivered: boolean;
+        };
+        /** OkResponse */
+        OkResponse: {
+            /** Ok */
+            ok: boolean;
         };
         /** PatrimoineAllocation */
         PatrimoineAllocation: {
@@ -6203,6 +6413,23 @@ export interface components {
             withholding_eur?: number;
             /** Xirr Pct */
             xirr_pct?: number | null;
+        };
+        /**
+         * PotentialTransfer
+         * @description Virement interne suggéré : jambes complètes (la sortie est toujours une transaction).
+         */
+        PotentialTransfer: {
+            /** Ambiguous */
+            ambiguous: boolean;
+            /** Confidence */
+            confidence: string;
+            /** Day Gap */
+            day_gap: number;
+            /** Entree */
+            entree: components["schemas"]["TransactionRead"] | components["schemas"]["InvestmentTransactionRead"];
+            sortie: components["schemas"]["TransactionRead"];
+            /** Type */
+            type: string;
         };
         /** PrepaymentCreate */
         PrepaymentCreate: {
@@ -7216,6 +7443,27 @@ export interface components {
                 [key: string]: components["schemas"]["CostTotals"];
             };
         };
+        /** SymbolValidation */
+        SymbolValidation: {
+            /** Currency */
+            currency: string;
+            /** Etf Profile Id */
+            etf_profile_id: number | null;
+            /** Isin */
+            isin: string | null;
+            /** Name */
+            name: string | null;
+            /** Price */
+            price: number | null;
+            /** Price Eur */
+            price_eur: number | null;
+            /** Symbol */
+            symbol: string;
+            /** Type */
+            type: string | null;
+            /** Valid */
+            valid: boolean;
+        };
         /** TagCreate */
         TagCreate: {
             /** Color */
@@ -7804,6 +8052,13 @@ export interface components {
             pattern?: string | null;
             /** Source Account Id */
             source_account_id?: number | null;
+        };
+        /** UnnormalizedLabel */
+        UnnormalizedLabel: {
+            /** Count */
+            count: number;
+            /** Label */
+            label: string;
         };
         /** ValidationError */
         ValidationError: {
@@ -8404,7 +8659,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["BackupRunResult"];
                 };
             };
         };
@@ -8475,7 +8730,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["OkResponse"];
                 };
             };
         };
@@ -8634,7 +8889,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["StatusResponse"];
                 };
             };
             /** @description Validation Error */
@@ -10847,7 +11102,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["ModifiedCount"];
                 };
             };
         };
@@ -11160,13 +11415,14 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Successful Response */
+            /** @description Export CSV des transactions */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": unknown;
+                    "text/csv": string;
                 };
             };
             /** @description Validation Error */
@@ -11380,7 +11636,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["StatusResponse"];
                 };
             };
             /** @description Validation Error */
@@ -11444,7 +11700,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["HealthStatus"];
                 };
             };
         };
@@ -11627,7 +11883,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["HoldingSuggestion"][];
                 };
             };
             /** @description Validation Error */
@@ -11724,7 +11980,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["ImportResult"];
                 };
             };
             /** @description Validation Error */
@@ -11755,7 +12011,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["ImportLogRead"][];
                 };
             };
             /** @description Validation Error */
@@ -11788,7 +12044,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["ImportPreview"];
                 };
             };
             /** @description Validation Error */
@@ -11886,7 +12142,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["DividendLinkResult"];
                 };
             };
             /** @description Validation Error */
@@ -12318,13 +12574,15 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Successful Response */
+            /** @description Image du logo */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": unknown;
+                    "image/png": string;
+                    "image/svg+xml": string;
                 };
             };
             /** @description Validation Error */
@@ -12388,7 +12646,9 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": {
+                        [key: string]: components["schemas"]["MarketQuote"];
+                    };
                 };
             };
             /** @description Validation Error */
@@ -12422,7 +12682,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["MarketAsset"][];
                 };
             };
             /** @description Validation Error */
@@ -12454,7 +12714,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["SymbolValidation"];
                 };
             };
             /** @description Validation Error */
@@ -12578,7 +12838,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["NormalizedCount"];
                 };
             };
         };
@@ -12600,7 +12860,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["UnnormalizedLabel"][];
                 };
             };
             /** @description Validation Error */
@@ -14306,7 +14566,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["PotentialTransfer"][];
                 };
             };
             /** @description Validation Error */
@@ -14465,7 +14725,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["StatusResponse"];
                 };
             };
             /** @description Validation Error */

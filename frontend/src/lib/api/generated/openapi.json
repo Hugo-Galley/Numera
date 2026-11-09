@@ -1413,6 +1413,24 @@
     "title": "AutoDecomposeRequest",
     "type": "object"
    },
+   "BackupRunResult": {
+    "properties": {
+     "github": {
+      "title": "Github",
+      "type": "boolean"
+     },
+     "ok": {
+      "title": "Ok",
+      "type": "boolean"
+     }
+    },
+    "required": [
+     "ok",
+     "github"
+    ],
+    "title": "BackupRunResult",
+    "type": "object"
+   },
    "BackupStatus": {
     "properties": {
      "backup_count": {
@@ -4728,6 +4746,120 @@
     "title": "DiversityTotals",
     "type": "object"
    },
+   "DividendLinkEntry": {
+    "properties": {
+     "amount": {
+      "title": "Amount",
+      "type": "number"
+     },
+     "currency": {
+      "title": "Currency",
+      "type": "string"
+     },
+     "date": {
+      "title": "Date",
+      "type": "string"
+     },
+     "id": {
+      "title": "Id",
+      "type": "integer"
+     },
+     "note": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Note"
+     }
+    },
+    "required": [
+     "id",
+     "date",
+     "note",
+     "amount",
+     "currency"
+    ],
+    "title": "DividendLinkEntry",
+    "type": "object"
+   },
+   "DividendLinkMatch": {
+    "properties": {
+     "amount": {
+      "title": "Amount",
+      "type": "number"
+     },
+     "currency": {
+      "title": "Currency",
+      "type": "string"
+     },
+     "date": {
+      "title": "Date",
+      "type": "string"
+     },
+     "id": {
+      "title": "Id",
+      "type": "integer"
+     },
+     "note": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Note"
+     },
+     "ticker": {
+      "title": "Ticker",
+      "type": "string"
+     }
+    },
+    "required": [
+     "id",
+     "date",
+     "note",
+     "amount",
+     "currency",
+     "ticker"
+    ],
+    "title": "DividendLinkMatch",
+    "type": "object"
+   },
+   "DividendLinkResult": {
+    "properties": {
+     "applied": {
+      "title": "Applied",
+      "type": "boolean"
+     },
+     "matched": {
+      "items": {
+       "$ref": "#/components/schemas/DividendLinkMatch"
+      },
+      "title": "Matched",
+      "type": "array"
+     },
+     "unmatched": {
+      "items": {
+       "$ref": "#/components/schemas/DividendLinkEntry"
+      },
+      "title": "Unmatched",
+      "type": "array"
+     }
+    },
+    "required": [
+     "applied",
+     "matched",
+     "unmatched"
+    ],
+    "title": "DividendLinkResult",
+    "type": "object"
+   },
    "DividendMonth": {
     "properties": {
      "month": {
@@ -5764,6 +5896,24 @@
     "title": "HealthScore",
     "type": "object"
    },
+   "HealthStatus": {
+    "properties": {
+     "demo": {
+      "title": "Demo",
+      "type": "boolean"
+     },
+     "status": {
+      "title": "Status",
+      "type": "string"
+     }
+    },
+    "required": [
+     "status",
+     "demo"
+    ],
+    "title": "HealthStatus",
+    "type": "object"
+   },
    "HistoryPoint": {
     "properties": {
      "date": {
@@ -5801,6 +5951,329 @@
      "gain"
     ],
     "title": "HistoryPoint",
+    "type": "object"
+   },
+   "HoldingSuggestion": {
+    "properties": {
+     "etf_profile_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Etf Profile Id"
+     },
+     "historical_net_invested": {
+      "title": "Historical Net Invested",
+      "type": "number"
+     },
+     "is_etf": {
+      "title": "Is Etf",
+      "type": "boolean"
+     },
+     "isin": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Isin"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "ticker": {
+      "title": "Ticker",
+      "type": "string"
+     },
+     "tx_count": {
+      "title": "Tx Count",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "name",
+     "ticker",
+     "isin",
+     "historical_net_invested",
+     "tx_count",
+     "etf_profile_id",
+     "is_etf"
+    ],
+    "title": "HoldingSuggestion",
+    "type": "object"
+   },
+   "ImportErrorDetail": {
+    "properties": {
+     "line": {
+      "title": "Line",
+      "type": "integer"
+     },
+     "reason": {
+      "title": "Reason",
+      "type": "string"
+     }
+    },
+    "required": [
+     "line",
+     "reason"
+    ],
+    "title": "ImportErrorDetail",
+    "type": "object"
+   },
+   "ImportLogRead": {
+    "properties": {
+     "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+     },
+     "error_count": {
+      "title": "Error Count",
+      "type": "integer"
+     },
+     "id": {
+      "title": "Id",
+      "type": "integer"
+     },
+     "imported_count": {
+      "title": "Imported Count",
+      "type": "integer"
+     },
+     "skipped_count": {
+      "title": "Skipped Count",
+      "type": "integer"
+     },
+     "source_file": {
+      "title": "Source File",
+      "type": "string"
+     },
+     "summary_json": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Summary Json"
+     }
+    },
+    "required": [
+     "id",
+     "source_file",
+     "imported_count",
+     "skipped_count",
+     "error_count",
+     "summary_json",
+     "created_at"
+    ],
+    "title": "ImportLogRead",
+    "type": "object"
+   },
+   "ImportPreview": {
+    "properties": {
+     "delimiter": {
+      "title": "Delimiter",
+      "type": "string"
+     },
+     "filename": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Filename"
+     },
+     "invalid_rows": {
+      "title": "Invalid Rows",
+      "type": "integer"
+     },
+     "preview": {
+      "items": {
+       "$ref": "#/components/schemas/ImportPreviewRow"
+      },
+      "title": "Preview",
+      "type": "array"
+     },
+     "raw_headers": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Raw Headers",
+      "type": "array"
+     },
+     "total_rows": {
+      "title": "Total Rows",
+      "type": "integer"
+     },
+     "unknown_categories": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Unknown Categories",
+      "type": "array"
+     },
+     "warnings": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Warnings",
+      "type": "array"
+     }
+    },
+    "required": [
+     "filename",
+     "total_rows",
+     "invalid_rows",
+     "warnings",
+     "delimiter",
+     "raw_headers",
+     "preview",
+     "unknown_categories"
+    ],
+    "title": "ImportPreview",
+    "type": "object"
+   },
+   "ImportPreviewRow": {
+    "description": "Ligne du CSV telle qu'elle a été lue : les colonnes gardent le nom (capitalisé) de leur en-tête.",
+    "properties": {
+     "Categorie": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Categorie"
+     },
+     "Commercant": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Commercant"
+     },
+     "Date": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Date"
+     },
+     "Montant": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Montant"
+     },
+     "Type": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Type"
+     },
+     "error": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Error"
+     },
+     "line": {
+      "title": "Line",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "line",
+     "Date",
+     "Type",
+     "Commercant",
+     "Categorie",
+     "Montant",
+     "error"
+    ],
+    "title": "ImportPreviewRow",
+    "type": "object"
+   },
+   "ImportResult": {
+    "properties": {
+     "created_categories": {
+      "title": "Created Categories",
+      "type": "integer"
+     },
+     "error_details": {
+      "items": {
+       "$ref": "#/components/schemas/ImportErrorDetail"
+      },
+      "title": "Error Details",
+      "type": "array"
+     },
+     "error_samples": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Error Samples",
+      "type": "array"
+     },
+     "errors": {
+      "title": "Errors",
+      "type": "integer"
+     },
+     "imported": {
+      "title": "Imported",
+      "type": "integer"
+     },
+     "skipped": {
+      "title": "Skipped",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "imported",
+     "skipped",
+     "errors",
+     "created_categories",
+     "error_samples",
+     "error_details"
+    ],
+    "title": "ImportResult",
     "type": "object"
    },
    "Insight": {
@@ -7632,6 +8105,137 @@
     "title": "LogoSuggestion",
     "type": "object"
    },
+   "MarketAsset": {
+    "description": "Résultat de recherche : profil ETF local ou valeur Yahoo Finance.",
+    "properties": {
+     "currency": {
+      "title": "Currency",
+      "type": "string"
+     },
+     "etf_profile_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Etf Profile Id"
+     },
+     "exchange": {
+      "title": "Exchange",
+      "type": "string"
+     },
+     "is_custom_etf": {
+      "title": "Is Custom Etf",
+      "type": "boolean"
+     },
+     "isin": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Isin"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "symbol": {
+      "title": "Symbol",
+      "type": "string"
+     },
+     "type": {
+      "title": "Type",
+      "type": "string"
+     }
+    },
+    "required": [
+     "symbol",
+     "name",
+     "isin",
+     "type",
+     "exchange",
+     "currency",
+     "etf_profile_id",
+     "is_custom_etf"
+    ],
+    "title": "MarketAsset",
+    "type": "object"
+   },
+   "MarketQuote": {
+    "description": "Cotation du jour. `price == 0` signifie « aucun cours connu » ; `stale` : dernier cours enregistré.",
+    "properties": {
+     "currency": {
+      "title": "Currency",
+      "type": "string"
+     },
+     "expires_at": {
+      "anyOf": [
+       {
+        "format": "date-time",
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Expires At"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "price": {
+      "title": "Price",
+      "type": "number"
+     },
+     "price_date": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Price Date"
+     },
+     "price_eur": {
+      "title": "Price Eur",
+      "type": "number"
+     },
+     "stale": {
+      "title": "Stale",
+      "type": "boolean"
+     },
+     "symbol": {
+      "title": "Symbol",
+      "type": "string"
+     },
+     "type": {
+      "title": "Type",
+      "type": "string"
+     }
+    },
+    "required": [
+     "symbol",
+     "name",
+     "price",
+     "currency",
+     "price_eur",
+     "type",
+     "price_date",
+     "stale"
+    ],
+    "title": "MarketQuote",
+    "type": "object"
+   },
    "McpTokenCreate": {
     "properties": {
      "current_password": {
@@ -8010,6 +8614,19 @@
      "status"
     ],
     "title": "MetricDetail",
+    "type": "object"
+   },
+   "ModifiedCount": {
+    "properties": {
+     "modified_count": {
+      "title": "Modified Count",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "modified_count"
+    ],
+    "title": "ModifiedCount",
     "type": "object"
    },
    "MoneyFlowBlock": {
@@ -8395,6 +9012,19 @@
     "title": "MonthlyReport",
     "type": "object"
    },
+   "NormalizedCount": {
+    "properties": {
+     "normalized_count": {
+      "title": "Normalized Count",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "normalized_count"
+    ],
+    "title": "NormalizedCount",
+    "type": "object"
+   },
    "NotificationSettingsRead": {
     "description": "Réglages des notifications ; les jetons sont masqués (`••••` + 4 derniers caractères).",
     "properties": {
@@ -8672,6 +9302,19 @@
      "delivered"
     ],
     "title": "NotificationTestResult",
+    "type": "object"
+   },
+   "OkResponse": {
+    "properties": {
+     "ok": {
+      "title": "Ok",
+      "type": "boolean"
+     }
+    },
+    "required": [
+     "ok"
+    ],
+    "title": "OkResponse",
     "type": "object"
    },
    "PatrimoineAllocation": {
@@ -9777,6 +10420,51 @@
      "gain_eur"
     ],
     "title": "PortfolioRead",
+    "type": "object"
+   },
+   "PotentialTransfer": {
+    "description": "Virement interne suggéré : jambes complètes (la sortie est toujours une transaction).",
+    "properties": {
+     "ambiguous": {
+      "title": "Ambiguous",
+      "type": "boolean"
+     },
+     "confidence": {
+      "title": "Confidence",
+      "type": "string"
+     },
+     "day_gap": {
+      "title": "Day Gap",
+      "type": "integer"
+     },
+     "entree": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/TransactionRead"
+       },
+       {
+        "$ref": "#/components/schemas/InvestmentTransactionRead"
+       }
+      ],
+      "title": "Entree"
+     },
+     "sortie": {
+      "$ref": "#/components/schemas/TransactionRead"
+     },
+     "type": {
+      "title": "Type",
+      "type": "string"
+     }
+    },
+    "required": [
+     "sortie",
+     "entree",
+     "type",
+     "confidence",
+     "ambiguous",
+     "day_gap"
+    ],
+    "title": "PotentialTransfer",
     "type": "object"
    },
    "PrepaymentCreate": {
@@ -13053,6 +13741,101 @@
     "title": "SubscriptionsResponse",
     "type": "object"
    },
+   "SymbolValidation": {
+    "properties": {
+     "currency": {
+      "title": "Currency",
+      "type": "string"
+     },
+     "etf_profile_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Etf Profile Id"
+     },
+     "isin": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Isin"
+     },
+     "name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Name"
+     },
+     "price": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Price"
+     },
+     "price_eur": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Price Eur"
+     },
+     "symbol": {
+      "title": "Symbol",
+      "type": "string"
+     },
+     "type": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Type"
+     },
+     "valid": {
+      "title": "Valid",
+      "type": "boolean"
+     }
+    },
+    "required": [
+     "valid",
+     "symbol",
+     "name",
+     "isin",
+     "type",
+     "currency",
+     "price",
+     "price_eur",
+     "etf_profile_id"
+    ],
+    "title": "SymbolValidation",
+    "type": "object"
+   },
    "TagCreate": {
     "properties": {
      "color": {
@@ -14864,6 +15647,24 @@
     "title": "TransferRuleUpdate",
     "type": "object"
    },
+   "UnnormalizedLabel": {
+    "properties": {
+     "count": {
+      "title": "Count",
+      "type": "integer"
+     },
+     "label": {
+      "title": "Label",
+      "type": "string"
+     }
+    },
+    "required": [
+     "label",
+     "count"
+    ],
+    "title": "UnnormalizedLabel",
+    "type": "object"
+   },
    "ValidationError": {
     "properties": {
      "ctx": {
@@ -16429,7 +17230,9 @@
      "200": {
       "content": {
        "application/json": {
-        "schema": {}
+        "schema": {
+         "$ref": "#/components/schemas/BackupRunResult"
+        }
        }
       },
       "description": "Successful Response"
@@ -16534,7 +17337,9 @@
      "200": {
       "content": {
        "application/json": {
-        "schema": {}
+        "schema": {
+         "$ref": "#/components/schemas/OkResponse"
+        }
        }
       },
       "description": "Successful Response"
@@ -16752,7 +17557,9 @@
      "200": {
       "content": {
        "application/json": {
-        "schema": {}
+        "schema": {
+         "$ref": "#/components/schemas/StatusResponse"
+        }
        }
       },
       "description": "Successful Response"
@@ -20757,7 +21564,9 @@
      "200": {
       "content": {
        "application/json": {
-        "schema": {}
+        "schema": {
+         "$ref": "#/components/schemas/ModifiedCount"
+        }
        }
       },
       "description": "Successful Response"
@@ -21233,9 +22042,14 @@
       "content": {
        "application/json": {
         "schema": {}
+       },
+       "text/csv": {
+        "schema": {
+         "type": "string"
+        }
        }
       },
-      "description": "Successful Response"
+      "description": "Export CSV des transactions"
      },
      "422": {
       "content": {
@@ -21583,7 +22397,9 @@
      "200": {
       "content": {
        "application/json": {
-        "schema": {}
+        "schema": {
+         "$ref": "#/components/schemas/StatusResponse"
+        }
        }
       },
       "description": "Successful Response"
@@ -21672,7 +22488,9 @@
      "200": {
       "content": {
        "application/json": {
-        "schema": {}
+        "schema": {
+         "$ref": "#/components/schemas/HealthStatus"
+        }
        }
       },
       "description": "Successful Response"
@@ -21960,7 +22778,13 @@
      "200": {
       "content": {
        "application/json": {
-        "schema": {}
+        "schema": {
+         "items": {
+          "$ref": "#/components/schemas/HoldingSuggestion"
+         },
+         "title": "Response Get Holding Suggestions Holdings Suggestions Get",
+         "type": "array"
+        }
        }
       },
       "description": "Successful Response"
@@ -22101,7 +22925,9 @@
      "200": {
       "content": {
        "application/json": {
-        "schema": {}
+        "schema": {
+         "$ref": "#/components/schemas/ImportResult"
+        }
        }
       },
       "description": "Successful Response"
@@ -22147,7 +22973,13 @@
      "200": {
       "content": {
        "application/json": {
-        "schema": {}
+        "schema": {
+         "items": {
+          "$ref": "#/components/schemas/ImportLogRead"
+         },
+         "title": "Response Get Import Logs Import Logs Get",
+         "type": "array"
+        }
        }
       },
       "description": "Successful Response"
@@ -22191,7 +23023,9 @@
      "200": {
       "content": {
        "application/json": {
-        "schema": {}
+        "schema": {
+         "$ref": "#/components/schemas/ImportPreview"
+        }
        }
       },
       "description": "Successful Response"
@@ -22378,7 +23212,9 @@
      "200": {
       "content": {
        "application/json": {
-        "schema": {}
+        "schema": {
+         "$ref": "#/components/schemas/DividendLinkResult"
+        }
        }
       },
       "description": "Successful Response"
@@ -23043,9 +23879,21 @@
       "content": {
        "application/json": {
         "schema": {}
+       },
+       "image/png": {
+        "schema": {
+         "format": "binary",
+         "type": "string"
+        }
+       },
+       "image/svg+xml": {
+        "schema": {
+         "format": "binary",
+         "type": "string"
+        }
        }
       },
-      "description": "Successful Response"
+      "description": "Image du logo"
      },
      "422": {
       "content": {
@@ -23150,7 +23998,13 @@
      "200": {
       "content": {
        "application/json": {
-        "schema": {}
+        "schema": {
+         "additionalProperties": {
+          "$ref": "#/components/schemas/MarketQuote"
+         },
+         "title": "Response Market Quote Market Quote Get",
+         "type": "object"
+        }
        }
       },
       "description": "Successful Response"
@@ -23223,7 +24077,13 @@
      "200": {
       "content": {
        "application/json": {
-        "schema": {}
+        "schema": {
+         "items": {
+          "$ref": "#/components/schemas/MarketAsset"
+         },
+         "title": "Response Market Search Market Search Get",
+         "type": "array"
+        }
        }
       },
       "description": "Successful Response"
@@ -23272,7 +24132,9 @@
      "200": {
       "content": {
        "application/json": {
-        "schema": {}
+        "schema": {
+         "$ref": "#/components/schemas/SymbolValidation"
+        }
        }
       },
       "description": "Successful Response"
@@ -23472,7 +24334,9 @@
      "200": {
       "content": {
        "application/json": {
-        "schema": {}
+        "schema": {
+         "$ref": "#/components/schemas/NormalizedCount"
+        }
        }
       },
       "description": "Successful Response"
@@ -23509,7 +24373,13 @@
      "200": {
       "content": {
        "application/json": {
-        "schema": {}
+        "schema": {
+         "items": {
+          "$ref": "#/components/schemas/UnnormalizedLabel"
+         },
+         "title": "Response Get Unnormalized Merchant Labels Merchants Suggestions Unnormalized Get",
+         "type": "array"
+        }
        }
       },
       "description": "Successful Response"
@@ -26396,7 +27266,13 @@
      "200": {
       "content": {
        "application/json": {
-        "schema": {}
+        "schema": {
+         "items": {
+          "$ref": "#/components/schemas/PotentialTransfer"
+         },
+         "title": "Response Find Potential Transfers Transactions Potential Transfers Get",
+         "type": "array"
+        }
        }
       },
       "description": "Successful Response"
@@ -26662,7 +27538,9 @@
      "200": {
       "content": {
        "application/json": {
-        "schema": {}
+        "schema": {
+         "$ref": "#/components/schemas/StatusResponse"
+        }
        }
       },
       "description": "Successful Response"

@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.core.sync_bridge import run_async
 from app.db.session import get_db
-from app.schemas.analytics_reports import StatusResponse
+from app.schemas.common import StatusResponse
 from app.schemas.insight import IntelligentInsights
 from app.services.analytics import insights as service
 

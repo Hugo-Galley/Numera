@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.controllers.deps import get_db
+from app.schemas.budget_tools import ModifiedCount
 from app.schemas.categorization_rule import CategorizationRuleCreate, CategorizationRuleRead, CategorizationRuleUpdate
 from app.services.budget import categorization_rules as service
 
@@ -29,7 +30,7 @@ def delete_rule(rule_id: int, db: Session = Depends(get_db)):
     service.delete_rule(db, rule_id)
 
 
-@router.post("/apply-all", status_code=200)
+@router.post("/apply-all", status_code=200, response_model=ModifiedCount)
 def apply_rules_to_transactions(db: Session = Depends(get_db)):
     """Applique les règles aux transactions existantes (catégorie jamais écrasée, soldes recalculés)."""
     return service.apply_rules_to_transactions(db)
