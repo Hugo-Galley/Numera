@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.core.sync_bridge import run_async
 from app.db.session import get_db
+from app.schemas.analytics_reports import StatusResponse
 from app.schemas.insight import IntelligentInsights
 from app.services.analytics import insights as service
 
@@ -24,6 +25,6 @@ class DismissInsightRequest(BaseModel):
     key: str
 
 
-@router.post("/insights/dismiss")
+@router.post("/insights/dismiss", response_model=StatusResponse)
 def dismiss_insight(request: DismissInsightRequest, db: Session = Depends(get_db)):
     return service.dismiss_insight(db, request.key)
