@@ -24,6 +24,7 @@ export function TransactionsTable({ ctx }: { ctx: AccountDetailView }) {
           <TableRow>
             <TableHead className="w-[50px]">
               <Checkbox 
+                aria-label={t("tx.selectAll")}
                 checked={selectedIds.length === filteredTransactions.length && filteredTransactions.length > 0}
                 onCheckedChange={(checked) => {
                   if (checked) {
