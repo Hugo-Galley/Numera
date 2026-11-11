@@ -14,7 +14,7 @@ import { ZeroPointDialog } from "./ZeroPointDialog"
 export function AccountHeader({ ctx }: { ctx: AccountDetailView }) {
   const { t } = useTranslation("accountDetail")
   const { t: tc } = useTranslation("common")
-  const { account, id, isInvestment, setImportOpen, setReconcileOpen } = ctx
+  const { account, isInvestment, setImportOpen, setReconcileOpen } = ctx
   return (
     <>
       <div className="flex flex-col gap-4">

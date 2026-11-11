@@ -3,7 +3,7 @@ import { useCalendarData } from "./useCalendarData"
 
 /** Assemble l'état, les chargements et les actions de Calendar. */
 export function useCalendar(embedded: boolean) {
-  const calendarData = useCalendarData({ embedded })
+  const calendarData = useCalendarData()
   return { embedded, ...calendarData }
 }
 

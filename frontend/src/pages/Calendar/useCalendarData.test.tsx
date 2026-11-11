@@ -40,7 +40,7 @@ describe("useCalendarData : valider une échéance", () => {
       }),
     )
 
-    const { result } = renderHook(() => useCalendarData({ embedded: false }), { wrapper })
+    const { result } = renderHook(() => useCalendarData(), { wrapper })
     await waitFor(() => expect(result.current.accounts).toHaveLength(1))
     act(() => result.current.setSelectedDay("2026-06-20"))
     await act(async () => {

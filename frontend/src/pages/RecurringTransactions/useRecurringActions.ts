@@ -190,7 +190,7 @@ export function useRecurringActions(p: ReturnType<typeof useRecurringState> & Re
     try {
       await patchRecurringTransactionsById(tx.id, { is_active: !tx.is_active })
       loadData()
-    } catch (error) {
+    } catch {
       toast.error(i18n.t("useRecurringActions.erreurLorsDeLaModification", { ns: "recurring" }))
     }
   }
@@ -255,7 +255,7 @@ export function useRecurringActions(p: ReturnType<typeof useRecurringState> & Re
       const d = new Date(dateStr)
       if (isNaN(d.getTime())) return "-"
       return format(d, formatStr, { locale: dateLocale() })
-    } catch (e) {
+    } catch {
       return "-"
     }
   }

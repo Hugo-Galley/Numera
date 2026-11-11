@@ -124,7 +124,7 @@ export function useAccountsActions(p: ReturnType<typeof useAccountsState>) {
       setNewEurosPct("")
       setNewInvestisPct("")
       loadAccounts()
-    } catch (error) {
+    } catch {
       toast.error(i18n.t("toast.createError", { ns: "accounts" }))
     }
   })
@@ -159,7 +159,7 @@ export function useAccountsActions(p: ReturnType<typeof useAccountsState>) {
       setIsEditDialogOpen(false)
       setEditingAccount(null)
       loadAccounts()
-    } catch (error) {
+    } catch {
       toast.error(i18n.t("toast.updateError", { ns: "accounts" }))
     }
   })
@@ -171,7 +171,7 @@ export function useAccountsActions(p: ReturnType<typeof useAccountsState>) {
       await deleteAccountsById(accountId)
       toast.success(i18n.t("toast.archived", { ns: "accounts" }))
       loadAccounts()
-    } catch (error) {
+    } catch {
       toast.error(i18n.t("toast.archiveError", { ns: "accounts" }))
     }
   }
@@ -181,7 +181,7 @@ export function useAccountsActions(p: ReturnType<typeof useAccountsState>) {
       await patchAccountsById(accountId, { active: true })
       toast.success(i18n.t("toast.restored", { ns: "accounts" }))
       loadAccounts()
-    } catch (error) {
+    } catch {
       toast.error(i18n.t("toast.restoreError", { ns: "accounts" }))
     }
   }
@@ -191,7 +191,7 @@ export function useAccountsActions(p: ReturnType<typeof useAccountsState>) {
       await patchAccountsById(accountId, { is_main: !currentIsMain })
       toast.success(currentIsMain ? i18n.t("toast.mainRemoved", { ns: "accounts" }) : i18n.t("toast.mainSet", { ns: "accounts" }))
       loadAccounts()
-    } catch (error) {
+    } catch {
       toast.error(i18n.t("toast.mainError", { ns: "accounts" }))
     }
   }

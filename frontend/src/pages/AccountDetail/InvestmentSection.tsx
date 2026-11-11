@@ -11,7 +11,7 @@ import { patchAccountsById } from "@/lib/api/accounts"
 /** Section d'un compte d'investissement : positions, synthèse, dividendes, flux et snapshots. */
 export function InvestmentSection({ ctx }: { ctx: AccountDetailView }) {
   const { t } = useTranslation("accountDetail")
-  const { account, handleAddDividend, holdings, id, isInvestment, loadData } = ctx
+  const { account, handleAddDividend, holdings, isInvestment, loadData } = ctx
   return (
     <>
       {isInvestment && account && (

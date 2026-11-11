@@ -13,7 +13,7 @@ import type { AccountsCtx } from "./useAccounts"
 export function AccountsList({ ctx }: { ctx: AccountsCtx }) {
   const { t } = useTranslation("accounts")
   const { t: tc } = useTranslation()
-  const { accounts, getTypeIcon, getTypeLabel, handleDeleteAccount, handleSort, handleToggleMain, loading, openEdit, sortField, sortOrder, sortedAccounts } = ctx
+  const { getTypeIcon, getTypeLabel, handleDeleteAccount, handleSort, handleToggleMain, loading, openEdit, sortField, sortOrder, sortedAccounts } = ctx
   return (
     <>
       <Card>

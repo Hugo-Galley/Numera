@@ -14,7 +14,7 @@ import type { AccountDetailView } from "./useAccountDetail"
 export function TransactionsTable({ ctx }: { ctx: AccountDetailView }) {
   const { t } = useTranslation("accountDetail")
   const { t: tc } = useTranslation("common")
-  const { account, filteredTransactions, formatCurrency, formatValue, handleSort, hasMoreTx, id, loadMoreTransactions, loadingMoreTx, renderTxMenu, selectedIds, setSelectedIds, sortField, sortOrder, transactions, txLoading } = ctx
+  const { account, filteredTransactions, formatCurrency, formatValue, handleSort, hasMoreTx, loadMoreTransactions, loadingMoreTx, renderTxMenu, selectedIds, setSelectedIds, sortField, sortOrder, txLoading } = ctx
   return (
     <>
       <Card className={`hidden shadow-sm border-slate-100 overflow-hidden md:block transition-opacity ${txLoading ? "opacity-50" : ""}`}>

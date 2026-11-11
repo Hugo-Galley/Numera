@@ -17,7 +17,7 @@ import { getTransactions, getTransactionsMerchants } from "@/lib/api/transaction
 
 /** Chargement du compte et de ses listes (complet au changement de compte, liste seule au changement de filtre). */
 export function useAccountDetailData(p: ReturnType<typeof useAccountDetailState> & ReturnType<typeof useAccountForms>) {
-  const { id, account, setAccount, setTransferTx, allAccounts, setAllAccounts, transactions, setTransactions, setHasMoreTx, setLoadingMoreTx, setKnownMerchants, timeseries, setTimeseries, setInvestmentData, setPerfHistory, holdings, setHoldings, categories, setCategories, setAvailableTags, setTagTotals, setLoading, search, debouncedSearch, setDebouncedSearch, dateStart, dateEnd, filterType, filterCategory, filterMerchant, filterTags, setTxCurrency, setInvTxCurrency, suggestions, setSuggestions } = p
+  const { id, account, setAccount, setTransferTx, allAccounts, setAllAccounts, transactions, setTransactions, setHasMoreTx, setLoadingMoreTx, setKnownMerchants, setTimeseries, setInvestmentData, setPerfHistory, setHoldings, setCategories, setAvailableTags, setTagTotals, setLoading, search, debouncedSearch, setDebouncedSearch, dateStart, dateEnd, filterType, filterCategory, filterMerchant, filterTags, setTxCurrency, setInvTxCurrency, setSuggestions } = p
   const buildTransactionParams = (skip = 0, limit = TX_PAGE_SIZE) => {
     const params = new URLSearchParams()
     params.append("account_id", id!)

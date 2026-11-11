@@ -1,4 +1,3 @@
-import { Banknote, Briefcase, Car, Dumbbell, Film, Music, Smartphone, Zap } from "lucide-react"
 import { type SplitPart } from "@/components/transactions/SplitTransactionDialog"
 
 export type Account = {

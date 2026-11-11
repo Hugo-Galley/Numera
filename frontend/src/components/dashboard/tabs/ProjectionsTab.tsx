@@ -28,7 +28,7 @@ const safeFormat = (dateStr: string | null | undefined, formatStr: string) => {
     const d = new Date(dateStr)
     if (isNaN(d.getTime())) return "-"
     return format(d, formatStr, { locale: dateLocale() })
-  } catch (e) {
+  } catch {
     return "-"
   }
 }

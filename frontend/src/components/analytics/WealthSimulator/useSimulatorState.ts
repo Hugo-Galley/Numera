@@ -133,7 +133,7 @@ export function useSimulatorState(p: { initialCapitalDefault: number }) {
 
         const res = await getAnalyticsWealthSimulation(`?${queryParams.toString()}`)
         setData(res)
-      } catch (error) {
+      } catch {
         toast.error(i18n.t("useSimulatorState.erreurLorsDeLaSimulation", { ns: "tools" }))
       } finally {
         setLoading(false)

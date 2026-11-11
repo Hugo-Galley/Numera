@@ -11,7 +11,7 @@ import type { AccountDetailView } from "./useAccountDetail"
 export function TransactionsMobileList({ ctx }: { ctx: AccountDetailView }) {
   const { t } = useTranslation("accountDetail")
   const { t: tc } = useTranslation("common")
-  const { account, filteredTransactions, formatCurrency, formatValue, id, renderTxMenu, selectedIds, setSelectedIds, txLoading } = ctx
+  const { account, filteredTransactions, formatCurrency, formatValue, renderTxMenu, selectedIds, setSelectedIds, txLoading } = ctx
   return (
     <>
       <div className={`space-y-2 md:hidden transition-opacity ${txLoading ? "opacity-50" : ""}`}>

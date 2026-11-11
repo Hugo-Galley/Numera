@@ -130,7 +130,7 @@ export function useSavingsData() {
       await deleteGoalsById(id)
       toast.success(i18n.t("useSavingsData.objectifSupprime", { ns: "savings" }))
       loadData()
-    } catch (error) {
+    } catch {
       toast.error(i18n.t("useSavingsData.erreurLorsDeLaSuppression", { ns: "savings" }))
     }
   }

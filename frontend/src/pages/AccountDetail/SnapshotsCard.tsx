@@ -10,7 +10,7 @@ import type { AccountDetailView } from "./useAccountDetail"
 export function SnapshotsCard({ ctx }: { ctx: AccountDetailView }) {
   const { t } = useTranslation("accountDetail")
   const { t: tc } = useTranslation("common")
-  const { formatCurrency, handleDeleteSnapshot, handleEditSnapshot, handleSnapSort, id, snapSortField, snapSortOrder, sortedSnapshots } = ctx
+  const { formatCurrency, handleDeleteSnapshot, handleEditSnapshot, handleSnapSort, snapSortField, snapSortOrder, sortedSnapshots } = ctx
   return (
     <>
       <Card className="min-w-0 shadow-sm">

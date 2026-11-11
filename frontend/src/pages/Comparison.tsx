@@ -3,12 +3,9 @@ import { useTranslation } from "react-i18next"
 import { formatCurrency, formatRate } from "@/lib/utils"
 import { useState, useEffect, useEffectEvent, useMemo, useRef } from "react"
 import { 
-  BarChart3, 
   ArrowUpRight, 
   ArrowDownRight, 
   Minus,
-  Calendar,
-  Filter,
   ArrowRight
 } from "lucide-react"
 import { api } from "@/lib/api"
@@ -37,7 +34,6 @@ import {
   SelectValue 
 } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
 import { toast } from "sonner"
 import { yearOptions } from "@/lib/years"
 

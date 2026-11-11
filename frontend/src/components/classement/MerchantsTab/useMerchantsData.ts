@@ -40,7 +40,7 @@ export function useMerchantsData() {
       setMerchants(merchantsData)
       setCategories(categoriesData)
       setSuggestions(suggestionsData)
-    } catch (error) {
+    } catch {
       toast.error(i18n.t("useMerchantsData.erreurChargementDonnees", { ns: "classement" }))
     } finally {
       setLoading(false)
@@ -68,7 +68,7 @@ export function useMerchantsData() {
       setNewAliases("")
       setNewOpen(false)
       loadData()
-    } catch (error) {
+    } catch {
       toast.error(i18n.t("useMerchantsData.erreurLorsDeLAjout", { ns: "classement" }))
     }
   }
@@ -92,7 +92,7 @@ export function useMerchantsData() {
       toast.success(i18n.t("useMerchantsData.marchandMisAJour", { ns: "classement" }))
       setEditOpen(false)
       loadData()
-    } catch (error) {
+    } catch {
       toast.error(i18n.t("useMerchantsData.erreurLorsDeLaMise", { ns: "classement" }))
     }
   }
@@ -103,7 +103,7 @@ export function useMerchantsData() {
       await deleteMerchantsById(id)
       toast.success(i18n.t("useMerchantsData.marchandSupprime", { ns: "classement" }))
       loadData()
-    } catch (error) {
+    } catch {
       toast.error(i18n.t("useMerchantsData.erreurLorsDeLaSuppression", { ns: "classement" }))
     }
   }
@@ -119,7 +119,7 @@ export function useMerchantsData() {
       // Also update in list to avoid extra reload
       setMerchants(merchants.map(m => m.id === updated.id ? updated : m))
       toast.success(i18n.t("useMerchantsData.aliasAjoute", { ns: "classement" }))
-    } catch (error) {
+    } catch {
       toast.error(i18n.t("useMerchantsData.lAliasExisteDejaOu", { ns: "classement" }))
     }
   }
@@ -133,7 +133,7 @@ export function useMerchantsData() {
         setMerchants(merchants.map(m => m.id === editingMerchant.id ? { ...m, aliases: updatedAliases } : m))
       }
       toast.success(i18n.t("useMerchantsData.aliasSupprime", { ns: "classement" }))
-    } catch (error) {
+    } catch {
       toast.error(i18n.t("useMerchantsData.erreurSuppressionAlias", { ns: "classement" }))
     }
   }
@@ -143,7 +143,7 @@ export function useMerchantsData() {
       const result = await postMerchantsAutoNormalize<{ normalized_count: number }>({})
       toast.success(i18n.t("misc.normalized", { ns: "classement", count: result.normalized_count }))
       loadData()
-    } catch (error) {
+    } catch {
       toast.error(i18n.t("useMerchantsData.erreurLorsDeLaNormalisation", { ns: "classement" }))
     }
   }

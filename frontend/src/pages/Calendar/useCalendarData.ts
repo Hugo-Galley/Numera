@@ -12,8 +12,7 @@ import { getRecurringTransactions } from "@/lib/api/recurring"
 import { postTransactions } from "@/lib/api/transactions"
 
 /** Mois affiché, chargement des événements et soldes, sélection d'un jour et validation d'une échéance. */
-export function useCalendarData(p: { embedded: boolean }) {
-  const { embedded } = p
+export function useCalendarData() {
   const { isPrivacyMode } = useUI()
   const [date, setDate] = useState(new Date())
   const [data, setData] = useState<CalendarData | null>(null)

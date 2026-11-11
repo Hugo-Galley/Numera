@@ -1,15 +1,14 @@
 import { appLocale } from "@/i18n/locale"
-import { Activity, ArrowDownRight, ArrowUpRight, Percent, Plus, Shield, Tag, Target, TrendingDown, TrendingUp } from "lucide-react"
+import { Activity, ArrowDownRight, ArrowUpRight, Percent, Shield, Tag, Target, TrendingDown, TrendingUp } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { formatRate } from "@/lib/utils"
-import { Account } from "./types"
 import type { AccountDetailView } from "./useAccountDetail"
 
 /** Indicateurs du compte et totaux par tag. */
 export function AccountKpis({ ctx }: { ctx: AccountDetailView }) {
   const { t } = useTranslation("accountDetail")
-  const { account, currentBalance, formatCurrency, formatValue, id, investmentData, isInvestment, stats, tagTotals } = ctx
+  const { account, currentBalance, formatCurrency, formatValue, investmentData, isInvestment, stats, tagTotals } = ctx
   return (
     <>
       {/* Account KPIs : 2 colonnes compactes sur mobile pour que la liste ne soit pas repoussée de deux écrans */}

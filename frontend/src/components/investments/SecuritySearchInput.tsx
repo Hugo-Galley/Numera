@@ -36,11 +36,9 @@ export function SecuritySearchInput({
   ticker,
   isin,
   name,
-  unitPrice,
   onSelectAsset,
   onChangeTicker,
   onChangeIsin,
-  onChangeName,
   className = "",
 }: SecuritySearchInputProps) {
   const { t } = useTranslation("investments")
@@ -121,7 +119,7 @@ export function SecuritySearchInput({
         if (isMounted) {
           setValidationInfo(res)
         }
-      } catch (err) {
+      } catch {
         if (isMounted) {
           setValidationInfo({ valid: false, symbol: symbolToValidate })
         }

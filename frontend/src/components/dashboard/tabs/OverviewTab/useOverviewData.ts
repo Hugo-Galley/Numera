@@ -19,7 +19,7 @@ const CATEGORY_COLORS: Record<string, string> = {
 }
 
 export function useOverviewData(p: { sankeyData: OverviewTabProps["sankeyData"]; expensesByCategory: OverviewTabProps["expensesByCategory"]; displayCurrency: OverviewTabProps["displayCurrency"]; tagTotals: OverviewTabProps["tagTotals"]; patrimoineAllocation: OverviewTabProps["patrimoineAllocation"]; drilldownScope: OverviewTabProps["drilldownScope"] }) {
-  const { sankeyData, expensesByCategory, displayCurrency, tagTotals, patrimoineAllocation, drilldownScope } = p
+  const { patrimoineAllocation, drilldownScope } = p
   const isMobile = useIsMobile()
   const { openDrilldown } = useDrilldown()
   const openCategory = (item: any) =>

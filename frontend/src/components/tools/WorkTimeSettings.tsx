@@ -37,7 +37,7 @@ export function WorkTimeSettings() {
       await api.patch<WorkTime>("/salary/work-time", { work_days_per_year: workDays, work_hours_per_day: workHours })
       await refresh()
       toast.success(t("workTimeSettings.tempsDeTravailEnregistre"))
-    } catch (error) {
+    } catch {
       toast.error(t("workTimeSettings.impossibleDEnregistrerLeTemps"))
     } finally {
       setSaving(false)
