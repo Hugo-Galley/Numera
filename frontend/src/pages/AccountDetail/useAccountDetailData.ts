@@ -5,7 +5,7 @@ import { errorMessage } from "@/lib/utils"
 import { ApiError } from "@/lib/api"
 import i18n from "i18next"
 import { toast } from "sonner"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useEffectEvent, useRef, useState } from "react"
 import { Account, Category, TagType, Transaction, TX_PAGE_SIZE } from "./types"
 import type { useAccountDetailState } from "./useAccountDetailState"
 import type { useAccountForms } from "./useAccountForms"
@@ -179,25 +179,34 @@ export function useAccountDetailData(p: ReturnType<typeof useAccountDetailState>
       setDebouncedSearch(search)
     }, 300)
     return () => clearTimeout(timer)
-  }, [search])
+  }, [search, setDebouncedSearch])
+
+  // Les effets ci-dessous se déclenchent sur des valeurs précises mais lisent les dernières fonctions de chargement
+  const loadAccountPage = useEffectEvent(() => { loadData() })
+  const reloadTransactionList = useEffectEvent(() => {
+    if (account && account.type !== "investissement" && account.type !== "assurance_vie") {
+      loadTransactions({ reset: true })
+    }
+  })
+  const reloadTagTotals = useEffectEvent(() => {
+    if (account && account.type !== "investissement" && account.type !== "assurance_vie") {
+      loadTagTotals()
+    }
+  })
 
   // Chargement complet : au changement de compte seulement
   useEffect(() => {
-    loadData()
+    loadAccountPage()
   }, [id])
 
   // Un changement de filtre ou de recherche ne recharge que la liste (et les totaux par tag) :
   // la page, ses dialogues, le défilement et les filtres restent en place
   useEffect(() => {
-    if (account && account.type !== "investissement" && account.type !== "assurance_vie") {
-      loadTransactions({ reset: true })
-    }
+    reloadTransactionList()
   }, [debouncedSearch, filterType, filterCategory, filterMerchant, filterTags, dateStart, dateEnd])
 
   useEffect(() => {
-    if (account && account.type !== "investissement" && account.type !== "assurance_vie") {
-      loadTagTotals()
-    }
+    reloadTagTotals()
   }, [dateStart, dateEnd])
 
   return { buildTransactionParams, txRequestId, txLoading, setTxLoading, loadTransactions, loadTagTotals, loadMoreTransactions, openTransferDialog, loadData, loadError }

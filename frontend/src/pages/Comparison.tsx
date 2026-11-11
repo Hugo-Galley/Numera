@@ -1,7 +1,7 @@
 import { monthName } from "@/i18n/locale"
 import { useTranslation } from "react-i18next"
 import { formatCurrency, formatRate } from "@/lib/utils"
-import { useState, useEffect, useMemo, useRef } from "react"
+import { useState, useEffect, useEffectEvent, useMemo, useRef } from "react"
 import { 
   BarChart3, 
   ArrowUpRight, 
@@ -112,8 +112,9 @@ export default function Comparison() {
     }
   }
 
+  const reloadComparison = useEffectEvent(() => { loadComparisonData() })
   useEffect(() => {
-    loadComparisonData()
+    reloadComparison()
   }, [monthA, yearA, monthB, yearB])
 
   const comparisonRows = useMemo(() => {

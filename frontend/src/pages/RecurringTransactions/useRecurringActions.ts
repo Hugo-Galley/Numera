@@ -4,7 +4,7 @@ import { format } from "date-fns"
 import { errorMessage, formatCurrency } from "@/lib/utils"
 import { toNaiveLocal } from "@/lib/dates"
 import { toast } from "sonner"
-import { useEffect } from "react"
+import { useEffect, useEffectEvent } from "react"
 import { useSubmit } from "@/hooks/useSubmit"
 import { Category, Account, RecurringFrequency, RecurringTransaction, RecurringType } from "./types"
 import type { useRecurringState } from "./useRecurringState"
@@ -41,8 +41,9 @@ export function useRecurringActions(p: ReturnType<typeof useRecurringState> & Re
     }
   }
 
+  const loadOnMount = useEffectEvent(() => { loadData() })
   useEffect(() => {
-    loadData()
+    loadOnMount()
   }, [])
 
   const handleOpenCreate = () => {

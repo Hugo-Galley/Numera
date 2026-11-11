@@ -3,7 +3,7 @@ import { accountTypeLabel } from "@/lib/labels"
 import { invalidateAccountLogos } from "@/components/ui/AccountLogo"
 import i18n from "i18next"
 import { toast } from "sonner"
-import { useEffect, useMemo } from "react"
+import { useEffect, useEffectEvent, useMemo } from "react"
 import { useSubmit } from "@/hooks/useSubmit"
 import { Account } from "./types"
 import type { useAccountsState } from "./useAccountsState"
@@ -79,9 +79,12 @@ export function useAccountsActions(p: ReturnType<typeof useAccountsState>) {
     })
   }, [accounts, sortField, sortOrder])
 
-  useEffect(() => {
+  const loadOnMount = useEffectEvent(() => {
     loadAccounts()
     loadSuggestions()
+  })
+  useEffect(() => {
+    loadOnMount()
   }, [])
 
   const [handleCreateAccount, handleCreateAccountBusy] = useSubmit(async () => {

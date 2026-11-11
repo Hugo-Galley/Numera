@@ -83,7 +83,7 @@ export function useTransactionView(p: ReturnType<typeof useAccountDetailState> &
     getAnalyticsAccountFlowSummary<typeof flowSummary>(`?${params.toString()}`)
       .then(setFlowSummary)
       .catch(() => setFlowSummary(null))
-  }, [id, dateStart, dateEnd, transactions])
+  }, [id, dateStart, dateEnd, transactions, setFlowSummary])
 
   const stats = useMemo(() => {
     const source = (debouncedSearch || dateStart || dateEnd) ? filteredTransactions : transactions

@@ -12,6 +12,12 @@ const wealthLabels = (): Record<string, string> => ({
 })
 
 /** Regroupements du patrimoine (compte, catégorie, mixte, établissement) et données des graphiques. */
+const CATEGORY_COLORS: Record<string, string> = {
+  courant: "#3b82f6", // Blue
+  epargne: "#10b981", // Emerald
+  investissement: "#6366f1" // Indigo
+}
+
 export function useOverviewData(p: { sankeyData: OverviewTabProps["sankeyData"]; expensesByCategory: OverviewTabProps["expensesByCategory"]; displayCurrency: OverviewTabProps["displayCurrency"]; tagTotals: OverviewTabProps["tagTotals"]; patrimoineAllocation: OverviewTabProps["patrimoineAllocation"]; drilldownScope: OverviewTabProps["drilldownScope"] }) {
   const { sankeyData, expensesByCategory, displayCurrency, tagTotals, patrimoineAllocation, drilldownScope } = p
   const isMobile = useIsMobile()
@@ -53,12 +59,6 @@ export function useOverviewData(p: { sankeyData: OverviewTabProps["sankeyData"];
     
     return groups
   }, [patrimoineAllocation])
-
-  const CATEGORY_COLORS: Record<string, string> = {
-    courant: "#3b82f6", // Blue
-    epargne: "#10b981", // Emerald
-    investissement: "#6366f1" // Indigo
-  }
 
   const CATEGORY_LABELS = wealthLabels()
 
