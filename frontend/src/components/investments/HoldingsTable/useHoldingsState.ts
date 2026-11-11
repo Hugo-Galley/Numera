@@ -58,7 +58,6 @@ export function useHoldingsState(p: { accountId: HoldingsTableProps["accountId"]
       if (res && res.id) {
         await putHoldingsById(h.id, {
           etf_profile_id: res.id,
-          is_etf: true,
         })
         toast.success(i18n.t("misc.brokenDown", { ns: "investments", name: res.name }), { id: toastId })
         onRefresh()
