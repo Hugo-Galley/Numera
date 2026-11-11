@@ -6,9 +6,32 @@ import { toast } from "sonner"
 import { useEffect, useState } from "react"
 import { useWorkTime } from "@/providers/WorkTimeProvider"
 import { Account, Category, MonthSummary, SalaryConfig } from "./types"
+import type { ApiResponse } from "@/lib/api/types"
 import { getAccounts } from "@/lib/api/accounts"
 import { getCategories } from "@/lib/api/classement"
 import { deleteSalaryGenerateById, getSalaryConfig, getSalarySummaryById, getSalaryTelecommutingById, postSalaryConfig, postSalaryGenerateById, putSalaryConfig, putSalaryMonthsById, putSalaryTelecommutingById } from "@/lib/api/recurring"
+
+const DEFAULT_CONFIG: SalaryConfig = {
+  salary_account_id: "",
+  net_salary: 2000,
+  ticket_value: 10.50,
+  ticket_employee_share: 4.20,
+  salary_category_id: "",
+}
+
+type ServerConfig = ApiResponse<"/salary/config", "get">
+
+/** Configuration reçue du serveur → état du formulaire (un identifiant absent devient `""`, valeur d'un champ vide). */
+function toFormConfig(c: ServerConfig): SalaryConfig {
+  return {
+    ...DEFAULT_CONFIG,
+    ...c,
+    salary_account_id: c.salary_account_id || "",
+    ticket_account_id: c.ticket_account_id || "",
+    salary_category_id: c.salary_category_id || "",
+    ticket_category_id: c.ticket_category_id || "",
+  }
+}
 
 /** Configuration du salaire, mois affiché, jours de télétravail et génération de la transaction. */
 export function useSalaryData() {
@@ -24,13 +47,7 @@ export function useSalaryData() {
   const [accounts, setAccounts] = useState<Account[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   
-  const [config, setConfig] = useState<SalaryConfig>({
-    salary_account_id: "",
-    net_salary: 2000,
-    ticket_value: 10.50,
-    ticket_employee_share: 4.20,
-    salary_category_id: "",
-  })
+  const [config, setConfig] = useState<SalaryConfig>(DEFAULT_CONFIG)
   
   const [currentDate, setCurrentDate] = useState(new Date())
   const [salaryDate, setSalaryDate] = useState<Date | null>(null)
@@ -60,13 +77,7 @@ export function useSalaryData() {
       try {
         const conf = await getSalaryConfig()
         if (conf) {
-          setConfig({
-            ...conf,
-            salary_account_id: conf.salary_account_id || "",
-            ticket_account_id: conf.ticket_account_id || "",
-            salary_category_id: conf.salary_category_id || "",
-            ticket_category_id: conf.ticket_category_id || "",
-          })
+          setConfig(toFormConfig(conf))
         }
       } catch (e) {
         // Seul un 404 signifie « pas encore de configuration » ; toute autre erreur bloque l'édition
@@ -117,28 +128,20 @@ export function useSalaryData() {
         return
       }
 
+      // Même corps qu'avant le typage ; un identifiant non renseigné (`""`) est omis au lieu d'être envoyé tel quel
+      const { salary_account_id, salary_category_id, ticket_account_id, ticket_category_id, ...rest } = config
       const payload = {
-        ...config,
-        salary_account_id: Number(config.salary_account_id),
-        salary_category_id: config.salary_category_id ? Number(config.salary_category_id) : null,
-      }
-      if (config.ticket_account_id) {
-        payload.ticket_account_id = Number(config.ticket_account_id)
-      }
-      if (config.ticket_category_id) {
-        payload.ticket_category_id = Number(config.ticket_category_id)
+        ...rest,
+        salary_account_id: Number(salary_account_id),
+        salary_category_id: salary_category_id ? Number(salary_category_id) : null,
+        ...(ticket_account_id ? { ticket_account_id: Number(ticket_account_id) } : {}),
+        ...(ticket_category_id ? { ticket_category_id: Number(ticket_category_id) } : {}),
       }
 
       const res = config.id 
         ? await putSalaryConfig(payload)
         : await postSalaryConfig(payload)
-      setConfig({
-        ...res,
-        salary_account_id: res.salary_account_id || "",
-        ticket_account_id: res.ticket_account_id || "",
-        salary_category_id: res.salary_category_id || "",
-        ticket_category_id: res.ticket_category_id || "",
-      })
+      setConfig(toFormConfig(res))
       toast.success(i18n.t("useSalaryData.configurationSauvegardee", { ns: "tools" }))
       loadMonthData(currentDate)
       refreshWorkTime()

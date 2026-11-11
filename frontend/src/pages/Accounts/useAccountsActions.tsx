@@ -127,9 +127,10 @@ export function useAccountsActions(p: ReturnType<typeof useAccountsState>) {
   })
 
   const [handleUpdateAccount, handleUpdateAccountBusy] = useSubmit(async () => {
-    if (!editingAccount) return
+    // Un compte crédit se modifie avec son prêt : l'API des comptes refuse le type `credit`
+    if (!editingAccount || editingAccount.type === "credit") return
     try {
-      await patchAccountsById(editingAccount.id, { 
+      await patchAccountsById(editingAccount.id, {
         name: editingAccount.name, 
         type: editingAccount.type, 
         currency: editingAccount.currency,
