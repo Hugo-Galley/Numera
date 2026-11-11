@@ -27,7 +27,7 @@ jobs:
           docker run --rm -v "$PWD:/work" -w /work "$TRIVY_IMAGE" fs \
             --scanners vuln,secret,misconfig --severity HIGH,CRITICAL --ignore-unfixed \
             --ignorefile .trivyignore.yaml --format sarif --output trivy-repo.sarif .
-      - uses: github/codeql-action/upload-sarif@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
+      - uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
         with:
           sarif_file: trivy-repo.sarif
           category: trivy-repo
@@ -53,7 +53,7 @@ jobs:
             --scanners vuln --severity HIGH,CRITICAL --ignore-unfixed \
             --format sarif --output /out/trivy-image.sarif \
             "ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/${{ matrix.image }}:latest"
-      - uses: github/codeql-action/upload-sarif@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
+      - uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
         with:
           sarif_file: trivy-image.sarif
           category: trivy-${{ matrix.image }}
