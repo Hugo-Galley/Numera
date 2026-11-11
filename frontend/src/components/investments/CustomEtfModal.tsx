@@ -1,7 +1,7 @@
 import i18n from "i18next"
 import { useTranslation } from "react-i18next"
 import { errorMessage } from "@/lib/utils"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { api } from "@/lib/api"
 import {
   Dialog,
@@ -39,6 +39,14 @@ export function CustomEtfModal({
   const [ticker, setTicker] = useState(initialTicker)
   const [isin, setIsin] = useState(initialIsin)
   const [analyzing, setAnalyzing] = useState(false)
+
+  // La fenêtre reste montée entre deux ouvertures : à chaque ouverture, le formulaire repart de la recherche en cours
+  useEffect(() => {
+    if (!open) return
+    setName(initialName)
+    setTicker(initialTicker)
+    setIsin(initialIsin)
+  }, [open, initialName, initialTicker, initialIsin])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
