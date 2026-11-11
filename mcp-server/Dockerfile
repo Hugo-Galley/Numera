@@ -27,6 +27,11 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PATH="/opt/venv/bin:$PATH"
 
+# zlib1g : l'image de base peut retarder sur les correctifs de sécurité Debian (CVE-2026-76844, CVE-2026-85091) ;
+# la mise à niveau ciblée est sans effet une fois le digest de base à jour.
+RUN apt-get update && apt-get install -y --no-install-recommends --only-upgrade zlib1g \
+    && rm -rf /var/lib/apt/lists/*
+
 # Utilisateur non-root pour la sécurité
 RUN groupadd --gid 1000 mcp && useradd --uid 1000 --gid mcp --no-create-home --shell /usr/sbin/nologin mcp
 

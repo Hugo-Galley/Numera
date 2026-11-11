@@ -32,7 +32,10 @@ ENV PATH="/opt/venv/bin:$PATH" \
     HOME=/tmp
 
 # Utilisateur non-root (UID 1000 : celui du premier utilisateur Linux, pour les volumes ./data et ./backups)
+# zlib1g : l'image de base peut retarder sur les correctifs de sécurité Debian (CVE-2026-76844, CVE-2026-85091) ;
+# la mise à niveau ciblée est sans effet une fois le digest de base à jour.
 RUN apt-get update && apt-get install -y --no-install-recommends git \
+    && apt-get install -y --no-install-recommends --only-upgrade zlib1g \
     && rm -rf /var/lib/apt/lists/* \
     && groupadd --gid 1000 numera \
     && useradd --uid 1000 --gid numera --no-create-home --home-dir /nonexistent --shell /usr/sbin/nologin numera \
