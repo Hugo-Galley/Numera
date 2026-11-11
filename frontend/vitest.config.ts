@@ -21,10 +21,10 @@ export default mergeConfig(
         provider: "v8",
         include: ["src/**/*.{ts,tsx}"],
         exclude: ["src/test/**", "src/components/ui/**", "src/**/*.d.ts"],
-        // Seuils à cliquet, recalés le 2026-11-11 sur la mesure (760 tests) : 66,35 % instructions,
-        // 51,8 % branches, 58,15 % fonctions, 67,39 % lignes, arrondis vers le bas. Ne jamais les baisser ;
+        // Seuils à cliquet, relevés le 2026-11-11 sur la mesure (933 tests) : 80,11 % instructions,
+        // 66,09 % branches, 73,08 % fonctions, 81,84 % lignes, arrondis vers le bas. Ne jamais les baisser ;
         // les relever après chaque lot de tests. (Vitest 4 compte plus de branches et de fonctions que Vitest 3.)
-        thresholds: { statements: 66, lines: 67, branches: 51, functions: 58 },
+        thresholds: { statements: 80, lines: 81, branches: 66, functions: 73 },
       },
     },
   }),
