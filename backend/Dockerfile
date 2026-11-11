@@ -2,7 +2,7 @@
 FROM ghcr.io/astral-sh/uv:0.13.7@sha256:96f40d3904aad8d0bd010539001d36c8e2188b981e1334471a90c4a1d93bb490 AS uv
 
 # Étape de build : compilateur et uv n'atteignent jamais l'image finale
-FROM python:3.12-slim@sha256:e695ab189fa2d082b1c61c69a6b888a5adeca61ceeccad107b1ed2a125721a9e AS builder
+FROM python:3.12-slim@sha256:5e2bdb1b0d542d5039cffb8181c65930093949194a65c365dfb1b0fe13a4fa5b AS builder
 
 COPY --from=uv /uv /usr/local/bin/uv
 # uv : environnement figé par uv.lock, hors de /app pour ne pas être masqué par les volumes
@@ -21,7 +21,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-dev --no-install-project
 
 # Image finale : interpréteur, git (sauvegarde vers GitHub), venv et code, rien d'autre
-FROM python:3.12-slim@sha256:e695ab189fa2d082b1c61c69a6b888a5adeca61ceeccad107b1ed2a125721a9e
+FROM python:3.12-slim@sha256:5e2bdb1b0d542d5039cffb8181c65930093949194a65c365dfb1b0fe13a4fa5b
 
 LABEL org.opencontainers.image.title="Numera backend" \
       org.opencontainers.image.licenses="MIT"
