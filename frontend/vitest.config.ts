@@ -10,17 +10,17 @@ export default mergeConfig(
     test: {
       environment: "jsdom",
       globals: true,
-      setupFiles: ["src/test/setup.ts"],
+      setupFiles: ["src/test/support/setup.ts"],
       env: { TZ: "Europe/Paris" },
       css: false,
       restoreMocks: true,
-      include: ["src/**/*.test.{ts,tsx}"],
+      include: ["src/test/**/*.test.{ts,tsx}"],
       // Node ≥ 25 expose son propre localStorage (vide sans --localstorage-file), qui masque celui de jsdom
       execArgv: ["--no-experimental-webstorage"],
       coverage: {
         provider: "v8",
         include: ["src/**/*.{ts,tsx}"],
-        exclude: ["src/test/**", "src/**/*.test.{ts,tsx}", "src/components/ui/**", "src/**/*.d.ts"],
+        exclude: ["src/test/**", "src/components/ui/**", "src/**/*.d.ts"],
         // Seuils à cliquet, recalés le 2026-11-04 au passage à Vitest 4 : sa couverture v8 (remappage AST)
         // compte plus de branches et de fonctions qu'avant (même suite de tests, 606 tests), d'où des
         // pourcentages non comparables à l'ancienne mesure (40/72/56/40). Niveau mesuré : 45,14 % instructions,
