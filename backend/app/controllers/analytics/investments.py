@@ -4,13 +4,22 @@ from sqlalchemy.orm import Session
 
 from app.core.sync_bridge import run_async
 from app.db.session import get_db
+from app.schemas.analytics_investments import (
+    AllocationSuggestions,
+    InvestmentAccountDetail,
+    InvestmentsAllocation,
+    InvestmentsAllocationAdvanced,
+    InvestmentsOverview,
+    PatrimoineAllocation,
+    PerformanceHistory,
+)
 from app.schemas.insight import FireResponse, WealthForecastResponse, WealthSimulationResponse
 from app.services.analytics import investments as service
 
 router = APIRouter()
 
 
-@router.get("/investments")
+@router.get("/investments", response_model=InvestmentsOverview, response_model_exclude_unset=True)
 def investments_analytics(
     month: int | None = Query(default=None, ge=1, le=12),
     year: int | None = Query(default=None, ge=2000, le=2200),
@@ -20,28 +29,28 @@ def investments_analytics(
     return run_async(service.compute_investments(db, month, year, account_id))
 
 
-@router.get("/investments/{account_id}")
+@router.get("/investments/{account_id}", response_model=InvestmentAccountDetail, response_model_exclude_unset=True)
 def investment_account_analytics(account_id: int, db: Session = Depends(get_db)):
     return run_async(service.compute_investment_account(db, account_id))
 
 
-@router.get("/investments/{account_id}/performance-history")
+@router.get("/investments/{account_id}/performance-history", response_model=PerformanceHistory, response_model_exclude_unset=True)
 def investment_performance_history(account_id: int, db: Session = Depends(get_db)):
     return run_async(service.compute_performance_history(db, account_id))
 
 
-@router.get("/investments-allocation")
+@router.get("/investments-allocation", response_model=InvestmentsAllocation)
 def investments_allocation(account_id: int | None = Query(default=None), db: Session = Depends(get_db)):
     return run_async(service.compute_allocation(db, account_id))
 
 
-@router.get("/investments-allocation-advanced")
+@router.get("/investments-allocation-advanced", response_model=InvestmentsAllocationAdvanced)
 def investments_allocation_advanced(db: Session = Depends(get_db)):
     """Répartition avancée : par classe d'actifs, secteur et zone géographique."""
     return run_async(service.compute_allocation_advanced(db))
 
 
-@router.get("/patrimoine-allocation")
+@router.get("/patrimoine-allocation", response_model=PatrimoineAllocation)
 def patrimoine_allocation(db: Session = Depends(get_db)):
     """Répartition du patrimoine actif (tous comptes) ; crédits exclus des items, en `total_debts_eur`."""
     return run_async(service.compute_patrimoine_allocation(db))
@@ -76,7 +85,7 @@ def fire_projection(
     return run_async(service.compute_fire(db, withdrawal_rate_pct, inflation_pct, return_pct, monthly_savings, annual_expenses))
 
 
-@router.get("/asset-allocation/suggestions")
+@router.get("/asset-allocation/suggestions", response_model=AllocationSuggestions)
 def get_asset_allocation_suggestions(db: Session = Depends(get_db)):
     """Valeurs de classes d'actifs, secteurs et zones pour l'autocomplétion."""
     return service.compute_allocation_suggestions(db)

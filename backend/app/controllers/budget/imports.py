@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from app.core.config import settings
 from app.core.sync_bridge import run_async
 from app.db.session import get_db
+from app.schemas.imports import ImportLogRead, ImportPreview, ImportResult
 from app.services.budget import imports as service
 from app.services.systeme.demo import DEMO_MAX_UPLOAD_BYTES
 
@@ -25,12 +26,12 @@ async def _read_upload(file: UploadFile) -> bytes:
     return b"".join(chunks)
 
 
-@router.get("/logs")
+@router.get("/logs", response_model=list[ImportLogRead])
 def get_import_logs(limit: int = 10, db: Session = Depends(get_db)):
     return service.get_import_logs(db, limit)
 
 
-@router.post("/preview")
+@router.post("/preview", response_model=ImportPreview)
 async def preview_import(
     file: UploadFile = File(...),
     sample_size: int = Form(default=20, ge=1, le=200),
@@ -39,7 +40,7 @@ async def preview_import(
     return service.preview_import(db, await _read_upload(file), file.filename, sample_size)
 
 
-@router.post("/commit")
+@router.post("/commit", response_model=ImportResult)
 def commit_import(
     account_id: int = Form(...),
     file: UploadFile = File(...),

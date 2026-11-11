@@ -7,12 +7,14 @@ from app.db.session import get_db
 from app.schemas.admin import (
     AdminProfile,
     AdminProfileUpdate,
+    BackupRunResult,
     BackupStatus,
     LoginEventRead,
     McpTokenCreate,
     McpTokenCreated,
     McpTokenRead,
 )
+from app.schemas.common import OkResponse, StatusResponse
 from app.services.systeme import admin as service
 
 # Les tokens MCP n'ont pas accès à /admin : un agent ne peut ni changer le mot de passe, ni vider
@@ -46,7 +48,7 @@ def list_login_events(limit: int = 50, db: Session = Depends(get_db)):
     return service.list_login_events(db, limit)
 
 
-@router.post("/logout-all")
+@router.post("/logout-all", response_model=OkResponse)
 def logout_all_sessions(db: Session = Depends(get_db)):
     """Invalide toutes les sessions ouvertes, y compris celle-ci (les tokens MCP ne sont pas concernés)."""
     return service.logout_all_sessions(db)
@@ -67,7 +69,7 @@ def revoke_mcp_token(token_id: int, db: Session = Depends(get_db)):
     service.revoke_mcp_token(db, token_id)
 
 
-@router.post("/reset-database")
+@router.post("/reset-database", response_model=StatusResponse)
 def reset_database(
     payload: ResetDatabaseRequest,
     db: Session = Depends(get_db),
@@ -76,7 +78,7 @@ def reset_database(
     return service.reset_database(db, payload.confirm, payload.confirmation_code, payload.current_password)
 
 
-@router.post("/backup/run")
+@router.post("/backup/run", response_model=BackupRunResult)
 def run_backup_now(current_user: str = Depends(get_current_user)):
     """Lance `scripts/backup.py` (sauvegarde chiffrée + envoi GitHub si configuré) et attend la fin."""
     return service.run_backup_now()

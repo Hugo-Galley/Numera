@@ -6,6 +6,8 @@ from sqlalchemy.orm import Session
 from app.core.sync_bridge import run_async
 from app.db.session import get_db
 from app.repositories.budget.transactions import TransactionFilters
+from app.schemas.budget_tools import PotentialTransfer
+from app.schemas.common import StatusResponse
 from app.schemas.transaction import (
     TransactionBulkDelete,
     TransactionBulkDeleteResult,
@@ -62,7 +64,7 @@ def list_transactions(
     return service.list_transactions(db, filters, skip, limit)
 
 
-@router.get("/potential-transfers")
+@router.get("/potential-transfers", response_model=list[PotentialTransfer])
 def find_potential_transfers(
     days_tolerance: int = Query(default=5, ge=0, le=30),
     amount_tolerance_pct: float = Query(default=1.0, ge=0, le=50),
@@ -93,7 +95,7 @@ def create_transfer_counterpart(
     return run_async(links.create_transfer_counterpart(db, transaction_id, payload))
 
 
-@router.post("/{transaction_id}/link/{other_id}")
+@router.post("/{transaction_id}/link/{other_id}", response_model=StatusResponse)
 def link_transactions(
     transaction_id: int,
     other_id: int,

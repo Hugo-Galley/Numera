@@ -12,6 +12,7 @@ from app.schemas.holding import (
     PortfolioHoldingRead,
     PortfolioHoldingUpdate,
 )
+from app.schemas.market import HoldingSuggestion
 from app.services.investissement.holdings import inventory as service
 
 router = APIRouter(prefix="/holdings", tags=["holdings"])
@@ -25,7 +26,7 @@ def list_holdings(
     return run_async(service.list_holdings(db, account_id))
 
 
-@router.get("/suggestions")
+@router.get("/suggestions", response_model=list[HoldingSuggestion])
 def get_holding_suggestions(
     account_id: int = Query(...),
     db: Session = Depends(get_db),

@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.core.sync_bridge import run_async
 from app.db.session import get_db
+from app.schemas.common import StatusResponse
 from app.schemas.insight import SubscriptionIgnore, SubscriptionsResponse
 from app.services.analytics import subscriptions as service
 
@@ -19,7 +20,7 @@ def get_subscriptions_analytics(
     return run_async(service.compute_subscriptions(db, account_id, include_other))
 
 
-@router.post("/subscriptions/ignore")
+@router.post("/subscriptions/ignore", response_model=StatusResponse)
 def ignore_subscription_detection(
     data: SubscriptionIgnore,
     db: Session = Depends(get_db),

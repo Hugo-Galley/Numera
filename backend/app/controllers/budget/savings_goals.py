@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.core.sync_bridge import run_async
 from app.db.session import get_db
+from app.schemas.common import StatusResponse
 from app.schemas.savings_goal import SavingsGoal, SavingsGoalCreate, SavingsGoalProgress, SavingsGoalUpdate
 from app.services.budget import savings_goals as service
 
@@ -25,6 +26,6 @@ def update_goal(goal_id: int, goal_in: SavingsGoalUpdate, db: Session = Depends(
     return service.update_goal(db, goal_id, goal_in)
 
 
-@router.delete("/{goal_id}")
+@router.delete("/{goal_id}", response_model=StatusResponse)
 def delete_goal(goal_id: int, db: Session = Depends(get_db)):
     return service.delete_goal(db, goal_id)
