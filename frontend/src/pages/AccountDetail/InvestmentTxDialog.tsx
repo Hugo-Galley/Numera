@@ -13,7 +13,7 @@ import type { AccountDetailView } from "./useAccountDetail"
 /** Dialogue des flux d'un compte d'investissement (versement, retrait, achat, vente, dividende, frais). */
 export function InvestmentTxDialog({ ctx }: { ctx: AccountDetailView }) {
   const { t } = useTranslation("accountDetail")
-  const { editInvTxId, handleCreateInvestmentTransaction, handleCreateInvestmentTransactionBusy, id, invTxAmount, invTxAssetClass, invTxCurrency, invTxDate, invTxFees, invTxIsin, invTxNote, invTxOpen, invTxQuantity, invTxReinvested, invTxSector, invTxTicker, invTxType, invTxUnitPrice, invTxWithholding, invTxZone, resetInvTxForm, setInvTxAmount, setInvTxAssetClass, setInvTxCurrency, setInvTxDate, setInvTxFees, setInvTxIsin, setInvTxNote, setInvTxOpen, setInvTxQuantity, setInvTxReinvested, setInvTxSector, setInvTxTicker, setInvTxType, setInvTxUnitPrice, setInvTxWithholding, setInvTxZone, suggestions } = ctx
+  const { editInvTxId, handleCreateInvestmentTransaction, handleCreateInvestmentTransactionBusy, invTxAmount, invTxAssetClass, invTxCurrency, invTxDate, invTxFees, invTxIsin, invTxNote, invTxOpen, invTxQuantity, invTxReinvested, invTxSector, invTxTicker, invTxType, invTxUnitPrice, invTxWithholding, invTxZone, resetInvTxForm, setInvTxAmount, setInvTxAssetClass, setInvTxCurrency, setInvTxDate, setInvTxFees, setInvTxIsin, setInvTxNote, setInvTxOpen, setInvTxQuantity, setInvTxReinvested, setInvTxSector, setInvTxTicker, setInvTxType, setInvTxUnitPrice, setInvTxWithholding, setInvTxZone, suggestions } = ctx
   return (
     <>
       <Dialog open={invTxOpen} onOpenChange={(open) => { if (!open) { setInvTxOpen(false); resetInvTxForm(); } else { setInvTxOpen(true); } }}>

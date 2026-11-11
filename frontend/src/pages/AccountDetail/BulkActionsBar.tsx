@@ -11,7 +11,7 @@ import { postTransactionsBulkDelete } from "@/lib/api/transactions"
 export function BulkActionsBar({ ctx }: { ctx: AccountDetailView }) {
   const { t } = useTranslation("accountDetail")
   const { t: tc } = useTranslation("common")
-  const { confirm, loadData, selectedIds, setIsBulkEditDialogOpen, setSelectedIds, transactions } = ctx
+  const { confirm, loadData, selectedIds, setIsBulkEditDialogOpen, setSelectedIds } = ctx
   return (
     <>
       {/* Bulk Actions Floating Bar */}
@@ -44,7 +44,7 @@ export function BulkActionsBar({ ctx }: { ctx: AccountDetailView }) {
                     toast.success(t("tx.bulk.deleted", { count: selectedIds.length }))
                     setSelectedIds([])
                     await loadData({ quiet: true })
-                  } catch (e) {
+                  } catch {
                     toast.error(t("tx.bulk.deleteError"))
                   }
                 }

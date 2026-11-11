@@ -46,7 +46,7 @@ const [loading, setLoading] = useState(true)
           const div = await getAnalyticsDiversityScanner<DiversityScannerResponse>()
           if (div && div.totals.holdings_count > 0) setDiversity(div)
         } catch { /* No holdings yet, that's fine */ }
-      } catch (error) {
+      } catch {
         toast.error(i18n.t("useInvestmentsData.erreurLorsDuChargementDe", { ns: "investments" }))
       } finally {
         setLoading(false)

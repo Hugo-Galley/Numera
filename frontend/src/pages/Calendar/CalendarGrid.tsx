@@ -67,7 +67,7 @@ export function CalendarGrid({ ctx }: { ctx: CalendarCtx }) {
                   </div>
                 )}
                 <div className="hidden md:flex flex-col gap-0.5 overflow-hidden">
-                  {events.slice(0, 3).map((ev, i) => {
+                  {events.slice(0, 3).map((ev) => {
                     const isEvNegative = ev.type === "Sortie" || ev.type === "retrait"
                     const isPending = ev.is_projected || !!ev.is_upcoming
                     return (

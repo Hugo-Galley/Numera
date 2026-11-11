@@ -145,7 +145,7 @@ export function useSalaryData() {
       toast.success(i18n.t("useSalaryData.configurationSauvegardee", { ns: "tools" }))
       loadMonthData(currentDate)
       refreshWorkTime()
-    } catch (error) {
+    } catch {
       toast.error(i18n.t("useSalaryData.impossibleDeSauvegarder", { ns: "tools" }))
     } finally {
       setSaving(false)
@@ -174,7 +174,7 @@ export function useSalaryData() {
         dates: newDays.map(d => format(d, "yyyy-MM-dd"))
       })
       loadMonthData(currentDate)
-    } catch (error) {
+    } catch {
       toast.error(i18n.t("useSalaryData.impossibleDeSauvegarderLeJour", { ns: "tools" }))
       loadMonthData(currentDate)
     }
@@ -191,7 +191,7 @@ export function useSalaryData() {
       await putSalaryMonthsById(year, month, {
         salary_date: format(date, "yyyy-MM-dd")
       })
-    } catch (error) {
+    } catch {
       toast.error(i18n.t("useSalaryData.impossibleDeSauvegarderLaDate", { ns: "tools" }))
     }
   }

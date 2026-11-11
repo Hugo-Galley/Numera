@@ -9,7 +9,7 @@ import type { Account } from "./types"
 /** Assemble l'état, les chargements et les actions de la page d'un compte. */
 export function useAccountDetail() {
   const accountDetailState = useAccountDetailState()
-  const accountForms = useAccountForms({ ...accountDetailState })
+  const accountForms = useAccountForms()
   const accountDetailData = useAccountDetailData({ ...accountDetailState, ...accountForms })
   const transactionActions = useTransactionActions({ ...accountDetailState, ...accountForms, ...accountDetailData })
   const investmentActions = useInvestmentActions({ ...accountDetailState, ...accountForms, ...accountDetailData, ...transactionActions })

@@ -5,22 +5,12 @@ import { ErrorState } from "@/components/layout/ErrorState"
 import {
   Plus,
   Trash2,
-  Pencil,
-  Tag,
   AlertCircle,
   RefreshCw,
-  Search,
-  ChevronRight,
   Filter,
   ArrowRight
 } from "lucide-react"
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { api } from "@/lib/api"
@@ -52,7 +42,6 @@ export function RulesTab() {
   const [loading, setLoading] = useState(true)
   const [loadFailed, setLoadFailed] = useState(false)
   const [isAddOpen, setIsAddOpen] = useState(false)
-  const [editingRule, setEditingRule] = useState<any>(null)
   
   const [newRule, setNewRule] = useState({
     pattern: "",
@@ -101,7 +90,7 @@ export function RulesTab() {
         priority: 0
       })
       loadData()
-    } catch (error) {
+    } catch {
       toast.error(t("rulesTab.echecDeLaCreation"))
     }
   }
@@ -112,7 +101,7 @@ export function RulesTab() {
       await api.delete(`/categorization-rules/${id}`)
       toast.success(t("rulesTab.regleSupprimee"))
       loadData()
-    } catch (error) {
+    } catch {
       toast.error(t("rulesTab.echecDeLaSuppression"))
     }
   }
@@ -121,7 +110,7 @@ export function RulesTab() {
     try {
       const res = await api.post<any>("/categorization-rules/apply-all", {})
       toast.success(i18n.t("misc.updated", { ns: "classement", count: res.modified_count }))
-    } catch (error) {
+    } catch {
       toast.error(t("rulesTab.echecDeLApplicationDes"))
     }
   }

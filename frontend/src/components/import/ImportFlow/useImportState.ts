@@ -33,7 +33,7 @@ export function useImportState(p: { accountId: ImportFlowProps["accountId"]; onI
       if (cats && Array.isArray(cats)) {
         setCategories(cats)
       }
-    } catch (error) {
+    } catch {
       toast.error(i18n.t("loadError", { ns: "import" }))
     }
   }

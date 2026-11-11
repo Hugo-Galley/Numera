@@ -38,27 +38,29 @@ export function TransferLinkDialog({ open, onOpenChange, transaction, accounts, 
   const accountName = (id: number) => accounts.find((a) => a.id === id)?.name ?? t("transferLinkDialog.unknownAccount")
   const otherAccounts = accounts.filter((a) => a.id !== transaction?.account_id)
 
-  useEffect(() => {
-    if (!open || !transaction) return
-    setFilterAccount("all")
-    setCounterpartAccount("")
-  }, [open, transaction?.id])
+  const transactionId = transaction?.id
 
   useEffect(() => {
-    if (!open || !transaction) return
+    if (!open || transactionId === undefined) return
+    setFilterAccount("all")
+    setCounterpartAccount("")
+  }, [open, transactionId])
+
+  useEffect(() => {
+    if (!open || transactionId === undefined) return
     let cancelled = false
     setLoading(true)
     const params = new URLSearchParams({ days: "15", amount_tolerance_pct: "5" })
     if (filterAccount !== "all") params.set("account_id", filterAccount)
     api
-      .get<TransferCandidate[]>(`/transactions/${transaction.id}/transfer-candidates?${params}`)
+      .get<TransferCandidate[]>(`/transactions/${transactionId}/transfer-candidates?${params}`)
       .then((rows) => !cancelled && setCandidates(rows))
       .catch(() => !cancelled && toast.error(t("transferLinkDialog.erreurLorsDeLaRecherche")))
       .finally(() => !cancelled && setLoading(false))
     return () => {
       cancelled = true
     }
-  }, [open, transaction?.id, filterAccount])
+  }, [open, transactionId, filterAccount, t])
 
   if (!transaction) return null
   const isSortie = transaction.type === "Sortie"

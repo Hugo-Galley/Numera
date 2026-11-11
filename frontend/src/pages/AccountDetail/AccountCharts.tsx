@@ -1,5 +1,5 @@
 import { dateLocale } from "@/i18n/locale"
-import { Activity, Plus } from "lucide-react"
+import { Activity } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 import { Badge } from "@/components/ui/badge"
@@ -10,7 +10,7 @@ import type { AccountDetailView } from "./useAccountDetail"
 /** Graphiques d'évolution du compte (et de performance pour un compte d'investissement). */
 export function AccountCharts({ ctx }: { ctx: AccountDetailView }) {
   const { t } = useTranslation("accountDetail")
-  const { formatCurrency, id, investmentData, isInvestment, perfHistory, timeseries } = ctx
+  const { formatCurrency, investmentData, isInvestment, perfHistory, timeseries } = ctx
   return (
     <>
       {/* Charts Section */}

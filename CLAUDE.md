@@ -45,7 +45,7 @@ make prod                  # infra/docker-compose.prod.yml
 make test                  # pytest backend (backend/.venv si présent, sinon python3.12/3.11 ; PYTHON=... pour forcer)
 make coverage              # tests + couverture avec seuil à cliquet : backend (backend/.coveragerc, 93 %) et frontend (frontend/vitest.config.ts, v8) ; ne jamais baisser un seuil
 make lint / lint-fix       # ruff sur backend/ (règles : backend/ruff.toml), lint-fix corrige ce qui est sûr
-make lint-front             # ESLint frontend (rules-of-hooks, exhaustive-deps, variables inutilisées) ; avertissements existants plafonnés par frontend/eslint-baseline.json
+make lint-front             # ESLint frontend (rules-of-hooks, exhaustive-deps, variables inutilisées) ; baseline frontend/eslint-baseline.json vide : zéro avertissement toléré
 make typecheck             # mypy : strict sur app/domain et app/core, baseline à cliquet ailleurs (scripts/quality/baselines/mypy_baseline.json)
 make check-size            # plafonds de taille (fichier/fonction), baseline à cliquet scripts/quality/baselines/code_size_baseline.json
 make validate              # lint + lint-front + typecheck + check-size + coverage (tests backend et frontend avec seuils) + build frontend

@@ -1,7 +1,7 @@
 import i18n from "i18next"
 import { useTranslation } from "react-i18next"
 import { useState, useEffect } from "react"
-import { Plus, Tag, Pencil, Trash2, Palette, Archive, ArchiveRestore } from "lucide-react"
+import { Plus, Tag, Pencil, Trash2, Archive, ArchiveRestore } from "lucide-react"
 import { api } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -88,7 +88,7 @@ export function TagsTab() {
       setNewColor("#64748b")
       setNewOpen(false)
       loadTags()
-    } catch (error) {
+    } catch {
       toast.error(t("tagsTab.erreurLorsDeLAjout"))
     }
   }
@@ -110,7 +110,7 @@ export function TagsTab() {
       toast.success(t("tagsTab.tagMisAJour"))
       setEditOpen(false)
       loadTags()
-    } catch (error) {
+    } catch {
       toast.error(t("tagsTab.erreurLorsDeLaMise"))
     }
   }
@@ -120,7 +120,7 @@ export function TagsTab() {
       await api.patch(`/tags/${tag.id}`, { archived: !tag.archived })
       toast.success(tag.archived ? t("tagsTab.tagReactive") : t("tagsTab.tagArchiveMasqueDesSelecteurs"))
       loadTags()
-    } catch (error) {
+    } catch {
       toast.error(t("tagsTab.erreurLorsDeLArchivage"))
     }
   }
@@ -131,7 +131,7 @@ export function TagsTab() {
       await api.delete(`/tags/${tagId}`)
       toast.success(t("tagsTab.tagSupprime"))
       loadTags()
-    } catch (error) {
+    } catch {
       toast.error(t("tagsTab.erreurLorsDeLaSuppression"))
     }
   }

@@ -53,7 +53,7 @@ export function useActionCenterData() {
         actions: prev.actions.filter(a => a.id !== actionId)
       } : null)
       toast.success(i18n.t("useActionCenterData.actionMasquee", { ns: "audit" }))
-    } catch(err) {
+    } catch {
       toast.error(i18n.t("useActionCenterData.impossibleDeMasquerLAction", { ns: "audit" }))
     }
   }

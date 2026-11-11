@@ -11,7 +11,7 @@ import type { AccountDetailView } from "./useAccountDetail"
 export function BulkEditDialog({ ctx }: { ctx: AccountDetailView }) {
   const { t } = useTranslation("accountDetail")
   const { t: tc } = useTranslation("common")
-  const { availableTags, bulkCategory, bulkRecurring, bulkTagAction, bulkTagIds, categories, handleBulkUpdate, id, isBulkEditDialogOpen, selectedIds, setBulkCategory, setBulkRecurring, setBulkTagAction, setBulkTagIds, setIsBulkEditDialogOpen, transactions } = ctx
+  const { availableTags, bulkCategory, bulkRecurring, bulkTagAction, bulkTagIds, categories, handleBulkUpdate, isBulkEditDialogOpen, selectedIds, setBulkCategory, setBulkRecurring, setBulkTagAction, setBulkTagIds, setIsBulkEditDialogOpen } = ctx
   return (
     <>
       {/* Bulk Edit Dialog */}

@@ -1,5 +1,5 @@
 import { safeStorage } from "@/lib/storage"
-import React, { createContext, useContext, useState, useEffect } from "react"
+import React, { createContext, useContext, useState, useEffect, useEffectEvent } from "react"
 import { isTokenExpired } from "@/lib/utils"
 import { API_BASE, TOKEN_REFRESHED_EVENT } from "@/lib/api"
 import { resetApiCache } from "@/lib/apiCache"
@@ -66,9 +66,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  const loadProfile = useEffectEvent(() => { refreshProfile() })
   useEffect(() => {
     if (token) {
-      refreshProfile()
+      loadProfile()
     } else {
       setProfile(null)
     }

@@ -10,7 +10,7 @@ import type { AccountDetailView } from "./useAccountDetail"
 export function TransactionsToolbar({ ctx }: { ctx: AccountDetailView }) {
   const { t } = useTranslation("accountDetail")
   const { t: tc } = useTranslation("common")
-  const { availableTags, categories, filterCategory, filterTags, filterType, id, search, setFilterCategory, setFilterTags, setFilterType, setSearch } = ctx
+  const { availableTags, categories, filterCategory, filterTags, filterType, search, setFilterCategory, setFilterTags, setFilterType, setSearch } = ctx
   return (
     <>
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">

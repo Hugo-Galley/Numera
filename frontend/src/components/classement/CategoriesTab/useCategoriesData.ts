@@ -38,7 +38,7 @@ export function useCategoriesData() {
     try {
       const data = await getCategories<Category[]>()
       setCategories(data)
-    } catch (error) {
+    } catch {
       toast.error(i18n.t("useCategoriesData.erreurChargementCategories", { ns: "classement" }))
     } finally {
       setLoading(false)
@@ -71,7 +71,7 @@ export function useCategoriesData() {
       setNewAnnualLimit("")
       setNewOpen(false)
       loadCategories()
-    } catch (error) {
+    } catch {
       toast.error(i18n.t("useCategoriesData.erreurLorsDeLAjout", { ns: "classement" }))
     }
   })
@@ -103,7 +103,7 @@ export function useCategoriesData() {
       toast.success(i18n.t("useCategoriesData.categorieMiseAJour", { ns: "classement" }))
       setEditOpen(false)
       loadCategories()
-    } catch (error) {
+    } catch {
       toast.error(i18n.t("useCategoriesData.erreurLorsDeLaMise", { ns: "classement" }))
     }
   })
@@ -117,7 +117,7 @@ export function useCategoriesData() {
       await patchCategoriesById(cat.id, { archived: !cat.archived })
       toast.success(cat.archived ? i18n.t("useCategoriesData.categorieReactivee", { ns: "classement" }) : i18n.t("useCategoriesData.categorieArchiveeMasqueeDesSelecteurs", { ns: "classement" }))
       loadCategories()
-    } catch (error) {
+    } catch {
       toast.error(i18n.t("useCategoriesData.erreurLorsDeLArchivage", { ns: "classement" }))
     }
   }
@@ -128,7 +128,7 @@ export function useCategoriesData() {
       await deleteCategoriesById(categoryId)
       toast.success(i18n.t("useCategoriesData.categorieSupprimee", { ns: "classement" }))
       loadCategories()
-    } catch (error) {
+    } catch {
       toast.error(i18n.t("useCategoriesData.erreurLorsDeLaSuppression", { ns: "classement" }))
     }
   }

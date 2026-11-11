@@ -5,13 +5,12 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { format } from "date-fns"
-import { Transaction } from "./types"
 import type { AccountDetailView } from "./useAccountDetail"
 
 /** Historique des flux d'un compte d'investissement. */
 export function InvestmentFlowsCard({ ctx }: { ctx: AccountDetailView }) {
   const { t } = useTranslation("accountDetail")
-  const { account, formatCurrency, formatValue, handleDeleteInvTransaction, handleDeleteTransaction, handleEditInvTransaction, handleInvSort, id, invSortField, invSortOrder, investmentData, sortedInvestmentTransactions, transactions } = ctx
+  const { account, formatCurrency, formatValue, handleDeleteInvTransaction, handleDeleteTransaction, handleEditInvTransaction, handleInvSort, invSortField, invSortOrder, investmentData, sortedInvestmentTransactions } = ctx
   return (
     <>
       <Card className="min-w-0 shadow-sm">

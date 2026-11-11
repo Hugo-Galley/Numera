@@ -13,7 +13,7 @@ import { DayDetailDialog } from "./DayDetailDialog"
 export default function Calendar({ embedded = false }: { embedded?: boolean }) {
   const { t } = useTranslation("recurring")
   const ctx = useCalendar(embedded)
-  const { accounts, date, loadFailed, month, nextMonth, prevMonth, selectedAccountId, setReloadToken, setSelectedAccountId, year } = ctx
+  const { accounts, date, loadFailed, nextMonth, prevMonth, selectedAccountId, setReloadToken, setSelectedAccountId } = ctx
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 md:gap-4">
