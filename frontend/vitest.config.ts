@@ -21,11 +21,10 @@ export default mergeConfig(
         provider: "v8",
         include: ["src/**/*.{ts,tsx}"],
         exclude: ["src/test/**", "src/components/ui/**", "src/**/*.d.ts"],
-        // Seuils à cliquet, recalés le 2026-11-04 au passage à Vitest 4 : sa couverture v8 (remappage AST)
-        // compte plus de branches et de fonctions qu'avant (même suite de tests, 606 tests), d'où des
-        // pourcentages non comparables à l'ancienne mesure (40/72/56/40). Niveau mesuré : 45,14 % instructions,
-        // 34,72 % branches, 37,77 % fonctions, 45,4 % lignes, arrondi vers le bas. Ne jamais les baisser.
-        thresholds: { statements: 45, lines: 45, branches: 34, functions: 37 },
+        // Seuils à cliquet, recalés le 2026-11-11 sur la mesure (760 tests) : 66,35 % instructions,
+        // 51,8 % branches, 58,15 % fonctions, 67,39 % lignes, arrondis vers le bas. Ne jamais les baisser ;
+        // les relever après chaque lot de tests. (Vitest 4 compte plus de branches et de fonctions que Vitest 3.)
+        thresholds: { statements: 66, lines: 67, branches: 51, functions: 58 },
       },
     },
   }),
