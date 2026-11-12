@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 
 from app.core.logging import get_logger
+from app.core.time import now_local
 from app.domain.portfolio import SNAPSHOT_MATCH_DAYS
 from app.integrations.currency import CurrencyConversionError
 from app.repositories.investissement import security_prices
@@ -54,7 +55,7 @@ async def ensure_history(db: Session, book: PriceBook, tickers: list[str], start
     book.load(db, tickers)
     if not fetch:
         return
-    now = datetime.now()
+    now = now_local()
     for ticker in tickers:
         if book.covers(ticker, start):
             continue

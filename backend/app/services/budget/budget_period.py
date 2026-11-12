@@ -16,7 +16,7 @@ from datetime import datetime, timedelta
 from sqlalchemy import case, func
 from sqlalchemy.orm import Session
 
-from app.core.time import end_of_today
+from app.core.time import end_of_today, now_local
 from app.db.system_settings import get_setting, set_setting
 from app.domain.budget_period import Period, bounds_in_periods, civil_bounds, distinct_salary_dates, periods_from_salary_dates
 from app.repositories.budget.budget_period import salary_entry_dates
@@ -62,7 +62,7 @@ def salary_dates(db: Session) -> list[datetime]:
 
 def build_periods(db: Session) -> list[Period]:
     """Périodes de paie, de la plus ancienne à la plus récente (la dernière est ouverte)."""
-    return periods_from_salary_dates(salary_dates(db), datetime.now())
+    return periods_from_salary_dates(salary_dates(db), now_local())
 
 
 def period_window(db: Session, year: int, month: int) -> tuple[datetime, datetime]:
@@ -83,7 +83,7 @@ def period_bounds(db: Session, year: int, month: int) -> tuple[datetime, datetim
 
 def current_period(db: Session, today: datetime | None = None) -> tuple[int, int]:
     """Mois budgétaire en cours (celui dont la fenêtre contient aujourd'hui)."""
-    today = today or datetime.now()
+    today = today or now_local()
     if get_mode(db) == MODE_SALARY:
         for period in reversed(build_periods(db)):
             if period.start <= today < period.end:

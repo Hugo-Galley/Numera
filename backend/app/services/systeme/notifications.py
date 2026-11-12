@@ -23,6 +23,7 @@ from sqlalchemy.orm import Session
 from app.core.errors import ExternalServiceError, InvalidOperationError
 from app.core.i18n import DEFAULT_LANGUAGE, LANGUAGES, format_money, get_language, set_language, tr
 from app.core.logging import get_logger
+from app.core.time import now_local
 from app.db.system_settings import get_setting, set_setting
 from app.integrations.notifications import DEFAULT_NTFY_SERVER, Channel, NtfyChannel, TelegramChannel, send_all
 from app.models.notification_log import NotificationLog
@@ -184,7 +185,7 @@ def _log(db: Session, items: list[tuple[str, str]], channel: str) -> None:
 
 async def run_notifications(db: Session, now: datetime | None = None) -> int:
     """Envoie les nouvelles alertes (et le résumé hebdo s'il est dû). Renvoie le nombre de messages envoyés."""
-    now = now or datetime.now()
+    now = now or now_local()
     channels = enabled_channels(db)
     if not channels:
         return 0

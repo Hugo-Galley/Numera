@@ -3,7 +3,7 @@ from datetime import datetime
 
 from sqlalchemy.orm import Session
 
-from app.core.time import end_of_today
+from app.core.time import end_of_today, now_local
 from app.domain.budget import elapsed_days, to_eur
 from app.integrations.currency import get_exchange_rates
 from app.repositories.analytics import metrics as repo
@@ -12,7 +12,7 @@ from app.services.budget.budget_period import period_bounds
 
 
 async def compute_timeseries(db: Session, year: int, account_id: int | None = None) -> dict:
-    now = datetime.now()
+    now = now_local()
     if not repo.has_transaction_in_year(db, year, account_id):
         # Aucune donnée sur l'année : séries vides plutôt que douze zéros
         return {"year": year, "account_id": account_id, "monthly_flows": [], "balance_points": [], "salary_series": []}

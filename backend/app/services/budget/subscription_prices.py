@@ -10,6 +10,7 @@ from datetime import datetime, timedelta
 
 from sqlalchemy.orm import Session
 
+from app.core.time import now_local
 from app.domain.subscription_prices import LOOKBACK_DAYS, PriceChange, series_change
 from app.models.account import Account
 from app.models.category import Category
@@ -19,7 +20,7 @@ from app.models.transaction import Transaction
 
 
 def detect_price_changes(db: Session, account_id: int | None = None, now: datetime | None = None) -> list[PriceChange]:
-    now = now or datetime.now()
+    now = now or now_local()
     query = (
         db.query(
             Transaction.account_id,

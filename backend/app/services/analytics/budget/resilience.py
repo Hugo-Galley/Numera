@@ -1,8 +1,8 @@
 """Résilience : mois d'autonomie couverts par l'épargne liquide."""
-from datetime import date
 
 from sqlalchemy.orm import Session
 
+from app.core.time import today_local
 from app.services.analytics.budget.summary import compute_budget
 
 RESILIENCE_WINDOW_MONTHS = 6
@@ -14,7 +14,7 @@ async def compute_resilience(db: Session, year: int, month: int, window: int = R
     La moyenne porte sur les `window` derniers mois **complets** ayant des dépenses : le mois en
     cours (incomplet, parfois sans salaire) faussait l'indice quand il servait de référence.
     """
-    today = date.today()
+    today = today_local()
     index = year * 12 + (month - 1)
     if index >= today.year * 12 + (today.month - 1):
         index = today.year * 12 + (today.month - 1) - 1  # dernier mois complet

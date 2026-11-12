@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 from app.core.errors import BusinessRuleError, DomainError, InternalError, NotFoundError
 from app.core.i18n import tr
 from app.core.logging import get_logger
-from app.core.time import end_of_today
+from app.core.time import end_of_today, now_local
 from app.domain.budget import elapsed_days, savings_rate, to_eur
 from app.integrations.currency import get_exchange_rates
 from app.models.account import Account
@@ -84,9 +84,9 @@ async def compute_budget(db: Session, month: int | None = None, year: int | None
 def _days(db: Session, start: datetime | None, end: datetime, monthly: bool) -> int:
     """Jours servant au burn rate : écoulés dans le mois, sinon depuis la première transaction."""
     if monthly:
-        return elapsed_days(start, end, datetime.now())
+        return elapsed_days(start, end, now_local())
     earliest = repo.earliest_transaction_date(db)
-    return max((datetime.now() - earliest).days, 1) if earliest else 1
+    return max((now_local() - earliest).days, 1) if earliest else 1
 
 
 def _global_flows(db: Session, start: datetime | None, end: datetime, rates: dict, days: int) -> _Flows:

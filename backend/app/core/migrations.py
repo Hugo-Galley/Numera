@@ -2,7 +2,6 @@ import os
 import sqlite3
 import subprocess
 import sys
-from datetime import datetime
 from pathlib import Path
 
 from alembic.config import Config
@@ -10,6 +9,7 @@ from alembic.script import ScriptDirectory
 
 from app.core.config import settings
 from app.core.logging import get_logger
+from app.core.time import now_local
 
 logger = get_logger(__name__)
 
@@ -59,7 +59,7 @@ def backup_before_migration(db_path: str, backend_root: Path) -> Path | None:
 
     backup_dir = Path(os.getenv("BACKUP_DIR") or Path(db_path).parent.parent / "backups")
     backup_dir.mkdir(parents=True, exist_ok=True)
-    dest = backup_dir / f"pre_migration_{current}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.db"
+    dest = backup_dir / f"pre_migration_{current}_{now_local().strftime('%Y%m%d_%H%M%S')}.db"
     source = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True, timeout=30)
     try:
         target = sqlite3.connect(dest)

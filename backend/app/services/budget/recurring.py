@@ -10,6 +10,7 @@ from datetime import date, datetime, timedelta
 from sqlalchemy.orm import Session
 
 from app.core.logging import get_logger
+from app.core.time import now_local, today_local
 from app.domain.finance import get_recurring_occurrences, month_label_from_date
 from app.domain.recurring import investment_leg_type, transfer_credit_date
 from app.integrations.currency import CurrencyConversionError
@@ -31,7 +32,7 @@ async def _market_price(db: Session, ticker: str, day: date) -> tuple[float, str
     """Cours d'un titre pour l'échéance `day` : clôture historique du jour (échéance passée, y compris
     rattrapée après coup), sinon cotation en direct. None si aucun cours exploitable."""
     try:
-        if day < date.today():
+        if day < today_local():
             hist = await market_quotes.get_price_on(db, ticker, day)
             if hist and hist["price"] and float(hist["price"]) > 0:
                 return round(float(hist["price"]), 4), hist.get("currency")
@@ -288,7 +289,7 @@ async def generate_recurring_transactions(db: Session) -> int:
 
     Une règle (ou un crédit différé) est une unité de travail : positions et soldes recalculés, puis un commit.
     Une erreur annule cette unité seule, les autres règles sont générées."""
-    now = datetime.now()
+    now = now_local()
     run = _Generation()
     for rd in repo.generatable_rules(db):
         unit = _Generation()

@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 
 from app.core.errors import BusinessRuleError, InvalidOperationError, NotFoundError
 from app.core.i18n import tr
-from app.core.time import utcnow_naive
+from app.core.time import today_local, utcnow_naive
 from app.domain.finance import month_label_from_date
 from app.domain.salary import month_key, salary_amount, salary_note
 from app.models.recurring_transaction import RecurringTransaction
@@ -206,7 +206,7 @@ def trigger_generation(db: Session, year: int, month: int) -> dict:
         raise InvalidOperationError(tr("errors.salary_already_generated"))
     # Saisie à l'avance : rien n'est créé avant la date de paie, la tâche de fond
     # (check_and_generate_pending_salaries) enregistre la transaction ce jour-là.
-    if month_record.salary_date > date.today():
+    if month_record.salary_date > today_local():
         return {"status": "scheduled", "salary_date": month_record.salary_date.isoformat()}
     if not generate_salary_transactions(db, config, month_record, month_label):
         raise InvalidOperationError(tr("errors.salary_generation_failed"))

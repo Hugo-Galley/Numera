@@ -5,12 +5,14 @@ import sqlite3
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
+from app.core.time import now_local, utcnow_aware
+
 
 def snapshot_database(db_path: str, dest_dir: Path | str, prefix: str = "snapshot") -> Path:
     """Copie `db_path` dans `dest_dir/<prefix>_<horodatage>.db` et vérifie son intégrité."""
     dest_dir = Path(dest_dir)
     dest_dir.mkdir(parents=True, exist_ok=True)
-    dest = dest_dir / f"{prefix}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.db"
+    dest = dest_dir / f"{prefix}_{now_local().strftime('%Y%m%d_%H%M%S')}.db"
 
     source = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True, timeout=30)
     try:
@@ -46,7 +48,7 @@ def _parse_iso(value: object) -> datetime | None:
 
 def backup_status(now: datetime | None = None) -> dict:
     """État des sauvegardes, lu dans BACKUP_DIR (fichiers `suivi_budget_*` et `status.json` écrit par scripts/backup.py)."""
-    now = now or datetime.now(UTC)
+    now = now or utcnow_aware()
     backup_dir = Path(os.getenv("BACKUP_DIR", "/app/backups"))
     github_configured = bool(os.getenv("GITHUB_BACKUP_REPO", "").strip())
     files = (

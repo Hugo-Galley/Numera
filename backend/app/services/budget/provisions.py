@@ -16,6 +16,7 @@ from sqlalchemy.orm import Session
 
 from app.core.errors import NotFoundError
 from app.core.i18n import tr
+from app.core.time import today_local
 from app.integrations.currency import get_exchange_rates
 from app.models.provision import Provision
 from app.repositories.budget import provisions as repo
@@ -112,7 +113,7 @@ def _last_payments(db: Session, states: list[ProvisionState], rates: dict[str, f
 
 
 async def compute_states(db: Session, provisions: list[Provision], today: date | None = None) -> list[ProvisionState]:
-    today = today or date.today()
+    today = today or today_local()
     rates = await get_exchange_rates("EUR")
     states = [_base_state(p, today) for p in provisions]
 
@@ -176,7 +177,7 @@ def to_read(st: ProvisionState) -> dict:
 
 
 async def summary(db: Session, today: date | None = None) -> dict:
-    today = today or date.today()
+    today = today or today_local()
     provisions = repo.list_active(db)
     states = await compute_states(db, provisions, today)
 
