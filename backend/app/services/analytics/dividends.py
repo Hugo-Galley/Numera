@@ -1,8 +1,9 @@
 """Synthèse des dividendes : totaux nets / bruts en EUR, par mois, par année et par titre (avec rendements)."""
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from sqlalchemy.orm import Session
 
+from app.core.time import now_local
 from app.domain.dividends import aggregate_dividends, dividend_tickers, month_keys, position_values
 from app.repositories.investissement import holdings as holdings_repo
 from app.schemas.dividend import DividendMonth, DividendSummary, DividendTotals, DividendUnlinked, DividendYear
@@ -12,7 +13,7 @@ from app.services.investissement.market.quotes import get_market_quotes, persist
 
 async def compute_dividends(db: Session, account_id: int | None, months: int) -> DividendSummary:
     rows = await load_dividends_eur(db, account_id)
-    now = datetime.now()
+    now = now_local()
     agg = aggregate_dividends(rows, now - timedelta(days=365))
 
     # Positions : coût de revient et valeur actuelle par ticker, pour les rendements

@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.core.errors import NotFoundError
 from app.core.i18n import tr
+from app.core.time import today_local
 from app.domain.loans import add_months, build_schedule, monthly_payment, remaining_principal, simulate_prepayment, terms_of
 from app.models.account import Account
 from app.models.loan import Loan, LoanPrepayment
@@ -45,7 +46,7 @@ def _get(db: Session, loan_id: int) -> Loan:
 
 
 def _summary(loan: Loan, today: date | None = None) -> LoanSummary:
-    today = today or date.today()
+    today = today or today_local()
     terms, prepayments = terms_of(loan)
     rows = build_schedule(terms, prepayments)
     remaining = remaining_principal(terms, prepayments, today)

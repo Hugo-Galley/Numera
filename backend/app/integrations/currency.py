@@ -5,6 +5,7 @@ import httpx
 
 from app.core.circuit_breaker import CircuitBreaker
 from app.core.logging import get_logger
+from app.core.time import now_local
 
 logger = get_logger(__name__)
 
@@ -41,7 +42,7 @@ async def get_exchange_rates(base: str = "EUR") -> dict[str, float]:
     Rates are cached for 6 hours. En cas d'échec : dernier cache connu (même expiré),
     sinon taux hors-ligne.
     """
-    now = datetime.now()
+    now = now_local()
     if base in _rates_cache and now < _cache_expiry.get(base, now):
         return _rates_cache[base]
     if now < _failed_until.get(base, now):

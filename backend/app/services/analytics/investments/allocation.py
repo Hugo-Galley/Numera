@@ -1,8 +1,8 @@
 """Répartitions : par compte d'investissement, par classe d'actifs / secteur / zone, patrimoine global, suggestions."""
-from datetime import datetime
 
 from sqlalchemy.orm import Session
 
+from app.core.time import now_local
 from app.domain.investments import AllocationGroups, Tags, net_purchase_weights, patrimoine_items, ticker_tags
 from app.domain.portfolio import uses_positions
 from app.models.account import Account
@@ -21,7 +21,7 @@ DEFAULT_ZONES = ["Europe", "USA", "Asie", "Marchés Émergents", "France", "Mond
 
 async def compute_allocation(db: Session, account_id: int | None = None) -> dict:
     accounts = repo.investment_accounts(db, account_id)
-    now = datetime.now()
+    now = now_local()
     values = await account_values(db, accounts)
     total_value = total_invested = 0.0
     items = []

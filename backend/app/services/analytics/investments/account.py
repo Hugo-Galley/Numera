@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.core.errors import BusinessRuleError, NotFoundError
 from app.core.i18n import tr
-from app.core.time import end_of_today
+from app.core.time import end_of_today, now_local
 from app.domain.portfolio import regular_flow_direction, uses_positions
 from app.models.account import Account
 from app.repositories.analytics import investments as repo
@@ -28,7 +28,7 @@ def _require_investment_account(db: Session, account_id: int) -> Account:
 async def compute_investment_account(db: Session, account_id: int) -> dict:
     account = _require_investment_account(db, account_id)
     # Flux dans la devise du compte
-    flows = await calculate_investment_flows(db, account, datetime.now(), target_currency=account.currency)
+    flows = await calculate_investment_flows(db, account, now_local(), target_currency=account.currency)
     net_invested = flows["net_invested_target"]
     baseline_date = flows["baseline_date"]
 

@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 
 from sqlalchemy.orm import Session
 
-from app.core.time import end_of_today
+from app.core.time import end_of_today, now_local
 from app.domain.finance import get_recurring_occurrences, month_label_from_date
 from app.domain.metrics import daily_balances
 from app.domain.recurring import transfer_credit_date
@@ -17,7 +17,7 @@ from app.repositories.comptes import balances
 async def compute_calendar(db: Session, month: int, year: int, account_id: int | None = None) -> dict:
     start_month = datetime(year, month, 1)
     end_month = datetime(year + 1, 1, 1) if month == 12 else datetime(year, month + 1, 1)
-    today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    today = now_local().replace(hour=0, minute=0, second=0, microsecond=0)
     sim_start = min(start_month, today)
 
     tr_accounts = ticket_restaurant_account_ids(db)

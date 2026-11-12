@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.core.errors import NotFoundError
 from app.core.i18n import tr
+from app.core.time import today_local
 from app.domain.savings_goals import goal_status, percentage, signed_total_eur
 from app.integrations.currency import get_exchange_rates
 from app.models.savings_goal import SavingsGoal as SavingsGoalModel
@@ -41,7 +42,7 @@ def _goal_progress(db: Session, goal: SavingsGoalModel, rates: dict[str, float],
 
 async def list_goals(db: Session) -> list[SavingsGoalProgress]:
     rates = await get_exchange_rates("EUR")
-    today = date.today()
+    today = today_local()
     return [_goal_progress(db, goal, rates, today) for goal in repo.list_all(db)]
 
 

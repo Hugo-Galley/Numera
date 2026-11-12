@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session
 
 from app.core.errors import BusinessRuleError, NotFoundError
 from app.core.i18n import tr
+from app.core.time import today_local
 from app.domain import benefits as calc
 from app.models.benefit import Benefit
 from app.models.transaction import Transaction
@@ -53,7 +54,7 @@ def _payments_by_benefit(db: Session, benefits: list[Benefit], today: date) -> d
 
 def compute_states(db: Session, today: date | None = None) -> list[BenefitState]:
     """État de toutes les aides (le rattachement des versements se fait entre toutes les aides)."""
-    today = today or date.today()
+    today = today or today_local()
     benefits = repo.list_ordered(db)
     payments = _payments_by_benefit(db, benefits, today)
     states = []
@@ -73,7 +74,7 @@ def _payment(t: Transaction) -> dict:
 
 
 def to_read(st: BenefitState, today: date | None = None) -> dict:
-    today = today or date.today()
+    today = today or today_local()
     b = st.benefit
     last = st.payments[0] if st.payments else None
     return {
@@ -119,7 +120,7 @@ def list_benefits(db: Session) -> list[dict]:
 
 
 def benefits_summary(db: Session, today: date | None = None) -> dict:
-    today = today or date.today()
+    today = today or today_local()
     states = [st for st in compute_states(db, today) if st.benefit.active]
     year_ago = datetime.combine(today - timedelta(days=365), time.min)
     declarations = sorted((st for st in states if st.declaration_days_left is not None), key=lambda st: st.declaration_days_left)
@@ -174,7 +175,7 @@ def update_benefit(db: Session, benefit_id: int, payload: BenefitUpdate) -> dict
 
 def mark_declared(db: Session, benefit_id: int, payload: BenefitDeclared, today: date | None = None) -> dict:
     """Déclaration faite : la prochaine échéance avance d'un intervalle (et le montant notifié est repris)."""
-    today = today or date.today()
+    today = today or today_local()
     benefit = _require(db, benefit_id)
     if benefit.declaration_interval_months is None or benefit.next_declaration_date is None:
         raise BusinessRuleError(tr("errors.benefit_no_declaration"))

@@ -7,6 +7,7 @@ from datetime import date, datetime, timedelta
 
 from sqlalchemy.orm import Session
 
+from app.core.time import today_local
 from app.domain.finance import month_label_from_date
 from app.models.account import Account
 from app.models.balance_snapshot import BalanceSnapshot
@@ -329,7 +330,7 @@ class _Builder:
 
 async def generate_demo_data(db: Session, today: date | None = None) -> None:
     """Remplit une base vide (catégories et profils ETF compris) avec le jeu de démonstration."""
-    today = today or date.today()
+    today = today or today_local()
     seed_all(db)
     await _Builder(db, today).run()
     db.merge(SystemSetting(key=DEMO_STAMP_KEY, value=today.isoformat()))

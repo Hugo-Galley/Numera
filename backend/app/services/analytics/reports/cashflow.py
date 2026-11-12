@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.core.errors import NotFoundError
 from app.core.i18n import tr
-from app.core.time import end_of_today
+from app.core.time import end_of_today, now_local
 from app.domain.finance import get_recurring_occurrences, is_lapsed
 from app.domain.recurring import transfer_credit_date
 from app.domain.reports import flag_possible_duplicates, simulate_cashflow
@@ -23,7 +23,7 @@ INCOME_TYPES = ["Entree", "Interets", "versement", "dividende"]
 
 async def compute_cashflow_projection(db: Session, days: int = 30, account_id: int | None = None) -> CashflowProjection:
     """Solde projeté sur `days` jours à partir du solde actuel et des transactions récurrentes."""
-    now = datetime.now()
+    now = now_local()
     end_date = now + timedelta(days=days)
     rates = await get_exchange_rates("EUR")
     current_bal, counted_ids = await _current_balance(db, account_id, rates)

@@ -1,10 +1,10 @@
 """Prévision de patrimoine, indépendance financière (FIRE) et simulateur de patrimoine."""
 import math
-from datetime import datetime
 
 from sqlalchemy.orm import Session
 
 from app.core.logging import get_logger
+from app.core.time import now_local
 from app.domain import projections as proj
 from app.schemas.insight import (
     FireResponse,
@@ -61,7 +61,7 @@ async def compute_wealth_forecast(db: Session, years: int = 10, extra_monthly: f
     annual_return_pct = proj.weighted_return(breakdown, measured + unmeasured + other)
 
     history = await compute_kpi_history(months_count=13, account_id=None, db=db)
-    now = datetime.now()
+    now = now_local()
     rows = proj.savings_window(history, now.year, now.month)
     computed_savings = sum(float(r["epargne_flow"]) for r in rows) / len(rows) if rows else 0.0
     avg_savings = computed_savings if monthly_savings is None else monthly_savings
@@ -113,7 +113,7 @@ async def compute_fire(db: Session, withdrawal_rate_pct: float = 4.0, inflation_
     wealth = forecast.current_wealth
     target = proj.fire_target(expenses, withdrawal_rate_pct)
     years_to_fi = proj.years_to_fi(wealth, savings, expenses, rate, withdrawal_rate_pct)
-    this_year = datetime.now().year
+    this_year = now_local().year
     return FireResponse(
         current_wealth=round(wealth, 2),
         annual_expenses=round(expenses, 2),

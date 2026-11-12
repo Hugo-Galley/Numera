@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 
 from app.core.errors import InternalError
 from app.core.logging import get_logger
+from app.core.time import now_local
 from app.domain.audit import SEVERITY_ORDER
 from app.repositories.analytics import audit as repo
 from app.schemas.insight import ActionCenterResponse, ActionCenterSummary, ActionItem
@@ -62,7 +63,7 @@ RULES: list[Rule] = [
 
 async def compute_action_center(db: Session) -> ActionCenterResponse:
     try:
-        ctx = AuditContext(db=db, now=datetime.now())
+        ctx = AuditContext(db=db, now=now_local())
         actions: list[ActionItem] = []
         for rule in RULES:
             try:

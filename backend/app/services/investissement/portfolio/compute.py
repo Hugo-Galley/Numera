@@ -9,6 +9,7 @@ from datetime import datetime
 from sqlalchemy.orm import Session
 
 from app.core.i18n import tr
+from app.core.time import now_local
 from app.domain.holdings import EPSILON
 from app.domain.performance import xirr
 from app.domain.portfolio import MIN_XIRR_DAYS, PRE_INVENTORY_RATIO, uses_positions
@@ -144,7 +145,7 @@ async def compute_portfolio(db: Session, account: Account, *, fetch: bool = True
 
 
 async def _compute_portfolio(db: Session, account: Account, *, fetch: bool, history: bool) -> dict:
-    today = datetime.now()
+    today = now_local()
     today_day = today.date()
     currency = account.currency
     rate = _account_rate(await get_exchange_rates("EUR"), currency)  # unités de la devise du compte pour 1 EUR

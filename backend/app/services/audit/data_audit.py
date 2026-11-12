@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.core.errors import NotFoundError
 from app.core.i18n import tr
+from app.core.time import now_local
 from app.domain.transactions import tx_read, tx_sample
 from app.domain.transfers import strict_matches
 from app.models.transaction import Transaction
@@ -16,7 +17,7 @@ from app.services.audit.context import unallocated_reimbursements_query
 
 
 def compute_data_audit(db: Session) -> DataAuditResponse:
-    now = datetime.now()
+    now = now_local()
     total_transactions = repo.transaction_count(db)
     active_accounts = repo.active_account_count(db)
     accounts = balances.active_accounts(db, by_name=True)
@@ -255,9 +256,9 @@ def compute_data_audit_issue(db: Session, issue_id: str) -> dict:
     if issue_id == "duplicate-transactions":
         return {"issue_id": issue_id, "duplicate_groups": _duplicate_groups(db)}
     if issue_id == "unmatched-transfers":
-        return {"issue_id": issue_id, "transfer_pairs": _transfer_pairs(db, datetime.now())}
+        return {"issue_id": issue_id, "transfer_pairs": _transfer_pairs(db, now_local())}
     if issue_id == "unallocated-reimbursements":
-        query = unallocated_reimbursements_query(db, datetime.now())
+        query = unallocated_reimbursements_query(db, now_local())
         transactions = query.limit(200).all() if query is not None else []
         return {"issue_id": issue_id, "transactions": [tx_read(tx) for tx in transactions]}
     raise NotFoundError(tr("errors.audit_issue_not_found"))

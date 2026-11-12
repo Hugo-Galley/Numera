@@ -1,8 +1,9 @@
 """Abonnements et charges fixes : récurrences, abonnements détectés, hausses de prix, total mensuel."""
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from sqlalchemy.orm import Session
 
+from app.core.time import now_local
 from app.domain.finance import get_recurring_occurrences, is_lapsed
 from app.domain.subscription_prices import PriceChange, price_change_id
 from app.domain.subscriptions import counted_in_kind_total, recurring_costs, subscription_kind
@@ -51,8 +52,8 @@ def _recurring_insight(db: Session, rd, rates: dict) -> SubscriptionInsight:
     )
     last_tx = repo.last_occurrence(db, rd.id)
     # Prochaine échéance sur un peu plus d'un an : une récurrence annuelle a aussi sa prochaine date
-    next_occs = get_recurring_occurrences(rd, datetime.now(), datetime.now() + timedelta(days=400))
-    lapsed = bool(rd.is_active) and is_lapsed(rd.frequency, last_tx.date if last_tx else None, datetime.now())
+    next_occs = get_recurring_occurrences(rd, now_local(), now_local() + timedelta(days=400))
+    lapsed = bool(rd.is_active) and is_lapsed(rd.frequency, last_tx.date if last_tx else None, now_local())
     return SubscriptionInsight(
         name=rd.name,
         category_name=rd.category.name if rd.category else "Abonnement",
@@ -75,7 +76,7 @@ def _recurring_insight(db: Session, rd, rates: dict) -> SubscriptionInsight:
 def _potential_insights(db: Session, account_id: int | None, known: list[SubscriptionInsight]) -> list[SubscriptionInsight]:
     """Abonnements probables : même marchand et même montant répétés sur 90 jours, hors récurrences connues."""
     found: list[SubscriptionInsight] = []
-    for p in repo.potential_subscriptions(db, datetime.now() - timedelta(days=90), account_id):
+    for p in repo.potential_subscriptions(db, now_local() - timedelta(days=90), account_id):
         if any(s.name.lower() == p.merchant.lower() for s in known + found):
             continue
         monthly_cost = float(p.amount)

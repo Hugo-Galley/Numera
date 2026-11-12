@@ -3,6 +3,7 @@ from datetime import datetime
 
 from sqlalchemy.orm import Session
 
+from app.core.time import now_local
 from app.domain.portfolio import uses_positions
 from app.integrations.currency import get_exchange_rates
 from app.models.account import Account
@@ -22,7 +23,7 @@ async def compute_investments(db: Session, month: int | None = None, year: int |
     accounts = repo.investment_accounts(db, account_id if scoped else None)
     rates = await get_exchange_rates("EUR")
     start_date = None
-    end_date = datetime.now()
+    end_date = now_local()
     if month and year:
         # Fenêtre du mois budgétaire (mois de paie en mode « salaire »), comme les autres KPI mensuels
         start_date, end_date = period_bounds(db, year, month)

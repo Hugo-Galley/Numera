@@ -5,7 +5,7 @@ from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from app.core.logging import get_logger
-from app.core.time import utcnow_naive
+from app.core.time import today_local, utcnow_naive
 from app.domain.salary import salary_amount, salary_note
 from app.models.category import Category
 from app.models.salary_config import SalaryConfig
@@ -159,7 +159,7 @@ def check_and_generate_pending_salaries(db: Session, today: date | None = None) 
     if not config:
         return 0
 
-    today = today or date.today()
+    today = today or today_local()
     pending_months = db.query(SalaryMonth).filter(
         SalaryMonth.salary_config_id == config.id,
         or_(SalaryMonth.is_generated == False, SalaryMonth.salary_date >= today - timedelta(days=31)),

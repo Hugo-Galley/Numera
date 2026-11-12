@@ -3,6 +3,7 @@ from datetime import datetime
 
 from sqlalchemy.orm import Session
 
+from app.core.time import now_local
 from app.domain.metrics import kpi_row, savings_at
 from app.integrations.currency import get_exchange_rates
 from app.models.investment_transaction import InvestmentTransaction
@@ -17,7 +18,7 @@ def _add(totals: dict[str, float], key: str, amount: float) -> None:
 
 
 async def compute_kpi_history(db: Session, months_count: int = 6, account_id: int | None = None) -> list[dict]:
-    now = datetime.now()
+    now = now_local()
     savings_ids = savings_account_ids(db)
     if account_id:
         savings_ids = [account_id] if account_id in savings_ids else []

@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.core.i18n import tr
 from app.core.logging import get_logger
+from app.core.time import today_local
 from app.db.system_settings import get_setting, set_setting
 from app.domain.tax import (
     PeeLot,
@@ -163,12 +164,12 @@ async def build_overview(db: Session, today: date, precaution_months: float | No
 
 async def annual_report(db: Session, year: int | None) -> AnnualReport:
     """Rapport fiscal de l'année demandée (année en cours par défaut)."""
-    return await build_annual_report(db, year or date.today().year)
+    return await build_annual_report(db, year or today_local().year)
 
 
 async def tax_overview(db: Session, today: date | None = None) -> TaxOverview:
     """Vue fiscale du jour ; sans épargne de précaution calculable, le conseil reste donné (`precaution_months` None)."""
-    today = today or date.today()
+    today = today or today_local()
     try:
         months = (await compute_resilience(db, today.year, today.month))["months"]
     except Exception as exc:  # le conseil reste utile sans l'épargne de précaution
