@@ -73,7 +73,7 @@ export function PointZeroSearch({ ctx }: { ctx: PointZeroModalCtx }) {
                       <CompanyLogo
                         ticker={item.symbol}
                         name={item.name}
-                        isin={item.isin}
+                        isin={item.isin ?? undefined}
                         className="h-7 w-7 rounded-md shrink-0 shadow-2xs"
                       />
                       <div className="flex flex-col min-w-0">

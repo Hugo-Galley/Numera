@@ -1,3 +1,4 @@
+import type { EtfProfile } from "./types"
 import i18n from "i18next"
 import { useTranslation } from "react-i18next"
 import { errorMessage } from "@/lib/utils"
@@ -23,7 +24,7 @@ interface CustomEtfModalProps {
   initialTicker?: string
   initialName?: string
   initialIsin?: string
-  onProfileCreated?: (profile: any) => void
+  onProfileCreated?: (profile: EtfProfile) => void
 }
 
 export function CustomEtfModal({

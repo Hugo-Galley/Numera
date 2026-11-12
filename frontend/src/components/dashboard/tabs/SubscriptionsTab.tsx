@@ -98,7 +98,7 @@ export function SubscriptionsTab({ subscriptions, displayCurrency }: Subscriptio
               <Pie data={items} cx="50%" cy="50%" innerRadius={isMobile ? 60 : 80} outerRadius={isMobile ? 85 : 110} paddingAngle={4} dataKey="monthly_cost" nameKey="name">
                 {items.map((_, i: number) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
               </Pie>
-              <Tooltip contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} formatter={(v: number) => formatAmountWithShare(v, items.reduce((s: number, i: any) => s + (i.monthly_cost || 0), 0), displayCurrency)} />
+              <Tooltip contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} formatter={(v: number) => formatAmountWithShare(v, items.reduce((s, i) => s + (i.monthly_cost || 0), 0), displayCurrency)} />
             </PieChart>
           </ResponsiveContainer>
           </div>

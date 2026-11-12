@@ -1,3 +1,4 @@
+import type { MarketAsset } from "./types"
 import i18n from "i18next"
 import { useTranslation } from "react-i18next"
 import { formatCurrency } from "@/lib/utils"
@@ -12,12 +13,12 @@ import { getMarketSearch, getMarketValidate } from "@/lib/api/investments"
 export interface SelectedAsset {
   symbol: string
   name: string
-  isin?: string
+  isin?: string | null
   type?: string
   currency?: string
-  price?: number
-  price_eur?: number
-  etf_profile_id?: number
+  price?: number | null
+  price_eur?: number | null
+  etf_profile_id?: number | null
 }
 
 interface SecuritySearchInputProps {
@@ -43,7 +44,7 @@ export function SecuritySearchInput({
 }: SecuritySearchInputProps) {
   const { t } = useTranslation("investments")
   const [query, setQuery] = useState("")
-  const [results, setResults] = useState<any[]>([])
+  const [results, setResults] = useState<MarketAsset[]>([])
   const [isSearching, setIsSearching] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
 
@@ -136,7 +137,7 @@ export function SecuritySearchInput({
     }
   }, [ticker, isin])
 
-  const handleSelect = (asset: any) => {
+  const handleSelect = (asset: MarketAsset) => {
     setIsOpen(false)
     setQuery("")
     onSelectAsset({
@@ -204,7 +205,7 @@ export function SecuritySearchInput({
                   <CompanyLogo
                     ticker={asset.symbol}
                     name={asset.name}
-                    isin={asset.isin}
+                    isin={asset.isin ?? undefined}
                     className="h-7 w-7 rounded-md shrink-0 shadow-2xs"
                   />
                   <div className="min-w-0">

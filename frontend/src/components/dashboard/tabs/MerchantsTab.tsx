@@ -36,7 +36,7 @@ export function MerchantsTab({ topMerchants, displayCurrency, drilldownScope }: 
   const { workTime } = useWorkTime()
   const rate = displayCurrency === "EUR" ? workTime?.hourly_rate : null
   const formatTooltip = (v: number) => {
-    const amount = formatAmountWithShare(v, topMerchants.reduce((s: number, m: any) => s + (m.total || 0), 0), displayCurrency)
+    const amount = formatAmountWithShare(v, topMerchants.reduce((s, m) => s + (m.total || 0), 0), displayCurrency)
     return rate ? `${amount} (${t("workHours.approx", { ns: "common", duration: formatWorkDuration(v / rate, workTime!.work_hours_per_day) })})` : amount
   }
 

@@ -12,8 +12,10 @@ import {
 } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
 
+import type { DashboardAccount } from "./types"
+
 interface DashboardHeaderProps {
-  accounts: any[]
+  accounts: DashboardAccount[]
   selectedAccountId: string
   setSelectedAccountId: (v: string) => void
   month: number

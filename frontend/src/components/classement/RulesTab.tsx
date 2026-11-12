@@ -1,3 +1,4 @@
+import type { ApiResponse } from "@/lib/api/types"
 import i18n from "i18next"
 import { useTranslation } from "react-i18next"
 import { useEffect, useState } from "react"
@@ -37,8 +38,8 @@ import { deleteCategorizationRulesById, getCategories, getCategorizationRules, p
 export function RulesTab() {
   const { t } = useTranslation("classement")
   const confirm = useConfirm()
-  const [rules, setRules] = useState<any[]>([])
-  const [categories, setCategories] = useState<any[]>([])
+  const [rules, setRules] = useState<ApiResponse<"/categorization-rules/", "get">>([])
+  const [categories, setCategories] = useState<ApiResponse<"/categories", "get">>([])
   const [loading, setLoading] = useState(true)
   const [loadFailed, setLoadFailed] = useState(false)
   const [isAddOpen, setIsAddOpen] = useState(false)
@@ -233,7 +234,7 @@ export function RulesTab() {
                       <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-0.5">
                         {category && (
                           <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 border-slate-200">
-                             <div className="h-1.5 w-1.5 rounded-full mr-1.5" style={{ backgroundColor: category.color }} />
+                             <div className="h-1.5 w-1.5 rounded-full mr-1.5" style={{ backgroundColor: category.color ?? undefined }} />
                              {category.name}
                           </Badge>
                         )}

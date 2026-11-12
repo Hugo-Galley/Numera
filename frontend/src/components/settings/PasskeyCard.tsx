@@ -2,7 +2,7 @@ import { useTranslation } from "react-i18next"
 import { appLocale } from "@/i18n/locale"
 import { useCallback, useEffect, useState } from "react"
 import { Fingerprint, Trash2 } from "lucide-react"
-import { createCredential, passkeySupported, serializeCredential } from "@/lib/passkey"
+import { createCredential, passkeySupported, serializeCredential, type PasskeyOptionsJSON } from "@/lib/passkey"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useConfirm } from "@/providers/ConfirmProvider"
@@ -44,7 +44,7 @@ export function PasskeyCard() {
     if (!auth) return
     setBusy(true)
     try {
-      const { options, state } = await postAuthPasskeyRegisterOptions<{ options: any; state: string }>({ current_password: auth.current_password })
+      const { options, state } = await postAuthPasskeyRegisterOptions<{ options: PasskeyOptionsJSON; state: string }>({ current_password: auth.current_password })
       const credential = await createCredential(options)
       if (!credential) return
       const name = /iPhone|iPad/.test(navigator.userAgent) ? "iPhone / iPad" : /Mac/.test(navigator.userAgent) ? "Mac" : "Appareil"

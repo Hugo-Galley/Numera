@@ -28,7 +28,7 @@ export default function Login() {
 
   // Retour après connexion : état du routeur (ProtectedRoute) ou ?from= (session expirée en cours de route).
   // Seuls les chemins internes sont acceptés (pas de redirection vers un site externe).
-  const stateFrom = (location.state as any)?.from
+  const stateFrom = (location.state as { from?: { pathname: string; search?: string } } | null)?.from
   const queryFrom = searchParams.get("from")
   const candidate = stateFrom ? `${stateFrom.pathname}${stateFrom.search || ""}` : queryFrom
   const from = candidate && candidate.startsWith("/") && !candidate.startsWith("//") && !candidate.startsWith("/login") ? candidate : "/"

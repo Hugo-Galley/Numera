@@ -65,6 +65,6 @@ export function useRecurringForm(p: ReturnType<typeof useRecurringState>) {
   const countedSubs = activeSubs.filter((s) => s.in_kind_total)
   const monthlyTotal: number = subsData?.totals_by_kind?.[subTab]?.monthly ?? 0
   const annualTotal: number = subsData?.totals_by_kind?.[subTab]?.annual ?? 0
-  const monthlyBreakdown = [...countedSubs].sort((a: any, b: any) => b.monthly_cost - a.monthly_cost)
+  const monthlyBreakdown = [...countedSubs].sort((a, b) => b.monthly_cost - a.monthly_cost)
   return { formData, setFormData, selectedAccount, transferDest, transferToInvestment, isInvestment, showSecurities, accountIsInvestment, allSubs, activeSubs, potentialSubs, countedSubs, monthlyTotal, annualTotal, monthlyBreakdown }
 }

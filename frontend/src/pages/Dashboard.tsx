@@ -3,6 +3,7 @@ import { useState, useCallback, useEffect } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { toast } from "sonner"
 import { useTranslation } from "react-i18next"
+import type { DashboardAccount } from "@/components/dashboard/types"
 import { useDashboardData } from "@/components/dashboard/useDashboardData"
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader"
 import { DashboardKPIs } from "@/components/dashboard/DashboardKPIs"
@@ -24,7 +25,7 @@ export default function Dashboard() {
   const { t } = useTranslation("dashboard")
   const [month, setMonth] = useState(new Date().getMonth() + 1)
   const [year, setYear] = useState(new Date().getFullYear())
-  const [accounts, setAccounts] = useState<any[]>([])
+  const [accounts, setAccounts] = useState<DashboardAccount[]>([])
   const period = useBudgetPeriod(year, month)
   // Le premier chargement attend le mois budgétaire (sinon deux lots de requêtes : mois civil, puis mois de paie)
   const [monthResolved, setMonthResolved] = useState(false)

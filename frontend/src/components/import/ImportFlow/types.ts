@@ -24,3 +24,5 @@ export type ImportFlowProps = {
   /** Appelé après un import qui a inséré au moins une ligne */
   onImported?: () => void
 }
+
+export type ImportResult = ApiResponse<"/import/commit", "post">

@@ -63,7 +63,7 @@ export function AdvancedCharts({ ctx }: { ctx: InvestmentsCtx }) {
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} className="hover:opacity-80 transition-opacity" />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value: number) => formatAmountWithShare(value, (advancedAllocation?.by_asset_class || []).reduce((s: number, i: any) => s + (i.value || 0), 0))} />
+                  <Tooltip formatter={(value: number) => formatAmountWithShare(value, (advancedAllocation?.by_asset_class || []).reduce((s, i) => s + (i.value || 0), 0))} />
                 </PieChart>
               </ResponsiveContainer>
             </div>
@@ -122,7 +122,7 @@ export function AdvancedCharts({ ctx }: { ctx: InvestmentsCtx }) {
                             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} className="hover:opacity-80 transition-opacity" />
                           ))}
                         </Pie>
-                        <Tooltip formatter={(value: number) => formatAmountWithShare(value, sectorData.reduce((s: number, i: any) => s + (i.value || 0), 0))} />
+                        <Tooltip formatter={(value: number) => formatAmountWithShare(value, sectorData.reduce((s, i) => s + (i.value || 0), 0))} />
                       </PieChart>
                     </ResponsiveContainer>
                   </div>

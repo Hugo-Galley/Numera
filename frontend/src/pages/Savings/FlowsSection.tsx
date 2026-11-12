@@ -45,7 +45,7 @@ export function FlowsSection({ ctx }: { ctx: SavingsCtx }) {
                     }]} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
                       <XAxis type="number" hide />
                       <YAxis dataKey="name" type="category" hide />
-                      <Tooltip cursor={{fill: 'transparent'}} formatter={(v: number, _n: string, item: any) => shareLabel(v, item?.payload, ['Cash', 'Investissements'])} contentStyle={{ fontSize: '12px', borderRadius: '8px', border: 'none', boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} />
+                      <Tooltip cursor={{fill: 'transparent'}} formatter={(v: number, _n: string, item: { payload?: Record<string, unknown> }) => shareLabel(v, item?.payload, ['Cash', 'Investissements'])} contentStyle={{ fontSize: '12px', borderRadius: '8px', border: 'none', boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} />
                       <ReferenceLine x={0} stroke="#e2e8f0" />
                       <Bar dataKey="Cash" name={i18n.t("misc.cash", { ns: "savings" })} stackId="a" fill={(analytics?.reste_tresorerie || 0) >= 0 ? "#94a3b8" : "#f43f5e"} radius={[4, 4, 4, 4]} barSize={12} />
                       <Bar dataKey="Investissements" name={i18n.t("misc.investments", { ns: "savings" })} stackId="a" fill="#0f172a" radius={[4, 4, 4, 4]} barSize={12} />
@@ -108,7 +108,7 @@ export function FlowsSection({ ctx }: { ctx: SavingsCtx }) {
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                   <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} dy={10} interval="preserveStartEnd" minTickGap={12} />
                   <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} tickFormatter={(v) => `${v}€`} />
-                  <Tooltip cursor={{ fill: '#f8fafc' }} formatter={(v: number, _n: string, item: any) => shareLabel(v, item?.payload, ['cash_flow', 'investissements', 'interets'])} contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} />
+                  <Tooltip cursor={{ fill: '#f8fafc' }} formatter={(v: number, _n: string, item: { payload?: Record<string, unknown> }) => shareLabel(v, item?.payload, ['cash_flow', 'investissements', 'interets'])} contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} />
                   <Legend verticalAlign="top" height={36} wrapperStyle={{ fontSize: '12px', paddingBottom: '20px' }}/>
                   <Bar dataKey="cash_flow" name={i18n.t("misc.cashLeft", { ns: "savings" })} stackId="a" fill="#94a3b8" radius={[0, 0, 0, 0]} maxBarSize={40} />
                   <Bar dataKey="investissements" name={i18n.t("misc.investments", { ns: "savings" })} stackId="a" fill="#0f172a" radius={[0, 0, 0, 0]} maxBarSize={40} />
