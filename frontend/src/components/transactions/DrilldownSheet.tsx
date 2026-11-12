@@ -11,7 +11,7 @@ import { ErrorState } from "@/components/layout/ErrorState"
 import { readDrilldown, useDrilldown } from "@/hooks/useDrilldown"
 import { formatCurrency } from "@/lib/utils"
 import { getAccounts } from "@/lib/api/accounts"
-import { getTransactions } from "@/lib/api/transactions"
+import { getTransactions, getTransactionsTotal } from "@/lib/api/transactions"
 
 interface DrilldownTransaction {
   id: number
@@ -42,6 +42,8 @@ export function DrilldownSheet() {
   const filters = useMemo(() => readDrilldown(searchParams), [searchParams])
   const { closeDrilldown } = useDrilldown()
   const [rows, setRows] = useState<DrilldownTransaction[]>([])
+  // Nombre et total net calculés par le backend sur toute la sélection (la liste, elle, est tronquée)
+  const [summary, setSummary] = useState<{ count: number; total: number } | null>(null)
   const [accounts, setAccounts] = useState<Record<number, AccountOption>>({})
   const [loading, setLoading] = useState(false)
   const [failed, setFailed] = useState(false)
@@ -53,6 +55,7 @@ export function DrilldownSheet() {
     if (!filters) return
     let cancelled = false
     setRows([])
+    setSummary(null)
     setLoading(true)
     setFailed(false)
     const params = new URLSearchParams({
@@ -61,7 +64,6 @@ export function DrilldownSheet() {
       period: "true",
       type: "Sortie",
       is_transfer: "false",
-      limit: String(DRILLDOWN_LIMIT),
     })
     if (filters.categoryId === null) params.set("uncategorized", "true")
     else if (filters.categoryId !== undefined) params.set("category_id", String(filters.categoryId))
@@ -69,13 +71,18 @@ export function DrilldownSheet() {
     if (filters.accountId) params.set("account_id", String(filters.accountId))
     else params.set("budget_scope", "true")
 
+    const totalParams = new URLSearchParams(params)
+    params.set("limit", String(DRILLDOWN_LIMIT))
+
     Promise.all([
       getTransactions<DrilldownTransaction[]>(`?${params.toString()}`),
+      getTransactionsTotal(`?${totalParams.toString()}`),
       getAccounts<AccountOption[]>(),
     ])
-      .then(([txs, accs]) => {
+      .then(([txs, totals, accs]) => {
         if (cancelled) return
         setRows(txs)
+        setSummary(totals)
         setAccounts(Object.fromEntries(accs.map((a) => [a.id, a])))
       })
       .catch(() => !cancelled && setFailed(true))
@@ -86,7 +93,8 @@ export function DrilldownSheet() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key, reload])
 
-  // Montant attribué à la catégorie filtrée : la part pour une dépense découpée, net des remboursements
+  // Part affichée sur chaque ligne : la part de la catégorie filtrée pour une dépense découpée, nette des remboursements
+  // (le total de la sélection, lui, vient du backend : `GET /transactions/total`)
   const shareOf = (tx: DrilldownTransaction) => {
     const net = tx.amount - (tx.reimbursement_offset ?? 0)
     if (filters?.categoryId && tx.splits?.length) {
@@ -98,9 +106,6 @@ export function DrilldownSheet() {
 
   const currencyOf = (tx: DrilldownTransaction) => accounts[tx.account_id]?.currency ?? "EUR"
   const sameCurrency = rows.every((tx) => currencyOf(tx) === "EUR")
-  // Liste tronquée : le total partiel serait faux, on ne l'affiche pas
-  const truncated = rows.length >= DRILLDOWN_LIMIT
-  const total = rows.reduce((sum, tx) => sum + shareOf(tx), 0)
 
   return (
     <Sheet open={filters !== null} onOpenChange={(open) => !open && closeDrilldown()}>
@@ -113,9 +118,7 @@ export function DrilldownSheet() {
           <SheetDescription>
             {t("drilldownSheet.expensesOf", { period: filters ? `${monthName(filters.month).toLowerCase()} ${filters.year}` : "" })}
             {filters?.accountId && accounts[filters.accountId] ? ` · ${accounts[filters.accountId].name}` : ""}
-            {!loading && rows.length > 0 && sameCurrency && (truncated
-              ? <> · {DRILLDOWN_LIMIT}+ opérations</>
-              : <> · {rows.length} opérations · {formatCurrency(total)}</>)}
+            {!loading && summary && rows.length > 0 && sameCurrency && <> · {summary.count} opérations · {formatCurrency(summary.total)}</>}
           </SheetDescription>
         </SheetHeader>
 
