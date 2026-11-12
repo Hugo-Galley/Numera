@@ -8,6 +8,7 @@ from app.models.account import Account
 from app.models.category import Category
 from app.models.recurring_transaction import RecurringTransaction
 from app.models.transaction import Transaction
+from app.repositories.types import Rows
 
 
 def recurrings(db: Session, account_id: int | None, include_other: bool) -> list[RecurringTransaction]:
@@ -25,7 +26,7 @@ def last_occurrence(db: Session, recurring_id: int) -> Transaction | None:
     ).order_by(Transaction.date.desc()).first()
 
 
-def potential_subscriptions(db: Session, since: datetime, account_id: int | None) -> list:
+def potential_subscriptions(db: Session, since: datetime, account_id: int | None) -> Rows:
     """Sorties répétées (même marchand, même montant, au moins deux) hors récurrences et ignorées."""
     query = db.query(
         Transaction.merchant,
@@ -53,7 +54,7 @@ def ignore_detection(db: Session, merchant: str, amount: float) -> None:
     ).update({"is_subscription_ignored": True}, synchronize_session=False)
 
 
-def subscription_category_rows(db: Session, start: datetime, end: datetime, tr_accounts: set[int]) -> list:
+def subscription_category_rows(db: Session, start: datetime, end: datetime, tr_accounts: set[int]) -> Rows:
     """Sorties de catégorie « Abonnement » par devise, hors tickets restaurant."""
     query = (
         db.query(Account.currency, func.coalesce(func.sum(Transaction.amount), 0.0).label("total"))

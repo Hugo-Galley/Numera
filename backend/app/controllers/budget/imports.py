@@ -1,3 +1,5 @@
+from typing import TYPE_CHECKING, Any
+
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 
@@ -7,6 +9,9 @@ from app.db.session import get_db
 from app.schemas.imports import ImportLogRead, ImportPreview, ImportResult
 from app.services.budget import imports as service
 from app.services.systeme.demo import DEMO_MAX_UPLOAD_BYTES
+
+if TYPE_CHECKING:
+    from app.models.import_log import ImportLog
 
 router = APIRouter(prefix="/import", tags=["import"])
 
@@ -27,7 +32,7 @@ async def _read_upload(file: UploadFile) -> bytes:
 
 
 @router.get("/logs", response_model=list[ImportLogRead])
-def get_import_logs(limit: int = 10, db: Session = Depends(get_db)):
+def get_import_logs(limit: int = 10, db: Session = Depends(get_db)) -> "list[ImportLog]":
     return service.get_import_logs(db, limit)
 
 
@@ -36,7 +41,7 @@ async def preview_import(
     file: UploadFile = File(...),
     sample_size: int = Form(default=20, ge=1, le=200),
     db: Session = Depends(get_db),
-):
+) -> dict[str, Any]:
     return service.preview_import(db, await _read_upload(file), file.filename, sample_size)
 
 
@@ -47,7 +52,7 @@ def commit_import(
     create_missing_categories: bool = Form(default=True),
     category_mapping: str | None = Form(default=None),
     db: Session = Depends(get_db),
-):
+) -> dict[str, Any]:
     return run_async(service.commit_import(
         db, account_id, lambda: _read_upload(file), file.filename, create_missing_categories, category_mapping,
     ))

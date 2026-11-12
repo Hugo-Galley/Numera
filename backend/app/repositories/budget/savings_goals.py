@@ -46,4 +46,4 @@ def goal_rows(db: Session, goal: SavingsGoal) -> list[tuple[str, float, str]]:
             Transaction.merchant.ilike(f"%{goal.keyword}%"),
             Category.name.ilike(f"%{goal.keyword}%")
         ))
-    return query.all()
+    return list(query.all())

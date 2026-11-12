@@ -1,6 +1,6 @@
 import re
 from datetime import datetime
-from typing import Annotated, Literal
+from typing import Annotated, Literal, Self
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
@@ -76,7 +76,7 @@ class RecurringTransactionCreate(RecurringTransactionBase):
     unit_price: Quantity | None = None
 
     @model_validator(mode="after")
-    def _validate_period(self):
+    def _validate_period(self) -> Self:
         _check_period(self.start_date, self.end_date)
         return self
 

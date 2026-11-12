@@ -8,6 +8,7 @@ import json
 from collections import Counter
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
+from typing import Any
 
 from sqlalchemy.orm import Session
 
@@ -47,7 +48,7 @@ def get_import_logs(db: Session, limit: int) -> list[ImportLog]:
     return repo.recent_logs(db, limit)
 
 
-def preview_import(db: Session, content: bytes, filename: str | None, sample_size: int) -> dict:
+def preview_import(db: Session, content: bytes, filename: str | None, sample_size: int) -> dict[str, Any]:
     rows, delimiter, raw_headers = parse_csv(content)
     category_names = set(repo.categories_by_name(db))
     unknown = sorted({
@@ -58,7 +59,7 @@ def preview_import(db: Session, content: bytes, filename: str | None, sample_siz
     rows = [r for r in rows if not is_blank(r)]
     preview_rows = []
     invalid_rows = 0
-    repeated: Counter = Counter()
+    repeated: Counter[Any] = Counter()
     for index, row in enumerate(rows):
         try:
             parsed = parse_row(row)
@@ -90,7 +91,7 @@ def preview_import(db: Session, content: bytes, filename: str | None, sample_siz
     }
 
 
-def _preview_warnings(rows: list[dict], repeated: Counter) -> list[str]:
+def _preview_warnings(rows: list[dict[str, Any]], repeated: Counter[Any]) -> list[str]:
     warnings: list[str] = []
     if not any((r.get("Type") or "").strip() for r in rows):
         warnings.append(tr("import.warn_no_type"))
@@ -105,20 +106,20 @@ class _ImportRun:
     """État d'un import en cours : compteurs, catégories connues, détection de doublons."""
     account: Account
     categories: dict[str, Category]
-    mapping: dict
+    mapping: dict[str, Any]
     create_missing_categories: bool
-    existing_counts: Counter
+    existing_counts: Counter[Any]
     has_initial_balance: bool
     running_balance: float
-    rules: list = field(default_factory=list)
+    rules: list[Any] = field(default_factory=list)
     imported: int = 0
     skipped: int = 0
     errors: int = 0
     created_categories: int = 0
     merchant_ids: dict[str, int] = field(default_factory=dict)
-    seen_in_file: Counter = field(default_factory=Counter)
+    seen_in_file: Counter[Any] = field(default_factory=Counter)
     error_samples: list[str] = field(default_factory=list)
-    error_details: list[dict] = field(default_factory=list)
+    error_details: list[dict[str, Any]] = field(default_factory=list)
 
     def record_error(self, line: int, reason: str) -> None:
         self.errors += 1
@@ -128,11 +129,12 @@ class _ImportRun:
             self.error_samples.append(f"Ligne {line} : {reason}")
 
 
-def _parse_mapping(category_mapping: str | None) -> dict:
+def _parse_mapping(category_mapping: str | None) -> dict[str, Any]:
     if not category_mapping:
         return {}
     try:
-        return json.loads(category_mapping)
+        mapping: dict[str, Any] = json.loads(category_mapping)
+        return mapping
     except ValueError:  # JSONDecodeError
         raise BusinessRuleError(tr("errors.category_mapping_json")) from None
 
@@ -229,7 +231,7 @@ def _log_import(db: Session, run: _ImportRun, filename: str | None, delimiter: s
     ))
 
 
-def _start_run(db: Session, account: Account, mapping: dict, create_missing_categories: bool) -> _ImportRun:
+def _start_run(db: Session, account: Account, mapping: dict[str, Any], create_missing_categories: bool) -> _ImportRun:
     last = balances_repo.latest_transaction(db, account.id)
     run = _ImportRun(
         account=account,
@@ -245,7 +247,7 @@ def _start_run(db: Session, account: Account, mapping: dict, create_missing_cate
 
 
 async def commit_import(db: Session, account_id: int, read_content: Callable[[], Awaitable[bytes]],
-                        filename: str | None, create_missing_categories: bool, category_mapping: str | None) -> dict:
+                        filename: str | None, create_missing_categories: bool, category_mapping: str | None) -> dict[str, Any]:
     """Importe le fichier dans le compte ; `read_content` n'est lu qu'après validation du compte et du mapping."""
     logger.info(f"Starting CSV import: file={filename}, account_id={account_id}")
     account = account_repo.get(db, account_id)

@@ -1,5 +1,6 @@
 """Dépenses par tag."""
 from datetime import datetime
+from typing import Any
 
 from sqlalchemy.orm import Session
 
@@ -18,7 +19,7 @@ logger = get_logger(__name__)
 
 async def compute_tags(db: Session, month: int | None = None, year: int | None = None,
                        start_date: datetime | None = None, end_date: datetime | None = None,
-                       account_id: int | None = None) -> list[dict]:
+                       account_id: int | None = None) -> list[dict[str, Any]]:
     try:
         start = start_date
         end = end_date or end_of_today()

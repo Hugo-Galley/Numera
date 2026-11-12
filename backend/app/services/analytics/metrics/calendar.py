@@ -1,5 +1,6 @@
 """Calendrier du mois : transactions réelles, récurrences projetées et solde jour par jour."""
 from datetime import datetime, timedelta
+from typing import Any
 
 from sqlalchemy.orm import Session
 
@@ -8,13 +9,14 @@ from app.domain.finance import get_recurring_occurrences, month_label_from_date
 from app.domain.metrics import daily_balances
 from app.domain.recurring import transfer_credit_date
 from app.integrations.currency import get_exchange_rates
+from app.models.account import Account
 from app.models.recurring_transaction import RecurringTransaction
 from app.repositories.analytics import metrics as repo
 from app.repositories.analytics.common import active_recurrings, ticket_restaurant_account_ids
 from app.repositories.comptes import balances
 
 
-async def compute_calendar(db: Session, month: int, year: int, account_id: int | None = None) -> dict:
+async def compute_calendar(db: Session, month: int, year: int, account_id: int | None = None) -> dict[str, Any]:
     start_month = datetime(year, month, 1)
     end_month = datetime(year + 1, 1, 1) if month == 12 else datetime(year, month + 1, 1)
     today = now_local().replace(hour=0, minute=0, second=0, microsecond=0)
@@ -39,7 +41,7 @@ async def compute_calendar(db: Session, month: int, year: int, account_id: int |
     }
 
 
-def _opening_balances(db: Session, accounts: list, account_id: int | None, sim_start: datetime) -> dict[int, float]:
+def _opening_balances(db: Session, accounts: list[Any], account_id: int | None, sim_start: datetime) -> dict[int, float]:
     """Dernier solde courant avant le début de la simulation (du compte, ou de chaque compte actif)."""
     ids = [account_id] if account_id else [a.id for a in accounts if a.active]
     last = balances.latest_balances_by_account(db, ids, sim_start)
@@ -47,7 +49,7 @@ def _opening_balances(db: Session, accounts: list, account_id: int | None, sim_s
 
 
 def _projected_events(db: Session, start: datetime, end: datetime, account_id: int | None, tr_accounts: set[int],
-                      real_txs: list, real_inv_txs: list, accounts: list, rates: dict) -> list[dict]:
+                      real_txs: list[Any], real_inv_txs: list[Any], accounts: list[Any], rates: dict[str, Any]) -> list[dict[str, Any]]:
     """Occurrences des récurrences actives non encore réalisées (même récurrence, même jour)."""
     realized = {(tx.recurring_transaction_id, tx.date.date()) for tx in real_txs if tx.recurring_transaction_id is not None}
     for tx in real_inv_txs:
@@ -93,7 +95,7 @@ def _projected_events(db: Session, start: datetime, end: datetime, account_id: i
     return events
 
 
-def _incoming_transfer_event(rd: RecurringTransaction, when: datetime, amount: float, name: str, dest, rates: dict) -> dict:
+def _incoming_transfer_event(rd: RecurringTransaction, when: datetime, amount: float, name: str, dest: Account, rates: dict[str, Any]) -> dict[str, Any]:
     """Entrée projetée d'un virement récurrent sur le compte de destination, dans sa devise."""
     converted = amount / rates.get(rd.currency, 1.0) * rates.get(dest.currency, 1.0)
     return {
@@ -141,7 +143,7 @@ def _salary_projection(db: Session, rd: RecurringTransaction, occ: datetime) -> 
     return proj_date, proj_amount, proj_note
 
 
-def _real_events(real_txs: list, real_inv_txs: list) -> list[dict]:
+def _real_events(real_txs: list[Any], real_inv_txs: list[Any]) -> list[dict[str, Any]]:
     events = [{
         "id": f"tx_{tx.id}",
         "date": tx.date.isoformat(),

@@ -1,6 +1,7 @@
 """Logique de la revue de fin de mois : bornes, étape 1, top dépenses, lecture « hors exceptionnel »."""
 import json
 from datetime import datetime
+from typing import Any
 
 from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
@@ -15,6 +16,7 @@ from app.models.transaction import Transaction
 from app.repositories.analytics.common import NET_AMOUNT, ticket_restaurant_account_ids
 from app.repositories.budget import month_review as repo
 from app.repositories.comptes import balances
+from app.repositories.types import QueryT
 from app.schemas.month_review import CloseRequest, ClosureRead
 from app.services.analytics.budget import compute_budget, compute_budget_alerts
 from app.services.budget.budget_period import period_bounds
@@ -63,12 +65,12 @@ def exceptional_expenses(
     return float(sum(total / rates.get(currency, 1.0) for currency, total in rows))
 
 
-def savings_basis(budget: dict) -> float:
+def savings_basis(budget: dict[str, Any]) -> float:
     """Montant épargné, numérateur du taux d'épargne de `budget_analytics` : revenus − dépenses réelles, en vue globale comme en vue compte."""
     return float(budget["revenus_totaux"]) - float(budget["depenses_reelles"])
 
 
-def without_exceptional(budget: dict, exceptional: float) -> dict:
+def without_exceptional(budget: dict[str, Any], exceptional: float) -> dict[str, Any]:
     """Lecture « hors exceptionnel » à partir du dict de `budget_analytics` ; les totaux officiels ne bougent pas.
 
     Le taux officiel est plafonné à ±100 : on le recalcule depuis les montants bruts, avec le même numérateur
@@ -89,7 +91,7 @@ def without_exceptional(budget: dict, exceptional: float) -> dict:
     }
 
 
-def _review_tx(tx: Transaction) -> dict:
+def _review_tx(tx: Transaction) -> dict[str, Any]:
 
     return {
         "id": tx.id,
@@ -105,10 +107,10 @@ def tx_count(db: Session, start: datetime, end: datetime) -> int:
     return db.query(Transaction).filter(Transaction.date >= start, Transaction.date < end).count()
 
 
-def categorize_step(db: Session, start: datetime, end: datetime) -> dict:
+def categorize_step(db: Session, start: datetime, end: datetime) -> dict[str, Any]:
     """Étape 1 : dépenses du mois sans catégorie (mêmes filtres que l'audit, bornés au mois)."""
 
-    def scoped(query):
+    def scoped(query: QueryT) -> QueryT:
         return query.filter(
             Transaction.category_id.is_(None),
             Transaction.type == "Sortie",
@@ -124,7 +126,7 @@ def categorize_step(db: Session, start: datetime, end: datetime) -> dict:
     return {"count": count, "total": round(float(total or 0.0), 2), "items": [_review_tx(t) for t in items]}
 
 
-def top_expenses(db: Session, start: datetime, end: datetime) -> list[dict]:
+def top_expenses(db: Session, start: datetime, end: datetime) -> list[dict[str, Any]]:
     """Plus grosses dépenses nettes du mois (hors virements et investissement), à marquer exceptionnelles."""
 
     query = (
@@ -171,7 +173,7 @@ def month_fingerprint(db: Session, start: datetime, end: datetime) -> dict[str, 
 
 # --- Revue d'un mois (routes /month-review) ------------------------------------------------------
 
-async def _accounts_step(db: Session, end: datetime) -> dict:
+async def _accounts_step(db: Session, end: datetime) -> dict[str, Any]:
     """Étape 2 : un compte est « vérifié » s'il l'a été depuis la fin du mois (ou aujourd'hui si le mois n'est pas fini)."""
     now = utcnow_naive()
     reference = min(end, datetime(now.year, now.month, now.day))
@@ -191,7 +193,7 @@ async def _accounts_step(db: Session, end: datetime) -> dict:
     return {"unverified_count": sum(1 for i in items if not i["verified_since_month_end"]), "accounts": items}
 
 
-async def _build_review(db: Session, year: int, month: int) -> tuple[dict, dict]:
+async def _build_review(db: Session, year: int, month: int) -> tuple[dict[str, Any], dict[str, Any]]:
     start, end = month_bounds(db, year, month)
     prev_year, prev_month = (year - 1, 12) if month == 1 else (year, month - 1)
 
@@ -241,13 +243,13 @@ async def _build_review(db: Session, year: int, month: int) -> tuple[dict, dict]
     return review, current
 
 
-async def get_month_review(db: Session, year: int, month: int) -> dict:
+async def get_month_review(db: Session, year: int, month: int) -> dict[str, Any]:
     """État de la revue d'un mois : étapes 1 à 3 calculées, statut de clôture, indicateur de modification."""
     review, _ = await _build_review(db, year, month)
     return review
 
 
-async def close_month(db: Session, payload: CloseRequest) -> dict:
+async def close_month(db: Session, payload: CloseRequest) -> dict[str, Any]:
     """Marque le mois comme revu et fige la photo des chiffres. Idempotent : re-clôturer remplace la photo."""
     _, current = await _build_review(db, payload.year, payload.month)
     closure = repo.get_closure(db, payload.year, payload.month)

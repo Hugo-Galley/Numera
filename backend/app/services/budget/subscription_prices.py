@@ -7,6 +7,7 @@ prélèvement dépasse un montant précédent stable. Aucune écriture : simple 
 """
 from collections import defaultdict
 from datetime import datetime, timedelta
+from typing import Any
 
 from sqlalchemy.orm import Session
 
@@ -51,7 +52,7 @@ def detect_price_changes(db: Session, account_id: int | None = None, now: dateti
     if account_id is not None:
         query = query.filter(Transaction.account_id == account_id)
 
-    series: dict[tuple, list] = defaultdict(list)
+    series: dict[tuple[Any, ...], list[Any]] = defaultdict(list)
     for row in query.all():
         if row.recurring_transaction_id:
             key = ("r", row.recurring_transaction_id)

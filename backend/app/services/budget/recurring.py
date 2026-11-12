@@ -6,6 +6,7 @@ s'en charge seul (une double génération créait des centaines de salaires en d
 import math
 from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta
+from typing import Any
 
 import httpx
 from sqlalchemy.exc import SQLAlchemyError
@@ -93,7 +94,7 @@ async def _size_trade(
 
 async def _transfer_credit(
     db: Session, rd: RecurringTransaction, account: Account, dest: Account, amount: float, currency: str, when: datetime
-) -> tuple[float | None, dict | None]:
+) -> tuple[float | None, dict[str, Any] | None]:
     """Montant (devise de `dest`, None si identique) et achat de titres de la jambe créditrice d'un
     virement récurrent arrivant le `when`. Lève CurrencyConversionError sans taux disponible."""
     transfer_amount = None
@@ -144,7 +145,7 @@ async def _credit_pending_transfers(db: Session, now: datetime) -> int:
         dest = db.get(Account, rd.transfer_to_account_id) if rd and rd.transfer_to_account_id else None
         account = db.get(Account, sortie.account_id)
         already_linked = sortie.is_transfer or sortie.linked_transaction_id or sortie.linked_investment_transaction_id
-        if not dest or not account or already_linked or sortie.is_transfer_ignored:
+        if not dest or not account or rd is None or when is None or already_linked or sortie.is_transfer_ignored:
             sortie.transfer_credit_due = None
             db.flush()
             continue
@@ -232,7 +233,7 @@ async def _generate_cash_occurrence(db: Session, rd: RecurringTransaction, accou
     )
     db.add(new_tx)
     # Crédit différé : la contrepartie est créée par _credit_pending_transfers au jour d'arrivée
-    if credit is not None:
+    if credit is not None and dest is not None:
         transfer_amount, trade = credit
         db.flush()
         await create_counterpart(

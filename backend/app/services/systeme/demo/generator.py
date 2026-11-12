@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import random
+from collections.abc import Iterator
 from datetime import date, datetime, timedelta
+from typing import Any
 
 from sqlalchemy.orm import Session
 
@@ -64,7 +66,7 @@ class _Builder:
         return datetime(day.year, day.month, day.day, hour, 0)
 
     def tx(self, account: Account, day: date, tx_type: str, merchant: str, amount: float,
-           category: str | None = None, **extra) -> Transaction:
+           category: str | None = None, **extra: Any) -> Transaction:
         when = self._when(day, extra.pop("hour", 12))
         amount = round(amount, 2)
         tx = Transaction(
@@ -84,13 +86,13 @@ class _Builder:
         return tx
 
     def transfer(self, source: Account, target: Account, day: date, amount: float, label_out: str, label_in: str,
-                 **extra) -> None:
+                 **extra: Any) -> None:
         out = self.tx(source, day, "Sortie", label_out, amount, hour=9, **extra)
         into = self.tx(target, day, "Entree", label_in, amount, hour=9)
         self.db.flush()
         link_pair(self.db, out, into, "regular", "manual")
 
-    def months(self):
+    def months(self) -> Iterator[date]:
         current = self.start
         while current <= self.today:
             yield current
@@ -168,7 +170,7 @@ class _Builder:
             if month.month == 1 and index:
                 salary = round(salary * 1.03, 2)  # augmentation annuelle
 
-            def recurring_tx(key: str, day: date, tx_type: str, merchant: str, amount: float, category: str | None):
+            def recurring_tx(key: str, day: date, tx_type: str, merchant: str, amount: float, category: str | None) -> Transaction:
                 rec = recurring[key]
                 rec.last_generated_date = self._when(day)
                 return self.tx(courant, day, tx_type, merchant, amount, category,
@@ -235,7 +237,7 @@ class _Builder:
         profiles = {p.ticker: p.id for p in self.db.query(EtfProfile).filter(EtfProfile.ticker.in_(SECURITIES)).all()}
         cash = 0.0
 
-        def add(day: date, tx_type: str, amount: float, **extra) -> InvestmentTransaction:
+        def add(day: date, tx_type: str, amount: float, **extra: Any) -> InvestmentTransaction:
             nonlocal cash
             amount = round(amount, 2)
             cash += amount if tx_type in ("versement", "dividende") else -amount

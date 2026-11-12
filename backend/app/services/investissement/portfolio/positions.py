@@ -1,14 +1,15 @@
 """Positions actuelles valorisées au dernier cours : lignes, valeur, plus-value latente et effet de change."""
 from dataclasses import dataclass, field
+from typing import Any
 
-from app.domain.holdings import Replay
+from app.domain.holdings import Position, Replay
 from app.models.portfolio_holding import PortfolioHolding
 from app.services.investissement.portfolio.books import FxBook
 
 
 @dataclass
 class PositionsValuation:
-    lines: list[dict] = field(default_factory=list)
+    lines: list[dict[str, Any]] = field(default_factory=list)
     value_eur: float = 0.0
     unrealized_eur: float = 0.0
     unrealized_cost_eur: float = 0.0
@@ -17,8 +18,9 @@ class PositionsValuation:
     stale: list[str] = field(default_factory=list)
 
 
-def _line(ticker: str, pos, meta: PortfolioHolding | None, quote: dict, pru, cost_eur, priced: bool, price: float,
-          value_eur: float, unrealized, unrealized_pct, local, fx_effect) -> dict:
+def _line(ticker: str, pos: Position, meta: PortfolioHolding | None, quote: dict[str, Any], pru: float | None,
+          cost_eur: float | None, priced: bool, price: float, value_eur: float, unrealized: float | None,
+          unrealized_pct: float | None, local: float | None, fx_effect: float | None) -> dict[str, Any]:
     return {
         "ticker": ticker,
         "asset_name": (meta.asset_name if meta else None) or pos.asset_name or ticker,
@@ -39,7 +41,7 @@ def _line(ticker: str, pos, meta: PortfolioHolding | None, quote: dict, pru, cos
     }
 
 
-async def value_positions(replay: Replay, tickers: list[str], quotes: dict, fx: FxBook,
+async def value_positions(replay: Replay, tickers: list[str], quotes: dict[str, Any], fx: FxBook,
                           holdings_meta: dict[str, PortfolioHolding]) -> PositionsValuation:
     """Valorise chaque position détenue ; les totaux se cumulent ligne à ligne, dans l'ordre des tickers."""
     out = PositionsValuation()

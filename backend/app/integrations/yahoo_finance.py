@@ -47,7 +47,8 @@ async def search_quotes(query: str) -> list[dict[str, Any]]:
         resp = await http_client.get(SEARCH_URL, params={"q": query, "quotesCount": 10, "newsCount": 0})
         if resp.status_code != 200:
             return []
-        return resp.json().get("quotes", [])
+        found: list[dict[str, Any]] = resp.json().get("quotes", [])
+        return found
 
 
 # ── Composition des ETF et fonds (module `topHoldings` de quoteSummary) ──────────
@@ -81,7 +82,8 @@ class YahooUnavailable(Exception):
 async def ensure_crumb(http_client: httpx.AsyncClient, force: bool = False) -> str:
     if _yahoo_auth["crumb"] and not force:
         http_client.cookies.update(_yahoo_auth["cookies"])
-        return _yahoo_auth["crumb"]
+        cached_crumb: str = _yahoo_auth["crumb"]
+        return cached_crumb
     # fc.yahoo.com répond 404 mais dépose le cookie A3 nécessaire au crumb
     # (le crumb est servi en text/plain : Accept: application/json donnerait un 406)
     await http_client.get("https://fc.yahoo.com", headers={"Accept": "*/*"}, follow_redirects=True)

@@ -1,13 +1,15 @@
 from collections.abc import Iterable
 from datetime import datetime
+from typing import Any
 
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Query, Session
 
 from app.models.account import Account
 from app.models.category import Category
 from app.models.provision import Provision
 from app.models.transaction import Transaction
 from app.repositories.analytics.common import category_lines
+from app.repositories.types import Rows
 
 
 def list_ordered(db: Session) -> list[Provision]:
@@ -34,10 +36,10 @@ def accounts_in(db: Session, account_ids: Iterable[int]) -> list[Account]:
     return db.query(Account).filter(Account.id.in_(list(account_ids))).all()
 
 
-def category_expenses_between(db: Session, category_ids: set[int], start: datetime, end: datetime) -> list:
+def category_expenses_between(db: Session, category_ids: set[int], start: datetime, end: datetime) -> Rows:
     """(catégorie, date, devise, montant net) des dépenses de ces catégories dans [start, end), parts de découpage comprises."""
     lines = category_lines()
-    return (
+    query: Query[Any] = (
         db.query(lines.c.category_id, Transaction.date, Account.currency, lines.c.net_amount)
         .select_from(Transaction)
         .join(lines, lines.c.transaction_id == Transaction.id)
@@ -49,8 +51,8 @@ def category_expenses_between(db: Session, category_ids: set[int], start: dateti
             Transaction.date >= start,
             Transaction.date < end,
         )
-        .all()
     )
+    return query.all()
 
 
 def add(db: Session, provision: Provision) -> None:

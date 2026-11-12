@@ -1,11 +1,13 @@
 from dataclasses import dataclass
 from datetime import datetime
+from typing import Any
 
 from sqlalchemy import and_, case, func, or_
 from sqlalchemy.orm import Query, Session
 
 from app.models.account import Account
 from app.models.category import Category
+from app.models.investment_transaction import InvestmentTransaction
 from app.models.merchant import Merchant
 from app.models.tag import Tag
 from app.models.transaction import Transaction
@@ -47,7 +49,7 @@ def distinct_merchants(db: Session) -> list[str]:
     return [m[0] for m in rows if m[0]]
 
 
-def _column_filters(db: Session, query: Query, f: TransactionFilters) -> Query:
+def _column_filters(db: Session, query: Query[Any], f: TransactionFilters) -> Query[Any]:
     if f.account_id is not None:
         query = query.filter(Transaction.account_id == f.account_id)
     if f.category_id is not None:
@@ -73,7 +75,7 @@ def _column_filters(db: Session, query: Query, f: TransactionFilters) -> Query:
     return query
 
 
-def _join_filters(db: Session, query: Query, f: TransactionFilters) -> Query:
+def _join_filters(db: Session, query: Query[Any], f: TransactionFilters) -> Query[Any]:
     if f.tag_ids:
         query = query.join(Transaction.tags).filter(Tag.id.in_(f.tag_ids))
     if f.search:
@@ -98,7 +100,7 @@ def _join_filters(db: Session, query: Query, f: TransactionFilters) -> Query:
     return query
 
 
-def _month_filter(db: Session, query: Query, f: TransactionFilters) -> Query:
+def _month_filter(db: Session, query: Query[Any], f: TransactionFilters) -> Query[Any]:
     if f.month is None or f.year is None:
         return query
     if f.period:  # mois de paie, comme les analytics
@@ -109,7 +111,7 @@ def _month_filter(db: Session, query: Query, f: TransactionFilters) -> Query:
     return query.filter(and_(Transaction.date >= start, Transaction.date < end))
 
 
-def _filtered_query(db: Session, f: TransactionFilters, *entities) -> Query:
+def _filtered_query(db: Session, f: TransactionFilters, *entities: Any) -> Query[Any]:
     query = db.query(*entities) if entities else db.query(Transaction)
     query = _column_filters(db, query, f)
     query = _join_filters(db, query, f)
@@ -148,7 +150,7 @@ def get_many(db: Session, ids: list[int]) -> list[Transaction]:
     return db.query(Transaction).filter(Transaction.id.in_(ids)).all()
 
 
-def get_investment(db: Session, investment_transaction_id: int):
+def get_investment(db: Session, investment_transaction_id: int) -> InvestmentTransaction | None:
     from app.models.investment_transaction import InvestmentTransaction
 
     return db.query(InvestmentTransaction).filter(InvestmentTransaction.id == investment_transaction_id).first()

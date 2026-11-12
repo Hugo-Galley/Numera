@@ -1,7 +1,7 @@
 """Requêtes des rapports : flux du money-flow, nœuds du Sankey, soldes et récurrences de la projection de trésorerie."""
 from datetime import datetime
 
-from sqlalchemy import func
+from sqlalchemy import ColumnElement, func
 from sqlalchemy.orm import Session
 
 from app.models.account import Account
@@ -10,9 +10,10 @@ from app.models.investment_transaction import InvestmentTransaction
 from app.models.transaction import Transaction
 from app.repositories.analytics.budget import INVESTMENT_CATEGORIES
 from app.repositories.analytics.common import NET_AMOUNT, budget_versement_ids, category_lines, income_criterion
+from app.repositories.types import QueryT, Rows
 
 
-def _scope(query, account_id: int | None, tr_accounts: set[int], *extra):
+def _scope(query: QueryT, account_id: int | None, tr_accounts: set[int], *extra: ColumnElement[bool]) -> QueryT:
     """Un compte, ou courant/épargne hors tickets restaurant (plus d'éventuels critères de la vue globale)."""
     if account_id:
         return query.filter(Transaction.account_id == account_id)
@@ -22,7 +23,7 @@ def _scope(query, account_id: int | None, tr_accounts: set[int], *extra):
     return query
 
 
-def money_flow_rows(db: Session, start: datetime, end: datetime, account_id: int | None, tr_accounts: set[int]) -> list:
+def money_flow_rows(db: Session, start: datetime, end: datetime, account_id: int | None, tr_accounts: set[int]) -> Rows:
     """(Transaction, nom de catégorie, devise du compte) hors virements."""
     query = (
         db.query(Transaction, Category.name.label("cat_name"), Account.currency.label("acc_currency"))
@@ -34,7 +35,7 @@ def money_flow_rows(db: Session, start: datetime, end: datetime, account_id: int
     return _scope(query, account_id, tr_accounts).all()
 
 
-def budget_versements(db: Session, start: datetime, end: datetime) -> list:
+def budget_versements(db: Session, start: datetime, end: datetime) -> Rows:
     """(montant, devise, nom du compte) des versements alimentés par un virement interne lié."""
     return (
         db.query(InvestmentTransaction.amount, Account.currency, Account.name)
@@ -49,7 +50,7 @@ def budget_versements(db: Session, start: datetime, end: datetime) -> list:
     )
 
 
-def sankey_expense_rows(db: Session, start: datetime, end: datetime, account_id: int | None, tr_accounts: set[int]) -> list:
+def sankey_expense_rows(db: Session, start: datetime, end: datetime, account_id: int | None, tr_accounts: set[int]) -> Rows:
     """(Category, devise, total) des dépenses catégorisées hors Investissement/Epargne (traités à part)."""
     lines = category_lines()
     query = (
@@ -69,7 +70,7 @@ def sankey_expense_rows(db: Session, start: datetime, end: datetime, account_id:
     return _scope(query, account_id, tr_accounts).group_by(Category.id, Account.currency).all()
 
 
-def sankey_income_rows(db: Session, start: datetime, end: datetime, account_id: int | None, tr_accounts: set[int]) -> list:
+def sankey_income_rows(db: Session, start: datetime, end: datetime, account_id: int | None, tr_accounts: set[int]) -> Rows:
     """(Category | None, devise, total) des revenus (Solde Initial exclu : base du solde, pas un revenu)."""
     query = (
         db.query(Category, Account.currency, func.coalesce(func.sum(NET_AMOUNT), 0.0).label("total"))
@@ -85,7 +86,7 @@ def sankey_income_rows(db: Session, start: datetime, end: datetime, account_id: 
     return _scope(query, account_id, tr_accounts, income_criterion(db)).group_by(Category.id, Account.currency).all()
 
 
-def dividend_rows(db: Session, start: datetime, end: datetime, account_id: int | None) -> list:
+def dividend_rows(db: Session, start: datetime, end: datetime, account_id: int | None) -> Rows:
     query = db.query(Account.currency, func.sum(InvestmentTransaction.amount)).join(
         Account, InvestmentTransaction.account_id == Account.id
     ).filter(
@@ -105,7 +106,10 @@ def get_account(db: Session, account_id: int) -> Account | None:
 
 
 def last_occurrence(db: Session, recurring_id: int) -> datetime | None:
-    return db.query(func.max(Transaction.date)).filter(Transaction.recurring_transaction_id == recurring_id).scalar()
+    latest: datetime | None = (
+        db.query(func.max(Transaction.date)).filter(Transaction.recurring_transaction_id == recurring_id).scalar()
+    )
+    return latest
 
 
 def upcoming_transactions(db: Session, account_id: int | None, excluded_account_ids: set[int],

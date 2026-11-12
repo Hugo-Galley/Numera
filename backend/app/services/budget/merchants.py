@@ -1,3 +1,5 @@
+from typing import Any
+
 from sqlalchemy.orm import Session
 
 from app.core.errors import ConflictError, NotFoundError
@@ -32,7 +34,7 @@ def create_merchant(db: Session, merchant_in: MerchantCreate) -> Merchant:
         color=merchant_in.color
     )
     repo.add(db, merchant)
-    for label in merchant_in.aliases:
+    for label in merchant_in.aliases or []:
         db.add(MerchantAlias(merchant_id=merchant.id, label=label))
 
     # Un marchand créé s'applique tout de suite aux libellés déjà importés
@@ -95,7 +97,7 @@ def remove_alias(db: Session, alias_id: int) -> None:
     db.commit()
 
 
-def auto_normalize_transactions(db: Session) -> dict:
+def auto_normalize_transactions(db: Session) -> dict[str, Any]:
     """Rattache aux marchands les transactions dont le libellé correspond à un alias."""
     count = sum(
         repo.link_unnormalized_transactions(db, alias.merchant_id, [alias.label])
@@ -105,6 +107,6 @@ def auto_normalize_transactions(db: Session) -> dict:
     return {"normalized_count": count}
 
 
-def get_unnormalized_merchant_labels(db: Session, min_count: int) -> list[dict]:
+def get_unnormalized_merchant_labels(db: Session, min_count: int) -> list[dict[str, Any]]:
     """Libellés bancaires fréquents encore rattachés à aucun marchand."""
     return [{"label": r.merchant, "count": r.count} for r in repo.unnormalized_labels(db, min_count)]

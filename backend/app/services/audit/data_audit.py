@@ -1,5 +1,6 @@
 """Audit des données (`/analytics/audit`) : anomalies de qualité et détail éditable d'une anomalie."""
 from datetime import datetime, timedelta
+from typing import Any
 
 from sqlalchemy import func
 from sqlalchemy.orm import Session
@@ -128,7 +129,7 @@ def _duplicates(db: Session) -> DataAuditIssue | None:
     )
 
 
-def _missing_initial_balances(db: Session, accounts: list) -> DataAuditIssue | None:
+def _missing_initial_balances(db: Session, accounts: list[Any]) -> DataAuditIssue | None:
     missing = [
         account for account in accounts
         if repo.transaction_count(db, account.id) and not repo.has_initial_balance(db, account.id)
@@ -148,7 +149,7 @@ def _missing_initial_balances(db: Session, accounts: list) -> DataAuditIssue | N
     )
 
 
-def _stale_snapshots(db: Session, accounts: list, now: datetime) -> DataAuditIssue | None:
+def _stale_snapshots(db: Session, accounts: list[Any], now: datetime) -> DataAuditIssue | None:
     stale = []
     for account in accounts:
         if account.type != "investissement":
@@ -204,7 +205,7 @@ def _transfer_candidates(db: Session, now: datetime) -> tuple[list[Transaction],
 
 def _unmatched_transfers(db: Session, now: datetime) -> DataAuditIssue | None:
     count = 0
-    samples = []
+    samples: list[dict[str, Any]] = []
     sorties, entrees = _transfer_candidates(db, now)
     for sortie in sorties:
         matches = strict_matches(sortie, entrees)
@@ -247,7 +248,7 @@ def _unallocated_reimbursements(db: Session, now: datetime) -> DataAuditIssue | 
 
 # --- Détail éditable d'une anomalie (`/analytics/audit/{issue_id}`) ---
 
-def compute_data_audit_issue(db: Session, issue_id: str) -> dict:
+def compute_data_audit_issue(db: Session, issue_id: str) -> dict[str, Any]:
     if issue_id == "uncategorized-expenses":
         query = repo.uncategorized_expenses(db).order_by(Transaction.date.desc(), Transaction.id.desc())
         return {"issue_id": issue_id, "transactions": [tx_read(tx) for tx in query.limit(500).all()]}
@@ -258,13 +259,13 @@ def compute_data_audit_issue(db: Session, issue_id: str) -> dict:
     if issue_id == "unmatched-transfers":
         return {"issue_id": issue_id, "transfer_pairs": _transfer_pairs(db, now_local())}
     if issue_id == "unallocated-reimbursements":
-        query = unallocated_reimbursements_query(db, now_local())
-        transactions = query.limit(200).all() if query is not None else []
+        unallocated = unallocated_reimbursements_query(db, now_local())
+        transactions = unallocated.limit(200).all() if unallocated is not None else []
         return {"issue_id": issue_id, "transactions": [tx_read(tx) for tx in transactions]}
     raise NotFoundError(tr("errors.audit_issue_not_found"))
 
 
-def _duplicate_groups(db: Session) -> list[dict]:
+def _duplicate_groups(db: Session) -> list[dict[str, Any]]:
     rows = repo.duplicate_groups(db).order_by(func.count(Transaction.id).desc()).limit(100).all()
     return [
         {
@@ -276,7 +277,7 @@ def _duplicate_groups(db: Session) -> list[dict]:
     ]
 
 
-def _transfer_pairs(db: Session, now: datetime) -> list[dict]:
+def _transfer_pairs(db: Session, now: datetime) -> list[dict[str, Any]]:
     pairs = []
     seen: set[tuple[int, int]] = set()
     sorties, entrees = _transfer_candidates(db, now)

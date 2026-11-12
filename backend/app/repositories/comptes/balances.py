@@ -10,7 +10,7 @@ from collections.abc import Iterable
 from datetime import datetime
 from typing import NamedTuple
 
-from sqlalchemy import func
+from sqlalchemy import ScalarSelect, func
 from sqlalchemy.orm import Session
 
 from app.models.account import Account
@@ -50,14 +50,16 @@ def latest_transaction(db: Session, account_id: int, before: datetime | None = N
     return query.order_by(Transaction.date.desc(), Transaction.id.desc()).first()
 
 
-def _newest_ids(db: Session, model, ids: list[int], before: datetime | None):
+def _newest_ids(
+    db: Session, model: type[Transaction] | type[BalanceSnapshot], ids: list[int], before: datetime | None
+) -> ScalarSelect[int]:
     """Sous-requête des ids de la ligne la plus récente de chaque compte (date max, puis id max)."""
-    newest_dates = db.query(model.account_id.label("account_id"), func.max(model.date).label("max_date")).filter(
+    dates_query = db.query(model.account_id.label("account_id"), func.max(model.date).label("max_date")).filter(
         model.account_id.in_(ids)
     )
     if before is not None:
-        newest_dates = newest_dates.filter(model.date < before)
-    newest_dates = newest_dates.group_by(model.account_id).subquery()
+        dates_query = dates_query.filter(model.date < before)
+    newest_dates = dates_query.group_by(model.account_id).subquery()
     return (
         db.query(func.max(model.id))
         .join(newest_dates, (model.account_id == newest_dates.c.account_id) & (model.date == newest_dates.c.max_date))

@@ -38,7 +38,7 @@ class MerchantCreate(MerchantBase):
 
     @field_validator("aliases")
     @classmethod
-    def _aliases(cls, value):
+    def _aliases(cls, value: list[str] | None) -> list[str]:
         cleaned = [_clean_label(a) for a in (value or [])]
         if len(set(cleaned)) != len(cleaned):
             raise ValueError(tr("validation.duplicate_aliases"))
@@ -49,7 +49,7 @@ class MerchantUpdate(BaseModel):
 
     @field_validator("name")
     @classmethod
-    def _name(cls, value):
+    def _name(cls, value: str | None) -> str | None:
         return None if value is None else _clean_label(value)
 
     category_id: int | None = None

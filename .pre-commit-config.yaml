@@ -40,7 +40,7 @@ repos:
       # Plus lents : au push seulement
       - id: mypy
         name: types Python (mypy)
-        entry: bash -c 'uv run --frozen --project backend python scripts/quality/check_types.py'
+        entry: bash -c 'cd backend && uv run --frozen mypy'
         language: system
         pass_filenames: false
         files: ^backend/.*\.py$

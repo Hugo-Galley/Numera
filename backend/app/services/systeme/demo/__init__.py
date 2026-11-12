@@ -38,7 +38,7 @@ logger = get_logger(__name__)
 def wipe_database(db: Session) -> None:
     """Vide toutes les tables (le schéma et `alembic_version` restent)."""
     db.close()
-    with db.get_bind().connect() as connection:
+    with db.get_bind().engine.connect() as connection:
         # FK circulaires (transactions <-> investment_transactions) : suspendues le temps du vidage
         connection.exec_driver_sql("PRAGMA foreign_keys=OFF")
         for table in reversed(Base.metadata.sorted_tables):

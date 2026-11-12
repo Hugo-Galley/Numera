@@ -1,5 +1,6 @@
 """Requêtes du bilan annuel : sorties réelles, abonnements, dividendes, années disponibles."""
 from datetime import datetime
+from typing import Any
 
 from sqlalchemy import func
 from sqlalchemy.orm import Query, Session
@@ -11,9 +12,10 @@ from app.models.investment_transaction import InvestmentTransaction
 from app.models.recurring_transaction import RecurringTransaction
 from app.models.transaction import Transaction
 from app.repositories.analytics.common import NET_AMOUNT
+from app.repositories.types import Rows
 
 
-def expense_query(db: Session, start: datetime, end: datetime, tr_accounts: set[int]) -> Query:
+def expense_query(db: Session, start: datetime, end: datetime, tr_accounts: set[int]) -> Query[Any]:
     """Sorties réelles du budget : hors virements internes et comptes tickets restaurant."""
     query = (
         db.query(Transaction)
@@ -46,7 +48,7 @@ def subscription_recurrings(db: Session) -> list[RecurringTransaction]:
     )
 
 
-def dividend_rows(db: Session, start: datetime, end: datetime) -> list:
+def dividend_rows(db: Session, start: datetime, end: datetime) -> Rows:
     return (
         db.query(Account.currency, func.coalesce(func.sum(InvestmentTransaction.amount), 0.0).label("total"))
         .join(Account, InvestmentTransaction.account_id == Account.id)
@@ -61,7 +63,7 @@ def dividend_rows(db: Session, start: datetime, end: datetime) -> list:
 
 
 def subscription_expense_rows(db: Session, start: datetime, end: datetime, tr_accounts: set[int],
-                              recurring_ids: list[int]) -> list:
+                              recurring_ids: list[int]) -> Rows:
     return (
         expense_query(db, start, end, tr_accounts)
         .filter(Transaction.recurring_transaction_id.in_(recurring_ids))
@@ -75,7 +77,7 @@ def expense_count(db: Session, start: datetime, end: datetime, tr_accounts: set[
     return expense_query(db, start, end, tr_accounts).count()
 
 
-def biggest_expense_candidates(db: Session, start: datetime, end: datetime, tr_accounts: set[int]) -> list:
+def biggest_expense_candidates(db: Session, start: datetime, end: datetime, tr_accounts: set[int]) -> Rows:
     """Vingt plus grosses sorties nettes hors épargne/investissement, avec devise et catégorie."""
     return (
         expense_query(db, start, end, tr_accounts)
@@ -87,7 +89,7 @@ def biggest_expense_candidates(db: Session, start: datetime, end: datetime, tr_a
     )
 
 
-def recurring_bounds(db: Session, recurring_ids: list[int]) -> list:
+def recurring_bounds(db: Session, recurring_ids: list[int]) -> Rows:
     """Première et dernière échéance réelle de chaque récurrence."""
     return (
         db.query(

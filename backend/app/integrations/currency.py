@@ -53,7 +53,7 @@ async def get_exchange_rates(base: str = "EUR") -> dict[str, float]:
             response = await client.get("https://api.frankfurter.dev/v1/latest", params={"base": base})
             if response.status_code == 200:
                 data = response.json()
-                rates = data.get("rates", {})
+                rates: dict[str, float] = data.get("rates", {})
                 # Frankfurter doesn't include the base currency in the rates, add it as 1.0
                 rates[base] = 1.0
                 _rates_cache[base] = rates

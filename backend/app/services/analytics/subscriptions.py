@@ -1,5 +1,6 @@
 """Abonnements et charges fixes : récurrences, abonnements détectés, hausses de prix, total mensuel."""
 from datetime import timedelta
+from typing import Any
 
 from sqlalchemy.orm import Session
 
@@ -8,6 +9,7 @@ from app.domain.finance import get_recurring_occurrences, is_lapsed
 from app.domain.subscription_prices import PriceChange, price_change_id
 from app.domain.subscriptions import counted_in_kind_total, recurring_costs, subscription_kind
 from app.integrations.currency import get_exchange_rates
+from app.models.recurring_transaction import RecurringTransaction
 from app.repositories.analytics import subscriptions as repo
 from app.repositories.analytics.common import ticket_restaurant_account_ids
 from app.schemas.insight import CostTotals, SubscriptionIgnore, SubscriptionInsight, SubscriptionPriceChange, SubscriptionsResponse
@@ -44,7 +46,7 @@ async def compute_subscriptions(db: Session, account_id: int | None = None, incl
     )
 
 
-def _recurring_insight(db: Session, rd, rates: dict) -> SubscriptionInsight:
+def _recurring_insight(db: Session, rd: RecurringTransaction, rates: dict[str, Any]) -> SubscriptionInsight:
     # Coût mensuel/annuel en EUR : le montant d'une récurrence est dans sa propre devise
     monthly_cost, annual_cost = recurring_costs(rd.amount, rd.frequency, rates.get(rd.currency or "EUR", 1.0) or 1.0)
     is_savings_flow = bool(rd.transfer_to_account_id) or (
@@ -111,7 +113,7 @@ def price_change_read(change: PriceChange) -> SubscriptionPriceChange:
     )
 
 
-def ignore_subscription_detection(db: Session, data: SubscriptionIgnore) -> dict:
+def ignore_subscription_detection(db: Session, data: SubscriptionIgnore) -> dict[str, Any]:
     """Exclut de la détection toutes les transactions de ce marchand à ce montant."""
     repo.ignore_detection(db, data.merchant, data.amount)
     db.commit()

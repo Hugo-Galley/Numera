@@ -1,3 +1,5 @@
+from typing import Any
+
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
@@ -15,7 +17,7 @@ def get_cashflow_projection(
     days: int = Query(default=30, ge=7, le=365),
     account_id: int | None = Query(default=None),
     db: Session = Depends(get_db),
-):
+) -> CashflowProjection:
     return run_async(service.compute_cashflow_projection(db, days=days, account_id=account_id))
 
 
@@ -25,7 +27,7 @@ def get_monthly_report(
     year: int = Query(ge=2000, le=2200),
     account_id: int | None = Query(default=None),
     db: Session = Depends(get_db),
-):
+) -> MonthlyReport:
     """Rapport mensuel consolidé, comparé au mois précédent, avec insights."""
     return run_async(service.compute_monthly_report(db, month, year, account_id))
 
@@ -36,7 +38,7 @@ def get_money_flow(
     year: int = Query(ge=2000, le=2200),
     account_id: int | None = Query(default=None),
     db: Session = Depends(get_db),
-):
+) -> MoneyFlowReport:
     """Où est passé l'argent du mois."""
     return run_async(service.compute_money_flow(db, month, year, account_id))
 
@@ -47,5 +49,5 @@ def sankey_analytics(
     year: int = Query(ge=2000, le=2200),
     account_id: int | None = Query(default=None),
     db: Session = Depends(get_db),
-):
+) -> dict[str, Any]:
     return run_async(service.compute_sankey(db, month, year, account_id))

@@ -4,7 +4,7 @@ from app.domain.finance import apply_transaction_to_balance
 from app.repositories.budget import balances as repo
 
 
-def recalculate_running_balances(db: Session, account_id: int):
+def recalculate_running_balances(db: Session, account_id: int) -> None:
     """Recalcule les soldes courants du compte par ordre chronologique. Ne commit pas : l'appelant porte la transaction.
 
     Lecture par colonnes et mise à jour en masse des seules lignes dont le solde change."""

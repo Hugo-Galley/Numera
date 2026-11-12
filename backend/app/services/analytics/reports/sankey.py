@@ -1,4 +1,7 @@
 """Sankey du mois : revenus → budget → investissements, épargne et dépenses par catégorie."""
+from datetime import datetime
+from typing import Any
+
 from sqlalchemy.orm import Session
 
 from app.domain.reports import sankey_graph
@@ -9,14 +12,14 @@ from app.services.analytics.budget import compute_budget
 from app.services.budget.budget_period import period_bounds
 
 
-async def compute_sankey(db: Session, month: int, year: int, account_id: int | None = None) -> dict:
+async def compute_sankey(db: Session, month: int, year: int, account_id: int | None = None) -> dict[str, Any]:
     start, end = period_bounds(db, year, month)
     rates = await get_exchange_rates("EUR")
     budget_data = await compute_budget(month=month, year=year, account_id=account_id, db=db)
     tr_accounts = set() if account_id else ticket_restaurant_account_ids(db)
 
     # Dépenses par catégorie (Investissement/Epargne à part : nœud des investissements)
-    cat_expenses: dict = {}
+    cat_expenses: dict[str, Any] = {}
     for row in repo.sankey_expense_rows(db, start, end, account_id, tr_accounts):
         cid = row.Category.id
         if cid not in cat_expenses:
@@ -27,8 +30,8 @@ async def compute_sankey(db: Session, month: int, year: int, account_id: int | N
     return sankey_graph(income_sources, total_income, budget_data["investissements_du_mois"], cat_expenses)
 
 
-def _income_sources(db: Session, start, end, account_id: int | None, tr_accounts: set[int],
-                    rates: dict) -> tuple[list[dict], float]:
+def _income_sources(db: Session, start: datetime, end: datetime, account_id: int | None, tr_accounts: set[int],
+                    rates: dict[str, Any]) -> tuple[list[dict[str, Any]], float]:
     income_sources = []
     total_income = 0.0
     for row in repo.sankey_income_rows(db, start, end, account_id, tr_accounts):

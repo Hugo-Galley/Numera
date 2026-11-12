@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 from typing import Any
 
 import anyio
+import httpx
 from sqlalchemy.orm import Session
 
 from app.core.circuit_breaker import CircuitBreaker
@@ -77,7 +78,7 @@ def _cached_or_demo(symbols: list[str], db: Session | None, now: datetime) -> tu
     return output, missing_symbols
 
 
-async def _fetch_quote(client, sym: str, rates: dict[str, float], now: datetime) -> tuple[dict[str, Any], date_type, float] | None:
+async def _fetch_quote(client: httpx.AsyncClient, sym: str, rates: dict[str, float], now: datetime) -> tuple[dict[str, Any], date_type, float] | None:
     """Cotation Yahoo du jour : (cotation, jour du cours, cours) ou None si Yahoo n'a pas de cours."""
     result = await yahoo_finance.fetch_chart(client, sym, {"interval": "1d", "range": "1d"})
     if not result:
@@ -149,7 +150,7 @@ async def _fetch_all(symbols: list[str], rates: dict[str, float], now: datetime)
     limiter = anyio.CapacityLimiter(MAX_CONCURRENT_QUOTES)
     results: dict[str, Any] = {}
 
-    async def one(client, sym: str) -> None:
+    async def one(client: httpx.AsyncClient, sym: str) -> None:
         results[sym] = None
         if not _yahoo_breaker.allow():
             return

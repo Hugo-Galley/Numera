@@ -1,4 +1,5 @@
 from collections import Counter
+from typing import Any
 
 from sqlalchemy.orm import Session
 
@@ -16,7 +17,7 @@ def categories_by_name(db: Session) -> dict[str, Category]:
     return {c.name: c for c in db.query(Category).all()}
 
 
-def existing_keys(db: Session, account_id: int) -> Counter:
+def existing_keys(db: Session, account_id: int) -> Counter[Any]:
     """Occurrences de chaque clé de doublon déjà présente dans le compte (import idempotent).
 
     Clé sur les valeurs brutes du relevé (`original_*`, à défaut les valeurs stockées pour les lignes

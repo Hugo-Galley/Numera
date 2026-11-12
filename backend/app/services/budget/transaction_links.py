@@ -1,8 +1,11 @@
 """Virements internes saisis à la main : contrepartie, liaison, déliaison, suggestions écartées."""
+from typing import Any
+
 from sqlalchemy.orm import Session
 
 from app.core.errors import BusinessRuleError, InvalidOperationError, NotFoundError
 from app.core.i18n import tr
+from app.domain.transfers import Leg
 from app.models.transaction import Transaction
 from app.repositories.budget import transactions as repo
 from app.repositories.comptes import accounts as account_repo
@@ -34,12 +37,13 @@ async def create_transfer_counterpart(db: Session, transaction_id: int, payload:
     return TransferCounterpartRead(id=leg.id, type=kind)
 
 
-def link_transactions(db: Session, transaction_id: int, other_id: int, type: str) -> dict:
+def link_transactions(db: Session, transaction_id: int, other_id: int, type: str) -> dict[str, Any]:
     tx1 = require(db, transaction_id)
     if type not in ("regular", "investment"):
         raise BusinessRuleError(tr("errors.link_type"))
     if type == "regular" and other_id == transaction_id:
         raise BusinessRuleError(tr("errors.link_to_itself"))
+    other: Leg | None
     if type == "regular":
         other = repo.get(db, other_id)
         if not other:

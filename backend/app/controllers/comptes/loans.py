@@ -1,3 +1,5 @@
+from typing import TYPE_CHECKING
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
@@ -14,57 +16,60 @@ from app.schemas.loan import (
 )
 from app.services.comptes import loans as service
 
+if TYPE_CHECKING:
+    from app.models.loan import LoanPrepayment
+
 router = APIRouter(prefix="/loans", tags=["loans"])
 
 
 @router.get("", response_model=list[LoanSummary])
-def list_loans(db: Session = Depends(get_db)):
+def list_loans(db: Session = Depends(get_db)) -> list[LoanSummary]:
     return service.list_loans(db)
 
 
 @router.post("", response_model=LoanSummary, status_code=201)
-def create_loan(payload: LoanCreate, db: Session = Depends(get_db)):
+def create_loan(payload: LoanCreate, db: Session = Depends(get_db)) -> LoanSummary:
     """Crée le compte `credit` et son prêt ensemble ; la valeur du compte est −capital restant dû."""
     return service.create_loan(db, payload)
 
 
 @router.get("/by-account/{account_id}", response_model=LoanSummary)
-def get_loan_by_account(account_id: int, db: Session = Depends(get_db)):
+def get_loan_by_account(account_id: int, db: Session = Depends(get_db)) -> LoanSummary:
     return service.get_loan_by_account(db, account_id)
 
 
 @router.get("/{loan_id}", response_model=LoanSummary)
-def get_loan(loan_id: int, db: Session = Depends(get_db)):
+def get_loan(loan_id: int, db: Session = Depends(get_db)) -> LoanSummary:
     return service.get_loan(db, loan_id)
 
 
 @router.patch("/{loan_id}", response_model=LoanSummary)
-def update_loan(loan_id: int, payload: LoanUpdate, db: Session = Depends(get_db)):
+def update_loan(loan_id: int, payload: LoanUpdate, db: Session = Depends(get_db)) -> LoanSummary:
     return service.update_loan(db, loan_id, payload)
 
 
 @router.delete("/{loan_id}", status_code=204)
-def delete_loan(loan_id: int, db: Session = Depends(get_db)):
+def delete_loan(loan_id: int, db: Session = Depends(get_db)) -> None:
     """Supprime le prêt, ses remboursements anticipés et son compte."""
     service.delete_loan(db, loan_id)
 
 
 @router.get("/{loan_id}/schedule", response_model=list[ScheduleRowRead])
-def get_schedule(loan_id: int, db: Session = Depends(get_db)):
+def get_schedule(loan_id: int, db: Session = Depends(get_db)) -> list[ScheduleRowRead]:
     return service.get_schedule(db, loan_id)
 
 
 @router.post("/{loan_id}/simulate-prepayment", response_model=SimulationResult)
-def simulate(loan_id: int, payload: SimulationRequest, db: Session = Depends(get_db)):
+def simulate(loan_id: int, payload: SimulationRequest, db: Session = Depends(get_db)) -> SimulationResult:
     """Remboursement anticipé hypothétique : rien n'est enregistré."""
     return service.simulate(db, loan_id, payload)
 
 
 @router.post("/{loan_id}/prepayments", response_model=PrepaymentRead, status_code=201)
-def add_prepayment(loan_id: int, payload: PrepaymentCreate, db: Session = Depends(get_db)):
+def add_prepayment(loan_id: int, payload: PrepaymentCreate, db: Session = Depends(get_db)) -> "LoanPrepayment":
     return service.add_prepayment(db, loan_id, payload)
 
 
 @router.delete("/{loan_id}/prepayments/{prepayment_id}", status_code=204)
-def delete_prepayment(loan_id: int, prepayment_id: int, db: Session = Depends(get_db)):
+def delete_prepayment(loan_id: int, prepayment_id: int, db: Session = Depends(get_db)) -> None:
     service.delete_prepayment(db, loan_id, prepayment_id)

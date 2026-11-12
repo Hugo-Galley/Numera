@@ -31,7 +31,7 @@ Types : feat fix perf refactor test docs build ci chore revert style · `!` avan
 ## Check-list
 
 - [ ] `ARCHITECTURE.md`, `CLAUDE.md` ou le skill concerné mis à jour (route, modèle, commande, règle métier)
-- [ ] Aucun seuil à cliquet baissé (couverture, tailles, mypy, ESLint) ni baseline augmentée
+- [ ] Aucun seuil à cliquet baissé (couverture, tailles, ESLint) ni baseline augmentée
 - [ ] Aucun tag flottant : actions épinglées par SHA, images par digest
 - [ ] Migration réversible et testée sur une base existante (si schéma modifié)
 - [ ] Mesures avant/après dans cette description (si optimisation, skill `numera-performance`)

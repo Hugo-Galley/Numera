@@ -1,4 +1,6 @@
 
+from typing import Any
+
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
@@ -25,33 +27,33 @@ def investments_analytics(
     year: int | None = Query(default=None, ge=2000, le=2200),
     account_id: int | None = Query(default=None),
     db: Session = Depends(get_db)
-):
+) -> dict[str, Any]:
     return run_async(service.compute_investments(db, month, year, account_id))
 
 
 @router.get("/investments/{account_id}", response_model=InvestmentAccountDetail, response_model_exclude_unset=True)
-def investment_account_analytics(account_id: int, db: Session = Depends(get_db)):
+def investment_account_analytics(account_id: int, db: Session = Depends(get_db)) -> dict[str, Any]:
     return run_async(service.compute_investment_account(db, account_id))
 
 
 @router.get("/investments/{account_id}/performance-history", response_model=PerformanceHistory, response_model_exclude_unset=True)
-def investment_performance_history(account_id: int, db: Session = Depends(get_db)):
+def investment_performance_history(account_id: int, db: Session = Depends(get_db)) -> dict[str, Any]:
     return run_async(service.compute_performance_history(db, account_id))
 
 
 @router.get("/investments-allocation", response_model=InvestmentsAllocation)
-def investments_allocation(account_id: int | None = Query(default=None), db: Session = Depends(get_db)):
+def investments_allocation(account_id: int | None = Query(default=None), db: Session = Depends(get_db)) -> dict[str, Any]:
     return run_async(service.compute_allocation(db, account_id))
 
 
 @router.get("/investments-allocation-advanced", response_model=InvestmentsAllocationAdvanced)
-def investments_allocation_advanced(db: Session = Depends(get_db)):
+def investments_allocation_advanced(db: Session = Depends(get_db)) -> dict[str, Any]:
     """Répartition avancée : par classe d'actifs, secteur et zone géographique."""
     return run_async(service.compute_allocation_advanced(db))
 
 
 @router.get("/patrimoine-allocation", response_model=PatrimoineAllocation)
-def patrimoine_allocation(db: Session = Depends(get_db)):
+def patrimoine_allocation(db: Session = Depends(get_db)) -> dict[str, Any]:
     """Répartition du patrimoine actif (tous comptes) ; crédits exclus des items, en `total_debts_eur`."""
     return run_async(service.compute_patrimoine_allocation(db))
 
@@ -64,7 +66,7 @@ def wealth_forecast(
     investment_return_pct: float | None = Query(default=None, ge=-50, le=100),
     savings_return_pct: float | None = Query(default=None, ge=-50, le=100),
     db: Session = Depends(get_db),
-):
+) -> WealthForecastResponse:
     """Prévision simple du patrimoine (épargne moyenne des 12 derniers mois complets, XIRR constaté) ;
     `monthly_savings`, `investment_return_pct` et `savings_return_pct` remplacent les valeurs calculées."""
     return run_async(service.compute_wealth_forecast(
@@ -80,13 +82,13 @@ def fire_projection(
     monthly_savings: float | None = Query(default=None, ge=-100000, le=100000),
     annual_expenses: float | None = Query(default=None, gt=0, le=10_000_000),
     db: Session = Depends(get_db),
-):
+) -> FireResponse:
     """Indépendance financière sur les données réelles (cible = dépenses annuelles ÷ taux de retrait)."""
     return run_async(service.compute_fire(db, withdrawal_rate_pct, inflation_pct, return_pct, monthly_savings, annual_expenses))
 
 
 @router.get("/asset-allocation/suggestions", response_model=AllocationSuggestions)
-def get_asset_allocation_suggestions(db: Session = Depends(get_db)):
+def get_asset_allocation_suggestions(db: Session = Depends(get_db)) -> dict[str, Any]:
     """Valeurs de classes d'actifs, secteurs et zones pour l'autocomplétion."""
     return service.compute_allocation_suggestions(db)
 
@@ -103,7 +105,7 @@ def wealth_simulation(
     tax_rate_pct: float = Query(ge=0, le=100, default=0.0),
     tax_deferred: bool = Query(default=True),
     events: str | None = Query(default=None),
-):
+) -> WealthSimulationResponse:
     """Simulateur de patrimoine (intérêts composés, inflation, fiscalité, événements, volatilité Monte-Carlo)."""
     return service.compute_wealth_simulation(
         initial_capital, monthly_contribution, annual_return_pct, years, volatility_pct, inflation_rate_pct,

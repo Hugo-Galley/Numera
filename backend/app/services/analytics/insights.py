@@ -1,4 +1,7 @@
 """Insights du mois : score de santé financière et anomalies (abonnements, grosses dépenses, catégories)."""
+from datetime import datetime
+from typing import Any
+
 from sqlalchemy.orm import Session
 
 from app.core.i18n import tr
@@ -62,7 +65,7 @@ async def _subscription_increase(db: Session, month: int, year: int) -> list[Ins
     )]
 
 
-def _large_expenses(db: Session, start, end, account_id: int | None, revenus: float, rates: dict) -> list[Insight]:
+def _large_expenses(db: Session, start: datetime, end: datetime, account_id: int | None, revenus: float, rates: dict[str, Any]) -> list[Insight]:
     """Sorties isolées au-delà de 10 % des revenus (au moins 500 €), hors épargne/investissement."""
     tr_accounts = set() if account_id else ticket_restaurant_account_ids(db)
     insights = []
@@ -86,7 +89,7 @@ async def _category_anomalies(db: Session, month: int, year: int, account_id: in
     """Catégories à plus de deux fois leur moyenne des trois mois précédents."""
     current = await compute_expenses_by_category(month=month, year=year, account_id=account_id, db=db)
     current_totals = {item["category"]["id"]: item["total"] for item in current["items"]}
-    histories: dict = {}
+    histories: dict[str, Any] = {}
     for back in range(1, 4):
         m_idx, y_idx = _previous(month, year, back)
         hist = await compute_expenses_by_category(month=m_idx, year=y_idx, account_id=account_id, db=db)
@@ -96,6 +99,8 @@ async def _category_anomalies(db: Session, month: int, year: int, account_id: in
     for cat_id, current_total, avg in category_anomalies(current_totals, histories):
         # « Sans catégorie » a un id None : pas de ligne en base
         cat_obj = repo.get_category(db, cat_id) if cat_id is not None else UNCATEGORIZED
+        if cat_obj is None:
+            continue
         insights.append(Insight(
             type="anomaly",
             key=f"category-anomaly-{year}-{month:02d}-{cat_id}",
@@ -133,7 +138,7 @@ def _positive_insights(savings_rate: float, runway_months: float, month: int, ye
     return insights
 
 
-def dismiss_insight(db: Session, key: str) -> dict:
+def dismiss_insight(db: Session, key: str) -> dict[str, Any]:
     if not repo.is_dismissed(db, key):
         repo.add_dismissed(db, key)
         db.commit()

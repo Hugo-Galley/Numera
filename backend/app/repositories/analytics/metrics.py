@@ -1,7 +1,8 @@
 """Requêtes d'agrégat des métriques : tags, catégories, marchands, flux d'un compte, kpi-history, timeseries, calendrier."""
 from datetime import datetime
+from typing import Any
 
-from sqlalchemy import func, or_
+from sqlalchemy import ColumnElement, func, or_
 from sqlalchemy.orm import Query, Session
 
 from app.models.account import Account
@@ -15,9 +16,10 @@ from app.models.telecommuting_day import TelecommutingDay
 from app.models.transaction import Transaction
 from app.repositories.analytics.budget import INTEREST_CATEGORIES, INVESTMENT_CATEGORIES
 from app.repositories.analytics.common import NET_AMOUNT, budget_versement_ids, category_lines, income_criterion
+from app.repositories.types import QueryT, Rows
 
 
-def _budget_scope(db: Session, query: Query, account_id: int | None, tr_accounts: set[int]) -> Query:
+def _budget_scope(db: Session, query: QueryT, account_id: int | None, tr_accounts: set[int]) -> QueryT:
     """Un compte, ou le périmètre du budget (courant/épargne hors tickets restaurant)."""
     if account_id:
         return query.filter(Transaction.account_id == account_id)
@@ -28,7 +30,7 @@ def _budget_scope(db: Session, query: Query, account_id: int | None, tr_accounts
 
 
 def tag_spending_rows(db: Session, start: datetime | None, end: datetime, account_id: int | None,
-                      tr_accounts: set[int]) -> list:
+                      tr_accounts: set[int]) -> Rows:
     query = db.query(
         Tag.id,
         Tag.name,
@@ -46,7 +48,7 @@ def tag_spending_rows(db: Session, start: datetime | None, end: datetime, accoun
 
 
 def category_expense_rows(db: Session, start: datetime, end: datetime, account_id: int | None,
-                          tr_accounts: set[int]) -> list:
+                          tr_accounts: set[int]) -> Rows:
     """(Category | None, devise, total) des sorties, dépenses découpées comprises."""
     lines = category_lines()
     query = (
@@ -71,7 +73,7 @@ def category_expense_rows(db: Session, start: datetime, end: datetime, account_i
 
 
 def merchant_expense_rows(db: Session, start: datetime, end: datetime, account_id: int | None,
-                          tr_accounts: set[int]) -> list:
+                          tr_accounts: set[int]) -> Rows:
     """(marchand canonique ou libellé, devise, total) des sorties hors Investissement/Epargne."""
     query = (
         db.query(
@@ -139,13 +141,14 @@ def earliest_transaction_date(db: Session, account_id: int | None) -> datetime |
     query = db.query(func.min(Transaction.date))
     if account_id:
         query = query.filter(Transaction.account_id == account_id)
-    return query.scalar()
+    earliest: datetime | None = query.scalar()
+    return earliest
 
 
-def kpi_transaction_rows(db: Session, label, start: datetime, end: datetime, account_id: int | None,
-                         tr_accounts: set[int]) -> list:
+def kpi_transaction_rows(db: Session, label: ColumnElement[Any], start: datetime, end: datetime, account_id: int | None,
+                         tr_accounts: set[int]) -> Rows:
     """(mois, devise, type, total) hors virements ; une entrée n'est un revenu que selon income_criterion."""
-    query = db.query(
+    query: Query[Any] = db.query(
         label, Account.currency, Transaction.type, func.coalesce(func.sum(NET_AMOUNT), 0.0).label("total")
     ).select_from(Transaction).join(Account, Transaction.account_id == Account.id).filter(
         Transaction.date >= start, Transaction.date < end,
@@ -161,9 +164,9 @@ def kpi_transaction_rows(db: Session, label, start: datetime, end: datetime, acc
     return query.group_by(label, Account.currency, Transaction.type).all()
 
 
-def kpi_investment_rows(db: Session, label, start: datetime, end: datetime, account_id: int | None) -> list:
+def kpi_investment_rows(db: Session, label: ColumnElement[Any], start: datetime, end: datetime, account_id: int | None) -> Rows:
     """(mois, devise, type, total) des dividendes et versements (vue globale : versements du budget seulement)."""
-    query = db.query(
+    query: Query[Any] = db.query(
         label, Account.currency, InvestmentTransaction.type,
         func.coalesce(func.sum(InvestmentTransaction.amount), 0.0).label("total")
     ).join(Account, InvestmentTransaction.account_id == Account.id).filter(
@@ -181,9 +184,9 @@ def kpi_investment_rows(db: Session, label, start: datetime, end: datetime, acco
     return query.group_by(label, Account.currency, InvestmentTransaction.type).all()
 
 
-def kpi_categorized_investment_rows(db: Session, label, start: datetime, end: datetime, account_id: int | None,
-                                    tr_accounts: set[int]) -> list:
-    query = db.query(
+def kpi_categorized_investment_rows(db: Session, label: ColumnElement[Any], start: datetime, end: datetime, account_id: int | None,
+                                    tr_accounts: set[int]) -> Rows:
+    query: Query[Any] = db.query(
         label, Account.currency, func.coalesce(func.sum(NET_AMOUNT), 0.0).label("total")
     ).select_from(Transaction).join(Account, Transaction.account_id == Account.id).join(
         Category, Transaction.category_id == Category.id
@@ -202,10 +205,10 @@ def kpi_categorized_investment_rows(db: Session, label, start: datetime, end: da
     return query.group_by(label, Account.currency).all()
 
 
-def kpi_category_interest_rows(db: Session, label, start: datetime, end: datetime, account_id: int | None,
-                               tr_accounts: set[int]) -> list:
+def kpi_category_interest_rows(db: Session, label: ColumnElement[Any], start: datetime, end: datetime, account_id: int | None,
+                               tr_accounts: set[int]) -> Rows:
     """Intérêts portés par une catégorie (hors type Interets, déjà compté)."""
-    query = db.query(
+    query: Query[Any] = db.query(
         label, Account.currency, func.coalesce(func.sum(NET_AMOUNT), 0.0).label("total")
     ).select_from(Transaction).join(Account, Transaction.account_id == Account.id).join(
         Category, Transaction.category_id == Category.id
@@ -227,7 +230,7 @@ def has_transaction_in_year(db: Session, year: int, account_id: int | None) -> b
 
 
 def month_income_rows(db: Session, start: datetime, end: datetime, account_id: int | None,
-                      tr_accounts: set[int]) -> list:
+                      tr_accounts: set[int]) -> Rows:
     query = db.query(
         Account.currency, func.coalesce(func.sum(NET_AMOUNT), 0.0).label("total")
     ).join(Account, Transaction.account_id == Account.id).filter(
@@ -246,7 +249,7 @@ def month_income_rows(db: Session, start: datetime, end: datetime, account_id: i
 
 
 def month_expense_rows(db: Session, start: datetime, end: datetime, account_id: int | None,
-                       tr_accounts: set[int]) -> list:
+                       tr_accounts: set[int]) -> Rows:
     query = db.query(
         Account.currency, func.coalesce(func.sum(NET_AMOUNT), 0.0).label("total")
     ).join(Account, Transaction.account_id == Account.id).filter(
@@ -264,7 +267,7 @@ def month_expense_rows(db: Session, start: datetime, end: datetime, account_id: 
     return query.group_by(Account.currency).all()
 
 
-def month_investment_rows(db: Session, start: datetime, end: datetime, type_: str, account_id: int | None) -> list:
+def month_investment_rows(db: Session, start: datetime, end: datetime, type_: str, account_id: int | None) -> Rows:
     query = db.query(
         Account.currency, func.coalesce(func.sum(InvestmentTransaction.amount), 0.0).label("total")
     ).join(Account, InvestmentTransaction.account_id == Account.id).filter(
@@ -283,7 +286,7 @@ def account_transactions(db: Session, account_id: int, before: datetime | None =
     return query.order_by(Transaction.date.asc(), Transaction.id.asc()).all()
 
 
-def salary_rows(db: Session, start: datetime, end: datetime, account_id: int | None) -> list:
+def salary_rows(db: Session, start: datetime, end: datetime, account_id: int | None) -> Rows:
     """Entrées catégorisées « Salaire » par devise."""
     query = (
         db.query(Account.currency, func.coalesce(func.sum(Transaction.amount), 0.0).label("total"))

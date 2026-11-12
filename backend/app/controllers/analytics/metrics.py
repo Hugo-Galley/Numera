@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Any
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
@@ -27,7 +28,7 @@ def tags_analytics(
     end_date: datetime | None = Query(default=None),
     account_id: int | None = Query(default=None),
     db: Session = Depends(get_db),
-):
+) -> list[dict[str, Any]]:
     return run_async(service.compute_tags(db, month, year, start_date, end_date, account_id))
 
 
@@ -37,7 +38,7 @@ def expenses_by_category(
     year: int = Query(ge=2000, le=2200),
     account_id: int | None = Query(default=None),
     db: Session = Depends(get_db),
-):
+) -> dict[str, Any]:
     return run_async(service.compute_expenses_by_category(db, month, year, account_id))
 
 
@@ -48,7 +49,7 @@ def top_merchants(
     limit: int = Query(default=5, ge=1, le=50),
     account_id: int | None = Query(default=None),
     db: Session = Depends(get_db),
-):
+) -> dict[str, Any]:
     return run_async(service.compute_top_merchants(db, month, year, limit, account_id))
 
 
@@ -58,7 +59,7 @@ def account_flow_summary(
     start_date: datetime | None = Query(default=None),
     end_date: datetime | None = Query(default=None),
     db: Session = Depends(get_db),
-):
+) -> dict[str, Any]:
     """Flux net du mois (de paie) courant et du précédent d'un compte + dépense moyenne."""
     return service.compute_account_flow_summary(db, account_id, start_date, end_date)
 
@@ -68,7 +69,7 @@ def kpi_history(
     months_count: int = Query(default=6, ge=1, le=24),
     account_id: int | None = Query(default=None),
     db: Session = Depends(get_db)
-):
+) -> list[dict[str, Any]]:
     return run_async(service.compute_kpi_history(db, months_count, account_id))
 
 
@@ -77,7 +78,7 @@ def timeseries_analytics(
     year: int = Query(ge=2000, le=2200),
     account_id: int | None = Query(default=None),
     db: Session = Depends(get_db),
-):
+) -> dict[str, Any]:
     return run_async(service.compute_timeseries(db, year, account_id))
 
 
@@ -87,5 +88,5 @@ def calendar_analytics(
     year: int = Query(ge=2000, le=2200),
     account_id: int | None = Query(default=None),
     db: Session = Depends(get_db),
-):
+) -> dict[str, Any]:
     return run_async(service.compute_calendar(db, month, year, account_id))

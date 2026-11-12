@@ -1,9 +1,12 @@
 """Requêtes et expressions SQL partagées par les analytics."""
 from datetime import datetime
+from typing import Any
 
-from sqlalchemy import and_, func, literal_column, or_, select, union_all
+from sqlalchemy import ColumnElement, Subquery, and_, func, literal_column, or_, select, union_all
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Query, Session
+from sqlalchemy.sql.base import ReadOnlyColumnCollection
+from sqlalchemy.sql.elements import KeyedColumnElement
 
 from app.core.logging import get_logger
 from app.models.account import Account
@@ -20,7 +23,11 @@ logger = get_logger(__name__)
 NET_AMOUNT = Transaction.amount - Transaction.reimbursement_offset
 
 
-def category_lines():
+# Sous-requête (transaction_id, category_id, net_amount) : colonnes lues par nom, `c` les expose typées.
+CategoryLines = Subquery[ReadOnlyColumnCollection[str, KeyedColumnElement[Any]]]
+
+
+def category_lines() -> CategoryLines:
     """Montants nets par (transaction, catégorie), parts de découpage déployées.
 
     Une transaction sans découpage donne une ligne (sa catégorie, NET_AMOUNT) ; une dépense
@@ -48,7 +55,7 @@ def category_lines():
     return union_all(whole, parts).subquery("category_lines")
 
 
-def income_criterion(db: Session):
+def income_criterion(db: Session) -> ColumnElement[bool]:
     """Ce qui compte comme revenu en vue globale (la requête doit être jointe à `Account`).
 
     - une entrée sur un compte courant ;
@@ -67,7 +74,7 @@ def income_criterion(db: Session):
     )
 
 
-def budget_versement_ids(db: Session):
+def budget_versement_ids(db: Session) -> Query[Any]:
     """Versements alimentés par un compte du budget (virement interne lié).
 
     Seuls ceux-là sont de l'argent « investi » au sens du budget : un versement

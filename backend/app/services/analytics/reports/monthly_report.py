@@ -1,4 +1,6 @@
 """Rapport mensuel : budget du mois comparé au précédent, top catégories et marchands, money-flow, insights."""
+from typing import Any
+
 from sqlalchemy.orm import Session
 
 from app.domain.reports import calc_diff
@@ -56,7 +58,7 @@ async def compute_monthly_report(db: Session, month: int, year: int, account_id:
 
 
 async def _top_categories(db: Session, month: int, year: int, prev_month: int, prev_year: int,
-                          account_id: int | None) -> list[dict]:
+                          account_id: int | None) -> list[dict[str, Any]]:
     """Huit premiers postes de consommation (hors Investissement / Epargne, comme dans le bilan annuel)."""
     cat_data = await compute_expenses_by_category(month=month, year=year, account_id=account_id, db=db)
     prev_cat_data = await compute_expenses_by_category(month=prev_month, year=prev_year, account_id=account_id, db=db)
@@ -76,7 +78,7 @@ async def _top_categories(db: Session, month: int, year: int, prev_month: int, p
     } for item in sorted_items[:8]]
 
 
-def _comparison(current: dict, prev: dict, current_savings: float, prev_savings: float) -> MonthlyComparison:
+def _comparison(current: dict[str, Any], prev: dict[str, Any], current_savings: float, prev_savings: float) -> MonthlyComparison:
     inc_diff, inc_pct = calc_diff(current["revenus_totaux"], prev["revenus_totaux"])
     exp_diff, exp_pct = calc_diff(current["depenses_reelles"], prev["depenses_reelles"])
     sav_diff, sav_pct = calc_diff(current_savings, prev_savings)
@@ -90,9 +92,9 @@ def _comparison(current: dict, prev: dict, current_savings: float, prev_savings:
     )
 
 
-async def _net_worth_change(db: Session, month: int, year: int, account_id: int | None, current: dict,
-                            prev: dict) -> float:
-    nw_change = current["patrimoine_net_total"] - prev["patrimoine_net_total"]
+async def _net_worth_change(db: Session, month: int, year: int, account_id: int | None, current: dict[str, Any],
+                            prev: dict[str, Any]) -> float:
+    nw_change: float = current["patrimoine_net_total"] - prev["patrimoine_net_total"]
     if account_id is None:
         # Un compte ouvert dans le mois n'est pas un gain : son solde initial est retranché
         period_start, period_end = period_bounds(db, year, month)

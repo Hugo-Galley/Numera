@@ -1,4 +1,6 @@
 """Positions enrichies pour l'affichage : cours, valeur, plus-value, dividendes reçus et rendement total."""
+from typing import Any
+
 from sqlalchemy.orm import Session
 
 from app.domain.dividends import HoldingDividends, summarize_by_holding
@@ -10,7 +12,7 @@ from app.services.investissement.dividends import load_dividends_eur
 from app.services.investissement.market.quotes import get_market_quotes, persist_fetched_prices
 
 
-def enrich_holding(holding: PortfolioHolding, quotes: dict, rates: dict, divs: HoldingDividends | None = None) -> PortfolioHoldingRead:
+def enrich_holding(holding: PortfolioHolding, quotes: dict[str, Any], rates: dict[str, Any], divs: HoldingDividends | None = None) -> PortfolioHoldingRead:
     sym = holding.ticker.upper().strip()
     quote = quotes.get(sym, {})
     price = quote.get("price", 0.0) or 0.0

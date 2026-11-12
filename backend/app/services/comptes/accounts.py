@@ -14,6 +14,7 @@ from app.schemas.account import (
     ReconcileTransaction,
 )
 from app.services.comptes import reconciliation
+from app.services.comptes.reconciliation import Hint
 from app.services.comptes.wealth import account_values
 
 
@@ -115,7 +116,7 @@ def reconcile_account(db: Session, account_id: int, payload: ReconcileRequest) -
     )
 
 
-def _reconcile_hint(hint) -> ReconcileHint:
+def _reconcile_hint(hint: Hint) -> ReconcileHint:
     return ReconcileHint(
         kind=hint.kind,
         message=hint.message,

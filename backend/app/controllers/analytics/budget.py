@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Any, Literal
 
 from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel
@@ -20,7 +20,7 @@ def budget_analytics(
     year: int | None = Query(default=None, ge=2000, le=2200),
     account_id: int | None = Query(default=None),
     db: Session = Depends(get_db),
-):
+) -> dict[str, Any]:
     return run_async(compute_budget(db, month=month, year=year, account_id=account_id))
 
 
@@ -29,7 +29,7 @@ def resilience(
     month: int = Query(ge=1, le=12),
     year: int = Query(ge=2000, le=2200),
     db: Session = Depends(get_db),
-):
+) -> dict[str, Any]:
     return run_async(compute_resilience(db, year, month))
 
 
@@ -39,7 +39,7 @@ def budget_alerts(
     month: int = Query(..., ge=1, le=12),
     account_id: int | None = Query(default=None),
     db: Session = Depends(get_db),
-):
+) -> list[BudgetAlert]:
     return run_async(compute_budget_alerts(db, year=year, month=month, account_id=account_id))
 
 
@@ -52,11 +52,11 @@ def get_budget_period(
     year: int | None = Query(default=None, ge=2000, le=2200),
     month: int | None = Query(default=None, ge=1, le=12),
     db: Session = Depends(get_db),
-):
+) -> dict[str, Any]:
     """Mois budgétaire en cours et fenêtre (début / fin incluse) du mois demandé."""
     return budget_period.period_info(db, year, month)
 
 
 @router.put("/budget-period", response_model=BudgetPeriod)
-def set_budget_period_mode(payload: BudgetPeriodModeUpdate, db: Session = Depends(get_db)):
+def set_budget_period_mode(payload: BudgetPeriodModeUpdate, db: Session = Depends(get_db)) -> dict[str, Any]:
     return budget_period.update_mode(db, payload.mode)

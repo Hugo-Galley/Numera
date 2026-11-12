@@ -3,11 +3,13 @@
 Un virement est un couple 1 pour 1 : une `Sortie` et une `Entree` (ou un `versement` d'investissement)
 sur deux comptes différents. Un lien ne modifie aucun montant.
 """
+from collections.abc import Callable
 from datetime import datetime, timedelta
+from typing import Any
 
 from sqlalchemy.orm import Session
 
-from app.core.errors import BusinessRuleError
+from app.core.errors import BusinessRuleError, NotFoundError
 from app.core.i18n import tr
 from app.core.logging import get_logger
 from app.core.time import utcnow_naive
@@ -26,7 +28,7 @@ logger = get_logger(__name__)
 AUTO_ORIGINS = ("rule", "recurring")
 EVENT_MONTHS = 3  # fenêtre des rapprochements déclenchés par un événement (import, saisie…)
 
-async def _eur_converter(accounts: dict[int, Account]):
+async def _eur_converter(accounts: dict[int, Account]) -> Callable[[float, int], float]:
     """Convertisseur montant -> EUR selon la devise du compte (taux courants)."""
     rates = await currency_module.get_exchange_rates("EUR")
 
@@ -102,7 +104,7 @@ def link_pair(db: Session, sortie: Transaction, other: Leg, kind: str, origin: s
 
     # Libère les anciens partenaires pour ne laisser aucun lien orphelin
     _detach(db, sortie, mark_ignored=False)
-    if kind == "regular":
+    if kind == "regular" and isinstance(other, Transaction):
         _detach(db, other, mark_ignored=False)
         sortie.linked_transaction_id = other.id
     else:
@@ -231,7 +233,7 @@ async def create_counterpart(
     amount: float | None = None,
     origin: str = "manual",
     recurring_transaction_id: int | None = None,
-    trade: dict | None = None,
+    trade: dict[str, Any] | None = None,
 ) -> tuple[Leg, str]:
     """Crée l'entrée (ou le versement) manquante sur `dest` et la relie à `sortie`.
 
@@ -241,6 +243,8 @@ async def create_counterpart(
     et un achat de parts en une seule opération (l'appelant relance `rebuild_holdings`).
     """
     src = db.get(Account, sortie.account_id)
+    if src is None:
+        raise NotFoundError(tr("errors.account_not_found"))
     when = date or sortie.date
     if amount is None:
         amount = sortie.amount
@@ -279,7 +283,7 @@ async def candidates_for(
     amount_tolerance_pct: float = 5.0,
     account_id: int | None = None,
     limit: int = 30,
-) -> list[dict]:
+) -> list[dict[str, Any]]:
     """Candidates pour relier `tx` à la main, classées par écart de date puis de montant.
 
     Pour une `Sortie`, on cherche des entrées (ou versements) ; pour une `Entree`, des sorties.
@@ -294,6 +298,7 @@ async def candidates_for(
     high = tx.date + timedelta(days=days, hours=23, minutes=59)
 
     rows: list[tuple[str, Leg]] = []
+    wanted: list[tuple[type[Transaction] | type[InvestmentTransaction], str, str]]
     if tx.type == "Sortie":
         wanted = [(Transaction, "Entree", "regular"), (InvestmentTransaction, "versement", "investment")]
     elif tx.type == "Entree":

@@ -3,6 +3,9 @@
 Quantité, PRU et devise ne s'écrivent jamais sur une position : on modifie l'inventaire, puis
 `rebuild_holdings` recalcule les positions (`portfolio_holdings` est dérivé).
 """
+from datetime import datetime
+from typing import Any
+
 from sqlalchemy.orm import Session
 
 from app.core.errors import BusinessRuleError, ConflictError, NotFoundError
@@ -15,6 +18,7 @@ from app.repositories.comptes import accounts as accounts_repo
 from app.repositories.investissement import holdings as repo
 from app.schemas.holding import (
     ApplyCostsRequest,
+    BaselineHoldingItem,
     BaselineInventoryRequest,
     CostEstimateRead,
     PortfolioHoldingCreate,
@@ -35,7 +39,9 @@ def _get_account(db: Session, account_id: int) -> Account:
     return account
 
 
-def _baseline_item(account_id: int, ticker: str, baseline_date, line) -> HoldingBaselineItem:
+def _baseline_item(
+    account_id: int, ticker: str, baseline_date: datetime, line: BaselineHoldingItem | PortfolioHoldingCreate
+) -> HoldingBaselineItem:
     return HoldingBaselineItem(
         account_id=account_id,
         baseline_date=baseline_date,
@@ -54,7 +60,7 @@ async def list_holdings(db: Session, account_id: int | None) -> list[PortfolioHo
     return await enrich_all(db, repo.list_all(db, account_id))
 
 
-async def suggestions(db: Session, account_id: int) -> list[dict]:
+async def suggestions(db: Session, account_id: int) -> list[dict[str, Any]]:
     """Titres suggérés pour l'inventaire Point Zéro d'après les libellés des anciennes opérations."""
     _get_account(db, account_id)
     return await suggest_holdings_from_notes(db, account_id)

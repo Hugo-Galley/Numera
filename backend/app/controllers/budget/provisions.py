@@ -1,3 +1,5 @@
+from typing import Any
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
@@ -10,25 +12,25 @@ router = APIRouter(prefix="/provisions", tags=["provisions"])
 
 
 @router.get("", response_model=list[ProvisionRead])
-def list_provisions(db: Session = Depends(get_db)):
+def list_provisions(db: Session = Depends(get_db)) -> list[dict[str, Any]]:
     return run_async(service.list_provisions(db))
 
 
 @router.get("/summary", response_model=ProvisionSummary)
-def provisions_summary(db: Session = Depends(get_db)):
+def provisions_summary(db: Session = Depends(get_db)) -> dict[str, Any]:
     return run_async(service.provisions_summary(db))
 
 
 @router.post("", response_model=ProvisionRead, status_code=201)
-def create_provision(payload: ProvisionCreate, db: Session = Depends(get_db)):
+def create_provision(payload: ProvisionCreate, db: Session = Depends(get_db)) -> dict[str, Any]:
     return run_async(service.create_provision(db, payload))
 
 
 @router.patch("/{provision_id}", response_model=ProvisionRead)
-def update_provision(provision_id: int, payload: ProvisionUpdate, db: Session = Depends(get_db)):
+def update_provision(provision_id: int, payload: ProvisionUpdate, db: Session = Depends(get_db)) -> dict[str, Any]:
     return run_async(service.update_provision(db, provision_id, payload))
 
 
 @router.delete("/{provision_id}", status_code=204)
-def delete_provision(provision_id: int, db: Session = Depends(get_db)):
+def delete_provision(provision_id: int, db: Session = Depends(get_db)) -> None:
     service.delete_provision(db, provision_id)

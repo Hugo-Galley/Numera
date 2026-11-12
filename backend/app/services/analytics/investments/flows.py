@@ -1,5 +1,6 @@
 """Capital net investi d'un compte suivi par relevés : base (Point Zéro ou valeur en début de période) + versements − retraits."""
 from datetime import datetime
+from typing import Any
 
 from sqlalchemy.orm import Session
 
@@ -11,7 +12,7 @@ from app.services.comptes.exchange_rates import convert_amount
 
 
 async def calculate_investment_flows(db: Session, account: Account, end_date: datetime, start_date: datetime | None = None,
-                                     target_currency: str = "EUR") -> dict:
+                                     target_currency: str = "EUR") -> dict[str, Any]:
     baseline_val_raw, baseline_date = _baseline(db, account, end_date, start_date)
     baseline_val_target = 0.0
     if baseline_val_raw != 0:

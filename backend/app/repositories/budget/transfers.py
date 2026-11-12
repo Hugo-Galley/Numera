@@ -1,5 +1,6 @@
+from collections.abc import Sequence
 from datetime import datetime
-from typing import TypeVar
+from typing import Any, TypeVar, cast
 
 from sqlalchemy.orm import Session
 
@@ -23,7 +24,7 @@ MATCH_VERSEMENT_COLUMNS = (
 )
 
 
-def unlinked_sorties(db: Session, source_account_id: int | None, since: datetime | None, columns=None) -> list:
+def unlinked_sorties(db: Session, source_account_id: int | None, since: datetime | None, columns: Sequence[Any] | None = None) -> list[Any]:
     """Sorties ni liées, ni ignorées, ni verrouillées par une créance (lignes de `columns` si fourni)."""
     q = (db.query(*columns) if columns else db.query(Transaction)).filter(
         Transaction.type == "Sortie",
@@ -40,7 +41,7 @@ def unlinked_sorties(db: Session, source_account_id: int | None, since: datetime
     return q.all()
 
 
-def unlinked_entrees(db: Session, dest_account_id: int | None, date_floor: datetime | None, columns=None) -> list:
+def unlinked_entrees(db: Session, dest_account_id: int | None, date_floor: datetime | None, columns: Sequence[Any] | None = None) -> list[Any]:
     q = (db.query(*columns) if columns else db.query(Transaction)).filter(
         Transaction.type == "Entree",
         Transaction.is_transfer.is_(False),
@@ -55,7 +56,7 @@ def unlinked_entrees(db: Session, dest_account_id: int | None, date_floor: datet
     return q.all()
 
 
-def unlinked_versements(db: Session, dest_account_id: int | None, date_floor: datetime | None, columns=None) -> list:
+def unlinked_versements(db: Session, dest_account_id: int | None, date_floor: datetime | None, columns: Sequence[Any] | None = None) -> list[Any]:
     q = (db.query(*columns) if columns else db.query(InvestmentTransaction)).filter(
         InvestmentTransaction.type == "versement",
         InvestmentTransaction.is_transfer.is_(False),
@@ -89,8 +90,8 @@ def is_locked(db: Session, transaction_id: int) -> bool:
     ).first() is not None
 
 
-def legs_near(db: Session, model, type_: str, exclude_account_id: int, low: datetime, high: datetime,
-              account_id: int | None) -> list:
+def legs_near(db: Session, model: type[Transaction] | type[InvestmentTransaction], type_: str, exclude_account_id: int,
+              low: datetime, high: datetime, account_id: int | None) -> list[Transaction | InvestmentTransaction]:
     """Opérations non liées d'un type donné, hors du compte `exclude_account_id`, entre `low` et `high`."""
     q = db.query(model).filter(
         model.type == type_, model.is_transfer.is_(False),
@@ -100,4 +101,5 @@ def legs_near(db: Session, model, type_: str, exclude_account_id: int, low: date
         q = q.filter(model.account_id == account_id)
     if model is Transaction:
         q = q.filter(Transaction.id.notin_(locked_transaction_ids()))
-    return q.all()
+    # `db.query(model)` sur une union de classes perd le type : les lignes sont bien des Transaction ou des InvestmentTransaction.
+    return cast("list[Transaction | InvestmentTransaction]", q.all())

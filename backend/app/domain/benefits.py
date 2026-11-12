@@ -1,6 +1,6 @@
 """Aides perçues : calculs purs (date de versement attendue, statut du mois, déclaration, rattachement)."""
 import calendar
-from collections.abc import Iterable, Sequence
+from collections.abc import Iterable, Mapping, Sequence
 from datetime import date, timedelta
 
 # Un versement peut arriver avant le jour habituel (week-end, jour férié)
@@ -66,7 +66,7 @@ def amount_changed(expected: float, received: float) -> bool:
     return gap > AMOUNT_TOLERANCE_EUR and gap > expected * AMOUNT_TOLERANCE_PCT
 
 
-def assign(candidates: dict[int, Sequence[int]], amounts: dict[int, float], expected: dict[int, float]) -> dict[int, int]:
+def assign(candidates: Mapping[int, Sequence[int]], amounts: dict[int, float], expected: dict[int, float]) -> dict[int, int]:
     """Rattache chaque versement (id → aides candidates) à une seule aide : celle au montant attendu le plus proche."""
     return {
         tx_id: min(benefit_ids, key=lambda b: (abs(amounts[tx_id] - expected[b]), b))

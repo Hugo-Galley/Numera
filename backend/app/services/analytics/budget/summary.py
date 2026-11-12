@@ -5,6 +5,7 @@ Vue compte (`account_id`) : flux et soldes dans la devise du compte.
 """
 from dataclasses import dataclass
 from datetime import datetime
+from typing import Any
 
 from sqlalchemy.orm import Session
 
@@ -50,7 +51,7 @@ class _Wealth:
 
 
 async def compute_budget(db: Session, month: int | None = None, year: int | None = None,
-                         account_id: int | None = None) -> dict:
+                         account_id: int | None = None) -> dict[str, Any]:
     if account_id is not None and db.get(Account, account_id) is None:
         raise NotFoundError(tr("errors.account_not_found"))
     if bool(month) != bool(year):
@@ -83,13 +84,13 @@ async def compute_budget(db: Session, month: int | None = None, year: int | None
 
 def _days(db: Session, start: datetime | None, end: datetime, monthly: bool) -> int:
     """Jours servant au burn rate : écoulés dans le mois, sinon depuis la première transaction."""
-    if monthly:
+    if monthly and start is not None:
         return elapsed_days(start, end, now_local())
     earliest = repo.earliest_transaction_date(db)
     return max((now_local() - earliest).days, 1) if earliest else 1
 
 
-def _global_flows(db: Session, start: datetime | None, end: datetime, rates: dict, days: int) -> _Flows:
+def _global_flows(db: Session, start: datetime | None, end: datetime, rates: dict[str, Any], days: int) -> _Flows:
     """Flux de la vue globale en EUR (courant/épargne hors tickets restaurant, dividendes)."""
     tr_accounts = ticket_restaurant_account_ids(db)
     revenus = to_eur(repo.income_by_currency(db, start, end, tr_accounts), rates)
@@ -149,7 +150,7 @@ async def _global_wealth(db: Session, end: datetime, is_current_period: bool) ->
     return wealth
 
 
-async def _account_wealth(db: Session, account: Account, end: datetime, rates: dict,
+async def _account_wealth(db: Session, account: Account, end: datetime, rates: dict[str, Any],
                           is_current_period: bool) -> _Wealth:
     """Valeur d'un compte dans sa devise : titres, solde courant ou épargne selon son type."""
     wealth = _Wealth(investments=await _account_investment_value(db, account, end, rates, is_current_period))
@@ -170,7 +171,7 @@ async def _account_wealth(db: Session, account: Account, end: datetime, rates: d
     return wealth
 
 
-async def _account_investment_value(db: Session, account: Account, end: datetime, rates: dict,
+async def _account_investment_value(db: Session, account: Account, end: datetime, rates: dict[str, float],
                                     is_current_period: bool) -> float:
     """Compte titres : positions × cours (période en cours), sinon dernier relevé, sinon dernier solde."""
     positions_values = await positions_values_eur(db, [account]) if is_current_period else {}
@@ -185,7 +186,7 @@ async def _account_investment_value(db: Session, account: Account, end: datetime
     return float(last_tx.running_balance) if last_tx else 0.0
 
 
-def _response(month: int | None, year: int | None, flows: _Flows, wealth: _Wealth, account_id: int | None) -> dict:
+def _response(month: int | None, year: int | None, flows: _Flows, wealth: _Wealth, account_id: int | None) -> dict[str, Any]:
     saved = flows.remaining if account_id else flows.revenus - flows.real_depenses
     return {
         "month": month,

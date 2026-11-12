@@ -1,3 +1,5 @@
+from typing import TYPE_CHECKING, Any
+
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
@@ -5,6 +7,9 @@ from app.controllers.deps import get_db
 from app.core.sync_bridge import run_async
 from app.schemas.month_review import CloseRequest, ClosureRead, MonthReviewRead
 from app.services.budget import month_review as service
+
+if TYPE_CHECKING:
+    from app.models.month_closure import MonthClosure
 
 router = APIRouter(prefix="/month-review", tags=["month-review"])
 
@@ -14,13 +19,13 @@ def get_month_review(
     year: int = Query(ge=2000, le=2200),
     month: int = Query(ge=1, le=12),
     db: Session = Depends(get_db),
-):
+) -> dict[str, Any]:
     """État de la revue d'un mois : étapes 1 à 3 calculées, statut de clôture, indicateur de modification."""
     return run_async(service.get_month_review(db, year, month))
 
 
 @router.post("/close", response_model=MonthReviewRead)
-def close_month(payload: CloseRequest, db: Session = Depends(get_db)):
+def close_month(payload: CloseRequest, db: Session = Depends(get_db)) -> dict[str, Any]:
     """Marque le mois comme revu et fige la photo des chiffres. Idempotent : re-clôturer remplace la photo."""
     return run_async(service.close_month(db, payload))
 
@@ -30,11 +35,11 @@ def reopen_month(
     year: int = Query(ge=2000, le=2200),
     month: int = Query(ge=1, le=12),
     db: Session = Depends(get_db),
-):
+) -> None:
     """Rouvre un mois (supprime sa clôture). Sans effet si le mois n'était pas clôturé."""
     service.reopen_month(db, year, month)
 
 
 @router.get("/closures", response_model=list[ClosureRead])
-def list_closures(db: Session = Depends(get_db)):
+def list_closures(db: Session = Depends(get_db)) -> "list[MonthClosure]":
     return service.list_closures(db)

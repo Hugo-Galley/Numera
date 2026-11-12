@@ -1,7 +1,7 @@
 """Requêtes du mois budgétaire : dates des salaires reçus."""
 from datetime import datetime
 
-from sqlalchemy import func, or_
+from sqlalchemy import ColumnElement, func, or_
 from sqlalchemy.orm import Session
 
 from app.models.category import Category
@@ -17,7 +17,7 @@ def salary_entry_dates(db: Session) -> set[datetime]:
 
     rows: set[datetime] = set()
     for config in configs:
-        criteria = [func.lower(Transaction.merchant).like("salaire%")]
+        criteria: list[ColumnElement[bool]] = [func.lower(Transaction.merchant).like("salaire%")]
         if config.salary_recurring_id:
             criteria.append(Transaction.recurring_transaction_id == config.salary_recurring_id)
         if config.salary_category_id:

@@ -1,5 +1,6 @@
 """Prévision de patrimoine, indépendance financière (FIRE) et simulateur de patrimoine."""
 import math
+from typing import Any
 
 from sqlalchemy.orm import Session
 
@@ -30,7 +31,7 @@ async def _observed_return(db: Session) -> tuple[float | None, set[int]]:
         return None, set()
 
 
-def _balances(items: list[dict], measured_ids: set[int]) -> tuple[float, float, float]:
+def _balances(items: list[dict[str, Any]], measured_ids: set[int]) -> tuple[float, float, float]:
     """Soldes positifs : investissements mesurés (XIRR), non mesurés (relevés), autres comptes."""
     measured = unmeasured = other = 0.0
     for item in items:

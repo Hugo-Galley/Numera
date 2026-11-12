@@ -1,3 +1,5 @@
+from typing import Any
+
 from fastapi import APIRouter, Query, Response
 from pydantic import BaseModel
 
@@ -23,12 +25,12 @@ class LogoRef(BaseModel):
 
 
 @router.get("/search", response_model=list[LogoSuggestion])
-def search_logos(q: str = Query("", max_length=60), limit: int = Query(8, ge=1, le=20)) -> list[dict]:
+def search_logos(q: str = Query("", max_length=60), limit: int = Query(8, ge=1, le=20)) -> list[dict[str, Any]]:
     return service.search_logos(q, limit)
 
 
 @router.post("/from-domain", response_model=LogoRef)
-def logo_from_domain(body: DomainIn) -> dict:
+def logo_from_domain(body: DomainIn) -> dict[str, Any]:
     return run_async(service.logo_from_domain(body.domain))
 
 

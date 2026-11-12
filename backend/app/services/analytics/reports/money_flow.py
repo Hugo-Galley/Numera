@@ -1,4 +1,6 @@
 """Money-flow : où est passé l'argent du mois (charges fixes, dépenses variables, épargne, investissements)."""
+from typing import Any
+
 from sqlalchemy.orm import Session
 
 from app.domain.reports import money_flow_block, top_items
@@ -33,7 +35,7 @@ async def compute_money_flow(db: Session, month: int, year: int, account_id: int
     )
 
 
-async def _calculate_money_flow_data(month: int, year: int, db: Session, account_id: int | None = None) -> dict:
+async def _calculate_money_flow_data(month: int, year: int, db: Session, account_id: int | None = None) -> dict[str, Any]:
     start, end = period_bounds(db, year, month)
     rates = await get_exchange_rates("EUR")
     # Définition unique du revenu : celle du budget (courant, ou catégorie « revenu » ailleurs, dividendes inclus)
@@ -65,9 +67,9 @@ async def _calculate_money_flow_data(month: int, year: int, db: Session, account
     }
 
 
-def _classify(rows: list, rates: dict) -> dict:
+def _classify(rows: list[Any], rates: dict[str, Any]) -> dict[str, Any]:
     """Répartit les sorties : épargne, investissement, charges fixes (récurrentes), dépenses variables."""
-    flows = {"fixed_charges": 0.0, "variable_expenses": 0.0, "savings": 0.0, "investments": 0.0,
+    flows: dict[str, Any] = {"fixed_charges": 0.0, "variable_expenses": 0.0, "savings": 0.0, "investments": 0.0,
              "top_fixed": {}, "top_variable": {}, "top_savings": {}, "top_investments": {}}
     for row in rows:
         tx = row.Transaction

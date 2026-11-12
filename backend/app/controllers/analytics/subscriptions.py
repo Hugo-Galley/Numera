@@ -1,3 +1,5 @@
+from typing import Any
+
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
@@ -15,7 +17,7 @@ def get_subscriptions_analytics(
     account_id: int | None = Query(default=None),
     include_other: bool = Query(default=False),
     db: Session = Depends(get_db),
-):
+) -> SubscriptionsResponse:
     """Abonnements et charges fixes ; include_other ajoute les récurrences qui ne sont pas des sorties (hors totaux)."""
     return run_async(service.compute_subscriptions(db, account_id, include_other))
 
@@ -24,6 +26,6 @@ def get_subscriptions_analytics(
 def ignore_subscription_detection(
     data: SubscriptionIgnore,
     db: Session = Depends(get_db),
-):
+) -> dict[str, Any]:
     """Exclut de la détection toutes les transactions de ce marchand à ce montant."""
     return service.ignore_subscription_detection(db, data)

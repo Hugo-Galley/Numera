@@ -6,7 +6,7 @@ puis l'ajouter à `RULES`. Une règle en échec est journalisée et ignorée, le
 import inspect
 from collections.abc import Callable
 from datetime import datetime
-from typing import NamedTuple
+from typing import Any, NamedTuple
 
 from sqlalchemy.orm import Session
 
@@ -40,7 +40,7 @@ logger = get_logger(__name__)
 
 class Rule(NamedTuple):
     name: str
-    detect: Callable
+    detect: Callable[..., Any]
 
 
 RULES: list[Rule] = [
@@ -94,7 +94,7 @@ def _summary(db: Session, now: datetime, actions: list[ActionItem]) -> ActionCen
     )
 
 
-def dismiss_action(db: Session, action_id: str) -> dict:
+def dismiss_action(db: Session, action_id: str) -> dict[str, Any]:
     if not repo.is_dismissed(db, action_id):
         repo.add_dismissed(db, action_id)
         db.commit()

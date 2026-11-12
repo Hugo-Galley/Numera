@@ -1,3 +1,5 @@
+from typing import Any
+
 from sqlalchemy.orm import Session
 
 from app.core.errors import InvalidOperationError, NotFoundError
@@ -82,7 +84,7 @@ def _first_matching_rule(tx: Transaction, rules: list[CategorizationRule]) -> Ca
     return None
 
 
-def apply_rules_to_transactions(db: Session) -> dict:
+def apply_rules_to_transactions(db: Session) -> dict[str, Any]:
     """Applique les règles aux transactions existantes.
 
     Une catégorie déjà posée n'est jamais écrasée ; les « Solde Initial » et les virements internes

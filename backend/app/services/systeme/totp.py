@@ -47,7 +47,8 @@ def _read_mfa_token(db: Session, token: str) -> str:
     # Un changement de mot de passe entre les deux étapes invalide l'étape en cours
     if int(payload.get("iat") or 0) < int(get_setting(db, "auth_valid_after", "0") or 0):
         raise AuthenticationError(tr("errors.login_step_expired"))
-    return payload["u"]
+    username: str = payload["u"]
+    return username
 
 
 def _new_recovery_codes(db: Session) -> list[str]:

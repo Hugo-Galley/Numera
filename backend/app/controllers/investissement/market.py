@@ -1,4 +1,6 @@
 
+from typing import Any
+
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
@@ -15,7 +17,7 @@ def market_search(
     q: str | None = Query(default=None, description="ISIN, ticker or asset name"),
     query: str | None = Query(default=None, description="ISIN, ticker or asset name"),
     db: Session = Depends(get_db),
-):
+) -> list[dict[str, Any]]:
     """
     Search for market assets by ISIN code, Ticker symbol or Name.
     Returns matched ETF profiles and stocks with quotes.
@@ -30,7 +32,7 @@ def market_search(
 def market_validate(
     symbol_or_isin: str = Query(..., min_length=1, description="Ticker symbol or ISIN to validate"),
     db: Session = Depends(get_db),
-):
+) -> dict[str, Any]:
     """
     Validates if a symbol or ISIN exists and returns real-time verification details.
     """
@@ -40,7 +42,7 @@ def market_validate(
 @router.get("/quote", response_model=dict[str, MarketQuote])
 def market_quote(
     symbols: str = Query(..., description="Comma-separated list of symbols (e.g. CW8.PA,AAPL)"),
-):
+) -> dict[str, dict[str, Any]]:
     """
     Get live market quotes and converted EUR prices for given symbols.
     """

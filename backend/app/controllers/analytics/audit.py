@@ -1,3 +1,5 @@
+from typing import Any
+
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
@@ -13,17 +15,17 @@ router = APIRouter()
 
 
 @router.get("/audit", response_model=DataAuditResponse)
-def data_audit(db: Session = Depends(get_db)):
+def data_audit(db: Session = Depends(get_db)) -> DataAuditResponse:
     return service.compute_data_audit(db)
 
 
 @router.get("/audit/{issue_id}", response_model=AuditIssueDetails, response_model_exclude_unset=True)
-def data_audit_issue_details(issue_id: str, db: Session = Depends(get_db)):
+def data_audit_issue_details(issue_id: str, db: Session = Depends(get_db)) -> dict[str, Any]:
     return service.compute_data_audit_issue(db, issue_id)
 
 
 @router.get("/actions", response_model=ActionCenterResponse)
-def get_action_center(db: Session = Depends(get_db)):
+def get_action_center(db: Session = Depends(get_db)) -> ActionCenterResponse:
     return run_async(service.compute_action_center(db))
 
 
@@ -32,5 +34,5 @@ class DismissActionRequest(BaseModel):
 
 
 @router.post("/actions/dismiss", response_model=StatusResponse)
-def dismiss_action(request: DismissActionRequest, db: Session = Depends(get_db)):
+def dismiss_action(request: DismissActionRequest, db: Session = Depends(get_db)) -> dict[str, Any]:
     return service.dismiss_action(db, request.id)

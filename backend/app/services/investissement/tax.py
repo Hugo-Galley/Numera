@@ -202,7 +202,7 @@ async def build_annual_report(db: Session, year: int) -> AnnualReport:
                 dividends_gross_eur=round(sum(d.gross_eur for d in dividends), 2),
                 dividends_net_eur=round(sum(d.net_eur for d in dividends), 2),
                 withholding_eur=round(sum(d.tax_eur for d in dividends), 2),
-                realized_eur=round(sum(sale.realized_eur for sale in known), 2),
+                realized_eur=round(sum(sale.realized_eur or 0.0 for sale in known), 2),
                 proceeds_eur=round(sum(sale.proceeds_eur or 0.0 for sale in known), 2),
                 sales=len(sales),
                 unknown_cost_sales=unknown,
