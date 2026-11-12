@@ -5,6 +5,7 @@ import { Account, Category, ImportFlowProps, PreviewData } from "./types"
 import { getAccounts } from "@/lib/api/accounts"
 import { getCategories } from "@/lib/api/classement"
 import { uploadImportCommit, uploadImportPreview } from "@/lib/api/transactions"
+import { errorMessage } from "@/lib/utils"
 
 /** Comptes et catégories, fichier choisi, aperçu, correspondance des catégories et import. */
 export function useImportState(p: { accountId: ImportFlowProps["accountId"]; onImported: ImportFlowProps["onImported"] }) {
@@ -56,7 +57,7 @@ export function useImportState(p: { accountId: ImportFlowProps["accountId"]; onI
 
     setLoading(true)
     try {
-      const data = await uploadImportPreview<any>(formData)
+      const data = await uploadImportPreview(formData)
       setPreview(data)
       
       // Initialize mapping with default behavior (CREATE)
@@ -65,8 +66,8 @@ export function useImportState(p: { accountId: ImportFlowProps["accountId"]; onI
         initialMapping[cat] = "CREATE"
       })
       setCategoryMapping(initialMapping)
-    } catch (error: any) {
-      toast.error(error?.message || i18n.t("analyzeError", { ns: "import" }))
+    } catch (error) {
+      toast.error(errorMessage(error, i18n.t("analyzeError", { ns: "import" })))
     } finally {
       setLoading(false)
     }
@@ -83,12 +84,12 @@ export function useImportState(p: { accountId: ImportFlowProps["accountId"]; onI
 
     setImporting(true)
     try {
-      const data = await uploadImportCommit<any>(formData)
+      const data = await uploadImportCommit(formData)
       setResult(data)
       toast.success(i18n.t("done", { ns: "import" }))
       if (data.imported > 0) onImported?.()
-    } catch (error: any) {
-      toast.error(error?.message || i18n.t("importError", { ns: "import" }))
+    } catch (error) {
+      toast.error(errorMessage(error, i18n.t("importError", { ns: "import" })))
     } finally {
       setImporting(false)
     }

@@ -21,9 +21,10 @@ import {
   CartesianGrid,
   Tooltip
 } from "recharts"
+import type { TopMerchants } from "../types"
 
 interface MerchantsTabProps {
-  topMerchants: any[]
+  topMerchants: TopMerchants["items"]
   displayCurrency: string
   drilldownScope: DrilldownScope
 }
@@ -61,7 +62,7 @@ export function MerchantsTab({ topMerchants, displayCurrency, drilldownScope }: 
               radius={[0, 4, 4, 0]}
               barSize={isMobile ? 18 : 30}
               className="cursor-pointer"
-              onClick={(data: any) => {
+              onClick={(data) => {
                 const merchant = (data?.payload ?? data)?.merchant
                 if (merchant) openDrilldown({ ...drilldownScope, label: merchant, merchantName: merchant })
               }}

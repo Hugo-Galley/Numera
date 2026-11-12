@@ -7,6 +7,7 @@ import type { AccountDetailView } from "./useAccountDetail"
 import { InvestmentFlowsCard } from "./InvestmentFlowsCard"
 import { SnapshotsCard } from "./SnapshotsCard"
 import { patchAccountsById } from "@/lib/api/accounts"
+import { errorMessage } from "@/lib/utils"
 
 /** Section d'un compte d'investissement : positions, synthèse, dividendes, flux et snapshots. */
 export function InvestmentSection({ ctx }: { ctx: AccountDetailView }) {
@@ -45,8 +46,8 @@ export function InvestmentSection({ ctx }: { ctx: AccountDetailView }) {
                         await patchAccountsById(account.id, { valuation_mode: mode })
                         toast.success(mode === "snapshot" ? t("investmentSection.valorisationParReleves") : t("investmentSection.valorisationParPositions"))
                         loadData({ quiet: true })
-                      } catch (err: any) {
-                        toast.error(err?.message || t("investmentSection.impossibleDeChangerLaValorisation"))
+                      } catch (err) {
+                        toast.error(errorMessage(err, t("investmentSection.impossibleDeChangerLaValorisation")))
                       }
                     }}
                     className={`rounded-md px-3 py-1 text-xs font-semibold transition-all ${

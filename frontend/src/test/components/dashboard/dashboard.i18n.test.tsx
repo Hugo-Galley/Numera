@@ -8,6 +8,8 @@ import { InsightsTab } from "@/components/dashboard/tabs/InsightsTab"
 import { ProjectionsTab } from "@/components/dashboard/tabs/ProjectionsTab"
 import { SubscriptionsTab } from "@/components/dashboard/tabs/SubscriptionsTab"
 import { AccountVerificationBanner } from "@/components/dashboard/AccountVerificationBanner"
+import { partial } from "@/test/support/factories"
+import type { BudgetAlert, CashflowProjection, Insights, SubscriptionsData } from "@/components/dashboard/types"
 
 // WorkHours lit WorkTimeProvider (non monté ici) ; formatWorkDuration reste réel
 vi.mock("@/components/ui/work-hours", async (original) => ({ ...(await original<typeof import("@/components/ui/work-hours")>()), WorkHours: () => null }))
@@ -22,8 +24,8 @@ describe("tableau de bord en anglais", () => {
     renderWithProviders(
       <>
         <BudgetsTab budgetAlerts={[]} drilldownScope={scope} />
-        <SubscriptionsTab subscriptions={{ subscriptions: [] }} displayCurrency="EUR" />
-        <InsightsTab insights={{ insights: [], health_score: { total_score: 80, metrics: [] } }} />
+        <SubscriptionsTab subscriptions={partial<SubscriptionsData>({ subscriptions: [] })} displayCurrency="EUR" />
+        <InsightsTab insights={partial<Insights>({ insights: [], health_score: { total_score: 80, metrics: [] } })} />
       </>,
     )
     expect(screen.getByText("Budget tracking")).toBeInTheDocument()
@@ -35,7 +37,7 @@ describe("tableau de bord en anglais", () => {
 
   it("budget : statut et libellés mensuel / annuel", () => {
     const alert = { category_id: 1, category_name: "Logement", monthly_ratio: 1.2, monthly_spent: 120, monthly_limit: 100, annual_ratio: 0.5, annual_spent: 600, annual_limit: 1200 }
-    renderWithProviders(<BudgetsTab budgetAlerts={[alert]} drilldownScope={scope} />)
+    renderWithProviders(<BudgetsTab budgetAlerts={[partial<BudgetAlert>(alert)]} drilldownScope={scope} />)
     expect(screen.getByText("Over budget")).toBeInTheDocument()
     expect(screen.getByText(/^Monthly —/)).toBeInTheDocument()
     expect(screen.getByText(/^Yearly —/)).toBeInTheDocument()
@@ -43,7 +45,7 @@ describe("tableau de bord en anglais", () => {
   })
 
   it("projections : phrases avec balises et montants au format anglais", () => {
-    const projection = { projected_balance: 3000, current_balance: 2000, low_point: 1500, low_point_date: "2026-11-20", points: [], events: [] }
+    const projection = partial<CashflowProjection>({ projected_balance: 3000, current_balance: 2000, low_point: 1500, low_point_date: "2026-11-20", points: [], events: [] })
     renderWithProviders(<ProjectionsTab projection={projection} displayCurrency="EUR" />)
     expect(screen.getByText("Projected Balance (60d)")).toBeInTheDocument()
     expect(screen.getByText("positive")).toBeInTheDocument()
@@ -53,7 +55,7 @@ describe("tableau de bord en anglais", () => {
   })
 
   it("projections : solde négatif", () => {
-    const projection = { projected_balance: 100, current_balance: 500, low_point: -50, low_point_date: "2026-11-20", points: [], events: [] }
+    const projection = partial<CashflowProjection>({ projected_balance: 100, current_balance: 500, low_point: -50, low_point_date: "2026-11-20", points: [], events: [] })
     renderWithProviders(<ProjectionsTab projection={projection} displayCurrency="EUR" />)
     expect(screen.getByText("below zero")).toBeInTheDocument()
   })

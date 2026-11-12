@@ -3,14 +3,14 @@
 export interface BaselineRow {
   ticker: string
   asset_name: string
-  isin?: string
+  isin?: string | null
   quantity: number
-  buy_price_avg?: number
+  buy_price_avg?: number | null
   currency: string
-  etf_profile_id?: number
+  etf_profile_id?: number | null
   is_etf: boolean
-  current_price?: number
-  current_price_eur?: number
+  current_price?: number | null
+  current_price_eur?: number | null
   is_suggestion?: boolean
 }
 

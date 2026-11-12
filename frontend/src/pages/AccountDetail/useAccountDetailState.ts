@@ -5,7 +5,7 @@ import { formatCurrency as formatCurrencyShared } from "@/lib/utils"
 import { useConfirm } from "@/providers/ConfirmProvider"
 import { useMemo, useState } from "react"
 import { useParams } from "react-router-dom"
-import { Account, Category, TagType, Transaction } from "./types"
+import { Account, AccountTimeseries, Category, InvestmentAnalysis, InvestmentFlow, PerformancePoint, TagTotal, TagType, Transaction } from "./types"
 
 /** État de la page : compte, liste, filtres, tris et sélection. */
 export function useAccountDetailState() {
@@ -30,13 +30,13 @@ export function useAccountDetailState() {
     avg_expense: number
   } | null>(null)
   const [knownMerchants, setKnownMerchants] = useState<string[]>([])
-  const [timeseries, setTimeseries] = useState<any>(null)
-  const [investmentData, setInvestmentData] = useState<any>(null)
-  const [perfHistory, setPerfHistory] = useState<any[]>([])
+  const [timeseries, setTimeseries] = useState<AccountTimeseries | null>(null)
+  const [investmentData, setInvestmentData] = useState<InvestmentAnalysis | null>(null)
+  const [perfHistory, setPerfHistory] = useState<PerformancePoint[]>([])
   const [holdings, setHoldings] = useState<PortfolioHolding[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [availableTags, setAvailableTags] = useState<TagType[]>([])
-  const [tagTotals, setTagTotals] = useState<any[]>([])
+  const [tagTotals, setTagTotals] = useState<TagTotal[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState("")
   const [debouncedSearch, setDebouncedSearch] = useState("")
@@ -80,7 +80,7 @@ export function useAccountDetailState() {
   }
 
   const sortedInvestmentTransactions = useMemo(() => {
-    return [...(investmentData?.transactions || [])].sort((a, b) => {
+    return [...((investmentData?.transactions || []) as InvestmentFlow[])].sort((a, b) => {
       let comparison = 0
       switch (invSortField) {
         case "date":

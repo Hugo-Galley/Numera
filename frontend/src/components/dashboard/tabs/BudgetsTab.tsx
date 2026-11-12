@@ -2,9 +2,10 @@ import { useTranslation } from "react-i18next"
 import { formatCurrency } from "@/lib/utils"
 import { IconComponent } from "../IconComponent"
 import { useDrilldown, type DrilldownScope } from "@/hooks/useDrilldown"
+import type { BudgetAlert } from "../types"
 
 interface BudgetsTabProps {
-  budgetAlerts: any[]
+  budgetAlerts: BudgetAlert[]
   drilldownScope: DrilldownScope
 }
 

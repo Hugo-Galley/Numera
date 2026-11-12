@@ -25,7 +25,7 @@ export function ExpensesCards({ ctx }: { ctx: OverviewTabCtx }) {
                 <XAxis type="number" hide />
                 <YAxis dataKey="category.name" type="category" width={isMobile ? 92 : 100} axisLine={false} tickLine={false} tick={{ fontSize: isMobile ? 11 : 12, fill: '#64748b' }} />
                 <Tooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} formatter={(v: number) => formatAmountWithShare(v, expensesByCategory.reduce((s, i) => s + (i.total || 0), 0), displayCurrency)} />
-                <Bar dataKey="total" radius={[0, 4, 4, 0]} barSize={isMobile ? 16 : 20} className="cursor-pointer" onClick={(data: any) => openCategory(data?.payload ?? data)}>
+                <Bar dataKey="total" radius={[0, 4, 4, 0]} barSize={isMobile ? 16 : 20} className="cursor-pointer" onClick={(data) => openCategory(data?.payload ?? data)}>
                   {expensesByCategory.map((item, i) => (
                     <Cell key={i} fill={item.category.color || COLORS[i % COLORS.length]} />
                   ))}
@@ -35,7 +35,7 @@ export function ExpensesCards({ ctx }: { ctx: OverviewTabCtx }) {
                   .map((item, i) => (
                     <ReferenceLine
                       key={`limit-${i}`}
-                      x={item.category.monthly_limit}
+                      x={item.category.monthly_limit ?? 0}
                       yAxisId={0}
                       stroke="#f59e0b"
                       strokeDasharray="4 3"

@@ -17,7 +17,7 @@ export function InvestmentFlowsCard({ ctx }: { ctx: AccountDetailView }) {
         <CardHeader><CardTitle className="text-lg">{t("investmentFlowsCard.historiqueDesFlux")}</CardTitle></CardHeader>
         <CardContent className="p-0">
           <div className="divide-y md:hidden">
-            {sortedInvestmentTransactions.map((tx: any) => (
+            {sortedInvestmentTransactions.map((tx) => (
               <div key={tx.id + (tx.is_regular ? "-reg" : "-inv")} className="flex items-start gap-1 py-2 pl-4 pr-2">
                 <div className="min-w-0 flex-1 py-1">
                   <div className="flex items-start justify-between gap-2">
@@ -76,7 +76,7 @@ export function InvestmentFlowsCard({ ctx }: { ctx: AccountDetailView }) {
               </TableRow>
             </TableHeader>
              <TableBody>
-              {sortedInvestmentTransactions.map((tx: any) => (
+              {sortedInvestmentTransactions.map((tx) => (
                 <TableRow key={tx.id + (tx.is_regular ? "-reg" : "-inv")}>
                   <TableCell className="text-xs">{format(new Date(tx.date), "dd/MM/yyyy")}</TableCell>
                   <TableCell>

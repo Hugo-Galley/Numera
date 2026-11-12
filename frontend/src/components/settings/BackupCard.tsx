@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { getAdminBackupStatus, postAdminBackupRun } from "@/lib/api/settings"
+import { errorMessage } from "@/lib/utils"
 
 type Outcome = { ok: true; github: boolean } | { ok: false; message: string }
 
@@ -61,8 +62,8 @@ export function BackupCard() {
     try {
       const res = await postAdminBackupRun<{ ok: boolean; github: boolean }>()
       setOutcome({ ok: true, github: res.github })
-    } catch (err: any) {
-      setOutcome({ ok: false, message: err?.message || t("backupCard.echecDeLaSauvegarde") })
+    } catch (err) {
+      setOutcome({ ok: false, message: errorMessage(err, t("backupCard.echecDeLaSauvegarde")) })
     } finally {
       setRunning(false)
       loadStatus()

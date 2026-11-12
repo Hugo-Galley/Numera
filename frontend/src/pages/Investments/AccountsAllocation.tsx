@@ -42,7 +42,7 @@ export function AccountsAllocation({ ctx }: { ctx: InvestmentsCtx }) {
                       onClick={(data) => handleAccountClick(data.id)}
                       className="cursor-pointer outline-none"
                     >
-                      {chartData.map((entry: any, index: number) => (
+                      {chartData.map((entry, index: number) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} className="hover:opacity-80 transition-opacity" />
                       ))}
                     </Pie>
@@ -59,14 +59,14 @@ export function AccountsAllocation({ ctx }: { ctx: InvestmentsCtx }) {
                     {formatCurrency(allocation?.total_current_value || 0)}
                   </span>
                   <span className="text-[11px] text-muted-foreground font-medium">
-                    {allocation?.items?.length || 0} {allocation?.items?.length > 1 ? "comptes" : "compte"}
+                    {allocation?.items?.length || 0} {(allocation?.items?.length ?? 0) > 1 ? "comptes" : "compte"}
                   </span>
                 </div>
               </div>
 
               {/* Détails de l'allocation */}
               <div className="min-w-0 lg:col-span-7 space-y-2.5 md:max-h-[300px] md:overflow-y-auto md:pr-2 scrollbar-thin scrollbar-thumb-slate-200">
-                {allocation?.items?.map((item: any, i: number) => (
+                {allocation?.items?.map((item, i: number) => (
                   <div 
                     key={i} 
                     className="flex min-h-11 flex-col gap-1 cursor-pointer hover:bg-slate-50/80 p-3 md:p-2.5 rounded-xl border border-slate-100 hover:border-slate-200 transition-all group"

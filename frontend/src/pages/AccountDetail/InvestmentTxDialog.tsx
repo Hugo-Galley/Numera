@@ -35,7 +35,7 @@ export function InvestmentTxDialog({ ctx }: { ctx: AccountDetailView }) {
               </div>
               <div className="grid gap-2">
                 <Label className="text-xs uppercase tracking-wider font-bold text-slate-500">{t("investmentTxDialog.type")}</Label>
-                <Select value={invTxType} onValueChange={(v: any) => setInvTxType(v)}>
+                <Select value={invTxType} onValueChange={(v) => setInvTxType(v as typeof invTxType)}>
                   <SelectTrigger className="bg-slate-50 border-slate-200"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="versement">{t("investmentTxDialog.versement")}</SelectItem>

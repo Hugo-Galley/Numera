@@ -16,6 +16,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
 import { getHoldingsEstimateCosts, postHoldingsApplyCosts } from "@/lib/api/investments"
+import { errorMessage } from "@/lib/utils"
 
 interface CostEstimate {
   ticker: string
@@ -91,8 +92,8 @@ export function CostEstimateDialog({ open, onOpenChange, accountId, onApplied }:
       toast.success(i18n.t("misc.prusSaved", { ns: "investments", count: selected.length }))
       onApplied()
       onOpenChange(false)
-    } catch (err: any) {
-      toast.error(err?.message || t("costEstimateDialog.erreurLorsDeLEnregistrement"))
+    } catch (err) {
+      toast.error(errorMessage(err, t("costEstimateDialog.erreurLorsDeLEnregistrement")))
     } finally {
       setSaving(false)
     }

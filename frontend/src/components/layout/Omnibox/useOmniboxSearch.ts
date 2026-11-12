@@ -60,7 +60,7 @@ export function useOmniboxSearch() {
       try {
         setLoading(true)
         setSearchFailed(false)
-        const data = await getTransactions<any[]>(`?search=${encodeURIComponent(query)}&limit=10`)
+        const data = await getTransactions(`?search=${encodeURIComponent(query)}&limit=10`)
         if (isCurrent) {
           setTransactions(data || [])
           setActiveIndex(0)
@@ -86,7 +86,7 @@ export function useOmniboxSearch() {
 
   async function loadAccounts() {
     try {
-      const data = await getAccounts<any[]>()
+      const data = await getAccounts()
       setAccounts(data || [])
     } catch (error) {
       console.error("Failed to load accounts for search", error)

@@ -23,7 +23,7 @@ export function WealthPie({ ctx }: { ctx: OverviewTabCtx }) {
               dataKey={chartDataKey}
               nameKey="name"
             >
-              {chartData.map((item: any, i: number) => (
+              {chartData.map((item, i: number) => (
                 <Cell key={i} fill={item.color} />
               ))}
             </Pie>
@@ -37,7 +37,7 @@ export function WealthPie({ ctx }: { ctx: OverviewTabCtx }) {
         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
           <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{t("overview.wealthCenter")}</span>
           <span className="text-base md:text-lg font-black text-slate-800 amount-blur">
-            {formatCurrency(patrimoineAllocation.total_patrimoine, "EUR")}
+            {formatCurrency(patrimoineAllocation?.total_patrimoine ?? 0, "EUR")}
           </span>
         </div>
       </div>

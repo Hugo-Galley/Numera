@@ -101,7 +101,7 @@ export function useTransactionView(p: ReturnType<typeof useAccountDetailState> &
     }
   }, [transactions, filteredTransactions, flowSummary, debouncedSearch, dateStart, dateEnd])
 
-  const renderTxMenu = (tx: any) => (
+  const renderTxMenu = (tx: Transaction) => (
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="sm" className="h-10 w-10 p-0 md:h-8 md:w-8" title="Actions">

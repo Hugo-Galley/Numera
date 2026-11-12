@@ -9,7 +9,7 @@ export interface SubscriptionPriceChange {
   id: string
   name: string
   currency: string
-  frequency: "monthly" | "quarterly" | "yearly"
+  frequency: string
   old_amount: number
   new_amount: number
   delta_pct: number
@@ -33,7 +33,7 @@ export function PriceChangesNotice({ changes, className }: { changes?: Subscript
           <span className="min-w-0 truncate font-medium">{c.name}</span>
           <span className="tabular-nums">
             {formatCurrency(c.old_amount, c.currency)} → <strong>{formatCurrency(c.new_amount, c.currency)}</strong>
-            <span className="text-amber-700"> / {t(`priceChanges.${PERIOD_KEY[c.frequency]}`)} ({c.delta_pct > 0 ? "+" : ""}{c.delta_pct.toLocaleString(appLocale())} %)</span>
+            <span className="text-amber-700"> / {t(`priceChanges.${PERIOD_KEY[c.frequency as keyof typeof PERIOD_KEY]}`)} ({c.delta_pct > 0 ? "+" : ""}{c.delta_pct.toLocaleString(appLocale())} %)</span>
           </span>
           <span className="w-full text-xs text-amber-700">
             {t("priceChanges.since", { date: format(parseISO(c.changed_on), "dd/MM/yyyy"), amount: formatCurrency(c.annual_impact, c.currency) })}

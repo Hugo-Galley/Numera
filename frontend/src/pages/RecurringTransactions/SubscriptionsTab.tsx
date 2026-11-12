@@ -92,7 +92,7 @@ export function SubscriptionsTab({ ctx }: { ctx: RecurringTransactionsCtx }) {
              </CardHeader>
              <CardContent>
                <CardTitle className="text-2xl md:text-3xl font-bold text-slate-900">
-                 {activeSubs.filter((s: any) => s.status !== "lapsed").length}
+                 {activeSubs.filter((s) => s.status !== "lapsed").length}
                </CardTitle>
                <p className="text-xs text-slate-400 mt-1">{i18n.t("misc.pendingDetections", { ns: "recurring", count: potentialSubs.length })}</p>
              </CardContent>
@@ -115,7 +115,7 @@ export function SubscriptionsTab({ ctx }: { ctx: RecurringTransactionsCtx }) {
                         <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">{t("subscriptionsTab.aucunElement")}</p>
                       </div>
                     ) : (
-                      activeSubs.map((sub: any, i: number) => (
+                      activeSubs.map((sub, i: number) => (
                         <div
                           key={i}
                           className={`p-4 flex items-center justify-between gap-3 hover:bg-slate-50 transition-colors group cursor-pointer`}
@@ -123,7 +123,6 @@ export function SubscriptionsTab({ ctx }: { ctx: RecurringTransactionsCtx }) {
                         >
                           <div className="flex items-center gap-3 md:gap-4 min-w-0">
                             <CompanyLogo
-                              ticker={sub.ticker}
                               name={sub.name}
                               logo={sub.logo}
                               className="h-10 w-10 md:h-12 md:w-12 rounded-2xl shrink-0 shadow-sm"
@@ -180,11 +179,10 @@ export function SubscriptionsTab({ ctx }: { ctx: RecurringTransactionsCtx }) {
                   </CardHeader>
                   <CardContent className="p-0">
                     <div className={`divide-y border-t ${subTab === 'subscriptions' ? 'border-amber-100' : 'border-indigo-100'}`}>
-                      {potentialSubs.map((sub: any, i: number) => (
+                      {potentialSubs.map((sub, i: number) => (
                         <div key={i} className="p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between group">
                           <div className="flex items-center gap-3 md:gap-4 min-w-0">
                             <CompanyLogo
-                              ticker={sub.ticker}
                               name={sub.name}
                               logo={sub.logo}
                               className="h-10 w-10 md:h-12 md:w-12 rounded-2xl shrink-0 shadow-sm"
@@ -238,7 +236,7 @@ export function SubscriptionsTab({ ctx }: { ctx: RecurringTransactionsCtx }) {
                     <p className="text-sm text-slate-400">{t("subscriptionsTab.aucunMontantMensuelARepartir")}</p>
                   ) : (
                     <ul className="space-y-4">
-                      {monthlyBreakdown.map((sub: any) => {
+                      {monthlyBreakdown.map((sub) => {
                         const share = (sub.monthly_cost / monthlyTotal) * 100
                         return (
                           <li key={sub.name} className="space-y-1.5">

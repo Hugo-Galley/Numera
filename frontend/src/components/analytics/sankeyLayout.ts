@@ -2,14 +2,14 @@ export interface SankeyNode {
   name: string;
   color?: string | null;
   value?: number;
-  category_id?: number;
+  category_id?: number | null;
 }
 
 export interface SankeyLink {
   source: number;
   target: number;
   value: number;
-  color?: string;
+  color?: string | null;
 }
 
 export interface SankeyData {

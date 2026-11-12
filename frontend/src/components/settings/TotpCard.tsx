@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
 import { getAuthTotpStatus, postAuthTotpDisable, postAuthTotpEnable, postAuthTotpRecoveryCodes, postAuthTotpSetup } from "@/lib/api/settings"
+import { errorMessage } from "@/lib/utils"
 
 interface TotpStatus {
   enabled: boolean
@@ -57,8 +58,8 @@ export function TotpCard() {
     setBusy(true)
     try {
       await action()
-    } catch (err: any) {
-      toast.error(err?.message || t("totpCard.operationImpossible"))
+    } catch (err) {
+      toast.error(errorMessage(err, t("totpCard.operationImpossible")))
     } finally {
       setBusy(false)
     }

@@ -1,4 +1,5 @@
 import { type SplitPart } from "@/components/transactions/SplitTransactionDialog"
+import type { ApiResponse } from "@/lib/api/types"
 
 export type Account = {
   balance?: number
@@ -65,3 +66,26 @@ export type Transaction = {
 
 // Taille d'une page de transactions (l'API renvoie 100 lignes par défaut, 1000 au plus)
 export const TX_PAGE_SIZE = 200
+
+/** Types du contrat de l'API pour la page d'un compte. */
+export type AccountTimeseries = ApiResponse<"/analytics/timeseries", "get">
+export type InvestmentAnalysis = ApiResponse<"/analytics/investments/{account_id}", "get">
+type InvestmentMovement = NonNullable<InvestmentAnalysis["transactions"]>[number]
+/**
+ * Opération du compte titres. Les champs de titre (ticker, parts, prix, retenue, réinvestissement) sont lus par
+ * l'historique des flux et le formulaire de modification, mais le contrat actuel de l'API ne les expose pas
+ * (`InvestmentMovement`) : ils sont déclarés ici en option, à rapatrier côté backend.
+ */
+export type InvestmentFlow = InvestmentMovement & {
+  ticker?: string | null
+  isin?: string | null
+  quantity?: number | null
+  unit_price?: number | null
+  fees?: number | null
+  withholding_tax?: number | null
+  reinvested?: boolean | null
+  reinvest_of_id?: number | null
+}
+export type ValueSnapshot = NonNullable<InvestmentAnalysis["value_series"]>[number]
+export type PerformancePoint = NonNullable<ApiResponse<"/analytics/investments/{account_id}/performance-history", "get">["items"]>[number]
+export type TagTotal = ApiResponse<"/analytics/tags", "get">[number]

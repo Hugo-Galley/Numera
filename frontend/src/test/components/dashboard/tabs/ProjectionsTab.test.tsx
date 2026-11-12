@@ -1,14 +1,16 @@
 /** Onglet Projections : solde projeté, point bas, prochains flux et analyse de trésorerie (chiffres du backend). */
 import { screen } from "@testing-library/react"
+import { partial } from "@/test/support/factories"
 import { renderWithProviders } from "@/test/support/render"
+import type { CashflowProjection } from "@/components/dashboard/types"
 import { ProjectionsTab } from "@/components/dashboard/tabs/ProjectionsTab"
 
 const event = (name: string, amount: number, is_income: boolean, date: string) => ({ name, amount, is_income, date })
-const projection = {
+const projection = partial<CashflowProjection>({
   current_balance: 1000, projected_balance: 1450, low_point: 300, low_point_date: "2026-07-03T00:00:00",
   points: [{ date: "2026-07-01T00:00:00", balance: 1000 }, { date: "2026-07-03T00:00:00", balance: 300 }],
   events: [event("Salaire", 2000, true, "2026-07-01T00:00:00"), event("Loyer", 750, false, "2026-07-05T00:00:00")],
-}
+})
 
 describe("ProjectionsTab", () => {
   it("affiche le solde projeté avec l'écart signé, le point bas daté et le nombre de flux attendus", () => {
@@ -42,7 +44,7 @@ describe("ProjectionsTab", () => {
 
   it("point bas négatif et solde en baisse : analyse « sous zéro », pas de conseil, écart sans signe +", () => {
     renderWithProviders(
-      <ProjectionsTab projection={{ ...projection, projected_balance: 800, low_point: -150 }} displayCurrency="EUR" />,
+      <ProjectionsTab projection={partial<CashflowProjection>({ ...projection, projected_balance: 800, low_point: -150 })} displayCurrency="EUR" />,
       { auth: true },
     )
 

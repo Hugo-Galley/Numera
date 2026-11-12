@@ -11,6 +11,8 @@ import type { useTransactionActions } from "./useTransactionActions"
 import { deleteBalanceSnapshotsById, patchBalanceSnapshotsById, postBalanceSnapshots, postBalanceSnapshotsSetZeroPoint } from "@/lib/api/accounts"
 import { deleteInvestmentTransactionsById, patchInvestmentTransactionsById, postInvestmentTransactions } from "@/lib/api/investments"
 import { patchTransactionsBulk } from "@/lib/api/transactions"
+import type { ApiBody } from "@/lib/api/types"
+import type { InvestmentFlow, ValueSnapshot } from "./types"
 
 /** Flux d'investissement, snapshots, modification groupée et point zéro. */
 export function useInvestmentActions(p: ReturnType<typeof useAccountDetailState> & ReturnType<typeof useAccountForms> & ReturnType<typeof useAccountDetailData> & ReturnType<typeof useTransactionActions>) {
@@ -84,15 +86,16 @@ export function useInvestmentActions(p: ReturnType<typeof useAccountDetailState>
       setInvTxOpen(false)
       resetInvTxForm()
       await loadData({ quiet: true })
-    } catch (error: any) {
-      toast.error(error.message || i18n.t("useInvestmentActions.erreurLorsDeLEnregistrement", { ns: "accountDetail" }))
+    } catch (error) {
+      toast.error(errorMessage(error, i18n.t("useInvestmentActions.erreurLorsDeLEnregistrement", { ns: "accountDetail" })))
     }
   })
 
-  const handleEditInvTransaction = (tx: any) => {
+  const handleEditInvTransaction = (tx: InvestmentFlow) => {
     setEditInvTxId(tx.id)
     setInvTxDate(toInputValue(tx.date))
-    setInvTxType(tx.type)
+    // Le contrat décrit `type` comme une chaîne ; les valeurs possibles sont celles du sélecteur
+    setInvTxType(tx.type as Parameters<typeof setInvTxType>[0])
     setInvTxAmount(String(tx.original_amount || tx.amount))
     setInvTxCurrency(tx.currency || account?.currency || "EUR")
     setInvTxNote(tx.note || "")
@@ -125,8 +128,8 @@ export function useInvestmentActions(p: ReturnType<typeof useAccountDetailState>
       await deleteInvestmentTransactionsById(txId)
       toast.success(i18n.t("useInvestmentActions.fluxSupprime", { ns: "accountDetail" }))
       await loadData({ quiet: true })
-    } catch (error: any) {
-      toast.error(error?.message || i18n.t("useInvestmentActions.erreurLorsDeLaSuppression", { ns: "accountDetail" }))
+    } catch (error) {
+      toast.error(errorMessage(error, i18n.t("useInvestmentActions.erreurLorsDeLaSuppression", { ns: "accountDetail" })))
     }
   }
 
@@ -168,7 +171,7 @@ export function useInvestmentActions(p: ReturnType<typeof useAccountDetailState>
     }
   })
 
-  const handleEditSnapshot = (snap: any) => {
+  const handleEditSnapshot = (snap: ValueSnapshot) => {
     setEditSnapId(snap.id)
     setSnapDate(snap.date.slice(0, 10))
     setSnapValue(String(snap.current_value))
@@ -189,7 +192,7 @@ export function useInvestmentActions(p: ReturnType<typeof useAccountDetailState>
 
   const [handleBulkUpdate] = useSubmit(async () => {
     try {
-      const payload: any = { ids: selectedIds }
+      const payload: ApiBody<"/transactions/bulk", "patch"> = { ids: selectedIds }
       if (bulkCategory !== "keep") {
         payload.category_id = bulkCategory === "none" ? null : Number(bulkCategory)
       }

@@ -2,11 +2,13 @@
 import { screen, waitFor } from "@testing-library/react"
 import { http, HttpResponse } from "msw"
 import { apiUrl } from "@/test/support/handlers"
+import { partial } from "@/test/support/factories"
 import { renderWithProviders } from "@/test/support/render"
+import type { Insights } from "@/components/dashboard/types"
 import { server } from "@/test/support/server"
 import { InsightsTab } from "@/components/dashboard/tabs/InsightsTab"
 
-const insights = {
+const insights = partial<Insights>({
   health_score: {
     total_score: 82.4,
     metrics: [
@@ -19,7 +21,7 @@ const insights = {
     { key: "a", type: "anomaly", title: "Dépense inhabituelle", description: "Garage : 900 €", value: 900 },
     { key: "b", type: "positive", title: "Épargne en hausse", description: "+12 % ce mois", value: 12, unit: "%" },
   ],
-}
+})
 
 describe("InsightsTab", () => {
   it("affiche le score arrondi et chaque indicateur avec son unité (« mois » traduit, montants en euros)", () => {
@@ -43,7 +45,7 @@ describe("InsightsTab", () => {
   })
 
   it("sans conseil : message « tout semble sous contrôle »", () => {
-    renderWithProviders(<InsightsTab insights={{ health_score: { total_score: 40, metrics: [] }, insights: [] }} />, { auth: true })
+    renderWithProviders(<InsightsTab insights={partial<Insights>({ health_score: { total_score: 40, metrics: [] }, insights: [] })} />, { auth: true })
 
     expect(screen.getByText(/Tout semble sous contrôle/)).toBeInTheDocument()
   })

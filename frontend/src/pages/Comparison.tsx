@@ -36,6 +36,15 @@ import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
 import { yearOptions } from "@/lib/years"
 import { getAnalyticsBudget, getAnalyticsExpensesByCategory } from "@/lib/api/analytics"
+import type { ApiResponse } from "@/lib/api/types"
+
+/** Une période comparée : totaux du budget et dépenses par catégorie. */
+interface PeriodData {
+  revenus_totaux: number
+  depenses_totales: number
+  revenus_apres_depenses: number
+  categories: ApiResponse<"/analytics/expenses-by-category", "get">["items"]
+}
 
 export default function Comparison() {
   const { t } = useTranslation("month")
@@ -60,14 +69,14 @@ export default function Comparison() {
   // Period A (Base)
   const [monthA, setMonthA] = useState(String(new Date().getMonth() + 1))
   const [yearA, setYearA] = useState(String(new Date().getFullYear()))
-  const [dataA, setDataA] = useState<any>(null)
+  const [dataA, setDataA] = useState<PeriodData | null>(null)
 
   // Period B (Comparison)
   const prevDate = new Date()
   prevDate.setMonth(prevDate.getMonth() - 1)
   const [monthB, setMonthB] = useState(String(prevDate.getMonth() + 1))
   const [yearB, setYearB] = useState(String(prevDate.getFullYear()))
-  const [dataB, setDataB] = useState<any>(null)
+  const [dataB, setDataB] = useState<PeriodData | null>(null)
 
   const months = Array.from({ length: 12 }, (_, i) => monthName(i + 1))
 
@@ -79,10 +88,10 @@ export default function Comparison() {
     setDataB(null)
     try {
       const [resA, resB, catA, catB] = await Promise.all([
-        getAnalyticsBudget<any>(`?month=${monthA}&year=${yearA}`),
-        getAnalyticsBudget<any>(`?month=${monthB}&year=${yearB}`),
-        getAnalyticsExpensesByCategory<any>(`?month=${monthA}&year=${yearA}`),
-        getAnalyticsExpensesByCategory<any>(`?month=${monthB}&year=${yearB}`)
+        getAnalyticsBudget(`?month=${monthA}&year=${yearA}`),
+        getAnalyticsBudget(`?month=${monthB}&year=${yearB}`),
+        getAnalyticsExpensesByCategory(`?month=${monthA}&year=${yearA}`),
+        getAnalyticsExpensesByCategory(`?month=${monthB}&year=${yearB}`)
       ])
       
       if (id !== requestId.current) return
@@ -118,12 +127,12 @@ export default function Comparison() {
     const catsB = dataB?.categories || []
 
     const allCategories = new Set<string>()
-    catsA.forEach((c: any) => { if (c?.category?.name) allCategories.add(c.category.name) })
-    catsB.forEach((c: any) => { if (c?.category?.name) allCategories.add(c.category.name) })
+    catsA.forEach((c) => { if (c?.category?.name) allCategories.add(c.category.name) })
+    catsB.forEach((c) => { if (c?.category?.name) allCategories.add(c.category.name) })
 
     return Array.from(allCategories).map(catName => {
-      const catA = catsA.find((c: any) => c.category.name === catName)
-      const catB = catsB.find((c: any) => c.category.name === catName)
+      const catA = catsA.find((c) => c.category.name === catName)
+      const catB = catsB.find((c) => c.category.name === catName)
       
       const valA = catA?.total || 0
       const valB = catB?.total || 0

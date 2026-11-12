@@ -6,7 +6,7 @@ import { toNaiveLocal } from "@/lib/dates"
 import { toast } from "sonner"
 import { useEffect, useEffectEvent } from "react"
 import { useSubmit } from "@/hooks/useSubmit"
-import { Category, Account, RecurringFrequency, RecurringTransaction, RecurringType } from "./types"
+import { Category, Account, RecurringFrequency, RecurringTransaction, RecurringType, Subscription } from "./types"
 import type { useRecurringState } from "./useRecurringState"
 import type { useRecurringForm } from "./useRecurringForm"
 import { getAccounts } from "@/lib/api/accounts"
@@ -25,8 +25,8 @@ export function useRecurringActions(p: ReturnType<typeof useRecurringState> & Re
         getRecurringTransactions<RecurringTransaction[]>(),
         getAccounts<Account[]>(),
         getCategories<Category[]>("?include_archived=false"),
-        getAnalyticsSubscriptions<any>("?include_other=true"),
-        getAnalyticsAssetAllocationSuggestions<any>()
+        getAnalyticsSubscriptions("?include_other=true"),
+        getAnalyticsAssetAllocationSuggestions()
       ])
       setRecurringTxs(txsData || [])
       setAccounts(accountsData?.filter(a => a) || [])
@@ -195,7 +195,7 @@ export function useRecurringActions(p: ReturnType<typeof useRecurringState> & Re
     }
   }
 
-  const handleOpenValidate = (potential: any, isInvest: boolean = false) => {
+  const handleOpenValidate = (potential: Subscription, isInvest: boolean = false) => {
     setEditingTx(null)
     setIsIrregularSubmenuOpen(false)
     let acc = accounts[0]
@@ -234,7 +234,7 @@ export function useRecurringActions(p: ReturnType<typeof useRecurringState> & Re
     setIsFormOpen(true)
   }
 
-  const handleIgnoreDetection = async (potential: any) => {
+  const handleIgnoreDetection = async (potential: Subscription) => {
     if (!(await confirm(i18n.t("misc.ignoreConfirm", { ns: "recurring", name: potential.name, amount: formatCurrency(potential.amount) }), { title: i18n.t("misc.ignoreTitle", { ns: "recurring" }), confirmLabel: i18n.t("misc.ignoreLabel", { ns: "recurring" }), destructive: false }))) return
     try {
       await postAnalyticsSubscriptionsIgnore({

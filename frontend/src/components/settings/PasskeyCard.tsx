@@ -9,6 +9,7 @@ import { useConfirm } from "@/providers/ConfirmProvider"
 import { toast } from "sonner"
 import { useReauth } from "./ReauthDialog"
 import { deleteAuthPasskeyById, getAuthPasskey, postAuthPasskeyRegisterOptions, postAuthPasskeyRegisterVerify } from "@/lib/api/settings"
+import { errorMessage } from "@/lib/utils"
 
 interface Passkey {
   id: string
@@ -50,8 +51,8 @@ export function PasskeyCard() {
       await postAuthPasskeyRegisterVerify({ state, credential: serializeCredential(credential), name, ...auth })
       toast.success(t("passkeyCard.passkeyEnregistree"))
       load()
-    } catch (err: any) {
-      if (err?.name !== "NotAllowedError") toast.error(err?.message || t("passkeyCard.enregistrementImpossible"))
+    } catch (err) {
+      if (!(err instanceof Error && err.name === "NotAllowedError")) toast.error(errorMessage(err, t("passkeyCard.enregistrementImpossible")))
     } finally {
       setBusy(false)
     }
@@ -65,8 +66,8 @@ export function PasskeyCard() {
       await deleteAuthPasskeyById(passkey.id, auth)
       toast.success(t("passkeyCard.passkeySupprimee"))
       load()
-    } catch (err: any) {
-      toast.error(err?.message || t("passkeyCard.suppressionImpossible"))
+    } catch (err) {
+      toast.error(errorMessage(err, t("passkeyCard.suppressionImpossible")))
     }
   }
 

@@ -106,7 +106,7 @@ export function useCalendarData() {
     
     try {
       // Pas de GET /recurring-transactions/{id} côté backend : on la retrouve dans la liste
-      const recurringList = await getRecurringTransactions<any[]>()
+      const recurringList = await getRecurringTransactions()
       const recurringTx = recurringList.find(r => r.id === ev.recurring_id)
       const account = recurringTx && accounts.find(a => a.id === recurringTx.account_id)
       

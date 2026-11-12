@@ -2,7 +2,22 @@ import { useDrilldown } from "@/hooks/useDrilldown"
 import { useIsMobile } from "@/hooks/useIsMobile"
 import i18n from "i18next"
 import { useMemo, useState } from "react"
+import type { PatrimoineAllocation } from "../../types"
 import { COLORS, OverviewTabProps } from "./types"
+
+type AllocationItem = NonNullable<PatrimoineAllocation["items"]>[number]
+
+/** Ligne affichable du patrimoine (un compte, un groupe de comptes ou un établissement). */
+interface WealthRow {
+  id: string
+  name: string
+  type: string
+  balance_eur: number
+  isGroup?: boolean
+  color?: string
+  percentage?: number
+  original_item?: AllocationItem
+}
 
 /** Libellés des types de compte, dans la langue courante (lus à l'appel : pas une dépendance de hook). */
 const wealthLabels = (): Record<string, string> => ({
@@ -22,14 +37,14 @@ export function useOverviewData(p: { sankeyData: OverviewTabProps["sankeyData"];
   const { patrimoineAllocation, drilldownScope } = p
   const isMobile = useIsMobile()
   const { openDrilldown } = useDrilldown()
-  const openCategory = (item: any) =>
+  const openCategory = (item: { category?: { id?: number | null; name: string } | null } | null | undefined) =>
     item?.category && openDrilldown({ ...drilldownScope, label: item.category.name, categoryId: item.category.id ?? null })
   const [groupBy, setGroupBy] = useState<"account" | "category" | "mixed" | "institution">("mixed")
 
   const flatItems = useMemo(() => {
     if (!patrimoineAllocation?.items) return []
     const total = patrimoineAllocation.total_patrimoine || 1
-    return patrimoineAllocation.items.map((item: any, i: number) => ({
+    return patrimoineAllocation.items.map((item, i) => ({
       id: `${item.account_id}-${item.account_name}`,
       name: item.account_name,
       type: item.type,
@@ -42,13 +57,13 @@ export function useOverviewData(p: { sankeyData: OverviewTabProps["sankeyData"];
 
   const groupedItems = useMemo(() => {
     if (!patrimoineAllocation?.items) return {}
-    const groups: Record<string, { total_eur: number; items: any[] }> = {
+    const groups: Record<string, { total_eur: number; items: AllocationItem[] }> = {
       courant: { total_eur: 0, items: [] },
       epargne: { total_eur: 0, items: [] },
       investissement: { total_eur: 0, items: [] }
     }
     
-    patrimoineAllocation.items.forEach((item: any) => {
+    patrimoineAllocation.items.forEach((item) => {
       const type = item.type || "courant"
       if (!groups[type]) {
         groups[type] = { total_eur: 0, items: [] }
@@ -94,9 +109,9 @@ export function useOverviewData(p: { sankeyData: OverviewTabProps["sankeyData"];
     
     let totalCourant = 0
     let totalEpargne = 0
-    const list: any[] = []
+    const list: WealthRow[] = []
     
-    patrimoineAllocation.items.forEach((item: any) => {
+    patrimoineAllocation.items.forEach((item) => {
       if (item.type === "courant") {
         totalCourant += item.balance_eur
       } else if (item.type === "epargne") {
@@ -112,7 +127,7 @@ export function useOverviewData(p: { sankeyData: OverviewTabProps["sankeyData"];
       }
     })
     
-    const result: any[] = []
+    const result: WealthRow[] = []
     if (totalCourant > 0) {
       result.push({
         id: "group-courant",
@@ -155,9 +170,9 @@ export function useOverviewData(p: { sankeyData: OverviewTabProps["sankeyData"];
     const total = patrimoineAllocation.total_patrimoine || 1
     
     // Group accounts by institution name
-    const grouped: Record<string, { name: string; value: number; items: any[] }> = {}
+    const grouped: Record<string, { name: string; value: number; items: AllocationItem[] }> = {}
     
-    patrimoineAllocation.items.forEach((item: any) => {
+    patrimoineAllocation.items.forEach((item) => {
       const instName = item.institution ? item.institution.trim() : i18n.t("overview.wealthGroup.otherInstitution", { ns: "dashboard" })
       if (!grouped[instName]) {
         grouped[instName] = {

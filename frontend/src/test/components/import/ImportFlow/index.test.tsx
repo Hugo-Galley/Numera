@@ -13,8 +13,9 @@ const PREVIEW: PreviewData = {
   invalid_rows: 1,
   warnings: ["Colonne « Note » ignorée"],
   delimiter: ";",
+  raw_headers: ["Date", "Type", "Commercant", "Categorie", "Montant"],
   preview: [
-    { Date: "15/06/2026", Type: "Sortie", Commercant: "Carrefour", Categorie: "Courses", Montant: "42,50" },
+    { Date: "15/06/2026", Type: "Sortie", Commercant: "Carrefour", Categorie: "Courses", Montant: "42,50", error: null, line: 2 },
     { Date: "16/06/2026", Type: "Sortie", Commercant: "Inconnu", Categorie: "Loisirs", Montant: "abc", error: "montant invalide", line: 3 },
   ],
   unknown_categories: ["Loisirs"],

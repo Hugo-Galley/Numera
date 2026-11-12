@@ -15,6 +15,7 @@ import { formatCurrency } from "@/lib/utils"
 import { toast } from "sonner"
 import { apiFetch } from "@/lib/api"
 import i18n from "i18next"
+import type { Insights } from "../types"
 
 /** Valeur d'un indicateur avec son unité, à la française : « 1 480,99 € », « 64,3 % », « 19,1 mois ». */
 function formatValue(value: number, unit?: string) {
@@ -26,7 +27,7 @@ function formatValue(value: number, unit?: string) {
 }
 
 interface InsightsTabProps {
-  insights: any
+  insights: Insights | null
 }
 
 export function InsightsTab({ insights }: InsightsTabProps) {
@@ -49,7 +50,7 @@ export function InsightsTab({ insights }: InsightsTabProps) {
   }
 
   const visibleInsights = insights?.insights?.filter(
-    (insight: any) => !dismissedKeys.includes(insight.key)
+    (insight) => !dismissedKeys.includes(insight.key)
   ) || []
 
   return (
@@ -96,7 +97,7 @@ export function InsightsTab({ insights }: InsightsTabProps) {
           </div>
           
           <div className="grid grid-cols-2 gap-3 md:gap-4 w-full mt-6 md:mt-10">
-            {insights?.health_score?.metrics.map((m: any, i: number) => (
+            {insights?.health_score?.metrics.map((m, i: number) => (
               <div key={i} className="bg-slate-800/50 p-3 rounded-2xl border border-slate-700/50">
                 <p className="text-[10px] uppercase font-black text-slate-400 tracking-wider mb-1">{m.name}</p>
                 <p className="text-sm font-bold flex items-center justify-between">
@@ -115,7 +116,7 @@ export function InsightsTab({ insights }: InsightsTabProps) {
           {t("insights.analysisTitle")}
         </h3>
         <div className="grid grid-cols-1 gap-4">
-          {visibleInsights.map((insight: any, i: number) => (
+          {visibleInsights.map((insight, i: number) => (
             <Card key={i} className={`shadow-sm border-l-4 ${
               insight.type === 'anomaly' ? 'border-l-amber-500' : 'border-l-emerald-500'
             } hover:bg-slate-50 transition-colors group relative`}>

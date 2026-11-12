@@ -8,6 +8,7 @@ import {
   getAnalyticsTimeseries, getAnalyticsTopMerchants, getFinancialEvents,
 } from "@/lib/api/analytics"
 import { getMonthReviewClosures } from "@/lib/api/monthReview"
+import type { BudgetAlert, BudgetOverview, CashflowProjection, ExpensesByCategory, Insights, KpiHistoryPoint, PatrimoineAllocation, SankeyData, SubscriptionsData, TagSpending, Timeseries, TopMerchants } from "./types"
 
 export interface Milestone {
   year: number
@@ -35,21 +36,21 @@ export interface FinancialEvent {
  * - `enabled` permet d'attendre que le mois budgétaire soit connu avant la première charge.
  */
 export function useDashboardData(selectedAccountId: string, month: number, year: number, enabled = true) {
-  const [analytics, setAnalytics] = useState<any>(null)
-  const [expensesByCategory, setExpensesByCategory] = useState<any[]>([])
-  const [kpiHistory, setKpiHistory] = useState<any[]>([])
+  const [analytics, setAnalytics] = useState<BudgetOverview | null>(null)
+  const [expensesByCategory, setExpensesByCategory] = useState<ExpensesByCategory["items"]>([])
+  const [kpiHistory, setKpiHistory] = useState<KpiHistoryPoint[]>([])
   const [milestones, setMilestones] = useState<Milestone[]>([])
   const [events, setEvents] = useState<FinancialEvent[]>([])
-  const [topMerchants, setTopMerchants] = useState<any[]>([])
-  const [subscriptions, setSubscriptions] = useState<any>(null)
-  const [salarySeries, setSalarySeries] = useState<any[]>([])
-  const [patrimoineAllocation, setPatrimoineAllocation] = useState<any>(null)
-  const [burnRateSeries, setBurnRateSeries] = useState<any[]>([])
-  const [budgetAlerts, setBudgetAlerts] = useState<any[]>([])
-  const [insights, setInsights] = useState<any>(null)
-  const [sankeyData, setSankeyData] = useState<any>(null)
-  const [projection, setProjection] = useState<any>(null)
-  const [tagTotals, setTagTotals] = useState<any[]>([])
+  const [topMerchants, setTopMerchants] = useState<TopMerchants["items"]>([])
+  const [subscriptions, setSubscriptions] = useState<SubscriptionsData | null>(null)
+  const [salarySeries, setSalarySeries] = useState<NonNullable<Timeseries["salary_series"]>>([])
+  const [patrimoineAllocation, setPatrimoineAllocation] = useState<PatrimoineAllocation | null>(null)
+  const [burnRateSeries, setBurnRateSeries] = useState<NonNullable<Timeseries["monthly_flows"]>>([])
+  const [budgetAlerts, setBudgetAlerts] = useState<BudgetAlert[]>([])
+  const [insights, setInsights] = useState<Insights | null>(null)
+  const [sankeyData, setSankeyData] = useState<SankeyData | null>(null)
+  const [projection, setProjection] = useState<CashflowProjection | null>(null)
+  const [tagTotals, setTagTotals] = useState<TagSpending[]>([])
   const [loading, setLoading] = useState(true)
   const [failedCount, setFailedCount] = useState(0)
   const [reloadToken, setReloadToken] = useState(0)
@@ -99,7 +100,7 @@ export function useDashboardData(selectedAccountId: string, month: number, year:
       try {
         const data = await load()
         if (!cancelled) setter(data)
-      } catch (e: any) {
+      } catch (e) {
         console.error(`Error loading ${label}:`, e)
         failed += 1
       }

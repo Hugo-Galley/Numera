@@ -60,7 +60,7 @@ export default function Dashboard() {
 
   const fetchAccounts = useCallback(async () => {
     try {
-      const accs = await getAccounts<any[]>()
+      const accs = await getAccounts()
       const list = Array.isArray(accs) ? accs : []
       setAccounts(list)
       // Compte mémorisé supprimé ou désactivé depuis : retour à la vue globale

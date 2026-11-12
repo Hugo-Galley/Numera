@@ -64,7 +64,7 @@ export function TransactionsMobileList({ ctx }: { ctx: AccountDetailView }) {
                         <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded" style={{ backgroundColor: tx.category?.color || "#cbd5e1" }}>
                           <IconComponent name={tx.category?.icon} className="h-2.5 w-2.5 text-white" />
                         </span>
-                        <span>{tx.splits?.length ? `${t("tx.split")} · ${tx.splits.map((p: any) => p.category?.name ?? "?").join(", ")}` : tx.category?.name || tc("txTypes.uncategorized")}</span>
+                        <span>{tx.splits?.length ? `${t("tx.split")} · ${tx.splits.map((p) => p.category?.name ?? "?").join(", ")}` : tx.category?.name || tc("txTypes.uncategorized")}</span>
                       </>
                     )}
                   </div>
@@ -76,7 +76,7 @@ export function TransactionsMobileList({ ctx }: { ctx: AccountDetailView }) {
                 {tx.note && <p className="mt-0.5 break-words text-[11px] text-slate-400">{tx.note}</p>}
                 {((tx.reimbursement_offset ?? 0) > 0 || tx.is_transfer || (tx.tags && tx.tags.length > 0) || tx.currency !== account.currency) && (
                   <div className="mt-1.5 flex flex-wrap items-center gap-1">
-                    {tx.tags?.map((tag: any) => (
+                    {tx.tags?.map((tag) => (
                       <Badge key={tag.id} className="border-none px-1.5 py-0 text-[10px] font-bold text-white" style={{ backgroundColor: tag.color || "#64748b" }}>{tag.name}</Badge>
                     ))}
                     {tx.is_transfer && <Badge variant="outline" className="gap-1 border-none bg-emerald-50 px-1.5 py-0 text-[10px] text-emerald-700"><ArrowRightLeft className="h-3 w-3" />{tc("txTypes.Virement")}</Badge>}
