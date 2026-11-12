@@ -3,7 +3,7 @@ import i18n from "i18next"
 import { errorMessage, formatAmountWithShare, formatCurrency } from "@/lib/utils"
 import { toast } from "sonner"
 import { useConfirm } from "@/providers/ConfirmProvider"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useEffectEvent, useRef, useState } from "react"
 import { useIsMobile } from "@/hooks/useIsMobile"
 import { useSubmit } from "@/hooks/useSubmit"
 import { GOAL_COLORS, Resilience } from "./types"
@@ -84,8 +84,9 @@ export function useSavingsData() {
     }
   }
 
+  const reload = useEffectEvent(() => { loadData() })
   useEffect(() => {
-    loadData()
+    reload()
   }, [month, year, period])
 
   const [handleCreateOrUpdateGoal, handleCreateOrUpdateGoalBusy] = useSubmit(async () => {
@@ -129,7 +130,7 @@ export function useSavingsData() {
       await deleteGoalsById(id)
       toast.success(i18n.t("useSavingsData.objectifSupprime", { ns: "savings" }))
       loadData()
-    } catch (error) {
+    } catch {
       toast.error(i18n.t("useSavingsData.erreurLorsDeLaSuppression", { ns: "savings" }))
     }
   }

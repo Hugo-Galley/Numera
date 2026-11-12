@@ -9,7 +9,7 @@ import type { AccountDetailView } from "./useAccountDetail"
 /** Dialogue de saisie d'un snapshot de valorisation. */
 export function SnapshotDialog({ ctx }: { ctx: AccountDetailView }) {
   const { t } = useTranslation("accountDetail")
-  const { account, editSnapId, handleCreateSnapshot, handleCreateSnapshotBusy, id, resetSnapForm, setSnapDate, setSnapNote, setSnapOpen, setSnapValue, snapDate, snapNote, snapOpen, snapValue } = ctx
+  const { account, editSnapId, handleCreateSnapshot, handleCreateSnapshotBusy, resetSnapForm, setSnapDate, setSnapNote, setSnapOpen, setSnapValue, snapDate, snapNote, snapOpen, snapValue } = ctx
   return (
     <>
       <Dialog open={snapOpen} onOpenChange={(open) => { if (!open) { setSnapOpen(false); resetSnapForm(); } else { setSnapOpen(true); } }}>

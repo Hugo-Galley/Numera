@@ -6,7 +6,7 @@ import { ChevronDown, ChevronUp, History } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { api } from "@/lib/api"
+import { getImportLogs } from "@/lib/api/settings"
 
 type ImportLog = {
   id: number
@@ -25,7 +25,7 @@ export function ImportHistoryCard() {
   const [showLogs, setShowLogs] = useState(false)
 
   useEffect(() => {
-    api.get<ImportLog[]>("/import/logs")
+    getImportLogs<ImportLog[]>()
       .then((logs) => { if (Array.isArray(logs)) setImportLogs(logs) })
       .catch(() => setImportLogs([]))
   }, [])

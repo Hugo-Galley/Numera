@@ -7,7 +7,7 @@ import { getHoldings, getHoldingsSuggestions, getMarketQuote, getMarketSearch, p
 
 /** Lignes du point zéro : suggestions, recherche de titres, édition et enregistrement. */
 export function usePointZeroState(p: { open: PointZeroModalProps["open"]; onOpenChange: PointZeroModalProps["onOpenChange"]; accountId: PointZeroModalProps["accountId"]; accountName: PointZeroModalProps["accountName"]; onBaselineSaved: PointZeroModalProps["onBaselineSaved"] }) {
-  const { open, onOpenChange, accountId, accountName, onBaselineSaved } = p
+  const { open, onOpenChange, accountId, onBaselineSaved } = p
   const [rows, setRows] = useState<BaselineRow[]>([])
   const [loadingSuggestions, setLoadingSuggestions] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -54,7 +54,7 @@ export function usePointZeroState(p: { open: PointZeroModalProps["open"]; onOpen
             let quotes: any = {}
             try {
               quotes = await getMarketQuote<any>(`?symbols=${symbols.join(",")}`)
-            } catch (e) {
+            } catch {
               // Ignore quote error on suggestions
             }
 
@@ -130,7 +130,7 @@ export function usePointZeroState(p: { open: PointZeroModalProps["open"]; onOpen
         price = q.price
         priceEur = q.price_eur
       }
-    } catch (e) { /* cours indisponible : valeurs par défaut conservées */ }
+    } catch { /* cours indisponible : valeurs par défaut conservées */ }
 
     const isFundOrEtf = item.type === "ETF" || item.type === "MUTUALFUND" || !!item.etf_profile_id || item.symbol.startsWith("0P")
     let profileId = item.etf_profile_id
@@ -150,7 +150,7 @@ export function usePointZeroState(p: { open: PointZeroModalProps["open"]; onOpen
         } else {
           toast.dismiss(toastId)
         }
-      } catch (err) {
+      } catch {
         // Fallback silently if offline or unavailable
       }
     }

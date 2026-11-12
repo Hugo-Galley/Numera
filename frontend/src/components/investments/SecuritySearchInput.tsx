@@ -2,12 +2,12 @@ import i18n from "i18next"
 import { useTranslation } from "react-i18next"
 import { formatCurrency } from "@/lib/utils"
 import React, { useState, useEffect, useRef } from "react"
-import { api } from "@/lib/api"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { CompanyLogo } from "@/components/ui/CompanyLogo"
 import { Search, CheckCircle2, AlertCircle, RefreshCw, X } from "lucide-react"
+import { getMarketSearch, getMarketValidate } from "@/lib/api/investments"
 
 export interface SelectedAsset {
   symbol: string
@@ -36,11 +36,9 @@ export function SecuritySearchInput({
   ticker,
   isin,
   name,
-  unitPrice,
   onSelectAsset,
   onChangeTicker,
   onChangeIsin,
-  onChangeName,
   className = "",
 }: SecuritySearchInputProps) {
   const { t } = useTranslation("investments")
@@ -77,7 +75,7 @@ export function SecuritySearchInput({
     const timer = setTimeout(async () => {
       setIsSearching(true)
       try {
-        const res = await api.get<any[]>(`/market/search?q=${encodeURIComponent(query)}`)
+        const res = await getMarketSearch<any[]>(`?q=${encodeURIComponent(query)}`)
         if (cancelled) return
         setResults(res || [])
         setIsOpen(true)
@@ -117,11 +115,11 @@ export function SecuritySearchInput({
     const timer = setTimeout(async () => {
       setIsValidating(true)
       try {
-        const res = await api.get<any>(`/market/validate?symbol_or_isin=${encodeURIComponent(symbolToValidate)}`)
+        const res = await getMarketValidate<any>(`?symbol_or_isin=${encodeURIComponent(symbolToValidate)}`)
         if (isMounted) {
           setValidationInfo(res)
         }
-      } catch (err) {
+      } catch {
         if (isMounted) {
           setValidationInfo({ valid: false, symbol: symbolToValidate })
         }

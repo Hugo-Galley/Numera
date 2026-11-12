@@ -6,9 +6,10 @@ import { CheckCircle2 } from "lucide-react"
 import { toast } from "sonner"
 
 import { Card, CardContent } from "@/components/ui/card"
-import { api } from "@/lib/api"
 import { formatCurrency } from "@/lib/utils"
 import type { MonthReview } from "@/types/monthReview"
+import { getCategories } from "@/lib/api/classement"
+import { patchTransactionsById } from "@/lib/api/transactions"
 
 interface CategoryOption {
   id: number
@@ -28,7 +29,7 @@ export function CategorizeStep({
 
   useEffect(() => {
     // L'étape ne traite que des dépenses : pas de Salaire ni de Dividendes dans la liste
-    api.get<CategoryOption[]>("/categories?include_archived=false")
+    getCategories<CategoryOption[]>("?include_archived=false")
       .then((all) => setCategories(all.filter((c) => c.type !== "revenu")))
       .catch(() => setCategories([]))
   }, [])
@@ -36,7 +37,7 @@ export function CategorizeStep({
   async function assign(id: number, categoryId: string) {
     if (!categoryId) return
     try {
-      await api.patch(`/transactions/${id}`, { category_id: Number(categoryId) })
+      await patchTransactionsById(id, { category_id: Number(categoryId) })
       toast.success(t("categorizeStep.categorieEnregistree"))
       onChanged()
     } catch {

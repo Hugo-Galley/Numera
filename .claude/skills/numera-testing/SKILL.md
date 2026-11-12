@@ -50,15 +50,15 @@ Le test s'écrit **avant** le code et doit être vu rouge (skill `numera-tdd`, q
 
 ```bash
 cd frontend && npm test                                   # tout (vitest run) ; make test-front depuis la racine
-cd frontend && npx vitest run src/lib/utils.test.ts       # un fichier
+cd frontend && npx vitest run src/test/lib/utils.test.ts       # un fichier
 cd frontend && npx vitest run -t "formatCurrency"         # par nom de test
 cd frontend && npm run test:watch                         # en continu
 cd frontend && npm run build                              # tsc app + tests (0 erreur), puis vite build
 ```
 
-Les deux sont obligatoires : `npm test` ne vérifie pas les types, le build ne lance pas les tests. Conventions (emplacement `X.test.tsx`, `renderWithProviders`, handlers MSW par domaine, fabriques, horloge figée) : `frontend/src/CLAUDE.md` § Vérification.
+Les deux sont obligatoires : `npm test` ne vérifie pas les types, le build ne lance pas les tests. Conventions (emplacement `src/test/<chemin miroir de src/>/X.test.tsx`, `renderWithProviders`, handlers MSW par domaine, fabriques, horloge figée) : `frontend/src/CLAUDE.md` § Vérification.
 
-Débogage : « Requête(s) sans handler MSW : GET … » = ajouter un handler (`server.use(...)` dans le test, ou `src/test/handlers/<domaine>.ts`) ; `localStorage` indéfini sous Node ≥ 25 = lancer via `npm test` / `vitest.config.ts` (option `--no-experimental-webstorage`) ; un élément introuvable : `screen.debug()`, et `findBy…` pour ce qui s'affiche après une requête. E2E (Playwright, `make test-e2e`, parcours critiques sur base de démo jetable) : `frontend/e2e/README.md`. Contrôles manuels en plus : mode confidentialité, toasts, thème sombre, mobile.
+Débogage : « Requête(s) sans handler MSW : GET … » = ajouter un handler (`server.use(...)` dans le test, ou `src/test/support/handlers/<domaine>.ts`) ; `localStorage` indéfini sous Node ≥ 25 = lancer via `npm test` / `vitest.config.ts` (option `--no-experimental-webstorage`) ; un élément introuvable : `screen.debug()`, et `findBy…` pour ce qui s'affiche après une requête. E2E (Playwright, `make test-e2e`, parcours critiques sur base de démo jetable) : `frontend/e2e/README.md`. Contrôles manuels en plus : mode confidentialité, toasts, thème sombre, mobile.
 
 ## Définition de « terminé »
 

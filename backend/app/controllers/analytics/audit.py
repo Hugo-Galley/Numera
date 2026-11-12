@@ -4,6 +4,8 @@ from sqlalchemy.orm import Session
 
 from app.core.sync_bridge import run_async
 from app.db.session import get_db
+from app.schemas.analytics_reports import AuditIssueDetails
+from app.schemas.common import StatusResponse
 from app.schemas.insight import ActionCenterResponse, DataAuditResponse
 from app.services import audit as service
 
@@ -15,7 +17,7 @@ def data_audit(db: Session = Depends(get_db)):
     return service.compute_data_audit(db)
 
 
-@router.get("/audit/{issue_id}")
+@router.get("/audit/{issue_id}", response_model=AuditIssueDetails, response_model_exclude_unset=True)
 def data_audit_issue_details(issue_id: str, db: Session = Depends(get_db)):
     return service.compute_data_audit_issue(db, issue_id)
 
@@ -29,6 +31,6 @@ class DismissActionRequest(BaseModel):
     id: str
 
 
-@router.post("/actions/dismiss")
+@router.post("/actions/dismiss", response_model=StatusResponse)
 def dismiss_action(request: DismissActionRequest, db: Session = Depends(get_db)):
     return service.dismiss_action(db, request.id)

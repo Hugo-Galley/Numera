@@ -4,9 +4,9 @@ import { format } from "date-fns"
 import { errorMessage, formatCurrency } from "@/lib/utils"
 import { toNaiveLocal } from "@/lib/dates"
 import { toast } from "sonner"
-import { useEffect } from "react"
+import { useEffect, useEffectEvent } from "react"
 import { useSubmit } from "@/hooks/useSubmit"
-import { Category, Account, RecurringTransaction } from "./types"
+import { Category, Account, RecurringFrequency, RecurringTransaction, RecurringType } from "./types"
 import type { useRecurringState } from "./useRecurringState"
 import type { useRecurringForm } from "./useRecurringForm"
 import { getAccounts } from "@/lib/api/accounts"
@@ -41,8 +41,9 @@ export function useRecurringActions(p: ReturnType<typeof useRecurringState> & Re
     }
   }
 
+  const loadOnMount = useEffectEvent(() => { loadData() })
   useEffect(() => {
-    loadData()
+    loadOnMount()
   }, [])
 
   const handleOpenCreate = () => {
@@ -123,6 +124,9 @@ export function useRecurringActions(p: ReturnType<typeof useRecurringState> & Re
     const hasTransfer = formData.type === "Sortie" && formData.transfer_to_account_id !== "none"
     const payload = {
       ...formData,
+      // Les sélecteurs n'offrent que des valeurs connues de l'API
+      type: formData.type as RecurringType,
+      frequency: formData.frequency as RecurringFrequency,
       account_id: parseInt(formData.account_id),
       amount: parseFloat(formData.amount),
       category_id: formData.category_id === "none" ? null : parseInt(formData.category_id),
@@ -186,7 +190,7 @@ export function useRecurringActions(p: ReturnType<typeof useRecurringState> & Re
     try {
       await patchRecurringTransactionsById(tx.id, { is_active: !tx.is_active })
       loadData()
-    } catch (error) {
+    } catch {
       toast.error(i18n.t("useRecurringActions.erreurLorsDeLaModification", { ns: "recurring" }))
     }
   }
@@ -251,7 +255,7 @@ export function useRecurringActions(p: ReturnType<typeof useRecurringState> & Re
       const d = new Date(dateStr)
       if (isNaN(d.getTime())) return "-"
       return format(d, formatStr, { locale: dateLocale() })
-    } catch (e) {
+    } catch {
       return "-"
     }
   }

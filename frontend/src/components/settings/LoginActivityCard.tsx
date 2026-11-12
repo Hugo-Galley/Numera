@@ -8,10 +8,10 @@ import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { api } from "@/lib/api"
 import { errorMessage } from "@/lib/utils"
 import { useAuth } from "@/providers/AuthProvider"
 import { useConfirm } from "@/providers/ConfirmProvider"
+import { getAdminLoginEvents, postAdminLogoutAll } from "@/lib/api/settings"
 
 interface LoginEvent {
   id: number
@@ -77,7 +77,7 @@ export function LoginActivityCard() {
   const [showAll, setShowAll] = useState(false)
 
   useEffect(() => {
-    api.get<LoginEvent[]>("/admin/login-events?limit=50")
+    getAdminLoginEvents<LoginEvent[]>("?limit=50")
       .then(setEvents)
       .catch(() => setFailed(true))
   }, [])
@@ -89,7 +89,7 @@ export function LoginActivityCard() {
     )
     if (!ok) return
     try {
-      await api.post("/admin/logout-all")
+      await postAdminLogoutAll()
       toast.success(t("loginActivityCard.tousLesAppareilsSontDeconnectes"))
       logout()
     } catch (error) {

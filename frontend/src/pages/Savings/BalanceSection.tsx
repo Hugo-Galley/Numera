@@ -9,7 +9,7 @@ import type { SavingsCtx } from "./useSavings"
 /** Section 1 : bilan financier. */
 export function BalanceSection({ ctx }: { ctx: SavingsCtx }) {
   const { t } = useTranslation("savings")
-  const { analytics, getRateColor, hasIncome, months, resilience, savingsRate } = ctx
+  const { analytics, getRateColor, hasIncome, resilience, savingsRate } = ctx
   return (
     <>
       {/* SECTION 1 : BILAN FINANCIER */}

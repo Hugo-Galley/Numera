@@ -11,7 +11,7 @@ import type { CalendarCtx } from "./useCalendar"
 /** Dialogue du détail d'un jour. */
 export function DayDetailDialog({ ctx }: { ctx: CalendarCtx }) {
   const { t } = useTranslation("recurring")
-  const { getBalanceForDay, handleValidate, isDayDetailOpen, isPrivacyMode, month, selectedDay, selectedDayEvents, setIsDayDetailOpen, validating, year } = ctx
+  const { getBalanceForDay, handleValidate, isDayDetailOpen, isPrivacyMode, selectedDay, selectedDayEvents, setIsDayDetailOpen, validating } = ctx
   return (
     <>
       <Dialog open={isDayDetailOpen} onOpenChange={setIsDayDetailOpen}>

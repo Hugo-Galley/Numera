@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next"
 import { Badge } from "@/components/ui/badge"
-import { Calendar, Plus, TrendingDown, TrendingUp } from "lucide-react"
+import { Calendar, TrendingDown, TrendingUp } from "lucide-react"
 import type { WealthSimulatorCtx } from "./useWealthSimulator"
 
 /** Indicateurs finaux et distribution Monte-Carlo. */

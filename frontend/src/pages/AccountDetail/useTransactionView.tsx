@@ -15,7 +15,7 @@ import { getAnalyticsAccountFlowSummary } from "@/lib/api/analytics"
 
 /** Vue de la liste : filtres locaux, tri, statistiques et menu d'actions d'une ligne. */
 export function useTransactionView(p: ReturnType<typeof useAccountDetailState> & ReturnType<typeof useAccountForms> & ReturnType<typeof useAccountDetailData> & ReturnType<typeof useTransactionActions> & ReturnType<typeof useInvestmentActions>) {
-  const { id, account, setReimbursementTx, setSplitTx, transactions, flowSummary, setFlowSummary, debouncedSearch, dateStart, dateEnd, sortField, sortOrder, txDate, openTransferDialog, handleEditTransaction, handleDeleteTransaction } = p
+  const { id, account, setReimbursementTx, setSplitTx, transactions, flowSummary, setFlowSummary, debouncedSearch, dateStart, dateEnd, sortField, sortOrder, openTransferDialog, handleEditTransaction, handleDeleteTransaction } = p
   const filteredTransactions = useMemo(() => {
     return transactions
       .filter(tx => {
@@ -83,7 +83,7 @@ export function useTransactionView(p: ReturnType<typeof useAccountDetailState> &
     getAnalyticsAccountFlowSummary<typeof flowSummary>(`?${params.toString()}`)
       .then(setFlowSummary)
       .catch(() => setFlowSummary(null))
-  }, [id, dateStart, dateEnd, transactions])
+  }, [id, dateStart, dateEnd, transactions, setFlowSummary])
 
   const stats = useMemo(() => {
     const source = (debouncedSearch || dateStart || dateEnd) ? filteredTransactions : transactions

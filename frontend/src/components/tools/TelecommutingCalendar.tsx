@@ -1,6 +1,5 @@
 import { useTranslation } from "react-i18next"
 import { dateLocale } from "@/i18n/locale"
-import { useState, useEffect } from "react"
 import { format, getDaysInMonth, startOfMonth, getDay, isWeekend, addMonths, subMonths, isSameDay } from "date-fns"
 import { ChevronLeft, ChevronRight, Home, Calendar as CalendarIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"

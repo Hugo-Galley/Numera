@@ -53,7 +53,7 @@ export function useActionCenterData() {
         actions: prev.actions.filter(a => a.id !== actionId)
       } : null)
       toast.success(i18n.t("useActionCenterData.actionMasquee", { ns: "audit" }))
-    } catch(err) {
+    } catch {
       toast.error(i18n.t("useActionCenterData.impossibleDeMasquerLAction", { ns: "audit" }))
     }
   }
@@ -157,7 +157,7 @@ export function useActionCenterData() {
 
   async function ignoreTransfer(sortieId: number) {
     try {
-      await postTransactionsIgnore(sortieId, {})
+      await postTransactionsIgnore(sortieId, "", {})
       toast.success(i18n.t("useActionCenterData.suggestionIgnoree", { ns: "audit" }))
       if (activeIssueId) await refreshIssue(activeIssueId)
     } catch (err) {

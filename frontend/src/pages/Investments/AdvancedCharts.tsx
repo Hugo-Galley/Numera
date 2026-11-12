@@ -11,7 +11,7 @@ import type { InvestmentsCtx } from "./useInvestments"
 /** Analyses avancées : treemap, carte et répartitions. */
 export function AdvancedCharts({ ctx }: { ctx: InvestmentsCtx }) {
   const { t } = useTranslation("investments")
-  const { advancedAllocation, allocation, diversity, getDrilldownItems, getDrilldownTitle, setDrillDown } = ctx
+  const { advancedAllocation, diversity, getDrilldownItems, getDrilldownTitle, setDrillDown } = ctx
   return (
     <>
       <Card className="shadow-sm">

@@ -5,25 +5,14 @@ import { ErrorState } from "@/components/layout/ErrorState"
 import {
   Plus,
   Trash2,
-  Pencil,
-  Tag,
   AlertCircle,
   RefreshCw,
-  Search,
-  ChevronRight,
   Filter,
   ArrowRight
 } from "lucide-react"
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { api } from "@/lib/api"
 import { Badge } from "@/components/ui/badge"
 import {
   Dialog,
@@ -43,6 +32,7 @@ import {
 } from "@/components/ui/select"
 import { toast } from "sonner"
 import { useConfirm } from "@/providers/ConfirmProvider"
+import { deleteCategorizationRulesById, getCategories, getCategorizationRules, postCategorizationRules, postCategorizationRulesApplyAll } from "@/lib/api/classement"
 
 export function RulesTab() {
   const { t } = useTranslation("classement")
@@ -52,7 +42,6 @@ export function RulesTab() {
   const [loading, setLoading] = useState(true)
   const [loadFailed, setLoadFailed] = useState(false)
   const [isAddOpen, setIsAddOpen] = useState(false)
-  const [editingRule, setEditingRule] = useState<any>(null)
   
   const [newRule, setNewRule] = useState({
     pattern: "",
@@ -69,8 +58,8 @@ export function RulesTab() {
   async function loadData() {
     try {
       const [r, cats] = await Promise.all([
-        api.get<any[]>("/categorization-rules/"),
-        api.get<any[]>("/categories?include_archived=false")
+        getCategorizationRules<any[]>(),
+        getCategories<any[]>("?include_archived=false")
       ])
       setRules(r)
       setCategories(cats)
@@ -86,7 +75,7 @@ export function RulesTab() {
   async function handleCreate() {
     if (!newRule.pattern) return
     try {
-      await api.post("/categorization-rules/", {
+      await postCategorizationRules({
         ...newRule,
         category_id: newRule.category_id ? parseInt(newRule.category_id) : null,
         transaction_type: newRule.transaction_type === "none" ? null : newRule.transaction_type,
@@ -101,7 +90,7 @@ export function RulesTab() {
         priority: 0
       })
       loadData()
-    } catch (error) {
+    } catch {
       toast.error(t("rulesTab.echecDeLaCreation"))
     }
   }
@@ -109,19 +98,19 @@ export function RulesTab() {
   async function handleDelete(id: number) {
     if (!(await confirm(t("rulesTab.supprimerCetteRegle")))) return
     try {
-      await api.delete(`/categorization-rules/${id}`)
+      await deleteCategorizationRulesById(id)
       toast.success(t("rulesTab.regleSupprimee"))
       loadData()
-    } catch (error) {
+    } catch {
       toast.error(t("rulesTab.echecDeLaSuppression"))
     }
   }
 
   async function handleApplyAll() {
     try {
-      const res = await api.post<any>("/categorization-rules/apply-all", {})
+      const res = await postCategorizationRulesApplyAll<any>({})
       toast.success(i18n.t("misc.updated", { ns: "classement", count: res.modified_count }))
-    } catch (error) {
+    } catch {
       toast.error(t("rulesTab.echecDeLApplicationDes"))
     }
   }

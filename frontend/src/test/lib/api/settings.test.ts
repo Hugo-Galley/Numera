@@ -1,0 +1,30 @@
+import * as settings from "@/lib/api/settings"
+import { BODY, describeApiCases } from "@/test/support/apiCases"
+
+describeApiCases("settings", settings, [
+  { fn: "getAdminBackupStatus", method: "GET", path: "/admin/backup/status" },
+  { fn: "postAdminBackupRun", args: [BODY], method: "POST", path: "/admin/backup/run", body: BODY },
+  { fn: "postAdminResetDatabase", args: [BODY], method: "POST", path: "/admin/reset-database", body: BODY },
+  { fn: "putAdminProfile", args: [BODY], method: "PUT", path: "/admin/profile", body: BODY },
+  { fn: "getImportLogs", method: "GET", path: "/import/logs" },
+  { fn: "getAdminLoginEvents", args: ["?a=1"], method: "GET", path: "/admin/login-events", query: "?a=1" },
+  { fn: "postAdminLogoutAll", args: [BODY], method: "POST", path: "/admin/logout-all", body: BODY },
+  { fn: "getAdminMcpTokens", method: "GET", path: "/admin/mcp-tokens" },
+  { fn: "postAdminMcpTokens", args: [BODY], method: "POST", path: "/admin/mcp-tokens", body: BODY },
+  { fn: "deleteAdminMcpTokensById", args: [7], method: "DELETE", path: "/admin/mcp-tokens/7" },
+  { fn: "getNotificationsSettings", method: "GET", path: "/notifications/settings" },
+  { fn: "putNotificationsSettings", args: [BODY], method: "PUT", path: "/notifications/settings", body: BODY },
+  { fn: "postNotificationsTest", args: [BODY], method: "POST", path: "/notifications/test", body: BODY },
+  { fn: "getAuthPasskey", method: "GET", path: "/auth/passkey" },
+  { fn: "postAuthPasskeyRegisterOptions", args: [BODY], method: "POST", path: "/auth/passkey/register/options", body: BODY },
+  { fn: "postAuthPasskeyRegisterVerify", args: [BODY], method: "POST", path: "/auth/passkey/register/verify", body: BODY },
+  { fn: "deleteAuthPasskeyById", args: [7, BODY], method: "DELETE", path: "/auth/passkey/7", body: BODY },
+  { fn: "getAuthTotpStatus", method: "GET", path: "/auth/totp/status" },
+  { fn: "postAuthTotpSetup", args: [BODY], method: "POST", path: "/auth/totp/setup", body: BODY },
+  { fn: "postAuthTotpEnable", args: [BODY], method: "POST", path: "/auth/totp/enable", body: BODY },
+  { fn: "postAuthTotpDisable", args: [BODY], method: "POST", path: "/auth/totp/disable", body: BODY },
+  { fn: "postAuthTotpRecoveryCodes", args: [BODY], method: "POST", path: "/auth/totp/recovery-codes", body: BODY },
+  { fn: "getLogosSearch", args: ["?a=1"], method: "GET", path: "/logos/search", query: "?a=1" },
+  { fn: "postLogosFromDomain", args: [BODY], method: "POST", path: "/logos/from-domain", body: BODY },
+  { fn: "downloadExportTransactionsCsv", args: ["?from=2026-01-01"], method: "GET", path: "/export/transactions.csv", query: "?from=2026-01-01" },
+])

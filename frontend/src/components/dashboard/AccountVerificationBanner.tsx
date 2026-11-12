@@ -4,9 +4,9 @@ import { AlertCircle, CheckCircle2, ArrowRight, ChevronDown, Scale } from "lucid
 import { ReconcileDialog } from "@/components/accounts/ReconcileDialog"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
-import { api } from "@/lib/api"
 import { errorMessage } from "@/lib/utils"
 import { useNavigate } from "react-router-dom"
+import { postAccountsVerify } from "@/lib/api/accounts"
 
 interface Account {
   id: number
@@ -49,7 +49,7 @@ export function AccountVerificationBanner({
   const handleVerify = async (id: number) => {
     try {
       setVerifying(id)
-      await api.post(`/accounts/${id}/verify`)
+      await postAccountsVerify(id)
       onAccountVerified()
     } catch (e) {
       console.error(e)

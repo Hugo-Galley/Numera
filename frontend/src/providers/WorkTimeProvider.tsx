@@ -1,8 +1,8 @@
 import i18n from "i18next"
 import { toast } from "sonner"
 import React, { createContext, useCallback, useContext, useEffect, useState } from "react"
-import { api } from "@/lib/api"
 import { resetApiCache } from "@/lib/apiCache"
+import { getSalaryWorkTime } from "@/lib/api/recurring"
 
 export interface WorkTime {
   configured: boolean
@@ -25,7 +25,7 @@ export function WorkTimeProvider({ children }: { children: React.ReactNode }) {
 
   const load = useCallback(async () => {
     try {
-      setWorkTime(await api.get<WorkTime>("/salary/work-time"))
+      setWorkTime(await getSalaryWorkTime<WorkTime>())
     } catch (error) {
       console.error("Erreur lors du chargement du taux horaire", error)
       toast.error(i18n.t("errors.workRateFailed", { ns: "common" }))

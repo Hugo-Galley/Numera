@@ -24,7 +24,7 @@ Esthétique sobre « entreprise légère », Tailwind + shadcn. Palette : Slate 
 1. `src/pages/<Nom>.tsx` ; au-delà de 350 lignes, dossier `src/pages/<Nom>/` : `index.tsx` (composition, retours anticipés), hooks `use<Nom>*.ts` (état, chargement, actions), un composant par section ou dialogue recevant `ctx` (modèle : `pages/AccountDetail/`).
 2. Route dans `App.tsx` (à l'intérieur du bloc `ProtectedRoute`/`AppLayout`).
 3. Entrée dans la Sidebar (`components/layout/Sidebar.tsx`) et dans l'Omnibox (`components/layout/Omnibox/`, ⌘K) pour qu'elle soit découvrable.
-4. Données via les fonctions de `lib/api/<domaine>.ts` (une par route, ex. `getAccounts<Account[]>()`, `patchAccountsById(id, body)`, `getTransactions<T>("?limit=10")`) ; une route nouvelle y ajoute sa fonction. `api.download` pour les fichiers. Jamais de calcul de KPI dans le composant.
+4. Données via les fonctions de `lib/api/<domaine>.ts` (une par route, ex. `getAccounts<Account[]>()`, `patchAccountsById(id, body)`, `getTransactions<T>("?limit=10")`) ; une route nouvelle y ajoute sa fonction. Un fichier à télécharger a aussi sa fonction (`downloadExportTransactionsCsv`, qui passe par `api.download`). Jamais de calcul de KPI dans le composant.
 
 ## Ajouter un onglet au Dashboard
 
@@ -50,4 +50,4 @@ Version 19 : `ref` est une prop ordinaire (pas de `forwardRef` dans le code nouv
 
 ## Validation
 
-`cd frontend && npm test && npm run build` (Vitest, puis `tsc` app + tests et `vite build`, 0 erreur de types actuellement) ; `npm run typecheck` pour tsc seul. Un composant ou un bug corrigé reçoit son test `X.test.tsx` (conventions : `frontend/src/CLAUDE.md` § Vérification, procédures : skill `numera-testing`). Puis contrôle manuel : mode confidentialité, thème sombre, largeur mobile. Si `vite.config.ts` ou le découpage du bundle change : contrôle aussi le **build** (`vite preview`) sur une page à graphiques, les cycles de chunks ne plantent qu'en production (skill `numera-performance`, § Bundle).
+`cd frontend && npm test && npm run build` (Vitest, puis `tsc` app + tests et `vite build`, 0 erreur de types actuellement) ; `npm run typecheck` pour tsc seul. Un composant ou un bug corrigé reçoit son test `src/test/<chemin miroir>/X.test.tsx` (conventions : `frontend/src/CLAUDE.md` § Vérification, procédures : skill `numera-testing`). Puis contrôle manuel : mode confidentialité, thème sombre, largeur mobile. Si `vite.config.ts` ou le découpage du bundle change : contrôle aussi le **build** (`vite preview`) sur une page à graphiques, les cycles de chunks ne plantent qu'en production (skill `numera-performance`, § Bundle).

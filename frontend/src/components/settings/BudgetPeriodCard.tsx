@@ -4,8 +4,8 @@ import { toast } from "sonner"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Switch } from "@/components/ui/switch"
-import { api } from "@/lib/api"
 import { formatPeriodRange, type BudgetPeriod } from "@/lib/budgetPeriod"
+import { getAnalyticsBudgetPeriod, putAnalyticsBudgetPeriod } from "@/lib/api/analytics"
 
 export function BudgetPeriodCard() {
   const { t } = useTranslation("settings")
@@ -13,7 +13,7 @@ export function BudgetPeriodCard() {
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
-    api.get<BudgetPeriod>("/analytics/budget-period").then(setPeriod).catch(() => setPeriod(null))
+    getAnalyticsBudgetPeriod<BudgetPeriod>().then(setPeriod).catch(() => setPeriod(null))
   }, [])
 
   const salaryMode = period?.mode === "salary"
@@ -21,7 +21,7 @@ export function BudgetPeriodCard() {
   async function toggle(checked: boolean) {
     setSaving(true)
     try {
-      setPeriod(await api.put<BudgetPeriod>("/analytics/budget-period", { mode: checked ? "salary" : "civil" }))
+      setPeriod(await putAnalyticsBudgetPeriod<BudgetPeriod>({ mode: checked ? "salary" : "civil" }))
       toast.success(checked ? t("budgetPeriodCard.moisDePaieActive") : t("budgetPeriodCard.moisCivilRetabli"))
     } catch {
       toast.error(t("budgetPeriodCard.impossibleDeChangerLeMode"))

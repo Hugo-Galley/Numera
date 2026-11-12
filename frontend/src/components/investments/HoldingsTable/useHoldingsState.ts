@@ -10,7 +10,7 @@ import { deleteHoldingsById, postEtfProfilesAutoDecompose, putHoldingsById } fro
 
 /** Filtres, édition du prix de revient et actions sur les positions (décomposer, supprimer, dividendes). */
 export function useHoldingsState(p: { accountId: HoldingsTableProps["accountId"]; accountName: HoldingsTableProps["accountName"]; holdings: HoldingsTableProps["holdings"]; onRefresh: HoldingsTableProps["onRefresh"]; onAddDividend: HoldingsTableProps["onAddDividend"] }) {
-  const { accountId, accountName, holdings, onRefresh, onAddDividend } = p
+  const { holdings, onRefresh } = p
   const confirm = useConfirm()
   const [pointZeroOpen, setPointZeroOpen] = useState(false)
   const [costEstimateOpen, setCostEstimateOpen] = useState(false)
@@ -58,7 +58,6 @@ export function useHoldingsState(p: { accountId: HoldingsTableProps["accountId"]
       if (res && res.id) {
         await putHoldingsById(h.id, {
           etf_profile_id: res.id,
-          is_etf: true,
         })
         toast.success(i18n.t("misc.brokenDown", { ns: "investments", name: res.name }), { id: toastId })
         onRefresh()

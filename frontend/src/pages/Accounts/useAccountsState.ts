@@ -69,7 +69,7 @@ export function useAccountsState() {
     try {
       setEditingLoan(await getLoansByAccountById<LoanSummary>(account.id))
       setLoanDialogOpen(true)
-    } catch (error) {
+    } catch {
       toast.error(i18n.t("toast.loanLoadError", { ns: "accounts" }))
     }
   }

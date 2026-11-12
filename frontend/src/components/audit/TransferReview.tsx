@@ -21,10 +21,11 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { api } from "@/lib/api"
 import { formatCurrency } from "@/lib/utils"
 import type { AccountLite, LinkedTransfer, PotentialTransfer } from "@/types/transfers"
 import { useConfirm } from "@/providers/ConfirmProvider"
+import { getAccounts } from "@/lib/api/accounts"
+import { getTransactions, getTransactionsPotentialTransfers, postTransactionsIgnore, postTransactionsLinkById, postTransactionsUnlink } from "@/lib/api/transactions"
 
 const ORIGIN_LABEL: Record<string, string> = {
   get manual() { return i18n.t("misc.originManual", { ns: "audit" }) },
@@ -40,7 +41,7 @@ function suggestionsQuery(search: typeof DEFAULT_SEARCH) {
     days_tolerance: String(parseInt(search.days) || 0),
     amount_tolerance_pct: String(parseFloat(search.tolerance.replace(",", ".")) || 0),
   })
-  return `/transactions/potential-transfers?${params}`
+  return `?${params}`
 }
 
 // Revue des virements internes : suggestions à confirmer et virements déjà liés (Centre d'actions)
@@ -60,9 +61,9 @@ export function TransferReview() {
     setLoading(true)
     try {
       const [p, l, accs] = await Promise.all([
-        api.get<PotentialTransfer[]>(suggestionsQuery(appliedSearch.current)),
-        api.get<LinkedTransfer[]>("/transactions?is_transfer=true&type=Sortie&limit=1000"),
-        api.get<AccountLite[]>("/accounts"),
+        getTransactionsPotentialTransfers<PotentialTransfer[]>(suggestionsQuery(appliedSearch.current)),
+        getTransactions<LinkedTransfer[]>("?is_transfer=true&type=Sortie&limit=1000"),
+        getAccounts<AccountLite[]>(),
       ])
       setPotentials(p)
       setLinked(l)
@@ -84,7 +85,7 @@ export function TransferReview() {
   async function searchSuggestions() {
     setSearching(true)
     try {
-      setPotentials(await api.get<PotentialTransfer[]>(suggestionsQuery(search)))
+      setPotentials(await getTransactionsPotentialTransfers<PotentialTransfer[]>(suggestionsQuery(search)))
       appliedSearch.current = search
     } catch {
       toast.error(t("transferReview.echecDeLaRechercheTolerance"))
@@ -95,7 +96,7 @@ export function TransferReview() {
 
   async function handleLink(p: PotentialTransfer) {
     try {
-      await api.post(`/transactions/${p.sortie.id}/link/${p.entree.id}?type=${p.type}`, {})
+      await postTransactionsLinkById(p.sortie.id, p.entree.id, `?type=${p.type}`, {})
       toast.success(t("transferReview.transactionsLieesAvecSucces"))
       loadData()
     } catch {
@@ -105,7 +106,7 @@ export function TransferReview() {
 
   async function handleIgnore(p: PotentialTransfer) {
     try {
-      await api.post(`/transactions/${p.sortie.id}/ignore?other_id=${p.entree.id}&type=${p.type}`, {})
+      await postTransactionsIgnore(p.sortie.id, `?other_id=${p.entree.id}&type=${p.type}`, {})
       toast.success(t("transferReview.suggestionIgnoree"))
       loadData()
     } catch {
@@ -116,7 +117,7 @@ export function TransferReview() {
   async function handleUnlink(id: number) {
     if (!(await confirm(t("transferReview.voulezVousDelierCesTransactions"), { title: i18n.t("misc.unlinkTitle", { ns: "audit" }), confirmLabel: i18n.t("misc.unlinkLabel", { ns: "audit" }), destructive: false }))) return
     try {
-      await api.post(`/transactions/${id}/unlink`, {})
+      await postTransactionsUnlink(id, {})
       toast.success(t("transferReview.transactionsDeliees"))
       loadData()
     } catch {

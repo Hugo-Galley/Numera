@@ -15,9 +15,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { api } from "@/lib/api"
 import { fetchCurrentBudgetMonth } from "@/lib/budgetPeriod"
 import type { MonthClosureSummary, MonthReview } from "@/types/monthReview"
+import { getMonthReview, getMonthReviewClosures } from "@/lib/api/monthReview"
 
 // Confort par appareil : le stockage peut être indisponible, la pop-up fonctionne sans.
 function readStorage(key: string): string | null {
@@ -59,9 +59,9 @@ export function MonthReviewPopup() {
         if (readStorage(`month-review-skip-${suffix}`) === "1") return
         if (readStorage(`month-review-snooze-${suffix}`) === todayKey()) return
 
-        const closures = await api.get<MonthClosureSummary[]>("/month-review/closures")
+        const closures = await getMonthReviewClosures<MonthClosureSummary[]>()
         if (closures.some((c) => c.year === target.year && c.month === target.month)) return
-        const data = await api.get<MonthReview>(`/month-review?year=${target.year}&month=${target.month}`)
+        const data = await getMonthReview<MonthReview>(`?year=${target.year}&month=${target.month}`)
         const hasActivity = data.budget.income > 0 || data.budget.real_expenses > 0 || data.categorize.count > 0
         if (!cancelled && hasActivity) {
           setReview(data)

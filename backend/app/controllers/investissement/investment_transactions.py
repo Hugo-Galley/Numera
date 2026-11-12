@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.core.sync_bridge import run_async
 from app.db.session import get_db
+from app.schemas.budget_tools import DividendLinkResult
 from app.schemas.investment import InvestmentTransactionCreate, InvestmentTransactionRead, InvestmentTransactionUpdate
 from app.services.investissement import investment_transactions as service
 
@@ -19,7 +20,7 @@ def list_investment_transactions(
     return service.list_transactions(db, account_id, skip, limit)
 
 
-@router.post("/link-dividends")
+@router.post("/link-dividends", response_model=DividendLinkResult)
 def link_dividends(
     account_id: int = Query(...),
     dry_run: bool = Query(default=True),

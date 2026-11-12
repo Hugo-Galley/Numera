@@ -12,10 +12,11 @@ import { Card, CardContent } from "@/components/ui/card"
 import { CompanyLogo } from "@/components/ui/CompanyLogo"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ErrorState } from "@/components/layout/ErrorState"
-import { api } from "@/lib/api"
 import { errorMessage, formatCurrency } from "@/lib/utils"
 import { useConfirm } from "@/providers/ConfirmProvider"
 import { BenefitDialog, type AccountOption } from "./BenefitDialog"
+import { getAccounts } from "@/lib/api/accounts"
+import { deleteBenefitsById, getBenefits, getBenefitsSummary, patchBenefitsById, postBenefitsDeclared } from "@/lib/api/recurring"
 
 interface BenefitPayment {
   transaction_id: number
@@ -72,7 +73,7 @@ export function BenefitsSection() {
 
   const load = useCallback(async () => {
     try {
-      const [list, sum] = await Promise.all([api.get<Benefit[]>("/benefits"), api.get<BenefitSummary>("/benefits/summary")])
+      const [list, sum] = await Promise.all([getBenefits<Benefit[]>(), getBenefitsSummary<BenefitSummary>()])
       setBenefits(list)
       setSummary(sum)
       setFailed(false)
@@ -85,7 +86,7 @@ export function BenefitsSection() {
 
   useEffect(() => {
     load()
-    api.get<(AccountOption & { active?: boolean; type?: string })[]>("/accounts")
+    getAccounts<(AccountOption & { active?: boolean; type?: string })[]>()
       .then((accs) => setAccounts(accs.filter((a) => a.active !== false && a.type !== "investissement")))
       .catch(() => undefined)
   }, [load])
@@ -107,15 +108,15 @@ export function BenefitsSection() {
 
   const remove = async (b: Benefit) => {
     if (!(await confirm(i18n.t("misc.benefitDeleteConfirm", { ns: "recurring", name: b.name })))) return
-    mutate(api.delete(`/benefits/${b.id}`), i18n.t("misc.benefitDeleted", { ns: "recurring" }))
+    mutate(deleteBenefitsById(b.id), i18n.t("misc.benefitDeleted", { ns: "recurring" }))
   }
 
   const actions = {
     edit: openDialog,
     remove,
-    declared: (b: Benefit) => mutate(api.post(`/benefits/${b.id}/declared`, {}), i18n.t("misc.benefitDeclared", { ns: "recurring" })),
-    adoptAmount: (b: Benefit) => b.last_payment && mutate(api.patch(`/benefits/${b.id}`, { amount: b.last_payment.amount }), i18n.t("misc.benefitAmountUpdated", { ns: "recurring" })),
-    toggle: (b: Benefit) => mutate(api.patch(`/benefits/${b.id}`, { active: !b.active }), b.active ? t("benefitsSection.aideMiseEnPause") : t("benefitsSection.aideReactivee")),
+    declared: (b: Benefit) => mutate(postBenefitsDeclared(b.id, {}), i18n.t("misc.benefitDeclared", { ns: "recurring" })),
+    adoptAmount: (b: Benefit) => b.last_payment && mutate(patchBenefitsById(b.id, { amount: b.last_payment.amount }), i18n.t("misc.benefitAmountUpdated", { ns: "recurring" })),
+    toggle: (b: Benefit) => mutate(patchBenefitsById(b.id, { active: !b.active }), b.active ? t("benefitsSection.aideMiseEnPause") : t("benefitsSection.aideReactivee")),
   }
 
   return (

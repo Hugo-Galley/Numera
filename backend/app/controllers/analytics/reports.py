@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.core.sync_bridge import run_async
 from app.db.session import get_db
+from app.schemas.analytics_reports import Sankey
 from app.schemas.insight import CashflowProjection, MoneyFlowReport, MonthlyReport
 from app.services.analytics import reports as service
 
@@ -40,7 +41,7 @@ def get_money_flow(
     return run_async(service.compute_money_flow(db, month, year, account_id))
 
 
-@router.get("/sankey")
+@router.get("/sankey", response_model=Sankey, response_model_exclude_unset=True)
 def sankey_analytics(
     month: int = Query(ge=1, le=12),
     year: int = Query(ge=2000, le=2200),

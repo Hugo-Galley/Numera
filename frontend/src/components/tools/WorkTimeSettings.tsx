@@ -2,13 +2,13 @@ import { useTranslation } from "react-i18next"
 import { useEffect, useState } from "react"
 import { Clock, Save } from "lucide-react"
 import { toast } from "sonner"
-import { api } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { formatCurrency } from "@/lib/utils"
 import { useWorkTime, type WorkTime } from "@/providers/WorkTimeProvider"
+import { patchSalaryWorkTime } from "@/lib/api/recurring"
 
 /** Réglages du « prix en heures de travail » (jours travaillés par an, heures par jour). */
 export function WorkTimeSettings() {
@@ -34,10 +34,10 @@ export function WorkTimeSettings() {
     }
     setSaving(true)
     try {
-      await api.patch<WorkTime>("/salary/work-time", { work_days_per_year: workDays, work_hours_per_day: workHours })
+      await patchSalaryWorkTime<WorkTime>({ work_days_per_year: workDays, work_hours_per_day: workHours })
       await refresh()
       toast.success(t("workTimeSettings.tempsDeTravailEnregistre"))
-    } catch (error) {
+    } catch {
       toast.error(t("workTimeSettings.impossibleDEnregistrerLeTemps"))
     } finally {
       setSaving(false)

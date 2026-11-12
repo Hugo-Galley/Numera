@@ -18,7 +18,6 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { AccountLogo } from "@/components/ui/AccountLogo"
 import { useSubmit } from "@/hooks/useSubmit"
-import { api } from "@/lib/api"
 import { todayLocal } from "@/lib/dates"
 import { errorMessage, formatCurrency, formatRate } from "@/lib/utils"
 import { useConfirm } from "@/providers/ConfirmProvider"
@@ -35,6 +34,8 @@ import {
   type ScheduleRow,
   type SimulationResult,
 } from "./types"
+import { getLoansByAccountById } from "@/lib/api/accounts"
+import { deleteLoansById, deleteLoansPrepaymentsById, getLoansSchedule, postLoansPrepayments, postLoansSimulatePrepayment } from "@/lib/api/loans"
 
 const toNumber = (value: string) => Number(value.replace(",", ".").replace(/\s/g, ""))
 
@@ -68,8 +69,8 @@ export function LoanView({ accountId }: { accountId: number }) {
     setLoading(true)
     setFailed(false)
     try {
-      const summary = await api.get<LoanSummary>(`/loans/by-account/${accountId}`)
-      const rows = await api.get<ScheduleRow[]>(`/loans/${summary.id}/schedule`)
+      const summary = await getLoansByAccountById<LoanSummary>(accountId)
+      const rows = await getLoansSchedule<ScheduleRow[]>(summary.id)
       setLoan(summary)
       setSchedule(rows)
     } catch (error) {
@@ -104,7 +105,7 @@ export function LoanView({ accountId }: { accountId: number }) {
       return
     }
     try {
-      setSimulation(await api.post<SimulationResult>(`/loans/${loan.id}/simulate-prepayment`, { amount, date: simDate, mode: simMode }))
+      setSimulation(await postLoansSimulatePrepayment<SimulationResult>(loan.id, { amount, date: simDate, mode: simMode }))
     } catch (error) {
       toast.error(errorMessage(error, t("loanView.simulationImpossible")))
     }
@@ -116,7 +117,7 @@ export function LoanView({ accountId }: { accountId: number }) {
     if (!(amount > 0)) return
     if (!(await confirm(t("loanView.confirmRecord", { amount: formatCurrency(amount), date: formatDateFr(simDate) }), { destructive: false, confirmLabel: t("loanView.enregistrer") }))) return
     try {
-      await api.post(`/loans/${loan.id}/prepayments`, { amount, date: simDate, mode: simMode })
+      await postLoansPrepayments(loan.id, { amount, date: simDate, mode: simMode })
       toast.success(t("loanView.remboursementAnticipeEnregistre"))
       setSimulation(null)
       setSimAmount("")
@@ -129,7 +130,7 @@ export function LoanView({ accountId }: { accountId: number }) {
   const deletePrepayment = async (id: number) => {
     if (!loan || !(await confirm(t("loanView.supprimerCeRemboursementAnticipe")))) return
     try {
-      await api.delete(`/loans/${loan.id}/prepayments/${id}`)
+      await deleteLoansPrepaymentsById(loan.id, id)
       toast.success(t("loanView.remboursementAnticipeSupprime"))
       load()
     } catch (error) {
@@ -140,7 +141,7 @@ export function LoanView({ accountId }: { accountId: number }) {
   const deleteLoan = async () => {
     if (!loan || !(await confirm(t("loanView.confirmDeleteLoan", { name: loan.name })))) return
     try {
-      await api.delete(`/loans/${loan.id}`)
+      await deleteLoansById(loan.id)
       toast.success(t("loanView.creditSupprime"))
       navigate("/accounts")
     } catch (error) {

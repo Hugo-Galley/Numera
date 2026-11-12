@@ -5,9 +5,9 @@ import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { api } from "@/lib/api"
 import { formatCurrency, formatRate } from "@/lib/utils"
 import type { ReviewBudget } from "@/types/monthReview"
+import { patchTransactionsById } from "@/lib/api/transactions"
 
 function Row({ label, value, extra }: { label: string; value: string; extra?: string }) {
   return (
@@ -29,7 +29,7 @@ export function BudgetStep({ budget, onChanged }: { budget: ReviewBudget; onChan
 
   async function toggle(id: number, value: boolean) {
     try {
-      await api.patch(`/transactions/${id}`, { is_exceptional: value })
+      await patchTransactionsById(id, { is_exceptional: value })
       toast.success(value ? t("budgetStep.marqueeExceptionnelle") : t("budgetStep.marquageRetire"))
       onChanged()
     } catch {

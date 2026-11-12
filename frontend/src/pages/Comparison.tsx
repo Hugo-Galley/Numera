@@ -1,17 +1,13 @@
 import { monthName } from "@/i18n/locale"
 import { useTranslation } from "react-i18next"
 import { formatCurrency, formatRate } from "@/lib/utils"
-import { useState, useEffect, useMemo, useRef } from "react"
+import { useState, useEffect, useEffectEvent, useMemo, useRef } from "react"
 import { 
-  BarChart3, 
   ArrowUpRight, 
   ArrowDownRight, 
   Minus,
-  Calendar,
-  Filter,
   ArrowRight
 } from "lucide-react"
-import { api } from "@/lib/api"
 import { useDrilldown } from "@/hooks/useDrilldown"
 import { ErrorState } from "@/components/layout/ErrorState"
 import { 
@@ -37,9 +33,9 @@ import {
   SelectValue 
 } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
 import { toast } from "sonner"
 import { yearOptions } from "@/lib/years"
+import { getAnalyticsBudget, getAnalyticsExpensesByCategory } from "@/lib/api/analytics"
 
 export default function Comparison() {
   const { t } = useTranslation("month")
@@ -83,10 +79,10 @@ export default function Comparison() {
     setDataB(null)
     try {
       const [resA, resB, catA, catB] = await Promise.all([
-        api.get<any>(`/analytics/budget?month=${monthA}&year=${yearA}`),
-        api.get<any>(`/analytics/budget?month=${monthB}&year=${yearB}`),
-        api.get<any>(`/analytics/expenses-by-category?month=${monthA}&year=${yearA}`),
-        api.get<any>(`/analytics/expenses-by-category?month=${monthB}&year=${yearB}`)
+        getAnalyticsBudget<any>(`?month=${monthA}&year=${yearA}`),
+        getAnalyticsBudget<any>(`?month=${monthB}&year=${yearB}`),
+        getAnalyticsExpensesByCategory<any>(`?month=${monthA}&year=${yearA}`),
+        getAnalyticsExpensesByCategory<any>(`?month=${monthB}&year=${yearB}`)
       ])
       
       if (id !== requestId.current) return
@@ -112,8 +108,9 @@ export default function Comparison() {
     }
   }
 
+  const reloadComparison = useEffectEvent(() => { loadComparisonData() })
   useEffect(() => {
-    loadComparisonData()
+    reloadComparison()
   }, [monthA, yearA, monthB, yearB])
 
   const comparisonRows = useMemo(() => {

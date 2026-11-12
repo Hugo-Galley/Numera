@@ -7,9 +7,10 @@ import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { api, ApiError } from "@/lib/api"
+import { ApiError } from "@/lib/api"
 import { formatCurrency } from "@/lib/utils"
 import type { Claim, ClaimCandidate } from "@/types/reimbursements"
+import { getReimbursementsClaimsCandidates, postReimbursementsClaimsAllocations } from "@/lib/api/reimbursements"
 
 interface Props {
   claim: Claim | null
@@ -25,7 +26,7 @@ export function ClaimCandidatesDialog({ claim, accountName, onOpenChange, onDone
   useEffect(() => {
     if (!claim) return
     setCandidates(null)
-    api.get<ClaimCandidate[]>(`/reimbursements/claims/${claim.id}/candidates`)
+    getReimbursementsClaimsCandidates<ClaimCandidate[]>(claim.id)
       .then(setCandidates)
       .catch(() => toast.error(t("claimCandidatesDialog.erreurLorsDeLaRecherche")))
   }, [claim, t])
@@ -33,7 +34,7 @@ export function ClaimCandidatesDialog({ claim, accountName, onOpenChange, onDone
   async function link(c: ClaimCandidate) {
     if (!claim) return
     try {
-      await api.post(`/reimbursements/claims/${claim.id}/allocations`, { entree_id: c.id })
+      await postReimbursementsClaimsAllocations(claim.id, { entree_id: c.id })
       toast.success(t("claimCandidatesDialog.remboursementLie"))
       onDone()
     } catch (e) {

@@ -7,9 +7,9 @@ import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { api } from "@/lib/api"
 import { useSubmit } from "@/hooks/useSubmit"
 import { errorMessage, formatCurrency } from "@/lib/utils"
+import { putTransactionsSplits } from "@/lib/api/transactions"
 
 export interface SplitPart {
   id?: number
@@ -90,7 +90,7 @@ export function SplitTransactionDialog({ open, onOpenChange, transaction, catego
   const [save, saving] = useSubmit(async () => {
     if (!transaction) return
     try {
-      await api.put(`/transactions/${transaction.id}/splits`, {
+      await putTransactionsSplits(transaction.id, {
         items: rows.map((r) => ({ category_id: Number(r.categoryId), amount: parseAmount(r.amount) })),
       })
       toast.success(t("splitTransactionDialog.depenseDecoupee"))
@@ -104,7 +104,7 @@ export function SplitTransactionDialog({ open, onOpenChange, transaction, catego
   const [cancelSplit, cancelling] = useSubmit(async () => {
     if (!transaction) return
     try {
-      await api.put(`/transactions/${transaction.id}/splits`, { items: [] })
+      await putTransactionsSplits(transaction.id, { items: [] })
       toast.success(t("splitTransactionDialog.decoupageAnnule"))
       onOpenChange(false)
       onDone()

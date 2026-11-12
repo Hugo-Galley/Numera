@@ -14,10 +14,10 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Switch } from "@/components/ui/switch"
 import { useSubmit } from "@/hooks/useSubmit"
 import { type Language } from "@/i18n"
-import { api } from "@/lib/api"
 import { syncServerLanguage } from "@/lib/serverLanguage"
 import { errorMessage } from "@/lib/utils"
 import { useReauth } from "./ReauthDialog"
+import { getNotificationsSettings, postNotificationsTest, putNotificationsSettings } from "@/lib/api/settings"
 
 // Destinations d'envoi et masquage des montants : changer l'un d'eux exige le mot de passe actuel
 const SENSITIVE_FIELDS = [
@@ -69,7 +69,7 @@ export function NotificationsTab() {
   const load = async () => {
     setFailed(false)
     try {
-      let data = await api.get<NotificationSettings>("/notifications/settings")
+      let data = await getNotificationsSettings<NotificationSettings>()
       if (data.language && data.language !== i18n.language) {
         // Les notifications partent du serveur : elles suivent la langue choisie dans l'interface
         const language = i18n.language as Language
@@ -98,7 +98,7 @@ export function NotificationsTab() {
       if (!auth) return false
     }
     try {
-      const saved = await api.put<NotificationSettings>("/notifications/settings", { ...draft, ...(auth ? { current_password: auth.current_password } : {}) })
+      const saved = await putNotificationsSettings<NotificationSettings>({ ...draft, ...(auth ? { current_password: auth.current_password } : {}) })
       setSettings(saved)
       setDraft(saved)
       toast.success(t("notificationsTab.reglagesDesNotificationsEnregistres"))
@@ -115,7 +115,7 @@ export function NotificationsTab() {
   const [handleTest, testing] = useSubmit(async (channel: "ntfy" | "telegram") => {
     if (dirty && !(await persist())) return
     try {
-      await api.post("/notifications/test", { channel })
+      await postNotificationsTest({ channel })
       toast.success(t("misc.testSent", { channel: channel === "ntfy" ? "ntfy" : "Telegram" }))
     } catch (error) {
       toast.error(errorMessage(error, t("notificationsTab.envoiImpossible")))

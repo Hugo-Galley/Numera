@@ -67,3 +67,8 @@ class BackupStatus(BaseModel):
     github_last_sync_at: datetime | None = None
     github_error: str | None = None
     stale: bool = False
+
+
+class BackupRunResult(BaseModel):
+    ok: bool
+    github: bool  # envoi GitHub configuré

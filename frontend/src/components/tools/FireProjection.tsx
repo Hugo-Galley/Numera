@@ -10,8 +10,8 @@ import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ErrorState } from "@/components/layout/ErrorState"
 import { useIsMobile } from "@/hooks/useIsMobile"
-import { api } from "@/lib/api"
 import { formatCurrency, formatRate } from "@/lib/utils"
+import { getAnalyticsFire } from "@/lib/api/analytics"
 
 interface FireScenario {
   label: string
@@ -83,7 +83,7 @@ export function FireProjection() {
           const v = numberOrNull(value)
           if (v !== null) qs.set(key, v)
         })
-        const res = await api.get<FireData>(`/analytics/fire?${qs.toString()}`)
+        const res = await getAnalyticsFire<FireData>(`?${qs.toString()}`)
         if (!cancelled) {
           setData(res)
           setError(false)
