@@ -18,5 +18,4 @@ export const COLORS = ["#0f172a", "#334155", "#475569", "#64748b", "#7c8ba1", "#
 
 /** Types du contrat de l'API pour la page Investissements. */
 export type InvestmentsAllocation = ApiResponse<"/analytics/investments-allocation", "get">
-export type AllocationItem = NonNullable<InvestmentsAllocation["items"]>[number]
 export type AdvancedAllocation = ApiResponse<"/analytics/investments-allocation-advanced", "get">
