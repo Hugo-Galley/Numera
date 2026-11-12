@@ -60,9 +60,9 @@ export function useRecurringForm(p: ReturnType<typeof useRecurringState>) {
 
   const allSubs = subsData?.subscriptions || []
   // Onglet (`kind`), totaux et appartenance au total : calculés par le backend
-  const activeSubs = allSubs.filter((s: any) => s.is_recurring_entity && s.kind === subTab)
-  const potentialSubs = allSubs.filter((s: any) => !s.is_recurring_entity && s.kind === subTab)
-  const countedSubs = activeSubs.filter((s: any) => s.in_kind_total)
+  const activeSubs = allSubs.filter((s) => s.is_recurring_entity && s.kind === subTab)
+  const potentialSubs = allSubs.filter((s) => !s.is_recurring_entity && s.kind === subTab)
+  const countedSubs = activeSubs.filter((s) => s.in_kind_total)
   const monthlyTotal: number = subsData?.totals_by_kind?.[subTab]?.monthly ?? 0
   const annualTotal: number = subsData?.totals_by_kind?.[subTab]?.annual ?? 0
   const monthlyBreakdown = [...countedSubs].sort((a: any, b: any) => b.monthly_cost - a.monthly_cost)

@@ -35,7 +35,7 @@ export function SnapshotsCard({ ctx }: { ctx: AccountDetailView }) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {sortedSnapshots.map((snap: any) => (
+              {sortedSnapshots.map((snap) => (
                 <TableRow key={snap.id}>
                   <TableCell className="text-xs">{format(new Date(snap.date), "dd/MM/yyyy")}</TableCell>
                   <TableCell className="text-right font-bold">

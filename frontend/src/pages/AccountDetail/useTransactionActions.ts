@@ -10,6 +10,7 @@ import type { useAccountDetailState } from "./useAccountDetailState"
 import type { useAccountForms } from "./useAccountForms"
 import type { useAccountDetailData } from "./useAccountDetailData"
 import { deleteTransactionsById, patchTransactionsById, postTransactions } from "@/lib/api/transactions"
+import type { ApiBody } from "@/lib/api/types"
 
 /** Création, modification et suppression des transactions du compte. */
 export function useTransactionActions(p: ReturnType<typeof useAccountDetailState> & ReturnType<typeof useAccountForms> & ReturnType<typeof useAccountDetailData>) {
@@ -91,7 +92,7 @@ export function useTransactionActions(p: ReturnType<typeof useAccountDetailState
     }
 
     try {
-      const payload: any = {
+      const payload: ApiBody<"/transactions/{transaction_id}", "patch"> = {
         date: toNaiveLocal(txDate),
         type: txType,
         merchant: merchant,

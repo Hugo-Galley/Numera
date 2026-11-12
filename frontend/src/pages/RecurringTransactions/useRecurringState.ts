@@ -2,7 +2,7 @@ import { safeStorage } from "@/lib/storage"
 import { useConfirm } from "@/providers/ConfirmProvider"
 import { useSearchParams } from "react-router-dom"
 import { useState } from "react"
-import { Category, Account, RecurringTransaction } from "./types"
+import { Category, Account, RecurringTransaction, Subscription, SubscriptionsData } from "./types"
 
 /** État de la page : données, vue, onglet actif (URL ?tab=) et dialogues. */
 export function useRecurringState() {
@@ -10,7 +10,7 @@ export function useRecurringState() {
   const [recurringTxs, setRecurringTxs] = useState<RecurringTransaction[]>([])
   const [accounts, setAccounts] = useState<Account[]>([])
   const [categories, setCategories] = useState<Category[]>([])
-  const [subsData, setSubsData] = useState<any>(null)
+  const [subsData, setSubsData] = useState<SubscriptionsData | null>(null)
   const [suggestions, setSuggestions] = useState<{
     asset_classes: string[],
     sectors: string[],
@@ -40,7 +40,7 @@ export function useRecurringState() {
     }, { replace: true })
   }
   const [subTab, setSubTab] = useState<"subscriptions" | "investments" | "other">("subscriptions")
-  const [flowSub, setFlowSub] = useState<any>(null)
+  const [flowSub, setFlowSub] = useState<Subscription | null>(null)
   // Dialogs
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [editingTx, setEditingTx] = useState<RecurringTransaction | null>(null)

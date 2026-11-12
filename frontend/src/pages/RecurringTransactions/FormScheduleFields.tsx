@@ -128,7 +128,7 @@ export function FormScheduleFields({ ctx }: { ctx: RecurringTransactionsCtx }) {
         </div>
         <Checkbox 
           checked={formData.auto_generate}
-          onCheckedChange={(checked: any) => setFormData({ ...formData, auto_generate: !!checked })}
+          onCheckedChange={(checked: boolean | "indeterminate") => setFormData({ ...formData, auto_generate: !!checked })}
         />
       </div>
       <div className="grid gap-2">

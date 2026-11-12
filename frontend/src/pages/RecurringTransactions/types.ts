@@ -1,5 +1,5 @@
 import { monthShort } from "@/i18n/locale"
-import type { ApiBody } from "@/lib/api/types"
+import type { ApiBody, ApiResponse } from "@/lib/api/types"
 
 
 /** Mois (1 à 12) avec leur libellé abrégé dans la langue courante (lu à l'accès : pas figé à l'import). */
@@ -63,3 +63,7 @@ type RecurringBody = ApiBody<"/recurring-transactions/", "post">
 /** Fréquence et type acceptés par l'API des récurrences (le formulaire les garde en `string`). */
 export type RecurringFrequency = RecurringBody["frequency"]
 export type RecurringType = RecurringBody["type"]
+
+/** Abonnements et flux récurrents détectés (`/analytics/subscriptions`). */
+export type SubscriptionsData = ApiResponse<"/analytics/subscriptions", "get">
+export type Subscription = SubscriptionsData["subscriptions"][number]

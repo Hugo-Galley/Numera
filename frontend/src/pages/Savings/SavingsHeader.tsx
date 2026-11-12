@@ -17,7 +17,7 @@ export function SavingsHeader({ ctx }: { ctx: SavingsCtx }) {
         </div>
 
         <div className="flex flex-wrap items-center gap-2 sm:gap-3 bg-white p-1.5 rounded-xl border shadow-sm">
-          <Select value={period} onValueChange={(v: any) => setPeriod(v)}>
+          <Select value={period} onValueChange={(v) => setPeriod(v as "monthly" | "all-time")}>
             <SelectTrigger className="w-full sm:w-[140px] border-none shadow-none focus:ring-0 font-medium">
               <SelectValue />
             </SelectTrigger>

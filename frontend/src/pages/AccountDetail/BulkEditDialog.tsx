@@ -63,7 +63,7 @@ export function BulkEditDialog({ ctx }: { ctx: AccountDetailView }) {
             <div className="space-y-4 pt-2 border-t">
               <div className="flex items-center justify-between">
                 <Label>{t("tx.tags")}</Label>
-                <Select value={bulkTagAction} onValueChange={(v: any) => setBulkTagAction(v)}>
+                <Select value={bulkTagAction} onValueChange={(v) => setBulkTagAction(v as typeof bulkTagAction)}>
                   <SelectTrigger className="w-[150px] h-8 text-xs">
                     <SelectValue />
                   </SelectTrigger>

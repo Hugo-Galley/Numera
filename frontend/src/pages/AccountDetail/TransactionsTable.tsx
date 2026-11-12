@@ -128,7 +128,7 @@ export function TransactionsTable({ ctx }: { ctx: AccountDetailView }) {
                       <div className="h-6 w-6 rounded-md flex items-center justify-center" style={{ backgroundColor: tx.category?.color || "#f1f5f9" }}>
                         <IconComponent name={tx.category?.icon} className="h-3.5 w-3.5 text-white" />
                       </div>
-                      <span className="text-sm font-medium text-slate-600" title={tx.splits?.length ? tx.splits.map((p: any) => `${p.category?.name ?? "?"} : ${formatCurrency(p.amount)}`).join("\n") : undefined}>
+                      <span className="text-sm font-medium text-slate-600" title={tx.splits?.length ? tx.splits.map((p) => `${p.category?.name ?? "?"} : ${formatCurrency(p.amount)}`).join("\n") : undefined}>
                         {tx.category?.name || tc("txTypes.uncategorized")}
                         {tx.splits?.length ? <span className="ml-1 inline-flex items-center gap-0.5 text-xs text-slate-400"><Split className="h-3 w-3" />+{tx.splits.length - 1}</span> : null}
                       </span>
