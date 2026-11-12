@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test"
+import { test, expect } from "./fixtures"
 
 test("mode confidentialité : activation, persistance au rechargement, désactivation", async ({ page }) => {
   await page.goto("/")

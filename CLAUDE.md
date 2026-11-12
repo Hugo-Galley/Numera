@@ -51,6 +51,7 @@ make check-size            # plafonds de taille (fichier/fonction), baseline à 
 make validate              # lint + lint-front + typecheck + check-size + coverage (tests backend et frontend avec seuils) + build frontend
 make backend-seed-demo     # données de démo (backend/data/demo.db, jamais la vraie base)
 make demo / demo-down      # instance de démo publique (infra/docker-compose.demo.yml, port 8090, demo/demo)
+make test-e2e              # E2E Playwright (parcours utilisateur sur base de démo jetable, ~4 min) ; frontend/e2e/README.md
 make backup-now            # backup dans le conteneur
 cd backend && PYTHONPATH=. python3.11 scripts/perf_profile.py seed|bench|profile --db /tmp/perf_demo.db   # profilage sur base de démo volumineuse (skill numera-performance)
 make release-check         # bump SemVer suggéré + aperçu des notes ; make release V=X.Y.Z crée et pousse le tag

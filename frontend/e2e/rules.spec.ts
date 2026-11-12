@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test"
+import { test, expect } from "./fixtures"
 
 test("règle de catégorisation : création puis suppression", async ({ page }) => {
   await page.goto("/classement?tab=rules")

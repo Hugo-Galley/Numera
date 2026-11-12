@@ -76,7 +76,7 @@ typecheck:
 test-front:
 	cd frontend && npm test
 
-# Tests E2E (Playwright : backend sur base de démo jetable + Vite, cf. frontend/e2e/README.md)
+# Tests E2E (Playwright : parcours utilisateur, backend sur base de démo jetable + Vite, cf. frontend/e2e/README.md)
 test-e2e:
 	cd frontend && npm run test:e2e
 

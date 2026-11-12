@@ -1,5 +1,5 @@
 import fs from "node:fs"
-import { test, expect, type Page } from "@playwright/test"
+import { test, expect, visible } from "./fixtures"
 
 // Dates du mois courant : les lignes restent dans la période affichée par défaut sur le compte.
 function releve(path: string) {
@@ -15,9 +15,6 @@ function releve(path: string) {
     ].join("\n"),
   )
 }
-
-// La liste des transactions existe en deux mises en page (mobile / bureau) : on ne compte que la visible.
-const visible = (page: Page, text: string) => page.getByText(text, { exact: true }).locator("visible=true")
 
 test("import CSV : aperçu, import, lignes visibles sur le compte, ré-import sans doublon", async ({ page }, testInfo) => {
   const csv = testInfo.outputPath("releve.csv")
