@@ -35,7 +35,7 @@ export function EditCategoryDialog({ ctx }: { ctx: CategoriesTabCtx }) {
               </div>
               <div className="grid gap-2">
                 <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">{t("editCategoryDialog.nature")}</Label>
-                <Select value={editCatType} onValueChange={(v: any) => setEditCatType(v)}>
+                <Select value={editCatType} onValueChange={(v) => setEditCatType(v as typeof editCatType)}>
                   <SelectTrigger className="bg-slate-50 border-slate-200">
                     <SelectValue />
                   </SelectTrigger>

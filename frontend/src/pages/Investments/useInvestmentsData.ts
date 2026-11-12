@@ -6,6 +6,7 @@ import { useIsMobile } from "@/hooks/useIsMobile"
 import { useNavigate } from "react-router-dom"
 import { getAnalyticsDiversityScanner, getAnalyticsInvestmentsAllocation, getAnalyticsInvestmentsAllocationAdvanced } from "@/lib/api/analytics"
 import { postEtfProfilesRefreshHeld } from "@/lib/api/investments"
+import type { DrillItem, DrillNode } from "@/components/analytics/AllocationTreemap"
 import type { AdvancedAllocation, InvestmentsAllocation } from "./types"
 
 /** Chargement des allocations et du scanner de diversité, drill-down et données du graphique. */
@@ -16,7 +17,7 @@ export function useInvestmentsData() {
   const [advancedAllocation, setAdvancedAllocation] = useState<AdvancedAllocation | null>(null)
   const [diversity, setDiversity] = useState<DiversityScannerResponse | null>(null)
 const [loading, setLoading] = useState(true)
-  const [drillDown, setDrillDown] = useState<{ title: string, items: any[] } | null>(null)
+  const [drillDown, setDrillDown] = useState<{ title: string, items: DrillItem[] } | null>(null)
   const [refreshingCompositions, setRefreshingCompositions] = useState(false)
 
   const refreshCompositions = async () => {
@@ -60,7 +61,7 @@ const [loading, setLoading] = useState(true)
     navigate(`/accounts/${accountId}`)
   }
 
-  const getDrilldownItems = (clickedData: any) => {
+  const getDrilldownItems = (clickedData?: DrillNode | null): DrillItem[] => {
     if (!clickedData) return []
     if (Array.isArray(clickedData.items)) return clickedData.items
     if (clickedData.payload && Array.isArray(clickedData.payload.items)) return clickedData.payload.items
@@ -68,7 +69,7 @@ const [loading, setLoading] = useState(true)
     return []
   }
 
-  const getDrilldownTitle = (prefix: string, clickedData: any) => {
+  const getDrilldownTitle = (prefix: string, clickedData?: DrillNode | null) => {
     if (!clickedData) return prefix
     const name = clickedData.name || clickedData.payload?.name || clickedData.payload?.payload?.name || ""
     return `${prefix} : ${name}`

@@ -31,14 +31,14 @@ export function DetailTable({ ctx }: { ctx: WealthSimulatorCtx }) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {data?.items?.map((item: any) => (
+              {data?.items?.map((item) => (
                 <TableRow key={item.year} className="hover:bg-slate-50/50">
                   <TableCell className="font-medium text-[11px] py-1.5">{item.year}</TableCell>
                   <TableCell className="text-right font-semibold text-[11px] py-1.5 amount-blur text-indigo-600">
                     {formatCurrency(item.total_value)}
                   </TableCell>
                   <TableCell className="text-right text-[11px] py-1.5 amount-blur text-slate-655">
-                    {formatCurrency(item.total_value_real)}
+                    {formatCurrency(item.total_value_real ?? 0)}
                   </TableCell>
                   <TableCell className="text-right text-[11px] py-1.5 amount-blur text-slate-500">
                     {formatCurrency(item.total_contributions)}
@@ -46,7 +46,7 @@ export function DetailTable({ ctx }: { ctx: WealthSimulatorCtx }) {
                   <TableCell className="text-right text-[11px] py-1.5 amount-blur text-emerald-600">
                     {formatCurrency(item.total_interest)}
                   </TableCell>
-                  <TableCell className="text-right text-[10px] py-1.5 text-amber-600 max-w-[110px] truncate" title={item.event_applied}>
+                  <TableCell className="text-right text-[10px] py-1.5 text-amber-600 max-w-[110px] truncate" title={item.event_applied ?? undefined}>
                     {item.event_applied || "—"}
                   </TableCell>
                 </TableRow>

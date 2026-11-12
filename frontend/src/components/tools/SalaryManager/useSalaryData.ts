@@ -109,7 +109,7 @@ export function useSalaryData() {
       setSummary(summary)
       
       const days = await getSalaryTelecommutingById(year, month)
-      setTtDays(days.map((d: any) => new Date(d.date)))
+      setTtDays(days.map((d) => new Date(d.date)))
     } catch (error) {
       console.error("Failed to load month data", error)
       toast.error(i18n.t("useSalaryData.impossibleDeChargerLesDonnees", { ns: "tools" }))

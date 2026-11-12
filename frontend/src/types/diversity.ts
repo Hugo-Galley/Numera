@@ -1,3 +1,5 @@
+import type { ApiResponse } from "@/lib/api/types"
+
 export type CompositionField = "countries" | "sectors" | "top_holdings"
 // yahoo : actualisé depuis Yahoo Finance · preset : préréglage intégré · manual : saisi à la main
 export type CompositionSource = "yahoo" | "preset" | "manual"
@@ -90,6 +92,6 @@ export interface DiversityScannerResponse {
   countries: BreakdownItem[]
   sectors: BreakdownItem[]
   alerts: DiversityAlert[]
-  holdings: any[]
+  holdings: ApiResponse<"/analytics/diversity-scanner", "get">["holdings"]
   etf_compositions: EtfCompositionInfo[]
 }

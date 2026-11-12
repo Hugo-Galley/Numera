@@ -1,7 +1,7 @@
 import i18n from "i18next"
 import { toast } from "sonner"
 import { useEffect, useState } from "react"
-import { Account, Category, ImportFlowProps, PreviewData } from "./types"
+import { Account, Category, ImportFlowProps, ImportResult, PreviewData } from "./types"
 import { getAccounts } from "@/lib/api/accounts"
 import { getCategories } from "@/lib/api/classement"
 import { uploadImportCommit, uploadImportPreview } from "@/lib/api/transactions"
@@ -19,7 +19,7 @@ export function useImportState(p: { accountId: ImportFlowProps["accountId"]; onI
   const [importing, setImporting] = useState(false)
   const [createMissingCategories, setCreateMissingCategories] = useState(true)
   const [categoryMapping, setCategoryMapping] = useState<Record<string, string | number>>({})
-  const [result, setResult] = useState<any | null>(null)
+  const [result, setResult] = useState<ImportResult | null>(null)
 
   const loadInitialData = async () => {
     try {

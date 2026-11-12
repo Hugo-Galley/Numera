@@ -65,12 +65,12 @@ export function useActionCenterData() {
     }
 
     if (action.action_type === "modal_rule") {
-      setRuleMerchant({ merchant: action.metadata?.merchant, catId: action.metadata?.suggested_category_id })
+      setRuleMerchant({ merchant: action.metadata?.merchant ?? "", catId: action.metadata?.suggested_category_id })
       return
     }
 
     if (action.action_type === "modal_merchant") {
-      setNormMerchant({ merchant: action.metadata?.merchant, variants: action.metadata?.variants })
+      setNormMerchant({ merchant: action.metadata?.merchant ?? "", variants: action.metadata?.variants })
       return
     }
 

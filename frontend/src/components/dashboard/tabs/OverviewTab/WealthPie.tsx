@@ -29,7 +29,7 @@ export function WealthPie({ ctx }: { ctx: OverviewTabCtx }) {
             </Pie>
             <Tooltip 
               contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} 
-              formatter={(v: number) => formatAmountWithShare(v, chartData.reduce((s: number, i: any) => s + (Number(i[chartDataKey]) || 0), 0), "EUR")} 
+              formatter={(v: number) => formatAmountWithShare(v, chartData.reduce((s, i) => s + (Number(i[chartDataKey as keyof typeof i]) || 0), 0), "EUR")} 
             />
           </PieChart>
         </ResponsiveContainer>

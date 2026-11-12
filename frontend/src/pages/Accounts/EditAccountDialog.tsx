@@ -67,7 +67,7 @@ export function EditAccountDialog({ ctx }: { ctx: AccountsCtx }) {
                 <Label htmlFor="edit-type">{t("form.type")}</Label>
                 <Select 
                   value={editingAccount.type} 
-                  onValueChange={(v) => setEditingAccount({...editingAccount, type: v as any})}
+                  onValueChange={(v) => setEditingAccount({...editingAccount, type: v as typeof editingAccount.type})}
                 >
                   <SelectTrigger>
                     <SelectValue />

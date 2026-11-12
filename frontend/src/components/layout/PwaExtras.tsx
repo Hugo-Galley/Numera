@@ -31,7 +31,7 @@ export function PwaExtras({ scrollRef }: { scrollRef: React.RefObject<HTMLElemen
   useEffect(() => {
     const el = scrollRef.current
     if (!el) return
-    const isStandalone = window.matchMedia("(display-mode: standalone)").matches || (navigator as any).standalone
+    const isStandalone = window.matchMedia("(display-mode: standalone)").matches || (navigator as Navigator & { standalone?: boolean }).standalone
     if (!isStandalone) return
 
     const onStart = (e: TouchEvent) => {
@@ -70,7 +70,7 @@ export function PwaExtras({ scrollRef }: { scrollRef: React.RefObject<HTMLElemen
   }, [scrollRef])
 
   useEffect(() => {
-    const isStandalone = window.matchMedia("(display-mode: standalone)").matches || (navigator as any).standalone
+    const isStandalone = window.matchMedia("(display-mode: standalone)").matches || (navigator as Navigator & { standalone?: boolean }).standalone
     if (!isStandalone) return
     let start: { x: number; y: number } | null = null
     let distance = 0

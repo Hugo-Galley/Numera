@@ -1,3 +1,8 @@
+import type { ApiResponse } from "@/lib/api/types"
+
+type RawPoint = NonNullable<ApiResponse<"/analytics/wealth-simulation", "get">["items"]>[number]
+// Le contrat marque les champs optionnels (valeurs par défaut Pydantic) ; le backend les renvoie toujours sur chaque point
+type SimulationPoint = { [K in keyof RawPoint]-?: NonNullable<RawPoint[K]> }
 import i18n from "i18next"
 import { Info } from "lucide-react"
 import { formatCurrency as formatCurrencyBase } from "@/lib/utils"
@@ -85,7 +90,7 @@ export function useSimulatorActions(p: { initialCapitalDefault: number } & Retur
   const activeEventsCount = events.filter(e => e.year <= params.years).length
 
   // Custom tooltips for Recharts
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: { payload: SimulationPoint }[]; label?: string | number }) => {
     if (active && payload && payload.length) {
       const point = payload[0].payload
       const eventStr = point.event_applied

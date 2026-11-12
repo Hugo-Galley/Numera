@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next"
 import { Badge } from "@/components/ui/badge"
-import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
+import { Bar, BarChart, ResponsiveContainer, Tooltip, type TooltipProps, XAxis, YAxis } from "recharts"
 import { Building } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { CompanyLogo } from "@/components/ui/CompanyLogo"
@@ -70,7 +70,7 @@ export function TopCompanies({ ctx }: { ctx: InvestmentsCtx }) {
                       <YAxis
                         type="category"
                         dataKey="name"
-                        tick={(tickProps: any) => {
+                        tick={(tickProps: { x: number; y: number; payload: { value: string } }) => {
                           const { x, y, payload } = tickProps
                           const comp = topCompaniesData.find((c) => c.name === payload.value)
                           return (
@@ -99,16 +99,16 @@ export function TopCompanies({ ctx }: { ctx: InvestmentsCtx }) {
                       />
                       <Tooltip
                         cursor={false}
-                        content={({ active, payload, label }: any) => {
+                        content={({ active, payload, label }: TooltipProps<number, string>) => {
                           if (active && payload && payload.length) {
-                            const d = payload[0].payload
+                            const d: (typeof topCompaniesData)[number] = payload[0].payload
                             return (
                               <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-md text-xs space-y-1.5 min-w-[210px]">
                                 <div className="flex items-center justify-between border-b pb-1.5 gap-2">
                                   <div className="flex items-center gap-2.5 min-w-0">
                                     <CompanyLogo
                                       ticker={d.ticker}
-                                      name={label || d.name}
+                                      name={label ? String(label) : d.name}
                                       className="h-6 w-6 rounded-md shadow-2xs shrink-0"
                                     />
                                     <div className="flex flex-col min-w-0">

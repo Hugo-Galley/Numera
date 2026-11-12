@@ -1,6 +1,7 @@
 /** Données du tableau de bord : types du contrat de l'API (`/analytics/*`), pour que `tsc` suive le backend. */
 import type { ApiResponse } from "@/lib/api/types"
 
+export type DashboardAccount = ApiResponse<"/accounts", "get">[number]
 export type BudgetOverview = ApiResponse<"/analytics/budget", "get">
 export type ExpensesByCategory = ApiResponse<"/analytics/expenses-by-category", "get">
 export type KpiHistoryPoint = ApiResponse<"/analytics/kpi-history", "get">[number]

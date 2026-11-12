@@ -78,7 +78,7 @@ export function SimulatorKpis({ ctx }: { ctx: WealthSimulatorCtx }) {
               {t("simulatorKpis.scenarioCatastropheP10")}
             </span>
             <span className="text-base font-black text-rose-600 amount-blur mt-1">
-              {formatCurrency(showInflationAdjusted ? data.items[data.items.length - 1].total_value_p10_real : data.pessimistic_final)}
+              {formatCurrency(showInflationAdjusted ? data.items[data.items.length - 1].total_value_p10_real ?? 0 : data.pessimistic_final ?? 0)}
             </span>
             <span className="text-[9px] text-slate-455 mt-0.5">{t("simulatorKpis.90DeChancesDeDepasser")}</span>
           </div>
@@ -88,7 +88,7 @@ export function SimulatorKpis({ ctx }: { ctx: WealthSimulatorCtx }) {
               {t("simulatorKpis.scenarioIdealP90")}
             </span>
             <span className="text-base font-black text-emerald-600 amount-blur mt-1">
-              {formatCurrency(showInflationAdjusted ? data.items[data.items.length - 1].total_value_p90_real : data.optimistic_final)}
+              {formatCurrency(showInflationAdjusted ? data.items[data.items.length - 1].total_value_p90_real ?? 0 : data.optimistic_final ?? 0)}
             </span>
             <span className="text-[9px] text-slate-455 mt-0.5">{t("simulatorKpis.10DeChancesDeDepasser")}</span>
           </div>

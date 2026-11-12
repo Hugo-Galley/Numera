@@ -7,6 +7,7 @@ import type { ImportFlowCtx } from "./useImportFlow"
 export function ImportResultCard({ ctx }: { ctx: ImportFlowCtx }) {
   const { t } = useTranslation("import")
   const { result } = ctx
+  if (!result) return null
   return (
     <>
       <Card className="border-emerald-200 bg-emerald-50/20 shadow-sm overflow-hidden">

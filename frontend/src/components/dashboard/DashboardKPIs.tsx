@@ -15,7 +15,7 @@ import { formatCurrency } from "@/lib/utils"
 import { AreaChart, Area, ResponsiveContainer } from "recharts"
 import type { BudgetOverview, KpiHistoryPoint } from "./types"
 
-const Sparkline = ({ data, dataKey, color }: { data: any[], dataKey: string, color: string }) => (
+const Sparkline = ({ data, dataKey, color }: { data: object[], dataKey: string, color: string }) => (
   <div className="h-8 sm:h-10 w-full mt-1.5 sm:mt-2">
     <ResponsiveContainer width="100%" height="100%">
       <AreaChart data={data} margin={{ top: 5, right: 0, left: 0, bottom: 0 }}>

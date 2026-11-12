@@ -1,3 +1,4 @@
+import type { MarketAsset, MarketQuote } from "../types"
 import i18n from "i18next"
 import { errorMessage } from "@/lib/utils"
 import { toast } from "sonner"
@@ -14,7 +15,7 @@ export function usePointZeroState(p: { open: PointZeroModalProps["open"]; onOpen
 
   // Search state
   const [searchQuery, setSearchQuery] = useState("")
-  const [searchResults, setSearchResults] = useState<any[]>([])
+  const [searchResults, setSearchResults] = useState<MarketAsset[]>([])
   const [isSearching, setIsSearching] = useState(false)
   const [showSearchDropdown, setShowSearchDropdown] = useState(false)
 
@@ -51,7 +52,7 @@ export function usePointZeroState(p: { open: PointZeroModalProps["open"]; onOpen
           const suggs = await getHoldingsSuggestions(`?account_id=${accountId}`)
           if (suggs && suggs.length > 0) {
             const symbols = suggs.map((s) => s.ticker)
-            let quotes: any = {}
+            let quotes: Record<string, MarketQuote> = {}
             try {
               quotes = await getMarketQuote(`?symbols=${symbols.join(",")}`)
             } catch {
@@ -112,7 +113,7 @@ export function usePointZeroState(p: { open: PointZeroModalProps["open"]; onOpen
     return () => clearTimeout(timer)
   }, [searchQuery])
 
-  const handleSelectSearchResult = async (item: any) => {
+  const handleSelectSearchResult = async (item: MarketAsset) => {
     setShowSearchDropdown(false)
     setSearchQuery("")
 
@@ -170,7 +171,7 @@ export function usePointZeroState(p: { open: PointZeroModalProps["open"]; onOpen
     setRows((prev) => [...prev, newRow])
   }
 
-  const handleUpdateRow = (index: number, field: keyof BaselineRow, value: any) => {
+  const handleUpdateRow = (index: number, field: keyof BaselineRow, value: BaselineRow[keyof BaselineRow]) => {
     setRows((prev) => {
       const next = [...prev]
       next[index] = { ...next[index], [field]: value }

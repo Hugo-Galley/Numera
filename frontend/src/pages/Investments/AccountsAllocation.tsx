@@ -47,7 +47,7 @@ export function AccountsAllocation({ ctx }: { ctx: InvestmentsCtx }) {
                       ))}
                     </Pie>
                     <Tooltip 
-                      formatter={(value: number, name: string) => [formatAmountWithShare(value, chartData.reduce((s: number, i: any) => s + (i.value || 0), 0)), name]}
+                      formatter={(value: number, name: string) => [formatAmountWithShare(value, chartData.reduce((s, i) => s + (i.value || 0), 0)), name]}
                       contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }}
                     />
                   </PieChart>

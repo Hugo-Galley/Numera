@@ -13,7 +13,7 @@ import type { BudgetAlert, BudgetOverview, CashflowProjection, ExpensesByCategor
 export interface Milestone {
   year: number
   month: number
-  highlight: string | null
+  highlight?: string | null
 }
 
 /** Entrée du journal des décisions (`/financial-events`) */
@@ -21,9 +21,9 @@ export interface FinancialEvent {
   id: number
   date: string
   title: string
-  note: string | null
-  account_id: number | null
-  account_name: string | null
+  note?: string | null
+  account_id?: number | null
+  account_name?: string | null
 }
 
 /**
@@ -96,7 +96,7 @@ export function useDashboardData(selectedAccountId: string, month: number, year:
     let failed = 0
 
     // `label` ne sert qu'au journal d'erreur : la requête est celle du wrapper de lib/api
-    const safeLoad = async (label: string, load: () => Promise<any>, setter: (data: any) => void) => {
+    const safeLoad = async <T,>(label: string, load: () => Promise<T>, setter: (data: T) => void) => {
       try {
         const data = await load()
         if (!cancelled) setter(data)
@@ -123,9 +123,9 @@ export function useDashboardData(selectedAccountId: string, month: number, year:
       safeLoad("cashflow-projection", () => getAnalyticsCashflowProjection(`?days=60${accId ? `&account_id=${accId}` : ""}`), setProjection),
       safeLoad("tags", () => getAnalyticsTags(`?month=${month}&year=${year}${accParam}`), setTagTotals),
       // Faits marquants notés à la clôture des mois : jalons des courbes historiques
-      safeLoad("month-review/closures", () => getMonthReviewClosures(), (d: Milestone[]) => setMilestones((d || []).filter((c) => c.highlight))),
+      safeLoad("month-review/closures", () => getMonthReviewClosures(), (d) => setMilestones((d || []).filter((c) => c.highlight))),
       // Journal des décisions : repères sur les mêmes courbes
-      safeLoad("financial-events", () => getFinancialEvents(), (d: FinancialEvent[]) => setEvents(d || [])),
+      safeLoad("financial-events", () => getFinancialEvents(), (d) => setEvents(d || [])),
     ]).then(() => {
       if (cancelled) return
       setLoading(false)

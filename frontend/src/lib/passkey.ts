@@ -16,26 +16,35 @@ function toBase64Url(buffer: ArrayBuffer): string {
   return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "")
 }
 
-const descriptors = (list?: any[]) => list?.map((d) => ({ ...d, id: toBuffer(d.id) }))
+/** Options WebAuthn telles que renvoyées par le backend : les champs binaires sont en base64url. */
+type DescriptorJSON = { id: string; type: PublicKeyCredentialType; transports?: AuthenticatorTransport[] }
+export type PasskeyOptionsJSON = {
+  challenge: string
+  user?: { id: string; name: string; displayName?: string }
+  excludeCredentials?: DescriptorJSON[]
+  allowCredentials?: DescriptorJSON[]
+} & Record<string, unknown>
 
-export function createCredential(options: any): Promise<Credential | null> {
+const descriptors = (list?: DescriptorJSON[]) => list?.map((d) => ({ ...d, id: toBuffer(d.id) }))
+
+export function createCredential(options: PasskeyOptionsJSON): Promise<Credential | null> {
   return navigator.credentials.create({
     publicKey: {
       ...options,
       challenge: toBuffer(options.challenge),
-      user: { ...options.user, id: toBuffer(options.user.id) },
+      user: { ...options.user!, id: toBuffer(options.user!.id) },
       excludeCredentials: descriptors(options.excludeCredentials),
-    },
+    } as PublicKeyCredentialCreationOptions,
   })
 }
 
-export function getCredential(options: any): Promise<Credential | null> {
+export function getCredential(options: PasskeyOptionsJSON): Promise<Credential | null> {
   return navigator.credentials.get({
     publicKey: {
       ...options,
       challenge: toBuffer(options.challenge),
       allowCredentials: descriptors(options.allowCredentials),
-    },
+    } as PublicKeyCredentialRequestOptions,
   })
 }
 
