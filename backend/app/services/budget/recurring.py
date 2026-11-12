@@ -7,12 +7,15 @@ import math
 from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta
 
+import httpx
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from app.core.logging import get_logger
 from app.core.time import now_local, today_local
 from app.domain.finance import get_recurring_occurrences, month_label_from_date
 from app.domain.recurring import investment_leg_type, transfer_credit_date
+from app.integrations import yahoo_finance
 from app.integrations.currency import CurrencyConversionError
 from app.models.account import Account
 from app.models.investment_transaction import InvestmentTransaction
@@ -40,7 +43,7 @@ async def _market_price(db: Session, ticker: str, day: date) -> tuple[float, str
         q_data = quotes.get(ticker, {})
         if q_data.get("price") and float(q_data["price"]) > 0:
             return round(float(q_data["price"]), 4), q_data.get("currency")
-    except Exception as e:
+    except (httpx.HTTPError, yahoo_finance.YahooUnavailable, SQLAlchemyError, ValueError, TypeError, KeyError) as e:
         logger.warning(f"Could not fetch a price for recurring buy of {ticker} on {day}: {e}")
     return None
 
