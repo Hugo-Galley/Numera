@@ -33,7 +33,7 @@ export function WealthAllocationCard({ ctx }: { ctx: OverviewTabCtx }) {
             <span className="text-sm font-semibold text-slate-500 bg-slate-100/80 px-3 py-1 rounded-lg whitespace-nowrap">
               {t("overview.total")} <span className="amount-blur text-slate-900 font-bold">{formatCurrency(patrimoineAllocation?.total_patrimoine || 0, "EUR")}</span>
             </span>
-            {patrimoineAllocation?.total_debts_eur > 0 && (
+            {patrimoineAllocation && (patrimoineAllocation.total_debts_eur ?? 0) > 0 && (
               <span className="text-sm font-semibold text-slate-500 bg-slate-100/80 px-3 py-1 rounded-lg whitespace-nowrap">
                 {t("overview.debts")} <span className="text-rose-600 font-bold">−{formatCurrency(patrimoineAllocation.total_debts_eur, "EUR")}</span>
                 {" · "}{t("overview.net")} <span className="text-slate-900 font-bold">{formatCurrency(patrimoineAllocation.net_patrimoine_eur, "EUR")}</span>

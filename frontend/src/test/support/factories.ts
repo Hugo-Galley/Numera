@@ -47,3 +47,11 @@ export function makeActionCenter(overrides: Partial<ActionCenterData> = {}): Act
     ...overrides,
   }
 }
+
+/**
+ * Fixture volontairement partielle d'une réponse d'API : le composant testé ne lit que ces champs.
+ * Le type cible documente ce que l'on simule ; les champs omis restent à la charge du test.
+ */
+export function partial<T>(value: object): T {
+  return value as T
+}

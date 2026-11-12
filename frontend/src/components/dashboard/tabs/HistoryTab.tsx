@@ -26,11 +26,12 @@ import {
   Line,
   ReferenceLine
 } from "recharts"
+import type { KpiHistoryPoint, Timeseries } from "../types"
 
 interface HistoryTabProps {
-  kpiHistory: any[]
-  burnRateSeries: any[]
-  salarySeries: any[]
+  kpiHistory: KpiHistoryPoint[]
+  burnRateSeries: NonNullable<Timeseries["monthly_flows"]>
+  salarySeries: NonNullable<Timeseries["salary_series"]>
   displayCurrency: string
   milestones: Milestone[]
   events: FinancialEvent[]
@@ -59,7 +60,7 @@ export function HistoryTab({
   const { t } = useTranslation("dashboard")
   // Jalons visibles : faits marquants des mois clôturés + journal des décisions, sur les mois présents
   // sur la courbe (libellé « m/aaaa » de kpi-history ; une décision est rangée dans son mois civil)
-  const shownLabels = new Set(kpiHistory.map((p: any) => p.label))
+  const shownLabels = new Set(kpiHistory.map((p) => p.label))
   const markers: Marker[] = [
     ...milestones.map((m) => ({
       key: `closure-${m.year}-${m.month}`,

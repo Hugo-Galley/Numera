@@ -8,7 +8,8 @@ const formatCurrencyShort = (value: number, currency: string) =>
   new Intl.NumberFormat(appLocale(), { style: "currency", currency, maximumFractionDigits: 0 }).format(value);
 
 interface SankeyFlowProps {
-  data: SankeyData;
+  /** `null` tant que l'API n'a pas répondu. */
+  data: SankeyData | null;
   currency?: string;
   /** Clic sur un nœud de catégorie de dépense (drill-down vers les transactions) */
   onCategoryClick?: (categoryId: number, name: string) => void;

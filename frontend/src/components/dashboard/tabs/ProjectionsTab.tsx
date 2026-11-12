@@ -21,6 +21,7 @@ import {
   Tooltip,
   ReferenceLine
 } from "recharts"
+import type { CashflowProjection } from "../types"
 
 const safeFormat = (dateStr: string | null | undefined, formatStr: string) => {
   if (!dateStr) return "-"
@@ -34,7 +35,7 @@ const safeFormat = (dateStr: string | null | undefined, formatStr: string) => {
 }
 
 interface ProjectionsTabProps {
-  projection: any
+  projection: CashflowProjection | null
   displayCurrency: string
 }
 
@@ -139,7 +140,7 @@ export function ProjectionsTab({ projection, displayCurrency }: ProjectionsTabPr
            </CardHeader>
            <CardContent className="p-0">
              <div className="divide-y">
-               {projection?.events?.slice(0, 10).map((ev: any, i: number) => (
+               {projection?.events?.slice(0, 10).map((ev, i: number) => (
                  <div key={i} className="min-h-14 p-3 md:p-4 flex items-center justify-between gap-3 hover:bg-slate-50 transition-colors">
                    <div className="flex min-w-0 items-center gap-3">
                      <div className={`h-8 w-8 shrink-0 rounded-lg flex items-center justify-center ${ev.is_income ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}`}>

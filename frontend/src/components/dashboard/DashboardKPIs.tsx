@@ -13,6 +13,7 @@ import {
 import { useTranslation } from "react-i18next"
 import { formatCurrency } from "@/lib/utils"
 import { AreaChart, Area, ResponsiveContainer } from "recharts"
+import type { BudgetOverview, KpiHistoryPoint } from "./types"
 
 const Sparkline = ({ data, dataKey, color }: { data: any[], dataKey: string, color: string }) => (
   <div className="h-8 sm:h-10 w-full mt-1.5 sm:mt-2">
@@ -34,8 +35,8 @@ const Sparkline = ({ data, dataKey, color }: { data: any[], dataKey: string, col
 interface DashboardKPIsProps {
   selectedAccountId: string
   displayCurrency: string
-  analytics: any
-  kpiHistory: any[]
+  analytics: BudgetOverview | null
+  kpiHistory: KpiHistoryPoint[]
 }
 
 export function DashboardKPIs({
