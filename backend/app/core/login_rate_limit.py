@@ -2,9 +2,8 @@ from collections import deque
 from threading import Lock
 from time import monotonic
 
-from fastapi import Request
-
 from app.core.config import settings
+from app.core.request_info import RequestInfo
 
 
 class LoginRateLimiter:
@@ -58,7 +57,7 @@ class LoginRateLimiter:
             self._locked_until.clear()
 
 
-def client_key(request: Request, username: str) -> str:
+def client_key(request: RequestInfo, username: str) -> str:
     client_host = request.client.host if request.client else "unknown"
     return f"{client_host}:{username.casefold()}"
 

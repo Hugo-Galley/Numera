@@ -7,7 +7,6 @@ jeton signé à courte durée (`purpose=totp`, sans `sub` : `get_current_user` l
 """
 import json
 from datetime import timedelta
-from typing import Any
 
 import jwt
 from sqlalchemy.orm import Session
@@ -17,8 +16,8 @@ from app.core.config import settings
 from app.core.errors import AuthenticationError, ConflictError, InvalidOperationError, RateLimitedError
 from app.core.i18n import tr
 from app.core.logging import get_logger
-from app.core.login_events import record_login
 from app.core.login_rate_limit import totp_rate_limiter
+from app.core.request_info import RequestInfo
 from app.core.totp import LAST_STEP_SETTING, RECOVERY_SETTING, SECRET_KEY_SETTING, check_second_factor, is_enabled, recovery_hashes
 from app.db.system_settings import get_setting, set_setting
 from app.schemas.auth import (
@@ -31,6 +30,7 @@ from app.schemas.auth import (
     TotpSetupBody,
     TotpStatus,
 )
+from app.services.systeme.login_events import record_login
 
 logger = get_logger(__name__)
 
@@ -123,7 +123,7 @@ def regenerate_recovery_codes(db: Session, body: CodeBody) -> RecoveryCodes:
     return RecoveryCodes(recovery_codes=codes)
 
 
-def login(db: Session, body: TotpLoginBody, request: Any) -> AccessToken:
+def login(db: Session, body: TotpLoginBody, request: RequestInfo) -> AccessToken:
     """Seconde étape de la connexion : échange le jeton intermédiaire et le code contre une session."""
     client_host = request.client.host if request.client else "unknown"
     key = f"{client_host}:totp"

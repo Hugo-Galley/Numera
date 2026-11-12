@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.db.system_settings import get_setting, set_setting
 from app.domain.salary import hourly_rate
-from app.models.salary_config import SalaryConfig
+from app.repositories.budget import salary as salary_repo
 from app.schemas.salary_config import WorkTimeRead, WorkTimeUpdate
 
 SETTING_KEYS = {
@@ -18,7 +18,7 @@ DEFAULT_WORK_HOURS_PER_DAY = 7.0
 def load_work_time(db: Session) -> WorkTimeRead:
     days = int(float(get_setting(db, SETTING_KEYS["work_days_per_year"], DEFAULT_WORK_DAYS_PER_YEAR)))
     hours = float(get_setting(db, SETTING_KEYS["work_hours_per_day"], DEFAULT_WORK_HOURS_PER_DAY))
-    config = db.query(SalaryConfig).filter(SalaryConfig.is_active.is_(True)).first()
+    config = salary_repo.active_config(db)
     rate = hourly_rate(config.net_salary if config else None, days, hours)
     return WorkTimeRead(
         configured=rate is not None,

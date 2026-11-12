@@ -4,9 +4,8 @@ from typing import TYPE_CHECKING, Any
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
+from app.controllers.deps import get_db
 from app.core.sync_bridge import run_async
-from app.db.session import get_db
-from app.repositories.budget.transactions import TransactionFilters
 from app.schemas.budget_tools import PotentialTransfer
 from app.schemas.common import StatusResponse
 from app.schemas.transaction import (
@@ -22,6 +21,7 @@ from app.schemas.transaction import (
     TransferCounterpartCreate,
     TransferCounterpartRead,
 )
+from app.schemas.transaction_filters import TransactionFilters
 from app.services.budget import transaction_links as links
 from app.services.budget import transaction_writes as writes
 from app.services.budget import transactions as service

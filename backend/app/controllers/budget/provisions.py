@@ -3,8 +3,8 @@ from typing import Any
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
+from app.controllers.deps import get_db
 from app.core.sync_bridge import run_async
-from app.db.session import get_db
 from app.schemas.provision import ProvisionCreate, ProvisionRead, ProvisionSummary, ProvisionUpdate
 from app.services.budget import provisions as service
 

@@ -3,9 +3,9 @@ from typing import TYPE_CHECKING, Any
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 
+from app.controllers.deps import get_db
 from app.core.config import settings
 from app.core.sync_bridge import run_async
-from app.db.session import get_db
 from app.schemas.imports import ImportLogRead, ImportPreview, ImportResult
 from app.services.budget import imports as service
 from app.services.systeme.demo import DEMO_MAX_UPLOAD_BYTES

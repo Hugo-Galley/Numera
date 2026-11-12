@@ -3,8 +3,8 @@ from typing import TYPE_CHECKING
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
+from app.controllers.deps import get_db
 from app.core.sync_bridge import run_async
-from app.db.session import get_db
 from app.schemas.account import AccountCreate, AccountRead, AccountUpdate, ReconcileRequest, ReconcileResult
 from app.services.comptes import accounts as service
 

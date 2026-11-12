@@ -7,7 +7,6 @@ retranchent du montant (`repositories/analytics/common.py::NET_AMOUNT`). Aucun m
 from datetime import timedelta
 from typing import Any
 
-from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.core.errors import InvalidOperationError, NotFoundError
@@ -111,10 +110,10 @@ def check_transaction_change(db: Session, tx: Transaction, new_type: str, new_am
 def detach_before_delete(db: Session, tx: Transaction) -> set[int]:
     """Supprime créances et affectations de `tx` ; renvoie les transactions de l'autre côté à resynchroniser."""
     touched: set[int] = set()
-    for claim in db.query(ReimbursementClaim).filter(ReimbursementClaim.transaction_id == tx.id).all():
+    for claim in repo.claims_of(db, tx.id):
         touched.update(a.entree_transaction_id for a in claim.allocations)
         db.delete(claim)
-    for allocation in db.query(ReimbursementAllocation).filter(ReimbursementAllocation.entree_transaction_id == tx.id).all():
+    for allocation in repo.allocations_of_entree(db, tx.id):
         touched.add(allocation.claim.transaction_id)
         db.delete(allocation)
     touched.discard(tx.id)
@@ -176,11 +175,7 @@ def allocate(db: Session, claim: ReimbursementClaim, entree_id: int, amount: flo
     if account_currency(db, entree) != account_currency(db, sortie):
         _refuse(tr("reimbursements.same_currency"))
 
-    existing = (
-        db.query(ReimbursementAllocation)
-        .filter(ReimbursementAllocation.claim_id == claim.id, ReimbursementAllocation.entree_transaction_id == entree.id)
-        .first()
-    )
+    existing = repo.allocation_between(db, claim.id, entree.id)
     current = cents(existing.amount) if existing else 0.0
     claim_room = cents(claim.expected_amount - (claim_received(db, claim.id) - current))
     entree_room = cents(entree.amount - (entree_allocated(db, entree.id) - current))
@@ -257,10 +252,7 @@ def claim_view(db: Session, claim: ReimbursementClaim) -> dict[str, Any]:
 
 
 def list_claims(db: Session, status: str = "open", debtor: str | None = None) -> list[dict[str, Any]]:
-    q = db.query(ReimbursementClaim).join(Transaction, ReimbursementClaim.transaction_id == Transaction.id)
-    if debtor:
-        q = q.filter(func.lower(ReimbursementClaim.debtor) == debtor.strip().lower())
-    views = claim_views(db, q.order_by(Transaction.date.desc(), ReimbursementClaim.id).all())
+    views = claim_views(db, repo.claims_by_date(db, debtor.strip().lower() if debtor else None))
     if status == "open":
         return [v for v in views if v["remaining"] > EPS]
     if status == "settled":
@@ -288,17 +280,8 @@ def candidates(db: Session, claim: ReimbursementClaim) -> list[dict[str, Any]]:
     remaining = cents(claim.expected_amount - claim_received(db, claim.id))
     debtor = claim.debtor.strip().lower()
     already = {a.entree_transaction_id for a in claim.allocations}
-    rows = (
-        db.query(Transaction)
-        .join(Account, Transaction.account_id == Account.id)
-        .filter(
-            Transaction.type == "Entree",
-            Transaction.is_transfer.is_(False),
-            Account.currency == currency,
-            Transaction.date >= sortie.date - timedelta(days=CANDIDATE_DAYS_BEFORE),
-            Transaction.date <= sortie.date + timedelta(days=CANDIDATE_DAYS_AFTER),
-        )
-        .all()
+    rows = repo.entree_candidates(
+        db, currency, sortie.date - timedelta(days=CANDIDATE_DAYS_BEFORE), sortie.date + timedelta(days=CANDIDATE_DAYS_AFTER)
     )
     out: list[dict[str, Any]] = []
     for e in rows:
@@ -326,9 +309,7 @@ def claims_for_entree(db: Session, entree: Transaction) -> dict[str, Any]:
     label = _label(entree).lower()
     open_claims = [v for v in list_claims(db, "open") if v["currency"] == currency]
     open_claims.sort(key=lambda v: (v["debtor"].strip().lower() not in label, v["expense"]["date"]))
-    allocations = (
-        db.query(ReimbursementAllocation).filter(ReimbursementAllocation.entree_transaction_id == entree.id).all()
-    )
+    allocations = repo.allocations_of_entree(db, entree.id)
     return {
         "entree_id": entree.id,
         "amount": cents(entree.amount),

@@ -25,8 +25,6 @@ JSON_BASELINES = (
     "frontend/eslint-baseline.json",
 )
 LINES_BASELINES = (
-    "backend/tests/garde_fous/architecture_baseline.txt",
-    "backend/tests/garde_fous/architecture_rules_baseline.txt",
     "backend/tests/garde_fous/response_model_baseline.txt",
     "backend/tests/garde_fous/clock_baseline.txt",
 )

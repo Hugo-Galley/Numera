@@ -4,6 +4,7 @@ Seuls appels sortants de ce module : le serveur ntfy configuré et `api.telegram
 """
 from __future__ import annotations
 
+from collections.abc import Awaitable
 from typing import Any, Protocol
 
 import httpx
@@ -20,7 +21,7 @@ NTFY_PRIORITY = {"low": 2, "default": 3, "medium": 3, "high": 4}
 class Channel(Protocol):
     name: str
 
-    async def send(self, title: str, body: str, priority: str = "default", url: str | None = None) -> None: ...
+    def send(self, title: str, body: str, priority: str = "default", url: str | None = None) -> Awaitable[None]: ...
 
 
 class NtfyChannel:

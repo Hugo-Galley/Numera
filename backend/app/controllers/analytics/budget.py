@@ -4,8 +4,8 @@ from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
+from app.controllers.deps import get_db
 from app.core.sync_bridge import run_async
-from app.db.session import get_db
 from app.schemas.analytics_budget import BudgetOverview, BudgetPeriod, Resilience
 from app.schemas.category import BudgetAlert
 from app.services.analytics.budget import compute_budget, compute_budget_alerts, compute_resilience

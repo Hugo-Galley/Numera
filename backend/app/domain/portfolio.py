@@ -8,14 +8,18 @@ espèces s'annule. Les snapshots (`balance_snapshots`) ne servent plus qu'au rap
 du courtier.
 """
 
+from __future__ import annotations
+
 from dataclasses import dataclass
 from datetime import date as date_type
 from datetime import datetime, timedelta
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from app.domain.holdings import Replay
-from app.models.account import Account
-from app.models.transaction import Transaction
+
+if TYPE_CHECKING:
+    from app.models.account import Account
+    from app.models.transaction import Transaction
 
 RECONCILIATION_THRESHOLD_PCT = 2.0
 SNAPSHOT_MATCH_DAYS = 7

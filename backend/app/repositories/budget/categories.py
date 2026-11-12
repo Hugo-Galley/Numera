@@ -47,3 +47,7 @@ def detach_references(db: Session, category_id: int) -> None:
 
 def delete(db: Session, category: Category) -> None:
     db.delete(category)
+
+
+def by_ids(db: Session, category_ids: set[int]) -> list[Category]:
+    return db.query(Category).filter(Category.id.in_(category_ids)).all()
