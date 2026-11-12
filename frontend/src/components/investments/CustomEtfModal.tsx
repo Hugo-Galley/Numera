@@ -2,7 +2,6 @@ import i18n from "i18next"
 import { useTranslation } from "react-i18next"
 import { errorMessage } from "@/lib/utils"
 import { useEffect, useState } from "react"
-import { api } from "@/lib/api"
 import {
   Dialog,
   DialogContent,
@@ -16,6 +15,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
 import { Layers, Globe } from "lucide-react"
+import { postEtfProfilesAutoDecompose } from "@/lib/api/investments"
 
 interface CustomEtfModalProps {
   open: boolean
@@ -59,7 +59,7 @@ export function CustomEtfModal({
     setAnalyzing(true)
     const toastId = toast.loading(i18n.t("misc.fetchingComposition", { ns: "investments", symbol: symbolToAnalyze }))
     try {
-      const result = await api.post<any>("/etf-profiles/auto-decompose", {
+      const result = await postEtfProfilesAutoDecompose<any>({
         symbol: symbolToAnalyze,
         name: name.trim() || undefined,
         isin: isin.trim() || undefined,

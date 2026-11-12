@@ -12,4 +12,6 @@ describeApiCases("accounts", accounts, [
   { fn: "deleteBalanceSnapshotsById", args: [7], method: "DELETE", path: "/balance-snapshots/7" },
   { fn: "patchBalanceSnapshotsById", args: [7, BODY], method: "PATCH", path: "/balance-snapshots/7", body: BODY },
   { fn: "getLoansByAccountById", args: [7], method: "GET", path: "/loans/by-account/7" },
+  { fn: "postAccountsReconcile", args: [7, BODY], method: "POST", path: "/accounts/7/reconcile", body: BODY },
+  { fn: "postAccountsVerify", args: [7, BODY], method: "POST", path: "/accounts/7/verify", body: BODY },
 ])

@@ -16,11 +16,11 @@ import { Label } from "@/components/ui/label"
 import { LogoPicker } from "@/components/ui/LogoPicker"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useSubmit } from "@/hooks/useSubmit"
-import { api } from "@/lib/api"
 import { todayLocal } from "@/lib/dates"
 import { errorMessage } from "@/lib/utils"
 
 import { loanKindLabel, type LoanKind, type LoanSummary } from "./types"
+import { patchLoansById, postLoans } from "@/lib/api/loans"
 
 const LOAN_KINDS: LoanKind[] = ["immobilier", "auto", "consommation", "etudiant", "autre"]
 
@@ -104,8 +104,8 @@ export function LoanDialog({ open, onOpenChange, loan, onSaved }: LoanDialogProp
     }
     try {
       const saved = loan
-        ? await api.patch<LoanSummary>(`/loans/${loan.id}`, payload)
-        : await api.post<LoanSummary>("/loans", payload)
+        ? await patchLoansById<LoanSummary>(loan.id, payload)
+        : await postLoans<LoanSummary>(payload)
       toast.success(loan ? t("dialog.updated") : t("dialog.added"))
       onSaved(saved)
       onOpenChange(false)

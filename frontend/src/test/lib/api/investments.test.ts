@@ -17,4 +17,8 @@ describeApiCases("investments", investments, [
   { fn: "getTaxAnnualReport", args: ["?year=2026"], method: "GET", path: "/tax/annual-report", query: "?year=2026" },
   { fn: "getTaxOverview", method: "GET", path: "/tax/overview" },
   { fn: "patchTaxSettings", args: [BODY], method: "PATCH", path: "/tax/settings", body: BODY },
+  { fn: "getHoldingsEstimateCosts", args: ["?a=1"], method: "GET", path: "/holdings/estimate-costs", query: "?a=1" },
+  { fn: "postHoldingsApplyCosts", args: [BODY], method: "POST", path: "/holdings/apply-costs", body: BODY },
+  { fn: "postInvestmentTransactionsLinkDividends", args: ["?a=1", BODY], method: "POST", path: "/investment-transactions/link-dividends", query: "?a=1", body: BODY },
+  { fn: "getMarketValidate", args: ["?a=1"], method: "GET", path: "/market/validate", query: "?a=1" },
 ])

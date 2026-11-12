@@ -30,10 +30,25 @@ export const deleteTransactionsById = <T = void>(id: Id) => api.delete<T>(`/tran
 export const patchTransactionsById = <T = ApiResponse<"/transactions/{transaction_id}", "patch">>(id: Id, body: ApiBody<"/transactions/{transaction_id}", "patch">) => api.patch<T>(`/transactions/${id}`, body)
 
 /** POST /transactions/:id/ignore */
-export const postTransactionsIgnore = <T = void>(id: Id, body?: unknown) => api.post<T>(`/transactions/${id}/ignore`, body)
+export const postTransactionsIgnore = <T = void>(id: Id, query = "", body?: unknown) => api.post<T>(`/transactions/${id}/ignore${query}`, body)
 
 /** POST /transactions/:id/ignore-duplicate */
 export const postTransactionsIgnoreDuplicate = <T = void>(id: Id, body?: unknown) => api.post<T>(`/transactions/${id}/ignore-duplicate`, body)
 
 /** POST /transactions/:id/link/:id */
 export const postTransactionsLinkById = <T = ApiResponse<"/transactions/{transaction_id}/link/{other_id}", "post">>(id1: Id, id2: Id, query = "", body?: unknown) => api.post<T>(`/transactions/${id1}/link/${id2}${query}`, body)
+
+/** POST /transactions/:id/unlink */
+export const postTransactionsUnlink = <T = ApiResponse<"/transactions/{transaction_id}/unlink", "post">>(id: Id, body?: unknown) => api.post<T>(`/transactions/${id}/unlink`, body)
+
+/** PUT /transactions/:id/splits */
+export const putTransactionsSplits = <T = ApiResponse<"/transactions/{transaction_id}/splits", "put">>(id: Id, body?: ApiBody<"/transactions/{transaction_id}/splits", "put">) => api.put<T>(`/transactions/${id}/splits`, body)
+
+/** GET /transactions/:id/transfer-candidates */
+export const getTransactionsTransferCandidates = <T = ApiResponse<"/transactions/{transaction_id}/transfer-candidates", "get">>(id: Id, query = "") => api.get<T>(`/transactions/${id}/transfer-candidates${query}`)
+
+/** POST /transactions/:id/transfer-counterpart */
+export const postTransactionsTransferCounterpart = <T = ApiResponse<"/transactions/{transaction_id}/transfer-counterpart", "post">>(id: Id, body?: ApiBody<"/transactions/{transaction_id}/transfer-counterpart", "post">) => api.post<T>(`/transactions/${id}/transfer-counterpart`, body)
+
+/** GET /transactions/potential-transfers */
+export const getTransactionsPotentialTransfers = <T = ApiResponse<"/transactions/potential-transfers", "get">>(query = "") => api.get<T>(`/transactions/potential-transfers${query}`)

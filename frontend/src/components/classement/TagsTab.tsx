@@ -2,7 +2,6 @@ import i18n from "i18next"
 import { useTranslation } from "react-i18next"
 import { useState, useEffect } from "react"
 import { Plus, Tag, Pencil, Trash2, Archive, ArchiveRestore } from "lucide-react"
-import { api } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -20,6 +19,7 @@ import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import { useConfirm } from "@/providers/ConfirmProvider"
 import { ErrorState } from "@/components/layout/ErrorState"
+import { deleteTagsById, getTags, patchTagsById, postTags } from "@/lib/api/classement"
 
 type TagType = {
   id: number
@@ -61,7 +61,7 @@ export function TagsTab() {
 
   const loadTags = async () => {
     try {
-      const data = await api.get<TagType[]>("/tags")
+      const data = await getTags<TagType[]>()
       setTags(data)
       setLoadFailed(false)
     } catch (error) {
@@ -79,7 +79,7 @@ export function TagsTab() {
   const handleAddTag = async () => {
     if (!newName) return
     try {
-      await api.post("/tags", {
+      await postTags({
         name: newName,
         color: newColor,
       })
@@ -103,7 +103,7 @@ export function TagsTab() {
   const handleUpdateTag = async () => {
     if (!editingTag || !editName) return
     try {
-      await api.patch(`/tags/${editingTag.id}`, {
+      await patchTagsById(editingTag.id, {
         name: editName,
         color: editColor,
       })
@@ -117,7 +117,7 @@ export function TagsTab() {
 
   const handleToggleArchiveTag = async (tag: TagType) => {
     try {
-      await api.patch(`/tags/${tag.id}`, { archived: !tag.archived })
+      await patchTagsById(tag.id, { archived: !tag.archived })
       toast.success(tag.archived ? t("tagsTab.tagReactive") : t("tagsTab.tagArchiveMasqueDesSelecteurs"))
       loadTags()
     } catch {
@@ -128,7 +128,7 @@ export function TagsTab() {
   const handleDeleteTag = async (tagId: number) => {
     if (!(await confirm(t("tagsTab.supprimerCeTagIlSera")))) return
     try {
-      await api.delete(`/tags/${tagId}`)
+      await deleteTagsById(tagId)
       toast.success(t("tagsTab.tagSupprime"))
       loadTags()
     } catch {

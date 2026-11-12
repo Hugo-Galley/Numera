@@ -7,12 +7,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
-import { api } from "@/lib/api"
 import { type Language, LANGUAGES, setLanguage } from "@/i18n"
 import { syncServerLanguage } from "@/lib/serverLanguage"
 import { cn, errorMessage } from "@/lib/utils"
 import { useAuth } from "@/providers/AuthProvider"
 import { type ThemePreference, useUI } from "@/providers/UIProvider"
+import { putAdminProfile } from "@/lib/api/settings"
 
 const THEMES = [
   { value: "light", label: "light", icon: Sun },
@@ -34,7 +34,7 @@ export function DisplayCard() {
   const setPrivacyOnStart = async (enabled: boolean) => {
     setSavingPrivacy(true)
     try {
-      await api.put("/admin/profile", { privacy_on_start: enabled })
+      await putAdminProfile({ privacy_on_start: enabled })
       await refreshProfile()
       toast.success(enabled ? t("display.privacyOnStart.enabled") : t("display.privacyOnStart.disabled"))
     } catch (error) {

@@ -46,3 +46,15 @@ export const getTaxOverview = <T = ApiResponse<"/tax/overview", "get">>() => api
 
 /** PATCH /tax/settings */
 export const patchTaxSettings = <T = ApiResponse<"/tax/settings", "patch">>(body: ApiBody<"/tax/settings", "patch">) => api.patch<T>(`/tax/settings`, body)
+
+/** GET /holdings/estimate-costs */
+export const getHoldingsEstimateCosts = <T = ApiResponse<"/holdings/estimate-costs", "get">>(query = "") => api.get<T>(`/holdings/estimate-costs${query}`)
+
+/** POST /holdings/apply-costs */
+export const postHoldingsApplyCosts = <T = ApiResponse<"/holdings/apply-costs", "post">>(body?: ApiBody<"/holdings/apply-costs", "post">) => api.post<T>(`/holdings/apply-costs`, body)
+
+/** POST /investment-transactions/link-dividends */
+export const postInvestmentTransactionsLinkDividends = <T = ApiResponse<"/investment-transactions/link-dividends", "post">>(query = "", body?: unknown) => api.post<T>(`/investment-transactions/link-dividends${query}`, body)
+
+/** GET /market/validate */
+export const getMarketValidate = <T = ApiResponse<"/market/validate", "get">>(query = "") => api.get<T>(`/market/validate${query}`)

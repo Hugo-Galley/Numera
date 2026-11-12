@@ -25,9 +25,9 @@ const KNOWN_MISSING: Record<string, string[]> = {}
 const backendRoutes = new Set((JSON.parse(readFileSync(SNAPSHOT, "utf8")) as string[]).map(normalizeBackend))
 
 describe("lib/api : routes existantes côté backend", () => {
-  it("couvre les sept domaines", () => {
+  it("couvre les onze domaines", () => {
     expect(Object.keys(modules).sort()).toEqual(
-      ["accounts", "analytics", "classement", "investments", "recurring", "savings", "transactions"].map((d) => `/src/lib/api/${d}.ts`),
+      ["accounts", "analytics", "classement", "investments", "loans", "monthReview", "recurring", "reimbursements", "savings", "settings", "transactions"].map((d) => `/src/lib/api/${d}.ts`),
     )
   })
 

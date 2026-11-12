@@ -157,7 +157,7 @@ export function useActionCenterData() {
 
   async function ignoreTransfer(sortieId: number) {
     try {
-      await postTransactionsIgnore(sortieId, {})
+      await postTransactionsIgnore(sortieId, "", {})
       toast.success(i18n.t("useActionCenterData.suggestionIgnoree", { ns: "audit" }))
       if (activeIssueId) await refreshIssue(activeIssueId)
     } catch (err) {

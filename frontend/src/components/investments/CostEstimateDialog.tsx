@@ -3,7 +3,6 @@ import { useTranslation } from "react-i18next"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
 
-import { api } from "@/lib/api"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -16,6 +15,7 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
+import { getHoldingsEstimateCosts, postHoldingsApplyCosts } from "@/lib/api/investments"
 
 interface CostEstimate {
   ticker: string
@@ -54,8 +54,7 @@ export function CostEstimateDialog({ open, onOpenChange, accountId, onApplied }:
   useEffect(() => {
     if (!open) return
     setRows(null)
-    api
-      .get<CostEstimate[]>(`/holdings/estimate-costs?account_id=${accountId}`)
+    getHoldingsEstimateCosts<CostEstimate[]>(`?account_id=${accountId}`)
       .then((data) => {
         setRows(data)
         // Coché d'office : estimation complète (inventaire entièrement expliqué par les achats) et PRU encore vide
@@ -85,7 +84,7 @@ export function CostEstimateDialog({ open, onOpenChange, accountId, onApplied }:
   const apply = async () => {
     setSaving(true)
     try {
-      await api.post(`/holdings/apply-costs`, {
+      await postHoldingsApplyCosts({
         account_id: accountId,
         items: selected.map((r) => ({ ticker: r.ticker, buy_price_avg: Number(lines[r.ticker].value) })),
       })

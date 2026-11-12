@@ -1,8 +1,13 @@
 import i18n from "i18next"
 import { useState, useEffect, useCallback } from "react"
 import { toast } from "sonner"
-import { api } from "@/lib/api"
 import { resetApiCache } from "@/lib/apiCache"
+import {
+  getAnalyticsBudget, getAnalyticsBudgetAlerts, getAnalyticsCashflowProjection, getAnalyticsExpensesByCategory, getAnalyticsInsights,
+  getAnalyticsKpiHistory, getAnalyticsPatrimoineAllocation, getAnalyticsSankey, getAnalyticsSubscriptions, getAnalyticsTags,
+  getAnalyticsTimeseries, getAnalyticsTopMerchants, getFinancialEvents,
+} from "@/lib/api/analytics"
+import { getMonthReviewClosures } from "@/lib/api/monthReview"
 
 export interface Milestone {
   year: number
@@ -58,7 +63,7 @@ export function useDashboardData(selectedAccountId: string, month: number, year:
   const reloadEvents = useCallback(async () => {
     resetApiCache()
     try {
-      setEvents(await api.get<FinancialEvent[]>("/financial-events"))
+      setEvents(await getFinancialEvents<FinancialEvent[]>())
     } catch (e) {
       console.error("Error loading /financial-events:", e)
     }
@@ -89,36 +94,37 @@ export function useDashboardData(selectedAccountId: string, month: number, year:
     const accParam = accId ? `&account_id=${accId}` : ""
     let failed = 0
 
-    const safeLoad = async (url: string, setter: (data: any) => void) => {
+    // `label` ne sert qu'au journal d'erreur : la requête est celle du wrapper de lib/api
+    const safeLoad = async (label: string, load: () => Promise<any>, setter: (data: any) => void) => {
       try {
-        const data = await api.get<any>(url)
+        const data = await load()
         if (!cancelled) setter(data)
       } catch (e: any) {
-        console.error(`Error loading ${url}:`, e)
+        console.error(`Error loading ${label}:`, e)
         failed += 1
       }
     }
 
     Promise.all([
-      safeLoad(`/analytics/budget?month=${month}&year=${year}${accParam}`, setAnalytics),
-      safeLoad(`/analytics/expenses-by-category?month=${month}&year=${year}${accParam}`, (d) => setExpensesByCategory(d?.items || [])),
-      safeLoad(`/analytics/kpi-history?months_count=6${accParam}`, setKpiHistory),
-      safeLoad(`/analytics/top-merchants?month=${month}&year=${year}${accParam}`, (d) => setTopMerchants(d?.items || [])),
-      safeLoad(`/analytics/subscriptions?month=${month}&year=${year}${accParam}`, setSubscriptions),
-      safeLoad(`/analytics/timeseries?year=${year}${accParam}`, (d) => {
+      safeLoad("budget", () => getAnalyticsBudget(`?month=${month}&year=${year}${accParam}`), setAnalytics),
+      safeLoad("expenses-by-category", () => getAnalyticsExpensesByCategory(`?month=${month}&year=${year}${accParam}`), (d) => setExpensesByCategory(d?.items || [])),
+      safeLoad("kpi-history", () => getAnalyticsKpiHistory(`?months_count=6${accParam}`), setKpiHistory),
+      safeLoad("top-merchants", () => getAnalyticsTopMerchants(`?month=${month}&year=${year}${accParam}`), (d) => setTopMerchants(d?.items || [])),
+      safeLoad("subscriptions", () => getAnalyticsSubscriptions(`?month=${month}&year=${year}${accParam}`), setSubscriptions),
+      safeLoad("timeseries", () => getAnalyticsTimeseries(`?year=${year}${accParam}`), (d) => {
         setSalarySeries(d?.salary_series || [])
         setBurnRateSeries(d?.monthly_flows || [])
       }),
-      safeLoad("/analytics/patrimoine-allocation", setPatrimoineAllocation),
-      safeLoad(`/analytics/budget-alerts?month=${month}&year=${year}${accParam}`, setBudgetAlerts),
-      safeLoad(`/analytics/insights?month=${month}&year=${year}${accParam}`, setInsights),
-      safeLoad(`/analytics/sankey?month=${month}&year=${year}${accParam}`, setSankeyData),
-      safeLoad(`/analytics/cashflow-projection?days=60${accId ? `&account_id=${accId}` : ""}`, setProjection),
-      safeLoad(`/analytics/tags?month=${month}&year=${year}${accParam}`, setTagTotals),
+      safeLoad("patrimoine-allocation", () => getAnalyticsPatrimoineAllocation(), setPatrimoineAllocation),
+      safeLoad("budget-alerts", () => getAnalyticsBudgetAlerts(`?month=${month}&year=${year}${accParam}`), setBudgetAlerts),
+      safeLoad("insights", () => getAnalyticsInsights(`?month=${month}&year=${year}${accParam}`), setInsights),
+      safeLoad("sankey", () => getAnalyticsSankey(`?month=${month}&year=${year}${accParam}`), setSankeyData),
+      safeLoad("cashflow-projection", () => getAnalyticsCashflowProjection(`?days=60${accId ? `&account_id=${accId}` : ""}`), setProjection),
+      safeLoad("tags", () => getAnalyticsTags(`?month=${month}&year=${year}${accParam}`), setTagTotals),
       // Faits marquants notés à la clôture des mois : jalons des courbes historiques
-      safeLoad("/month-review/closures", (d: Milestone[]) => setMilestones((d || []).filter((c) => c.highlight))),
+      safeLoad("month-review/closures", () => getMonthReviewClosures(), (d: Milestone[]) => setMilestones((d || []).filter((c) => c.highlight))),
       // Journal des décisions : repères sur les mêmes courbes
-      safeLoad("/financial-events", (d: FinancialEvent[]) => setEvents(d || [])),
+      safeLoad("financial-events", () => getFinancialEvents(), (d: FinancialEvent[]) => setEvents(d || [])),
     ]).then(() => {
       if (cancelled) return
       setLoading(false)

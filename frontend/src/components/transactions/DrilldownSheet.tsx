@@ -9,8 +9,9 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "
 import { Skeleton } from "@/components/ui/skeleton"
 import { ErrorState } from "@/components/layout/ErrorState"
 import { readDrilldown, useDrilldown } from "@/hooks/useDrilldown"
-import { api } from "@/lib/api"
 import { formatCurrency } from "@/lib/utils"
+import { getAccounts } from "@/lib/api/accounts"
+import { getTransactions } from "@/lib/api/transactions"
 
 interface DrilldownTransaction {
   id: number
@@ -69,8 +70,8 @@ export function DrilldownSheet() {
     else params.set("budget_scope", "true")
 
     Promise.all([
-      api.get<DrilldownTransaction[]>(`/transactions?${params.toString()}`),
-      api.get<AccountOption[]>("/accounts"),
+      getTransactions<DrilldownTransaction[]>(`?${params.toString()}`),
+      getAccounts<AccountOption[]>(),
     ])
       .then(([txs, accs]) => {
         if (cancelled) return

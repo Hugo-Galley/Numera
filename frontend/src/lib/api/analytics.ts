@@ -64,3 +64,54 @@ export const getAnalyticsWealthForecast = <T = ApiResponse<"/analytics/wealth-fo
 
 /** GET /analytics/wealth-simulation */
 export const getAnalyticsWealthSimulation = <T = ApiResponse<"/analytics/wealth-simulation", "get">>(query = "") => api.get<T>(`/analytics/wealth-simulation${query}`)
+
+/** PATCH /financial-events/:id */
+export const patchFinancialEventsById = <T = ApiResponse<"/financial-events/{event_id}", "patch">>(id: Id, body?: ApiBody<"/financial-events/{event_id}", "patch">) => api.patch<T>(`/financial-events/${id}`, body)
+
+/** POST /financial-events */
+export const postFinancialEvents = <T = ApiResponse<"/financial-events", "post">>(body?: ApiBody<"/financial-events", "post">) => api.post<T>(`/financial-events`, body)
+
+/** DELETE /financial-events/:id */
+export const deleteFinancialEventsById = <T = void>(id: Id) => api.delete<T>(`/financial-events/${id}`)
+
+/** GET /financial-events */
+export const getFinancialEvents = <T = ApiResponse<"/financial-events", "get">>() => api.get<T>(`/financial-events`)
+
+/** GET /analytics/dividends */
+export const getAnalyticsDividends = <T = ApiResponse<"/analytics/dividends", "get">>(query = "") => api.get<T>(`/analytics/dividends${query}`)
+
+/** GET /analytics/portfolio/:id */
+export const getAnalyticsPortfolioById = <T = ApiResponse<"/analytics/portfolio/{account_id}", "get">>(id: Id) => api.get<T>(`/analytics/portfolio/${id}`)
+
+/** GET /analytics/budget-period */
+export const getAnalyticsBudgetPeriod = <T = ApiResponse<"/analytics/budget-period", "get">>(query = "") => api.get<T>(`/analytics/budget-period${query}`)
+
+/** PUT /analytics/budget-period */
+export const putAnalyticsBudgetPeriod = <T = ApiResponse<"/analytics/budget-period", "put">>(body?: ApiBody<"/analytics/budget-period", "put">) => api.put<T>(`/analytics/budget-period`, body)
+
+/** GET /analytics/fire */
+export const getAnalyticsFire = <T = ApiResponse<"/analytics/fire", "get">>(query = "") => api.get<T>(`/analytics/fire${query}`)
+
+/** GET /analytics/expenses-by-category */
+export const getAnalyticsExpensesByCategory = <T = ApiResponse<"/analytics/expenses-by-category", "get">>(query = "") => api.get<T>(`/analytics/expenses-by-category${query}`)
+
+/** GET /analytics/monthly-report */
+export const getAnalyticsMonthlyReport = <T = ApiResponse<"/analytics/monthly-report", "get">>(query = "") => api.get<T>(`/analytics/monthly-report${query}`)
+
+/** GET /analytics/budget-alerts */
+export const getAnalyticsBudgetAlerts = <T = ApiResponse<"/analytics/budget-alerts", "get">>(query = "") => api.get<T>(`/analytics/budget-alerts${query}`)
+
+/** GET /analytics/wrapped */
+export const getAnalyticsWrapped = <T = ApiResponse<"/analytics/wrapped", "get">>(query = "") => api.get<T>(`/analytics/wrapped${query}`)
+
+/** GET /analytics/insights */
+export const getAnalyticsInsights = <T = ApiResponse<"/analytics/insights", "get">>(query = "") => api.get<T>(`/analytics/insights${query}`)
+
+/** GET /analytics/patrimoine-allocation */
+export const getAnalyticsPatrimoineAllocation = <T = ApiResponse<"/analytics/patrimoine-allocation", "get">>() => api.get<T>(`/analytics/patrimoine-allocation`)
+
+/** GET /analytics/sankey */
+export const getAnalyticsSankey = <T = ApiResponse<"/analytics/sankey", "get">>(query = "") => api.get<T>(`/analytics/sankey${query}`)
+
+/** GET /analytics/top-merchants */
+export const getAnalyticsTopMerchants = <T = ApiResponse<"/analytics/top-merchants", "get">>(query = "") => api.get<T>(`/analytics/top-merchants${query}`)

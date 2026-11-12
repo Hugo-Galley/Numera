@@ -2,9 +2,9 @@ import { useTranslation } from "react-i18next"
 import { useEffect, useRef, useState } from "react"
 import { Globe, Loader2, X } from "lucide-react"
 import { toast } from "sonner"
-import { api } from "@/lib/api"
 import { Input } from "@/components/ui/input"
 import { logoUrl } from "@/components/ui/CompanyLogo"
+import { getLogosSearch, postLogosFromDomain } from "@/lib/api/settings"
 
 type Suggestion = { ref: string; title: string; hex: string }
 
@@ -46,7 +46,7 @@ export function LogoPicker({ value, onChange, suggestFor }: LogoPickerProps) {
     setLoading(true)
     const timer = setTimeout(async () => {
       try {
-        const data = await api.get<Suggestion[]>(`/logos/search?q=${encodeURIComponent(effectiveQuery)}`)
+        const data = await getLogosSearch<Suggestion[]>(`?q=${encodeURIComponent(effectiveQuery)}`)
         if (!cancelled) setResults(data)
       } catch {
         if (!cancelled) setResults([])
@@ -77,7 +77,7 @@ export function LogoPicker({ value, onChange, suggestFor }: LogoPickerProps) {
   const useDomain = async () => {
     setFetchingDomain(true)
     try {
-      const res = await api.post<{ ref: string }>("/logos/from-domain", { domain: query.trim() })
+      const res = await postLogosFromDomain<{ ref: string }>({ domain: query.trim() })
       select(res.ref)
     } catch {
       toast.error(t("errors.logoNotFound"))

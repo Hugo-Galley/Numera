@@ -20,4 +20,9 @@ describeApiCases("transactions", transactions, [
   { fn: "postTransactionsIgnore", args: [7], method: "POST", path: "/transactions/7/ignore" },
   { fn: "postTransactionsIgnoreDuplicate", args: [7], method: "POST", path: "/transactions/7/ignore-duplicate" },
   { fn: "postTransactionsLinkById", args: [7, 8, "?kind=transfer", BODY], method: "POST", path: "/transactions/7/link/8", query: "?kind=transfer", body: BODY },
+  { fn: "postTransactionsUnlink", args: [7, BODY], method: "POST", path: "/transactions/7/unlink", body: BODY },
+  { fn: "putTransactionsSplits", args: [7, BODY], method: "PUT", path: "/transactions/7/splits", body: BODY },
+  { fn: "getTransactionsTransferCandidates", args: [7, "?a=1"], method: "GET", path: "/transactions/7/transfer-candidates", query: "?a=1" },
+  { fn: "postTransactionsTransferCounterpart", args: [7, BODY], method: "POST", path: "/transactions/7/transfer-counterpart", body: BODY },
+  { fn: "getTransactionsPotentialTransfers", args: ["?a=1"], method: "GET", path: "/transactions/potential-transfers", query: "?a=1" },
 ])

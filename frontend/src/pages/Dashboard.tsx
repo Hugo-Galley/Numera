@@ -3,7 +3,6 @@ import { useState, useCallback, useEffect } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { toast } from "sonner"
 import { useTranslation } from "react-i18next"
-import { api } from "@/lib/api"
 import { useDashboardData } from "@/components/dashboard/useDashboardData"
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader"
 import { DashboardKPIs } from "@/components/dashboard/DashboardKPIs"
@@ -19,6 +18,7 @@ import { AccountVerificationBanner } from "@/components/dashboard/AccountVerific
 import { MonthReviewPopup } from "@/components/month-review/MonthReviewPopup"
 import type { DrilldownScope } from "@/hooks/useDrilldown"
 import { fetchCurrentBudgetMonth, formatPeriodRange, useBudgetPeriod } from "@/lib/budgetPeriod"
+import { getAccounts } from "@/lib/api/accounts"
 
 export default function Dashboard() {
   const { t } = useTranslation("dashboard")
@@ -60,7 +60,7 @@ export default function Dashboard() {
 
   const fetchAccounts = useCallback(async () => {
     try {
-      const accs = await api.get<any[]>("/accounts")
+      const accs = await getAccounts<any[]>()
       const list = Array.isArray(accs) ? accs : []
       setAccounts(list)
       // Compte mémorisé supprimé ou désactivé depuis : retour à la vue globale

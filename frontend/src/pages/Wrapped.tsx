@@ -13,10 +13,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Skeleton } from "@/components/ui/skeleton"
 import { WrappedStory } from "@/components/wrapped/WrappedStory"
 import { Delta, hoursLabel, monthName, monthShort } from "@/components/wrapped/format"
-import { api } from "@/lib/api"
 import { formatCurrency } from "@/lib/utils"
 import { useWorkTime } from "@/providers/WorkTimeProvider"
 import type { WrappedReport } from "@/types/wrapped"
+import { getAnalyticsWrapped } from "@/lib/api/analytics"
 
 function Kpi({ label, value, delta }: { label: string; value: string; delta?: ReactNode }) {
   return (
@@ -71,7 +71,7 @@ export default function Wrapped() {
     setLoadFailed(false)
     setReport(null)
     try {
-      const data = await api.get<WrappedReport>(`/analytics/wrapped?year=${year}`)
+      const data = await getAnalyticsWrapped<WrappedReport>(`?year=${year}`)
       if (id === requestId.current) setReport(data)
     } catch (error) {
       if (id !== requestId.current) return

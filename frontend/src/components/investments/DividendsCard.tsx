@@ -7,7 +7,6 @@ import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxi
 import { Coins, Link2 } from "lucide-react"
 import { toast } from "sonner"
 
-import { api } from "@/lib/api"
 import { formatCurrency, formatRate } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -22,6 +21,8 @@ import {
 } from "@/components/ui/dialog"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { getAnalyticsDividends } from "@/lib/api/analytics"
+import { postInvestmentTransactionsLinkDividends } from "@/lib/api/investments"
 
 interface DividendSummary {
   totals: { count: number; net_eur: number; withholding_eur: number; gross_eur: number; last_12m_eur: number }
@@ -78,7 +79,7 @@ export function DividendsCard({ accountId, reloadKey, onChanged }: DividendsCard
 
   const load = useCallback(async () => {
     try {
-      setData(await api.get<DividendSummary>(`/analytics/dividends?account_id=${accountId}`))
+      setData(await getAnalyticsDividends<DividendSummary>(`?account_id=${accountId}`))
     } catch {
       toast.error(t("dividendsCard.impossibleDeChargerLesDividendes"))
     } finally {
@@ -92,7 +93,7 @@ export function DividendsCard({ accountId, reloadKey, onChanged }: DividendsCard
 
   const openLinkPreview = async () => {
     try {
-      setPreview(await api.post<LinkPreview>(`/investment-transactions/link-dividends?account_id=${accountId}&dry_run=true`, {}))
+      setPreview(await postInvestmentTransactionsLinkDividends<LinkPreview>(`?account_id=${accountId}&dry_run=true`, {}))
     } catch (err: any) {
       toast.error(err?.message || t("dividendsCard.erreurLorsDeLAnalyse"))
     }
@@ -101,7 +102,7 @@ export function DividendsCard({ accountId, reloadKey, onChanged }: DividendsCard
   const applyLink = async () => {
     setApplying(true)
     try {
-      await api.post(`/investment-transactions/link-dividends?account_id=${accountId}&dry_run=false`, {})
+      await postInvestmentTransactionsLinkDividends(`?account_id=${accountId}&dry_run=false`, {})
       toast.success(t("dividendsCard.dividendesRattachesALeurTitre"))
       setPreview(null)
       await load()
