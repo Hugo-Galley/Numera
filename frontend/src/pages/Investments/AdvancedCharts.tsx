@@ -59,7 +59,7 @@ export function AdvancedCharts({ ctx }: { ctx: InvestmentsCtx }) {
                     onClick={(data) => setDrillDown({ title: getDrilldownTitle("Classe d'actif", data), items: getDrilldownItems(data) })}
                     className="cursor-pointer outline-none"
                   >
-                    {(advancedAllocation?.by_asset_class || []).map((_: any, index: number) => (
+                    {(advancedAllocation?.by_asset_class || []).map((_, index: number) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} className="hover:opacity-80 transition-opacity" />
                     ))}
                   </Pie>
@@ -68,7 +68,7 @@ export function AdvancedCharts({ ctx }: { ctx: InvestmentsCtx }) {
               </ResponsiveContainer>
             </div>
             <div className="w-full space-y-1.5 mt-3 px-2">
-              {(advancedAllocation?.by_asset_class || []).slice(0, 4).map((item: any, i: number) => (
+              {(advancedAllocation?.by_asset_class || []).slice(0, 4).map((item, i: number) => (
                 <div 
                   key={i} 
                   className="flex min-h-9 items-center justify-between gap-2 text-xs cursor-pointer hover:text-slate-600 transition-colors md:min-h-0"
@@ -118,7 +118,7 @@ export function AdvancedCharts({ ctx }: { ctx: InvestmentsCtx }) {
                           nameKey="name"
                           className="outline-none"
                         >
-                          {sectorData.map((_: any, index: number) => (
+                          {sectorData.map((_, index: number) => (
                             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} className="hover:opacity-80 transition-opacity" />
                           ))}
                         </Pie>
@@ -127,7 +127,7 @@ export function AdvancedCharts({ ctx }: { ctx: InvestmentsCtx }) {
                     </ResponsiveContainer>
                   </div>
                   <div className="w-full space-y-1.5 mt-3 px-2">
-                    {sectorData.slice(0, 4).map((item: any, i: number) => (
+                    {sectorData.slice(0, 4).map((item, i: number) => (
                       <div 
                         key={i} 
                         className="flex items-center justify-between text-xs"

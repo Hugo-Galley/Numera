@@ -19,7 +19,7 @@ export function DrillDownDialog({ ctx }: { ctx: InvestmentsCtx }) {
             </DialogDescription>
           </DialogHeader>
           <div className="mt-2 space-y-2.5 md:mt-4 md:space-y-4">
-            {(drillDown?.items || []).map((item: any, i: number) => (
+            {(drillDown?.items || []).map((item, i: number) => (
               <div 
                 key={i} 
                 className="flex min-h-12 items-center justify-between gap-3 p-3 rounded-lg border bg-slate-50/50 cursor-pointer hover:bg-slate-50 transition-colors group"
