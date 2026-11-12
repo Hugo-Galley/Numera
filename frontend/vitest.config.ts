@@ -21,11 +21,11 @@ export default mergeConfig(
         provider: "v8",
         include: ["src/**/*.{ts,tsx}"],
         exclude: ["src/test/**", "src/components/ui/**", "src/**/*.d.ts"],
-        // Seuils à cliquet, relevés le 2026-11-11 sur la mesure complète (976 tests) : 75,99 % instructions,
-        // 63,55 % branches, 68,1 % fonctions, 77,5 % lignes, arrondis vers le bas. Un fichier jamais chargé par un
+        // Seuils à cliquet, relevés le 2026-11-12 sur la mesure complète (1085 tests) : 82,30 % instructions,
+        // 67,95 % branches, 74,95 % fonctions, 83,93 % lignes, arrondis vers le bas. Un fichier jamais chargé par un
         // test est compté à 0 instruction par v8 : toute page ou tout composant nouveau doit venir avec un test
         // qui le charge, sinon la mesure est surévaluée. Ne jamais les baisser ; les relever après chaque lot de tests.
-        thresholds: { statements: 75, lines: 77, branches: 63, functions: 68 },
+        thresholds: { statements: 82, lines: 83, branches: 67, functions: 74 },
       },
     },
   }),
