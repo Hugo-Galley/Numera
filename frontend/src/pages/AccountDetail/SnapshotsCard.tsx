@@ -17,7 +17,8 @@ export function SnapshotsCard({ ctx }: { ctx: AccountDetailView }) {
         <CardHeader><CardTitle className="text-lg">{t("snapshots.title")}</CardTitle></CardHeader>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
-            <Table>                 <TableHeader>
+            <Table>
+              <TableHeader>
               <TableRow>
                 <TableHead className="cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => handleSnapSort("date")}>
                   <div className="flex items-center gap-2">
