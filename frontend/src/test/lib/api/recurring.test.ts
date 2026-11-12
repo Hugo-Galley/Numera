@@ -16,4 +16,12 @@ describeApiCases("recurring", recurring, [
   { fn: "getSalarySummaryById", args: [2026, 6], method: "GET", path: "/salary/summary/2026/6" },
   { fn: "getSalaryTelecommutingById", args: [2026, 6], method: "GET", path: "/salary/telecommuting/2026/6" },
   { fn: "putSalaryTelecommutingById", args: [2026, 6, BODY], method: "PUT", path: "/salary/telecommuting/2026/6", body: BODY },
+  { fn: "patchBenefitsById", args: [7, BODY], method: "PATCH", path: "/benefits/7", body: BODY },
+  { fn: "postBenefits", args: [BODY], method: "POST", path: "/benefits", body: BODY },
+  { fn: "getBenefits", method: "GET", path: "/benefits" },
+  { fn: "getBenefitsSummary", method: "GET", path: "/benefits/summary" },
+  { fn: "deleteBenefitsById", args: [7], method: "DELETE", path: "/benefits/7" },
+  { fn: "postBenefitsDeclared", args: [7, BODY], method: "POST", path: "/benefits/7/declared", body: BODY },
+  { fn: "patchSalaryWorkTime", args: [BODY], method: "PATCH", path: "/salary/work-time", body: BODY },
+  { fn: "getSalaryWorkTime", method: "GET", path: "/salary/work-time" },
 ])

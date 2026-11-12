@@ -82,7 +82,7 @@ python scripts/ops/change_password.py <mot-de-passe>
 - Tests (`backend/tests/`) : `conftest.py` fixe `APP_ENV=test`, mot de passe admin `admin`, DB SQLite temporaire par test et override de `get_db`/`get_current_user`. Vérifier l'effet en base, pas seulement le code HTTP.
 
 ### Frontend (`frontend/src/`)
-- `lib/api.ts` : `apiFetch()` + `api.get/post/patch/delete/upload` (JWT, `Content-Type: application/json` par défaut ; `api.upload` pour le multipart). Au-dessus, `lib/api/<domaine>.ts` (`accounts`, `transactions`, `classement`, `recurring`, `savings`, `investments`, `analytics`) : une fonction typée par route, à utiliser dans les pages.
+- `lib/api.ts` : `apiFetch()` + `api.get/post/patch/delete/upload` (JWT, `Content-Type: application/json` par défaut ; `api.upload` pour le multipart). Au-dessus, `lib/api/<domaine>.ts` (`accounts`, `analytics`, `classement`, `investments`, `loans`, `monthReview`, `recurring`, `reimbursements`, `savings`, `settings`, `transactions`) : une fonction typée par route, seul moyen d'appeler l'API depuis les pages et composants (jamais `api.get(...)` direct, garde-fou `noDirectApi.test.ts`).
 - `pages/` (une par route, react-router v7 dans `App.tsx`, protégé par `components/layout/ProtectedRoute`) ; composants par domaine dans `components/{analytics,dashboard,investments,settings,tools,layout}` ; primitives shadcn/Radix dans `components/ui`. `Dashboard` est découpé via `components/dashboard/tabs` et le hook `useDashboardData`.
 
 ### Serveur MCP (`mcp-server/`)

@@ -31,3 +31,9 @@ export const patchBalanceSnapshotsById = <T = ApiResponse<"/balance-snapshots/{s
 
 /** GET /loans/by-account/:id */
 export const getLoansByAccountById = <T = ApiResponse<"/loans/by-account/{account_id}", "get">>(id: Id) => api.get<T>(`/loans/by-account/${id}`)
+
+/** POST /accounts/:id/reconcile */
+export const postAccountsReconcile = <T = ApiResponse<"/accounts/{account_id}/reconcile", "post">>(id: Id, body?: ApiBody<"/accounts/{account_id}/reconcile", "post">) => api.post<T>(`/accounts/${id}/reconcile`, body)
+
+/** POST /accounts/:id/verify */
+export const postAccountsVerify = <T = ApiResponse<"/accounts/{account_id}/verify", "post">>(id: Id, body?: unknown) => api.post<T>(`/accounts/${id}/verify`, body)

@@ -8,10 +8,10 @@ import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { api } from "@/lib/api"
 import { todayLocal } from "@/lib/dates"
 import { errorMessage, formatCurrency } from "@/lib/utils"
 import { useSubmit } from "@/hooks/useSubmit"
+import { postAccountsReconcile } from "@/lib/api/accounts"
 
 interface ReconcileTransaction {
   id: number
@@ -75,7 +75,7 @@ export function ReconcileDialog({ account, open, onOpenChange, onVerified }: Pro
       return
     }
     try {
-      const res = await api.post<ReconcileResult>(`/accounts/${account.id}/reconcile`, { date: day, bank_balance: value })
+      const res = await postAccountsReconcile<ReconcileResult>(account.id, { date: day, bank_balance: value })
       setResult(res)
       if (res.verified) {
         toast.success(t("reconcile.verified"))

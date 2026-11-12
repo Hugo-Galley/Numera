@@ -15,9 +15,9 @@ import {
 } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
-import { api } from "@/lib/api"
 import { formatCurrency, formatRate } from "@/lib/utils"
 import type { AccountLite, TransferCandidate } from "@/types/transfers"
+import { getTransactionsTransferCandidates, postTransactionsIgnore, postTransactionsLinkById, postTransactionsTransferCounterpart } from "@/lib/api/transactions"
 
 interface Props {
   open: boolean
@@ -52,8 +52,7 @@ export function TransferLinkDialog({ open, onOpenChange, transaction, accounts, 
     setLoading(true)
     const params = new URLSearchParams({ days: "15", amount_tolerance_pct: "5" })
     if (filterAccount !== "all") params.set("account_id", filterAccount)
-    api
-      .get<TransferCandidate[]>(`/transactions/${transactionId}/transfer-candidates?${params}`)
+    getTransactionsTransferCandidates<TransferCandidate[]>(transactionId, `?${params}`)
       .then((rows) => !cancelled && setCandidates(rows))
       .catch(() => !cancelled && toast.error(t("transferLinkDialog.erreurLorsDeLaRecherche")))
       .finally(() => !cancelled && setLoading(false))
@@ -67,7 +66,7 @@ export function TransferLinkDialog({ open, onOpenChange, transaction, accounts, 
 
   async function link(c: TransferCandidate) {
     try {
-      await api.post(`/transactions/${c.sortie_id}/link/${c.other_id}?type=${c.type}`, {})
+      await postTransactionsLinkById(c.sortie_id, c.other_id, `?type=${c.type}`, {})
       toast.success(t("transferLinkDialog.virementLie"))
       onOpenChange(false)
       onDone()
@@ -79,7 +78,7 @@ export function TransferLinkDialog({ open, onOpenChange, transaction, accounts, 
   async function createCounterpart() {
     if (!counterpartAccount || !transaction) return
     try {
-      await api.post(`/transactions/${transaction.id}/transfer-counterpart`, { account_id: Number(counterpartAccount) })
+      await postTransactionsTransferCounterpart(transaction.id, { account_id: Number(counterpartAccount) })
       toast.success(t("transferLinkDialog.contrepartieCreeeEtLiee"))
       onOpenChange(false)
       onDone()
@@ -91,7 +90,7 @@ export function TransferLinkDialog({ open, onOpenChange, transaction, accounts, 
   async function notATransfer() {
     if (!transaction) return
     try {
-      await api.post(`/transactions/${transaction.id}/ignore`, {})
+      await postTransactionsIgnore(transaction.id, "", {})
       toast.success(t("transferLinkDialog.cetteLigneNeSeraPlus"))
       onOpenChange(false)
       onDone()

@@ -1,13 +1,13 @@
 import { useTranslation } from "react-i18next"
 import { useCallback, useEffect, useState } from "react"
 import { Copy, KeyRound, ShieldCheck } from "lucide-react"
-import { api } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
+import { getAuthTotpStatus, postAuthTotpDisable, postAuthTotpEnable, postAuthTotpRecoveryCodes, postAuthTotpSetup } from "@/lib/api/settings"
 
 interface TotpStatus {
   enabled: boolean
@@ -36,7 +36,7 @@ export function TotpCard() {
 
   const load = useCallback(async () => {
     try {
-      setStatus(await api.get<TotpStatus>("/auth/totp/status"))
+      setStatus(await getAuthTotpStatus<TotpStatus>())
     } catch {
       /* carte non critique */
     }
@@ -67,7 +67,7 @@ export function TotpCard() {
   const startSetup = (e: React.FormEvent) => {
     e.preventDefault()
     run(async () => {
-      setSetup(await api.post<TotpSetup>("/auth/totp/setup", { current_password: password }))
+      setSetup(await postAuthTotpSetup<TotpSetup>({ current_password: password }))
       setPassword("")
       setStep("scan")
     })
@@ -76,7 +76,7 @@ export function TotpCard() {
   const confirmSetup = (e: React.FormEvent) => {
     e.preventDefault()
     run(async () => {
-      const { recovery_codes } = await api.post<{ recovery_codes: string[] }>("/auth/totp/enable", { code })
+      const { recovery_codes } = await postAuthTotpEnable<{ recovery_codes: string[] }>({ code })
       setRecoveryCodes(recovery_codes)
       reset()
       toast.success(t("totpCard.doubleAuthentificationActivee"))
@@ -87,7 +87,7 @@ export function TotpCard() {
   const disable = (e: React.FormEvent) => {
     e.preventDefault()
     run(async () => {
-      await api.post("/auth/totp/disable", { current_password: password, code })
+      await postAuthTotpDisable({ current_password: password, code })
       setRecoveryCodes(null)
       reset()
       toast.success(t("totpCard.doubleAuthentificationDesactivee"))
@@ -98,7 +98,7 @@ export function TotpCard() {
   const regenerate = (e: React.FormEvent) => {
     e.preventDefault()
     run(async () => {
-      const { recovery_codes } = await api.post<{ recovery_codes: string[] }>("/auth/totp/recovery-codes", { code })
+      const { recovery_codes } = await postAuthTotpRecoveryCodes<{ recovery_codes: string[] }>({ code })
       setRecoveryCodes(recovery_codes)
       reset()
       toast.success(t("totpCard.nouveauxCodesDeSecoursGeneres"))

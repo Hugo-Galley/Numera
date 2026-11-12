@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
-import { api } from "@/lib/api"
 import { CompanyLogo } from "@/components/ui/CompanyLogo"
+import { getAccounts } from "@/lib/api/accounts"
 
 type AccountBrand = { id: number; name: string; institution?: string | null; logo?: string | null }
 
@@ -11,8 +11,7 @@ const listeners = new Set<() => void>()
 
 function load() {
   if (loading) return
-  loading = api
-    .get<AccountBrand[]>("/accounts")
+  loading = getAccounts<AccountBrand[]>()
     .then((list) => {
       brands = new Map(list.map((a) => [a.id, a]))
     })

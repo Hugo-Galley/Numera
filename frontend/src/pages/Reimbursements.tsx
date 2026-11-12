@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { api, ApiError } from "@/lib/api"
+import { ApiError } from "@/lib/api"
 import { formatCurrency, parsePositiveAmount } from "@/lib/utils"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
@@ -18,6 +18,8 @@ import { Label } from "@/components/ui/label"
 import type { Claim, ReimbursementSummary } from "@/types/reimbursements"
 import type { AccountLite } from "@/types/transfers"
 import { useConfirm } from "@/providers/ConfirmProvider"
+import { getAccounts } from "@/lib/api/accounts"
+import { deleteReimbursementsClaimsById, getReimbursementsClaims, getReimbursementsSummary, patchReimbursementsClaimsById } from "@/lib/api/reimbursements"
 
 export default function Reimbursements() {
   const { t } = useTranslation("reimbursements")
@@ -36,9 +38,9 @@ export default function Reimbursements() {
       const params = new URLSearchParams({ status })
       if (debtor) params.set("debtor", debtor)
       const [c, s, a] = await Promise.all([
-        api.get<Claim[]>(`/reimbursements/claims?${params}`),
-        api.get<ReimbursementSummary>("/reimbursements/summary"),
-        api.get<AccountLite[]>("/accounts"),
+        getReimbursementsClaims<Claim[]>(`?${params}`),
+        getReimbursementsSummary<ReimbursementSummary>(),
+        getAccounts<AccountLite[]>(),
       ])
       setClaims(c)
       setSummary(s)
@@ -73,7 +75,7 @@ export default function Reimbursements() {
       return
     }
     try {
-      await api.patch(`/reimbursements/claims/${editingClaim.id}`, { expected_amount: amount })
+      await patchReimbursementsClaimsById(editingClaim.id, { expected_amount: amount })
       toast.success(t("reimbursements.creanceModifiee"))
       setEditingClaim(null)
       load()
@@ -85,7 +87,7 @@ export default function Reimbursements() {
   async function remove(claim: Claim) {
     if (!(await confirm(i18n.t("misc.deleteClaimFull", { ns: "reimbursements", debtor: claim.debtor })))) return
     try {
-      await api.delete(`/reimbursements/claims/${claim.id}`)
+      await deleteReimbursementsClaimsById(claim.id)
       toast.success(t("reimbursements.creanceSupprimee"))
       load()
     } catch {

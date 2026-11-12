@@ -9,11 +9,12 @@ import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { api, ApiError } from "@/lib/api"
+import { ApiError } from "@/lib/api"
 import { formatCurrency } from "@/lib/utils"
 import type { Claim, EntryClaims, ReimbursableTransaction } from "@/types/reimbursements"
 import { useConfirm } from "@/providers/ConfirmProvider"
 import { useSubmit } from "@/hooks/useSubmit"
+import { deleteReimbursementsAllocationsById, deleteReimbursementsClaimsById, getReimbursementsClaims, getReimbursementsEntriesClaims, patchReimbursementsClaimsById, postReimbursementsClaims, postReimbursementsClaimsAllocations } from "@/lib/api/reimbursements"
 
 interface Props {
   open: boolean
@@ -41,10 +42,10 @@ export function ReimbursementDialog({ open, onOpenChange, transaction, onDone }:
     if (!transaction) return
     try {
       if (transaction.type === "Sortie") {
-        const all = await api.get<Claim[]>("/reimbursements/claims?status=all")
+        const all = await getReimbursementsClaims<Claim[]>("?status=all")
         setClaims(all.filter((c) => c.expense.id === transaction.id))
       } else {
-        setEntry(await api.get<EntryClaims>(`/reimbursements/entries/${transaction.id}/claims`))
+        setEntry(await getReimbursementsEntriesClaims<EntryClaims>(transaction.id))
       }
     } catch {
       toast.error(t("reimbursementDialog.erreurLorsDuChargementDes"))
@@ -69,7 +70,7 @@ export function ReimbursementDialog({ open, onOpenChange, transaction, onDone }:
 
   async function addClaim(name: string, amount: number) {
     if (!transaction) return
-    await api.post("/reimbursements/claims", { transaction_id: transaction.id, debtor: name, expected_amount: amount })
+    await postReimbursementsClaims({ transaction_id: transaction.id, debtor: name, expected_amount: amount })
   }
 
   async function handleAdd() {
@@ -112,7 +113,7 @@ export function ReimbursementDialog({ open, onOpenChange, transaction, onDone }:
   async function handleDeleteClaim(claim: Claim) {
     if (!(await confirm(i18n.t("misc.deleteClaimConfirm", { ns: "reimbursements", debtor: claim.debtor })))) return
     try {
-      await api.delete(`/reimbursements/claims/${claim.id}`)
+      await deleteReimbursementsClaimsById(claim.id)
       toast.success(t("reimbursementDialog.creanceSupprimee"))
       load()
       onDone()
@@ -124,7 +125,7 @@ export function ReimbursementDialog({ open, onOpenChange, transaction, onDone }:
   async function handleRename(claim: Claim, name: string) {
     if (!name.trim() || name.trim() === claim.debtor) return
     try {
-      await api.patch(`/reimbursements/claims/${claim.id}`, { debtor: name.trim() })
+      await patchReimbursementsClaimsById(claim.id, { debtor: name.trim() })
       toast.success(t("reimbursementDialog.debiteurRenomme"))
       load()
     } catch (e) {
@@ -137,7 +138,7 @@ export function ReimbursementDialog({ open, onOpenChange, transaction, onDone }:
     const raw = allocInputs[claim.id]
     const amount = raw ? parseAmount(raw) : undefined
     try {
-      await api.post(`/reimbursements/claims/${claim.id}/allocations`, { entree_id: transaction.id, ...(amount ? { amount } : {}) })
+      await postReimbursementsClaimsAllocations(claim.id, { entree_id: transaction.id, ...(amount ? { amount } : {}) })
       toast.success(i18n.t("misc.allocated", { ns: "reimbursements", debtor: claim.debtor }))
       setAllocInputs({ ...allocInputs, [claim.id]: "" })
       load()
@@ -149,7 +150,7 @@ export function ReimbursementDialog({ open, onOpenChange, transaction, onDone }:
 
   async function handleRemoveAllocation(id: number) {
     try {
-      await api.delete(`/reimbursements/allocations/${id}`)
+      await deleteReimbursementsAllocationsById(id)
       toast.success(t("reimbursementDialog.affectationRetiree"))
       load()
       onDone()

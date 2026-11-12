@@ -5,7 +5,6 @@ import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
 import { CheckCircle2, ChevronLeft, ChevronRight, ClipboardCheck, Printer } from "lucide-react"
 
-import { api } from "@/lib/api"
 import { formatCurrency } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -16,6 +15,8 @@ import { BudgetSection } from "@/components/monthly-report/BudgetSection"
 import { SavingsSection } from "@/components/monthly-report/SavingsSection"
 import { WatchSection } from "@/components/monthly-report/WatchSection"
 import type { BudgetLine, ClosureLite, MonthlyReportData } from "@/components/monthly-report/types"
+import { getAnalyticsBudgetAlerts, getAnalyticsMonthlyReport } from "@/lib/api/analytics"
+import { getMonthReviewClosures } from "@/lib/api/monthReview"
 
 function Headline({ label, value, children }: { label: string; value: string; children?: React.ReactNode }) {
   return (
@@ -65,9 +66,9 @@ export default function IntelligentReport() {
       setFailed(false)
       const { month, year } = date
       const [report, alerts, closures] = await Promise.allSettled([
-        api.get<MonthlyReportData>(`/analytics/monthly-report?month=${month}&year=${year}`),
-        api.get<BudgetLine[]>(`/analytics/budget-alerts?month=${month}&year=${year}`),
-        api.get<ClosureLite[]>("/month-review/closures"),
+        getAnalyticsMonthlyReport<MonthlyReportData>(`?month=${month}&year=${year}`),
+        getAnalyticsBudgetAlerts<BudgetLine[]>(`?month=${month}&year=${year}`),
+        getMonthReviewClosures<ClosureLite[]>(),
       ])
       if (cancelled) return
       if (report.status === "fulfilled") setData(report.value)
