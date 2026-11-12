@@ -58,8 +58,8 @@ export function RulesTab() {
   async function loadData() {
     try {
       const [r, cats] = await Promise.all([
-        getCategorizationRules<any[]>(),
-        getCategories<any[]>("?include_archived=false")
+        getCategorizationRules(),
+        getCategories("?include_archived=false")
       ])
       setRules(r)
       setCategories(cats)
@@ -108,7 +108,7 @@ export function RulesTab() {
 
   async function handleApplyAll() {
     try {
-      const res = await postCategorizationRulesApplyAll<any>({})
+      const res = await postCategorizationRulesApplyAll({})
       toast.success(i18n.t("misc.updated", { ns: "classement", count: res.modified_count }))
     } catch {
       toast.error(t("rulesTab.echecDeLApplicationDes"))

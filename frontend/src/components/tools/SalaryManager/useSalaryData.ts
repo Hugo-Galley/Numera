@@ -10,6 +10,7 @@ import type { ApiResponse } from "@/lib/api/types"
 import { getAccounts } from "@/lib/api/accounts"
 import { getCategories } from "@/lib/api/classement"
 import { deleteSalaryGenerateById, getSalaryConfig, getSalarySummaryById, getSalaryTelecommutingById, postSalaryConfig, postSalaryGenerateById, putSalaryConfig, putSalaryMonthsById, putSalaryTelecommutingById } from "@/lib/api/recurring"
+import { errorMessage } from "@/lib/utils"
 
 const DEFAULT_CONFIG: SalaryConfig = {
   salary_account_id: "",
@@ -203,8 +204,8 @@ export function useSalaryData() {
       await deleteSalaryGenerateById(year, month)
       toast.success(i18n.t("useSalaryData.moisReinitialise", { ns: "tools" }))
       setIsGenerated(false)
-    } catch (error: any) {
-      toast.error(error.message || i18n.t("useSalaryData.erreurDeReinitialisation", { ns: "tools" }))
+    } catch (error) {
+      toast.error(errorMessage(error, i18n.t("useSalaryData.erreurDeReinitialisation", { ns: "tools" })))
     }
   }
 
@@ -225,8 +226,8 @@ export function useSalaryData() {
         toast.success(i18n.t("useSalaryData.transactionsGenereesAvecSucces", { ns: "tools" }))
         setIsGenerated(true)
       }
-    } catch (error: any) {
-      toast.error(error.message || i18n.t("useSalaryData.erreurDeGeneration", { ns: "tools" }))
+    } catch (error) {
+      toast.error(errorMessage(error, i18n.t("useSalaryData.erreurDeGeneration", { ns: "tools" })))
     } finally {
       setGenerating(false)
     }

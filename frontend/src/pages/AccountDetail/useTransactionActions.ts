@@ -1,5 +1,5 @@
 import { nowLocalInput, toInputValue, toNaiveLocal } from "@/lib/dates"
-import { parsePositiveAmount } from "@/lib/utils"
+import { errorMessage, parsePositiveAmount } from "@/lib/utils"
 import i18n from "i18next"
 import { toast } from "sonner"
 import { useEffect } from "react"
@@ -67,8 +67,8 @@ export function useTransactionActions(p: ReturnType<typeof useAccountDetailState
       setTxOpen(false)
       resetTxForm()
       await loadData({ quiet: true })
-    } catch (error: any) {
-      toast.error(error.message || i18n.t("tx.toast.addError", { ns: "accountDetail" }))
+    } catch (error) {
+      toast.error(errorMessage(error, i18n.t("tx.toast.addError", { ns: "accountDetail" })))
     }
   })
 
@@ -110,8 +110,8 @@ export function useTransactionActions(p: ReturnType<typeof useAccountDetailState
       setTxOpen(false)
       resetTxForm()
       await loadData({ quiet: true })
-    } catch (error: any) {
-      toast.error(error.message || i18n.t("tx.toast.updateError", { ns: "accountDetail" }))
+    } catch (error) {
+      toast.error(errorMessage(error, i18n.t("tx.toast.updateError", { ns: "accountDetail" })))
     }
   })
 
@@ -164,8 +164,8 @@ export function useTransactionActions(p: ReturnType<typeof useAccountDetailState
       await deleteTransactionsById(txId)
       toast.success(i18n.t("tx.toast.deleted", { ns: "accountDetail" }))
       await loadData({ quiet: true })
-    } catch (error: any) {
-      toast.error(error?.message || i18n.t("tx.toast.deleteError", { ns: "accountDetail" }))
+    } catch (error) {
+      toast.error(errorMessage(error, i18n.t("tx.toast.deleteError", { ns: "accountDetail" })))
     }
   }
 

@@ -79,10 +79,10 @@ export default function Comparison() {
     setDataB(null)
     try {
       const [resA, resB, catA, catB] = await Promise.all([
-        getAnalyticsBudget<any>(`?month=${monthA}&year=${yearA}`),
-        getAnalyticsBudget<any>(`?month=${monthB}&year=${yearB}`),
-        getAnalyticsExpensesByCategory<any>(`?month=${monthA}&year=${yearA}`),
-        getAnalyticsExpensesByCategory<any>(`?month=${monthB}&year=${yearB}`)
+        getAnalyticsBudget(`?month=${monthA}&year=${yearA}`),
+        getAnalyticsBudget(`?month=${monthB}&year=${yearB}`),
+        getAnalyticsExpensesByCategory(`?month=${monthA}&year=${yearA}`),
+        getAnalyticsExpensesByCategory(`?month=${monthB}&year=${yearB}`)
       ])
       
       if (id !== requestId.current) return

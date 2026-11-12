@@ -7,7 +7,7 @@ import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxi
 import { Coins, Link2 } from "lucide-react"
 import { toast } from "sonner"
 
-import { formatCurrency, formatRate } from "@/lib/utils"
+import { errorMessage, formatCurrency, formatRate } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -94,8 +94,8 @@ export function DividendsCard({ accountId, reloadKey, onChanged }: DividendsCard
   const openLinkPreview = async () => {
     try {
       setPreview(await postInvestmentTransactionsLinkDividends<LinkPreview>(`?account_id=${accountId}&dry_run=true`, {}))
-    } catch (err: any) {
-      toast.error(err?.message || t("dividendsCard.erreurLorsDeLAnalyse"))
+    } catch (err) {
+      toast.error(errorMessage(err, t("dividendsCard.erreurLorsDeLAnalyse")))
     }
   }
 
@@ -107,8 +107,8 @@ export function DividendsCard({ accountId, reloadKey, onChanged }: DividendsCard
       setPreview(null)
       await load()
       onChanged?.()
-    } catch (err: any) {
-      toast.error(err?.message || t("dividendsCard.erreurLorsDuRattachement"))
+    } catch (err) {
+      toast.error(errorMessage(err, t("dividendsCard.erreurLorsDuRattachement")))
     } finally {
       setApplying(false)
     }

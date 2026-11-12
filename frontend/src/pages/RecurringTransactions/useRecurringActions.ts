@@ -25,8 +25,8 @@ export function useRecurringActions(p: ReturnType<typeof useRecurringState> & Re
         getRecurringTransactions<RecurringTransaction[]>(),
         getAccounts<Account[]>(),
         getCategories<Category[]>("?include_archived=false"),
-        getAnalyticsSubscriptions<any>("?include_other=true"),
-        getAnalyticsAssetAllocationSuggestions<any>()
+        getAnalyticsSubscriptions("?include_other=true"),
+        getAnalyticsAssetAllocationSuggestions()
       ])
       setRecurringTxs(txsData || [])
       setAccounts(accountsData?.filter(a => a) || [])

@@ -58,11 +58,11 @@ export function useSavingsData() {
       
       const now = new Date()
       const [budget, kpiHistory, goalsData, accs, cats, resilienceData] = await Promise.all([
-        getAnalyticsBudget<any>(`?${queryParams}`),
-        getAnalyticsKpiHistory<any[]>("?months_count=12"),
-        getGoals<any[]>(),
-        getAccounts<any[]>(),
-        getCategories<any[]>("?include_archived=false"),
+        getAnalyticsBudget(`?${queryParams}`),
+        getAnalyticsKpiHistory("?months_count=12"),
+        getGoals(),
+        getAccounts(),
+        getCategories("?include_archived=false"),
         getAnalyticsResilience<Resilience>(period === "monthly"
           ? `?month=${month}&year=${year}`
           : `?month=${now.getMonth() + 1}&year=${now.getFullYear()}`),

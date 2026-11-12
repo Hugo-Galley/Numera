@@ -37,7 +37,7 @@ export function useAccountsActions(p: ReturnType<typeof useAccountsState>) {
 
   const loadSuggestions = async () => {
     try {
-      const data = await getAnalyticsAssetAllocationSuggestions<any>()
+      const data = await getAnalyticsAssetAllocationSuggestions()
       if (data) setSuggestions(data)
     } catch (error) {
       console.error("Error loading suggestions:", error)

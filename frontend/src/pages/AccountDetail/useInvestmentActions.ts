@@ -84,8 +84,8 @@ export function useInvestmentActions(p: ReturnType<typeof useAccountDetailState>
       setInvTxOpen(false)
       resetInvTxForm()
       await loadData({ quiet: true })
-    } catch (error: any) {
-      toast.error(error.message || i18n.t("useInvestmentActions.erreurLorsDeLEnregistrement", { ns: "accountDetail" }))
+    } catch (error) {
+      toast.error(errorMessage(error, i18n.t("useInvestmentActions.erreurLorsDeLEnregistrement", { ns: "accountDetail" })))
     }
   })
 
@@ -125,8 +125,8 @@ export function useInvestmentActions(p: ReturnType<typeof useAccountDetailState>
       await deleteInvestmentTransactionsById(txId)
       toast.success(i18n.t("useInvestmentActions.fluxSupprime", { ns: "accountDetail" }))
       await loadData({ quiet: true })
-    } catch (error: any) {
-      toast.error(error?.message || i18n.t("useInvestmentActions.erreurLorsDeLaSuppression", { ns: "accountDetail" }))
+    } catch (error) {
+      toast.error(errorMessage(error, i18n.t("useInvestmentActions.erreurLorsDeLaSuppression", { ns: "accountDetail" })))
     }
   }
 

@@ -51,13 +51,13 @@ export function SecuritySearchInput({
   const [isValidating, setIsValidating] = useState(false)
   const [validationInfo, setValidationInfo] = useState<{
     valid: boolean
-    name?: string
-    symbol?: string
-    isin?: string
-    price?: number
-    price_eur?: number
-    currency?: string
-    type?: string
+    name?: string | null
+    symbol?: string | null
+    isin?: string | null
+    price?: number | null
+    price_eur?: number | null
+    currency?: string | null
+    type?: string | null
   } | null>(null)
 
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -75,7 +75,7 @@ export function SecuritySearchInput({
     const timer = setTimeout(async () => {
       setIsSearching(true)
       try {
-        const res = await getMarketSearch<any[]>(`?q=${encodeURIComponent(query)}`)
+        const res = await getMarketSearch(`?q=${encodeURIComponent(query)}`)
         if (cancelled) return
         setResults(res || [])
         setIsOpen(true)
@@ -115,7 +115,7 @@ export function SecuritySearchInput({
     const timer = setTimeout(async () => {
       setIsValidating(true)
       try {
-        const res = await getMarketValidate<any>(`?symbol_or_isin=${encodeURIComponent(symbolToValidate)}`)
+        const res = await getMarketValidate(`?symbol_or_isin=${encodeURIComponent(symbolToValidate)}`)
         if (isMounted) {
           setValidationInfo(res)
         }

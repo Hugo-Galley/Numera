@@ -11,6 +11,7 @@ import { toast } from "sonner"
 import { Fingerprint, FlaskConical, ShieldCheck } from "lucide-react"
 import { loginWithPasskey, passkeySupported } from "@/lib/passkey"
 import { DEMO_CREDENTIALS, useDemoMode } from "@/hooks/useDemoMode"
+import { errorMessage } from "@/lib/utils"
 
 export default function Login() {
   const { t } = useTranslation("auth")
@@ -54,9 +55,9 @@ export default function Login() {
       login(await loginWithPasskey())
       toast.success(t("success"))
       navigate(from, { replace: true })
-    } catch (err: any) {
+    } catch (err) {
       // Annulation (ou navigateur exigeant un geste) : le bouton reste disponible, sans message d'erreur.
-      if (err?.name !== "NotAllowedError") toast.error(err.message)
+      if (!(err instanceof Error && err.name === "NotAllowedError")) toast.error(errorMessage(err, ""))
     } finally {
       setLoading(false)
     }
@@ -107,8 +108,8 @@ export default function Login() {
       login(data.access_token)
       toast.success(t("success"))
       navigate(from, { replace: true })
-    } catch (err: any) {
-      toast.error(err.message)
+    } catch (err) {
+      toast.error(errorMessage(err, ""))
     } finally {
       setLoading(false)
     }
@@ -132,9 +133,9 @@ export default function Login() {
       login((await response.json()).access_token)
       toast.success(t("success"))
       navigate(from, { replace: true })
-    } catch (err: any) {
+    } catch (err) {
       setCode("")
-      toast.error(err.message)
+      toast.error(errorMessage(err, ""))
     } finally {
       setLoading(false)
     }

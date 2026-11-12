@@ -59,7 +59,7 @@ export function CustomEtfModal({
     setAnalyzing(true)
     const toastId = toast.loading(i18n.t("misc.fetchingComposition", { ns: "investments", symbol: symbolToAnalyze }))
     try {
-      const result = await postEtfProfilesAutoDecompose<any>({
+      const result = await postEtfProfilesAutoDecompose({
         symbol: symbolToAnalyze,
         name: name.trim() || undefined,
         isin: isin.trim() || undefined,
@@ -74,7 +74,7 @@ export function CustomEtfModal({
       } else {
         toast.error(t("customEtfModal.impossibleDeDecomposerCeFonds"), { id: toastId })
       }
-    } catch (err: any) {
+    } catch (err) {
       toast.error(errorMessage(err, t("customEtfModal.erreurLorsDeLaDecomposition")), { id: toastId })
     } finally {
       setAnalyzing(false)

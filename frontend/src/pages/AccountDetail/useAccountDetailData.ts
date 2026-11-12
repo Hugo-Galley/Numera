@@ -72,7 +72,7 @@ export function useAccountDetailData(p: ReturnType<typeof useAccountDetailState>
   const loadTagTotals = async () => {
     if (!id) return
     try {
-      setTagTotals(await getAnalyticsTags<any[]>(tagTotalsQuery()))
+      setTagTotals(await getAnalyticsTags(tagTotalsQuery()))
     } catch (error) {
       toast.error(errorMessage(error, i18n.t("load.tagsError", { ns: "accountDetail" })))
     }
@@ -121,7 +121,7 @@ export function useAccountDetailData(p: ReturnType<typeof useAccountDetailState>
       const [accData, merchantsData, suggestionsData] = await Promise.all([
         getAccountsById<Account>(id),
         getTransactionsMerchants<string[]>(),
-        getAnalyticsAssetAllocationSuggestions<any>()
+        getAnalyticsAssetAllocationSuggestions()
       ])
       if (!isCurrent()) return
       setAccount(accData)
@@ -132,8 +132,8 @@ export function useAccountDetailData(p: ReturnType<typeof useAccountDetailState>
 
       if (accData.type === "investissement" || accData.type === "assurance_vie") {
         const [invData, perfData, holdingsData] = await Promise.all([
-          getAnalyticsInvestmentsById<any>(id),
-          getAnalyticsInvestmentsPerformanceHistory<any>(id),
+          getAnalyticsInvestmentsById(id),
+          getAnalyticsInvestmentsPerformanceHistory(id),
           getHoldings<PortfolioHolding[]>(`?account_id=${id}`)
         ])
         if (!isCurrent()) return
@@ -145,10 +145,10 @@ export function useAccountDetailData(p: ReturnType<typeof useAccountDetailState>
 
         const [txData, timeData, catData, tagsData, tagTotalsData] = await Promise.all([
           getTransactions<Transaction[]>(`?${params.toString()}`),
-          getAnalyticsTimeseries<any>(`?account_id=${id}&year=${new Date().getFullYear()}`),
+          getAnalyticsTimeseries(`?account_id=${id}&year=${new Date().getFullYear()}`),
           getCategories<Category[]>(),
           getTags<TagType[]>(),
-          getAnalyticsTags<any[]>(tagTotalsQuery())
+          getAnalyticsTags(tagTotalsQuery())
         ])
         if (!isCurrent()) return
         setTransactions(txData)

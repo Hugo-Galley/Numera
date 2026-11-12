@@ -9,6 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import { downloadExportTransactionsCsv } from "@/lib/api/settings"
 import { getAccounts } from "@/lib/api/accounts"
+import { errorMessage } from "@/lib/utils"
 
 type Account = {
   id: number
@@ -53,8 +54,8 @@ export function ExportCard() {
       a.download = "transactions_export.csv"
       a.click()
       URL.revokeObjectURL(url)
-    } catch (error: any) {
-      toast.error(error?.message || t("exportCard.erreurLorsDeLExport"))
+    } catch (error) {
+      toast.error(errorMessage(error, t("exportCard.erreurLorsDeLExport")))
     }
   }
 

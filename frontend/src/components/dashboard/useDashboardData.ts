@@ -99,7 +99,7 @@ export function useDashboardData(selectedAccountId: string, month: number, year:
       try {
         const data = await load()
         if (!cancelled) setter(data)
-      } catch (e: any) {
+      } catch (e) {
         console.error(`Error loading ${label}:`, e)
         failed += 1
       }

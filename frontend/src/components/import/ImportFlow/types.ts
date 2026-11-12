@@ -1,3 +1,5 @@
+import type { ApiResponse } from "@/lib/api/types"
+
 
 
 export type Account = {
@@ -12,15 +14,8 @@ export type Category = {
   name: string
 }
 
-export type PreviewData = {
-  filename: string
-  total_rows: number
-  invalid_rows: number
-  warnings: string[]
-  delimiter: string
-  preview: any[]
-  unknown_categories: string[]
-}
+/** Réponse de l'aperçu d'import, telle que le contrat de l'API la décrit (lignes comprises). */
+export type PreviewData = ApiResponse<"/import/preview", "post">
 
 
 export type ImportFlowProps = {
