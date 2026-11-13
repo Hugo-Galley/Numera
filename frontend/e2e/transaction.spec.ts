@@ -1,6 +1,4 @@
-import { test, expect, type Page } from "@playwright/test"
-
-const visible = (page: Page, text: string) => page.getByText(text, { exact: true }).locator("visible=true")
+import { test, expect, visible } from "./fixtures"
 
 test("ajout d'une opération à la main : visible dans le compte", async ({ page }) => {
   await page.goto("/accounts")

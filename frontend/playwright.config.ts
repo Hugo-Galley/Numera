@@ -28,12 +28,12 @@ export default defineConfig({
     },
   ],
   webServer: [
-    { command: "sh e2e/backend.sh", url: `${API}/health`, timeout: 120_000, reuseExistingServer: false },
+    { command: "sh e2e/backend.sh", url: `${API}/health`, timeout: 120_000, reuseExistingServer: !process.env.CI },
     {
       command: "npm run dev -- --port 5174 --strictPort",
       url: APP,
       timeout: 120_000,
-      reuseExistingServer: false,
+      reuseExistingServer: !process.env.CI,
       env: { VITE_API_BASE: API },
     },
   ],

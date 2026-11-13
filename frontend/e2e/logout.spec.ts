@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test"
+import { test, expect } from "./fixtures"
 
 test("déconnexion : retour à la connexion, les pages protégées sont refermées", async ({ page }) => {
   await page.goto("/")
