@@ -141,7 +141,7 @@ def parse_events(events: str | None) -> dict[int, list[dict[str, Any]]]:
             parsed = json.loads(events)
             if not isinstance(parsed, list):
                 parsed = []
-        except Exception:
+        except (ValueError, TypeError):
             parsed = []
     by_year: dict[int, list[dict[str, Any]]] = {}
     for ev in parsed:

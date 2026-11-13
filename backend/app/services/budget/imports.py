@@ -11,7 +11,7 @@ from dataclasses import dataclass, field
 
 from sqlalchemy.orm import Session
 
-from app.core.errors import BusinessRuleError, NotFoundError
+from app.core.errors import BusinessRuleError, DomainError, NotFoundError
 from app.core.i18n import tr
 from app.core.logging import get_logger
 from app.domain.csv_import import (
@@ -133,7 +133,7 @@ def _parse_mapping(category_mapping: str | None) -> dict:
         return {}
     try:
         return json.loads(category_mapping)
-    except Exception:
+    except ValueError:  # JSONDecodeError
         raise BusinessRuleError(tr("errors.category_mapping_json")) from None
 
 
@@ -261,7 +261,7 @@ async def commit_import(db: Session, account_id: int, read_content: Callable[[],
         line = int(row.get("_line") or 0)
         try:
             _import_row(db, run, parse_row(row), row.get("Date"))
-        except Exception as exc:  # ImportRowError (ligne invalide) ou refus métier
+        except (ValueError, DomainError) as exc:  # ImportRowError (ligne invalide) ou refus métier
             run.record_error(line, str(exc))
 
     _log_import(db, run, filename, delimiter, raw_headers)

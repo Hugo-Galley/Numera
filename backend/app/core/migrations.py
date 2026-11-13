@@ -113,7 +113,7 @@ def run_migrations() -> None:
                 conn.execute("PRAGMA journal_mode=WAL")
                 conn.close()
                 logger.info("SQLite WAL mode enabled.")
-            except Exception as e:
+            except (sqlite3.Error, OSError) as e:
                 logger.warning(f"Could not enable WAL mode via sqlite3: {e}")
 
             # 1b. Sauvegarde de la base avant toute migration qui changerait le schéma

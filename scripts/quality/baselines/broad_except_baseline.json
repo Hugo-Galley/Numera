@@ -1,0 +1,12 @@
+{
+  "app/integrations/currency.py": 3,
+  "app/integrations/notifications.py": 1,
+  "app/services/analytics/diversity.py": 1,
+  "app/services/audit/__init__.py": 1,
+  "app/services/audit/rules/broker_reconciliation.py": 1,
+  "app/services/investissement/market/quotes.py": 2,
+  "app/services/investissement/market/search.py": 1,
+  "app/services/investissement/portfolio/books.py": 1,
+  "app/services/investissement/tax.py": 1,
+  "app/services/systeme/notifications.py": 3
+}

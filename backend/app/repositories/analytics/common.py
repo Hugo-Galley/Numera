@@ -2,6 +2,7 @@
 from datetime import datetime
 
 from sqlalchemy import and_, func, literal_column, or_, select, union_all
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from app.core.logging import get_logger
@@ -149,7 +150,7 @@ def ticket_restaurant_account_ids(db: Session) -> set[int]:
         ).all()
         for acc_id_tuple in matching_accounts:
             ticket_account_ids.add(acc_id_tuple[0])
-    except Exception as e:
+    except SQLAlchemyError as e:
         logger.warning(f"Error getting ticket restaurant accounts: {e}")
 
     return ticket_account_ids

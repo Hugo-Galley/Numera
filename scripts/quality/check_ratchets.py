@@ -22,6 +22,7 @@ JSON_BASELINES = (
     "scripts/quality/baselines/mypy_baseline.json",
     "scripts/quality/baselines/code_size_baseline.json",
     "scripts/quality/baselines/dead_code_allowlist.json",
+    "scripts/quality/baselines/broad_except_baseline.json",
     "frontend/eslint-baseline.json",
 )
 LINES_BASELINES = (

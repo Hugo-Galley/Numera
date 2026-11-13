@@ -144,7 +144,7 @@ def _decompose_etf(out: LookThrough, vh: dict[str, Any], etf_profile: EtfProfile
                 "pct_in_source": round(h_weight, 2),
                 "value_eur": round(h_val, 2),
             })
-    except Exception as e:
+    except (ValueError, KeyError, TypeError, AttributeError) as e:  # JSON ou ligne de composition mal formés
         logger.warning(f"Error parsing ETF holdings for {etf_profile.name}: {e}")
 
 

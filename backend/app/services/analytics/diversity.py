@@ -2,6 +2,7 @@
 rapportées au portefeuille boursier et au patrimoine total."""
 from typing import Any
 
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from app.core.logging import get_logger
@@ -42,7 +43,7 @@ async def _resolve_profile_id(db: Session, h: PortfolioHolding, q: dict) -> int 
     try:
         h.etf_profile_id = matched_p.id
         db.commit()
-    except Exception:
+    except SQLAlchemyError:
         db.rollback()
     return matched_p.id
 
