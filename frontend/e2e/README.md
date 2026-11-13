@@ -48,9 +48,9 @@ n'importe quelle page. Un scénario qui attend une erreur précise la déclare :
   notifications et plafonne les écritures à 120 par minute : ces zones relèvent du profil `security` (ci-dessous).
 - `auth.setup.ts` se connecte une fois (`storageState`), tous les scénarios réutilisent la session. Un scénario qui
   teste la connexion repart d'un navigateur vierge (`test.use({ storageState: { cookies: [], origins: [] } })`).
-- Un seul worker par pile (base partagée). La CI lance **deux tranches** (`--shard=1/2`, `2/2`), chacune avec sa propre
-  pile ; en échec, rapport HTML + traces + captures sont publiés en artefact `playwright-N` (7 jours). `retries: 1` en CI
-  seulement.
+- Un seul worker par pile (base partagée). La CI lance **un seul job** `E2E (Playwright)` (projets `chromium` et
+  `security`, deux piles) ; en échec, rapport HTML + traces + captures sont publiés en artefact `playwright-report`
+  (7 jours). `retries: 1` en CI seulement.
 - Les données de démo sont datées par rapport à aujourd'hui (même jour, mêmes données) : ne jamais asserter un montant
   de la démo, seulement sa présence ou sa structure. Les montants des écritures créées par le scénario, eux, sont connus.
 
