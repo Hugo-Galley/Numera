@@ -6454,6 +6454,17 @@
       "title": "Date",
       "type": "string"
      },
+     "fees": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Fees"
+     },
      "geographic_zone": {
       "anyOf": [
        {
@@ -6480,6 +6491,17 @@
       ],
       "title": "Is Regular"
      },
+     "isin": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Isin"
+     },
      "note": {
       "anyOf": [
        {
@@ -6495,6 +6517,39 @@
       "title": "Original Amount",
       "type": "number"
      },
+     "quantity": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Quantity"
+     },
+     "reinvest_of_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Reinvest Of Id"
+     },
+     "reinvested": {
+      "anyOf": [
+       {
+        "type": "boolean"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Reinvested"
+     },
      "sector": {
       "anyOf": [
        {
@@ -6506,9 +6561,42 @@
       ],
       "title": "Sector"
      },
+     "ticker": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Ticker"
+     },
      "type": {
       "title": "Type",
       "type": "string"
+     },
+     "unit_price": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Unit Price"
+     },
+     "withholding_tax": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Withholding Tax"
      }
     },
     "required": [

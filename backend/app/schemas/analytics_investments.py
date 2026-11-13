@@ -64,6 +64,14 @@ class InvestmentMovement(BaseModel):
     sector: str | None = None
     geographic_zone: str | None = None
     is_regular: bool | None = None
+    ticker: str | None = None
+    isin: str | None = None
+    quantity: float | None = None
+    unit_price: float | None = None
+    fees: float | None = None
+    withholding_tax: float | None = None
+    reinvested: bool | None = None
+    reinvest_of_id: int | None = None
 
 
 class InvestmentValuePoint(BaseModel):

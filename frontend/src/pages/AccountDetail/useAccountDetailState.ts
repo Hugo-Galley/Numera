@@ -5,7 +5,7 @@ import { formatCurrency as formatCurrencyShared } from "@/lib/utils"
 import { useConfirm } from "@/providers/ConfirmProvider"
 import { useMemo, useState } from "react"
 import { useParams } from "react-router-dom"
-import { Account, AccountTimeseries, Category, InvestmentAnalysis, InvestmentFlow, PerformancePoint, TagTotal, TagType, Transaction } from "./types"
+import { Account, AccountTimeseries, Category, InvestmentAnalysis, PerformancePoint, TagTotal, TagType, Transaction } from "./types"
 
 /** État de la page : compte, liste, filtres, tris et sélection. */
 export function useAccountDetailState() {
@@ -80,7 +80,7 @@ export function useAccountDetailState() {
   }
 
   const sortedInvestmentTransactions = useMemo(() => {
-    return [...((investmentData?.transactions || []) as InvestmentFlow[])].sort((a, b) => {
+    return [...(investmentData?.transactions ?? [])].sort((a, b) => {
       let comparison = 0
       switch (invSortField) {
         case "date":

@@ -70,22 +70,8 @@ export const TX_PAGE_SIZE = 200
 /** Types du contrat de l'API pour la page d'un compte. */
 export type AccountTimeseries = ApiResponse<"/analytics/timeseries", "get">
 export type InvestmentAnalysis = ApiResponse<"/analytics/investments/{account_id}", "get">
-type InvestmentMovement = NonNullable<InvestmentAnalysis["transactions"]>[number]
-/**
- * Opération du compte titres. Les champs de titre (ticker, parts, prix, retenue, réinvestissement) sont lus par
- * l'historique des flux et le formulaire de modification, mais le contrat actuel de l'API ne les expose pas
- * (`InvestmentMovement`) : ils sont déclarés ici en option, à rapatrier côté backend.
- */
-export type InvestmentFlow = InvestmentMovement & {
-  ticker?: string | null
-  isin?: string | null
-  quantity?: number | null
-  unit_price?: number | null
-  fees?: number | null
-  withholding_tax?: number | null
-  reinvested?: boolean | null
-  reinvest_of_id?: number | null
-}
+/** Opération du compte titres (ligne de `transactions` de l'analyse), champs de titre inclus. */
+export type InvestmentFlow = NonNullable<InvestmentAnalysis["transactions"]>[number]
 export type ValueSnapshot = NonNullable<InvestmentAnalysis["value_series"]>[number]
 export type PerformancePoint = NonNullable<ApiResponse<"/analytics/investments/{account_id}/performance-history", "get">["items"]>[number]
 export type TagTotal = ApiResponse<"/analytics/tags", "get">[number]
