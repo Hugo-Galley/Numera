@@ -98,6 +98,14 @@ async def _account_movements(db: Session, account: Account, baseline_date: datet
             "asset_class": tx.asset_class,
             "sector": tx.sector,
             "geographic_zone": tx.geographic_zone,
+            "ticker": tx.ticker,
+            "isin": tx.isin,
+            "quantity": tx.quantity,
+            "unit_price": tx.unit_price,
+            "fees": tx.fees,
+            "withholding_tax": tx.withholding_tax,
+            "reinvested": tx.reinvested,
+            "reinvest_of_id": tx.reinvest_of_id,
         })
     for bank_tx in repo.account_transactions(db, account.id, since=baseline_date, ordered=True):
         amount = await convert_amount(bank_tx.original_amount, bank_tx.currency, account.currency, date=bank_tx.date.date(), db=db)

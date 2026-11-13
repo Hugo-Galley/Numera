@@ -5195,20 +5195,36 @@ export interface components {
             currency: string;
             /** Date */
             date: string;
+            /** Fees */
+            fees?: number | null;
             /** Geographic Zone */
             geographic_zone?: string | null;
             /** Id */
             id: number;
             /** Is Regular */
             is_regular?: boolean | null;
+            /** Isin */
+            isin?: string | null;
             /** Note */
             note: string | null;
             /** Original Amount */
             original_amount: number;
+            /** Quantity */
+            quantity?: number | null;
+            /** Reinvest Of Id */
+            reinvest_of_id?: number | null;
+            /** Reinvested */
+            reinvested?: boolean | null;
             /** Sector */
             sector?: string | null;
+            /** Ticker */
+            ticker?: string | null;
             /** Type */
             type: string;
+            /** Unit Price */
+            unit_price?: number | null;
+            /** Withholding Tax */
+            withholding_tax?: number | null;
         };
         /**
          * InvestmentOverviewItem
