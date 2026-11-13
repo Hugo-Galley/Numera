@@ -1,5 +1,7 @@
 """Courbe reconstituée d'un compte titres (valeur et capital investi), TWR et rapprochement avec le courtier."""
 from datetime import date as date_type
+from datetime import datetime
+from typing import Any
 
 from sqlalchemy.orm import Session
 
@@ -13,12 +15,11 @@ from app.services.investissement.portfolio.cash import Capital
 
 async def history_series(db: Session, account_id: int, replay: Replay, book: PriceBook, fx: FxBook, cap: Capital,
                          opening_cash: float, value: float, today_day: date_type,
-                         currency: str) -> tuple[list[dict], float | None, list[dict]]:
+                         currency: str, baseline_date: datetime) -> tuple[list[dict[str, Any]], float | None, list[dict[str, Any]]]:
     """(points de la courbe, TWR, lignes de rapprochement) depuis le Point Zéro des positions."""
-    baseline_date = replay.baseline_date
     snapshots = repo.snapshots_since(db, account_id, baseline_date)
     # Avant le Point Zéro des positions : valeurs des relevés
-    points: list[dict] = [
+    points: list[dict[str, Any]] = [
         history_point(snap.date.date().isoformat(), snap.current_value, cap.invested_at(snap.date.date()))
         for snap in repo.snapshots_before(db, account_id, baseline_date)
     ]

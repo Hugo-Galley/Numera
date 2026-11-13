@@ -1,4 +1,6 @@
 
+from typing import Any
+
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
@@ -14,7 +16,7 @@ router = APIRouter(tags=["diversity-scanner"])
 def diversity_scanner(
     account_id: int | None = Query(default=None),
     db: Session = Depends(get_db),
-):
+) -> dict[str, Any]:
     """
     Consolidated Diversity & ETF Look-Through Scanner.
     Computes true underlying company exposures, country/sector breakdown,

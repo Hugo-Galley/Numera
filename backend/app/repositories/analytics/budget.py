@@ -1,8 +1,10 @@
 """Requêtes d'agrégat du budget : flux par devise (vue globale), sommes d'un compte, soldes et alertes."""
 from datetime import datetime
+from typing import Any
 
 from sqlalchemy import func
 from sqlalchemy.orm import Query, Session
+from sqlalchemy.orm.attributes import InstrumentedAttribute
 
 from app.domain.portfolio import INTEREST_CATEGORIES as DOMAIN_INTEREST_CATEGORIES
 from app.models.account import Account
@@ -10,22 +12,23 @@ from app.models.category import Category
 from app.models.investment_transaction import InvestmentTransaction
 from app.models.transaction import Transaction
 from app.repositories.analytics.common import NET_AMOUNT, budget_versement_ids, category_lines, income_criterion
+from app.repositories.types import QueryT, Rows
 
 INVESTMENT_CATEGORIES = ["Investissement", "Epargne"]
 INTEREST_CATEGORIES = sorted(DOMAIN_INTEREST_CATEGORIES)
 
 
-def _window(query: Query, column, start: datetime | None, end: datetime) -> Query:
+def _window(query: QueryT, column: InstrumentedAttribute[Any], start: datetime | None, end: datetime) -> QueryT:
     if start:
         query = query.filter(column >= start)
     return query.filter(column < end)
 
 
-def _exclude(query: Query, tr_accounts: set[int]) -> Query:
+def _exclude(query: QueryT, tr_accounts: set[int]) -> QueryT:
     return query.filter(Transaction.account_id.notin_(tr_accounts)) if tr_accounts else query
 
 
-def _net_by_currency(db: Session) -> Query:
+def _net_by_currency(db: Session) -> Query[Any]:
     return db.query(
         Account.currency, func.coalesce(func.sum(NET_AMOUNT), 0.0).label("total")
     ).join(Account, Transaction.account_id == Account.id)
@@ -33,7 +36,7 @@ def _net_by_currency(db: Session) -> Query:
 
 # --- Vue globale : flux par devise du compte (courant/épargne, hors tickets restaurant) ---
 
-def income_by_currency(db: Session, start: datetime | None, end: datetime, tr_accounts: set[int]) -> list:
+def income_by_currency(db: Session, start: datetime | None, end: datetime, tr_accounts: set[int]) -> Rows:
     """Revenus au sens de income_criterion (Solde Initial jamais compté)."""
     query = _net_by_currency(db).filter(
         Transaction.type.in_(["Entree", "Interets"]), Transaction.is_transfer == False
@@ -42,7 +45,7 @@ def income_by_currency(db: Session, start: datetime | None, end: datetime, tr_ac
     return query.group_by(Account.currency).all()
 
 
-def dividends_total_by_currency(db: Session, start: datetime | None, end: datetime) -> list:
+def dividends_total_by_currency(db: Session, start: datetime | None, end: datetime) -> Rows:
     """Dividendes des comptes titres, comptés en revenus."""
     query = db.query(
         Account.currency, func.coalesce(func.sum(InvestmentTransaction.amount), 0.0).label("total")
@@ -50,7 +53,7 @@ def dividends_total_by_currency(db: Session, start: datetime | None, end: dateti
     return _window(query, InvestmentTransaction.date, start, end).group_by(Account.currency).all()
 
 
-def interests_by_currency(db: Session, start: datetime | None, end: datetime, tr_accounts: set[int]) -> list:
+def interests_by_currency(db: Session, start: datetime | None, end: datetime, tr_accounts: set[int]) -> Rows:
     """Intérêts (type ou catégorie intérêts/dividendes) des comptes courant/épargne."""
     query = _net_by_currency(db).outerjoin(Category, Transaction.category_id == Category.id).filter(
         ((Transaction.type == "Interets") | (Category.name.in_(INTEREST_CATEGORIES))),
@@ -60,7 +63,7 @@ def interests_by_currency(db: Session, start: datetime | None, end: datetime, tr
     return query.group_by(Account.currency).all()
 
 
-def dividends_by_currency(db: Session, start: datetime | None, end: datetime) -> list:
+def dividends_by_currency(db: Session, start: datetime | None, end: datetime) -> Rows:
     """Dividendes des comptes titres, ajoutés aux intérêts."""
     query = db.query(Account.currency, func.sum(InvestmentTransaction.amount)).join(
         Account, InvestmentTransaction.account_id == Account.id
@@ -70,7 +73,7 @@ def dividends_by_currency(db: Session, start: datetime | None, end: datetime) ->
     return query.group_by(Account.currency).all()
 
 
-def expenses_by_currency(db: Session, start: datetime | None, end: datetime, tr_accounts: set[int]) -> list:
+def expenses_by_currency(db: Session, start: datetime | None, end: datetime, tr_accounts: set[int]) -> Rows:
     query = _net_by_currency(db).filter(
         Transaction.type == "Sortie", Transaction.is_transfer == False
     ).filter(Account.type.in_(["courant", "epargne"]))
@@ -78,7 +81,7 @@ def expenses_by_currency(db: Session, start: datetime | None, end: datetime, tr_
     return query.group_by(Account.currency).all()
 
 
-def categorized_investments_by_currency(db: Session, start: datetime | None, end: datetime, tr_accounts: set[int]) -> list:
+def categorized_investments_by_currency(db: Session, start: datetime | None, end: datetime, tr_accounts: set[int]) -> Rows:
     """Sorties catégorisées Investissement/Epargne (non consommées)."""
     query = _net_by_currency(db).join(Category, Transaction.category_id == Category.id).filter(
         Transaction.type == "Sortie", Category.name.in_(INVESTMENT_CATEGORIES), Transaction.is_transfer == False
@@ -88,7 +91,7 @@ def categorized_investments_by_currency(db: Session, start: datetime | None, end
 
 
 def budget_versements_by_currency(db: Session, start: datetime | None, end: datetime,
-                                  account_id: int | None = None) -> list:
+                                  account_id: int | None = None) -> Rows:
     """Versements d'un compte titres, ou (vue globale) ceux alimentés par un compte du budget."""
     query = db.query(
         Account.currency, func.coalesce(func.sum(InvestmentTransaction.amount), 0.0).label("total")
@@ -102,7 +105,8 @@ def budget_versements_by_currency(db: Session, start: datetime | None, end: date
 
 
 def earliest_transaction_date(db: Session) -> datetime | None:
-    return db.query(func.min(Transaction.date)).scalar()
+    earliest: datetime | None = db.query(func.min(Transaction.date)).scalar()
+    return earliest
 
 
 # --- Vue compte : sommes dans la devise du compte ---
@@ -130,7 +134,7 @@ def account_investment_sum(db: Session, account_id: int, start: datetime | None,
     return float(_window(query, InvestmentTransaction.date, start, end).scalar() or 0.0)
 
 
-def latest_balance_rows(db: Session, account_id: int, end: datetime) -> list:
+def latest_balance_rows(db: Session, account_id: int, end: datetime) -> Rows:
     """Dernier solde courant (date max puis id max) du compte, avec son type et sa devise."""
     account_last_tx = (
         db.query(Transaction.account_id.label("account_id"), func.max(Transaction.date).label("max_date"))
@@ -166,10 +170,10 @@ def capped_categories(db: Session) -> list[Category]:
 
 
 def category_spending_rows(db: Session, start: datetime, end: datetime, account_id: int | None,
-                           tr_accounts: set[int]) -> list:
+                           tr_accounts: set[int]) -> Rows:
     """Dépenses par (catégorie, devise), dépenses découpées comprises (une ligne par part)."""
     lines = category_lines()
-    query = (
+    query: Query[Any] = (
         db.query(lines.c.category_id, Account.currency, func.sum(lines.c.net_amount))
         .select_from(Transaction)
         .join(lines, lines.c.transaction_id == Transaction.id)

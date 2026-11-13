@@ -81,9 +81,9 @@ async def _load_baseline(db: Session, account_id: int, account_cutoff: datetime 
     return positions, account_cutoff or (max(baseline_dates) if baseline_dates else None)
 
 
-async def _apply_buy(db: Session, pos: Position, tx: InvestmentTransaction, price_currency: str) -> None:
+async def _apply_buy(db: Session, pos: Position, tx: InvestmentTransaction, quantity: float, price_currency: str) -> None:
     if tx.unit_price:
-        gross = tx.quantity * tx.unit_price + (tx.fees or 0.0)
+        gross = quantity * tx.unit_price + (tx.fees or 0.0)
         if pos.cost is not None:
             added = gross if price_currency == pos.currency else await convert(db, gross, price_currency, pos.currency, tx.date)
             pos.cost = None if added is None else pos.cost + added
@@ -92,23 +92,23 @@ async def _apply_buy(db: Session, pos: Position, tx: InvestmentTransaction, pric
             pos.cost_eur = None if added_eur is None else pos.cost_eur + added_eur
     elif pos.quantity > EPSILON and pos.cost is not None:
         # Prix inconnu : on suppose l'achat au PRU courant (le PRU ne bouge pas)
-        ratio = (pos.quantity + tx.quantity) / pos.quantity
+        ratio = (pos.quantity + quantity) / pos.quantity
         pos.cost *= ratio
         pos.cost_eur = pos.cost_eur * ratio if pos.cost_eur is not None else None
     else:
         pos.cost = pos.cost_eur = None
-    pos.quantity += tx.quantity
+    pos.quantity += quantity
 
 
-async def _apply_sell(db: Session, pos: Position, tx: InvestmentTransaction, ticker: str, price_currency: str) -> RealizedSale | None:
+async def _apply_sell(db: Session, pos: Position, tx: InvestmentTransaction, quantity: float, ticker: str, price_currency: str) -> RealizedSale | None:
     """Vend au plus la quantité détenue ; renvoie la vente réalisée (None si rien n'était détenu)."""
-    sold = min(tx.quantity, pos.quantity)
+    sold = min(quantity, pos.quantity)
     ratio = (pos.quantity - sold) / pos.quantity if pos.quantity > EPSILON else 0.0
     sale = None
     if sold > EPSILON:
-        share = sold / tx.quantity
+        share = sold / quantity
         if tx.unit_price:
-            net = tx.quantity * tx.unit_price - (tx.fees or 0.0)
+            net = quantity * tx.unit_price - (tx.fees or 0.0)
             proceeds_eur = await convert(db, net * share, price_currency, "EUR", tx.date)
         else:
             proceeds_eur = await convert(db, tx.original_amount * share, tx.currency, "EUR", tx.date)
@@ -144,6 +144,9 @@ async def replay_account(db: Session, account_id: int, until: datetime | None = 
     events: list[tuple[datetime, str, float]] = []
 
     for tx in tx_repo.trades(db, account_id, before=until or end_of_today()):
+        if tx.ticker is None or tx.quantity is None:
+            continue  # écarté par le filtre SQL de `trades` ; garde pour le typage
+        quantity = tx.quantity
         ticker = normalize_ticker(tx.ticker)
         pos = positions.get(ticker)
         cutoff = pos.cutoff if pos else account_cutoff
@@ -161,10 +164,10 @@ async def replay_account(db: Session, account_id: int, until: datetime | None = 
         pos.etf_profile_id = pos.etf_profile_id or tx.etf_profile_id
 
         if tx.type in BUY_TYPES:
-            await _apply_buy(db, pos, tx, price_currency)
-            events.append((tx.date, ticker, tx.quantity))
+            await _apply_buy(db, pos, tx, quantity, price_currency)
+            events.append((tx.date, ticker, quantity))
         else:
-            sale = await _apply_sell(db, pos, tx, ticker, price_currency)
+            sale = await _apply_sell(db, pos, tx, quantity, ticker, price_currency)
             if sale is not None:
                 realized.append(sale)
                 events.append((tx.date, ticker, -sale.quantity))

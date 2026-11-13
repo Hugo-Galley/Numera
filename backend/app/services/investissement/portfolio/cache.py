@@ -7,17 +7,18 @@ Plusieurs routes (budget, patrimoine, FIRE, Centre d'Actions, fiscalité) recalc
 """
 import copy
 import time
+from typing import Any
 
 from sqlalchemy import event
 from sqlalchemy.orm import Session
 
 TTL_SECONDS = 20.0
 
-_entries: dict[tuple, tuple[float, dict]] = {}
+_entries: dict[tuple[Any, ...], tuple[float, dict[str, Any]]] = {}
 _generation = 0
 
 
-def invalidate(*_args) -> None:
+def invalidate(*_args: object) -> None:
     global _generation
     _generation += 1
     _entries.clear()
@@ -27,18 +28,18 @@ def generation() -> int:
     return _generation
 
 
-def key(db: Session, account_id: int, fetch: bool, history: bool) -> tuple:
+def key(db: Session, account_id: int, fetch: bool, history: bool) -> tuple[Any, ...]:
     return (id(db.get_bind()), account_id, fetch, history)
 
 
-def get(entry_key: tuple) -> dict | None:
+def get(entry_key: tuple[Any, ...]) -> dict[str, Any] | None:
     entry = _entries.get(entry_key)
     if entry is None or time.monotonic() - entry[0] > TTL_SECONDS:
         return None
     return copy.deepcopy(entry[1])
 
 
-def put(entry_key: tuple, value: dict, started_at: int) -> None:
+def put(entry_key: tuple[Any, ...], value: dict[str, Any], started_at: int) -> None:
     if started_at == _generation:
         _entries[entry_key] = (time.monotonic(), copy.deepcopy(value))
 

@@ -46,7 +46,7 @@ CHALLENGE_TTL_SECONDS = 300
 RP_NAME = "Numera"
 
 
-def _load(db: Session) -> list[dict]:
+def _load(db: Session) -> list[dict[str, Any]]:
     raw = get_setting(db, SETTING_KEY, "[]")
     try:
         data = json.loads(raw)
@@ -55,7 +55,7 @@ def _load(db: Session) -> list[dict]:
     return data if isinstance(data, list) else []
 
 
-def _save(db: Session, credentials: list[dict]) -> None:
+def _save(db: Session, credentials: list[dict[str, Any]]) -> None:
     set_setting(db, SETTING_KEY, json.dumps(credentials))
     db.commit()
 
@@ -103,21 +103,22 @@ def _read_challenge(state: str, purpose: str) -> bytes:
 
 
 def _admin_username(db: Session) -> str:
-    return get_setting(db, "admin_username", settings.ADMIN_USERNAME)
+    username: str = get_setting(db, "admin_username", settings.ADMIN_USERNAME)
+    return username
 
 
 def passkey_available(db: Session) -> dict[str, bool]:
     return {"available": bool(_load(db))}
 
 
-def list_passkeys(db: Session) -> list[dict]:
+def list_passkeys(db: Session) -> list[dict[str, Any]]:
     return [
         {"id": c["id"], "name": c["name"], "created_at": c["created_at"], "last_used_at": c.get("last_used_at")}
         for c in _load(db)
     ]
 
 
-def delete_passkey(db: Session, credential_id: str, body: ReauthBody | None = None) -> dict:
+def delete_passkey(db: Session, credential_id: str, body: ReauthBody | None = None) -> dict[str, Any]:
     body = body or ReauthBody()
     admin_service.require_reauth(db, body.current_password, body.code)
     credentials = _load(db)
@@ -128,7 +129,7 @@ def delete_passkey(db: Session, credential_id: str, body: ReauthBody | None = No
     return {"ok": True}
 
 
-def register_options(db: Session, request: Any, user: str, body: ReauthBody | None = None) -> dict:
+def register_options(db: Session, request: Any, user: str, body: ReauthBody | None = None) -> dict[str, Any]:
     # Le code TOTP, à usage unique, n'est exigé qu'à la validation (`register/verify`)
     admin_service.require_current_password(db, (body or ReauthBody()).current_password)
     _, rp_id = _origin(request)
@@ -146,7 +147,7 @@ def register_options(db: Session, request: Any, user: str, body: ReauthBody | No
     return {"options": json.loads(options_to_json(options)), "state": _sign_challenge(options.challenge, "register")}
 
 
-def register_verify(db: Session, body: RegisterVerifyBody, request: Any) -> dict:
+def register_verify(db: Session, body: RegisterVerifyBody, request: Any) -> dict[str, Any]:
     admin_service.require_reauth(db, body.current_password, body.code)
     origin, rp_id = _origin(request)
     try:
@@ -179,7 +180,7 @@ def register_verify(db: Session, body: RegisterVerifyBody, request: Any) -> dict
     return {"ok": True, "id": credential_id}
 
 
-def login_options(db: Session, request: Any) -> dict:
+def login_options(db: Session, request: Any) -> dict[str, Any]:
     _, rp_id = _origin(request)
     credentials = _load(db)
     if not credentials:
@@ -192,7 +193,7 @@ def login_options(db: Session, request: Any) -> dict:
     return {"options": json.loads(options_to_json(options)), "state": _sign_challenge(options.challenge, "login")}
 
 
-def login_verify(db: Session, body: LoginVerifyBody, request: Any) -> dict:
+def login_verify(db: Session, body: LoginVerifyBody, request: Any) -> dict[str, Any]:
     key = client_key(request, "passkey")
     if not login_rate_limiter.is_allowed(key):
         record_login(db, request, "passkey", False, "rate_limited")

@@ -1,5 +1,6 @@
 """Répartition des dépenses par catégorie et top marchands du mois."""
 from types import SimpleNamespace
+from typing import Any
 
 from sqlalchemy.orm import Session
 
@@ -14,13 +15,13 @@ UNCATEGORIZED = SimpleNamespace(
 )
 
 
-async def compute_expenses_by_category(db: Session, month: int, year: int, account_id: int | None = None) -> dict:
+async def compute_expenses_by_category(db: Session, month: int, year: int, account_id: int | None = None) -> dict[str, Any]:
     start, end = period_bounds(db, year, month)
     rates = await get_exchange_rates("EUR")
     tr_accounts = set() if account_id else ticket_restaurant_account_ids(db)
 
     # Agrégat par catégorie après conversion ; les dépenses sans catégorie forment un bloc à part
-    category_totals: dict = {}
+    category_totals: dict[int | None, dict[str, Any]] = {}
     for row in repo.category_expense_rows(db, start, end, account_id, tr_accounts):
         category = row.Category or UNCATEGORIZED
         if category.id not in category_totals:
@@ -48,7 +49,7 @@ async def compute_expenses_by_category(db: Session, month: int, year: int, accou
     }
 
 
-def _category_item(item: dict, total_amount_eur: float) -> dict:
+def _category_item(item: dict[str, Any], total_amount_eur: float) -> dict[str, Any]:
     amount = item["total_eur"]
     pct = (amount / total_amount_eur * 100.0) if total_amount_eur > 0 else 0.0
     cat = item["category"]
@@ -67,12 +68,12 @@ def _category_item(item: dict, total_amount_eur: float) -> dict:
 
 
 async def compute_top_merchants(db: Session, month: int, year: int, limit: int = 5,
-                                account_id: int | None = None) -> dict:
+                                account_id: int | None = None) -> dict[str, Any]:
     start, end = period_bounds(db, year, month)
     rates = await get_exchange_rates("EUR")
     tr_accounts = set() if account_id else ticket_restaurant_account_ids(db)
 
-    merchant_totals: dict = {}
+    merchant_totals: dict[str, Any] = {}
     for row in repo.merchant_expense_rows(db, start, end, account_id, tr_accounts):
         if row.merchant not in merchant_totals:
             merchant_totals[row.merchant] = 0.0

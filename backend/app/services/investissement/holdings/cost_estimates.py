@@ -33,16 +33,19 @@ async def _from_trades(db: Session, account_id: int, item: HoldingBaselineItem) 
     buys = 0
     first_buy = None
     for tx in tx_repo.trades(db, account_id, until=cutoff):
+        if tx.ticker is None or tx.quantity is None:
+            continue  # écarté par le filtre SQL de `trades` ; garde pour le typage
         if normalize_ticker(tx.ticker) != item.ticker:
             continue
+        quantity = tx.quantity
         if tx.type in SELL_TYPES:
-            sold += tx.quantity
+            sold += quantity
             continue
         buys += 1
-        bought += tx.quantity
+        bought += quantity
         first_buy = first_buy or tx.date
         if tx.unit_price:
-            gross, cur = tx.quantity * tx.unit_price + (tx.fees or 0.0), (tx.price_currency or tx.currency or "EUR").upper()
+            gross, cur = quantity * tx.unit_price + (tx.fees or 0.0), (tx.price_currency or tx.currency or "EUR").upper()
         elif tx.original_amount:
             gross, cur = tx.original_amount, (tx.currency or "EUR").upper()
         else:
@@ -51,7 +54,7 @@ async def _from_trades(db: Session, account_id: int, item: HoldingBaselineItem) 
         if converted is None:
             continue
         total_cost += converted
-        priced_qty += tx.quantity
+        priced_qty += quantity
     return total_cost, bought, sold, priced_qty, buys, first_buy
 
 

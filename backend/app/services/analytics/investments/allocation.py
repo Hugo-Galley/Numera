@@ -1,6 +1,9 @@
 """Répartitions : par compte d'investissement, par classe d'actifs / secteur / zone, patrimoine global, suggestions."""
 
+from typing import Any
+
 from sqlalchemy.orm import Session
+from sqlalchemy.orm.attributes import InstrumentedAttribute
 
 from app.core.time import now_local
 from app.domain.investments import AllocationGroups, Tags, net_purchase_weights, patrimoine_items, ticker_tags
@@ -19,7 +22,7 @@ DEFAULT_SECTORS = ["Tech", "Santé", "Finance", "Energie", "Industrie", "Consomm
 DEFAULT_ZONES = ["Europe", "USA", "Asie", "Marchés Émergents", "France", "Monde", "Chine", "Japon"]
 
 
-async def compute_allocation(db: Session, account_id: int | None = None) -> dict:
+async def compute_allocation(db: Session, account_id: int | None = None) -> dict[str, Any]:
     accounts = repo.investment_accounts(db, account_id)
     now = now_local()
     values = await account_values(db, accounts)
@@ -64,7 +67,7 @@ async def compute_allocation(db: Session, account_id: int | None = None) -> dict
     }
 
 
-async def compute_allocation_advanced(db: Session) -> dict:
+async def compute_allocation_advanced(db: Session) -> dict[str, Any]:
     """Répartition par classe d'actifs, secteur et zone de ce qui est détenu : valeur de chaque position (compte
     valorisé par positions) ou achats nets des ventes (sinon), à défaut la classification du compte."""
     accounts = repo.investment_accounts(db)
@@ -102,16 +105,16 @@ async def _position_weights(db: Session, acc: Account, txs: list[InvestmentTrans
     return weights
 
 
-async def compute_patrimoine_allocation(db: Session) -> dict:
+async def compute_patrimoine_allocation(db: Session) -> dict[str, Any]:
     """Répartition du patrimoine actif (tous comptes) ; crédits hors camembert : `total_debts_eur`, `net_patrimoine_eur`."""
     accounts = active_accounts(db)
     values = await account_values(db, accounts)
     return patrimoine_items(accounts, values)
 
 
-def compute_allocation_suggestions(db: Session) -> dict:
+def compute_allocation_suggestions(db: Session) -> dict[str, Any]:
     """Valeurs connues (comptes et opérations) et usuelles des classes d'actifs, secteurs et zones (autocomplétion)."""
-    def known(account_column, operation_column) -> list[str]:
+    def known(account_column: InstrumentedAttribute[Any], operation_column: InstrumentedAttribute[Any]) -> list[str]:
         rows = repo.distinct_values(db, account_column) + repo.distinct_values(db, operation_column)
         return sorted({r[0] for r in rows if r[0]})
 

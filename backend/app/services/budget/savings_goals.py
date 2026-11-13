@@ -1,4 +1,5 @@
 from datetime import date
+from typing import Any
 
 from sqlalchemy.orm import Session
 
@@ -63,7 +64,7 @@ def update_goal(db: Session, goal_id: int, goal_in: SavingsGoalUpdate) -> Saving
     return goal
 
 
-def delete_goal(db: Session, goal_id: int) -> dict:
+def delete_goal(db: Session, goal_id: int) -> dict[str, Any]:
     repo.delete(db, _require(db, goal_id))
     db.commit()
     return {"status": "success"}

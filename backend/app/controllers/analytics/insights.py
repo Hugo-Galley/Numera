@@ -1,3 +1,5 @@
+from typing import Any
+
 from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
@@ -17,7 +19,7 @@ def get_intelligent_insights(
     year: int = Query(ge=2000, le=2200),
     account_id: int | None = Query(default=None),
     db: Session = Depends(get_db),
-):
+) -> IntelligentInsights:
     return run_async(service.compute_insights(db, month, year, account_id))
 
 
@@ -26,5 +28,5 @@ class DismissInsightRequest(BaseModel):
 
 
 @router.post("/insights/dismiss", response_model=StatusResponse)
-def dismiss_insight(request: DismissInsightRequest, db: Session = Depends(get_db)):
+def dismiss_insight(request: DismissInsightRequest, db: Session = Depends(get_db)) -> dict[str, Any]:
     return service.dismiss_insight(db, request.key)

@@ -1,6 +1,7 @@
 """Contexte partagé par les règles du Centre d'Actions."""
 from dataclasses import dataclass
 from datetime import datetime
+from typing import Any
 
 from sqlalchemy.orm import Query, Session
 
@@ -14,7 +15,7 @@ class AuditContext:
     now: datetime
 
 
-def unallocated_reimbursements_query(db: Session, now: datetime) -> Query | None:
+def unallocated_reimbursements_query(db: Session, now: datetime) -> Query[Any] | None:
     """Remboursements reçus (catégorie « Remboursement… ») non affectés, s'il existe une créance ouverte."""
     has_open_claim = any(
         remb.claim_received(db, claim.id) < claim.expected_amount - remb.EPS

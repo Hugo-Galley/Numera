@@ -32,7 +32,8 @@ jobs:
         working-directory: backend
         run: uv run ruff check app tests scripts alembic
       - name: Types (mypy)
-        run: uv run --project backend python scripts/quality/check_types.py
+        working-directory: backend
+        run: uv run mypy
       - name: Plafonds de taille
         run: uv run --project backend python scripts/quality/check_code_size.py
       - name: Tests

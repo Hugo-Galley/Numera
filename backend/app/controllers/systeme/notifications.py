@@ -1,3 +1,5 @@
+from typing import Any
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
@@ -17,16 +19,16 @@ router = APIRouter(prefix="/notifications", tags=["notifications"], dependencies
 
 
 @router.get("/settings", response_model=NotificationSettingsRead)
-def get_notification_settings(db: Session = Depends(get_db)):
+def get_notification_settings(db: Session = Depends(get_db)) -> dict[str, Any]:
     return service.get_notification_settings(db)
 
 
 @router.put("/settings", response_model=NotificationSettingsRead)
-def update_notification_settings(payload: NotificationSettingsUpdate, db: Session = Depends(get_db)):
+def update_notification_settings(payload: NotificationSettingsUpdate, db: Session = Depends(get_db)) -> dict[str, Any]:
     return service.update_notification_settings(db, payload.model_dump(exclude_unset=True))
 
 
 @router.post("/test", response_model=NotificationTestResult)
-def send_test_notification(payload: NotificationTestRequest, db: Session = Depends(get_db)):
+def send_test_notification(payload: NotificationTestRequest, db: Session = Depends(get_db)) -> dict[str, Any]:
     """Message d'essai sur un canal configuré, même désactivé (pour valider les réglages avant de l'activer)."""
     return run_async(service.send_test_notification(db, payload))

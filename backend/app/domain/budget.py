@@ -24,8 +24,8 @@ def elapsed_days(start: datetime, end: datetime, now: datetime) -> int:
     return max((min(end.date(), now.date() + timedelta(days=1)) - start.date()).days, 1)
 
 
-def spending_by_category(rows: Iterable[tuple[Any, str, float]], rates: dict[str, float],
-                         totals: dict[str, Any] | None = None) -> dict[str, Any]:
+def spending_by_category(rows: Iterable[tuple[int | None, str, float]], rates: dict[str, float],
+                         totals: dict[int | None, float] | None = None) -> dict[int | None, float]:
     """Cumule des lignes (catégorie, devise, montant) en EUR par catégorie."""
     totals = {} if totals is None else totals
     for cat_id, currency, amount in rows:

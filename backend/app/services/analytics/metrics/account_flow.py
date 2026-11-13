@@ -1,5 +1,6 @@
 """Flux net du mois (de paie) courant et du précédent d'un compte, et dépense moyenne."""
 from datetime import datetime
+from typing import Any
 
 from sqlalchemy.orm import Session
 
@@ -11,7 +12,7 @@ from app.services.budget.budget_period import current_period, period_bounds
 
 
 def compute_account_flow_summary(db: Session, account_id: int, start_date: datetime | None = None,
-                                 end_date: datetime | None = None) -> dict:
+                                 end_date: datetime | None = None) -> dict[str, Any]:
     """Calculé sur tout l'historique du compte (pas sur la page chargée par le frontend),
     virements internes exclus, Solde Initial exclu. Montants dans la devise du compte.
     """

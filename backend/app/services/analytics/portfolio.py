@@ -1,4 +1,7 @@
 """Portefeuille titres : comptes valorisés par positions et synthèse (valeur, plus-values, dividendes, XIRR)."""
+from datetime import date
+from typing import Any
+
 from sqlalchemy.orm import Session
 
 from app.core.errors import BusinessRuleError, NotFoundError
@@ -12,7 +15,7 @@ from app.services.investissement.holdings.replay import replay_account
 from app.services.investissement.portfolio import compute_portfolio
 
 
-async def valued_accounts(db: Session, *, history: bool = False) -> list[dict]:
+async def valued_accounts(db: Session, *, history: bool = False) -> list[dict[str, Any]]:
     """Indicateurs de tous les comptes titres actifs valorisés par leurs positions."""
     results = []
     for account in repo.securities_accounts(db):
@@ -28,7 +31,7 @@ async def portfolio_overview(db: Session) -> PortfolioOverview:
     value = sum(a["value_eur"] for a in accounts)
     unrealized = [a["unrealized_eur"] for a in accounts if a["unrealized_eur"] is not None]
 
-    years: dict[int, dict] = {}
+    years: dict[int, dict[str, Any]] = {}
     for a in accounts:
         for y in a["realized_by_year"]:
             agg = years.setdefault(y["year"], {"year": y["year"], "realized_eur": 0.0, "proceeds_eur": 0.0, "sales": 0})
@@ -38,7 +41,7 @@ async def portfolio_overview(db: Session) -> PortfolioOverview:
 
     flows = [flow for a in accounts for flow in a["_xirr_flows_eur"] if flow[0] is not None]
     # Valeurs finales : un flux positif par compte à la même date, on les additionne par jour
-    merged: dict = {}
+    merged: dict[date, float] = {}
     for day, amount in flows:
         merged[day] = merged.get(day, 0.0) + amount
     rate = xirr(sorted(merged.items())) if accounts else None

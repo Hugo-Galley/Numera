@@ -11,6 +11,7 @@ import calendar
 import math
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta
+from typing import Any
 
 from sqlalchemy.orm import Session
 
@@ -69,7 +70,7 @@ class ProvisionState:
     monthly_needed: float = 0.0
     funded: float | None = None
     status: str = "untracked"
-    last_payment: dict | None = None
+    last_payment: dict[str, Any] | None = None
 
 
 def _base_state(p: Provision, today: date) -> ProvisionState:
@@ -92,7 +93,7 @@ def _payment_window(around: date) -> tuple[datetime, datetime]:
     return start, end
 
 
-def _last_payments(db: Session, states: list[ProvisionState], rates: dict[str, float]) -> dict[int, dict]:
+def _last_payments(db: Session, states: list[ProvisionState], rates: dict[str, float]) -> dict[int, dict[str, Any]]:
     """Plus grosse dépense de la catégorie près de l'échéance précédente (parts de découpage comprises), par provision.
 
     Une seule requête pour toutes les provisions (catégories sur la fenêtre englobante), filtrée en mémoire."""
@@ -102,7 +103,7 @@ def _last_payments(db: Session, states: list[ProvisionState], rates: dict[str, f
     rows = repo.category_expenses_between(
         db, {p.category_id for p, _, _ in wanted if p.category_id is not None}, min(start for _, start, _ in wanted), max(end for _, _, end in wanted)
     )
-    payments: dict[int, dict] = {}
+    payments: dict[int, dict[str, Any]] = {}
     for provision, start, end in wanted:
         mine = [r for r in rows if r.category_id == provision.category_id and start <= r.date < end]
         if not mine:
@@ -150,7 +151,7 @@ async def compute_states(db: Session, provisions: list[Provision], today: date |
     return states
 
 
-def to_read(st: ProvisionState) -> dict:
+def to_read(st: ProvisionState) -> dict[str, Any]:
     p = st.provision
     return {
         "id": p.id,
@@ -176,12 +177,12 @@ def to_read(st: ProvisionState) -> dict:
     }
 
 
-async def summary(db: Session, today: date | None = None) -> dict:
+async def summary(db: Session, today: date | None = None) -> dict[str, Any]:
     today = today or today_local()
     provisions = repo.list_active(db)
     states = await compute_states(db, provisions, today)
 
-    accounts: dict[int, dict] = {}
+    accounts: dict[int, dict[str, Any]] = {}
     for st in states:
         if st.provision.account_id is None or st.funded is None:
             continue
@@ -225,20 +226,20 @@ def _require(db: Session, provision_id: int) -> Provision:
     return provision
 
 
-async def _read(db: Session, provision: Provision) -> dict:
+async def _read(db: Session, provision: Provision) -> dict[str, Any]:
     return to_read((await compute_states(db, [provision]))[0])
 
 
-async def list_provisions(db: Session) -> list[dict]:
+async def list_provisions(db: Session) -> list[dict[str, Any]]:
     states = await compute_states(db, repo.list_ordered(db))
     return [to_read(st) for st in sorted(states, key=lambda st: (not st.provision.active, st.next_due))]
 
 
-async def provisions_summary(db: Session) -> dict:
+async def provisions_summary(db: Session) -> dict[str, Any]:
     return await summary(db)
 
 
-async def create_provision(db: Session, payload: ProvisionCreate) -> dict:
+async def create_provision(db: Session, payload: ProvisionCreate) -> dict[str, Any]:
     _check_refs(db, payload.category_id, payload.account_id)
     provision = Provision(**payload.model_dump())
     repo.add(db, provision)
@@ -247,7 +248,7 @@ async def create_provision(db: Session, payload: ProvisionCreate) -> dict:
     return await _read(db, provision)
 
 
-async def update_provision(db: Session, provision_id: int, payload: ProvisionUpdate) -> dict:
+async def update_provision(db: Session, provision_id: int, payload: ProvisionUpdate) -> dict[str, Any]:
     provision = _require(db, provision_id)
     data = payload.model_dump(exclude_unset=True)
     _check_refs(db, data.get("category_id"), data.get("account_id"))

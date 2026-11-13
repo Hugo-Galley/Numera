@@ -5,6 +5,7 @@ que si le marchand a encore des transactions sans catégorie. Virements et récu
 leur propre catégorie) ne comptent pas.
 """
 from datetime import timedelta
+from typing import Any
 
 from app.core.i18n import tr, trn
 from app.repositories.analytics import audit as repo
@@ -12,8 +13,8 @@ from app.schemas.insight import ActionItem
 from app.services.audit.context import AuditContext
 
 
-def _stats_by_merchant(rows: list) -> dict[str, dict]:
-    by_merchant: dict[str, dict] = {}
+def _stats_by_merchant(rows: list[Any]) -> dict[str, dict[str, Any]]:
+    by_merchant: dict[str, dict[str, Any]] = {}
     for merchant, category_id, count in rows:
         stats = by_merchant.setdefault(merchant, {"total": 0, "uncategorized": 0, "categories": {}})
         stats["total"] += count

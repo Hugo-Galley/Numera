@@ -68,9 +68,9 @@ lint-fix:
 lint-front:
 	cd frontend && npm run lint
 
-# Types Python (mypy, backend/mypy.ini) : strict sur app/domain et app/core, baseline à cliquet ailleurs (scripts/quality/baselines/mypy_baseline.json)
+# Types Python (mypy strict sur tout backend/app, backend/mypy.ini) : zéro erreur, pas de baseline
 typecheck:
-	PYTHON=$(PYTHON) $(PYTHON) scripts/quality/check_types.py
+	cd backend && $(PYTHON) -m mypy
 
 # Tests frontend (Vitest + Testing Library + MSW, cf. frontend/src/CLAUDE.md § Vérification)
 test-front:

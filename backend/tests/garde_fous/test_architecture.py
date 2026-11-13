@@ -39,6 +39,10 @@ FORBIDDEN: dict[str, tuple[str, ...]] = {
 }
 
 
+# Un controller peut nommer un modèle ORM dans une annotation de retour (`if TYPE_CHECKING:`) : aucune dépendance à l'exécution.
+TYPING_ONLY_ALLOWED = ("app.controllers",)
+
+
 def _matches(module: str, prefix: str) -> bool:
     return module == prefix or module.startswith(prefix + ".")
 
@@ -53,12 +57,31 @@ def _is_module(name: str, app_dir: Path) -> bool:
     return (app_dir / rel).with_suffix(".py").exists() or (app_dir / rel / "__init__.py").exists()
 
 
-def imported_modules(path: Path, module: str, app_dir: Path | None = None) -> set[str]:
-    """Modules importés (y compris dans les fonctions), imports relatifs résolus en absolus."""
+def _type_checking_nodes(tree: ast.AST) -> set[int]:
+    """Identifiants des nœuds situés sous un `if TYPE_CHECKING:` (imports sans effet à l'exécution)."""
+    inside: set[int] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.If) and (
+            (isinstance(node.test, ast.Name) and node.test.id == "TYPE_CHECKING")
+            or (isinstance(node.test, ast.Attribute) and node.test.attr == "TYPE_CHECKING")
+        ):
+            inside.update(id(n) for stmt in node.body for n in ast.walk(stmt))
+    return inside
+
+
+def imported_modules(path: Path, module: str, app_dir: Path | None = None, runtime_only: bool = False) -> set[str]:
+    """Modules importés (y compris dans les fonctions), imports relatifs résolus en absolus.
+
+    `runtime_only` écarte les imports réservés au typage (`if TYPE_CHECKING:`).
+    """
     app_dir = app_dir or path.parents[len(module.split(".")) - 2]
     package = module if path.name == "__init__.py" else module.rpartition(".")[0]
     found: set[str] = set()
-    for node in ast.walk(ast.parse(path.read_text(encoding="utf-8"))):
+    tree = ast.parse(path.read_text(encoding="utf-8"))
+    typing_only = _type_checking_nodes(tree) if runtime_only else set()
+    for node in ast.walk(tree):
+        if id(node) in typing_only:
+            continue
         if isinstance(node, ast.Import):
             found.update(alias.name for alias in node.names)
         elif isinstance(node, ast.ImportFrom):
@@ -121,9 +144,11 @@ def violations(app_dir: Path) -> set[str]:
         imported = imported_modules(path, module, app_dir)
         found.update(f"{rel} -> {imp} (introuvable)" for imp in imported
                      if _matches(imp, "app") and imp != "app" and not _is_module(imp, app_dir))
+        runtime = imported_modules(path, module, app_dir, runtime_only=True)
         for layer, forbidden in FORBIDDEN.items():
             if _matches(module, layer):
-                found.update(f"{rel} -> {imp}" for imp in imported if any(_matches(imp, f) for f in forbidden))
+                found.update(f"{rel} -> {imp}" for imp in imported if any(_matches(imp, f) for f in forbidden)
+                             and not (layer in TYPING_ONLY_ALLOWED and _matches(imp, "app.models") and imp not in runtime))
         if _matches(module, "app.controllers"):
             found.update(f"{rel} -> {imp}" for imp in imported if _controllers_violation(module, imp))
         tree = ast.parse(path.read_text(encoding="utf-8"))
@@ -270,3 +295,10 @@ def test_layers_match_baseline():
 if __name__ == "__main__":
     RULES_BASELINE_PATH.write_text("\n".join(sorted(violations(APP_DIR))) + "\n", encoding="utf-8")
     print(f"Baseline écrite : {RULES_BASELINE_PATH}")
+
+
+def test_controllers_may_name_models_for_typing_only(tmp_path):
+    write(tmp_path / "app/models/m.py", "")
+    write(tmp_path / "app/controllers/c.py", "from typing import TYPE_CHECKING\n\nif TYPE_CHECKING:\n    from app.models.m import M\n")
+    write(tmp_path / "app/controllers/d.py", "from app.models.m import M\n")
+    assert violations(tmp_path / "app") == {"app/controllers/d.py -> app.models.m"}

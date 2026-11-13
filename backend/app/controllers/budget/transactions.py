@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import TYPE_CHECKING, Any
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
@@ -25,11 +26,14 @@ from app.services.budget import transaction_links as links
 from app.services.budget import transaction_writes as writes
 from app.services.budget import transactions as service
 
+if TYPE_CHECKING:
+    from app.models.transaction import Transaction
+
 router = APIRouter(prefix="/transactions", tags=["transactions"])
 
 
 @router.get("/merchants", response_model=list[str])
-def list_merchants(db: Session = Depends(get_db)):
+def list_merchants(db: Session = Depends(get_db)) -> list[str]:
     return service.list_merchants(db)
 
 
@@ -66,12 +70,12 @@ def list_transactions(
     skip: int = Query(default=0, ge=0),
     limit: int = Query(default=100, ge=1, le=1000),
     db: Session = Depends(get_db),
-):
+) -> "list[Transaction]":
     return service.list_transactions(db, filters, skip, limit)
 
 
 @router.get("/total", response_model=TransactionsTotal)
-def total_transactions(filters: TransactionFilters = Depends(transaction_filters), db: Session = Depends(get_db)):
+def total_transactions(filters: TransactionFilters = Depends(transaction_filters), db: Session = Depends(get_db)) -> dict[str, Any]:
     """Mêmes filtres que la liste, sans pagination : nombre et total net des transactions."""
     return service.total_transactions(db, filters)
 
@@ -82,7 +86,7 @@ def find_potential_transfers(
     amount_tolerance_pct: float = Query(default=1.0, ge=0, le=50),
     months: int = Query(default=0, ge=0, le=240, description="0 = tout l'historique"),
     db: Session = Depends(get_db)
-):
+) -> list[dict[str, Any]]:
     """Suggestions de virements internes (appariement 1 pour 1, égalités marquées `ambiguous`)."""
     return run_async(service.find_potential_transfers(db, days_tolerance, amount_tolerance_pct, months))
 
@@ -94,7 +98,7 @@ def transfer_candidates(
     amount_tolerance_pct: float = Query(default=5.0, ge=0, le=100),
     account_id: int | None = Query(default=None),
     db: Session = Depends(get_db),
-):
+) -> list[dict[str, Any]]:
     """Candidates classées pour relier cette ligne à un virement interne (liaison manuelle)."""
     return run_async(service.transfer_candidates(db, transaction_id, days, amount_tolerance_pct, account_id))
 
@@ -102,7 +106,7 @@ def transfer_candidates(
 @router.post("/{transaction_id}/transfer-counterpart", response_model=TransferCounterpartRead, status_code=201)
 def create_transfer_counterpart(
     transaction_id: int, payload: TransferCounterpartCreate, db: Session = Depends(get_db)
-):
+) -> TransferCounterpartRead:
     """Crée la contrepartie manquante d'une sortie sur un autre compte et la relie."""
     return run_async(links.create_transfer_counterpart(db, transaction_id, payload))
 
@@ -113,7 +117,7 @@ def link_transactions(
     other_id: int,
     type: str = Query(default="regular"),
     db: Session = Depends(get_db)
-):
+) -> dict[str, Any]:
     return links.link_transactions(db, transaction_id, other_id, type)
 
 
@@ -123,48 +127,48 @@ def ignore_transfer(
     other_id: int | None = Query(default=None),
     type: str = Query(default="regular"),
     db: Session = Depends(get_db),
-):
+) -> None:
     """Écarte une suggestion de virement. Avec `other_id`, la ligne en face est écartée aussi."""
     links.ignore_transfer(db, transaction_id, other_id, type)
 
 
 @router.post("/{transaction_id}/ignore-duplicate", status_code=204)
-def ignore_duplicate(transaction_id: int, db: Session = Depends(get_db)):
+def ignore_duplicate(transaction_id: int, db: Session = Depends(get_db)) -> None:
     links.ignore_duplicate(db, transaction_id)
 
 
 @router.post("/{transaction_id}/unlink", response_model=TransactionRead)
-def unlink_transaction(transaction_id: int, db: Session = Depends(get_db)):
+def unlink_transaction(transaction_id: int, db: Session = Depends(get_db)) -> "Transaction":
     return links.unlink_transaction(db, transaction_id)
 
 
 @router.post("", response_model=TransactionRead, status_code=201)
-def create_transaction(payload: TransactionCreate, db: Session = Depends(get_db)):
+def create_transaction(payload: TransactionCreate, db: Session = Depends(get_db)) -> "Transaction":
     return run_async(writes.create_transaction(db, payload))
 
 
 @router.patch("/bulk", status_code=204)
-def bulk_update_transactions(payload: TransactionBulkUpdate, db: Session = Depends(get_db)):
+def bulk_update_transactions(payload: TransactionBulkUpdate, db: Session = Depends(get_db)) -> None:
     writes.bulk_update_transactions(db, payload)
 
 
 @router.post("/bulk-delete", response_model=TransactionBulkDeleteResult)
-def bulk_delete_transactions(payload: TransactionBulkDelete, db: Session = Depends(get_db)):
+def bulk_delete_transactions(payload: TransactionBulkDelete, db: Session = Depends(get_db)) -> TransactionBulkDeleteResult:
     """Supprime plusieurs transactions dans une seule transaction SQL, puis recalcule les soldes."""
     return writes.bulk_delete_transactions(db, payload)
 
 
 @router.put("/{transaction_id}/splits", response_model=TransactionRead)
-def update_transaction_splits(transaction_id: int, payload: TransactionSplitsUpdate, db: Session = Depends(get_db)):
+def update_transaction_splits(transaction_id: int, payload: TransactionSplitsUpdate, db: Session = Depends(get_db)) -> "Transaction":
     """Découpe une dépense entre plusieurs catégories (liste vide = annuler le découpage)."""
     return writes.update_transaction_splits(db, transaction_id, payload)
 
 
 @router.patch("/{transaction_id}", response_model=TransactionRead)
-def update_transaction(transaction_id: int, payload: TransactionUpdate, db: Session = Depends(get_db)):
+def update_transaction(transaction_id: int, payload: TransactionUpdate, db: Session = Depends(get_db)) -> "Transaction":
     return run_async(writes.update_transaction(db, transaction_id, payload))
 
 
 @router.delete("/{transaction_id}", status_code=204)
-def delete_transaction(transaction_id: int, db: Session = Depends(get_db)):
+def delete_transaction(transaction_id: int, db: Session = Depends(get_db)) -> None:
     writes.delete_transaction(db, transaction_id)

@@ -1,5 +1,6 @@
 """Transactions : lecture, filtres et suggestions de virements internes."""
 from dataclasses import replace
+from typing import Any
 
 from sqlalchemy.orm import Session
 
@@ -35,7 +36,7 @@ def list_transactions(db: Session, filters: TransactionFilters, skip: int, limit
     return repo.filtered(db, _with_period(db, filters), skip, limit)
 
 
-def total_transactions(db: Session, filters: TransactionFilters) -> dict:
+def total_transactions(db: Session, filters: TransactionFilters) -> dict[str, Any]:
     """Nombre et total net (remboursements déduits) des transactions filtrées, sans limite de page.
     Avec un filtre de catégorie, une dépense découpée ne compte que pour la part de cette catégorie."""
     filters = _with_period(db, filters)
@@ -45,7 +46,7 @@ def total_transactions(db: Session, filters: TransactionFilters) -> dict:
     return {"count": len(rows), "total": round(total, 2)}
 
 
-async def find_potential_transfers(db: Session, days_tolerance: int, amount_tolerance_pct: float, months: int) -> list[dict]:
+async def find_potential_transfers(db: Session, days_tolerance: int, amount_tolerance_pct: float, months: int) -> list[dict[str, Any]]:
     """Suggestions de virements internes : une Sortie et une Entree (ou un versement d'investissement)
     de comptes différents, au montant et à la date proches. Appariement 1 pour 1 global : une entrée
     n'est jamais proposée pour deux sorties ; les égalités parfaites sont marquées `ambiguous`."""
@@ -70,7 +71,7 @@ async def find_potential_transfers(db: Session, days_tolerance: int, amount_tole
 
 
 async def transfer_candidates(db: Session, transaction_id: int, days: int, amount_tolerance_pct: float,
-                              account_id: int | None) -> list[dict]:
+                              account_id: int | None) -> list[dict[str, Any]]:
     """Candidates classées pour relier cette ligne à un virement interne (liaison manuelle)."""
     tx = require(db, transaction_id)
     return await candidates_for(db, tx, days=days, amount_tolerance_pct=amount_tolerance_pct, account_id=account_id)

@@ -1,5 +1,6 @@
 """Vue d'ensemble des investissements (`/investments`) : capital net investi, valeur et gain par compte."""
 from datetime import datetime
+from typing import Any
 
 from sqlalchemy.orm import Session
 
@@ -16,7 +17,7 @@ from app.services.investissement.portfolio import compute_portfolio
 
 
 async def compute_investments(db: Session, month: int | None = None, year: int | None = None,
-                              account_id: int | None = None) -> dict:
+                              account_id: int | None = None) -> dict[str, Any]:
     # Un compte qui n'est pas d'investissement est ignoré : vue d'ensemble du dashboard
     target_account = repo.get_account(db, account_id) if account_id else None
     scoped = target_account is not None and target_account.type in repo.INVESTMENT_TYPES
@@ -51,7 +52,7 @@ async def compute_investments(db: Session, month: int | None = None, year: int |
     }
 
 
-async def _latest_values(db: Session, accounts: list[Account], end_date: datetime, at_period_end: bool) -> tuple[dict, dict]:
+async def _latest_values(db: Session, accounts: list[Account], end_date: datetime, at_period_end: bool) -> tuple[dict[int, float], dict[int, datetime | None]]:
     """Dernière valeur connue de chaque compte (devise du compte) et sa date : par `account_values`, relevés seuls.
 
     Les positions sont valorisées à part (`_positions_item`) ; sur un mois, la valeur est celle de la fin de période."""
@@ -61,7 +62,7 @@ async def _latest_values(db: Session, accounts: list[Account], end_date: datetim
     return values, dates
 
 
-async def _positions_item(db: Session, account: Account, totals: dict) -> dict:
+async def _positions_item(db: Session, account: Account, totals: dict[str, Any]) -> dict[str, Any]:
     p = await compute_portfolio(db, account, history=False)
     totals["net_invested"] += p["net_invested_eur"]
     totals["current_value"] += p["value_eur"]
@@ -87,8 +88,8 @@ async def _positions_item(db: Session, account: Account, totals: dict) -> dict:
     }
 
 
-def _snapshot_item(account: Account, flows: dict, raw_current_value: float | None, value_date: datetime | None,
-                   start_date: datetime | None, rates: dict, totals: dict) -> dict:
+def _snapshot_item(account: Account, flows: dict[str, Any], raw_current_value: float | None, value_date: datetime | None,
+                   start_date: datetime | None, rates: dict[str, Any], totals: dict[str, Any]) -> dict[str, Any]:
     net_invested_eur = flows["net_invested_target"]
     current_value_eur = raw_current_value / rates.get(account.currency, 1.0) if raw_current_value is not None else 0.0
     # Sur un mois, le gain n'a de sens que si la valeur est postérieure au dernier flux de la période :

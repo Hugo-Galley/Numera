@@ -1,5 +1,6 @@
 """Projection de trésorerie (échéances récurrentes à venir)."""
 from datetime import date, datetime, timedelta
+from typing import Any
 
 from sqlalchemy.orm import Session
 
@@ -43,7 +44,7 @@ async def compute_cashflow_projection(db: Session, days: int = 30, account_id: i
     )
 
 
-async def _current_balance(db: Session, account_id: int | None, rates: dict) -> tuple[float, set[int]]:
+async def _current_balance(db: Session, account_id: int | None, rates: dict[str, Any]) -> tuple[float, set[int]]:
     """Valeur actuelle du compte, ou somme EUR des comptes actifs hors tickets restaurant (et leurs ids).
 
     Valeurs par `account_values` (source unique) ; les opérations à venir ne comptent qu'à leur date."""
@@ -64,7 +65,7 @@ async def _current_balance(db: Session, account_id: int | None, rates: dict) -> 
     return current_bal, counted_ids
 
 
-def _scheduled_events(db: Session, account_id: int | None, rates: dict,
+def _scheduled_events(db: Session, account_id: int | None, rates: dict[str, Any],
                       end_date: datetime) -> tuple[list[ProjectionEvent], set[tuple[int, date]]]:
     """Transactions saisies à l'avance (après aujourd'hui) et les échéances récurrentes qu'elles réalisent déjà."""
     tr_accounts = set() if account_id else ticket_restaurant_account_ids(db)
@@ -81,7 +82,7 @@ def _scheduled_events(db: Session, account_id: int | None, rates: dict,
     return events, entered
 
 
-def _projected_events(db: Session, account_id: int | None, counted_ids: set[int], rates: dict,
+def _projected_events(db: Session, account_id: int | None, counted_ids: set[int], rates: dict[str, Any],
                       now: datetime, end_date: datetime, entered: set[tuple[int, date]]) -> list[ProjectionEvent]:
     tr_accounts = set() if account_id else ticket_restaurant_account_ids(db)
     events: list[ProjectionEvent] = []

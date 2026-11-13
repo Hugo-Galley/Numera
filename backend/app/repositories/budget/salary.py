@@ -1,7 +1,7 @@
 from datetime import date
 
-from sqlalchemy import and_, or_
-from sqlalchemy.orm import Session
+from sqlalchemy import ColumnElement, and_, or_
+from sqlalchemy.orm import Query, Session
 
 from app.models.recurring_transaction import RecurringTransaction
 from app.models.salary_config import SalaryConfig
@@ -42,7 +42,7 @@ def month_record(db: Session, config_id: int, month_label: str) -> SalaryMonth |
     ).first()
 
 
-def _telecommuting(db: Session, config_id: int, month_label: str):
+def _telecommuting(db: Session, config_id: int, month_label: str) -> Query[TelecommutingDay]:
     return db.query(TelecommutingDay).filter(
         TelecommutingDay.salary_config_id == config_id,
         TelecommutingDay.month_label == month_label,
@@ -69,7 +69,7 @@ def salary_transaction(db: Session, salary_recurring_id: int | None, month_label
     ).first()
 
 
-def _orphan_salary_filter(labels: list[str]):
+def _orphan_salary_filter(labels: list[str]) -> ColumnElement[bool]:
     """Anciennes transactions de salaire ou de tickets sans récurrence."""
     return and_(
         Transaction.merchant.in_(SALARY_MERCHANTS),

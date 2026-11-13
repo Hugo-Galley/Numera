@@ -15,7 +15,7 @@ router = APIRouter(prefix="/export", tags=["export"])
 def export_transactions_csv(
     account_ids: str | None = Query(default=None, description="Comma-separated list of account IDs"),
     db: Session = Depends(get_db),
-):
+) -> StreamingResponse:
     return StreamingResponse(
         iter([service.export_transactions_csv(db, account_ids)]),
         media_type="text/csv",

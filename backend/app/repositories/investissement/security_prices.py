@@ -1,6 +1,7 @@
 """Cours de clôture stockés (`security_prices`) et titres détenus à coter."""
 from datetime import date as date_type
 
+from sqlalchemy import Row
 from sqlalchemy.orm import Session
 
 from app.models.portfolio_holding import PortfolioHolding
@@ -34,7 +35,7 @@ def latest_demo(db: Session, sym: str) -> SecurityPrice | None:
     )
 
 
-def series(db: Session, ticker: str) -> list[tuple[date_type, float, str]]:
+def series(db: Session, ticker: str) -> list[Row[date_type, float, str]]:
     """Cours (date, clôture, devise) d'un titre, par date croissante."""
     return (
         db.query(SecurityPrice.date, SecurityPrice.close, SecurityPrice.currency)

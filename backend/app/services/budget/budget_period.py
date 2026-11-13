@@ -9,12 +9,15 @@ civil, ce qui laisse les calculs inchangés.
 """
 from __future__ import annotations
 
+from collections.abc import Iterator
 from contextlib import contextmanager
 from contextvars import ContextVar
 from datetime import datetime, timedelta
+from typing import Any
 
-from sqlalchemy import case, func
+from sqlalchemy import ColumnElement, case, func
 from sqlalchemy.orm import Session
+from sqlalchemy.orm.attributes import InstrumentedAttribute
 
 from app.core.time import end_of_today, now_local
 from app.db.system_settings import get_setting, set_setting
@@ -31,7 +34,7 @@ _force_civil: ContextVar[bool] = ContextVar("budget_period_force_civil", default
 
 
 @contextmanager
-def civil_months():
+def civil_months() -> Iterator[None]:
     """Force le mois civil le temps d'un calcul (bilan annuel, hors mois de paie)."""
     token = _force_civil.set(True)
     try:
@@ -91,7 +94,7 @@ def current_period(db: Session, today: datetime | None = None) -> tuple[int, int
     return today.year, today.month
 
 
-def period_key_expr(db: Session, column, first: datetime, last: datetime):
+def period_key_expr(db: Session, column: InstrumentedAttribute[datetime], first: datetime, last: datetime) -> ColumnElement[Any]:
     """Expression SQL « AAAA-MM » du mois budgétaire d'une date (remplace strftime)."""
     if get_mode(db) == MODE_CIVIL:
         return func.strftime("%Y-%m", column)
@@ -109,20 +112,20 @@ def months_back(db: Session, count: int, today: datetime | None = None) -> list[
     return [((base - i) // 12, (base - i) % 12 + 1) for i in range(count - 1, -1, -1)]
 
 
-def period_info(db: Session, year: int | None = None, month: int | None = None) -> dict:
+def period_info(db: Session, year: int | None = None, month: int | None = None) -> dict[str, Any]:
     """Mois budgétaire en cours et fenêtre (début / fin incluse) du mois demandé (par défaut, le mois en cours)."""
     current_year, current_month = current_period(db)
     info = describe(db, year or current_year, month or current_month)
     return {**info, "current": {"year": current_year, "month": current_month}}
 
 
-def update_mode(db: Session, mode: str) -> dict:
+def update_mode(db: Session, mode: str) -> dict[str, Any]:
     """Change le mode (civil ou mois de paie) et renvoie la période en cours."""
     set_mode(db, mode)
     return period_info(db)
 
 
-def describe(db: Session, year: int, month: int) -> dict:
+def describe(db: Session, year: int, month: int) -> dict[str, Any]:
     start, end = period_window(db, year, month)
     return {
         "year": year,

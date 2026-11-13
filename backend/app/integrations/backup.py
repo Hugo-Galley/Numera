@@ -4,6 +4,7 @@ import os
 import sqlite3
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
+from typing import Any
 
 from app.core.time import now_local, utcnow_aware
 
@@ -46,7 +47,7 @@ def _parse_iso(value: object) -> datetime | None:
     return parsed if parsed.tzinfo else parsed.replace(tzinfo=UTC)
 
 
-def backup_status(now: datetime | None = None) -> dict:
+def backup_status(now: datetime | None = None) -> dict[str, Any]:
     """État des sauvegardes, lu dans BACKUP_DIR (fichiers `suivi_budget_*` et `status.json` écrit par scripts/backup.py)."""
     now = now or utcnow_aware()
     backup_dir = Path(os.getenv("BACKUP_DIR", "/app/backups"))

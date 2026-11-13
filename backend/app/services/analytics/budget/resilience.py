@@ -1,5 +1,7 @@
 """Résilience : mois d'autonomie couverts par l'épargne liquide."""
 
+from typing import Any
+
 from sqlalchemy.orm import Session
 
 from app.core.time import today_local
@@ -8,7 +10,7 @@ from app.services.analytics.budget.summary import compute_budget
 RESILIENCE_WINDOW_MONTHS = 6
 
 
-async def compute_resilience(db: Session, year: int, month: int, window: int = RESILIENCE_WINDOW_MONTHS) -> dict:
+async def compute_resilience(db: Session, year: int, month: int, window: int = RESILIENCE_WINDOW_MONTHS) -> dict[str, Any]:
     """Mois d'autonomie = épargne liquide ÷ dépenses réelles mensuelles moyennes.
 
     La moyenne porte sur les `window` derniers mois **complets** ayant des dépenses : le mois en

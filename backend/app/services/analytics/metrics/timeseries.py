@@ -1,5 +1,6 @@
 """Série annuelle : flux mensuels, points de solde (vue compte) et salaires."""
 from datetime import datetime
+from typing import Any
 
 from sqlalchemy.orm import Session
 
@@ -11,7 +12,7 @@ from app.repositories.analytics.common import ticket_restaurant_account_ids
 from app.services.budget.budget_period import period_bounds
 
 
-async def compute_timeseries(db: Session, year: int, account_id: int | None = None) -> dict:
+async def compute_timeseries(db: Session, year: int, account_id: int | None = None) -> dict[str, Any]:
     now = now_local()
     if not repo.has_transaction_in_year(db, year, account_id):
         # Aucune donnée sur l'année : séries vides plutôt que douze zéros
@@ -51,7 +52,7 @@ async def compute_timeseries(db: Session, year: int, account_id: int | None = No
 
 
 def _month_flows(db: Session, start: datetime, end: datetime, account_id: int | None, tr_accounts: set[int],
-                 rates: dict) -> tuple[float, float]:
+                 rates: dict[str, Any]) -> tuple[float, float]:
     """Revenus (dividendes compris) et dépenses du mois en EUR ; un compte titres compte ses versements en dépenses."""
     income = to_eur(repo.month_income_rows(db, start, end, account_id, tr_accounts), rates)
     income += to_eur(repo.month_investment_rows(db, start, end, "dividende", account_id), rates)
@@ -63,7 +64,7 @@ def _month_flows(db: Session, start: datetime, end: datetime, account_id: int | 
     return income, expense
 
 
-def _salary_series(db: Session, year: int, account_id: int | None, rates: dict, now: datetime) -> list[dict]:
+def _salary_series(db: Session, year: int, account_id: int | None, rates: dict[str, Any], now: datetime) -> list[dict[str, Any]]:
     salary_by_month: dict[int, float] = {}
     for month in range(1, 13):
         m_start, m_end = period_bounds(db, year, month)

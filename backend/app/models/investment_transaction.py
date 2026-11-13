@@ -1,9 +1,15 @@
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import Boolean, DateTime, Float, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
+
+if TYPE_CHECKING:
+    from app.models.etf_profile import EtfProfile
+    from app.models.recurring_transaction import RecurringTransaction
+    from app.models.transaction import Transaction
 
 
 class InvestmentTransaction(Base):

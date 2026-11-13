@@ -14,6 +14,6 @@ def get_dividends(
     account_id: int | None = Query(default=None),
     months: int = Query(default=24, ge=1, le=120),
     db: Session = Depends(get_db),
-):
+) -> DividendSummary:
     """Dividendes nets / bruts en EUR : totaux, par mois, par année et par titre (avec rendements)."""
     return run_async(service.compute_dividends(db, account_id, months))

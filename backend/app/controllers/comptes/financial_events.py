@@ -16,21 +16,21 @@ def list_financial_events(
     end: date | None = Query(default=None),
     account_id: int | None = Query(default=None),
     db: Session = Depends(get_db),
-):
+) -> list[FinancialEventRead]:
     """Journal des décisions, du plus récent au plus ancien (bornes incluses)."""
     return service.list_financial_events(db, start, end, account_id)
 
 
 @router.post("", response_model=FinancialEventRead, status_code=201)
-def create_financial_event(payload: FinancialEventCreate, db: Session = Depends(get_db)):
+def create_financial_event(payload: FinancialEventCreate, db: Session = Depends(get_db)) -> FinancialEventRead:
     return service.create_financial_event(db, payload)
 
 
 @router.patch("/{event_id}", response_model=FinancialEventRead)
-def update_financial_event(event_id: int, payload: FinancialEventUpdate, db: Session = Depends(get_db)):
+def update_financial_event(event_id: int, payload: FinancialEventUpdate, db: Session = Depends(get_db)) -> FinancialEventRead:
     return service.update_financial_event(db, event_id, payload)
 
 
 @router.delete("/{event_id}", status_code=204)
-def delete_financial_event(event_id: int, db: Session = Depends(get_db)):
+def delete_financial_event(event_id: int, db: Session = Depends(get_db)) -> None:
     service.delete_financial_event(db, event_id)

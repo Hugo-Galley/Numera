@@ -25,7 +25,7 @@ async def detect(ctx: AuditContext) -> list[ActionItem]:
         type="budget",
         severity="medium",
         title=tr("audit.budget.near_title", category=alert.category_name),
-        description=tr("audit.budget.near_description", pct=round(alert.monthly_ratio * 100), category=alert.category_name),
+        description=tr("audit.budget.near_description", pct=round((alert.monthly_ratio or 0.0) * 100), category=alert.category_name),
         action_label=tr("audit.budget.near_action"),
         action_url="/accounts",
         action_type="link",

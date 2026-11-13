@@ -1,7 +1,7 @@
 import calendar
 from datetime import date, datetime, timedelta
 
-from sqlalchemy import or_
+from sqlalchemy import ColumnElement, or_
 from sqlalchemy.orm import Session
 
 from app.core.logging import get_logger
@@ -131,7 +131,7 @@ def find_missing_salary_months(db: Session, today: date, lookback_months: int = 
 def _has_salary_entry(db: Session, config: SalaryConfig, year: int, month: int) -> bool:
     start = datetime(year, month, 1)
     end = datetime(year + month // 12, month % 12 + 1, 1)
-    salary_like = [Transaction.merchant.ilike("salaire%"), Category.name.ilike("salaire%")]
+    salary_like: list[ColumnElement[bool]] = [Transaction.merchant.ilike("salaire%"), Category.name.ilike("salaire%")]
     if config.salary_category_id:
         salary_like.append(Transaction.category_id == config.salary_category_id)
     return db.query(Transaction.id).outerjoin(Category, Category.id == Transaction.category_id).filter(

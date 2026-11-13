@@ -17,6 +17,7 @@ from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
+from typing import Any
 
 from sqlalchemy.orm import Session
 
@@ -28,6 +29,7 @@ from app.db.system_settings import get_setting, set_setting
 from app.integrations.notifications import DEFAULT_NTFY_SERVER, Channel, NtfyChannel, TelegramChannel, send_all
 from app.models.notification_log import NotificationLog
 from app.schemas.insight import ActionItem
+from app.schemas.notification import NotificationTestRequest
 from app.services.analytics.budget import compute_budget
 from app.services.analytics.reports import compute_cashflow_projection
 from app.services.audit import compute_action_center
@@ -81,7 +83,7 @@ class NotificationSettings:
 
 def load_settings(db: Session) -> NotificationSettings:
     defaults = NotificationSettings()
-    values: dict = {}
+    values: dict[str, Any] = {}
     for field, key in KEYS.items():
         raw = get_setting(db, key)
         if raw is None or raw == "":
@@ -101,7 +103,7 @@ def mask_secret(value: str) -> str:
     return f"••••{value[-4:]}" if value else ""
 
 
-def save_settings(db: Session, update: dict) -> NotificationSettings:
+def save_settings(db: Session, update: dict[str, Any]) -> NotificationSettings:
     """Enregistre les champs fournis ; un jeton renvoyé masqué (`••••xxxx`) garde sa valeur."""
     current = load_settings(db)
     for field, value in update.items():
@@ -293,7 +295,7 @@ async def send_weekly_digest(db: Session, now: datetime) -> bool:
     return True
 
 
-def masked_settings(settings: NotificationSettings) -> dict:
+def masked_settings(settings: NotificationSettings) -> dict[str, Any]:
     """Réglages lisibles par le client : jetons masqués (•••• + 4 derniers caractères)."""
     data = asdict(settings)
     for field in SECRET_FIELDS:
@@ -301,11 +303,11 @@ def masked_settings(settings: NotificationSettings) -> dict:
     return data
 
 
-def get_notification_settings(db: Session) -> dict:
+def get_notification_settings(db: Session) -> dict[str, Any]:
     return masked_settings(load_settings(db))
 
 
-def _sensitive_changes(current: NotificationSettings, update: dict) -> list[str]:
+def _sensitive_changes(current: NotificationSettings, update: dict[str, Any]) -> list[str]:
     changed = []
     for field in SENSITIVE_FIELDS:
         value = update.get(field)
@@ -319,7 +321,7 @@ def _sensitive_changes(current: NotificationSettings, update: dict) -> list[str]
     return changed
 
 
-def update_notification_settings(db: Session, update: dict) -> dict:
+def update_notification_settings(db: Session, update: dict[str, Any]) -> dict[str, Any]:
     password = update.pop("current_password", None)
     if _sensitive_changes(load_settings(db), update):
         # Rediriger les alertes vers un autre serveur ne doit pas être possible avec un simple jeton volé
@@ -327,7 +329,7 @@ def update_notification_settings(db: Session, update: dict) -> dict:
     return masked_settings(save_settings(db, update))
 
 
-async def send_test_notification(db: Session, payload) -> dict:
+async def send_test_notification(db: Session, payload: NotificationTestRequest) -> dict[str, Any]:
     """Message d'essai sur un canal configuré, même désactivé (pour valider les réglages avant de l'activer)."""
     channel = build_channel(db, payload.channel)
     if channel is None:

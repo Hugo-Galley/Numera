@@ -3,6 +3,7 @@
 Toute mutation recalcule intégralement les soldes du ou des comptes touchés.
 """
 from datetime import datetime
+from typing import Any
 
 from sqlalchemy.orm import Session
 
@@ -181,7 +182,7 @@ def update_transaction_splits(db: Session, transaction_id: int, payload: Transac
     return transaction
 
 
-async def _apply_amount_change(db: Session, transaction: Transaction, account: Account, update_data: dict) -> None:
+async def _apply_amount_change(db: Session, transaction: Transaction, account: Account, update_data: dict[str, Any]) -> None:
     """Reconvertit le montant si le montant, la devise ou la date changent."""
     if not ("amount" in update_data or "currency" in update_data or "date" in update_data):
         return
@@ -193,13 +194,13 @@ async def _apply_amount_change(db: Session, transaction: Transaction, account: A
     update_data["currency"] = currency
 
 
-def _apply_tags(db: Session, transaction: Transaction, update_data: dict) -> None:
+def _apply_tags(db: Session, transaction: Transaction, update_data: dict[str, Any]) -> None:
     if "tag_ids" in update_data:
         tag_ids = update_data.pop("tag_ids")
         transaction.tags = repo.tags_by_ids(db, tag_ids) if tag_ids is not None else []
 
 
-def _check_change(db: Session, transaction: Transaction, update_data: dict) -> None:
+def _check_change(db: Session, transaction: Transaction, update_data: dict[str, Any]) -> None:
     new_type = update_data.get("type", transaction.type)
     new_amount = update_data.get("amount", transaction.amount)
     remb.check_transaction_change(db, transaction, new_type, new_amount)
@@ -211,6 +212,8 @@ def _check_change(db: Session, transaction: Transaction, update_data: dict) -> N
 async def update_transaction(db: Session, transaction_id: int, payload: TransactionUpdate) -> Transaction:
     transaction = require(db, transaction_id)
     account = account_repo.get(db, transaction.account_id)
+    if account is None:
+        raise NotFoundError(tr("errors.account_not_found"))
     update_data = payload.model_dump(exclude_unset=True)
     if "type" in update_data:
         update_data["type"] = _normalized_type(update_data["type"])

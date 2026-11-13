@@ -4,9 +4,10 @@ from app.models.account import Account
 from app.models.category import Category
 from app.models.investment_transaction import InvestmentTransaction
 from app.models.transaction import Transaction
+from app.repositories.types import Rows
 
 
-def transactions(db: Session, account_ids: list[int]):
+def transactions(db: Session, account_ids: list[int]) -> Rows:
     """Colonnes de l'export seulement : pas d'objets ORM ni de relations chargées pour chaque ligne."""
     query = db.query(
         Transaction.account_id, Transaction.category_id, Transaction.date, Transaction.month_label,
@@ -17,7 +18,7 @@ def transactions(db: Session, account_ids: list[int]):
     return query.order_by(Transaction.id).all()
 
 
-def investment_transactions(db: Session, account_ids: list[int]):
+def investment_transactions(db: Session, account_ids: list[int]) -> Rows:
     query = db.query(
         InvestmentTransaction.account_id, InvestmentTransaction.date, InvestmentTransaction.type, InvestmentTransaction.amount,
     )
