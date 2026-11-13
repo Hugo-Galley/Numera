@@ -117,7 +117,7 @@ export function ProjectionsTab({ projection, displayCurrency }: ProjectionsTabPr
                 axisLine={false} 
                 tickLine={false} 
                 tick={{ fontSize: isMobile ? 11 : 12, fill: '#64748b' }} 
-                width={isMobile ? 52 : undefined}
+                width={isMobile ? 52 : 60}
                 tickFormatter={(v) => `${Math.round(v)}€`}
               />
               <Tooltip 

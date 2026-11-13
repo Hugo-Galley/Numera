@@ -13,13 +13,9 @@ test("tableau de bord : KPI du mois et onglets Aperçu, Budgets, Dépenses", asy
   }
 })
 
-// BUG CONNU (trouvé par ce scénario) : les graphiques « Flux de trésorerie » (Analyse) et « Évolution du Solde
-// Projeté » (Projections) émettent des centaines d'erreurs console « <rect> attribute x/width: NaN ». Le scénario
-// est attendu en échec (`test.fail`) : le jour où le bug est corrigé il passe, Playwright le signale et il suffit
-// de retirer la ligne `test.fail`.
+// Garde : les graphiques de ces onglets ne doivent émettre aucune erreur console (la fixture échoue sinon).
 for (const tab of ["Analyse", "Projections"]) {
   test(`onglet ${tab} sans erreur console`, async ({ page }) => {
-    test.fail(true, "NaN dans les attributs <rect> des graphiques Recharts de l'onglet")
     await page.goto("/")
     await page.getByRole("tab", { name: tab }).click()
     await expect(page.getByRole("tabpanel", { name: tab }).getByRole("heading").first()).toBeVisible()
