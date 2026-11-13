@@ -31,6 +31,7 @@ est toujours démarrée à neuf.
 | `settings` | quatre onglets, sécurité, export CSV, zone de danger, profil |
 | `tools` | simulateur, fiscalité, bilan annuel |
 | `omnibox` | ⌘K : navigation, comptes, fermeture |
+| `security/*` (profil `security`) | 2FA TOTP (activation, connexion, code de secours à usage unique, régénération, désactivation), passkey (authentificateur WebAuthn virtuel), jetons MCP (affichage unique, GET ok / POST 403, révocation), sauvegarde chiffrée et restauration, notifications ntfy / Telegram |
 | `responsive`, `navigation` | sidebar, 404, redirections, mobile 375 px sans débordement, **chaque route se charge** |
 
 La **garde transversale** (fixture automatique, `fixtures.ts`) fait échouer tout scénario qui provoque une exception
@@ -44,14 +45,38 @@ n'importe quelle page. Un scénario qui attend une erreur précise la déclare :
   dev : on peut lancer les E2E pendant un `make dev`.
 - `e2e/backend.sh` régénère à chaque lancement `backend/data/e2e-demo.db` (mode démo, identifiants `demo` / `demo`,
   ignoré par git). La vraie base n'est jamais touchée. Le mode démo bloque 2FA, passkeys, jetons MCP, sauvegardes et
-  notifications (non testables ici) et plafonne les écritures à 120 par minute.
+  notifications et plafonne les écritures à 120 par minute : ces zones relèvent du profil `security` (ci-dessous).
 - `auth.setup.ts` se connecte une fois (`storageState`), tous les scénarios réutilisent la session. Un scénario qui
   teste la connexion repart d'un navigateur vierge (`test.use({ storageState: { cookies: [], origins: [] } })`).
-- Un seul worker par pile (base partagée). La CI lance **deux tranches** (`--shard=1/2`, `2/2`), chacune avec sa propre
-  pile ; en échec, rapport HTML + traces + captures sont publiés en artefact `playwright-N` (7 jours). `retries: 1` en CI
-  seulement.
+- Un seul worker par pile (base partagée). La CI lance **un seul job** `E2E (Playwright)` (projets `chromium` et
+  `security`, deux piles) ; en échec, rapport HTML + traces + captures sont publiés en artefact `playwright-report`
+  (7 jours). `retries: 1` en CI seulement.
 - Les données de démo sont datées par rapport à aujourd'hui (même jour, mêmes données) : ne jamais asserter un montant
   de la démo, seulement sa présence ou sa structure. Les montants des écritures créées par le scénario, eux, sont connus.
+
+## Profil `security` (zones bloquées en démo)
+
+`DEMO_MODE` refuse ces routes (`services/systeme/demo/guard.py`) ; au lieu d'affaiblir la démo, un second projet
+Playwright (`security`, précédé de `setup-security`) tourne sur une **pile dédiée, non démo** :
+
+| Brique | Rôle |
+|---|---|
+| `backend-security.sh` (port **8102**) | base jetable `backend/data/e2e-security.db` (recréée à chaque lancement, vierge : catégories par défaut seulement), identifiants `e2e` / `e2e-security-pass`, `BACKUP_DIR` jetable et clé Fernet publique de test, `LOGIN_MAX_ATTEMPTS=100` |
+| Vite (port **5175**) | même frontend, `VITE_API_BASE` vers 8102 |
+| `mock-external.mjs` (port **8103**) | faux serveur ntfy (`POST /`) **et** proxy HTTPS (`HTTPS_PROXY` du backend) qui journalise puis refuse tout `CONNECT` ; journal lu par les tests (`GET /__requests`) : aucun vrai appel réseau, Telegram (adresse figée `api.telegram.org`) y est vu sans sortir |
+
+Les specs sont dans `e2e/security/` (importer `test` de `../fixtures`, helpers de `./support`). Points de méthode :
+
+- **TOTP** : `totpCode(secret, offset)` implémente RFC 6238 côté test. Le code du pas courant sert à l'activation (le
+  backend le marque consommé) ; les connexions utilisent le pas +1 (dans la fenêtre ±1), le pas −5 est hors fenêtre. Aucune
+  attente, indépendant de la seconde d'exécution. Chaque test de `totp.spec.ts` est indépendant : `resetTwoFactor()` (avant et
+  après, efface les réglages 2FA de la base jetable) puis `enableTwoFactor()` (activation par l'API) ; retries et ordre sans effet.
+- **Passkeys** : authentificateur virtuel Chromium (`WebAuthn.addVirtualAuthenticator` via CDP), `localhost` est un contexte sûr.
+- **Jetons MCP** : la valeur en clair n'est vérifiée qu'à la création ; un jeton écrit (`POST`) reçoit 403, un jeton révoqué 401.
+- **Sauvegarde** : le bouton déclenche `scripts/backup.py` ; le test relit le `.enc` avec `scripts/restore.py` (la restauration n'a pas d'écran).
+- **5xx voulus** : l'essai Telegram répond 502 (canal injoignable) ; `test.use({ expectedServerErrors: [/motif d'URL/] })`.
+- Piles réutilisées en local : les scénarios supportent une base déjà utilisée (valeurs uniques, comptage relatif, 2FA remise à zéro).
+- Python des scripts (restauration, remise à zéro 2FA) : `backendPython()` résout `E2E_PYTHON` (relatif à `backend/`, comme en CI) en chemin absolu.
 
 ## Écrire un scénario
 

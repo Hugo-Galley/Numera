@@ -9,9 +9,11 @@ export { expect }
  *   ou réponse HTTP 5xx, quelle que soit la page visitée. Un scénario qui provoque volontairement
  *   une erreur 4xx n'est pas concerné : seules les 5xx et les exceptions sont fatales.
  */
-export const test = base.extend<{ guard: void; ignoredErrors: RegExp[] }>({
+export const test = base.extend<{ guard: void; ignoredErrors: RegExp[]; expectedServerErrors: RegExp[] }>({
   // Erreurs console attendues par un scénario précis (`test.use({ ignoredErrors: [/motif/] })`), jamais globales.
   ignoredErrors: [[], { option: true }],
+  // Réponses 5xx voulues par un scénario (ex. canal de notification injoignable → 502), par motif d'URL.
+  expectedServerErrors: [[], { option: true }],
   page: async ({ page }, provide) => {
     await page.addInitScript(() => {
       const get = Storage.prototype.getItem
@@ -22,7 +24,7 @@ export const test = base.extend<{ guard: void; ignoredErrors: RegExp[] }>({
     await provide(page)
   },
   guard: [
-    async ({ page, ignoredErrors }, provide) => {
+    async ({ page, ignoredErrors, expectedServerErrors }, provide) => {
       const problems: string[] = []
       page.on("pageerror", (e) => problems.push(`exception : ${e.message}`))
       page.on("console", (m) => {
@@ -32,7 +34,7 @@ export const test = base.extend<{ guard: void; ignoredErrors: RegExp[] }>({
           problems.push(`console : ${text}`)
         }
       })
-      page.on("response", (r) => r.status() >= 500 && problems.push(`HTTP ${r.status()} : ${r.url()}`))
+      page.on("response", (r) => r.status() >= 500 && !expectedServerErrors.some((re) => re.test(r.url())) && problems.push(`HTTP ${r.status()} : ${r.url()}`))
       await provide()
       expect(problems, "erreurs applicatives pendant le scénario").toEqual([])
     },

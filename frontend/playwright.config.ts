@@ -4,6 +4,9 @@ import { defineConfig, devices } from "@playwright/test"
 // Ports distincts du dev (8001 / 5173) pour pouvoir lancer les E2E pendant qu'un `make dev` tourne.
 const API = "http://localhost:8101"
 const APP = "http://localhost:5174"
+// Profil « security » : pile séparée (backend NON démo sur base jetable, port 8102 / Vite 5175 / faux services 8103)
+const SEC_API = "http://localhost:8102"
+const SEC_APP = "http://localhost:5175"
 
 export default defineConfig({
   testDir: "./e2e",
@@ -22,9 +25,17 @@ export default defineConfig({
     { name: "setup", testMatch: /auth\.setup\.ts/ },
     {
       name: "chromium",
-      testIgnore: /auth\.setup\.ts/,
+      testIgnore: [/auth\.setup\.ts/, /security\//],
       dependencies: ["setup"],
       use: { ...devices["Desktop Chrome"], storageState: "e2e/.auth/state.json" },
+    },
+    // 2FA, passkeys, jetons MCP, sauvegardes, notifications : bloqués en mode démo, donc pile dédiée non démo
+    { name: "setup-security", testMatch: /security\/login\.setup\.ts/, use: { baseURL: SEC_APP } },
+    {
+      name: "security",
+      testMatch: /security\/.*\.spec\.ts/,
+      dependencies: ["setup-security"],
+      use: { ...devices["Desktop Chrome"], baseURL: SEC_APP, storageState: "e2e/.auth/security.json" },
     },
   ],
   webServer: [
@@ -35,6 +46,15 @@ export default defineConfig({
       timeout: 120_000,
       reuseExistingServer: !process.env.CI,
       env: { VITE_API_BASE: API },
+    },
+    { command: "sh e2e/backend-security.sh", url: `${SEC_API}/health`, timeout: 120_000, reuseExistingServer: !process.env.CI },
+    { command: "node e2e/mock-external.mjs", url: "http://127.0.0.1:8103/health", timeout: 30_000, reuseExistingServer: !process.env.CI },
+    {
+      command: "npm run dev -- --port 5175 --strictPort",
+      url: SEC_APP,
+      timeout: 120_000,
+      reuseExistingServer: !process.env.CI,
+      env: { VITE_API_BASE: SEC_API },
     },
   ],
 })
