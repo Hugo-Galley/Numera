@@ -37,8 +37,6 @@ La **garde transversale** (fixture automatique, `fixtures.ts`) fait échouer tou
 JS, une erreur console applicative (dont le HTML invalide signalé par React) ou une réponse HTTP 5xx, sur
 n'importe quelle page. Un scénario qui attend une erreur précise la déclare : `test.use({ ignoredErrors: [/motif/] })`.
 
-Écart connu : `test.fail` dans `dashboard.spec.ts` (onglets Analyse et Projections : `NaN` dans des `<rect>`
-Recharts). Playwright signale le scénario quand le bug est corrigé : retirer alors la ligne `test.fail`.
 
 ## Fonctionnement
 

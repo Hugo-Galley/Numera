@@ -47,6 +47,9 @@ interface Marker {
   text: string
 }
 
+// Largeur d'axe Y toujours explicite : `width={undefined}` fait calculer des <rect>/<line> en NaN à Recharts (erreurs console).
+const Y_AXIS_WIDTH = 60
+
 export function HistoryTab({
   kpiHistory,
   burnRateSeries,
@@ -86,7 +89,7 @@ export function HistoryTab({
   const markerLabels = Array.from(new Set(visibleMilestones.map((m) => m.label)))
   const isMobile = useIsMobile()
   const margin = isMobile ? { top: 8, right: 12, left: 0, bottom: 4 } : { top: 40, right: 30, left: 20, bottom: 20 }
-  const yWidth = isMobile ? 48 : undefined
+  const yWidth = isMobile ? 48 : Y_AXIS_WIDTH
   const axisFont = isMobile ? 11 : 12
   return (
     <div className="grid grid-cols-1 gap-5 md:gap-8 lg:grid-cols-2">
