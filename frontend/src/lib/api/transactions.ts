@@ -23,6 +23,9 @@ export const postTransactionsBulkDelete = <T = ApiResponse<"/transactions/bulk-d
 /** GET /transactions/merchants */
 export const getTransactionsMerchants = <T = ApiResponse<"/transactions/merchants", "get">>() => api.get<T>(`/transactions/merchants`)
 
+/** GET /transactions/total */
+export const getTransactionsTotal = <T = ApiResponse<"/transactions/total", "get">>(query = "") => api.get<T>(`/transactions/total${query}`)
+
 /** DELETE /transactions/:id */
 export const deleteTransactionsById = <T = void>(id: Id) => api.delete<T>(`/transactions/${id}`)
 

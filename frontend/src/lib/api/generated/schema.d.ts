@@ -2879,6 +2879,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/transactions/total": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Total Transactions
+         * @description Mêmes filtres que la liste, sans pagination : nombre et total net des transactions.
+         */
+        get: operations["total_transactions_transactions_total_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/transactions/{transaction_id}": {
         parameters: {
             query?: never;
@@ -7891,6 +7911,16 @@ export interface components {
             tag_ids?: number[] | null;
             /** Type */
             type?: string | null;
+        };
+        /**
+         * TransactionsTotal
+         * @description Nombre et total net (remboursements déduits) des transactions d'un filtre, sans limite de page.
+         */
+        TransactionsTotal: {
+            /** Count */
+            count: number;
+            /** Total */
+            total: number;
         };
         /** TransferApplyResult */
         TransferApplyResult: {
@@ -14380,6 +14410,8 @@ export interface operations {
     list_transactions_transactions_get: {
         parameters: {
             query?: {
+                skip?: number;
+                limit?: number;
                 account_id?: number | null;
                 category_id?: number | null;
                 type?: string | null;
@@ -14400,8 +14432,6 @@ export interface operations {
                 period?: boolean;
                 /** @description Périmètre des flux du budget : courant/épargne hors tickets restaurant */
                 budget_scope?: boolean;
-                skip?: number;
-                limit?: number;
             };
             header?: never;
             path?: never;
@@ -14567,6 +14597,56 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PotentialTransfer"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    total_transactions_transactions_total_get: {
+        parameters: {
+            query?: {
+                account_id?: number | null;
+                category_id?: number | null;
+                type?: string | null;
+                merchant?: string | null;
+                month?: number | null;
+                year?: number | null;
+                min_amount?: number | null;
+                max_amount?: number | null;
+                start_date?: string | null;
+                end_date?: string | null;
+                is_transfer?: boolean | null;
+                tag_ids?: number[] | null;
+                search?: string | null;
+                uncategorized?: boolean;
+                /** @description Nom canonique exact (marchand normalisé, sinon libellé) */
+                merchant_name?: string | null;
+                /** @description month/year = mois de paie (comme les analytics) au lieu du mois civil */
+                period?: boolean;
+                /** @description Périmètre des flux du budget : courant/épargne hors tickets restaurant */
+                budget_scope?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TransactionsTotal"];
                 };
             };
             /** @description Validation Error */

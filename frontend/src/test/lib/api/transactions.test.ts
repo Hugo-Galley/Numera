@@ -15,6 +15,7 @@ describeApiCases("transactions", transactions, [
   { fn: "patchTransactionsBulk", args: [BODY], method: "PATCH", path: "/transactions/bulk", body: BODY },
   { fn: "postTransactionsBulkDelete", args: [{ ids: [1, 2] }], method: "POST", path: "/transactions/bulk-delete", body: { ids: [1, 2] } },
   { fn: "getTransactionsMerchants", method: "GET", path: "/transactions/merchants" },
+  { fn: "getTransactionsTotal", args: ["?category_id=7"], method: "GET", path: "/transactions/total", query: "?category_id=7" },
   { fn: "deleteTransactionsById", args: [7], method: "DELETE", path: "/transactions/7" },
   { fn: "patchTransactionsById", args: [7, BODY], method: "PATCH", path: "/transactions/7", body: BODY },
   { fn: "postTransactionsIgnore", args: [7], method: "POST", path: "/transactions/7/ignore" },

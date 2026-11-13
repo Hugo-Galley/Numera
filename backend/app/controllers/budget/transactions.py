@@ -15,6 +15,7 @@ from app.schemas.transaction import (
     TransactionCreate,
     TransactionRead,
     TransactionSplitsUpdate,
+    TransactionsTotal,
     TransactionUpdate,
     TransferCandidate,
     TransferCounterpartCreate,
@@ -32,8 +33,7 @@ def list_merchants(db: Session = Depends(get_db)):
     return service.list_merchants(db)
 
 
-@router.get("", response_model=list[TransactionRead])
-def list_transactions(
+def transaction_filters(
     account_id: int | None = Query(default=None),
     category_id: int | None = Query(default=None),
     type: str | None = Query(default=None),
@@ -51,17 +51,29 @@ def list_transactions(
     merchant_name: str | None = Query(default=None, description="Nom canonique exact (marchand normalisé, sinon libellé)"),
     period: bool = Query(default=False, description="month/year = mois de paie (comme les analytics) au lieu du mois civil"),
     budget_scope: bool = Query(default=False, description="Périmètre des flux du budget : courant/épargne hors tickets restaurant"),
-    skip: int = Query(default=0, ge=0),
-    limit: int = Query(default=100, ge=1, le=1000),
-    db: Session = Depends(get_db),
-):
-    filters = TransactionFilters(
+) -> TransactionFilters:
+    return TransactionFilters(
         account_id=account_id, category_id=category_id, type=type, merchant=merchant, month=month, year=year,
         min_amount=min_amount, max_amount=max_amount, start_date=start_date, end_date=end_date,
         is_transfer=is_transfer, tag_ids=tag_ids, search=search, uncategorized=uncategorized,
         merchant_name=merchant_name, period=period, budget_scope=budget_scope,
     )
+
+
+@router.get("", response_model=list[TransactionRead])
+def list_transactions(
+    filters: TransactionFilters = Depends(transaction_filters),
+    skip: int = Query(default=0, ge=0),
+    limit: int = Query(default=100, ge=1, le=1000),
+    db: Session = Depends(get_db),
+):
     return service.list_transactions(db, filters, skip, limit)
+
+
+@router.get("/total", response_model=TransactionsTotal)
+def total_transactions(filters: TransactionFilters = Depends(transaction_filters), db: Session = Depends(get_db)):
+    """Mêmes filtres que la liste, sans pagination : nombre et total net des transactions."""
+    return service.total_transactions(db, filters)
 
 
 @router.get("/potential-transfers", response_model=list[PotentialTransfer])

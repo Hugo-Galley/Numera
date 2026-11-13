@@ -119,6 +119,7 @@
  "GET /transactions",
  "GET /transactions/merchants",
  "GET /transactions/potential-transfers",
+ "GET /transactions/total",
  "GET /transactions/{transaction_id}/transfer-candidates",
  "GET /transfer-rules",
  "PATCH /accounts/{account_id}",

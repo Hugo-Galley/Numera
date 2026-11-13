@@ -15179,6 +15179,25 @@
     "title": "TransactionUpdate",
     "type": "object"
    },
+   "TransactionsTotal": {
+    "description": "Nombre et total net (remboursements déduits) des transactions d'un filtre, sans limite de page.",
+    "properties": {
+     "count": {
+      "title": "Count",
+      "type": "integer"
+     },
+     "total": {
+      "title": "Total",
+      "type": "number"
+     }
+    },
+    "required": [
+     "count",
+     "total"
+    ],
+    "title": "TransactionsTotal",
+    "type": "object"
+   },
    "TransferApplyResult": {
     "properties": {
      "count": {
@@ -26730,6 +26749,29 @@
     "parameters": [
      {
       "in": "query",
+      "name": "skip",
+      "required": false,
+      "schema": {
+       "default": 0,
+       "minimum": 0,
+       "title": "Skip",
+       "type": "integer"
+      }
+     },
+     {
+      "in": "query",
+      "name": "limit",
+      "required": false,
+      "schema": {
+       "default": 100,
+       "maximum": 1000,
+       "minimum": 1,
+       "title": "Limit",
+       "type": "integer"
+      }
+     },
+     {
+      "in": "query",
       "name": "account_id",
       "required": false,
       "schema": {
@@ -26995,29 +27037,6 @@
        "description": "Périmètre des flux du budget : courant/épargne hors tickets restaurant",
        "title": "Budget Scope",
        "type": "boolean"
-      }
-     },
-     {
-      "in": "query",
-      "name": "skip",
-      "required": false,
-      "schema": {
-       "default": 0,
-       "minimum": 0,
-       "title": "Skip",
-       "type": "integer"
-      }
-     },
-     {
-      "in": "query",
-      "name": "limit",
-      "required": false,
-      "schema": {
-       "default": 100,
-       "maximum": 1000,
-       "minimum": 1,
-       "title": "Limit",
-       "type": "integer"
       }
      }
     ],
@@ -27294,6 +27313,314 @@
      }
     ],
     "summary": "Find Potential Transfers",
+    "tags": [
+     "transactions"
+    ]
+   }
+  },
+  "/transactions/total": {
+   "get": {
+    "description": "Mêmes filtres que la liste, sans pagination : nombre et total net des transactions.",
+    "operationId": "total_transactions_transactions_total_get",
+    "parameters": [
+     {
+      "in": "query",
+      "name": "account_id",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "integer"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Account Id"
+      }
+     },
+     {
+      "in": "query",
+      "name": "category_id",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "integer"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Category Id"
+      }
+     },
+     {
+      "in": "query",
+      "name": "type",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Type"
+      }
+     },
+     {
+      "in": "query",
+      "name": "merchant",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Merchant"
+      }
+     },
+     {
+      "in": "query",
+      "name": "month",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "maximum": 12,
+         "minimum": 1,
+         "type": "integer"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Month"
+      }
+     },
+     {
+      "in": "query",
+      "name": "year",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "maximum": 2200,
+         "minimum": 2000,
+         "type": "integer"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Year"
+      }
+     },
+     {
+      "in": "query",
+      "name": "min_amount",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "number"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Min Amount"
+      }
+     },
+     {
+      "in": "query",
+      "name": "max_amount",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "number"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Max Amount"
+      }
+     },
+     {
+      "in": "query",
+      "name": "start_date",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "format": "date-time",
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Start Date"
+      }
+     },
+     {
+      "in": "query",
+      "name": "end_date",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "format": "date-time",
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "End Date"
+      }
+     },
+     {
+      "in": "query",
+      "name": "is_transfer",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "boolean"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Is Transfer"
+      }
+     },
+     {
+      "in": "query",
+      "name": "tag_ids",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "items": {
+          "type": "integer"
+         },
+         "type": "array"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Tag Ids"
+      }
+     },
+     {
+      "in": "query",
+      "name": "search",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Search"
+      }
+     },
+     {
+      "in": "query",
+      "name": "uncategorized",
+      "required": false,
+      "schema": {
+       "default": false,
+       "title": "Uncategorized",
+       "type": "boolean"
+      }
+     },
+     {
+      "description": "Nom canonique exact (marchand normalisé, sinon libellé)",
+      "in": "query",
+      "name": "merchant_name",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "description": "Nom canonique exact (marchand normalisé, sinon libellé)",
+       "title": "Merchant Name"
+      }
+     },
+     {
+      "description": "month/year = mois de paie (comme les analytics) au lieu du mois civil",
+      "in": "query",
+      "name": "period",
+      "required": false,
+      "schema": {
+       "default": false,
+       "description": "month/year = mois de paie (comme les analytics) au lieu du mois civil",
+       "title": "Period",
+       "type": "boolean"
+      }
+     },
+     {
+      "description": "Périmètre des flux du budget : courant/épargne hors tickets restaurant",
+      "in": "query",
+      "name": "budget_scope",
+      "required": false,
+      "schema": {
+       "default": false,
+       "description": "Périmètre des flux du budget : courant/épargne hors tickets restaurant",
+       "title": "Budget Scope",
+       "type": "boolean"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/TransactionsTotal"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Total Transactions",
     "tags": [
      "transactions"
     ]

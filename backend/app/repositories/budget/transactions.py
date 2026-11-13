@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from datetime import datetime
 
-from sqlalchemy import and_, func, or_
+from sqlalchemy import and_, case, func, or_
 from sqlalchemy.orm import Query, Session
 
 from app.models.account import Account
@@ -109,12 +109,38 @@ def _month_filter(db: Session, query: Query, f: TransactionFilters) -> Query:
     return query.filter(and_(Transaction.date >= start, Transaction.date < end))
 
 
-def filtered(db: Session, f: TransactionFilters, skip: int, limit: int) -> list[Transaction]:
-    """Transactions filtrées, de la plus récente à la plus ancienne."""
-    query = db.query(Transaction)
+def _filtered_query(db: Session, f: TransactionFilters, *entities) -> Query:
+    query = db.query(*entities) if entities else db.query(Transaction)
     query = _column_filters(db, query, f)
     query = _join_filters(db, query, f)
-    query = _month_filter(db, query, f)
+    return _month_filter(db, query, f)
+
+
+def amounts_filtered(db: Session, f: TransactionFilters) -> list[tuple[int, float, float]]:
+    """(id, montant, remboursement imputé) des transactions filtrées, sans doublon (lecture par colonnes)."""
+    query = _filtered_query(db, f, Transaction.id, Transaction.amount, Transaction.reimbursement_offset)
+    return [(tx_id, float(amount), float(offset or 0.0)) for tx_id, amount, offset in query.distinct().all()]
+
+
+def split_parts(db: Session, tx_ids: list[int], category_id: int) -> dict[int, float]:
+    """Pour les transactions découpées parmi `tx_ids` : somme des parts affectées à `category_id` (0 si aucune)."""
+    if not tx_ids:
+        return {}
+    rows = (
+        db.query(
+            TransactionSplit.transaction_id,
+            func.coalesce(func.sum(case((TransactionSplit.category_id == category_id, TransactionSplit.amount), else_=0.0)), 0.0),
+        )
+        .filter(TransactionSplit.transaction_id.in_(tx_ids))
+        .group_by(TransactionSplit.transaction_id)
+        .all()
+    )
+    return {tx_id: float(part) for tx_id, part in rows}
+
+
+def filtered(db: Session, f: TransactionFilters, skip: int, limit: int) -> list[Transaction]:
+    """Transactions filtrées, de la plus récente à la plus ancienne."""
+    query = _filtered_query(db, f)
     return query.order_by(Transaction.date.desc(), Transaction.id.desc()).offset(skip).limit(limit).all()
 
 
