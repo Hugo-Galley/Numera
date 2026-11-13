@@ -35,6 +35,9 @@ async function open(accountList: object[] = accounts) {
 
 const types = (r: { current: ReturnType<typeof useOmniboxSearch> }) => r.current.results.map((x: { type: string }) => x.type)
 
+/** `handleSelect` attend une union stricte de résultats ; les tests lui passent des formes partielles. */
+const selectItem = (hook: { handleSelect: (item: never) => void }, item: unknown) => hook.handleSelect(item as never)
+
 describe("useOmniboxSearch", () => {
   it("requête vide : toute la navigation, les comptes et les actions, aucune transaction", async () => {
     const { result } = await open()
@@ -109,14 +112,14 @@ describe("useOmniboxSearch", () => {
   it("sélection : navigation, compte, saisie rapide (compte principal, paramètres), ferme la recherche", async () => {
     const { result } = await open()
 
-    act(() => result.current.handleSelect(result.current.filteredNavigation.find((n) => n.href === "/savings")))
+    act(() => selectItem(result.current, result.current.filteredNavigation.find((n) => n.href === "/savings")))
     expect(location.pathname).toBe("/savings")
     expect(result.current.isSearchOpen).toBe(false)
 
-    act(() => result.current.handleSelect({ type: "account", id: 2 }))
+    act(() => selectItem(result.current, { type: "account", id: 2 }))
     expect(location.pathname).toBe("/accounts/2")
 
-    act(() => result.current.handleSelect({ type: "quick", entryType: "Sortie", amount: 12.5, merchant: "Pain" }))
+    act(() => selectItem(result.current, { type: "quick", entryType: "Sortie", amount: 12.5, merchant: "Pain" }))
     expect(location.pathname).toBe("/accounts/3")
     expect(Object.fromEntries(new URLSearchParams(location.search))).toEqual({ new: "tx", type: "Sortie", amount: "12.5", merchant: "Pain" })
   })
@@ -124,7 +127,7 @@ describe("useOmniboxSearch", () => {
   it("sélection d'une transaction : ouverte en modification dans son compte, avec son vrai type", async () => {
     const { result } = await open()
 
-    act(() => result.current.handleSelect(result.current.asTransactionResult({ id: 5, account_id: 2, type: "Entree", merchant: "Salaire" })))
+    act(() => selectItem(result.current, result.current.asTransactionResult({ id: 5, account_id: 2, type: "Entree", merchant: "Salaire" } as never)))
 
     expect(location.pathname).toBe("/accounts/2")
     expect(location.state).toEqual({ openTransaction: { id: 5, account_id: 2, type: "Entree", merchant: "Salaire" } })
@@ -132,7 +135,7 @@ describe("useOmniboxSearch", () => {
 
   it("actions : import, revue, prêt et bascule du mode confidentialité (libellé inversé)", async () => {
     const { result } = await open()
-    const run = (id: string) => act(() => result.current.handleSelect(result.current.filteredActions.find((a) => a.id === id)))
+    const run = (id: string) => act(() => selectItem(result.current, result.current.filteredActions.find((a) => a.id === id)))
 
     run("import")
     expect(location.pathname + location.search).toBe("/accounts?import=1")
