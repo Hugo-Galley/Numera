@@ -108,6 +108,7 @@ jobs:
     runs-on: ubuntu-latest
     # Deux tranches en parallèle, chacune avec sa propre pile (backend + base de démo + Vite) : la durée est divisée
     # sans que les scénarios qui écrivent se partagent une base.
+    # Chaque tranche lance aussi la pile du profil `security` (backend non démo, faux ntfy / proxy sortant : e2e/README.md).
     strategy:
       fail-fast: false
       matrix:

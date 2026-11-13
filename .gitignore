@@ -56,3 +56,4 @@ docs/archive/
 .superpowers/
 .audit/
 .claude/worktrees/
+backend/data/e2e-security-backups/
