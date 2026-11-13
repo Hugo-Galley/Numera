@@ -69,13 +69,14 @@ Les specs sont dans `e2e/security/` (importer `test` de `../fixtures`, helpers d
 
 - **TOTP** : `totpCode(secret, offset)` implémente RFC 6238 côté test. Le code du pas courant sert à l'activation (le
   backend le marque consommé) ; les connexions utilisent le pas +1 (dans la fenêtre ±1), le pas −5 est hors fenêtre. Aucune
-  attente, indépendant de la seconde d'exécution. `totp.spec.ts` est un enchaînement `serial` (un seul compte, un seul état 2FA)
-  qui laisse la 2FA désactivée.
+  attente, indépendant de la seconde d'exécution. Chaque test de `totp.spec.ts` est indépendant : `resetTwoFactor()` (avant et
+  après, efface les réglages 2FA de la base jetable) puis `enableTwoFactor()` (activation par l'API) ; retries et ordre sans effet.
 - **Passkeys** : authentificateur virtuel Chromium (`WebAuthn.addVirtualAuthenticator` via CDP), `localhost` est un contexte sûr.
 - **Jetons MCP** : la valeur en clair n'est vérifiée qu'à la création ; un jeton écrit (`POST`) reçoit 403, un jeton révoqué 401.
 - **Sauvegarde** : le bouton déclenche `scripts/backup.py` ; le test relit le `.enc` avec `scripts/restore.py` (la restauration n'a pas d'écran).
 - **5xx voulus** : l'essai Telegram répond 502 (canal injoignable) ; `test.use({ expectedServerErrors: [/motif d'URL/] })`.
-- Piles réutilisées en local : les scénarios supportent une base déjà utilisée (valeurs uniques, comptage relatif) mais pas une 2FA restée active après un échec : relancer la pile.
+- Piles réutilisées en local : les scénarios supportent une base déjà utilisée (valeurs uniques, comptage relatif, 2FA remise à zéro).
+- Python des scripts (restauration, remise à zéro 2FA) : `backendPython()` résout `E2E_PYTHON` (relatif à `backend/`, comme en CI) en chemin absolu.
 
 ## Écrire un scénario
 

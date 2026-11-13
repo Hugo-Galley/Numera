@@ -1,4 +1,7 @@
+import { execFileSync } from "node:child_process"
 import { createHmac } from "node:crypto"
+import { existsSync } from "node:fs"
+import { join, resolve } from "node:path"
 import { expect, type APIRequestContext, type Page } from "@playwright/test"
 
 export const CREDENTIALS = { username: "e2e", password: "e2e-security-pass" }
@@ -37,4 +40,38 @@ export async function mockLog(request: APIRequestContext): Promise<Array<Record<
 export async function openSecurity(page: Page, tab: "security" | "data" | "notifications" = "security") {
   await page.goto(`/settings?tab=${tab}`)
   await expect(page.getByRole("tab", { selected: true })).toBeVisible()
+}
+
+/** Dossier `backend/` (les tests tournent depuis `frontend/`). */
+export const BACKEND_DIR = resolve(process.cwd(), "../backend")
+export const DB_FILE = join(BACKEND_DIR, "data", "e2e-security.db")
+
+/** Python du backend, toujours en chemin absolu : `E2E_PYTHON` est relatif à `backend/` (CI : `.venv/bin/python`). */
+export function backendPython(): string {
+  const wanted = process.env.E2E_PYTHON
+  if (wanted) return resolve(BACKEND_DIR, wanted)
+  const venv = join(BACKEND_DIR, ".venv/bin/python")
+  return existsSync(venv) ? venv : "python3"
+}
+
+/**
+ * Remet la 2FA à zéro quel que soit l'état laissé par une tentative précédente (échec, retry, worker tué) : efface ses
+ * réglages dans la base jetable. Chaque test repart ainsi d'un compte sans second facteur, sans dépendre de l'ordre.
+ */
+export function resetTwoFactor(): void {
+  const sql = "delete from system_settings where key in ('totp_secret','totp_pending_secret','totp_last_step','totp_recovery_codes')"
+  execFileSync(backendPython(), ["-c", "import sqlite3,sys;c=sqlite3.connect(sys.argv[1]);c.execute(sys.argv[2]);c.commit()", DB_FILE, sql])
+}
+
+/** Active la 2FA par l'API (le scénario n'a pas à passer par l'écran) ; `activatedAt` = instant du code consommé. */
+export async function enableTwoFactor(request: APIRequestContext) {
+  const headers = { Authorization: `Bearer ${await apiToken(request)}` }
+  const setup = await request.post(`${API}/auth/totp/setup`, { headers, data: { current_password: CREDENTIALS.password } })
+  expect(setup.ok()).toBeTruthy()
+  const secret: string = (await setup.json()).secret
+  const activatedAt = Date.now()
+  const enable = await request.post(`${API}/auth/totp/enable`, { headers, data: { code: totpCode(secret, 0, activatedAt) } })
+  expect(enable.ok()).toBeTruthy()
+  const recovery: string[] = (await enable.json()).recovery_codes
+  return { secret, recovery, activatedAt }
 }
