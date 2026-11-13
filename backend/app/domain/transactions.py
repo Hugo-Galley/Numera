@@ -1,9 +1,13 @@
 """Calculs purs sur les transactions (aucune Session)."""
 
-from typing import Any
+from __future__ import annotations
 
-from app.models.transaction import Transaction
+from typing import TYPE_CHECKING, Any
+
 from app.schemas.transaction import TransactionRead
+
+if TYPE_CHECKING:
+    from app.models.transaction import Transaction
 
 
 def net_amount(tx: Transaction) -> float:

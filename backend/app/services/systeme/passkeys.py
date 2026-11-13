@@ -32,12 +32,13 @@ from app.core.config import settings
 from app.core.errors import AuthenticationError, ConflictError, InvalidOperationError, NotFoundError, RateLimitedError
 from app.core.i18n import tr
 from app.core.logging import get_logger
-from app.core.login_events import record_login
 from app.core.login_rate_limit import client_key, login_rate_limiter
+from app.core.request_info import RequestInfo
 from app.core.time import utcnow_aware
 from app.db.system_settings import get_setting, set_setting
 from app.schemas.auth import LoginVerifyBody, ReauthBody, RegisterVerifyBody
 from app.services.systeme import admin as admin_service
+from app.services.systeme.login_events import record_login
 
 logger = get_logger(__name__)
 
@@ -60,7 +61,7 @@ def _save(db: Session, credentials: list[dict[str, Any]]) -> None:
     db.commit()
 
 
-def _origin(request: Any) -> tuple[str, str]:
+def _origin(request: RequestInfo) -> tuple[str, str]:
     """Origine du navigateur et RP ID (son nom d'hôte).
 
     Acceptée si elle figure dans `CORS_ORIGINS` ou si son nom d'hôte est celui par lequel la requête
@@ -129,7 +130,7 @@ def delete_passkey(db: Session, credential_id: str, body: ReauthBody | None = No
     return {"ok": True}
 
 
-def register_options(db: Session, request: Any, user: str, body: ReauthBody | None = None) -> dict[str, Any]:
+def register_options(db: Session, request: RequestInfo, user: str, body: ReauthBody | None = None) -> dict[str, Any]:
     # Le code TOTP, à usage unique, n'est exigé qu'à la validation (`register/verify`)
     admin_service.require_current_password(db, (body or ReauthBody()).current_password)
     _, rp_id = _origin(request)
@@ -147,7 +148,7 @@ def register_options(db: Session, request: Any, user: str, body: ReauthBody | No
     return {"options": json.loads(options_to_json(options)), "state": _sign_challenge(options.challenge, "register")}
 
 
-def register_verify(db: Session, body: RegisterVerifyBody, request: Any) -> dict[str, Any]:
+def register_verify(db: Session, body: RegisterVerifyBody, request: RequestInfo) -> dict[str, Any]:
     admin_service.require_reauth(db, body.current_password, body.code)
     origin, rp_id = _origin(request)
     try:
@@ -180,7 +181,7 @@ def register_verify(db: Session, body: RegisterVerifyBody, request: Any) -> dict
     return {"ok": True, "id": credential_id}
 
 
-def login_options(db: Session, request: Any) -> dict[str, Any]:
+def login_options(db: Session, request: RequestInfo) -> dict[str, Any]:
     _, rp_id = _origin(request)
     credentials = _load(db)
     if not credentials:
@@ -193,7 +194,7 @@ def login_options(db: Session, request: Any) -> dict[str, Any]:
     return {"options": json.loads(options_to_json(options)), "state": _sign_challenge(options.challenge, "login")}
 
 
-def login_verify(db: Session, body: LoginVerifyBody, request: Any) -> dict[str, Any]:
+def login_verify(db: Session, body: LoginVerifyBody, request: RequestInfo) -> dict[str, Any]:
     key = client_key(request, "passkey")
     if not login_rate_limiter.is_allowed(key):
         record_login(db, request, "passkey", False, "rate_limited")

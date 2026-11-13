@@ -11,9 +11,9 @@ from sqlalchemy.orm import Session
 
 from app.core.errors import InvalidOperationError, NotFoundError
 from app.core.i18n import tr
-from app.models.category import Category
 from app.models.transaction import Transaction
 from app.models.transaction_split import TransactionSplit
+from app.repositories.budget import categories as categories_repo
 from app.schemas.transaction import TransactionSplitItem
 
 NON_SPLITTABLE_CATEGORY_NAMES = {"Investissement", "Epargne"}
@@ -36,7 +36,7 @@ def set_splits(db: Session, tx: Transaction, items: list[TransactionSplitItem]) 
         )
 
     category_ids = {item.category_id for item in items}
-    categories = {c.id: c for c in db.query(Category).filter(Category.id.in_(category_ids)).all()}
+    categories = {c.id: c for c in categories_repo.by_ids(db, category_ids)}
     for category_id in category_ids:
         category = categories.get(category_id)
         if category is None:

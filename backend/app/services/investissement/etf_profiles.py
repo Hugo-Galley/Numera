@@ -11,11 +11,11 @@ from app.domain.etf_presets import SYSTEM_ETF_PRESETS
 from app.domain.etf_profiles import (
     COMPOSITION_FIELDS,
     REFRESH_INTERVAL,
+    SOURCE_MANUAL,
     SOURCE_PRESET,
     apply_composition,
     apply_update,
     load_sources,
-    new_profile,
     to_read,
 )
 from app.integrations import yahoo_finance
@@ -24,6 +24,23 @@ from app.repositories.investissement import etf_profiles as repo
 from app.schemas.etf_profile import AutoDecomposeRequest, EtfProfileCreate, EtfProfileRead, EtfProfileUpdate
 
 logger = get_logger(__name__)
+
+
+def new_profile(payload: EtfProfileCreate) -> EtfProfile:
+    """Profil saisi par l'utilisateur : les champs de composition fournis sont marqués `manual`."""
+    return EtfProfile(
+        name=payload.name,
+        ticker=payload.ticker.upper(),
+        isin=payload.isin.upper() if payload.isin else None,
+        aliases=json.dumps(payload.aliases or [payload.ticker.upper()]),
+        countries=json.dumps(payload.countries or {}),
+        sectors=json.dumps(payload.sectors or {}),
+        top_holdings=json.dumps([h.model_dump() for h in payload.top_holdings]),
+        composition_sources=json.dumps({
+            field: SOURCE_MANUAL for field in COMPOSITION_FIELDS if getattr(payload, field)
+        }),
+        is_system=False,
+    )
 
 
 def list_profiles(db: Session) -> list[EtfProfileRead]:

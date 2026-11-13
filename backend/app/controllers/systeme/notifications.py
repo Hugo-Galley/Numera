@@ -3,9 +3,8 @@ from typing import Any
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from app.controllers.deps import require_interactive_session
+from app.controllers.deps import get_db, require_interactive_session
 from app.core.sync_bridge import run_async
-from app.db.session import get_db
 from app.schemas.notification import (
     NotificationSettingsRead,
     NotificationSettingsUpdate,

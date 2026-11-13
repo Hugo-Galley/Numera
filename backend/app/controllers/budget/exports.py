@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, Query
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
-from app.db.session import get_db
+from app.controllers.deps import get_db
 from app.services.budget import exports as service
 
 router = APIRouter(prefix="/export", tags=["export"])

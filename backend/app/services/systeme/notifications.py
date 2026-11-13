@@ -28,6 +28,7 @@ from app.core.time import now_local
 from app.db.system_settings import get_setting, set_setting
 from app.integrations.notifications import DEFAULT_NTFY_SERVER, Channel, NtfyChannel, TelegramChannel, send_all
 from app.models.notification_log import NotificationLog
+from app.repositories.systeme import notifications as notifications_repo
 from app.schemas.insight import ActionItem
 from app.schemas.notification import NotificationTestRequest
 from app.services.analytics.budget import compute_budget
@@ -200,7 +201,7 @@ async def run_notifications(db: Session, now: datetime | None = None) -> int:
         all_actions = await current_actions(db)
     actions = [a for a in all_actions if SEVERITY_RANK.get(a.severity, 0) >= floor]
     shown = await _localized(db, all_actions, language)
-    known = {row.fingerprint for row in db.query(NotificationLog.fingerprint).all()}
+    known = notifications_repo.sent_fingerprints(db)
     fresh = [(fingerprint(a), a) for a in actions if fingerprint(a) not in known]
     sent = 0
 

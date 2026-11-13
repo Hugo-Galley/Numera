@@ -2,8 +2,8 @@
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
+from app.controllers.deps import get_db
 from app.core.sync_bridge import run_async
-from app.db.session import get_db
 from app.schemas.wrapped import WrappedReport
 from app.services.analytics.wrapped import compute_wrapped
 

@@ -55,7 +55,7 @@ Besoin d'une variante ? Paramétrer la fonction existante, ne pas la copier. Une
 
 ## Cliquets (baselines)
 
-`tests/garde_fous/architecture_baseline.txt` et `scripts/quality/baselines/code_size_baseline.json` ne font que **diminuer**. Une violation nouvelle se corrige dans le code (découper, déplacer), jamais en régénérant la baseline. Régénérer n'est permis que pour retirer une entrée disparue ou renommer une clé lors d'un déplacement à l'identique.
+`scripts/quality/baselines/code_size_baseline.json` (les règles d'import n'ont plus de baseline : zéro violation) ne font que **diminuer**. Une violation nouvelle se corrige dans le code (découper, déplacer), jamais en régénérant la baseline. Régénérer n'est permis que pour retirer une entrée disparue ou renommer une clé lors d'un déplacement à l'identique.
 
 ## Rationalisations
 

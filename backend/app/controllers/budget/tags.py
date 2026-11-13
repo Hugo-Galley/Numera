@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
-from app.db.session import get_db
+from app.controllers.deps import get_db
 from app.schemas.tag import TagCreate, TagRead, TagUpdate
 from app.services.budget import tags as service
 

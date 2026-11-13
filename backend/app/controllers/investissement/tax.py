@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
+from app.controllers.deps import get_db
 from app.core.sync_bridge import run_async
-from app.db.session import get_db
 from app.schemas.tax import AnnualReport, TaxOverview, TaxSettings, TaxSettingsUpdate
 from app.services.investissement.tax import annual_report, load_tax_settings, save_tax_settings, tax_overview
 

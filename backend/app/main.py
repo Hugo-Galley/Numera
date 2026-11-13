@@ -54,8 +54,8 @@ from app.core.config import settings
 from app.core.errors import DomainError
 from app.core.i18n import LanguageMiddleware
 from app.core.logging import get_logger, setup_logging
-from app.core.login_events import client_ip
 from app.core.migrations import run_migrations
+from app.core.request_info import client_ip
 from app.db.session import SessionLocal
 from app.integrations.currency import CurrencyConversionError
 from app.services.budget.benefit_generation import generate_benefit_transactions, reconcile_provisional
@@ -168,32 +168,32 @@ app = FastAPI(title=settings.app_name, lifespan=lifespan, **docs_kwargs(settings
 
 
 @app.exception_handler(DomainError)
-async def domain_error_handler(_: Request, exc: DomainError) -> JSONResponse:
+def domain_error_handler(_: Request, exc: DomainError) -> JSONResponse:
     return JSONResponse(status_code=exc.status_code, content=exc.to_content(), headers=exc.headers)
 
 
 @app.exception_handler(CurrencyConversionError)
-async def currency_conversion_error_handler(_: Request, exc: CurrencyConversionError) -> JSONResponse:
+def currency_conversion_error_handler(_: Request, exc: CurrencyConversionError) -> JSONResponse:
     # Mieux vaut refuser l'opération qu'enregistrer un montant converti au taux 1:1
     return JSONResponse(status_code=422, content={"detail": str(exc)})
 
 
 @app.exception_handler(RequestValidationError)
-async def validation_error_handler(_: Request, exc: RequestValidationError) -> JSONResponse:
+def validation_error_handler(_: Request, exc: RequestValidationError) -> JSONResponse:
     # `input`/`ctx` retirés : une valeur Infinity/NaN fautive rendrait la réponse 422 non sérialisable
     errors = [{k: v for k, v in err.items() if k not in ("input", "ctx")} for err in exc.errors()]
     return JSONResponse(status_code=422, content={"detail": jsonable_encoder(errors)})
 
 
 @app.exception_handler(IntegrityError)
-async def integrity_error_handler(_: Request, exc: IntegrityError) -> JSONResponse:
+def integrity_error_handler(_: Request, exc: IntegrityError) -> JSONResponse:
     # FK inexistante, NOT NULL, unicité : une entrée invalide, pas une panne serveur (audit R6/B7)
     logger.warning("IntegrityError: %s", exc.orig)
     return JSONResponse(status_code=422, content={"detail": "Données invalides ou référence inexistante"})
 
 
 @app.exception_handler(OverflowError)
-async def overflow_error_handler(_: Request, exc: OverflowError) -> JSONResponse:
+def overflow_error_handler(_: Request, exc: OverflowError) -> JSONResponse:
     return JSONResponse(status_code=422, content={"detail": "Valeur numérique hors limites"})
 
 

@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Any
 
 from sqlalchemy import CompoundSelect, func, select, union
@@ -88,3 +89,43 @@ def transactions_with_currency(db: Session, tx_ids: set[int]) -> dict[int, tuple
         .all()
     )
     return {tx.id: (tx, currency or "EUR") for tx, currency in rows}
+
+
+def claims_of(db: Session, transaction_id: int) -> list[ReimbursementClaim]:
+    return db.query(ReimbursementClaim).filter(ReimbursementClaim.transaction_id == transaction_id).all()
+
+
+def allocations_of_entree(db: Session, entree_id: int) -> list[ReimbursementAllocation]:
+    return db.query(ReimbursementAllocation).filter(ReimbursementAllocation.entree_transaction_id == entree_id).all()
+
+
+def allocation_between(db: Session, claim_id: int, entree_id: int) -> ReimbursementAllocation | None:
+    return (
+        db.query(ReimbursementAllocation)
+        .filter(ReimbursementAllocation.claim_id == claim_id, ReimbursementAllocation.entree_transaction_id == entree_id)
+        .first()
+    )
+
+
+def claims_by_date(db: Session, debtor: str | None) -> list[ReimbursementClaim]:
+    """Créances (du débiteur donné, en minuscules, si fourni), de la dépense la plus récente à la plus ancienne."""
+    q = db.query(ReimbursementClaim).join(Transaction, ReimbursementClaim.transaction_id == Transaction.id)
+    if debtor:
+        q = q.filter(func.lower(ReimbursementClaim.debtor) == debtor)
+    return q.order_by(Transaction.date.desc(), ReimbursementClaim.id).all()
+
+
+def entree_candidates(db: Session, currency: str, earliest: datetime, latest: datetime) -> list[Transaction]:
+    """Entrées (hors virements) d'un compte de cette devise, entre `earliest` et `latest` inclus."""
+    return (
+        db.query(Transaction)
+        .join(Account, Transaction.account_id == Account.id)
+        .filter(
+            Transaction.type == "Entree",
+            Transaction.is_transfer.is_(False),
+            Account.currency == currency,
+            Transaction.date >= earliest,
+            Transaction.date <= latest,
+        )
+        .all()
+    )

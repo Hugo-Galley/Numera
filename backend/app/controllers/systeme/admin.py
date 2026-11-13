@@ -4,8 +4,7 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from app.controllers.deps import get_current_user, require_interactive_session
-from app.db.session import get_db
+from app.controllers.deps import get_current_user, get_db, require_interactive_session
 from app.schemas.admin import (
     AdminProfile,
     AdminProfileUpdate,

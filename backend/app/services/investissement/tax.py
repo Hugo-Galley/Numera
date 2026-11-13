@@ -1,5 +1,5 @@
 """Page Fiscalité : réglages, aperçu des enveloppes, récap annuel du CTO."""
-from datetime import date, datetime
+from datetime import date
 
 from sqlalchemy.orm import Session
 
@@ -22,8 +22,7 @@ from app.domain.tax import (
 )
 from app.domain.tax_rules import rules_for
 from app.models.account import Account
-from app.models.balance_snapshot import BalanceSnapshot
-from app.models.investment_transaction import InvestmentTransaction
+from app.repositories.investissement import tax as repo
 from app.schemas.tax import (
     AllocationAdvice,
     AnnualReport,
@@ -67,25 +66,9 @@ def save_tax_settings(db: Session, update: TaxSettingsUpdate) -> TaxSettings:
     return load_tax_settings(db)
 
 
-def _contributions(db: Session, account_id: int, tx_type: str, *, year: int | None = None) -> list[InvestmentTransaction]:
-    query = db.query(InvestmentTransaction).filter(
-        InvestmentTransaction.account_id == account_id, InvestmentTransaction.type == tx_type
-    )
-    if year is not None:
-        query = query.filter(
-            InvestmentTransaction.date >= datetime(year, 1, 1), InvestmentTransaction.date < datetime(year + 1, 1, 1)
-        )
-    return query.all()
-
-
 def _partial_history_alert(db: Session, account: Account) -> str | None:
     """Un inventaire ou relevé de départ résume l'historique antérieur : les versements d'avant ne sont pas saisis."""
-    has_zero_point = (
-        db.query(BalanceSnapshot.id)
-        .filter(BalanceSnapshot.account_id == account.id, BalanceSnapshot.is_zero_point.is_(True))
-        .first()
-        is not None
-    )
+    has_zero_point = repo.has_zero_point_snapshot(db, account.id)
     if account.holdings_baseline_date is not None or has_zero_point:
         return tr("tax.partial_history")
     return None
@@ -95,12 +78,7 @@ async def build_overview(db: Session, today: date, precaution_months: float | No
     """Cartes par enveloppe + ordre de remplissage conseillé (`precaution_months` = mois de dépenses couverts)."""
     rules = rules_for(today.year)
     settings = load_tax_settings(db)
-    accounts = (
-        db.query(Account)
-        .filter(Account.tax_wrapper.isnot(None), Account.active.is_(True))
-        .order_by(Account.id.asc())
-        .all()
-    )
+    accounts = repo.wrapped_accounts(db)
     values = await account_values(db, accounts)
     cards: list[WrapperCard] = []
     per_accounts = [a for a in accounts if a.tax_wrapper == "per"]
@@ -108,8 +86,8 @@ async def build_overview(db: Session, today: date, precaution_months: float | No
         kind = account.tax_wrapper
         name = account.name
         if kind == "pea":
-            versements = sum(t.amount for t in _contributions(db, account.id, "versement"))
-            withdrawals = [t.date.date() for t in _contributions(db, account.id, "retrait")]
+            versements = sum(t.amount for t in repo.contributions(db, account.id, "versement"))
+            withdrawals = [t.date.date() for t in repo.contributions(db, account.id, "retrait")]
             status = pea_status(versements, account.opened_at, withdrawals, today, rules)
             partial = _partial_history_alert(db, account)
             if partial:
@@ -118,7 +96,7 @@ async def build_overview(db: Session, today: date, precaution_months: float | No
             if account is not per_accounts[0]:
                 continue  # le plafond de déduction est celui du foyer : une seule carte pour tous les PER
             versements = sum(
-                t.amount for a in per_accounts for t in _contributions(db, a.id, "versement", year=today.year)
+                t.amount for a in per_accounts for t in repo.contributions(db, a.id, "versement", year=today.year)
             )
             status = per_status(versements, settings.prior_year_pro_income, settings.tmi_pct, rules)
             name = " + ".join(a.name for a in per_accounts)
@@ -133,9 +111,9 @@ async def build_overview(db: Session, today: date, precaution_months: float | No
         elif kind == "pee":
             lots = [
                 PeeLot(t.date.date(), t.amount, "abondement" in (t.note or "").lower())
-                for t in _contributions(db, account.id, "versement")
+                for t in repo.contributions(db, account.id, "versement")
             ]
-            withdrawn = sum(t.amount for t in _contributions(db, account.id, "retrait"))
+            withdrawn = sum(t.amount for t in repo.contributions(db, account.id, "retrait"))
             status = pee_status(lots, withdrawn, settings.gross_annual_salary, today, rules)
         elif kind == "assurance_vie":
             status = av_status(account.opened_at, settings.household, today, rules)
@@ -152,7 +130,7 @@ async def build_overview(db: Session, today: date, precaution_months: float | No
         )
     suggestions = [
         WrapperSuggestion(account_id=a.id, account_name=a.name, kind=kind)
-        for a in db.query(Account).filter(Account.tax_wrapper.is_(None), Account.active.is_(True)).order_by(Account.id).all()
+        for a in repo.unwrapped_accounts(db)
         if (kind := guess_tax_wrapper(a.name, a.type))
     ]
     advice = allocation_advice([card.model_dump() for card in cards], precaution_months, settings.tmi_pct)
@@ -181,7 +159,7 @@ async def tax_overview(db: Session, today: date | None = None) -> TaxOverview:
 async def build_annual_report(db: Session, year: int) -> AnnualReport:
     """Dividendes (2DC) et plus-values réalisées (3VG gain, 3VH perte) des comptes CTO pour l'année."""
     rules = rules_for(year)
-    accounts = db.query(Account).filter(Account.tax_wrapper == "cto").order_by(Account.id.asc()).all()
+    accounts = repo.cto_accounts(db)
     rows: list[CtoYearRow] = []
     warnings: list[str] = []
     for account in accounts:

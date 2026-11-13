@@ -3,8 +3,8 @@ from typing import TYPE_CHECKING, Any
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
+from app.controllers.deps import get_db
 from app.core.sync_bridge import run_async
-from app.db.session import get_db
 from app.schemas.common import StatusResponse
 from app.schemas.savings_goal import SavingsGoal, SavingsGoalCreate, SavingsGoalProgress, SavingsGoalUpdate
 from app.services.budget import savings_goals as service

@@ -18,6 +18,7 @@ from app.integrations.currency import get_exchange_rates
 from app.models.account import Account
 from app.repositories.analytics import budget as repo
 from app.repositories.analytics.common import savings_account_ids, savings_events_by_account, ticket_restaurant_account_ids
+from app.repositories.comptes import accounts as accounts_repo
 from app.repositories.comptes import balances
 from app.repositories.comptes.balances import active_accounts
 from app.services.budget.budget_period import period_bounds
@@ -65,7 +66,7 @@ async def compute_budget(db: Session, month: int | None = None, year: int | None
         days = _days(db, start, end, bool(month and year))
         is_current_period = end >= end_of_today()
         if account_id:
-            account = db.query(Account).filter(Account.id == account_id).first()
+            account = accounts_repo.get(db, account_id)
             if not account:
                 raise NotFoundError(tr("errors.account_not_found"))
             wealth = await _account_wealth(db, account, end, rates, is_current_period)

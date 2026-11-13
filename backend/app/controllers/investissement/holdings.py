@@ -4,8 +4,8 @@ from typing import Any
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
+from app.controllers.deps import get_db
 from app.core.sync_bridge import run_async
-from app.db.session import get_db
 from app.schemas.holding import (
     ApplyCostsRequest,
     BaselineInventoryRequest,

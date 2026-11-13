@@ -1,11 +1,8 @@
 """Règles d'import entre couches (cf. ARCHITECTURE.md § Couches backend).
 
-Les violations existantes sont tolérées via `architecture_baseline.txt` (cliquet) : aucune nouvelle
-violation, et une entrée qui ne se produit plus doit être retirée.
+Aucune violation tolérée, pas de baseline : une règle enfreinte se corrige dans le code.
 
-    cd backend && PYTHONPATH=. python3.11 tests/garde_fous/test_architecture.py   # régénère la baseline
-
-Contrôles (chaque entrée de la baseline est « fichier -> cause ») :
+Contrôles (chaque violation est rapportée « fichier -> cause ») :
 - imports interdits par couche (`FORBIDDEN`), dont controllers -> models|repositories|db|integrations|domain ;
 - `commit()` hors `services/` (et hors tests) : controllers, repositories, core, db, integrations, domain ;
 - `db.query(...)` / `db.execute(...)` directs dans `services/` (à déplacer dans un repository) ;
@@ -16,10 +13,6 @@ import ast
 from pathlib import Path
 
 APP_DIR = Path(__file__).parents[2] / "app"
-BASELINE_PATH = Path(__file__).parent / "architecture_baseline.txt"  # règles historiques d'imports : vide
-# Règles ajoutées ensuite (commit hors services, controllers -> models/db…, requêtes dans les services, async inutile) :
-# baseline séparée, initialisée sur l'existant. Les deux fichiers sont protégés par le check « Cliquets ».
-RULES_BASELINE_PATH = Path(__file__).parent / "architecture_rules_baseline.txt"
 
 _DATA_LAYERS_FORBIDDEN = ("app.controllers", "app.services", "app.repositories", "app.integrations")
 
@@ -28,8 +21,9 @@ FORBIDDEN: dict[str, tuple[str, ...]] = {
     "app.controllers": ("app.models", "app.repositories", "app.db", "app.integrations", "app.domain"),
     "app.services": ("app.controllers", "fastapi", "starlette"),
     "app.repositories": ("app.controllers", "app.services", "app.integrations", "fastapi"),
+    # Les schémas sont des objets-valeurs Pydantic sans entrée/sortie : le domaine peut en construire ; l'ORM lui est fermé.
     "app.domain": ("app.controllers", "app.services", "app.repositories", "app.integrations", "app.db", "sqlalchemy.orm", "fastapi",
-                   "app.models", "app.schemas"),
+                   "app.models"),
     "app.integrations": ("app.controllers", "app.services", "app.repositories", "app.models", "app.db"),
     # core n'importe que core, models et db (transverse).
     "app.core": ("app.controllers", "app.services", "app.repositories", "app.domain", "app.integrations", "app.schemas", "fastapi"),
@@ -39,8 +33,14 @@ FORBIDDEN: dict[str, tuple[str, ...]] = {
 }
 
 
-# Un controller peut nommer un modèle ORM dans une annotation de retour (`if TYPE_CHECKING:`) : aucune dépendance à l'exécution.
-TYPING_ONLY_ALLOWED = ("app.controllers",)
+# Un controller ou le domaine peuvent nommer un modèle ORM dans une annotation (`if TYPE_CHECKING:`) : aucune dépendance
+# à l'exécution, donc aucun couplage réel. Un import effectif reste interdit.
+TYPING_ONLY_ALLOWED = ("app.controllers", "app.domain")
+
+
+# `controllers/deps.py` est la passerelle d'injection de dépendances : seul module de la couche à toucher `app.db`
+# (`get_db`, réglages d'authentification) ; les routers importent `get_db` d'ici.
+DEPENDENCY_GATEWAY = "app.controllers.deps"
 
 
 def _matches(module: str, prefix: str) -> bool:
@@ -147,6 +147,8 @@ def violations(app_dir: Path) -> set[str]:
         runtime = imported_modules(path, module, app_dir, runtime_only=True)
         for layer, forbidden in FORBIDDEN.items():
             if _matches(module, layer):
+                if module == DEPENDENCY_GATEWAY:
+                    forbidden = tuple(f for f in forbidden if f != "app.db")
                 found.update(f"{rel} -> {imp}" for imp in imported if any(_matches(imp, f) for f in forbidden)
                              and not (layer in TYPING_ONLY_ALLOWED and _matches(imp, "app.models") and imp not in runtime))
         if _matches(module, "app.controllers"):
@@ -159,11 +161,6 @@ def violations(app_dir: Path) -> set[str]:
         if not _matches(module, "app.controllers"):
             found.update(f"{rel} -> async def {name} sans await" for name in _async_without_await(tree))
     return found
-
-
-def _baseline() -> set[str]:
-    lines = BASELINE_PATH.read_text(encoding="utf-8").splitlines() + RULES_BASELINE_PATH.read_text(encoding="utf-8").splitlines()
-    return set(lines) - {""}
 
 
 def write(path: Path, content: str) -> None:
@@ -261,7 +258,7 @@ def test_lower_layers_forbidden_imports(tmp_path):
     write(tmp_path / "app/services/s.py", "from starlette.exceptions import HTTPException\n")
     assert violations(tmp_path / "app") == {
         "app/core/x.py -> fastapi",
-        "app/domain/d.py -> app.models.m", "app/domain/d.py -> app.schemas.y",
+        "app/domain/d.py -> app.models.m",
         "app/integrations/i.py -> app.models.m", "app/integrations/i.py -> app.db.session",
         "app/services/s.py -> starlette.exceptions"}
 
@@ -285,16 +282,8 @@ def test_async_without_await_outside_controllers(tmp_path):
     assert violations(tmp_path / "app") == {"app/services/s.py -> async def bad sans await"}
 
 
-def test_layers_match_baseline():
-    found = violations(APP_DIR)
-    baseline = _baseline()
-    assert sorted(found - baseline) == [], "nouvelles violations de couches"
-    assert sorted(baseline - found) == [], f"violations corrigées : les retirer de {RULES_BASELINE_PATH.name}"
-
-
-if __name__ == "__main__":
-    RULES_BASELINE_PATH.write_text("\n".join(sorted(violations(APP_DIR))) + "\n", encoding="utf-8")
-    print(f"Baseline écrite : {RULES_BASELINE_PATH}")
+def test_layers_have_no_violation():
+    assert sorted(violations(APP_DIR)) == [], "violations de couches : corriger le code, aucune tolérance"
 
 
 def test_controllers_may_name_models_for_typing_only(tmp_path):
@@ -302,3 +291,19 @@ def test_controllers_may_name_models_for_typing_only(tmp_path):
     write(tmp_path / "app/controllers/c.py", "from typing import TYPE_CHECKING\n\nif TYPE_CHECKING:\n    from app.models.m import M\n")
     write(tmp_path / "app/controllers/d.py", "from app.models.m import M\n")
     assert violations(tmp_path / "app") == {"app/controllers/d.py -> app.models.m"}
+
+
+def test_dependency_gateway_may_import_db(tmp_path):
+    write(tmp_path / "app/db/session.py", "")
+    write(tmp_path / "app/controllers/deps.py", "from app.db.session import get_db\n")
+    write(tmp_path / "app/controllers/c.py", "from app.db.session import get_db\n")
+    assert violations(tmp_path / "app") == {"app/controllers/c.py -> app.db.session"}
+
+
+def test_domain_may_build_schemas_and_name_models_for_typing_only(tmp_path):
+    write(tmp_path / "app/models/m.py", "")
+    write(tmp_path / "app/schemas/y.py", "")
+    write(tmp_path / "app/domain/ok.py",
+          "from typing import TYPE_CHECKING\nfrom app.schemas.y import Y\n\nif TYPE_CHECKING:\n    from app.models.m import M\n")
+    write(tmp_path / "app/domain/bad.py", "from app.models.m import M\n")
+    assert violations(tmp_path / "app") == {"app/domain/bad.py -> app.models.m"}

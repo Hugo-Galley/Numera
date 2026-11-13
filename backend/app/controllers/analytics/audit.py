@@ -4,8 +4,8 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
+from app.controllers.deps import get_db
 from app.core.sync_bridge import run_async
-from app.db.session import get_db
 from app.schemas.analytics_reports import AuditIssueDetails
 from app.schemas.common import StatusResponse
 from app.schemas.insight import ActionCenterResponse, DataAuditResponse

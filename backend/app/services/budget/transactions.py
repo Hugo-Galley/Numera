@@ -9,7 +9,7 @@ from app.core.i18n import tr
 from app.domain.transactions import category_share
 from app.models.transaction import Transaction
 from app.repositories.budget import transactions as repo
-from app.repositories.budget.transactions import TransactionFilters
+from app.schemas.transaction_filters import TransactionFilters
 from app.services.budget.budget_period import period_bounds
 from app.services.budget.transfers import candidates_for, find_pairs
 

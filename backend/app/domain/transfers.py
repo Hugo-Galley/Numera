@@ -1,13 +1,17 @@
 """Appariement des virements internes : calcul pur sur des sorties et des entrées déjà chargées."""
+
+from __future__ import annotations
+
 from collections import defaultdict
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import timedelta
+from typing import TYPE_CHECKING
 
-from app.models.investment_transaction import InvestmentTransaction
-from app.models.transaction import Transaction
+if TYPE_CHECKING:
+    from app.models.leg import Leg
+    from app.models.transaction import Transaction
 
-Leg = Transaction | InvestmentTransaction
 
 
 @dataclass

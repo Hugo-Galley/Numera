@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 
 from app.models.category import Category
+from app.repositories.systeme import seeds as seeds_repo
 
 DEFAULT_CATEGORIES = [
     # (name, type, group)
@@ -24,7 +25,7 @@ def seed_default_categories(db: Session) -> int:
     updated = 0
     for name, _, group in DEFAULT_CATEGORIES:
         if group:
-            existing = db.query(Category).filter(Category.name == name, (Category.group == None) | (Category.group == "")).first()
+            existing = seeds_repo.ungrouped_category(db, name)
             if existing:
                 existing.group = group
                 updated += 1
@@ -33,10 +34,10 @@ def seed_default_categories(db: Session) -> int:
         db.commit()
 
     # 2. Only seed new ones on a fresh install (empty table).
-    if db.query(Category).first() is not None and updated == 0:
+    if seeds_repo.has_categories(db) and updated == 0:
         return 0
 
-    if db.query(Category).first() is not None:
+    if seeds_repo.has_categories(db):
         return updated
 
     created = 0

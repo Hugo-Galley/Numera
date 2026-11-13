@@ -6,9 +6,10 @@ from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.core.i18n import tr
-from app.core.mcp_tokens import authenticate_mcp_token, is_mcp_token
+from app.core.mcp_tokens import is_mcp_token
 from app.db.session import get_db as get_db  # ré-exporté : les controllers l'importent d'ici
 from app.db.system_settings import get_setting
+from app.services.systeme.mcp_access import authenticate_mcp_token
 
 reusable_oauth2 = OAuth2PasswordBearer(
     tokenUrl="/auth/token"

@@ -3,7 +3,7 @@ from datetime import date
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
-from app.db.session import get_db
+from app.controllers.deps import get_db
 from app.schemas.financial_event import FinancialEventCreate, FinancialEventRead, FinancialEventUpdate
 from app.services.comptes import financial_events as service
 

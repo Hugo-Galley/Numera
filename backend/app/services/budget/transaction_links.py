@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.core.errors import BusinessRuleError, InvalidOperationError, NotFoundError
 from app.core.i18n import tr
-from app.domain.transfers import Leg
+from app.models.leg import Leg
 from app.models.transaction import Transaction
 from app.repositories.budget import transactions as repo
 from app.repositories.comptes import accounts as account_repo
