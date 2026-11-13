@@ -52,7 +52,8 @@ export function InvestmentFlowsCard({ ctx }: { ctx: AccountDetailView }) {
             )}
           </div>
           <div className="hidden overflow-x-auto md:block">
-            <Table>                 <TableHeader>
+            <Table>
+              <TableHeader>
               <TableRow>
                 <TableHead className="cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => handleInvSort("date")}>
                   <div className="flex items-center gap-2">
