@@ -19,7 +19,7 @@ Le Centre d'Actions centralise trois types de flux :
 - Première activation : actions existantes marquées connues, un seul message de bienvenue. Plus de 5 nouvelles actions → un message groupé. Résumé le dimanche après 18 h (une fois par semaine ISO). Un canal en échec n'est jamais marqué envoyé.
 
 ### Frontend
-- **Page** : `frontend/src/pages/Audit.tsx`, route `/audit` (Centre d'actions).
+- **Page** : `frontend/src/pages/Audit/index.tsx`, route `/audit` (Centre d'actions).
 - **Composants clés** : 
     - `ActionCenter` : Gère le chargement et le routage des actions.
     - `TransactionEditor` : Interface de correction en ligne pour les audits.

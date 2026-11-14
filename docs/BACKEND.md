@@ -6,7 +6,7 @@ Ce document fournit une vue d'ensemble technique, opérationnelle et architectur
 
 ## 1. Stack Technique & Choix Architecturaux
 
-Le backend de Numera est conçu selon le principe **Local-First & Privacy**. Il s'exécute localement et stocke les données sans faire appel à des services cloud tiers (à l'exception des taux de change Frankfurter et des cotations/profils de titres Yahoo Finance).
+Le backend de Numera est conçu selon le principe **Local-First & Privacy**. Il s'exécute localement et stocke les données sans faire appel à des services cloud tiers (à l'exception des taux de change Frankfurter, des cotations/profils de titres Yahoo Finance et, seulement si l'utilisateur s'en sert, des notifications ntfy / Telegram, du service favicon de Google pour les logos et de l'envoi des sauvegardes chiffrées vers un dépôt GitHub privé ; liste de référence : `ARCHITECTURE.md`).
 
 ### La Stack Technique
 
