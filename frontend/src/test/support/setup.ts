@@ -65,7 +65,12 @@ async function toNativeBody(init?: RequestInit): Promise<RequestInit | undefined
       if (typeof value === "string") native.append(name, value)
       else native.append(name, new NodeFile([await value.arrayBuffer()], value.name, { type: value.type }) as unknown as Blob, value.name)
     }
-    return { ...init, body: native }
+    // msw 3 clone le corps de la requête : un FormData contenant un fichier (flux) y échoue (« Premature close »).
+    // On l'encode donc en multipart, octets et content-type (avec boundary) compris, avant de l'envoyer.
+    const encoded = new Response(native)
+    const headers = new Headers(init?.headers)
+    headers.set("content-type", encoded.headers.get("content-type") as string)
+    return { ...init, headers, body: await encoded.arrayBuffer() }
   }
   return init
 }
@@ -77,9 +82,9 @@ const unhandledRequests: string[] = []
 let inFlight = 0
 beforeAll(() => {
   server.listen({
-    onUnhandledRequest(request, print) {
-      unhandledRequests.push(`${request.method} ${request.url}`)
-      print.error()
+    async onUnhandledFrame({ frame, defaults }) {
+      unhandledRequests.push((await frame.getUnhandledMessage()).trim())
+      defaults.error()
     },
   })
   mswFetch = globalThis.fetch
