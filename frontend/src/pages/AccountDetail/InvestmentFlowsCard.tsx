@@ -13,7 +13,7 @@ export function InvestmentFlowsCard({ ctx }: { ctx: AccountDetailView }) {
   const { account, formatCurrency, formatValue, handleDeleteInvTransaction, handleDeleteTransaction, handleEditInvTransaction, handleInvSort, invSortField, invSortOrder, investmentData, sortedInvestmentTransactions } = ctx
   return (
     <>
-      <Card className="min-w-0 shadow-sm">
+      <Card className="min-w-0 shadow-xs">
         <CardHeader><CardTitle className="text-lg">{t("investmentFlowsCard.historiqueDesFlux")}</CardTitle></CardHeader>
         <CardContent className="p-0">
           <div className="divide-y md:hidden">
@@ -23,7 +23,7 @@ export function InvestmentFlowsCard({ ctx }: { ctx: AccountDetailView }) {
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
                       <Badge variant="outline" className="h-5 w-fit py-0 text-[10px] capitalize">{tx.type}</Badge>
-                      <span className="break-words text-sm font-bold text-slate-900">{tx.note || tx.ticker || "Transaction"}</span>
+                      <span className="wrap-break-word text-sm font-bold text-slate-900">{tx.note || tx.ticker || "Transaction"}</span>
                     </div>
                     <span className="shrink-0 whitespace-nowrap text-sm font-bold tabular-nums amount-blur">{formatCurrency(tx.amount)}</span>
                   </div>

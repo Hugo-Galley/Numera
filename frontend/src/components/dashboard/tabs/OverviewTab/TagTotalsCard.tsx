@@ -11,7 +11,7 @@ export function TagTotalsCard({ ctx }: { ctx: OverviewTabCtx }) {
   return (
     <>
       {tagTotals.length > 0 && (
-        <Card className="shadow-sm border-slate-100 overflow-hidden md:mt-8">
+        <Card className="shadow-xs border-slate-100 overflow-hidden md:mt-8">
           <CardHeader className="bg-slate-50/50 border-b p-4 pb-3 md:p-6 md:pb-4 flex flex-row items-center justify-between">
             <div>
               <CardTitle className="text-lg">{t("overview.tagsTitle")}</CardTitle>
@@ -22,7 +22,7 @@ export function TagTotalsCard({ ctx }: { ctx: OverviewTabCtx }) {
           <CardContent className="p-4 md:p-6">
             <div className="flex flex-wrap gap-2 md:gap-4">
               {tagTotals.map((tag) => (
-                <div key={tag.id} className="flex items-center gap-3 p-3 px-4 bg-white border border-slate-200 rounded-full shadow-sm hover:border-slate-300 transition-colors group">
+                <div key={tag.id} className="flex items-center gap-3 p-3 px-4 bg-white border border-slate-200 rounded-full shadow-xs hover:border-slate-300 transition-colors group">
                   <div className="h-3 w-3 rounded-full" style={{ backgroundColor: tag.color || "#64748b" }} />
                   <div>
                     <p className="text-[11px] font-medium text-slate-500 leading-none mb-1">{tag.name}</p>

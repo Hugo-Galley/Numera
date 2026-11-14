@@ -45,7 +45,7 @@ export function WealthDetails({ ctx }: { ctx: OverviewTabCtx }) {
                     >
                       <div className="flex min-w-0 items-center gap-2.5">
                         <div 
-                          className="h-2 w-2 rounded-full flex-shrink-0" 
+                          className="h-2 w-2 rounded-full shrink-0" 
                           style={{ backgroundColor: catColor }} 
                         />
                         <AccountLogo accountId={item.account_id} className="h-6 w-6" />
@@ -103,7 +103,7 @@ export function WealthDetails({ ctx }: { ctx: OverviewTabCtx }) {
                     >
                       <div className="flex min-w-0 items-center gap-2.5">
                         <div 
-                          className="h-2 w-2 rounded-full flex-shrink-0" 
+                          className="h-2 w-2 rounded-full shrink-0" 
                           style={{ backgroundColor: group.color }} 
                         />
                         <AccountLogo accountId={item.account_id} className="h-6 w-6" />
@@ -140,7 +140,7 @@ export function WealthDetails({ ctx }: { ctx: OverviewTabCtx }) {
             >
               <div className="flex min-w-0 items-center gap-3">
                 <div 
-                  className="h-3 w-3 rounded-full flex-shrink-0" 
+                  className="h-3 w-3 rounded-full shrink-0" 
                   style={{ backgroundColor: item.color }} 
                 />
                 <div className="min-w-0">
@@ -177,7 +177,7 @@ export function WealthDetails({ ctx }: { ctx: OverviewTabCtx }) {
             >
               <div className="flex min-w-0 items-center gap-3">
                 <div 
-                  className="h-3 w-3 rounded-full flex-shrink-0" 
+                  className="h-3 w-3 rounded-full shrink-0" 
                   style={{ backgroundColor: item.color }} 
                 />
                 <div className="min-w-0">

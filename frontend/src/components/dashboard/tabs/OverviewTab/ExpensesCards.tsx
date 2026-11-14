@@ -14,7 +14,7 @@ export function ExpensesCards({ ctx }: { ctx: OverviewTabCtx }) {
   return (
     <>
       <div className="grid grid-cols-1 gap-5 md:gap-8 lg:grid-cols-12">
-        <Card className="lg:col-span-8 shadow-sm border-slate-100 overflow-hidden">
+        <Card className="lg:col-span-8 shadow-xs border-slate-100 overflow-hidden">
           <CardHeader className="bg-slate-50/50 border-b p-4 pb-3 md:p-6 md:pb-4">
             <CardTitle className="text-lg">{t("overview.expensesTitle")}</CardTitle>
             <CardDescription>{t("overview.expensesSubtitle")}</CardDescription>
@@ -48,7 +48,7 @@ export function ExpensesCards({ ctx }: { ctx: OverviewTabCtx }) {
           </CardContent>
         </Card>
 
-        <Card className="lg:col-span-4 shadow-sm border-slate-100 overflow-hidden">
+        <Card className="lg:col-span-4 shadow-xs border-slate-100 overflow-hidden">
           <CardHeader className="bg-slate-50/50 border-b p-4 pb-3 md:p-6 md:pb-4">
             <CardTitle className="text-lg">{t("overview.splitTitle")}</CardTitle>
             <CardDescription>{t("overview.splitSubtitle")}</CardDescription>

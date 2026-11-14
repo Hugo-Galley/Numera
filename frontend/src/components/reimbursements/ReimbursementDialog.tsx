@@ -181,7 +181,7 @@ export function ReimbursementDialog({ open, onOpenChange, transaction, onDone }:
               {claims.map((c) => (
                 <div key={c.id} className="space-y-1 p-3">
                   <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-3">
-                    <Input defaultValue={c.debtor} className="h-10 min-w-0 flex-1 text-base sm:h-8 sm:max-w-[12rem] sm:flex-none sm:text-sm" onBlur={(e) => handleRename(c, e.target.value)} />
+                    <Input defaultValue={c.debtor} className="h-10 min-w-0 flex-1 text-base sm:h-8 sm:max-w-48 sm:flex-none sm:text-sm" onBlur={(e) => handleRename(c, e.target.value)} />
                     <span className="whitespace-nowrap text-sm text-slate-600">
                       <span className="amount-blur font-semibold text-emerald-600">{formatCurrency(c.received, c.currency)}</span>
                       {" / "}
@@ -250,7 +250,7 @@ export function ReimbursementDialog({ open, onOpenChange, transaction, onDone }:
                 <div key={c.id} className="flex flex-col gap-2 p-3 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
                   <div className="min-w-0">
                     <p className="font-semibold text-slate-900">{c.debtor}</p>
-                    <p className="break-words text-xs text-slate-500 sm:truncate">
+                    <p className="wrap-break-word text-xs text-slate-500 sm:truncate">
                       {i18n.t("misc.expenseRemaining", { ns: "reimbursements", date: format(new Date(c.expense.date), "dd/MM/yyyy"), label: c.expense.label, amount: formatCurrency(c.remaining, c.currency) })}
                     </p>
                   </div>

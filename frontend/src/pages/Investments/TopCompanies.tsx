@@ -15,7 +15,7 @@ export function TopCompanies({ ctx }: { ctx: InvestmentsCtx }) {
     <>
       {/* Top 10 Companies Look-Through */}
       {diversity && diversity.top_underlying_companies.length > 0 && (
-        <Card className="shadow-sm">
+        <Card className="shadow-xs">
           <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b gap-2">
             <div>
               <div className="flex items-center gap-2">

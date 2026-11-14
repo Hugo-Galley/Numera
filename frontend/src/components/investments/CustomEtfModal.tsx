@@ -141,7 +141,7 @@ export function CustomEtfModal({
               type="submit"
               size="sm"
               disabled={analyzing || !ticker.trim()}
-              className="h-11 gap-2 bg-slate-900 text-white shadow-sm hover:bg-slate-800 sm:h-8"
+              className="h-11 gap-2 bg-slate-900 text-white shadow-xs hover:bg-slate-800 sm:h-8"
             >
               <Globe className="h-3.5 w-3.5" />
               {analyzing ? t("customEtfModal.recuperation") : t("customEtfModal.creerDepuisYahoo")}

@@ -65,7 +65,7 @@ export function CalendarSummary({ ctx }: { ctx: CalendarCtx }) {
                 <span>{t("calendarSummary.aujourdHui")}</span>
               </div>
               <div className="mt-4 p-2 bg-slate-50 rounded border border-slate-100 flex gap-2">
-                <Info className="h-4 w-4 text-slate-400 flex-shrink-0" />
+                <Info className="h-4 w-4 text-slate-400 shrink-0" />
                 <p className="text-slate-500 leading-tight">
                   {t("calendarSummary.lesSoldesQuotidiensIncluentLes")}
                 </p>

@@ -70,7 +70,7 @@ export function EditMerchantDialog({ ctx }: { ctx: MerchantsTabCtx }) {
               <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">{t("editMerchantDialog.variantesDeLibelles")}</Label>
               <div className="flex flex-wrap gap-2 p-3 bg-slate-50 rounded-xl border border-slate-200 min-h-[60px]">
                 {editingMerchant?.aliases.map(a => (
-                  <Badge key={a.id} className="bg-white text-slate-700 border-slate-200 shadow-sm flex items-center gap-2 pr-1 h-9 sm:h-7">
+                  <Badge key={a.id} className="bg-white text-slate-700 border-slate-200 shadow-xs flex items-center gap-2 pr-1 h-9 sm:h-7">
                     {a.label}
                     <button aria-label={t("editMerchantDialog.fermer")} 
                       onClick={() => handleRemoveAlias(a.id)}

@@ -13,7 +13,7 @@ export function SnapshotsCard({ ctx }: { ctx: AccountDetailView }) {
   const { formatCurrency, handleDeleteSnapshot, handleEditSnapshot, handleSnapSort, snapSortField, snapSortOrder, sortedSnapshots } = ctx
   return (
     <>
-      <Card className="min-w-0 shadow-sm">
+      <Card className="min-w-0 shadow-xs">
         <CardHeader><CardTitle className="text-lg">{t("snapshots.title")}</CardTitle></CardHeader>
         <CardContent className="p-0">
           <div className="overflow-x-auto">

@@ -13,7 +13,7 @@ export function BaseTab({ ctx }: { ctx: WealthSimulatorCtx }) {
   return (
     <>
       {/* CONTENU ONGLET 1: GENERAL */}
-      <TabsContent value="base" className="space-y-4 m-0 outline-none">
+      <TabsContent value="base" className="space-y-4 m-0 outline-hidden">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="initial_capital" className="flex items-center gap-1.5 text-xs font-semibold text-slate-700">

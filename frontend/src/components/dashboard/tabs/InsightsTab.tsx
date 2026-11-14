@@ -55,7 +55,7 @@ export function InsightsTab({ insights }: InsightsTabProps) {
 
   return (
     <div className="grid grid-cols-1 gap-5 md:gap-8 lg:grid-cols-12">
-      <Card className="theme-island lg:col-span-4 shadow-sm border-slate-100 overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 text-white">
+      <Card className="theme-island lg:col-span-4 shadow-xs border-slate-100 overflow-hidden bg-linear-to-br from-slate-900 to-slate-800 text-white">
         <CardHeader className="pb-2">
           <CardTitle className="text-lg flex items-center gap-2">
             <HeartPulse className="h-5 w-5 text-emerald-400" />
@@ -117,7 +117,7 @@ export function InsightsTab({ insights }: InsightsTabProps) {
         </h3>
         <div className="grid grid-cols-1 gap-4">
           {visibleInsights.map((insight, i: number) => (
-            <Card key={i} className={`shadow-sm border-l-4 ${
+            <Card key={i} className={`shadow-xs border-l-4 ${
               insight.type === 'anomaly' ? 'border-l-amber-500' : 'border-l-emerald-500'
             } hover:bg-slate-50 transition-colors group relative`}>
               <CardHeader className="p-4 md:p-5">
@@ -129,7 +129,7 @@ export function InsightsTab({ insights }: InsightsTabProps) {
                       {insight.type === 'anomaly' ? <AlertTriangle className="h-5 w-5" /> : <Sparkles className="h-5 w-5" />}
                     </div>
                     <div className="min-w-0">
-                      <CardTitle className="text-base md:text-lg font-bold text-slate-900 break-words">{insight.title}</CardTitle>
+                      <CardTitle className="text-base md:text-lg font-bold text-slate-900 wrap-break-word">{insight.title}</CardTitle>
                       <CardDescription className="text-slate-600 mt-1">{insight.description}</CardDescription>
                       {insight.value && (
                         <Badge variant="outline" className={`mt-2 md:hidden whitespace-nowrap ${insight.type === 'anomaly' ? 'text-amber-700 bg-amber-50' : 'text-emerald-700 bg-emerald-50'}`}>

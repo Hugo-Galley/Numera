@@ -29,7 +29,7 @@ export function DrillDownDialog({ ctx }: { ctx: InvestmentsCtx }) {
                 }}
               >
                 <div className="flex min-w-0 flex-col">
-                  <span className="font-medium text-sm break-words group-hover:text-slate-600 transition-colors">{item.account_name || i18n.t("misc.unnamedAccount", { ns: "investments" })}</span>
+                  <span className="font-medium text-sm wrap-break-word group-hover:text-slate-600 transition-colors">{item.account_name || i18n.t("misc.unnamedAccount", { ns: "investments" })}</span>
                   <span className="text-xs text-muted-foreground">{i18n.t("misc.groupShare", { ns: "investments", pct: formatRate(Number(item.percentage_of_group) || 0, 1) })}</span>
                 </div>
                 <div className="shrink-0 text-right">

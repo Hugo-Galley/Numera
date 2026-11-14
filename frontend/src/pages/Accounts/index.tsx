@@ -44,7 +44,7 @@ export default function Accounts() {
           {showArchived && (
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {archivedAccounts.map((account) => (
-                <Card key={account.id} className="shadow-sm opacity-75">
+                <Card key={account.id} className="shadow-xs opacity-75">
                   <CardContent className="flex items-center justify-between gap-3 p-4">
                     <div className="min-w-0">
                       <p className="truncate font-semibold text-slate-900">{account.name}</p>

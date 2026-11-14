@@ -46,7 +46,7 @@ export function ProjectionsTab({ projection, displayCurrency }: ProjectionsTabPr
   return (
     <div className="space-y-5 md:space-y-8">
       <div className="grid grid-cols-2 gap-3 md:gap-6 md:grid-cols-3">
-        <Card className="shadow-sm border-slate-100">
+        <Card className="shadow-xs border-slate-100">
           <CardHeader className="p-3 pb-1 md:p-6 md:pb-2">
             <CardDescription className="font-medium text-slate-500">{t("projections.projectedBalance")}</CardDescription>
           </CardHeader>
@@ -64,7 +64,7 @@ export function ProjectionsTab({ projection, displayCurrency }: ProjectionsTabPr
           </CardContent>
         </Card>
 
-        <Card className="shadow-sm border-slate-100">
+        <Card className="shadow-xs border-slate-100">
           <CardHeader className="p-3 pb-1 md:p-6 md:pb-2">
             <CardDescription className="font-medium text-slate-500">{t("projections.lowPoint")}</CardDescription>
           </CardHeader>
@@ -78,7 +78,7 @@ export function ProjectionsTab({ projection, displayCurrency }: ProjectionsTabPr
           </CardContent>
         </Card>
 
-        <Card className="col-span-2 md:col-span-1 shadow-sm border-slate-100">
+        <Card className="col-span-2 md:col-span-1 shadow-xs border-slate-100">
           <CardHeader className="p-3 pb-1 md:p-6 md:pb-2">
             <CardDescription className="font-medium text-slate-500">{t("projections.recurringFlows")}</CardDescription>
           </CardHeader>
@@ -91,7 +91,7 @@ export function ProjectionsTab({ projection, displayCurrency }: ProjectionsTabPr
         </Card>
       </div>
 
-      <Card className="shadow-sm border-slate-100 overflow-hidden">
+      <Card className="shadow-xs border-slate-100 overflow-hidden">
         <CardHeader className="bg-slate-50/50 border-b p-4 pb-3 md:p-6 md:pb-4">
           <CardTitle className="text-lg">{t("projections.chartTitle")}</CardTitle>
           <CardDescription>{t("projections.chartSubtitle")}</CardDescription>
@@ -134,7 +134,7 @@ export function ProjectionsTab({ projection, displayCurrency }: ProjectionsTabPr
       </Card>
 
       <div className="grid grid-cols-1 gap-5 md:gap-8 lg:grid-cols-2">
-         <Card className="shadow-sm border-slate-100">
+         <Card className="shadow-xs border-slate-100">
            <CardHeader className="p-4 md:p-6">
              <CardTitle className="text-lg">{t("projections.nextFlows")}</CardTitle>
              <CardDescription>{t("projections.nextFlowsSubtitle")}</CardDescription>
@@ -162,7 +162,7 @@ export function ProjectionsTab({ projection, displayCurrency }: ProjectionsTabPr
          </Card>
 
          <div className="space-y-4 md:space-y-6">
-            <Card className="shadow-sm border-blue-100 bg-blue-50/20">
+            <Card className="shadow-xs border-blue-100 bg-blue-50/20">
               <CardHeader className="p-4 md:p-6">
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Sparkles className="h-5 w-5 text-blue-500" />
@@ -179,7 +179,7 @@ export function ProjectionsTab({ projection, displayCurrency }: ProjectionsTabPr
                   <Trans t={t} i18nKey="projections.lowPointIs" values={{ value: formatCurrency(projection?.low_point || 0, displayCurrency) }} components={{ amount: <span className="font-bold text-slate-900 amount-blur" /> }} />
                 </p>
                 {(projection?.projected_balance || 0) > (projection?.current_balance || 0) && (
-                  <div className="p-4 bg-white rounded-xl border border-blue-100 shadow-sm">
+                  <div className="p-4 bg-white rounded-xl border border-blue-100 shadow-xs">
                      <p className="text-xs font-bold text-blue-800 uppercase mb-2">{t("projections.adviceLabel")}</p>
                      <p className="text-sm text-slate-700"><Trans t={t} i18nKey="projections.advice" values={{ value: formatCurrency((projection?.projected_balance || 0) - (projection?.current_balance || 0), displayCurrency) }} components={{ amount: <span className="font-bold amount-blur" /> }} /></p>
                   </div>

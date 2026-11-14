@@ -53,7 +53,7 @@ export function ProvisionCard({ provision: p, onEdit, onDelete, onToggle }: { pr
   const paidMore = p.last_payment && p.last_payment.amount > p.amount * 1.05
 
   return (
-    <Card className={`rounded-2xl shadow-sm ${p.active ? "" : "opacity-60"}`}>
+    <Card className={`rounded-2xl shadow-xs ${p.active ? "" : "opacity-60"}`}>
       <CardContent className="space-y-3 p-4 md:p-5">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">

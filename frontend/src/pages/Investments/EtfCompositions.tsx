@@ -16,7 +16,7 @@ export function EtfCompositions({ ctx }: { ctx: InvestmentsCtx }) {
   const { advancedAllocation, diversity, refreshCompositions, refreshingCompositions } = ctx
   return (
     <>
-      <Card className="shadow-sm overflow-hidden">
+      <Card className="shadow-xs overflow-hidden">
         <CardHeader className="border-b bg-slate-50/50 pb-3">
           <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-2">
@@ -32,7 +32,7 @@ export function EtfCompositions({ ctx }: { ctx: InvestmentsCtx }) {
           </div>
         </CardHeader>
         <CardContent className="h-[300px] p-0 relative bg-slate-50/30 md:h-[450px]">
-          <div className="absolute top-3 left-3 z-10 rounded-md border bg-white/90 px-2.5 py-1 text-[11px] text-slate-500 shadow-sm backdrop-blur md:top-4 md:left-4 md:px-3 md:py-1.5 md:text-xs">
+          <div className="absolute top-3 left-3 z-10 rounded-md border bg-white/90 px-2.5 py-1 text-[11px] text-slate-500 shadow-xs backdrop-blur-sm md:top-4 md:left-4 md:px-3 md:py-1.5 md:text-xs">
             <span className="md:hidden">{t("etfCompositions.pincezPourZoomerGlissezPour")}</span><span className="hidden md:inline">{t("etfCompositions.utilisezLaMolettePourZoomer")}</span>
           </div>
           <WorldMap data={
@@ -44,7 +44,7 @@ export function EtfCompositions({ ctx }: { ctx: InvestmentsCtx }) {
       </Card>
 
       {diversity && diversity.etf_compositions.length > 0 && (
-        <Card className="shadow-sm">
+        <Card className="shadow-xs">
           <CardHeader className="border-b pb-3">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
@@ -68,7 +68,7 @@ export function EtfCompositions({ ctx }: { ctx: InvestmentsCtx }) {
                 <div key={c.profile_id} className="flex flex-col gap-2 px-4 py-3 md:px-5 sm:flex-row sm:items-center sm:justify-between">
                   <div className="min-w-0">
                     <div className="text-sm font-medium truncate">{c.profile_name}</div>
-                    <div className="text-xs text-muted-foreground break-words">
+                    <div className="text-xs text-muted-foreground wrap-break-word">
                       {c.tickers.join(", ")} · <span className="amount-blur">{formatCurrency(c.value_eur)}</span>
                       {" · "}
                       {c.refreshed_at

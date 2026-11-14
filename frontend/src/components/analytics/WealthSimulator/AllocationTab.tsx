@@ -11,8 +11,8 @@ export function AllocationTab({ ctx }: { ctx: WealthSimulatorCtx }) {
   return (
     <>
       {/* CONTENU ONGLET 2: ALLOCATION D'ACTIFS */}
-      <TabsContent value="allocation" className="space-y-4 m-0 outline-none">
-        <div className="flex items-center justify-between bg-white p-2.5 rounded-lg border border-slate-100 shadow-sm">
+      <TabsContent value="allocation" className="space-y-4 m-0 outline-hidden">
+        <div className="flex items-center justify-between bg-white p-2.5 rounded-lg border border-slate-100 shadow-xs">
           <div className="flex flex-col gap-0.5">
             <span className="text-xs font-bold text-slate-800">{t("allocationTab.simulerSelonUneAllocationD")}</span>
             <span className="text-[10px] text-slate-400">{t("allocationTab.rendementEtRisqueCalculesSelon")}</span>
@@ -40,7 +40,7 @@ export function AllocationTab({ ctx }: { ctx: WealthSimulatorCtx }) {
             {/* LISTE PROPRE DES SLIDERS AVEC CRAYON D'EDITION */}
             <div className="space-y-3.5 max-h-[290px] overflow-y-auto pr-1">
               {assetClasses.map(item => (
-                <div key={item.id} className="space-y-1.5 bg-white p-3 rounded-lg border border-slate-100 shadow-sm relative group hover:border-slate-300 transition-all">
+                <div key={item.id} className="space-y-1.5 bg-white p-3 rounded-lg border border-slate-100 shadow-xs relative group hover:border-slate-300 transition-all">
                   <div className="flex justify-between items-center text-xs">
                     <span className="font-semibold text-slate-755">{item.name} ({item.pct}%)</span>
                     <div className="flex items-center gap-1">

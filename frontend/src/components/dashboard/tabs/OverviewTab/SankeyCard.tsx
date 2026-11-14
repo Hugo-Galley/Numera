@@ -9,7 +9,7 @@ export function SankeyCard({ ctx }: { ctx: OverviewTabCtx }) {
   const { displayCurrency, drilldownScope, isMobile, openDrilldown, sankeyData } = ctx
   return (
     <>
-      <Card className="shadow-sm border-slate-100 overflow-hidden">
+      <Card className="shadow-xs border-slate-100 overflow-hidden">
         <CardHeader className="bg-slate-50/50 border-b p-4 pb-3 md:p-6 md:pb-4">
           <CardTitle className="text-lg">{t("overview.flowTitle")}</CardTitle>
           <CardDescription>{t("overview.flowSubtitle")}</CardDescription>

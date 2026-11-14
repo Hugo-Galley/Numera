@@ -19,7 +19,7 @@ export function WealthSimulator({ initialCapitalDefault = 10000 }: WealthSimulat
   const ctx = useWealthSimulator(initialCapitalDefault)
   const { activeEventsCount, computedReturn, computedVolatility, isVolatile, loading, params, showInflationAdjusted, useAllocation } = ctx
   return (
-    <Card className="w-full border-slate-200 shadow-sm">
+    <Card className="w-full border-slate-200 shadow-xs">
       <CardHeader className="p-4 pb-3 md:p-6 md:pb-4 border-b border-slate-100 bg-slate-50/50">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex min-w-0 items-center gap-2.5">
@@ -46,7 +46,7 @@ export function WealthSimulator({ initialCapitalDefault = 10000 }: WealthSimulat
           
           {/* 1. CHOIX DE PARAMETRES EN HAUT (TabsList) */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
-            <TabsList className="bg-slate-100 p-1 rounded-lg shrink-0 flex w-full md:w-auto justify-start overflow-x-auto flex-nowrap gap-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <TabsList className="bg-slate-100 p-1 rounded-lg shrink-0 flex w-full md:w-auto justify-start overflow-x-auto flex-nowrap gap-0.5 scrollbar-none [&::-webkit-scrollbar]:hidden">
               <TabsTrigger value="base" className="text-xs py-2.5 md:py-1.5 px-3 whitespace-nowrap">{t("index.general")}</TabsTrigger>
               <TabsTrigger value="allocation" className="text-xs py-2.5 md:py-1.5 px-3 whitespace-nowrap">{t("index.allocationDActifs")}</TabsTrigger>
               <TabsTrigger value="advanced" className="text-xs py-2.5 md:py-1.5 px-3 whitespace-nowrap">{t("index.fiscaliteRisque")}</TabsTrigger>
@@ -77,7 +77,7 @@ export function WealthSimulator({ initialCapitalDefault = 10000 }: WealthSimulat
             <div className="xl:col-span-5 space-y-6">
               
               {/* CADRE DES INPUTS DE L'ONGLET ACTIF */}
-              <div className="bg-slate-50/40 p-4 rounded-xl border border-slate-100 shadow-sm space-y-4">
+              <div className="bg-slate-50/40 p-4 rounded-xl border border-slate-100 shadow-xs space-y-4">
                 
                 <BaseTab ctx={ctx} />
 

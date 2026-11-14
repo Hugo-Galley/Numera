@@ -16,7 +16,7 @@ export function Omnibox() {
   return (
     <Dialog open={isSearchOpen} onOpenChange={setSearchOpen}>
       <DialogContent 
-        className="sm:max-w-[600px] p-0 gap-0 overflow-hidden border-none shadow-2xl rounded-2xl max-sm:left-0 max-sm:top-[var(--vvt,0px)] max-sm:flex max-sm:h-[var(--vvh,100dvh)] max-sm:max-h-none max-sm:w-full max-sm:max-w-none max-sm:translate-x-0 max-sm:translate-y-0 max-sm:flex-col max-sm:rounded-none max-sm:pt-[env(safe-area-inset-top)] max-sm:[&>button:last-child]:top-[calc(1rem+env(safe-area-inset-top))] max-sm:data-[state=closed]:slide-out-to-left-0 max-sm:data-[state=closed]:slide-out-to-top-0 max-sm:data-[state=open]:slide-in-from-left-0 max-sm:data-[state=open]:slide-in-from-top-0"
+        className="sm:max-w-[600px] p-0 gap-0 overflow-hidden border-none shadow-2xl rounded-2xl max-sm:left-0 max-sm:top-(--vvt,0px) max-sm:flex max-sm:h-(--vvh,100dvh) max-sm:max-h-none max-sm:w-full max-sm:max-w-none max-sm:translate-x-0 max-sm:translate-y-0 max-sm:flex-col max-sm:rounded-none max-sm:pt-[env(safe-area-inset-top)] max-sm:[&>button:last-child]:top-[calc(1rem+env(safe-area-inset-top))] max-sm:data-[state=closed]:slide-out-to-left-0 max-sm:data-[state=closed]:slide-out-to-top-0 max-sm:data-[state=open]:slide-in-from-left-0 max-sm:data-[state=open]:slide-in-from-top-0"
         style={viewport ? ({ "--vvh": `${viewport.height}px`, "--vvt": `${viewport.top}px` } as React.CSSProperties) : undefined}
         onKeyDown={handleKeyDown}
       >
@@ -43,7 +43,7 @@ export function Omnibox() {
             <div className="h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
           )}
         </DialogHeader>
-        <ScrollArea className="min-h-0 flex-1 max-sm:[&>[data-radix-scroll-area-viewport]>div]:!block sm:max-h-[450px] sm:flex-none">
+        <ScrollArea className="min-h-0 flex-1 max-sm:[&>[data-radix-scroll-area-viewport]>div]:block! sm:max-h-[450px] sm:flex-none">
           <div className="p-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]" ref={scrollRef}>
             <NavAccountResults ctx={ctx} />
 
@@ -54,11 +54,11 @@ export function Omnibox() {
         </ScrollArea>
         <div className="hidden shrink-0 px-4 py-3 border-t bg-slate-50 text-[10px] text-slate-400 justify-between items-center sm:flex">
           <div className="flex gap-4">
-            <span className="flex items-center gap-1"><kbd className="bg-white border rounded px-1 text-slate-500 font-sans shadow-sm">↑↓</kbd> {t("ui.navigate")}</span>
-            <span className="flex items-center gap-1"><kbd className="bg-white border rounded px-1 text-slate-500 font-sans shadow-sm">Enter</kbd> {t("ui.select")}</span>
+            <span className="flex items-center gap-1"><kbd className="bg-white border rounded px-1 text-slate-500 font-sans shadow-xs">↑↓</kbd> {t("ui.navigate")}</span>
+            <span className="flex items-center gap-1"><kbd className="bg-white border rounded px-1 text-slate-500 font-sans shadow-xs">Enter</kbd> {t("ui.select")}</span>
           </div>
           <div className="flex items-center gap-1">
-            <kbd className="bg-white border rounded px-1 text-slate-500 font-sans shadow-sm">ESC</kbd> {t("ui.close")}
+            <kbd className="bg-white border rounded px-1 text-slate-500 font-sans shadow-xs">ESC</kbd> {t("ui.close")}
           </div>
         </div>
       </DialogContent>

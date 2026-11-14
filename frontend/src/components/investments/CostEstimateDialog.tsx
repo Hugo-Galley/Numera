@@ -131,7 +131,7 @@ export function CostEstimateDialog({ open, onOpenChange, accountId, onApplied }:
                   />
                   </label>
                   <div className="min-w-0 flex-1">
-                    <p className="break-words text-sm font-semibold text-slate-900 sm:truncate">{r.asset_name}</p>
+                    <p className="wrap-break-word text-sm font-semibold text-slate-900 sm:truncate">{r.asset_name}</p>
                     <p className="font-mono text-[11px] text-slate-400">
                       {r.ticker} • {r.quantity} parts
                       {r.current_cost !== null && ` • PRU actuel ${r.current_cost} ${r.currency}`}

@@ -47,7 +47,7 @@ export function PortfolioSummary({ accountId, reloadKey }: PortfolioSummaryProps
   const latest = reconciliation[reconciliation.length - 1]
 
   return (
-    <Card className="shadow-sm">
+    <Card className="shadow-xs">
       <CardHeader>
         <CardTitle className="text-lg">{t("portfolioSummary.valeurCalculee")}</CardTitle>
         <CardDescription>

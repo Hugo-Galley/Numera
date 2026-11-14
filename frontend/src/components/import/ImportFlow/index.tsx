@@ -26,7 +26,7 @@ export function ImportFlow({ accountId, onImported }: ImportFlowProps) {
           <ImportPreviewCard ctx={ctx} />
         ) : (
           <div className="h-full min-h-[220px] md:min-h-[400px] flex flex-col items-center justify-center p-8 md:p-12 text-center border-2 border-dashed rounded-3xl bg-slate-50/50 border-slate-200">
-            <div className="h-16 w-16 bg-white rounded-2xl flex items-center justify-center shadow-sm border border-slate-100 mb-6">
+            <div className="h-16 w-16 bg-white rounded-2xl flex items-center justify-center shadow-xs border border-slate-100 mb-6">
               <Upload className="h-8 w-8 text-slate-300" />
             </div>
             <h3 className="text-xl font-bold text-slate-900">{t("waitingTitle")}</h3>

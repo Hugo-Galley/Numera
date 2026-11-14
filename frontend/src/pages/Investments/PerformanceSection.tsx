@@ -17,7 +17,7 @@ export function PerformanceSection({ ctx }: { ctx: InvestmentsCtx }) {
           <h2 className="text-xl font-bold tracking-tight">{t("performanceSection.performanceDetaillee")}</h2>
           <p className="text-sm text-muted-foreground">{t("performanceSection.historiqueEtEvolutionDeVos")}</p>
         </div>
-        <Card className="shadow-sm">
+        <Card className="shadow-xs">
           <CardContent className="h-[260px] px-2 sm:px-6 pt-6 md:h-[300px]">
              <ResponsiveContainer width="100%" height="100%">
                <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>

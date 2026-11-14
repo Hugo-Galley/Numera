@@ -158,7 +158,7 @@ export function TransferReview() {
 
         <div className="grid gap-4">
           {potentials.map((pair) => (
-            <Card key={`${pair.sortie.id}-${pair.type}-${pair.entree.id}`} className="overflow-hidden border-slate-100 shadow-sm transition-colors hover:border-indigo-200">
+            <Card key={`${pair.sortie.id}-${pair.type}-${pair.entree.id}`} className="overflow-hidden border-slate-100 shadow-xs transition-colors hover:border-indigo-200">
               <CardContent className="flex flex-col gap-4 p-4 md:flex-row md:items-center md:justify-between">
                 <div className="flex min-w-0 flex-1 flex-col gap-3 md:flex-row md:items-center md:gap-6">
                   <div className="min-w-0 flex-1 space-y-1">
@@ -166,7 +166,7 @@ export function TransferReview() {
                       <Wallet className="h-3 w-3 text-slate-400" />
                       <span className="text-xs font-bold uppercase tracking-wider text-slate-500">{accountName(pair.sortie.account_id)}</span>
                     </div>
-                    <p className="break-words font-bold text-slate-900">{pair.sortie.merchant}</p>
+                    <p className="wrap-break-word font-bold text-slate-900">{pair.sortie.merchant}</p>
                     <div className="flex items-center gap-2 text-xs text-slate-400">
                       <Calendar className="h-3 w-3" />
                       {format(new Date(pair.sortie.date), "dd MMMM yyyy", { locale: dateLocale() })}
@@ -190,7 +190,7 @@ export function TransferReview() {
                       <span className="text-xs font-bold uppercase tracking-wider text-slate-500">{accountName(pair.entree.account_id)}</span>
                       <Wallet className="h-3 w-3 text-slate-400" />
                     </div>
-                    <p className="break-words font-bold text-slate-900">{pair.entree.merchant || pair.entree.note || "Versement"}</p>
+                    <p className="wrap-break-word font-bold text-slate-900">{pair.entree.merchant || pair.entree.note || "Versement"}</p>
                     <div className="flex items-center gap-2 text-xs text-slate-400 md:justify-end">
                       <span className="font-medium text-emerald-500 amount-blur">+{formatCurrency(pair.entree.amount, pair.entree.currency)}</span>
                       {format(new Date(pair.entree.date), "dd MMMM yyyy", { locale: dateLocale() })}
@@ -232,7 +232,7 @@ export function TransferReview() {
           </p>
         </div>
 
-        <Card className="overflow-hidden border-slate-100 shadow-sm">
+        <Card className="overflow-hidden border-slate-100 shadow-xs">
           <CardContent className="p-0">
             <div className="divide-y divide-slate-100">
               {linked.map((tx) => (

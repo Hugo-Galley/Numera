@@ -152,7 +152,7 @@ export default function Dashboard() {
           })
         }
       >
-        <div className="-mx-4 px-4 md:mx-0 md:px-0 overflow-x-auto pb-2 [ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="-mx-4 px-4 md:mx-0 md:px-0 overflow-x-auto pb-2 [ms-overflow-style:none] scrollbar-none [&::-webkit-scrollbar]:hidden">
           <TabsList className="bg-slate-50/50 border border-slate-100 p-1 rounded-xl inline-flex w-max">
             <TabsTrigger value="overview" className="rounded-lg whitespace-nowrap h-9 px-4 md:h-auto md:px-3">{t("tabs.overview")}</TabsTrigger>
             <TabsTrigger value="budgets" className="rounded-lg whitespace-nowrap h-9 px-4 md:h-auto md:px-3">{t("tabs.budgets")}</TabsTrigger>

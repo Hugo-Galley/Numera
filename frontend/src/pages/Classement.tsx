@@ -60,7 +60,7 @@ export default function Classement() {
 
       <Tabs value={activeTab} onValueChange={changeTab} className="w-full">
         <div className="-mx-4 px-4 md:mx-0 md:px-0">
-          <TabsList ref={tabsListRef} className="scroll-fade-x bg-slate-100 p-1 rounded-xl mb-4 sm:mb-6 flex h-12 w-full justify-start gap-1 sm:inline-flex sm:h-10 sm:w-auto [ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <TabsList ref={tabsListRef} className="scroll-fade-x bg-slate-100 p-1 rounded-xl mb-4 sm:mb-6 flex h-12 w-full justify-start gap-1 sm:inline-flex sm:h-10 sm:w-auto [ms-overflow-style:none] scrollbar-none [&::-webkit-scrollbar]:hidden">
             {TABS.map(({ value, icon: Icon }) => (
               <TabsTrigger key={value} value={value} className="h-10 shrink-0 rounded-lg px-2.5 sm:h-auto sm:px-6">
                 <Icon className="hidden h-4 w-4 mr-2 sm:inline" /> {t(`classement.tabs.${value}`)}

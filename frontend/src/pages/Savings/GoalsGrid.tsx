@@ -15,7 +15,7 @@ export function GoalsGrid({ ctx }: { ctx: SavingsCtx }) {
     <>
       <div className="grid gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         {goals.map((goal) => (
-          <Card key={goal.id} className="group overflow-hidden border-slate-100 shadow-sm hover:shadow-md transition-all hover:border-slate-200">
+          <Card key={goal.id} className="group overflow-hidden border-slate-100 shadow-xs hover:shadow-md transition-all hover:border-slate-200">
             <CardHeader className="pb-3 flex flex-row items-start justify-between">
               <div className="flex min-w-0 flex-1 gap-3 md:gap-4">
                 <div 
@@ -25,7 +25,7 @@ export function GoalsGrid({ ctx }: { ctx: SavingsCtx }) {
                   <Target className="h-6 w-6" />
                 </div>
                 <div className="min-w-0">
-                  <CardTitle className="text-lg font-bold break-words line-clamp-2 md:truncate md:line-clamp-none">{goal.name}</CardTitle>
+                  <CardTitle className="text-lg font-bold wrap-break-word line-clamp-2 md:truncate md:line-clamp-none">{goal.name}</CardTitle>
                   <div className="flex flex-wrap gap-1 mt-1">
                     {goal.deadline && (
                       <Badge variant="secondary" className="text-[9px] uppercase tracking-wider font-bold bg-slate-200 text-slate-700">
@@ -118,8 +118,8 @@ export function GoalsGrid({ ctx }: { ctx: SavingsCtx }) {
           </Card>
         ))}
         {goals.length === 0 && (
-          <div className="col-span-full py-16 text-center border-2 border-dashed border-slate-200 rounded-[2rem] bg-slate-50/50">
-            <div className="mx-auto h-16 w-16 bg-white rounded-3xl shadow-sm flex items-center justify-center mb-4">
+          <div className="col-span-full py-16 text-center border-2 border-dashed border-slate-200 rounded-4xl bg-slate-50/50">
+            <div className="mx-auto h-16 w-16 bg-white rounded-3xl shadow-xs flex items-center justify-center mb-4">
               <Target className="h-8 w-8 text-slate-300" />
             </div>
             <h3 className="text-lg font-bold text-slate-900">{t("goalsGrid.aucunObjectifActif")}</h3>

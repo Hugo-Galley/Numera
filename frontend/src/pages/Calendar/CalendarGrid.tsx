@@ -8,7 +8,7 @@ export function CalendarGrid({ ctx }: { ctx: CalendarCtx }) {
   const { calendarDays, getBalanceForDay, getEventsForDay, handleDayClick, isPrivacyMode, month, year } = ctx
   return (
     <>
-      <Card className="border-slate-200 shadow-sm overflow-hidden">
+      <Card className="border-slate-200 shadow-xs overflow-hidden">
         <div className="grid grid-cols-7 bg-slate-50 border-b text-center py-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">
           {["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"].map(d => (
             <div key={d}>{d}</div>
@@ -81,7 +81,7 @@ export function CalendarGrid({ ctx }: { ctx: CalendarCtx }) {
                           !ev.is_projected && ev.is_upcoming && "border border-dashed border-sky-300"
                         )}
                       >
-                        {isPending && <Clock className="h-2 w-2 flex-shrink-0" />}
+                        {isPending && <Clock className="h-2 w-2 shrink-0" />}
                         <span className="truncate">{ev.name}</span>
                       </div>
                     )

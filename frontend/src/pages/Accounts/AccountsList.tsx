@@ -41,7 +41,7 @@ export function AccountsList({ ctx }: { ctx: AccountsCtx }) {
                       <Star className={`h-5 w-5 ${account.is_main ? 'fill-current' : ''}`} />
                     </Button>
                     <Link to={`/accounts/${account.id}`} className="min-w-0 flex-1 py-1">
-                      <p className="flex items-center gap-2 break-words font-semibold leading-tight">
+                      <p className="flex items-center gap-2 wrap-break-word font-semibold leading-tight">
                         <AccountLogo accountId={account.id} logo={account.logo ?? null} className="h-6 w-6" />
                         {account.name}
                       </p>

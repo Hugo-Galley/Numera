@@ -21,7 +21,7 @@ import { getAnalyticsWrapped } from "@/lib/api/analytics"
 
 function Kpi({ label, value, delta }: { label: string; value: string; delta?: ReactNode }) {
   return (
-    <Card className="shadow-sm">
+    <Card className="shadow-xs">
       <CardContent className="space-y-1 p-4 sm:p-5">
         <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground sm:text-xs">{label}</p>
         <p className="whitespace-nowrap text-lg font-black tabular-nums tracking-tight amount-blur min-[400px]:text-xl sm:text-2xl">{value}</p>
@@ -33,7 +33,7 @@ function Kpi({ label, value, delta }: { label: string; value: string; delta?: Re
 
 function Section({ icon, title, description, children }: { icon: ReactNode; title: string; description?: string; children: ReactNode }) {
   return (
-    <Card className="shadow-sm">
+    <Card className="shadow-xs">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-lg">
           {icon}
@@ -135,7 +135,7 @@ export default function Wrapped() {
         </Card>
       ) : (
         <>
-          <div className="theme-island relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900 p-5 text-white shadow-md sm:p-8">
+          <div className="theme-island relative overflow-hidden rounded-2xl bg-linear-to-br from-slate-950 via-indigo-950 to-slate-900 p-5 text-white shadow-md sm:p-8">
             <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
               <div className="space-y-1">
                 <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/60">{period}</p>

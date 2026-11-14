@@ -44,7 +44,7 @@ export function SubscriptionsTab({ subscriptions, displayCurrency }: Subscriptio
 
   return (
     <div className="grid grid-cols-1 gap-5 md:gap-8 lg:grid-cols-2">
-      <Card className="shadow-sm border-slate-100 overflow-hidden">
+      <Card className="shadow-xs border-slate-100 overflow-hidden">
         <CardHeader className="bg-slate-50/50 border-b p-4 pb-3 md:p-6 md:pb-4">
           <div className="flex items-center gap-2">
             <Briefcase className="h-5 w-5 text-slate-400" />
@@ -87,7 +87,7 @@ export function SubscriptionsTab({ subscriptions, displayCurrency }: Subscriptio
         </CardContent>
       </Card>
 
-      <Card className="shadow-sm border-slate-100 overflow-hidden">
+      <Card className="shadow-xs border-slate-100 overflow-hidden">
         <CardHeader className="bg-slate-50/50 border-b p-4 pb-3 md:p-6 md:pb-4">
           <CardTitle className="text-lg">{t("subscriptions.splitTitle")}</CardTitle>
           <CardDescription>{t("subscriptions.splitSubtitle")}</CardDescription>

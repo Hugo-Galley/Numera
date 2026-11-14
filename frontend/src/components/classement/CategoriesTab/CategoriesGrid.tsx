@@ -16,10 +16,10 @@ export function CategoriesGrid({ ctx }: { ctx: CategoriesTabCtx }) {
     <>
       <div className="grid gap-3 md:gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {categories.filter((cat) => showArchivedCats || !cat.archived).map((cat) => (
-          <Card key={cat.id} className={`group hover:border-slate-300 transition-all shadow-sm border-slate-100 overflow-hidden ${cat.archived ? "opacity-60" : ""}`}>
+          <Card key={cat.id} className={`group hover:border-slate-300 transition-all shadow-xs border-slate-100 overflow-hidden ${cat.archived ? "opacity-60" : ""}`}>
             <CardContent className="p-0">
               <div className="p-3 pl-4 md:p-4 flex items-center gap-3 md:gap-4">
-                <div className="h-12 w-12 shrink-0 rounded-2xl flex items-center justify-center shadow-sm" style={{ backgroundColor: cat.color || "#64748b" }}>
+                <div className="h-12 w-12 shrink-0 rounded-2xl flex items-center justify-center shadow-xs" style={{ backgroundColor: cat.color || "#64748b" }}>
                   <IconComponent name={cat.icon} className="h-6 w-6 text-white" />
                 </div>
                 <div className="flex-1 min-w-0">

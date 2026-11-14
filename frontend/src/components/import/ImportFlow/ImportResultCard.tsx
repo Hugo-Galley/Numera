@@ -10,7 +10,7 @@ export function ImportResultCard({ ctx }: { ctx: ImportFlowCtx }) {
   if (!result) return null
   return (
     <>
-      <Card className="border-emerald-200 bg-emerald-50/20 shadow-sm overflow-hidden">
+      <Card className="border-emerald-200 bg-emerald-50/20 shadow-xs overflow-hidden">
         <CardHeader className="border-b border-emerald-100 bg-emerald-50/50">
           <div className="flex items-center gap-2 text-emerald-600">
             <CheckCircle2 className="h-5 w-5" />
@@ -23,15 +23,15 @@ export function ImportResultCard({ ctx }: { ctx: ImportFlowCtx }) {
           </CardDescription>
         </CardHeader>
         <CardContent className="p-4 sm:p-6 grid gap-3 sm:gap-4 grid-cols-3">
-          <div className="bg-white p-3 sm:p-4 rounded-2xl border border-emerald-100 shadow-sm">
+          <div className="bg-white p-3 sm:p-4 rounded-2xl border border-emerald-100 shadow-xs">
             <p className="text-[10px] uppercase font-black text-slate-400 tracking-widest">{t("transactions")}</p>
             <p className="text-2xl sm:text-3xl font-extrabold text-emerald-600 mt-1">{result.imported}</p>
           </div>
-          <div className="bg-white p-3 sm:p-4 rounded-2xl border border-amber-100 shadow-sm">
+          <div className="bg-white p-3 sm:p-4 rounded-2xl border border-amber-100 shadow-xs">
             <p className="text-[10px] uppercase font-black text-slate-400 tracking-widest">{t("duplicates")}</p>
             <p className="text-2xl sm:text-3xl font-extrabold text-amber-500 mt-1">{result.skipped}</p>
           </div>
-          <div className="bg-white p-3 sm:p-4 rounded-2xl border border-rose-100 shadow-sm">
+          <div className="bg-white p-3 sm:p-4 rounded-2xl border border-rose-100 shadow-xs">
             <p className="text-[10px] uppercase font-black text-slate-400 tracking-widest">{t("errors")}</p>
             <p className="text-2xl sm:text-3xl font-extrabold text-rose-500 mt-1">{result.errors}</p>
           </div>

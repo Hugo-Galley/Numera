@@ -27,7 +27,7 @@ export function InvestmentsKpis({ ctx }: { ctx: InvestmentsCtx }) {
           </CardContent>
         </Card>
 
-        <Card className="col-span-2 shadow-sm md:col-span-1">
+        <Card className="col-span-2 shadow-xs md:col-span-1">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t("investmentsKpis.performanceGlobale")}</CardTitle>
             <Activity className="h-4 w-4 text-slate-400" />
@@ -44,7 +44,7 @@ export function InvestmentsKpis({ ctx }: { ctx: InvestmentsCtx }) {
           </CardContent>
         </Card>
 
-        <Card className={`shadow-sm ${diversity ? "" : "col-span-2 md:col-span-1"}`}>
+        <Card className={`shadow-xs ${diversity ? "" : "col-span-2 md:col-span-1"}`}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t("investmentsKpis.supports")}</CardTitle>
             <Wallet className="h-4 w-4 text-slate-400" />
@@ -56,7 +56,7 @@ export function InvestmentsKpis({ ctx }: { ctx: InvestmentsCtx }) {
         </Card>
 
         {diversity && (
-          <Card className="shadow-sm">
+          <Card className="shadow-xs">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">{t("investmentsKpis.scoreDeDiversite")}</CardTitle>
               <ShieldCheck className="h-4 w-4 text-slate-400" />

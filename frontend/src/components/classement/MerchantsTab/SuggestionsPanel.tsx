@@ -21,7 +21,7 @@ export function SuggestionsPanel({ ctx }: { ctx: MerchantsTabCtx }) {
           </CardHeader>
           <CardContent className="space-y-3">
             {suggestions.map((s, i) => (
-              <div key={i} className="flex items-center justify-between gap-2 p-2 bg-white rounded-lg border border-amber-100 shadow-sm">
+              <div key={i} className="flex items-center justify-between gap-2 p-2 bg-white rounded-lg border border-amber-100 shadow-xs">
                 <div className="min-w-0">
                   <p className="text-xs font-bold text-slate-900 truncate">{s.label}</p>
                   <p className="text-[10px] text-slate-500">{i18n.t("misc.occurrences", { ns: "classement", count: s.count })}</p>

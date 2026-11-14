@@ -13,7 +13,7 @@ export function CategoryMappingCard({ ctx }: { ctx: ImportFlowCtx }) {
   return (
     <>
       {preview && (
-         <Card className="shadow-sm border-slate-100 overflow-hidden">
+         <Card className="shadow-xs border-slate-100 overflow-hidden">
            <CardHeader className="bg-slate-50/50 border-b">
              <CardTitle className="text-sm font-bold">{t("analysis")}</CardTitle>
            </CardHeader>

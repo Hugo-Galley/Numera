@@ -27,14 +27,14 @@ export function NavAccountResults({ ctx }: { ctx: OmniboxCtx }) {
                 onClick={() => handleSelect(item)}
                 onMouseEnter={() => setActiveIndex(resultIdx)}
                 className={cn(
-                  "group w-full flex min-h-12 items-center justify-between gap-2 px-3 py-2 rounded-xl transition-colors text-left outline-none",
+                  "group w-full flex min-h-12 items-center justify-between gap-2 px-3 py-2 rounded-xl transition-colors text-left outline-hidden",
                   isActive ? "bg-slate-100" : "hover:bg-slate-50"
                 )}
               >
                 <div className="flex min-w-0 items-center gap-3">
                   <div className={cn(
                     "h-8 w-8 shrink-0 rounded-lg flex items-center justify-center transition-colors",
-                    isActive ? "bg-white text-slate-900 shadow-sm" : "bg-slate-100 text-slate-600"
+                    isActive ? "bg-white text-slate-900 shadow-xs" : "bg-slate-100 text-slate-600"
                   )}>
                     <item.icon className="h-4 w-4" />
                   </div>
@@ -65,14 +65,14 @@ export function NavAccountResults({ ctx }: { ctx: OmniboxCtx }) {
                 onClick={() => handleSelect(acc)}
                 onMouseEnter={() => setActiveIndex(resultIdx)}
                 className={cn(
-                  "group w-full flex min-h-12 items-center justify-between gap-2 px-3 py-2 rounded-xl transition-colors text-left outline-none",
+                  "group w-full flex min-h-12 items-center justify-between gap-2 px-3 py-2 rounded-xl transition-colors text-left outline-hidden",
                   isActive ? "bg-slate-100" : "hover:bg-slate-50"
                 )}
               >
                 <div className="flex min-w-0 items-center gap-3">
                   <div className={cn(
                     "h-8 w-8 shrink-0 rounded-lg flex items-center justify-center font-bold text-[10px] uppercase transition-colors",
-                    isActive ? "bg-white text-blue-600 shadow-sm" : "bg-blue-50 text-blue-600"
+                    isActive ? "bg-white text-blue-600 shadow-xs" : "bg-blue-50 text-blue-600"
                   )}>
                     {acc.type.substring(0, 2)}
                   </div>

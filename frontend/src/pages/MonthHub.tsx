@@ -20,7 +20,7 @@ export default function MonthHub() {
             className={({ isActive }) =>
               cn(
                 "flex min-h-10 items-center justify-center rounded-lg px-2 text-sm font-medium transition-colors md:min-h-0 md:rounded-md md:px-4 md:py-1.5",
-                isActive ? "bg-white text-slate-900 shadow-sm" : "text-slate-600 hover:text-slate-900"
+                isActive ? "bg-white text-slate-900 shadow-xs" : "text-slate-600 hover:text-slate-900"
               )
             }
           >

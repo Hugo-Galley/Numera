@@ -72,7 +72,7 @@ export function CategorizeStep({
                 <p className="shrink-0 text-xs text-slate-500">{new Date(tx.date).toLocaleDateString(appLocale())}</p>
               </div>
               <div className="flex items-center gap-3">
-                <span className="amount-blur order-2 whitespace-nowrap font-semibold tabular-nums sm:order-none">{formatCurrency(tx.amount)}</span>
+                <span className="amount-blur order-2 whitespace-nowrap font-semibold tabular-nums sm:order-0">{formatCurrency(tx.amount)}</span>
                 <select
                   defaultValue=""
                   onChange={(e) => assign(tx.id, e.target.value)}

@@ -202,13 +202,13 @@ export function TransferRulesSection() {
 
         <div className="grid gap-3">
           {rules.map((rule) => (
-            <Card key={rule.id} className="border-slate-100 shadow-sm">
+            <Card key={rule.id} className="border-slate-100 shadow-xs">
               <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="min-w-0 space-y-1">
                   <p className="flex flex-wrap items-center gap-x-2 font-bold text-slate-900">
-                    <span className="break-words">{accountName(rule.source_account_id)}</span>
+                    <span className="wrap-break-word">{accountName(rule.source_account_id)}</span>
                     <ArrowRight className="h-4 w-4 shrink-0 text-indigo-400" />
-                    <span className="break-words">{accountName(rule.dest_account_id)}</span>
+                    <span className="wrap-break-word">{accountName(rule.dest_account_id)}</span>
                   </p>
                   <p className="text-xs text-slate-500">
                     {rule.pattern ? i18n.t("misc.labelContains", { ns: "classement", pattern: rule.pattern }) : t("transferRulesSection.toutLibelle")}

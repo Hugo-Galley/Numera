@@ -105,7 +105,7 @@ export function FireProjection() {
   if (error || !data) return <ErrorState message={t("fireProjection.impossibleDeCalculerLaProjection")} onRetry={() => setReload((n) => n + 1)} />
 
   return (
-    <Card className="shadow-sm border-slate-100">
+    <Card className="shadow-xs border-slate-100">
       <CardHeader>
         <div className="flex items-center gap-2">
           <Flame className="h-5 w-5 text-amber-500" />

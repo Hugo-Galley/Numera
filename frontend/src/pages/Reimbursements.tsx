@@ -108,7 +108,7 @@ export default function Reimbursements() {
       </div>
 
       <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
-        <Card className="col-span-2 border-slate-100 shadow-sm lg:col-span-1">
+        <Card className="col-span-2 border-slate-100 shadow-xs lg:col-span-1">
           <CardContent className="p-4">
             <p className="text-xs font-bold uppercase tracking-wider text-slate-500">{t("reimbursements.onMeDoit")}</p>
             <p className="mt-1 text-2xl font-black text-emerald-600 amount-blur">{formatCurrency(summary?.total_due ?? 0)}</p>
@@ -119,13 +119,13 @@ export default function Reimbursements() {
             key={d.debtor}
             type="button"
             onClick={() => setDebtor(debtor === d.debtor ? null : d.debtor)}
-            className={`min-h-11 min-w-0 rounded-xl border p-3 text-left shadow-sm transition-colors md:p-4 ${
+            className={`min-h-11 min-w-0 rounded-xl border p-3 text-left shadow-xs transition-colors md:p-4 ${
               debtor === d.debtor
                 ? "border-emerald-300 bg-emerald-50"
                 : "border-slate-100 bg-white hover:border-emerald-200"
             }`}
           >
-            <p className="break-words font-bold text-slate-900 md:truncate">{d.debtor}</p>
+            <p className="wrap-break-word font-bold text-slate-900 md:truncate">{d.debtor}</p>
             <p className="text-sm text-slate-500">
               {i18n.t("misc.debtorClaims", { ns: "reimbursements", amount: formatCurrency(d.due), count: d.claims })}
             </p>
@@ -165,11 +165,11 @@ export default function Reimbursements() {
           {claims.map((c) => {
             const pct = c.expected_amount > 0 ? Math.min(100, (c.received / c.expected_amount) * 100) : 0
             return (
-              <Card key={c.id} className="border-slate-100 shadow-sm">
+              <Card key={c.id} className="border-slate-100 shadow-xs">
                 <CardContent className="flex flex-col gap-3 p-4 md:flex-row md:items-center md:justify-between">
                   <div className="min-w-0 flex-1 space-y-1">
                     <p className="font-bold text-slate-900">{c.debtor}</p>
-                    <p className="break-words text-xs text-slate-500 md:truncate">
+                    <p className="wrap-break-word text-xs text-slate-500 md:truncate">
                       {format(new Date(c.expense.date), "dd/MM/yyyy")} · {c.expense.label} · {accountName(c.expense.account_id)} ·{" "}
                       <span className="amount-blur">{formatCurrency(c.expense.amount, c.currency)}</span>
                     </p>
@@ -181,7 +181,7 @@ export default function Reimbursements() {
                     </p>
                   </div>
                   <div className="flex flex-wrap items-center gap-2 md:gap-3">
-                    <span className="order-first w-full whitespace-nowrap md:w-auto text-left text-lg font-black tabular-nums text-slate-900 amount-blur md:order-none md:text-right">{formatCurrency(c.remaining, c.currency)}</span>
+                    <span className="order-first w-full whitespace-nowrap md:w-auto text-left text-lg font-black tabular-nums text-slate-900 amount-blur md:order-0 md:text-right">{formatCurrency(c.remaining, c.currency)}</span>
                     {c.remaining > 0 && (
                       <Button size="sm" className="h-10 flex-1 gap-2 md:h-9 md:flex-none" onClick={() => setLinking(c)}>
                         <Link className="h-4 w-4" />

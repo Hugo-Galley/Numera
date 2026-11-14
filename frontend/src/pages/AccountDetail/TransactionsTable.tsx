@@ -17,7 +17,7 @@ export function TransactionsTable({ ctx }: { ctx: AccountDetailView }) {
   const { account, filteredTransactions, formatCurrency, formatValue, handleSort, hasMoreTx, loadMoreTransactions, loadingMoreTx, renderTxMenu, selectedIds, setSelectedIds, sortField, sortOrder, txLoading } = ctx
   return (
     <>
-      <Card className={`hidden shadow-sm border-slate-100 overflow-hidden md:block transition-opacity ${txLoading ? "opacity-50" : ""}`}>
+      <Card className={`hidden shadow-xs border-slate-100 overflow-hidden md:block transition-opacity ${txLoading ? "opacity-50" : ""}`}>
         <div className="overflow-x-auto">
           <Table>
             <TableHeader className="bg-slate-50/50">

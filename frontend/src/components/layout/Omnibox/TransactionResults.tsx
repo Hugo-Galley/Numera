@@ -25,14 +25,14 @@ export function TransactionResults({ ctx }: { ctx: OmniboxCtx }) {
                 onClick={() => handleSelect(asTransactionResult(tx))}
                 onMouseEnter={() => setActiveIndex(resultIdx)}
                 className={cn(
-                  "group w-full flex min-h-12 items-center justify-between gap-2 px-3 py-2 rounded-xl transition-colors text-left outline-none",
+                  "group w-full flex min-h-12 items-center justify-between gap-2 px-3 py-2 rounded-xl transition-colors text-left outline-hidden",
                   isActive ? "bg-slate-100" : "hover:bg-slate-50"
                 )}
               >
                 <div className="flex min-w-0 items-center gap-3">
                   <div className={cn(
                     "h-8 w-8 shrink-0 rounded-lg flex items-center justify-center transition-colors",
-                    isActive ? "bg-white text-slate-900 shadow-sm" : "bg-slate-50 text-slate-500"
+                    isActive ? "bg-white text-slate-900 shadow-xs" : "bg-slate-50 text-slate-500"
                   )}>
                     <Receipt className="h-4 w-4" />
                   </div>

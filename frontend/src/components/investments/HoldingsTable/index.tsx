@@ -23,7 +23,7 @@ export function HoldingsTable({
   const { costEstimateOpen, filteredHoldings, hasActiveFilters, pointZeroOpen, resetFilters, setCostEstimateOpen, setPointZeroOpen } = ctx
   return (
     <>
-      <Card className="shadow-sm">
+      <Card className="shadow-xs">
         <HoldingsHeader ctx={ctx} />
 
         <CardContent className="p-0">

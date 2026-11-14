@@ -24,7 +24,7 @@ export function DangerZoneCard() {
   const [resetPassword, setResetPassword] = useState("")
 
   return (
-    <Card className="shadow-sm border-rose-100 overflow-hidden">
+    <Card className="shadow-xs border-rose-100 overflow-hidden">
       <CardHeader className="bg-rose-50/50 border-b border-rose-100">
         <div className="flex items-center gap-2 text-rose-600">
           <AlertTriangle className="h-5 w-5" />

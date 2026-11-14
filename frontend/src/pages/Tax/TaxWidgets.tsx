@@ -25,7 +25,7 @@ export function WrapperCardView({ card }: { card: WrapperCard }) {
     <Card>
       <CardHeader className="pb-3">
         <CardTitle className="flex items-start justify-between gap-3 text-base">
-          <span className="min-w-0 break-words">{card.account_name}</span>
+          <span className="min-w-0 wrap-break-word">{card.account_name}</span>
           <span className="shrink-0 pt-0.5 text-xs font-semibold uppercase tracking-wider text-slate-500">{KIND_LABELS[card.kind]}</span>
         </CardTitle>
       </CardHeader>

@@ -151,7 +151,7 @@ export default function MonthReview() {
         </div>
       </div>
 
-      <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 md:mx-0 md:flex-wrap md:overflow-visible md:px-0 md:pb-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 md:mx-0 md:flex-wrap md:overflow-visible md:px-0 md:pb-0 scrollbar-none [&::-webkit-scrollbar]:hidden">
         {STEPS.map((name, i) => {
           const s = status(i)
           return (

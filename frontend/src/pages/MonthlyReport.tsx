@@ -23,7 +23,7 @@ function Headline({ label, value, children }: { label: string; value: string; ch
     <div className="flex items-center justify-between gap-3 sm:flex-col sm:items-stretch sm:justify-start sm:gap-0">
       <div className="min-w-0 sm:contents">
         <div className="text-xs font-medium text-slate-500">{label}</div>
-        <div className="min-h-[1rem] sm:order-3">{children}</div>
+        <div className="min-h-4 sm:order-3">{children}</div>
       </div>
       <div className="amount-blur whitespace-nowrap text-xl font-black tabular-nums text-slate-900 sm:order-2 sm:text-2xl">{value}</div>
     </div>
@@ -123,7 +123,7 @@ export default function IntelligentReport() {
           </div>
         </div>
         <div className="no-print flex items-center gap-2">
-          <div className="flex flex-1 items-center justify-between rounded-xl border border-slate-200 bg-white p-1 shadow-sm">
+          <div className="flex flex-1 items-center justify-between rounded-xl border border-slate-200 bg-white p-1 shadow-xs">
             <Button variant="ghost" size="icon" className="h-11 w-11 md:h-9 md:w-9" onClick={() => changeMonth(-1)} aria-label={t("monthlyReport.moisPrecedent")} disabled={loading}>
               <ChevronLeft className="h-5 w-5" />
             </Button>

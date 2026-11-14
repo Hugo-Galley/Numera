@@ -126,7 +126,7 @@ export function Sidebar({ className, onItemClick, hideBrand }: { className?: str
                   >
                     <item.icon
                       className={cn(
-                        "mr-3 h-5 w-5 flex-shrink-0 transition-colors",
+                        "mr-3 h-5 w-5 shrink-0 transition-colors",
                         "group-hover:text-slate-900"
                       )}
                       aria-hidden="true"
@@ -213,7 +213,7 @@ export function Sidebar({ className, onItemClick, hideBrand }: { className?: str
       <div className="border-t p-4">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="flex w-full items-center gap-3 px-2 py-1.5 rounded-md hover:bg-slate-100 transition-colors text-left outline-none">
+            <button className="flex w-full items-center gap-3 px-2 py-1.5 rounded-md hover:bg-slate-100 transition-colors text-left outline-hidden">
               <div className="h-8 w-8 rounded-full bg-slate-900 flex items-center justify-center text-white text-xs font-bold overflow-hidden">
                 {profilePicture ? (
                   <img src={profilePicture} alt={username || ""} className="h-full w-full object-cover" />

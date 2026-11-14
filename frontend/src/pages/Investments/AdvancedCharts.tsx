@@ -15,7 +15,7 @@ export function AdvancedCharts({ ctx }: { ctx: InvestmentsCtx }) {
   const { advancedAllocation, diversity, getDrilldownItems, getDrilldownTitle, setDrillDown } = ctx
   return (
     <>
-      <Card className="shadow-sm">
+      <Card className="shadow-xs">
         <CardHeader className="flex flex-row items-center justify-between gap-2 pb-2 border-b">
           <div>
             <CardTitle className="text-base font-bold">{t("advancedCharts.vueDEnsembleDeL")}</CardTitle>
@@ -37,7 +37,7 @@ export function AdvancedCharts({ ctx }: { ctx: InvestmentsCtx }) {
       </Card>
 
       <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2">
-        <Card className="shadow-sm">
+        <Card className="shadow-xs">
           <CardHeader className="border-b pb-3">
             <div className="flex items-center gap-2">
               <Layers className="h-4 w-4 text-slate-500" />
@@ -58,7 +58,7 @@ export function AdvancedCharts({ ctx }: { ctx: InvestmentsCtx }) {
                     dataKey="value"
                     nameKey="name"
                     onClick={(data) => setDrillDown({ title: getDrilldownTitle("Classe d'actif", data), items: getDrilldownItems(data) })}
-                    className="cursor-pointer outline-none"
+                    className="cursor-pointer outline-hidden"
                   >
                     {(advancedAllocation?.by_asset_class || []).map((_, index: number) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} className="hover:opacity-80 transition-opacity" />
@@ -86,7 +86,7 @@ export function AdvancedCharts({ ctx }: { ctx: InvestmentsCtx }) {
           </CardContent>
         </Card>
 
-        <Card className="shadow-sm">
+        <Card className="shadow-xs">
           <CardHeader className="border-b pb-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -117,7 +117,7 @@ export function AdvancedCharts({ ctx }: { ctx: InvestmentsCtx }) {
                           paddingAngle={4}
                           dataKey="value"
                           nameKey="name"
-                          className="outline-none"
+                          className="outline-hidden"
                         >
                           {sectorData.map((_, index: number) => (
                             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} className="hover:opacity-80 transition-opacity" />

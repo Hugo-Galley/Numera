@@ -89,7 +89,7 @@ export function DecisionJournal({ events, accounts, onChanged }: Props) {
   const selectableAccounts = accounts.filter((a) => a.active !== false || String(a.id) === accountId)
 
   return (
-    <Card className="shadow-sm border-slate-100 overflow-hidden">
+    <Card className="shadow-xs border-slate-100 overflow-hidden">
       <CardHeader className="bg-slate-50/50 border-b p-4 pb-3 md:p-6 md:pb-4">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
