@@ -8,6 +8,8 @@ from sqlalchemy import create_engine, event
 from sqlalchemy.orm import Session, sessionmaker
 
 os.environ["APP_ENV"] = "test"
+# Clé fixe : les tests ne dépendent pas du `.env` local (une clé plus courte y déclenchait un avertissement PyJWT par jeton)
+os.environ["SECRET_KEY"] = "test-secret-key-not-used-outside-tests-0123456789"
 
 from app.core import security
 from app.core.config import settings
