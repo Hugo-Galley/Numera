@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from "react"
 import { useSearchParams } from "react-router-dom"
 import { Gift, Play, Receipt, Store, TrendingUp, Repeat, CalendarRange } from "lucide-react"
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
+import { keepSeriesOrder, numberFormatter } from "@/lib/chartTooltip"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -188,12 +189,12 @@ export default function Wrapped() {
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                       <XAxis dataKey="month" tickFormatter={(m: number) => (narrow ? monthShort(m).charAt(0).toUpperCase() : monthShort(m))} axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "#64748b" }} interval={0} />
                       <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "#64748b" }} tickFormatter={(v: number) => `${Number((v / 1000).toFixed(1))} k€`} width={52} />
-                      <Tooltip
-                        labelFormatter={(m: number) => monthName(m)}
-                        formatter={(v: number) => formatCurrency(v)}
+                      <Tooltip itemSorter={keepSeriesOrder}
+                        labelFormatter={(m) => monthName(Number(m))}
+                        formatter={numberFormatter((v: number) => formatCurrency(v))}
                         contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }}
                       />
-                      <Legend wrapperStyle={{ fontSize: 12 }} />
+                      <Legend itemSorter={null} wrapperStyle={{ fontSize: 12 }} />
                       <Bar dataKey="income" name={t("wrapped.revenus")} fill="#10b981" radius={[4, 4, 0, 0]} />
                       <Bar dataKey="real_expenses" name={t("wrapped.depenses")} fill="#f43f5e" radius={[4, 4, 0, 0]} />
                     </BarChart>

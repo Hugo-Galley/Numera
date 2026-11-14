@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next"
 import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
+import { keepSeriesOrder, numberFormatter } from "@/lib/chartTooltip"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { IconComponent } from "../../IconComponent"
 import { formatAmountWithShare, formatRate } from "@/lib/utils"
@@ -24,7 +25,7 @@ export function ExpensesCards({ ctx }: { ctx: OverviewTabCtx }) {
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                 <XAxis type="number" hide />
                 <YAxis dataKey="category.name" type="category" width={isMobile ? 92 : 100} axisLine={false} tickLine={false} tick={{ fontSize: isMobile ? 11 : 12, fill: '#64748b' }} />
-                <Tooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} formatter={(v: number) => formatAmountWithShare(v, expensesByCategory.reduce((s, i) => s + (i.total || 0), 0), displayCurrency)} />
+                <Tooltip itemSorter={keepSeriesOrder} cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} formatter={numberFormatter((v: number) => formatAmountWithShare(v, expensesByCategory.reduce((s, i) => s + (i.total || 0), 0), displayCurrency))} />
                 <Bar dataKey="total" radius={[0, 4, 4, 0]} barSize={isMobile ? 16 : 20} className="cursor-pointer" onClick={(data) => openCategory(data?.payload ?? data)}>
                   {expensesByCategory.map((item, i) => (
                     <Cell key={i} fill={item.category.color || COLORS[i % COLORS.length]} />
@@ -59,7 +60,7 @@ export function ExpensesCards({ ctx }: { ctx: OverviewTabCtx }) {
                   <Pie data={expensesByCategory} cx="50%" cy="50%" innerRadius={60} outerRadius={80} paddingAngle={4} dataKey="total" nameKey="category.name">
                     {expensesByCategory.map((item, i) => <Cell key={i} fill={item.category.color || COLORS[i % COLORS.length]} />)}
                   </Pie>
-                  <Tooltip contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} formatter={(v: number) => formatAmountWithShare(v, expensesByCategory.reduce((s, i) => s + (i.total || 0), 0), displayCurrency)} />
+                  <Tooltip itemSorter={keepSeriesOrder} contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} formatter={numberFormatter((v: number) => formatAmountWithShare(v, expensesByCategory.reduce((s, i) => s + (i.total || 0), 0), displayCurrency))} />
                 </PieChart>
               </ResponsiveContainer>
             </div>

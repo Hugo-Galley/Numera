@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
+import { keepSeriesOrder, numberFormatter } from "@/lib/chartTooltip"
 import { ArrowLeft, ChevronDown, ChevronRight, Landmark, Pencil, Trash2 } from "lucide-react"
 import { toast } from "sonner"
 
@@ -209,7 +210,7 @@ export function LoanView({ accountId }: { accountId: number }) {
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                 <XAxis dataKey="date" tick={{ fontSize: 11 }} minTickGap={40} />
                 <YAxis tick={{ fontSize: 11 }} width={70} tickFormatter={(v) => formatCurrency(v).replace(/,\d+/, "")} />
-                <Tooltip formatter={(v: number) => [formatCurrency(v), t("loanView.remaining")]} labelFormatter={(l) => t("loanView.paymentLabel", { label: l })} />
+                <Tooltip itemSorter={keepSeriesOrder} formatter={numberFormatter((v: number) => [formatCurrency(v), t("loanView.remaining")])} labelFormatter={(l) => t("loanView.paymentLabel", { label: l })} />
                 <Area type="monotone" dataKey="remaining" name={t("loanView.remaining")} stroke="#e11d48" fill="#fecdd3" strokeWidth={2} />
               </AreaChart>
             </ResponsiveContainer>

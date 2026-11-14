@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts"
+import { keepSeriesOrder, numberFormatter } from "@/lib/chartTooltip"
 import { formatAmountWithShare, formatCurrency, formatRate } from "@/lib/utils"
 import { COLORS } from "./types"
 import type { InvestmentsCtx } from "./useInvestments"
@@ -39,15 +40,15 @@ export function AccountsAllocation({ ctx }: { ctx: InvestmentsCtx }) {
                       paddingAngle={3}
                       dataKey="value"
                       nameKey="name"
-                      onClick={(data) => handleAccountClick(data.id)}
+                      onClick={(_, index) => handleAccountClick(chartData[index].id)}
                       className="cursor-pointer outline-none"
                     >
                       {chartData.map((entry, index: number) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} className="hover:opacity-80 transition-opacity" />
                       ))}
                     </Pie>
-                    <Tooltip 
-                      formatter={(value: number, name: string) => [formatAmountWithShare(value, chartData.reduce((s, i) => s + (i.value || 0), 0)), name]}
+                    <Tooltip itemSorter={keepSeriesOrder} 
+                      formatter={numberFormatter((value: number, name: string) => [formatAmountWithShare(value, chartData.reduce((s, i) => s + (i.value || 0), 0)), name])}
                       contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }}
                     />
                   </PieChart>

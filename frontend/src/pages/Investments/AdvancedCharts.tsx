@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge"
 import { Briefcase, Layers } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts"
+import { keepSeriesOrder, numberFormatter } from "@/lib/chartTooltip"
 import { formatAmountWithShare, formatRate } from "@/lib/utils"
 import { COLORS } from "./types"
 import type { InvestmentsCtx } from "./useInvestments"
@@ -63,7 +64,7 @@ export function AdvancedCharts({ ctx }: { ctx: InvestmentsCtx }) {
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} className="hover:opacity-80 transition-opacity" />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value: number) => formatAmountWithShare(value, (advancedAllocation?.by_asset_class || []).reduce((s, i) => s + (i.value || 0), 0))} />
+                  <Tooltip itemSorter={keepSeriesOrder} formatter={numberFormatter((value: number) => formatAmountWithShare(value, (advancedAllocation?.by_asset_class || []).reduce((s, i) => s + (i.value || 0), 0)))} />
                 </PieChart>
               </ResponsiveContainer>
             </div>
@@ -122,7 +123,7 @@ export function AdvancedCharts({ ctx }: { ctx: InvestmentsCtx }) {
                             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} className="hover:opacity-80 transition-opacity" />
                           ))}
                         </Pie>
-                        <Tooltip formatter={(value: number) => formatAmountWithShare(value, sectorData.reduce((s, i) => s + (i.value || 0), 0))} />
+                        <Tooltip itemSorter={keepSeriesOrder} formatter={numberFormatter((value: number) => formatAmountWithShare(value, sectorData.reduce((s, i) => s + (i.value || 0), 0)))} />
                       </PieChart>
                     </ResponsiveContainer>
                   </div>

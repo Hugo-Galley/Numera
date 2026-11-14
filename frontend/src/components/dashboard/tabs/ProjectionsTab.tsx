@@ -21,6 +21,7 @@ import {
   Tooltip,
   ReferenceLine
 } from "recharts"
+import { keepSeriesOrder, numberFormatter } from "@/lib/chartTooltip"
 import type { CashflowProjection } from "../types"
 
 const safeFormat = (dateStr: string | null | undefined, formatStr: string) => {
@@ -120,10 +121,10 @@ export function ProjectionsTab({ projection, displayCurrency }: ProjectionsTabPr
                 width={isMobile ? 52 : 60}
                 tickFormatter={(v) => `${Math.round(v)}€`}
               />
-              <Tooltip 
+              <Tooltip itemSorter={keepSeriesOrder} 
                 contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} 
-                labelFormatter={(v) => format(new Date(v), "EEEE d MMMM", { locale: dateLocale() })}
-                formatter={(v: number) => [formatCurrency(v, displayCurrency), t("projections.estimatedBalance")]}
+                labelFormatter={(v) => format(new Date(String(v)), "EEEE d MMMM", { locale: dateLocale() })}
+                formatter={numberFormatter((v: number) => [formatCurrency(v, displayCurrency), t("projections.estimatedBalance")])}
               />
               <Area type="monotone" dataKey="balance" name={t("projections.balance")} stroke="#3b82f6" fill="url(#colorProj)" strokeWidth={4} />
               <ReferenceLine y={0} stroke="#f43f5e" strokeDasharray="3 3" />

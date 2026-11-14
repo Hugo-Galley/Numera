@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next"
 import { appLocale } from "@/i18n/locale"
 import { useCallback, useEffect, useState } from "react"
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
+import { keepSeriesOrder, numberFormatter } from "@/lib/chartTooltip"
 import { Coins, Link2 } from "lucide-react"
 import { toast } from "sonner"
 
@@ -160,9 +161,9 @@ export function DividendsCard({ accountId, reloadKey, onChanged }: DividendsCard
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                     <XAxis dataKey="month" tickFormatter={monthLabel} tick={{ fontSize: 11 }} interval="preserveStartEnd" />
                     <YAxis tick={{ fontSize: 11 }} width={48} tickFormatter={(v) => `${v} €`} />
-                    <Tooltip
+                    <Tooltip itemSorter={keepSeriesOrder}
                       labelFormatter={(key) => monthLabel(String(key))}
-                      formatter={(value: number) => [formatCurrency(value), "Dividendes nets"]}
+                      formatter={numberFormatter((value: number) => [formatCurrency(value), "Dividendes nets"])}
                       contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }}
                     />
                     <Bar dataKey="net_eur" fill="#10b981" radius={[4, 4, 0, 0]} />
