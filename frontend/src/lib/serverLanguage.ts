@@ -1,5 +1,5 @@
-import { api } from "@/lib/api"
 import type { Language } from "@/i18n"
+import { putNotificationsSettings } from "@/lib/api/settings"
 
 /**
  * Enregistre la langue de l'interface côté serveur : les notifications partent d'une tâche de fond, sans en-tête
@@ -7,7 +7,7 @@ import type { Language } from "@/i18n"
  */
 export async function syncServerLanguage(language: Language): Promise<void> {
   try {
-    await api.put("/notifications/settings", { language })
+    await putNotificationsSettings({ language })
   } catch (error) {
     console.warn("Server language not saved", error)
   }

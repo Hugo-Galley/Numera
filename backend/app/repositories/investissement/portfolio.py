@@ -1,7 +1,8 @@
 """Lectures de la valorisation d'un compte titres : relevés du courtier, opérations, transactions bancaires."""
 from datetime import datetime
+from typing import Any
 
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Query, Session
 
 from app.models.balance_snapshot import BalanceSnapshot
 from app.models.category import Category
@@ -10,7 +11,7 @@ from app.models.portfolio_holding import PortfolioHolding
 from app.models.transaction import Transaction
 
 
-def only_transfer_legs(query):
+def only_transfer_legs(query: Query[Any]) -> Query[Any]:
     """Restreint une requête de transactions bancaires aux jambes de virement reconnues."""
     return query.filter(Transaction.is_transfer.is_(True), Transaction.is_transfer_ignored.is_(False))
 

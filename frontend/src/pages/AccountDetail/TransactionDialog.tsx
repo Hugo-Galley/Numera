@@ -1,20 +1,19 @@
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Coffee, Plus, Zap } from "lucide-react"
+import { Plus } from "lucide-react"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useTranslation } from "react-i18next"
-import { Transaction } from "./types"
 import type { AccountDetailView } from "./useAccountDetail"
 
 /** Dialogue de création / modification d'une transaction (comptes hors investissement). */
 export function TransactionDialog({ ctx }: { ctx: AccountDetailView }) {
   const { t } = useTranslation("accountDetail")
   const { t: tc } = useTranslation("common")
-  const { availableTags, categories, editTxId, handleCreateTransaction, handleCreateTransactionBusy, handleUpdateTransaction, handleUpdateTransactionBusy, id, knownMerchants, resetTxForm, setTxAmount, setTxCategoryId, setTxCurrency, setTxCustomColor, setTxCustomIcon, setTxDate, setTxIsExceptional, setTxIsRecurring, setTxMerchant, setTxOpen, setTxTagIds, setTxType, txAmount, txCategoryId, txCurrency, txCustomColor, txCustomIcon, txDate, txIsExceptional, txIsRecurring, txMerchant, txOpen, txTagIds, txType } = ctx
+  const { availableTags, categories, editTxId, handleCreateTransaction, handleCreateTransactionBusy, handleUpdateTransaction, handleUpdateTransactionBusy, knownMerchants, resetTxForm, setTxAmount, setTxCategoryId, setTxCurrency, setTxCustomColor, setTxCustomIcon, setTxDate, setTxIsExceptional, setTxIsRecurring, setTxMerchant, setTxOpen, setTxTagIds, setTxType, txAmount, txCategoryId, txCurrency, txCustomColor, txCustomIcon, txDate, txIsExceptional, txIsRecurring, txMerchant, txOpen, txTagIds, txType } = ctx
   return (
     <>
       <Dialog open={txOpen} onOpenChange={(open) => { if (!open) { setTxOpen(false); resetTxForm(); } else { setTxOpen(true); } }}>

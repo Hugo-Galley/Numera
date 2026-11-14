@@ -49,7 +49,7 @@ export function UpcomingCard({ accountId, currency, refreshKey }: { accountId: n
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="flex w-full items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-left shadow-sm transition-colors hover:bg-slate-50"
+        className="flex w-full items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-left shadow-xs transition-colors hover:bg-slate-50"
       >
         <span className="flex items-center gap-2 text-sm font-bold text-slate-900">
           <CalendarClock className="h-4 w-4 text-slate-500" />

@@ -1,4 +1,4 @@
-from sqlalchemy import func, select
+from sqlalchemy import Row, func, select
 from sqlalchemy.orm import Session
 
 from app.models.category import Category
@@ -10,7 +10,7 @@ def list_page(db: Session, skip: int, limit: int, search: str | None) -> list[Me
     query = select(Merchant)
     if search:
         query = query.where(Merchant.name.ilike(f"%{search}%"))
-    return db.scalars(query.offset(skip).limit(limit)).all()
+    return list(db.scalars(query.offset(skip).limit(limit)).all())
 
 
 def get(db: Session, merchant_id: int) -> Merchant | None:
@@ -26,7 +26,7 @@ def name_taken(db: Session, name: str) -> bool:
 
 
 def taken_aliases(db: Session, labels: list[str]) -> list[str]:
-    return db.scalars(select(MerchantAlias.label).where(MerchantAlias.label.in_(labels))).all()
+    return list(db.scalars(select(MerchantAlias.label).where(MerchantAlias.label.in_(labels))).all())
 
 
 def get_alias(db: Session, alias_id: int) -> MerchantAlias | None:
@@ -34,7 +34,7 @@ def get_alias(db: Session, alias_id: int) -> MerchantAlias | None:
 
 
 def all_aliases(db: Session) -> list[MerchantAlias]:
-    return db.scalars(select(MerchantAlias)).all()
+    return list(db.scalars(select(MerchantAlias)).all())
 
 
 def add(db: Session, obj: Merchant | MerchantAlias) -> None:
@@ -50,16 +50,14 @@ def link_unnormalized_transactions(db: Session, merchant_id: int, labels: list[s
     """Rattache au marchand les transactions encore non normalisées dont le libellé bancaire est un de ses alias."""
     if not labels:
         return 0
-    result = db.execute(
-        Transaction.__table__.update()
-        .where(Transaction.merchant.in_(labels))
-        .where(Transaction.merchant_id == None)
-        .values(merchant_id=merchant_id)
+    return (
+        db.query(Transaction)
+        .filter(Transaction.merchant.in_(labels), Transaction.merchant_id.is_(None))
+        .update({Transaction.merchant_id: merchant_id}, synchronize_session=False)
     )
-    return result.rowcount
 
 
-def unnormalized_labels(db: Session, min_count: int) -> list[tuple[str, int]]:
+def unnormalized_labels(db: Session, min_count: int) -> list[Row[str, int]]:
     # Les flux internes (virements, alimentations d'épargne/investissement) ne sont pas des marchands
     query = (
         select(Transaction.merchant, func.count(Transaction.id).label("count"))
@@ -71,4 +69,4 @@ def unnormalized_labels(db: Session, min_count: int) -> list[tuple[str, int]]:
         .having(func.count(Transaction.id) >= min_count)
         .order_by(func.count(Transaction.id).desc())
     )
-    return db.execute(query).all()
+    return list(db.execute(query).all())

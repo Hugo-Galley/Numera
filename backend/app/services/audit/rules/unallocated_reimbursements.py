@@ -7,7 +7,9 @@ from app.services.audit.context import AuditContext, unallocated_reimbursements_
 
 def detect(ctx: AuditContext) -> list[ActionItem]:
     query = unallocated_reimbursements_query(ctx.db, ctx.now)
-    count = query.count() if query is not None else 0
+    if query is None:
+        return []
+    count = query.count()
     if not count:
         return []
     return [ActionItem(

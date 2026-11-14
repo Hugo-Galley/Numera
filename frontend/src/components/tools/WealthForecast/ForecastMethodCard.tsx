@@ -11,10 +11,10 @@ import type { WealthForecastView } from "./useWealthForecast"
 /** Méthode de calcul détaillée (repliable). */
 export function ForecastMethodCard({ ctx }: { ctx: WealthForecastView }) {
   const { t } = useTranslation("tools")
-  const { boostedShown, data, investInput, otherInput, savingsInput, setInvestInput, setOtherInput, setSavingsInput, setShowMethod, setShowMonths, showMethod, showMonths, years } = ctx
+  const { boostedShown, data, investInput, otherInput, savingsInput, setInvestInput, setOtherInput, setSavingsInput, setShowMethod, setShowMonths, showMethod, showMonths } = ctx
   return (
     <>
-      <Card className="shadow-sm border-slate-100">
+      <Card className="shadow-xs border-slate-100">
         <button
           type="button"
           className="flex w-full items-center justify-between gap-3 p-6 text-left"

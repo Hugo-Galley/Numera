@@ -6,12 +6,17 @@ s'en charge seul (une double génération créait des centaines de salaires en d
 import math
 from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta
+from typing import Any
 
+import httpx
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from app.core.logging import get_logger
+from app.core.time import now_local, today_local
 from app.domain.finance import get_recurring_occurrences, month_label_from_date
 from app.domain.recurring import investment_leg_type, transfer_credit_date
+from app.integrations import yahoo_finance
 from app.integrations.currency import CurrencyConversionError
 from app.models.account import Account
 from app.models.investment_transaction import InvestmentTransaction
@@ -31,7 +36,7 @@ async def _market_price(db: Session, ticker: str, day: date) -> tuple[float, str
     """Cours d'un titre pour l'échéance `day` : clôture historique du jour (échéance passée, y compris
     rattrapée après coup), sinon cotation en direct. None si aucun cours exploitable."""
     try:
-        if day < date.today():
+        if day < today_local():
             hist = await market_quotes.get_price_on(db, ticker, day)
             if hist and hist["price"] and float(hist["price"]) > 0:
                 return round(float(hist["price"]), 4), hist.get("currency")
@@ -39,7 +44,7 @@ async def _market_price(db: Session, ticker: str, day: date) -> tuple[float, str
         q_data = quotes.get(ticker, {})
         if q_data.get("price") and float(q_data["price"]) > 0:
             return round(float(q_data["price"]), 4), q_data.get("currency")
-    except Exception as e:
+    except (httpx.HTTPError, yahoo_finance.YahooUnavailable, SQLAlchemyError, ValueError, TypeError, KeyError) as e:
         logger.warning(f"Could not fetch a price for recurring buy of {ticker} on {day}: {e}")
     return None
 
@@ -89,7 +94,7 @@ async def _size_trade(
 
 async def _transfer_credit(
     db: Session, rd: RecurringTransaction, account: Account, dest: Account, amount: float, currency: str, when: datetime
-) -> tuple[float | None, dict | None]:
+) -> tuple[float | None, dict[str, Any] | None]:
     """Montant (devise de `dest`, None si identique) et achat de titres de la jambe créditrice d'un
     virement récurrent arrivant le `when`. Lève CurrencyConversionError sans taux disponible."""
     transfer_amount = None
@@ -140,7 +145,7 @@ async def _credit_pending_transfers(db: Session, now: datetime) -> int:
         dest = db.get(Account, rd.transfer_to_account_id) if rd and rd.transfer_to_account_id else None
         account = db.get(Account, sortie.account_id)
         already_linked = sortie.is_transfer or sortie.linked_transaction_id or sortie.linked_investment_transaction_id
-        if not dest or not account or already_linked or sortie.is_transfer_ignored:
+        if not dest or not account or rd is None or when is None or already_linked or sortie.is_transfer_ignored:
             sortie.transfer_credit_due = None
             db.flush()
             continue
@@ -228,7 +233,7 @@ async def _generate_cash_occurrence(db: Session, rd: RecurringTransaction, accou
     )
     db.add(new_tx)
     # Crédit différé : la contrepartie est créée par _credit_pending_transfers au jour d'arrivée
-    if credit is not None:
+    if credit is not None and dest is not None:
         transfer_amount, trade = credit
         db.flush()
         await create_counterpart(
@@ -288,7 +293,7 @@ async def generate_recurring_transactions(db: Session) -> int:
 
     Une règle (ou un crédit différé) est une unité de travail : positions et soldes recalculés, puis un commit.
     Une erreur annule cette unité seule, les autres règles sont générées."""
-    now = datetime.now()
+    now = now_local()
     run = _Generation()
     for rd in repo.generatable_rules(db):
         unit = _Generation()

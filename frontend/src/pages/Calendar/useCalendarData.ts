@@ -12,8 +12,7 @@ import { getRecurringTransactions } from "@/lib/api/recurring"
 import { postTransactions } from "@/lib/api/transactions"
 
 /** Mois affiché, chargement des événements et soldes, sélection d'un jour et validation d'une échéance. */
-export function useCalendarData(p: { embedded: boolean }) {
-  const { embedded } = p
+export function useCalendarData() {
   const { isPrivacyMode } = useUI()
   const [date, setDate] = useState(new Date())
   const [data, setData] = useState<CalendarData | null>(null)
@@ -107,7 +106,7 @@ export function useCalendarData(p: { embedded: boolean }) {
     
     try {
       // Pas de GET /recurring-transactions/{id} côté backend : on la retrouve dans la liste
-      const recurringList = await getRecurringTransactions<any[]>()
+      const recurringList = await getRecurringTransactions()
       const recurringTx = recurringList.find(r => r.id === ev.recurring_id)
       const account = recurringTx && accounts.find(a => a.id === recurringTx.account_id)
       

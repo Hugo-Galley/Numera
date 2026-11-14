@@ -1,3 +1,4 @@
+import type { LucideIcon } from "lucide-react"
 import { 
   Tag, Coffee, ShoppingBag, Utensils, Car, Home, Heart, Zap, Music, Smartphone, Plane, Gift, 
   Briefcase, CreditCard, Wallet, Banknote, Trophy, Activity, User, Film, Dumbbell,
@@ -15,7 +16,7 @@ import {
   Video, Voicemail, Volume2, Watch, Waves, Webcam, Weight, Wifi, Wind, Wine, Wrench
 } from "lucide-react"
 
-export const ICON_MAP: Record<string, any> = {
+export const ICON_MAP: Record<string, LucideIcon> = {
   Coffee, ShoppingBag, Utensils, Car, Home, Heart, Zap, Music, Smartphone, Plane, Gift, 
   Briefcase, CreditCard, Wallet, Banknote, ArrowRightLeft,
   Trophy, Activity, User, Film, Dumbbell, Tag,

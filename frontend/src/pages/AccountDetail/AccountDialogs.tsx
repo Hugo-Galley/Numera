@@ -7,7 +7,7 @@ import type { AccountDetailView } from "./useAccountDetail"
 
 /** Dialogues partagés : remboursement, découpage, import, rapprochement, virement. */
 export function AccountDialogs({ ctx }: { ctx: AccountDetailView }) {
-  const { account, allAccounts, categories, id, importOpen, loadData, loadTransactions, reconcileOpen, reimbursementTx, setImportOpen, setReconcileOpen, setReimbursementTx, setSplitTx, setTransferTx, splitTx, transferTx } = ctx
+  const { account, allAccounts, categories, importOpen, loadData, loadTransactions, reconcileOpen, reimbursementTx, setImportOpen, setReconcileOpen, setReimbursementTx, setSplitTx, setTransferTx, splitTx, transferTx } = ctx
   return (
     <>
       <ReimbursementDialog

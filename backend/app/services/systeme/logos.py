@@ -1,14 +1,16 @@
 """Logos de comptes : recherche d'icônes Simple Icons, favicon d'un domaine, lecture d'une image."""
+from typing import Any
+
 from app.core.errors import BusinessRuleError, NotFoundError
 from app.core.i18n import tr
 from app.integrations import logos
 
 
-def search_logos(q: str, limit: int) -> list[dict]:
+def search_logos(q: str, limit: int) -> list[dict[str, Any]]:
     return logos.search_icons(q, limit)
 
 
-async def logo_from_domain(domain: str) -> dict:
+async def logo_from_domain(domain: str) -> dict[str, Any]:
     try:
         normalized = logos.normalize_domain(domain)
     except ValueError:

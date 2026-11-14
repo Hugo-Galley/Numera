@@ -10,14 +10,15 @@ import type { AccountDetailView } from "./useAccountDetail"
 export function SnapshotsCard({ ctx }: { ctx: AccountDetailView }) {
   const { t } = useTranslation("accountDetail")
   const { t: tc } = useTranslation("common")
-  const { formatCurrency, handleDeleteSnapshot, handleEditSnapshot, handleSnapSort, id, snapSortField, snapSortOrder, sortedSnapshots } = ctx
+  const { formatCurrency, handleDeleteSnapshot, handleEditSnapshot, handleSnapSort, snapSortField, snapSortOrder, sortedSnapshots } = ctx
   return (
     <>
-      <Card className="min-w-0 shadow-sm">
+      <Card className="min-w-0 shadow-xs">
         <CardHeader><CardTitle className="text-lg">{t("snapshots.title")}</CardTitle></CardHeader>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
-            <Table>                 <TableHeader>
+            <Table>
+              <TableHeader>
               <TableRow>
                 <TableHead className="cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => handleSnapSort("date")}>
                   <div className="flex items-center gap-2">
@@ -35,7 +36,7 @@ export function SnapshotsCard({ ctx }: { ctx: AccountDetailView }) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {sortedSnapshots.map((snap: any) => (
+              {sortedSnapshots.map((snap) => (
                 <TableRow key={snap.id}>
                   <TableCell className="text-xs">{format(new Date(snap.date), "dd/MM/yyyy")}</TableCell>
                   <TableCell className="text-right font-bold">

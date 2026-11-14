@@ -17,8 +17,8 @@ export default tseslint.config(
       "react-hooks/exhaustive-deps": "warn",
       "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_", varsIgnorePattern: "^_" }],
       "no-unused-vars": "off",
-      // `any` omniprésent (réponses d'API, mocks de test) : le typage strict se fait via tsc, pas ici
-      "@typescript-eslint/no-explicit-any": "off",
+      // Zéro `any` explicite : réponses d'API typées par le contrat OpenAPI, `unknown` + garde de type ailleurs
+      "@typescript-eslint/no-explicit-any": "error",
       // espaces insécables fines dans les regex de montants français : voulu
       "no-irregular-whitespace": ["error", { skipRegExps: true }],
     },

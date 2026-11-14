@@ -7,18 +7,23 @@ Un dividende est une `investment_transaction` de type `dividende` :
 - `reinvested` = True : un `achat` lié (`reinvest_of_id`) augmente la position.
 """
 
+from __future__ import annotations
+
 import re
 import unicodedata
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import date as date_type
 from datetime import datetime, timedelta
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
+from app.core.time import now_local
 from app.domain.market import extract_asset_clean_name
-from app.models.investment_transaction import InvestmentTransaction
-from app.models.portfolio_holding import PortfolioHolding
 from app.schemas.dividend import DividendTicker, DividendTotals, DividendUnlinked
+
+if TYPE_CHECKING:
+    from app.models.investment_transaction import InvestmentTransaction
+    from app.models.portfolio_holding import PortfolioHolding
 
 DIVIDEND_TYPE = "dividende"
 
@@ -81,7 +86,7 @@ class HoldingDividends:
 
 def summarize_by_holding(rows: list[DividendRow], today: datetime | None = None) -> dict[tuple[int, str], HoldingDividends]:
     """Dividendes nets par (compte, ticker) : total, 12 derniers mois, dernière date."""
-    since = (today or datetime.now()) - timedelta(days=365)
+    since = (today or now_local()) - timedelta(days=365)
     out: dict[tuple[int, str], HoldingDividends] = {}
     for row in rows:
         if not row.tx.ticker:

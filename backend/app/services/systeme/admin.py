@@ -7,6 +7,7 @@ import subprocess
 import sys
 import time
 from pathlib import Path
+from typing import Any
 
 from sqlalchemy import text
 from sqlalchemy.orm import Session
@@ -39,7 +40,9 @@ BACKUP_TIMEOUT_SECONDS = 180
 
 def _password_ok(db: Session, password: str | None) -> bool:
     current_hash = get_setting(db, "admin_password_hash", settings.ADMIN_PASSWORD_HASH)
-    return bool(password) and security.verify_password(password, current_hash)
+    if not password:
+        return False
+    return security.verify_password(password, current_hash)
 
 
 def require_current_password(db: Session, password: str | None) -> None:
@@ -94,7 +97,7 @@ def list_login_events(db: Session, limit: int) -> list[LoginEvent]:
     return repo.recent_login_events(db, max(1, min(limit, 200)))
 
 
-def logout_all_sessions(db: Session) -> dict:
+def logout_all_sessions(db: Session) -> dict[str, Any]:
     """Invalide toutes les sessions ouvertes, y compris celle-ci (les tokens MCP ne sont pas concernés)."""
     set_setting(db, "auth_valid_after", str(int(time.time()) + 1))
     db.commit()
@@ -137,7 +140,7 @@ def _snapshot_before_reset() -> None:
         raise InternalError(tr("errors.backup_before_reset_failed")) from None
 
 
-def reset_database(db: Session, confirm: bool, confirmation_code: str | None, current_password: str | None) -> dict:
+def reset_database(db: Session, confirm: bool, confirmation_code: str | None, current_password: str | None) -> dict[str, Any]:
     if not confirm:
         raise InvalidOperationError(tr("errors.confirmation_required"))
     if confirmation_code != RESET_CONFIRMATION_CODE:
@@ -163,7 +166,7 @@ def reset_database(db: Session, confirm: bool, confirmation_code: str | None, cu
     return {"status": "ok"}
 
 
-def run_backup_now() -> dict:
+def run_backup_now() -> dict[str, Any]:
     """Lance `scripts/backup.py` (sauvegarde chiffrée + envoi GitHub si configuré) et attend la fin."""
     try:
         result = subprocess.run(
@@ -185,4 +188,4 @@ def run_backup_now() -> dict:
 
 def get_backup_status() -> BackupStatus:
     """Dernière sauvegarde, envoi GitHub et retard éventuel (lus dans BACKUP_DIR)."""
-    return backup_status()
+    return BackupStatus.model_validate(backup_status())

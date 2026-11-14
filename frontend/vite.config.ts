@@ -10,7 +10,7 @@ export default defineConfig({
     },
   },
   build: {
-    // vendor-charts (recharts + d3 + lodash, ~530 Ko) est chargé à la demande, jamais à l'entrée : seuil relevé au-dessus de lui
+    // vendor-charts (recharts + d3 + redux toolkit, ~480 Ko) est chargé à la demande, jamais à l'entrée : seuil relevé au-dessus de lui
     chunkSizeWarningLimit: 600,
     rolldownOptions: {
       output: {
@@ -30,7 +30,7 @@ export default defineConfig({
               test: /node_modules\/(@radix-ui|@floating-ui|aria-hidden|react-remove-scroll[^/]*|react-style-singleton|use-callback-ref|use-sidecar|get-nonce)\//,
               priority: 40,
             },
-            { name: "vendor-charts", test: /node_modules\/(recharts|recharts-scale|react-smooth|react-transition-group|victory-vendor|d3-[a-z-]+|internmap|lodash|eventemitter3|tiny-invariant|fast-equals|decimal\.js-light)\//, priority: 30 },
+            { name: "vendor-charts", test: /node_modules\/(recharts|victory-vendor|d3-[a-z-]+|internmap|es-toolkit|eventemitter3|tiny-invariant|decimal\.js-light|@reduxjs|@standard-schema|redux|redux-thunk|react-redux|reselect|immer|use-sync-external-store)\//, priority: 30 },
             { name: "vendor-date", test: /node_modules\/date-fns\//, priority: 20 },
             // Utilitaires partagés par l'application et par les graphiques : hors du chunk des graphiques (sinon chargé dès l'entrée)
             { name: "vendor-ui", test: /node_modules\/(clsx|tailwind-merge|class-variance-authority)\//, priority: 10 },

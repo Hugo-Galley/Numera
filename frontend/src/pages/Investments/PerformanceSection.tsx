@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next"
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
+import { keepSeriesOrder, numberFormatter } from "@/lib/chartTooltip"
 import { Card, CardContent } from "@/components/ui/card"
 import { formatCurrency } from "@/lib/utils"
 import type { InvestmentsCtx } from "./useInvestments"
@@ -16,7 +17,7 @@ export function PerformanceSection({ ctx }: { ctx: InvestmentsCtx }) {
           <h2 className="text-xl font-bold tracking-tight">{t("performanceSection.performanceDetaillee")}</h2>
           <p className="text-sm text-muted-foreground">{t("performanceSection.historiqueEtEvolutionDeVos")}</p>
         </div>
-        <Card className="shadow-sm">
+        <Card className="shadow-xs">
           <CardContent className="h-[260px] px-2 sm:px-6 pt-6 md:h-[300px]">
              <ResponsiveContainer width="100%" height="100%">
                <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
@@ -38,15 +39,15 @@ export function PerformanceSection({ ctx }: { ctx: InvestmentsCtx }) {
                    tick={{ fontSize: 10 }}
                    tickFormatter={(v) => `${v}€`} 
                  />
-                 <Tooltip 
-                    formatter={(value: number, name: string) => [formatCurrency(value), name]}
+                 <Tooltip itemSorter={keepSeriesOrder} 
+                    formatter={numberFormatter((value: number, name: string) => [formatCurrency(value), name])}
                     contentStyle={{ borderRadius: "8px", border: "1px solid #e2e8f0" }}
                  />
                  <Bar 
                    dataKey="value" 
                    fill="#000000" 
                    radius={[4, 4, 0, 0]} 
-                   onClick={(data) => handleAccountClick(data.id)}
+                   onClick={(_, index) => handleAccountClick(chartData[index].id)}
                    className="cursor-pointer hover:opacity-80 transition-opacity"
                  />
                </BarChart>

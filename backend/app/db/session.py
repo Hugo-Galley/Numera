@@ -1,5 +1,8 @@
+from collections.abc import Iterator
+from typing import Any
+
 from sqlalchemy import create_engine, event
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import NullPool
 
 from app.core.config import settings
@@ -11,7 +14,7 @@ engine = create_engine(
 )
 
 
-def enable_sqlite_foreign_keys(dbapi_connection, _connection_record) -> None:
+def enable_sqlite_foreign_keys(dbapi_connection: Any, _connection_record: object) -> None:
     """SQLite ignore les FK (ON DELETE CASCADE / SET NULL) tant que le PRAGMA n'est pas activé,
     et il est propre à chaque connexion."""
     cursor = dbapi_connection.cursor()
@@ -26,7 +29,7 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
 
-def get_db():
+def get_db() -> Iterator[Session]:
     db = SessionLocal()
     try:
         yield db

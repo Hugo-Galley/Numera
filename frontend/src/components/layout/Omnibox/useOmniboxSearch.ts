@@ -7,6 +7,7 @@ import { useUI } from "@/providers/UIProvider"
 import i18n from "i18next"
 import { NAVIGATION, navigationName } from "./types"
 import { getAccounts } from "@/lib/api/accounts"
+import type { ApiResponse } from "@/lib/api/types"
 import { getTransactions } from "@/lib/api/transactions"
 
 /** Recherche (comptes, transactions, saisie rapide), résultats et navigation clavier. */
@@ -14,8 +15,8 @@ export function useOmniboxSearch() {
   const navigate = useNavigate()
   const { isSearchOpen, setSearchOpen, isPrivacyMode, togglePrivacyMode } = useUI()
   const [query, setQuery] = useState("")
-  const [accounts, setAccounts] = useState<any[]>([])
-  const [transactions, setTransactions] = useState<any[]>([])
+  const [accounts, setAccounts] = useState<ApiResponse<"/accounts", "get">>([])
+  const [transactions, setTransactions] = useState<ApiResponse<"/transactions", "get">>([])
   const [loading, setLoading] = useState(false)
   const [searchFailed, setSearchFailed] = useState(false)
   const [activeIndex, setActiveIndex] = useState(0)
@@ -60,7 +61,7 @@ export function useOmniboxSearch() {
       try {
         setLoading(true)
         setSearchFailed(false)
-        const data = await getTransactions<any[]>(`?search=${encodeURIComponent(query)}&limit=10`)
+        const data = await getTransactions(`?search=${encodeURIComponent(query)}&limit=10`)
         if (isCurrent) {
           setTransactions(data || [])
           setActiveIndex(0)
@@ -86,7 +87,7 @@ export function useOmniboxSearch() {
 
   async function loadAccounts() {
     try {
-      const data = await getAccounts<any[]>()
+      const data = await getAccounts()
       setAccounts(data || [])
     } catch (error) {
       console.error("Failed to load accounts for search", error)
@@ -94,21 +95,21 @@ export function useOmniboxSearch() {
   }
 
   // `type` sert au routage des résultats : le sens de la transaction (Entree, Sortie…) est gardé dans `txType`
-  const asTransactionResult = (tx: any) => ({ ...tx, type: 'transaction', txType: tx.type })
+  const asTransactionResult = (tx: (typeof transactions)[number]) => ({ ...tx, type: 'transaction' as const, txType: tx.type })
 
   const filteredNavigation = NAVIGATION.filter((item) =>
     navigationName(item).toLowerCase().includes(query.toLowerCase())
-  ).map(item => ({ ...item, type: 'nav' }))
+  ).map(item => ({ ...item, type: 'nav' as const }))
 
   const filteredAccounts = accounts.filter((acc) =>
     acc.name.toLowerCase().includes(query.toLowerCase())
-  ).map(acc => ({ ...acc, type: 'account' }))
+  ).map(acc => ({ ...acc, type: 'account' as const }))
 
   // Compte des saisies rapides : compte principal, sinon premier compte courant actif
   const mainAccount = accounts.find((a) => a.active && a.is_main) ?? accounts.find((a) => a.active && a.type === "courant")
   const quickEntry = parseQuickEntry(query)
   const quickResults = quickEntry
-    ? [{ amount: quickEntry.amount, merchant: quickEntry.merchant, entryType: quickEntry.type, type: 'quick' }]
+    ? [{ amount: quickEntry.amount, merchant: quickEntry.merchant, entryType: quickEntry.type, type: 'quick' as const }]
     : []
 
   const ACTIONS = [
@@ -120,7 +121,7 @@ export function useOmniboxSearch() {
   ]
   const filteredActions = ACTIONS.filter((action) =>
     action.name.toLowerCase().includes(query.toLowerCase())
-  ).map(action => ({ ...action, type: 'action' }))
+  ).map(action => ({ ...action, type: 'action' as const }))
 
   const results = [
     ...filteredNavigation,
@@ -138,7 +139,7 @@ export function useOmniboxSearch() {
     navigate(`/accounts/${mainAccount.id}?${new URLSearchParams({ new: "tx", ...params }).toString()}`)
   }
 
-  const handleSelect = (result: any) => {
+  const handleSelect = (result: (typeof results)[number]) => {
     if (result.type === 'nav') navigate(result.href)
     else if (result.type === 'account') navigate(`/accounts/${result.id}`)
     // La transaction s'ouvre directement en modification dans son compte

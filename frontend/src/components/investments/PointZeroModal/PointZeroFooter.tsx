@@ -28,7 +28,7 @@ export function PointZeroFooter({ ctx }: { ctx: PointZeroModalCtx }) {
             size="sm"
             onClick={handleSave}
             disabled={saving}
-            className="h-11 flex-1 gap-2 bg-slate-900 text-white shadow-sm hover:bg-slate-800 sm:h-8 sm:flex-none"
+            className="h-11 flex-1 gap-2 bg-slate-900 text-white shadow-xs hover:bg-slate-800 sm:h-8 sm:flex-none"
           >
             <CheckCircle2 className="h-4 w-4" />
             {saving ? t("pointZeroFooter.enregistrement") : t("pointZeroFooter.enregistrerLEtatDesLieux")}

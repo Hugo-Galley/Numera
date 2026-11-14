@@ -1,11 +1,11 @@
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 import { useState, useEffect } from "react"
-import { api } from "@/lib/api"
 import { WealthSimulator } from "@/components/analytics/WealthSimulator"
 import { WealthForecast } from "@/components/tools/WealthForecast"
 import { FireProjection } from "@/components/tools/FireProjection"
 import { Button } from "@/components/ui/button"
+import { getAnalyticsInvestmentsAllocation } from "@/lib/api/analytics"
 
 export default function Tools() {
   const { t } = useTranslation("tools")
@@ -16,7 +16,7 @@ export default function Tools() {
   useEffect(() => {
     async function loadData() {
       try {
-        const basic = await api.get("/analytics/investments-allocation")
+        const basic = await getAnalyticsInvestmentsAllocation()
         setTotalValue(basic.total_current_value || 0)
       } catch (error) {
         console.error("Erreur lors du chargement de l'allocation", error)

@@ -19,7 +19,7 @@ def match_etf_profile(db: Session, symbol: str, isin: str | None = None, name: s
     return match_profile(etf_repo.all_profiles(db), symbol, isin, name)
 
 
-def _local_matches(db: Session, cleaned: str, seen_symbols: set) -> list[dict[str, Any]]:
+def _local_matches(db: Session, cleaned: str, seen_symbols: set[Any]) -> list[dict[str, Any]]:
     results: list[dict[str, Any]] = []
     q_lower = cleaned.lower()
     for p in etf_repo.all_profiles(db):
@@ -40,7 +40,7 @@ def _local_matches(db: Session, cleaned: str, seen_symbols: set) -> list[dict[st
     return results
 
 
-async def _yahoo_matches(db: Session | None, cleaned: str, seen_symbols: set, results: list[dict[str, Any]]) -> None:
+async def _yahoo_matches(db: Session | None, cleaned: str, seen_symbols: set[Any], results: list[dict[str, Any]]) -> None:
     try:
         for q in await yahoo_finance.search_quotes(cleaned):
             sym = q.get("symbol")
@@ -79,7 +79,7 @@ async def search_market_assets(query: str, db: Session | None = None) -> list[di
     if not cleaned:
         return []
 
-    seen_symbols: set = set()
+    seen_symbols: set[Any] = set()
     # 1. Search in local ETF profiles first
     results = _local_matches(db, cleaned, seen_symbols) if db else []
     # 2. Query Yahoo Finance public search API

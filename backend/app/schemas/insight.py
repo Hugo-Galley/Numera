@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Any, Optional
 
 from pydantic import BaseModel, Field
 
@@ -53,8 +53,8 @@ class MonthlyReport(BaseModel):
     burn_rate: float
     net_worth: float
     net_worth_change: float
-    top_categories: list[dict]
-    top_merchants: list[dict]
+    top_categories: list[dict[str, Any]]
+    top_merchants: list[dict[str, Any]]
     comparison: MonthlyComparison
     insights: list[Insight]
     health_score: HealthScore
@@ -253,7 +253,7 @@ class DataAuditIssue(BaseModel):
     amount: float | None = None
     action_label: str | None = None
     action_url: str | None = None
-    samples: list[dict] = Field(default_factory=list)
+    samples: list[dict[str, Any]] = Field(default_factory=list)
 
 
 class DataAuditSummary(BaseModel):
@@ -280,8 +280,8 @@ class ActionItem(BaseModel):
     action_label: str | None = None
     action_url: str | None = None
     action_type: str  # "link", "modal_categorize", "modal_rule", "modal_snapshot", "modal_merchant"
-    metadata: dict | None = Field(default_factory=dict)
-    samples: list[dict] = Field(default_factory=list)
+    metadata: dict[str, Any] | None = Field(default_factory=dict)
+    samples: list[dict[str, Any]] = Field(default_factory=list)
 
 
 class ActionCenterSummary(BaseModel):

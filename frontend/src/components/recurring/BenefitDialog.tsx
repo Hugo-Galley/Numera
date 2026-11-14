@@ -10,9 +10,9 @@ import { Label } from "@/components/ui/label"
 import { LogoPicker } from "@/components/ui/LogoPicker"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useSubmit } from "@/hooks/useSubmit"
-import { api } from "@/lib/api"
 import { errorMessage } from "@/lib/utils"
 import type { Benefit } from "./BenefitsSection"
+import { patchBenefitsById, postBenefits } from "@/lib/api/recurring"
 
 export interface AccountOption {
   id: number
@@ -105,8 +105,8 @@ export function BenefitDialog({ open, editing, accounts, onOpenChange, onSaved }
       auto_generate: form.auto_generate,
     }
     try {
-      if (editing) await api.patch(`/benefits/${editing.id}`, payload)
-      else await api.post("/benefits", payload)
+      if (editing) await patchBenefitsById(editing.id, payload)
+      else await postBenefits(payload)
       toast.success(editing ? t("benefitDialog.aideMiseAJour") : t("benefitDialog.aideAjoutee"))
       onOpenChange(false)
       onSaved()

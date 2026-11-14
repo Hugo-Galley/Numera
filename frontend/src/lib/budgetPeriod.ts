@@ -1,6 +1,6 @@
 import { appLocale } from "@/i18n/locale"
 import { useEffect, useState } from "react"
-import { api } from "@/lib/api"
+import { getAnalyticsBudgetPeriod } from "@/lib/api/analytics"
 
 export interface BudgetPeriod {
   year: number
@@ -25,8 +25,7 @@ export function useBudgetPeriod(year: number, month: number): BudgetPeriod | nul
   const [period, setPeriod] = useState<BudgetPeriod | null>(null)
   useEffect(() => {
     let cancelled = false
-    api
-      .get<BudgetPeriod>(`/analytics/budget-period?year=${year}&month=${month}`)
+    getAnalyticsBudgetPeriod<BudgetPeriod>(`?year=${year}&month=${month}`)
       .then(res => {
         if (!cancelled) setPeriod(res)
       })
@@ -43,7 +42,7 @@ export function useBudgetPeriod(year: number, month: number): BudgetPeriod | nul
 /** Mois budgétaire en cours (celui du dernier salaire reçu) : `null` en cas d'échec, l'appelant garde le mois civil. */
 export async function fetchCurrentBudgetMonth(): Promise<{ year: number; month: number } | null> {
   try {
-    const res = await api.get<BudgetPeriod>("/analytics/budget-period")
+    const res = await getAnalyticsBudgetPeriod<BudgetPeriod>()
     return res.current
   } catch {
     return null

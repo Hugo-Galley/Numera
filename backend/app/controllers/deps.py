@@ -6,9 +6,10 @@ from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.core.i18n import tr
-from app.core.mcp_tokens import authenticate_mcp_token, is_mcp_token
-from app.db.session import get_db
+from app.core.mcp_tokens import is_mcp_token
+from app.db.session import get_db as get_db  # ré-exporté : les controllers l'importent d'ici
 from app.db.system_settings import get_setting
+from app.services.systeme.mcp_access import authenticate_mcp_token
 
 reusable_oauth2 = OAuth2PasswordBearer(
     tokenUrl="/auth/token"
@@ -30,7 +31,7 @@ def get_current_user(
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
-    current_admin = get_setting(db, "admin_username", settings.ADMIN_USERNAME)
+    current_admin: str = get_setting(db, "admin_username", settings.ADMIN_USERNAME)
     # Token MCP généré depuis l'interface (agents IA) : lecture seule, hors /admin
     if is_mcp_token(token):
         if not authenticate_mcp_token(db, token):
@@ -66,7 +67,7 @@ def get_current_user(
             detail="User not authorized",
         )
 
-    return token_data
+    return current_admin
 
 
 def require_interactive_session(token: str | None = Depends(optional_oauth2)) -> None:

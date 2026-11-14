@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
+import { keepSeriesOrder, numberFormatter } from "@/lib/chartTooltip"
 import { TrendingUp } from "lucide-react"
 import { formatCurrency } from "@/lib/utils"
 import type { WealthForecastView } from "./useWealthForecast"
@@ -11,7 +12,7 @@ export function ForecastChartCard({ ctx }: { ctx: WealthForecastView }) {
   const { boostedShown, data } = ctx
   return (
     <>
-      <Card className="shadow-sm border-slate-100">
+      <Card className="shadow-xs border-slate-100">
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
             <TrendingUp className="h-5 w-5 text-blue-500" /> {t("forecastChartCard.evolutionPrevue")}
@@ -27,12 +28,12 @@ export function ForecastChartCard({ ctx }: { ctx: WealthForecastView }) {
                 tickFormatter={(v) => `${Math.round(v / 1000)}k€`}
                 width={52}
               />
-              <Tooltip
+              <Tooltip itemSorter={keepSeriesOrder}
                 contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }}
                 labelFormatter={(v) => t("misc.inXYears", { count: Number(v) })}
-                formatter={(v: number) => formatCurrency(v, "EUR")}
+                formatter={numberFormatter((v: number) => formatCurrency(v, "EUR"))}
               />
-              <Legend />
+              <Legend itemSorter={null} />
               <Line type="monotone" dataKey="base" name={t("forecastChartCard.auRythmeActuel")} stroke="#3b82f6" strokeWidth={3} dot={false} />
               {boostedShown && (
                 <Line type="monotone" dataKey="boosted" name={t("misc.withExtra", { sign: data.extra_monthly > 0 ? "+" : "", amount: data.extra_monthly })} stroke="#10b981" strokeWidth={3} dot={false} />

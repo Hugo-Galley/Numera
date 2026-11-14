@@ -10,7 +10,7 @@ import { deleteHoldingsById, postEtfProfilesAutoDecompose, putHoldingsById } fro
 
 /** Filtres, édition du prix de revient et actions sur les positions (décomposer, supprimer, dividendes). */
 export function useHoldingsState(p: { accountId: HoldingsTableProps["accountId"]; accountName: HoldingsTableProps["accountName"]; holdings: HoldingsTableProps["holdings"]; onRefresh: HoldingsTableProps["onRefresh"]; onAddDividend: HoldingsTableProps["onAddDividend"] }) {
-  const { accountId, accountName, holdings, onRefresh, onAddDividend } = p
+  const { holdings, onRefresh } = p
   const confirm = useConfirm()
   const [pointZeroOpen, setPointZeroOpen] = useState(false)
   const [costEstimateOpen, setCostEstimateOpen] = useState(false)
@@ -50,7 +50,7 @@ export function useHoldingsState(p: { accountId: HoldingsTableProps["accountId"]
     setDecomposingId(h.id)
     const toastId = toast.loading(i18n.t("misc.breakingDown", { ns: "investments", name: h.ticker }))
     try {
-      const res = await postEtfProfilesAutoDecompose<any>({
+      const res = await postEtfProfilesAutoDecompose({
         symbol: h.ticker,
         name: h.asset_name,
         isin: h.isin,
@@ -58,14 +58,13 @@ export function useHoldingsState(p: { accountId: HoldingsTableProps["accountId"]
       if (res && res.id) {
         await putHoldingsById(h.id, {
           etf_profile_id: res.id,
-          is_etf: true,
         })
         toast.success(i18n.t("misc.brokenDown", { ns: "investments", name: res.name }), { id: toastId })
         onRefresh()
       } else {
         toast.error(i18n.t("useHoldingsState.impossibleDeDecomposerCeFonds", { ns: "investments" }), { id: toastId })
       }
-    } catch (err: any) {
+    } catch (err) {
       toast.error(errorMessage(err, i18n.t("useHoldingsState.erreurDeDecomposition", { ns: "investments" })), { id: toastId })
     } finally {
       setDecomposingId(null)
@@ -80,8 +79,8 @@ export function useHoldingsState(p: { accountId: HoldingsTableProps["accountId"]
       await deleteHoldingsById(holdingId)
       toast.success(i18n.t("useHoldingsState.positionSupprimee", { ns: "investments" }))
       onRefresh()
-    } catch (err: any) {
-      toast.error(err?.message || i18n.t("useHoldingsState.erreurLorsDeLaSuppression", { ns: "investments" }))
+    } catch (err) {
+      toast.error(errorMessage(err, i18n.t("useHoldingsState.erreurLorsDeLaSuppression", { ns: "investments" })))
     }
   }
 
@@ -90,8 +89,8 @@ export function useHoldingsState(p: { accountId: HoldingsTableProps["accountId"]
       await putHoldingsById(h.id, { pays_dividends: !h.pays_dividends })
       toast.success(h.pays_dividends ? i18n.t("misc.notDistributing", { ns: "investments", ticker: h.ticker }) : i18n.t("misc.distributing", { ns: "investments", ticker: h.ticker }))
       onRefresh()
-    } catch (err: any) {
-      toast.error(err?.message || i18n.t("useHoldingsState.erreurLorsDeLaMise", { ns: "investments" }))
+    } catch (err) {
+      toast.error(errorMessage(err, i18n.t("useHoldingsState.erreurLorsDeLaMise", { ns: "investments" })))
     }
   }
 
@@ -112,8 +111,8 @@ export function useHoldingsState(p: { accountId: HoldingsTableProps["accountId"]
       toast.success(i18n.t("misc.prUpdated", { ns: "investments", ticker: h.ticker }))
       setEditingCostId(null)
       onRefresh()
-    } catch (err: any) {
-      toast.error(err?.message || i18n.t("useHoldingsState.impossibleDeModifierLePru", { ns: "investments" }))
+    } catch (err) {
+      toast.error(errorMessage(err, i18n.t("useHoldingsState.impossibleDeModifierLePru", { ns: "investments" })))
     }
   }
 

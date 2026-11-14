@@ -9,7 +9,7 @@ import type { AccountDetailView } from "./useAccountDetail"
 /** Dialogue de définition du point zéro. */
 export function ZeroPointDialog({ ctx }: { ctx: AccountDetailView }) {
   const { t } = useTranslation("accountDetail")
-  const { account, handleSetZeroPoint, handleSetZeroPointBusy, id, resetZeroForm, setZeroDate, setZeroNote, setZeroOpen, setZeroValue, zeroDate, zeroNote, zeroOpen, zeroValue } = ctx
+  const { account, handleSetZeroPoint, handleSetZeroPointBusy, resetZeroForm, setZeroDate, setZeroNote, setZeroOpen, setZeroValue, zeroDate, zeroNote, zeroOpen, zeroValue } = ctx
   return (
     <>
       <Dialog open={zeroOpen} onOpenChange={(open) => { if (!open) { setZeroOpen(false); resetZeroForm(); } else { setZeroOpen(true); } }}>

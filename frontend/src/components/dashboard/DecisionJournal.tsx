@@ -13,10 +13,10 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import type { FinancialEvent } from "@/components/dashboard/useDashboardData"
 import { useSubmit } from "@/hooks/useSubmit"
-import { api } from "@/lib/api"
 import { todayLocal } from "@/lib/dates"
 import { errorMessage } from "@/lib/utils"
 import { useConfirm } from "@/providers/ConfirmProvider"
+import { deleteFinancialEventsById, patchFinancialEventsById, postFinancialEvents } from "@/lib/api/analytics"
 
 interface AccountOption {
   id: number
@@ -65,8 +65,8 @@ export function DecisionJournal({ events, accounts, onChanged }: Props) {
       account_id: accountId === NO_ACCOUNT ? null : Number(accountId),
     }
     try {
-      if (editing) await api.patch(`/financial-events/${editing.id}`, payload)
-      else await api.post("/financial-events", payload)
+      if (editing) await patchFinancialEventsById(editing.id, payload)
+      else await postFinancialEvents(payload)
       toast.success(editing ? t("journal.updated") : t("journal.added"))
       setOpen(false)
       onChanged()
@@ -78,7 +78,7 @@ export function DecisionJournal({ events, accounts, onChanged }: Props) {
   const handleDelete = async (event: FinancialEvent) => {
     if (!(await confirm(t("journal.confirmDelete", { title: event.title })))) return
     try {
-      await api.delete(`/financial-events/${event.id}`)
+      await deleteFinancialEventsById(event.id)
       toast.success(t("journal.deleted"))
       onChanged()
     } catch (e) {
@@ -89,7 +89,7 @@ export function DecisionJournal({ events, accounts, onChanged }: Props) {
   const selectableAccounts = accounts.filter((a) => a.active !== false || String(a.id) === accountId)
 
   return (
-    <Card className="shadow-sm border-slate-100 overflow-hidden">
+    <Card className="shadow-xs border-slate-100 overflow-hidden">
       <CardHeader className="bg-slate-50/50 border-b p-4 pb-3 md:p-6 md:pb-4">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">

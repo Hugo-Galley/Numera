@@ -1,5 +1,5 @@
 import { nowLocalInput, toInputValue, toNaiveLocal } from "@/lib/dates"
-import { parsePositiveAmount } from "@/lib/utils"
+import { errorMessage, parsePositiveAmount } from "@/lib/utils"
 import i18n from "i18next"
 import { toast } from "sonner"
 import { useEffect } from "react"
@@ -10,6 +10,7 @@ import type { useAccountDetailState } from "./useAccountDetailState"
 import type { useAccountForms } from "./useAccountForms"
 import type { useAccountDetailData } from "./useAccountDetailData"
 import { deleteTransactionsById, patchTransactionsById, postTransactions } from "@/lib/api/transactions"
+import type { ApiBody } from "@/lib/api/types"
 
 /** Création, modification et suppression des transactions du compte. */
 export function useTransactionActions(p: ReturnType<typeof useAccountDetailState> & ReturnType<typeof useAccountForms> & ReturnType<typeof useAccountDetailData>) {
@@ -67,8 +68,8 @@ export function useTransactionActions(p: ReturnType<typeof useAccountDetailState
       setTxOpen(false)
       resetTxForm()
       await loadData({ quiet: true })
-    } catch (error: any) {
-      toast.error(error.message || i18n.t("tx.toast.addError", { ns: "accountDetail" }))
+    } catch (error) {
+      toast.error(errorMessage(error, i18n.t("tx.toast.addError", { ns: "accountDetail" })))
     }
   })
 
@@ -91,7 +92,7 @@ export function useTransactionActions(p: ReturnType<typeof useAccountDetailState
     }
 
     try {
-      const payload: any = {
+      const payload: ApiBody<"/transactions/{transaction_id}", "patch"> = {
         date: toNaiveLocal(txDate),
         type: txType,
         merchant: merchant,
@@ -110,8 +111,8 @@ export function useTransactionActions(p: ReturnType<typeof useAccountDetailState
       setTxOpen(false)
       resetTxForm()
       await loadData({ quiet: true })
-    } catch (error: any) {
-      toast.error(error.message || i18n.t("tx.toast.updateError", { ns: "accountDetail" }))
+    } catch (error) {
+      toast.error(errorMessage(error, i18n.t("tx.toast.updateError", { ns: "accountDetail" })))
     }
   })
 
@@ -164,8 +165,8 @@ export function useTransactionActions(p: ReturnType<typeof useAccountDetailState
       await deleteTransactionsById(txId)
       toast.success(i18n.t("tx.toast.deleted", { ns: "accountDetail" }))
       await loadData({ quiet: true })
-    } catch (error: any) {
-      toast.error(error?.message || i18n.t("tx.toast.deleteError", { ns: "accountDetail" }))
+    } catch (error) {
+      toast.error(errorMessage(error, i18n.t("tx.toast.deleteError", { ns: "accountDetail" })))
     }
   }
 

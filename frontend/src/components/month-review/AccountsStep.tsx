@@ -7,9 +7,9 @@ import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { api } from "@/lib/api"
 import { formatCurrency } from "@/lib/utils"
 import type { MonthReview } from "@/types/monthReview"
+import { postAccountsVerify } from "@/lib/api/accounts"
 
 export function AccountsStep({
   step,
@@ -24,7 +24,7 @@ export function AccountsStep({
   async function verify(id: number) {
     setBusyId(id)
     try {
-      await api.post(`/accounts/${id}/verify`)
+      await postAccountsVerify(id)
       toast.success(t("accountsStep.soldeValide"))
       onChanged()
     } catch {

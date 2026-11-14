@@ -5,11 +5,13 @@ from datetime import datetime, timedelta
 from typing import Any
 
 import anyio
+import httpx
 from sqlalchemy.orm import Session
 
 from app.core.circuit_breaker import CircuitBreaker
 from app.core.config import settings
 from app.core.logging import get_logger
+from app.core.time import now_local
 from app.domain.market import guess_quote_currency, normalize_price, to_eur
 from app.integrations import yahoo_finance
 from app.integrations.currency import get_exchange_rates
@@ -51,7 +53,7 @@ def _demo_stored_quote(db: Session | None, sym: str) -> dict[str, Any] | None:
         "type": "ETF",
         "price_date": last.date.isoformat(),
         "stale": False,
-        "expires_at": datetime.now() + timedelta(minutes=5),
+        "expires_at": now_local() + timedelta(minutes=5),
     }
 
 
@@ -76,7 +78,7 @@ def _cached_or_demo(symbols: list[str], db: Session | None, now: datetime) -> tu
     return output, missing_symbols
 
 
-async def _fetch_quote(client, sym: str, rates: dict[str, float], now: datetime) -> tuple[dict[str, Any], date_type, float] | None:
+async def _fetch_quote(client: httpx.AsyncClient, sym: str, rates: dict[str, float], now: datetime) -> tuple[dict[str, Any], date_type, float] | None:
     """Cotation Yahoo du jour : (cotation, jour du cours, cours) ou None si Yahoo n'a pas de cours."""
     result = await yahoo_finance.fetch_chart(client, sym, {"interval": "1d", "range": "1d"})
     if not result:
@@ -148,7 +150,7 @@ async def _fetch_all(symbols: list[str], rates: dict[str, float], now: datetime)
     limiter = anyio.CapacityLimiter(MAX_CONCURRENT_QUOTES)
     results: dict[str, Any] = {}
 
-    async def one(client, sym: str) -> None:
+    async def one(client: httpx.AsyncClient, sym: str) -> None:
         results[sym] = None
         if not _yahoo_breaker.allow():
             return
@@ -177,7 +179,7 @@ async def get_market_quotes(symbols: list[str], db: Session | None = None) -> di
     les valide ensuite avec `persist_fetched_prices(db)`.
     Chaque cotation porte `price_date` et `stale`. `price == 0` signifie « aucun cours connu ».
     """
-    now = datetime.now()
+    now = now_local()
     output, missing_symbols = _cached_or_demo(symbols, db, now)
     if not missing_symbols:
         return output
@@ -212,7 +214,7 @@ async def fetch_price_history(db: Session, ticker: str, start: date_type) -> int
     """Télécharge les clôtures journalières de `ticker` depuis `start` et les enregistre. Renvoie le nombre de jours."""
     sym = ticker.upper().strip()
     period1 = int(datetime.combine(start, datetime.min.time()).timestamp())
-    period2 = int(datetime.now().timestamp())
+    period2 = int(now_local().timestamp())
     async with yahoo_finance.client(15.0) as client:
         result = await yahoo_finance.fetch_chart(client, sym, {"interval": "1d", "period1": str(period1), "period2": str(period2)})
     if not result:

@@ -8,11 +8,10 @@ Le générateur est déterministe (graine fixe) : même jour, mêmes données.
 
 from __future__ import annotations
 
-from datetime import date
-
 from sqlalchemy.orm import Session
 
 from app.core.logging import get_logger
+from app.core.time import today_local
 from app.db.base import Base
 from app.models.system_setting import SystemSetting
 from app.services.systeme.demo.generator import generate_demo_data
@@ -39,7 +38,7 @@ logger = get_logger(__name__)
 def wipe_database(db: Session) -> None:
     """Vide toutes les tables (le schéma et `alembic_version` restent)."""
     db.close()
-    with db.get_bind().connect() as connection:
+    with db.get_bind().engine.connect() as connection:
         # FK circulaires (transactions <-> investment_transactions) : suspendues le temps du vidage
         connection.exec_driver_sql("PRAGMA foreign_keys=OFF")
         for table in reversed(Base.metadata.sorted_tables):
@@ -51,7 +50,7 @@ def wipe_database(db: Session) -> None:
 async def ensure_demo_data(db: Session) -> bool:
     """Régénère la démo si elle n'a pas été produite aujourd'hui. Renvoie True si elle l'a été."""
     stamp = db.get(SystemSetting, DEMO_STAMP_KEY)
-    if stamp is not None and stamp.value == date.today().isoformat():
+    if stamp is not None and stamp.value == today_local().isoformat():
         return False
     logger.info("Demo mode: regenerating demo data")
     wipe_database(db)

@@ -11,7 +11,7 @@ import type { CalendarCtx } from "./useCalendar"
 /** Dialogue du détail d'un jour. */
 export function DayDetailDialog({ ctx }: { ctx: CalendarCtx }) {
   const { t } = useTranslation("recurring")
-  const { getBalanceForDay, handleValidate, isDayDetailOpen, isPrivacyMode, month, selectedDay, selectedDayEvents, setIsDayDetailOpen, validating, year } = ctx
+  const { getBalanceForDay, handleValidate, isDayDetailOpen, isPrivacyMode, selectedDay, selectedDayEvents, setIsDayDetailOpen, validating } = ctx
   return (
     <>
       <Dialog open={isDayDetailOpen} onOpenChange={setIsDayDetailOpen}>
@@ -42,7 +42,7 @@ export function DayDetailDialog({ ctx }: { ctx: CalendarCtx }) {
                           <ArrowUpCircle className="h-8 w-8 shrink-0 text-emerald-500" />
                         )}
                         <div className="min-w-0">
-                          <p className="text-sm font-bold text-slate-900 break-words">{ev.name}</p>
+                          <p className="text-sm font-bold text-slate-900 wrap-break-word">{ev.name}</p>
                           <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
                             {ev.ticker && (
                               <>

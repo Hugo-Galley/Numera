@@ -1,4 +1,7 @@
-from sqlalchemy import func, select, union
+from datetime import datetime
+from typing import Any
+
+from sqlalchemy import CompoundSelect, func, select, union
 from sqlalchemy.orm import Session
 
 from app.models.account import Account
@@ -6,7 +9,7 @@ from app.models.reimbursement import ReimbursementAllocation, ReimbursementClaim
 from app.models.transaction import Transaction
 
 
-def locked_transaction_ids():
+def locked_transaction_ids() -> CompoundSelect[*tuple[Any, ...]]:
     """Sous-requête des transactions portant une créance ou une affectation (exclues des virements)."""
     return union(
         select(ReimbursementClaim.transaction_id),
@@ -15,15 +18,17 @@ def locked_transaction_ids():
 
 
 def claim_received_total(db: Session, claim_id: int) -> float:
-    return db.query(func.coalesce(func.sum(ReimbursementAllocation.amount), 0.0)).filter(
+    total: float = db.query(func.coalesce(func.sum(ReimbursementAllocation.amount), 0.0)).filter(
         ReimbursementAllocation.claim_id == claim_id
     ).scalar()
+    return total
 
 
 def entree_allocated_total(db: Session, entree_id: int) -> float:
-    return db.query(func.coalesce(func.sum(ReimbursementAllocation.amount), 0.0)).filter(
+    total: float = db.query(func.coalesce(func.sum(ReimbursementAllocation.amount), 0.0)).filter(
         ReimbursementAllocation.entree_transaction_id == entree_id
     ).scalar()
+    return total
 
 
 def sortie_expected_total(db: Session, sortie_id: int, exclude_claim_id: int | None = None) -> float:
@@ -32,16 +37,18 @@ def sortie_expected_total(db: Session, sortie_id: int, exclude_claim_id: int | N
     )
     if exclude_claim_id is not None:
         q = q.filter(ReimbursementClaim.id != exclude_claim_id)
-    return q.scalar()
+    total: float = q.scalar()
+    return total
 
 
 def sortie_received_total(db: Session, sortie_id: int) -> float:
-    return (
+    total: float = (
         db.query(func.coalesce(func.sum(ReimbursementAllocation.amount), 0.0))
         .join(ReimbursementClaim, ReimbursementAllocation.claim_id == ReimbursementClaim.id)
         .filter(ReimbursementClaim.transaction_id == sortie_id)
         .scalar()
     )
+    return total
 
 
 def has_reimbursement(db: Session, tx_id: int) -> bool:
@@ -82,3 +89,43 @@ def transactions_with_currency(db: Session, tx_ids: set[int]) -> dict[int, tuple
         .all()
     )
     return {tx.id: (tx, currency or "EUR") for tx, currency in rows}
+
+
+def claims_of(db: Session, transaction_id: int) -> list[ReimbursementClaim]:
+    return db.query(ReimbursementClaim).filter(ReimbursementClaim.transaction_id == transaction_id).all()
+
+
+def allocations_of_entree(db: Session, entree_id: int) -> list[ReimbursementAllocation]:
+    return db.query(ReimbursementAllocation).filter(ReimbursementAllocation.entree_transaction_id == entree_id).all()
+
+
+def allocation_between(db: Session, claim_id: int, entree_id: int) -> ReimbursementAllocation | None:
+    return (
+        db.query(ReimbursementAllocation)
+        .filter(ReimbursementAllocation.claim_id == claim_id, ReimbursementAllocation.entree_transaction_id == entree_id)
+        .first()
+    )
+
+
+def claims_by_date(db: Session, debtor: str | None) -> list[ReimbursementClaim]:
+    """Créances (du débiteur donné, en minuscules, si fourni), de la dépense la plus récente à la plus ancienne."""
+    q = db.query(ReimbursementClaim).join(Transaction, ReimbursementClaim.transaction_id == Transaction.id)
+    if debtor:
+        q = q.filter(func.lower(ReimbursementClaim.debtor) == debtor)
+    return q.order_by(Transaction.date.desc(), ReimbursementClaim.id).all()
+
+
+def entree_candidates(db: Session, currency: str, earliest: datetime, latest: datetime) -> list[Transaction]:
+    """Entrées (hors virements) d'un compte de cette devise, entre `earliest` et `latest` inclus."""
+    return (
+        db.query(Transaction)
+        .join(Account, Transaction.account_id == Account.id)
+        .filter(
+            Transaction.type == "Entree",
+            Transaction.is_transfer.is_(False),
+            Account.currency == currency,
+            Transaction.date >= earliest,
+            Transaction.date <= latest,
+        )
+        .all()
+    )

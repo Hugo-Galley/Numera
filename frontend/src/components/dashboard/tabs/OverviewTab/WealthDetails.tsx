@@ -12,11 +12,11 @@ export function WealthDetails({ ctx }: { ctx: OverviewTabCtx }) {
       {/* Grouped, Mixed or Flat Details List */}
       <div className="lg:col-span-7 min-w-0 space-y-4 md:max-h-[300px] md:overflow-y-auto md:pr-2 scrollbar-thin scrollbar-thumb-slate-200">
         {groupBy === "category" ? (
-          Object.entries(groupedItems).map(([type, group]: [string, any]) => {
+          Object.entries(groupedItems).map(([type, group]) => {
             if (group.items.length === 0) return null;
             const catLabel = CATEGORY_LABELS[type] || type;
             const catColor = CATEGORY_COLORS[type] || "#64748b";
-            const totalPatrimoine = patrimoineAllocation.total_patrimoine || 1;
+            const totalPatrimoine = patrimoineAllocation?.total_patrimoine || 1;
             const catPercentage = ((group.total_eur / totalPatrimoine) * 100).toFixed(1);
 
             return (
@@ -38,14 +38,14 @@ export function WealthDetails({ ctx }: { ctx: OverviewTabCtx }) {
 
                 {/* Accounts in Group */}
                 <div className="space-y-1.5">
-                  {group.items.map((item: any) => (
+                  {group.items.map((item) => (
                     <div 
                       key={`${item.account_id}-${item.account_name}`} 
                       className="flex items-center justify-between p-2.5 rounded-xl border border-slate-100 hover:border-slate-200 hover:bg-slate-50/50 transition-all group/item"
                     >
                       <div className="flex min-w-0 items-center gap-2.5">
                         <div 
-                          className="h-2 w-2 rounded-full flex-shrink-0" 
+                          className="h-2 w-2 rounded-full shrink-0" 
                           style={{ backgroundColor: catColor }} 
                         />
                         <AccountLogo accountId={item.account_id} className="h-6 w-6" />
@@ -75,8 +75,8 @@ export function WealthDetails({ ctx }: { ctx: OverviewTabCtx }) {
             );
           })
         ) : groupBy === "institution" ? (
-          institutionData.map((group: any) => {
-            const totalPatrimoine = patrimoineAllocation.total_patrimoine || 1;
+          institutionData.map((group) => {
+            const totalPatrimoine = patrimoineAllocation?.total_patrimoine || 1;
             return (
               <div key={group.name} className="space-y-2">
                 {/* Group Header */}
@@ -96,14 +96,14 @@ export function WealthDetails({ ctx }: { ctx: OverviewTabCtx }) {
 
                 {/* Accounts in Group */}
                 <div className="space-y-1.5">
-                  {group.items.map((item: any) => (
+                  {group.items.map((item) => (
                     <div 
                       key={`${item.account_id}-${item.account_name}`} 
                       className="flex items-center justify-between p-2.5 rounded-xl border border-slate-100 hover:border-slate-200 hover:bg-slate-50/50 transition-all group/item"
                     >
                       <div className="flex min-w-0 items-center gap-2.5">
                         <div 
-                          className="h-2 w-2 rounded-full flex-shrink-0" 
+                          className="h-2 w-2 rounded-full shrink-0" 
                           style={{ backgroundColor: group.color }} 
                         />
                         <AccountLogo accountId={item.account_id} className="h-6 w-6" />
@@ -133,14 +133,14 @@ export function WealthDetails({ ctx }: { ctx: OverviewTabCtx }) {
             );
           })
         ) : groupBy === "mixed" ? (
-          mixedItems.map((item: any) => (
+          mixedItems.map((item) => (
             <div 
               key={item.id} 
               className="flex items-center justify-between p-3 rounded-xl border border-slate-100 hover:border-slate-200 hover:bg-slate-50/50 transition-all group/item"
             >
               <div className="flex min-w-0 items-center gap-3">
                 <div 
-                  className="h-3 w-3 rounded-full flex-shrink-0" 
+                  className="h-3 w-3 rounded-full shrink-0" 
                   style={{ backgroundColor: item.color }} 
                 />
                 <div className="min-w-0">
@@ -170,14 +170,14 @@ export function WealthDetails({ ctx }: { ctx: OverviewTabCtx }) {
             </div>
           ))
         ) : (
-          flatItems.map((item: any) => (
+          flatItems.map((item) => (
             <div 
               key={item.id} 
               className="flex items-center justify-between p-3 rounded-xl border border-slate-100 hover:border-slate-200 hover:bg-slate-50/50 transition-all group/item"
             >
               <div className="flex min-w-0 items-center gap-3">
                 <div 
-                  className="h-3 w-3 rounded-full flex-shrink-0" 
+                  className="h-3 w-3 rounded-full shrink-0" 
                   style={{ backgroundColor: item.color }} 
                 />
                 <div className="min-w-0">

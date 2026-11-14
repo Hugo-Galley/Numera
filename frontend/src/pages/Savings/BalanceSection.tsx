@@ -9,7 +9,7 @@ import type { SavingsCtx } from "./useSavings"
 /** Section 1 : bilan financier. */
 export function BalanceSection({ ctx }: { ctx: SavingsCtx }) {
   const { t } = useTranslation("savings")
-  const { analytics, getRateColor, hasIncome, months, resilience, savingsRate } = ctx
+  const { analytics, getRateColor, hasIncome, resilience, savingsRate } = ctx
   return (
     <>
       {/* SECTION 1 : BILAN FINANCIER */}
@@ -20,7 +20,7 @@ export function BalanceSection({ ctx }: { ctx: SavingsCtx }) {
         </div>
 
         <div className="grid gap-3 grid-cols-2 md:gap-6 lg:grid-cols-4">
-          <Card className="theme-island col-span-2 shadow-sm border-slate-200 bg-slate-900 md:col-span-1 text-white hover:shadow-md transition-shadow">
+          <Card className="theme-island col-span-2 shadow-xs border-slate-200 bg-slate-900 md:col-span-1 text-white hover:shadow-md transition-shadow">
             <CardHeader className="pb-2 flex flex-row items-center justify-between gap-2 space-y-0 p-4 md:p-6 md:pb-2">
               <CardDescription className="font-medium text-slate-300">{t("balanceSection.patrimoineNetTotal")}</CardDescription>
               <div className="h-10 w-10 bg-white/10 rounded-xl flex items-center justify-center">
@@ -35,7 +35,7 @@ export function BalanceSection({ ctx }: { ctx: SavingsCtx }) {
             </CardContent>
           </Card>
 
-          <Card className="col-span-2 shadow-sm border-slate-100 hover:border-emerald-200 transition-colors md:col-span-1">
+          <Card className="col-span-2 shadow-xs border-slate-100 hover:border-emerald-200 transition-colors md:col-span-1">
             <CardHeader className="pb-2 flex flex-row items-center justify-between gap-2 space-y-0 p-4 md:p-6 md:pb-2">
               <CardDescription className="font-medium">{t("balanceSection.epargneLiquide")}</CardDescription>
               <div className="h-10 w-10 bg-emerald-50 rounded-xl flex items-center justify-center">
@@ -50,7 +50,7 @@ export function BalanceSection({ ctx }: { ctx: SavingsCtx }) {
             </CardContent>
           </Card>
 
-          <Card className="shadow-sm border-slate-100 hover:border-blue-200 transition-colors">
+          <Card className="shadow-xs border-slate-100 hover:border-blue-200 transition-colors">
             <CardHeader className="pb-2 flex flex-row items-center justify-between gap-2 space-y-0 p-4 md:p-6 md:pb-2">
               <CardDescription className="font-medium">{t("balanceSection.tauxDEpargne")}</CardDescription>
               <div className="h-10 w-10 bg-blue-50 rounded-xl flex items-center justify-center">
@@ -75,7 +75,7 @@ export function BalanceSection({ ctx }: { ctx: SavingsCtx }) {
             </CardContent>
           </Card>
 
-          <Card className="shadow-sm border-slate-100 hover:border-slate-200 transition-colors">
+          <Card className="shadow-xs border-slate-100 hover:border-slate-200 transition-colors">
             <CardHeader className="pb-2 flex flex-row items-center justify-between gap-2 space-y-0 p-4 md:p-6 md:pb-2">
               <CardDescription className="font-medium">{t("balanceSection.indiceResilience")}</CardDescription>
               <div className="h-10 w-10 bg-slate-50 rounded-xl flex items-center justify-center">

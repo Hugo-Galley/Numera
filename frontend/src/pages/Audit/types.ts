@@ -27,6 +27,27 @@ export interface Account {
   currency: string
 }
 
+/**
+ * Le contrat OpenAPI type `metadata` et `samples` en dictionnaires libres (`dict[str, Any]`) : leur forme dépend de la
+ * règle d'audit qui les produit. Types locaux minimaux, donc, avec les seules clés lues par le Centre d'Actions.
+ */
+export interface ActionMetadata {
+  issue_id?: string
+  merchant?: string
+  suggested_category_id?: number
+  variants?: string[]
+}
+
+export interface ActionSample {
+  name?: string
+  merchant?: string
+  date?: string
+  amount?: number
+  currency?: string
+  sortie?: { merchant?: string }
+  entree?: { merchant?: string }
+}
+
 export interface ActionItem {
   id: string
   type: "audit" | "budget" | "rule" | "subscription"
@@ -36,8 +57,8 @@ export interface ActionItem {
   action_label?: string | null
   action_url?: string | null
   action_type: "link" | "modal_categorize" | "modal_rule" | "modal_snapshot" | "modal_merchant"
-  metadata?: Record<string, any>
-  samples: Array<Record<string, any>>
+  metadata?: ActionMetadata
+  samples: ActionSample[]
 }
 
 export interface ActionCenterData {
@@ -88,7 +109,7 @@ export const actionTypeIcon = {
 
 export const toDateTimeLocal = toInputValue
 
-export function sampleLabel(sample: Record<string, any>) {
+export function sampleLabel(sample: ActionSample) {
   if (sample.sortie && sample.entree) {
     return `${sample.sortie.merchant || "Sortie"} -> ${sample.entree.merchant || "Entree"}`
   }

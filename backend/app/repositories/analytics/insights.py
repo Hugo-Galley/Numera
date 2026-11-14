@@ -8,9 +8,10 @@ from app.models.account import Account
 from app.models.category import Category
 from app.models.dismissed_insight import DismissedInsight
 from app.models.transaction import Transaction
+from app.repositories.types import Rows
 
 
-def month_expenses(db: Session, start: datetime, end: datetime, account_id: int | None, tr_accounts: set[int]) -> list:
+def month_expenses(db: Session, start: datetime, end: datetime, account_id: int | None, tr_accounts: set[int]) -> Rows:
     """(Transaction, devise du compte) des sorties hors virements."""
     query = db.query(Transaction, Account.currency).join(Account).filter(
         Transaction.date >= start,
@@ -25,7 +26,7 @@ def month_expenses(db: Session, start: datetime, end: datetime, account_id: int 
     return query.all()
 
 
-def get_category(db: Session, category_id) -> Category | None:
+def get_category(db: Session, category_id: int) -> Category | None:
     return db.query(Category).filter(Category.id == category_id).first()
 
 

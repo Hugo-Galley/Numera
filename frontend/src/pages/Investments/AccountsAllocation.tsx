@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts"
+import { keepSeriesOrder, numberFormatter } from "@/lib/chartTooltip"
 import { formatAmountWithShare, formatCurrency, formatRate } from "@/lib/utils"
 import { COLORS } from "./types"
 import type { InvestmentsCtx } from "./useInvestments"
@@ -17,7 +18,7 @@ export function AccountsAllocation({ ctx }: { ctx: InvestmentsCtx }) {
           <h2 className="text-xl font-bold tracking-tight">{t("accountsAllocation.repartitionParCompte")}</h2>
           <p className="text-sm text-muted-foreground">{t("accountsAllocation.vosInvestissementsSeparesParEnveloppe")}</p>
         </div>
-        <Card className="shadow-sm border-slate-100 overflow-hidden">
+        <Card className="shadow-xs border-slate-100 overflow-hidden">
           <CardHeader className="flex flex-col items-start justify-between gap-2 border-b bg-slate-50/50 pb-4 sm:flex-row sm:items-center">
             <CardTitle className="text-base font-bold">{t("accountsAllocation.detailsDeLAllocation")}</CardTitle>
             <span className="text-sm font-semibold text-slate-500 bg-slate-100/80 px-3 py-1 rounded-lg">
@@ -39,15 +40,15 @@ export function AccountsAllocation({ ctx }: { ctx: InvestmentsCtx }) {
                       paddingAngle={3}
                       dataKey="value"
                       nameKey="name"
-                      onClick={(data) => handleAccountClick(data.id)}
-                      className="cursor-pointer outline-none"
+                      onClick={(_, index) => handleAccountClick(chartData[index].id)}
+                      className="cursor-pointer outline-hidden"
                     >
-                      {chartData.map((entry: any, index: number) => (
+                      {chartData.map((entry, index: number) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} className="hover:opacity-80 transition-opacity" />
                       ))}
                     </Pie>
-                    <Tooltip 
-                      formatter={(value: number, name: string) => [formatAmountWithShare(value, chartData.reduce((s: number, i: any) => s + (i.value || 0), 0)), name]}
+                    <Tooltip itemSorter={keepSeriesOrder} 
+                      formatter={numberFormatter((value: number, name: string) => [formatAmountWithShare(value, chartData.reduce((s, i) => s + (i.value || 0), 0)), name])}
                       contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }}
                     />
                   </PieChart>
@@ -59,14 +60,14 @@ export function AccountsAllocation({ ctx }: { ctx: InvestmentsCtx }) {
                     {formatCurrency(allocation?.total_current_value || 0)}
                   </span>
                   <span className="text-[11px] text-muted-foreground font-medium">
-                    {allocation?.items?.length || 0} {allocation?.items?.length > 1 ? "comptes" : "compte"}
+                    {allocation?.items?.length || 0} {(allocation?.items?.length ?? 0) > 1 ? "comptes" : "compte"}
                   </span>
                 </div>
               </div>
 
               {/* Détails de l'allocation */}
               <div className="min-w-0 lg:col-span-7 space-y-2.5 md:max-h-[300px] md:overflow-y-auto md:pr-2 scrollbar-thin scrollbar-thumb-slate-200">
-                {allocation?.items?.map((item: any, i: number) => (
+                {allocation?.items?.map((item, i: number) => (
                   <div 
                     key={i} 
                     className="flex min-h-11 flex-col gap-1 cursor-pointer hover:bg-slate-50/80 p-3 md:p-2.5 rounded-xl border border-slate-100 hover:border-slate-200 transition-all group"

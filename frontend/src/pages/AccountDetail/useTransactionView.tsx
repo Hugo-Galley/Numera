@@ -15,7 +15,7 @@ import { getAnalyticsAccountFlowSummary } from "@/lib/api/analytics"
 
 /** Vue de la liste : filtres locaux, tri, statistiques et menu d'actions d'une ligne. */
 export function useTransactionView(p: ReturnType<typeof useAccountDetailState> & ReturnType<typeof useAccountForms> & ReturnType<typeof useAccountDetailData> & ReturnType<typeof useTransactionActions> & ReturnType<typeof useInvestmentActions>) {
-  const { id, account, setReimbursementTx, setSplitTx, transactions, flowSummary, setFlowSummary, debouncedSearch, dateStart, dateEnd, sortField, sortOrder, txDate, openTransferDialog, handleEditTransaction, handleDeleteTransaction } = p
+  const { id, account, setReimbursementTx, setSplitTx, transactions, flowSummary, setFlowSummary, debouncedSearch, dateStart, dateEnd, sortField, sortOrder, openTransferDialog, handleEditTransaction, handleDeleteTransaction } = p
   const filteredTransactions = useMemo(() => {
     return transactions
       .filter(tx => {
@@ -83,7 +83,7 @@ export function useTransactionView(p: ReturnType<typeof useAccountDetailState> &
     getAnalyticsAccountFlowSummary<typeof flowSummary>(`?${params.toString()}`)
       .then(setFlowSummary)
       .catch(() => setFlowSummary(null))
-  }, [id, dateStart, dateEnd, transactions])
+  }, [id, dateStart, dateEnd, transactions, setFlowSummary])
 
   const stats = useMemo(() => {
     const source = (debouncedSearch || dateStart || dateEnd) ? filteredTransactions : transactions
@@ -101,14 +101,14 @@ export function useTransactionView(p: ReturnType<typeof useAccountDetailState> &
     }
   }, [transactions, filteredTransactions, flowSummary, debouncedSearch, dateStart, dateEnd])
 
-  const renderTxMenu = (tx: any) => (
+  const renderTxMenu = (tx: Transaction) => (
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="sm" className="h-10 w-10 p-0 md:h-8 md:w-8" title="Actions">
             <MoreHorizontal className="h-4 w-4 text-slate-500" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" collisionPadding={12} className="w-56 max-md:[&_[role=menuitem]]:min-h-11">
+        <DropdownMenuContent align="end" collisionPadding={12} className="w-56 max-md:**:[[role=menuitem]]:min-h-11">
           {tx.type === "Sortie" && !tx.is_transfer && account?.currency === "EUR" && (
             <>
               <DropdownMenuLabel className="py-1">

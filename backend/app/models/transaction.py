@@ -9,6 +9,13 @@ from app.models.tag import transaction_tags
 
 if TYPE_CHECKING:
     from app.models.benefit import Benefit
+    from app.models.category import Category
+    from app.models.investment_transaction import InvestmentTransaction
+    from app.models.merchant import Merchant
+    from app.models.recurring_transaction import RecurringTransaction
+    from app.models.reimbursement import ReimbursementClaim
+    from app.models.tag import Tag
+    from app.models.transaction_split import TransactionSplit
 
 
 class Transaction(Base):

@@ -1,3 +1,4 @@
+import type { ApiResponse } from "@/lib/api/types"
 import i18n from "i18next"
 import { useTranslation } from "react-i18next"
 import { useEffect, useState } from "react"
@@ -5,25 +6,14 @@ import { ErrorState } from "@/components/layout/ErrorState"
 import {
   Plus,
   Trash2,
-  Pencil,
-  Tag,
   AlertCircle,
   RefreshCw,
-  Search,
-  ChevronRight,
   Filter,
   ArrowRight
 } from "lucide-react"
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { api } from "@/lib/api"
 import { Badge } from "@/components/ui/badge"
 import {
   Dialog,
@@ -43,16 +33,16 @@ import {
 } from "@/components/ui/select"
 import { toast } from "sonner"
 import { useConfirm } from "@/providers/ConfirmProvider"
+import { deleteCategorizationRulesById, getCategories, getCategorizationRules, postCategorizationRules, postCategorizationRulesApplyAll } from "@/lib/api/classement"
 
 export function RulesTab() {
   const { t } = useTranslation("classement")
   const confirm = useConfirm()
-  const [rules, setRules] = useState<any[]>([])
-  const [categories, setCategories] = useState<any[]>([])
+  const [rules, setRules] = useState<ApiResponse<"/categorization-rules/", "get">>([])
+  const [categories, setCategories] = useState<ApiResponse<"/categories", "get">>([])
   const [loading, setLoading] = useState(true)
   const [loadFailed, setLoadFailed] = useState(false)
   const [isAddOpen, setIsAddOpen] = useState(false)
-  const [editingRule, setEditingRule] = useState<any>(null)
   
   const [newRule, setNewRule] = useState({
     pattern: "",
@@ -69,8 +59,8 @@ export function RulesTab() {
   async function loadData() {
     try {
       const [r, cats] = await Promise.all([
-        api.get<any[]>("/categorization-rules/"),
-        api.get<any[]>("/categories?include_archived=false")
+        getCategorizationRules(),
+        getCategories("?include_archived=false")
       ])
       setRules(r)
       setCategories(cats)
@@ -86,7 +76,7 @@ export function RulesTab() {
   async function handleCreate() {
     if (!newRule.pattern) return
     try {
-      await api.post("/categorization-rules/", {
+      await postCategorizationRules({
         ...newRule,
         category_id: newRule.category_id ? parseInt(newRule.category_id) : null,
         transaction_type: newRule.transaction_type === "none" ? null : newRule.transaction_type,
@@ -101,7 +91,7 @@ export function RulesTab() {
         priority: 0
       })
       loadData()
-    } catch (error) {
+    } catch {
       toast.error(t("rulesTab.echecDeLaCreation"))
     }
   }
@@ -109,19 +99,19 @@ export function RulesTab() {
   async function handleDelete(id: number) {
     if (!(await confirm(t("rulesTab.supprimerCetteRegle")))) return
     try {
-      await api.delete(`/categorization-rules/${id}`)
+      await deleteCategorizationRulesById(id)
       toast.success(t("rulesTab.regleSupprimee"))
       loadData()
-    } catch (error) {
+    } catch {
       toast.error(t("rulesTab.echecDeLaSuppression"))
     }
   }
 
   async function handleApplyAll() {
     try {
-      const res = await api.post<any>("/categorization-rules/apply-all", {})
+      const res = await postCategorizationRulesApplyAll({})
       toast.success(i18n.t("misc.updated", { ns: "classement", count: res.modified_count }))
-    } catch (error) {
+    } catch {
       toast.error(t("rulesTab.echecDeLApplicationDes"))
     }
   }
@@ -224,7 +214,7 @@ export function RulesTab() {
         </div>
       </div>
 
-      <Card className="shadow-sm border-slate-100 overflow-hidden">
+      <Card className="shadow-xs border-slate-100 overflow-hidden">
         <CardContent className="p-0">
           <div className="divide-y">
             {rules.map((rule) => {
@@ -232,7 +222,7 @@ export function RulesTab() {
               return (
                 <div key={rule.id} className="p-4 flex items-center justify-between gap-2 hover:bg-slate-50 transition-colors">
                   <div className="flex min-w-0 items-center gap-3 sm:gap-4">
-                    <div className="h-10 w-10 shrink-0 bg-slate-100 rounded-xl flex items-center justify-center text-slate-500 shadow-sm">
+                    <div className="h-10 w-10 shrink-0 bg-slate-100 rounded-xl flex items-center justify-center text-slate-500 shadow-xs">
                       <Filter className="h-5 w-5" />
                     </div>
                     <div className="min-w-0">
@@ -244,7 +234,7 @@ export function RulesTab() {
                       <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-0.5">
                         {category && (
                           <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 border-slate-200">
-                             <div className="h-1.5 w-1.5 rounded-full mr-1.5" style={{ backgroundColor: category.color }} />
+                             <div className="h-1.5 w-1.5 rounded-full mr-1.5" style={{ backgroundColor: category.color ?? undefined }} />
                              {category.name}
                           </Badge>
                         )}

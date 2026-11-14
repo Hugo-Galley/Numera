@@ -1,11 +1,12 @@
 """Projection de trésorerie (échéances récurrentes à venir)."""
 from datetime import date, datetime, timedelta
+from typing import Any
 
 from sqlalchemy.orm import Session
 
 from app.core.errors import NotFoundError
 from app.core.i18n import tr
-from app.core.time import end_of_today
+from app.core.time import end_of_today, now_local
 from app.domain.finance import get_recurring_occurrences, is_lapsed
 from app.domain.recurring import transfer_credit_date
 from app.domain.reports import flag_possible_duplicates, simulate_cashflow
@@ -23,7 +24,7 @@ INCOME_TYPES = ["Entree", "Interets", "versement", "dividende"]
 
 async def compute_cashflow_projection(db: Session, days: int = 30, account_id: int | None = None) -> CashflowProjection:
     """Solde projeté sur `days` jours à partir du solde actuel et des transactions récurrentes."""
-    now = datetime.now()
+    now = now_local()
     end_date = now + timedelta(days=days)
     rates = await get_exchange_rates("EUR")
     current_bal, counted_ids = await _current_balance(db, account_id, rates)
@@ -43,7 +44,7 @@ async def compute_cashflow_projection(db: Session, days: int = 30, account_id: i
     )
 
 
-async def _current_balance(db: Session, account_id: int | None, rates: dict) -> tuple[float, set[int]]:
+async def _current_balance(db: Session, account_id: int | None, rates: dict[str, Any]) -> tuple[float, set[int]]:
     """Valeur actuelle du compte, ou somme EUR des comptes actifs hors tickets restaurant (et leurs ids).
 
     Valeurs par `account_values` (source unique) ; les opérations à venir ne comptent qu'à leur date."""
@@ -64,7 +65,7 @@ async def _current_balance(db: Session, account_id: int | None, rates: dict) -> 
     return current_bal, counted_ids
 
 
-def _scheduled_events(db: Session, account_id: int | None, rates: dict,
+def _scheduled_events(db: Session, account_id: int | None, rates: dict[str, Any],
                       end_date: datetime) -> tuple[list[ProjectionEvent], set[tuple[int, date]]]:
     """Transactions saisies à l'avance (après aujourd'hui) et les échéances récurrentes qu'elles réalisent déjà."""
     tr_accounts = set() if account_id else ticket_restaurant_account_ids(db)
@@ -81,7 +82,7 @@ def _scheduled_events(db: Session, account_id: int | None, rates: dict,
     return events, entered
 
 
-def _projected_events(db: Session, account_id: int | None, counted_ids: set[int], rates: dict,
+def _projected_events(db: Session, account_id: int | None, counted_ids: set[int], rates: dict[str, Any],
                       now: datetime, end_date: datetime, entered: set[tuple[int, date]]) -> list[ProjectionEvent]:
     tr_accounts = set() if account_id else ticket_restaurant_account_ids(db)
     events: list[ProjectionEvent] = []

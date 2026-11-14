@@ -4,9 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-**Self-hosted** web application for budget and investment tracking ("Numera" / "Suivi Budget"), personal single-user use. Replaces a Numbers spreadsheet. Local data (SQLite); the only outbound calls are Frankfurter (exchange rates), market data (Yahoo Finance: `integrations/yahoo_finance.py`, through `services/investissement/market/`) and, if the user enables them, ntfy / Telegram for notifications (`services/systeme/notifications.py` (channels: `integrations/notifications.py`)).
+**Self-hosted** web application for budget and investment tracking ("Numera" / "Suivi Budget"), personal single-user use. Replaces a Numbers spreadsheet. Local data (SQLite); the only outbound calls are Frankfurter (exchange rates), market data (Yahoo Finance: `integrations/yahoo_finance.py`, through `services/investissement/market/`) and, only if the user makes use of them, ntfy / Telegram for notifications (`services/systeme/notifications.py`, channels: `integrations/notifications.py`), Google's favicon service for the logo of a domain (`integrations/logos.py`), a private GitHub repository for uploading encrypted backups (`backend/scripts/git_sync.py`); on the browser side, the world map's base layer comes from `unpkg.com` (`components/ui/WorldMap.tsx`, the only third-party origin in the CSP). Reference list: `ARCHITECTURE.md` (overview).
 
-Stack: React 19 + Vite 8 (Rolldown) + TypeScript + Tailwind + Recharts (frontend) · FastAPI + SQLAlchemy 2 + Alembic + Pydantic v2 (backend) · SQLite (`backend/data/suivi_budget.db`) · Docker Compose.
+Stack: React 19 + Vite 8 (Rolldown) + TypeScript + Tailwind 4 (CSS-first config in `frontend/src/styles.css`, no more `tailwind.config.js`) + Recharts (frontend) · FastAPI + SQLAlchemy 2 + Alembic + Pydantic v2 (backend) · SQLite (`backend/data/suivi_budget.db`) · Docker Compose.
 
 **Language.** Documentation, skills, `CLAUDE.md` files and commit/PR titles are written in **English**. The user interface is translated (French reference, English, Spanish: see `frontend/src/CLAUDE.md` § Languages and `backend/CLAUDE.md`). The domain vocabulary stored in the database and in the code (`Entree`, `Sortie`, `Solde Initial`, `courant`, `epargne`, folder names such as `comptes/` or `investissement/`) are still **French**: keep these identifiers exactly as they are, and gloss them in English in docs when helpful.
 
@@ -47,12 +47,13 @@ make prod                  # infra/docker-compose.prod.yml
 make test                  # backend pytest (backend/.venv if present, otherwise python3.12/3.11; PYTHON=... to force)
 make coverage              # tests + coverage with ratchet threshold: backend (backend/.coveragerc, 93 %) and frontend (frontend/vitest.config.ts, v8); never lower a threshold
 make lint / lint-fix       # ruff on backend/ (rules: backend/ruff.toml), lint-fix fixes what is safe
-make lint-front             # frontend ESLint (rules-of-hooks, exhaustive-deps, unused variables); existing warnings capped by frontend/eslint-baseline.json
-make typecheck             # mypy: strict on app/domain and app/core, ratchet baseline elsewhere (scripts/quality/baselines/mypy_baseline.json)
+make lint-front             # frontend ESLint (rules-of-hooks, exhaustive-deps, unused variables); baseline frontend/eslint-baseline.json empty: zero warnings tolerated
+make typecheck             # mypy strict on the whole of backend/app (backend/mypy.ini), zero errors tolerated
 make check-size            # size caps (file/function), ratchet baseline scripts/quality/baselines/code_size_baseline.json
 make validate              # lint + lint-front + typecheck + check-size + coverage (backend and frontend tests with thresholds) + frontend build
 make backend-seed-demo     # demo data (backend/data/demo.db, never the real database)
 make demo / demo-down      # public demo instance (infra/docker-compose.demo.yml, port 8090, demo/demo)
+make test-e2e              # Playwright E2E (user journeys on a throwaway demo database + `security` profile on a non-demo database: 2FA, passkeys, MCP tokens, backup, notifications; ~5 min); frontend/e2e/README.md
 make backup-now            # backup inside the container
 cd backend && PYTHONPATH=. python3.11 scripts/perf_profile.py seed|bench|profile --db /tmp/perf_demo.db   # profiling on a large demo database (numera-performance skill)
 make release-check         # suggested SemVer bump + notes preview; make release V=X.Y.Z creates and pushes the tag
@@ -67,7 +68,7 @@ cd frontend && npm run typecheck    # tsc only
 # A single test
 cd backend && PYTHONPATH=. python3.11 -m pytest tests/budget/test_tags.py -v   # PYTHONPATH=. required
 cd backend && PYTHONPATH=. python3.11 -m pytest tests/budget/test_tags.py::test_name -v
-cd backend && PYTHONPATH=. python3.11 -m pytest tests -q     # full suite: ~950 tests, ~80 s in parallel (xdist, -n auto), ~2 min 40 serially
+cd backend && PYTHONPATH=. python3.11 -m pytest tests -q     # full suite: ~1240 tests, ~90 s in parallel (xdist, -n auto), ~2 min 40 serially
 
 # Admin password (hash to put in ADMIN_PASSWORD_HASH; double the $ in docker-compose)
 python scripts/ops/change_password.py <password>
@@ -76,7 +77,7 @@ python scripts/ops/change_password.py <password>
 ## Architecture
 
 ### Backend (`backend/app/`)
-- `main.py`: lifespan (Alembic migrations + seed), logging middleware, CORS through `settings.cors_origins` (not `*`). Routers are in the `protected_routers` list and all receive `Depends(get_current_user)` (JWT); only `health` and `auth` are public. **A new router must be added to this list.**
+- `main.py`: lifespan (Alembic migrations + seed), logging middleware, CORS through `settings.cors_origins` (not `*`). Routers are in the `protected_routers` list and all receive `Depends(get_current_user)` (JWT); the only public routes are `health`, the login routes under `/auth` (`auth`, `passkeys`, `totp`: each management route there requires `get_current_user` itself) and `GET /logos/img/{ref}` (an `<img>` tag does not send the JWT). **A new router must be added to this list.**
 - **Layered architecture** (backend and frontend migrated, see `ARCHITECTURE.md` § Backend layers): `controllers/` (controllers) → `services/` (use cases, commit, business errors `core/errors.py`) → `repositories/` (queries) / `domain/` (pure calculations) / `integrations/` (external calls). Import rules checked by `tests/garde_fous/test_architecture.py`, sizes by `scripts/quality/check_code_size.py` (ratchet baselines: never raise them). Model to follow: `accounts`. `controllers/`, `services/` and `repositories/` are organised by domain, same tree in the three layers: `budget/`, `comptes/` (accounts), `investissement/` (investments), `analytics/`, `audit/` (services), `systeme/` (system); a controller does not import a controller of another domain, `core/` only imports `core`, `models`, `db`. Moved code: deleted from the old location, no re-export.
 - `controllers/<domain>/`: one router per subject (`budget/transactions`, `comptes/accounts`, `investissement/holdings`, `systeme/auth`, …); `controllers/deps.py` at the root. `controllers/analytics/` is a **package** (metrics, budget, investments, insights, reports, subscriptions, audit, diversity); budget, Action Center and cash-flow projection are computed in `services/analytics/` and `services/audit/` (rule registry), shared queries in `repositories/analytics/common.py`.
 - `core/`: `config.py` (pydantic-settings, strict secret validation when `APP_ENV=prod`), `security.py` + `login_rate_limit.py` (single-user auth `ADMIN_USERNAME`/`ADMIN_PASSWORD_HASH`; limiters `login_rate_limiter` / `totp_rate_limiter`), `errors.py` (business errors), `logging.py`, `time.py`, `totp.py`, `mcp_tokens.py`, `migrations.py` (cross-cutting only). Brokerage-account valuation: `services/investissement/portfolio/`; positions: `services/investissement/holdings/`; dividends: `services/investissement/dividends.py`. Market: `services/investissement/market/` + `integrations/yahoo_finance.py`; ETF profiles: `services/investissement/etf_profiles.py` (presets `domain/etf_presets.json`).
@@ -84,7 +85,7 @@ python scripts/ops/change_password.py <password>
 - Tests (`backend/tests/`): `conftest.py` sets `APP_ENV=test`, admin password `admin`, a temporary SQLite DB per test and overrides `get_db`/`get_current_user`. Check the effect in the database, not only the HTTP code.
 
 ### Frontend (`frontend/src/`)
-- `lib/api.ts`: `apiFetch()` + `api.get/post/patch/delete/upload` (JWT, `Content-Type: application/json` by default; `api.upload` for multipart). On top, `lib/api/<domain>.ts` (`accounts`, `transactions`, `classement`, `recurring`, `savings`, `investments`, `analytics`): one typed function per route, to be used in pages.
+- `lib/api.ts`: `apiFetch()` + `api.get/post/patch/delete/upload` (JWT, `Content-Type: application/json` by default; `api.upload` for multipart). On top, `lib/api/<domain>.ts` (`accounts`, `analytics`, `classement`, `investments`, `loans`, `monthReview`, `recurring`, `reimbursements`, `savings`, `settings`, `transactions`): one typed function per route, the only way to call the API from pages and components (never a direct `api.get(...)`, safeguard `noDirectApi.test.ts`).
 - `pages/` (one per route, react-router v7 in `App.tsx`, protected by `components/layout/ProtectedRoute`); components by domain in `components/{analytics,dashboard,investments,settings,tools,layout}`; shadcn/Radix primitives in `components/ui`. `Dashboard` is split through `components/dashboard/tabs` and the `useDashboardData` hook.
 
 ### MCP server (`mcp-server/`)

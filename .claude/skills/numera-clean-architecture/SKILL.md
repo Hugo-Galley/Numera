@@ -55,7 +55,7 @@ Need a variant? Parameterise the existing function, do not copy it. A new cross-
 
 ## Ratchets (baselines)
 
-`tests/garde_fous/architecture_baseline.txt` and `scripts/quality/baselines/code_size_baseline.json` only **decrease**. A new violation is fixed in the code (split, move), never by regenerating the baseline. Regenerating is only allowed to remove an entry that disappeared or to rename a key during an identical move.
+`scripts/quality/baselines/code_size_baseline.json` (import rules no longer have a baseline: zero violations) only **decreases**. A new violation is fixed in the code (split, move), never by regenerating the baseline. Regenerating is only allowed to remove an entry that disappeared or to rename a key during an identical move.
 
 ## Rationalisations
 

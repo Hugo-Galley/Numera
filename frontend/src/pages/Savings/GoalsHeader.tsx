@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Plus, Tag, Target } from "lucide-react"
+import { Plus, Target } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { GOAL_COLORS } from "./types"
 import type { SavingsCtx } from "./useSavings"
@@ -28,7 +28,7 @@ export function GoalsHeader({ ctx }: { ctx: SavingsCtx }) {
           }
         }}>
           <DialogTrigger asChild>
-            <Button className="h-11 w-full rounded-xl shadow-sm sm:h-10 sm:w-auto">
+            <Button className="h-11 w-full rounded-xl shadow-xs sm:h-10 sm:w-auto">
               <Plus className="h-4 w-4 mr-2" />
               {t("goalsHeader.nouvelObjectif")}
             </Button>

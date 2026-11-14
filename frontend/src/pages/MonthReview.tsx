@@ -13,10 +13,10 @@ import { CloseStep } from "@/components/month-review/CloseStep"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
-import { api } from "@/lib/api"
 import { cn } from "@/lib/utils"
 import { fetchCurrentBudgetMonth } from "@/lib/budgetPeriod"
 import type { MonthReview as MonthReviewData } from "@/types/monthReview"
+import { deleteMonthReview, getMonthReview, postMonthReviewClose } from "@/lib/api/monthReview"
 
 const STEPS = ["categorize", "accounts", "budget", "highlight", "close"] as const
 
@@ -63,7 +63,7 @@ export default function MonthReview() {
     const requestId = ++loadRequestId.current
     setLoadFailed(false)
     try {
-      const data = await api.get<MonthReviewData>(`/month-review?year=${year}&month=${month}`)
+      const data = await getMonthReview<MonthReviewData>(`?year=${year}&month=${month}`)
       if (requestId !== loadRequestId.current) return false
       setReview(data)
       setHighlight((current) => current || data.closure?.highlight || "")
@@ -92,7 +92,7 @@ export default function MonthReview() {
   async function closeMonth() {
     setBusy(true)
     try {
-      const data = await api.post<MonthReviewData>("/month-review/close", {
+      const data = await postMonthReviewClose<MonthReviewData>({
         year,
         month,
         highlight: highlight.trim() || null,
@@ -109,7 +109,7 @@ export default function MonthReview() {
   async function reopenMonth() {
     setBusy(true)
     try {
-      await api.delete(`/month-review?year=${year}&month=${month}`)
+      await deleteMonthReview(`?year=${year}&month=${month}`)
       toast.success(t("monthReview.moisRouvert"))
       await load()
     } catch {
@@ -151,7 +151,7 @@ export default function MonthReview() {
         </div>
       </div>
 
-      <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 md:mx-0 md:flex-wrap md:overflow-visible md:px-0 md:pb-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 md:mx-0 md:flex-wrap md:overflow-visible md:px-0 md:pb-0 scrollbar-none [&::-webkit-scrollbar]:hidden">
         {STEPS.map((name, i) => {
           const s = status(i)
           return (

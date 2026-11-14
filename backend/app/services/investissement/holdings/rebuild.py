@@ -25,8 +25,8 @@ async def rebuild_holdings(db: Session, account_id: int) -> None:
             continue
         pru = round(pos.cost / pos.quantity, 4) if pos.cost else None
         cost_eur = round(pos.cost_eur, 2) if pos.cost_eur else None
-        holding = existing.get(ticker)
-        if holding is None:
+        found = existing.get(ticker)
+        if found is None:
             repo.add_holding(
                 db,
                 PortfolioHolding(
@@ -42,12 +42,12 @@ async def rebuild_holdings(db: Session, account_id: int) -> None:
                 ),
             )
         else:
-            holding.quantity = pos.quantity
-            holding.buy_price_avg = pru
-            holding.currency = pos.currency
-            holding.cost_basis_eur = cost_eur
-            holding.isin = holding.isin or pos.isin
-            holding.etf_profile_id = holding.etf_profile_id or pos.etf_profile_id
+            found.quantity = pos.quantity
+            found.buy_price_avg = pru
+            found.currency = pos.currency
+            found.cost_basis_eur = cost_eur
+            found.isin = found.isin or pos.isin
+            found.etf_profile_id = found.etf_profile_id or pos.etf_profile_id
     db.flush()
 
 

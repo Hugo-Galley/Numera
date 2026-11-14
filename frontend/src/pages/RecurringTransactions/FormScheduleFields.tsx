@@ -67,7 +67,7 @@ export function FormScheduleFields({ ctx }: { ctx: RecurringTransactionsCtx }) {
                       className={cn(
                         "py-1.5 px-2 text-xs font-medium rounded-md border text-center transition-all",
                         isExcluded
-                          ? "bg-rose-50 border-rose-300 text-rose-700 font-bold shadow-xs line-through"
+                          ? "bg-rose-50 border-rose-300 text-rose-700 font-bold shadow-2xs line-through"
                           : "bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50"
                       )}
                       title={isExcluded ? i18n.t("misc.monthExcluded", { ns: "recurring", label: m.label }) : i18n.t("misc.monthActive", { ns: "recurring", label: m.label })}
@@ -128,7 +128,7 @@ export function FormScheduleFields({ ctx }: { ctx: RecurringTransactionsCtx }) {
         </div>
         <Checkbox 
           checked={formData.auto_generate}
-          onCheckedChange={(checked: any) => setFormData({ ...formData, auto_generate: !!checked })}
+          onCheckedChange={(checked: boolean | "indeterminate") => setFormData({ ...formData, auto_generate: !!checked })}
         />
       </div>
       <div className="grid gap-2">

@@ -44,7 +44,7 @@ export function NewCategoryDialog({ ctx }: { ctx: CategoriesTabCtx }) {
               </div>
               <div className="grid gap-2">
                 <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">{t("newCategoryDialog.nature")}</Label>
-                <Select value={newCatType} onValueChange={(v: any) => setNewCatType(v)}>
+                <Select value={newCatType} onValueChange={(v) => setNewCatType(v as typeof newCatType)}>
                   <SelectTrigger className="bg-slate-50 border-slate-200">
                     <SelectValue />
                   </SelectTrigger>

@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next"
 import { Badge } from "@/components/ui/badge"
-import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
+import { Bar, BarChart, ResponsiveContainer, Tooltip, type TooltipContentProps, XAxis, YAxis, type YAxisTickContentProps } from "recharts"
 import { Building } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { CompanyLogo } from "@/components/ui/CompanyLogo"
@@ -15,7 +15,7 @@ export function TopCompanies({ ctx }: { ctx: InvestmentsCtx }) {
     <>
       {/* Top 10 Companies Look-Through */}
       {diversity && diversity.top_underlying_companies.length > 0 && (
-        <Card className="shadow-sm">
+        <Card className="shadow-xs">
           <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b gap-2">
             <div>
               <div className="flex items-center gap-2">
@@ -70,8 +70,9 @@ export function TopCompanies({ ctx }: { ctx: InvestmentsCtx }) {
                       <YAxis
                         type="category"
                         dataKey="name"
-                        tick={(tickProps: any) => {
-                          const { x, y, payload } = tickProps
+                        tick={(tickProps: YAxisTickContentProps) => {
+                          const { x, y } = tickProps
+                          const payload = { value: String(tickProps.payload.value) }
                           const comp = topCompaniesData.find((c) => c.name === payload.value)
                           return (
                             <g transform={`translate(${x},${y})`}>
@@ -99,16 +100,16 @@ export function TopCompanies({ ctx }: { ctx: InvestmentsCtx }) {
                       />
                       <Tooltip
                         cursor={false}
-                        content={({ active, payload, label }: any) => {
+                        content={({ active, payload, label }: TooltipContentProps) => {
                           if (active && payload && payload.length) {
-                            const d = payload[0].payload
+                            const d: (typeof topCompaniesData)[number] = payload[0].payload
                             return (
                               <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-md text-xs space-y-1.5 min-w-[210px]">
                                 <div className="flex items-center justify-between border-b pb-1.5 gap-2">
                                   <div className="flex items-center gap-2.5 min-w-0">
                                     <CompanyLogo
                                       ticker={d.ticker}
-                                      name={label || d.name}
+                                      name={label ? String(label) : d.name}
                                       className="h-6 w-6 rounded-md shadow-2xs shrink-0"
                                     />
                                     <div className="flex flex-col min-w-0">

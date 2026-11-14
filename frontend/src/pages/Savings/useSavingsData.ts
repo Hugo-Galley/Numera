@@ -3,10 +3,10 @@ import i18n from "i18next"
 import { errorMessage, formatAmountWithShare, formatCurrency } from "@/lib/utils"
 import { toast } from "sonner"
 import { useConfirm } from "@/providers/ConfirmProvider"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useEffectEvent, useRef, useState } from "react"
 import { useIsMobile } from "@/hooks/useIsMobile"
 import { useSubmit } from "@/hooks/useSubmit"
-import { GOAL_COLORS, Resilience } from "./types"
+import { GOAL_COLORS, Goal, GoalBody, KpiPoint, Resilience, SavingsAccount, SavingsAnalytics, SavingsCategory } from "./types"
 import { getAccounts } from "@/lib/api/accounts"
 import { getAnalyticsBudget, getAnalyticsKpiHistory, getAnalyticsResilience } from "@/lib/api/analytics"
 import { getCategories } from "@/lib/api/classement"
@@ -16,12 +16,12 @@ import { deleteGoalsById, getGoals, patchGoalsById, postGoals } from "@/lib/api/
 export function useSavingsData() {
   const confirm = useConfirm()
   const isMobile = useIsMobile()
-  const [analytics, setAnalytics] = useState<any>(null)
+  const [analytics, setAnalytics] = useState<SavingsAnalytics | null>(null)
   const [resilience, setResilience] = useState<Resilience | null>(null)
-  const [history, setHistory] = useState<any[]>([])
-  const [goals, setGoals] = useState<any[]>([])
-  const [accounts, setAccounts] = useState<any[]>([])
-  const [categories, setCategories] = useState<any[]>([])
+  const [history, setHistory] = useState<KpiPoint[]>([])
+  const [goals, setGoals] = useState<Goal[]>([])
+  const [accounts, setAccounts] = useState<SavingsAccount[]>([])
+  const [categories, setCategories] = useState<SavingsCategory[]>([])
   const [loading, setLoading] = useState(true)
   const [loadFailed, setLoadFailed] = useState(false)
   
@@ -31,7 +31,7 @@ export function useSavingsData() {
 
   // Form state
   const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [editingGoal, setEditingGoal] = useState<any>(null)
+  const [editingGoal, setEditingGoal] = useState<Goal | null>(null)
   const [goalForm, setGoalForm] = useState({
     name: "",
     target_amount: "",
@@ -58,11 +58,11 @@ export function useSavingsData() {
       
       const now = new Date()
       const [budget, kpiHistory, goalsData, accs, cats, resilienceData] = await Promise.all([
-        getAnalyticsBudget<any>(`?${queryParams}`),
-        getAnalyticsKpiHistory<any[]>("?months_count=12"),
-        getGoals<any[]>(),
-        getAccounts<any[]>(),
-        getCategories<any[]>("?include_archived=false"),
+        getAnalyticsBudget(`?${queryParams}`),
+        getAnalyticsKpiHistory("?months_count=12"),
+        getGoals(),
+        getAccounts(),
+        getCategories("?include_archived=false"),
         getAnalyticsResilience<Resilience>(period === "monthly"
           ? `?month=${month}&year=${year}`
           : `?month=${now.getMonth() + 1}&year=${now.getFullYear()}`),
@@ -84,8 +84,9 @@ export function useSavingsData() {
     }
   }
 
+  const reload = useEffectEvent(() => { loadData() })
   useEffect(() => {
-    loadData()
+    reload()
   }, [month, year, period])
 
   const [handleCreateOrUpdateGoal, handleCreateOrUpdateGoalBusy] = useSubmit(async () => {
@@ -95,7 +96,7 @@ export function useSavingsData() {
     }
 
     try {
-      const payload: any = {
+      const payload: GoalBody = {
         name: goalForm.name,
         target_amount: parseFloat(goalForm.target_amount),
         keyword: goalForm.keyword || null,
@@ -129,12 +130,12 @@ export function useSavingsData() {
       await deleteGoalsById(id)
       toast.success(i18n.t("useSavingsData.objectifSupprime", { ns: "savings" }))
       loadData()
-    } catch (error) {
+    } catch {
       toast.error(i18n.t("useSavingsData.erreurLorsDeLaSuppression", { ns: "savings" }))
     }
   }
 
-  const openEditDialog = (goal: any) => {
+  const openEditDialog = (goal: Goal) => {
     setEditingGoal(goal)
     setGoalForm({
       name: goal.name,
@@ -149,7 +150,7 @@ export function useSavingsData() {
   }
 
   // Montant + part du total des composantes positives ; pas de part pour une valeur négative.
-  const shareLabel = (v: number, payload: any, keys: string[]) => {
+  const shareLabel = (v: number, payload: Record<string, unknown> | undefined, keys: string[]) => {
     if (v <= 0) return formatCurrency(v)
     const total = keys.reduce((s, k) => s + Math.max(0, Number(payload?.[k]) || 0), 0)
     return formatAmountWithShare(v, total)

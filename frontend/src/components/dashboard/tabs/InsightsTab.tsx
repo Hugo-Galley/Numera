@@ -15,6 +15,7 @@ import { formatCurrency } from "@/lib/utils"
 import { toast } from "sonner"
 import { apiFetch } from "@/lib/api"
 import i18n from "i18next"
+import type { Insights } from "../types"
 
 /** Valeur d'un indicateur avec son unité, à la française : « 1 480,99 € », « 64,3 % », « 19,1 mois ». */
 function formatValue(value: number, unit?: string) {
@@ -26,7 +27,7 @@ function formatValue(value: number, unit?: string) {
 }
 
 interface InsightsTabProps {
-  insights: any
+  insights: Insights | null
 }
 
 export function InsightsTab({ insights }: InsightsTabProps) {
@@ -49,12 +50,12 @@ export function InsightsTab({ insights }: InsightsTabProps) {
   }
 
   const visibleInsights = insights?.insights?.filter(
-    (insight: any) => !dismissedKeys.includes(insight.key)
+    (insight) => !dismissedKeys.includes(insight.key)
   ) || []
 
   return (
     <div className="grid grid-cols-1 gap-5 md:gap-8 lg:grid-cols-12">
-      <Card className="theme-island lg:col-span-4 shadow-sm border-slate-100 overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 text-white">
+      <Card className="theme-island lg:col-span-4 shadow-xs border-slate-100 overflow-hidden bg-linear-to-br from-slate-900 to-slate-800 text-white">
         <CardHeader className="pb-2">
           <CardTitle className="text-lg flex items-center gap-2">
             <HeartPulse className="h-5 w-5 text-emerald-400" />
@@ -96,7 +97,7 @@ export function InsightsTab({ insights }: InsightsTabProps) {
           </div>
           
           <div className="grid grid-cols-2 gap-3 md:gap-4 w-full mt-6 md:mt-10">
-            {insights?.health_score?.metrics.map((m: any, i: number) => (
+            {insights?.health_score?.metrics.map((m, i: number) => (
               <div key={i} className="bg-slate-800/50 p-3 rounded-2xl border border-slate-700/50">
                 <p className="text-[10px] uppercase font-black text-slate-400 tracking-wider mb-1">{m.name}</p>
                 <p className="text-sm font-bold flex items-center justify-between">
@@ -115,8 +116,8 @@ export function InsightsTab({ insights }: InsightsTabProps) {
           {t("insights.analysisTitle")}
         </h3>
         <div className="grid grid-cols-1 gap-4">
-          {visibleInsights.map((insight: any, i: number) => (
-            <Card key={i} className={`shadow-sm border-l-4 ${
+          {visibleInsights.map((insight, i: number) => (
+            <Card key={i} className={`shadow-xs border-l-4 ${
               insight.type === 'anomaly' ? 'border-l-amber-500' : 'border-l-emerald-500'
             } hover:bg-slate-50 transition-colors group relative`}>
               <CardHeader className="p-4 md:p-5">
@@ -128,7 +129,7 @@ export function InsightsTab({ insights }: InsightsTabProps) {
                       {insight.type === 'anomaly' ? <AlertTriangle className="h-5 w-5" /> : <Sparkles className="h-5 w-5" />}
                     </div>
                     <div className="min-w-0">
-                      <CardTitle className="text-base md:text-lg font-bold text-slate-900 break-words">{insight.title}</CardTitle>
+                      <CardTitle className="text-base md:text-lg font-bold text-slate-900 wrap-break-word">{insight.title}</CardTitle>
                       <CardDescription className="text-slate-600 mt-1">{insight.description}</CardDescription>
                       {insight.value && (
                         <Badge variant="outline" className={`mt-2 md:hidden whitespace-nowrap ${insight.type === 'anomaly' ? 'text-amber-700 bg-amber-50' : 'text-emerald-700 bg-emerald-50'}`}>

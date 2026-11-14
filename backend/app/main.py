@@ -1,7 +1,9 @@
 import asyncio
 import inspect
 import time
+from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager, suppress
+from typing import Any
 
 from fastapi import Depends, FastAPI, Request
 from fastapi.encoders import jsonable_encoder
@@ -9,6 +11,8 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
+from starlette.responses import Response
 
 from app import models  # noqa: F401
 from app.controllers.analytics import router as analytics_router
@@ -50,8 +54,8 @@ from app.core.config import settings
 from app.core.errors import DomainError
 from app.core.i18n import LanguageMiddleware
 from app.core.logging import get_logger, setup_logging
-from app.core.login_events import client_ip
 from app.core.migrations import run_migrations
+from app.core.request_info import client_ip
 from app.db.session import SessionLocal
 from app.integrations.currency import CurrencyConversionError
 from app.services.budget.benefit_generation import generate_benefit_transactions, reconcile_provisional
@@ -69,7 +73,7 @@ setup_logging()
 logger = get_logger(__name__)
 
 
-async def _run_step(db, name: str, step) -> None:
+async def _run_step(db: Session, name: str, step: Callable[[Session], object]) -> None:
     """Exécute une étape de la tâche de fond : une erreur est journalisée et annulée, les étapes suivantes tournent."""
     try:
         result = step(db)
@@ -80,7 +84,7 @@ async def _run_step(db, name: str, step) -> None:
         logger.exception("Tâche de fond : étape « %s » en échec", name)
 
 
-async def recurring_transactions_task():
+async def recurring_transactions_task() -> None:
     """Background task to generate recurring transactions periodically."""
     # Wait a bit after startup to avoid interfering with migrations/seeding
     await asyncio.sleep(10)
@@ -125,7 +129,7 @@ def _log_foreign_key_violations() -> None:
 
 
 @asynccontextmanager
-async def lifespan(_: FastAPI):
+async def lifespan(_: FastAPI) -> AsyncIterator[None]:
     background_task = None
     if settings.app_env != "test":
         logger.info("Running database migrations...")
@@ -153,7 +157,7 @@ async def lifespan(_: FastAPI):
 
 
 
-def docs_kwargs(app_env: str) -> dict:
+def docs_kwargs(app_env: str) -> dict[str, Any]:
     """En production, ni Swagger ni ReDoc ni le schéma OpenAPI ne sont servis (surface inutile et bavarde)."""
     if app_env == "prod":
         return {"docs_url": None, "redoc_url": None, "openapi_url": None}
@@ -164,37 +168,37 @@ app = FastAPI(title=settings.app_name, lifespan=lifespan, **docs_kwargs(settings
 
 
 @app.exception_handler(DomainError)
-async def domain_error_handler(_: Request, exc: DomainError):
+def domain_error_handler(_: Request, exc: DomainError) -> JSONResponse:
     return JSONResponse(status_code=exc.status_code, content=exc.to_content(), headers=exc.headers)
 
 
 @app.exception_handler(CurrencyConversionError)
-async def currency_conversion_error_handler(_: Request, exc: CurrencyConversionError):
+def currency_conversion_error_handler(_: Request, exc: CurrencyConversionError) -> JSONResponse:
     # Mieux vaut refuser l'opération qu'enregistrer un montant converti au taux 1:1
     return JSONResponse(status_code=422, content={"detail": str(exc)})
 
 
 @app.exception_handler(RequestValidationError)
-async def validation_error_handler(_: Request, exc: RequestValidationError):
+def validation_error_handler(_: Request, exc: RequestValidationError) -> JSONResponse:
     # `input`/`ctx` retirés : une valeur Infinity/NaN fautive rendrait la réponse 422 non sérialisable
     errors = [{k: v for k, v in err.items() if k not in ("input", "ctx")} for err in exc.errors()]
     return JSONResponse(status_code=422, content={"detail": jsonable_encoder(errors)})
 
 
 @app.exception_handler(IntegrityError)
-async def integrity_error_handler(_: Request, exc: IntegrityError):
+def integrity_error_handler(_: Request, exc: IntegrityError) -> JSONResponse:
     # FK inexistante, NOT NULL, unicité : une entrée invalide, pas une panne serveur (audit R6/B7)
     logger.warning("IntegrityError: %s", exc.orig)
     return JSONResponse(status_code=422, content={"detail": "Données invalides ou référence inexistante"})
 
 
 @app.exception_handler(OverflowError)
-async def overflow_error_handler(_: Request, exc: OverflowError):
+def overflow_error_handler(_: Request, exc: OverflowError) -> JSONResponse:
     return JSONResponse(status_code=422, content={"detail": "Valeur numérique hors limites"})
 
 
 @app.middleware("http")
-async def demo_guard(request: Request, call_next):
+async def demo_guard(request: Request, call_next: Callable[[Request], Awaitable[Response]]) -> Response:
     if settings.DEMO_MODE and is_blocked_in_demo(request.method, request.url.path):
         # 403 avec un détail métier : le client n'y voit pas une session expirée (cf. lib/api.ts)
         return JSONResponse(status_code=403, content={"detail": "Action désactivée sur l'instance de démonstration"})
@@ -204,7 +208,7 @@ async def demo_guard(request: Request, call_next):
 
 
 @app.middleware("http")
-async def log_requests(request: Request, call_next):
+async def log_requests(request: Request, call_next: Callable[[Request], Awaitable[Response]]) -> Response:
     start_time = time.time()
     try:
         response = await call_next(request)

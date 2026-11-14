@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from "react"
 import { useSearchParams } from "react-router-dom"
 import { Gift, Play, Receipt, Store, TrendingUp, Repeat, CalendarRange } from "lucide-react"
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
+import { keepSeriesOrder, numberFormatter } from "@/lib/chartTooltip"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -13,14 +14,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Skeleton } from "@/components/ui/skeleton"
 import { WrappedStory } from "@/components/wrapped/WrappedStory"
 import { Delta, hoursLabel, monthName, monthShort } from "@/components/wrapped/format"
-import { api } from "@/lib/api"
 import { formatCurrency } from "@/lib/utils"
 import { useWorkTime } from "@/providers/WorkTimeProvider"
 import type { WrappedReport } from "@/types/wrapped"
+import { getAnalyticsWrapped } from "@/lib/api/analytics"
 
 function Kpi({ label, value, delta }: { label: string; value: string; delta?: ReactNode }) {
   return (
-    <Card className="shadow-sm">
+    <Card className="shadow-xs">
       <CardContent className="space-y-1 p-4 sm:p-5">
         <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground sm:text-xs">{label}</p>
         <p className="whitespace-nowrap text-lg font-black tabular-nums tracking-tight amount-blur min-[400px]:text-xl sm:text-2xl">{value}</p>
@@ -32,7 +33,7 @@ function Kpi({ label, value, delta }: { label: string; value: string; delta?: Re
 
 function Section({ icon, title, description, children }: { icon: ReactNode; title: string; description?: string; children: ReactNode }) {
   return (
-    <Card className="shadow-sm">
+    <Card className="shadow-xs">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-lg">
           {icon}
@@ -71,7 +72,7 @@ export default function Wrapped() {
     setLoadFailed(false)
     setReport(null)
     try {
-      const data = await api.get<WrappedReport>(`/analytics/wrapped?year=${year}`)
+      const data = await getAnalyticsWrapped<WrappedReport>(`?year=${year}`)
       if (id === requestId.current) setReport(data)
     } catch (error) {
       if (id !== requestId.current) return
@@ -134,7 +135,7 @@ export default function Wrapped() {
         </Card>
       ) : (
         <>
-          <div className="theme-island relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900 p-5 text-white shadow-md sm:p-8">
+          <div className="theme-island relative overflow-hidden rounded-2xl bg-linear-to-br from-slate-950 via-indigo-950 to-slate-900 p-5 text-white shadow-md sm:p-8">
             <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
               <div className="space-y-1">
                 <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/60">{period}</p>
@@ -188,12 +189,12 @@ export default function Wrapped() {
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                       <XAxis dataKey="month" tickFormatter={(m: number) => (narrow ? monthShort(m).charAt(0).toUpperCase() : monthShort(m))} axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "#64748b" }} interval={0} />
                       <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "#64748b" }} tickFormatter={(v: number) => `${Number((v / 1000).toFixed(1))} k€`} width={52} />
-                      <Tooltip
-                        labelFormatter={(m: number) => monthName(m)}
-                        formatter={(v: number) => formatCurrency(v)}
+                      <Tooltip itemSorter={keepSeriesOrder}
+                        labelFormatter={(m) => monthName(Number(m))}
+                        formatter={numberFormatter((v: number) => formatCurrency(v))}
                         contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }}
                       />
-                      <Legend wrapperStyle={{ fontSize: 12 }} />
+                      <Legend itemSorter={null} wrapperStyle={{ fontSize: 12 }} />
                       <Bar dataKey="income" name={t("wrapped.revenus")} fill="#10b981" radius={[4, 4, 0, 0]} />
                       <Bar dataKey="real_expenses" name={t("wrapped.depenses")} fill="#f43f5e" radius={[4, 4, 0, 0]} />
                     </BarChart>

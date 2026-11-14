@@ -3,10 +3,11 @@ import { useTranslation } from "react-i18next"
 import { appLocale } from "@/i18n/locale"
 import { useEffect, useState } from "react"
 import { AlertTriangle, CheckCircle2, DatabaseBackup, XCircle } from "lucide-react"
-import { api } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { getAdminBackupStatus, postAdminBackupRun } from "@/lib/api/settings"
+import { errorMessage } from "@/lib/utils"
 
 type Outcome = { ok: true; github: boolean } | { ok: false; message: string }
 
@@ -52,17 +53,17 @@ export function BackupCard() {
   const [status, setStatus] = useState<BackupStatus | null>(null)
 
   const loadStatus = () => {
-    api.get<BackupStatus>("/admin/backup/status").then(setStatus).catch(() => setStatus(null))
+    getAdminBackupStatus<BackupStatus>().then(setStatus).catch(() => setStatus(null))
   }
   useEffect(loadStatus, [])
 
   const run = async () => {
     setRunning(true)
     try {
-      const res = await api.post<{ ok: boolean; github: boolean }>("/admin/backup/run")
+      const res = await postAdminBackupRun<{ ok: boolean; github: boolean }>()
       setOutcome({ ok: true, github: res.github })
-    } catch (err: any) {
-      setOutcome({ ok: false, message: err?.message || t("backupCard.echecDeLaSauvegarde") })
+    } catch (err) {
+      setOutcome({ ok: false, message: errorMessage(err, t("backupCard.echecDeLaSauvegarde")) })
     } finally {
       setRunning(false)
       loadStatus()

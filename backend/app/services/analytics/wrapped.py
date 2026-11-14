@@ -5,11 +5,13 @@ pour rester identiques à ce qu'affichent le Dashboard et le rapport mensuel. L'
 arrêtée au mois courant, et la comparaison avec N-1 se fait sur la même période.
 """
 from datetime import date, datetime
+from typing import Any
 
 from sqlalchemy.orm import Session
 
 from app.core.errors import InvalidOperationError
 from app.core.i18n import tr
+from app.core.time import today_local
 from app.domain.budget import to_eur
 from app.domain.finance import is_lapsed
 from app.domain.wrapped import MONTHLY_FACTOR, NON_EXPENSE_CATEGORIES, hours, pct_change, period
@@ -39,7 +41,7 @@ async def compute_wrapped(db: Session, year: int) -> WrappedReport:
 
 
 async def _build_wrapped(year: int, db: Session) -> WrappedReport:
-    today = date.today()
+    today = today_local()
     if year > today.year:
         raise InvalidOperationError(tr("errors.wrapped_future_year"))
     is_partial = year == today.year
@@ -77,7 +79,7 @@ async def _build_wrapped(year: int, db: Session) -> WrappedReport:
     )
 
 
-async def _previous_year(db: Session, year: int, last_month: int, rates: dict, totals: WrappedTotals,
+async def _previous_year(db: Session, year: int, last_month: int, rates: dict[str, Any], totals: WrappedTotals,
                          active_months: list[WrappedMonth], available_years: list[int]) -> WrappedComparison | None:
     """Comparaison avec N-1 sur la même période, si N-1 a des dépenses sur au moins la moitié des mois comparés
     (une année presque vide, suivi commencé en cours d'année, donnerait des « +124 000 % »)."""
@@ -141,7 +143,7 @@ async def _totals(db: Session, year: int, last_month: int, rates: dict[str, floa
 
 
 async def _top_categories(db: Session, year: int, last_month: int, hourly_rate: float | None) -> list[WrappedCategory]:
-    totals: dict[int, dict] = {}
+    totals: dict[int, dict[str, Any]] = {}
     for month in range(1, last_month + 1):
         data = await compute_expenses_by_category(month=month, year=year, account_id=None, db=db)
         for item in data["items"]:

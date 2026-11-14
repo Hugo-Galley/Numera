@@ -1,4 +1,3 @@
-import asyncio
 import json
 
 from starlette.requests import Request
@@ -8,7 +7,7 @@ from app.main import domain_error_handler
 
 
 def _handle(exc):
-    response = asyncio.run(domain_error_handler(Request({"type": "http"}), exc))
+    response = domain_error_handler(Request({"type": "http"}), exc)
     return response.status_code, json.loads(response.body)
 
 

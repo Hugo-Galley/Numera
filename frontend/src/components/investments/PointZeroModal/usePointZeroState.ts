@@ -1,3 +1,4 @@
+import type { MarketAsset, MarketQuote } from "../types"
 import i18n from "i18next"
 import { errorMessage } from "@/lib/utils"
 import { toast } from "sonner"
@@ -7,14 +8,14 @@ import { getHoldings, getHoldingsSuggestions, getMarketQuote, getMarketSearch, p
 
 /** Lignes du point zéro : suggestions, recherche de titres, édition et enregistrement. */
 export function usePointZeroState(p: { open: PointZeroModalProps["open"]; onOpenChange: PointZeroModalProps["onOpenChange"]; accountId: PointZeroModalProps["accountId"]; accountName: PointZeroModalProps["accountName"]; onBaselineSaved: PointZeroModalProps["onBaselineSaved"] }) {
-  const { open, onOpenChange, accountId, accountName, onBaselineSaved } = p
+  const { open, onOpenChange, accountId, onBaselineSaved } = p
   const [rows, setRows] = useState<BaselineRow[]>([])
   const [loadingSuggestions, setLoadingSuggestions] = useState(false)
   const [saving, setSaving] = useState(false)
 
   // Search state
   const [searchQuery, setSearchQuery] = useState("")
-  const [searchResults, setSearchResults] = useState<any[]>([])
+  const [searchResults, setSearchResults] = useState<MarketAsset[]>([])
   const [isSearching, setIsSearching] = useState(false)
   const [showSearchDropdown, setShowSearchDropdown] = useState(false)
 
@@ -30,7 +31,7 @@ export function usePointZeroState(p: { open: PointZeroModalProps["open"]; onOpen
       setLoadingSuggestions(true)
       try {
         // First check if account already has holdings
-        const existingHoldings = await getHoldings<any[]>(`?account_id=${accountId}`)
+        const existingHoldings = await getHoldings(`?account_id=${accountId}`)
         if (existingHoldings && existingHoldings.length > 0) {
           setRows(
             existingHoldings.map((h) => ({
@@ -48,13 +49,13 @@ export function usePointZeroState(p: { open: PointZeroModalProps["open"]; onOpen
           )
         } else {
           // No holdings yet: load intelligent suggestions from historical notes
-          const suggs = await getHoldingsSuggestions<any[]>(`?account_id=${accountId}`)
+          const suggs = await getHoldingsSuggestions(`?account_id=${accountId}`)
           if (suggs && suggs.length > 0) {
             const symbols = suggs.map((s) => s.ticker)
-            let quotes: any = {}
+            let quotes: Record<string, MarketQuote> = {}
             try {
-              quotes = await getMarketQuote<any>(`?symbols=${symbols.join(",")}`)
-            } catch (e) {
+              quotes = await getMarketQuote(`?symbols=${symbols.join(",")}`)
+            } catch {
               // Ignore quote error on suggestions
             }
 
@@ -99,7 +100,7 @@ export function usePointZeroState(p: { open: PointZeroModalProps["open"]; onOpen
     const timer = setTimeout(async () => {
       setIsSearching(true)
       try {
-        const results = await getMarketSearch<any[]>(`?q=${encodeURIComponent(searchQuery)}`)
+        const results = await getMarketSearch(`?q=${encodeURIComponent(searchQuery)}`)
         setSearchResults(results || [])
         setShowSearchDropdown(true)
       } catch (err) {
@@ -112,7 +113,7 @@ export function usePointZeroState(p: { open: PointZeroModalProps["open"]; onOpen
     return () => clearTimeout(timer)
   }, [searchQuery])
 
-  const handleSelectSearchResult = async (item: any) => {
+  const handleSelectSearchResult = async (item: MarketAsset) => {
     setShowSearchDropdown(false)
     setSearchQuery("")
 
@@ -124,13 +125,13 @@ export function usePointZeroState(p: { open: PointZeroModalProps["open"]; onOpen
     let priceEur = undefined
     let price = undefined
     try {
-      const qResp = await getMarketQuote<any>(`?symbols=${item.symbol}`)
+      const qResp = await getMarketQuote(`?symbols=${item.symbol}`)
       const q = qResp[item.symbol.toUpperCase()]
       if (q) {
         price = q.price
         priceEur = q.price_eur
       }
-    } catch (e) { /* cours indisponible : valeurs par défaut conservées */ }
+    } catch { /* cours indisponible : valeurs par défaut conservées */ }
 
     const isFundOrEtf = item.type === "ETF" || item.type === "MUTUALFUND" || !!item.etf_profile_id || item.symbol.startsWith("0P")
     let profileId = item.etf_profile_id
@@ -139,7 +140,7 @@ export function usePointZeroState(p: { open: PointZeroModalProps["open"]; onOpen
     if (isFundOrEtf && !profileId) {
       try {
         const toastId = toast.loading(i18n.t("misc.breakingDown", { ns: "investments", name: item.name || item.symbol }))
-        const decomp = await postEtfProfilesAutoDecompose<any>({
+        const decomp = await postEtfProfilesAutoDecompose({
           symbol: item.symbol,
           name: item.name,
           isin: item.isin,
@@ -150,7 +151,7 @@ export function usePointZeroState(p: { open: PointZeroModalProps["open"]; onOpen
         } else {
           toast.dismiss(toastId)
         }
-      } catch (err) {
+      } catch {
         // Fallback silently if offline or unavailable
       }
     }
@@ -170,7 +171,7 @@ export function usePointZeroState(p: { open: PointZeroModalProps["open"]; onOpen
     setRows((prev) => [...prev, newRow])
   }
 
-  const handleUpdateRow = (index: number, field: keyof BaselineRow, value: any) => {
+  const handleUpdateRow = (index: number, field: keyof BaselineRow, value: BaselineRow[keyof BaselineRow]) => {
     setRows((prev) => {
       const next = [...prev]
       next[index] = { ...next[index], [field]: value }
@@ -206,7 +207,7 @@ export function usePointZeroState(p: { open: PointZeroModalProps["open"]; onOpen
       toast.success(i18n.t("usePointZeroState.etatDesLieuxEnregistreAvec", { ns: "investments" }))
       onBaselineSaved()
       onOpenChange(false)
-    } catch (err: any) {
+    } catch (err) {
       toast.error(errorMessage(err, i18n.t("usePointZeroState.erreurLorsDeLEnregistrement", { ns: "investments" })))
     } finally {
       setSaving(false)

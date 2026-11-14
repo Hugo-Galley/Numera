@@ -4,6 +4,7 @@ import json
 import re
 from functools import lru_cache
 from pathlib import Path
+from typing import Any
 
 import httpx
 
@@ -27,22 +28,23 @@ class LogoError(Exception):
 
 
 @lru_cache(maxsize=1)
-def _icons() -> dict[str, dict]:
+def _icons() -> dict[str, dict[str, Any]]:
     with open(ICONS_FILE, encoding="utf-8") as f:
-        return json.load(f)
+        icons: dict[str, dict[str, Any]] = json.load(f)
+        return icons
 
 
 def _norm(text: str) -> str:
     return re.sub(r"[^a-z0-9]", "", text.lower())
 
 
-def search_icons(query: str, limit: int = 8) -> list[dict]:
+def search_icons(query: str, limit: int = 8) -> list[dict[str, Any]]:
     q = _norm(query)
     if not q:
         return []
-    exact: list[dict] = []
-    prefix: list[dict] = []
-    contains: list[dict] = []
+    exact: list[dict[str, Any]] = []
+    prefix: list[dict[str, Any]] = []
+    contains: list[dict[str, Any]] = []
     for slug, ic in _icons().items():
         names = [_norm(ic["t"]), slug, *(_norm(a) for a in ic.get("a", []))]
         bucket = None

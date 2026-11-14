@@ -3,6 +3,7 @@ import { Trans, useTranslation } from "react-i18next"
 import { useEffect, useState } from "react"
 import { Flame, Info } from "lucide-react"
 import { Area, CartesianGrid, ComposedChart, Legend, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
+import { keepSeriesOrder, numberFormatter } from "@/lib/chartTooltip"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -10,8 +11,8 @@ import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ErrorState } from "@/components/layout/ErrorState"
 import { useIsMobile } from "@/hooks/useIsMobile"
-import { api } from "@/lib/api"
 import { formatCurrency, formatRate } from "@/lib/utils"
+import { getAnalyticsFire } from "@/lib/api/analytics"
 
 interface FireScenario {
   label: string
@@ -83,7 +84,7 @@ export function FireProjection() {
           const v = numberOrNull(value)
           if (v !== null) qs.set(key, v)
         })
-        const res = await api.get<FireData>(`/analytics/fire?${qs.toString()}`)
+        const res = await getAnalyticsFire<FireData>(`?${qs.toString()}`)
         if (!cancelled) {
           setData(res)
           setError(false)
@@ -104,7 +105,7 @@ export function FireProjection() {
   if (error || !data) return <ErrorState message={t("fireProjection.impossibleDeCalculerLaProjection")} onRetry={() => setReload((n) => n + 1)} />
 
   return (
-    <Card className="shadow-sm border-slate-100">
+    <Card className="shadow-xs border-slate-100">
       <CardHeader>
         <div className="flex items-center gap-2">
           <Flame className="h-5 w-5 text-amber-500" />
@@ -162,8 +163,8 @@ export function FireProjection() {
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
               <XAxis dataKey="year" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "#64748b" }} />
               <YAxis width={isMobile ? 48 : 70} axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "#64748b" }} tickFormatter={(v) => `${Math.round(v / 1000)} k€`} />
-              <Tooltip formatter={(v: number) => formatCurrency(v)} contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} />
-              <Legend wrapperStyle={{ fontSize: 12 }} />
+              <Tooltip itemSorter={keepSeriesOrder} formatter={numberFormatter((v: number) => formatCurrency(v))} contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} />
+              <Legend itemSorter={null} wrapperStyle={{ fontSize: 12 }} />
               <Area type="monotone" dataKey="wealth" name={t("fireProjection.patrimoineEurosDAujourdHui")} stroke="#f59e0b" fill="url(#fireWealth)" strokeWidth={3} />
               <Line type="monotone" dataKey="target" name={t("fireProjection.objectif")} stroke="#0f172a" strokeDasharray="5 4" dot={false} strokeWidth={2} />
             </ComposedChart>

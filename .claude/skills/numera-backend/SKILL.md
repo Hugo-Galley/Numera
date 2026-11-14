@@ -47,5 +47,5 @@ Create `services/audit/rules/<name>.py` with `detect(ctx)`, add it to `RULES` (`
 - `db.execute(text(...))` except for a performance need.
 - Business logic in models.
 - Log/return `SECRET_KEY`, a password hash, a JWT.
-- Outbound network calls other than Frankfurter / Yahoo Finance / notification channels enabled by the user (ntfy, Telegram); any new external dependency must be discussed (local-first principle).
+- Outbound network calls other than those listed in `ARCHITECTURE.md` (Frankfurter, Yahoo Finance and, at the user's request: ntfy / Telegram, Google favicon, GitHub backup); any new external dependency must be discussed (local-first principle).
 - Modify the `*.db` database directly or commit it.

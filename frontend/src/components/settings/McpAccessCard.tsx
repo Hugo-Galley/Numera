@@ -5,7 +5,6 @@ import { useCallback, useEffect, useState } from "react"
 import { Bot, Check, Copy, KeyRound, Trash2, TriangleAlert } from "lucide-react"
 import { toast } from "sonner"
 import { useAuth } from "@/providers/AuthProvider"
-import { api } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -20,6 +19,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { deleteAdminMcpTokensById, getAdminMcpTokens, postAdminMcpTokens, putAdminProfile } from "@/lib/api/settings"
 
 interface McpToken {
   id: number
@@ -83,7 +83,7 @@ export function McpAccessCard() {
 
   const loadTokens = useCallback(async () => {
     try {
-      setTokens(await api.get<McpToken[]>("/admin/mcp-tokens"))
+      setTokens(await getAdminMcpTokens<McpToken[]>())
     } catch (error) {
       toast.error(error instanceof Error ? error.message : t("mcpAccessCard.impossibleDeChargerLesTokens"))
       setTokens([])
@@ -101,7 +101,7 @@ export function McpAccessCard() {
   const toggleAccess = async (value: boolean) => {
     setEnabled(value)
     try {
-      await api.put("/admin/profile", { mcp_enabled: value })
+      await putAdminProfile({ mcp_enabled: value })
       toast.success(value ? t("mcpAccessCard.accesMcpActive") : t("mcpAccessCard.accesMcpCoupeTousLes"))
       await refreshProfile()
     } catch (error) {
@@ -115,7 +115,7 @@ export function McpAccessCard() {
     if (!name.trim() || !password) return
     setCreating(true)
     try {
-      const token = await api.post<McpTokenCreated>("/admin/mcp-tokens", { name: name.trim(), current_password: password })
+      const token = await postAdminMcpTokens<McpTokenCreated>({ name: name.trim(), current_password: password })
       setCreated(token)
       setPassword("")
       setClient(name.toLowerCase().includes("desktop") ? "claude-desktop" : "claude-code")
@@ -130,7 +130,7 @@ export function McpAccessCard() {
   const revokeToken = async () => {
     if (!toRevoke) return
     try {
-      await api.delete(`/admin/mcp-tokens/${toRevoke.id}`)
+      await deleteAdminMcpTokensById(toRevoke.id)
       toast.success(t("misc.tokenRevoked", { name: toRevoke.name }))
       if (created?.id === toRevoke.id) setCreated(null)
       await loadTokens()

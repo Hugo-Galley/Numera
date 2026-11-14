@@ -2,6 +2,7 @@ import i18n from "i18next"
 import { Trans } from "react-i18next"
 import { appLocale, percentSuffix } from "@/i18n/locale"
 import { Bar, BarChart, Cell, ResponsiveContainer, Tooltip, XAxis } from "recharts"
+import { keepSeriesOrder, numberFormatter } from "@/lib/chartTooltip"
 import { Delta, hoursLabel, monthName, monthShort } from "./format"
 import { type ReactNode } from "react"
 import { type WrappedReport } from "@/types/wrapped"
@@ -19,7 +20,7 @@ export function Eyebrow({ children }: { children: ReactNode }) {
 }
 
 export function Big({ children, className, blur = true }: { children: ReactNode; className?: string; blur?: boolean }) {
-  return <p className={cn("break-words text-4xl font-black tracking-tight text-white min-[400px]:text-5xl sm:text-7xl", blur && "amount-blur", className)}>{children}</p>
+  return <p className={cn("wrap-break-word text-4xl font-black tracking-tight text-white min-[400px]:text-5xl sm:text-7xl", blur && "amount-blur", className)}>{children}</p>
 }
 
 export function Sub({ children }: { children: ReactNode }) {
@@ -120,7 +121,7 @@ export function buildSlides(report: WrappedReport, hoursPerDay: number): Slide[]
             {report.top_merchants.map((m, i) => (
               <li key={m.merchant} className="flex items-baseline gap-3">
                 <span className="w-5 shrink-0 text-lg font-black text-white/40 sm:text-xl">{i + 1}</span>
-                <span className={cn("line-clamp-2 min-w-0 flex-1 break-words font-black text-white", i === 0 ? "text-xl min-[400px]:text-2xl sm:text-4xl" : "text-base sm:text-xl")}>
+                <span className={cn("line-clamp-2 min-w-0 flex-1 wrap-break-word font-black text-white", i === 0 ? "text-xl min-[400px]:text-2xl sm:text-4xl" : "text-base sm:text-xl")}>
                   {m.merchant}
                 </span>
                 <span className="shrink-0 whitespace-nowrap font-semibold text-white/80 amount-blur">{formatCurrency(m.total)}</span>
@@ -173,10 +174,10 @@ export function buildSlides(report: WrappedReport, hoursPerDay: number): Slide[]
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={report.months}>
                 <XAxis dataKey="month" tickFormatter={monthShort} tick={{ fill: "rgba(255,255,255,0.6)", fontSize: 11 }} axisLine={false} tickLine={false} />
-                <Tooltip
+                <Tooltip itemSorter={keepSeriesOrder}
                   cursor={{ fill: "rgba(255,255,255,0.05)" }}
-                  labelFormatter={(m: number) => monthName(m)}
-                  formatter={(v: number) => [formatCurrency(v), t("wrappedSlides.expensesLabel")]}
+                  labelFormatter={(m) => monthName(Number(m))}
+                  formatter={numberFormatter((v: number) => [formatCurrency(v), t("wrappedSlides.expensesLabel")])}
                   contentStyle={{ borderRadius: "12px", border: "none" }}
                 />
                 <Bar dataKey="real_expenses" radius={[4, 4, 0, 0]}>

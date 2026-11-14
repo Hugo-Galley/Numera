@@ -2,11 +2,13 @@
 rapportées au portefeuille boursier et au patrimoine total."""
 from typing import Any
 
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from app.core.logging import get_logger
 from app.domain.diversity import diversity_alerts, exposure_rows, hhi_score, look_through, score_label, top_companies
 from app.integrations.currency import get_exchange_rates
+from app.models.etf_profile import EtfProfile
 from app.models.portfolio_holding import PortfolioHolding
 from app.repositories.analytics import diversity as repo
 from app.repositories.comptes.balances import active_accounts
@@ -21,7 +23,7 @@ logger = get_logger(__name__)
 FUND_KEYWORDS = ["ETF", "FCP", "SICAV", "TRACKER", "INDEX", "FONDS", "FUND"]
 
 
-async def _resolve_profile_id(db: Session, h: PortfolioHolding, q: dict) -> int | None:
+async def _resolve_profile_id(db: Session, h: PortfolioHolding, q: dict[str, Any]) -> int | None:
     """Profil ETF de la position : rattaché, retrouvé, ou créé depuis Yahoo pour un fonds inconnu (rattachement commité)."""
     if h.etf_profile_id:
         return h.etf_profile_id
@@ -42,13 +44,13 @@ async def _resolve_profile_id(db: Session, h: PortfolioHolding, q: dict) -> int 
     try:
         h.etf_profile_id = matched_p.id
         db.commit()
-    except Exception:
+    except SQLAlchemyError:
         db.rollback()
     return matched_p.id
 
 
-async def _value_holdings(db: Session, holdings: list[PortfolioHolding], quotes: dict,
-                          fx_rates: dict) -> tuple[list[dict[str, Any]], float]:
+async def _value_holdings(db: Session, holdings: list[PortfolioHolding], quotes: dict[str, Any],
+                          fx_rates: dict[str, Any]) -> tuple[list[dict[str, Any]], float]:
     """Valeur EUR de chaque position (repli sur le PRU sans cours connu) et total du portefeuille boursier."""
     total_stocks_eur = 0.0
     valued_holdings = []
@@ -110,7 +112,7 @@ async def compute_diversity(db: Session, account_id: int | None) -> dict[str, An
 
     profiles_by_id = {p.id: p for p in etf_repo.all_profiles(db)}
 
-    def profile_for(vh: dict[str, Any]):
+    def profile_for(vh: dict[str, Any]) -> EtfProfile | None:
         etf_profile = profiles_by_id.get(vh["etf_profile_id"]) if vh["etf_profile_id"] else None
         return etf_profile or match_etf_profile(db, symbol=vh["ticker"], isin=vh.get("isin"), name=vh.get("name"))
 

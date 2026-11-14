@@ -11,17 +11,18 @@ from app.core.config import settings
 from app.core.errors import AuthenticationError, RateLimitedError
 from app.core.i18n import tr
 from app.core.logging import get_logger
-from app.core.login_events import record_login
 from app.core.login_rate_limit import client_key, login_rate_limiter
 from app.core.mcp_tokens import is_mcp_token
+from app.core.request_info import RequestInfo
 from app.core.totp import create_mfa_token
 from app.core.totp import is_enabled as totp_enabled
 from app.db.system_settings import get_setting
+from app.services.systeme.login_events import record_login
 
 logger = get_logger(__name__)
 
 
-def login(db: Session, request: Any, username: str, password: str) -> dict[str, Any]:
+def login(db: Session, request: RequestInfo, username: str, password: str) -> dict[str, Any]:
     """Jeton d'accès, ou jeton d'étape (`mfa_required`) quand la double authentification est active."""
     key = client_key(request, username)
     if not login_rate_limiter.is_allowed(key):

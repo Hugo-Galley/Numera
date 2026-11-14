@@ -1,5 +1,5 @@
-import { Banknote, Briefcase, Car, Dumbbell, Film, Music, Smartphone, Zap } from "lucide-react"
 import { type SplitPart } from "@/components/transactions/SplitTransactionDialog"
+import type { ApiResponse } from "@/lib/api/types"
 
 export type Account = {
   balance?: number
@@ -66,3 +66,12 @@ export type Transaction = {
 
 // Taille d'une page de transactions (l'API renvoie 100 lignes par défaut, 1000 au plus)
 export const TX_PAGE_SIZE = 200
+
+/** Types du contrat de l'API pour la page d'un compte. */
+export type AccountTimeseries = ApiResponse<"/analytics/timeseries", "get">
+export type InvestmentAnalysis = ApiResponse<"/analytics/investments/{account_id}", "get">
+/** Opération du compte titres (ligne de `transactions` de l'analyse), champs de titre inclus. */
+export type InvestmentFlow = NonNullable<InvestmentAnalysis["transactions"]>[number]
+export type ValueSnapshot = NonNullable<InvestmentAnalysis["value_series"]>[number]
+export type PerformancePoint = NonNullable<ApiResponse<"/analytics/investments/{account_id}/performance-history", "get">["items"]>[number]
+export type TagTotal = ApiResponse<"/analytics/tags", "get">[number]

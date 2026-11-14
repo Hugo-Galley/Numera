@@ -10,7 +10,7 @@ import type { CalendarCtx } from "./useCalendar"
 /** Cartes de synthèse sous la grille. */
 export function CalendarSummary({ ctx }: { ctx: CalendarCtx }) {
   const { t } = useTranslation("recurring")
-  const { data, date, embedded, isPrivacyMode, month } = ctx
+  const { data, embedded, isPrivacyMode } = ctx
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
@@ -65,7 +65,7 @@ export function CalendarSummary({ ctx }: { ctx: CalendarCtx }) {
                 <span>{t("calendarSummary.aujourdHui")}</span>
               </div>
               <div className="mt-4 p-2 bg-slate-50 rounded border border-slate-100 flex gap-2">
-                <Info className="h-4 w-4 text-slate-400 flex-shrink-0" />
+                <Info className="h-4 w-4 text-slate-400 shrink-0" />
                 <p className="text-slate-500 leading-tight">
                   {t("calendarSummary.lesSoldesQuotidiensIncluentLes")}
                 </p>

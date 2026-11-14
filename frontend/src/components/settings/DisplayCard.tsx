@@ -7,12 +7,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
-import { api } from "@/lib/api"
 import { type Language, LANGUAGES, setLanguage } from "@/i18n"
 import { syncServerLanguage } from "@/lib/serverLanguage"
 import { cn, errorMessage } from "@/lib/utils"
 import { useAuth } from "@/providers/AuthProvider"
 import { type ThemePreference, useUI } from "@/providers/UIProvider"
+import { putAdminProfile } from "@/lib/api/settings"
 
 const THEMES = [
   { value: "light", label: "light", icon: Sun },
@@ -34,7 +34,7 @@ export function DisplayCard() {
   const setPrivacyOnStart = async (enabled: boolean) => {
     setSavingPrivacy(true)
     try {
-      await api.put("/admin/profile", { privacy_on_start: enabled })
+      await putAdminProfile({ privacy_on_start: enabled })
       await refreshProfile()
       toast.success(enabled ? t("display.privacyOnStart.enabled") : t("display.privacyOnStart.disabled"))
     } catch (error) {
@@ -45,7 +45,7 @@ export function DisplayCard() {
   }
 
   return (
-    <Card className="shadow-sm border-slate-100 overflow-hidden">
+    <Card className="shadow-xs border-slate-100 overflow-hidden">
       <CardHeader className="bg-slate-50/50 border-b">
         <div className="flex items-center gap-2">
           <Layers className="h-5 w-5 text-slate-500" />
@@ -53,7 +53,7 @@ export function DisplayCard() {
         </div>
         <CardDescription>{t("display.description")}</CardDescription>
       </CardHeader>
-      <CardContent className="divide-y divide-slate-100 p-4 sm:p-6 [&>*]:py-4 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0">
+      <CardContent className="divide-y divide-slate-100 p-4 sm:p-6 *:py-4 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
           <div className="min-w-0">
             <p className="font-bold text-slate-900">{t("display.language.title")}</p>
@@ -94,7 +94,7 @@ export function DisplayCard() {
                 onClick={() => setTheme(value)}
                 className={cn(
                   "flex h-10 items-center justify-center gap-1.5 rounded-lg px-3 text-sm font-medium transition-colors sm:h-8",
-                  theme === value ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-900",
+                  theme === value ? "bg-white text-slate-900 shadow-xs" : "text-slate-500 hover:text-slate-900",
                 )}
               >
                 <Icon className="h-4 w-4" />

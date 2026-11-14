@@ -4,7 +4,8 @@ Seuls appels sortants de ce module : le serveur ntfy configuré et `api.telegram
 """
 from __future__ import annotations
 
-from typing import Protocol
+from collections.abc import Awaitable
+from typing import Any, Protocol
 
 import httpx
 
@@ -20,7 +21,7 @@ NTFY_PRIORITY = {"low": 2, "default": 3, "medium": 3, "high": 4}
 class Channel(Protocol):
     name: str
 
-    async def send(self, title: str, body: str, priority: str = "default", url: str | None = None) -> None: ...
+    def send(self, title: str, body: str, priority: str = "default", url: str | None = None) -> Awaitable[None]: ...
 
 
 class NtfyChannel:
@@ -35,7 +36,7 @@ class NtfyChannel:
         self.transport = transport
 
     async def send(self, title: str, body: str, priority: str = "default", url: str | None = None) -> None:
-        payload: dict = {"topic": self.topic, "title": title, "message": body, "priority": NTFY_PRIORITY.get(priority, 3)}
+        payload: dict[str, Any] = {"topic": self.topic, "title": title, "message": body, "priority": NTFY_PRIORITY.get(priority, 3)}
         if url:
             payload["click"] = url
         headers = {"Authorization": f"Bearer {self.token}"} if self.token else {}

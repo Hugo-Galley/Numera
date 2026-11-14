@@ -68,7 +68,7 @@ def read_csv(content: str) -> tuple[list[dict[str, str]], str, list[str]]:
     try:
         dialect = csv.Sniffer().sniff(sample, delimiters=",;\t")
         delimiter = dialect.delimiter
-    except Exception:
+    except csv.Error:  # délimiteur indétectable : virgule par défaut
         delimiter = ","
 
     reader = csv.DictReader(io.StringIO(content), delimiter=delimiter)

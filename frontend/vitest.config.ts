@@ -10,22 +10,22 @@ export default mergeConfig(
     test: {
       environment: "jsdom",
       globals: true,
-      setupFiles: ["src/test/setup.ts"],
+      setupFiles: ["src/test/support/setup.ts"],
       env: { TZ: "Europe/Paris" },
       css: false,
       restoreMocks: true,
-      include: ["src/**/*.test.{ts,tsx}"],
+      include: ["src/test/**/*.test.{ts,tsx}"],
       // Node ≥ 25 expose son propre localStorage (vide sans --localstorage-file), qui masque celui de jsdom
       execArgv: ["--no-experimental-webstorage"],
       coverage: {
         provider: "v8",
         include: ["src/**/*.{ts,tsx}"],
-        exclude: ["src/test/**", "src/**/*.test.{ts,tsx}", "src/components/ui/**", "src/**/*.d.ts"],
-        // Seuils à cliquet, recalés le 2026-11-04 au passage à Vitest 4 : sa couverture v8 (remappage AST)
-        // compte plus de branches et de fonctions qu'avant (même suite de tests, 606 tests), d'où des
-        // pourcentages non comparables à l'ancienne mesure (40/72/56/40). Niveau mesuré : 45,14 % instructions,
-        // 34,72 % branches, 37,77 % fonctions, 45,4 % lignes, arrondi vers le bas. Ne jamais les baisser.
-        thresholds: { statements: 45, lines: 45, branches: 34, functions: 37 },
+        exclude: ["src/test/**", "src/components/ui/**", "src/**/*.d.ts"],
+        // Seuils à cliquet, relevés le 2026-11-12 sur la mesure complète (1269 tests) : 85,79 % instructions,
+        // 71,30 % branches, 79,08 % fonctions, 87,04 % lignes, arrondis vers le bas. Un fichier jamais chargé par un
+        // test est compté à 0 instruction par v8 : toute page ou tout composant nouveau doit venir avec un test
+        // qui le charge, sinon la mesure est surévaluée. Ne jamais les baisser ; les relever après chaque lot de tests.
+        thresholds: { statements: 85, lines: 87, branches: 71, functions: 79 },
       },
     },
   }),

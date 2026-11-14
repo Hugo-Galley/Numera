@@ -2879,6 +2879,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/transactions/total": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Total Transactions
+         * @description Mêmes filtres que la liste, sans pagination : nombre et total net des transactions.
+         */
+        get: operations["total_transactions_transactions_total_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/transactions/{transaction_id}": {
         parameters: {
             query?: never;
@@ -3159,6 +3179,19 @@ export interface components {
              */
             valuation_mode?: "positions" | "snapshot";
         };
+        /** AccountFlowSummary */
+        AccountFlowSummary: {
+            /** Avg Expense */
+            avg_expense: number;
+            /** Currency */
+            currency: string;
+            /** Monthly Net Flow */
+            monthly_net_flow: number;
+            /** Monthly Variation */
+            monthly_variation: number | null;
+            /** Prev Monthly Net Flow */
+            prev_monthly_net_flow: number;
+        };
         /** AccountRead */
         AccountRead: {
             /** Active */
@@ -3338,6 +3371,38 @@ export interface components {
             /** Username */
             username?: string | null;
         };
+        /** AllocationAccount */
+        AllocationAccount: {
+            /** Account Id */
+            account_id: number;
+            /** Account Name */
+            account_name: string;
+            /** Currency */
+            currency: string;
+            /** Current Value */
+            current_value: number;
+            /** Gain Eur */
+            gain_eur: number;
+            /** Net Invested */
+            net_invested: number;
+            /** Percentage */
+            percentage: number;
+            /** Performance Pct */
+            performance_pct: number | null;
+            /** Value Source */
+            value_source: string;
+        };
+        /** AllocationAccountShare */
+        AllocationAccountShare: {
+            /** Account Id */
+            account_id: number;
+            /** Account Name */
+            account_name: string;
+            /** Percentage Of Group */
+            percentage_of_group: number;
+            /** Value */
+            value: number;
+        };
         /**
          * AllocationAdvice
          * @description Étape de l'ordre de remplissage conseillé ; `account_id = None` = enveloppe à ouvrir.
@@ -3366,6 +3431,17 @@ export interface components {
             /** Entree Id */
             entree_id: number;
         };
+        /** AllocationGroup */
+        AllocationGroup: {
+            /** Items */
+            items: components["schemas"]["AllocationAccountShare"][];
+            /** Name */
+            name: string;
+            /** Percentage */
+            percentage: number;
+            /** Value */
+            value: number;
+        };
         /** AllocationRead */
         AllocationRead: {
             /** Account Id */
@@ -3380,6 +3456,15 @@ export interface components {
             id: number;
             /** Label */
             label?: string | null;
+        };
+        /** AllocationSuggestions */
+        AllocationSuggestions: {
+            /** Asset Classes */
+            asset_classes: string[];
+            /** Geographic Zones */
+            geographic_zones: string[];
+            /** Sectors */
+            sectors: string[];
         };
         /** AnnualReport */
         AnnualReport: {
@@ -3419,6 +3504,21 @@ export interface components {
             /** Items */
             items: components["schemas"]["ApplyCostLine"][];
         };
+        /**
+         * AuditIssueDetails
+         * @description Détail d'un point d'audit. Une seule des trois listes est présente selon `issue_id`
+         *     (servi avec `response_model_exclude_unset=True`).
+         */
+        AuditIssueDetails: {
+            /** Duplicate Groups */
+            duplicate_groups?: components["schemas"]["DuplicateGroup"][] | null;
+            /** Issue Id */
+            issue_id: string;
+            /** Transactions */
+            transactions?: components["schemas"]["TransactionRead"][] | null;
+            /** Transfer Pairs */
+            transfer_pairs?: components["schemas"]["TransferPair"][] | null;
+        };
         /** AutoDecomposeRequest */
         AutoDecomposeRequest: {
             /** Isin */
@@ -3427,6 +3527,13 @@ export interface components {
             name?: string | null;
             /** Symbol */
             symbol: string;
+        };
+        /** BackupRunResult */
+        BackupRunResult: {
+            /** Github */
+            github: boolean;
+            /** Ok */
+            ok: boolean;
         };
         /** BackupStatus */
         BackupStatus: {
@@ -3465,6 +3572,15 @@ export interface components {
              * @default false
              */
             stale?: boolean;
+        };
+        /** BalancePoint */
+        BalancePoint: {
+            /** Account Id */
+            account_id: number;
+            /** Date */
+            date: string;
+            /** Running Balance */
+            running_balance: number;
         };
         /** BalanceSnapshotCreate */
         BalanceSnapshotCreate: {
@@ -3783,6 +3899,62 @@ export interface components {
             /** Monthly Spent */
             monthly_spent: number;
         };
+        /** BudgetOverview */
+        BudgetOverview: {
+            /** Base Currency */
+            base_currency: string;
+            /** Burn Rate */
+            burn_rate: number;
+            /** Depenses Reelles */
+            depenses_reelles: number;
+            /** Depenses Totales */
+            depenses_totales: number;
+            /** Epargne Realisee */
+            epargne_realisee: number;
+            /** Epargne Total */
+            epargne_total: number;
+            /** Interets Totaux */
+            interets_totaux: number;
+            /** Investissements Du Mois */
+            investissements_du_mois: number;
+            /** Month */
+            month: number | null;
+            /** Patrimoine Net Total */
+            patrimoine_net_total: number;
+            /** Reste Tresorerie */
+            reste_tresorerie: number;
+            /** Revenus Apres Depenses */
+            revenus_apres_depenses: number;
+            /** Revenus Totaux */
+            revenus_totaux: number;
+            /** Solde Actuel */
+            solde_actuel: number;
+            /** Taux Epargne */
+            taux_epargne: number;
+            /** Year */
+            year: number | null;
+        };
+        /** BudgetPeriod */
+        BudgetPeriod: {
+            current: components["schemas"]["BudgetPeriodCurrent"];
+            /** End */
+            end: string;
+            /** Mode */
+            mode: string;
+            /** Month */
+            month: number;
+            /** Start */
+            start: string;
+            /** Year */
+            year: number;
+        };
+        /** BudgetPeriodCurrent */
+        BudgetPeriodCurrent: {
+            /** Month */
+            month: number;
+            /** Year */
+            year: number;
+        };
         /** BudgetPeriodModeUpdate */
         BudgetPeriodModeUpdate: {
             /**
@@ -3819,6 +3991,62 @@ export interface components {
             savings_rate_excl_exceptional: number;
             /** Top Expenses */
             top_expenses: components["schemas"]["ReviewTransaction"][];
+        };
+        /** Calendar */
+        Calendar: {
+            /** Daily Balances */
+            daily_balances: components["schemas"]["CalendarDailyBalance"][];
+            /** Events */
+            events: components["schemas"]["CalendarEvent"][];
+            /** Month */
+            month: number;
+            /** Year */
+            year: number;
+        };
+        /** CalendarDailyBalance */
+        CalendarDailyBalance: {
+            /** Balance */
+            balance: number;
+            /** Date */
+            date: string;
+        };
+        /**
+         * CalendarEvent
+         * @description Transaction réelle, opération de placement ou occurrence projetée d'une récurrence.
+         */
+        CalendarEvent: {
+            /** Account Id */
+            account_id: number;
+            /** Amount */
+            amount: number;
+            /** Category Id */
+            category_id?: number | null;
+            /** Currency */
+            currency: string;
+            /** Date */
+            date: string;
+            /** Id */
+            id: string;
+            /** Is Projected */
+            is_projected: boolean;
+            /** Is Upcoming */
+            is_upcoming: boolean;
+            /** Logo */
+            logo?: string | null;
+            /** Name */
+            name: string;
+            /** Quantity */
+            quantity?: number | null;
+            /** Recurring Id */
+            recurring_id?: number | null;
+            /** Running Balance */
+            running_balance?: number | null;
+            /** Ticker */
+            ticker?: string | null;
+            /** Type */
+            type: string;
+            /** Unit Price */
+            unit_price?: number | null;
         };
         /** CandidateRead */
         CandidateRead: {
@@ -3937,6 +4165,14 @@ export interface components {
             /** Type */
             type: string;
         };
+        /** CategoryExpense */
+        CategoryExpense: {
+            category: components["schemas"]["CategoryRef"];
+            /** Percentage */
+            percentage: number;
+            /** Total */
+            total: number;
+        };
         /** CategoryRead */
         CategoryRead: {
             /** Annual Limit */
@@ -3960,6 +4196,21 @@ export interface components {
             name: string;
             /** Type */
             type: string;
+        };
+        /** CategoryRef */
+        CategoryRef: {
+            /** Annual Limit */
+            annual_limit: number | null;
+            /** Color */
+            color: string | null;
+            /** Icon */
+            icon: string | null;
+            /** Id */
+            id: number | null;
+            /** Monthly Limit */
+            monthly_limit: number | null;
+            /** Name */
+            name: string;
         };
         /** CategoryUpdate */
         CategoryUpdate: {
@@ -4201,6 +4452,178 @@ export interface components {
             /** Key */
             key: string;
         };
+        /** DiversityAlert */
+        DiversityAlert: {
+            /** Category */
+            category: string;
+            /** Item Name */
+            item_name: string;
+            /** Message */
+            message: string;
+            /** Title */
+            title: string;
+            /** Type */
+            type: string;
+            /** Value Pct */
+            value_pct: number;
+        };
+        /** DiversityCompany */
+        DiversityCompany: {
+            /** Direct Value Eur */
+            direct_value_eur: number;
+            /** Has Overlap */
+            has_overlap: boolean;
+            /** Indirect Value Eur */
+            indirect_value_eur: number;
+            /** Name */
+            name: string;
+            /** Pct Stocks */
+            pct_stocks: number;
+            /** Pct Total Wealth */
+            pct_total_wealth: number;
+            /** Sources */
+            sources: components["schemas"]["DiversitySource"][];
+            /** Ticker */
+            ticker: string | null;
+            /** Total Value Eur */
+            total_value_eur: number;
+        };
+        /** DiversityComposition */
+        DiversityComposition: {
+            /** Profile Id */
+            profile_id: number;
+            /** Profile Name */
+            profile_name: string;
+            /** Refreshed At */
+            refreshed_at: string | null;
+            /** Sources */
+            sources: {
+                [key: string]: string;
+            };
+            /** Tickers */
+            tickers: string[];
+            /** Value Eur */
+            value_eur: number;
+        };
+        /** DiversityExposure */
+        DiversityExposure: {
+            /** Name */
+            name: string;
+            /** Percentage Stocks */
+            percentage_stocks: number;
+            /** Percentage Total Wealth */
+            percentage_total_wealth: number;
+            /** Value Eur */
+            value_eur: number;
+        };
+        /** DiversityHolding */
+        DiversityHolding: {
+            /** Account Id */
+            account_id: number;
+            /** Etf Profile Id */
+            etf_profile_id: number | null;
+            /** Id */
+            id: number;
+            /** Is Etf */
+            is_etf: boolean;
+            /** Isin */
+            isin: string | null;
+            /** Name */
+            name: string | null;
+            /** Price Eur */
+            price_eur: number;
+            /** Quantity */
+            quantity: number;
+            /** Ticker */
+            ticker: string;
+            /** Value Eur */
+            value_eur: number;
+        };
+        /** DiversityScanner */
+        DiversityScanner: {
+            /** Alerts */
+            alerts: components["schemas"]["DiversityAlert"][];
+            /** Countries */
+            countries: components["schemas"]["DiversityExposure"][];
+            /** Etf Compositions */
+            etf_compositions: components["schemas"]["DiversityComposition"][];
+            /** Holdings */
+            holdings: components["schemas"]["DiversityHolding"][];
+            /** Score */
+            score: number;
+            /** Score Label */
+            score_label: string;
+            /** Sectors */
+            sectors: components["schemas"]["DiversityExposure"][];
+            /** Top Underlying Companies */
+            top_underlying_companies: components["schemas"]["DiversityCompany"][];
+            totals: components["schemas"]["DiversityTotals"];
+        };
+        /** DiversitySource */
+        DiversitySource: {
+            /** Pct In Source */
+            pct_in_source: number;
+            /** Source */
+            source: string;
+            /** Value Eur */
+            value_eur: number;
+        };
+        /** DiversityTotals */
+        DiversityTotals: {
+            /** Courant Eur */
+            courant_eur: number;
+            /** Epargne Eur */
+            epargne_eur: number;
+            /** Etfs Count */
+            etfs_count: number;
+            /** Fonds Euros Eur */
+            fonds_euros_eur: number;
+            /** Holdings Count */
+            holdings_count: number;
+            /** Other Eur */
+            other_eur: number;
+            /** Stocks Eur */
+            stocks_eur: number;
+            /** Wealth Eur */
+            wealth_eur: number;
+        };
+        /** DividendLinkEntry */
+        DividendLinkEntry: {
+            /** Amount */
+            amount: number;
+            /** Currency */
+            currency: string;
+            /** Date */
+            date: string;
+            /** Id */
+            id: number;
+            /** Note */
+            note: string | null;
+        };
+        /** DividendLinkMatch */
+        DividendLinkMatch: {
+            /** Amount */
+            amount: number;
+            /** Currency */
+            currency: string;
+            /** Date */
+            date: string;
+            /** Id */
+            id: number;
+            /** Note */
+            note: string | null;
+            /** Ticker */
+            ticker: string;
+        };
+        /** DividendLinkResult */
+        DividendLinkResult: {
+            /** Applied */
+            applied: boolean;
+            /** Matched */
+            matched: components["schemas"]["DividendLinkMatch"][];
+            /** Unmatched */
+            unmatched: components["schemas"]["DividendLinkEntry"][];
+        };
         /** DividendMonth */
         DividendMonth: {
             /** Month */
@@ -4296,6 +4719,15 @@ export interface components {
         DomainIn: {
             /** Domain */
             domain: string;
+        };
+        /** DuplicateGroup */
+        DuplicateGroup: {
+            /** Count */
+            count: number;
+            /** Key */
+            key: string;
+            /** Transactions */
+            transactions: components["schemas"]["TransactionRead"][];
         };
         /** EntryAllocationRead */
         EntryAllocationRead: {
@@ -4461,6 +4893,17 @@ export interface components {
             /** Label */
             label: string;
         };
+        /** ExpensesByCategory */
+        ExpensesByCategory: {
+            /** Items */
+            items: components["schemas"]["CategoryExpense"][];
+            /** Month */
+            month: number;
+            /** Total */
+            total: number;
+            /** Year */
+            year: number;
+        };
         /** FinancialEventCreate */
         FinancialEventCreate: {
             /** Account Id */
@@ -4571,6 +5014,13 @@ export interface components {
             /** Total Score */
             total_score: number;
         };
+        /** HealthStatus */
+        HealthStatus: {
+            /** Demo */
+            demo: boolean;
+            /** Status */
+            status: string;
+        };
         /** HistoryPoint */
         HistoryPoint: {
             /** Date */
@@ -4583,6 +5033,104 @@ export interface components {
             performance_pct?: number | null;
             /** Value */
             value: number;
+        };
+        /** HoldingSuggestion */
+        HoldingSuggestion: {
+            /** Etf Profile Id */
+            etf_profile_id: number | null;
+            /** Historical Net Invested */
+            historical_net_invested: number;
+            /** Is Etf */
+            is_etf: boolean;
+            /** Isin */
+            isin: string | null;
+            /** Name */
+            name: string;
+            /** Ticker */
+            ticker: string;
+            /** Tx Count */
+            tx_count: number;
+        };
+        /** ImportErrorDetail */
+        ImportErrorDetail: {
+            /** Line */
+            line: number;
+            /** Reason */
+            reason: string;
+        };
+        /** ImportLogRead */
+        ImportLogRead: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Error Count */
+            error_count: number;
+            /** Id */
+            id: number;
+            /** Imported Count */
+            imported_count: number;
+            /** Skipped Count */
+            skipped_count: number;
+            /** Source File */
+            source_file: string;
+            /** Summary Json */
+            summary_json: string | null;
+        };
+        /** ImportPreview */
+        ImportPreview: {
+            /** Delimiter */
+            delimiter: string;
+            /** Filename */
+            filename: string | null;
+            /** Invalid Rows */
+            invalid_rows: number;
+            /** Preview */
+            preview: components["schemas"]["ImportPreviewRow"][];
+            /** Raw Headers */
+            raw_headers: string[];
+            /** Total Rows */
+            total_rows: number;
+            /** Unknown Categories */
+            unknown_categories: string[];
+            /** Warnings */
+            warnings: string[];
+        };
+        /**
+         * ImportPreviewRow
+         * @description Ligne du CSV telle qu'elle a été lue : les colonnes gardent le nom (capitalisé) de leur en-tête.
+         */
+        ImportPreviewRow: {
+            /** Categorie */
+            Categorie: string | null;
+            /** Commercant */
+            Commercant: string | null;
+            /** Date */
+            Date: string | null;
+            /** Montant */
+            Montant: string | null;
+            /** Type */
+            Type: string | null;
+            /** Error */
+            error: string | null;
+            /** Line */
+            line: number;
+        };
+        /** ImportResult */
+        ImportResult: {
+            /** Created Categories */
+            created_categories: number;
+            /** Error Details */
+            error_details: components["schemas"]["ImportErrorDetail"][];
+            /** Error Samples */
+            error_samples: string[];
+            /** Errors */
+            errors: number;
+            /** Imported */
+            imported: number;
+            /** Skipped */
+            skipped: number;
         };
         /** Insight */
         Insight: {
@@ -4611,6 +5159,127 @@ export interface components {
             health_score: components["schemas"]["HealthScore"];
             /** Insights */
             insights: components["schemas"]["Insight"][];
+        };
+        /** InvestmentAccountDetail */
+        InvestmentAccountDetail: {
+            /** Account Id */
+            account_id: number;
+            /** Account Name */
+            account_name: string;
+            baseline: components["schemas"]["InvestmentBaseline"];
+            /** Currency */
+            currency: string;
+            totals: components["schemas"]["InvestmentTotals"];
+            /** Transactions */
+            transactions: components["schemas"]["InvestmentMovement"][];
+            /** Value Series */
+            value_series: components["schemas"]["InvestmentValuePoint"][];
+        };
+        /** InvestmentBaseline */
+        InvestmentBaseline: {
+            /** Date */
+            date: string | null;
+            /** Value */
+            value: number;
+        };
+        /**
+         * InvestmentMovement
+         * @description Opération de placement ou transaction bancaire du compte (devise du compte).
+         */
+        InvestmentMovement: {
+            /** Amount */
+            amount: number;
+            /** Asset Class */
+            asset_class?: string | null;
+            /** Currency */
+            currency: string;
+            /** Date */
+            date: string;
+            /** Fees */
+            fees?: number | null;
+            /** Geographic Zone */
+            geographic_zone?: string | null;
+            /** Id */
+            id: number;
+            /** Is Regular */
+            is_regular?: boolean | null;
+            /** Isin */
+            isin?: string | null;
+            /** Note */
+            note: string | null;
+            /** Original Amount */
+            original_amount: number;
+            /** Quantity */
+            quantity?: number | null;
+            /** Reinvest Of Id */
+            reinvest_of_id?: number | null;
+            /** Reinvested */
+            reinvested?: boolean | null;
+            /** Sector */
+            sector?: string | null;
+            /** Ticker */
+            ticker?: string | null;
+            /** Type */
+            type: string;
+            /** Unit Price */
+            unit_price?: number | null;
+            /** Withholding Tax */
+            withholding_tax?: number | null;
+        };
+        /**
+         * InvestmentOverviewItem
+         * @description Un compte dans la vue d'ensemble (EUR). `gain_eur` et `performance_pct` sont nuls si la valeur est périmée.
+         */
+        InvestmentOverviewItem: {
+            /** Account Id */
+            account_id: number;
+            /** Account Name */
+            account_name: string;
+            /** Currency */
+            currency: string;
+            /** Current Value */
+            current_value: number;
+            /** Dividends Eur */
+            dividends_eur?: number | null;
+            /** Gain Eur */
+            gain_eur: number | null;
+            /** Net Invested */
+            net_invested: number;
+            /** Performance Pct */
+            performance_pct: number | null;
+            /** Realized Eur */
+            realized_eur?: number | null;
+            /** Total Retire */
+            total_retire: number;
+            /** Total Verse */
+            total_verse: number;
+            /** Unrealized Eur */
+            unrealized_eur?: number | null;
+            /** Value Source */
+            value_source: string;
+            /** Value Stale */
+            value_stale: boolean;
+            /** Xirr Pct */
+            xirr_pct?: number | null;
+        };
+        /** InvestmentTotals */
+        InvestmentTotals: {
+            /** Current Value */
+            current_value: number;
+            /** Gain Eur */
+            gain_eur: number;
+            /** Net Invested */
+            net_invested: number;
+            /** Performance Pct */
+            performance_pct: number;
+            /** Snapshot Value */
+            snapshot_value: number | null;
+            /** Total Retire */
+            total_retire: number;
+            /** Total Verse */
+            total_verse: number;
+            /** Value Source */
+            value_source: string;
         };
         /** InvestmentTransactionCreate */
         InvestmentTransactionCreate: {
@@ -4788,6 +5457,87 @@ export interface components {
             /** Withholding Tax */
             withholding_tax?: number | null;
         };
+        /** InvestmentValuePoint */
+        InvestmentValuePoint: {
+            /** Current Value */
+            current_value: number;
+            /** Current Value Raw */
+            current_value_raw: number;
+            /** Date */
+            date: string;
+            /** Id */
+            id: number;
+            /** Is Zero Point */
+            is_zero_point: boolean;
+            /** Note */
+            note: string | null;
+        };
+        /** InvestmentsAllocation */
+        InvestmentsAllocation: {
+            /** Items */
+            items: components["schemas"]["AllocationAccount"][];
+            /** Total Current Value */
+            total_current_value: number;
+            /** Total Gain Eur */
+            total_gain_eur: number;
+            /** Total Net Invested */
+            total_net_invested: number;
+            /** Total Performance Pct */
+            total_performance_pct: number;
+        };
+        /** InvestmentsAllocationAdvanced */
+        InvestmentsAllocationAdvanced: {
+            /** By Asset Class */
+            by_asset_class: components["schemas"]["AllocationGroup"][];
+            /** By Geographic Zone */
+            by_geographic_zone: components["schemas"]["AllocationGroup"][];
+            /** By Sector */
+            by_sector: components["schemas"]["AllocationGroup"][];
+            /** Total Value Eur */
+            total_value_eur: number;
+        };
+        /** InvestmentsOverview */
+        InvestmentsOverview: {
+            /** Items */
+            items: components["schemas"]["InvestmentOverviewItem"][];
+            /** Total Current Value */
+            total_current_value: number;
+            /** Total Gain Eur */
+            total_gain_eur: number;
+            /** Total Net Invested */
+            total_net_invested: number;
+            /** Total Performance Pct */
+            total_performance_pct: number;
+        };
+        /** KpiHistoryPoint */
+        KpiHistoryPoint: {
+            /** Base Currency */
+            base_currency: string;
+            /** Cash Flow */
+            cash_flow: number;
+            /** Depenses */
+            depenses: number;
+            /** Depenses Reelles */
+            depenses_reelles: number;
+            /** Epargne */
+            epargne: number;
+            /** Epargne Flow */
+            epargne_flow: number;
+            /** Interets */
+            interets: number;
+            /** Investissements */
+            investissements: number;
+            /** Label */
+            label: string;
+            /** Month */
+            month: number;
+            /** Revenus */
+            revenus: number;
+            /** Taux Epargne */
+            taux_epargne: number | null;
+            /** Year */
+            year: number;
+        };
         /** LoanCreate */
         LoanCreate: {
             /** Annual Rate Pct */
@@ -4936,6 +5686,52 @@ export interface components {
             /** Title */
             title: string;
         };
+        /**
+         * MarketAsset
+         * @description Résultat de recherche : profil ETF local ou valeur Yahoo Finance.
+         */
+        MarketAsset: {
+            /** Currency */
+            currency: string;
+            /** Etf Profile Id */
+            etf_profile_id: number | null;
+            /** Exchange */
+            exchange: string;
+            /** Is Custom Etf */
+            is_custom_etf: boolean;
+            /** Isin */
+            isin: string | null;
+            /** Name */
+            name: string;
+            /** Symbol */
+            symbol: string;
+            /** Type */
+            type: string;
+        };
+        /**
+         * MarketQuote
+         * @description Cotation du jour. `price == 0` signifie « aucun cours connu » ; `stale` : dernier cours enregistré.
+         */
+        MarketQuote: {
+            /** Currency */
+            currency: string;
+            /** Expires At */
+            expires_at?: string | null;
+            /** Name */
+            name: string;
+            /** Price */
+            price: number;
+            /** Price Date */
+            price_date: string | null;
+            /** Price Eur */
+            price_eur: number;
+            /** Stale */
+            stale: boolean;
+            /** Symbol */
+            symbol: string;
+            /** Type */
+            type: string;
+        };
         /** McpTokenCreate */
         McpTokenCreate: {
             /** Current Password */
@@ -5025,6 +5821,13 @@ export interface components {
             /** Name */
             name: string;
         };
+        /** MerchantTotal */
+        MerchantTotal: {
+            /** Merchant */
+            merchant: string;
+            /** Total */
+            total: number;
+        };
         /** MerchantUpdate */
         MerchantUpdate: {
             /** Category Id */
@@ -5050,6 +5853,11 @@ export interface components {
             unit: string;
             /** Value */
             value: number;
+        };
+        /** ModifiedCount */
+        ModifiedCount: {
+            /** Modified Count */
+            modified_count: number;
         };
         /** MoneyFlowBlock */
         MoneyFlowBlock: {
@@ -5128,6 +5936,17 @@ export interface components {
             /** Savings Diff Pct */
             savings_diff_pct: number;
         };
+        /** MonthlyFlow */
+        MonthlyFlow: {
+            /** Burn Rate */
+            burn_rate: number;
+            /** Expense */
+            expense: number;
+            /** Income */
+            income: number;
+            /** Month */
+            month: number;
+        };
         /** MonthlyReport */
         MonthlyReport: {
             /** Burn Rate */
@@ -5182,6 +6001,11 @@ export interface components {
             }[];
             /** Year */
             year: number;
+        };
+        /** NormalizedCount */
+        NormalizedCount: {
+            /** Normalized Count */
+            normalized_count: number;
         };
         /**
          * NotificationSettingsRead
@@ -5262,6 +6086,65 @@ export interface components {
             channel: string;
             /** Delivered */
             delivered: boolean;
+        };
+        /** OkResponse */
+        OkResponse: {
+            /** Ok */
+            ok: boolean;
+        };
+        /** PatrimoineAllocation */
+        PatrimoineAllocation: {
+            /** Items */
+            items: components["schemas"]["PatrimoineItem"][];
+            /** Net Patrimoine Eur */
+            net_patrimoine_eur: number;
+            /** Total Debts Eur */
+            total_debts_eur: number;
+            /** Total Patrimoine */
+            total_patrimoine: number;
+        };
+        /** PatrimoineItem */
+        PatrimoineItem: {
+            /** Account Id */
+            account_id: number;
+            /** Account Name */
+            account_name: string;
+            /** Balance */
+            balance: number;
+            /** Balance Eur */
+            balance_eur: number;
+            /** Currency */
+            currency: string;
+            /** Institution */
+            institution: string | null;
+            /** Logo */
+            logo: string | null;
+            /** Percentage */
+            percentage: number;
+            /** Type */
+            type: string;
+        };
+        /** PerformanceHistory */
+        PerformanceHistory: {
+            /** Items */
+            items: components["schemas"]["PerformancePoint"][];
+            /** Value Source */
+            value_source?: string | null;
+        };
+        /** PerformancePoint */
+        PerformancePoint: {
+            /** Current Value */
+            current_value: number;
+            /** Date */
+            date: string;
+            /** Gain Eur */
+            gain_eur: number;
+            /** Is Zero Point */
+            is_zero_point: boolean;
+            /** Net Invested */
+            net_invested: number;
+            /** Performance Pct */
+            performance_pct: number;
         };
         /** PortfolioHoldingCreate */
         PortfolioHoldingCreate: {
@@ -5566,6 +6449,23 @@ export interface components {
             withholding_eur?: number;
             /** Xirr Pct */
             xirr_pct?: number | null;
+        };
+        /**
+         * PotentialTransfer
+         * @description Virement interne suggéré : jambes complètes (la sortie est toujours une transaction).
+         */
+        PotentialTransfer: {
+            /** Ambiguous */
+            ambiguous: boolean;
+            /** Confidence */
+            confidence: string;
+            /** Day Gap */
+            day_gap: number;
+            /** Entree */
+            entree: components["schemas"]["TransactionRead"] | components["schemas"]["InvestmentTransactionRead"];
+            sortie: components["schemas"]["TransactionRead"];
+            /** Type */
+            type: string;
         };
         /** PrepaymentCreate */
         PrepaymentCreate: {
@@ -6121,6 +7021,17 @@ export interface components {
             /** Current Password */
             current_password?: string | null;
         };
+        /** Resilience */
+        Resilience: {
+            /** Avg Monthly Real Expenses */
+            avg_monthly_real_expenses: number;
+            /** Liquid Savings */
+            liquid_savings: number;
+            /** Months */
+            months: number | null;
+            /** Months Used */
+            months_used: number;
+        };
         /** ReviewTransaction */
         ReviewTransaction: {
             /** Amount */
@@ -6264,6 +7175,43 @@ export interface components {
             salary_date?: string | null;
             /** Ticket Date */
             ticket_date?: string | null;
+        };
+        /** SalaryPoint */
+        SalaryPoint: {
+            /** Month */
+            month: number;
+            /** Salary */
+            salary: number;
+        };
+        /**
+         * Sankey
+         * @description Servi avec `response_model_exclude_unset=True` : `color` et `category_id` n'existent pas sur tous les nœuds.
+         */
+        Sankey: {
+            /** Links */
+            links: components["schemas"]["SankeyLink"][];
+            /** Nodes */
+            nodes: components["schemas"]["SankeyNode"][];
+        };
+        /** SankeyLink */
+        SankeyLink: {
+            /** Color */
+            color?: string | null;
+            /** Source */
+            source: number;
+            /** Target */
+            target: number;
+            /** Value */
+            value: number;
+        };
+        /** SankeyNode */
+        SankeyNode: {
+            /** Category Id */
+            category_id?: number | null;
+            /** Color */
+            color?: string | null;
+            /** Name */
+            name: string;
         };
         /** SavingsGoal */
         SavingsGoal: {
@@ -6431,6 +7379,11 @@ export interface components {
             /** Value */
             value: number;
         };
+        /** StatusResponse */
+        StatusResponse: {
+            /** Status */
+            status: string;
+        };
         /** SubscriptionIgnore */
         SubscriptionIgnore: {
             /** Amount */
@@ -6526,6 +7479,27 @@ export interface components {
                 [key: string]: components["schemas"]["CostTotals"];
             };
         };
+        /** SymbolValidation */
+        SymbolValidation: {
+            /** Currency */
+            currency: string;
+            /** Etf Profile Id */
+            etf_profile_id: number | null;
+            /** Isin */
+            isin: string | null;
+            /** Name */
+            name: string | null;
+            /** Price */
+            price: number | null;
+            /** Price Eur */
+            price_eur: number | null;
+            /** Symbol */
+            symbol: string;
+            /** Type */
+            type: string | null;
+            /** Valid */
+            valid: boolean;
+        };
         /** TagCreate */
         TagCreate: {
             /** Color */
@@ -6546,6 +7520,17 @@ export interface components {
             id: number;
             /** Name */
             name: string;
+        };
+        /** TagSpending */
+        TagSpending: {
+            /** Color */
+            color: string | null;
+            /** Id */
+            id: number;
+            /** Name */
+            name: string;
+            /** Total Eur */
+            total_eur: number;
         };
         /** TagUpdate */
         TagUpdate: {
@@ -6623,6 +7608,28 @@ export interface components {
         TelecommutingDaysUpdate: {
             /** Dates */
             dates: string[];
+        };
+        /** Timeseries */
+        Timeseries: {
+            /** Account Id */
+            account_id: number | null;
+            /** Balance Points */
+            balance_points: components["schemas"]["BalancePoint"][];
+            /** Monthly Flows */
+            monthly_flows: components["schemas"]["MonthlyFlow"][];
+            /** Salary Series */
+            salary_series: components["schemas"]["SalaryPoint"][];
+            /** Year */
+            year: number;
+        };
+        /** TopMerchants */
+        TopMerchants: {
+            /** Items */
+            items: components["schemas"]["MerchantTotal"][];
+            /** Month */
+            month: number;
+            /** Year */
+            year: number;
         };
         /** TotpLoginBody */
         TotpLoginBody: {
@@ -6921,6 +7928,16 @@ export interface components {
             /** Type */
             type?: string | null;
         };
+        /**
+         * TransactionsTotal
+         * @description Nombre et total net (remboursements déduits) des transactions d'un filtre, sans limite de page.
+         */
+        TransactionsTotal: {
+            /** Count */
+            count: number;
+            /** Total */
+            total: number;
+        };
         /** TransferApplyResult */
         TransferApplyResult: {
             /** Count */
@@ -6989,6 +8006,11 @@ export interface components {
             id: number;
             /** Label */
             label?: string | null;
+        };
+        /** TransferPair */
+        TransferPair: {
+            entree: components["schemas"]["TransactionRead"];
+            sortie: components["schemas"]["TransactionRead"];
         };
         /** TransferPairPreview */
         TransferPairPreview: {
@@ -7076,6 +8098,13 @@ export interface components {
             pattern?: string | null;
             /** Source Account Id */
             source_account_id?: number | null;
+        };
+        /** UnnormalizedLabel */
+        UnnormalizedLabel: {
+            /** Count */
+            count: number;
+            /** Label */
+            label: string;
         };
         /** ValidationError */
         ValidationError: {
@@ -7676,7 +8705,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["BackupRunResult"];
                 };
             };
         };
@@ -7747,7 +8776,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["OkResponse"];
                 };
             };
         };
@@ -7906,7 +8935,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["StatusResponse"];
                 };
             };
             /** @description Validation Error */
@@ -7939,7 +8968,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["AccountFlowSummary"];
                 };
             };
             /** @description Validation Error */
@@ -7992,7 +9021,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["StatusResponse"];
                 };
             };
             /** @description Validation Error */
@@ -8021,7 +9050,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["AllocationSuggestions"];
                 };
             };
         };
@@ -8063,7 +9092,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["AuditIssueDetails"];
                 };
             };
             /** @description Validation Error */
@@ -8096,7 +9125,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["BudgetOverview"];
                 };
             };
             /** @description Validation Error */
@@ -8161,7 +9190,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["BudgetPeriod"];
                 };
             };
             /** @description Validation Error */
@@ -8194,7 +9223,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["BudgetPeriod"];
                 };
             };
             /** @description Validation Error */
@@ -8227,7 +9256,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["Calendar"];
                 };
             };
             /** @description Validation Error */
@@ -8290,7 +9319,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["DiversityScanner"];
                 };
             };
             /** @description Validation Error */
@@ -8355,7 +9384,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["ExpensesByCategory"];
                 };
             };
             /** @description Validation Error */
@@ -8456,7 +9485,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["StatusResponse"];
                 };
             };
             /** @description Validation Error */
@@ -8489,7 +9518,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["InvestmentsOverview"];
                 };
             };
             /** @description Validation Error */
@@ -8520,7 +9549,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["InvestmentsAllocation"];
                 };
             };
             /** @description Validation Error */
@@ -8549,7 +9578,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["InvestmentsAllocationAdvanced"];
                 };
             };
         };
@@ -8571,7 +9600,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["InvestmentAccountDetail"];
                 };
             };
             /** @description Validation Error */
@@ -8602,7 +9631,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["PerformanceHistory"];
                 };
             };
             /** @description Validation Error */
@@ -8634,7 +9663,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["KpiHistoryPoint"][];
                 };
             };
             /** @description Validation Error */
@@ -8729,7 +9758,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["PatrimoineAllocation"];
                 };
             };
         };
@@ -8803,7 +9832,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["Resilience"];
                 };
             };
             /** @description Validation Error */
@@ -8836,7 +9865,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["Sankey"];
                 };
             };
             /** @description Validation Error */
@@ -8901,7 +9930,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["StatusResponse"];
                 };
             };
             /** @description Validation Error */
@@ -8936,7 +9965,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["TagSpending"][];
                 };
             };
             /** @description Validation Error */
@@ -8968,7 +9997,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["Timeseries"];
                 };
             };
             /** @description Validation Error */
@@ -9002,7 +10031,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["TopMerchants"];
                 };
             };
             /** @description Validation Error */
@@ -10119,7 +11148,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["ModifiedCount"];
                 };
             };
         };
@@ -10432,13 +11461,14 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Successful Response */
+            /** @description Export CSV des transactions */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": unknown;
+                    "text/csv": string;
                 };
             };
             /** @description Validation Error */
@@ -10652,7 +11682,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["StatusResponse"];
                 };
             };
             /** @description Validation Error */
@@ -10716,7 +11746,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["HealthStatus"];
                 };
             };
         };
@@ -10899,7 +11929,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["HoldingSuggestion"][];
                 };
             };
             /** @description Validation Error */
@@ -10996,7 +12026,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["ImportResult"];
                 };
             };
             /** @description Validation Error */
@@ -11027,7 +12057,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["ImportLogRead"][];
                 };
             };
             /** @description Validation Error */
@@ -11060,7 +12090,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["ImportPreview"];
                 };
             };
             /** @description Validation Error */
@@ -11158,7 +12188,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["DividendLinkResult"];
                 };
             };
             /** @description Validation Error */
@@ -11590,13 +12620,15 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Successful Response */
+            /** @description Image du logo */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": unknown;
+                    "image/png": string;
+                    "image/svg+xml": string;
                 };
             };
             /** @description Validation Error */
@@ -11660,7 +12692,9 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": {
+                        [key: string]: components["schemas"]["MarketQuote"];
+                    };
                 };
             };
             /** @description Validation Error */
@@ -11694,7 +12728,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["MarketAsset"][];
                 };
             };
             /** @description Validation Error */
@@ -11726,7 +12760,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["SymbolValidation"];
                 };
             };
             /** @description Validation Error */
@@ -11850,7 +12884,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["NormalizedCount"];
                 };
             };
         };
@@ -11872,7 +12906,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["UnnormalizedLabel"][];
                 };
             };
             /** @description Validation Error */
@@ -13392,6 +14426,8 @@ export interface operations {
     list_transactions_transactions_get: {
         parameters: {
             query?: {
+                skip?: number;
+                limit?: number;
                 account_id?: number | null;
                 category_id?: number | null;
                 type?: string | null;
@@ -13412,8 +14448,6 @@ export interface operations {
                 period?: boolean;
                 /** @description Périmètre des flux du budget : courant/épargne hors tickets restaurant */
                 budget_scope?: boolean;
-                skip?: number;
-                limit?: number;
             };
             header?: never;
             path?: never;
@@ -13578,7 +14612,57 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["PotentialTransfer"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    total_transactions_transactions_total_get: {
+        parameters: {
+            query?: {
+                account_id?: number | null;
+                category_id?: number | null;
+                type?: string | null;
+                merchant?: string | null;
+                month?: number | null;
+                year?: number | null;
+                min_amount?: number | null;
+                max_amount?: number | null;
+                start_date?: string | null;
+                end_date?: string | null;
+                is_transfer?: boolean | null;
+                tag_ids?: number[] | null;
+                search?: string | null;
+                uncategorized?: boolean;
+                /** @description Nom canonique exact (marchand normalisé, sinon libellé) */
+                merchant_name?: string | null;
+                /** @description month/year = mois de paie (comme les analytics) au lieu du mois civil */
+                period?: boolean;
+                /** @description Périmètre des flux du budget : courant/épargne hors tickets restaurant */
+                budget_scope?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TransactionsTotal"];
                 };
             };
             /** @description Validation Error */
@@ -13737,7 +14821,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["StatusResponse"];
                 };
             };
             /** @description Validation Error */

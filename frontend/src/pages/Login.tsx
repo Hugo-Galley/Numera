@@ -11,6 +11,7 @@ import { toast } from "sonner"
 import { Fingerprint, FlaskConical, ShieldCheck } from "lucide-react"
 import { loginWithPasskey, passkeySupported } from "@/lib/passkey"
 import { DEMO_CREDENTIALS, useDemoMode } from "@/hooks/useDemoMode"
+import { errorMessage } from "@/lib/utils"
 
 export default function Login() {
   const { t } = useTranslation("auth")
@@ -27,7 +28,7 @@ export default function Login() {
 
   // Retour après connexion : état du routeur (ProtectedRoute) ou ?from= (session expirée en cours de route).
   // Seuls les chemins internes sont acceptés (pas de redirection vers un site externe).
-  const stateFrom = (location.state as any)?.from
+  const stateFrom = (location.state as { from?: { pathname: string; search?: string } } | null)?.from
   const queryFrom = searchParams.get("from")
   const candidate = stateFrom ? `${stateFrom.pathname}${stateFrom.search || ""}` : queryFrom
   const from = candidate && candidate.startsWith("/") && !candidate.startsWith("//") && !candidate.startsWith("/login") ? candidate : "/"
@@ -54,9 +55,9 @@ export default function Login() {
       login(await loginWithPasskey())
       toast.success(t("success"))
       navigate(from, { replace: true })
-    } catch (err: any) {
+    } catch (err) {
       // Annulation (ou navigateur exigeant un geste) : le bouton reste disponible, sans message d'erreur.
-      if (err?.name !== "NotAllowedError") toast.error(err.message)
+      if (!(err instanceof Error && err.name === "NotAllowedError")) toast.error(errorMessage(err, ""))
     } finally {
       setLoading(false)
     }
@@ -107,8 +108,8 @@ export default function Login() {
       login(data.access_token)
       toast.success(t("success"))
       navigate(from, { replace: true })
-    } catch (err: any) {
-      toast.error(err.message)
+    } catch (err) {
+      toast.error(errorMessage(err, ""))
     } finally {
       setLoading(false)
     }
@@ -132,9 +133,9 @@ export default function Login() {
       login((await response.json()).access_token)
       toast.success(t("success"))
       navigate(from, { replace: true })
-    } catch (err: any) {
+    } catch (err) {
       setCode("")
-      toast.error(err.message)
+      toast.error(errorMessage(err, ""))
     } finally {
       setLoading(false)
     }
@@ -191,7 +192,7 @@ export default function Login() {
             {t("subtitle")}
           </p>
           {isDemo && (
-            <div className="mt-3 flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 p-3 text-left text-sm text-amber-900">
+            <div className="flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 p-3 text-left text-sm text-amber-900">
               <FlaskConical className="mt-0.5 h-4 w-4 shrink-0" />
               <p>
                 {t("demoIntro")}

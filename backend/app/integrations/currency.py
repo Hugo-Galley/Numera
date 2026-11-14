@@ -5,6 +5,7 @@ import httpx
 
 from app.core.circuit_breaker import CircuitBreaker
 from app.core.logging import get_logger
+from app.core.time import now_local
 
 logger = get_logger(__name__)
 
@@ -41,7 +42,7 @@ async def get_exchange_rates(base: str = "EUR") -> dict[str, float]:
     Rates are cached for 6 hours. En cas d'échec : dernier cache connu (même expiré),
     sinon taux hors-ligne.
     """
-    now = datetime.now()
+    now = now_local()
     if base in _rates_cache and now < _cache_expiry.get(base, now):
         return _rates_cache[base]
     if now < _failed_until.get(base, now):
@@ -52,7 +53,7 @@ async def get_exchange_rates(base: str = "EUR") -> dict[str, float]:
             response = await client.get("https://api.frankfurter.dev/v1/latest", params={"base": base})
             if response.status_code == 200:
                 data = response.json()
-                rates = data.get("rates", {})
+                rates: dict[str, float] = data.get("rates", {})
                 # Frankfurter doesn't include the base currency in the rates, add it as 1.0
                 rates[base] = 1.0
                 _rates_cache[base] = rates
@@ -60,7 +61,7 @@ async def get_exchange_rates(base: str = "EUR") -> dict[str, float]:
                 _failed_until.pop(base, None)
                 return rates
             logger.warning(f"Frankfurter returned HTTP {response.status_code} for base={base}")
-    except Exception as e:
+    except Exception as e:  # frontière réseau : repli sur les taux en cache ou de secours, jamais d'erreur pour l'appelant
         logger.warning(f"Error fetching exchange rates: {e}")
 
     _failed_until[base] = now + FAILURE_CACHE_DURATION
@@ -86,7 +87,7 @@ async def fetch_historical_rate(date: date_type, currency: str) -> float | None:
         _historical_breaker.success()
         if response.status_code == 200:
             return response.json().get("rates", {}).get(currency) or None
-    except Exception as e:
+    except Exception as e:  # frontière réseau : repli sur les taux en cache ou de secours, jamais d'erreur pour l'appelant
         _historical_breaker.failure()
         logger.warning(f"Error fetching historical exchange rate: {e}")
     return None
@@ -108,7 +109,7 @@ async def fetch_rate_series(start: date_type, end: date_type, currency: str) -> 
             rates = response.json().get("rates", {})
             return {date_type.fromisoformat(day): by_currency[currency] for day, by_currency in rates.items()
                     if by_currency.get(currency)}
-    except Exception as e:
+    except Exception as e:  # frontière réseau : repli sur les taux en cache ou de secours, jamais d'erreur pour l'appelant
         _historical_breaker.failure()
         logger.warning(f"Error fetching exchange rate series: {e}")
     return {}

@@ -34,12 +34,12 @@ def cash_events(
             events.append(CashEvent(tx.date, -tx.amount))
     # Avec des opérations d'investissement, seuls les virements bancaires restent des flux (un virement vers
     # une assurance-vie crée une Entree, pas un versement)
-    for tx in repo.regular_transactions(db, account_id, transfers_only=bool(all_txs), before=before):
-        if after is not None and tx.date <= after:
+    for bank_tx in repo.regular_transactions(db, account_id, transfers_only=bool(all_txs), before=before):
+        if after is not None and bank_tx.date <= after:
             continue
-        flow = classify_regular_flow(tx)
+        flow = classify_regular_flow(bank_tx)
         if flow:
-            events.append(CashEvent(tx.date, flow, flow))
+            events.append(CashEvent(bank_tx.date, flow, flow))
     events.sort(key=lambda e: e.date)
     return events, bool(all_txs)
 

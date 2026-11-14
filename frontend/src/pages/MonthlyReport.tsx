@@ -5,7 +5,6 @@ import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
 import { CheckCircle2, ChevronLeft, ChevronRight, ClipboardCheck, Printer } from "lucide-react"
 
-import { api } from "@/lib/api"
 import { formatCurrency } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -16,13 +15,15 @@ import { BudgetSection } from "@/components/monthly-report/BudgetSection"
 import { SavingsSection } from "@/components/monthly-report/SavingsSection"
 import { WatchSection } from "@/components/monthly-report/WatchSection"
 import type { BudgetLine, ClosureLite, MonthlyReportData } from "@/components/monthly-report/types"
+import { getAnalyticsBudgetAlerts, getAnalyticsMonthlyReport } from "@/lib/api/analytics"
+import { getMonthReviewClosures } from "@/lib/api/monthReview"
 
 function Headline({ label, value, children }: { label: string; value: string; children?: React.ReactNode }) {
   return (
     <div className="flex items-center justify-between gap-3 sm:flex-col sm:items-stretch sm:justify-start sm:gap-0">
       <div className="min-w-0 sm:contents">
         <div className="text-xs font-medium text-slate-500">{label}</div>
-        <div className="min-h-[1rem] sm:order-3">{children}</div>
+        <div className="min-h-4 sm:order-3">{children}</div>
       </div>
       <div className="amount-blur whitespace-nowrap text-xl font-black tabular-nums text-slate-900 sm:order-2 sm:text-2xl">{value}</div>
     </div>
@@ -65,9 +66,9 @@ export default function IntelligentReport() {
       setFailed(false)
       const { month, year } = date
       const [report, alerts, closures] = await Promise.allSettled([
-        api.get<MonthlyReportData>(`/analytics/monthly-report?month=${month}&year=${year}`),
-        api.get<BudgetLine[]>(`/analytics/budget-alerts?month=${month}&year=${year}`),
-        api.get<ClosureLite[]>("/month-review/closures"),
+        getAnalyticsMonthlyReport<MonthlyReportData>(`?month=${month}&year=${year}`),
+        getAnalyticsBudgetAlerts<BudgetLine[]>(`?month=${month}&year=${year}`),
+        getMonthReviewClosures<ClosureLite[]>(),
       ])
       if (cancelled) return
       if (report.status === "fulfilled") setData(report.value)
@@ -122,7 +123,7 @@ export default function IntelligentReport() {
           </div>
         </div>
         <div className="no-print flex items-center gap-2">
-          <div className="flex flex-1 items-center justify-between rounded-xl border border-slate-200 bg-white p-1 shadow-sm">
+          <div className="flex flex-1 items-center justify-between rounded-xl border border-slate-200 bg-white p-1 shadow-xs">
             <Button variant="ghost" size="icon" className="h-11 w-11 md:h-9 md:w-9" onClick={() => changeMonth(-1)} aria-label={t("monthlyReport.moisPrecedent")} disabled={loading}>
               <ChevronLeft className="h-5 w-5" />
             </Button>

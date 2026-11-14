@@ -12,7 +12,7 @@ export function FilterBar({ ctx }: { ctx: AccountDetailView }) {
   return (
     <>
       {/* Filter Bar */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 bg-white p-3 rounded-2xl border border-slate-100 shadow-sm">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 bg-white p-3 rounded-2xl border border-slate-100 shadow-xs">
         <div className="hidden items-center gap-2 text-slate-400 mr-2 sm:flex">
           <Filter className="h-4 w-4" />
           <span className="text-xs font-bold uppercase tracking-wider">{t("tx.filters")}</span>

@@ -1,7 +1,9 @@
 """Requêtes des investissements : comptes titres, relevés, flux (opérations et transactions), répartitions."""
 from datetime import datetime
+from typing import Any
 
 from sqlalchemy.orm import Session
+from sqlalchemy.orm.attributes import InstrumentedAttribute
 
 from app.models.account import Account
 from app.models.balance_snapshot import BalanceSnapshot
@@ -9,6 +11,7 @@ from app.models.category import Category
 from app.models.investment_transaction import InvestmentTransaction
 from app.models.transaction import Transaction
 from app.repositories.investissement.portfolio import only_transfer_legs
+from app.repositories.types import Rows
 
 INVESTMENT_TYPES = ["investissement", "assurance_vie"]
 
@@ -90,5 +93,6 @@ def allocated_operations(db: Session, account_id: int) -> list[InvestmentTransac
     ).all()
 
 
-def distinct_values(db: Session, column) -> list:
-    return db.query(column).filter(column.isnot(None)).distinct().all()
+def distinct_values(db: Session, column: InstrumentedAttribute[Any]) -> Rows:
+    rows: Rows = db.query(column).filter(column.isnot(None)).distinct().all()
+    return rows

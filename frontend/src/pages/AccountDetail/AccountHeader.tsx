@@ -14,7 +14,7 @@ import { ZeroPointDialog } from "./ZeroPointDialog"
 export function AccountHeader({ ctx }: { ctx: AccountDetailView }) {
   const { t } = useTranslation("accountDetail")
   const { t: tc } = useTranslation("common")
-  const { account, id, isInvestment, setImportOpen, setReconcileOpen } = ctx
+  const { account, isInvestment, setImportOpen, setReconcileOpen } = ctx
   return (
     <>
       <div className="flex flex-col gap-4">
@@ -35,7 +35,7 @@ export function AccountHeader({ ctx }: { ctx: AccountDetailView }) {
             )}
             <div>
               <div className="flex flex-wrap items-center gap-2">
-                <h1 className="break-words text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">{account.name}</h1>
+                <h1 className="wrap-break-word text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">{account.name}</h1>
                 <Badge className="bg-slate-100 text-slate-600 border-none capitalize">
                   {["courant", "epargne", "investissement", "assurance_vie", "credit"].includes(account.type) ? tc(`accountTypes.${account.type as "courant"}`) : account.type}
                 </Badge>

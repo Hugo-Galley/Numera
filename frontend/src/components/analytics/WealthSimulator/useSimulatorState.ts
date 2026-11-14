@@ -1,3 +1,4 @@
+import type { ApiResponse } from "@/lib/api/types"
 import i18n from "i18next"
 import { safeStorage } from "@/lib/storage"
 import { toast } from "sonner"
@@ -6,10 +7,22 @@ import { LifeEvent, AssetClass, defaultAssetClasses } from "./types"
 import { getAnalyticsWealthSimulation } from "@/lib/api/analytics"
 
 /** Paramètres (mémorisés dans le navigateur), allocation et appel de la simulation. */
+type SimulatorParams = {
+  initial_capital: number
+  monthly_contribution: number
+  annual_return_pct: number
+  years: number
+  volatility_pct: number
+  inflation_rate_pct: number
+  contribution_indexation_pct: number
+  tax_rate_pct: number
+  tax_deferred: boolean
+}
+
 export function useSimulatorState(p: { initialCapitalDefault: number }) {
   const { initialCapitalDefault } = p
   // Load initial params from localStorage if available, else fall back to defaults
-  const [params, setParams] = useState(() => {
+  const [params, setParams] = useState<SimulatorParams>(() => {
     const saved = safeStorage.getItem("numera_wealth_sim_params")
     if (saved) {
       try {
@@ -63,7 +76,7 @@ export function useSimulatorState(p: { initialCapitalDefault: number }) {
   const [editingAsset, setEditingAsset] = useState<AssetClass | null>(null)
 
   // UI state for display
-  const [data, setData] = useState<any>(null)
+  const [data, setData] = useState<ApiResponse<"/analytics/wealth-simulation", "get"> | null>(null)
   const [loading, setLoading] = useState(false)
   const [showInflationAdjusted, setShowInflationAdjusted] = useState(false)
   const [showMonteCarlo, setShowMonteCarlo] = useState(true)
@@ -96,7 +109,7 @@ export function useSimulatorState(p: { initialCapitalDefault: number }) {
 
   // Sync initialCapitalDefault if it changes from parent
   useEffect(() => {
-    setParams((prev: any) => ({ ...prev, initial_capital: initialCapitalDefault }))
+    setParams((prev) => ({ ...prev, initial_capital: initialCapitalDefault }))
   }, [initialCapitalDefault])
 
   // Main data fetcher
@@ -133,7 +146,7 @@ export function useSimulatorState(p: { initialCapitalDefault: number }) {
 
         const res = await getAnalyticsWealthSimulation(`?${queryParams.toString()}`)
         setData(res)
-      } catch (error) {
+      } catch {
         toast.error(i18n.t("useSimulatorState.erreurLorsDeLaSimulation", { ns: "tools" }))
       } finally {
         setLoading(false)

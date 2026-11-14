@@ -4,11 +4,11 @@ import { useTranslation } from "react-i18next"
 import { appLocale } from "@/i18n/locale"
 import { useCallback, useEffect, useState } from "react"
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
+import { keepSeriesOrder, numberFormatter } from "@/lib/chartTooltip"
 import { Coins, Link2 } from "lucide-react"
 import { toast } from "sonner"
 
-import { api } from "@/lib/api"
-import { formatCurrency, formatRate } from "@/lib/utils"
+import { errorMessage, formatCurrency, formatRate } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -22,6 +22,8 @@ import {
 } from "@/components/ui/dialog"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { getAnalyticsDividends } from "@/lib/api/analytics"
+import { postInvestmentTransactionsLinkDividends } from "@/lib/api/investments"
 
 interface DividendSummary {
   totals: { count: number; net_eur: number; withholding_eur: number; gross_eur: number; last_12m_eur: number }
@@ -78,7 +80,7 @@ export function DividendsCard({ accountId, reloadKey, onChanged }: DividendsCard
 
   const load = useCallback(async () => {
     try {
-      setData(await api.get<DividendSummary>(`/analytics/dividends?account_id=${accountId}`))
+      setData(await getAnalyticsDividends<DividendSummary>(`?account_id=${accountId}`))
     } catch {
       toast.error(t("dividendsCard.impossibleDeChargerLesDividendes"))
     } finally {
@@ -92,22 +94,22 @@ export function DividendsCard({ accountId, reloadKey, onChanged }: DividendsCard
 
   const openLinkPreview = async () => {
     try {
-      setPreview(await api.post<LinkPreview>(`/investment-transactions/link-dividends?account_id=${accountId}&dry_run=true`, {}))
-    } catch (err: any) {
-      toast.error(err?.message || t("dividendsCard.erreurLorsDeLAnalyse"))
+      setPreview(await postInvestmentTransactionsLinkDividends<LinkPreview>(`?account_id=${accountId}&dry_run=true`, {}))
+    } catch (err) {
+      toast.error(errorMessage(err, t("dividendsCard.erreurLorsDeLAnalyse")))
     }
   }
 
   const applyLink = async () => {
     setApplying(true)
     try {
-      await api.post(`/investment-transactions/link-dividends?account_id=${accountId}&dry_run=false`, {})
+      await postInvestmentTransactionsLinkDividends(`?account_id=${accountId}&dry_run=false`, {})
       toast.success(t("dividendsCard.dividendesRattachesALeurTitre"))
       setPreview(null)
       await load()
       onChanged?.()
-    } catch (err: any) {
-      toast.error(err?.message || t("dividendsCard.erreurLorsDuRattachement"))
+    } catch (err) {
+      toast.error(errorMessage(err, t("dividendsCard.erreurLorsDuRattachement")))
     } finally {
       setApplying(false)
     }
@@ -121,7 +123,7 @@ export function DividendsCard({ accountId, reloadKey, onChanged }: DividendsCard
 
   return (
     <>
-      <Card className="shadow-sm">
+      <Card className="shadow-xs">
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
             <Coins className="h-5 w-5 text-emerald-600" /> {t("dividendsCard.dividendes")}
@@ -159,9 +161,9 @@ export function DividendsCard({ accountId, reloadKey, onChanged }: DividendsCard
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                     <XAxis dataKey="month" tickFormatter={monthLabel} tick={{ fontSize: 11 }} interval="preserveStartEnd" />
                     <YAxis tick={{ fontSize: 11 }} width={48} tickFormatter={(v) => `${v} €`} />
-                    <Tooltip
+                    <Tooltip itemSorter={keepSeriesOrder}
                       labelFormatter={(key) => monthLabel(String(key))}
-                      formatter={(value: number) => [formatCurrency(value), "Dividendes nets"]}
+                      formatter={numberFormatter((value: number) => [formatCurrency(value), "Dividendes nets"])}
                       contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }}
                     />
                     <Bar dataKey="net_eur" fill="#10b981" radius={[4, 4, 0, 0]} />
@@ -175,7 +177,7 @@ export function DividendsCard({ accountId, reloadKey, onChanged }: DividendsCard
                   <li key={row.ticker} className="rounded-lg border p-3">
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
-                        <div className="break-words text-sm font-semibold text-slate-900">{row.asset_name}</div>
+                        <div className="wrap-break-word text-sm font-semibold text-slate-900">{row.asset_name}</div>
                         <div className="font-mono text-[11px] text-slate-500">
                           {row.ticker}
                           {row.last_date && i18n.t("misc.lastDate", { ns: "investments", date: new Date(row.last_date).toLocaleDateString(appLocale()) })}

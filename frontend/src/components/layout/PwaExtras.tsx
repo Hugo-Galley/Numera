@@ -31,7 +31,7 @@ export function PwaExtras({ scrollRef }: { scrollRef: React.RefObject<HTMLElemen
   useEffect(() => {
     const el = scrollRef.current
     if (!el) return
-    const isStandalone = window.matchMedia("(display-mode: standalone)").matches || (navigator as any).standalone
+    const isStandalone = window.matchMedia("(display-mode: standalone)").matches || (navigator as Navigator & { standalone?: boolean }).standalone
     if (!isStandalone) return
 
     const onStart = (e: TouchEvent) => {
@@ -70,7 +70,7 @@ export function PwaExtras({ scrollRef }: { scrollRef: React.RefObject<HTMLElemen
   }, [scrollRef])
 
   useEffect(() => {
-    const isStandalone = window.matchMedia("(display-mode: standalone)").matches || (navigator as any).standalone
+    const isStandalone = window.matchMedia("(display-mode: standalone)").matches || (navigator as Navigator & { standalone?: boolean }).standalone
     if (!isStandalone) return
     let start: { x: number; y: number } | null = null
     let distance = 0
@@ -117,21 +117,21 @@ export function PwaExtras({ scrollRef }: { scrollRef: React.RefObject<HTMLElemen
   return (
     <>
       {swipe > 0 && (
-        <div className="pointer-events-none fixed top-1/2 z-[60] -translate-y-1/2 md:hidden" style={{ left: swipe / 2 - 20 }}>
+        <div className="pointer-events-none fixed top-1/2 z-60 -translate-y-1/2 md:hidden" style={{ left: swipe / 2 - 20 }}>
           <div className={`rounded-full p-2 shadow-lg ring-1 ring-slate-200 ${swipe >= SWIPE_BACK_DISTANCE ? "bg-slate-900 text-white" : "bg-white text-slate-700"}`}>
             <ChevronLeft className="h-5 w-5" />
           </div>
         </div>
       )}
       {!online && (
-        <div className="fixed inset-x-0 top-[env(safe-area-inset-top)] z-[60] flex items-center justify-center gap-2 bg-amber-500 px-3 py-1 text-xs font-semibold text-white md:hidden" role="status">
+        <div className="fixed inset-x-0 top-[env(safe-area-inset-top)] z-60 flex items-center justify-center gap-2 bg-amber-500 px-3 py-1 text-xs font-semibold text-white md:hidden" role="status">
           <WifiOff className="h-3.5 w-3.5" />
           {t("pwaExtras.horsLigneLesDonneesAffichees")}
         </div>
       )}
       {(pull > 0 || refreshing) && (
         <div
-          className="pointer-events-none fixed inset-x-0 z-[60] flex justify-center md:hidden"
+          className="pointer-events-none fixed inset-x-0 z-60 flex justify-center md:hidden"
           style={{ top: `calc(env(safe-area-inset-top) + 3.5rem + ${pull / 2}px)` }}
         >
           <div className="rounded-full bg-white p-2 shadow-lg ring-1 ring-slate-200">

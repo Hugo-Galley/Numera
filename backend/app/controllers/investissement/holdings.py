@@ -1,9 +1,11 @@
 
+from typing import Any
+
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
+from app.controllers.deps import get_db
 from app.core.sync_bridge import run_async
-from app.db.session import get_db
 from app.schemas.holding import (
     ApplyCostsRequest,
     BaselineInventoryRequest,
@@ -12,6 +14,7 @@ from app.schemas.holding import (
     PortfolioHoldingRead,
     PortfolioHoldingUpdate,
 )
+from app.schemas.market import HoldingSuggestion
 from app.services.investissement.holdings import inventory as service
 
 router = APIRouter(prefix="/holdings", tags=["holdings"])
@@ -21,15 +24,15 @@ router = APIRouter(prefix="/holdings", tags=["holdings"])
 def list_holdings(
     account_id: int | None = Query(default=None),
     db: Session = Depends(get_db),
-):
+) -> list[PortfolioHoldingRead]:
     return run_async(service.list_holdings(db, account_id))
 
 
-@router.get("/suggestions")
+@router.get("/suggestions", response_model=list[HoldingSuggestion])
 def get_holding_suggestions(
     account_id: int = Query(...),
     db: Session = Depends(get_db),
-):
+) -> list[dict[str, Any]]:
     """
     Suggests holdings for the Point Zéro baseline by analyzing historical transaction notes.
     """
@@ -37,7 +40,7 @@ def get_holding_suggestions(
 
 
 @router.get("/estimate-costs", response_model=list[CostEstimateRead])
-def get_cost_estimates(account_id: int = Query(...), db: Session = Depends(get_db)):
+def get_cost_estimates(account_id: int = Query(...), db: Session = Depends(get_db)) -> list[CostEstimateRead]:
     """
     PRU estimé de chaque ligne du Point Zéro, déduit des achats saisis avant sa date (moyenne pondérée,
     frais inclus). `coverage` = part de l'inventaire expliquée par ces achats : en dessous de 1, des titres
@@ -47,7 +50,7 @@ def get_cost_estimates(account_id: int = Query(...), db: Session = Depends(get_d
 
 
 @router.post("/apply-costs", response_model=list[PortfolioHoldingRead])
-def apply_costs(payload: ApplyCostsRequest, db: Session = Depends(get_db)):
+def apply_costs(payload: ApplyCostsRequest, db: Session = Depends(get_db)) -> list[PortfolioHoldingRead]:
     """Enregistre les PRU validés dans l'inventaire Point Zéro, puis recalcule les positions."""
     return run_async(service.apply_costs(db, payload))
 
@@ -56,7 +59,7 @@ def apply_costs(payload: ApplyCostsRequest, db: Session = Depends(get_db)):
 def set_baseline_inventory(
     payload: BaselineInventoryRequest,
     db: Session = Depends(get_db),
-):
+) -> list[PortfolioHoldingRead]:
     """
     Point Zéro / état des lieux des positions d'un compte, à une date donnée (maintenant par défaut).
     Remplace l'inventaire ; les opérations sur titres postérieures à cette date sont rejouées par-dessus.
@@ -68,7 +71,7 @@ def set_baseline_inventory(
 def create_holding(
     payload: PortfolioHoldingCreate,
     db: Session = Depends(get_db),
-):
+) -> PortfolioHoldingRead:
     """Ajoute une ligne à l'inventaire Point Zéro du compte, datée de maintenant."""
     return run_async(service.create_holding(db, payload))
 
@@ -78,7 +81,7 @@ def update_holding(
     holding_id: int,
     payload: PortfolioHoldingUpdate,
     db: Session = Depends(get_db),
-):
+) -> PortfolioHoldingRead:
     """
     Métadonnées (nom, ISIN, profil ETF) : modifiées directement.
     Quantité, PRU, devise : modifient la ligne d'inventaire Point Zéro du titre, puis les positions sont
@@ -88,6 +91,6 @@ def update_holding(
 
 
 @router.delete("/{holding_id}", status_code=204)
-def delete_holding(holding_id: int, db: Session = Depends(get_db)):
+def delete_holding(holding_id: int, db: Session = Depends(get_db)) -> None:
     """Retire le titre de l'inventaire Point Zéro (refusé s'il reste des opérations sur ce titre)."""
     run_async(service.delete_holding(db, holding_id))

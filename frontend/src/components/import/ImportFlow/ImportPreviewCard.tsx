@@ -10,7 +10,7 @@ export function ImportPreviewCard({ ctx }: { ctx: ImportFlowCtx }) {
   const preview = ctx.preview!
   return (
     <>
-      <Card className="shadow-sm border-slate-100 overflow-hidden">
+      <Card className="shadow-xs border-slate-100 overflow-hidden">
         <CardHeader className="bg-slate-50/50 border-b">
           <CardTitle className="text-lg">{t("previewTitle")}</CardTitle>
           <CardDescription>{t("previewHint")}</CardDescription>
@@ -22,10 +22,10 @@ export function ImportPreviewCard({ ctx }: { ctx: ImportFlowCtx }) {
                 <div className="min-w-0">
                   <p className="truncate text-sm font-bold text-slate-900">{row.Commercant}</p>
                   {row.error && <p className="text-xs font-medium text-rose-600">{t("line", { line: row.line, error: row.error })}</p>}
-                  <p className="mt-0.5 flex items-center gap-2 text-xs text-slate-500">
+                  <div className="mt-0.5 flex items-center gap-2 text-xs text-slate-500">
                     <span>{row.Date}</span>
-                    <Badge variant="outline" className="h-5 max-w-[10rem] truncate border-slate-200 py-0 text-[10px] font-bold text-slate-600">{row.Categorie}</Badge>
-                  </p>
+                    <Badge variant="outline" className="h-5 max-w-40 truncate border-slate-200 py-0 text-[10px] font-bold text-slate-600">{row.Categorie}</Badge>
+                  </div>
                 </div>
                 <span className="shrink-0 whitespace-nowrap text-sm font-black tabular-nums text-slate-900">{row.Montant}€</span>
               </li>

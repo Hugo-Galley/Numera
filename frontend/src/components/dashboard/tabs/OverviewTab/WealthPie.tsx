@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next"
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts"
+import { keepSeriesOrder, numberFormatter } from "@/lib/chartTooltip"
 import { formatAmountWithShare, formatCurrency } from "@/lib/utils"
 import type { OverviewTabCtx } from "./useOverviewTab"
 
@@ -23,13 +24,13 @@ export function WealthPie({ ctx }: { ctx: OverviewTabCtx }) {
               dataKey={chartDataKey}
               nameKey="name"
             >
-              {chartData.map((item: any, i: number) => (
+              {chartData.map((item, i: number) => (
                 <Cell key={i} fill={item.color} />
               ))}
             </Pie>
-            <Tooltip 
+            <Tooltip itemSorter={keepSeriesOrder} 
               contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} 
-              formatter={(v: number) => formatAmountWithShare(v, chartData.reduce((s: number, i: any) => s + (Number(i[chartDataKey]) || 0), 0), "EUR")} 
+              formatter={numberFormatter((v: number) => formatAmountWithShare(v, chartData.reduce((s, i) => s + (Number(i[chartDataKey as keyof typeof i]) || 0), 0), "EUR"))} 
             />
           </PieChart>
         </ResponsiveContainer>
@@ -37,7 +38,7 @@ export function WealthPie({ ctx }: { ctx: OverviewTabCtx }) {
         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
           <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{t("overview.wealthCenter")}</span>
           <span className="text-base md:text-lg font-black text-slate-800 amount-blur">
-            {formatCurrency(patrimoineAllocation.total_patrimoine, "EUR")}
+            {formatCurrency(patrimoineAllocation?.total_patrimoine ?? 0, "EUR")}
           </span>
         </div>
       </div>

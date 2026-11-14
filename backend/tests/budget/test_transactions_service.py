@@ -9,7 +9,7 @@ from app.models.account import Account
 from app.models.category import Category
 from app.models.transaction import Transaction
 from app.models.transaction_split import TransactionSplit
-from app.repositories.budget.transactions import TransactionFilters
+from app.schemas.transaction_filters import TransactionFilters
 from app.services.budget import transactions as service
 
 

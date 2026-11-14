@@ -71,7 +71,7 @@ export function MonthSummaryPanel({ ctx }: { ctx: SalaryManagerCtx }) {
             <div className="mt-6 pt-5 md:mt-8 md:pt-6 border-t">
               {isGenerated ? (
                 <div className="flex flex-col gap-3">
-                  <div className="bg-emerald-100 border border-emerald-200 text-emerald-700 p-4 rounded-xl flex items-center justify-center gap-2 font-medium shadow-sm">
+                  <div className="bg-emerald-100 border border-emerald-200 text-emerald-700 p-4 rounded-xl flex items-center justify-center gap-2 font-medium shadow-xs">
                     <CheckCircle2 className="h-5 w-5" />
                     {t("monthSummaryPanel.salaireDuMoisGenere")}
                   </div>

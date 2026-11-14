@@ -1,4 +1,6 @@
 """Récurrences : CRUD des règles ; chaque création/modification relance la génération immédiate."""
+from typing import Any
+
 from sqlalchemy.orm import Session
 
 from app.core.errors import BusinessRuleError, NotFoundError
@@ -143,7 +145,7 @@ async def update_recurring_transaction(db: Session, recurring_tx_id: int,
     return rule
 
 
-def delete_recurring_transaction(db: Session, recurring_tx_id: int) -> dict:
+def delete_recurring_transaction(db: Session, recurring_tx_id: int) -> dict[str, Any]:
     rule = _require(db, recurring_tx_id)
     repo.detach_rule(db, recurring_tx_id)
     repo.delete(db, rule)

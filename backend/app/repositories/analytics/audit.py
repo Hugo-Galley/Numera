@@ -1,7 +1,8 @@
 """Requêtes du Centre d'Actions et de l'audit des données (requêtes de base, que le service ordonne et limite)."""
 from datetime import datetime, timedelta
+from typing import Any
 
-from sqlalchemy import func, or_, select
+from sqlalchemy import Row, func, or_, select
 from sqlalchemy.orm import Query, Session
 
 from app.models.account import Account
@@ -13,6 +14,7 @@ from app.models.investment_transaction import InvestmentTransaction
 from app.models.portfolio_holding import PortfolioHolding
 from app.models.reimbursement import ReimbursementClaim
 from app.models.transaction import Transaction
+from app.repositories.types import Rows
 
 DUPLICATE_KEY = (
     Transaction.account_id,
@@ -24,7 +26,7 @@ DUPLICATE_KEY = (
 )
 
 
-def uncategorized_expenses(db: Session) -> Query:
+def uncategorized_expenses(db: Session) -> Query[Any]:
     """Sorties sans catégorie, hors virements (non ordonnées)."""
     return db.query(Transaction).filter(
         Transaction.category_id.is_(None),
@@ -33,13 +35,13 @@ def uncategorized_expenses(db: Session) -> Query:
     )
 
 
-def missing_merchants(db: Session) -> Query:
+def missing_merchants(db: Session) -> Query[Any]:
     return db.query(Transaction).filter(
         or_(Transaction.merchant.is_(None), func.trim(Transaction.merchant) == "")
     ).order_by(Transaction.date.desc(), Transaction.id.desc())
 
 
-def duplicate_groups(db: Session) -> Query:
+def duplicate_groups(db: Session) -> Query[Any]:
     """Groupes de transactions identiques (compte, date, type, marchand, montant, devise) non ignorés."""
     return (
         db.query(*DUPLICATE_KEY, func.count(Transaction.id).label("count"))
@@ -49,7 +51,7 @@ def duplicate_groups(db: Session) -> Query:
     )
 
 
-def duplicate_group_transactions(db: Session, row) -> list[Transaction]:
+def duplicate_group_transactions(db: Session, row: Row[*tuple[Any, ...]]) -> list[Transaction]:
     return (
         db.query(Transaction)
         .filter(
@@ -112,7 +114,7 @@ def reimbursement_claims(db: Session) -> list[ReimbursementClaim]:
     return db.query(ReimbursementClaim).all()
 
 
-def unallocated_reimbursements(db: Session, now: datetime) -> Query:
+def unallocated_reimbursements(db: Session, now: datetime) -> Query[Any]:
     """Remboursements reçus (catégorie « Remboursement… ») non affectés, sur 180 jours."""
     return (
         db.query(Transaction)
@@ -128,7 +130,7 @@ def unallocated_reimbursements(db: Session, now: datetime) -> Query:
     )
 
 
-def merchant_category_counts(db: Session, since: datetime) -> list:
+def merchant_category_counts(db: Session, since: datetime) -> Rows:
     """(marchand, catégorie, nombre) des entrées/sorties hors virements et récurrences."""
     return (
         db.query(Transaction.merchant, Transaction.category_id, func.count(Transaction.id))
@@ -153,7 +155,7 @@ def rule_exists(db: Session, merchant: str) -> bool:
     ).first() is not None
 
 
-def unnormalized_merchant_counts(db: Session) -> Query:
+def unnormalized_merchant_counts(db: Session) -> Query[Any]:
     """(libellé, nombre) des transactions sans marchand canonique."""
     return (
         db.query(Transaction.merchant, func.count(Transaction.id).label("count"))
@@ -166,7 +168,7 @@ def account_names(db: Session) -> dict[int, str]:
     return {a.id: a.name for a in db.query(Account.id, Account.name).all()}
 
 
-def unlinked_dividend_counts(db: Session) -> list:
+def unlinked_dividend_counts(db: Session) -> Rows:
     return (
         db.query(InvestmentTransaction.account_id, func.count(InvestmentTransaction.id))
         .filter(InvestmentTransaction.type == "dividende", InvestmentTransaction.ticker.is_(None))

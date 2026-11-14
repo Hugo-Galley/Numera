@@ -3,6 +3,7 @@
 Toute écriture se termine par `rebuild_holdings` (positions dérivées) puis un seul `commit`.
 """
 from datetime import datetime
+from typing import Any
 
 from sqlalchemy.orm import Session
 
@@ -31,7 +32,7 @@ def _check_trade(db: Session, account_id: int, tx_type: str, date: datetime, tic
     """Un achat/une vente exige un titre et une quantité, et ne peut précéder l'inventaire Point Zéro."""
     if tx_type in {"achat", "vente"} and (not ticker or not quantity or quantity <= 0):
         raise BusinessRuleError(tr("errors.trade_needs_ticker_qty"))
-    if not is_trade(tx_type, ticker, quantity):
+    if ticker is None or not is_trade(tx_type, ticker, quantity):
         return
     cutoff = trade_cutoff(db, account_id, ticker)
     if cutoff and date <= cutoff:
@@ -78,14 +79,15 @@ def _derive_unit_price(tx: InvestmentTransaction) -> None:
     """
     if tx.unit_price and not tx.unit_price_derived:
         return
-    if not is_trade(tx.type, tx.ticker, tx.quantity):
+    quantity = tx.quantity
+    if quantity is None or not is_trade(tx.type, tx.ticker, quantity):
         if tx.unit_price_derived:  # l'opération n'est plus un achat/une vente : le prix déduit n'a plus de sens
             tx.unit_price, tx.price_currency, tx.unit_price_derived = None, None, False
         return
     fees = tx.fees or 0.0
     gross = tx.original_amount + fees if tx.type in SELL_TYPES else tx.original_amount - fees
     if gross > 0:
-        tx.unit_price = round(gross / tx.quantity, 6)
+        tx.unit_price = round(gross / quantity, 6)
         tx.price_currency = tx.currency
         tx.unit_price_derived = True
 
@@ -112,7 +114,7 @@ def list_transactions(db: Session, account_id: int | None, skip: int, limit: int
     return repo.list_for(db, account_id, skip, limit)
 
 
-def link_dividends(db: Session, account_id: int, dry_run: bool) -> dict:
+def link_dividends(db: Session, account_id: int, dry_run: bool) -> dict[str, Any]:
     """Rattache les dividendes sans titre d'un compte à une de ses positions, d'après leur libellé.
 
     `dry_run` se contente de proposer ; les libellés ambigus ou inconnus restent non rattachés.
@@ -120,7 +122,8 @@ def link_dividends(db: Session, account_id: int, dry_run: bool) -> dict:
     if not accounts_repo.get(db, account_id):
         raise NotFoundError(tr("errors.account_not_found"))
     candidates = repo.dividend_link_candidates(db, account_id)
-    matched, unmatched = [], []
+    matched: list[dict[str, Any]] = []
+    unmatched: list[dict[str, Any]] = []
     for tx in repo.unlinked_dividends(db, account_id):
         ticker = match_dividend_ticker(tx.note, list(candidates.items()))
         entry = {"id": tx.id, "date": tx.date.isoformat(), "note": tx.note, "amount": tx.amount, "currency": tx.currency}
@@ -213,14 +216,14 @@ async def delete_transaction(db: Session, tx_id: int) -> None:
     db.commit()
 
 
-async def _normalize_update(db: Session, tx: InvestmentTransaction, account: Account, data: dict) -> datetime:
+async def _normalize_update(db: Session, tx: InvestmentTransaction, account: Account, data: dict[str, Any]) -> datetime:
     """Valide et complète les champs modifiés (type, montant converti, contrôles). Renvoie la nouvelle date."""
     if "type" in data and data["type"] is not None:
         tx_type = data["type"].strip().lower()
         if tx_type not in VALID_TYPES:
             raise BusinessRuleError(tr("errors.invalid_investment_type", types=", ".join(sorted(VALID_TYPES))))
         data["type"] = tx_type
-    new_date = data.get("date", tx.date)
+    new_date: datetime = data.get("date", tx.date)
     _check_zero_point(db, tx.account_id, new_date)
 
     # Montant, devise ou date modifiés : on reconvertit dans la devise du compte
@@ -255,6 +258,8 @@ async def _normalize_update(db: Session, tx: InvestmentTransaction, account: Acc
 async def update_transaction(db: Session, tx_id: int, payload: InvestmentTransactionUpdate) -> InvestmentTransaction:
     tx = _get_editable(db, tx_id, "errors.reinvest_edit")
     account = accounts_repo.get(db, tx.account_id)
+    if account is None:
+        raise NotFoundError(tr("errors.account_not_found"))
     data = payload.model_dump(exclude_unset=True)
     await _normalize_update(db, tx, account, data)
     for key, value in data.items():

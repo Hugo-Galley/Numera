@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next"
 import { Badge } from "@/components/ui/badge"
-import { Calendar, Plus, TrendingDown, TrendingUp } from "lucide-react"
+import { Calendar, TrendingDown, TrendingUp } from "lucide-react"
 import type { WealthSimulatorCtx } from "./useWealthSimulator"
 
 /** Indicateurs finaux et distribution Monte-Carlo. */
@@ -13,7 +13,7 @@ export function SimulatorKpis({ ctx }: { ctx: WealthSimulatorCtx }) {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 
         {/* KPI 1 : PATRIMOINE TOTAL FINAL */}
-        <div className="bg-slate-50/40 p-4 rounded-xl border border-slate-100 flex flex-col justify-between shadow-sm relative overflow-hidden">
+        <div className="bg-slate-50/40 p-4 rounded-xl border border-slate-100 flex flex-col justify-between shadow-xs relative overflow-hidden">
           <div className="flex justify-between items-start mb-2">
             <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">{t("simulatorKpis.patrimoineFinal")}</span>
             <Badge variant="secondary" className="bg-indigo-50 text-indigo-700 text-[9px] hover:bg-indigo-50 border-none font-bold">{t("simulatorKpis.median")}</Badge>
@@ -33,7 +33,7 @@ export function SimulatorKpis({ ctx }: { ctx: WealthSimulatorCtx }) {
         </div>
 
         {/* KPI 2 : TOTAL VERSEMENTS (EPARGNE CUMULEE) */}
-        <div className="bg-slate-50/40 p-4 rounded-xl border border-slate-100 flex flex-col justify-between shadow-sm">
+        <div className="bg-slate-50/40 p-4 rounded-xl border border-slate-100 flex flex-col justify-between shadow-xs">
           <div className="flex justify-between items-start mb-2">
             <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">{t("simulatorKpis.cumulEpargne")}</span>
             <Calendar className="h-3.5 w-3.5 text-slate-400" />
@@ -49,7 +49,7 @@ export function SimulatorKpis({ ctx }: { ctx: WealthSimulatorCtx }) {
         </div>
 
         {/* KPI 3 : PLUS-VALUES ET GAINS GENERES */}
-        <div className="bg-slate-50/40 p-4 rounded-xl border border-slate-100 flex flex-col justify-between shadow-sm">
+        <div className="bg-slate-50/40 p-4 rounded-xl border border-slate-100 flex flex-col justify-between shadow-xs">
           <div className="flex justify-between items-start mb-2">
             <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">{t("simulatorKpis.plusValuesNettes")}</span>
             <span className="text-[9px] text-emerald-700 font-bold bg-emerald-50 px-1 rounded border border-emerald-100">{t("simulatorKpis.gains")}</span>
@@ -71,14 +71,14 @@ export function SimulatorKpis({ ctx }: { ctx: WealthSimulatorCtx }) {
 
       {/* BANNIÈRE DE DISTRIBUTION DES SCÉNARIOS MONTE CARLO */}
       {isVolatile && data && (
-        <div className="grid grid-cols-2 gap-4 bg-slate-50 p-3.5 rounded-xl border border-slate-100 shadow-sm">
+        <div className="grid grid-cols-2 gap-4 bg-slate-50 p-3.5 rounded-xl border border-slate-100 shadow-xs">
           <div className="flex flex-col">
             <span className="text-[9px] text-rose-550 uppercase font-bold tracking-wider flex items-center gap-1">
               <TrendingDown className="h-3 w-3" />
               {t("simulatorKpis.scenarioCatastropheP10")}
             </span>
             <span className="text-base font-black text-rose-600 amount-blur mt-1">
-              {formatCurrency(showInflationAdjusted ? data.items[data.items.length - 1].total_value_p10_real : data.pessimistic_final)}
+              {formatCurrency(showInflationAdjusted ? data.items[data.items.length - 1].total_value_p10_real ?? 0 : data.pessimistic_final ?? 0)}
             </span>
             <span className="text-[9px] text-slate-455 mt-0.5">{t("simulatorKpis.90DeChancesDeDepasser")}</span>
           </div>
@@ -88,7 +88,7 @@ export function SimulatorKpis({ ctx }: { ctx: WealthSimulatorCtx }) {
               {t("simulatorKpis.scenarioIdealP90")}
             </span>
             <span className="text-base font-black text-emerald-600 amount-blur mt-1">
-              {formatCurrency(showInflationAdjusted ? data.items[data.items.length - 1].total_value_p90_real : data.optimistic_final)}
+              {formatCurrency(showInflationAdjusted ? data.items[data.items.length - 1].total_value_p90_real ?? 0 : data.optimistic_final ?? 0)}
             </span>
             <span className="text-[9px] text-slate-455 mt-0.5">{t("simulatorKpis.10DeChancesDeDepasser")}</span>
           </div>

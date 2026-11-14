@@ -9,7 +9,7 @@ import json
 import secrets
 import struct
 import time
-from datetime import UTC, datetime, timedelta
+from datetime import timedelta
 from urllib.parse import quote, urlencode
 
 import jwt
@@ -18,6 +18,7 @@ from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.core.logging import get_logger
+from app.core.time import utcnow_aware
 from app.db.system_settings import get_setting, set_setting
 
 logger = get_logger(__name__)
@@ -100,7 +101,7 @@ def is_enabled(db: Session) -> bool:
 
 
 def create_mfa_token(username: str) -> str:
-    now = datetime.now(UTC)
+    now = utcnow_aware()
     return jwt.encode(
         {"purpose": "totp", "u": username, "iat": now, "exp": now + timedelta(seconds=MFA_TOKEN_TTL_SECONDS)},
         settings.SECRET_KEY,

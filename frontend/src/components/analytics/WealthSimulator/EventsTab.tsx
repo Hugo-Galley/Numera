@@ -12,7 +12,7 @@ export function EventsTab({ ctx }: { ctx: WealthSimulatorCtx }) {
   return (
     <>
       {/* CONTENU ONGLET 4: EVENEMENTS DE VIE */}
-      <TabsContent value="events" className="space-y-4 m-0 outline-none">
+      <TabsContent value="events" className="space-y-4 m-0 outline-hidden">
         <div className="bg-white p-3 rounded-lg border border-slate-150 shadow-inner space-y-3">
           <span className="text-xs font-bold text-slate-700 flex items-center gap-1">
             <Plus className="h-3.5 w-3.5 text-indigo-600" />

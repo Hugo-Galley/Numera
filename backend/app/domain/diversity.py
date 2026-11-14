@@ -1,15 +1,20 @@
 """Diversification d'un portefeuille par transparence (« look-through ») des ETF : sociétés sous-jacentes,
 pays, secteurs, doublons, alertes de concentration et score HHI (sans base)."""
+
+from __future__ import annotations
+
 import json
 import re
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from app.core.i18n import tr
 from app.core.logging import get_logger
 from app.domain.etf_profiles import load_sources
-from app.models.etf_profile import EtfProfile
+
+if TYPE_CHECKING:
+    from app.models.etf_profile import EtfProfile
 
 logger = get_logger(__name__)
 
@@ -144,7 +149,7 @@ def _decompose_etf(out: LookThrough, vh: dict[str, Any], etf_profile: EtfProfile
                 "pct_in_source": round(h_weight, 2),
                 "value_eur": round(h_val, 2),
             })
-    except Exception as e:
+    except (ValueError, KeyError, TypeError, AttributeError) as e:  # JSON ou ligne de composition mal formés
         logger.warning(f"Error parsing ETF holdings for {etf_profile.name}: {e}")
 
 

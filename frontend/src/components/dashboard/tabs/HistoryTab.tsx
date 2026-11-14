@@ -26,11 +26,13 @@ import {
   Line,
   ReferenceLine
 } from "recharts"
+import { keepSeriesOrder, numberFormatter } from "@/lib/chartTooltip"
+import type { KpiHistoryPoint, Timeseries } from "../types"
 
 interface HistoryTabProps {
-  kpiHistory: any[]
-  burnRateSeries: any[]
-  salarySeries: any[]
+  kpiHistory: KpiHistoryPoint[]
+  burnRateSeries: NonNullable<Timeseries["monthly_flows"]>
+  salarySeries: NonNullable<Timeseries["salary_series"]>
   displayCurrency: string
   milestones: Milestone[]
   events: FinancialEvent[]
@@ -46,6 +48,9 @@ interface Marker {
   text: string
 }
 
+// Largeur d'axe Y toujours explicite : `width={undefined}` fait calculer des <rect>/<line> en NaN à Recharts (erreurs console).
+const Y_AXIS_WIDTH = 60
+
 export function HistoryTab({
   kpiHistory,
   burnRateSeries,
@@ -59,7 +64,7 @@ export function HistoryTab({
   const { t } = useTranslation("dashboard")
   // Jalons visibles : faits marquants des mois clôturés + journal des décisions, sur les mois présents
   // sur la courbe (libellé « m/aaaa » de kpi-history ; une décision est rangée dans son mois civil)
-  const shownLabels = new Set(kpiHistory.map((p: any) => p.label))
+  const shownLabels = new Set(kpiHistory.map((p) => p.label))
   const markers: Marker[] = [
     ...milestones.map((m) => ({
       key: `closure-${m.year}-${m.month}`,
@@ -85,11 +90,11 @@ export function HistoryTab({
   const markerLabels = Array.from(new Set(visibleMilestones.map((m) => m.label)))
   const isMobile = useIsMobile()
   const margin = isMobile ? { top: 8, right: 12, left: 0, bottom: 4 } : { top: 40, right: 30, left: 20, bottom: 20 }
-  const yWidth = isMobile ? 48 : undefined
+  const yWidth = isMobile ? 48 : Y_AXIS_WIDTH
   const axisFont = isMobile ? 11 : 12
   return (
     <div className="grid grid-cols-1 gap-5 md:gap-8 lg:grid-cols-2">
-      <Card className="shadow-sm border-slate-100 overflow-hidden">
+      <Card className="shadow-xs border-slate-100 overflow-hidden">
         <CardHeader className="bg-slate-50/50 border-b p-4 pb-3 md:p-6 md:pb-4">
           <div className="flex items-center gap-2">
             <HistoryIcon className="h-5 w-5 text-slate-400" />
@@ -107,8 +112,8 @@ export function HistoryTab({
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
               <XAxis dataKey="label" interval="preserveStartEnd" axisLine={false} tickLine={false} tick={{ fontSize: axisFont, fill: '#64748b' }} dy={10} />
               <YAxis width={yWidth} axisLine={false} tickLine={false} tick={{ fontSize: axisFont, fill: '#64748b' }} tickFormatter={(v) => `${v}${displayCurrency === 'EUR' ? '€' : displayCurrency}`} />
-              <Tooltip contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} />
-              <Legend verticalAlign={isMobile ? "bottom" : "top"} height={36} wrapperStyle={isMobile ? { fontSize: 12 } : undefined}/>
+              <Tooltip itemSorter={keepSeriesOrder} contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} />
+              <Legend itemSorter={null} verticalAlign={isMobile ? "bottom" : "top"} height={36} wrapperStyle={isMobile ? { fontSize: 12 } : undefined}/>
               <Area type="monotone" dataKey="revenus" name={t("history.revenues")} stroke="#10b981" fill="url(#colorRev)" strokeWidth={3} />
               <Area type="monotone" dataKey="depenses_reelles" name={t("history.realExpenses")} stroke="#f43f5e" fill="url(#colorDep)" strokeWidth={3} />
               {markerLabels.map((label) => (
@@ -136,7 +141,7 @@ export function HistoryTab({
         )}
       </Card>
 
-      <Card className="shadow-sm border-slate-100 overflow-hidden">
+      <Card className="shadow-xs border-slate-100 overflow-hidden">
         <CardHeader className="bg-slate-50/50 border-b p-4 pb-3 md:p-6 md:pb-4">
           <div className="flex items-center gap-2">
             <Activity className="h-5 w-5 text-slate-400" />
@@ -156,14 +161,14 @@ export function HistoryTab({
                 tick={{ fontSize: axisFont, fill: '#64748b' }} 
               />
               <YAxis width={yWidth} axisLine={false} tickLine={false} tick={{ fontSize: axisFont, fill: '#64748b' }} tickFormatter={(v) => `${v}${displayCurrency === 'EUR' ? '€' : displayCurrency}`} />
-              <Tooltip contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} formatter={(v: number) => i18n.t("misc.perDay", { ns: "dashboard", amount: `${v.toFixed(2)}${displayCurrency === 'EUR' ? '€' : displayCurrency}` })} />
+              <Tooltip itemSorter={keepSeriesOrder} contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} formatter={numberFormatter((v: number) => i18n.t("misc.perDay", { ns: "dashboard", amount: `${v.toFixed(2)}${displayCurrency === 'EUR' ? '€' : displayCurrency}` }))} />
               <Line type="monotone" dataKey="burn_rate" name={t("history.burnName")} stroke="#0f172a" strokeWidth={isMobile ? 3 : 4} dot={{ r: isMobile ? 3 : 4, fill: "#0f172a" }} />
             </LineChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>
 
-      <Card className="shadow-sm border-slate-100 overflow-hidden">
+      <Card className="shadow-xs border-slate-100 overflow-hidden">
         <CardHeader className="bg-slate-50/50 border-b p-4 pb-3 md:p-6 md:pb-4">
           <div className="flex items-center gap-2">
             <Layers className="h-5 w-5 text-slate-400" />
@@ -183,7 +188,7 @@ export function HistoryTab({
                 tick={{ fontSize: axisFont, fill: '#64748b' }} 
               />
               <YAxis width={yWidth} axisLine={false} tickLine={false} tick={{ fontSize: axisFont, fill: '#64748b' }} tickFormatter={(v) => `${v}${displayCurrency === 'EUR' ? '€' : displayCurrency}`} />
-              <Tooltip contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} formatter={(v: number) => formatCurrency(v, displayCurrency)} />
+              <Tooltip itemSorter={keepSeriesOrder} contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} formatter={numberFormatter((v: number) => formatCurrency(v, displayCurrency))} />
               <Line type="stepAfter" dataKey="salary" name={t("history.salaryName")} stroke="#0f172a" strokeWidth={isMobile ? 3 : 4} dot={{ r: isMobile ? 3 : 4, fill: "#0f172a" }} />
             </LineChart>
           </ResponsiveContainer>

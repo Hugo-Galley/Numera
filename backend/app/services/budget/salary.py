@@ -4,12 +4,13 @@ Une seule transaction `Entree` « Salaire » par mois = net − jours de télét
 ticket (aucune transaction TR) ; génération idempotente (`SalaryMonth.is_generated`).
 """
 from datetime import date, datetime
+from typing import Any
 
 from sqlalchemy.orm import Session
 
 from app.core.errors import BusinessRuleError, InvalidOperationError, NotFoundError
 from app.core.i18n import tr
-from app.core.time import utcnow_naive
+from app.core.time import today_local, utcnow_naive
 from app.domain.finance import month_label_from_date
 from app.domain.salary import month_key, salary_amount, salary_note
 from app.models.recurring_transaction import RecurringTransaction
@@ -152,7 +153,7 @@ def _validated_dates(config: SalaryConfig, year: int, month: int, dates: list[da
     return dates
 
 
-def set_telecommuting_days(db: Session, year: int, month: int, data: TelecommutingDaysUpdate) -> dict:
+def set_telecommuting_days(db: Session, year: int, month: int, data: TelecommutingDaysUpdate) -> dict[str, Any]:
     config = _require_config(db)
     month_label = month_key(year, month)
     dates = _validated_dates(config, year, month, data.dates)
@@ -176,7 +177,7 @@ def set_telecommuting_days(db: Session, year: int, month: int, data: Telecommuti
     return {"status": "ok"}
 
 
-def get_month_summary(db: Session, year: int, month: int) -> dict:
+def get_month_summary(db: Session, year: int, month: int) -> dict[str, Any]:
     config = _require_config(db)
     month_label = month_key(year, month)
     month_record = repo.month_record(db, config.id, month_label)
@@ -195,7 +196,7 @@ def get_month_summary(db: Session, year: int, month: int) -> dict:
     }
 
 
-def trigger_generation(db: Session, year: int, month: int) -> dict:
+def trigger_generation(db: Session, year: int, month: int) -> dict[str, Any]:
     """Génère à la main la transaction de salaire d'un mois."""
     config = _require_config(db)
     month_label = month_key(year, month)
@@ -206,14 +207,14 @@ def trigger_generation(db: Session, year: int, month: int) -> dict:
         raise InvalidOperationError(tr("errors.salary_already_generated"))
     # Saisie à l'avance : rien n'est créé avant la date de paie, la tâche de fond
     # (check_and_generate_pending_salaries) enregistre la transaction ce jour-là.
-    if month_record.salary_date > date.today():
+    if month_record.salary_date > today_local():
         return {"status": "scheduled", "salary_date": month_record.salary_date.isoformat()}
     if not generate_salary_transactions(db, config, month_record, month_label):
         raise InvalidOperationError(tr("errors.salary_generation_failed"))
     return {"status": "ok"}
 
 
-def reset_generation(db: Session, year: int, month: int) -> dict:
+def reset_generation(db: Session, year: int, month: int) -> dict[str, Any]:
     """Remet un mois à « non généré » et supprime sa transaction de salaire (libellé ISO ou ancien
     libellé français, récurrente ou orpheline). Les remboursements affectés sont resynchronisés."""
     config = _require_config(db)

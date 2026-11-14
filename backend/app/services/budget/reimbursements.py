@@ -5,8 +5,8 @@ recalcule `transactions.reimbursement_offset` des transactions touchées (`sync_
 retranchent du montant (`repositories/analytics/common.py::NET_AMOUNT`). Aucun montant bancaire n'est modifié.
 """
 from datetime import timedelta
+from typing import Any
 
-from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.core.errors import InvalidOperationError, NotFoundError
@@ -110,10 +110,10 @@ def check_transaction_change(db: Session, tx: Transaction, new_type: str, new_am
 def detach_before_delete(db: Session, tx: Transaction) -> set[int]:
     """Supprime créances et affectations de `tx` ; renvoie les transactions de l'autre côté à resynchroniser."""
     touched: set[int] = set()
-    for claim in db.query(ReimbursementClaim).filter(ReimbursementClaim.transaction_id == tx.id).all():
+    for claim in repo.claims_of(db, tx.id):
         touched.update(a.entree_transaction_id for a in claim.allocations)
         db.delete(claim)
-    for allocation in db.query(ReimbursementAllocation).filter(ReimbursementAllocation.entree_transaction_id == tx.id).all():
+    for allocation in repo.allocations_of_entree(db, tx.id):
         touched.add(allocation.claim.transaction_id)
         db.delete(allocation)
     touched.discard(tx.id)
@@ -138,7 +138,7 @@ def create_claim(db: Session, transaction_id: int, debtor: str, expected_amount:
     return claim
 
 
-def update_claim(db: Session, claim: ReimbursementClaim, data: dict) -> ReimbursementClaim:
+def update_claim(db: Session, claim: ReimbursementClaim, data: dict[str, Any]) -> ReimbursementClaim:
     if data.get("expected_amount") is not None:
         expected = cents(data["expected_amount"])
         if expected <= 0:
@@ -175,11 +175,7 @@ def allocate(db: Session, claim: ReimbursementClaim, entree_id: int, amount: flo
     if account_currency(db, entree) != account_currency(db, sortie):
         _refuse(tr("reimbursements.same_currency"))
 
-    existing = (
-        db.query(ReimbursementAllocation)
-        .filter(ReimbursementAllocation.claim_id == claim.id, ReimbursementAllocation.entree_transaction_id == entree.id)
-        .first()
-    )
+    existing = repo.allocation_between(db, claim.id, entree.id)
     current = cents(existing.amount) if existing else 0.0
     claim_room = cents(claim.expected_amount - (claim_received(db, claim.id) - current))
     entree_room = cents(entree.amount - (entree_allocated(db, entree.id) - current))
@@ -205,7 +201,7 @@ def allocate(db: Session, claim: ReimbursementClaim, entree_id: int, amount: flo
 
 
 def remove_allocation(db: Session, allocation: ReimbursementAllocation) -> None:
-    claim = db.get(ReimbursementClaim, allocation.claim_id)
+    claim = require_claim(db, allocation.claim_id)
     touched = {allocation.entree_transaction_id, claim.transaction_id}
     db.delete(allocation)
     sync_offsets(db, touched)
@@ -216,7 +212,7 @@ def _label(tx: Transaction) -> str:
     return tx.merchant or tx.note or ""
 
 
-def claim_views(db: Session, claims: list[ReimbursementClaim]) -> list[dict]:
+def claim_views(db: Session, claims: list[ReimbursementClaim]) -> list[dict[str, Any]]:
     """Vue de chaque créance : totaux, dépense et affectations lus par lot (3 requêtes quel que soit le nombre de créances)."""
     received_by_id = repo.received_by_claim(db, [c.id for c in claims])
     tx_ids = {c.transaction_id for c in claims} | {a.entree_transaction_id for c in claims for a in c.allocations}
@@ -251,15 +247,12 @@ def claim_views(db: Session, claims: list[ReimbursementClaim]) -> list[dict]:
     return views
 
 
-def claim_view(db: Session, claim: ReimbursementClaim) -> dict:
+def claim_view(db: Session, claim: ReimbursementClaim) -> dict[str, Any]:
     return claim_views(db, [claim])[0]
 
 
-def list_claims(db: Session, status: str = "open", debtor: str | None = None) -> list[dict]:
-    q = db.query(ReimbursementClaim).join(Transaction, ReimbursementClaim.transaction_id == Transaction.id)
-    if debtor:
-        q = q.filter(func.lower(ReimbursementClaim.debtor) == debtor.strip().lower())
-    views = claim_views(db, q.order_by(Transaction.date.desc(), ReimbursementClaim.id).all())
+def list_claims(db: Session, status: str = "open", debtor: str | None = None) -> list[dict[str, Any]]:
+    views = claim_views(db, repo.claims_by_date(db, debtor.strip().lower() if debtor else None))
     if status == "open":
         return [v for v in views if v["remaining"] > EPS]
     if status == "settled":
@@ -267,8 +260,8 @@ def list_claims(db: Session, status: str = "open", debtor: str | None = None) ->
     return views
 
 
-def summary(db: Session) -> dict:
-    by_debtor: dict[str, dict] = {}
+def summary(db: Session) -> dict[str, Any]:
+    by_debtor: dict[str, dict[str, Any]] = {}
     for view in list_claims(db, "open"):
         key = view["debtor"].strip().lower()
         row = by_debtor.setdefault(key, {"debtor": view["debtor"], "claims": 0, "due": 0.0})
@@ -278,26 +271,19 @@ def summary(db: Session) -> dict:
     return {"total_due": cents(sum(r["due"] for r in debtors)), "debtors": debtors}
 
 
-def candidates(db: Session, claim: ReimbursementClaim) -> list[dict]:
+def candidates(db: Session, claim: ReimbursementClaim) -> list[dict[str, Any]]:
     """Entrées qui peuvent solder la créance : débiteur dans le libellé, puis montant exact, puis date."""
     sortie = db.get(Transaction, claim.transaction_id)
+    if sortie is None:
+        raise NotFoundError(tr("errors.transaction_not_found"))
     currency = account_currency(db, sortie)
     remaining = cents(claim.expected_amount - claim_received(db, claim.id))
     debtor = claim.debtor.strip().lower()
     already = {a.entree_transaction_id for a in claim.allocations}
-    rows = (
-        db.query(Transaction)
-        .join(Account, Transaction.account_id == Account.id)
-        .filter(
-            Transaction.type == "Entree",
-            Transaction.is_transfer.is_(False),
-            Account.currency == currency,
-            Transaction.date >= sortie.date - timedelta(days=CANDIDATE_DAYS_BEFORE),
-            Transaction.date <= sortie.date + timedelta(days=CANDIDATE_DAYS_AFTER),
-        )
-        .all()
+    rows = repo.entree_candidates(
+        db, currency, sortie.date - timedelta(days=CANDIDATE_DAYS_BEFORE), sortie.date + timedelta(days=CANDIDATE_DAYS_AFTER)
     )
-    out = []
+    out: list[dict[str, Any]] = []
     for e in rows:
         if e.id in already:
             continue
@@ -315,7 +301,7 @@ def candidates(db: Session, claim: ReimbursementClaim) -> list[dict]:
     return out[:CANDIDATE_LIMIT]
 
 
-def claims_for_entree(db: Session, entree: Transaction) -> dict:
+def claims_for_entree(db: Session, entree: Transaction) -> dict[str, Any]:
     """Créances ouvertes auxquelles affecter `entree` (débiteur reconnu dans le libellé d'abord)."""
     if entree.type != "Entree":
         _refuse(tr("reimbursements.only_entree_repays"))
@@ -323,9 +309,7 @@ def claims_for_entree(db: Session, entree: Transaction) -> dict:
     label = _label(entree).lower()
     open_claims = [v for v in list_claims(db, "open") if v["currency"] == currency]
     open_claims.sort(key=lambda v: (v["debtor"].strip().lower() not in label, v["expense"]["date"]))
-    allocations = (
-        db.query(ReimbursementAllocation).filter(ReimbursementAllocation.entree_transaction_id == entree.id).all()
-    )
+    allocations = repo.allocations_of_entree(db, entree.id)
     return {
         "entree_id": entree.id,
         "amount": cents(entree.amount),
@@ -337,17 +321,17 @@ def claims_for_entree(db: Session, entree: Transaction) -> dict:
     }
 
 
-def create_claim_view(db: Session, payload: ClaimCreate) -> dict:
+def create_claim_view(db: Session, payload: ClaimCreate) -> dict[str, Any]:
     claim = create_claim(db, payload.transaction_id, payload.debtor, payload.expected_amount, payload.note)
     return claim_view(db, claim)
 
 
-def update_claim_view(db: Session, claim_id: int, payload: ClaimUpdate) -> dict:
+def update_claim_view(db: Session, claim_id: int, payload: ClaimUpdate) -> dict[str, Any]:
     claim = update_claim(db, require_claim(db, claim_id), payload.model_dump(exclude_unset=True))
     return claim_view(db, claim)
 
 
-def allocate_view(db: Session, claim_id: int, payload: AllocationCreate) -> dict:
+def allocate_view(db: Session, claim_id: int, payload: AllocationCreate) -> dict[str, Any]:
     claim = require_claim(db, claim_id)
     allocate(db, claim, payload.entree_id, payload.amount)
     return claim_view(db, claim)

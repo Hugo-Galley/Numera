@@ -21,7 +21,7 @@ The Action Center centralises three kinds of flows:
 - First activation: existing actions are marked as known, and a single welcome message is sent. More than 5 new actions → one grouped message. Summary on Sunday after 6 pm (once per ISO week). A failing channel is never marked as sent.
 
 ### Frontend
-- **Page**: `frontend/src/pages/Audit.tsx`, route `/audit` (Action Center).
+- **Page**: `frontend/src/pages/Audit/index.tsx`, route `/audit` (Action Center).
 - **Key components**:
     - `ActionCenter`: handles loading and routing of actions.
     - `TransactionEditor`: inline correction interface for audits.

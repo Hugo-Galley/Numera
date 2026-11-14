@@ -6,7 +6,7 @@ This document gives a technical, operational and architectural overview of the b
 
 ## 1. Tech Stack and Architectural Choices
 
-Numera's backend follows a **local-first and privacy** principle. It runs locally and stores data without relying on third-party cloud services (apart from Frankfurter exchange rates and Yahoo Finance quotes/security profiles).
+Numera's backend follows a **local-first and privacy** principle. It runs locally and stores data without relying on third-party cloud services (apart from Frankfurter exchange rates, Yahoo Finance quotes/security profiles and, only if the user makes use of them, ntfy / Telegram notifications, Google's favicon service for logos and the upload of encrypted backups to a private GitHub repository; reference list: `ARCHITECTURE.md`).
 
 ### The tech stack
 

@@ -1,8 +1,9 @@
-from datetime import date
+from datetime import date, datetime
 
-from sqlalchemy import and_, or_
-from sqlalchemy.orm import Session
+from sqlalchemy import ColumnElement, and_, or_
+from sqlalchemy.orm import Query, Session
 
+from app.models.category import Category
 from app.models.recurring_transaction import RecurringTransaction
 from app.models.salary_config import SalaryConfig
 from app.models.salary_month import SalaryMonth
@@ -42,7 +43,7 @@ def month_record(db: Session, config_id: int, month_label: str) -> SalaryMonth |
     ).first()
 
 
-def _telecommuting(db: Session, config_id: int, month_label: str):
+def _telecommuting(db: Session, config_id: int, month_label: str) -> Query[TelecommutingDay]:
     return db.query(TelecommutingDay).filter(
         TelecommutingDay.salary_config_id == config_id,
         TelecommutingDay.month_label == month_label,
@@ -69,7 +70,7 @@ def salary_transaction(db: Session, salary_recurring_id: int | None, month_label
     ).first()
 
 
-def _orphan_salary_filter(labels: list[str]):
+def _orphan_salary_filter(labels: list[str]) -> ColumnElement[bool]:
     """Anciennes transactions de salaire ou de tickets sans récurrence."""
     return and_(
         Transaction.merchant.in_(SALARY_MERCHANTS),
@@ -94,3 +95,47 @@ def delete_salary_transactions(db: Session, labels: list[str], recurring_ids: li
             Transaction.month_label.in_(labels),
         ).delete(synchronize_session="fetch")
     db.query(Transaction).filter(_orphan_salary_filter(labels)).delete(synchronize_session="fetch")
+
+
+def transaction_of_recurring_on(db: Session, recurring_id: int, when: date) -> Transaction | None:
+    return db.query(Transaction).filter(
+        Transaction.recurring_transaction_id == recurring_id, Transaction.date == when
+    ).first()
+
+
+def latest_month(db: Session, config_id: int) -> SalaryMonth | None:
+    return (
+        db.query(SalaryMonth)
+        .filter(SalaryMonth.salary_config_id == config_id)
+        .order_by(SalaryMonth.salary_date.desc())
+        .first()
+    )
+
+
+def month_labels(db: Session, config_id: int) -> set[str]:
+    return {
+        label for (label,) in db.query(SalaryMonth.month_label).filter(SalaryMonth.salary_config_id == config_id).all()
+    }
+
+
+def has_salary_entry(db: Session, account_id: int, category_id: int | None, start: datetime, end: datetime) -> bool:
+    """Une entrée de salaire (libellé ou catégorie « salaire ») existe sur le compte entre `start` et `end` exclu."""
+    salary_like: list[ColumnElement[bool]] = [Transaction.merchant.ilike("salaire%"), Category.name.ilike("salaire%")]
+    if category_id:
+        salary_like.append(Transaction.category_id == category_id)
+    return db.query(Transaction.id).outerjoin(Category, Category.id == Transaction.category_id).filter(
+        Transaction.account_id == account_id,
+        Transaction.type == "Entree",
+        Transaction.date >= start,
+        Transaction.date < end,
+        or_(*salary_like),
+    ).first() is not None
+
+
+def pending_months(db: Session, config_id: int, recent_since: date, until: date) -> list[SalaryMonth]:
+    """Mois non générés, ou dont la date de paie est récente, jusqu'à `until` inclus."""
+    return db.query(SalaryMonth).filter(
+        SalaryMonth.salary_config_id == config_id,
+        or_(SalaryMonth.is_generated == False, SalaryMonth.salary_date >= recent_since),
+        SalaryMonth.salary_date <= until,
+    ).all()

@@ -10,7 +10,7 @@ description: How to run, write and debug Numera's tests (backend pytest, fronten
 From `backend/` (`PYTHONPATH` is mandatory, otherwise `ModuleNotFoundError: app`):
 
 ```bash
-PYTHONPATH=. python3.11 -m pytest tests -q                       # everything: ~950 tests, ~2 min 40 serially; add -n auto (pytest-xdist): ~80 s
+PYTHONPATH=. python3.11 -m pytest tests -q                       # everything: ~1240 tests, ~2 min 40 serially; add -n auto (pytest-xdist): ~90 s
 PYTHONPATH=. python3.11 -m pytest tests/budget/test_merchants.py -v     # one file
 PYTHONPATH=. python3.11 -m pytest tests/budget/test_tags.py::test_x -v  # one test
 ```
@@ -50,15 +50,15 @@ The test is written **before** the code and must be seen failing (`numera-tdd` s
 
 ```bash
 cd frontend && npm test                                   # everything (vitest run); make test-front from the root
-cd frontend && npx vitest run src/lib/utils.test.ts       # one file
+cd frontend && npx vitest run src/test/lib/utils.test.ts       # one file
 cd frontend && npx vitest run -t "formatCurrency"         # by test name
 cd frontend && npm run test:watch                         # continuous
 cd frontend && npm run build                              # tsc app + tests (0 errors), then vite build
 ```
 
-Both are mandatory: `npm test` does not check types, the build does not run the tests. Conventions (location `X.test.tsx`, `renderWithProviders`, MSW handlers per domain, factories, frozen clock): `frontend/src/CLAUDE.md` § Verification.
+Both are mandatory: `npm test` does not check types, the build does not run the tests. Conventions (location `src/test/<mirror path of src/>/X.test.tsx`, `renderWithProviders`, MSW handlers per domain, factories, frozen clock): `frontend/src/CLAUDE.md` § Verification.
 
-Debugging: "Requête(s) sans handler MSW : GET …" (request(s) without an MSW handler) = add a handler (`server.use(...)` in the test, or `src/test/handlers/<domain>.ts`); `localStorage` undefined under Node ≥ 25 = run through `npm test` / `vitest.config.ts` (option `--no-experimental-webstorage`); an element not found: `screen.debug()`, and `findBy…` for what appears after a request. E2E (Playwright, `make test-e2e`, critical journeys on a throwaway demo database): `frontend/e2e/README.md`. Additional manual checks: privacy mode, toasts, dark theme, mobile.
+Debugging: "Requête(s) sans handler MSW : GET …" (request(s) without an MSW handler) = add a handler (`server.use(...)` in the test, or `src/test/support/handlers/<domain>.ts`); `localStorage` undefined under Node ≥ 25 = run through `npm test` / `vitest.config.ts` (option `--no-experimental-webstorage`); an element not found: `screen.debug()`, and `findBy…` for what appears after a request. E2E (Playwright, `make test-e2e`, ~5 min): user journeys on a throwaway demo database, plus the `security` project (`e2e/security/`, NON-demo backend on `e2e-security.db`, credentials `e2e` / `e2e-security-pass`, fake ntfy and HTTPS proxy refusing any outbound call on port 8103) for what the demo blocks: 2FA (TOTP computed by `totpCode` from `security/support.ts`, step +1 to avoid replay), passkeys (CDP virtual authenticator), MCP tokens (a POST must return 403), backup, notifications; see `frontend/e2e/README.md`. Rules: import `test`/`expect` from `e2e/fixtures.ts` (automatic guard: a JS exception, a console error or an HTTP 5xx fails the scenario), selectors by role/label, no waiting through `sleep`, data created through `unique()`, never an assertion on a demo amount (dated today). A failing E2E often reveals a real bug (invalid HTML, a chart's `NaN`): fix it, do not accept it. Route or journey added = E2E scenario added (and the route in `ROUTES` of `navigation.spec.ts`). Additional manual checks: privacy mode, toasts, dark theme, mobile.
 
 ## Definition of "done"
 

@@ -19,7 +19,7 @@ export function RecurringHeader({ ctx }: { ctx: RecurringTransactionsCtx }) {
             <Button
               variant={recurringView === "analysis" ? "white" : "ghost"}
               size="sm"
-              className={`h-9 flex-1 rounded-lg px-3 text-xs font-bold ${recurringView === "analysis" ? "shadow-sm" : "text-slate-500 hover:text-slate-900"}`}
+              className={`h-9 flex-1 rounded-lg px-3 text-xs font-bold ${recurringView === "analysis" ? "shadow-xs" : "text-slate-500 hover:text-slate-900"}`}
               onClick={() => changeRecurringView("analysis")}
             >
               {t("recurringHeader.analyse")}
@@ -27,7 +27,7 @@ export function RecurringHeader({ ctx }: { ctx: RecurringTransactionsCtx }) {
             <Button
               variant={recurringView === "list" ? "white" : "ghost"}
               size="sm"
-              className={`h-9 flex-1 rounded-lg px-3 text-xs font-bold ${recurringView === "list" ? "shadow-sm" : "text-slate-500 hover:text-slate-900"}`}
+              className={`h-9 flex-1 rounded-lg px-3 text-xs font-bold ${recurringView === "list" ? "shadow-xs" : "text-slate-500 hover:text-slate-900"}`}
               onClick={() => changeRecurringView("list")}
             >
               {t("recurringHeader.liste")}

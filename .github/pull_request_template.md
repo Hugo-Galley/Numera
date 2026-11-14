@@ -31,7 +31,7 @@ Types: feat fix perf refactor test docs build ci chore revert style · `!` befor
 ## Checklist
 
 - [ ] `ARCHITECTURE.md`, `CLAUDE.md` or the relevant skill updated (route, model, command, business rule)
-- [ ] No ratchet threshold lowered (coverage, sizes, mypy, ESLint) and no baseline raised
+- [ ] No ratchet threshold lowered (coverage, sizes, ESLint) and no baseline raised
 - [ ] No floating tag: actions pinned by SHA, images by digest
 - [ ] Reversible migration, tested on an existing database (if schema changed)
 - [ ] Before/after measurements in this description (if optimisation, skill `numera-performance`)

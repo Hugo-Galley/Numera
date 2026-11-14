@@ -1,8 +1,10 @@
 """Historique mensuel des KPI (sparklines) : revenus, dépenses, investissements, épargne."""
 from datetime import datetime
+from typing import Any
 
 from sqlalchemy.orm import Session
 
+from app.core.time import now_local
 from app.domain.metrics import kpi_row, savings_at
 from app.integrations.currency import get_exchange_rates
 from app.models.investment_transaction import InvestmentTransaction
@@ -16,8 +18,8 @@ def _add(totals: dict[str, float], key: str, amount: float) -> None:
     totals[key] = totals.get(key, 0.0) + amount
 
 
-async def compute_kpi_history(db: Session, months_count: int = 6, account_id: int | None = None) -> list[dict]:
-    now = datetime.now()
+async def compute_kpi_history(db: Session, months_count: int = 6, account_id: int | None = None) -> list[dict[str, Any]]:
+    now = now_local()
     savings_ids = savings_account_ids(db)
     if account_id:
         savings_ids = [account_id] if account_id in savings_ids else []
@@ -56,7 +58,7 @@ async def compute_kpi_history(db: Session, months_count: int = 6, account_id: in
 
 
 def _monthly_maps(db: Session, start: datetime, end: datetime, account_id: int | None, tr_accounts: set[int],
-                  rates: dict) -> dict[str, dict[str, float]]:
+                  rates: dict[str, Any]) -> dict[str, dict[str, float]]:
     """Totaux EUR par mois budgétaire : revenus, intérêts, dépenses, investissements, sorties catégorisées investies."""
     maps: dict[str, dict[str, float]] = {name: {} for name in ("rev", "dep", "inte", "inv", "cat_inv")}
     tx_label = period_key_expr(db, Transaction.date, start, end).label("m_label")

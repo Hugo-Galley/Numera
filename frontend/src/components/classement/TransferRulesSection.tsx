@@ -19,10 +19,11 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
-import { api } from "@/lib/api"
 import { formatCurrency } from "@/lib/utils"
 import type { AccountLite, TransferApplyResult, TransferRule } from "@/types/transfers"
 import { useConfirm } from "@/providers/ConfirmProvider"
+import { getAccounts } from "@/lib/api/accounts"
+import { deleteTransferRulesById, getTransferRules, patchTransferRulesById, postTransferRules, postTransferRulesApply } from "@/lib/api/classement"
 
 const EMPTY_FORM = { source: "", dest: "", pattern: "", amount: "", tolerance: "1", days: "5" }
 
@@ -43,8 +44,8 @@ export function TransferRulesSection() {
     setLoading(true)
     try {
       const [r, accs] = await Promise.all([
-        api.get<TransferRule[]>("/transfer-rules"),
-        api.get<AccountLite[]>("/accounts"),
+        getTransferRules<TransferRule[]>(),
+        getAccounts<AccountLite[]>(),
       ])
       setRules(r)
       setAccounts(accs)
@@ -96,10 +97,10 @@ export function TransferRulesSection() {
     }
     try {
       if (editingId === null) {
-        await api.post("/transfer-rules", payload)
+        await postTransferRules(payload)
         toast.success(t("transferRulesSection.regleCreee"))
       } else {
-        await api.patch(`/transfer-rules/${editingId}`, payload)
+        await patchTransferRulesById(editingId, payload)
         toast.success(t("transferRulesSection.regleModifiee"))
       }
       setFormOpen(false)
@@ -113,7 +114,7 @@ export function TransferRulesSection() {
 
   async function toggleRule(rule: TransferRule) {
     try {
-      await api.patch(`/transfer-rules/${rule.id}`, { is_active: !rule.is_active })
+      await patchTransferRulesById(rule.id, { is_active: !rule.is_active })
       loadData()
     } catch {
       toast.error(t("transferRulesSection.echecDeLAction"))
@@ -123,7 +124,7 @@ export function TransferRulesSection() {
   async function deleteRule(rule: TransferRule) {
     if (!(await confirm(t("transferRulesSection.supprimerCetteRegleLesVirements")))) return
     try {
-      await api.delete(`/transfer-rules/${rule.id}`)
+      await deleteTransferRulesById(rule.id)
       toast.success(t("transferRulesSection.regleSupprimee"))
       loadData()
     } catch {
@@ -133,7 +134,7 @@ export function TransferRulesSection() {
 
   async function previewCatchUp() {
     try {
-      const result = await api.post<TransferApplyResult>("/transfer-rules/apply?dry_run=true", {})
+      const result = await postTransferRulesApply<TransferApplyResult>("?dry_run=true", {})
       if (result.count === 0) {
         toast.info(t("transferRulesSection.aucunVirementARattraperAvec"))
         return
@@ -146,7 +147,7 @@ export function TransferRulesSection() {
 
   async function applyCatchUp() {
     try {
-      const result = await api.post<TransferApplyResult>("/transfer-rules/apply", {})
+      const result = await postTransferRulesApply<TransferApplyResult>("", {})
       toast.success(i18n.t("misc.transfersLinked", { ns: "classement", count: result.count }))
       setPreview(null)
       loadData()
@@ -201,13 +202,13 @@ export function TransferRulesSection() {
 
         <div className="grid gap-3">
           {rules.map((rule) => (
-            <Card key={rule.id} className="border-slate-100 shadow-sm">
+            <Card key={rule.id} className="border-slate-100 shadow-xs">
               <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="min-w-0 space-y-1">
                   <p className="flex flex-wrap items-center gap-x-2 font-bold text-slate-900">
-                    <span className="break-words">{accountName(rule.source_account_id)}</span>
+                    <span className="wrap-break-word">{accountName(rule.source_account_id)}</span>
                     <ArrowRight className="h-4 w-4 shrink-0 text-indigo-400" />
-                    <span className="break-words">{accountName(rule.dest_account_id)}</span>
+                    <span className="wrap-break-word">{accountName(rule.dest_account_id)}</span>
                   </p>
                   <p className="text-xs text-slate-500">
                     {rule.pattern ? i18n.t("misc.labelContains", { ns: "classement", pattern: rule.pattern }) : t("transferRulesSection.toutLibelle")}

@@ -8,11 +8,13 @@ dont le montant attendu est le plus proche. La génération des entrées proviso
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import date, datetime, time, timedelta
+from typing import Any
 
 from sqlalchemy.orm import Session
 
 from app.core.errors import BusinessRuleError, NotFoundError
 from app.core.i18n import tr
+from app.core.time import today_local
 from app.domain import benefits as calc
 from app.models.benefit import Benefit
 from app.models.transaction import Transaction
@@ -53,7 +55,7 @@ def _payments_by_benefit(db: Session, benefits: list[Benefit], today: date) -> d
 
 def compute_states(db: Session, today: date | None = None) -> list[BenefitState]:
     """État de toutes les aides (le rattachement des versements se fait entre toutes les aides)."""
-    today = today or date.today()
+    today = today or today_local()
     benefits = repo.list_ordered(db)
     payments = _payments_by_benefit(db, benefits, today)
     states = []
@@ -68,12 +70,12 @@ def compute_states(db: Session, today: date | None = None) -> list[BenefitState]
     return states
 
 
-def _payment(t: Transaction) -> dict:
+def _payment(t: Transaction) -> dict[str, Any]:
     return {"transaction_id": t.id, "date": t.date.date(), "amount": round(t.amount, 2), "merchant": t.merchant}
 
 
-def to_read(st: BenefitState, today: date | None = None) -> dict:
-    today = today or date.today()
+def to_read(st: BenefitState, today: date | None = None) -> dict[str, Any]:
+    today = today or today_local()
     b = st.benefit
     last = st.payments[0] if st.payments else None
     return {
@@ -96,7 +98,7 @@ def to_read(st: BenefitState, today: date | None = None) -> dict:
         "expected_date": st.expected_date,
         "next_payment_date": st.next_payment_date,
         "last_payment": _payment(last) if last else None,
-        "amount_changed": bool(last) and calc.amount_changed(b.amount, last.amount),
+        "amount_changed": last is not None and calc.amount_changed(b.amount, last.amount),
         "received_this_year": round(sum(t.amount for t in st.payments if t.date.year == today.year), 2),
         "payments": [_payment(t) for t in st.payments[:PAYMENTS_SHOWN]],
         "declaration_days_left": st.declaration_days_left,
@@ -110,19 +112,19 @@ def _require(db: Session, benefit_id: int) -> Benefit:
     return benefit
 
 
-def _read(db: Session, benefit_id: int) -> dict:
+def _read(db: Session, benefit_id: int) -> dict[str, Any]:
     return next(to_read(st) for st in compute_states(db) if st.benefit.id == benefit_id)
 
 
-def list_benefits(db: Session) -> list[dict]:
+def list_benefits(db: Session) -> list[dict[str, Any]]:
     return [to_read(st) for st in compute_states(db)]
 
 
-def benefits_summary(db: Session, today: date | None = None) -> dict:
-    today = today or date.today()
+def benefits_summary(db: Session, today: date | None = None) -> dict[str, Any]:
+    today = today or today_local()
     states = [st for st in compute_states(db, today) if st.benefit.active]
     year_ago = datetime.combine(today - timedelta(days=365), time.min)
-    declarations = sorted((st for st in states if st.declaration_days_left is not None), key=lambda st: st.declaration_days_left)
+    declarations = sorted((st for st in states if st.declaration_days_left is not None), key=lambda st: st.declaration_days_left or 0)
     return {
         "monthly_expected_total": round(sum(st.benefit.amount for st in states), 2),
         "received_this_year": round(sum(t.amount for st in states for t in st.payments if t.date.year == today.year), 2),
@@ -142,7 +144,7 @@ def _check_generation(auto_generate: bool, account_id: int | None) -> None:
         raise BusinessRuleError(tr("errors.benefit_choose_account"))
 
 
-def create_benefit(db: Session, payload: BenefitCreate) -> dict:
+def create_benefit(db: Session, payload: BenefitCreate) -> dict[str, Any]:
     if payload.account_id is not None and not repo.account_exists(db, payload.account_id):
         raise NotFoundError(tr("errors.account_not_found"))
     _check_declaration(payload.declaration_interval_months, payload.next_declaration_date)
@@ -153,7 +155,7 @@ def create_benefit(db: Session, payload: BenefitCreate) -> dict:
     return _read(db, benefit.id)
 
 
-def update_benefit(db: Session, benefit_id: int, payload: BenefitUpdate) -> dict:
+def update_benefit(db: Session, benefit_id: int, payload: BenefitUpdate) -> dict[str, Any]:
     benefit = _require(db, benefit_id)
     data = payload.model_dump(exclude_unset=True)
     if data.get("account_id") is not None and not repo.account_exists(db, data["account_id"]):
@@ -172,9 +174,9 @@ def update_benefit(db: Session, benefit_id: int, payload: BenefitUpdate) -> dict
     return _read(db, benefit.id)
 
 
-def mark_declared(db: Session, benefit_id: int, payload: BenefitDeclared, today: date | None = None) -> dict:
+def mark_declared(db: Session, benefit_id: int, payload: BenefitDeclared, today: date | None = None) -> dict[str, Any]:
     """Déclaration faite : la prochaine échéance avance d'un intervalle (et le montant notifié est repris)."""
-    today = today or date.today()
+    today = today or today_local()
     benefit = _require(db, benefit_id)
     if benefit.declaration_interval_months is None or benefit.next_declaration_date is None:
         raise BusinessRuleError(tr("errors.benefit_no_declaration"))

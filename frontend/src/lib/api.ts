@@ -9,9 +9,9 @@ export const API_BASE = import.meta.env.VITE_API_BASE ?? (import.meta.env.DEV ? 
 
 export class ApiError extends Error {
   status: number
-  detail: any
+  detail: unknown
 
-  constructor(status: number, message: string, detail?: any) {
+  constructor(status: number, message: string, detail?: unknown) {
     super(message)
     this.name = "ApiError"
     this.status = status
@@ -46,20 +46,25 @@ async function refreshTokenIfNeeded(): Promise<void> {
 }
 
 /** Message lisible pour l'utilisateur à partir d'une réponse d'erreur (jamais « [object Object] »). */
-function formatErrorMessage(response: Response, errorData: any): string {
+/** Corps d'erreur FastAPI : `detail` est une chaîne, une liste d'erreurs de validation ou un objet. */
+type ErrorBody = { detail?: unknown; message?: unknown } | null | undefined
+type ValidationDetail = { loc?: unknown; msg?: string }
+
+function formatErrorMessage(response: Response, errorData: ErrorBody): string {
   const detail = errorData?.detail
   if (typeof detail === "string" && detail) return detail
   if (Array.isArray(detail) && detail.length > 0) {
     // Erreurs de validation FastAPI : « champ : message »
     return detail
-      .map((d: any) => {
-        const field = Array.isArray(d?.loc) ? d.loc.filter((p: any) => p !== "body" && p !== "query").join(".") : ""
-        const text = d?.msg || (typeof d === "string" ? d : JSON.stringify(d))
+      .map((d: ValidationDetail | string) => {
+        const loc = typeof d === "string" ? undefined : d?.loc
+        const field = Array.isArray(loc) ? loc.filter((p) => p !== "body" && p !== "query").join(".") : ""
+        const text = (typeof d === "string" ? undefined : d?.msg) || (typeof d === "string" ? d : JSON.stringify(d))
         return field ? `${field} : ${text}` : text
       })
       .join(" ; ")
   }
-  if (detail && typeof detail === "object") return detail.message || detail.detail || i18n.t("errors.requestRefused", { ns: "common" })
+  if (detail && typeof detail === "object") return (detail as { message?: string; detail?: string }).message || (detail as { detail?: string }).detail || i18n.t("errors.requestRefused", { ns: "common" })
   if (typeof errorData?.message === "string" && errorData.message) return errorData.message
   if (response.status >= 500) return i18n.t("errors.serverError", { ns: "common", status: response.status })
   return response.statusText || i18n.t("errors.generic", { ns: "common" })
@@ -142,12 +147,12 @@ export async function apiDownload(endpoint: string): Promise<Blob> {
 }
 
 export const api = {
-  get: <T = any>(endpoint: string) => cachedRead<T>(endpoint, () => apiFetch<T>(endpoint)),
-  post: <T = any>(endpoint: string, body?: any) => apiFetch<T>(endpoint, { method: "POST", body: JSON.stringify(body) }),
-  put: <T = any>(endpoint: string, body: any) => apiFetch<T>(endpoint, { method: "PUT", body: JSON.stringify(body) }),
-  patch: <T = any>(endpoint: string, body: any) => apiFetch<T>(endpoint, { method: "PATCH", body: JSON.stringify(body) }),
-  delete: <T = any>(endpoint: string, body?: any) =>
+  get: <T = unknown>(endpoint: string) => cachedRead<T>(endpoint, () => apiFetch<T>(endpoint)),
+  post: <T = unknown>(endpoint: string, body?: unknown) => apiFetch<T>(endpoint, { method: "POST", body: JSON.stringify(body) }),
+  put: <T = unknown>(endpoint: string, body: unknown) => apiFetch<T>(endpoint, { method: "PUT", body: JSON.stringify(body) }),
+  patch: <T = unknown>(endpoint: string, body: unknown) => apiFetch<T>(endpoint, { method: "PATCH", body: JSON.stringify(body) }),
+  delete: <T = unknown>(endpoint: string, body?: unknown) =>
     apiFetch<T>(endpoint, body === undefined ? { method: "DELETE" } : { method: "DELETE", body: JSON.stringify(body) }),
-  upload: <T = any>(endpoint: string, formData: FormData) => apiFetch<T>(endpoint, { method: "POST", body: formData }),
+  upload: <T = unknown>(endpoint: string, formData: FormData) => apiFetch<T>(endpoint, { method: "POST", body: formData }),
   download: apiDownload,
 }

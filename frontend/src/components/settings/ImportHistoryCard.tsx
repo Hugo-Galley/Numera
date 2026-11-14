@@ -6,7 +6,7 @@ import { ChevronDown, ChevronUp, History } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { api } from "@/lib/api"
+import { getImportLogs } from "@/lib/api/settings"
 
 type ImportLog = {
   id: number
@@ -25,7 +25,7 @@ export function ImportHistoryCard() {
   const [showLogs, setShowLogs] = useState(false)
 
   useEffect(() => {
-    api.get<ImportLog[]>("/import/logs")
+    getImportLogs<ImportLog[]>()
       .then((logs) => { if (Array.isArray(logs)) setImportLogs(logs) })
       .catch(() => setImportLogs([]))
   }, [])
@@ -55,7 +55,7 @@ export function ImportHistoryCard() {
         {showLogs && (
           <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
             {importLogs.map((log) => (
-              <Card key={log.id} className="shadow-sm border-slate-100 group hover:border-slate-200 transition-all">
+              <Card key={log.id} className="shadow-xs border-slate-100 group hover:border-slate-200 transition-all">
                 <CardHeader className="p-4 pb-2">
                   <div className="flex justify-between items-start gap-2">
                     <div className="min-w-0">

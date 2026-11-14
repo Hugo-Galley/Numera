@@ -66,7 +66,7 @@ export function CloseStep({
           </div>
           <div className="col-span-2">
             <dt className="text-slate-500">{t("closeStep.faitMarquant")}</dt>
-            <dd className="break-words font-medium">{highlight.trim() || "—"}</dd>
+            <dd className="wrap-break-word font-medium">{highlight.trim() || "—"}</dd>
           </div>
         </dl>
 

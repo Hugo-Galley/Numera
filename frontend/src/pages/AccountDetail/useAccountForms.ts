@@ -1,9 +1,8 @@
 import { nowLocalInput, todayLocal } from "@/lib/dates"
 import { useState } from "react"
-import type { useAccountDetailState } from "./useAccountDetailState"
 
 /** État des formulaires (transaction, snapshot, flux d'investissement, point zéro). */
-export function useAccountForms(p: ReturnType<typeof useAccountDetailState>) {
+export function useAccountForms() {
   const [txOpen, setTxOpen] = useState(false)
   const [editTxId, setEditTxId] = useState<number | null>(null)
   const [txDate, setTxDate] = useState(() => nowLocalInput())

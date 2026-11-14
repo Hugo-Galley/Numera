@@ -46,9 +46,9 @@ export function PointZeroRows({ ctx }: { ctx: PointZeroModalCtx }) {
                 {/* Mobile : carte */}
                 <div className="space-y-3 p-3 md:hidden">
                   <div className="flex items-start gap-2.5">
-                    <CompanyLogo ticker={row.ticker} name={row.asset_name} isin={row.isin} className="h-9 w-9 rounded-md shrink-0 shadow-2xs" />
+                    <CompanyLogo ticker={row.ticker} name={row.asset_name} isin={row.isin ?? undefined} className="h-9 w-9 rounded-md shrink-0 shadow-2xs" />
                     <div className="min-w-0 flex-1">
-                      <div className="break-words text-sm font-semibold leading-snug text-slate-900">{row.asset_name || row.ticker}</div>
+                      <div className="wrap-break-word text-sm font-semibold leading-snug text-slate-900">{row.asset_name || row.ticker}</div>
                       <div className="mt-0.5 flex flex-wrap items-center gap-1.5">
                         <span className="font-mono text-[11px] text-slate-500">{row.ticker}{row.isin ? ` • ${row.isin}` : ""}</span>
                         <Badge variant={row.is_etf ? "secondary" : "outline"} className="px-1.5 py-0 text-[10px] font-normal">{row.is_etf ? "ETF" : t("pointZeroRows.action")}</Badge>
@@ -89,7 +89,7 @@ export function PointZeroRows({ ctx }: { ctx: PointZeroModalCtx }) {
                     <CompanyLogo
                       ticker={row.ticker}
                       name={row.asset_name}
-                      isin={row.isin}
+                      isin={row.isin ?? undefined}
                       className="h-7 w-7 rounded-md shrink-0 shadow-2xs"
                     />
                     <div className="flex flex-col min-w-0">

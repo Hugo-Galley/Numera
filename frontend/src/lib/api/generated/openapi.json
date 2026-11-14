@@ -225,6 +225,46 @@
     "title": "AccountCreate",
     "type": "object"
    },
+   "AccountFlowSummary": {
+    "properties": {
+     "avg_expense": {
+      "title": "Avg Expense",
+      "type": "number"
+     },
+     "currency": {
+      "title": "Currency",
+      "type": "string"
+     },
+     "monthly_net_flow": {
+      "title": "Monthly Net Flow",
+      "type": "number"
+     },
+     "monthly_variation": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Monthly Variation"
+     },
+     "prev_monthly_net_flow": {
+      "title": "Prev Monthly Net Flow",
+      "type": "number"
+     }
+    },
+    "required": [
+     "currency",
+     "monthly_net_flow",
+     "prev_monthly_net_flow",
+     "monthly_variation",
+     "avg_expense"
+    ],
+    "title": "AccountFlowSummary",
+    "type": "object"
+   },
    "AccountRead": {
     "properties": {
      "active": {
@@ -881,6 +921,94 @@
     "title": "AdminProfileUpdate",
     "type": "object"
    },
+   "AllocationAccount": {
+    "properties": {
+     "account_id": {
+      "title": "Account Id",
+      "type": "integer"
+     },
+     "account_name": {
+      "title": "Account Name",
+      "type": "string"
+     },
+     "currency": {
+      "title": "Currency",
+      "type": "string"
+     },
+     "current_value": {
+      "title": "Current Value",
+      "type": "number"
+     },
+     "gain_eur": {
+      "title": "Gain Eur",
+      "type": "number"
+     },
+     "net_invested": {
+      "title": "Net Invested",
+      "type": "number"
+     },
+     "percentage": {
+      "title": "Percentage",
+      "type": "number"
+     },
+     "performance_pct": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Performance Pct"
+     },
+     "value_source": {
+      "title": "Value Source",
+      "type": "string"
+     }
+    },
+    "required": [
+     "account_id",
+     "account_name",
+     "current_value",
+     "net_invested",
+     "gain_eur",
+     "performance_pct",
+     "percentage",
+     "currency",
+     "value_source"
+    ],
+    "title": "AllocationAccount",
+    "type": "object"
+   },
+   "AllocationAccountShare": {
+    "properties": {
+     "account_id": {
+      "title": "Account Id",
+      "type": "integer"
+     },
+     "account_name": {
+      "title": "Account Name",
+      "type": "string"
+     },
+     "percentage_of_group": {
+      "title": "Percentage Of Group",
+      "type": "number"
+     },
+     "value": {
+      "title": "Value",
+      "type": "number"
+     }
+    },
+    "required": [
+     "account_id",
+     "account_name",
+     "value",
+     "percentage_of_group"
+    ],
+    "title": "AllocationAccountShare",
+    "type": "object"
+   },
    "AllocationAdvice": {
     "description": "Étape de l'ordre de remplissage conseillé ; `account_id = None` = enveloppe à ouvrir.",
     "properties": {
@@ -974,6 +1102,37 @@
     "title": "AllocationCreate",
     "type": "object"
    },
+   "AllocationGroup": {
+    "properties": {
+     "items": {
+      "items": {
+       "$ref": "#/components/schemas/AllocationAccountShare"
+      },
+      "title": "Items",
+      "type": "array"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "percentage": {
+      "title": "Percentage",
+      "type": "number"
+     },
+     "value": {
+      "title": "Value",
+      "type": "number"
+     }
+    },
+    "required": [
+     "name",
+     "value",
+     "percentage",
+     "items"
+    ],
+    "title": "AllocationGroup",
+    "type": "object"
+   },
    "AllocationRead": {
     "properties": {
      "account_id": {
@@ -1029,6 +1188,38 @@
      "amount"
     ],
     "title": "AllocationRead",
+    "type": "object"
+   },
+   "AllocationSuggestions": {
+    "properties": {
+     "asset_classes": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Asset Classes",
+      "type": "array"
+     },
+     "geographic_zones": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Geographic Zones",
+      "type": "array"
+     },
+     "sectors": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Sectors",
+      "type": "array"
+     }
+    },
+    "required": [
+     "asset_classes",
+     "sectors",
+     "geographic_zones"
+    ],
+    "title": "AllocationSuggestions",
     "type": "object"
    },
    "AnnualReport": {
@@ -1131,6 +1322,62 @@
     "title": "ApplyCostsRequest",
     "type": "object"
    },
+   "AuditIssueDetails": {
+    "description": "Détail d'un point d'audit. Une seule des trois listes est présente selon `issue_id`\n(servi avec `response_model_exclude_unset=True`).",
+    "properties": {
+     "duplicate_groups": {
+      "anyOf": [
+       {
+        "items": {
+         "$ref": "#/components/schemas/DuplicateGroup"
+        },
+        "type": "array"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Duplicate Groups"
+     },
+     "issue_id": {
+      "title": "Issue Id",
+      "type": "string"
+     },
+     "transactions": {
+      "anyOf": [
+       {
+        "items": {
+         "$ref": "#/components/schemas/TransactionRead"
+        },
+        "type": "array"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Transactions"
+     },
+     "transfer_pairs": {
+      "anyOf": [
+       {
+        "items": {
+         "$ref": "#/components/schemas/TransferPair"
+        },
+        "type": "array"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Transfer Pairs"
+     }
+    },
+    "required": [
+     "issue_id"
+    ],
+    "title": "AuditIssueDetails",
+    "type": "object"
+   },
    "AutoDecomposeRequest": {
     "properties": {
      "isin": {
@@ -1164,6 +1411,24 @@
      "symbol"
     ],
     "title": "AutoDecomposeRequest",
+    "type": "object"
+   },
+   "BackupRunResult": {
+    "properties": {
+     "github": {
+      "title": "Github",
+      "type": "boolean"
+     },
+     "ok": {
+      "title": "Ok",
+      "type": "boolean"
+     }
+    },
+    "required": [
+     "ok",
+     "github"
+    ],
+    "title": "BackupRunResult",
     "type": "object"
    },
    "BackupStatus": {
@@ -1296,6 +1561,29 @@
      "configured"
     ],
     "title": "BackupStatus",
+    "type": "object"
+   },
+   "BalancePoint": {
+    "properties": {
+     "account_id": {
+      "title": "Account Id",
+      "type": "integer"
+     },
+     "date": {
+      "title": "Date",
+      "type": "string"
+     },
+     "running_balance": {
+      "title": "Running Balance",
+      "type": "number"
+     }
+    },
+    "required": [
+     "account_id",
+     "date",
+     "running_balance"
+    ],
+    "title": "BalancePoint",
     "type": "object"
    },
    "BalanceSnapshotCreate": {
@@ -2334,6 +2622,163 @@
     "title": "BudgetAlert",
     "type": "object"
    },
+   "BudgetOverview": {
+    "properties": {
+     "base_currency": {
+      "title": "Base Currency",
+      "type": "string"
+     },
+     "burn_rate": {
+      "title": "Burn Rate",
+      "type": "number"
+     },
+     "depenses_reelles": {
+      "title": "Depenses Reelles",
+      "type": "number"
+     },
+     "depenses_totales": {
+      "title": "Depenses Totales",
+      "type": "number"
+     },
+     "epargne_realisee": {
+      "title": "Epargne Realisee",
+      "type": "number"
+     },
+     "epargne_total": {
+      "title": "Epargne Total",
+      "type": "number"
+     },
+     "interets_totaux": {
+      "title": "Interets Totaux",
+      "type": "number"
+     },
+     "investissements_du_mois": {
+      "title": "Investissements Du Mois",
+      "type": "number"
+     },
+     "month": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Month"
+     },
+     "patrimoine_net_total": {
+      "title": "Patrimoine Net Total",
+      "type": "number"
+     },
+     "reste_tresorerie": {
+      "title": "Reste Tresorerie",
+      "type": "number"
+     },
+     "revenus_apres_depenses": {
+      "title": "Revenus Apres Depenses",
+      "type": "number"
+     },
+     "revenus_totaux": {
+      "title": "Revenus Totaux",
+      "type": "number"
+     },
+     "solde_actuel": {
+      "title": "Solde Actuel",
+      "type": "number"
+     },
+     "taux_epargne": {
+      "title": "Taux Epargne",
+      "type": "number"
+     },
+     "year": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Year"
+     }
+    },
+    "required": [
+     "month",
+     "year",
+     "base_currency",
+     "revenus_totaux",
+     "interets_totaux",
+     "depenses_totales",
+     "depenses_reelles",
+     "investissements_du_mois",
+     "revenus_apres_depenses",
+     "epargne_realisee",
+     "reste_tresorerie",
+     "taux_epargne",
+     "burn_rate",
+     "patrimoine_net_total",
+     "epargne_total",
+     "solde_actuel"
+    ],
+    "title": "BudgetOverview",
+    "type": "object"
+   },
+   "BudgetPeriod": {
+    "properties": {
+     "current": {
+      "$ref": "#/components/schemas/BudgetPeriodCurrent"
+     },
+     "end": {
+      "title": "End",
+      "type": "string"
+     },
+     "mode": {
+      "title": "Mode",
+      "type": "string"
+     },
+     "month": {
+      "title": "Month",
+      "type": "integer"
+     },
+     "start": {
+      "title": "Start",
+      "type": "string"
+     },
+     "year": {
+      "title": "Year",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "year",
+     "month",
+     "mode",
+     "start",
+     "end",
+     "current"
+    ],
+    "title": "BudgetPeriod",
+    "type": "object"
+   },
+   "BudgetPeriodCurrent": {
+    "properties": {
+     "month": {
+      "title": "Month",
+      "type": "integer"
+     },
+     "year": {
+      "title": "Year",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "year",
+     "month"
+    ],
+    "title": "BudgetPeriodCurrent",
+    "type": "object"
+   },
    "BudgetPeriodModeUpdate": {
     "properties": {
      "mode": {
@@ -2428,6 +2873,189 @@
      "top_expenses"
     ],
     "title": "BudgetStep",
+    "type": "object"
+   },
+   "Calendar": {
+    "properties": {
+     "daily_balances": {
+      "items": {
+       "$ref": "#/components/schemas/CalendarDailyBalance"
+      },
+      "title": "Daily Balances",
+      "type": "array"
+     },
+     "events": {
+      "items": {
+       "$ref": "#/components/schemas/CalendarEvent"
+      },
+      "title": "Events",
+      "type": "array"
+     },
+     "month": {
+      "title": "Month",
+      "type": "integer"
+     },
+     "year": {
+      "title": "Year",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "month",
+     "year",
+     "events",
+     "daily_balances"
+    ],
+    "title": "Calendar",
+    "type": "object"
+   },
+   "CalendarDailyBalance": {
+    "properties": {
+     "balance": {
+      "title": "Balance",
+      "type": "number"
+     },
+     "date": {
+      "title": "Date",
+      "type": "string"
+     }
+    },
+    "required": [
+     "date",
+     "balance"
+    ],
+    "title": "CalendarDailyBalance",
+    "type": "object"
+   },
+   "CalendarEvent": {
+    "description": "Transaction réelle, opération de placement ou occurrence projetée d'une récurrence.",
+    "properties": {
+     "account_id": {
+      "title": "Account Id",
+      "type": "integer"
+     },
+     "amount": {
+      "title": "Amount",
+      "type": "number"
+     },
+     "category_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Category Id"
+     },
+     "currency": {
+      "title": "Currency",
+      "type": "string"
+     },
+     "date": {
+      "title": "Date",
+      "type": "string"
+     },
+     "id": {
+      "title": "Id",
+      "type": "string"
+     },
+     "is_projected": {
+      "title": "Is Projected",
+      "type": "boolean"
+     },
+     "is_upcoming": {
+      "title": "Is Upcoming",
+      "type": "boolean"
+     },
+     "logo": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Logo"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "quantity": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Quantity"
+     },
+     "recurring_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Recurring Id"
+     },
+     "running_balance": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Running Balance"
+     },
+     "ticker": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Ticker"
+     },
+     "type": {
+      "title": "Type",
+      "type": "string"
+     },
+     "unit_price": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Unit Price"
+     }
+    },
+    "required": [
+     "id",
+     "date",
+     "name",
+     "amount",
+     "type",
+     "is_projected",
+     "is_upcoming",
+     "currency",
+     "account_id"
+    ],
+    "title": "CalendarEvent",
     "type": "object"
    },
    "CandidateRead": {
@@ -2812,6 +3440,28 @@
     "title": "CategoryCreate",
     "type": "object"
    },
+   "CategoryExpense": {
+    "properties": {
+     "category": {
+      "$ref": "#/components/schemas/CategoryRef"
+     },
+     "percentage": {
+      "title": "Percentage",
+      "type": "number"
+     },
+     "total": {
+      "title": "Total",
+      "type": "number"
+     }
+    },
+    "required": [
+     "category",
+     "total",
+     "percentage"
+    ],
+    "title": "CategoryExpense",
+    "type": "object"
+   },
    "CategoryRead": {
     "properties": {
      "annual_limit": {
@@ -2895,6 +3545,79 @@
      "id"
     ],
     "title": "CategoryRead",
+    "type": "object"
+   },
+   "CategoryRef": {
+    "properties": {
+     "annual_limit": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Annual Limit"
+     },
+     "color": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Color"
+     },
+     "icon": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Icon"
+     },
+     "id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Id"
+     },
+     "monthly_limit": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Monthly Limit"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     }
+    },
+    "required": [
+     "id",
+     "name",
+     "icon",
+     "color",
+     "monthly_limit",
+     "annual_limit"
+    ],
+    "title": "CategoryRef",
     "type": "object"
    },
    "CategoryUpdate": {
@@ -3622,6 +4345,521 @@
     "title": "DismissInsightRequest",
     "type": "object"
    },
+   "DiversityAlert": {
+    "properties": {
+     "category": {
+      "title": "Category",
+      "type": "string"
+     },
+     "item_name": {
+      "title": "Item Name",
+      "type": "string"
+     },
+     "message": {
+      "title": "Message",
+      "type": "string"
+     },
+     "title": {
+      "title": "Title",
+      "type": "string"
+     },
+     "type": {
+      "title": "Type",
+      "type": "string"
+     },
+     "value_pct": {
+      "title": "Value Pct",
+      "type": "number"
+     }
+    },
+    "required": [
+     "type",
+     "category",
+     "title",
+     "message",
+     "item_name",
+     "value_pct"
+    ],
+    "title": "DiversityAlert",
+    "type": "object"
+   },
+   "DiversityCompany": {
+    "properties": {
+     "direct_value_eur": {
+      "title": "Direct Value Eur",
+      "type": "number"
+     },
+     "has_overlap": {
+      "title": "Has Overlap",
+      "type": "boolean"
+     },
+     "indirect_value_eur": {
+      "title": "Indirect Value Eur",
+      "type": "number"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "pct_stocks": {
+      "title": "Pct Stocks",
+      "type": "number"
+     },
+     "pct_total_wealth": {
+      "title": "Pct Total Wealth",
+      "type": "number"
+     },
+     "sources": {
+      "items": {
+       "$ref": "#/components/schemas/DiversitySource"
+      },
+      "title": "Sources",
+      "type": "array"
+     },
+     "ticker": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Ticker"
+     },
+     "total_value_eur": {
+      "title": "Total Value Eur",
+      "type": "number"
+     }
+    },
+    "required": [
+     "name",
+     "ticker",
+     "direct_value_eur",
+     "indirect_value_eur",
+     "total_value_eur",
+     "pct_stocks",
+     "pct_total_wealth",
+     "sources",
+     "has_overlap"
+    ],
+    "title": "DiversityCompany",
+    "type": "object"
+   },
+   "DiversityComposition": {
+    "properties": {
+     "profile_id": {
+      "title": "Profile Id",
+      "type": "integer"
+     },
+     "profile_name": {
+      "title": "Profile Name",
+      "type": "string"
+     },
+     "refreshed_at": {
+      "anyOf": [
+       {
+        "format": "date-time",
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Refreshed At"
+     },
+     "sources": {
+      "additionalProperties": {
+       "type": "string"
+      },
+      "title": "Sources",
+      "type": "object"
+     },
+     "tickers": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Tickers",
+      "type": "array"
+     },
+     "value_eur": {
+      "title": "Value Eur",
+      "type": "number"
+     }
+    },
+    "required": [
+     "profile_id",
+     "profile_name",
+     "tickers",
+     "value_eur",
+     "sources",
+     "refreshed_at"
+    ],
+    "title": "DiversityComposition",
+    "type": "object"
+   },
+   "DiversityExposure": {
+    "properties": {
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "percentage_stocks": {
+      "title": "Percentage Stocks",
+      "type": "number"
+     },
+     "percentage_total_wealth": {
+      "title": "Percentage Total Wealth",
+      "type": "number"
+     },
+     "value_eur": {
+      "title": "Value Eur",
+      "type": "number"
+     }
+    },
+    "required": [
+     "name",
+     "value_eur",
+     "percentage_stocks",
+     "percentage_total_wealth"
+    ],
+    "title": "DiversityExposure",
+    "type": "object"
+   },
+   "DiversityHolding": {
+    "properties": {
+     "account_id": {
+      "title": "Account Id",
+      "type": "integer"
+     },
+     "etf_profile_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Etf Profile Id"
+     },
+     "id": {
+      "title": "Id",
+      "type": "integer"
+     },
+     "is_etf": {
+      "title": "Is Etf",
+      "type": "boolean"
+     },
+     "isin": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Isin"
+     },
+     "name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Name"
+     },
+     "price_eur": {
+      "title": "Price Eur",
+      "type": "number"
+     },
+     "quantity": {
+      "title": "Quantity",
+      "type": "number"
+     },
+     "ticker": {
+      "title": "Ticker",
+      "type": "string"
+     },
+     "value_eur": {
+      "title": "Value Eur",
+      "type": "number"
+     }
+    },
+    "required": [
+     "id",
+     "account_id",
+     "ticker",
+     "isin",
+     "name",
+     "quantity",
+     "price_eur",
+     "value_eur",
+     "etf_profile_id",
+     "is_etf"
+    ],
+    "title": "DiversityHolding",
+    "type": "object"
+   },
+   "DiversityScanner": {
+    "properties": {
+     "alerts": {
+      "items": {
+       "$ref": "#/components/schemas/DiversityAlert"
+      },
+      "title": "Alerts",
+      "type": "array"
+     },
+     "countries": {
+      "items": {
+       "$ref": "#/components/schemas/DiversityExposure"
+      },
+      "title": "Countries",
+      "type": "array"
+     },
+     "etf_compositions": {
+      "items": {
+       "$ref": "#/components/schemas/DiversityComposition"
+      },
+      "title": "Etf Compositions",
+      "type": "array"
+     },
+     "holdings": {
+      "items": {
+       "$ref": "#/components/schemas/DiversityHolding"
+      },
+      "title": "Holdings",
+      "type": "array"
+     },
+     "score": {
+      "title": "Score",
+      "type": "number"
+     },
+     "score_label": {
+      "title": "Score Label",
+      "type": "string"
+     },
+     "sectors": {
+      "items": {
+       "$ref": "#/components/schemas/DiversityExposure"
+      },
+      "title": "Sectors",
+      "type": "array"
+     },
+     "top_underlying_companies": {
+      "items": {
+       "$ref": "#/components/schemas/DiversityCompany"
+      },
+      "title": "Top Underlying Companies",
+      "type": "array"
+     },
+     "totals": {
+      "$ref": "#/components/schemas/DiversityTotals"
+     }
+    },
+    "required": [
+     "score",
+     "score_label",
+     "totals",
+     "top_underlying_companies",
+     "countries",
+     "sectors",
+     "alerts",
+     "holdings",
+     "etf_compositions"
+    ],
+    "title": "DiversityScanner",
+    "type": "object"
+   },
+   "DiversitySource": {
+    "properties": {
+     "pct_in_source": {
+      "title": "Pct In Source",
+      "type": "number"
+     },
+     "source": {
+      "title": "Source",
+      "type": "string"
+     },
+     "value_eur": {
+      "title": "Value Eur",
+      "type": "number"
+     }
+    },
+    "required": [
+     "source",
+     "pct_in_source",
+     "value_eur"
+    ],
+    "title": "DiversitySource",
+    "type": "object"
+   },
+   "DiversityTotals": {
+    "properties": {
+     "courant_eur": {
+      "title": "Courant Eur",
+      "type": "number"
+     },
+     "epargne_eur": {
+      "title": "Epargne Eur",
+      "type": "number"
+     },
+     "etfs_count": {
+      "title": "Etfs Count",
+      "type": "integer"
+     },
+     "fonds_euros_eur": {
+      "title": "Fonds Euros Eur",
+      "type": "number"
+     },
+     "holdings_count": {
+      "title": "Holdings Count",
+      "type": "integer"
+     },
+     "other_eur": {
+      "title": "Other Eur",
+      "type": "number"
+     },
+     "stocks_eur": {
+      "title": "Stocks Eur",
+      "type": "number"
+     },
+     "wealth_eur": {
+      "title": "Wealth Eur",
+      "type": "number"
+     }
+    },
+    "required": [
+     "stocks_eur",
+     "epargne_eur",
+     "courant_eur",
+     "fonds_euros_eur",
+     "other_eur",
+     "wealth_eur",
+     "holdings_count",
+     "etfs_count"
+    ],
+    "title": "DiversityTotals",
+    "type": "object"
+   },
+   "DividendLinkEntry": {
+    "properties": {
+     "amount": {
+      "title": "Amount",
+      "type": "number"
+     },
+     "currency": {
+      "title": "Currency",
+      "type": "string"
+     },
+     "date": {
+      "title": "Date",
+      "type": "string"
+     },
+     "id": {
+      "title": "Id",
+      "type": "integer"
+     },
+     "note": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Note"
+     }
+    },
+    "required": [
+     "id",
+     "date",
+     "note",
+     "amount",
+     "currency"
+    ],
+    "title": "DividendLinkEntry",
+    "type": "object"
+   },
+   "DividendLinkMatch": {
+    "properties": {
+     "amount": {
+      "title": "Amount",
+      "type": "number"
+     },
+     "currency": {
+      "title": "Currency",
+      "type": "string"
+     },
+     "date": {
+      "title": "Date",
+      "type": "string"
+     },
+     "id": {
+      "title": "Id",
+      "type": "integer"
+     },
+     "note": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Note"
+     },
+     "ticker": {
+      "title": "Ticker",
+      "type": "string"
+     }
+    },
+    "required": [
+     "id",
+     "date",
+     "note",
+     "amount",
+     "currency",
+     "ticker"
+    ],
+    "title": "DividendLinkMatch",
+    "type": "object"
+   },
+   "DividendLinkResult": {
+    "properties": {
+     "applied": {
+      "title": "Applied",
+      "type": "boolean"
+     },
+     "matched": {
+      "items": {
+       "$ref": "#/components/schemas/DividendLinkMatch"
+      },
+      "title": "Matched",
+      "type": "array"
+     },
+     "unmatched": {
+      "items": {
+       "$ref": "#/components/schemas/DividendLinkEntry"
+      },
+      "title": "Unmatched",
+      "type": "array"
+     }
+    },
+    "required": [
+     "applied",
+     "matched",
+     "unmatched"
+    ],
+    "title": "DividendLinkResult",
+    "type": "object"
+   },
    "DividendMonth": {
     "properties": {
      "month": {
@@ -3837,6 +5075,32 @@
      "domain"
     ],
     "title": "DomainIn",
+    "type": "object"
+   },
+   "DuplicateGroup": {
+    "properties": {
+     "count": {
+      "title": "Count",
+      "type": "integer"
+     },
+     "key": {
+      "title": "Key",
+      "type": "string"
+     },
+     "transactions": {
+      "items": {
+       "$ref": "#/components/schemas/TransactionRead"
+      },
+      "title": "Transactions",
+      "type": "array"
+     }
+    },
+    "required": [
+     "key",
+     "count",
+     "transactions"
+    ],
+    "title": "DuplicateGroup",
     "type": "object"
    },
    "EntryAllocationRead": {
@@ -4243,6 +5507,37 @@
     "title": "ExpenseRef",
     "type": "object"
    },
+   "ExpensesByCategory": {
+    "properties": {
+     "items": {
+      "items": {
+       "$ref": "#/components/schemas/CategoryExpense"
+      },
+      "title": "Items",
+      "type": "array"
+     },
+     "month": {
+      "title": "Month",
+      "type": "integer"
+     },
+     "total": {
+      "title": "Total",
+      "type": "number"
+     },
+     "year": {
+      "title": "Year",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "month",
+     "year",
+     "total",
+     "items"
+    ],
+    "title": "ExpensesByCategory",
+    "type": "object"
+   },
    "FinancialEventCreate": {
     "properties": {
      "account_id": {
@@ -4601,6 +5896,24 @@
     "title": "HealthScore",
     "type": "object"
    },
+   "HealthStatus": {
+    "properties": {
+     "demo": {
+      "title": "Demo",
+      "type": "boolean"
+     },
+     "status": {
+      "title": "Status",
+      "type": "string"
+     }
+    },
+    "required": [
+     "status",
+     "demo"
+    ],
+    "title": "HealthStatus",
+    "type": "object"
+   },
    "HistoryPoint": {
     "properties": {
      "date": {
@@ -4638,6 +5951,329 @@
      "gain"
     ],
     "title": "HistoryPoint",
+    "type": "object"
+   },
+   "HoldingSuggestion": {
+    "properties": {
+     "etf_profile_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Etf Profile Id"
+     },
+     "historical_net_invested": {
+      "title": "Historical Net Invested",
+      "type": "number"
+     },
+     "is_etf": {
+      "title": "Is Etf",
+      "type": "boolean"
+     },
+     "isin": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Isin"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "ticker": {
+      "title": "Ticker",
+      "type": "string"
+     },
+     "tx_count": {
+      "title": "Tx Count",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "name",
+     "ticker",
+     "isin",
+     "historical_net_invested",
+     "tx_count",
+     "etf_profile_id",
+     "is_etf"
+    ],
+    "title": "HoldingSuggestion",
+    "type": "object"
+   },
+   "ImportErrorDetail": {
+    "properties": {
+     "line": {
+      "title": "Line",
+      "type": "integer"
+     },
+     "reason": {
+      "title": "Reason",
+      "type": "string"
+     }
+    },
+    "required": [
+     "line",
+     "reason"
+    ],
+    "title": "ImportErrorDetail",
+    "type": "object"
+   },
+   "ImportLogRead": {
+    "properties": {
+     "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+     },
+     "error_count": {
+      "title": "Error Count",
+      "type": "integer"
+     },
+     "id": {
+      "title": "Id",
+      "type": "integer"
+     },
+     "imported_count": {
+      "title": "Imported Count",
+      "type": "integer"
+     },
+     "skipped_count": {
+      "title": "Skipped Count",
+      "type": "integer"
+     },
+     "source_file": {
+      "title": "Source File",
+      "type": "string"
+     },
+     "summary_json": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Summary Json"
+     }
+    },
+    "required": [
+     "id",
+     "source_file",
+     "imported_count",
+     "skipped_count",
+     "error_count",
+     "summary_json",
+     "created_at"
+    ],
+    "title": "ImportLogRead",
+    "type": "object"
+   },
+   "ImportPreview": {
+    "properties": {
+     "delimiter": {
+      "title": "Delimiter",
+      "type": "string"
+     },
+     "filename": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Filename"
+     },
+     "invalid_rows": {
+      "title": "Invalid Rows",
+      "type": "integer"
+     },
+     "preview": {
+      "items": {
+       "$ref": "#/components/schemas/ImportPreviewRow"
+      },
+      "title": "Preview",
+      "type": "array"
+     },
+     "raw_headers": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Raw Headers",
+      "type": "array"
+     },
+     "total_rows": {
+      "title": "Total Rows",
+      "type": "integer"
+     },
+     "unknown_categories": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Unknown Categories",
+      "type": "array"
+     },
+     "warnings": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Warnings",
+      "type": "array"
+     }
+    },
+    "required": [
+     "filename",
+     "total_rows",
+     "invalid_rows",
+     "warnings",
+     "delimiter",
+     "raw_headers",
+     "preview",
+     "unknown_categories"
+    ],
+    "title": "ImportPreview",
+    "type": "object"
+   },
+   "ImportPreviewRow": {
+    "description": "Ligne du CSV telle qu'elle a été lue : les colonnes gardent le nom (capitalisé) de leur en-tête.",
+    "properties": {
+     "Categorie": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Categorie"
+     },
+     "Commercant": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Commercant"
+     },
+     "Date": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Date"
+     },
+     "Montant": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Montant"
+     },
+     "Type": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Type"
+     },
+     "error": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Error"
+     },
+     "line": {
+      "title": "Line",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "line",
+     "Date",
+     "Type",
+     "Commercant",
+     "Categorie",
+     "Montant",
+     "error"
+    ],
+    "title": "ImportPreviewRow",
+    "type": "object"
+   },
+   "ImportResult": {
+    "properties": {
+     "created_categories": {
+      "title": "Created Categories",
+      "type": "integer"
+     },
+     "error_details": {
+      "items": {
+       "$ref": "#/components/schemas/ImportErrorDetail"
+      },
+      "title": "Error Details",
+      "type": "array"
+     },
+     "error_samples": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Error Samples",
+      "type": "array"
+     },
+     "errors": {
+      "title": "Errors",
+      "type": "integer"
+     },
+     "imported": {
+      "title": "Imported",
+      "type": "integer"
+     },
+     "skipped": {
+      "title": "Skipped",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "imported",
+     "skipped",
+     "errors",
+     "created_categories",
+     "error_samples",
+     "error_details"
+    ],
+    "title": "ImportResult",
     "type": "object"
    },
    "Insight": {
@@ -4718,6 +6354,438 @@
      "insights"
     ],
     "title": "IntelligentInsights",
+    "type": "object"
+   },
+   "InvestmentAccountDetail": {
+    "properties": {
+     "account_id": {
+      "title": "Account Id",
+      "type": "integer"
+     },
+     "account_name": {
+      "title": "Account Name",
+      "type": "string"
+     },
+     "baseline": {
+      "$ref": "#/components/schemas/InvestmentBaseline"
+     },
+     "currency": {
+      "title": "Currency",
+      "type": "string"
+     },
+     "totals": {
+      "$ref": "#/components/schemas/InvestmentTotals"
+     },
+     "transactions": {
+      "items": {
+       "$ref": "#/components/schemas/InvestmentMovement"
+      },
+      "title": "Transactions",
+      "type": "array"
+     },
+     "value_series": {
+      "items": {
+       "$ref": "#/components/schemas/InvestmentValuePoint"
+      },
+      "title": "Value Series",
+      "type": "array"
+     }
+    },
+    "required": [
+     "account_id",
+     "account_name",
+     "currency",
+     "baseline",
+     "totals",
+     "transactions",
+     "value_series"
+    ],
+    "title": "InvestmentAccountDetail",
+    "type": "object"
+   },
+   "InvestmentBaseline": {
+    "properties": {
+     "date": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Date"
+     },
+     "value": {
+      "title": "Value",
+      "type": "number"
+     }
+    },
+    "required": [
+     "date",
+     "value"
+    ],
+    "title": "InvestmentBaseline",
+    "type": "object"
+   },
+   "InvestmentMovement": {
+    "description": "Opération de placement ou transaction bancaire du compte (devise du compte).",
+    "properties": {
+     "amount": {
+      "title": "Amount",
+      "type": "number"
+     },
+     "asset_class": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Asset Class"
+     },
+     "currency": {
+      "title": "Currency",
+      "type": "string"
+     },
+     "date": {
+      "title": "Date",
+      "type": "string"
+     },
+     "fees": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Fees"
+     },
+     "geographic_zone": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Geographic Zone"
+     },
+     "id": {
+      "title": "Id",
+      "type": "integer"
+     },
+     "is_regular": {
+      "anyOf": [
+       {
+        "type": "boolean"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Is Regular"
+     },
+     "isin": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Isin"
+     },
+     "note": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Note"
+     },
+     "original_amount": {
+      "title": "Original Amount",
+      "type": "number"
+     },
+     "quantity": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Quantity"
+     },
+     "reinvest_of_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Reinvest Of Id"
+     },
+     "reinvested": {
+      "anyOf": [
+       {
+        "type": "boolean"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Reinvested"
+     },
+     "sector": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Sector"
+     },
+     "ticker": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Ticker"
+     },
+     "type": {
+      "title": "Type",
+      "type": "string"
+     },
+     "unit_price": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Unit Price"
+     },
+     "withholding_tax": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Withholding Tax"
+     }
+    },
+    "required": [
+     "id",
+     "date",
+     "type",
+     "amount",
+     "original_amount",
+     "currency",
+     "note"
+    ],
+    "title": "InvestmentMovement",
+    "type": "object"
+   },
+   "InvestmentOverviewItem": {
+    "description": "Un compte dans la vue d'ensemble (EUR). `gain_eur` et `performance_pct` sont nuls si la valeur est périmée.",
+    "properties": {
+     "account_id": {
+      "title": "Account Id",
+      "type": "integer"
+     },
+     "account_name": {
+      "title": "Account Name",
+      "type": "string"
+     },
+     "currency": {
+      "title": "Currency",
+      "type": "string"
+     },
+     "current_value": {
+      "title": "Current Value",
+      "type": "number"
+     },
+     "dividends_eur": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Dividends Eur"
+     },
+     "gain_eur": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Gain Eur"
+     },
+     "net_invested": {
+      "title": "Net Invested",
+      "type": "number"
+     },
+     "performance_pct": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Performance Pct"
+     },
+     "realized_eur": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Realized Eur"
+     },
+     "total_retire": {
+      "title": "Total Retire",
+      "type": "number"
+     },
+     "total_verse": {
+      "title": "Total Verse",
+      "type": "number"
+     },
+     "unrealized_eur": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Unrealized Eur"
+     },
+     "value_source": {
+      "title": "Value Source",
+      "type": "string"
+     },
+     "value_stale": {
+      "title": "Value Stale",
+      "type": "boolean"
+     },
+     "xirr_pct": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Xirr Pct"
+     }
+    },
+    "required": [
+     "account_id",
+     "account_name",
+     "total_verse",
+     "total_retire",
+     "net_invested",
+     "current_value",
+     "gain_eur",
+     "performance_pct",
+     "currency",
+     "value_source",
+     "value_stale"
+    ],
+    "title": "InvestmentOverviewItem",
+    "type": "object"
+   },
+   "InvestmentTotals": {
+    "properties": {
+     "current_value": {
+      "title": "Current Value",
+      "type": "number"
+     },
+     "gain_eur": {
+      "title": "Gain Eur",
+      "type": "number"
+     },
+     "net_invested": {
+      "title": "Net Invested",
+      "type": "number"
+     },
+     "performance_pct": {
+      "title": "Performance Pct",
+      "type": "number"
+     },
+     "snapshot_value": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Snapshot Value"
+     },
+     "total_retire": {
+      "title": "Total Retire",
+      "type": "number"
+     },
+     "total_verse": {
+      "title": "Total Verse",
+      "type": "number"
+     },
+     "value_source": {
+      "title": "Value Source",
+      "type": "string"
+     }
+    },
+    "required": [
+     "total_verse",
+     "total_retire",
+     "net_invested",
+     "current_value",
+     "gain_eur",
+     "performance_pct",
+     "value_source",
+     "snapshot_value"
+    ],
+    "title": "InvestmentTotals",
     "type": "object"
    },
    "InvestmentTransactionCreate": {
@@ -5410,6 +7478,240 @@
     "title": "InvestmentTransactionUpdate",
     "type": "object"
    },
+   "InvestmentValuePoint": {
+    "properties": {
+     "current_value": {
+      "title": "Current Value",
+      "type": "number"
+     },
+     "current_value_raw": {
+      "title": "Current Value Raw",
+      "type": "number"
+     },
+     "date": {
+      "title": "Date",
+      "type": "string"
+     },
+     "id": {
+      "title": "Id",
+      "type": "integer"
+     },
+     "is_zero_point": {
+      "title": "Is Zero Point",
+      "type": "boolean"
+     },
+     "note": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Note"
+     }
+    },
+    "required": [
+     "id",
+     "date",
+     "current_value",
+     "current_value_raw",
+     "is_zero_point",
+     "note"
+    ],
+    "title": "InvestmentValuePoint",
+    "type": "object"
+   },
+   "InvestmentsAllocation": {
+    "properties": {
+     "items": {
+      "items": {
+       "$ref": "#/components/schemas/AllocationAccount"
+      },
+      "title": "Items",
+      "type": "array"
+     },
+     "total_current_value": {
+      "title": "Total Current Value",
+      "type": "number"
+     },
+     "total_gain_eur": {
+      "title": "Total Gain Eur",
+      "type": "number"
+     },
+     "total_net_invested": {
+      "title": "Total Net Invested",
+      "type": "number"
+     },
+     "total_performance_pct": {
+      "title": "Total Performance Pct",
+      "type": "number"
+     }
+    },
+    "required": [
+     "total_current_value",
+     "total_net_invested",
+     "total_gain_eur",
+     "total_performance_pct",
+     "items"
+    ],
+    "title": "InvestmentsAllocation",
+    "type": "object"
+   },
+   "InvestmentsAllocationAdvanced": {
+    "properties": {
+     "by_asset_class": {
+      "items": {
+       "$ref": "#/components/schemas/AllocationGroup"
+      },
+      "title": "By Asset Class",
+      "type": "array"
+     },
+     "by_geographic_zone": {
+      "items": {
+       "$ref": "#/components/schemas/AllocationGroup"
+      },
+      "title": "By Geographic Zone",
+      "type": "array"
+     },
+     "by_sector": {
+      "items": {
+       "$ref": "#/components/schemas/AllocationGroup"
+      },
+      "title": "By Sector",
+      "type": "array"
+     },
+     "total_value_eur": {
+      "title": "Total Value Eur",
+      "type": "number"
+     }
+    },
+    "required": [
+     "total_value_eur",
+     "by_asset_class",
+     "by_sector",
+     "by_geographic_zone"
+    ],
+    "title": "InvestmentsAllocationAdvanced",
+    "type": "object"
+   },
+   "InvestmentsOverview": {
+    "properties": {
+     "items": {
+      "items": {
+       "$ref": "#/components/schemas/InvestmentOverviewItem"
+      },
+      "title": "Items",
+      "type": "array"
+     },
+     "total_current_value": {
+      "title": "Total Current Value",
+      "type": "number"
+     },
+     "total_gain_eur": {
+      "title": "Total Gain Eur",
+      "type": "number"
+     },
+     "total_net_invested": {
+      "title": "Total Net Invested",
+      "type": "number"
+     },
+     "total_performance_pct": {
+      "title": "Total Performance Pct",
+      "type": "number"
+     }
+    },
+    "required": [
+     "total_net_invested",
+     "total_current_value",
+     "total_gain_eur",
+     "total_performance_pct",
+     "items"
+    ],
+    "title": "InvestmentsOverview",
+    "type": "object"
+   },
+   "KpiHistoryPoint": {
+    "properties": {
+     "base_currency": {
+      "title": "Base Currency",
+      "type": "string"
+     },
+     "cash_flow": {
+      "title": "Cash Flow",
+      "type": "number"
+     },
+     "depenses": {
+      "title": "Depenses",
+      "type": "number"
+     },
+     "depenses_reelles": {
+      "title": "Depenses Reelles",
+      "type": "number"
+     },
+     "epargne": {
+      "title": "Epargne",
+      "type": "number"
+     },
+     "epargne_flow": {
+      "title": "Epargne Flow",
+      "type": "number"
+     },
+     "interets": {
+      "title": "Interets",
+      "type": "number"
+     },
+     "investissements": {
+      "title": "Investissements",
+      "type": "number"
+     },
+     "label": {
+      "title": "Label",
+      "type": "string"
+     },
+     "month": {
+      "title": "Month",
+      "type": "integer"
+     },
+     "revenus": {
+      "title": "Revenus",
+      "type": "number"
+     },
+     "taux_epargne": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Taux Epargne"
+     },
+     "year": {
+      "title": "Year",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "month",
+     "year",
+     "label",
+     "base_currency",
+     "revenus",
+     "interets",
+     "depenses",
+     "depenses_reelles",
+     "investissements",
+     "epargne",
+     "epargne_flow",
+     "cash_flow",
+     "taux_epargne"
+    ],
+    "title": "KpiHistoryPoint",
+    "type": "object"
+   },
    "LoanCreate": {
     "properties": {
      "annual_rate_pct": {
@@ -5891,6 +8193,137 @@
     "title": "LogoSuggestion",
     "type": "object"
    },
+   "MarketAsset": {
+    "description": "Résultat de recherche : profil ETF local ou valeur Yahoo Finance.",
+    "properties": {
+     "currency": {
+      "title": "Currency",
+      "type": "string"
+     },
+     "etf_profile_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Etf Profile Id"
+     },
+     "exchange": {
+      "title": "Exchange",
+      "type": "string"
+     },
+     "is_custom_etf": {
+      "title": "Is Custom Etf",
+      "type": "boolean"
+     },
+     "isin": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Isin"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "symbol": {
+      "title": "Symbol",
+      "type": "string"
+     },
+     "type": {
+      "title": "Type",
+      "type": "string"
+     }
+    },
+    "required": [
+     "symbol",
+     "name",
+     "isin",
+     "type",
+     "exchange",
+     "currency",
+     "etf_profile_id",
+     "is_custom_etf"
+    ],
+    "title": "MarketAsset",
+    "type": "object"
+   },
+   "MarketQuote": {
+    "description": "Cotation du jour. `price == 0` signifie « aucun cours connu » ; `stale` : dernier cours enregistré.",
+    "properties": {
+     "currency": {
+      "title": "Currency",
+      "type": "string"
+     },
+     "expires_at": {
+      "anyOf": [
+       {
+        "format": "date-time",
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Expires At"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "price": {
+      "title": "Price",
+      "type": "number"
+     },
+     "price_date": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Price Date"
+     },
+     "price_eur": {
+      "title": "Price Eur",
+      "type": "number"
+     },
+     "stale": {
+      "title": "Stale",
+      "type": "boolean"
+     },
+     "symbol": {
+      "title": "Symbol",
+      "type": "string"
+     },
+     "type": {
+      "title": "Type",
+      "type": "string"
+     }
+    },
+    "required": [
+     "symbol",
+     "name",
+     "price",
+     "currency",
+     "price_eur",
+     "type",
+     "price_date",
+     "stale"
+    ],
+    "title": "MarketQuote",
+    "type": "object"
+   },
    "McpTokenCreate": {
     "properties": {
      "current_password": {
@@ -6164,6 +8597,24 @@
     "title": "MerchantRead",
     "type": "object"
    },
+   "MerchantTotal": {
+    "properties": {
+     "merchant": {
+      "title": "Merchant",
+      "type": "string"
+     },
+     "total": {
+      "title": "Total",
+      "type": "number"
+     }
+    },
+    "required": [
+     "merchant",
+     "total"
+    ],
+    "title": "MerchantTotal",
+    "type": "object"
+   },
    "MerchantUpdate": {
     "properties": {
      "category_id": {
@@ -6251,6 +8702,19 @@
      "status"
     ],
     "title": "MetricDetail",
+    "type": "object"
+   },
+   "ModifiedCount": {
+    "properties": {
+     "modified_count": {
+      "title": "Modified Count",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "modified_count"
+    ],
+    "title": "ModifiedCount",
     "type": "object"
    },
    "MoneyFlowBlock": {
@@ -6478,6 +8942,34 @@
     "title": "MonthlyComparison",
     "type": "object"
    },
+   "MonthlyFlow": {
+    "properties": {
+     "burn_rate": {
+      "title": "Burn Rate",
+      "type": "number"
+     },
+     "expense": {
+      "title": "Expense",
+      "type": "number"
+     },
+     "income": {
+      "title": "Income",
+      "type": "number"
+     },
+     "month": {
+      "title": "Month",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "month",
+     "income",
+     "expense",
+     "burn_rate"
+    ],
+    "title": "MonthlyFlow",
+    "type": "object"
+   },
    "MonthlyReport": {
     "properties": {
      "burn_rate": {
@@ -6606,6 +9098,19 @@
      "burn_rate_excl_exceptional"
     ],
     "title": "MonthlyReport",
+    "type": "object"
+   },
+   "NormalizedCount": {
+    "properties": {
+     "normalized_count": {
+      "title": "Normalized Count",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "normalized_count"
+    ],
+    "title": "NormalizedCount",
     "type": "object"
    },
    "NotificationSettingsRead": {
@@ -6885,6 +9390,182 @@
      "delivered"
     ],
     "title": "NotificationTestResult",
+    "type": "object"
+   },
+   "OkResponse": {
+    "properties": {
+     "ok": {
+      "title": "Ok",
+      "type": "boolean"
+     }
+    },
+    "required": [
+     "ok"
+    ],
+    "title": "OkResponse",
+    "type": "object"
+   },
+   "PatrimoineAllocation": {
+    "properties": {
+     "items": {
+      "items": {
+       "$ref": "#/components/schemas/PatrimoineItem"
+      },
+      "title": "Items",
+      "type": "array"
+     },
+     "net_patrimoine_eur": {
+      "title": "Net Patrimoine Eur",
+      "type": "number"
+     },
+     "total_debts_eur": {
+      "title": "Total Debts Eur",
+      "type": "number"
+     },
+     "total_patrimoine": {
+      "title": "Total Patrimoine",
+      "type": "number"
+     }
+    },
+    "required": [
+     "total_patrimoine",
+     "total_debts_eur",
+     "net_patrimoine_eur",
+     "items"
+    ],
+    "title": "PatrimoineAllocation",
+    "type": "object"
+   },
+   "PatrimoineItem": {
+    "properties": {
+     "account_id": {
+      "title": "Account Id",
+      "type": "integer"
+     },
+     "account_name": {
+      "title": "Account Name",
+      "type": "string"
+     },
+     "balance": {
+      "title": "Balance",
+      "type": "number"
+     },
+     "balance_eur": {
+      "title": "Balance Eur",
+      "type": "number"
+     },
+     "currency": {
+      "title": "Currency",
+      "type": "string"
+     },
+     "institution": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Institution"
+     },
+     "logo": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Logo"
+     },
+     "percentage": {
+      "title": "Percentage",
+      "type": "number"
+     },
+     "type": {
+      "title": "Type",
+      "type": "string"
+     }
+    },
+    "required": [
+     "account_id",
+     "account_name",
+     "institution",
+     "type",
+     "currency",
+     "balance",
+     "balance_eur",
+     "percentage",
+     "logo"
+    ],
+    "title": "PatrimoineItem",
+    "type": "object"
+   },
+   "PerformanceHistory": {
+    "properties": {
+     "items": {
+      "items": {
+       "$ref": "#/components/schemas/PerformancePoint"
+      },
+      "title": "Items",
+      "type": "array"
+     },
+     "value_source": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Value Source"
+     }
+    },
+    "required": [
+     "items"
+    ],
+    "title": "PerformanceHistory",
+    "type": "object"
+   },
+   "PerformancePoint": {
+    "properties": {
+     "current_value": {
+      "title": "Current Value",
+      "type": "number"
+     },
+     "date": {
+      "title": "Date",
+      "type": "string"
+     },
+     "gain_eur": {
+      "title": "Gain Eur",
+      "type": "number"
+     },
+     "is_zero_point": {
+      "title": "Is Zero Point",
+      "type": "boolean"
+     },
+     "net_invested": {
+      "title": "Net Invested",
+      "type": "number"
+     },
+     "performance_pct": {
+      "title": "Performance Pct",
+      "type": "number"
+     }
+    },
+    "required": [
+     "date",
+     "net_invested",
+     "current_value",
+     "gain_eur",
+     "performance_pct",
+     "is_zero_point"
+    ],
+    "title": "PerformancePoint",
     "type": "object"
    },
    "PortfolioHoldingCreate": {
@@ -7827,6 +10508,51 @@
      "gain_eur"
     ],
     "title": "PortfolioRead",
+    "type": "object"
+   },
+   "PotentialTransfer": {
+    "description": "Virement interne suggéré : jambes complètes (la sortie est toujours une transaction).",
+    "properties": {
+     "ambiguous": {
+      "title": "Ambiguous",
+      "type": "boolean"
+     },
+     "confidence": {
+      "title": "Confidence",
+      "type": "string"
+     },
+     "day_gap": {
+      "title": "Day Gap",
+      "type": "integer"
+     },
+     "entree": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/TransactionRead"
+       },
+       {
+        "$ref": "#/components/schemas/InvestmentTransactionRead"
+       }
+      ],
+      "title": "Entree"
+     },
+     "sortie": {
+      "$ref": "#/components/schemas/TransactionRead"
+     },
+     "type": {
+      "title": "Type",
+      "type": "string"
+     }
+    },
+    "required": [
+     "sortie",
+     "entree",
+     "type",
+     "confidence",
+     "ambiguous",
+     "day_gap"
+    ],
+    "title": "PotentialTransfer",
     "type": "object"
    },
    "PrepaymentCreate": {
@@ -9667,6 +12393,41 @@
     "title": "ResetDatabaseRequest",
     "type": "object"
    },
+   "Resilience": {
+    "properties": {
+     "avg_monthly_real_expenses": {
+      "title": "Avg Monthly Real Expenses",
+      "type": "number"
+     },
+     "liquid_savings": {
+      "title": "Liquid Savings",
+      "type": "number"
+     },
+     "months": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Months"
+     },
+     "months_used": {
+      "title": "Months Used",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "months",
+     "liquid_savings",
+     "avg_monthly_real_expenses",
+     "months_used"
+    ],
+    "title": "Resilience",
+    "type": "object"
+   },
    "ReviewTransaction": {
     "properties": {
      "amount": {
@@ -10104,6 +12865,118 @@
      }
     },
     "title": "SalaryMonthUpdate",
+    "type": "object"
+   },
+   "SalaryPoint": {
+    "properties": {
+     "month": {
+      "title": "Month",
+      "type": "integer"
+     },
+     "salary": {
+      "title": "Salary",
+      "type": "number"
+     }
+    },
+    "required": [
+     "month",
+     "salary"
+    ],
+    "title": "SalaryPoint",
+    "type": "object"
+   },
+   "Sankey": {
+    "description": "Servi avec `response_model_exclude_unset=True` : `color` et `category_id` n'existent pas sur tous les nœuds.",
+    "properties": {
+     "links": {
+      "items": {
+       "$ref": "#/components/schemas/SankeyLink"
+      },
+      "title": "Links",
+      "type": "array"
+     },
+     "nodes": {
+      "items": {
+       "$ref": "#/components/schemas/SankeyNode"
+      },
+      "title": "Nodes",
+      "type": "array"
+     }
+    },
+    "required": [
+     "nodes",
+     "links"
+    ],
+    "title": "Sankey",
+    "type": "object"
+   },
+   "SankeyLink": {
+    "properties": {
+     "color": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Color"
+     },
+     "source": {
+      "title": "Source",
+      "type": "integer"
+     },
+     "target": {
+      "title": "Target",
+      "type": "integer"
+     },
+     "value": {
+      "title": "Value",
+      "type": "number"
+     }
+    },
+    "required": [
+     "source",
+     "target",
+     "value"
+    ],
+    "title": "SankeyLink",
+    "type": "object"
+   },
+   "SankeyNode": {
+    "properties": {
+     "category_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Category Id"
+     },
+     "color": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Color"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     }
+    },
+    "required": [
+     "name"
+    ],
+    "title": "SankeyNode",
     "type": "object"
    },
    "SavingsGoal": {
@@ -10718,6 +13591,19 @@
     "title": "SnapshotRef",
     "type": "object"
    },
+   "StatusResponse": {
+    "properties": {
+     "status": {
+      "title": "Status",
+      "type": "string"
+     }
+    },
+    "required": [
+     "status"
+    ],
+    "title": "StatusResponse",
+    "type": "object"
+   },
    "SubscriptionIgnore": {
     "properties": {
      "amount": {
@@ -10943,6 +13829,101 @@
     "title": "SubscriptionsResponse",
     "type": "object"
    },
+   "SymbolValidation": {
+    "properties": {
+     "currency": {
+      "title": "Currency",
+      "type": "string"
+     },
+     "etf_profile_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Etf Profile Id"
+     },
+     "isin": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Isin"
+     },
+     "name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Name"
+     },
+     "price": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Price"
+     },
+     "price_eur": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Price Eur"
+     },
+     "symbol": {
+      "title": "Symbol",
+      "type": "string"
+     },
+     "type": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Type"
+     },
+     "valid": {
+      "title": "Valid",
+      "type": "boolean"
+     }
+    },
+    "required": [
+     "valid",
+     "symbol",
+     "name",
+     "isin",
+     "type",
+     "currency",
+     "price",
+     "price_eur",
+     "etf_profile_id"
+    ],
+    "title": "SymbolValidation",
+    "type": "object"
+   },
    "TagCreate": {
     "properties": {
      "color": {
@@ -11005,6 +13986,41 @@
      "id"
     ],
     "title": "TagRead",
+    "type": "object"
+   },
+   "TagSpending": {
+    "properties": {
+     "color": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Color"
+     },
+     "id": {
+      "title": "Id",
+      "type": "integer"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "total_eur": {
+      "title": "Total Eur",
+      "type": "number"
+     }
+    },
+    "required": [
+     "id",
+     "name",
+     "color",
+     "total_eur"
+    ],
+    "title": "TagSpending",
     "type": "object"
    },
    "TagUpdate": {
@@ -11218,6 +14234,81 @@
      "dates"
     ],
     "title": "TelecommutingDaysUpdate",
+    "type": "object"
+   },
+   "Timeseries": {
+    "properties": {
+     "account_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Account Id"
+     },
+     "balance_points": {
+      "items": {
+       "$ref": "#/components/schemas/BalancePoint"
+      },
+      "title": "Balance Points",
+      "type": "array"
+     },
+     "monthly_flows": {
+      "items": {
+       "$ref": "#/components/schemas/MonthlyFlow"
+      },
+      "title": "Monthly Flows",
+      "type": "array"
+     },
+     "salary_series": {
+      "items": {
+       "$ref": "#/components/schemas/SalaryPoint"
+      },
+      "title": "Salary Series",
+      "type": "array"
+     },
+     "year": {
+      "title": "Year",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "year",
+     "account_id",
+     "monthly_flows",
+     "balance_points",
+     "salary_series"
+    ],
+    "title": "Timeseries",
+    "type": "object"
+   },
+   "TopMerchants": {
+    "properties": {
+     "items": {
+      "items": {
+       "$ref": "#/components/schemas/MerchantTotal"
+      },
+      "title": "Items",
+      "type": "array"
+     },
+     "month": {
+      "title": "Month",
+      "type": "integer"
+     },
+     "year": {
+      "title": "Year",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "month",
+     "year",
+     "items"
+    ],
+    "title": "TopMerchants",
     "type": "object"
    },
    "TotpLoginBody": {
@@ -12176,6 +15267,25 @@
     "title": "TransactionUpdate",
     "type": "object"
    },
+   "TransactionsTotal": {
+    "description": "Nombre et total net (remboursements déduits) des transactions d'un filtre, sans limite de page.",
+    "properties": {
+     "count": {
+      "title": "Count",
+      "type": "integer"
+     },
+     "total": {
+      "title": "Total",
+      "type": "number"
+     }
+    },
+    "required": [
+     "count",
+     "total"
+    ],
+    "title": "TransactionsTotal",
+    "type": "object"
+   },
    "TransferApplyResult": {
     "properties": {
      "count": {
@@ -12366,6 +15476,22 @@
      "currency"
     ],
     "title": "TransferLegPreview",
+    "type": "object"
+   },
+   "TransferPair": {
+    "properties": {
+     "entree": {
+      "$ref": "#/components/schemas/TransactionRead"
+     },
+     "sortie": {
+      "$ref": "#/components/schemas/TransactionRead"
+     }
+    },
+    "required": [
+     "sortie",
+     "entree"
+    ],
+    "title": "TransferPair",
     "type": "object"
    },
    "TransferPairPreview": {
@@ -12626,6 +15752,24 @@
      }
     },
     "title": "TransferRuleUpdate",
+    "type": "object"
+   },
+   "UnnormalizedLabel": {
+    "properties": {
+     "count": {
+      "title": "Count",
+      "type": "integer"
+     },
+     "label": {
+      "title": "Label",
+      "type": "string"
+     }
+    },
+    "required": [
+     "label",
+     "count"
+    ],
+    "title": "UnnormalizedLabel",
     "type": "object"
    },
    "ValidationError": {
@@ -14193,7 +17337,9 @@
      "200": {
       "content": {
        "application/json": {
-        "schema": {}
+        "schema": {
+         "$ref": "#/components/schemas/BackupRunResult"
+        }
        }
       },
       "description": "Successful Response"
@@ -14298,7 +17444,9 @@
      "200": {
       "content": {
        "application/json": {
-        "schema": {}
+        "schema": {
+         "$ref": "#/components/schemas/OkResponse"
+        }
        }
       },
       "description": "Successful Response"
@@ -14516,7 +17664,9 @@
      "200": {
       "content": {
        "application/json": {
-        "schema": {}
+        "schema": {
+         "$ref": "#/components/schemas/StatusResponse"
+        }
        }
       },
       "description": "Successful Response"
@@ -14596,7 +17746,9 @@
      "200": {
       "content": {
        "application/json": {
-        "schema": {}
+        "schema": {
+         "$ref": "#/components/schemas/AccountFlowSummary"
+        }
        }
       },
       "description": "Successful Response"
@@ -14666,7 +17818,9 @@
      "200": {
       "content": {
        "application/json": {
-        "schema": {}
+        "schema": {
+         "$ref": "#/components/schemas/StatusResponse"
+        }
        }
       },
       "description": "Successful Response"
@@ -14701,7 +17855,9 @@
      "200": {
       "content": {
        "application/json": {
-        "schema": {}
+        "schema": {
+         "$ref": "#/components/schemas/AllocationSuggestions"
+        }
        }
       },
       "description": "Successful Response"
@@ -14762,7 +17918,9 @@
      "200": {
       "content": {
        "application/json": {
-        "schema": {}
+        "schema": {
+         "$ref": "#/components/schemas/AuditIssueDetails"
+        }
        }
       },
       "description": "Successful Response"
@@ -14850,7 +18008,9 @@
      "200": {
       "content": {
        "application/json": {
-        "schema": {}
+        "schema": {
+         "$ref": "#/components/schemas/BudgetOverview"
+        }
        }
       },
       "description": "Successful Response"
@@ -15003,7 +18163,9 @@
      "200": {
       "content": {
        "application/json": {
-        "schema": {}
+        "schema": {
+         "$ref": "#/components/schemas/BudgetPeriod"
+        }
        }
       },
       "description": "Successful Response"
@@ -15045,7 +18207,9 @@
      "200": {
       "content": {
        "application/json": {
-        "schema": {}
+        "schema": {
+         "$ref": "#/components/schemas/BudgetPeriod"
+        }
        }
       },
       "description": "Successful Response"
@@ -15119,7 +18283,9 @@
      "200": {
       "content": {
        "application/json": {
-        "schema": {}
+        "schema": {
+         "$ref": "#/components/schemas/Calendar"
+        }
        }
       },
       "description": "Successful Response"
@@ -15238,7 +18404,9 @@
      "200": {
       "content": {
        "application/json": {
-        "schema": {}
+        "schema": {
+         "$ref": "#/components/schemas/DiversityScanner"
+        }
        }
       },
       "description": "Successful Response"
@@ -15379,7 +18547,9 @@
      "200": {
       "content": {
        "application/json": {
-        "schema": {}
+        "schema": {
+         "$ref": "#/components/schemas/ExpensesByCategory"
+        }
        }
       },
       "description": "Successful Response"
@@ -15616,7 +18786,9 @@
      "200": {
       "content": {
        "application/json": {
-        "schema": {}
+        "schema": {
+         "$ref": "#/components/schemas/StatusResponse"
+        }
        }
       },
       "description": "Successful Response"
@@ -15704,7 +18876,9 @@
      "200": {
       "content": {
        "application/json": {
-        "schema": {}
+        "schema": {
+         "$ref": "#/components/schemas/InvestmentsOverview"
+        }
        }
       },
       "description": "Successful Response"
@@ -15756,7 +18930,9 @@
      "200": {
       "content": {
        "application/json": {
-        "schema": {}
+        "schema": {
+         "$ref": "#/components/schemas/InvestmentsAllocation"
+        }
        }
       },
       "description": "Successful Response"
@@ -15791,7 +18967,9 @@
      "200": {
       "content": {
        "application/json": {
-        "schema": {}
+        "schema": {
+         "$ref": "#/components/schemas/InvestmentsAllocationAdvanced"
+        }
        }
       },
       "description": "Successful Response"
@@ -15826,7 +19004,9 @@
      "200": {
       "content": {
        "application/json": {
-        "schema": {}
+        "schema": {
+         "$ref": "#/components/schemas/InvestmentAccountDetail"
+        }
        }
       },
       "description": "Successful Response"
@@ -15871,7 +19051,9 @@
      "200": {
       "content": {
        "application/json": {
-        "schema": {}
+        "schema": {
+         "$ref": "#/components/schemas/PerformanceHistory"
+        }
        }
       },
       "description": "Successful Response"
@@ -15935,7 +19117,13 @@
      "200": {
       "content": {
        "application/json": {
-        "schema": {}
+        "schema": {
+         "items": {
+          "$ref": "#/components/schemas/KpiHistoryPoint"
+         },
+         "title": "Response Kpi History Analytics Kpi History Get",
+         "type": "array"
+        }
        }
       },
       "description": "Successful Response"
@@ -16124,7 +19312,9 @@
      "200": {
       "content": {
        "application/json": {
-        "schema": {}
+        "schema": {
+         "$ref": "#/components/schemas/PatrimoineAllocation"
+        }
        }
       },
       "description": "Successful Response"
@@ -16247,7 +19437,9 @@
      "200": {
       "content": {
        "application/json": {
-        "schema": {}
+        "schema": {
+         "$ref": "#/components/schemas/Resilience"
+        }
        }
       },
       "description": "Successful Response"
@@ -16321,7 +19513,9 @@
      "200": {
       "content": {
        "application/json": {
-        "schema": {}
+        "schema": {
+         "$ref": "#/components/schemas/Sankey"
+        }
        }
       },
       "description": "Successful Response"
@@ -16431,7 +19625,9 @@
      "200": {
       "content": {
        "application/json": {
-        "schema": {}
+        "schema": {
+         "$ref": "#/components/schemas/StatusResponse"
+        }
        }
       },
       "description": "Successful Response"
@@ -16553,7 +19749,13 @@
      "200": {
       "content": {
        "application/json": {
-        "schema": {}
+        "schema": {
+         "items": {
+          "$ref": "#/components/schemas/TagSpending"
+         },
+         "title": "Response Tags Analytics Analytics Tags Get",
+         "type": "array"
+        }
        }
       },
       "description": "Successful Response"
@@ -16616,7 +19818,9 @@
      "200": {
       "content": {
        "application/json": {
-        "schema": {}
+        "schema": {
+         "$ref": "#/components/schemas/Timeseries"
+        }
        }
       },
       "description": "Successful Response"
@@ -16702,7 +19906,9 @@
      "200": {
       "content": {
        "application/json": {
-        "schema": {}
+        "schema": {
+         "$ref": "#/components/schemas/TopMerchants"
+        }
        }
       },
       "description": "Successful Response"
@@ -18465,7 +21671,9 @@
      "200": {
       "content": {
        "application/json": {
-        "schema": {}
+        "schema": {
+         "$ref": "#/components/schemas/ModifiedCount"
+        }
        }
       },
       "description": "Successful Response"
@@ -18941,9 +22149,14 @@
       "content": {
        "application/json": {
         "schema": {}
+       },
+       "text/csv": {
+        "schema": {
+         "type": "string"
+        }
        }
       },
-      "description": "Successful Response"
+      "description": "Export CSV des transactions"
      },
      "422": {
       "content": {
@@ -19291,7 +22504,9 @@
      "200": {
       "content": {
        "application/json": {
-        "schema": {}
+        "schema": {
+         "$ref": "#/components/schemas/StatusResponse"
+        }
        }
       },
       "description": "Successful Response"
@@ -19380,7 +22595,9 @@
      "200": {
       "content": {
        "application/json": {
-        "schema": {}
+        "schema": {
+         "$ref": "#/components/schemas/HealthStatus"
+        }
        }
       },
       "description": "Successful Response"
@@ -19668,7 +22885,13 @@
      "200": {
       "content": {
        "application/json": {
-        "schema": {}
+        "schema": {
+         "items": {
+          "$ref": "#/components/schemas/HoldingSuggestion"
+         },
+         "title": "Response Get Holding Suggestions Holdings Suggestions Get",
+         "type": "array"
+        }
        }
       },
       "description": "Successful Response"
@@ -19809,7 +23032,9 @@
      "200": {
       "content": {
        "application/json": {
-        "schema": {}
+        "schema": {
+         "$ref": "#/components/schemas/ImportResult"
+        }
        }
       },
       "description": "Successful Response"
@@ -19855,7 +23080,13 @@
      "200": {
       "content": {
        "application/json": {
-        "schema": {}
+        "schema": {
+         "items": {
+          "$ref": "#/components/schemas/ImportLogRead"
+         },
+         "title": "Response Get Import Logs Import Logs Get",
+         "type": "array"
+        }
        }
       },
       "description": "Successful Response"
@@ -19899,7 +23130,9 @@
      "200": {
       "content": {
        "application/json": {
-        "schema": {}
+        "schema": {
+         "$ref": "#/components/schemas/ImportPreview"
+        }
        }
       },
       "description": "Successful Response"
@@ -20086,7 +23319,9 @@
      "200": {
       "content": {
        "application/json": {
-        "schema": {}
+        "schema": {
+         "$ref": "#/components/schemas/DividendLinkResult"
+        }
        }
       },
       "description": "Successful Response"
@@ -20751,9 +23986,21 @@
       "content": {
        "application/json": {
         "schema": {}
+       },
+       "image/png": {
+        "schema": {
+         "format": "binary",
+         "type": "string"
+        }
+       },
+       "image/svg+xml": {
+        "schema": {
+         "format": "binary",
+         "type": "string"
+        }
        }
       },
-      "description": "Successful Response"
+      "description": "Image du logo"
      },
      "422": {
       "content": {
@@ -20858,7 +24105,13 @@
      "200": {
       "content": {
        "application/json": {
-        "schema": {}
+        "schema": {
+         "additionalProperties": {
+          "$ref": "#/components/schemas/MarketQuote"
+         },
+         "title": "Response Market Quote Market Quote Get",
+         "type": "object"
+        }
        }
       },
       "description": "Successful Response"
@@ -20931,7 +24184,13 @@
      "200": {
       "content": {
        "application/json": {
-        "schema": {}
+        "schema": {
+         "items": {
+          "$ref": "#/components/schemas/MarketAsset"
+         },
+         "title": "Response Market Search Market Search Get",
+         "type": "array"
+        }
        }
       },
       "description": "Successful Response"
@@ -20980,7 +24239,9 @@
      "200": {
       "content": {
        "application/json": {
-        "schema": {}
+        "schema": {
+         "$ref": "#/components/schemas/SymbolValidation"
+        }
        }
       },
       "description": "Successful Response"
@@ -21180,7 +24441,9 @@
      "200": {
       "content": {
        "application/json": {
-        "schema": {}
+        "schema": {
+         "$ref": "#/components/schemas/NormalizedCount"
+        }
        }
       },
       "description": "Successful Response"
@@ -21217,7 +24480,13 @@
      "200": {
       "content": {
        "application/json": {
-        "schema": {}
+        "schema": {
+         "items": {
+          "$ref": "#/components/schemas/UnnormalizedLabel"
+         },
+         "title": "Response Get Unnormalized Merchant Labels Merchants Suggestions Unnormalized Get",
+         "type": "array"
+        }
        }
       },
       "description": "Successful Response"
@@ -23568,6 +26837,29 @@
     "parameters": [
      {
       "in": "query",
+      "name": "skip",
+      "required": false,
+      "schema": {
+       "default": 0,
+       "minimum": 0,
+       "title": "Skip",
+       "type": "integer"
+      }
+     },
+     {
+      "in": "query",
+      "name": "limit",
+      "required": false,
+      "schema": {
+       "default": 100,
+       "maximum": 1000,
+       "minimum": 1,
+       "title": "Limit",
+       "type": "integer"
+      }
+     },
+     {
+      "in": "query",
       "name": "account_id",
       "required": false,
       "schema": {
@@ -23834,29 +27126,6 @@
        "title": "Budget Scope",
        "type": "boolean"
       }
-     },
-     {
-      "in": "query",
-      "name": "skip",
-      "required": false,
-      "schema": {
-       "default": 0,
-       "minimum": 0,
-       "title": "Skip",
-       "type": "integer"
-      }
-     },
-     {
-      "in": "query",
-      "name": "limit",
-      "required": false,
-      "schema": {
-       "default": 100,
-       "maximum": 1000,
-       "minimum": 1,
-       "title": "Limit",
-       "type": "integer"
-      }
      }
     ],
     "responses": {
@@ -24104,7 +27373,13 @@
      "200": {
       "content": {
        "application/json": {
-        "schema": {}
+        "schema": {
+         "items": {
+          "$ref": "#/components/schemas/PotentialTransfer"
+         },
+         "title": "Response Find Potential Transfers Transactions Potential Transfers Get",
+         "type": "array"
+        }
        }
       },
       "description": "Successful Response"
@@ -24126,6 +27401,314 @@
      }
     ],
     "summary": "Find Potential Transfers",
+    "tags": [
+     "transactions"
+    ]
+   }
+  },
+  "/transactions/total": {
+   "get": {
+    "description": "Mêmes filtres que la liste, sans pagination : nombre et total net des transactions.",
+    "operationId": "total_transactions_transactions_total_get",
+    "parameters": [
+     {
+      "in": "query",
+      "name": "account_id",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "integer"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Account Id"
+      }
+     },
+     {
+      "in": "query",
+      "name": "category_id",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "integer"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Category Id"
+      }
+     },
+     {
+      "in": "query",
+      "name": "type",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Type"
+      }
+     },
+     {
+      "in": "query",
+      "name": "merchant",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Merchant"
+      }
+     },
+     {
+      "in": "query",
+      "name": "month",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "maximum": 12,
+         "minimum": 1,
+         "type": "integer"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Month"
+      }
+     },
+     {
+      "in": "query",
+      "name": "year",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "maximum": 2200,
+         "minimum": 2000,
+         "type": "integer"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Year"
+      }
+     },
+     {
+      "in": "query",
+      "name": "min_amount",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "number"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Min Amount"
+      }
+     },
+     {
+      "in": "query",
+      "name": "max_amount",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "number"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Max Amount"
+      }
+     },
+     {
+      "in": "query",
+      "name": "start_date",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "format": "date-time",
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Start Date"
+      }
+     },
+     {
+      "in": "query",
+      "name": "end_date",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "format": "date-time",
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "End Date"
+      }
+     },
+     {
+      "in": "query",
+      "name": "is_transfer",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "boolean"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Is Transfer"
+      }
+     },
+     {
+      "in": "query",
+      "name": "tag_ids",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "items": {
+          "type": "integer"
+         },
+         "type": "array"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Tag Ids"
+      }
+     },
+     {
+      "in": "query",
+      "name": "search",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Search"
+      }
+     },
+     {
+      "in": "query",
+      "name": "uncategorized",
+      "required": false,
+      "schema": {
+       "default": false,
+       "title": "Uncategorized",
+       "type": "boolean"
+      }
+     },
+     {
+      "description": "Nom canonique exact (marchand normalisé, sinon libellé)",
+      "in": "query",
+      "name": "merchant_name",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "description": "Nom canonique exact (marchand normalisé, sinon libellé)",
+       "title": "Merchant Name"
+      }
+     },
+     {
+      "description": "month/year = mois de paie (comme les analytics) au lieu du mois civil",
+      "in": "query",
+      "name": "period",
+      "required": false,
+      "schema": {
+       "default": false,
+       "description": "month/year = mois de paie (comme les analytics) au lieu du mois civil",
+       "title": "Period",
+       "type": "boolean"
+      }
+     },
+     {
+      "description": "Périmètre des flux du budget : courant/épargne hors tickets restaurant",
+      "in": "query",
+      "name": "budget_scope",
+      "required": false,
+      "schema": {
+       "default": false,
+       "description": "Périmètre des flux du budget : courant/épargne hors tickets restaurant",
+       "title": "Budget Scope",
+       "type": "boolean"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/TransactionsTotal"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Total Transactions",
     "tags": [
      "transactions"
     ]
@@ -24370,7 +27953,9 @@
      "200": {
       "content": {
        "application/json": {
-        "schema": {}
+        "schema": {
+         "$ref": "#/components/schemas/StatusResponse"
+        }
        }
       },
       "description": "Successful Response"

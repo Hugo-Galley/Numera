@@ -6,12 +6,13 @@ puis l'ajouter à `RULES`. Une règle en échec est journalisée et ignorée, le
 import inspect
 from collections.abc import Callable
 from datetime import datetime
-from typing import NamedTuple
+from typing import Any, NamedTuple
 
 from sqlalchemy.orm import Session
 
 from app.core.errors import InternalError
 from app.core.logging import get_logger
+from app.core.time import now_local
 from app.domain.audit import SEVERITY_ORDER
 from app.repositories.analytics import audit as repo
 from app.schemas.insight import ActionCenterResponse, ActionCenterSummary, ActionItem
@@ -39,7 +40,7 @@ logger = get_logger(__name__)
 
 class Rule(NamedTuple):
     name: str
-    detect: Callable
+    detect: Callable[..., Any]
 
 
 RULES: list[Rule] = [
@@ -62,7 +63,7 @@ RULES: list[Rule] = [
 
 async def compute_action_center(db: Session) -> ActionCenterResponse:
     try:
-        ctx = AuditContext(db=db, now=datetime.now())
+        ctx = AuditContext(db=db, now=now_local())
         actions: list[ActionItem] = []
         for rule in RULES:
             try:
@@ -93,7 +94,7 @@ def _summary(db: Session, now: datetime, actions: list[ActionItem]) -> ActionCen
     )
 
 
-def dismiss_action(db: Session, action_id: str) -> dict:
+def dismiss_action(db: Session, action_id: str) -> dict[str, Any]:
     if not repo.is_dismissed(db, action_id):
         repo.add_dismissed(db, action_id)
         db.commit()

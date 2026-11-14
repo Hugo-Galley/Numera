@@ -20,7 +20,7 @@ def sync_reinvestment(db: Session, dividend: InvestmentTransaction) -> None:
     Le dividende doit déjà avoir un `id` (flush). `quantity` = parts reçues en échange du net.
     """
     repo.delete_reinvestments(db, dividend.id)
-    if not dividend.reinvested:
+    if not dividend.reinvested or dividend.quantity is None:
         return
     repo.add(
         db,

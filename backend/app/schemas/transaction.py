@@ -147,3 +147,9 @@ class TransferCounterpartCreate(BaseModel):
 class TransferCounterpartRead(BaseModel):
     id: int
     type: str  # regular | investment
+
+
+class TransactionsTotal(BaseModel):
+    """Nombre et total net (remboursements déduits) des transactions d'un filtre, sans limite de page."""
+    count: int
+    total: float

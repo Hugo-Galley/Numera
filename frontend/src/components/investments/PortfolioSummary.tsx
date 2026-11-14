@@ -5,13 +5,13 @@ import { useEffect, useState } from "react"
 import { AlertTriangle, CheckCircle2, Scale } from "lucide-react"
 import { toast } from "sonner"
 
-import { api } from "@/lib/api"
 import { formatCurrency, formatRate } from "@/lib/utils"
 import type { PortfolioRead } from "@/types/portfolio"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { getAnalyticsPortfolioById } from "@/lib/api/analytics"
 
 interface PortfolioSummaryProps {
   accountId: number
@@ -30,8 +30,7 @@ export function PortfolioSummary({ accountId, reloadKey }: PortfolioSummaryProps
 
   useEffect(() => {
     let cancelled = false
-    api
-      .get<PortfolioRead>(`/analytics/portfolio/${accountId}`)
+    getAnalyticsPortfolioById<PortfolioRead>(accountId)
       .then((res) => !cancelled && setData(res))
       .catch(() => !cancelled && toast.error(t("portfolioSummary.impossibleDeCalculerLaValeur")))
       .finally(() => !cancelled && setLoading(false))
@@ -48,7 +47,7 @@ export function PortfolioSummary({ accountId, reloadKey }: PortfolioSummaryProps
   const latest = reconciliation[reconciliation.length - 1]
 
   return (
-    <Card className="shadow-sm">
+    <Card className="shadow-xs">
       <CardHeader>
         <CardTitle className="text-lg">{t("portfolioSummary.valeurCalculee")}</CardTitle>
         <CardDescription>

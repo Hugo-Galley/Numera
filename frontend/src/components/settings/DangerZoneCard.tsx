@@ -15,7 +15,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
-import { api } from "@/lib/api"
+import { postAdminResetDatabase } from "@/lib/api/settings"
 
 export function DangerZoneCard() {
   const { t } = useTranslation("settings")
@@ -24,7 +24,7 @@ export function DangerZoneCard() {
   const [resetPassword, setResetPassword] = useState("")
 
   return (
-    <Card className="shadow-sm border-rose-100 overflow-hidden">
+    <Card className="shadow-xs border-rose-100 overflow-hidden">
       <CardHeader className="bg-rose-50/50 border-b border-rose-100">
         <div className="flex items-center gap-2 text-rose-600">
           <AlertTriangle className="h-5 w-5" />
@@ -86,7 +86,7 @@ export function DangerZoneCard() {
                     disabled={resetConfirmText !== "EFFACER" || !resetPassword}
                     onClick={async () => {
                       try {
-                        await api.post("/admin/reset-database", { 
+                        await postAdminResetDatabase({ 
                           confirm: true,
                           confirmation_code: resetConfirmText,
                           current_password: resetPassword

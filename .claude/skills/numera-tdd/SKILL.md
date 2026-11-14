@@ -48,7 +48,7 @@ A snapshot difference is a red test like any other. Never `UPDATE_SNAPSHOTS=1` t
 
 ## Frontend
 
-Frontend tests (Vitest, `numera-testing` skill) check rendering, calls and journeys, not business rules: no logic lives there. A rule to test on the front side (calculation, aggregate, status) → it belongs to the backend, in TDD. A fixed frontend bug follows the same discipline: failing `X.test.tsx` first.
+Frontend tests (Vitest, `numera-testing` skill) check rendering, calls and journeys, not business rules: no logic lives there. A rule to test on the front side (calculation, aggregate, status) → it belongs to the backend, in TDD. A fixed frontend bug follows the same discipline: failing `src/test/<mirror path>/X.test.tsx` first.
 
 ## Rationalisations
 

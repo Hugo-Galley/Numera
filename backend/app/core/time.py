@@ -4,6 +4,16 @@ from typing import Annotated
 from pydantic import AfterValidator
 
 
+def now_local() -> datetime:
+    """Maintenant, heure locale du serveur, naïf : l'horloge des calculs « à ce jour » (règle 12)."""
+    return datetime.now()
+
+
+def today_local() -> date:
+    """Aujourd'hui, date locale du serveur."""
+    return date.today()
+
+
 def utcnow_naive() -> datetime:
     return datetime.now(UTC).replace(tzinfo=None)
 
@@ -18,7 +28,7 @@ def end_of_today() -> datetime:
     Une transaction datée d'aujourd'hui (à n'importe quelle heure) compte ; une transaction
     future (saisie à venir) ne compte qu'à sa date.
     """
-    return datetime.combine(date.today() + timedelta(days=1), time.min)
+    return datetime.combine(today_local() + timedelta(days=1), time.min)
 
 
 def to_naive_utc(value: datetime) -> datetime:

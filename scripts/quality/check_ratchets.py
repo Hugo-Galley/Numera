@@ -2,7 +2,7 @@
 """Protège les cliquets : une PR ne peut ni relever une baseline ni baisser un seuil de couverture.
 
 Compare les fichiers du commit courant à ceux de la branche de base (`git show BASE:chemin`) :
-- baselines JSON (mypy, tailles, ESLint, code mort) : une clé nouvelle ou un compteur en hausse échoue ;
+- baselines JSON (tailles, ESLint, code mort) : une clé nouvelle ou un compteur en hausse échoue ;
 - baseline texte des couches (une violation par ligne) : une ligne nouvelle échoue ;
 - seuils de couverture (`fail_under` backend, `thresholds` Vitest) : une valeur en baisse échoue.
 Réduire une baseline ou relever un seuil est toujours accepté.
@@ -19,14 +19,12 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
 JSON_BASELINES = (
-    "scripts/quality/baselines/mypy_baseline.json",
     "scripts/quality/baselines/code_size_baseline.json",
     "scripts/quality/baselines/dead_code_allowlist.json",
+    "scripts/quality/baselines/broad_except_baseline.json",
     "frontend/eslint-baseline.json",
 )
 LINES_BASELINES = (
-    "backend/tests/garde_fous/architecture_baseline.txt",
-    "backend/tests/garde_fous/architecture_rules_baseline.txt",
     "backend/tests/garde_fous/response_model_baseline.txt",
     "backend/tests/garde_fous/clock_baseline.txt",
 )

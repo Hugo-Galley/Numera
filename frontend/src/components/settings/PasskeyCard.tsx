@@ -2,13 +2,14 @@ import { useTranslation } from "react-i18next"
 import { appLocale } from "@/i18n/locale"
 import { useCallback, useEffect, useState } from "react"
 import { Fingerprint, Trash2 } from "lucide-react"
-import { api } from "@/lib/api"
-import { createCredential, passkeySupported, serializeCredential } from "@/lib/passkey"
+import { createCredential, passkeySupported, serializeCredential, type PasskeyOptionsJSON } from "@/lib/passkey"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useConfirm } from "@/providers/ConfirmProvider"
 import { toast } from "sonner"
 import { useReauth } from "./ReauthDialog"
+import { deleteAuthPasskeyById, getAuthPasskey, postAuthPasskeyRegisterOptions, postAuthPasskeyRegisterVerify } from "@/lib/api/settings"
+import { errorMessage } from "@/lib/utils"
 
 interface Passkey {
   id: string
@@ -28,7 +29,7 @@ export function PasskeyCard() {
 
   const load = useCallback(async () => {
     try {
-      setPasskeys(await api.get<Passkey[]>("/auth/passkey"))
+      setPasskeys(await getAuthPasskey<Passkey[]>())
     } catch {
       /* liste non critique */
     }
@@ -43,15 +44,15 @@ export function PasskeyCard() {
     if (!auth) return
     setBusy(true)
     try {
-      const { options, state } = await api.post<{ options: any; state: string }>("/auth/passkey/register/options", { current_password: auth.current_password })
+      const { options, state } = await postAuthPasskeyRegisterOptions<{ options: PasskeyOptionsJSON; state: string }>({ current_password: auth.current_password })
       const credential = await createCredential(options)
       if (!credential) return
       const name = /iPhone|iPad/.test(navigator.userAgent) ? "iPhone / iPad" : /Mac/.test(navigator.userAgent) ? "Mac" : "Appareil"
-      await api.post("/auth/passkey/register/verify", { state, credential: serializeCredential(credential), name, ...auth })
+      await postAuthPasskeyRegisterVerify({ state, credential: serializeCredential(credential), name, ...auth })
       toast.success(t("passkeyCard.passkeyEnregistree"))
       load()
-    } catch (err: any) {
-      if (err?.name !== "NotAllowedError") toast.error(err?.message || t("passkeyCard.enregistrementImpossible"))
+    } catch (err) {
+      if (!(err instanceof Error && err.name === "NotAllowedError")) toast.error(errorMessage(err, t("passkeyCard.enregistrementImpossible")))
     } finally {
       setBusy(false)
     }
@@ -62,11 +63,11 @@ export function PasskeyCard() {
     const auth = await ask(t("misc.removePasskeyTitle"), t("misc.removePasskeyHint"))
     if (!auth) return
     try {
-      await api.delete(`/auth/passkey/${passkey.id}`, auth)
+      await deleteAuthPasskeyById(passkey.id, auth)
       toast.success(t("passkeyCard.passkeySupprimee"))
       load()
-    } catch (err: any) {
-      toast.error(err?.message || t("passkeyCard.suppressionImpossible"))
+    } catch (err) {
+      toast.error(errorMessage(err, t("passkeyCard.suppressionImpossible")))
     }
   }
 

@@ -1,10 +1,11 @@
-from datetime import UTC, datetime, timedelta
+from datetime import timedelta
 from typing import Any
 
 import bcrypt
 import jwt
 
 from app.core.config import settings
+from app.core.time import utcnow_aware
 
 
 def create_access_token(
@@ -12,7 +13,7 @@ def create_access_token(
 ) -> str:
     """JWT de session. `auth_time` (horodatage Unix de la connexion par mot de passe) est conservé
     d'un renouvellement à l'autre pour borner la durée totale d'une session."""
-    now = datetime.now(UTC)
+    now = utcnow_aware()
     expire = now + expires_delta if expires_delta else now + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode = {"exp": expire, "sub": str(subject), "auth_time": auth_time or int(now.timestamp())}
     encoded_jwt = jwt.encode(
@@ -26,7 +27,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
         return bcrypt.checkpw(
             plain_password.encode("utf-8"), hashed_password.encode("utf-8")
         )
-    except Exception:
+    except ValueError:  # hash mal formé (bcrypt lève ValueError) : mot de passe refusé
         return False
 
 

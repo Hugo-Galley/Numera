@@ -1,8 +1,7 @@
 import i18n from "i18next"
 import { useTranslation } from "react-i18next"
 import { useState, useEffect } from "react"
-import { Plus, Tag, Pencil, Trash2, Palette, Archive, ArchiveRestore } from "lucide-react"
-import { api } from "@/lib/api"
+import { Plus, Tag, Pencil, Trash2, Archive, ArchiveRestore } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -20,6 +19,7 @@ import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import { useConfirm } from "@/providers/ConfirmProvider"
 import { ErrorState } from "@/components/layout/ErrorState"
+import { deleteTagsById, getTags, patchTagsById, postTags } from "@/lib/api/classement"
 
 type TagType = {
   id: number
@@ -61,7 +61,7 @@ export function TagsTab() {
 
   const loadTags = async () => {
     try {
-      const data = await api.get<TagType[]>("/tags")
+      const data = await getTags<TagType[]>()
       setTags(data)
       setLoadFailed(false)
     } catch (error) {
@@ -79,7 +79,7 @@ export function TagsTab() {
   const handleAddTag = async () => {
     if (!newName) return
     try {
-      await api.post("/tags", {
+      await postTags({
         name: newName,
         color: newColor,
       })
@@ -88,7 +88,7 @@ export function TagsTab() {
       setNewColor("#64748b")
       setNewOpen(false)
       loadTags()
-    } catch (error) {
+    } catch {
       toast.error(t("tagsTab.erreurLorsDeLAjout"))
     }
   }
@@ -103,24 +103,24 @@ export function TagsTab() {
   const handleUpdateTag = async () => {
     if (!editingTag || !editName) return
     try {
-      await api.patch(`/tags/${editingTag.id}`, {
+      await patchTagsById(editingTag.id, {
         name: editName,
         color: editColor,
       })
       toast.success(t("tagsTab.tagMisAJour"))
       setEditOpen(false)
       loadTags()
-    } catch (error) {
+    } catch {
       toast.error(t("tagsTab.erreurLorsDeLaMise"))
     }
   }
 
   const handleToggleArchiveTag = async (tag: TagType) => {
     try {
-      await api.patch(`/tags/${tag.id}`, { archived: !tag.archived })
+      await patchTagsById(tag.id, { archived: !tag.archived })
       toast.success(tag.archived ? t("tagsTab.tagReactive") : t("tagsTab.tagArchiveMasqueDesSelecteurs"))
       loadTags()
-    } catch (error) {
+    } catch {
       toast.error(t("tagsTab.erreurLorsDeLArchivage"))
     }
   }
@@ -128,10 +128,10 @@ export function TagsTab() {
   const handleDeleteTag = async (tagId: number) => {
     if (!(await confirm(t("tagsTab.supprimerCeTagIlSera")))) return
     try {
-      await api.delete(`/tags/${tagId}`)
+      await deleteTagsById(tagId)
       toast.success(t("tagsTab.tagSupprime"))
       loadTags()
-    } catch (error) {
+    } catch {
       toast.error(t("tagsTab.erreurLorsDeLaSuppression"))
     }
   }
@@ -187,7 +187,7 @@ export function TagsTab() {
 
               <div className="theme-island flex items-center gap-4 p-4 bg-slate-900 rounded-2xl text-white">
                 <Badge 
-                  className="px-3 py-1 font-bold shadow-sm border-none text-white"
+                  className="px-3 py-1 font-bold shadow-xs border-none text-white"
                   style={{ backgroundColor: newColor }}
                 >
                   <Tag className="h-3 w-3 mr-1.5" />
@@ -210,11 +210,11 @@ export function TagsTab() {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {[...tags].sort((a, b) => Number(!!a.archived) - Number(!!b.archived)).map((tag) => (
-            <Card key={tag.id} className={`group hover:border-slate-300 transition-all shadow-sm border-slate-100 overflow-hidden ${tag.archived ? "opacity-60" : ""}`}>
+            <Card key={tag.id} className={`group hover:border-slate-300 transition-all shadow-xs border-slate-100 overflow-hidden ${tag.archived ? "opacity-60" : ""}`}>
               <CardContent className="p-0">
                 <div className="p-3 pl-4 flex items-center justify-between gap-4 md:p-4">
                   <Badge 
-                    className="px-3 py-1.5 font-bold shadow-sm border-none text-white truncate max-w-[200px] sm:max-w-[150px]"
+                    className="px-3 py-1.5 font-bold shadow-xs border-none text-white truncate max-w-[200px] sm:max-w-[150px]"
                     style={{ backgroundColor: tag.color || "#64748b" }}
                   >
                     <Tag className="h-3.5 w-3.5 mr-2" />
@@ -281,7 +281,7 @@ export function TagsTab() {
 
             <div className="theme-island flex items-center gap-4 p-4 bg-slate-900 rounded-2xl text-white">
               <Badge 
-                className="px-3 py-1 font-bold shadow-sm border-none text-white"
+                className="px-3 py-1 font-bold shadow-xs border-none text-white"
                 style={{ backgroundColor: editColor }}
               >
                 <Tag className="h-3 w-3 mr-1.5" />

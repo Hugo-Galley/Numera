@@ -2,17 +2,36 @@ import i18n from "i18next"
 import { appLocale } from "@/i18n/locale"
 import React from 'react';
 import { Treemap, ResponsiveContainer, Tooltip } from 'recharts';
+import { keepSeriesOrder, numberFormatter } from "@/lib/chartTooltip";
 import { formatAmountWithShare, formatRate } from '@/lib/utils';
 
-interface AllocationItem {
+type AllocationItem = {
   name: string;
   value: number;
   percentage: number;
 }
 
+/** Compte d'un groupe d'allocation, tel qu'affiché dans le détail d'un clic sur un graphique. */
+export interface DrillItem {
+  account_id: number
+  account_name?: string | null
+  percentage_of_group?: number | null
+  value: number
+}
+
+/** Nœud renvoyé par Recharts au clic : les données du groupe sont imbriquées dans `payload`, à des profondeurs variables. */
+export interface DrillNode {
+  name?: string
+  items?: DrillItem[]
+  payload?: DrillNode
+}
+
+/** Nœud de treemap renvoyé par Recharts au clic (`depth === 2` : une feuille). */
+export type TreemapNode = DrillNode & { depth?: number }
+
 interface AllocationTreemapProps {
   data: AllocationItem[];
-  onItemClick?: (item: any) => void;
+  onItemClick?: (item: TreemapNode) => void;
 }
 
 const COLORS = [
@@ -28,8 +47,21 @@ const COLORS = [
   "#10b981", // Emerald 500
 ];
 
-const CustomizedContent = (props: any) => {
-  const { x, y, width, height, index, name, value, percentage, depth } = props;
+interface CellProps {
+  x: number
+  y: number
+  width: number
+  height: number
+  index: number
+  name: string
+  value: number
+  percentage: number
+  depth: number
+}
+
+// Recharts clone l'élément `content` en lui injectant ces props : toutes optionnelles pour le typage de `<CustomizedContent />`
+const CustomizedContent = (props: Partial<CellProps>) => {
+  const { x = 0, y = 0, width = 0, height = 0, index = 0, name = "", value = 0, percentage = 0, depth = 0 } = props;
 
   // Render leaf nodes
   if (depth !== 2) return null;
@@ -107,14 +139,14 @@ export const AllocationTreemap: React.FC<AllocationTreemapProps> = ({ data, onIt
           stroke="#fff"
           content={<CustomizedContent />}
           isAnimationActive={false}
-          onClick={(node: any) => {
+          onClick={(node: TreemapNode) => {
             if (node && node.depth === 2 && onItemClick) {
               onItemClick(node);
             }
           }}
         >
-          <Tooltip 
-            formatter={(value: number, name: string) => [formatAmountWithShare(value, data.reduce((sum, i) => sum + (i.value || 0), 0)), name]}
+          <Tooltip itemSorter={keepSeriesOrder} 
+            formatter={numberFormatter((value: number, name: string) => [formatAmountWithShare(value, data.reduce((sum, i) => sum + (i.value || 0), 0)), name])}
             contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }}
           />
         </Treemap>

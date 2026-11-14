@@ -1,6 +1,6 @@
 import i18n from "i18next"
 import { useTranslation } from "react-i18next"
-import { AlertCircle, Clock, Plus, Trash2, TrendingUp } from "lucide-react"
+import { AlertCircle, Clock, Trash2, TrendingUp } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -20,11 +20,11 @@ export function SubscriptionsTab({ ctx }: { ctx: RecurringTransactionsCtx }) {
       <TabsContent value="subscriptions" className="space-y-6 md:space-y-8">
          <PriceChangesNotice changes={subsData?.price_changes} />
          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-           <div className="scroll-fade-x flex max-w-full items-center gap-1 overflow-x-auto p-1 bg-slate-100 rounded-xl w-fit [scrollbar-width:none] [&::-webkit-scrollbar]:hidden [&>button]:shrink-0">
+           <div className="scroll-fade-x flex max-w-full items-center gap-1 overflow-x-auto p-1 bg-slate-100 rounded-xl w-fit scrollbar-none [&::-webkit-scrollbar]:hidden [&>button]:shrink-0">
              <Button 
               variant={subTab === "subscriptions" ? "white" : "ghost"} 
               size="sm" 
-              className={`h-9 rounded-lg font-bold text-xs px-4 ${subTab === "subscriptions" ? "shadow-sm" : "text-slate-500 hover:text-slate-900"}`}
+              className={`h-9 rounded-lg font-bold text-xs px-4 ${subTab === "subscriptions" ? "shadow-xs" : "text-slate-500 hover:text-slate-900"}`}
               onClick={() => setSubTab("subscriptions")}
              >
                {t("subscriptionsTab.abonnements")}
@@ -32,7 +32,7 @@ export function SubscriptionsTab({ ctx }: { ctx: RecurringTransactionsCtx }) {
              <Button 
               variant={subTab === "investments" ? "white" : "ghost"} 
               size="sm" 
-              className={`rounded-lg font-bold text-xs px-4 ${subTab === "investments" ? "shadow-sm" : "text-slate-500 hover:text-slate-900"}`}
+              className={`rounded-lg font-bold text-xs px-4 ${subTab === "investments" ? "shadow-xs" : "text-slate-500 hover:text-slate-900"}`}
               onClick={() => setSubTab("investments")}
              >
                {t("subscriptionsTab.investissements")}
@@ -40,7 +40,7 @@ export function SubscriptionsTab({ ctx }: { ctx: RecurringTransactionsCtx }) {
              <Button 
               variant={subTab === "other" ? "white" : "ghost"} 
               size="sm" 
-              className={`rounded-lg font-bold text-xs px-4 ${subTab === "other" ? "shadow-sm" : "text-slate-500 hover:text-slate-900"}`}
+              className={`rounded-lg font-bold text-xs px-4 ${subTab === "other" ? "shadow-xs" : "text-slate-500 hover:text-slate-900"}`}
               onClick={() => setSubTab("other")}
              >
                {t("subscriptionsTab.autresRecurrences")}
@@ -52,7 +52,7 @@ export function SubscriptionsTab({ ctx }: { ctx: RecurringTransactionsCtx }) {
          </div>
 
          <div className="grid grid-cols-2 gap-3 md:gap-6 md:grid-cols-3">
-           <Card className="shadow-sm border-slate-100">
+           <Card className="shadow-xs border-slate-100">
              <CardHeader className="pb-2">
                <CardDescription className="font-medium text-slate-500">
                   {subTab === "subscriptions" ? t("subscriptionsTab.coutMensuelTotal") : subTab === "other" ? t("subscriptionsTab.fluxMensuel") : t("subscriptionsTab.versementMensuel")}
@@ -68,7 +68,7 @@ export function SubscriptionsTab({ ctx }: { ctx: RecurringTransactionsCtx }) {
              </CardContent>
            </Card>
 
-           <Card className="shadow-sm border-slate-100">
+           <Card className="shadow-xs border-slate-100">
              <CardHeader className="pb-2">
                <CardDescription className="font-medium text-slate-500">
                  {subTab === "subscriptions" ? t("subscriptionsTab.impactAnnuel") : subTab === "other" ? t("subscriptionsTab.totalAnnuel") : t("subscriptionsTab.totalAnnuelProjete")}
@@ -84,7 +84,7 @@ export function SubscriptionsTab({ ctx }: { ctx: RecurringTransactionsCtx }) {
              </CardContent>
            </Card>
 
-           <Card className="shadow-sm border-slate-100 col-span-2 md:col-span-1">
+           <Card className="shadow-xs border-slate-100 col-span-2 md:col-span-1">
              <CardHeader className="pb-2">
                <CardDescription className="font-medium text-slate-500">
                  {subTab === "subscriptions" ? t("subscriptionsTab.servicesActifs") : subTab === "other" ? t("subscriptionsTab.recurrencesActives") : t("subscriptionsTab.plansDInvestissement")}
@@ -92,7 +92,7 @@ export function SubscriptionsTab({ ctx }: { ctx: RecurringTransactionsCtx }) {
              </CardHeader>
              <CardContent>
                <CardTitle className="text-2xl md:text-3xl font-bold text-slate-900">
-                 {activeSubs.filter((s: any) => s.status !== "lapsed").length}
+                 {activeSubs.filter((s) => s.status !== "lapsed").length}
                </CardTitle>
                <p className="text-xs text-slate-400 mt-1">{i18n.t("misc.pendingDetections", { ns: "recurring", count: potentialSubs.length })}</p>
              </CardContent>
@@ -101,7 +101,7 @@ export function SubscriptionsTab({ ctx }: { ctx: RecurringTransactionsCtx }) {
 
          <div className="grid gap-6 lg:gap-8 lg:grid-cols-12">
            <div className={`${subTab === "other" ? "lg:col-span-12" : "lg:col-span-8"} space-y-6`}>
-              <Card className="shadow-sm border-slate-100 overflow-hidden">
+              <Card className="shadow-xs border-slate-100 overflow-hidden">
                 <CardHeader className="border-b bg-slate-50/30">
                   <CardTitle className="text-lg">
                     {subTab === "subscriptions" ? t("subscriptionsTab.abonnementsConfirmes") : subTab === "other" ? t("subscriptionsTab.autresRecurrences") : t("subscriptionsTab.investissementsProgrammes")}
@@ -115,7 +115,7 @@ export function SubscriptionsTab({ ctx }: { ctx: RecurringTransactionsCtx }) {
                         <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">{t("subscriptionsTab.aucunElement")}</p>
                       </div>
                     ) : (
-                      activeSubs.map((sub: any, i: number) => (
+                      activeSubs.map((sub, i: number) => (
                         <div
                           key={i}
                           className={`p-4 flex items-center justify-between gap-3 hover:bg-slate-50 transition-colors group cursor-pointer`}
@@ -123,14 +123,13 @@ export function SubscriptionsTab({ ctx }: { ctx: RecurringTransactionsCtx }) {
                         >
                           <div className="flex items-center gap-3 md:gap-4 min-w-0">
                             <CompanyLogo
-                              ticker={sub.ticker}
                               name={sub.name}
                               logo={sub.logo}
-                              className="h-10 w-10 md:h-12 md:w-12 rounded-2xl shrink-0 shadow-sm"
+                              className="h-10 w-10 md:h-12 md:w-12 rounded-2xl shrink-0 shadow-xs"
                             />
                             <div className="min-w-0">
                               <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-                                <p className="font-bold text-slate-900 break-words">{sub.name}</p>
+                                <p className="font-bold text-slate-900 wrap-break-word">{sub.name}</p>
                                 {sub.status === "lapsed" ? (
                                   <Badge title={t("subscriptionsTab.aucunPrelevementDepuisPlusDe")} className="bg-slate-100 text-slate-600 hover:bg-slate-100 border-none text-[9px] h-4 px-1.5 font-black uppercase">{t("subscriptionsTab.plusPreleve")}</Badge>
                                 ) : (
@@ -166,7 +165,7 @@ export function SubscriptionsTab({ ctx }: { ctx: RecurringTransactionsCtx }) {
               </Card>
 
               {potentialSubs.length > 0 && (
-                <Card className={`shadow-sm border-amber-100 ${subTab === 'subscriptions' ? 'bg-amber-50/10' : 'bg-indigo-50/10 border-indigo-100'}`}>
+                <Card className={`shadow-xs border-amber-100 ${subTab === 'subscriptions' ? 'bg-amber-50/10' : 'bg-indigo-50/10 border-indigo-100'}`}>
                   <CardHeader className={`flex flex-row items-center justify-between border-b ${subTab === 'subscriptions' ? 'border-amber-100/50' : 'border-indigo-100/50'}`}>
                     <div>
                       <CardTitle className={`text-lg flex items-center gap-2 ${subTab === 'subscriptions' ? 'text-amber-900' : 'text-indigo-900'}`}>
@@ -180,17 +179,16 @@ export function SubscriptionsTab({ ctx }: { ctx: RecurringTransactionsCtx }) {
                   </CardHeader>
                   <CardContent className="p-0">
                     <div className={`divide-y border-t ${subTab === 'subscriptions' ? 'border-amber-100' : 'border-indigo-100'}`}>
-                      {potentialSubs.map((sub: any, i: number) => (
+                      {potentialSubs.map((sub, i: number) => (
                         <div key={i} className="p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between group">
                           <div className="flex items-center gap-3 md:gap-4 min-w-0">
                             <CompanyLogo
-                              ticker={sub.ticker}
                               name={sub.name}
                               logo={sub.logo}
-                              className="h-10 w-10 md:h-12 md:w-12 rounded-2xl shrink-0 shadow-sm"
+                              className="h-10 w-10 md:h-12 md:w-12 rounded-2xl shrink-0 shadow-xs"
                             />
                             <div className="min-w-0 flex-1">
-                              <p className="font-bold text-slate-900 break-words">{sub.name}</p>
+                              <p className="font-bold text-slate-900 wrap-break-word">{sub.name}</p>
                               <div className="flex items-center gap-2 mt-0.5">
                                 <span className={`text-[10px] font-black uppercase tracking-widest ${subTab === 'subscriptions' ? 'text-amber-600' : 'text-indigo-600'}`}>{t("subscriptionsTab.recurrenceDetectee")}</span>
                               </div>
@@ -224,7 +222,7 @@ export function SubscriptionsTab({ ctx }: { ctx: RecurringTransactionsCtx }) {
            </div>
 
            {subTab !== "other" && <div className="lg:col-span-4 space-y-6">
-              <Card className="shadow-sm border-slate-100">
+              <Card className="shadow-xs border-slate-100">
                 <CardHeader className="border-b pb-4">
                   <CardTitle className="text-lg">{t("subscriptionsTab.repartitionMensuelle")}</CardTitle>
                   {monthlyTotal > 0 && (
@@ -238,7 +236,7 @@ export function SubscriptionsTab({ ctx }: { ctx: RecurringTransactionsCtx }) {
                     <p className="text-sm text-slate-400">{t("subscriptionsTab.aucunMontantMensuelARepartir")}</p>
                   ) : (
                     <ul className="space-y-4">
-                      {monthlyBreakdown.map((sub: any) => {
+                      {monthlyBreakdown.map((sub) => {
                         const share = (sub.monthly_cost / monthlyTotal) * 100
                         return (
                           <li key={sub.name} className="space-y-1.5">

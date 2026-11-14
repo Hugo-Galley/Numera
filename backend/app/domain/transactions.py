@@ -1,9 +1,13 @@
 """Calculs purs sur les transactions (aucune Session)."""
 
-from typing import Any
+from __future__ import annotations
 
-from app.models.transaction import Transaction
+from typing import TYPE_CHECKING, Any
+
 from app.schemas.transaction import TransactionRead
+
+if TYPE_CHECKING:
+    from app.models.transaction import Transaction
 
 
 def net_amount(tx: Transaction) -> float:
@@ -24,3 +28,15 @@ def tx_sample(tx: Transaction) -> dict[str, Any]:
 
 def tx_read(tx: Transaction) -> dict[str, Any]:
     return TransactionRead.model_validate(tx).model_dump(mode="json")
+
+
+def category_share(amount: float, offset: float, split_part: float | None) -> float:
+    """Montant net d'une dépense attribué à une catégorie.
+
+    `split_part` : somme des parts de la dépense affectées à la catégorie (None si elle n'est pas découpée,
+    ou si aucune catégorie n'est filtrée) ; le net des remboursements est réparti au prorata des parts.
+    """
+    net = amount - offset
+    if split_part is None:
+        return net
+    return net * split_part / amount if amount else 0.0

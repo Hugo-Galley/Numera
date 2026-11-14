@@ -21,9 +21,11 @@ import {
   CartesianGrid,
   Tooltip
 } from "recharts"
+import { keepSeriesOrder, numberFormatter } from "@/lib/chartTooltip"
+import type { TopMerchants } from "../types"
 
 interface MerchantsTabProps {
-  topMerchants: any[]
+  topMerchants: TopMerchants["items"]
   displayCurrency: string
   drilldownScope: DrilldownScope
 }
@@ -35,12 +37,12 @@ export function MerchantsTab({ topMerchants, displayCurrency, drilldownScope }: 
   const { workTime } = useWorkTime()
   const rate = displayCurrency === "EUR" ? workTime?.hourly_rate : null
   const formatTooltip = (v: number) => {
-    const amount = formatAmountWithShare(v, topMerchants.reduce((s: number, m: any) => s + (m.total || 0), 0), displayCurrency)
+    const amount = formatAmountWithShare(v, topMerchants.reduce((s, m) => s + (m.total || 0), 0), displayCurrency)
     return rate ? `${amount} (${t("workHours.approx", { ns: "common", duration: formatWorkDuration(v / rate, workTime!.work_hours_per_day) })})` : amount
   }
 
   return (
-    <Card className="shadow-sm border-slate-100 overflow-hidden">
+    <Card className="shadow-xs border-slate-100 overflow-hidden">
       <CardHeader className="bg-slate-50/50 border-b p-4 pb-3 md:p-6 md:pb-4">
         <div className="flex items-center gap-2">
           <Users className="h-5 w-5 text-slate-400" />
@@ -54,14 +56,14 @@ export function MerchantsTab({ topMerchants, displayCurrency, drilldownScope }: 
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
             <XAxis type="number" hide />
             <YAxis dataKey="merchant" type="category" width={isMobile ? 104 : 150} axisLine={false} tickLine={false} tick={{ fontSize: isMobile ? 11 : 12, fontWeight: 500, fill: '#64748b' }} tickFormatter={(v: string) => (isMobile && v.length > 16 ? `${v.slice(0, 15)}…` : v)} />
-            <Tooltip cursor={{ fill: '#f8fafc' }} formatter={formatTooltip} contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} />
+            <Tooltip itemSorter={keepSeriesOrder} cursor={{ fill: '#f8fafc' }} formatter={numberFormatter(formatTooltip)} contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} />
             <Bar
               dataKey="total"
               fill="#0f172a"
               radius={[0, 4, 4, 0]}
               barSize={isMobile ? 18 : 30}
               className="cursor-pointer"
-              onClick={(data: any) => {
+              onClick={(data) => {
                 const merchant = (data?.payload ?? data)?.merchant
                 if (merchant) openDrilldown({ ...drilldownScope, label: merchant, merchantName: merchant })
               }}

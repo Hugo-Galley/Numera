@@ -7,7 +7,9 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
-import { api } from "@/lib/api"
+import { downloadExportTransactionsCsv } from "@/lib/api/settings"
+import { getAccounts } from "@/lib/api/accounts"
+import { errorMessage } from "@/lib/utils"
 
 type Account = {
   id: number
@@ -23,7 +25,7 @@ export function ExportCard() {
 
   const loadAccounts = useCallback(async () => {
     try {
-      const data = await api.get<Account[]>("/accounts")
+      const data = await getAccounts<Account[]>()
       const activeAccounts = data.filter((a) => a.active)
       setAccounts(activeAccounts)
       // Par défaut, on sélectionne tout
@@ -45,20 +47,20 @@ export function ExportCard() {
       params.append("account_ids", selectedAccounts.join(","))
     }
     try {
-      const blob = await api.download(`/export/transactions.csv?${params.toString()}`)
+      const blob = await downloadExportTransactionsCsv(`?${params.toString()}`)
       const url = URL.createObjectURL(blob)
       const a = document.createElement("a")
       a.href = url
       a.download = "transactions_export.csv"
       a.click()
       URL.revokeObjectURL(url)
-    } catch (error: any) {
-      toast.error(error?.message || t("exportCard.erreurLorsDeLExport"))
+    } catch (error) {
+      toast.error(errorMessage(error, t("exportCard.erreurLorsDeLExport")))
     }
   }
 
   return (
-    <Card className="shadow-sm border-slate-100 overflow-hidden">
+    <Card className="shadow-xs border-slate-100 overflow-hidden">
       <CardHeader className="bg-slate-50/50 border-b">
         <CardTitle className="text-lg">{t("exportCard.donneesEtExport")}</CardTitle>
         <CardDescription>{t("exportCard.telechargezVosDonneesPourLes")}</CardDescription>

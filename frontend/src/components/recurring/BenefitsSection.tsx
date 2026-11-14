@@ -12,10 +12,11 @@ import { Card, CardContent } from "@/components/ui/card"
 import { CompanyLogo } from "@/components/ui/CompanyLogo"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ErrorState } from "@/components/layout/ErrorState"
-import { api } from "@/lib/api"
 import { errorMessage, formatCurrency } from "@/lib/utils"
 import { useConfirm } from "@/providers/ConfirmProvider"
 import { BenefitDialog, type AccountOption } from "./BenefitDialog"
+import { getAccounts } from "@/lib/api/accounts"
+import { deleteBenefitsById, getBenefits, getBenefitsSummary, patchBenefitsById, postBenefitsDeclared } from "@/lib/api/recurring"
 
 interface BenefitPayment {
   transaction_id: number
@@ -72,7 +73,7 @@ export function BenefitsSection() {
 
   const load = useCallback(async () => {
     try {
-      const [list, sum] = await Promise.all([api.get<Benefit[]>("/benefits"), api.get<BenefitSummary>("/benefits/summary")])
+      const [list, sum] = await Promise.all([getBenefits<Benefit[]>(), getBenefitsSummary<BenefitSummary>()])
       setBenefits(list)
       setSummary(sum)
       setFailed(false)
@@ -85,7 +86,7 @@ export function BenefitsSection() {
 
   useEffect(() => {
     load()
-    api.get<(AccountOption & { active?: boolean; type?: string })[]>("/accounts")
+    getAccounts<(AccountOption & { active?: boolean; type?: string })[]>()
       .then((accs) => setAccounts(accs.filter((a) => a.active !== false && a.type !== "investissement")))
       .catch(() => undefined)
   }, [load])
@@ -107,15 +108,15 @@ export function BenefitsSection() {
 
   const remove = async (b: Benefit) => {
     if (!(await confirm(i18n.t("misc.benefitDeleteConfirm", { ns: "recurring", name: b.name })))) return
-    mutate(api.delete(`/benefits/${b.id}`), i18n.t("misc.benefitDeleted", { ns: "recurring" }))
+    mutate(deleteBenefitsById(b.id), i18n.t("misc.benefitDeleted", { ns: "recurring" }))
   }
 
   const actions = {
     edit: openDialog,
     remove,
-    declared: (b: Benefit) => mutate(api.post(`/benefits/${b.id}/declared`, {}), i18n.t("misc.benefitDeclared", { ns: "recurring" })),
-    adoptAmount: (b: Benefit) => b.last_payment && mutate(api.patch(`/benefits/${b.id}`, { amount: b.last_payment.amount }), i18n.t("misc.benefitAmountUpdated", { ns: "recurring" })),
-    toggle: (b: Benefit) => mutate(api.patch(`/benefits/${b.id}`, { active: !b.active }), b.active ? t("benefitsSection.aideMiseEnPause") : t("benefitsSection.aideReactivee")),
+    declared: (b: Benefit) => mutate(postBenefitsDeclared(b.id, {}), i18n.t("misc.benefitDeclared", { ns: "recurring" })),
+    adoptAmount: (b: Benefit) => b.last_payment && mutate(patchBenefitsById(b.id, { amount: b.last_payment.amount }), i18n.t("misc.benefitAmountUpdated", { ns: "recurring" })),
+    toggle: (b: Benefit) => mutate(patchBenefitsById(b.id, { active: !b.active }), b.active ? t("benefitsSection.aideMiseEnPause") : t("benefitsSection.aideReactivee")),
   }
 
   return (
@@ -130,7 +131,7 @@ export function BenefitsSection() {
             </span>
           )}
         </div>
-        <Button className="h-11 w-full rounded-xl shadow-sm sm:h-10 sm:w-auto" onClick={() => openDialog(null)}>
+        <Button className="h-11 w-full rounded-xl shadow-xs sm:h-10 sm:w-auto" onClick={() => openDialog(null)}>
           <Plus className="mr-2 h-4 w-4" />
           {t("benefitsSection.nouvelleAide")}
         </Button>
@@ -177,7 +178,7 @@ interface CardActions {
 function BenefitCard({ benefit: b, actions }: { benefit: Benefit; actions: CardActions }) {
   const { t } = useTranslation("recurring")
   return (
-    <Card className={`rounded-2xl shadow-sm ${b.active ? "" : "opacity-60"}`}>
+    <Card className={`rounded-2xl shadow-xs ${b.active ? "" : "opacity-60"}`}>
       <CardContent className="space-y-3 p-4 md:p-5">
         <div className="flex items-start justify-between gap-2">
           <CompanyLogo logo={b.logo} name={b.name} className="h-10 w-10 shrink-0 rounded-lg shadow-2xs" />

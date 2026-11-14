@@ -22,7 +22,6 @@ import {
 } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { cn } from "@/lib/utils"
-import { api } from "@/lib/api"
 import { useUI } from "@/providers/UIProvider"
 import { useAuth } from "@/providers/AuthProvider"
 import { Button } from "@/components/ui/button"
@@ -34,6 +33,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { getAnalyticsActions } from "@/lib/api/analytics"
 
 // 12 entrées en 3 groupes toujours ouverts : Bilan, Revue et Comparaison sont des onglets de « Mois »,
 // le calendrier et le salaire des onglets d'« Échéances ».
@@ -76,7 +76,7 @@ function useUrgentActionCount(): number {
   useEffect(() => {
     if (Date.now() - lastFetch.current < 60_000) return
     lastFetch.current = Date.now()
-    api.get<{ summary: { high_priority: number } }>("/analytics/actions")
+    getAnalyticsActions<{ summary: { high_priority: number } }>()
       .then((data) => setCount(data.summary.high_priority))
       .catch(() => {})
   }, [pathname])
@@ -126,7 +126,7 @@ export function Sidebar({ className, onItemClick, hideBrand }: { className?: str
                   >
                     <item.icon
                       className={cn(
-                        "mr-3 h-5 w-5 flex-shrink-0 transition-colors",
+                        "mr-3 h-5 w-5 shrink-0 transition-colors",
                         "group-hover:text-slate-900"
                       )}
                       aria-hidden="true"
@@ -213,7 +213,7 @@ export function Sidebar({ className, onItemClick, hideBrand }: { className?: str
       <div className="border-t p-4">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="flex w-full items-center gap-3 px-2 py-1.5 rounded-md hover:bg-slate-100 transition-colors text-left outline-none">
+            <button className="flex w-full items-center gap-3 px-2 py-1.5 rounded-md hover:bg-slate-100 transition-colors text-left outline-hidden">
               <div className="h-8 w-8 rounded-full bg-slate-900 flex items-center justify-center text-white text-xs font-bold overflow-hidden">
                 {profilePicture ? (
                   <img src={profilePicture} alt={username || ""} className="h-full w-full object-cover" />

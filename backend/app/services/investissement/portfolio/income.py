@@ -1,5 +1,6 @@
 """Revenus et coûts d'un compte titres : plus-values réalisées, dividendes et frais, en EUR."""
 from datetime import datetime, timedelta
+from typing import Any
 
 from sqlalchemy.orm import Session
 
@@ -9,9 +10,9 @@ from app.services.investissement.dividends import load_dividends_eur
 from app.services.investissement.portfolio.books import FxBook
 
 
-def realized_summary(replay: Replay) -> tuple[dict[int, dict], float, int]:
+def realized_summary(replay: Replay) -> tuple[dict[int, dict[str, Any]], float, int]:
     """Plus-values réalisées par année, total et nombre de ventes au coût inconnu."""
-    realized_by_year: dict[int, dict] = {}
+    realized_by_year: dict[int, dict[str, Any]] = {}
     realized_total = 0.0
     realized_unknown = 0
     for sale in replay.realized:

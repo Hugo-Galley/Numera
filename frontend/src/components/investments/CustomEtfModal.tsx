@@ -1,8 +1,8 @@
+import type { EtfProfile } from "./types"
 import i18n from "i18next"
 import { useTranslation } from "react-i18next"
 import { errorMessage } from "@/lib/utils"
-import { useState } from "react"
-import { api } from "@/lib/api"
+import { useEffect, useState } from "react"
 import {
   Dialog,
   DialogContent,
@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
 import { Layers, Globe } from "lucide-react"
+import { postEtfProfilesAutoDecompose } from "@/lib/api/investments"
 
 interface CustomEtfModalProps {
   open: boolean
@@ -23,7 +24,7 @@ interface CustomEtfModalProps {
   initialTicker?: string
   initialName?: string
   initialIsin?: string
-  onProfileCreated?: (profile: any) => void
+  onProfileCreated?: (profile: EtfProfile) => void
 }
 
 export function CustomEtfModal({
@@ -40,6 +41,14 @@ export function CustomEtfModal({
   const [isin, setIsin] = useState(initialIsin)
   const [analyzing, setAnalyzing] = useState(false)
 
+  // La fenêtre reste montée entre deux ouvertures : à chaque ouverture, le formulaire repart de la recherche en cours
+  useEffect(() => {
+    if (!open) return
+    setName(initialName)
+    setTicker(initialTicker)
+    setIsin(initialIsin)
+  }, [open, initialName, initialTicker, initialIsin])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     const symbolToAnalyze = ticker.trim() || isin.trim()
@@ -51,7 +60,7 @@ export function CustomEtfModal({
     setAnalyzing(true)
     const toastId = toast.loading(i18n.t("misc.fetchingComposition", { ns: "investments", symbol: symbolToAnalyze }))
     try {
-      const result = await api.post<any>("/etf-profiles/auto-decompose", {
+      const result = await postEtfProfilesAutoDecompose({
         symbol: symbolToAnalyze,
         name: name.trim() || undefined,
         isin: isin.trim() || undefined,
@@ -66,7 +75,7 @@ export function CustomEtfModal({
       } else {
         toast.error(t("customEtfModal.impossibleDeDecomposerCeFonds"), { id: toastId })
       }
-    } catch (err: any) {
+    } catch (err) {
       toast.error(errorMessage(err, t("customEtfModal.erreurLorsDeLaDecomposition")), { id: toastId })
     } finally {
       setAnalyzing(false)
@@ -132,7 +141,7 @@ export function CustomEtfModal({
               type="submit"
               size="sm"
               disabled={analyzing || !ticker.trim()}
-              className="h-11 gap-2 bg-slate-900 text-white shadow-sm hover:bg-slate-800 sm:h-8"
+              className="h-11 gap-2 bg-slate-900 text-white shadow-xs hover:bg-slate-800 sm:h-8"
             >
               <Globe className="h-3.5 w-3.5" />
               {analyzing ? t("customEtfModal.recuperation") : t("customEtfModal.creerDepuisYahoo")}

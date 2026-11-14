@@ -1,11 +1,12 @@
 """Détail d'un compte d'investissement (`/investments/{id}`) et historique de performance."""
 from datetime import datetime
+from typing import Any
 
 from sqlalchemy.orm import Session
 
 from app.core.errors import BusinessRuleError, NotFoundError
 from app.core.i18n import tr
-from app.core.time import end_of_today
+from app.core.time import end_of_today, now_local
 from app.domain.portfolio import regular_flow_direction, uses_positions
 from app.models.account import Account
 from app.repositories.analytics import investments as repo
@@ -25,10 +26,10 @@ def _require_investment_account(db: Session, account_id: int) -> Account:
     return account
 
 
-async def compute_investment_account(db: Session, account_id: int) -> dict:
+async def compute_investment_account(db: Session, account_id: int) -> dict[str, Any]:
     account = _require_investment_account(db, account_id)
     # Flux dans la devise du compte
-    flows = await calculate_investment_flows(db, account, datetime.now(), target_currency=account.currency)
+    flows = await calculate_investment_flows(db, account, now_local(), target_currency=account.currency)
     net_invested = flows["net_invested_target"]
     baseline_date = flows["baseline_date"]
 
@@ -81,9 +82,9 @@ async def compute_investment_account(db: Session, account_id: int) -> dict:
     }
 
 
-async def _account_movements(db: Session, account: Account, baseline_date: datetime | None) -> list[dict]:
+async def _account_movements(db: Session, account: Account, baseline_date: datetime | None) -> list[dict[str, Any]]:
     """Opérations et transactions bancaires depuis la base, en devise du compte, par date."""
-    movements = []
+    movements: list[dict[str, Any]] = []
     for tx in repo.investment_operations(db, account.id, since=baseline_date, ordered=True):
         amount = await convert_amount(tx.original_amount, tx.currency, account.currency, date=tx.date.date(), db=db)
         movements.append({
@@ -97,24 +98,32 @@ async def _account_movements(db: Session, account: Account, baseline_date: datet
             "asset_class": tx.asset_class,
             "sector": tx.sector,
             "geographic_zone": tx.geographic_zone,
+            "ticker": tx.ticker,
+            "isin": tx.isin,
+            "quantity": tx.quantity,
+            "unit_price": tx.unit_price,
+            "fees": tx.fees,
+            "withholding_tax": tx.withholding_tax,
+            "reinvested": tx.reinvested,
+            "reinvest_of_id": tx.reinvest_of_id,
         })
-    for tx in repo.account_transactions(db, account.id, since=baseline_date, ordered=True):
-        amount = await convert_amount(tx.original_amount, tx.currency, account.currency, date=tx.date.date(), db=db)
+    for bank_tx in repo.account_transactions(db, account.id, since=baseline_date, ordered=True):
+        amount = await convert_amount(bank_tx.original_amount, bank_tx.currency, account.currency, date=bank_tx.date.date(), db=db)
         movements.append({
-            "id": tx.id,
-            "date": tx.date.isoformat(),
-            "type": "retrait" if tx.type == "Sortie" else "versement",
+            "id": bank_tx.id,
+            "date": bank_tx.date.isoformat(),
+            "type": "retrait" if bank_tx.type == "Sortie" else "versement",
             "amount": round(amount, 2),
-            "original_amount": round(float(tx.original_amount), 2),
-            "currency": tx.currency,
-            "note": f"{tx.merchant}{' (' + tx.note + ')' if tx.note else ''}",
+            "original_amount": round(float(bank_tx.original_amount), 2),
+            "currency": bank_tx.currency,
+            "note": f"{bank_tx.merchant}{' (' + bank_tx.note + ')' if bank_tx.note else ''}",
             "is_regular": True
         })
-    movements.sort(key=lambda x: x["date"])
+    movements.sort(key=lambda x: str(x["date"]))
     return movements
 
 
-async def compute_performance_history(db: Session, account_id: int) -> dict:
+async def compute_performance_history(db: Session, account_id: int) -> dict[str, Any]:
     account = _require_investment_account(db, account_id)
     if uses_positions(account, await replay_account(db, account_id)):
         p = await compute_portfolio(db, account)
@@ -160,17 +169,17 @@ async def _flows_by_day(db: Session, account: Account, baseline_date: datetime |
             day["retrait_target"] += amount_target
 
     transfer_legs_only = bool(txs) or repo.has_investment_operations(db, account.id)
-    for tx in repo.account_transactions(db, account.id, since=baseline_date, transfer_legs_only=transfer_legs_only):
-        day = by_day.setdefault(tx.date.date().isoformat(), {"versement_target": 0.0, "retrait_target": 0.0})
-        direction = regular_flow_direction(tx)
+    for bank_tx in repo.account_transactions(db, account.id, since=baseline_date, transfer_legs_only=transfer_legs_only):
+        day = by_day.setdefault(bank_tx.date.date().isoformat(), {"versement_target": 0.0, "retrait_target": 0.0})
+        direction = regular_flow_direction(bank_tx)
         if direction == 0:
             continue
-        amount_target = await convert_amount(tx.original_amount, tx.currency, account.currency, date=tx.date.date(), db=db)
+        amount_target = await convert_amount(bank_tx.original_amount, bank_tx.currency, account.currency, date=bank_tx.date.date(), db=db)
         day["versement_target" if direction > 0 else "retrait_target"] += amount_target
     return by_day
 
 
-def _history_series(events: dict[str, dict[str, float]], snaps: list, baseline_value: float) -> list[dict]:
+def _history_series(events: dict[str, dict[str, float]], snaps: list[Any], baseline_value: float) -> list[dict[str, Any]]:
     """Capital net investi cumulé et valeur à chaque relevé."""
     snaps_by_day = {s.date.date().isoformat(): s for s in snaps}
     running_verse = running_retire = 0.0

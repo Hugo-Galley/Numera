@@ -1,41 +1,18 @@
-from dataclasses import dataclass
 from datetime import datetime
+from typing import Any
 
-from sqlalchemy import and_, func, or_
+from sqlalchemy import and_, case, func, or_
 from sqlalchemy.orm import Query, Session
 
 from app.models.account import Account
 from app.models.category import Category
+from app.models.investment_transaction import InvestmentTransaction
 from app.models.merchant import Merchant
 from app.models.tag import Tag
 from app.models.transaction import Transaction
 from app.models.transaction_split import TransactionSplit
 from app.repositories.analytics.common import ticket_restaurant_account_ids
-
-
-@dataclass
-class TransactionFilters:
-    """Filtres de `GET /transactions` (mêmes noms que les paramètres de la route)."""
-    account_id: int | None = None
-    category_id: int | None = None
-    type: str | None = None
-    merchant: str | None = None
-    month: int | None = None
-    year: int | None = None
-    min_amount: float | None = None
-    max_amount: float | None = None
-    start_date: datetime | None = None
-    end_date: datetime | None = None
-    is_transfer: bool | None = None
-    tag_ids: list[int] | None = None
-    search: str | None = None
-    uncategorized: bool = False
-    merchant_name: str | None = None
-    period: bool = False
-    # Bornes du mois de paie, résolues par le service quand `period` est vrai
-    period_start: datetime | None = None
-    period_end: datetime | None = None
-    budget_scope: bool = False
+from app.schemas.transaction_filters import TransactionFilters
 
 
 def get(db: Session, transaction_id: int) -> Transaction | None:
@@ -47,7 +24,7 @@ def distinct_merchants(db: Session) -> list[str]:
     return [m[0] for m in rows if m[0]]
 
 
-def _column_filters(db: Session, query: Query, f: TransactionFilters) -> Query:
+def _column_filters(db: Session, query: Query[Any], f: TransactionFilters) -> Query[Any]:
     if f.account_id is not None:
         query = query.filter(Transaction.account_id == f.account_id)
     if f.category_id is not None:
@@ -73,7 +50,7 @@ def _column_filters(db: Session, query: Query, f: TransactionFilters) -> Query:
     return query
 
 
-def _join_filters(db: Session, query: Query, f: TransactionFilters) -> Query:
+def _join_filters(db: Session, query: Query[Any], f: TransactionFilters) -> Query[Any]:
     if f.tag_ids:
         query = query.join(Transaction.tags).filter(Tag.id.in_(f.tag_ids))
     if f.search:
@@ -98,7 +75,7 @@ def _join_filters(db: Session, query: Query, f: TransactionFilters) -> Query:
     return query
 
 
-def _month_filter(db: Session, query: Query, f: TransactionFilters) -> Query:
+def _month_filter(db: Session, query: Query[Any], f: TransactionFilters) -> Query[Any]:
     if f.month is None or f.year is None:
         return query
     if f.period:  # mois de paie, comme les analytics
@@ -109,12 +86,38 @@ def _month_filter(db: Session, query: Query, f: TransactionFilters) -> Query:
     return query.filter(and_(Transaction.date >= start, Transaction.date < end))
 
 
-def filtered(db: Session, f: TransactionFilters, skip: int, limit: int) -> list[Transaction]:
-    """Transactions filtrées, de la plus récente à la plus ancienne."""
-    query = db.query(Transaction)
+def _filtered_query(db: Session, f: TransactionFilters, *entities: Any) -> Query[Any]:
+    query = db.query(*entities) if entities else db.query(Transaction)
     query = _column_filters(db, query, f)
     query = _join_filters(db, query, f)
-    query = _month_filter(db, query, f)
+    return _month_filter(db, query, f)
+
+
+def amounts_filtered(db: Session, f: TransactionFilters) -> list[tuple[int, float, float]]:
+    """(id, montant, remboursement imputé) des transactions filtrées, sans doublon (lecture par colonnes)."""
+    query = _filtered_query(db, f, Transaction.id, Transaction.amount, Transaction.reimbursement_offset)
+    return [(tx_id, float(amount), float(offset or 0.0)) for tx_id, amount, offset in query.distinct().all()]
+
+
+def split_parts(db: Session, tx_ids: list[int], category_id: int) -> dict[int, float]:
+    """Pour les transactions découpées parmi `tx_ids` : somme des parts affectées à `category_id` (0 si aucune)."""
+    if not tx_ids:
+        return {}
+    rows = (
+        db.query(
+            TransactionSplit.transaction_id,
+            func.coalesce(func.sum(case((TransactionSplit.category_id == category_id, TransactionSplit.amount), else_=0.0)), 0.0),
+        )
+        .filter(TransactionSplit.transaction_id.in_(tx_ids))
+        .group_by(TransactionSplit.transaction_id)
+        .all()
+    )
+    return {tx_id: float(part) for tx_id, part in rows}
+
+
+def filtered(db: Session, f: TransactionFilters, skip: int, limit: int) -> list[Transaction]:
+    """Transactions filtrées, de la plus récente à la plus ancienne."""
+    query = _filtered_query(db, f)
     return query.order_by(Transaction.date.desc(), Transaction.id.desc()).offset(skip).limit(limit).all()
 
 
@@ -122,7 +125,7 @@ def get_many(db: Session, ids: list[int]) -> list[Transaction]:
     return db.query(Transaction).filter(Transaction.id.in_(ids)).all()
 
 
-def get_investment(db: Session, investment_transaction_id: int):
+def get_investment(db: Session, investment_transaction_id: int) -> InvestmentTransaction | None:
     from app.models.investment_transaction import InvestmentTransaction
 
     return db.query(InvestmentTransaction).filter(InvestmentTransaction.id == investment_transaction_id).first()

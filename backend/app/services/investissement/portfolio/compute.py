@@ -5,15 +5,18 @@ et les cours stockés (`security_prices`), étape par étape : positions, flux, 
 """
 from datetime import date as date_type
 from datetime import datetime
+from typing import Any
 
 from sqlalchemy.orm import Session
 
 from app.core.i18n import tr
+from app.core.time import now_local
 from app.domain.holdings import EPSILON
 from app.domain.performance import xirr
 from app.domain.portfolio import MIN_XIRR_DAYS, PRE_INVENTORY_RATIO, uses_positions
 from app.integrations.currency import CurrencyConversionError, get_exchange_rates
 from app.models.account import Account
+from app.models.balance_snapshot import BalanceSnapshot
 from app.repositories.comptes import balances
 from app.repositories.investissement import portfolio as repo
 from app.services.investissement.holdings.replay import replay_account
@@ -72,9 +75,9 @@ def _xirr(cap: Capital, value: float, today_day: date_type, enabled: bool) -> tu
 
 
 def _result(account: Account, rate: float, valued: bool, baseline_date: datetime | None, positions: PositionsValuation,
-            figures: dict, realized: tuple[dict[int, dict], float, int], dividends: tuple[float, float, float],
-            history: tuple[list[dict] | None, float | None, list[dict] | None], latest_snapshot,
-            warnings: list[str], xirr_flows: list[tuple[date_type, float]]) -> dict:
+            figures: dict[str, Any], realized: tuple[dict[int, dict[str, Any]], float, int], dividends: tuple[float, float, float],
+            history: tuple[list[dict[str, Any]] | None, float | None, list[dict[str, Any]] | None], latest_snapshot: BalanceSnapshot | None,
+            warnings: list[str], xirr_flows: list[tuple[date_type, float]]) -> dict[str, Any]:
     """Dictionnaire de sortie (voir `schemas/portfolio.py::PortfolioRead`) ; montants arrondis au centime."""
     value, cash, net_invested, gain = figures["value"], figures["cash"], figures["net_invested"], figures["gain"]
     realized_by_year, realized_total, realized_unknown = realized
@@ -131,7 +134,7 @@ def _result(account: Account, rate: float, valued: bool, baseline_date: datetime
     }
 
 
-async def compute_portfolio(db: Session, account: Account, *, fetch: bool = True, history: bool = True) -> dict:
+async def compute_portfolio(db: Session, account: Account, *, fetch: bool = True, history: bool = True) -> dict[str, Any]:
     """Indicateurs complets d'un compte (voir `schemas/portfolio.py::PortfolioRead`), via le cache bref de `cache.py`."""
     entry_key = cache.key(db, account.id, fetch, history)
     cached = cache.get(entry_key)
@@ -143,8 +146,8 @@ async def compute_portfolio(db: Session, account: Account, *, fetch: bool = True
     return result
 
 
-async def _compute_portfolio(db: Session, account: Account, *, fetch: bool, history: bool) -> dict:
-    today = datetime.now()
+async def _compute_portfolio(db: Session, account: Account, *, fetch: bool, history: bool) -> dict[str, Any]:
+    today = now_local()
     today_day = today.date()
     currency = account.currency
     rate = _account_rate(await get_exchange_rates("EUR"), currency)  # unités de la devise du compte pour 1 EUR
@@ -185,7 +188,7 @@ async def _compute_portfolio(db: Session, account: Account, *, fetch: bool, hist
     history_missing = [t for t in all_tickers if not book.has(t)]
     if history and baseline_date is not None and valued and not history_missing:
         series, twr_value, reconciliation = await history_series(
-            db, account.id, replay, book, fx, cap, opening_cash, value, today_day, currency
+            db, account.id, replay, book, fx, cap, opening_cash, value, today_day, currency, baseline_date
         )
     elif history and valued and history_missing:
         warnings.append(tr("portfolio.warn_history_missing", tickers=", ".join(history_missing)))

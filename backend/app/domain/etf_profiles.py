@@ -6,14 +6,18 @@ Chaque champ de composition garde sa source dans `EtfProfile.composition_sources
   ne fournit pas le champ ;
 - `manual` : saisi par l'utilisateur, jamais écrasé.
 """
+from __future__ import annotations
+
 import json
 from contextlib import suppress
 from datetime import timedelta
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from app.core.time import utcnow_naive
-from app.models.etf_profile import EtfProfile
-from app.schemas.etf_profile import EtfProfileCreate, EtfProfileRead, EtfProfileUpdate
+from app.schemas.etf_profile import EtfProfileRead, EtfProfileUpdate
+
+if TYPE_CHECKING:
+    from app.models.etf_profile import EtfProfile
 
 SOURCE_YAHOO = "yahoo"
 SOURCE_PRESET = "preset"
@@ -65,23 +69,6 @@ def to_read(profile: EtfProfile) -> EtfProfileRead:
         composition_refreshed_at=profile.composition_refreshed_at,
         created_at=profile.created_at,
         updated_at=profile.updated_at,
-    )
-
-
-def new_profile(payload: EtfProfileCreate) -> EtfProfile:
-    """Profil saisi par l'utilisateur : les champs de composition fournis sont marqués `manual`."""
-    return EtfProfile(
-        name=payload.name,
-        ticker=payload.ticker.upper(),
-        isin=payload.isin.upper() if payload.isin else None,
-        aliases=json.dumps(payload.aliases or [payload.ticker.upper()]),
-        countries=json.dumps(payload.countries or {}),
-        sectors=json.dumps(payload.sectors or {}),
-        top_holdings=json.dumps([h.model_dump() for h in payload.top_holdings]),
-        composition_sources=json.dumps({
-            field: SOURCE_MANUAL for field in COMPOSITION_FIELDS if getattr(payload, field)
-        }),
-        is_system=False,
     )
 
 

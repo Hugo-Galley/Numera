@@ -3,7 +3,6 @@ import { useTranslation } from "react-i18next"
 import { useState, useEffect } from "react"
 import { User, Lock, Camera, Save, AlertTriangle } from "lucide-react"
 import { useAuth } from "@/providers/AuthProvider"
-import { api } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -17,6 +16,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { putAdminProfile } from "@/lib/api/settings"
 
 type ProfilePayload = {
   username?: string
@@ -33,7 +33,7 @@ function useProfileUpdate() {
   const update = async (payload: ProfilePayload, critical: boolean): Promise<boolean> => {
     setLoading(true)
     try {
-      await api.put("/admin/profile", payload)
+      await putAdminProfile(payload)
       toast.success(i18n.t("profileForm.profilMisAJour", { ns: "settings" }))
       if (critical) toast.info(i18n.t("profileForm.deconnexionEnCoursSuiteAu", { ns: "settings" }))
       await refreshProfile()

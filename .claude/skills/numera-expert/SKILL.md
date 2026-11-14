@@ -135,7 +135,7 @@ Sum of the official monthly figures (`compute_budget`, `expenses_by_category`, `
 
 ## External services
 
-Frankfurter (rates), Yahoo Finance (security search/quotes, ETF profiles). No other outbound call, no telemetry.
+Frankfurter (rates), Yahoo Finance (security search/quotes, ETF profiles). Only if the user makes use of them: ntfy / Telegram (notifications), Google's favicon service (logo of a domain), a private GitHub repository (encrypted backups); on the browser side, the world map's base layer comes from `unpkg.com`. No other outbound call, no telemetry (reference list: `ARCHITECTURE.md`).
 
 ## Reference
 

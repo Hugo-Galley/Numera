@@ -1,17 +1,15 @@
 import calendar
 from datetime import date, datetime, timedelta
 
-from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from app.core.logging import get_logger
-from app.core.time import utcnow_naive
+from app.core.time import today_local, utcnow_naive
 from app.domain.salary import salary_amount, salary_note
-from app.models.category import Category
 from app.models.salary_config import SalaryConfig
 from app.models.salary_month import SalaryMonth
-from app.models.telecommuting_day import TelecommutingDay
 from app.models.transaction import Transaction
+from app.repositories.budget import salary as repo
 from app.services.budget.balances import recalculate_running_balances
 
 logger = get_logger(__name__)
@@ -31,10 +29,7 @@ def generate_salary_transactions(
 
     # IDEMPOTENCE GUARD: Check if a transaction already exists for this month
     if config.salary_recurring_id:
-        existing = db.query(Transaction).filter(
-            Transaction.recurring_transaction_id == config.salary_recurring_id,
-            Transaction.date == month_record.salary_date,
-        ).first()
+        existing = repo.transaction_of_recurring_on(db, config.salary_recurring_id, month_record.salary_date)
         if existing:
             logger.warning(
                 f"Salary transaction already exists for {month_label} (tx id={existing.id}), "
@@ -45,10 +40,7 @@ def generate_salary_transactions(
             db.commit()
             return False
 
-    tt_days = db.query(TelecommutingDay).filter(
-        TelecommutingDay.salary_config_id == config.id,
-        TelecommutingDay.month_label == month_label,
-    ).count()
+    tt_days = repo.count_telecommuting_days(db, config.id, month_label)
 
     nb_tickets = tt_days
     real_salary = salary_amount(config.net_salary, nb_tickets, config.ticket_employee_share)
@@ -93,16 +85,11 @@ def find_missing_salary_months(db: Session, today: date, lookback_months: int = 
     fin) : on signale seulement les mois dont le jour de paie est passé, sans SalaryMonth et sans
     entrée de type salaire saisie à la main sur le compte de salaire.
     """
-    config = db.query(SalaryConfig).filter(SalaryConfig.is_active == True).first()
+    config = repo.active_config(db)
     if not config:
         return []
 
-    last_month = (
-        db.query(SalaryMonth)
-        .filter(SalaryMonth.salary_config_id == config.id)
-        .order_by(SalaryMonth.salary_date.desc())
-        .first()
-    )
+    last_month = repo.latest_month(db, config.id)
     pay_day = last_month.salary_date.day if last_month else 28
 
     def shift(year: int, month: int, delta: int) -> tuple[int, int]:
@@ -113,10 +100,7 @@ def find_missing_salary_months(db: Session, today: date, lookback_months: int = 
     created = (config.created_at.year, config.created_at.month)
     year, month = max(start, created)
 
-    known_labels = {
-        label for (label,) in db.query(SalaryMonth.month_label)
-        .filter(SalaryMonth.salary_config_id == config.id).all()
-    }
+    known_labels = repo.month_labels(db, config.id)
 
     missing: list[str] = []
     while (year, month) <= (today.year, today.month):
@@ -131,16 +115,7 @@ def find_missing_salary_months(db: Session, today: date, lookback_months: int = 
 def _has_salary_entry(db: Session, config: SalaryConfig, year: int, month: int) -> bool:
     start = datetime(year, month, 1)
     end = datetime(year + month // 12, month % 12 + 1, 1)
-    salary_like = [Transaction.merchant.ilike("salaire%"), Category.name.ilike("salaire%")]
-    if config.salary_category_id:
-        salary_like.append(Transaction.category_id == config.salary_category_id)
-    return db.query(Transaction.id).outerjoin(Category, Category.id == Transaction.category_id).filter(
-        Transaction.account_id == config.salary_account_id,
-        Transaction.type == "Entree",
-        Transaction.date >= start,
-        Transaction.date < end,
-        or_(*salary_like),
-    ).first() is not None
+    return repo.has_salary_entry(db, config.salary_account_id, config.salary_category_id, start, end)
 
 
 def is_salary_recorded(db: Session, config: SalaryConfig, month_record: SalaryMonth) -> bool:
@@ -155,16 +130,12 @@ def check_and_generate_pending_salaries(db: Session, today: date | None = None) 
     regénère ceux dont la transaction manque. Pas au-delà de 31 jours, pour ne pas ressusciter
     un salaire effacé volontairement il y a longtemps.
     """
-    config = db.query(SalaryConfig).filter(SalaryConfig.is_active == True).first()
+    config = repo.active_config(db)
     if not config:
         return 0
 
-    today = today or date.today()
-    pending_months = db.query(SalaryMonth).filter(
-        SalaryMonth.salary_config_id == config.id,
-        or_(SalaryMonth.is_generated == False, SalaryMonth.salary_date >= today - timedelta(days=31)),
-        SalaryMonth.salary_date <= today,
-    ).all()
+    today = today or today_local()
+    pending_months = repo.pending_months(db, config.id, today - timedelta(days=31), today)
 
     generated_count = 0
     for pm in pending_months:

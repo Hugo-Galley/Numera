@@ -9,7 +9,7 @@ Technical conventions: `frontend/src/CLAUDE.md` (read first). Slow loading, read
 
 ## Visual identity
 
-Sober "light enterprise" aesthetic, Tailwind + shadcn. Palette: Slate (neutral), Emerald (income, gains), Rose (expenses, losses), Amber (alerts), primary deep blue/slate (`--primary`). Titles and KPI values in `font-black`. Main content centred in `max-w-7xl`, spacing `gap-4`/`gap-6`, `space-y-4`. Light/dark themes through `UIProvider`: palettes inverted by CSS variables, hence no `dark:` variants (see `frontend/src/CLAUDE.md`).
+Sober "light enterprise" aesthetic, Tailwind 4 + shadcn. Palette: Slate (neutral), Emerald (income, gains), Rose (expenses, losses), Amber (alerts), primary deep blue/slate (`--primary`). Titles and KPI values in `font-black`. Main content centred in `max-w-7xl`, spacing `gap-4`/`gap-6`, `space-y-4`. Light/dark themes through `UIProvider`: palettes inverted by CSS variables, hence no `dark:` variants (see `frontend/src/CLAUDE.md`).
 
 ## Presenting financial data
 
@@ -24,7 +24,7 @@ Sober "light enterprise" aesthetic, Tailwind + shadcn. Palette: Slate (neutral),
 1. `src/pages/<Name>.tsx`; beyond 350 lines, a `src/pages/<Name>/` folder: `index.tsx` (composition, early returns), hooks `use<Name>*.ts` (state, loading, actions), one component per section or dialog receiving `ctx` (model: `pages/AccountDetail/`).
 2. Route in `App.tsx` (inside the `ProtectedRoute`/`AppLayout` block).
 3. Entry in the Sidebar (`components/layout/Sidebar.tsx`) and in the Omnibox (`components/layout/Omnibox/`, ⌘K) so that it is discoverable.
-4. Data through the functions of `lib/api/<domain>.ts` (one per route, e.g. `getAccounts<Account[]>()`, `patchAccountsById(id, body)`, `getTransactions<T>("?limit=10")`); a new route adds its function there. `api.download` for files. Never compute a KPI in the component.
+4. Data through the functions of `lib/api/<domain>.ts` (one per route, e.g. `getAccounts<Account[]>()`, `patchAccountsById(id, body)`, `getTransactions<T>("?limit=10")`); a new route adds its function there. A file to download also has its function (`downloadExportTransactionsCsv`, which goes through `api.download`). Never compute a KPI in the component.
 
 ## Adding a Dashboard tab
 
@@ -50,4 +50,4 @@ Version 19: `ref` is an ordinary prop (no `forwardRef` in new code), no `default
 
 ## Validation
 
-`cd frontend && npm test && npm run build` (Vitest, then `tsc` app + tests and `vite build`, currently 0 type errors); `npm run typecheck` for `tsc` alone. A fixed component or bug gets its `X.test.tsx` test (conventions: `frontend/src/CLAUDE.md` § Verification, procedures: `numera-testing` skill). Then manual check: privacy mode, dark theme, mobile width. If `vite.config.ts` or the bundle split changes: also check the **build** (`vite preview`) on a page with charts, chunk cycles only crash in production (`numera-performance` skill, § Bundle).
+`cd frontend && npm test && npm run build` (Vitest, then `tsc` app + tests and `vite build`, currently 0 type errors); `npm run typecheck` for `tsc` alone. A fixed component or bug gets its `src/test/<mirror path>/X.test.tsx` test (conventions: `frontend/src/CLAUDE.md` § Verification, procedures: `numera-testing` skill). Then manual check: privacy mode, dark theme, mobile width. If `vite.config.ts` or the bundle split changes: also check the **build** (`vite preview`) on a page with charts, chunk cycles only crash in production (`numera-performance` skill, § Bundle).

@@ -1,17 +1,13 @@
 import { monthName } from "@/i18n/locale"
 import { useTranslation } from "react-i18next"
 import { formatCurrency, formatRate } from "@/lib/utils"
-import { useState, useEffect, useMemo, useRef } from "react"
+import { useState, useEffect, useEffectEvent, useMemo, useRef } from "react"
 import { 
-  BarChart3, 
   ArrowUpRight, 
   ArrowDownRight, 
   Minus,
-  Calendar,
-  Filter,
   ArrowRight
 } from "lucide-react"
-import { api } from "@/lib/api"
 import { useDrilldown } from "@/hooks/useDrilldown"
 import { ErrorState } from "@/components/layout/ErrorState"
 import { 
@@ -37,9 +33,18 @@ import {
   SelectValue 
 } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
 import { toast } from "sonner"
 import { yearOptions } from "@/lib/years"
+import { getAnalyticsBudget, getAnalyticsExpensesByCategory } from "@/lib/api/analytics"
+import type { ApiResponse } from "@/lib/api/types"
+
+/** Une période comparée : totaux du budget et dépenses par catégorie. */
+interface PeriodData {
+  revenus_totaux: number
+  depenses_totales: number
+  revenus_apres_depenses: number
+  categories: ApiResponse<"/analytics/expenses-by-category", "get">["items"]
+}
 
 export default function Comparison() {
   const { t } = useTranslation("month")
@@ -64,14 +69,14 @@ export default function Comparison() {
   // Period A (Base)
   const [monthA, setMonthA] = useState(String(new Date().getMonth() + 1))
   const [yearA, setYearA] = useState(String(new Date().getFullYear()))
-  const [dataA, setDataA] = useState<any>(null)
+  const [dataA, setDataA] = useState<PeriodData | null>(null)
 
   // Period B (Comparison)
   const prevDate = new Date()
   prevDate.setMonth(prevDate.getMonth() - 1)
   const [monthB, setMonthB] = useState(String(prevDate.getMonth() + 1))
   const [yearB, setYearB] = useState(String(prevDate.getFullYear()))
-  const [dataB, setDataB] = useState<any>(null)
+  const [dataB, setDataB] = useState<PeriodData | null>(null)
 
   const months = Array.from({ length: 12 }, (_, i) => monthName(i + 1))
 
@@ -83,10 +88,10 @@ export default function Comparison() {
     setDataB(null)
     try {
       const [resA, resB, catA, catB] = await Promise.all([
-        api.get<any>(`/analytics/budget?month=${monthA}&year=${yearA}`),
-        api.get<any>(`/analytics/budget?month=${monthB}&year=${yearB}`),
-        api.get<any>(`/analytics/expenses-by-category?month=${monthA}&year=${yearA}`),
-        api.get<any>(`/analytics/expenses-by-category?month=${monthB}&year=${yearB}`)
+        getAnalyticsBudget(`?month=${monthA}&year=${yearA}`),
+        getAnalyticsBudget(`?month=${monthB}&year=${yearB}`),
+        getAnalyticsExpensesByCategory(`?month=${monthA}&year=${yearA}`),
+        getAnalyticsExpensesByCategory(`?month=${monthB}&year=${yearB}`)
       ])
       
       if (id !== requestId.current) return
@@ -112,8 +117,9 @@ export default function Comparison() {
     }
   }
 
+  const reloadComparison = useEffectEvent(() => { loadComparisonData() })
   useEffect(() => {
-    loadComparisonData()
+    reloadComparison()
   }, [monthA, yearA, monthB, yearB])
 
   const comparisonRows = useMemo(() => {
@@ -121,12 +127,12 @@ export default function Comparison() {
     const catsB = dataB?.categories || []
 
     const allCategories = new Set<string>()
-    catsA.forEach((c: any) => { if (c?.category?.name) allCategories.add(c.category.name) })
-    catsB.forEach((c: any) => { if (c?.category?.name) allCategories.add(c.category.name) })
+    catsA.forEach((c) => { if (c?.category?.name) allCategories.add(c.category.name) })
+    catsB.forEach((c) => { if (c?.category?.name) allCategories.add(c.category.name) })
 
     return Array.from(allCategories).map(catName => {
-      const catA = catsA.find((c: any) => c.category.name === catName)
-      const catB = catsB.find((c: any) => c.category.name === catName)
+      const catA = catsA.find((c) => c.category.name === catName)
+      const catB = catsB.find((c) => c.category.name === catName)
       
       const valA = catA?.total || 0
       const valB = catB?.total || 0
@@ -153,7 +159,7 @@ export default function Comparison() {
         <p className="text-slate-500 mt-1">{t("comparison.comparezVosRevenusEtDepenses")}</p>
       </div>
 
-      <div className="flex flex-col gap-3 rounded-2xl border bg-white p-4 shadow-sm md:flex-row md:flex-wrap md:items-center md:gap-4">
+      <div className="flex flex-col gap-3 rounded-2xl border bg-white p-4 shadow-xs md:flex-row md:flex-wrap md:items-center md:gap-4">
         <div className="grid grid-cols-[1fr_6.5rem] items-center gap-2 md:flex md:gap-3">
           <Badge className="col-span-2 w-fit bg-slate-900">{t("comparison.periodeA")}</Badge>
           <Select value={monthA} onValueChange={setMonthA}>

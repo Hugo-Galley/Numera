@@ -11,7 +11,7 @@ import type { AccountDetailView } from "./useAccountDetail"
 export function BulkEditDialog({ ctx }: { ctx: AccountDetailView }) {
   const { t } = useTranslation("accountDetail")
   const { t: tc } = useTranslation("common")
-  const { availableTags, bulkCategory, bulkRecurring, bulkTagAction, bulkTagIds, categories, handleBulkUpdate, id, isBulkEditDialogOpen, selectedIds, setBulkCategory, setBulkRecurring, setBulkTagAction, setBulkTagIds, setIsBulkEditDialogOpen, transactions } = ctx
+  const { availableTags, bulkCategory, bulkRecurring, bulkTagAction, bulkTagIds, categories, handleBulkUpdate, isBulkEditDialogOpen, selectedIds, setBulkCategory, setBulkRecurring, setBulkTagAction, setBulkTagIds, setIsBulkEditDialogOpen } = ctx
   return (
     <>
       {/* Bulk Edit Dialog */}
@@ -63,7 +63,7 @@ export function BulkEditDialog({ ctx }: { ctx: AccountDetailView }) {
             <div className="space-y-4 pt-2 border-t">
               <div className="flex items-center justify-between">
                 <Label>{t("tx.tags")}</Label>
-                <Select value={bulkTagAction} onValueChange={(v: any) => setBulkTagAction(v)}>
+                <Select value={bulkTagAction} onValueChange={(v) => setBulkTagAction(v as typeof bulkTagAction)}>
                   <SelectTrigger className="w-[150px] h-8 text-xs">
                     <SelectValue />
                   </SelectTrigger>

@@ -67,7 +67,7 @@ def detach_rule(db: Session, rule_id: int) -> None:
         db.query(column.class_).filter(column == rule_id).update({column: None}, synchronize_session=False)
 
 
-def add(db: Session, obj) -> None:
+def add(db: Session, obj: RecurringTransaction) -> None:
     db.add(obj)
     db.flush()
 

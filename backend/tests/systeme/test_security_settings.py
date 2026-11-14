@@ -7,10 +7,10 @@ from datetime import UTC, datetime, timedelta
 import pytest
 
 from app.core.config import settings
-from app.core.login_events import MAX_EVENTS
 from app.db.system_settings import get_setting
 from app.integrations import backup as backup_core
 from app.models.login_event import LoginEvent
+from app.services.systeme.login_events import MAX_EVENTS
 
 
 def _login(client, password: str = "admin", agent: str = "Mozilla/5.0 (iPhone) Safari"):

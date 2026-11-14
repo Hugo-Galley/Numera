@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge"
 import { Briefcase, Layers } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts"
+import { keepSeriesOrder, numberFormatter } from "@/lib/chartTooltip"
 import { formatAmountWithShare, formatRate } from "@/lib/utils"
 import { COLORS } from "./types"
 import type { InvestmentsCtx } from "./useInvestments"
@@ -11,10 +12,10 @@ import type { InvestmentsCtx } from "./useInvestments"
 /** Analyses avancées : treemap, carte et répartitions. */
 export function AdvancedCharts({ ctx }: { ctx: InvestmentsCtx }) {
   const { t } = useTranslation("investments")
-  const { advancedAllocation, allocation, diversity, getDrilldownItems, getDrilldownTitle, setDrillDown } = ctx
+  const { advancedAllocation, diversity, getDrilldownItems, getDrilldownTitle, setDrillDown } = ctx
   return (
     <>
-      <Card className="shadow-sm">
+      <Card className="shadow-xs">
         <CardHeader className="flex flex-row items-center justify-between gap-2 pb-2 border-b">
           <div>
             <CardTitle className="text-base font-bold">{t("advancedCharts.vueDEnsembleDeL")}</CardTitle>
@@ -36,7 +37,7 @@ export function AdvancedCharts({ ctx }: { ctx: InvestmentsCtx }) {
       </Card>
 
       <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2">
-        <Card className="shadow-sm">
+        <Card className="shadow-xs">
           <CardHeader className="border-b pb-3">
             <div className="flex items-center gap-2">
               <Layers className="h-4 w-4 text-slate-500" />
@@ -57,18 +58,18 @@ export function AdvancedCharts({ ctx }: { ctx: InvestmentsCtx }) {
                     dataKey="value"
                     nameKey="name"
                     onClick={(data) => setDrillDown({ title: getDrilldownTitle("Classe d'actif", data), items: getDrilldownItems(data) })}
-                    className="cursor-pointer outline-none"
+                    className="cursor-pointer outline-hidden"
                   >
-                    {(advancedAllocation?.by_asset_class || []).map((_: any, index: number) => (
+                    {(advancedAllocation?.by_asset_class || []).map((_, index: number) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} className="hover:opacity-80 transition-opacity" />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value: number) => formatAmountWithShare(value, (advancedAllocation?.by_asset_class || []).reduce((s: number, i: any) => s + (i.value || 0), 0))} />
+                  <Tooltip itemSorter={keepSeriesOrder} formatter={numberFormatter((value: number) => formatAmountWithShare(value, (advancedAllocation?.by_asset_class || []).reduce((s, i) => s + (i.value || 0), 0)))} />
                 </PieChart>
               </ResponsiveContainer>
             </div>
             <div className="w-full space-y-1.5 mt-3 px-2">
-              {(advancedAllocation?.by_asset_class || []).slice(0, 4).map((item: any, i: number) => (
+              {(advancedAllocation?.by_asset_class || []).slice(0, 4).map((item, i: number) => (
                 <div 
                   key={i} 
                   className="flex min-h-9 items-center justify-between gap-2 text-xs cursor-pointer hover:text-slate-600 transition-colors md:min-h-0"
@@ -85,7 +86,7 @@ export function AdvancedCharts({ ctx }: { ctx: InvestmentsCtx }) {
           </CardContent>
         </Card>
 
-        <Card className="shadow-sm">
+        <Card className="shadow-xs">
           <CardHeader className="border-b pb-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -116,18 +117,18 @@ export function AdvancedCharts({ ctx }: { ctx: InvestmentsCtx }) {
                           paddingAngle={4}
                           dataKey="value"
                           nameKey="name"
-                          className="outline-none"
+                          className="outline-hidden"
                         >
-                          {sectorData.map((_: any, index: number) => (
+                          {sectorData.map((_, index: number) => (
                             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} className="hover:opacity-80 transition-opacity" />
                           ))}
                         </Pie>
-                        <Tooltip formatter={(value: number) => formatAmountWithShare(value, sectorData.reduce((s: number, i: any) => s + (i.value || 0), 0))} />
+                        <Tooltip itemSorter={keepSeriesOrder} formatter={numberFormatter((value: number) => formatAmountWithShare(value, sectorData.reduce((s, i) => s + (i.value || 0), 0)))} />
                       </PieChart>
                     </ResponsiveContainer>
                   </div>
                   <div className="w-full space-y-1.5 mt-3 px-2">
-                    {sectorData.slice(0, 4).map((item: any, i: number) => (
+                    {sectorData.slice(0, 4).map((item, i: number) => (
                       <div 
                         key={i} 
                         className="flex items-center justify-between text-xs"

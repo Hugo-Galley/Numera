@@ -14,10 +14,13 @@ def _declaration(st: BenefitState) -> ActionItem | None:
     b = st.benefit
     if st.declaration_days_left is None or st.declaration_days_left > DECLARATION_REMINDER_DAYS:
         return None
+    due_date = b.next_declaration_date
+    if due_date is None:
+        return None
     overdue = st.declaration_days_left < 0
-    due = b.next_declaration_date.strftime("%d/%m/%Y")
+    due = due_date.strftime("%d/%m/%Y")
     return ActionItem(
-        id=f"benefit-declaration-{b.id}-{b.next_declaration_date.isoformat()}",
+        id=f"benefit-declaration-{b.id}-{due_date.isoformat()}",
         type="audit",
         severity="high" if overdue else "medium",
         title=tr("audit.benefits.declaration_late" if overdue else "audit.benefits.declaration_due", organization=b.organization),
@@ -25,7 +28,7 @@ def _declaration(st: BenefitState) -> ActionItem | None:
         action_label=tr("audit.benefits.action"),
         action_url=URL,
         action_type="link",
-        metadata={"benefit_id": b.id, "due_date": b.next_declaration_date.isoformat()},
+        metadata={"benefit_id": b.id, "due_date": due_date.isoformat()},
     )
 
 
@@ -33,14 +36,17 @@ def _late(st: BenefitState) -> ActionItem | None:
     if st.status != "late":
         return None
     b = st.benefit
+    expected = st.expected_date
+    if expected is None:
+        return None
     return ActionItem(
-        id=f"benefit-late-{b.id}-{st.expected_date.strftime('%Y-%m')}",
+        id=f"benefit-late-{b.id}-{expected.strftime('%Y-%m')}",
         type="audit",
         severity="medium",
         title=tr("audit.benefits.late_title", name=b.name),
         description=tr(
             "audit.benefits.late_description", pattern=b.match_pattern,
-            date=st.expected_date.strftime("%d/%m/%Y"), organization=b.organization,
+            date=expected.strftime("%d/%m/%Y"), organization=b.organization,
         ),
         action_label=tr("audit.benefits.action"),
         action_url=URL,

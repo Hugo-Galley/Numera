@@ -9,6 +9,10 @@ from app.db.base import Base
 
 class Account(Base):
     __tablename__ = "accounts"
+    __allow_unmapped__ = True  # `balance` n'est pas une colonne
+
+    # Solde calculé à la lecture (jamais persisté) : posé par les services avant la sérialisation.
+    balance: float = 0.0
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     name: Mapped[str] = mapped_column(String(120), nullable=False)

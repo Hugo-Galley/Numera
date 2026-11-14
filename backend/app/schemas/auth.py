@@ -1,4 +1,6 @@
 """Schémas de l'authentification : double authentification TOTP et passkeys."""
+from typing import Any
+
 from pydantic import BaseModel
 
 
@@ -48,10 +50,10 @@ class ReauthBody(BaseModel):
 
 class RegisterVerifyBody(ReauthBody):
     state: str
-    credential: dict
+    credential: dict[str, Any]
     name: str | None = None
 
 
 class LoginVerifyBody(BaseModel):
     state: str
-    credential: dict
+    credential: dict[str, Any]

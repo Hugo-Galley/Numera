@@ -3,7 +3,6 @@ import { useTranslation } from "react-i18next"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
 
-import { api } from "@/lib/api"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -16,6 +15,8 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
+import { getHoldingsEstimateCosts, postHoldingsApplyCosts } from "@/lib/api/investments"
+import { errorMessage } from "@/lib/utils"
 
 interface CostEstimate {
   ticker: string
@@ -54,8 +55,7 @@ export function CostEstimateDialog({ open, onOpenChange, accountId, onApplied }:
   useEffect(() => {
     if (!open) return
     setRows(null)
-    api
-      .get<CostEstimate[]>(`/holdings/estimate-costs?account_id=${accountId}`)
+    getHoldingsEstimateCosts<CostEstimate[]>(`?account_id=${accountId}`)
       .then((data) => {
         setRows(data)
         // Coché d'office : estimation complète (inventaire entièrement expliqué par les achats) et PRU encore vide
@@ -85,15 +85,15 @@ export function CostEstimateDialog({ open, onOpenChange, accountId, onApplied }:
   const apply = async () => {
     setSaving(true)
     try {
-      await api.post(`/holdings/apply-costs`, {
+      await postHoldingsApplyCosts({
         account_id: accountId,
         items: selected.map((r) => ({ ticker: r.ticker, buy_price_avg: Number(lines[r.ticker].value) })),
       })
       toast.success(i18n.t("misc.prusSaved", { ns: "investments", count: selected.length }))
       onApplied()
       onOpenChange(false)
-    } catch (err: any) {
-      toast.error(err?.message || t("costEstimateDialog.erreurLorsDeLEnregistrement"))
+    } catch (err) {
+      toast.error(errorMessage(err, t("costEstimateDialog.erreurLorsDeLEnregistrement")))
     } finally {
       setSaving(false)
     }
@@ -131,7 +131,7 @@ export function CostEstimateDialog({ open, onOpenChange, accountId, onApplied }:
                   />
                   </label>
                   <div className="min-w-0 flex-1">
-                    <p className="break-words text-sm font-semibold text-slate-900 sm:truncate">{r.asset_name}</p>
+                    <p className="wrap-break-word text-sm font-semibold text-slate-900 sm:truncate">{r.asset_name}</p>
                     <p className="font-mono text-[11px] text-slate-400">
                       {r.ticker} • {r.quantity} parts
                       {r.current_cost !== null && ` • PRU actuel ${r.current_cost} ${r.currency}`}
