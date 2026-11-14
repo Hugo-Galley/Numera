@@ -33,9 +33,9 @@ describe("épargne en anglais", () => {
     serve()
     renderWithProviders(<ProvisionsSection />, { auth: true })
     expect(await screen.findByText("Provisions")).toBeInTheDocument()
-    expect(screen.getByText(/€150\.00 \/ month to set aside/)).toBeInTheDocument()
-    expect(screen.getByText(/due on 15 Oct 2026/)).toBeInTheDocument()
-    expect(screen.getByText(/for 4 months/)).toBeInTheDocument()
+    expect(await screen.findByText(/€150\.00 \/ month to set aside/)).toBeInTheDocument()
+    expect(await screen.findByText(/due on 15 Oct 2026/)).toBeInTheDocument()
+    expect(await screen.findByText(/for 4 months/)).toBeInTheDocument()
     expect(screen.getByRole("button", { name: /New provision/ })).toBeInTheDocument()
   })
 
@@ -43,7 +43,7 @@ describe("épargne en anglais", () => {
     serve()
     renderWithProviders(<ProvisionsSection />, { auth: true })
     expect(await screen.findByText("Provisions")).toBeInTheDocument()
-    expect(screen.getByText(/pendant 4 mois/)).toBeInTheDocument()
+    expect(await screen.findByText(/pendant 4 mois/)).toBeInTheDocument()
   })
 
   it("intervalles et mois abrégés suivent la langue, sans être figés à l'import", async () => {
