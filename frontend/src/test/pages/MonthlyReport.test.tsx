@@ -96,6 +96,9 @@ describe("Bilan du mois", () => {
     const requested = serve()
     const { user } = view()
     await screen.findByText("Juin 2026")
+    // l'en-tête s'affiche avant le bilan : cliquer pendant le chargement est ignoré par la page
+    await waitFor(() => expect(requested).toEqual(["2026-6"]))
+    expect(await screen.findByText(/3\s000,00/)).toBeInTheDocument()
     expect(screen.getByRole("button", { name: "Mois suivant" })).toBeDisabled()
 
     await user.click(screen.getByRole("button", { name: "Mois précédent" }))

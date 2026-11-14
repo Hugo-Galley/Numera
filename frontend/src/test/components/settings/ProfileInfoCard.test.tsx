@@ -28,6 +28,8 @@ describe("ProfileInfoCard", () => {
   it("photo seule : PUT sans identifiant ni mot de passe, aucune confirmation de déconnexion", async () => {
     const { user, bodies } = setup()
     const url = await screen.findByLabelText("URL de la photo de profil")
+    // le profil arrive après le premier rendu et réécrit les champs : attendre le préremplissage avant de saisir
+    await waitFor(() => expect(url).toHaveValue("https://exemple.test/moi.png"))
 
     await user.clear(url)
     await user.type(url, "https://exemple.test/nouvelle.png")
@@ -40,7 +42,9 @@ describe("ProfileInfoCard", () => {
 
   it("photo vidée : la chaîne vide part au serveur (c'est ainsi qu'on la retire)", async () => {
     const { user, bodies } = setup()
-    await user.clear(await screen.findByLabelText("URL de la photo de profil"))
+    const url = await screen.findByLabelText("URL de la photo de profil")
+    await waitFor(() => expect(url).toHaveValue("https://exemple.test/moi.png"))
+    await user.clear(url)
     await user.click(screen.getByRole("button", { name: "Enregistrer" }))
 
     await waitFor(() => expect(bodies).toEqual([{ profile_picture_url: "" }]))
@@ -71,6 +75,7 @@ describe("ProfileInfoCard", () => {
   it("changement d'identifiant : confirmation de déconnexion, puis PUT avec l'identifiant et le mot de passe actuel", async () => {
     const { user, bodies } = setup()
     const username = await screen.findByLabelText("Nom d'utilisateur")
+    await waitFor(() => expect(username).toHaveValue("admin"))
     await user.clear(username)
     await user.type(username, "hugo")
     await user.type(screen.getByLabelText("Mot de passe actuel"), "secret")

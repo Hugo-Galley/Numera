@@ -207,7 +207,8 @@ describe("api.upload et api.download", () => {
     await api.upload("/import/preview", form)
 
     expect(requests[0].method).toBe("POST")
-    expect(requests[0].headers.get("content-type")).not.toBe("application/json")
+    expect(requests[0].headers.get("content-type")).toMatch(/^multipart\/form-data; boundary=/)
+    expect(requests[0].body).toContain('filename="releve.csv"')
     expect(requests[0].headers.get("authorization")).toBe(`Bearer ${token}`)
   })
 
