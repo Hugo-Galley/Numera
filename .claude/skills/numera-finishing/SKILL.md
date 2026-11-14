@@ -38,7 +38,7 @@ Done = verified by a command run **now**, docs up to date, clean commit. No clai
    | single-source notion | table in `numera-clean-architecture` |
    | Action Center | `docs/ACTION_CENTER.md` |
 
-   A doc that cites a moved path is a wrong doc: `grep` the old path in `*.md` and `.claude/`.
+   A doc that cites a moved path is a wrong doc: `grep` the old path in `*.md` and `.claude/`. `tests/garde_fous/test_doc_paths.py` fails the suite if a file path cited in backticks in a `.md` no longer exists (partial path accepted; file produced at runtime: add it to `NOT_IN_REPO`).
 5. **Commit then PR** — `main` is protected (`docs/WORKFLOW_GIT.md`): never a direct push. Branch `type/short-topic` from an up-to-date `main`, one commit per coherent change, message in English in the repository format: `type(scope): description` (`feat`, `fix`, `refactor`, `test`, `docs`, `chore`). The body says *why*, and why a snapshot figure changes if it does. Then `git push -u origin <branch>` and `gh pr create`: the PR **title** (same format, `!` if breaking) becomes the squashed commit and the release-notes line; fill in the template without removing any section. Merge (`gh pr merge --squash`) only when `CI ok` and `Titre de PR` are green.
 6. **Report** — what is verified (commands and result), what is not (e.g. visual rendering, mobile, dark mode not looked at).
 
