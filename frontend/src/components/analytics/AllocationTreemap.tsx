@@ -2,9 +2,10 @@ import i18n from "i18next"
 import { appLocale } from "@/i18n/locale"
 import React from 'react';
 import { Treemap, ResponsiveContainer, Tooltip } from 'recharts';
+import { keepSeriesOrder, numberFormatter } from "@/lib/chartTooltip";
 import { formatAmountWithShare, formatRate } from '@/lib/utils';
 
-interface AllocationItem {
+type AllocationItem = {
   name: string;
   value: number;
   percentage: number;
@@ -144,8 +145,8 @@ export const AllocationTreemap: React.FC<AllocationTreemapProps> = ({ data, onIt
             }
           }}
         >
-          <Tooltip 
-            formatter={(value: number, name: string) => [formatAmountWithShare(value, data.reduce((sum, i) => sum + (i.value || 0), 0)), name]}
+          <Tooltip itemSorter={keepSeriesOrder} 
+            formatter={numberFormatter((value: number, name: string) => [formatAmountWithShare(value, data.reduce((sum, i) => sum + (i.value || 0), 0)), name])}
             contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }}
           />
         </Treemap>

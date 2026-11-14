@@ -68,7 +68,7 @@ export function SimulatorChart({ ctx }: { ctx: WealthSimulatorCtx }) {
                 tickFormatter={(val) => `${(val / 1000).toFixed(0)}k€`}
               />
               <Tooltip content={<CustomTooltip />} />
-              <Legend verticalAlign="top" height={36} iconType="circle" wrapperStyle={{ fontSize: 10 }} />
+              <Legend itemSorter={null} verticalAlign="top" height={36} iconType="circle" wrapperStyle={{ fontSize: 10 }} />
               <Line
                 type="monotone"
                 dataKey={showInflationAdjusted ? "total_value_p90_real" : "total_value_p90"}
@@ -122,7 +122,7 @@ export function SimulatorChart({ ctx }: { ctx: WealthSimulatorCtx }) {
                 tickFormatter={(val) => `${(val / 1000).toFixed(0)}k€`}
               />
               <Tooltip content={<CustomTooltip />} />
-              <Legend verticalAlign="top" height={36} iconType="circle" wrapperStyle={{ fontSize: 10 }} />
+              <Legend itemSorter={null} verticalAlign="top" height={36} iconType="circle" wrapperStyle={{ fontSize: 10 }} />
               <Area
                 type="monotone"
                 dataKey="initial_capital"

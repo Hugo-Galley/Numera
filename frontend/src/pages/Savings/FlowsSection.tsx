@@ -2,6 +2,7 @@ import i18n from "i18next"
 import { useTranslation } from "react-i18next"
 import { Activity, TrendingUp, Zap } from "lucide-react"
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Legend, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
+import { keepSeriesOrder, numberFormatter } from "@/lib/chartTooltip"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { formatCurrency, formatRate } from "@/lib/utils"
 import type { SavingsCtx } from "./useSavings"
@@ -45,7 +46,7 @@ export function FlowsSection({ ctx }: { ctx: SavingsCtx }) {
                     }]} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
                       <XAxis type="number" hide />
                       <YAxis dataKey="name" type="category" hide />
-                      <Tooltip cursor={{fill: 'transparent'}} formatter={(v: number, _n: string, item: { payload?: Record<string, unknown> }) => shareLabel(v, item?.payload, ['Cash', 'Investissements'])} contentStyle={{ fontSize: '12px', borderRadius: '8px', border: 'none', boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} />
+                      <Tooltip itemSorter={keepSeriesOrder} cursor={{fill: 'transparent'}} formatter={numberFormatter((v: number, _n: string, item: { payload?: Record<string, unknown> }) => shareLabel(v, item?.payload, ['Cash', 'Investissements']))} contentStyle={{ fontSize: '12px', borderRadius: '8px', border: 'none', boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} />
                       <ReferenceLine x={0} stroke="#e2e8f0" />
                       <Bar dataKey="Cash" name={i18n.t("misc.cash", { ns: "savings" })} stackId="a" fill={(analytics?.reste_tresorerie || 0) >= 0 ? "#94a3b8" : "#f43f5e"} radius={[4, 4, 4, 4]} barSize={12} />
                       <Bar dataKey="Investissements" name={i18n.t("misc.investments", { ns: "savings" })} stackId="a" fill="#0f172a" radius={[4, 4, 4, 4]} barSize={12} />
@@ -108,8 +109,8 @@ export function FlowsSection({ ctx }: { ctx: SavingsCtx }) {
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                   <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} dy={10} interval="preserveStartEnd" minTickGap={12} />
                   <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} tickFormatter={(v) => `${v}€`} />
-                  <Tooltip cursor={{ fill: '#f8fafc' }} formatter={(v: number, _n: string, item: { payload?: Record<string, unknown> }) => shareLabel(v, item?.payload, ['cash_flow', 'investissements', 'interets'])} contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} />
-                  <Legend verticalAlign="top" height={36} wrapperStyle={{ fontSize: '12px', paddingBottom: '20px' }}/>
+                  <Tooltip itemSorter={keepSeriesOrder} cursor={{ fill: '#f8fafc' }} formatter={numberFormatter((v: number, _n: string, item: { payload?: Record<string, unknown> }) => shareLabel(v, item?.payload, ['cash_flow', 'investissements', 'interets']))} contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} />
+                  <Legend itemSorter={null} verticalAlign="top" height={36} wrapperStyle={{ fontSize: '12px', paddingBottom: '20px' }}/>
                   <Bar dataKey="cash_flow" name={i18n.t("misc.cashLeft", { ns: "savings" })} stackId="a" fill="#94a3b8" radius={[0, 0, 0, 0]} maxBarSize={40} />
                   <Bar dataKey="investissements" name={i18n.t("misc.investments", { ns: "savings" })} stackId="a" fill="#0f172a" radius={[0, 0, 0, 0]} maxBarSize={40} />
                   <Bar dataKey="interets" name={i18n.t("misc.interest", { ns: "savings" })} stackId="a" fill="#f59e0b" radius={[4, 4, 0, 0]} maxBarSize={40} />
@@ -138,7 +139,7 @@ export function FlowsSection({ ctx }: { ctx: SavingsCtx }) {
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                   <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} dy={10} interval="preserveStartEnd" minTickGap={12} />
                   <YAxis domain={[-100, 100]} axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} tickFormatter={(v) => `${v}%`} />
-                  <Tooltip formatter={(v: number) => [formatRate(v, 1), "Taux"]} contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} />
+                  <Tooltip itemSorter={keepSeriesOrder} formatter={numberFormatter((v: number) => [formatRate(v, 1), "Taux"])} contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} />
                   <Area type="monotone" dataKey="rate" stroke="#3b82f6" fillOpacity={1} fill="url(#colorRate)" strokeWidth={3} dot={{ r: 4, fill: "#3b82f6", strokeWidth: 2, stroke: "#fff" }} activeDot={{ r: 6 }} />
                 </AreaChart>
               </ResponsiveContainer>

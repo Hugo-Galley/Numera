@@ -2,6 +2,7 @@ import i18n from "i18next"
 import { Trans } from "react-i18next"
 import { appLocale, percentSuffix } from "@/i18n/locale"
 import { Bar, BarChart, Cell, ResponsiveContainer, Tooltip, XAxis } from "recharts"
+import { keepSeriesOrder, numberFormatter } from "@/lib/chartTooltip"
 import { Delta, hoursLabel, monthName, monthShort } from "./format"
 import { type ReactNode } from "react"
 import { type WrappedReport } from "@/types/wrapped"
@@ -173,10 +174,10 @@ export function buildSlides(report: WrappedReport, hoursPerDay: number): Slide[]
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={report.months}>
                 <XAxis dataKey="month" tickFormatter={monthShort} tick={{ fill: "rgba(255,255,255,0.6)", fontSize: 11 }} axisLine={false} tickLine={false} />
-                <Tooltip
+                <Tooltip itemSorter={keepSeriesOrder}
                   cursor={{ fill: "rgba(255,255,255,0.05)" }}
-                  labelFormatter={(m: number) => monthName(m)}
-                  formatter={(v: number) => [formatCurrency(v), t("wrappedSlides.expensesLabel")]}
+                  labelFormatter={(m) => monthName(Number(m))}
+                  formatter={numberFormatter((v: number) => [formatCurrency(v), t("wrappedSlides.expensesLabel")])}
                   contentStyle={{ borderRadius: "12px", border: "none" }}
                 />
                 <Bar dataKey="real_expenses" radius={[4, 4, 0, 0]}>

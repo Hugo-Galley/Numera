@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next"
 import { Badge } from "@/components/ui/badge"
-import { Bar, BarChart, ResponsiveContainer, Tooltip, type TooltipProps, XAxis, YAxis } from "recharts"
+import { Bar, BarChart, ResponsiveContainer, Tooltip, type TooltipContentProps, XAxis, YAxis, type YAxisTickContentProps } from "recharts"
 import { Building } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { CompanyLogo } from "@/components/ui/CompanyLogo"
@@ -70,8 +70,9 @@ export function TopCompanies({ ctx }: { ctx: InvestmentsCtx }) {
                       <YAxis
                         type="category"
                         dataKey="name"
-                        tick={(tickProps: { x: number; y: number; payload: { value: string } }) => {
-                          const { x, y, payload } = tickProps
+                        tick={(tickProps: YAxisTickContentProps) => {
+                          const { x, y } = tickProps
+                          const payload = { value: String(tickProps.payload.value) }
                           const comp = topCompaniesData.find((c) => c.name === payload.value)
                           return (
                             <g transform={`translate(${x},${y})`}>
@@ -99,7 +100,7 @@ export function TopCompanies({ ctx }: { ctx: InvestmentsCtx }) {
                       />
                       <Tooltip
                         cursor={false}
-                        content={({ active, payload, label }: TooltipProps<number, string>) => {
+                        content={({ active, payload, label }: TooltipContentProps) => {
                           if (active && payload && payload.length) {
                             const d: (typeof topCompaniesData)[number] = payload[0].payload
                             return (

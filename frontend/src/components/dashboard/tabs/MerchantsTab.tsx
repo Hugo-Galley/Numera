@@ -21,6 +21,7 @@ import {
   CartesianGrid,
   Tooltip
 } from "recharts"
+import { keepSeriesOrder, numberFormatter } from "@/lib/chartTooltip"
 import type { TopMerchants } from "../types"
 
 interface MerchantsTabProps {
@@ -55,7 +56,7 @@ export function MerchantsTab({ topMerchants, displayCurrency, drilldownScope }: 
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
             <XAxis type="number" hide />
             <YAxis dataKey="merchant" type="category" width={isMobile ? 104 : 150} axisLine={false} tickLine={false} tick={{ fontSize: isMobile ? 11 : 12, fontWeight: 500, fill: '#64748b' }} tickFormatter={(v: string) => (isMobile && v.length > 16 ? `${v.slice(0, 15)}…` : v)} />
-            <Tooltip cursor={{ fill: '#f8fafc' }} formatter={formatTooltip} contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} />
+            <Tooltip itemSorter={keepSeriesOrder} cursor={{ fill: '#f8fafc' }} formatter={numberFormatter(formatTooltip)} contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} />
             <Bar
               dataKey="total"
               fill="#0f172a"

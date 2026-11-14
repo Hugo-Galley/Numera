@@ -43,7 +43,7 @@
     "react-i18next": "^18.0.1",
     "react-router-dom": "^7.18.5",
     "react-simple-maps": "^5.0.5",
-    "recharts": "^2.13.0",
+    "recharts": "^3.10.1",
     "sonner": "^2.0.8",
     "tailwind-merge": "^3.7.0"
   },

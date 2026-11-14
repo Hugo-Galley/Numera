@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next"
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
+import { keepSeriesOrder, numberFormatter } from "@/lib/chartTooltip"
 import { Card, CardContent } from "@/components/ui/card"
 import { formatCurrency } from "@/lib/utils"
 import type { InvestmentsCtx } from "./useInvestments"
@@ -38,15 +39,15 @@ export function PerformanceSection({ ctx }: { ctx: InvestmentsCtx }) {
                    tick={{ fontSize: 10 }}
                    tickFormatter={(v) => `${v}€`} 
                  />
-                 <Tooltip 
-                    formatter={(value: number, name: string) => [formatCurrency(value), name]}
+                 <Tooltip itemSorter={keepSeriesOrder} 
+                    formatter={numberFormatter((value: number, name: string) => [formatCurrency(value), name])}
                     contentStyle={{ borderRadius: "8px", border: "1px solid #e2e8f0" }}
                  />
                  <Bar 
                    dataKey="value" 
                    fill="#000000" 
                    radius={[4, 4, 0, 0]} 
-                   onClick={(data) => handleAccountClick(data.id)}
+                   onClick={(_, index) => handleAccountClick(chartData[index].id)}
                    className="cursor-pointer hover:opacity-80 transition-opacity"
                  />
                </BarChart>
