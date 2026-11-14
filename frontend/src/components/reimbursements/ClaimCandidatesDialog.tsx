@@ -56,7 +56,7 @@ export function ClaimCandidatesDialog({ claim, accountName, onOpenChange, onDone
           {candidates?.map((c) => (
             <div key={c.id} className="flex flex-col gap-2 p-3 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
               <div className="min-w-0">
-                <p className="flex flex-wrap items-center gap-2 break-words font-medium text-slate-900">
+                <p className="flex flex-wrap items-center gap-2 wrap-break-word font-medium text-slate-900">
                   {c.label}
                   {c.debtor_match && <Badge variant="outline" className="border-emerald-100 bg-emerald-50 px-1 py-0 text-[10px] text-emerald-700">{t("claimCandidatesDialog.debiteurReconnu")}</Badge>}
                 </p>

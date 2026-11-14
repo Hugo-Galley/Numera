@@ -187,7 +187,7 @@ export function TagsTab() {
 
               <div className="theme-island flex items-center gap-4 p-4 bg-slate-900 rounded-2xl text-white">
                 <Badge 
-                  className="px-3 py-1 font-bold shadow-sm border-none text-white"
+                  className="px-3 py-1 font-bold shadow-xs border-none text-white"
                   style={{ backgroundColor: newColor }}
                 >
                   <Tag className="h-3 w-3 mr-1.5" />
@@ -210,11 +210,11 @@ export function TagsTab() {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {[...tags].sort((a, b) => Number(!!a.archived) - Number(!!b.archived)).map((tag) => (
-            <Card key={tag.id} className={`group hover:border-slate-300 transition-all shadow-sm border-slate-100 overflow-hidden ${tag.archived ? "opacity-60" : ""}`}>
+            <Card key={tag.id} className={`group hover:border-slate-300 transition-all shadow-xs border-slate-100 overflow-hidden ${tag.archived ? "opacity-60" : ""}`}>
               <CardContent className="p-0">
                 <div className="p-3 pl-4 flex items-center justify-between gap-4 md:p-4">
                   <Badge 
-                    className="px-3 py-1.5 font-bold shadow-sm border-none text-white truncate max-w-[200px] sm:max-w-[150px]"
+                    className="px-3 py-1.5 font-bold shadow-xs border-none text-white truncate max-w-[200px] sm:max-w-[150px]"
                     style={{ backgroundColor: tag.color || "#64748b" }}
                   >
                     <Tag className="h-3.5 w-3.5 mr-2" />
@@ -281,7 +281,7 @@ export function TagsTab() {
 
             <div className="theme-island flex items-center gap-4 p-4 bg-slate-900 rounded-2xl text-white">
               <Badge 
-                className="px-3 py-1 font-bold shadow-sm border-none text-white"
+                className="px-3 py-1 font-bold shadow-xs border-none text-white"
                 style={{ backgroundColor: editColor }}
               >
                 <Tag className="h-3 w-3 mr-1.5" />

@@ -80,7 +80,7 @@ export function TransactionEditor({
   )
 
   return (
-    <div className="rounded-md border border-slate-200 bg-white shadow-sm overflow-hidden">
+    <div className="rounded-md border border-slate-200 bg-white shadow-xs overflow-hidden">
       <div className="flex flex-col p-3 gap-3 lg:hidden">
         <div className="flex items-center justify-between border-b pb-2">
           <div className="min-w-0">
@@ -162,7 +162,7 @@ export function TransactionEditor({
               <Trash2 className="h-4 w-4" />
             </Button>
           )}
-          <Button type="button" size="sm" onClick={save} disabled={saving || !draft.merchant.trim() || Number(draft.amount) <= 0} className="h-11 shadow-sm flex-1">
+          <Button type="button" size="sm" onClick={save} disabled={saving || !draft.merchant.trim() || Number(draft.amount) <= 0} className="h-11 shadow-xs flex-1">
             {saving ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
             {t("transactionEditor.enregistrer")}
           </Button>
@@ -255,7 +255,7 @@ export function TransactionEditor({
                 <Trash2 className="h-4 w-4" />
               </Button>
             )}
-            <Button type="button" size="sm" onClick={save} disabled={saving || !draft.merchant.trim() || Number(draft.amount) <= 0} className="h-9 shadow-sm">
+            <Button type="button" size="sm" onClick={save} disabled={saving || !draft.merchant.trim() || Number(draft.amount) <= 0} className="h-9 shadow-xs">
               {saving ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
               {t("transactionEditor.enregistrer")}
             </Button>

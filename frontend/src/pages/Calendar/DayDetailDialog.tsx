@@ -42,7 +42,7 @@ export function DayDetailDialog({ ctx }: { ctx: CalendarCtx }) {
                           <ArrowUpCircle className="h-8 w-8 shrink-0 text-emerald-500" />
                         )}
                         <div className="min-w-0">
-                          <p className="text-sm font-bold text-slate-900 break-words">{ev.name}</p>
+                          <p className="text-sm font-bold text-slate-900 wrap-break-word">{ev.name}</p>
                           <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
                             {ev.ticker && (
                               <>

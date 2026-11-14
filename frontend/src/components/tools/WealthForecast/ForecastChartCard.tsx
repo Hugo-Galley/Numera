@@ -12,7 +12,7 @@ export function ForecastChartCard({ ctx }: { ctx: WealthForecastView }) {
   const { boostedShown, data } = ctx
   return (
     <>
-      <Card className="shadow-sm border-slate-100">
+      <Card className="shadow-xs border-slate-100">
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
             <TrendingUp className="h-5 w-5 text-blue-500" /> {t("forecastChartCard.evolutionPrevue")}

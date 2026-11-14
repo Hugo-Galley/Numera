@@ -47,7 +47,7 @@ export function AnnualReportSection({ ctx }: { ctx: TaxCtx }) {
                 {report.accounts.map((row) => (
                   <li key={row.account_id} className="rounded-lg border p-3 text-sm">
                     <div className="flex items-baseline justify-between gap-3">
-                      <span className="min-w-0 break-words font-medium">{row.account_name}</span>
+                      <span className="min-w-0 wrap-break-word font-medium">{row.account_name}</span>
                       <span className="shrink-0 text-xs text-slate-500">{i18n.t("misc.sales", { ns: "tax", count: row.sales })}</span>
                     </div>
                     <dl className="mt-2 grid grid-cols-2 gap-3 border-t pt-2 text-xs">

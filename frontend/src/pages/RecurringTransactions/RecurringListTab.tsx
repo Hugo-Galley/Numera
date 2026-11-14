@@ -20,7 +20,7 @@ export function RecurringListTab({ ctx }: { ctx: RecurringTransactionsCtx }) {
   return (
     <>
       <TabsContent value="recurring" className="space-y-6">
-        <Card className="shadow-sm border-slate-100">
+        <Card className="shadow-xs border-slate-100">
           <CardHeader className="pb-4">
             <CardTitle className="text-lg">{t("recurringListTab.toutesLesRecurrences")}</CardTitle>
             <CardDescription>
@@ -47,8 +47,8 @@ export function RecurringListTab({ ctx }: { ctx: RecurringTransactionsCtx }) {
                           className="h-10 w-10 rounded-lg shadow-2xs shrink-0"
                         />
                         <div className="min-w-0 flex-1">
-                          <p className="font-bold text-slate-900 text-sm break-words">{tx.name}</p>
-                          <p className="text-xs text-slate-500 break-words">
+                          <p className="font-bold text-slate-900 text-sm wrap-break-word">{tx.name}</p>
+                          <p className="text-xs text-slate-500 wrap-break-word">
                             {accounts.find(a => a.id === tx.account_id)?.name}
                             {tx.transfer_to_account_id && (
                               <span className="text-indigo-600"> → {accounts.find(a => a.id === tx.transfer_to_account_id)?.name}</span>

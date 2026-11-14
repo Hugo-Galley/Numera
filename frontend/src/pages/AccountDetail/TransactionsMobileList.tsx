@@ -28,7 +28,7 @@ export function TransactionsMobileList({ ctx }: { ctx: AccountDetailView }) {
           const sign = tx.type === "Sortie" ? "-" : (tx.type === "Entree" || tx.type === "Interets") ? "+" : ""
           const tone = tx.type === "Sortie" ? "text-rose-600" : (tx.type === "Entree" || tx.type === "Interets") ? "text-emerald-600" : "text-slate-900"
           return (
-            <div key={tx.id} className={`flex items-start gap-1 rounded-xl border bg-white p-2 shadow-sm ${selectedIds.includes(tx.id) ? "border-indigo-300 bg-indigo-50/40" : "border-slate-100"}`}>
+            <div key={tx.id} className={`flex items-start gap-1 rounded-xl border bg-white p-2 shadow-xs ${selectedIds.includes(tx.id) ? "border-indigo-300 bg-indigo-50/40" : "border-slate-100"}`}>
               <label className="flex h-10 w-9 shrink-0 cursor-pointer items-center justify-center">
                 <Checkbox
                   checked={selectedIds.includes(tx.id)}
@@ -43,7 +43,7 @@ export function TransactionsMobileList({ ctx }: { ctx: AccountDetailView }) {
                   <div className="flex min-w-0 items-center gap-1.5">
                     {tx.recurring_logo && <CompanyLogo logo={tx.recurring_logo} name={tx.merchant} className="h-6 w-6 shrink-0 rounded-md" />}
                     {tx.merchant_obj && <div className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: tx.merchant_obj.color || "#64748b" }} />}
-                    <span className="break-words text-sm font-bold leading-tight text-slate-900">{tx.merchant_obj?.name || tx.merchant}</span>
+                    <span className="wrap-break-word text-sm font-bold leading-tight text-slate-900">{tx.merchant_obj?.name || tx.merchant}</span>
                     {tx.is_recurring && <Repeat className="h-3 w-3 shrink-0 text-indigo-500" />}
                   </div>
                   <span className={`shrink-0 whitespace-nowrap text-sm font-bold tabular-nums amount-blur ${tone}`}>
@@ -73,7 +73,7 @@ export function TransactionsMobileList({ ctx }: { ctx: AccountDetailView }) {
                 {tx.merchant_obj && tx.merchant_obj.name !== tx.merchant && (
                   <p className="mt-0.5 truncate text-[11px] italic text-slate-400">{tx.merchant}</p>
                 )}
-                {tx.note && <p className="mt-0.5 break-words text-[11px] text-slate-400">{tx.note}</p>}
+                {tx.note && <p className="mt-0.5 wrap-break-word text-[11px] text-slate-400">{tx.note}</p>}
                 {((tx.reimbursement_offset ?? 0) > 0 || tx.is_transfer || (tx.tags && tx.tags.length > 0) || tx.currency !== account.currency) && (
                   <div className="mt-1.5 flex flex-wrap items-center gap-1">
                     {tx.tags?.map((tag) => (

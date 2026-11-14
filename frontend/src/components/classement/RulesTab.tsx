@@ -214,7 +214,7 @@ export function RulesTab() {
         </div>
       </div>
 
-      <Card className="shadow-sm border-slate-100 overflow-hidden">
+      <Card className="shadow-xs border-slate-100 overflow-hidden">
         <CardContent className="p-0">
           <div className="divide-y">
             {rules.map((rule) => {
@@ -222,7 +222,7 @@ export function RulesTab() {
               return (
                 <div key={rule.id} className="p-4 flex items-center justify-between gap-2 hover:bg-slate-50 transition-colors">
                   <div className="flex min-w-0 items-center gap-3 sm:gap-4">
-                    <div className="h-10 w-10 shrink-0 bg-slate-100 rounded-xl flex items-center justify-center text-slate-500 shadow-sm">
+                    <div className="h-10 w-10 shrink-0 bg-slate-100 rounded-xl flex items-center justify-center text-slate-500 shadow-xs">
                       <Filter className="h-5 w-5" />
                     </div>
                     <div className="min-w-0">

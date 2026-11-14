@@ -192,7 +192,7 @@ export default function Login() {
             {t("subtitle")}
           </p>
           {isDemo && (
-            <div className="mt-3 flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 p-3 text-left text-sm text-amber-900">
+            <div className="flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 p-3 text-left text-sm text-amber-900">
               <FlaskConical className="mt-0.5 h-4 w-4 shrink-0" />
               <p>
                 {t("demoIntro")}

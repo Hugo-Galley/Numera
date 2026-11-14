@@ -30,7 +30,7 @@ export function MerchantsList({ ctx }: { ctx: MerchantsTabCtx }) {
         ) : (
           <div className="grid gap-4">
             {filteredMerchants.map(m => (
-              <Card key={m.id} className="group hover:border-slate-300 transition-all border-slate-100 shadow-sm overflow-hidden">
+              <Card key={m.id} className="group hover:border-slate-300 transition-all border-slate-100 shadow-xs overflow-hidden">
                 <CardContent className="p-0">
                   <div className="p-3 pl-4 md:p-4 flex items-center justify-between gap-2 md:gap-4">
                     <div className="flex min-w-0 items-center gap-3 md:gap-4">

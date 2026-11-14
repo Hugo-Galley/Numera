@@ -80,7 +80,7 @@ export function ActionDetail({ ctx }: { ctx: AuditCtx }) {
                       </Badge>
                     </div>
                   </div>
-                  <div className="space-y-3 rounded-lg border border-slate-200 bg-white p-2 shadow-sm sm:p-3">
+                  <div className="space-y-3 rounded-lg border border-slate-200 bg-white p-2 shadow-xs sm:p-3">
                     {group.transactions.map((tx) => (
                       <TransactionEditor
                         key={tx.id}
@@ -117,7 +117,7 @@ export function ActionDetail({ ctx }: { ctx: AuditCtx }) {
                       </Button>
                     </div>
                   </div>
-                  <div className="space-y-3 rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
+                  <div className="space-y-3 rounded-lg border border-slate-200 bg-white p-3 shadow-xs">
                     <TransactionEditor
                       tx={pair.sortie}
                       categories={categories}

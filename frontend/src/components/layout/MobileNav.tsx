@@ -24,7 +24,7 @@ export function MobileNav() {
   return (
     <>
       <nav
-        className="fixed inset-x-0 bottom-0 z-40 flex border-t bg-white/95 backdrop-blur md:hidden pb-[calc(env(safe-area-inset-bottom)*0.45)]"
+        className="fixed inset-x-0 bottom-0 z-40 flex border-t bg-white/95 backdrop-blur-sm md:hidden pb-[calc(env(safe-area-inset-bottom)*0.45)]"
         aria-label={t("mobile.label")}
       >
         {tabs.map((tab) => (

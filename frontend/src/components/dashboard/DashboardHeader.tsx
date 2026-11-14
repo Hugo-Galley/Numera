@@ -50,7 +50,7 @@ export function DashboardHeader({
           </span>
         )}
       </div>
-      <div className="grid grid-cols-[1fr_auto] gap-2 sm:flex sm:flex-wrap sm:items-center md:gap-3 bg-white p-2 rounded-xl border shadow-sm w-full sm:w-fit">
+      <div className="grid grid-cols-[1fr_auto] gap-2 sm:flex sm:flex-wrap sm:items-center md:gap-3 bg-white p-2 rounded-xl border shadow-xs w-full sm:w-fit">
         <Select value={selectedAccountId} onValueChange={setSelectedAccountId}>
           <SelectTrigger className="col-span-2 w-full sm:w-[160px] md:w-[180px] border-slate-200 sm:border-none shadow-none focus:ring-0 font-medium h-11 md:h-10 text-base md:text-sm">
             <SelectValue placeholder={t("placeholders.account")} />
@@ -90,7 +90,7 @@ export function DashboardHeader({
           <>
             <Separator orientation="vertical" className="h-6 hidden md:block" />
             <div 
-              className="col-span-2 cursor-pointer flex items-center justify-center px-3 h-11 md:h-10 text-slate-700 border border-slate-200 bg-white hover:bg-slate-50 hover:text-slate-900 font-medium rounded-lg transition-colors text-sm shadow-sm"
+              className="col-span-2 cursor-pointer flex items-center justify-center px-3 h-11 md:h-10 text-slate-700 border border-slate-200 bg-white hover:bg-slate-50 hover:text-slate-900 font-medium rounded-lg transition-colors text-sm shadow-xs"
               onClick={() => navigate(`/accounts/${mainAccount.id}`)}
             >
               <Star className="h-4 w-4 mr-2 text-slate-400" />

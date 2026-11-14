@@ -61,7 +61,7 @@ function Node({ title, subtitle, logo, name, ticker, isin, tone }: {
         <CompanyLogo logo={logo} name={name} ticker={ticker ?? undefined} isin={isin ?? undefined} className="h-10 w-10 rounded-xl md:h-12 md:w-12" />
       </div>
       <div className="min-w-0">
-        <p className="break-words text-sm font-black leading-tight text-slate-900">{title}</p>
+        <p className="wrap-break-word text-sm font-black leading-tight text-slate-900">{title}</p>
         <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{subtitle}</p>
       </div>
     </div>
@@ -113,7 +113,7 @@ export function InvestmentFlowDialog({ recurring, accounts, nextOccurrence, vari
               <DialogDescription>{t(isSub ? "investmentFlowDialog.parcoursDeLArgentSubscription" : "investmentFlowDialog.parcoursDeLArgentInvesti")}</DialogDescription>
             </DialogHeader>
 
-            <div className="rounded-2xl border border-indigo-100 bg-gradient-to-br from-indigo-50/60 to-white p-4 md:p-6">
+            <div className="rounded-2xl border border-indigo-100 bg-linear-to-br from-indigo-50/60 to-white p-4 md:p-6">
               <div className="mb-6 text-center">
                 <p className="text-3xl font-black tabular-nums text-slate-900">
                   {formatCurrency(recurring.amount, recurring.currency)}

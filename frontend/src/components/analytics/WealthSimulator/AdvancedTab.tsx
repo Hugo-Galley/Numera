@@ -13,7 +13,7 @@ export function AdvancedTab({ ctx }: { ctx: WealthSimulatorCtx }) {
   return (
     <>
       {/* CONTENU ONGLET 3: RISQUE ET FISCALITE */}
-      <TabsContent value="advanced" className="space-y-4 m-0 outline-none">
+      <TabsContent value="advanced" className="space-y-4 m-0 outline-hidden">
         <div className="space-y-2">
           <Label htmlFor="volatility_pct" className="flex items-center justify-between text-xs font-semibold text-slate-700">
             <span className="flex items-center gap-1.5">
@@ -93,7 +93,7 @@ export function AdvancedTab({ ctx }: { ctx: WealthSimulatorCtx }) {
                 id="tax_deferred"
                 value={params.tax_deferred ? "true" : "false"}
                 onChange={(e) => setParams({ ...params, tax_deferred: e.target.value === "true" })}
-                className="flex h-11 md:h-9 w-full rounded-md border border-slate-200 bg-white px-3 py-1 text-base md:text-xs shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-950"
+                className="flex h-11 md:h-9 w-full rounded-md border border-slate-200 bg-white px-3 py-1 text-base md:text-xs shadow-xs focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-slate-950"
               >
                 <option value="true">{t("advancedTab.capitalisationPeaAssurVie")}</option>
                 <option value="false">{t("advancedTab.prelevementAnnuelCompteTitres")}</option>

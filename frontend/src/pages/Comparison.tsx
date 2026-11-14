@@ -159,7 +159,7 @@ export default function Comparison() {
         <p className="text-slate-500 mt-1">{t("comparison.comparezVosRevenusEtDepenses")}</p>
       </div>
 
-      <div className="flex flex-col gap-3 rounded-2xl border bg-white p-4 shadow-sm md:flex-row md:flex-wrap md:items-center md:gap-4">
+      <div className="flex flex-col gap-3 rounded-2xl border bg-white p-4 shadow-xs md:flex-row md:flex-wrap md:items-center md:gap-4">
         <div className="grid grid-cols-[1fr_6.5rem] items-center gap-2 md:flex md:gap-3">
           <Badge className="col-span-2 w-fit bg-slate-900">{t("comparison.periodeA")}</Badge>
           <Select value={monthA} onValueChange={setMonthA}>

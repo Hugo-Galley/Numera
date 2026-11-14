@@ -39,7 +39,7 @@ export function BudgetsTab({ budgetAlerts, drilldownScope }: BudgetsTabProps) {
               title={t("budgets.viewTransactions")}
               onClick={() => openDrilldown({ ...drilldownScope, label: alert.category_name, categoryId: alert.category_id })}
               onKeyDown={(e) => e.key === "Enter" && openDrilldown({ ...drilldownScope, label: alert.category_name, categoryId: alert.category_id })}
-              className={`cursor-pointer p-4 md:p-5 rounded-2xl border flex flex-col gap-3 md:gap-4 transition-all shadow-sm ${
+              className={`cursor-pointer p-4 md:p-5 rounded-2xl border flex flex-col gap-3 md:gap-4 transition-all shadow-xs ${
                 isOver 
                   ? "bg-rose-50 border-rose-200" 
                   : isWarning 
@@ -48,7 +48,7 @@ export function BudgetsTab({ budgetAlerts, drilldownScope }: BudgetsTabProps) {
               }`}
             >
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 shrink-0 rounded-xl flex items-center justify-center shadow-sm" style={{ backgroundColor: alert.category_color || "#64748b" }}>
+                <div className="h-10 w-10 shrink-0 rounded-xl flex items-center justify-center shadow-xs" style={{ backgroundColor: alert.category_color || "#64748b" }}>
                   <IconComponent name={alert.category_icon} className="h-6 w-6 text-white" />
                 </div>
                 <div className="min-w-0">

@@ -12,7 +12,7 @@ export function ForecastSummaryCard({ ctx }: { ctx: WealthForecastView }) {
   const { boostedShown, data, extra, final, setExtra, setYears, years } = ctx
   return (
     <>
-      <Card className="shadow-sm border-slate-100">
+      <Card className="shadow-xs border-slate-100">
         <CardHeader>
           <CardDescription>{t("misc.inYearsYouHave", { count: data.years })}</CardDescription>
           <CardTitle className="text-4xl sm:text-5xl font-black tracking-tight tabular-nums text-slate-900 amount-blur">

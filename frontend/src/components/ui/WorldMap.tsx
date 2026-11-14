@@ -179,7 +179,7 @@ const WorldMap: React.FC<WorldMapProps> = ({ data }) => {
       {/* Custom Tooltip */}
       {hoveredCountry && (
         <div 
-          className="theme-island fixed z-[9999] pointer-events-none bg-slate-900 text-white p-3 rounded-lg shadow-2xl border border-slate-700 transform -translate-x-1/2 -translate-y-[calc(100%+10px)]"
+          className="theme-island fixed z-9999 pointer-events-none bg-slate-900 text-white p-3 rounded-lg shadow-2xl border border-slate-700 transform -translate-x-1/2 -translate-y-[calc(100%+10px)]"
           style={{ left: hoveredCountry.x, top: hoveredCountry.y }}
         >
           <div className="space-y-1 min-w-[150px]">
@@ -204,22 +204,22 @@ const WorldMap: React.FC<WorldMapProps> = ({ data }) => {
       <div className="absolute bottom-4 right-4 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
         <button 
           onClick={() => setPosition(p => ({ ...p, zoom: Math.min(p.zoom * 1.5, 8) }))}
-          className="w-8 h-8 bg-white border border-slate-200 rounded-md shadow-sm flex items-center justify-center text-slate-600 hover:bg-slate-50 transition-colors"
+          className="w-8 h-8 bg-white border border-slate-200 rounded-md shadow-xs flex items-center justify-center text-slate-600 hover:bg-slate-50 transition-colors"
         >
           +
         </button>
         <button 
           onClick={() => setPosition(p => ({ ...p, zoom: Math.max(p.zoom / 1.5, 1), coordinates: p.zoom <= 1.5 ? [0, 0] : p.coordinates }))}
-          className="w-8 h-8 bg-white border border-slate-200 rounded-md shadow-sm flex items-center justify-center text-slate-600 hover:bg-slate-50 transition-colors"
+          className="w-8 h-8 bg-white border border-slate-200 rounded-md shadow-xs flex items-center justify-center text-slate-600 hover:bg-slate-50 transition-colors"
         >
           -
         </button>
       </div>
       
       {/* Legend */}
-      <div className="absolute bottom-4 left-4 p-2 bg-white/80 backdrop-blur-sm rounded-lg border border-slate-200 text-[10px] text-slate-500 shadow-sm">
+      <div className="absolute bottom-4 left-4 p-2 bg-white/80 backdrop-blur-xs rounded-lg border border-slate-200 text-[10px] text-slate-500 shadow-xs">
         <div className="flex items-center gap-2 mb-1">
-          <div className="w-24 h-1.5 bg-gradient-to-r from-slate-100 via-indigo-400 to-indigo-950 rounded-full border border-slate-200" />
+          <div className="w-24 h-1.5 bg-linear-to-r from-slate-100 via-indigo-400 to-indigo-950 rounded-full border border-slate-200" />
         </div>
         <div className="flex justify-between px-0.5 font-medium">
           <span>0</span>

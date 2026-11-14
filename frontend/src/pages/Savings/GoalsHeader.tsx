@@ -28,7 +28,7 @@ export function GoalsHeader({ ctx }: { ctx: SavingsCtx }) {
           }
         }}>
           <DialogTrigger asChild>
-            <Button className="h-11 w-full rounded-xl shadow-sm sm:h-10 sm:w-auto">
+            <Button className="h-11 w-full rounded-xl shadow-xs sm:h-10 sm:w-auto">
               <Plus className="h-4 w-4 mr-2" />
               {t("goalsHeader.nouvelObjectif")}
             </Button>

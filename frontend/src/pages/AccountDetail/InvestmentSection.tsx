@@ -51,7 +51,7 @@ export function InvestmentSection({ ctx }: { ctx: AccountDetailView }) {
                       }
                     }}
                     className={`rounded-md px-3 py-1 text-xs font-semibold transition-all ${
-                      (account.valuation_mode ?? "positions") === mode ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"
+                      (account.valuation_mode ?? "positions") === mode ? "bg-white text-slate-900 shadow-xs" : "text-slate-500 hover:text-slate-700"
                     }`}
                   >
                     {label}

@@ -27,7 +27,7 @@ export function IncomeTab() {
             key={view_}
             variant={view === view_ ? "white" : "ghost"}
             size="sm"
-            className={`h-9 rounded-lg px-4 text-xs font-bold ${view === view_ ? "shadow-sm" : "text-slate-500 hover:text-slate-900"}`}
+            className={`h-9 rounded-lg px-4 text-xs font-bold ${view === view_ ? "shadow-xs" : "text-slate-500 hover:text-slate-900"}`}
             onClick={() => setView(view_)}
           >
             {t(`incomeTab.${view_}`)}

@@ -17,7 +17,7 @@ export function AccountCharts({ ctx }: { ctx: AccountDetailView }) {
     <>
       {/* Charts Section */}
       <div className="w-full space-y-8">
-        <Card className="shadow-sm overflow-hidden border-slate-100 w-full">
+        <Card className="shadow-xs overflow-hidden border-slate-100 w-full">
           <CardHeader className="bg-slate-50/50 border-b pb-4 flex flex-row items-center justify-between">
             <div>
               <CardTitle className="text-lg font-bold">{isInvestment ? t("charts.capitalTitle") : t("charts.balanceTitle")}</CardTitle>
@@ -60,7 +60,7 @@ export function AccountCharts({ ctx }: { ctx: AccountDetailView }) {
         </Card>
 
         {isInvestment && (
-          <Card className="shadow-sm overflow-hidden border-slate-100 w-full">
+          <Card className="shadow-xs overflow-hidden border-slate-100 w-full">
             <CardHeader className="bg-slate-50/50 border-b pb-4 flex flex-row items-center justify-between">
               <div>
                 <CardTitle className="text-lg font-bold">{t("charts.unrealizedTitle")}</CardTitle>

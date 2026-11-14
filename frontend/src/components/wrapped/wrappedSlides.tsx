@@ -20,7 +20,7 @@ export function Eyebrow({ children }: { children: ReactNode }) {
 }
 
 export function Big({ children, className, blur = true }: { children: ReactNode; className?: string; blur?: boolean }) {
-  return <p className={cn("break-words text-4xl font-black tracking-tight text-white min-[400px]:text-5xl sm:text-7xl", blur && "amount-blur", className)}>{children}</p>
+  return <p className={cn("wrap-break-word text-4xl font-black tracking-tight text-white min-[400px]:text-5xl sm:text-7xl", blur && "amount-blur", className)}>{children}</p>
 }
 
 export function Sub({ children }: { children: ReactNode }) {
@@ -121,7 +121,7 @@ export function buildSlides(report: WrappedReport, hoursPerDay: number): Slide[]
             {report.top_merchants.map((m, i) => (
               <li key={m.merchant} className="flex items-baseline gap-3">
                 <span className="w-5 shrink-0 text-lg font-black text-white/40 sm:text-xl">{i + 1}</span>
-                <span className={cn("line-clamp-2 min-w-0 flex-1 break-words font-black text-white", i === 0 ? "text-xl min-[400px]:text-2xl sm:text-4xl" : "text-base sm:text-xl")}>
+                <span className={cn("line-clamp-2 min-w-0 flex-1 wrap-break-word font-black text-white", i === 0 ? "text-xl min-[400px]:text-2xl sm:text-4xl" : "text-base sm:text-xl")}>
                   {m.merchant}
                 </span>
                 <span className="shrink-0 whitespace-nowrap font-semibold text-white/80 amount-blur">{formatCurrency(m.total)}</span>

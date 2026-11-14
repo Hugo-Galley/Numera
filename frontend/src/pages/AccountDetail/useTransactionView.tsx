@@ -108,7 +108,7 @@ export function useTransactionView(p: ReturnType<typeof useAccountDetailState> &
             <MoreHorizontal className="h-4 w-4 text-slate-500" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" collisionPadding={12} className="w-56 max-md:[&_[role=menuitem]]:min-h-11">
+        <DropdownMenuContent align="end" collisionPadding={12} className="w-56 max-md:**:[[role=menuitem]]:min-h-11">
           {tx.type === "Sortie" && !tx.is_transfer && account?.currency === "EUR" && (
             <>
               <DropdownMenuLabel className="py-1">

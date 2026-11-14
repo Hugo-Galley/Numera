@@ -14,7 +14,7 @@ export function ImportSettingsCard({ ctx }: { ctx: ImportFlowCtx }) {
   const { accountId, accounts, createMissingCategories, file, handleFileChange, handleImport, importing, selectedAccountId, setCreateMissingCategories, setSelectedAccountId } = ctx
   return (
     <>
-      <Card className="shadow-sm border-slate-100 overflow-hidden">
+      <Card className="shadow-xs border-slate-100 overflow-hidden">
         <CardHeader className="bg-slate-50/50 border-b">
           <CardTitle className="text-lg">{t("source")}</CardTitle>
           <CardDescription>{t("sourceHint")}</CardDescription>

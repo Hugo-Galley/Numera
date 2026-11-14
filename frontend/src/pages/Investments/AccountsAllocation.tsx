@@ -18,7 +18,7 @@ export function AccountsAllocation({ ctx }: { ctx: InvestmentsCtx }) {
           <h2 className="text-xl font-bold tracking-tight">{t("accountsAllocation.repartitionParCompte")}</h2>
           <p className="text-sm text-muted-foreground">{t("accountsAllocation.vosInvestissementsSeparesParEnveloppe")}</p>
         </div>
-        <Card className="shadow-sm border-slate-100 overflow-hidden">
+        <Card className="shadow-xs border-slate-100 overflow-hidden">
           <CardHeader className="flex flex-col items-start justify-between gap-2 border-b bg-slate-50/50 pb-4 sm:flex-row sm:items-center">
             <CardTitle className="text-base font-bold">{t("accountsAllocation.detailsDeLAllocation")}</CardTitle>
             <span className="text-sm font-semibold text-slate-500 bg-slate-100/80 px-3 py-1 rounded-lg">
@@ -41,7 +41,7 @@ export function AccountsAllocation({ ctx }: { ctx: InvestmentsCtx }) {
                       dataKey="value"
                       nameKey="name"
                       onClick={(_, index) => handleAccountClick(chartData[index].id)}
-                      className="cursor-pointer outline-none"
+                      className="cursor-pointer outline-hidden"
                     >
                       {chartData.map((entry, index: number) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} className="hover:opacity-80 transition-opacity" />

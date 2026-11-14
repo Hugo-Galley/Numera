@@ -21,7 +21,7 @@ export function FlowsSection({ ctx }: { ctx: SavingsCtx }) {
         </div>
 
         <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2">
-          <Card className="shadow-sm border-slate-100 hover:shadow-md transition-shadow">
+          <Card className="shadow-xs border-slate-100 hover:shadow-md transition-shadow">
             <CardContent className="p-4 md:p-6">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
@@ -73,7 +73,7 @@ export function FlowsSection({ ctx }: { ctx: SavingsCtx }) {
             </CardContent>
           </Card>
 
-          <Card className="shadow-sm border-slate-100 hover:shadow-md transition-shadow">
+          <Card className="shadow-xs border-slate-100 hover:shadow-md transition-shadow">
             <CardContent className="p-4 md:p-6">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
@@ -98,7 +98,7 @@ export function FlowsSection({ ctx }: { ctx: SavingsCtx }) {
         </div>
 
         <div className="grid gap-4 md:gap-6 grid-cols-1 lg:grid-cols-2">
-          <Card className="shadow-sm border-slate-100">
+          <Card className="shadow-xs border-slate-100">
             <CardHeader className="pb-4">
               <CardTitle className="text-base">{t("flowsSection.historiqueDesFluxDEpargne")}</CardTitle>
               <CardDescription>{t("flowsSection.repartitionDeVotreEpargneMensuelle")}</CardDescription>
@@ -119,7 +119,7 @@ export function FlowsSection({ ctx }: { ctx: SavingsCtx }) {
             </CardContent>
           </Card>
 
-          <Card className="shadow-sm border-slate-100">
+          <Card className="shadow-xs border-slate-100">
             <CardHeader className="pb-4">
               <CardTitle className="text-base">{t("flowsSection.evolutionDuTauxDEpargne")}</CardTitle>
               <CardDescription>{t("flowsSection.visualisezLaRegulariteDeVos")}</CardDescription>

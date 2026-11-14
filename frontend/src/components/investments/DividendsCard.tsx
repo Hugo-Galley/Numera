@@ -123,7 +123,7 @@ export function DividendsCard({ accountId, reloadKey, onChanged }: DividendsCard
 
   return (
     <>
-      <Card className="shadow-sm">
+      <Card className="shadow-xs">
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
             <Coins className="h-5 w-5 text-emerald-600" /> {t("dividendsCard.dividendes")}
@@ -177,7 +177,7 @@ export function DividendsCard({ accountId, reloadKey, onChanged }: DividendsCard
                   <li key={row.ticker} className="rounded-lg border p-3">
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
-                        <div className="break-words text-sm font-semibold text-slate-900">{row.asset_name}</div>
+                        <div className="wrap-break-word text-sm font-semibold text-slate-900">{row.asset_name}</div>
                         <div className="font-mono text-[11px] text-slate-500">
                           {row.ticker}
                           {row.last_date && i18n.t("misc.lastDate", { ns: "investments", date: new Date(row.last_date).toLocaleDateString(appLocale()) })}

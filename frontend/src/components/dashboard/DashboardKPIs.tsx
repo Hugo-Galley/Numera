@@ -48,7 +48,7 @@ export function DashboardKPIs({
   const { t } = useTranslation("dashboard")
   return (
     <div className="grid gap-3 md:gap-6 grid-cols-2 md:grid-cols-3">
-      <Card className="shadow-sm border-slate-100 hover:border-emerald-200 transition-colors cursor-pointer group">
+      <Card className="shadow-xs border-slate-100 hover:border-emerald-200 transition-colors cursor-pointer group">
         <CardHeader className="p-3 pb-1 sm:p-6 sm:pb-2 flex flex-row items-center justify-between gap-2 space-y-0">
           <CardDescription className="text-xs sm:text-sm font-medium group-hover:text-emerald-600 transition-colors">
             {selectedAccountId === "all" ? t("kpi.monthlyIncome") : t("kpi.moneyIn")}
@@ -66,7 +66,7 @@ export function DashboardKPIs({
         </CardContent>
       </Card>
 
-      <Card className="shadow-sm border-slate-100 hover:border-rose-200 transition-colors cursor-pointer group">
+      <Card className="shadow-xs border-slate-100 hover:border-rose-200 transition-colors cursor-pointer group">
         <CardHeader className="p-3 pb-1 sm:p-6 sm:pb-2 flex flex-row items-center justify-between gap-2 space-y-0">
           <CardDescription className="text-xs sm:text-sm font-medium group-hover:text-rose-600 transition-colors">
             {selectedAccountId === "all" ? t("kpi.monthlyExpenses") : t("kpi.moneyOut")}
@@ -84,7 +84,7 @@ export function DashboardKPIs({
         </CardContent>
       </Card>
 
-      <Card className="col-span-2 md:col-span-1 shadow-sm border-slate-100 hover:border-blue-200 transition-colors cursor-pointer group">
+      <Card className="col-span-2 md:col-span-1 shadow-xs border-slate-100 hover:border-blue-200 transition-colors cursor-pointer group">
         <CardHeader className="p-3 pb-1 sm:p-6 sm:pb-2 flex flex-row items-center justify-between gap-2 space-y-0">
           <CardDescription className="text-xs sm:text-sm font-medium group-hover:text-blue-600 transition-colors">
             {selectedAccountId === "all" ? t("kpi.savingsMade") : t("kpi.currentBalance")}

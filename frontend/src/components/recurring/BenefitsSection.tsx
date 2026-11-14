@@ -131,7 +131,7 @@ export function BenefitsSection() {
             </span>
           )}
         </div>
-        <Button className="h-11 w-full rounded-xl shadow-sm sm:h-10 sm:w-auto" onClick={() => openDialog(null)}>
+        <Button className="h-11 w-full rounded-xl shadow-xs sm:h-10 sm:w-auto" onClick={() => openDialog(null)}>
           <Plus className="mr-2 h-4 w-4" />
           {t("benefitsSection.nouvelleAide")}
         </Button>
@@ -178,7 +178,7 @@ interface CardActions {
 function BenefitCard({ benefit: b, actions }: { benefit: Benefit; actions: CardActions }) {
   const { t } = useTranslation("recurring")
   return (
-    <Card className={`rounded-2xl shadow-sm ${b.active ? "" : "opacity-60"}`}>
+    <Card className={`rounded-2xl shadow-xs ${b.active ? "" : "opacity-60"}`}>
       <CardContent className="space-y-3 p-4 md:p-5">
         <div className="flex items-start justify-between gap-2">
           <CompanyLogo logo={b.logo} name={b.name} className="h-10 w-10 shrink-0 rounded-lg shadow-2xs" />

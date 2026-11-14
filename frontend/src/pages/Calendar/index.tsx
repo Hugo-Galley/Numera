@@ -37,7 +37,7 @@ export default function Calendar({ embedded = false }: { embedded?: boolean }) {
             </SelectContent>
           </Select>
           
-          <div className="flex items-center justify-between bg-white border rounded-md p-1 shadow-sm">
+          <div className="flex items-center justify-between bg-white border rounded-md p-1 shadow-xs">
             <Button variant="ghost" size="icon" onClick={prevMonth} className="h-10 w-10 md:h-8 md:w-8" aria-label={t("index.moisPrecedent")}>
               <ChevronLeft className="h-4 w-4" />
             </Button>

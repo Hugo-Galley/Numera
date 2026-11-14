@@ -77,7 +77,7 @@ export function HoldingsHeader({ ctx }: { ctx: HoldingsTableCtx }) {
                   className={cn(
                     "flex-1 whitespace-nowrap px-2.5 py-2 md:py-1 rounded-md text-xs font-semibold transition-all",
                     typeFilter === v
-                      ? "bg-white text-slate-900 shadow-sm"
+                      ? "bg-white text-slate-900 shadow-xs"
                       : "text-slate-500 hover:text-slate-700"
                   )}
                 >
@@ -95,9 +95,9 @@ export function HoldingsHeader({ ctx }: { ctx: HoldingsTableCtx }) {
                   onClick={() => setPerfFilter(v)}
                   className={cn(
                     "flex-1 whitespace-nowrap px-2.5 py-2 md:py-1 rounded-md text-xs font-semibold transition-all",
-                    perfFilter === v && v === "all" && "bg-white text-slate-900 shadow-sm",
-                    perfFilter === v && v === "gain" && "bg-white text-emerald-600 shadow-sm",
-                    perfFilter === v && v === "loss" && "bg-white text-rose-600 shadow-sm",
+                    perfFilter === v && v === "all" && "bg-white text-slate-900 shadow-xs",
+                    perfFilter === v && v === "gain" && "bg-white text-emerald-600 shadow-xs",
+                    perfFilter === v && v === "loss" && "bg-white text-rose-600 shadow-xs",
                     perfFilter !== v && "text-slate-500 hover:text-slate-700",
                   )}
                 >

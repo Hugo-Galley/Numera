@@ -22,7 +22,7 @@ export default function RecurringTransactions() {
       <RecurringHeader ctx={ctx} />
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <div className="scroll-fade-x -mx-4 overflow-x-auto px-4 md:mx-0 md:overflow-visible md:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="scroll-fade-x -mx-4 overflow-x-auto px-4 md:mx-0 md:overflow-visible md:px-0 scrollbar-none [&::-webkit-scrollbar]:hidden">
         <TabsList className="bg-slate-100 p-1 w-max min-w-full md:w-auto md:min-w-0 h-11 md:h-auto">
           {recurringView === "list" ? (
             <TabsTrigger value="recurring" className="rounded-lg gap-2">

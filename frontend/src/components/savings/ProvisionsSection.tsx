@@ -159,7 +159,7 @@ export function ProvisionsSection() {
             <span className="text-sm text-slate-500">{i18n.t("misc.monthlyToSet", { ns: "savings", amount: formatCurrency(summary.monthly_total) })}</span>
           )}
         </div>
-        <Button className="h-11 w-full rounded-xl shadow-sm sm:h-10 sm:w-auto" onClick={openCreate}>
+        <Button className="h-11 w-full rounded-xl shadow-xs sm:h-10 sm:w-auto" onClick={openCreate}>
           <Plus className="mr-2 h-4 w-4" />
           {t("provisionsSection.nouvelleProvision")}
         </Button>

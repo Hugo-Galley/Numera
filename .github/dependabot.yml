@@ -56,9 +56,6 @@ updates:
       - dependency-name: typescript
         update-types: ["version-update:semver-major"]
       # Migrations majeures à faire à la main, en PR dédiée (les PR Dependabot échouent sinon au build/E2E) :
-      # Tailwind 4 (config et syntaxe), MSW 3.
-      - dependency-name: tailwindcss
-        update-types: ["version-update:semver-major"]
       # Vite et son plugin React montent ensemble (le plugin déclare le Vite majeur qu'il supporte) : une majeure
       # isolée casse `npm ci` (ERESOLVE). Vite 8 / plugin-react 6 en place ; la suite se migre à la main, en une PR.
       - dependency-name: vite

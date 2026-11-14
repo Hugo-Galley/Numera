@@ -33,7 +33,7 @@ export function AccountKpis({ ctx }: { ctx: AccountDetailView }) {
 
         {account.type === "assurance_vie" ? (
           <>
-            <Card className="shadow-sm border border-slate-100 hover:border-slate-200 transition-all">
+            <Card className="shadow-xs border border-slate-100 hover:border-slate-200 transition-all">
               <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
                 <CardDescription className="font-medium text-slate-500">{t("kpi.euroFund", { pct: account.fonds_euros_pct || 0 })}</CardDescription>
                 <Shield className="h-4 w-4 text-emerald-500" />
@@ -45,7 +45,7 @@ export function AccountKpis({ ctx }: { ctx: AccountDetailView }) {
                 <p className="text-xs text-slate-400 mt-2">{t("kpi.guaranteed")}</p>
               </CardContent>
             </Card>
-            <Card className="shadow-sm border border-slate-100 hover:border-slate-200 transition-all">
+            <Card className="shadow-xs border border-slate-100 hover:border-slate-200 transition-all">
               <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
                 <CardDescription className="font-medium text-slate-500">{t("kpi.ucFunds", { pct: account.fonds_investis_pct || 0 })}</CardDescription>
                 <TrendingUp className="h-4 w-4 text-amber-500" />
@@ -57,7 +57,7 @@ export function AccountKpis({ ctx }: { ctx: AccountDetailView }) {
                 <p className="text-xs text-slate-400 mt-2">{t("kpi.investedFunds")}</p>
               </CardContent>
             </Card>
-            <Card className="shadow-sm border border-slate-100 hover:border-slate-200 transition-all">
+            <Card className="shadow-xs border border-slate-100 hover:border-slate-200 transition-all">
               <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
                 <CardDescription className="font-medium text-slate-500">{t("kpi.unrealizedGain")}</CardDescription>
                 <Activity className={`h-4 w-4 ${((investmentData?.totals?.gain_eur || 0) >= 0) ? "text-emerald-500" : "text-rose-500"}`} />
@@ -72,7 +72,7 @@ export function AccountKpis({ ctx }: { ctx: AccountDetailView }) {
           </>
         ) : isInvestment ? (
           <>
-            <Card className="shadow-sm">
+            <Card className="shadow-xs">
               <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
                 <CardDescription className="font-medium">{t("kpi.netInvested")}</CardDescription>
                 <Target className="h-4 w-4 text-slate-400" />
@@ -84,7 +84,7 @@ export function AccountKpis({ ctx }: { ctx: AccountDetailView }) {
                 <p className="text-xs text-slate-400 mt-2">{t("kpi.depositsMinusWithdrawals")}</p>
               </CardContent>
             </Card>
-            <Card className="shadow-sm">
+            <Card className="shadow-xs">
               <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
                 <CardDescription className="font-medium">{t("kpi.totalGain")}</CardDescription>
                 <Activity className="h-4 w-4 text-emerald-500" />
@@ -96,7 +96,7 @@ export function AccountKpis({ ctx }: { ctx: AccountDetailView }) {
                 <p className="text-xs text-slate-400 mt-2">{t("kpi.gainHint")}</p>
               </CardContent>
             </Card>
-            <Card className="shadow-sm">
+            <Card className="shadow-xs">
               <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
                 <CardDescription className="font-medium">{t("kpi.performance")}</CardDescription>
                 <Percent className="h-4 w-4 text-slate-400" />
@@ -111,7 +111,7 @@ export function AccountKpis({ ctx }: { ctx: AccountDetailView }) {
           </>
         ) : (
           <>
-            <Card className="shadow-sm">
+            <Card className="shadow-xs">
               <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
                 <CardDescription className="font-medium">{t("kpi.monthlyNetFlow")}</CardDescription>
                 {(stats?.monthlyNetFlow || 0) >= 0 
@@ -125,7 +125,7 @@ export function AccountKpis({ ctx }: { ctx: AccountDetailView }) {
                 <p className="text-xs text-slate-400 mt-2">{t("kpi.inMinusOut")}</p>
               </CardContent>
             </Card>
-            <Card className="shadow-sm">
+            <Card className="shadow-xs">
               <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
                 <CardDescription className="font-medium">{t("kpi.monthlyChange")}</CardDescription>
                 {stats?.monthlyVariation !== null && stats?.monthlyVariation !== undefined
@@ -143,7 +143,7 @@ export function AccountKpis({ ctx }: { ctx: AccountDetailView }) {
                 <p className="text-xs text-slate-400 mt-2">{t("kpi.vsPrevious")}</p>
               </CardContent>
             </Card>
-            <Card className="shadow-sm">
+            <Card className="shadow-xs">
               <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
                 <CardDescription className="font-medium">{t("kpi.avgBasket")}</CardDescription>
                 <Activity className="h-4 w-4 text-slate-400" />
@@ -159,7 +159,7 @@ export function AccountKpis({ ctx }: { ctx: AccountDetailView }) {
 
       {tagTotals.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card className="col-span-full shadow-sm border-slate-100">
+          <Card className="col-span-full shadow-xs border-slate-100">
             <CardHeader className="pb-3 border-b border-slate-50 bg-slate-50/30">
               <div className="flex items-center gap-2">
                 <Tag className="h-4 w-4 text-slate-400" />
@@ -169,7 +169,7 @@ export function AccountKpis({ ctx }: { ctx: AccountDetailView }) {
             <CardContent className="pt-4">
               <div className="flex flex-wrap gap-4">
                 {tagTotals.map((t) => (
-                  <div key={t.id} className="flex items-center gap-3 p-3 bg-white border border-slate-100 rounded-2xl shadow-sm min-w-[150px]">
+                  <div key={t.id} className="flex items-center gap-3 p-3 bg-white border border-slate-100 rounded-2xl shadow-xs min-w-[150px]">
                     <div className="h-8 w-8 rounded-full flex items-center justify-center" style={{ backgroundColor: t.color || "#64748b" }}>
                       <Tag className="h-4 w-4 text-white" />
                     </div>
