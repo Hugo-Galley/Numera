@@ -135,7 +135,7 @@ Somme des chiffres officiels mensuels (`compute_budget`, `expenses_by_category`,
 
 ## Services externes
 
-Frankfurter (taux), Yahoo Finance (recherche/cotations titres, profils ETF). Aucun autre appel sortant, pas de télémétrie.
+Frankfurter (taux), Yahoo Finance (recherche/cotations titres, profils ETF). Seulement si l'utilisateur s'en sert : ntfy / Telegram (notifications), service favicon de Google (logo d'un domaine), dépôt GitHub privé (sauvegardes chiffrées) ; côté navigateur, le fond de la carte du monde vient de `unpkg.com`. Aucun autre appel sortant, pas de télémétrie (liste de référence : `ARCHITECTURE.md`).
 
 ## Référence
 

@@ -11,7 +11,7 @@ Decrire l'architecture actuelle du depot pour permettre a un humain ou a un agen
 - Base: SQLite locale dans `backend/data/suivi_budget.db` en dev Docker.
 - Auth: mono-admin JWT, routes metier protegees ; tokens MCP (`nmr_…`) acceptés à la place du JWT en lecture seule (`GET`), jamais sur `/admin`.
 - Orchestration: `infra/docker-compose.yml` (dev : `backend`, `frontend`, `backup`) ; `infra/docker-compose.prod.yml` (prod : + `mcp-server` en streamable-http ; frontend Nginx non-root (8080 dans le conteneur) publié sur `127.0.0.1:8082`, proxy `/api/` → `backend:8001` et `/mcp` → `mcp-server:8100`).
-- Services externes (seuls appels sortants) : Frankfurter (taux de change) et Yahoo Finance (recherche/cotations de titres, profils ETF).
+- Services externes (seuls appels sortants) : Frankfurter (taux de change), Yahoo Finance (recherche/cotations de titres, profils ETF), et seulement si l'utilisateur les utilise : ntfy / Telegram (notifications), le service favicon de Google (`integrations/logos.py`, un appel par domaine lors du choix d'un logo), un dépôt GitHub privé (envoi des sauvegardes chiffrées, `backend/scripts/git_sync.py`). Côté navigateur, la carte du monde (`frontend/src/components/ui/WorldMap.tsx`) charge son fond de carte depuis `unpkg.com` (seule origine tierce autorisée par la CSP, `connect-src`).
 - Serveur MCP dans `mcp-server/`, en lecture seule, connecté à Claude Code / Claude Desktop par token généré dans Paramètres → Sécurité (voir `mcp-server/README.md`).
 
 Flux principal:
@@ -48,7 +48,7 @@ backend/
     domain/             calculs purs : finance, transactions, budget, metrics, projections, tax, performance
                         (XIRR/TWR), portfolio, holdings, dividends, diversity, market, etf_profiles (+ etf_presets.json), ...
     integrations/       appels externes : currency (Frankfurter), yahoo_finance, notifications (ntfy, Telegram), logos, backup
-    core/               transverse : config, errors, security, logging, login_events, login_rate_limit, totp,
+    core/               transverse : config, errors, security, logging, login_rate_limit, totp,
                         mcp_tokens, migrations, time, i18n (+ locales/{fr,en}.json : textes de l'API selon Accept-Language)
     db/                 session SQLAlchemy, system_settings (get_setting/set_setting : set_setting ne fait que flush, le service commit)
     models/             modeles ORM
@@ -96,7 +96,7 @@ Garde-fous : `backend/tests/garde_fous/test_architecture.py`, zéro violation to
 - Au startup, `run_migrations()` lance Alembic sauf en environnement `test`.
 - `seed_all()` insere les categories par defaut et les profils ETF systeme sauf en `test`.
 - Une tache de fond (`recurring_transactions_task`, toutes les heures, 1er passage apres 10 s) genere les transactions recurrentes et les salaires en attente, actualise cours et compositions d'ETF, puis envoie les notifications push (`services/systeme/notifications.py (canaux : integrations/notifications.py)::run_notifications`).
-- `GET /health` et `POST /auth/token` sont publics.
+- Sont publics : `GET /health`, les routes de connexion (`POST /auth/token`, `POST /auth/totp/login`, `GET /auth/passkey/available`, `POST /auth/passkey/login/options`, `POST /auth/passkey/login/verify`) et `GET /logos/img/{ref}`.
 - Mode démo (`DEMO_MODE=true`, package `services/systeme/demo/` : `guard`, `data`, `generator`) : base dédiée obligatoire (nom contenant « demo », vérifié par `config.py`). Au démarrage puis à chaque passage de la tâche de fond, `ensure_demo_data` efface la base et régénère un jeu fictif déterministe de 18 mois (4 comptes, virements liés, PEA avec cours synthétiques `security_prices.source = "demo"`, assurance-vie par relevés) s'il ne date pas du jour. La tâche de fond ne fait alors rien d'autre (ni cours réels, ni notifications) ; `get_market_quotes` sert les cours fictifs ; le middleware `demo_guard` renvoie 403 sur les écritures sensibles (`/admin/*`, TOTP, passkeys, notifications, logos, rafraîchissement d'ETF). Vie privée et plafonds (audit M3/M4) : le journal des connexions n'enregistre ni IP ni user-agent en démo ; imports limités à 200 Ko (413) ; 120 écritures/min/IP (429, `demo_write_limiter`) ; conteneur backend à 512 Mo / 1 CPU. Déploiement : `infra/docker-compose.demo.yml` (`make demo`, port 8090, identifiants publics demo / demo).
 - Les autres routeurs sont inclus avec `Depends(get_current_user)` : JWT de session, ou token MCP (`core/mcp_tokens.py` : empreinte SHA-256 dans `mcp_tokens`, refusé si révoqué, si `mcp_enabled` est faux ou pour toute méthode autre que `GET`/`HEAD`). Le router `/admin` ajoute `require_interactive_session` : 403 pour un token MCP.
 
@@ -154,7 +154,7 @@ Principes:
 - `AuthProvider` gere le token et l'etat de connexion.
 - `ProtectedRoute` bloque les pages applicatives sans token.
 - `UIProvider` porte l'etat UI global, dont le mode confidentialite.
-- Omnibox (⌘K, `components/layout/Omnibox.tsx`) : navigation, comptes, recherche de transactions (ouverture directe en modification), actions (nouvelle transaction, import CSV, revue du mois, mode confidentialité, ajouter un crédit) et saisie rapide `lib/quickEntry.ts` (`12,50 boulangerie` = dépense, `+1200 prime` = revenu) qui ouvre le formulaire pré-rempli sur le compte principal, jamais d'enregistrement direct.
+- Omnibox (⌘K, `components/layout/Omnibox/index.tsx`) : navigation, comptes, recherche de transactions (ouverture directe en modification), actions (nouvelle transaction, import CSV, revue du mois, mode confidentialité, ajouter un crédit) et saisie rapide `lib/quickEntry.ts` (`12,50 boulangerie` = dépense, `+1200 prime` = revenu) qui ouvre le formulaire pré-rempli sur le compte principal, jamais d'enregistrement direct.
 - `apiFetch()` centralise les appels JSON et redirige vers `/login` en cas de `401` (ou `403` hors `/auth/token`). `API_BASE` = `http://localhost:8001` sur localhost, `/api` ailleurs.
 - Les uploads CSV n'utilisent pas `apiFetch()` pour laisser le navigateur definir le multipart boundary ; ils passent par `api.upload()` qui ajoute le Bearer sans `Content-Type`. Les exports utilisent `api.download()`.
 
@@ -201,7 +201,7 @@ Un point zéro sert de base de performance pour un compte.
 - `security_prices`: cours de clôture journaliers (`ticker`, `date`, `close`, `currency`, `source`), alimentés à chaque cotation Yahoo (`get_market_quotes(..., db=)`), par la tâche de fond horaire (`refresh_held_prices`) et par `get_price_on` / `fetch_price_history`. Si Yahoo échoue, le dernier cours stocké est renvoyé avec `stale=True`.
 - `etf_profiles`: profils ETF (`name`, `ticker`, `isin`, `aliases`, `countries`, `sectors`, `top_holdings` en JSON texte, `is_system`, `composition_sources`, `composition_refreshed_at`). `composition_sources` donne la source de chaque champ : `yahoo` (réécrit à chaque actualisation), `preset` (préréglage des profils système dans `domain/etf_presets.json`, repli tant que Yahoo ne fournit pas le champ, réécrit au démarrage), `manual` (saisi via `PUT`, jamais écrasé). Le scanner de diversité compte la part non couverte d'un ETF en « Non renseigné » et renvoie l'origine des compositions dans `etf_compositions`.
 - `system_settings`: paires cle/valeur (ex. `admin_username`, `admin_password_hash`, `mcp_enabled`, `ui.privacy_on_start`).
-- `login_events`: tentatives de connexion (`created_at`, `method` = `password|password_totp|passkey`, `success`, `reason` = `invalid_password|invalid_totp|invalid_passkey|rate_limited`, `ip` (X-Real-IP de Nginx), `user_agent`). Écrites par `core/login_events.py::record_login` depuis `/auth/token`, `/auth/totp/login`, `/auth/passkey/login/verify` ; seules les 200 dernières sont gardées.
+- `login_events`: tentatives de connexion (`created_at`, `method` = `password|password_totp|passkey`, `success`, `reason` = `invalid_password|invalid_totp|invalid_passkey|rate_limited`, `ip` (X-Real-IP de Nginx), `user_agent`). Écrites par `services/systeme/login_events.py::record_login` depuis `/auth/token`, `/auth/totp/login`, `/auth/passkey/login/verify` ; seules les 200 dernières sont gardées.
 - `mcp_tokens`: tokens d'accès MCP (`name`, `token_hash` SHA-256 unique, `token_prefix` pour l'affichage, `created_at`, `last_used_at`).
 - `imports_log`: journal d'import CSV.
 - `historical_exchange_rates`: cache de taux historiques, unique par `(date, currency)` ; écrit par `services/comptes/exchange_rates.py` (`INSERT … ON CONFLICT DO NOTHING` via `repositories/comptes/exchange_rates.py`), sans jamais commiter la session de l'appelant.

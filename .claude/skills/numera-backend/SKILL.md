@@ -47,5 +47,5 @@ Créer `services/audit/rules/<nom>.py` avec `detect(ctx)`, l'ajouter à `RULES` 
 - `db.execute(text(...))` sauf nécessité de performance.
 - Logique métier dans les modèles.
 - Logger/retourner `SECRET_KEY`, hash de mot de passe, JWT.
-- Appels réseau sortants autres que Frankfurter / Yahoo Finance / canaux de notification activés par l'utilisateur (ntfy, Telegram) ; toute nouvelle dépendance externe doit être discutée (principe local-first).
+- Appels réseau sortants autres que ceux listés dans `ARCHITECTURE.md` (Frankfurter, Yahoo Finance, et à la demande de l'utilisateur : ntfy / Telegram, favicon Google, sauvegarde GitHub) ; toute nouvelle dépendance externe doit être discutée (principe local-first).
 - Modifier la base `*.db` directement ou la committer.
