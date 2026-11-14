@@ -1,5 +1,5 @@
 import { defineConfig, mergeConfig } from "vitest/config"
-import viteConfig from "./vite.config"
+import viteConfig from "./vite.config.ts"
 
 // Fixé avant le démarrage des workers : les dates des tests ne dépendent pas de la machine
 process.env.TZ = "Europe/Paris"
