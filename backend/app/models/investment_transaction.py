@@ -60,6 +60,8 @@ class InvestmentTransaction(Base):
     link_origin: Mapped[str | None] = mapped_column(String(16), nullable=True)
     transfer_rule_id: Mapped[int | None] = mapped_column(ForeignKey("transfer_rules.id", ondelete="SET NULL"), nullable=True, index=True)
     recurring_transaction_id: Mapped[int | None] = mapped_column(ForeignKey("recurring_transactions.id", ondelete="SET NULL"), nullable=True, index=True)
+    # Versement automatique laissé volontairement en espèces : il n'est plus proposé « à relier à un titre »
+    kept_as_cash: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0", nullable=False)
 
     linked_transaction: Mapped["Transaction"] = relationship("Transaction", lazy="selectin", foreign_keys=[linked_transaction_id])
     recurring_transaction: Mapped["RecurringTransaction"] = relationship("RecurringTransaction", lazy="selectin")

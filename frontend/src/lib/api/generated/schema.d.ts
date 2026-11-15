@@ -1883,6 +1883,26 @@ export interface paths {
         patch: operations["update_investment_transaction_investment_transactions__transaction_id__patch"];
         trace?: never;
     };
+    "/investment-transactions/{transaction_id}/security-proposal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Security Proposal
+         * @description Quantité et prix proposés pour relier ce versement à un titre (clôture du jour du versement).
+         */
+        get: operations["security_proposal_investment_transactions__transaction_id__security_proposal_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/loans": {
         parameters: {
             query?: never;
@@ -5396,6 +5416,11 @@ export interface components {
             readonly is_upcoming: boolean;
             /** Isin */
             isin?: string | null;
+            /**
+             * Kept As Cash
+             * @default false
+             */
+            kept_as_cash?: boolean;
             /** Linked Transaction Id */
             linked_transaction_id?: number | null;
             /** Note */
@@ -5406,6 +5431,8 @@ export interface components {
             price_currency?: string | null;
             /** Quantity */
             quantity?: number | null;
+            /** Recurring Transaction Id */
+            recurring_transaction_id?: number | null;
             /** Reference Price */
             reference_price?: number | null;
             /** Reinvest Of Id */
@@ -5448,6 +5475,8 @@ export interface components {
             is_transfer_ignored?: boolean | null;
             /** Isin */
             isin?: string | null;
+            /** Kept As Cash */
+            kept_as_cash?: boolean | null;
             /** Linked Transaction Id */
             linked_transaction_id?: number | null;
             /** Note */
@@ -7353,6 +7382,22 @@ export interface components {
             principal: number;
             /** Remaining */
             remaining: number;
+        };
+        /**
+         * SecurityProposal
+         * @description Taille proposée pour relier un versement à un titre ; champs vides sans cours connu à sa date.
+         */
+        SecurityProposal: {
+            /** Price Currency */
+            price_currency: string | null;
+            /** Price Date */
+            price_date: string | null;
+            /** Quantity */
+            quantity: number | null;
+            /** Ticker */
+            ticker: string;
+            /** Unit Price */
+            unit_price: number | null;
         };
         /** SetZeroPointRequest */
         SetZeroPointRequest: {
@@ -12139,6 +12184,8 @@ export interface operations {
                 account_id?: number | null;
                 skip?: number;
                 limit?: number | null;
+                /** @description Seulement les versements automatiques à relier à un titre */
+                unassigned?: boolean;
             };
             header?: never;
             path?: never;
@@ -12282,6 +12329,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["InvestmentTransactionRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    security_proposal_investment_transactions__transaction_id__security_proposal_get: {
+        parameters: {
+            query: {
+                ticker: string;
+            };
+            header?: never;
+            path: {
+                transaction_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SecurityProposal"];
                 };
             };
             /** @description Validation Error */

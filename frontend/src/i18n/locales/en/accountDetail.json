@@ -285,5 +285,22 @@
   },
   "investmentActions": {
     "bulkUpdated": "{{count}} transactions updated"
+  },
+  "unassignedDeposits": {
+    "titre": "Deposit to link",
+    "position": "{{current}} of {{total}}",
+    "description": "This automatic deposit is not linked to any security. Tell us what it bought, or keep it as cash.",
+    "quantite": "Quantity",
+    "prixUnitaire": "Unit price",
+    "coursDu": "Closing price on {{date}}",
+    "coursInconnu": "No price known on that date: enter the quantity and price.",
+    "appliquerALaRecurrence": "Use this security for the next “{{name}}” transfers",
+    "plusTard": "Later",
+    "laisserEnEspeces": "Keep as cash",
+    "relier": "Link",
+    "versementRelie": "Deposit linked to {{ticker}}",
+    "laisseEnEspeces": "Deposit kept as cash",
+    "titreEtQuantiteRequis": "Pick a security and enter the quantity.",
+    "echec": "Could not save this deposit."
   }
 }

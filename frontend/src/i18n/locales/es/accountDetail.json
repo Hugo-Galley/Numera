@@ -285,5 +285,22 @@
   },
   "investmentActions": {
     "bulkUpdated": "{{count}} transacciones actualizadas"
+  },
+  "unassignedDeposits": {
+    "titre": "Aportación por vincular",
+    "position": "{{current}} de {{total}}",
+    "description": "Esta aportación automática no está vinculada a ningún valor. Indica qué compró o déjala en efectivo.",
+    "quantite": "Cantidad",
+    "prixUnitaire": "Precio unitario",
+    "coursDu": "Precio de cierre del {{date}}",
+    "coursInconnu": "Precio desconocido en esa fecha: introduce la cantidad y el precio.",
+    "appliquerALaRecurrence": "Usar este valor para las próximas transferencias «{{name}}»",
+    "plusTard": "Más tarde",
+    "laisserEnEspeces": "Dejar en efectivo",
+    "relier": "Vincular",
+    "versementRelie": "Aportación vinculada a {{ticker}}",
+    "laisseEnEspeces": "Aportación dejada en efectivo",
+    "titreEtQuantiteRequis": "Elige un valor e indica la cantidad.",
+    "echec": "No se pudo guardar esta aportación."
   }
 }

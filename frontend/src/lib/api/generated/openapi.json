@@ -7162,6 +7162,11 @@
       ],
       "title": "Isin"
      },
+     "kept_as_cash": {
+      "default": false,
+      "title": "Kept As Cash",
+      "type": "boolean"
+     },
      "linked_transaction_id": {
       "anyOf": [
        {
@@ -7220,6 +7225,17 @@
        }
       ],
       "title": "Quantity"
+     },
+     "recurring_transaction_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Recurring Transaction Id"
      },
      "reference_price": {
       "anyOf": [
@@ -7430,6 +7446,17 @@
        }
       ],
       "title": "Isin"
+     },
+     "kept_as_cash": {
+      "anyOf": [
+       {
+        "type": "boolean"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Kept As Cash"
      },
      "linked_transaction_id": {
       "anyOf": [
@@ -13598,6 +13625,68 @@
      "prepayment"
     ],
     "title": "ScheduleRowRead",
+    "type": "object"
+   },
+   "SecurityProposal": {
+    "description": "Taille proposée pour relier un versement à un titre ; champs vides sans cours connu à sa date.",
+    "properties": {
+     "price_currency": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Price Currency"
+     },
+     "price_date": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Price Date"
+     },
+     "quantity": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Quantity"
+     },
+     "ticker": {
+      "title": "Ticker",
+      "type": "string"
+     },
+     "unit_price": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Unit Price"
+     }
+    },
+    "required": [
+     "ticker",
+     "quantity",
+     "unit_price",
+     "price_currency",
+     "price_date"
+    ],
+    "title": "SecurityProposal",
     "type": "object"
    },
    "SetZeroPointRequest": {
@@ -23356,6 +23445,18 @@
        ],
        "title": "Limit"
       }
+     },
+     {
+      "description": "Seulement les versements automatiques à relier à un titre",
+      "in": "query",
+      "name": "unassigned",
+      "required": false,
+      "schema": {
+       "default": false,
+       "description": "Seulement les versements automatiques à relier à un titre",
+       "title": "Unassigned",
+       "type": "boolean"
+      }
      }
     ],
     "responses": {
@@ -23587,6 +23688,64 @@
      }
     ],
     "summary": "Update Investment Transaction",
+    "tags": [
+     "investment-transactions"
+    ]
+   }
+  },
+  "/investment-transactions/{transaction_id}/security-proposal": {
+   "get": {
+    "description": "Quantité et prix proposés pour relier ce versement à un titre (clôture du jour du versement).",
+    "operationId": "security_proposal_investment_transactions__transaction_id__security_proposal_get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "transaction_id",
+      "required": true,
+      "schema": {
+       "title": "Transaction Id",
+       "type": "integer"
+      }
+     },
+     {
+      "in": "query",
+      "name": "ticker",
+      "required": true,
+      "schema": {
+       "minLength": 1,
+       "title": "Ticker",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/SecurityProposal"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Security Proposal",
     "tags": [
      "investment-transactions"
     ]

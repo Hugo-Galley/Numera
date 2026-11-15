@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 
 from app.core.errors import BusinessRuleError, ConflictError, NotFoundError
 from app.core.i18n import format_datetime, tr
-from app.core.time import utcnow_naive
+from app.core.time import end_of_today, utcnow_naive
 from app.domain.dividends import match_dividend_ticker
 from app.domain.holdings import SELL_TYPES, is_trade
 from app.models.account import Account
@@ -22,6 +22,7 @@ from app.services.comptes.exchange_rates import convert_amount
 from app.services.investissement.dividends import sync_reinvestment
 from app.services.investissement.holdings.rebuild import rebuild_holdings
 from app.services.investissement.holdings.replay import trade_cutoff
+from app.services.investissement.market import quotes as market_quotes
 
 VALID_TYPES = {"versement", "retrait", "dividende", "achat", "vente", "frais"}
 TRADE_FIELDS = {"type", "date", "ticker", "quantity", "unit_price", "reference_price", "price_currency", "fees"}
@@ -110,8 +111,35 @@ async def _finish(db: Session, tx: InvestmentTransaction, *, sync_dividend: bool
     return tx
 
 
-def list_transactions(db: Session, account_id: int | None, skip: int, limit: int | None) -> list[InvestmentTransaction]:
+def list_transactions(
+    db: Session, account_id: int | None, skip: int, limit: int | None, unassigned: bool = False
+) -> list[InvestmentTransaction]:
+    """Opérations d'un compte. `unassigned` : seulement les versements automatiques à relier à un titre
+    (créés par une récurrence, sans titre, non laissés en espèces, déjà arrivés)."""
+    if unassigned:
+        return repo.unassigned_deposits(db, account_id, end_of_today())
     return repo.list_for(db, account_id, skip, limit)
+
+
+async def security_proposal(db: Session, tx_id: int, ticker: str) -> dict[str, Any]:
+    """Quantité et prix proposés pour relier un versement à `ticker` : clôture du jour du versement
+    (devise de cotation), quantité = montant ÷ prix converti dans la devise du compte. Sans cours connu,
+    la taille reste vide (à saisir). Les cours téléchargés sont enregistrés."""
+    tx = repo.get(db, tx_id)
+    account = accounts_repo.get(db, tx.account_id) if tx else None
+    if tx is None or account is None:
+        raise NotFoundError(tr("errors.investment_tx_not_found"))
+    symbol = ticker.upper().strip()
+    proposal: dict[str, Any] = {"ticker": symbol, "quantity": None, "unit_price": None, "price_currency": None, "price_date": None}
+    market = await market_quotes.get_price_on(db, symbol, tx.date.date())
+    if market and market["price"] and float(market["price"]) > 0:
+        price = round(float(market["price"]), 4)
+        currency = market.get("currency") or account.currency
+        price_in_account = await _in_account_currency(db, account, price, currency, tx.date)
+        proposal.update(quantity=round(tx.amount / price_in_account, 6), unit_price=price, price_currency=currency,
+                        price_date=market.get("date"))
+    db.commit()
+    return proposal
 
 
 def link_dividends(db: Session, account_id: int, dry_run: bool) -> dict[str, Any]:

@@ -13,6 +13,7 @@ import { InvestmentSection } from "./InvestmentSection"
 import { BulkActionsBar } from "./BulkActionsBar"
 import { BulkEditDialog } from "./BulkEditDialog"
 import { AccountDialogs } from "./AccountDialogs"
+import { UnassignedDepositsDialog } from "./UnassignedDepositsDialog"
 
 /** `key={id}` : passer d'un compte à l'autre repart d'un état vierge (sélection, recherche, filtres, dates). */
 export default function AccountDetail() {
@@ -68,6 +69,10 @@ function AccountDetailPage() {
       <BulkEditDialog ctx={view} />
 
       <AccountDialogs ctx={view} />
+
+      {account.type === "investissement" && (
+        <UnassignedDepositsDialog accountId={account.id} onDone={() => loadData({ quiet: true })} />
+      )}
     </div>
   )
 }

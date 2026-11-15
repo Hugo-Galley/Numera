@@ -285,5 +285,22 @@
   },
   "investmentActions": {
     "bulkUpdated": "{{count}} transactions mises à jour"
+  },
+  "unassignedDeposits": {
+    "titre": "Versement à relier",
+    "position": "{{current}} sur {{total}}",
+    "description": "Ce versement automatique n'est rattaché à aucun titre. Indiquez ce qu'il a acheté, ou laissez-le en espèces.",
+    "quantite": "Quantité",
+    "prixUnitaire": "Prix unitaire",
+    "coursDu": "Cours de clôture du {{date}}",
+    "coursInconnu": "Cours inconnu à cette date : saisissez la quantité et le prix.",
+    "appliquerALaRecurrence": "Utiliser ce titre pour les prochains virements « {{name}} »",
+    "plusTard": "Plus tard",
+    "laisserEnEspeces": "Laisser en espèces",
+    "relier": "Relier",
+    "versementRelie": "Versement relié à {{ticker}}",
+    "laisseEnEspeces": "Versement laissé en espèces",
+    "titreEtQuantiteRequis": "Choisissez un titre et indiquez la quantité.",
+    "echec": "Impossible d'enregistrer ce versement."
   }
 }

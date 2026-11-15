@@ -86,6 +86,9 @@ test.describe("connexion avec second facteur", () => {
     await submitPassword(page)
     expect(await submitCode(page, recovery[0])).toBe(200)
     await expect(page).not.toHaveURL(/\/login/)
+    // Les requêtes du tableau de bord fraîchement ouvert doivent aboutir avant d'effacer la session : sinon l'une
+    // d'elles revient en 401 « Session expirée », la page redirige vers /login et fait avorter le goto suivant.
+    await page.waitForLoadState("networkidle")
     await page.context().clearCookies()
     await page.evaluate(() => localStorage.clear())
     await submitPassword(page)
