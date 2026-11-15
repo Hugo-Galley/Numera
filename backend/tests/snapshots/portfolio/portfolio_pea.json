@@ -10,6 +10,7 @@
  "fx_effect_eur": 0.0,
  "gain": 1286.07,
  "gain_eur": 1286.07,
+ "held_for": null,
  "history": null,
  "lines": [
   {

@@ -15,10 +15,10 @@ from app.services.investissement.holdings.replay import replay_account
 from app.services.investissement.portfolio import compute_portfolio
 
 
-async def valued_accounts(db: Session, *, history: bool = False) -> list[dict[str, Any]]:
-    """Indicateurs de tous les comptes titres actifs valorisés par leurs positions."""
+async def valued_accounts(db: Session, *, history: bool = False, third_party: bool = False) -> list[dict[str, Any]]:
+    """Indicateurs des comptes titres actifs valorisés par leurs positions : ceux à soi, ou ceux détenus pour un tiers."""
     results = []
-    for account in repo.securities_accounts(db):
+    for account in repo.securities_accounts(db, third_party=third_party):
         if uses_positions(account, await replay_account(db, account.id)):
             results.append(await compute_portfolio(db, account, history=history))  # noqa: PERF401 - awaits séquentiels sur la même session
     return results
@@ -48,6 +48,7 @@ async def portfolio_overview(db: Session) -> PortfolioOverview:
 
     return PortfolioOverview(
         accounts=[PortfolioRead(**a) for a in accounts],
+        third_party_accounts=[PortfolioRead(**a) for a in await valued_accounts(db, third_party=True)],
         value_eur=round(value, 2),
         net_invested_eur=round(net_invested, 2),
         gain_eur=round(value - net_invested, 2),

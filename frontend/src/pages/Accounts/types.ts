@@ -17,6 +17,7 @@ export type Account = {
   valuation_mode?: "positions" | "snapshot"
   tax_wrapper?: "pea" | "per" | "cto" | "assurance_vie" | "livret_a" | "livret_jeune" | "pee" | "ldds" | "lep" | null
   opened_at?: string | null
+  held_for?: string | null
   balance?: number
 }
 

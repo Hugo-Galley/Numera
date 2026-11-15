@@ -10,7 +10,7 @@ from collections.abc import Iterable
 from datetime import datetime
 from typing import NamedTuple
 
-from sqlalchemy import ScalarSelect, func
+from sqlalchemy import ColumnElement, ScalarSelect, func
 from sqlalchemy.orm import Session
 
 from app.models.account import Account
@@ -28,9 +28,16 @@ class BalanceRow(NamedTuple):
     running_balance: float | None
 
 
-def active_accounts(db: Session, by_name: bool = False) -> list[Account]:
-    """Comptes actifs (tous types), par id ou par nom."""
+def own_account() -> ColumnElement[bool]:
+    """Critère unique « compte à soi » : un compte détenu pour un tiers (`held_for`) sort de tous les totaux."""
+    return Account.held_for.is_(None)
+
+
+def active_accounts(db: Session, by_name: bool = False, include_third_party: bool = False) -> list[Account]:
+    """Comptes actifs (tous types), par id ou par nom ; sans ceux détenus pour un tiers, sauf demande."""
     query = db.query(Account).filter(Account.active.is_(True))
+    if not include_third_party:
+        query = query.filter(own_account())
     return query.order_by(Account.name.asc() if by_name else Account.id.asc()).all()
 
 

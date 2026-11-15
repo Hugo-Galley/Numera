@@ -10,6 +10,7 @@ from app.models.investment_transaction import InvestmentTransaction
 from app.models.transaction import Transaction
 from app.repositories.analytics.budget import INVESTMENT_CATEGORIES
 from app.repositories.analytics.common import NET_AMOUNT, budget_versement_ids, category_lines, income_criterion
+from app.repositories.comptes.balances import own_account
 from app.repositories.types import QueryT, Rows
 
 
@@ -45,6 +46,7 @@ def budget_versements(db: Session, start: datetime, end: datetime) -> Rows:
             InvestmentTransaction.date >= start,
             InvestmentTransaction.date < end,
             InvestmentTransaction.id.in_(budget_versement_ids(db)),
+            own_account(),
         )
         .all()
     )
@@ -94,8 +96,7 @@ def dividend_rows(db: Session, start: datetime, end: datetime, account_id: int |
         InvestmentTransaction.date >= start,
         InvestmentTransaction.date < end
     )
-    if account_id:
-        query = query.filter(InvestmentTransaction.account_id == account_id)
+    query = query.filter(InvestmentTransaction.account_id == account_id) if account_id else query.filter(own_account())
     return query.group_by(Account.currency).all()
 
 

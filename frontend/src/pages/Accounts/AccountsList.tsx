@@ -63,6 +63,11 @@ export function AccountsList({ ctx }: { ctx: AccountsCtx }) {
                         {account.institution}
                       </Badge>
                     )}
+                    {account.held_for && (
+                      <Badge variant="secondary" className="bg-amber-50 font-semibold text-amber-700 border-amber-200">
+                        {t("list.heldFor", { name: account.held_for })}
+                      </Badge>
+                    )}
                     {account.type === "assurance_vie" && (account.fonds_euros_pct != null || account.fonds_investis_pct != null) && (
                       <Badge variant="secondary" className="bg-slate-100 font-medium text-slate-700">
                         {t("list.euroInvested", { euros: formatRate(account.fonds_euros_pct || 0, 1), invested: formatRate(account.fonds_investis_pct || 0, 1) })}
@@ -155,6 +160,11 @@ export function AccountsList({ ctx }: { ctx: AccountsCtx }) {
                           </Button>
                           <AccountLogo accountId={account.id} logo={account.logo ?? null} className="h-6 w-6" />
                           {account.name}
+                          {account.held_for && (
+                            <Badge variant="secondary" className="bg-amber-50 font-semibold text-amber-700 border-amber-200">
+                              {t("list.heldFor", { name: account.held_for })}
+                            </Badge>
+                          )}
                         </div>
                       </TableCell>
                       <TableCell>

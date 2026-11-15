@@ -80,6 +80,9 @@ export const getFinancialEvents = <T = ApiResponse<"/financial-events", "get">>(
 /** GET /analytics/dividends */
 export const getAnalyticsDividends = <T = ApiResponse<"/analytics/dividends", "get">>(query = "") => api.get<T>(`/analytics/dividends${query}`)
 
+/** GET /analytics/portfolio */
+export const getAnalyticsPortfolio = <T = ApiResponse<"/analytics/portfolio", "get">>() => api.get<T>(`/analytics/portfolio`)
+
 /** GET /analytics/portfolio/:id */
 export const getAnalyticsPortfolioById = <T = ApiResponse<"/analytics/portfolio/{account_id}", "get">>(id: Id) => api.get<T>(`/analytics/portfolio/${id}`)
 

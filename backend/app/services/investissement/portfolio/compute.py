@@ -89,6 +89,7 @@ def _result(account: Account, rate: float, valued: bool, baseline_date: datetime
     return {
         "account_id": account.id,
         "account_name": account.name,
+        "held_for": account.held_for,
         "currency": account.currency,
         "valued_by_positions": valued,
         "value_source": "positions" if valued else "snapshot",

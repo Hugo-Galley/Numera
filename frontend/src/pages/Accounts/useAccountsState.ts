@@ -26,6 +26,7 @@ export function useAccountsState() {
   const [newValuationMode, setNewValuationMode] = useState<"positions" | "snapshot">("positions")
   const [newTaxWrapper, setNewTaxWrapper] = useState<string>("none")
   const [newOpenedAt, setNewOpenedAt] = useState("")
+  const [newHeldFor, setNewHeldFor] = useState("")
   const [newEurosPct, setNewEurosPct] = useState("")
   const [newInvestisPct, setNewInvestisPct] = useState("")
   const [sortField, setSortField] = useState<"name" | "type" | "currency" | "institution">("name")
@@ -76,5 +77,5 @@ export function useAccountsState() {
   const [archivedAccounts, setArchivedAccounts] = useState<Account[]>([])
   const [showArchived, setShowArchived] = useState(false)
 
-  return { accounts, setAccounts, loading, setLoading, isDialogOpen, setIsDialogOpen, isEditDialogOpen, setIsEditDialogOpen, editingAccount, setEditingAccount, newName, setNewName, newType, setNewType, newCurrency, setNewCurrency, newInstitution, setNewInstitution, newLogo, setNewLogo, newAssetClass, setNewAssetClass, newSector, setNewSector, newZone, setNewZone, newValuationMode, setNewValuationMode, newTaxWrapper, setNewTaxWrapper, newOpenedAt, setNewOpenedAt, newEurosPct, setNewEurosPct, newInvestisPct, setNewInvestisPct, sortField, setSortField, sortOrder, setSortOrder, suggestions, setSuggestions, confirm, searchParams, setSearchParams, loanDialogOpen, setLoanDialogOpen, importOpen, setImportOpen, editingLoan, setEditingLoan, openEdit, archivedAccounts, setArchivedAccounts, showArchived, setShowArchived }
+  return { accounts, setAccounts, loading, setLoading, isDialogOpen, setIsDialogOpen, isEditDialogOpen, setIsEditDialogOpen, editingAccount, setEditingAccount, newName, setNewName, newType, setNewType, newCurrency, setNewCurrency, newInstitution, setNewInstitution, newLogo, setNewLogo, newAssetClass, setNewAssetClass, newSector, setNewSector, newZone, setNewZone, newValuationMode, setNewValuationMode, newTaxWrapper, setNewTaxWrapper, newOpenedAt, setNewOpenedAt, newHeldFor, setNewHeldFor, newEurosPct, setNewEurosPct, newInvestisPct, setNewInvestisPct, sortField, setSortField, sortOrder, setSortOrder, suggestions, setSuggestions, confirm, searchParams, setSearchParams, loanDialogOpen, setLoanDialogOpen, importOpen, setImportOpen, editingLoan, setEditingLoan, openEdit, archivedAccounts, setArchivedAccounts, showArchived, setShowArchived }
 }
