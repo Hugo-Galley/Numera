@@ -196,6 +196,18 @@ export function EditAccountDialog({ ctx }: { ctx: AccountsCtx }) {
                 </div>
               )}
 
+              <div className="grid gap-2 pt-2 border-t mt-2">
+                <Label htmlFor="edit-held_for">{t("form.heldFor")}</Label>
+                <Input
+                  id="edit-held_for"
+                  maxLength={60}
+                  placeholder={t("form.heldForPlaceholder")}
+                  value={editingAccount.held_for ?? ""}
+                  onChange={(e) => setEditingAccount({ ...editingAccount, held_for: e.target.value })}
+                />
+                <p className="text-xs text-slate-500">{t("form.heldForHint")}</p>
+              </div>
+
               {editingAccount.type === "investissement" && (
                 <div className="grid gap-4 pt-2 border-t mt-2">
                   <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500">{t("form.allocation")}</h3>

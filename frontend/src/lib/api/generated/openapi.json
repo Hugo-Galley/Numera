@@ -120,6 +120,18 @@
       ],
       "title": "Geographic Zone"
      },
+     "held_for": {
+      "anyOf": [
+       {
+        "maxLength": 60,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Held For"
+     },
      "institution": {
       "anyOf": [
        {
@@ -340,6 +352,18 @@
       ],
       "title": "Geographic Zone"
      },
+     "held_for": {
+      "anyOf": [
+       {
+        "maxLength": 60,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Held For"
+     },
      "id": {
       "title": "Id",
       "type": "integer"
@@ -533,6 +557,18 @@
        }
       ],
       "title": "Geographic Zone"
+     },
+     "held_for": {
+      "anyOf": [
+       {
+        "maxLength": 60,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Held For"
      },
      "institution": {
       "anyOf": [
@@ -6528,6 +6564,17 @@
       ],
       "title": "Quantity"
      },
+     "reference_price": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Reference Price"
+     },
      "reinvest_of_id": {
       "anyOf": [
        {
@@ -6936,6 +6983,19 @@
       ],
       "title": "Quantity"
      },
+     "reference_price": {
+      "anyOf": [
+       {
+        "exclusiveMaximum": 1000000000000.0,
+        "minimum": 0.0,
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Reference Price"
+     },
      "reinvested": {
       "default": false,
       "title": "Reinvested",
@@ -7176,6 +7236,19 @@
        }
       ],
       "title": "Recurring Transaction Id"
+     },
+     "reference_price": {
+      "anyOf": [
+       {
+        "exclusiveMaximum": 1000000000000.0,
+        "minimum": 0.0,
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Reference Price"
      },
      "reinvest_of_id": {
       "anyOf": [
@@ -7430,6 +7503,19 @@
        }
       ],
       "title": "Quantity"
+     },
+     "reference_price": {
+      "anyOf": [
+       {
+        "exclusiveMaximum": 1000000000000.0,
+        "minimum": 0.0,
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Reference Price"
      },
      "reinvested": {
       "anyOf": [
@@ -10071,6 +10157,17 @@
       "title": "Currency",
       "type": "string"
      },
+     "discount_eur": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Discount Eur"
+     },
      "fx_effect_eur": {
       "anyOf": [
        {
@@ -10081,6 +10178,17 @@
        }
       ],
       "title": "Fx Effect Eur"
+     },
+     "market_gain_eur": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Market Gain Eur"
      },
      "price": {
       "anyOf": [
@@ -10182,7 +10290,7 @@
     "type": "object"
    },
    "PortfolioOverview": {
-    "description": "Vue globale : somme (EUR) des comptes titres valorisés par leurs positions.",
+    "description": "Vue globale : somme (EUR) des comptes titres à soi valorisés par leurs positions.",
     "properties": {
      "accounts": {
       "items": {
@@ -10232,6 +10340,14 @@
      "realized_eur": {
       "title": "Realized Eur",
       "type": "number"
+     },
+     "third_party_accounts": {
+      "default": [],
+      "items": {
+       "$ref": "#/components/schemas/PortfolioRead"
+      },
+      "title": "Third Party Accounts",
+      "type": "array"
      },
      "unrealized_eur": {
       "anyOf": [
@@ -10303,6 +10419,17 @@
       "title": "Currency",
       "type": "string"
      },
+     "discount_eur": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Discount Eur"
+     },
      "dividends_12m_eur": {
       "default": 0.0,
       "title": "Dividends 12M Eur",
@@ -10337,6 +10464,17 @@
       "title": "Gain Eur",
       "type": "number"
      },
+     "held_for": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Held For"
+     },
      "history": {
       "anyOf": [
        {
@@ -10366,6 +10504,17 @@
       },
       "title": "Lines Without Cost",
       "type": "array"
+     },
+     "market_gain_eur": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Market Gain Eur"
      },
      "net_invested": {
       "title": "Net Invested",

@@ -7,6 +7,7 @@ import { AdvancedCharts } from "./AdvancedCharts"
 import { TopCompanies } from "./TopCompanies"
 import { EtfCompositions } from "./EtfCompositions"
 import { DrillDownDialog } from "./DrillDownDialog"
+import { ThirdPartyAccounts } from "./ThirdPartyAccounts"
 
 export default function Investments() {
   const { t } = useTranslation("investments")
@@ -47,6 +48,8 @@ export default function Investments() {
 
         <EtfCompositions ctx={ctx} />
       </div>
+
+      <ThirdPartyAccounts />
 
       <DrillDownDialog ctx={ctx} />
     </div>

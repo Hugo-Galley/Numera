@@ -19,6 +19,7 @@ class InvestmentTransactionBase(BaseModel):
     isin: str | None = None
     quantity: Quantity | None = None
     unit_price: Quantity | None = None
+    reference_price: Quantity | None = None
     price_currency: str | None = None
     fees: AmountOrZero | None = None
     withholding_tax: AmountOrZero | None = None
@@ -61,6 +62,7 @@ class InvestmentTransactionUpdate(BaseModel):
     isin: str | None = None
     quantity: Quantity | None = None
     unit_price: Quantity | None = None
+    reference_price: Quantity | None = None
     price_currency: str | None = None
     fees: AmountOrZero | None = None
     withholding_tax: AmountOrZero | None = None

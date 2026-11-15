@@ -8,6 +8,7 @@ from app.models.account import Account
 from app.models.holding_baseline_item import HoldingBaselineItem
 from app.models.investment_transaction import InvestmentTransaction
 from app.models.portfolio_holding import PortfolioHolding
+from app.repositories.comptes.balances import own_account
 
 
 def account(db: Session, account_id: int) -> Account | None:
@@ -83,8 +84,10 @@ def later_trade_exists(db: Session, account_id: int, ticker: str, cutoff: dateti
 
 
 def held_positions(db: Session, account_id: int | None = None) -> list[PortfolioHolding]:
-    """Positions non soldées (d'un compte ou de tous), dans l'ordre de la base."""
+    """Positions non soldées d'un compte, ou de tous les comptes à soi, dans l'ordre de la base."""
     query = db.query(PortfolioHolding).filter(PortfolioHolding.quantity > 0)
     if account_id is not None:
         query = query.filter(PortfolioHolding.account_id == account_id)
+    else:
+        query = query.join(Account, PortfolioHolding.account_id == Account.id).filter(own_account())
     return query.all()

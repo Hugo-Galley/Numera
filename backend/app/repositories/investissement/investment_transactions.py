@@ -10,6 +10,7 @@ from app.models.holding_baseline_item import HoldingBaselineItem
 from app.models.investment_transaction import InvestmentTransaction
 from app.models.portfolio_holding import PortfolioHolding
 from app.models.transaction import Transaction
+from app.repositories.comptes.balances import own_account
 
 
 def for_account(db: Session, account_id: int) -> list[InvestmentTransaction]:
@@ -70,9 +71,12 @@ def buys(db: Session, account_id: int) -> list[InvestmentTransaction]:
 
 
 def dividends(db: Session, account_id: int | None = None) -> list[InvestmentTransaction]:
+    """Dividendes d'un compte, ou de tous les comptes à soi (un compte détenu pour un tiers ne se lit que seul)."""
     query = db.query(InvestmentTransaction).filter(InvestmentTransaction.type == DIVIDEND_TYPE)
     if account_id is not None:
         query = query.filter(InvestmentTransaction.account_id == account_id)
+    else:
+        query = query.join(Account, InvestmentTransaction.account_id == Account.id).filter(own_account())
     return query.order_by(InvestmentTransaction.date.asc(), InvestmentTransaction.id.asc()).all()
 
 

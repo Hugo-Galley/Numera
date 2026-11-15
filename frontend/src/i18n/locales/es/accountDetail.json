@@ -234,7 +234,11 @@
     "selectionnerUnPays": "Seleccionar un país...",
     "annuler": "Cancelar",
     "enregistrement": "Guardando…",
-    "confirmer": "Confirmar"
+    "confirmer": "Confirmar",
+    "referencePrice": "Precio de referencia (opcional)",
+    "referencePriceHint": "Precio sin descuento ese día: separa la ganancia por descuento de la ganancia de mercado (acciones de empleado).",
+    "referencePricePlaceholder": "p. ej. 20.00",
+    "discountPct": "Descuento del {{pct}}"
   },
   "snapshotDialog": {
     "nouveauSnapshot": "Nuevo registro de saldo",

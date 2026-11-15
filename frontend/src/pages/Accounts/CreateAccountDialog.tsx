@@ -13,7 +13,7 @@ import type { AccountsCtx } from "./useAccounts"
 export function CreateAccountDialog({ ctx }: { ctx: AccountsCtx }) {
   const { t } = useTranslation("accounts")
   const { t: tc } = useTranslation("common")
-  const { CURRENCIES, handleCreateAccount, handleCreateAccountBusy, isDialogOpen, newAssetClass, newCurrency, newEurosPct, newInstitution, newInvestisPct, newLogo, newName, newOpenedAt, newSector, newTaxWrapper, newType, newValuationMode, newZone, setIsDialogOpen, setNewAssetClass, setNewCurrency, setNewEurosPct, setNewInstitution, setNewInvestisPct, setNewLogo, setNewName, setNewOpenedAt, setNewSector, setNewTaxWrapper, setNewType, setNewValuationMode, setNewZone, suggestions } = ctx
+  const { CURRENCIES, handleCreateAccount, handleCreateAccountBusy, isDialogOpen, newAssetClass, newCurrency, newEurosPct, newHeldFor, newInstitution, newInvestisPct, newLogo, newName, newOpenedAt, newSector, newTaxWrapper, newType, newValuationMode, newZone, setIsDialogOpen, setNewAssetClass, setNewCurrency, setNewEurosPct, setNewHeldFor, setNewInstitution, setNewInvestisPct, setNewLogo, setNewName, setNewOpenedAt, setNewSector, setNewTaxWrapper, setNewType, setNewValuationMode, setNewZone, suggestions } = ctx
   return (
     <>
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -179,6 +179,12 @@ export function CreateAccountDialog({ ctx }: { ctx: AccountsCtx }) {
                 </p>
               </div>
             )}
+
+            <div className="grid gap-2 pt-2 border-t mt-2">
+              <Label htmlFor="held_for">{t("form.heldFor")}</Label>
+              <Input id="held_for" maxLength={60} placeholder={t("form.heldForPlaceholder")} value={newHeldFor} onChange={(e) => setNewHeldFor(e.target.value)} />
+              <p className="text-xs text-slate-500">{t("form.heldForHint")}</p>
+            </div>
 
             {newType === "investissement" && (
               <div className="grid gap-4 pt-2 border-t mt-2">

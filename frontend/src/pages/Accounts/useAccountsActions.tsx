@@ -15,7 +15,7 @@ type NewAccount = ApiBody<"/accounts", "post">
 
 /** Chargement, tri et actions sur les comptes (création, modification, archivage, compte principal). */
 export function useAccountsActions(p: ReturnType<typeof useAccountsState>) {
-  const { accounts, setAccounts, setLoading, setIsDialogOpen, setIsEditDialogOpen, editingAccount, setEditingAccount, newName, setNewName, newType, newCurrency, setNewCurrency, newInstitution, setNewInstitution, newLogo, setNewLogo, newAssetClass, setNewAssetClass, newSector, setNewSector, newZone, setNewZone, newValuationMode, setNewValuationMode, newTaxWrapper, setNewTaxWrapper, newOpenedAt, setNewOpenedAt, newEurosPct, setNewEurosPct, newInvestisPct, setNewInvestisPct, sortField, setSortField, sortOrder, setSortOrder, setSuggestions, confirm, setArchivedAccounts } = p
+  const { accounts, setAccounts, setLoading, setIsDialogOpen, setIsEditDialogOpen, editingAccount, setEditingAccount, newName, setNewName, newType, newCurrency, setNewCurrency, newInstitution, setNewInstitution, newLogo, setNewLogo, newAssetClass, setNewAssetClass, newSector, setNewSector, newZone, setNewZone, newValuationMode, setNewValuationMode, newTaxWrapper, setNewTaxWrapper, newOpenedAt, setNewOpenedAt, newHeldFor, setNewHeldFor, newEurosPct, setNewEurosPct, newInvestisPct, setNewInvestisPct, sortField, setSortField, sortOrder, setSortOrder, setSuggestions, confirm, setArchivedAccounts } = p
   const loadAccounts = async () => {
     setLoading(true)
     try {
@@ -105,6 +105,7 @@ export function useAccountsActions(p: ReturnType<typeof useAccountsState>) {
         valuation_mode: newType === "investissement" || newType === "assurance_vie" ? newValuationMode : "positions",
         tax_wrapper: newTaxWrapper === "none" ? null : (newTaxWrapper as NewAccount["tax_wrapper"]),
         opened_at: newTaxWrapper === "none" || !newOpenedAt ? null : newOpenedAt,
+        held_for: newHeldFor.trim() || null,
         fonds_euros_pct: newType === "assurance_vie" ? (newEurosPct ? parseFloat(newEurosPct) : 0) : null,
         fonds_investis_pct: newType === "assurance_vie" ? (newInvestisPct ? parseFloat(newInvestisPct) : 0) : null
       })
@@ -121,6 +122,7 @@ export function useAccountsActions(p: ReturnType<typeof useAccountsState>) {
       setNewValuationMode("positions")
       setNewTaxWrapper("none")
       setNewOpenedAt("")
+      setNewHeldFor("")
       setNewEurosPct("")
       setNewInvestisPct("")
       loadAccounts()
@@ -145,6 +147,7 @@ export function useAccountsActions(p: ReturnType<typeof useAccountsState>) {
         valuation_mode: editingAccount.type === "investissement" || editingAccount.type === "assurance_vie" ? (editingAccount.valuation_mode ?? (editingAccount.type === "assurance_vie" ? "snapshot" : "positions")) : "positions",
         tax_wrapper: editingAccount.tax_wrapper ?? null,
         opened_at: editingAccount.tax_wrapper ? (editingAccount.opened_at || null) : null,
+        held_for: editingAccount.held_for?.trim() || null,
         fonds_euros_pct: editingAccount.type === "assurance_vie" ? (editingAccount.fonds_euros_pct !== undefined && editingAccount.fonds_euros_pct !== null ? editingAccount.fonds_euros_pct : 0) : null,
         fonds_investis_pct: editingAccount.type === "assurance_vie" ? (editingAccount.fonds_investis_pct !== undefined && editingAccount.fonds_investis_pct !== null ? editingAccount.fonds_investis_pct : 0) : null
       })

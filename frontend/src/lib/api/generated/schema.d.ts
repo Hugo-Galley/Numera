@@ -3170,6 +3170,8 @@ export interface components {
             fonds_investis_pct?: number | null;
             /** Geographic Zone */
             geographic_zone?: string | null;
+            /** Held For */
+            held_for?: string | null;
             /** Institution */
             institution?: string | null;
             /**
@@ -3238,6 +3240,8 @@ export interface components {
             fonds_investis_pct?: number | null;
             /** Geographic Zone */
             geographic_zone?: string | null;
+            /** Held For */
+            held_for?: string | null;
             /** Id */
             id: number;
             /** Institution */
@@ -3287,6 +3291,8 @@ export interface components {
             fonds_investis_pct?: number | null;
             /** Geographic Zone */
             geographic_zone?: string | null;
+            /** Held For */
+            held_for?: string | null;
             /** Institution */
             institution?: string | null;
             /** Is Main */
@@ -5231,6 +5237,8 @@ export interface components {
             original_amount: number;
             /** Quantity */
             quantity?: number | null;
+            /** Reference Price */
+            reference_price?: number | null;
             /** Reinvest Of Id */
             reinvest_of_id?: number | null;
             /** Reinvested */
@@ -5347,6 +5355,8 @@ export interface components {
             price_currency?: string | null;
             /** Quantity */
             quantity?: number | null;
+            /** Reference Price */
+            reference_price?: number | null;
             /**
              * Reinvested
              * @default false
@@ -5423,6 +5433,8 @@ export interface components {
             quantity?: number | null;
             /** Recurring Transaction Id */
             recurring_transaction_id?: number | null;
+            /** Reference Price */
+            reference_price?: number | null;
             /** Reinvest Of Id */
             reinvest_of_id?: number | null;
             /**
@@ -5473,6 +5485,8 @@ export interface components {
             price_currency?: string | null;
             /** Quantity */
             quantity?: number | null;
+            /** Reference Price */
+            reference_price?: number | null;
             /** Reinvested */
             reinvested?: boolean | null;
             /** Sector */
@@ -6310,8 +6324,12 @@ export interface components {
             cost_eur?: number | null;
             /** Currency */
             currency: string;
+            /** Discount Eur */
+            discount_eur?: number | null;
             /** Fx Effect Eur */
             fx_effect_eur?: number | null;
+            /** Market Gain Eur */
+            market_gain_eur?: number | null;
             /** Price */
             price?: number | null;
             /** Price Currency */
@@ -6343,7 +6361,7 @@ export interface components {
         };
         /**
          * PortfolioOverview
-         * @description Vue globale : somme (EUR) des comptes titres valorisés par leurs positions.
+         * @description Vue globale : somme (EUR) des comptes titres à soi valorisés par leurs positions.
          */
         PortfolioOverview: {
             /** Accounts */
@@ -6364,6 +6382,11 @@ export interface components {
             realized_by_year: components["schemas"]["RealizedYear"][];
             /** Realized Eur */
             realized_eur: number;
+            /**
+             * Third Party Accounts
+             * @default []
+             */
+            third_party_accounts?: components["schemas"]["PortfolioRead"][];
             /** Unrealized Eur */
             unrealized_eur?: number | null;
             /** Value Eur */
@@ -6383,6 +6406,8 @@ export interface components {
             cash: number;
             /** Currency */
             currency: string;
+            /** Discount Eur */
+            discount_eur?: number | null;
             /**
              * Dividends 12M Eur
              * @default 0
@@ -6404,6 +6429,8 @@ export interface components {
             gain: number;
             /** Gain Eur */
             gain_eur: number;
+            /** Held For */
+            held_for?: string | null;
             /** History */
             history?: components["schemas"]["HistoryPoint"][] | null;
             /**
@@ -6416,6 +6443,8 @@ export interface components {
              * @default []
              */
             lines_without_cost?: string[];
+            /** Market Gain Eur */
+            market_gain_eur?: number | null;
             /** Net Invested */
             net_invested: number;
             /** Net Invested Eur */

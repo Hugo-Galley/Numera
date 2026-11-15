@@ -195,7 +195,8 @@
     "releve": "Extracto",
     "releveDu": "Extracto del",
     "ecart": "Diferencia",
-    "unEcartDePlusDe": "Una diferencia de más del 2 % suele indicar que falta una operación, un dividendo o comisiones en el historial."
+    "unEcartDePlusDe": "Una diferencia de más del 2 % suele indicar que falta una operación, un dividendo o comisiones en el historial.",
+    "discountSplit": "de los cuales descuento {{discount}} · mercado {{market}}"
   },
   "securitySearchInput": {
     "rechercheParTitreTickerOu": "Búsqueda por valor, ticker o ISIN",
@@ -323,5 +324,12 @@
     "dividends12m": "{{amount}} en 12 meses",
     "feesHint": "Comisiones de custodia y corretaje",
     "annualizedOver": "Anualizado sobre {{days}} d: tómalo con cautela"
+  },
+  "thirdParty": {
+    "title": "En nombre de un tercero",
+    "subtitle": "Estas cuentas no son tuyas: no cuentan en ninguno de los totales anteriores.",
+    "heldFor": "Para {{name}}",
+    "value": "Valor",
+    "unrealized": "Plusvalía latente"
   }
 }

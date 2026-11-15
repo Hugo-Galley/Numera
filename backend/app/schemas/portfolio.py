@@ -18,6 +18,8 @@ class PortfolioLine(BaseModel):
     unrealized_pct: float | None = None
     unrealized_local: float | None = None  # plus-value en devise du titre
     fx_effect_eur: float | None = None  # part de la plus-value latente due au change
+    discount_eur: float | None = None  # part due à la décote d'achat (cours de référence saisi)
+    market_gain_eur: float | None = None  # part due au cours depuis l'achat (plus-value latente − décote)
 
 
 class RealizedYear(BaseModel):
@@ -52,6 +54,7 @@ class SnapshotRef(BaseModel):
 class PortfolioRead(BaseModel):
     account_id: int
     account_name: str
+    held_for: str | None = None  # nom du tiers si le compte est détenu pour quelqu'un d'autre
     currency: str
     valued_by_positions: bool
     value_source: str  # "positions" | "snapshot"
@@ -73,6 +76,8 @@ class PortfolioRead(BaseModel):
     unrealized_eur: float | None = None
     unrealized_pct: float | None = None
     fx_effect_eur: float | None = None
+    discount_eur: float | None = None  # part de la plus-value latente due à la décote d'achat
+    market_gain_eur: float | None = None  # part due au cours depuis l'achat
     lines_without_cost: list[str] = []
     realized_eur: float = 0.0
     realized_unknown_sales: int = 0
@@ -90,9 +95,11 @@ class PortfolioRead(BaseModel):
 
 
 class PortfolioOverview(BaseModel):
-    """Vue globale : somme (EUR) des comptes titres valorisés par leurs positions."""
+    """Vue globale : somme (EUR) des comptes titres à soi valorisés par leurs positions."""
 
     accounts: list[PortfolioRead]
+    # Comptes détenus pour un tiers : affichés à part, jamais comptés dans les sommes ci-dessous
+    third_party_accounts: list[PortfolioRead] = []
     value_eur: float
     net_invested_eur: float
     gain_eur: float

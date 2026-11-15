@@ -25,7 +25,7 @@ from app.services.investissement.holdings.replay import trade_cutoff
 from app.services.investissement.market import quotes as market_quotes
 
 VALID_TYPES = {"versement", "retrait", "dividende", "achat", "vente", "frais"}
-TRADE_FIELDS = {"type", "date", "ticker", "quantity", "unit_price", "price_currency", "fees"}
+TRADE_FIELDS = {"type", "date", "ticker", "quantity", "unit_price", "reference_price", "price_currency", "fees"}
 DIVIDEND_FIELDS = {"type", "date", "ticker", "quantity", "amount", "currency", "reinvested"}
 
 
@@ -207,6 +207,7 @@ async def create_transaction(db: Session, payload: InvestmentTransactionCreate) 
         isin=payload.isin.upper().strip() if payload.isin else None,
         quantity=payload.quantity,
         unit_price=payload.unit_price,
+        reference_price=payload.reference_price,
         price_currency=(payload.price_currency or (currency if payload.unit_price else None) or "").upper() or None,
         fees=payload.fees,
         withholding_tax=payload.withholding_tax,

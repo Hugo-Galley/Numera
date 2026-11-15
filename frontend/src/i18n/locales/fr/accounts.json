@@ -22,7 +22,8 @@
       "balance": "Solde",
       "status": "Statut",
       "actions": "Actions"
-    }
+    },
+    "heldFor": "Pour {{name}}"
   },
   "archived": {
     "hide": "Masquer les comptes archivés",
@@ -63,7 +64,10 @@
     "zonePlaceholder": "Ex: USA, Europe...",
     "creating": "Création…",
     "create": "Créer",
-    "example": "Ex: {{value}}"
+    "example": "Ex: {{value}}",
+    "heldFor": "Détenu pour (optionnel)",
+    "heldForPlaceholder": "ex : Maman",
+    "heldForHint": "Compte tenu pour quelqu'un d'autre : il reste consultable, mais ne compte pas dans votre patrimoine, vos gains ni vos dividendes."
   },
   "taxWrapper": {
     "pea": "PEA",

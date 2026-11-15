@@ -12,6 +12,7 @@ from app.models.investment_transaction import InvestmentTransaction
 from app.models.recurring_transaction import RecurringTransaction
 from app.models.transaction import Transaction
 from app.repositories.analytics.common import NET_AMOUNT
+from app.repositories.comptes.balances import own_account
 from app.repositories.types import Rows
 
 
@@ -56,6 +57,7 @@ def dividend_rows(db: Session, start: datetime, end: datetime) -> Rows:
             InvestmentTransaction.type == "dividende",
             InvestmentTransaction.date >= start,
             InvestmentTransaction.date < end,
+            own_account(),
         )
         .group_by(Account.currency)
         .all()

@@ -42,6 +42,9 @@ class Account(Base):
     tax_wrapper: Mapped[str | None] = mapped_column(String(16), nullable=True)
     opened_at: Mapped[date | None] = mapped_column(Date, nullable=True)
 
+    # Compte tenu pour le compte d'un tiers (nom du tiers) : consultable, mais hors de tous les totaux personnels
+    held_for: Mapped[str | None] = mapped_column(String(60), nullable=True)
+
     is_main: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0", nullable=False)
 
     last_verified_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow_naive, nullable=False)

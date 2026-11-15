@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from app.models.account import Account
 from app.models.balance_snapshot import BalanceSnapshot
 from app.models.investment_transaction import InvestmentTransaction
+from app.repositories.comptes.balances import own_account
 
 
 def contributions(db: Session, account_id: int, tx_type: str, year: int | None = None) -> list[InvestmentTransaction]:
@@ -33,7 +34,7 @@ def wrapped_accounts(db: Session) -> list[Account]:
     """Comptes actifs rattachés à une enveloppe fiscale."""
     return (
         db.query(Account)
-        .filter(Account.tax_wrapper.isnot(None), Account.active.is_(True))
+        .filter(Account.tax_wrapper.isnot(None), Account.active.is_(True), own_account())
         .order_by(Account.id.asc())
         .all()
     )
@@ -41,8 +42,8 @@ def wrapped_accounts(db: Session) -> list[Account]:
 
 def unwrapped_accounts(db: Session) -> list[Account]:
     """Comptes actifs sans enveloppe fiscale (candidats à une suggestion)."""
-    return db.query(Account).filter(Account.tax_wrapper.is_(None), Account.active.is_(True)).order_by(Account.id).all()
+    return db.query(Account).filter(Account.tax_wrapper.is_(None), Account.active.is_(True), own_account()).order_by(Account.id).all()
 
 
 def cto_accounts(db: Session) -> list[Account]:
-    return db.query(Account).filter(Account.tax_wrapper == "cto").order_by(Account.id.asc()).all()
+    return db.query(Account).filter(Account.tax_wrapper == "cto", own_account()).order_by(Account.id.asc()).all()

@@ -1,7 +1,7 @@
 """investment_transactions.kept_as_cash : versement automatique laissé en espèces (plus proposé à relier)
 
 Revision ID: 3e1fd3f89624
-Revises: d9a3b5e7c2f1
+Revises: c4a8e1d6f2b9
 Create Date: 2026-11-15 21:39:39.024908
 
 """
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision: str = "3e1fd3f89624"
-down_revision: str | Sequence[str] | None = "d9a3b5e7c2f1"
+down_revision: str | Sequence[str] | None = "c4a8e1d6f2b9"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 

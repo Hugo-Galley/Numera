@@ -36,6 +36,10 @@ export interface PortfolioRead {
   unrealized_eur: number | null
   unrealized_pct: number | null
   fx_effect_eur: number | null
+  /** Part de la plus-value latente due à la décote d'achat (cours de référence saisi) */
+  discount_eur?: number | null
+  /** Part due au cours depuis l'achat (plus-value latente − décote) */
+  market_gain_eur?: number | null
   lines_without_cost: string[]
   realized_eur: number
   realized_unknown_sales: number
