@@ -195,7 +195,8 @@
     "releve": "Extracto",
     "releveDu": "Extracto del",
     "ecart": "Diferencia",
-    "unEcartDePlusDe": "Una diferencia de más del 2 % suele indicar que falta una operación, un dividendo o comisiones en el historial."
+    "unEcartDePlusDe": "Una diferencia de más del 2 % suele indicar que falta una operación, un dividendo o comisiones en el historial.",
+    "discountSplit": "de los cuales descuento {{discount}} · mercado {{market}}"
   },
   "securitySearchInput": {
     "rechercheParTitreTickerOu": "Búsqueda por valor, ticker o ISIN",

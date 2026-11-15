@@ -195,7 +195,8 @@
     "releve": "Relevé",
     "releveDu": "Relevé du",
     "ecart": "Écart",
-    "unEcartDePlusDe": "Un écart de plus de 2 % signale en général une opération, un dividende ou des frais manquants dans l'historique."
+    "unEcartDePlusDe": "Un écart de plus de 2 % signale en général une opération, un dividende ou des frais manquants dans l'historique.",
+    "discountSplit": "dont décote {{discount}} · marché {{market}}"
   },
   "securitySearchInput": {
     "rechercheParTitreTickerOu": "Recherche par Titre, Ticker ou ISIN",

@@ -110,6 +110,8 @@ def _result(account: Account, rate: float, valued: bool, baseline_date: datetime
         "unrealized_eur": round(positions.unrealized_eur, 2) if positions.unrealized_cost_eur else None,
         "unrealized_pct": round(positions.unrealized_eur / positions.unrealized_cost_eur * 100.0, 2) if positions.unrealized_cost_eur else None,
         "fx_effect_eur": round(positions.fx_effect_eur, 2) if positions.unrealized_cost_eur else None,
+        "discount_eur": round(positions.discount_eur, 2) if positions.discount_eur > EPSILON else None,
+        "market_gain_eur": round(positions.unrealized_eur - positions.discount_eur, 2) if positions.discount_eur > EPSILON else None,
         "lines_without_cost": [ln["ticker"] for ln in positions.lines if ln["cost_eur"] is None],
         "realized_eur": round(realized_total, 2),
         "realized_unknown_sales": realized_unknown,

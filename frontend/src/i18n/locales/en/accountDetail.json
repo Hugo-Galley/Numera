@@ -234,7 +234,11 @@
     "selectionnerUnPays": "Select a country...",
     "annuler": "Cancel",
     "enregistrement": "Saving…",
-    "confirmer": "Confirm"
+    "confirmer": "Confirm",
+    "referencePrice": "Reference price (optional)",
+    "referencePriceHint": "Undiscounted price that day: separates the discount gain from the market gain (employee shares).",
+    "referencePricePlaceholder": "e.g. 20.00",
+    "discountPct": "Discount of {{pct}}"
   },
   "snapshotDialog": {
     "nouveauSnapshot": "New Snapshot",

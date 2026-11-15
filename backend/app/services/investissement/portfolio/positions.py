@@ -2,7 +2,7 @@
 from dataclasses import dataclass, field
 from typing import Any
 
-from app.domain.holdings import Position, Replay
+from app.domain.holdings import EPSILON, Position, Replay
 from app.models.portfolio_holding import PortfolioHolding
 from app.services.investissement.portfolio.books import FxBook
 
@@ -14,13 +14,15 @@ class PositionsValuation:
     unrealized_eur: float = 0.0
     unrealized_cost_eur: float = 0.0
     fx_effect_eur: float = 0.0
+    discount_eur: float = 0.0  # part de la plus-value latente due à la décote d'achat
     unpriced: list[str] = field(default_factory=list)
     stale: list[str] = field(default_factory=list)
 
 
 def _line(ticker: str, pos: Position, meta: PortfolioHolding | None, quote: dict[str, Any], pru: float | None,
           cost_eur: float | None, priced: bool, price: float, value_eur: float, unrealized: float | None,
-          unrealized_pct: float | None, local: float | None, fx_effect: float | None) -> dict[str, Any]:
+          unrealized_pct: float | None, local: float | None, fx_effect: float | None,
+          discount: float | None = None) -> dict[str, Any]:
     return {
         "ticker": ticker,
         "asset_name": (meta.asset_name if meta else None) or pos.asset_name or ticker,
@@ -38,6 +40,9 @@ def _line(ticker: str, pos: Position, meta: PortfolioHolding | None, quote: dict
         "unrealized_pct": round(unrealized_pct, 2) if unrealized_pct is not None else None,
         "unrealized_local": round(local, 2) if local is not None else None,
         "fx_effect_eur": round(fx_effect, 2) if fx_effect is not None else None,
+        # Plus-value latente = décote d'achat + gain de marché (seulement si un cours de référence a été saisi)
+        "discount_eur": round(discount, 2) if discount is not None else None,
+        "market_gain_eur": round(unrealized - discount, 2) if discount is not None and unrealized is not None else None,
     }
 
 
@@ -64,12 +69,15 @@ async def value_positions(replay: Replay, tickers: list[str], quotes: dict[str, 
             value_eur = 0.0
             out.unpriced.append(ticker)
 
-        line_unrealized = line_unrealized_pct = line_fx = line_local = None
+        line_unrealized = line_unrealized_pct = line_fx = line_local = line_discount = None
         if priced and cost_eur:
             line_unrealized = value_eur - cost_eur
             line_unrealized_pct = line_unrealized / cost_eur * 100.0
             out.unrealized_eur += line_unrealized
             out.unrealized_cost_eur += cost_eur
+            if pos.discount_eur > EPSILON:
+                line_discount = pos.discount_eur
+                out.discount_eur += pos.discount_eur
             if pru:
                 price_in_position = await fx.convert(price, quote.get("currency") or pos.currency, pos.currency)
                 local_eur = None
@@ -81,5 +89,5 @@ async def value_positions(replay: Replay, tickers: list[str], quotes: dict[str, 
                     out.fx_effect_eur += line_fx
         out.value_eur += value_eur
         out.lines.append(_line(ticker, pos, holdings_meta.get(ticker), quote, pru, cost_eur, priced, price, value_eur,
-                               line_unrealized, line_unrealized_pct, line_local, line_fx))
+                               line_unrealized, line_unrealized_pct, line_local, line_fx, line_discount))
     return out

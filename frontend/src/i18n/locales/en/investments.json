@@ -195,7 +195,8 @@
     "releve": "Statement",
     "releveDu": "Statement of",
     "ecart": "Gap",
-    "unEcartDePlusDe": "A gap of more than 2% usually points to a missing transaction, dividend or fee in the history."
+    "unEcartDePlusDe": "A gap of more than 2% usually points to a missing transaction, dividend or fee in the history.",
+    "discountSplit": "of which discount {{discount}} · market {{market}}"
   },
   "securitySearchInput": {
     "rechercheParTitreTickerOu": "Search by Name, Ticker or ISIN",

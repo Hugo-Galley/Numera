@@ -68,6 +68,7 @@ class InvestmentMovement(BaseModel):
     isin: str | None = None
     quantity: float | None = None
     unit_price: float | None = None
+    reference_price: float | None = None
     fees: float | None = None
     withholding_tax: float | None = None
     reinvested: bool | None = None

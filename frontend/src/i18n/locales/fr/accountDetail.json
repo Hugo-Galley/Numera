@@ -234,7 +234,11 @@
     "selectionnerUnPays": "Sélectionner un pays...",
     "annuler": "Annuler",
     "enregistrement": "Enregistrement…",
-    "confirmer": "Confirmer"
+    "confirmer": "Confirmer",
+    "referencePrice": "Cours de référence (optionnel)",
+    "referencePriceHint": "Cours non décoté ce jour-là : sépare le gain de décote du gain de marché (actions salarié).",
+    "referencePricePlaceholder": "ex : 20.00",
+    "discountPct": "Décote de {{pct}}"
   },
   "snapshotDialog": {
     "nouveauSnapshot": "Nouveau Snapshot",

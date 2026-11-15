@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Plus } from "lucide-react"
+import { formatRate } from "@/lib/utils"
 import { SecuritySearchInput } from "@/components/investments/SecuritySearchInput"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import type { AccountDetailView } from "./useAccountDetail"
@@ -13,7 +14,11 @@ import type { AccountDetailView } from "./useAccountDetail"
 /** Dialogue des flux d'un compte d'investissement (versement, retrait, achat, vente, dividende, frais). */
 export function InvestmentTxDialog({ ctx }: { ctx: AccountDetailView }) {
   const { t } = useTranslation("accountDetail")
-  const { editInvTxId, handleCreateInvestmentTransaction, handleCreateInvestmentTransactionBusy, invTxAmount, invTxAssetClass, invTxCurrency, invTxDate, invTxFees, invTxIsin, invTxNote, invTxOpen, invTxQuantity, invTxReinvested, invTxSector, invTxTicker, invTxType, invTxUnitPrice, invTxWithholding, invTxZone, resetInvTxForm, setInvTxAmount, setInvTxAssetClass, setInvTxCurrency, setInvTxDate, setInvTxFees, setInvTxIsin, setInvTxNote, setInvTxOpen, setInvTxQuantity, setInvTxReinvested, setInvTxSector, setInvTxTicker, setInvTxType, setInvTxUnitPrice, setInvTxWithholding, setInvTxZone, suggestions } = ctx
+  const { editInvTxId, handleCreateInvestmentTransaction, handleCreateInvestmentTransactionBusy, invTxAmount, invTxAssetClass, invTxCurrency, invTxDate, invTxFees, invTxIsin, invTxNote, invTxOpen, invTxQuantity, invTxReferencePrice, invTxReinvested, invTxSector, invTxTicker, invTxType, invTxUnitPrice, invTxWithholding, invTxZone, resetInvTxForm, setInvTxAmount, setInvTxAssetClass, setInvTxCurrency, setInvTxDate, setInvTxFees, setInvTxIsin, setInvTxNote, setInvTxOpen, setInvTxQuantity, setInvTxReferencePrice, setInvTxReinvested, setInvTxSector, setInvTxTicker, setInvTxType, setInvTxUnitPrice, setInvTxWithholding, setInvTxZone, suggestions } = ctx
+  // Pourcentage de décote : seul calcul d'affichage, l'économie en euros vient du backend (plus-value latente)
+  const paid = Number(invTxUnitPrice)
+  const reference = Number(invTxReferencePrice)
+  const discountPct = invTxType === "achat" && paid > 0 && reference > paid ? (1 - paid / reference) * 100 : null
   return (
     <>
       <Dialog open={invTxOpen} onOpenChange={(open) => { if (!open) { setInvTxOpen(false); resetInvTxForm(); } else { setInvTxOpen(true); } }}>
@@ -143,6 +148,26 @@ export function InvestmentTxDialog({ ctx }: { ctx: AccountDetailView }) {
                     }}
                     className="bg-slate-50 border-slate-200 text-xs font-mono"
                   />
+                </div>
+                )}
+                {invTxType === "achat" && (
+                <div className="grid gap-1 sm:col-span-2">
+                  <Label htmlFor="inv-reference-price" className="text-xs font-medium">{t("investmentTxDialog.referencePrice")}</Label>
+                  <Input
+                    id="inv-reference-price"
+                    type="number" inputMode="decimal"
+                    step="any"
+                    min="0"
+                    placeholder={t("investmentTxDialog.referencePricePlaceholder")}
+                    value={invTxReferencePrice}
+                    onChange={(e) => setInvTxReferencePrice(e.target.value)}
+                    className="bg-slate-50 border-slate-200 text-xs font-mono"
+                  />
+                  <p className="text-[11px] text-slate-500">
+                    {discountPct !== null
+                      ? t("investmentTxDialog.discountPct", { pct: formatRate(discountPct, 2) })
+                      : t("investmentTxDialog.referencePriceHint")}
+                  </p>
                 </div>
                 )}
               </div>

@@ -6564,6 +6564,17 @@
       ],
       "title": "Quantity"
      },
+     "reference_price": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Reference Price"
+     },
      "reinvest_of_id": {
       "anyOf": [
        {
@@ -6972,6 +6983,19 @@
       ],
       "title": "Quantity"
      },
+     "reference_price": {
+      "anyOf": [
+       {
+        "exclusiveMaximum": 1000000000000.0,
+        "minimum": 0.0,
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Reference Price"
+     },
      "reinvested": {
       "default": false,
       "title": "Reinvested",
@@ -7196,6 +7220,19 @@
        }
       ],
       "title": "Quantity"
+     },
+     "reference_price": {
+      "anyOf": [
+       {
+        "exclusiveMaximum": 1000000000000.0,
+        "minimum": 0.0,
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Reference Price"
      },
      "reinvest_of_id": {
       "anyOf": [
@@ -7439,6 +7476,19 @@
        }
       ],
       "title": "Quantity"
+     },
+     "reference_price": {
+      "anyOf": [
+       {
+        "exclusiveMaximum": 1000000000000.0,
+        "minimum": 0.0,
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Reference Price"
      },
      "reinvested": {
       "anyOf": [
@@ -10080,6 +10130,17 @@
       "title": "Currency",
       "type": "string"
      },
+     "discount_eur": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Discount Eur"
+     },
      "fx_effect_eur": {
       "anyOf": [
        {
@@ -10090,6 +10151,17 @@
        }
       ],
       "title": "Fx Effect Eur"
+     },
+     "market_gain_eur": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Market Gain Eur"
      },
      "price": {
       "anyOf": [
@@ -10320,6 +10392,17 @@
       "title": "Currency",
       "type": "string"
      },
+     "discount_eur": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Discount Eur"
+     },
      "dividends_12m_eur": {
       "default": 0.0,
       "title": "Dividends 12M Eur",
@@ -10394,6 +10477,17 @@
       },
       "title": "Lines Without Cost",
       "type": "array"
+     },
+     "market_gain_eur": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Market Gain Eur"
      },
      "net_invested": {
       "title": "Net Invested",

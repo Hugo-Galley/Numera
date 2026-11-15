@@ -46,6 +46,7 @@ class Position:
     cost: float | None = 0.0  # devise de la position ; None = PRU inconnu
     cost_eur: float | None = 0.0
     cost_eur_estimated: bool = False  # inventaire en devise sans coût EUR saisi : converti au taux du Point Zéro
+    discount_eur: float = 0.0  # gain de décote (référence − prix payé) des parts encore détenues, aux taux des achats
     isin: str | None = None
     asset_name: str | None = None
     etf_profile_id: int | None = None

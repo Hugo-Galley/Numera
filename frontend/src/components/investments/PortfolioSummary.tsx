@@ -90,7 +90,11 @@ export function PortfolioSummary({ accountId, reloadKey }: PortfolioSummaryProps
             hint={
               data.unrealized_eur === null
                 ? t("portfolioSummary.pruInconnu")
-                : `${pct(data.unrealized_pct)}${data.fx_effect_eur ? ` · dont change ${signed(data.fx_effect_eur)}` : ""}`
+                : `${pct(data.unrealized_pct)}${data.fx_effect_eur ? ` · dont change ${signed(data.fx_effect_eur)}` : ""}${
+                    data.discount_eur != null && data.market_gain_eur != null
+                      ? ` · ${t("portfolioSummary.discountSplit", { discount: signed(data.discount_eur), market: signed(data.market_gain_eur) })}`
+                      : ""
+                  }`
             }
             className={tone(data.unrealized_eur)}
           />

@@ -37,6 +37,7 @@ export function useAccountForms() {
   const [invTxIsin, setInvTxIsin] = useState("")
   const [invTxQuantity, setInvTxQuantity] = useState("")
   const [invTxUnitPrice, setInvTxUnitPrice] = useState("")
+  const [invTxReferencePrice, setInvTxReferencePrice] = useState("")
   const [invTxFees, setInvTxFees] = useState("")
   const [invTxWithholding, setInvTxWithholding] = useState("")
   const [invTxReinvested, setInvTxReinvested] = useState(false)
@@ -54,5 +55,5 @@ export function useAccountForms() {
   const [zeroDate, setZeroDate] = useState(() => todayLocal())
   const [zeroValue, setZeroValue] = useState("")
   const [zeroNote, setZeroNote] = useState("")
-  return { txOpen, setTxOpen, editTxId, setEditTxId, txDate, setTxDate, txType, setTxType, txMerchant, setTxMerchant, txAmount, setTxAmount, txCurrency, setTxCurrency, txCategoryId, setTxCategoryId, txTagIds, setTxTagIds, txNote, setTxNote, txIsRecurring, setTxIsRecurring, txIsExceptional, setTxIsExceptional, txCustomIcon, setTxCustomIcon, txCustomColor, setTxCustomColor, snapOpen, setSnapOpen, editSnapId, setEditSnapId, snapDate, setSnapDate, snapValue, setSnapValue, snapNote, setSnapNote, invTxOpen, setInvTxOpen, editInvTxId, setEditInvTxId, invTxDate, setInvTxDate, invTxType, setInvTxType, invTxAmount, setInvTxAmount, invTxCurrency, setInvTxCurrency, invTxNote, setInvTxNote, invTxTicker, setInvTxTicker, invTxIsin, setInvTxIsin, invTxQuantity, setInvTxQuantity, invTxUnitPrice, setInvTxUnitPrice, invTxFees, setInvTxFees, invTxWithholding, setInvTxWithholding, invTxReinvested, setInvTxReinvested, invTxAssetClass, setInvTxAssetClass, invTxSector, setInvTxSector, invTxZone, setInvTxZone, suggestions, setSuggestions, zeroOpen, setZeroOpen, zeroDate, setZeroDate, zeroValue, setZeroValue, zeroNote, setZeroNote }
+  return { txOpen, setTxOpen, editTxId, setEditTxId, txDate, setTxDate, txType, setTxType, txMerchant, setTxMerchant, txAmount, setTxAmount, txCurrency, setTxCurrency, txCategoryId, setTxCategoryId, txTagIds, setTxTagIds, txNote, setTxNote, txIsRecurring, setTxIsRecurring, txIsExceptional, setTxIsExceptional, txCustomIcon, setTxCustomIcon, txCustomColor, setTxCustomColor, snapOpen, setSnapOpen, editSnapId, setEditSnapId, snapDate, setSnapDate, snapValue, setSnapValue, snapNote, setSnapNote, invTxOpen, setInvTxOpen, editInvTxId, setEditInvTxId, invTxDate, setInvTxDate, invTxType, setInvTxType, invTxAmount, setInvTxAmount, invTxCurrency, setInvTxCurrency, invTxNote, setInvTxNote, invTxTicker, setInvTxTicker, invTxIsin, setInvTxIsin, invTxQuantity, setInvTxQuantity, invTxUnitPrice, setInvTxUnitPrice, invTxReferencePrice, setInvTxReferencePrice, invTxFees, setInvTxFees, invTxWithholding, setInvTxWithholding, invTxReinvested, setInvTxReinvested, invTxAssetClass, setInvTxAssetClass, invTxSector, setInvTxSector, invTxZone, setInvTxZone, suggestions, setSuggestions, zeroOpen, setZeroOpen, zeroDate, setZeroDate, zeroValue, setZeroValue, zeroNote, setZeroNote }
 }

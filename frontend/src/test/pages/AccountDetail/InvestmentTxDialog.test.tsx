@@ -114,6 +114,7 @@ describe("Opération d'investissement", () => {
         isin: null,
         quantity: 2,
         unit_price: 520.5,
+        reference_price: null,
         price_currency: "EUR",
         fees: 1.5,
         withholding_tax: null,
@@ -125,6 +126,32 @@ describe("Opération d'investissement", () => {
     ])
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument())
     await waitFor(() => expect(investmentLoads()).toBe(2))
+  })
+
+  it("achat décoté : le cours de référence part dans le corps et la décote s'affiche", async () => {
+    const { user, posted } = setup()
+    const dialog = await openDialog(user)
+
+    await chooseType(user, dialog, "Achat de titres")
+    await user.type(within(dialog).getByLabelText("Ticker / Code"), "cs.pa")
+    await user.type(within(dialog).getByPlaceholderText("Ex: 2"), "50")
+    await user.type(within(dialog).getByPlaceholderText("Cours..."), "15")
+    await user.type(within(dialog).getByLabelText("Cours de référence (optionnel)"), "20")
+
+    expect(within(dialog).getByText(/Décote de 25,00\s?%/)).toBeInTheDocument()
+    await user.click(within(dialog).getByRole("button", { name: "Confirmer" }))
+
+    expect(await screen.findByText("Opération enregistrée")).toBeInTheDocument()
+    expect(posted[0]).toMatchObject({ type: "achat", quantity: 50, unit_price: 15, reference_price: 20 })
+  })
+
+  it("le cours de référence n'existe que pour un achat", async () => {
+    const { user } = setup()
+    const dialog = await openDialog(user)
+
+    await chooseType(user, dialog, "Vente de titres")
+
+    expect(within(dialog).queryByLabelText("Cours de référence (optionnel)")).not.toBeInTheDocument()
   })
 
   it("dividende réinvesti : retenue à la source et parts reçues obligatoires", async () => {
