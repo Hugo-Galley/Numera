@@ -101,6 +101,20 @@ def list_for(db: Session, account_id: int | None, skip: int, limit: int | None) 
     return query.all()
 
 
+def unassigned_deposits(db: Session, account_id: int | None, before: datetime) -> list[InvestmentTransaction]:
+    """Versements créés par une récurrence, sans titre, non laissés en espèces et datés avant `before` (exclu)."""
+    query = db.query(InvestmentTransaction).filter(
+        InvestmentTransaction.type == "versement",
+        InvestmentTransaction.recurring_transaction_id.isnot(None),
+        InvestmentTransaction.ticker.is_(None),
+        InvestmentTransaction.kept_as_cash.is_(False),
+        InvestmentTransaction.date < before,
+    )
+    if account_id is not None:
+        query = query.filter(InvestmentTransaction.account_id == account_id)
+    return query.order_by(InvestmentTransaction.date.asc(), InvestmentTransaction.id.asc()).all()
+
+
 def get(db: Session, tx_id: int) -> InvestmentTransaction | None:
     return db.query(InvestmentTransaction).filter(InvestmentTransaction.id == tx_id).first()
 

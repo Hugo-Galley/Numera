@@ -85,6 +85,7 @@
  "GET /holdings/suggestions",
  "GET /import/logs",
  "GET /investment-transactions",
+ "GET /investment-transactions/{transaction_id}/security-proposal",
  "GET /loans",
  "GET /loans/by-account/{account_id}",
  "GET /loans/{loan_id}",

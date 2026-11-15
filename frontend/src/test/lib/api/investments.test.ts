@@ -9,6 +9,8 @@ describeApiCases("investments", investments, [
   { fn: "getHoldingsSuggestions", args: ["?account_id=7"], method: "GET", path: "/holdings/suggestions", query: "?account_id=7" },
   { fn: "deleteHoldingsById", args: [7], method: "DELETE", path: "/holdings/7" },
   { fn: "putHoldingsById", args: [7, BODY], method: "PUT", path: "/holdings/7", body: BODY },
+  { fn: "getInvestmentTransactions", args: ["?a=1"], method: "GET", path: "/investment-transactions", query: "?a=1" },
+  { fn: "getInvestmentTransactionsSecurityProposal", args: [7, "?ticker=AAPL"], method: "GET", path: "/investment-transactions/7/security-proposal", query: "?ticker=AAPL" },
   { fn: "postInvestmentTransactions", args: [BODY], method: "POST", path: "/investment-transactions", body: BODY },
   { fn: "deleteInvestmentTransactionsById", args: [7], method: "DELETE", path: "/investment-transactions/7" },
   { fn: "patchInvestmentTransactionsById", args: [7, BODY], method: "PATCH", path: "/investment-transactions/7", body: BODY },

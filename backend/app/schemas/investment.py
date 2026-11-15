@@ -36,6 +36,8 @@ class InvestmentTransactionCreate(InvestmentTransactionBase):
 class InvestmentTransactionRead(InvestmentTransactionBase):
     id: int
     reinvest_of_id: int | None = None
+    recurring_transaction_id: int | None = None
+    kept_as_cash: bool = False
 
     model_config = {"from_attributes": True}
 
@@ -67,6 +69,17 @@ class InvestmentTransactionUpdate(BaseModel):
     is_transfer: bool | None = None
     is_transfer_ignored: bool | None = None
     linked_transaction_id: int | None = None
+    kept_as_cash: bool | None = None
+
+
+class SecurityProposal(BaseModel):
+    """Taille proposée pour relier un versement à un titre ; champs vides sans cours connu à sa date."""
+
+    ticker: str
+    quantity: float | None
+    unit_price: float | None
+    price_currency: str | None
+    price_date: str | None
 
 
 class BalanceSnapshotBase(BaseModel):

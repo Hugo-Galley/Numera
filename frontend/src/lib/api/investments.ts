@@ -23,6 +23,12 @@ export const deleteHoldingsById = <T = void>(id: Id) => api.delete<T>(`/holdings
 /** PUT /holdings/:id */
 export const putHoldingsById = <T = ApiResponse<"/holdings/{holding_id}", "put">>(id: Id, body: ApiBody<"/holdings/{holding_id}", "put">) => api.put<T>(`/holdings/${id}`, body)
 
+/** GET /investment-transactions */
+export const getInvestmentTransactions = <T = ApiResponse<"/investment-transactions", "get">>(query = "") => api.get<T>(`/investment-transactions${query}`)
+
+/** GET /investment-transactions/:id/security-proposal */
+export const getInvestmentTransactionsSecurityProposal = <T = ApiResponse<"/investment-transactions/{transaction_id}/security-proposal", "get">>(id: Id, query = "") => api.get<T>(`/investment-transactions/${id}/security-proposal${query}`)
+
 /** POST /investment-transactions */
 export const postInvestmentTransactions = <T = ApiResponse<"/investment-transactions", "post">>(body?: ApiBody<"/investment-transactions", "post">) => api.post<T>(`/investment-transactions`, body)
 
