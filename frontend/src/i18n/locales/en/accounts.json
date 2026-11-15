@@ -22,7 +22,8 @@
       "balance": "Balance",
       "status": "Status",
       "actions": "Actions"
-    }
+    },
+    "heldFor": "For {{name}}"
   },
   "archived": {
     "hide": "Hide archived accounts",
@@ -63,7 +64,10 @@
     "zonePlaceholder": "E.g. USA, Europe...",
     "creating": "Creating…",
     "create": "Create",
-    "example": "E.g. {{value}}"
+    "example": "E.g. {{value}}",
+    "heldFor": "Held for (optional)",
+    "heldForPlaceholder": "e.g. Mum",
+    "heldForHint": "Account held for someone else: still viewable, but left out of your net worth, gains and dividends."
   },
   "taxWrapper": {
     "pea": "PEA",

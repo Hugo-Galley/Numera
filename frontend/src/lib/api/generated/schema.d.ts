@@ -3150,6 +3150,8 @@ export interface components {
             fonds_investis_pct?: number | null;
             /** Geographic Zone */
             geographic_zone?: string | null;
+            /** Held For */
+            held_for?: string | null;
             /** Institution */
             institution?: string | null;
             /**
@@ -3218,6 +3220,8 @@ export interface components {
             fonds_investis_pct?: number | null;
             /** Geographic Zone */
             geographic_zone?: string | null;
+            /** Held For */
+            held_for?: string | null;
             /** Id */
             id: number;
             /** Institution */
@@ -3267,6 +3271,8 @@ export interface components {
             fonds_investis_pct?: number | null;
             /** Geographic Zone */
             geographic_zone?: string | null;
+            /** Held For */
+            held_for?: string | null;
             /** Institution */
             institution?: string | null;
             /** Is Main */
@@ -6314,7 +6320,7 @@ export interface components {
         };
         /**
          * PortfolioOverview
-         * @description Vue globale : somme (EUR) des comptes titres valorisés par leurs positions.
+         * @description Vue globale : somme (EUR) des comptes titres à soi valorisés par leurs positions.
          */
         PortfolioOverview: {
             /** Accounts */
@@ -6335,6 +6341,11 @@ export interface components {
             realized_by_year: components["schemas"]["RealizedYear"][];
             /** Realized Eur */
             realized_eur: number;
+            /**
+             * Third Party Accounts
+             * @default []
+             */
+            third_party_accounts?: components["schemas"]["PortfolioRead"][];
             /** Unrealized Eur */
             unrealized_eur?: number | null;
             /** Value Eur */
@@ -6375,6 +6386,8 @@ export interface components {
             gain: number;
             /** Gain Eur */
             gain_eur: number;
+            /** Held For */
+            held_for?: string | null;
             /** History */
             history?: components["schemas"]["HistoryPoint"][] | null;
             /**

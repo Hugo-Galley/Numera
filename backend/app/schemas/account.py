@@ -5,6 +5,11 @@ from pydantic import BaseModel, Field, field_validator
 
 from app.schemas.recurring_transaction import _check_logo
 
+
+def _clean_held_for(value: str | None) -> str | None:
+    """Nom du tiers sans espaces superflus ; vide = compte à soi."""
+    return (value or "").strip() or None
+
 TaxWrapper = Literal["pea", "per", "cto", "assurance_vie", "livret_a", "livret_jeune", "pee", "ldds", "lep"]
 # Types reconnus par les calculs ; un type inconnu (ex. « bank ») était classé au hasard selon les vues.
 # La lecture reste en `str` pour ne pas casser d'anciens comptes déjà enregistrés avec un autre type.
@@ -27,8 +32,10 @@ class AccountBase(BaseModel):
     valuation_mode: Literal["positions", "snapshot"] = "positions"
     tax_wrapper: TaxWrapper | None = None
     opened_at: date | None = None
+    held_for: str | None = Field(default=None, max_length=60)
 
     _validate_logo = field_validator("logo")(_check_logo)
+    _clean_held_for = field_validator("held_for")(_clean_held_for)
 
 
 class AccountCreate(AccountBase):
@@ -53,8 +60,10 @@ class AccountUpdate(BaseModel):
     valuation_mode: Literal["positions", "snapshot"] | None = None
     tax_wrapper: TaxWrapper | None = None
     opened_at: date | None = None
+    held_for: str | None = Field(default=None, max_length=60)
 
     _validate_logo = field_validator("logo")(_check_logo)
+    _clean_held_for = field_validator("held_for")(_clean_held_for)
 
 
 class AccountRead(AccountBase):

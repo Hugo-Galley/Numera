@@ -10,6 +10,7 @@
  "fx_effect_eur": 3.83,
  "gain": 1078.77,
  "gain_eur": 1078.77,
+ "held_for": null,
  "history": [
   {
    "date": "2025-06-02",

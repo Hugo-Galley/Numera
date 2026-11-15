@@ -12,6 +12,7 @@ from app.models.category import Category
 from app.models.investment_transaction import InvestmentTransaction
 from app.models.transaction import Transaction
 from app.repositories.analytics.common import NET_AMOUNT, budget_versement_ids, category_lines, income_criterion
+from app.repositories.comptes.balances import own_account
 from app.repositories.types import QueryT, Rows
 
 INVESTMENT_CATEGORIES = ["Investissement", "Epargne"]
@@ -67,7 +68,7 @@ def dividends_by_currency(db: Session, start: datetime | None, end: datetime) ->
     """Dividendes des comptes titres, ajoutés aux intérêts."""
     query = db.query(Account.currency, func.sum(InvestmentTransaction.amount)).join(
         Account, InvestmentTransaction.account_id == Account.id
-    ).filter(InvestmentTransaction.type == "dividende", InvestmentTransaction.date < end)
+    ).filter(InvestmentTransaction.type == "dividende", InvestmentTransaction.date < end, own_account())
     if start:
         query = query.filter(InvestmentTransaction.date >= start)
     return query.group_by(Account.currency).all()

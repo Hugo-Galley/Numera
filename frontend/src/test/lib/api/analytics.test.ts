@@ -31,6 +31,7 @@ describeApiCases("analytics", analytics, [
   { fn: "deleteFinancialEventsById", args: [7], method: "DELETE", path: "/financial-events/7" },
   { fn: "getFinancialEvents", method: "GET", path: "/financial-events" },
   { fn: "getAnalyticsDividends", args: ["?a=1"], method: "GET", path: "/analytics/dividends", query: "?a=1" },
+  { fn: "getAnalyticsPortfolio", args: [], method: "GET", path: "/analytics/portfolio" },
   { fn: "getAnalyticsPortfolioById", args: [7], method: "GET", path: "/analytics/portfolio/7" },
   { fn: "getAnalyticsBudgetPeriod", args: ["?a=1"], method: "GET", path: "/analytics/budget-period", query: "?a=1" },
   { fn: "putAnalyticsBudgetPeriod", args: [BODY], method: "PUT", path: "/analytics/budget-period", body: BODY },

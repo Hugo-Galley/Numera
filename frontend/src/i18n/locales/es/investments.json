@@ -323,5 +323,12 @@
     "dividends12m": "{{amount}} en 12 meses",
     "feesHint": "Comisiones de custodia y corretaje",
     "annualizedOver": "Anualizado sobre {{days}} d: tómalo con cautela"
+  },
+  "thirdParty": {
+    "title": "En nombre de un tercero",
+    "subtitle": "Estas cuentas no son tuyas: no cuentan en ninguno de los totales anteriores.",
+    "heldFor": "Para {{name}}",
+    "value": "Valor",
+    "unrealized": "Plusvalía latente"
   }
 }

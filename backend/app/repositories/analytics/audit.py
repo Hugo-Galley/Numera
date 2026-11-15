@@ -14,6 +14,7 @@ from app.models.investment_transaction import InvestmentTransaction
 from app.models.portfolio_holding import PortfolioHolding
 from app.models.reimbursement import ReimbursementClaim
 from app.models.transaction import Transaction
+from app.repositories.comptes.balances import own_account
 from app.repositories.types import Rows
 
 DUPLICATE_KEY = (
@@ -190,11 +191,16 @@ def last_dividend_by_ticker(db: Session) -> dict[tuple[int, str], datetime]:
 
 
 def dividend_paying_holdings(db: Session) -> list[PortfolioHolding]:
-    return db.query(PortfolioHolding).filter(PortfolioHolding.pays_dividends.is_(True), PortfolioHolding.quantity > 0).all()
+    return (
+        db.query(PortfolioHolding)
+        .join(Account, PortfolioHolding.account_id == Account.id)
+        .filter(PortfolioHolding.pays_dividends.is_(True), PortfolioHolding.quantity > 0, own_account())
+        .all()
+    )
 
 
 def active_investment_accounts(db: Session) -> list[Account]:
-    return db.query(Account).filter(Account.type == "investissement", Account.active.is_(True)).all()
+    return db.query(Account).filter(Account.type == "investissement", Account.active.is_(True), own_account()).all()
 
 
 def dismissed_ids(db: Session) -> set[str]:
@@ -219,7 +225,7 @@ def transaction_count(db: Session, account_id: int | None = None) -> int:
 
 
 def active_account_count(db: Session) -> int:
-    return db.query(func.count(Account.id)).filter(Account.active.is_(True)).scalar() or 0
+    return db.query(func.count(Account.id)).filter(Account.active.is_(True), own_account()).scalar() or 0
 
 
 def has_initial_balance(db: Session, account_id: int) -> bool:

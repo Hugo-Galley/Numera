@@ -22,7 +22,8 @@
       "balance": "Saldo",
       "status": "Estado",
       "actions": "Acciones"
-    }
+    },
+    "heldFor": "Para {{name}}"
   },
   "archived": {
     "hide": "Ocultar las cuentas archivadas",
@@ -63,7 +64,10 @@
     "zonePlaceholder": "Ej.: EE. UU., Europa...",
     "creating": "Creando…",
     "create": "Crear",
-    "example": "Ej.: {{value}}"
+    "example": "Ej.: {{value}}",
+    "heldFor": "En nombre de (opcional)",
+    "heldForPlaceholder": "p. ej. Mamá",
+    "heldForHint": "Cuenta mantenida para otra persona: se puede consultar, pero no cuenta en tu patrimonio, tus ganancias ni tus dividendos."
   },
   "taxWrapper": {
     "pea": "PEA",

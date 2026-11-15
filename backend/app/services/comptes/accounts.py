@@ -62,6 +62,7 @@ def create_account(db: Session, payload: AccountCreate) -> Account:
         fonds_investis_pct=payload.fonds_investis_pct,
         tax_wrapper=payload.tax_wrapper,
         opened_at=payload.opened_at,
+        held_for=payload.held_for,
         # assurance-vie : relevés par défaut tant que le mode n'est pas choisi explicitement
         valuation_mode=payload.valuation_mode if "valuation_mode" in payload.model_fields_set or payload.type != "assurance_vie" else "snapshot",
     )

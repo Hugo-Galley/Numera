@@ -52,6 +52,7 @@ class SnapshotRef(BaseModel):
 class PortfolioRead(BaseModel):
     account_id: int
     account_name: str
+    held_for: str | None = None  # nom du tiers si le compte est détenu pour quelqu'un d'autre
     currency: str
     valued_by_positions: bool
     value_source: str  # "positions" | "snapshot"
@@ -90,9 +91,11 @@ class PortfolioRead(BaseModel):
 
 
 class PortfolioOverview(BaseModel):
-    """Vue globale : somme (EUR) des comptes titres valorisés par leurs positions."""
+    """Vue globale : somme (EUR) des comptes titres à soi valorisés par leurs positions."""
 
     accounts: list[PortfolioRead]
+    # Comptes détenus pour un tiers : affichés à part, jamais comptés dans les sommes ci-dessous
+    third_party_accounts: list[PortfolioRead] = []
     value_eur: float
     net_invested_eur: float
     gain_eur: float

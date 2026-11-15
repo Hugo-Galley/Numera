@@ -10,6 +10,7 @@ from app.models.balance_snapshot import BalanceSnapshot
 from app.models.category import Category
 from app.models.investment_transaction import InvestmentTransaction
 from app.models.transaction import Transaction
+from app.repositories.comptes.balances import own_account
 from app.repositories.investissement.portfolio import only_transfer_legs
 from app.repositories.types import Rows
 
@@ -21,16 +22,16 @@ def get_account(db: Session, account_id: int) -> Account | None:
 
 
 def investment_accounts(db: Session, account_id: int | None = None) -> list[Account]:
-    """Comptes titres et assurances-vie actifs (un seul si `account_id`)."""
+    """Comptes titres et assurances-vie actifs à soi, ou le seul compte `account_id` (même détenu pour un tiers)."""
     query = db.query(Account).filter(Account.type.in_(INVESTMENT_TYPES), Account.active.is_(True))
-    if account_id:
-        query = query.filter(Account.id == account_id)
+    query = query.filter(Account.id == account_id) if account_id else query.filter(own_account())
     return query.all()
 
 
-def securities_accounts(db: Session) -> list[Account]:
-    """Comptes titres actifs, par id."""
-    return db.query(Account).filter(Account.type == "investissement", Account.active.is_(True)).order_by(Account.id).all()
+def securities_accounts(db: Session, third_party: bool = False) -> list[Account]:
+    """Comptes titres actifs, par id : ceux à soi, ou ceux détenus pour un tiers (`third_party`)."""
+    ownership = ~own_account() if third_party else own_account()
+    return db.query(Account).filter(Account.type == "investissement", Account.active.is_(True), ownership).order_by(Account.id).all()
 
 
 def latest_zero_point(db: Session, account_id: int, until: datetime | None = None) -> BalanceSnapshot | None:

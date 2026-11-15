@@ -189,7 +189,7 @@ describe("page Comptes : création", () => {
       body: {
         name: "Compte pro", type: "courant", currency: "EUR", institution: "Fortuneo", logo: null,
         asset_class: null, sector: null, geographic_zone: null, valuation_mode: "positions",
-        tax_wrapper: null, opened_at: null, fonds_euros_pct: null, fonds_investis_pct: null,
+        tax_wrapper: null, opened_at: null, held_for: null, fonds_euros_pct: null, fonds_investis_pct: null,
       },
     })
     expect(await screen.findByText("Compte créé avec succès")).toBeInTheDocument()

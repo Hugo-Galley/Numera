@@ -323,5 +323,12 @@
     "dividends12m": "{{amount}} over 12 months",
     "feesHint": "Account and brokerage fees",
     "annualizedOver": "Annualized over {{days}} d: take with caution"
+  },
+  "thirdParty": {
+    "title": "Held for someone else",
+    "subtitle": "These accounts are not yours: they count in none of the totals above.",
+    "heldFor": "For {{name}}",
+    "value": "Value",
+    "unrealized": "Unrealised gain"
   }
 }
