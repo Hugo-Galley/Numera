@@ -97,7 +97,18 @@ async def _apply_buy(db: Session, pos: Position, tx: InvestmentTransaction, quan
         pos.cost_eur = pos.cost_eur * ratio if pos.cost_eur is not None else None
     else:
         pos.cost = pos.cost_eur = None
+    await _add_discount(db, pos, tx, quantity, price_currency)
     pos.quantity += quantity
+
+
+async def _add_discount(db: Session, pos: Position, tx: InvestmentTransaction, quantity: float, price_currency: str) -> None:
+    """Cumule la décote de l'achat : (cours de référence − prix payé) × quantité, hors frais, en EUR au taux du jour."""
+    if not tx.unit_price or not tx.reference_price or tx.reference_price <= tx.unit_price:
+        return
+    gap = (tx.reference_price - tx.unit_price) * quantity
+    gap_eur = gap if price_currency == "EUR" else await convert(db, gap, price_currency, "EUR", tx.date)
+    if gap_eur is not None:
+        pos.discount_eur += gap_eur
 
 
 async def _apply_sell(db: Session, pos: Position, tx: InvestmentTransaction, quantity: float, ticker: str, price_currency: str) -> RealizedSale | None:
@@ -123,10 +134,11 @@ async def _apply_sell(db: Session, pos: Position, tx: InvestmentTransaction, qua
         )
     pos.cost = pos.cost * ratio if pos.cost is not None else None
     pos.cost_eur = pos.cost_eur * ratio if pos.cost_eur is not None else None
+    pos.discount_eur *= ratio
     pos.quantity -= sold
     if pos.quantity <= EPSILON:
         # Position soldée : un rachat ultérieur repart d'un coût nul (PRU de nouveau calculable)
-        pos.quantity, pos.cost, pos.cost_eur, pos.cost_eur_estimated = 0.0, 0.0, 0.0, False
+        pos.quantity, pos.cost, pos.cost_eur, pos.cost_eur_estimated, pos.discount_eur = 0.0, 0.0, 0.0, False, 0.0
     return sale
 
 

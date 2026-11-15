@@ -102,6 +102,7 @@ async def _account_movements(db: Session, account: Account, baseline_date: datet
             "isin": tx.isin,
             "quantity": tx.quantity,
             "unit_price": tx.unit_price,
+            "reference_price": tx.reference_price,
             "fees": tx.fees,
             "withholding_tax": tx.withholding_tax,
             "reinvested": tx.reinvested,

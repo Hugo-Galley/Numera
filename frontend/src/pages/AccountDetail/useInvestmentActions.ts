@@ -16,7 +16,7 @@ import type { InvestmentFlow, ValueSnapshot } from "./types"
 
 /** Flux d'investissement, snapshots, modification groupée et point zéro. */
 export function useInvestmentActions(p: ReturnType<typeof useAccountDetailState> & ReturnType<typeof useAccountForms> & ReturnType<typeof useAccountDetailData> & ReturnType<typeof useTransactionActions>) {
-  const { confirm, id, account, selectedIds, setSelectedIds, setIsBulkEditDialogOpen, bulkCategory, bulkRecurring, bulkTagIds, bulkTagAction, setSnapOpen, editSnapId, setEditSnapId, snapDate, setSnapDate, snapValue, setSnapValue, snapNote, setSnapNote, setInvTxOpen, editInvTxId, setEditInvTxId, invTxDate, setInvTxDate, invTxType, setInvTxType, invTxAmount, setInvTxAmount, invTxCurrency, setInvTxCurrency, invTxNote, setInvTxNote, invTxTicker, setInvTxTicker, invTxIsin, setInvTxIsin, invTxQuantity, setInvTxQuantity, invTxUnitPrice, setInvTxUnitPrice, invTxFees, setInvTxFees, invTxWithholding, setInvTxWithholding, invTxReinvested, setInvTxReinvested, invTxAssetClass, setInvTxAssetClass, invTxSector, setInvTxSector, invTxZone, setInvTxZone, setZeroOpen, zeroDate, setZeroDate, zeroValue, setZeroValue, zeroNote, setZeroNote, loadData } = p
+  const { confirm, id, account, selectedIds, setSelectedIds, setIsBulkEditDialogOpen, bulkCategory, bulkRecurring, bulkTagIds, bulkTagAction, setSnapOpen, editSnapId, setEditSnapId, snapDate, setSnapDate, snapValue, setSnapValue, snapNote, setSnapNote, setInvTxOpen, editInvTxId, setEditInvTxId, invTxDate, setInvTxDate, invTxType, setInvTxType, invTxAmount, setInvTxAmount, invTxCurrency, setInvTxCurrency, invTxNote, setInvTxNote, invTxTicker, setInvTxTicker, invTxIsin, setInvTxIsin, invTxQuantity, setInvTxQuantity, invTxUnitPrice, setInvTxUnitPrice, invTxReferencePrice, setInvTxReferencePrice, invTxFees, setInvTxFees, invTxWithholding, setInvTxWithholding, invTxReinvested, setInvTxReinvested, invTxAssetClass, setInvTxAssetClass, invTxSector, setInvTxSector, invTxZone, setInvTxZone, setZeroOpen, zeroDate, setZeroDate, zeroValue, setZeroValue, zeroNote, setZeroNote, loadData } = p
   const resetInvTxForm = () => {
     setEditInvTxId(null)
     setInvTxDate(nowLocalInput())
@@ -28,6 +28,7 @@ export function useInvestmentActions(p: ReturnType<typeof useAccountDetailState>
     setInvTxIsin("")
     setInvTxQuantity("")
     setInvTxUnitPrice("")
+    setInvTxReferencePrice("")
     setInvTxFees("")
     setInvTxWithholding("")
     setInvTxReinvested(false)
@@ -65,6 +66,8 @@ export function useInvestmentActions(p: ReturnType<typeof useAccountDetailState>
         isin: invTxIsin ? invTxIsin.trim().toUpperCase() : null,
         quantity: invTxQuantity ? Number(invTxQuantity) : null,
         unit_price: invTxUnitPrice ? Number(invTxUnitPrice) : null,
+        // Cours non décoté (actions salarié) : seulement pour un achat, il sépare la décote du gain de marché
+        reference_price: invTxType === "achat" && invTxReferencePrice ? Number(invTxReferencePrice) : null,
         // Le prix unitaire et les frais sont saisis dans la devise de l'opération
         price_currency: invTxUnitPrice ? invTxCurrency : null,
         fees: invTxFees ? Number(invTxFees) : null,
@@ -103,6 +106,7 @@ export function useInvestmentActions(p: ReturnType<typeof useAccountDetailState>
     setInvTxIsin(tx.isin || "")
     setInvTxQuantity(tx.quantity != null ? String(tx.quantity) : "")
     setInvTxUnitPrice(tx.unit_price != null ? String(tx.unit_price) : "")
+    setInvTxReferencePrice(tx.reference_price != null ? String(tx.reference_price) : "")
     setInvTxFees(tx.fees != null ? String(tx.fees) : "")
     setInvTxWithholding(tx.withholding_tax != null ? String(tx.withholding_tax) : "")
     setInvTxReinvested(Boolean(tx.reinvested))

@@ -5217,6 +5217,8 @@ export interface components {
             original_amount: number;
             /** Quantity */
             quantity?: number | null;
+            /** Reference Price */
+            reference_price?: number | null;
             /** Reinvest Of Id */
             reinvest_of_id?: number | null;
             /** Reinvested */
@@ -5333,6 +5335,8 @@ export interface components {
             price_currency?: string | null;
             /** Quantity */
             quantity?: number | null;
+            /** Reference Price */
+            reference_price?: number | null;
             /**
              * Reinvested
              * @default false
@@ -5402,6 +5406,8 @@ export interface components {
             price_currency?: string | null;
             /** Quantity */
             quantity?: number | null;
+            /** Reference Price */
+            reference_price?: number | null;
             /** Reinvest Of Id */
             reinvest_of_id?: number | null;
             /**
@@ -5450,6 +5456,8 @@ export interface components {
             price_currency?: string | null;
             /** Quantity */
             quantity?: number | null;
+            /** Reference Price */
+            reference_price?: number | null;
             /** Reinvested */
             reinvested?: boolean | null;
             /** Sector */
@@ -6287,8 +6295,12 @@ export interface components {
             cost_eur?: number | null;
             /** Currency */
             currency: string;
+            /** Discount Eur */
+            discount_eur?: number | null;
             /** Fx Effect Eur */
             fx_effect_eur?: number | null;
+            /** Market Gain Eur */
+            market_gain_eur?: number | null;
             /** Price */
             price?: number | null;
             /** Price Currency */
@@ -6365,6 +6377,8 @@ export interface components {
             cash: number;
             /** Currency */
             currency: string;
+            /** Discount Eur */
+            discount_eur?: number | null;
             /**
              * Dividends 12M Eur
              * @default 0
@@ -6400,6 +6414,8 @@ export interface components {
              * @default []
              */
             lines_without_cost?: string[];
+            /** Market Gain Eur */
+            market_gain_eur?: number | null;
             /** Net Invested */
             net_invested: number;
             /** Net Invested Eur */
