@@ -99,4 +99,62 @@ describe("UnassignedDepositsDialog", () => {
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument())
     expect(patched).toEqual([])
   })
+
+  it("sans cours connu, la saisie manuelle du titre, de l'ISIN, de la quantité et du prix suffit", async () => {
+    const { patched } = serve([deposit()])
+    server.use(http.get(apiUrl("/investment-transactions/7/security-proposal"), () =>
+      HttpResponse.json({ ticker: "AAPL", quantity: null, unit_price: null, price_currency: null, price_date: null })))
+    const { user } = renderWithProviders(<UnassignedDepositsDialog accountId={3} onDone={() => undefined} />, { auth: true })
+
+    const dialog = await screen.findByRole("dialog", { name: /Versement à relier/ })
+    await user.type(within(dialog).getByLabelText("Ticker / Code"), "aapl")
+    await user.type(within(dialog).getByLabelText("Code ISIN"), "us0378331005")
+    await user.type(within(dialog).getByLabelText("Quantité"), "1.5")
+    await user.type(within(dialog).getByLabelText(/Prix unitaire/), "260")
+    await user.click(within(dialog).getByRole("button", { name: "Relier" }))
+
+    await waitFor(() => expect(patched).toEqual([
+      { path: "/investment-transactions/7", body: { ticker: "AAPL", isin: "US0378331005", quantity: 1.5, unit_price: 260, price_currency: null, etf_profile_id: null } },
+    ]))
+  })
+
+  it("signale un cours inconnu quand la proposition échoue, et garde la pop-in ouverte si l'écriture échoue", async () => {
+    serve([deposit()])
+    server.use(
+      http.get(apiUrl("/investment-transactions/7/security-proposal"), () => HttpResponse.json({ detail: "KO" }, { status: 500 })),
+      http.patch(apiUrl("/investment-transactions/7"), () => HttpResponse.json({ detail: "KO" }, { status: 500 })),
+    )
+    const { user } = renderWithProviders(<UnassignedDepositsDialog accountId={3} onDone={() => undefined} />, { auth: true })
+
+    const dialog = await screen.findByRole("dialog", { name: /Versement à relier/ })
+    await user.type(within(dialog).getByLabelText(/Recherche par Titre/), "msci")
+    await user.click(await within(dialog).findByText("Amundi MSCI World"))
+    expect(await within(dialog).findByText(/Cours inconnu à cette date/)).toBeInTheDocument()
+
+    await user.type(within(dialog).getByLabelText("Quantité"), "1")
+    await user.click(within(dialog).getByRole("button", { name: "Relier" }))
+    expect(await screen.findByText(/KO|Impossible d'enregistrer ce versement/)).toBeInTheDocument()
+    expect(screen.getByRole("dialog", { name: /Versement à relier/ })).toBeInTheDocument()
+
+    await user.click(within(dialog).getByRole("button", { name: "Laisser en espèces" }))
+    expect(await screen.findByText("Impossible d'enregistrer ce versement.")).toBeInTheDocument()
+    expect(screen.getByRole("dialog", { name: /Versement à relier/ })).toBeInTheDocument()
+  })
+
+  it("reste fermée si la liste ne peut pas être chargée", async () => {
+    server.use(http.get(apiUrl("/investment-transactions"), () => HttpResponse.json({ detail: "KO" }, { status: 500 })))
+    renderWithProviders(<UnassignedDepositsDialog accountId={3} onDone={() => undefined} />, { auth: true })
+
+    await new Promise(resolve => setTimeout(resolve, 50))
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
+  })
+
+  it("s'ouvre quand même si les noms des récurrences sont indisponibles (pas de case à cocher)", async () => {
+    serve([deposit()])
+    server.use(http.get(apiUrl("/recurring-transactions/"), () => HttpResponse.json({ detail: "KO" }, { status: 500 })))
+    renderWithProviders(<UnassignedDepositsDialog accountId={3} onDone={() => undefined} />, { auth: true })
+
+    const dialog = await screen.findByRole("dialog", { name: /Versement à relier/ })
+    expect(within(dialog).queryByRole("checkbox")).not.toBeInTheDocument()
+  })
 })
