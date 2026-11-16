@@ -22,7 +22,7 @@ from sqlalchemy.orm import Session
 
 from app.core.logging import get_logger
 from app.core.time import end_of_today
-from app.domain.holdings import BUY_TYPES, EPSILON, SELL_TYPES, Position, RealizedSale, Replay, normalize_ticker
+from app.domain.holdings import BUY_TYPES, EPSILON, SELL_TYPES, Position, RealizedSale, Replay, Trade, normalize_ticker
 from app.integrations.currency import CurrencyConversionError
 from app.models.holding_baseline_item import HoldingBaselineItem
 from app.models.investment_transaction import InvestmentTransaction
@@ -81,15 +81,17 @@ async def _load_baseline(db: Session, account_id: int, account_cutoff: datetime 
     return positions, account_cutoff or (max(baseline_dates) if baseline_dates else None)
 
 
-async def _apply_buy(db: Session, pos: Position, tx: InvestmentTransaction, quantity: float, price_currency: str) -> None:
+async def _apply_buy(db: Session, pos: Position, tx: InvestmentTransaction, quantity: float, price_currency: str) -> float | None:
+    """Ajoute l'achat à la position ; renvoie son coût en EUR, frais compris (None sans taux)."""
+    gross_eur: float | None
     if tx.unit_price:
         gross = quantity * tx.unit_price + (tx.fees or 0.0)
+        gross_eur = await convert(db, gross, price_currency, "EUR", tx.date)
         if pos.cost is not None:
             added = gross if price_currency == pos.currency else await convert(db, gross, price_currency, pos.currency, tx.date)
             pos.cost = None if added is None else pos.cost + added
         if pos.cost_eur is not None:
-            added_eur = await convert(db, gross, price_currency, "EUR", tx.date)
-            pos.cost_eur = None if added_eur is None else pos.cost_eur + added_eur
+            pos.cost_eur = None if gross_eur is None else pos.cost_eur + gross_eur
     elif pos.quantity > EPSILON and pos.cost is not None:
         # Prix inconnu : on suppose l'achat au PRU courant (le PRU ne bouge pas)
         ratio = (pos.quantity + quantity) / pos.quantity
@@ -97,8 +99,11 @@ async def _apply_buy(db: Session, pos: Position, tx: InvestmentTransaction, quan
         pos.cost_eur = pos.cost_eur * ratio if pos.cost_eur is not None else None
     else:
         pos.cost = pos.cost_eur = None
+    if not tx.unit_price:
+        gross_eur = await convert(db, tx.original_amount, (tx.currency or "EUR").upper(), "EUR", tx.date)
     await _add_discount(db, pos, tx, quantity, price_currency)
     pos.quantity += quantity
+    return gross_eur
 
 
 async def _add_discount(db: Session, pos: Position, tx: InvestmentTransaction, quantity: float, price_currency: str) -> None:
@@ -154,6 +159,7 @@ async def replay_account(db: Session, account_id: int, until: datetime | None = 
     baseline = {t: replace(p) for t, p in positions.items()}
     realized: list[RealizedSale] = []
     events: list[tuple[datetime, str, float]] = []
+    trades: list[Trade] = []
 
     for tx in tx_repo.trades(db, account_id, before=until or end_of_today()):
         if tx.ticker is None or tx.quantity is None:
@@ -175,13 +181,17 @@ async def replay_account(db: Session, account_id: int, until: datetime | None = 
         pos.asset_name = pos.asset_name or tx.note
         pos.etf_profile_id = pos.etf_profile_id or tx.etf_profile_id
 
+        held_before = pos.quantity
         if tx.type in BUY_TYPES:
-            await _apply_buy(db, pos, tx, quantity, price_currency)
+            cost_eur = await _apply_buy(db, pos, tx, quantity, price_currency)
             events.append((tx.date, ticker, quantity))
+            trades.append(Trade(tx.date, ticker, "buy", quantity, held_before, cost_eur, tx.reinvest_of_id is not None))
         else:
             sale = await _apply_sell(db, pos, tx, quantity, ticker, price_currency)
             if sale is not None:
                 realized.append(sale)
                 events.append((tx.date, ticker, -sale.quantity))
+                trades.append(Trade(tx.date, ticker, "sell", sale.quantity, held_before, sale.proceeds_eur))
 
-    return Replay(positions=positions, realized=realized, baseline_date=baseline_date, baseline=baseline, quantity_events=events)
+    return Replay(positions=positions, realized=realized, baseline_date=baseline_date, baseline=baseline,
+                  quantity_events=events, trades=trades)

@@ -1,6 +1,6 @@
 """Positions : types d'opérations sur titres, ventes réalisées, résultat du rejeu, estimation du PRU (sans base)."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
 
@@ -54,6 +54,19 @@ class Position:
 
 
 @dataclass
+class Trade:
+    """Achat ou vente rejoué, en EUR : base du portefeuille fantôme (`services/investissement/benchmark.py`)."""
+
+    date: datetime
+    ticker: str
+    kind: str  # "buy" | "sell"
+    quantity: float  # parts achetées, ou vendues (au plus la quantité détenue)
+    held_before: float  # parts détenues juste avant l'opération
+    amount_eur: float | None  # achat : coût frais compris ; vente : produit net ; None = sans taux de change
+    reinvested: bool = False  # achat généré par un dividende réinvesti
+
+
+@dataclass
 class Replay:
     """Résultat du rejeu : positions finales, ventes réalisées et variations de quantité datées."""
 
@@ -62,6 +75,7 @@ class Replay:
     baseline_date: datetime | None
     baseline: dict[str, Position]  # inventaire Point Zéro tel que rejoué
     quantity_events: list[tuple[datetime, str, float]]  # (date, ticker, ±quantité)
+    trades: list[Trade] = field(default_factory=list)  # achats et ventes rejoués, dans l'ordre
 
 
 @dataclass

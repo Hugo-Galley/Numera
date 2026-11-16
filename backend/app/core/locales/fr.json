@@ -342,5 +342,9 @@
   "validation.empty": "ne peut pas être vide",
   "validation.duplicate_aliases": "alias en double dans la liste",
   "validation.date_range": "date hors de la plage 1900-2200",
-  "validation.url_scheme": "L'adresse doit commencer par http:// ou https://"
+  "validation.url_scheme": "L'adresse doit commencer par http:// ou https://",
+  "benchmark.warn_no_reference": "Aucun ETF détenu ni référence choisie : impossible de comparer le stock picking.",
+  "benchmark.warn_distributes": "{ticker} verse des dividendes : le portefeuille fantôme les ignore (référence supposée capitalisante), ce qui le désavantage.",
+  "benchmark.warn_no_quote": "Aucun cours actuel pour la référence {ticker} : comparaison impossible.",
+  "benchmark.warn_incomplete": "Cours ou montant manquant pour {tickers} : lignes exclues des totaux."
 }

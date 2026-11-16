@@ -1,4 +1,4 @@
-"""Courbe reconstituée d'un compte titres (valeur et capital investi), TWR et rapprochement avec le courtier."""
+"""Courbe reconstituée d'un compte titres (valeur et capital investi), points du TWR et rapprochement avec le courtier."""
 from datetime import date as date_type
 from datetime import datetime
 from typing import Any
@@ -6,7 +6,6 @@ from typing import Any
 from sqlalchemy.orm import Session
 
 from app.domain.holdings import EPSILON, Replay
-from app.domain.performance import twr
 from app.domain.portfolio import history_point, reconciliation_line, sample_days
 from app.repositories.investissement import portfolio as repo
 from app.services.investissement.portfolio.books import FxBook, PriceBook, unit_price
@@ -15,8 +14,9 @@ from app.services.investissement.portfolio.cash import Capital
 
 async def history_series(db: Session, account_id: int, replay: Replay, book: PriceBook, fx: FxBook, cap: Capital,
                          opening_cash: float, value: float, today_day: date_type,
-                         currency: str, baseline_date: datetime) -> tuple[list[dict[str, Any]], float | None, list[dict[str, Any]]]:
-    """(points de la courbe, TWR, lignes de rapprochement) depuis le Point Zéro des positions."""
+                         currency: str, baseline_date: datetime) -> tuple[list[dict[str, Any]], list[tuple[date_type, float, float]], list[dict[str, Any]]]:
+    """(points de la courbe, points (jour, valeur, flux externe) du TWR et de la pire baisse, lignes de rapprochement)
+    depuis le Point Zéro des positions."""
     snapshots = repo.snapshots_since(db, account_id, baseline_date)
     # Avant le Point Zéro des positions : valeurs des relevés
     points: list[dict[str, Any]] = [
@@ -62,4 +62,4 @@ async def history_series(db: Session, account_id: int, replay: Replay, book: Pri
         for snap in snapshots
         if by_day.get(snap.date.date().isoformat()) is not None
     ]
-    return points, twr(twr_points), reconciliation
+    return points, twr_points, reconciliation

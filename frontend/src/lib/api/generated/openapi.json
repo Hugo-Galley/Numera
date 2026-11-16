@@ -1872,6 +1872,208 @@
     "title": "BaselineInventoryRequest",
     "type": "object"
    },
+   "BenchmarkCandidate": {
+    "properties": {
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "ticker": {
+      "title": "Ticker",
+      "type": "string"
+     }
+    },
+    "required": [
+     "ticker",
+     "name"
+    ],
+    "title": "BenchmarkCandidate",
+    "type": "object"
+   },
+   "BenchmarkLine": {
+    "properties": {
+     "account_id": {
+      "title": "Account Id",
+      "type": "integer"
+     },
+     "account_name": {
+      "title": "Account Name",
+      "type": "string"
+     },
+     "asset_name": {
+      "title": "Asset Name",
+      "type": "string"
+     },
+     "benchmark_proceeds_eur": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Benchmark Proceeds Eur"
+     },
+     "benchmark_total_eur": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Benchmark Total Eur"
+     },
+     "benchmark_value_eur": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Benchmark Value Eur"
+     },
+     "benchmark_xirr_pct": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Benchmark Xirr Pct"
+     },
+     "dividends_eur": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Dividends Eur"
+     },
+     "gap_eur": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Gap Eur"
+     },
+     "invested_eur": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Invested Eur"
+     },
+     "missing_price": {
+      "title": "Missing Price",
+      "type": "boolean"
+     },
+     "start_date": {
+      "anyOf": [
+       {
+        "format": "date",
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Start Date"
+     },
+     "stock_proceeds_eur": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Stock Proceeds Eur"
+     },
+     "stock_total_eur": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Stock Total Eur"
+     },
+     "stock_value_eur": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Stock Value Eur"
+     },
+     "stock_xirr_pct": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Stock Xirr Pct"
+     },
+     "ticker": {
+      "title": "Ticker",
+      "type": "string"
+     }
+    },
+    "required": [
+     "ticker",
+     "asset_name",
+     "account_id",
+     "account_name",
+     "missing_price"
+    ],
+    "title": "BenchmarkLine",
+    "type": "object"
+   },
+   "BenchmarkSetting": {
+    "properties": {
+     "ticker": {
+      "anyOf": [
+       {
+        "maxLength": 32,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Ticker"
+     }
+    },
+    "title": "BenchmarkSetting",
+    "type": "object"
+   },
    "BenefitCreate": {
     "properties": {
      "account_id": {
@@ -5111,6 +5313,61 @@
      "domain"
     ],
     "title": "DomainIn",
+    "type": "object"
+   },
+   "Drawdown": {
+    "description": "Pire baisse d'un sommet à un creux sur l'indice de performance neutre des flux (TWR chaîné).",
+    "properties": {
+     "current_drawdown_pct": {
+      "title": "Current Drawdown Pct",
+      "type": "number"
+     },
+     "max_drawdown_pct": {
+      "title": "Max Drawdown Pct",
+      "type": "number"
+     },
+     "peak_date": {
+      "anyOf": [
+       {
+        "format": "date",
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Peak Date"
+     },
+     "recovery_date": {
+      "anyOf": [
+       {
+        "format": "date",
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Recovery Date"
+     },
+     "trough_date": {
+      "anyOf": [
+       {
+        "format": "date",
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Trough Date"
+     }
+    },
+    "required": [
+     "max_drawdown_pct",
+     "current_drawdown_pct"
+    ],
+    "title": "Drawdown",
     "type": "object"
    },
    "DuplicateGroup": {
@@ -10307,6 +10564,16 @@
       "title": "Dividends Eur",
       "type": "number"
      },
+     "drawdown": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/Drawdown"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
      "fees_eur": {
       "title": "Fees Eur",
       "type": "number"
@@ -10439,6 +10706,16 @@
       "default": 0.0,
       "title": "Dividends Eur",
       "type": "number"
+     },
+     "drawdown": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/Drawdown"
+       },
+       {
+        "type": "null"
+       }
+      ]
      },
      "fees_eur": {
       "default": 0.0,
@@ -13840,6 +14117,229 @@
      "status"
     ],
     "title": "StatusResponse",
+    "type": "object"
+   },
+   "StockPickingBenchmark": {
+    "description": "Stock picking face au même argent placé aux mêmes dates dans un indice de référence (portefeuille fantôme).",
+    "properties": {
+     "account_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Account Id"
+     },
+     "benchmark_distributes": {
+      "anyOf": [
+       {
+        "type": "boolean"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Benchmark Distributes"
+     },
+     "benchmark_name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Benchmark Name"
+     },
+     "benchmark_proceeds_eur": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Benchmark Proceeds Eur"
+     },
+     "benchmark_source": {
+      "title": "Benchmark Source",
+      "type": "string"
+     },
+     "benchmark_ticker": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Benchmark Ticker"
+     },
+     "benchmark_total_eur": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Benchmark Total Eur"
+     },
+     "benchmark_value_eur": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Benchmark Value Eur"
+     },
+     "benchmark_xirr_pct": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Benchmark Xirr Pct"
+     },
+     "candidates": {
+      "default": [],
+      "items": {
+       "$ref": "#/components/schemas/BenchmarkCandidate"
+      },
+      "title": "Candidates",
+      "type": "array"
+     },
+     "dividends_eur": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Dividends Eur"
+     },
+     "gap_eur": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Gap Eur"
+     },
+     "incomplete_tickers": {
+      "default": [],
+      "items": {
+       "type": "string"
+      },
+      "title": "Incomplete Tickers",
+      "type": "array"
+     },
+     "invested_eur": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Invested Eur"
+     },
+     "lines": {
+      "default": [],
+      "items": {
+       "$ref": "#/components/schemas/BenchmarkLine"
+      },
+      "title": "Lines",
+      "type": "array"
+     },
+     "start_date": {
+      "anyOf": [
+       {
+        "format": "date",
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Start Date"
+     },
+     "stock_proceeds_eur": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Stock Proceeds Eur"
+     },
+     "stock_total_eur": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Stock Total Eur"
+     },
+     "stock_value_eur": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Stock Value Eur"
+     },
+     "stock_xirr_pct": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Stock Xirr Pct"
+     },
+     "warnings": {
+      "default": [],
+      "items": {
+       "type": "string"
+      },
+      "title": "Warnings",
+      "type": "array"
+     }
+    },
+    "required": [
+     "benchmark_source"
+    ],
+    "title": "StockPickingBenchmark",
     "type": "object"
    },
    "SubscriptionIgnore": {
@@ -19775,6 +20275,125 @@
      }
     ],
     "summary": "Sankey Analytics",
+    "tags": [
+     "analytics"
+    ]
+   }
+  },
+  "/analytics/stock-picking-benchmark": {
+   "get": {
+    "description": "Actions (hors ETF) face au même argent placé aux mêmes dates dans la référence (« portefeuille fantôme »).",
+    "operationId": "stock_picking_benchmark_analytics_stock_picking_benchmark_get",
+    "parameters": [
+     {
+      "in": "query",
+      "name": "account_id",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "integer"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Account Id"
+      }
+     },
+     {
+      "in": "query",
+      "name": "benchmark",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "maxLength": 32,
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Benchmark"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/StockPickingBenchmark"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Stock Picking Benchmark",
+    "tags": [
+     "analytics"
+    ]
+   }
+  },
+  "/analytics/stock-picking-benchmark/reference": {
+   "put": {
+    "description": "Référence retenue par défaut (vide : l'ETF de plus forte valeur).",
+    "operationId": "set_stock_picking_reference_analytics_stock_picking_benchmark_reference_put",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/BenchmarkSetting"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/BenchmarkSetting"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Set Stock Picking Reference",
     "tags": [
      "analytics"
     ]
