@@ -59,6 +59,7 @@ class RecurringTransactionBase(BaseModel):
     whole_shares: bool = False
     etf_profile_id: int | None = None
     logo: str | None = None
+    is_essential: bool | None = None  # None = automatique (catégorie)
 
     _validate_logo = field_validator("logo")(_check_logo)
 
@@ -108,6 +109,7 @@ class RecurringTransactionUpdate(BaseModel):
     whole_shares: bool | None = None
     etf_profile_id: int | None = None
     logo: str | None = None
+    is_essential: bool | None = None  # null explicite = revenir à la valeur automatique
 
     _validate_logo = field_validator("logo")(_check_logo)
 

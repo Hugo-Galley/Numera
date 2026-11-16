@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Any, Literal, Optional
 
 from pydantic import BaseModel, Field
 
@@ -111,6 +111,9 @@ class SubscriptionInsight(BaseModel):
     counts_in_total: bool = True
     in_kind_total: bool = False  # compte dans le total de son onglet (`totals_by_kind`)
     kind: str = "subscriptions"  # onglet : subscriptions, investments (épargne) ou other (flux qui ne sont pas des sorties)
+    recurring_id: int | None = None  # id de la récurrence (None pour un abonnement détecté)
+    is_essential: bool = False  # valeur effective : choix de l'utilisateur, sinon déduite de la catégorie
+    is_essential_source: Literal["auto", "manual"] = "auto"
 
 
 class SubscriptionIgnore(BaseModel):
@@ -143,7 +146,18 @@ class SubscriptionsResponse(BaseModel):
     total_annual: float
     # Totaux des récurrences confirmées par onglet (`kind`), mêmes règles que l'affichage de la liste
     totals_by_kind: dict[str, CostTotals] = {}
+    # Abonnements comptés dans `totals_by_kind["subscriptions"]`, répartis en "essential" / "non_essential"
+    totals_by_essential: dict[str, CostTotals] = {}
     price_changes: list[SubscriptionPriceChange] = Field(default_factory=list)
+
+
+class ResteAVivreResponse(BaseModel):
+    """Revenus récurrents − charges récurrentes, par mois ; deux variantes selon les charges déduites."""
+    revenus_recurrents: float
+    charges_essentielles: float
+    charges_non_essentielles: float  # ce qu'on pourrait couper
+    reste_a_vivre_essentiel: float  # déduit seulement les charges essentielles
+    reste_a_vivre_total: float  # déduit toutes les charges
 
 
 class WealthSimulationPoint(BaseModel):

@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { CompanyLogo } from "@/components/ui/CompanyLogo"
 import { PriceChangesNotice } from "@/components/recurring/PriceChangesNotice"
+import { EssentialToggle } from "@/components/recurring/EssentialToggle"
+import { EssentialsSummary } from "@/components/recurring/EssentialsSummary"
 import { Progress } from "@/components/ui/progress"
 import { TabsContent } from "@/components/ui/tabs"
 import { formatCurrency, frequencyLabel } from "@/lib/utils"
@@ -14,7 +16,7 @@ import type { RecurringTransactionsCtx } from "./useRecurringTransactions"
 /** Onglet analyse : abonnements, investissements et autres flux récurrents. */
 export function SubscriptionsTab({ ctx }: { ctx: RecurringTransactionsCtx }) {
   const { t } = useTranslation("recurring")
-  const { activeSubs, handleIgnoreDetection, handleOpenValidate, annualTotal, monthlyBreakdown, monthlyTotal, potentialSubs, safeFormat, setFlowSub, setSubTab, subTab, subsData } = ctx
+  const { activeSubs, loadData, handleIgnoreDetection, handleOpenValidate, annualTotal, monthlyBreakdown, monthlyTotal, potentialSubs, safeFormat, setFlowSub, setSubTab, subTab, subsData } = ctx
   return (
     <>
       <TabsContent value="subscriptions" className="space-y-6 md:space-y-8">
@@ -99,6 +101,8 @@ export function SubscriptionsTab({ ctx }: { ctx: RecurringTransactionsCtx }) {
            </Card>
          </div>
 
+         {subTab === "subscriptions" && <EssentialsSummary totals={subsData?.totals_by_essential} refreshKey={subsData} />}
+
          <div className="grid gap-6 lg:gap-8 lg:grid-cols-12">
            <div className={`${subTab === "other" ? "lg:col-span-12" : "lg:col-span-8"} space-y-6`}>
               <Card className="shadow-xs border-slate-100 overflow-hidden">
@@ -141,6 +145,7 @@ export function SubscriptionsTab({ ctx }: { ctx: RecurringTransactionsCtx }) {
                                 <span className="text-slate-300">•</span>
                                 <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">{frequencyLabel(sub.frequency)}</span>
                               </div>
+                              {subTab === "subscriptions" && <div className="mt-1.5"><EssentialToggle sub={sub} onChanged={loadData} /></div>}
                             </div>
                           </div>
                           <div className="text-right flex items-center gap-6 shrink-0">

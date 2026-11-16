@@ -309,5 +309,23 @@
     "today": "today",
     "inDays": "in {{count}} d",
     "onDay": " · on day {{day}}"
+  },
+  "essentials": {
+    "essential": "Essential",
+    "auto": "(auto)",
+    "resetAuto": "Back to the automatic value (category)",
+    "toggleLabel": "{{name}}: essential expense",
+    "saveError": "Could not save the classification",
+    "essentials": "Essentials",
+    "nonEssentials": "Non-essentials",
+    "split": "Essentials / non-essentials",
+    "perMonth": "{{amount}} / month",
+    "perYear": "{{amount}} / year",
+    "resteAVivre": "Left to live on",
+    "modeLabel": "Expenses deducted",
+    "modeEssential": "Essentials only",
+    "modeAll": "All expenses",
+    "formula": "{{income}} recurring income − {{charges}} expenses, per month",
+    "couldCut": "What you could cut: {{amount}} / month"
   }
 }

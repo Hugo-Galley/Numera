@@ -309,5 +309,23 @@
     "today": "aujourd'hui",
     "inDays": "dans {{count}} j",
     "onDay": " · le {{day}}"
+  },
+  "essentials": {
+    "essential": "Essentiel",
+    "auto": "(auto)",
+    "resetAuto": "Revenir à la valeur automatique (catégorie)",
+    "toggleLabel": "{{name}} : charge essentielle",
+    "saveError": "Impossible d'enregistrer le classement",
+    "essentials": "Essentiels",
+    "nonEssentials": "Non essentiels",
+    "split": "Essentiels / non essentiels",
+    "perMonth": "{{amount}} / mois",
+    "perYear": "{{amount}} / an",
+    "resteAVivre": "Reste à vivre",
+    "modeLabel": "Charges déduites",
+    "modeEssential": "Essentielles seulement",
+    "modeAll": "Toutes les charges",
+    "formula": "{{income}} de revenus récurrents − {{charges}} de charges, par mois",
+    "couldCut": "Ce que tu pourrais couper : {{amount}} / mois"
   }
 }

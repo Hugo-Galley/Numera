@@ -704,6 +704,14 @@
     "type": "object"
    }
   },
+  "get_reste_a_vivre": {
+   "description": "Reste à vivre mensuel : revenus récurrents − charges récurrentes (hors épargne, investissement et virements internes).\n\n    Deux variantes : `reste_a_vivre_essentiel` (déduit seulement les charges essentielles) et\n    `reste_a_vivre_total` (déduit toutes les charges) ; `charges_non_essentielles` = ce qui pourrait être coupé.\n    ",
+   "inputSchema": {
+    "properties": {},
+    "title": "get_reste_a_vivreArguments",
+    "type": "object"
+   }
+  },
   "get_stock_picking_benchmark": {
    "description": "Stock picking face à un indice de référence (« portefeuille fantôme »).\n\n    Chaque achat d'une action hors ETF (comptes titres PEA/CTO) est rejoué le même jour, pour le même montant\n    frais compris, dans la référence ; une vente d'une fraction de la ligne vend la même fraction du fantôme.\n    Côté actions : valeur + ventes + dividendes nets ; côté référence : valeur fantôme + ventes fantômes.\n    Renvoie l'écart en EUR, le XIRR des deux côtés, le détail par ligne, la référence retenue\n    (`benchmark_source` : query, setting ou largest_etf) et les lignes à cours manquant (`incomplete_tickers`).\n\n    Args:\n        account_id: Limiter à un compte titres (optionnel)\n        benchmark: Ticker de la référence (optionnel ; défaut : réglage, sinon l'ETF le plus gros)\n    ",
    "inputSchema": {
@@ -738,7 +746,7 @@
    }
   },
   "get_subscriptions": {
-   "description": "Analyse complète des abonnements détectés : actifs, montants, insights.",
+   "description": "Analyse complète des abonnements détectés : actifs, montants, insights.\n\n    Chaque ligne indique si la charge est essentielle (`is_essential`, `is_essential_source` : auto = déduit\n    de la catégorie, manual = choix de l'utilisateur) ; `totals_by_essential` donne les totaux essentiels / non essentiels.\n    ",
    "inputSchema": {
     "properties": {},
     "title": "get_subscriptionsArguments",

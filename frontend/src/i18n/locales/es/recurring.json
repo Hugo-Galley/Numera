@@ -309,5 +309,23 @@
     "today": "hoy",
     "inDays": "en {{count}} d",
     "onDay": " · el {{day}}"
+  },
+  "essentials": {
+    "essential": "Esencial",
+    "auto": "(auto)",
+    "resetAuto": "Volver al valor automático (categoría)",
+    "toggleLabel": "{{name}}: gasto esencial",
+    "saveError": "No se pudo guardar la clasificación",
+    "essentials": "Esenciales",
+    "nonEssentials": "No esenciales",
+    "split": "Esenciales / no esenciales",
+    "perMonth": "{{amount}} / mes",
+    "perYear": "{{amount}} / año",
+    "resteAVivre": "Disponible para vivir",
+    "modeLabel": "Gastos deducidos",
+    "modeEssential": "Solo esenciales",
+    "modeAll": "Todos los gastos",
+    "formula": "{{income}} de ingresos recurrentes − {{charges}} de gastos, al mes",
+    "couldCut": "Lo que podrías recortar: {{amount}} / mes"
   }
 }

@@ -103,7 +103,11 @@ def get_top_merchants(
 
 
 def get_subscriptions() -> str:
-    """Analyse complète des abonnements détectés : actifs, montants, insights."""
+    """Analyse complète des abonnements détectés : actifs, montants, insights.
+
+    Chaque ligne indique si la charge est essentielle (`is_essential`, `is_essential_source` : auto = déduit
+    de la catégorie, manual = choix de l'utilisateur) ; `totals_by_essential` donne les totaux essentiels / non essentiels.
+    """
     try:
         resp = api.get("/analytics/subscriptions")
         error = handle_response(resp)
@@ -111,6 +115,22 @@ def get_subscriptions() -> str:
             return error
         data = resp.json()
         return f"📋 Analyse des abonnements :\n\n{serialize(data)}"
+    except Exception as e:
+        return f"❌ Erreur : {e}"
+
+
+def get_reste_a_vivre() -> str:
+    """Reste à vivre mensuel : revenus récurrents − charges récurrentes (hors épargne, investissement et virements internes).
+
+    Deux variantes : `reste_a_vivre_essentiel` (déduit seulement les charges essentielles) et
+    `reste_a_vivre_total` (déduit toutes les charges) ; `charges_non_essentielles` = ce qui pourrait être coupé.
+    """
+    try:
+        resp = api.get("/analytics/reste-a-vivre")
+        error = handle_response(resp)
+        if error:
+            return error
+        return f"💶 Reste à vivre (par mois) :\n\n{serialize(resp.json())}"
     except Exception as e:
         return f"❌ Erreur : {e}"
 
@@ -259,6 +279,7 @@ TOOLS = [
     get_expenses_by_category,
     get_top_merchants,
     get_subscriptions,
+    get_reste_a_vivre,
     get_budget_alerts,
     get_insights,
     get_monthly_report,

@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from app.controllers.deps import get_db
 from app.core.sync_bridge import run_async
 from app.schemas.common import StatusResponse
-from app.schemas.insight import SubscriptionIgnore, SubscriptionsResponse
+from app.schemas.insight import ResteAVivreResponse, SubscriptionIgnore, SubscriptionsResponse
 from app.services.analytics import subscriptions as service
 
 router = APIRouter()
@@ -20,6 +20,12 @@ def get_subscriptions_analytics(
 ) -> SubscriptionsResponse:
     """Abonnements et charges fixes ; include_other ajoute les récurrences qui ne sont pas des sorties (hors totaux)."""
     return run_async(service.compute_subscriptions(db, account_id, include_other))
+
+
+@router.get("/reste-a-vivre", response_model=ResteAVivreResponse)
+def get_reste_a_vivre(db: Session = Depends(get_db)) -> ResteAVivreResponse:
+    """Revenus récurrents − charges récurrentes par mois : en déduisant les charges essentielles seulement, ou toutes."""
+    return run_async(service.compute_reste_a_vivre(db))
 
 
 @router.post("/subscriptions/ignore", response_model=StatusResponse)

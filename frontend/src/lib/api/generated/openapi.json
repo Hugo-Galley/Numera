@@ -11959,6 +11959,17 @@
       "title": "Is Active",
       "type": "boolean"
      },
+     "is_essential": {
+      "anyOf": [
+       {
+        "type": "boolean"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Is Essential"
+     },
      "isin": {
       "anyOf": [
        {
@@ -12242,6 +12253,17 @@
       "default": true,
       "title": "Is Active",
       "type": "boolean"
+     },
+     "is_essential": {
+      "anyOf": [
+       {
+        "type": "boolean"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Is Essential"
      },
      "isin": {
       "anyOf": [
@@ -12562,6 +12584,17 @@
       ],
       "title": "Is Active"
      },
+     "is_essential": {
+      "anyOf": [
+       {
+        "type": "boolean"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Is Essential"
+     },
      "isin": {
       "anyOf": [
        {
@@ -12879,6 +12912,40 @@
      "months_used"
     ],
     "title": "Resilience",
+    "type": "object"
+   },
+   "ResteAVivreResponse": {
+    "description": "Revenus récurrents − charges récurrentes, par mois ; deux variantes selon les charges déduites.",
+    "properties": {
+     "charges_essentielles": {
+      "title": "Charges Essentielles",
+      "type": "number"
+     },
+     "charges_non_essentielles": {
+      "title": "Charges Non Essentielles",
+      "type": "number"
+     },
+     "reste_a_vivre_essentiel": {
+      "title": "Reste A Vivre Essentiel",
+      "type": "number"
+     },
+     "reste_a_vivre_total": {
+      "title": "Reste A Vivre Total",
+      "type": "number"
+     },
+     "revenus_recurrents": {
+      "title": "Revenus Recurrents",
+      "type": "number"
+     }
+    },
+    "required": [
+     "revenus_recurrents",
+     "charges_essentielles",
+     "charges_non_essentielles",
+     "reste_a_vivre_essentiel",
+     "reste_a_vivre_total"
+    ],
+    "title": "ResteAVivreResponse",
     "type": "object"
    },
    "ReviewTransaction": {
@@ -14393,6 +14460,20 @@
       "title": "In Kind Total",
       "type": "boolean"
      },
+     "is_essential": {
+      "default": false,
+      "title": "Is Essential",
+      "type": "boolean"
+     },
+     "is_essential_source": {
+      "default": "auto",
+      "enum": [
+       "auto",
+       "manual"
+      ],
+      "title": "Is Essential Source",
+      "type": "string"
+     },
      "is_recurring_entity": {
       "title": "Is Recurring Entity",
       "type": "boolean"
@@ -14442,6 +14523,17 @@
        }
       ],
       "title": "Next Occurrence"
+     },
+     "recurring_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Recurring Id"
      },
      "status": {
       "title": "Status",
@@ -14549,6 +14641,14 @@
      "total_monthly": {
       "title": "Total Monthly",
       "type": "number"
+     },
+     "totals_by_essential": {
+      "additionalProperties": {
+       "$ref": "#/components/schemas/CostTotals"
+      },
+      "default": {},
+      "title": "Totals By Essential",
+      "type": "object"
      },
      "totals_by_kind": {
       "additionalProperties": {
@@ -20199,6 +20299,33 @@
      }
     ],
     "summary": "Resilience",
+    "tags": [
+     "analytics"
+    ]
+   }
+  },
+  "/analytics/reste-a-vivre": {
+   "get": {
+    "description": "Revenus récurrents − charges récurrentes par mois : en déduisant les charges essentielles seulement, ou toutes.",
+    "operationId": "get_reste_a_vivre_analytics_reste_a_vivre_get",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ResteAVivreResponse"
+        }
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Get Reste A Vivre",
     "tags": [
      "analytics"
     ]

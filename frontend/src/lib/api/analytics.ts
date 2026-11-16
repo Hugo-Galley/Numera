@@ -47,6 +47,9 @@ export const getAnalyticsKpiHistory = <T = ApiResponse<"/analytics/kpi-history",
 /** GET /analytics/resilience */
 export const getAnalyticsResilience = <T = ApiResponse<"/analytics/resilience", "get">>(query = "") => api.get<T>(`/analytics/resilience${query}`)
 
+/** GET /analytics/reste-a-vivre */
+export const getAnalyticsResteAVivre = <T = ApiResponse<"/analytics/reste-a-vivre", "get">>() => api.get<T>(`/analytics/reste-a-vivre`)
+
 /** GET /analytics/subscriptions */
 export const getAnalyticsSubscriptions = <T = ApiResponse<"/analytics/subscriptions", "get">>(query = "") => api.get<T>(`/analytics/subscriptions${query}`)
 
