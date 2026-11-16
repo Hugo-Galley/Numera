@@ -57,6 +57,7 @@
  "GET /analytics/portfolio",
  "GET /analytics/portfolio/{account_id}",
  "GET /analytics/resilience",
+ "GET /analytics/reste-a-vivre",
  "GET /analytics/sankey",
  "GET /analytics/stock-picking-benchmark",
  "GET /analytics/subscriptions",

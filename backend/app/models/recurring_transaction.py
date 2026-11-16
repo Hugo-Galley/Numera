@@ -34,6 +34,10 @@ class RecurringTransaction(Base):
     transfer_to_account_id: Mapped[int | None] = mapped_column(ForeignKey("accounts.id", ondelete="SET NULL"), nullable=True)  # virement vers ce compte
     transfer_credit_day: Mapped[int | None] = mapped_column(nullable=True)  # jour d'arrivée sur la destination (crédit différé)
 
+    # Charge essentielle (assurance, loyer…) ou non (ce qu'on pourrait couper). NULL = déduit de la catégorie
+    # (`domain/subscriptions.py::default_is_essential`) ; une valeur explicite est le choix de l'utilisateur.
+    is_essential: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
+
     logo: Mapped[str | None] = mapped_column(String(64), nullable=True)  # "si:<slug>" (Simple Icons) ou "file:<hash>.png" (favicon local)
 
     # Asset Allocation (Sprint 4)

@@ -760,6 +760,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/analytics/reste-a-vivre": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Reste A Vivre
+         * @description Revenus récurrents − charges récurrentes par mois : en déduisant les charges essentielles seulement, ou toutes.
+         */
+        get: operations["get_reste_a_vivre_analytics_reste_a_vivre_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/analytics/sankey": {
         parameters: {
             query?: never;
@@ -6980,6 +7000,8 @@ export interface components {
              * @default true
              */
             is_active?: boolean;
+            /** Is Essential */
+            is_essential?: boolean | null;
             /** Isin */
             isin?: string | null;
             /** Last Generated Date */
@@ -7058,6 +7080,8 @@ export interface components {
              * @default true
              */
             is_active?: boolean;
+            /** Is Essential */
+            is_essential?: boolean | null;
             /** Isin */
             isin?: string | null;
             /** Last Generated Date */
@@ -7123,6 +7147,8 @@ export interface components {
             geographic_zone?: string | null;
             /** Is Active */
             is_active?: boolean | null;
+            /** Is Essential */
+            is_essential?: boolean | null;
             /** Isin */
             isin?: string | null;
             /** Last Generated Date */
@@ -7196,6 +7222,22 @@ export interface components {
             months: number | null;
             /** Months Used */
             months_used: number;
+        };
+        /**
+         * ResteAVivreResponse
+         * @description Revenus récurrents − charges récurrentes, par mois ; deux variantes selon les charges déduites.
+         */
+        ResteAVivreResponse: {
+            /** Charges Essentielles */
+            charges_essentielles: number;
+            /** Charges Non Essentielles */
+            charges_non_essentielles: number;
+            /** Reste A Vivre Essentiel */
+            reste_a_vivre_essentiel: number;
+            /** Reste A Vivre Total */
+            reste_a_vivre_total: number;
+            /** Revenus Recurrents */
+            revenus_recurrents: number;
         };
         /** ReviewTransaction */
         ReviewTransaction: {
@@ -7657,6 +7699,17 @@ export interface components {
              * @default false
              */
             in_kind_total?: boolean;
+            /**
+             * Is Essential
+             * @default false
+             */
+            is_essential?: boolean;
+            /**
+             * Is Essential Source
+             * @default auto
+             * @enum {string}
+             */
+            is_essential_source?: "auto" | "manual";
             /** Is Recurring Entity */
             is_recurring_entity: boolean;
             /**
@@ -7674,6 +7727,8 @@ export interface components {
             name: string;
             /** Next Occurrence */
             next_occurrence: string | null;
+            /** Recurring Id */
+            recurring_id?: number | null;
             /** Status */
             status: string;
         };
@@ -7712,6 +7767,13 @@ export interface components {
             total_annual: number;
             /** Total Monthly */
             total_monthly: number;
+            /**
+             * Totals By Essential
+             * @default {}
+             */
+            totals_by_essential?: {
+                [key: string]: components["schemas"]["CostTotals"];
+            };
             /**
              * Totals By Kind
              * @default {}
@@ -10083,6 +10145,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_reste_a_vivre_analytics_reste_a_vivre_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResteAVivreResponse"];
                 };
             };
         };

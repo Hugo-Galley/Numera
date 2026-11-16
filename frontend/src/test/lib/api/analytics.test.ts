@@ -20,6 +20,7 @@ describeApiCases("analytics", analytics, [
   { fn: "getAnalyticsInvestmentsPerformanceHistory", args: [7], method: "GET", path: "/analytics/investments/7/performance-history" },
   { fn: "getAnalyticsKpiHistory", args: [Q], method: "GET", path: "/analytics/kpi-history", query: Q },
   { fn: "getAnalyticsResilience", args: [Q], method: "GET", path: "/analytics/resilience", query: Q },
+  { fn: "getAnalyticsResteAVivre", args: [], method: "GET", path: "/analytics/reste-a-vivre" },
   { fn: "getAnalyticsSubscriptions", args: [Q], method: "GET", path: "/analytics/subscriptions", query: Q },
   { fn: "postAnalyticsSubscriptionsIgnore", args: [BODY], method: "POST", path: "/analytics/subscriptions/ignore", body: BODY },
   { fn: "getAnalyticsTags", args: [Q], method: "GET", path: "/analytics/tags", query: Q },
