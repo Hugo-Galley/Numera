@@ -8,6 +8,8 @@ import { TopCompanies } from "./TopCompanies"
 import { EtfCompositions } from "./EtfCompositions"
 import { DrillDownDialog } from "./DrillDownDialog"
 import { ThirdPartyAccounts } from "./ThirdPartyAccounts"
+import { StockPickingBenchmark } from "./StockPickingBenchmark"
+import { DrawdownCard } from "./DrawdownCard"
 
 export default function Investments() {
   const { t } = useTranslation("investments")
@@ -34,6 +36,10 @@ export default function Investments() {
       <AccountsAllocation ctx={ctx} />
 
       <PerformanceSection ctx={ctx} />
+
+      <DrawdownCard />
+
+      <StockPickingBenchmark />
 
       {/* Section 3: Analyses avancées */}
       <div className="space-y-4">

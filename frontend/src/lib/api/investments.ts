@@ -64,3 +64,9 @@ export const postInvestmentTransactionsLinkDividends = <T = ApiResponse<"/invest
 
 /** GET /market/validate */
 export const getMarketValidate = <T = ApiResponse<"/market/validate", "get">>(query = "") => api.get<T>(`/market/validate${query}`)
+
+/** GET /analytics/stock-picking-benchmark (`?account_id=…&benchmark=…`) */
+export const getAnalyticsStockPickingBenchmark = <T = ApiResponse<"/analytics/stock-picking-benchmark", "get">>(query = "") => api.get<T>(`/analytics/stock-picking-benchmark${query}`)
+
+/** PUT /analytics/stock-picking-benchmark/reference */
+export const putAnalyticsStockPickingBenchmarkReference = <T = ApiResponse<"/analytics/stock-picking-benchmark/reference", "put">>(body: ApiBody<"/analytics/stock-picking-benchmark/reference", "put">) => api.put<T>(`/analytics/stock-picking-benchmark/reference`, body)

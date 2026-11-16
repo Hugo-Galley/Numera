@@ -24,10 +24,13 @@ async def valued_accounts(db: Session, *, history: bool = False, third_party: bo
     return results
 
 
-async def portfolio_overview(db: Session) -> PortfolioOverview:
+async def portfolio_overview(db: Session, *, with_drawdown: bool = True) -> PortfolioOverview:
     """Somme des comptes titres valorisés par positions : valeur, plus-values latente/réalisée, dividendes, XIRR,
-    pire baisse de l'ensemble (courbes des comptes réunies, sans être renvoyées)."""
-    accounts = await valued_accounts(db, history=True)
+    pire baisse de l'ensemble (courbes des comptes réunies, sans être renvoyées).
+
+    `with_drawdown=False` évite de reconstituer les courbes quand seul le XIRR compte (prévision de patrimoine).
+    """
+    accounts = await valued_accounts(db, history=with_drawdown)
     drawdown = max_drawdown(combine_points([a["_twr_points_eur"] for a in accounts if a["_twr_points_eur"]]))
     net_invested = sum(a["net_invested_eur"] for a in accounts)
     value = sum(a["value_eur"] for a in accounts)

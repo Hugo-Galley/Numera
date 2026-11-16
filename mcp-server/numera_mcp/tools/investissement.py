@@ -13,6 +13,9 @@ def get_portfolio(account_id: int | None = None) -> str:
     réalisées par année pour la déclaration, dividendes, frais, XIRR global). Avec `account_id` : valeur,
     espèces, montant investi, plus-value latente (dont effet de change par ligne), plus-value réalisée,
     dividendes, frais, XIRR, TWR, courbe reconstituée et écart avec les relevés du courtier.
+    `drawdown` (compte et vue globale) : pire baisse d'un sommet à un creux sur la performance neutre des
+    versements (`max_drawdown_pct`, `peak_date`, `trough_date`, `recovery_date` null = pas encore récupéré,
+    `current_drawdown_pct`).
     `value_source` vaut "positions" (PEA/CTO/crypto) ou "snapshot" (assurance-vie, compte sans positions).
 
     Args:
@@ -24,6 +27,30 @@ def get_portfolio(account_id: int | None = None) -> str:
         if error:
             return error
         return f"📈 Portefeuille :\n\n{serialize(resp.json())}"
+    except Exception as e:
+        return f"❌ Erreur : {e}"
+
+
+def get_stock_picking_benchmark(account_id: int | None = None, benchmark: str | None = None) -> str:
+    """Stock picking face à un indice de référence (« portefeuille fantôme »).
+
+    Chaque achat d'une action hors ETF (comptes titres PEA/CTO) est rejoué le même jour, pour le même montant
+    frais compris, dans la référence ; une vente d'une fraction de la ligne vend la même fraction du fantôme.
+    Côté actions : valeur + ventes + dividendes nets ; côté référence : valeur fantôme + ventes fantômes.
+    Renvoie l'écart en EUR, le XIRR des deux côtés, le détail par ligne, la référence retenue
+    (`benchmark_source` : query, setting ou largest_etf) et les lignes à cours manquant (`incomplete_tickers`).
+
+    Args:
+        account_id: Limiter à un compte titres (optionnel)
+        benchmark: Ticker de la référence (optionnel ; défaut : réglage, sinon l'ETF le plus gros)
+    """
+    try:
+        params = {k: v for k, v in {"account_id": account_id, "benchmark": benchmark}.items() if v is not None}
+        resp = api.get("/analytics/stock-picking-benchmark", params=params)
+        error = handle_response(resp)
+        if error:
+            return error
+        return f"🎯 Stock picking vs référence :\n\n{serialize(resp.json())}"
     except Exception as e:
         return f"❌ Erreur : {e}"
 
@@ -272,6 +299,7 @@ def list_investment_transactions(account_id: int | None = None, limit: int = 50)
 
 TOOLS = [
     get_portfolio,
+    get_stock_picking_benchmark,
     get_dividends,
     get_investments_summary,
     get_investment_performance,

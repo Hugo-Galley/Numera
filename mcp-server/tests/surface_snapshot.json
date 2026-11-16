@@ -651,7 +651,7 @@
    }
   },
   "get_portfolio": {
-   "description": "Valeur calculée (positions × cours + espèces), plus-values, XIRR/TWR et rapprochement.\n\n    Sans `account_id` : vue globale (somme EUR des comptes titres valorisés par positions, plus-values\n    réalisées par année pour la déclaration, dividendes, frais, XIRR global). Avec `account_id` : valeur,\n    espèces, montant investi, plus-value latente (dont effet de change par ligne), plus-value réalisée,\n    dividendes, frais, XIRR, TWR, courbe reconstituée et écart avec les relevés du courtier.\n    `value_source` vaut \"positions\" (PEA/CTO/crypto) ou \"snapshot\" (assurance-vie, compte sans positions).\n\n    Args:\n        account_id: ID du compte d'investissement (optionnel)\n    ",
+   "description": "Valeur calculée (positions × cours + espèces), plus-values, XIRR/TWR et rapprochement.\n\n    Sans `account_id` : vue globale (somme EUR des comptes titres valorisés par positions, plus-values\n    réalisées par année pour la déclaration, dividendes, frais, XIRR global). Avec `account_id` : valeur,\n    espèces, montant investi, plus-value latente (dont effet de change par ligne), plus-value réalisée,\n    dividendes, frais, XIRR, TWR, courbe reconstituée et écart avec les relevés du courtier.\n    `drawdown` (compte et vue globale) : pire baisse d'un sommet à un creux sur la performance neutre des\n    versements (`max_drawdown_pct`, `peak_date`, `trough_date`, `recovery_date` null = pas encore récupéré,\n    `current_drawdown_pct`).\n    `value_source` vaut \"positions\" (PEA/CTO/crypto) ou \"snapshot\" (assurance-vie, compte sans positions).\n\n    Args:\n        account_id: ID du compte d'investissement (optionnel)\n    ",
    "inputSchema": {
     "properties": {
      "account_id": {
@@ -701,6 +701,39 @@
      }
     },
     "title": "get_resilienceArguments",
+    "type": "object"
+   }
+  },
+  "get_stock_picking_benchmark": {
+   "description": "Stock picking face à un indice de référence (« portefeuille fantôme »).\n\n    Chaque achat d'une action hors ETF (comptes titres PEA/CTO) est rejoué le même jour, pour le même montant\n    frais compris, dans la référence ; une vente d'une fraction de la ligne vend la même fraction du fantôme.\n    Côté actions : valeur + ventes + dividendes nets ; côté référence : valeur fantôme + ventes fantômes.\n    Renvoie l'écart en EUR, le XIRR des deux côtés, le détail par ligne, la référence retenue\n    (`benchmark_source` : query, setting ou largest_etf) et les lignes à cours manquant (`incomplete_tickers`).\n\n    Args:\n        account_id: Limiter à un compte titres (optionnel)\n        benchmark: Ticker de la référence (optionnel ; défaut : réglage, sinon l'ETF le plus gros)\n    ",
+   "inputSchema": {
+    "properties": {
+     "account_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Account Id"
+     },
+     "benchmark": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Benchmark"
+     }
+    },
+    "title": "get_stock_picking_benchmarkArguments",
     "type": "object"
    }
   },

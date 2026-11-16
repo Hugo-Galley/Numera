@@ -24,7 +24,7 @@ logger = get_logger(__name__)
 async def _observed_return(db: Session) -> tuple[float | None, set[int]]:
     """XIRR constaté des comptes valorisés par positions, et ces comptes (indisponible : None)."""
     try:
-        overview = await portfolio_service.portfolio_overview(db)
+        overview = await portfolio_service.portfolio_overview(db, with_drawdown=False)
         return overview.xirr_pct, {a.account_id for a in overview.accounts}
     except Exception:
         logger.warning("wealth_forecast: XIRR constaté indisponible", exc_info=True)

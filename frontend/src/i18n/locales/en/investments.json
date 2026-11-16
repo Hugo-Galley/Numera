@@ -331,5 +331,39 @@
     "heldFor": "For {{name}}",
     "value": "Value",
     "unrealized": "Unrealised gain"
+  },
+  "benchmark": {
+    "title": "Stock picking vs {{name}}",
+    "subtitle": "Your stocks (ETFs excluded) against the same money invested on the same dates in the reference, since {{date}}.",
+    "reference": "Reference index",
+    "auto": "Auto (largest ETF)",
+    "otherTicker": "Other ticker",
+    "apply": "Apply",
+    "saveError": "Could not save the reference",
+    "gap": "Gap (stocks − reference)",
+    "stocksSide": "Your stocks",
+    "referenceSide": "Shadow {{ticker}}",
+    "xirr": "Annualised return: {{rate}}",
+    "empty": "No stock outside ETFs to compare.",
+    "line": "Line",
+    "invested": "Invested",
+    "stocks": "Stocks",
+    "referenceColumn": "Reference",
+    "gapColumn": "Gap",
+    "xirrColumn": "Return / ref.",
+    "missingPrice": "Missing price",
+    "subtitleNoDate": "Your stocks (ETFs excluded) against the same money invested on the same dates in the reference."
+  },
+  "drawdown": {
+    "title": "Worst drawdown",
+    "subtitle": "Largest fall from a peak to a trough, deposits neutralised.",
+    "max": "Worst drawdown",
+    "period": "Peak to trough",
+    "fromTo": "{{peak}} → {{trough}}",
+    "none": "No drawdown",
+    "recovered": "Peak regained on {{date}}",
+    "notRecovered": "Peak not regained yet",
+    "current": "Below the high today",
+    "atPeak": "At the high"
   }
 }
