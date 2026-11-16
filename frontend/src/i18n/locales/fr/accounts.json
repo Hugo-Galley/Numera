@@ -25,6 +25,13 @@
     },
     "heldFor": "Pour {{name}}"
   },
+  "tabs": {
+    "all": "Tous",
+    "courant": "Courants",
+    "epargne": "Épargne",
+    "investissement": "Investissement",
+    "credit": "Crédits"
+  },
   "archived": {
     "hide": "Masquer les comptes archivés",
     "show": "Comptes archivés ({{count}})",

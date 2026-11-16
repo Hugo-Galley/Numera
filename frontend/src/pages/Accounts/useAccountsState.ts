@@ -5,6 +5,7 @@ import { useConfirm } from "@/providers/ConfirmProvider"
 import { useEffect, useState } from "react"
 import { useSearchParams } from "react-router-dom"
 import { Account } from "./types"
+import type { AccountGroup } from "./AccountTypeTabs"
 import { getLoansByAccountById } from "@/lib/api/accounts"
 
 /** État de la page : liste, formulaires, dialogues et liens ⌘K (?import=1, ?new=loan). */
@@ -31,6 +32,7 @@ export function useAccountsState() {
   const [newInvestisPct, setNewInvestisPct] = useState("")
   const [sortField, setSortField] = useState<"name" | "type" | "currency" | "institution">("name")
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc")
+  const [typeFilter, setTypeFilter] = useState<AccountGroup>("all")
   const [suggestions, setSuggestions] = useState<{
     asset_classes: string[],
     sectors: string[],
@@ -77,5 +79,5 @@ export function useAccountsState() {
   const [archivedAccounts, setArchivedAccounts] = useState<Account[]>([])
   const [showArchived, setShowArchived] = useState(false)
 
-  return { accounts, setAccounts, loading, setLoading, isDialogOpen, setIsDialogOpen, isEditDialogOpen, setIsEditDialogOpen, editingAccount, setEditingAccount, newName, setNewName, newType, setNewType, newCurrency, setNewCurrency, newInstitution, setNewInstitution, newLogo, setNewLogo, newAssetClass, setNewAssetClass, newSector, setNewSector, newZone, setNewZone, newValuationMode, setNewValuationMode, newTaxWrapper, setNewTaxWrapper, newOpenedAt, setNewOpenedAt, newHeldFor, setNewHeldFor, newEurosPct, setNewEurosPct, newInvestisPct, setNewInvestisPct, sortField, setSortField, sortOrder, setSortOrder, suggestions, setSuggestions, confirm, searchParams, setSearchParams, loanDialogOpen, setLoanDialogOpen, importOpen, setImportOpen, editingLoan, setEditingLoan, openEdit, archivedAccounts, setArchivedAccounts, showArchived, setShowArchived }
+  return { accounts, setAccounts, loading, setLoading, isDialogOpen, setIsDialogOpen, isEditDialogOpen, setIsEditDialogOpen, editingAccount, setEditingAccount, newName, setNewName, newType, setNewType, newCurrency, setNewCurrency, newInstitution, setNewInstitution, newLogo, setNewLogo, newAssetClass, setNewAssetClass, newSector, setNewSector, newZone, setNewZone, newValuationMode, setNewValuationMode, newTaxWrapper, setNewTaxWrapper, newOpenedAt, setNewOpenedAt, newHeldFor, setNewHeldFor, newEurosPct, setNewEurosPct, newInvestisPct, setNewInvestisPct, sortField, setSortField, sortOrder, setSortOrder, typeFilter, setTypeFilter, suggestions, setSuggestions, confirm, searchParams, setSearchParams, loanDialogOpen, setLoanDialogOpen, importOpen, setImportOpen, editingLoan, setEditingLoan, openEdit, archivedAccounts, setArchivedAccounts, showArchived, setShowArchived }
 }

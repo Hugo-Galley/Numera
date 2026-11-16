@@ -13,7 +13,7 @@ import type { AccountsCtx } from "./useAccounts"
 export function AccountsList({ ctx }: { ctx: AccountsCtx }) {
   const { t } = useTranslation("accounts")
   const { t: tc } = useTranslation()
-  const { getTypeIcon, getTypeLabel, handleDeleteAccount, handleSort, handleToggleMain, loading, openEdit, sortField, sortOrder, sortedAccounts } = ctx
+  const { getTypeIcon, getTypeLabel, handleDeleteAccount, handleSort, handleToggleMain, loading, openEdit, sortField, sortOrder, visibleAccounts } = ctx
   return (
     <>
       <Card>
@@ -25,10 +25,10 @@ export function AccountsList({ ctx }: { ctx: AccountsCtx }) {
           <div className="space-y-3 md:hidden">
             {loading ? (
               <p className="py-8 text-center text-muted-foreground">{t("list.loading")}</p>
-            ) : sortedAccounts.length === 0 ? (
+            ) : visibleAccounts.length === 0 ? (
               <p className="py-8 text-center text-muted-foreground">{t("list.empty")}</p>
             ) : (
-              sortedAccounts.map((account) => (
+              visibleAccounts.map((account) => (
                 <div key={account.id} className="rounded-xl border bg-white p-3">
                   <div className="flex items-start gap-1">
                     <Button
@@ -139,14 +139,14 @@ export function AccountsList({ ctx }: { ctx: AccountsCtx }) {
                       {t("list.loading")}
                     </TableCell>
                   </TableRow>
-                ) : sortedAccounts.length === 0 ? (
+                ) : visibleAccounts.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                       {t("list.empty")}
                     </TableCell>
                   </TableRow>
                 ) : (
-                  sortedAccounts.map((account) => (
+                  visibleAccounts.map((account) => (
                     <TableRow key={account.id}>
                       <TableCell className="font-medium">
                         <div className="flex items-center gap-2">

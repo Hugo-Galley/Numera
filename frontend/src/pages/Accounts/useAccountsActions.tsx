@@ -7,6 +7,7 @@ import { useEffect, useEffectEvent, useMemo } from "react"
 import { useSubmit } from "@/hooks/useSubmit"
 import { Account } from "./types"
 import type { useAccountsState } from "./useAccountsState"
+import { accountGroup } from "./AccountTypeTabs"
 import { deleteAccountsById, getAccounts, patchAccountsById, postAccounts } from "@/lib/api/accounts"
 import { getAnalyticsAssetAllocationSuggestions } from "@/lib/api/analytics"
 import type { ApiBody } from "@/lib/api/types"
@@ -15,7 +16,7 @@ type NewAccount = ApiBody<"/accounts", "post">
 
 /** Chargement, tri et actions sur les comptes (création, modification, archivage, compte principal). */
 export function useAccountsActions(p: ReturnType<typeof useAccountsState>) {
-  const { accounts, setAccounts, setLoading, setIsDialogOpen, setIsEditDialogOpen, editingAccount, setEditingAccount, newName, setNewName, newType, newCurrency, setNewCurrency, newInstitution, setNewInstitution, newLogo, setNewLogo, newAssetClass, setNewAssetClass, newSector, setNewSector, newZone, setNewZone, newValuationMode, setNewValuationMode, newTaxWrapper, setNewTaxWrapper, newOpenedAt, setNewOpenedAt, newHeldFor, setNewHeldFor, newEurosPct, setNewEurosPct, newInvestisPct, setNewInvestisPct, sortField, setSortField, sortOrder, setSortOrder, setSuggestions, confirm, setArchivedAccounts } = p
+  const { accounts, setAccounts, setLoading, setIsDialogOpen, setIsEditDialogOpen, editingAccount, setEditingAccount, newName, setNewName, newType, newCurrency, setNewCurrency, newInstitution, setNewInstitution, newLogo, setNewLogo, newAssetClass, setNewAssetClass, newSector, setNewSector, newZone, setNewZone, newValuationMode, setNewValuationMode, newTaxWrapper, setNewTaxWrapper, newOpenedAt, setNewOpenedAt, newHeldFor, setNewHeldFor, newEurosPct, setNewEurosPct, newInvestisPct, setNewInvestisPct, sortField, setSortField, sortOrder, setSortOrder, typeFilter, setSuggestions, confirm, setArchivedAccounts } = p
   const loadAccounts = async () => {
     setLoading(true)
     try {
@@ -78,6 +79,12 @@ export function useAccountsActions(p: ReturnType<typeof useAccountsState>) {
       return sortOrder === "asc" ? comparison : -comparison
     })
   }, [accounts, sortField, sortOrder])
+
+  // Onglet actif : sous-ensemble de la liste triée
+  const visibleAccounts = useMemo(
+    () => (typeFilter === "all" ? sortedAccounts : sortedAccounts.filter((a) => accountGroup(a.type) === typeFilter)),
+    [sortedAccounts, typeFilter],
+  )
 
   const loadOnMount = useEffectEvent(() => {
     loadAccounts()
@@ -214,5 +221,5 @@ export function useAccountsActions(p: ReturnType<typeof useAccountsState>) {
 
   const CURRENCIES = ["EUR", "USD", "GBP", "CHF", "JPY", "CAD", "AUD"]
 
-  return { loadAccounts, loadSuggestions, handleSort, sortedAccounts, handleCreateAccount, handleCreateAccountBusy, handleUpdateAccount, handleUpdateAccountBusy, handleDeleteAccount, handleRestoreAccount, handleToggleMain, getTypeIcon, getTypeLabel, CURRENCIES }
+  return { loadAccounts, loadSuggestions, handleSort, sortedAccounts, visibleAccounts, handleCreateAccount, handleCreateAccountBusy, handleUpdateAccount, handleUpdateAccountBusy, handleDeleteAccount, handleRestoreAccount, handleToggleMain, getTypeIcon, getTypeLabel, CURRENCIES }
 }

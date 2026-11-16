@@ -45,7 +45,7 @@ Version 19 : `ref` est une prop ordinaire (pas de `forwardRef` dans le code nouv
 - `Classement.tsx` (`/classement`, groupe Gestion) : catégories, tags, marchands, règles (`components/classement/`).
 - Import CSV : `components/import/ImportFlow` dans `ImportDialog`, ouvert depuis la page d'un compte (ou `/accounts?import=1`).
 - `Audit.tsx` : Centre d'Actions (voir `docs/ACTION_CENTER.md`) ; `?vue=virements` = revue des virements internes (`components/audit/TransferReview`).
-- `Accounts.tsx` : liste des comptes avec `AccountVerificationBanner` (met à jour `last_verified_at`).
+- `pages/Accounts/` : liste des comptes avec `AccountVerificationBanner` (met à jour `last_verified_at`) et onglets par type (`AccountTypeTabs` : Tous, Courants, Épargne, Investissement avec l'assurance vie, Crédits ; filtre côté client, onglet masqué sans compte).
 - `Investments.tsx` : vue globale, `HoldingsTable`, `DiversityScanner`, `PointZeroModal`, `CustomEtfModal`, `SecuritySearchInput`.
 
 ## Validation
