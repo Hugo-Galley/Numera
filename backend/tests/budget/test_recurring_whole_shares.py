@@ -3,6 +3,7 @@ import asyncio
 from datetime import datetime, timedelta
 
 from fastapi.testclient import TestClient
+from freezegun import freeze_time
 from sqlalchemy.orm import Session
 
 from app.models.account import Account
@@ -11,10 +12,11 @@ from app.models.portfolio_holding import PortfolioHolding
 from app.models.recurring_transaction import RecurringTransaction
 from app.models.transaction import Transaction
 from app.services.budget.recurring import generate_recurring_transactions
-from tests.budget.test_recurring_deferred_credit import deferred_rule
+from tests.budget.test_recurring_deferred_credit import NOT_ARRIVAL_DAY, deferred_rule
 from tests.budget.test_recurring_transfers import accounts, fake_market
 
 
+@freeze_time(NOT_ARRIVAL_DAY)
 def test_whole_shares_transfer_credits_only_the_cost_of_the_shares(db_session: Session, monkeypatch):
     fake_market(monkeypatch)  # cours historique = 100 + jour du mois (116 le 16)
     main, pea = accounts(db_session, dest_type="investissement")
@@ -40,6 +42,7 @@ def test_whole_shares_transfer_credits_only_the_cost_of_the_shares(db_session: S
     assert db_session.query(InvestmentTransaction).count() == before  # idempotent
 
 
+@freeze_time(NOT_ARRIVAL_DAY)
 def test_fractional_behaviour_is_unchanged_without_the_option(db_session: Session, monkeypatch):
     fake_market(monkeypatch)
     main, pea = accounts(db_session, dest_type="investissement")
@@ -52,6 +55,7 @@ def test_fractional_behaviour_is_unchanged_without_the_option(db_session: Sessio
         assert abs(v.quantity - 400.0 / 116.0) < 1e-5
 
 
+@freeze_time(NOT_ARRIVAL_DAY)
 def test_whole_shares_keeps_fractional_when_amount_is_below_one_share(db_session: Session, monkeypatch):
     fake_market(monkeypatch)
     main, pea = accounts(db_session, dest_type="investissement")
@@ -67,6 +71,7 @@ def test_whole_shares_keeps_fractional_when_amount_is_below_one_share(db_session
         assert v.amount == 50.0 and 0 < v.quantity < 1
 
 
+@freeze_time(NOT_ARRIVAL_DAY)
 def test_whole_shares_on_the_investment_account_itself(db_session: Session, monkeypatch):
     fake_market(monkeypatch)
     pea = Account(name="PEA", type="investissement", currency="EUR", active=True)
