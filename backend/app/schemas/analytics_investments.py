@@ -2,8 +2,11 @@
 
 Les routes à champs facultatifs (`/investments`, `/investments/{id}`, `…/performance-history`) se servent avec
 `response_model_exclude_unset=True` : une clé que le service ne produit pas n'apparaît pas dans la réponse.
+`/analytics/stock-picking-benchmark` : `StockPickingBenchmark`.
 """
-from pydantic import BaseModel
+from datetime import date
+
+from pydantic import BaseModel, Field
 
 
 class InvestmentOverviewItem(BaseModel):
@@ -172,3 +175,51 @@ class AllocationSuggestions(BaseModel):
     asset_classes: list[str]
     sectors: list[str]
     geographic_zones: list[str]
+
+
+class BenchmarkComparisonFigures(BaseModel):
+    """Côté actions (valeur + produits des ventes + dividendes nets) face au fantôme (valeur + produits des ventes)."""
+
+    start_date: date | None = None
+    invested_eur: float | None = None  # achats frais compris (+ prix de revient des lignes du Point Zéro)
+    stock_value_eur: float | None = None
+    stock_proceeds_eur: float | None = None
+    dividends_eur: float | None = None
+    stock_total_eur: float | None = None
+    benchmark_value_eur: float | None = None
+    benchmark_proceeds_eur: float | None = None
+    benchmark_total_eur: float | None = None
+    gap_eur: float | None = None  # actions − référence
+    stock_xirr_pct: float | None = None
+    benchmark_xirr_pct: float | None = None
+
+
+class BenchmarkLine(BenchmarkComparisonFigures):
+    ticker: str
+    asset_name: str
+    account_id: int
+    account_name: str
+    missing_price: bool  # cours (ou montant) manquant : ligne hors des totaux
+
+
+class BenchmarkCandidate(BaseModel):
+    ticker: str
+    name: str
+
+
+class StockPickingBenchmark(BenchmarkComparisonFigures):
+    """Stock picking face au même argent placé aux mêmes dates dans un indice de référence (portefeuille fantôme)."""
+
+    account_id: int | None = None
+    benchmark_ticker: str | None = None
+    benchmark_name: str | None = None
+    benchmark_source: str  # "query" | "setting" | "largest_etf"
+    benchmark_distributes: bool | None = None  # la référence verse des dividendes (ignorés par le fantôme)
+    candidates: list[BenchmarkCandidate] = []
+    lines: list[BenchmarkLine] = []
+    incomplete_tickers: list[str] = []
+    warnings: list[str] = []
+
+
+class BenchmarkSetting(BaseModel):
+    ticker: str | None = Field(default=None, max_length=32)  # None / vide : ETF de plus forte valeur

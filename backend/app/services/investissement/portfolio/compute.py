@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 from app.core.i18n import tr
 from app.core.time import now_local
 from app.domain.holdings import EPSILON
-from app.domain.performance import xirr
+from app.domain.performance import max_drawdown, twr, xirr
 from app.domain.portfolio import MIN_XIRR_DAYS, PRE_INVENTORY_RATIO, uses_positions
 from app.integrations.currency import CurrencyConversionError, get_exchange_rates
 from app.models.account import Account
@@ -76,12 +76,14 @@ def _xirr(cap: Capital, value: float, today_day: date_type, enabled: bool) -> tu
 
 def _result(account: Account, rate: float, valued: bool, baseline_date: datetime | None, positions: PositionsValuation,
             figures: dict[str, Any], realized: tuple[dict[int, dict[str, Any]], float, int], dividends: tuple[float, float, float],
-            history: tuple[list[dict[str, Any]] | None, float | None, list[dict[str, Any]] | None], latest_snapshot: BalanceSnapshot | None,
+            history: tuple[list[dict[str, Any]] | None, list[tuple[date_type, float, float]], list[dict[str, Any]] | None],
+            latest_snapshot: BalanceSnapshot | None,
             warnings: list[str], xirr_flows: list[tuple[date_type, float]]) -> dict[str, Any]:
     """Dictionnaire de sortie (voir `schemas/portfolio.py::PortfolioRead`) ; montants arrondis au centime."""
     value, cash, net_invested, gain = figures["value"], figures["cash"], figures["net_invested"], figures["gain"]
     realized_by_year, realized_total, realized_unknown = realized
-    series, twr_value, reconciliation = history
+    series, twr_points, reconciliation = history
+    twr_value = twr(twr_points)
 
     def eur(amount: float) -> float:
         return amount / rate
@@ -132,8 +134,10 @@ def _result(account: Account, rate: float, valued: bool, baseline_date: datetime
         ),
         "reconciliation": reconciliation,
         "history": series,
+        "drawdown": max_drawdown(twr_points),
         "warnings": warnings,
         "_xirr_flows_eur": [(d, eur(a)) for d, a in xirr_flows],
+        "_twr_points_eur": [(d, eur(v), eur(f)) for d, v, f in twr_points],
     }
 
 
@@ -187,10 +191,11 @@ async def _compute_portfolio(db: Session, account: Account, *, fetch: bool, hist
     dividends = await dividend_totals(db, account.id, today)
     fees = await fees_eur(db, account.id, baseline_date, currency, fx)
 
-    series = twr_value = reconciliation = None
+    series = reconciliation = None
+    twr_points: list[tuple[date_type, float, float]] = []
     history_missing = [t for t in all_tickers if not book.has(t)]
     if history and baseline_date is not None and valued and not history_missing:
-        series, twr_value, reconciliation = await history_series(
+        series, twr_points, reconciliation = await history_series(
             db, account.id, replay, book, fx, cap, opening_cash, value, today_day, currency, baseline_date
         )
     elif history and valued and history_missing:
@@ -203,7 +208,7 @@ async def _compute_portfolio(db: Session, account: Account, *, fetch: bool, hist
         "period_days": period_days, "fees": fees,
     }
     return _result(account, rate, valued, baseline_date, positions, figures, realized, dividends,
-                   (series, twr_value, reconciliation), balances.latest_snapshot(db, account.id), warnings, xirr_flows)
+                   (series, twr_points, reconciliation), balances.latest_snapshot(db, account.id), warnings, xirr_flows)
 
 
 async def positions_values_eur(db: Session, accounts: list[Account]) -> dict[int, float]:

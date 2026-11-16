@@ -23,4 +23,6 @@ describeApiCases("investments", investments, [
   { fn: "postHoldingsApplyCosts", args: [BODY], method: "POST", path: "/holdings/apply-costs", body: BODY },
   { fn: "postInvestmentTransactionsLinkDividends", args: ["?a=1", BODY], method: "POST", path: "/investment-transactions/link-dividends", query: "?a=1", body: BODY },
   { fn: "getMarketValidate", args: ["?a=1"], method: "GET", path: "/market/validate", query: "?a=1" },
+  { fn: "getAnalyticsStockPickingBenchmark", args: ["?benchmark=CW8.PA"], method: "GET", path: "/analytics/stock-picking-benchmark", query: "?benchmark=CW8.PA" },
+  { fn: "putAnalyticsStockPickingBenchmarkReference", args: [BODY], method: "PUT", path: "/analytics/stock-picking-benchmark/reference", body: BODY },
 ])

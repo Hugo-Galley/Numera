@@ -342,5 +342,9 @@
   "validation.empty": "cannot be empty",
   "validation.duplicate_aliases": "duplicate aliases in the list",
   "validation.date_range": "date outside the 1900-2200 range",
-  "validation.url_scheme": "The address must start with http:// or https://"
+  "validation.url_scheme": "The address must start with http:// or https://",
+  "benchmark.warn_no_reference": "No ETF held and no reference chosen: stock picking cannot be compared.",
+  "benchmark.warn_distributes": "{ticker} pays dividends: the shadow portfolio ignores them (reference assumed accumulating), which understates it.",
+  "benchmark.warn_no_quote": "No current price for the reference {ticker}: comparison unavailable.",
+  "benchmark.warn_incomplete": "Missing price or amount for {tickers}: lines left out of the totals."
 }

@@ -7,6 +7,13 @@
  "discount_eur": null,
  "dividends_12m_eur": 12.0,
  "dividends_eur": 12.0,
+ "drawdown": {
+  "current_drawdown_pct": 0.0,
+  "max_drawdown_pct": -0.37,
+  "peak_date": "2025-06-30",
+  "recovery_date": "2025-07-21",
+  "trough_date": "2025-07-07"
+ },
  "fees_eur": 7.9,
  "fx_effect_eur": 3.83,
  "gain": 1078.77,

@@ -331,5 +331,39 @@
     "heldFor": "Para {{name}}",
     "value": "Valor",
     "unrealized": "Plusvalía latente"
+  },
+  "benchmark": {
+    "title": "Stock picking vs {{name}}",
+    "subtitle": "Tus acciones (sin ETF) frente al mismo dinero invertido en las mismas fechas en la referencia, desde el {{date}}.",
+    "reference": "Índice de referencia",
+    "auto": "Auto (ETF más grande)",
+    "otherTicker": "Otro ticker",
+    "apply": "Aplicar",
+    "saveError": "No se pudo guardar la referencia",
+    "gap": "Diferencia (acciones − referencia)",
+    "stocksSide": "Tus acciones",
+    "referenceSide": "Fantasma {{ticker}}",
+    "xirr": "Rentabilidad anualizada: {{rate}}",
+    "empty": "Ninguna acción fuera de ETF que comparar.",
+    "line": "Línea",
+    "invested": "Invertido",
+    "stocks": "Acciones",
+    "referenceColumn": "Referencia",
+    "gapColumn": "Diferencia",
+    "xirrColumn": "Rentab. / ref.",
+    "missingPrice": "Falta cotización",
+    "subtitleNoDate": "Tus acciones (sin ETF) frente al mismo dinero invertido en las mismas fechas en la referencia."
+  },
+  "drawdown": {
+    "title": "Peor caída",
+    "subtitle": "Mayor caída de un máximo a un mínimo, aportaciones neutralizadas.",
+    "max": "Peor caída",
+    "period": "Del máximo al mínimo",
+    "fromTo": "{{peak}} → {{trough}}",
+    "none": "Sin caída",
+    "recovered": "Máximo recuperado el {{date}}",
+    "notRecovered": "Máximo aún no recuperado",
+    "current": "Bajo el máximo hoy",
+    "atPeak": "En máximos"
   }
 }

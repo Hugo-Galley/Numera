@@ -1,3 +1,5 @@
+from datetime import date
+
 from pydantic import BaseModel
 
 
@@ -46,6 +48,16 @@ class HistoryPoint(BaseModel):
     performance_pct: float | None = None
 
 
+class Drawdown(BaseModel):
+    """Pire baisse d'un sommet à un creux sur l'indice de performance neutre des flux (TWR chaîné)."""
+
+    max_drawdown_pct: float  # ≤ 0
+    peak_date: date | None = None
+    trough_date: date | None = None
+    recovery_date: date | None = None  # None : pas encore revenu au sommet
+    current_drawdown_pct: float  # baisse actuelle sous le plus haut (≤ 0)
+
+
 class SnapshotRef(BaseModel):
     date: str
     value: float
@@ -91,6 +103,7 @@ class PortfolioRead(BaseModel):
     snapshot: SnapshotRef | None = None
     reconciliation: list[ReconciliationPoint] | None = None
     history: list[HistoryPoint] | None = None
+    drawdown: Drawdown | None = None
     warnings: list[str] = []
 
 
@@ -105,6 +118,7 @@ class PortfolioOverview(BaseModel):
     gain_eur: float
     performance_pct: float | None = None
     xirr_pct: float | None = None
+    drawdown: Drawdown | None = None
     unrealized_eur: float | None = None
     realized_eur: float
     realized_by_year: list[RealizedYear]

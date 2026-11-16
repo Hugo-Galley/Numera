@@ -342,5 +342,9 @@
   "validation.empty": "no puede estar vacío",
   "validation.duplicate_aliases": "alias duplicado en la lista",
   "validation.date_range": "fecha fuera del rango 1900-2200",
-  "validation.url_scheme": "La dirección debe empezar por http:// o https://"
+  "validation.url_scheme": "La dirección debe empezar por http:// o https://",
+  "benchmark.warn_no_reference": "Ningún ETF en cartera ni referencia elegida: no se puede comparar el stock picking.",
+  "benchmark.warn_distributes": "{ticker} reparte dividendos: la cartera fantasma los ignora (referencia supuesta de acumulación), lo que la penaliza.",
+  "benchmark.warn_no_quote": "Sin cotización actual para la referencia {ticker}: comparación imposible.",
+  "benchmark.warn_incomplete": "Falta cotización o importe para {tickers}: líneas excluidas de los totales."
 }

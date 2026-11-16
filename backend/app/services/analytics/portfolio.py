@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.core.errors import BusinessRuleError, NotFoundError
 from app.core.i18n import tr
-from app.domain.performance import xirr
+from app.domain.performance import combine_points, max_drawdown, xirr
 from app.domain.portfolio import uses_positions
 from app.repositories.analytics import investments as repo
 from app.repositories.comptes import accounts as accounts_repo
@@ -24,9 +24,14 @@ async def valued_accounts(db: Session, *, history: bool = False, third_party: bo
     return results
 
 
-async def portfolio_overview(db: Session) -> PortfolioOverview:
-    """Somme des comptes titres valorisés par positions : valeur, plus-values latente/réalisée, dividendes, XIRR."""
-    accounts = await valued_accounts(db)
+async def portfolio_overview(db: Session, *, with_drawdown: bool = True) -> PortfolioOverview:
+    """Somme des comptes titres valorisés par positions : valeur, plus-values latente/réalisée, dividendes, XIRR,
+    pire baisse de l'ensemble (courbes des comptes réunies, sans être renvoyées).
+
+    `with_drawdown=False` évite de reconstituer les courbes quand seul le XIRR compte (prévision de patrimoine).
+    """
+    accounts = await valued_accounts(db, history=with_drawdown)
+    drawdown = max_drawdown(combine_points([a["_twr_points_eur"] for a in accounts if a["_twr_points_eur"]]))
     net_invested = sum(a["net_invested_eur"] for a in accounts)
     value = sum(a["value_eur"] for a in accounts)
     unrealized = [a["unrealized_eur"] for a in accounts if a["unrealized_eur"] is not None]
@@ -47,13 +52,14 @@ async def portfolio_overview(db: Session) -> PortfolioOverview:
     rate = xirr(sorted(merged.items())) if accounts else None
 
     return PortfolioOverview(
-        accounts=[PortfolioRead(**a) for a in accounts],
+        accounts=[PortfolioRead(**{**a, "history": None, "reconciliation": None}) for a in accounts],
         third_party_accounts=[PortfolioRead(**a) for a in await valued_accounts(db, third_party=True)],
         value_eur=round(value, 2),
         net_invested_eur=round(net_invested, 2),
         gain_eur=round(value - net_invested, 2),
         performance_pct=round((value - net_invested) / net_invested * 100.0, 2) if net_invested > 0 else None,
         xirr_pct=round(rate * 100.0, 2) if rate is not None else None,
+        drawdown=drawdown,
         unrealized_eur=round(sum(unrealized), 2) if unrealized else None,
         realized_eur=round(sum(a["realized_eur"] for a in accounts), 2),
         realized_by_year=[

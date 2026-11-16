@@ -8,15 +8,18 @@ from app.controllers.deps import get_db
 from app.core.sync_bridge import run_async
 from app.schemas.analytics_investments import (
     AllocationSuggestions,
+    BenchmarkSetting,
     InvestmentAccountDetail,
     InvestmentsAllocation,
     InvestmentsAllocationAdvanced,
     InvestmentsOverview,
     PatrimoineAllocation,
     PerformanceHistory,
+    StockPickingBenchmark,
 )
 from app.schemas.insight import FireResponse, WealthForecastResponse, WealthSimulationResponse
 from app.services.analytics import investments as service
+from app.services.analytics.investments import benchmark as benchmark_service
 
 router = APIRouter()
 
@@ -39,6 +42,22 @@ def investment_account_analytics(account_id: int, db: Session = Depends(get_db))
 @router.get("/investments/{account_id}/performance-history", response_model=PerformanceHistory, response_model_exclude_unset=True)
 def investment_performance_history(account_id: int, db: Session = Depends(get_db)) -> dict[str, Any]:
     return run_async(service.compute_performance_history(db, account_id))
+
+
+@router.get("/stock-picking-benchmark", response_model=StockPickingBenchmark)
+def stock_picking_benchmark(
+    account_id: int | None = Query(default=None),
+    benchmark: str | None = Query(default=None, max_length=32),
+    db: Session = Depends(get_db),
+) -> dict[str, Any]:
+    """Actions (hors ETF) face au même argent placé aux mêmes dates dans la référence (« portefeuille fantôme »)."""
+    return run_async(benchmark_service.stock_picking_benchmark(db, account_id, benchmark))
+
+
+@router.put("/stock-picking-benchmark/reference", response_model=BenchmarkSetting)
+def set_stock_picking_reference(payload: BenchmarkSetting, db: Session = Depends(get_db)) -> dict[str, str | None]:
+    """Référence retenue par défaut (vide : l'ETF de plus forte valeur)."""
+    return benchmark_service.set_benchmark(db, payload.ticker)
 
 
 @router.get("/investments-allocation", response_model=InvestmentsAllocation)

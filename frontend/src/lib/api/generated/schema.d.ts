@@ -777,6 +777,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/analytics/stock-picking-benchmark": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Stock Picking Benchmark
+         * @description Actions (hors ETF) face au même argent placé aux mêmes dates dans la référence (« portefeuille fantôme »).
+         */
+        get: operations["stock_picking_benchmark_analytics_stock_picking_benchmark_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/analytics/stock-picking-benchmark/reference": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Set Stock Picking Reference
+         * @description Référence retenue par défaut (vide : l'ETF de plus forte valeur).
+         */
+        put: operations["set_stock_picking_reference_analytics_stock_picking_benchmark_reference_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/analytics/subscriptions": {
         parameters: {
             query?: never;
@@ -3690,6 +3730,55 @@ export interface components {
             /** Holdings */
             holdings: components["schemas"]["BaselineHoldingItem"][];
         };
+        /** BenchmarkCandidate */
+        BenchmarkCandidate: {
+            /** Name */
+            name: string;
+            /** Ticker */
+            ticker: string;
+        };
+        /** BenchmarkLine */
+        BenchmarkLine: {
+            /** Account Id */
+            account_id: number;
+            /** Account Name */
+            account_name: string;
+            /** Asset Name */
+            asset_name: string;
+            /** Benchmark Proceeds Eur */
+            benchmark_proceeds_eur?: number | null;
+            /** Benchmark Total Eur */
+            benchmark_total_eur?: number | null;
+            /** Benchmark Value Eur */
+            benchmark_value_eur?: number | null;
+            /** Benchmark Xirr Pct */
+            benchmark_xirr_pct?: number | null;
+            /** Dividends Eur */
+            dividends_eur?: number | null;
+            /** Gap Eur */
+            gap_eur?: number | null;
+            /** Invested Eur */
+            invested_eur?: number | null;
+            /** Missing Price */
+            missing_price: boolean;
+            /** Start Date */
+            start_date?: string | null;
+            /** Stock Proceeds Eur */
+            stock_proceeds_eur?: number | null;
+            /** Stock Total Eur */
+            stock_total_eur?: number | null;
+            /** Stock Value Eur */
+            stock_value_eur?: number | null;
+            /** Stock Xirr Pct */
+            stock_xirr_pct?: number | null;
+            /** Ticker */
+            ticker: string;
+        };
+        /** BenchmarkSetting */
+        BenchmarkSetting: {
+            /** Ticker */
+            ticker?: string | null;
+        };
         /** BenefitCreate */
         BenefitCreate: {
             /** Account Id */
@@ -4745,6 +4834,22 @@ export interface components {
         DomainIn: {
             /** Domain */
             domain: string;
+        };
+        /**
+         * Drawdown
+         * @description Pire baisse d'un sommet à un creux sur l'indice de performance neutre des flux (TWR chaîné).
+         */
+        Drawdown: {
+            /** Current Drawdown Pct */
+            current_drawdown_pct: number;
+            /** Max Drawdown Pct */
+            max_drawdown_pct: number;
+            /** Peak Date */
+            peak_date?: string | null;
+            /** Recovery Date */
+            recovery_date?: string | null;
+            /** Trough Date */
+            trough_date?: string | null;
         };
         /** DuplicateGroup */
         DuplicateGroup: {
@@ -6370,6 +6475,7 @@ export interface components {
             dividends_12m_eur: number;
             /** Dividends Eur */
             dividends_eur: number;
+            drawdown?: components["schemas"]["Drawdown"] | null;
             /** Fees Eur */
             fees_eur: number;
             /** Gain Eur */
@@ -6418,6 +6524,7 @@ export interface components {
              * @default 0
              */
             dividends_eur?: number;
+            drawdown?: components["schemas"]["Drawdown"] | null;
             /**
              * Fees Eur
              * @default 0
@@ -7457,6 +7564,66 @@ export interface components {
         StatusResponse: {
             /** Status */
             status: string;
+        };
+        /**
+         * StockPickingBenchmark
+         * @description Stock picking face au même argent placé aux mêmes dates dans un indice de référence (portefeuille fantôme).
+         */
+        StockPickingBenchmark: {
+            /** Account Id */
+            account_id?: number | null;
+            /** Benchmark Distributes */
+            benchmark_distributes?: boolean | null;
+            /** Benchmark Name */
+            benchmark_name?: string | null;
+            /** Benchmark Proceeds Eur */
+            benchmark_proceeds_eur?: number | null;
+            /** Benchmark Source */
+            benchmark_source: string;
+            /** Benchmark Ticker */
+            benchmark_ticker?: string | null;
+            /** Benchmark Total Eur */
+            benchmark_total_eur?: number | null;
+            /** Benchmark Value Eur */
+            benchmark_value_eur?: number | null;
+            /** Benchmark Xirr Pct */
+            benchmark_xirr_pct?: number | null;
+            /**
+             * Candidates
+             * @default []
+             */
+            candidates?: components["schemas"]["BenchmarkCandidate"][];
+            /** Dividends Eur */
+            dividends_eur?: number | null;
+            /** Gap Eur */
+            gap_eur?: number | null;
+            /**
+             * Incomplete Tickers
+             * @default []
+             */
+            incomplete_tickers?: string[];
+            /** Invested Eur */
+            invested_eur?: number | null;
+            /**
+             * Lines
+             * @default []
+             */
+            lines?: components["schemas"]["BenchmarkLine"][];
+            /** Start Date */
+            start_date?: string | null;
+            /** Stock Proceeds Eur */
+            stock_proceeds_eur?: number | null;
+            /** Stock Total Eur */
+            stock_total_eur?: number | null;
+            /** Stock Value Eur */
+            stock_value_eur?: number | null;
+            /** Stock Xirr Pct */
+            stock_xirr_pct?: number | null;
+            /**
+             * Warnings
+             * @default []
+             */
+            warnings?: string[];
         };
         /** SubscriptionIgnore */
         SubscriptionIgnore: {
@@ -9940,6 +10107,71 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Sankey"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    stock_picking_benchmark_analytics_stock_picking_benchmark_get: {
+        parameters: {
+            query?: {
+                account_id?: number | null;
+                benchmark?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StockPickingBenchmark"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_stock_picking_reference_analytics_stock_picking_benchmark_reference_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BenchmarkSetting"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BenchmarkSetting"];
                 };
             };
             /** @description Validation Error */

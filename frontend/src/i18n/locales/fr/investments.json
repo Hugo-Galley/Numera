@@ -331,5 +331,39 @@
     "heldFor": "Pour {{name}}",
     "value": "Valeur",
     "unrealized": "Plus-value latente"
+  },
+  "benchmark": {
+    "title": "Stock picking vs {{name}}",
+    "subtitle": "Vos actions (hors ETF) face au même argent placé aux mêmes dates dans la référence, depuis le {{date}}.",
+    "reference": "Indice de référence",
+    "auto": "Auto (plus gros ETF)",
+    "otherTicker": "Autre ticker",
+    "apply": "Appliquer",
+    "saveError": "Impossible d'enregistrer la référence",
+    "gap": "Écart (actions − référence)",
+    "stocksSide": "Vos actions",
+    "referenceSide": "Fantôme {{ticker}}",
+    "xirr": "Rendement annualisé : {{rate}}",
+    "empty": "Aucune action hors ETF à comparer.",
+    "line": "Ligne",
+    "invested": "Investi",
+    "stocks": "Actions",
+    "referenceColumn": "Référence",
+    "gapColumn": "Écart",
+    "xirrColumn": "Rendement / réf.",
+    "missingPrice": "Cours manquant",
+    "subtitleNoDate": "Vos actions (hors ETF) face au même argent placé aux mêmes dates dans la référence."
+  },
+  "drawdown": {
+    "title": "Pire baisse",
+    "subtitle": "Plus forte chute d'un sommet à un creux, versements neutralisés.",
+    "max": "Pire baisse",
+    "period": "Du sommet au creux",
+    "fromTo": "{{peak}} → {{trough}}",
+    "none": "Aucune baisse",
+    "recovered": "Sommet retrouvé le {{date}}",
+    "notRecovered": "Sommet pas encore retrouvé",
+    "current": "Sous le plus haut aujourd'hui",
+    "atPeak": "Au plus haut"
   }
 }
