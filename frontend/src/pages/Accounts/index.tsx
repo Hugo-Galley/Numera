@@ -9,11 +9,12 @@ import { useAccounts } from "./useAccounts"
 import { CreateAccountDialog } from "./CreateAccountDialog"
 import { EditAccountDialog } from "./EditAccountDialog"
 import { AccountsList } from "./AccountsList"
+import { AccountTypeTabs } from "./AccountTypeTabs"
 
 export default function Accounts() {
   const { t } = useTranslation("accounts")
   const ctx = useAccounts()
-  const { archivedAccounts, editingLoan, handleRestoreAccount, importOpen, loadAccounts, loanDialogOpen, setEditingLoan, setImportOpen, setLoanDialogOpen, setShowArchived, showArchived } = ctx
+  const { archivedAccounts, editingLoan, handleRestoreAccount, importOpen, loadAccounts, loanDialogOpen, setEditingLoan, setImportOpen, setLoanDialogOpen, setShowArchived, setTypeFilter, showArchived, sortedAccounts, typeFilter } = ctx
   return (
     <div className="space-y-8">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -33,7 +34,10 @@ export default function Accounts() {
       {/* Edit Dialog */}
       <EditAccountDialog ctx={ctx} />
 
-      <AccountsList ctx={ctx} />
+      <div className="space-y-4">
+        <AccountTypeTabs accounts={sortedAccounts} value={typeFilter} onChange={setTypeFilter} />
+        <AccountsList ctx={ctx} />
+      </div>
 
       {archivedAccounts.length > 0 && (
         <div className="space-y-3">
