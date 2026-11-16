@@ -140,7 +140,8 @@ def test_forecast_observed_return_only_applies_to_measured_accounts(client, db_s
     _account_with_value(db_session, "PEA", "investissement", 8000)
     _account_with_value(db_session, "Livret", "epargne", 10000)
 
-    async def fake_overview(db):
+    async def fake_overview(db, *, with_drawdown=True):
+        assert with_drawdown is False  # la prévision ne reconstitue pas les courbes
         return SimpleNamespace(xirr_pct=20.0, accounts=[SimpleNamespace(account_id=measured.id)])
 
     monkeypatch.setattr(portfolio, "portfolio_overview", fake_overview)
