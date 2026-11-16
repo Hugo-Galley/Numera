@@ -2,6 +2,7 @@
 import asyncio
 from datetime import datetime, timedelta
 
+from freezegun import freeze_time
 from sqlalchemy.orm import Session
 
 from app.domain.recurring import transfer_credit_date
@@ -11,6 +12,10 @@ from app.models.recurring_transaction import RecurringTransaction
 from app.models.transaction import Transaction
 from app.services.budget.recurring import generate_recurring_transactions
 from tests.budget.test_recurring_transfers import accounts, fake_market
+
+# Hors du jour d'arrivée (16) : une arrivée datée d'aujourd'hui s'achète à la cotation en direct,
+# pas à la clôture historique (cf. test_arrival_today_buys_at_the_live_quote).
+NOT_ARRIVAL_DAY = "2026-11-10 12:00:00"
 
 
 def test_transfer_credit_date():
@@ -33,6 +38,7 @@ def deferred_rule(db: Session, src: Account, dest: Account, **kw) -> RecurringTr
     return rd
 
 
+@freeze_time(NOT_ARRIVAL_DAY)
 def test_deferred_transfer_credits_on_arrival_day(db_session: Session, monkeypatch):
     fake_market(monkeypatch)
     main, pea = accounts(db_session, dest_type="investissement")
@@ -136,3 +142,18 @@ def test_credit_day_requires_transfer_destination(client, db_session: Session):
     assert client.post("/recurring-transactions/", json={**base, "transfer_to_account_id": livret.id, "transfer_credit_day": 32}).status_code == 422
     r = client.post("/recurring-transactions/", json={**base, "transfer_to_account_id": livret.id, "transfer_credit_day": 16})
     assert r.status_code == 200 and r.json()["transfer_credit_day"] == 16
+
+
+@freeze_time("2026-11-16 12:00:00")
+def test_arrival_today_buys_at_the_live_quote(db_session: Session, monkeypatch):
+    """Arrivée datée d'aujourd'hui : pas encore de clôture, achat à la cotation en direct ; les arrivées passées
+    gardent la clôture historique du jour d'arrivée."""
+    fake_market(monkeypatch)  # historique = 100 + jour, direct = 999
+    main, pea = accounts(db_session, dest_type="investissement")
+    deferred_rule(db_session, main, pea, ticker="CW8.PA")
+
+    asyncio.run(generate_recurring_transactions(db_session))
+
+    prices = {v.date: v.unit_price for v in db_session.query(InvestmentTransaction).filter_by(account_id=pea.id)}
+    assert prices.pop(datetime(2026, 11, 16)) == 999.0
+    assert prices and all(p == 116.0 for p in prices.values())
