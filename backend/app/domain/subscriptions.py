@@ -26,9 +26,13 @@ def recurring_costs(amount: float, frequency: str, rate: float) -> tuple[float, 
 SAVINGS_CATEGORIES = ("Investissement", "Epargne")
 
 
-def subscription_kind(category_name: str | None, flow_type: str) -> str:
-    """Onglet d'une récurrence : alimentation d'épargne/investissement, autre flux que Sortie, sinon abonnement."""
-    if category_name in SAVINGS_CATEGORIES:
+def subscription_kind(category_name: str | None, flow_type: str, is_transfer: bool = False) -> str:
+    """Onglet d'une récurrence : alimentation d'épargne/investissement, autre flux que Sortie, sinon abonnement.
+
+    Un virement interne récurrent (`transfer_to_account_id`, ex. « Virement Livret A ») alimente un autre compte :
+    c'est de l'épargne, jamais un abonnement ni une charge.
+    """
+    if is_transfer or category_name in SAVINGS_CATEGORIES:
         return "investments"
     return "subscriptions" if flow_type == "Sortie" else "other"
 

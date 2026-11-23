@@ -21,6 +21,7 @@
     "globalReturn": "Rendement global",
     "monthlyNetFlow": "Flux Net du Mois",
     "inMinusOut": "Entrées − Sorties ce mois",
+    "currentMonthNote": "Mois en cours, pas encore terminé",
     "monthlyChange": "Variation Mensuelle",
     "vsPrevious": "vs mois précédent",
     "avgBasket": "Panier Moyen",
@@ -86,6 +87,7 @@
     "net": "net {{amount}}",
     "balanceLabel": "Solde {{amount}}",
     "selectAll": "Tout sélectionner",
+    "selectRow": "Sélectionner l'opération {{merchant}} du {{date}}",
     "selected": "sélectionnés",
     "loadMore": "Charger plus de transactions",
     "loading": "Chargement…",
@@ -132,15 +134,13 @@
       "merchant": "Commerçant / Libellé",
       "merchantPlaceholder": "Ex: Carrefour...",
       "amount": "Montant",
+      "amountPlaceholder": "0,00",
       "currency": "Devise",
       "categoryField": "Catégorie",
       "choose": "Choisir...",
       "tags": "Tags",
       "recurring": "Transaction récurrente",
-      "exceptional": "Dépense exceptionnelle (achat ponctuel)",
-      "icon": "Icône (Lucide)",
-      "iconPlaceholder": "Ex: Coffee, Zap...",
-      "color": "Couleur"
+      "exceptional": "Dépense exceptionnelle (achat ponctuel)"
     },
     "toast": {
       "needMerchant": "Veuillez saisir un commerçant ou un libellé",

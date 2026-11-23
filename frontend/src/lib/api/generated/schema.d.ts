@@ -4044,7 +4044,10 @@ export interface components {
             depenses_reelles: number;
             /** Depenses Totales */
             depenses_totales: number;
-            /** Epargne Realisee */
+            /**
+             * Epargne Realisee
+             * @description Revenus − dépenses réelles (vue globale) ; identique à solde_du_mois
+             */
             epargne_realisee: number;
             /** Epargne Total */
             epargne_total: number;
@@ -4052,6 +4055,11 @@ export interface components {
             interets_totaux: number;
             /** Investissements Du Mois */
             investissements_du_mois: number;
+            /**
+             * Mis De Cote
+             * @description Argent envoyé vers l'épargne et les placements : investissements_du_mois + virements nets du courant vers les comptes d'épargne, d'assurance-vie ou titres (vue compte : investissements_du_mois)
+             */
+            mis_de_cote: number;
             /** Month */
             month: number | null;
             /** Patrimoine Net Total */
@@ -4064,6 +4072,11 @@ export interface components {
             revenus_totaux: number;
             /** Solde Actuel */
             solde_actuel: number;
+            /**
+             * Solde Du Mois
+             * @description Revenus − dépenses réelles : ce qui reste du mois, numérateur du taux d'épargne
+             */
+            solde_du_mois: number;
             /** Taux Epargne */
             taux_epargne: number;
             /** Year */
@@ -6150,7 +6163,7 @@ export interface components {
             real_expenses_excl_exceptional: number;
             /**
              * Savings
-             * @description Revenus − dépenses réelles : numérateur du taux d'épargne
+             * @description Revenus − dépenses réelles : numérateur du taux d'épargne (= budget.solde_du_mois)
              */
             savings: number;
             /** Savings Excl Exceptional */
@@ -6159,6 +6172,11 @@ export interface components {
             savings_rate: number;
             /** Savings Rate Excl Exceptional */
             savings_rate_excl_exceptional: number;
+            /**
+             * Set Aside
+             * @description Mis de côté : argent envoyé vers l'épargne et les placements (= budget.mis_de_cote)
+             */
+            set_aside: number;
             /** Top Categories */
             top_categories: {
                 [key: string]: unknown;
@@ -7763,9 +7781,15 @@ export interface components {
             price_changes?: components["schemas"]["SubscriptionPriceChange"][];
             /** Subscriptions */
             subscriptions: components["schemas"]["SubscriptionInsight"][];
-            /** Total Annual */
+            /**
+             * Total Annual
+             * @description Coût annuel des abonnements confirmés (= totals_by_kind.subscriptions.annual)
+             */
             total_annual: number;
-            /** Total Monthly */
+            /**
+             * Total Monthly
+             * @description Coût mensuel des abonnements confirmés (= totals_by_kind.subscriptions.monthly)
+             */
             total_monthly: number;
             /**
              * Totals By Essential

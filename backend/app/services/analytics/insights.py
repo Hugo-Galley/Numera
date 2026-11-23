@@ -1,11 +1,10 @@
 """Insights du mois : score de santé financière et anomalies (abonnements, grosses dépenses, catégories)."""
-from datetime import datetime
 from typing import Any
 
 from sqlalchemy.orm import Session
 
 from app.core.i18n import tr
-from app.domain.insights import category_anomalies, eur, health_score
+from app.domain.insights import category_anomalies, eur, health_score, income_base, is_habitual, large_expense_threshold
 from app.domain.transactions import net_amount
 from app.integrations.currency import get_exchange_rates
 from app.repositories.analytics import insights as repo
@@ -28,7 +27,6 @@ def _previous(month: int, year: int, back: int = 1) -> tuple[int, int]:
 
 async def compute_insights(db: Session, month: int, year: int, account_id: int | None = None) -> IntelligentInsights:
     rates = await get_exchange_rates("EUR")
-    start_month, end_month = period_bounds(db, year, month)
     budget_data = await compute_budget(month=month, year=year, account_id=account_id, db=db)
     if account_id:
         burn_rate, epargne_total = budget_data["burn_rate"], budget_data["epargne_total"]
@@ -39,7 +37,7 @@ async def compute_insights(db: Session, month: int, year: int, account_id: int |
     score = health_score(budget_data, runway_months)
 
     insights = await _subscription_increase(db, month, year)
-    insights += _large_expenses(db, start_month, end_month, account_id, budget_data["revenus_totaux"], rates)
+    insights += await _large_expenses(db, month, year, account_id, budget_data["revenus_totaux"], rates)
     insights += await _category_anomalies(db, month, year, account_id)
     insights += _positive_insights(budget_data["taux_epargne"], runway_months, month, year)
 
@@ -65,24 +63,45 @@ async def _subscription_increase(db: Session, month: int, year: int) -> list[Ins
     )]
 
 
-def _large_expenses(db: Session, start: datetime, end: datetime, account_id: int | None, revenus: float, rates: dict[str, Any]) -> list[Insight]:
-    """Sorties isolées au-delà de 10 % des revenus (au moins 500 €), hors épargne/investissement."""
+async def _large_expenses(db: Session, month: int, year: int, account_id: int | None, revenus: float,
+                          rates: dict[str, Any]) -> list[Insight]:
+    """Sorties isolées au-delà de 10 % du revenu de référence (au moins 500 €), hors épargne/investissement.
+
+    Revenu de référence : le plus haut entre le revenu du mois et la moyenne des 3 mois précédents, pour
+    qu'un mois commencé sans salaire (revenu 0) ne fasse pas tomber le seuil au plancher.
+    Ne sont pas « isolées » : une sortie rattachée à une récurrence (loyer, abonnement), ni une charge
+    habituelle (même marchand, montant à ±20 %, au moins deux fois dans les 3 mois précédents).
+    """
+    start, end = period_bounds(db, year, month)
+    previous = [_previous(month, year, back) for back in range(1, 4)]
+    previous_incomes = [
+        float((await compute_budget(month=m, year=y, account_id=account_id, db=db))["revenus_totaux"]) for m, y in previous
+    ]
+    base = income_base(revenus, previous_incomes)
+    threshold = large_expense_threshold(base)
     tr_accounts = set() if account_id else ticket_restaurant_account_ids(db)
-    insights = []
+    candidates = []
     for tx, curr in repo.month_expenses(db, start, end, account_id, tr_accounts):
         val_eur = net_amount(tx) / rates.get(curr, 1.0)
         if tx.category and tx.category.name in ("Investissement", "Epargne"):
             continue
-        if val_eur > max(revenus * 0.1, 500.0):
-            insights.append(Insight(
-                type="anomaly",
-                key=f"large-expense-{tx.id}",
-                title=tr("insights.large_expense.title"),
-                description=tr("insights.large_expense.description", merchant=tx.merchant, amount=eur(val_eur)),
-                severity="high" if val_eur > revenus * 0.3 else "medium",
-                value=val_eur
-            ))
-    return insights
+        if tx.recurring_transaction_id is not None or tx.is_recurring or val_eur <= threshold:
+            continue
+        candidates.append((tx, val_eur))
+    history_start = period_bounds(db, previous[-1][1], previous[-1][0])[0]
+    history = repo.previous_expense_amounts(db, {tx.merchant.lower() for tx, _ in candidates}, history_start, start)
+    return [
+        Insight(
+            type="anomaly",
+            key=f"large-expense-{tx.id}",
+            title=tr("insights.large_expense.title"),
+            description=tr("insights.large_expense.description", merchant=tx.merchant, amount=eur(val_eur)),
+            severity="high" if val_eur > base * 0.3 else "medium",
+            value=val_eur,
+        )
+        for tx, val_eur in candidates
+        if not is_habitual(float(tx.amount), history.get(tx.merchant.lower(), []))
+    ]
 
 
 async def _category_anomalies(db: Session, month: int, year: int, account_id: int | None) -> list[Insight]:

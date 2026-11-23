@@ -51,6 +51,36 @@ EXTRA_CATEGORIES = [
     ("Shopping", "depense", "Loisirs", 150.0),
     ("Voyages", "depense", "Loisirs", None),
 ]
+# Catégories par défaut renommées pour la démo (les installations réelles gardent leurs noms) ;
+# « Categorie » (en-tête d'export Numbers devenu catégorie) n'a rien à faire dans un jeu de démonstration.
+CATEGORY_RENAMES = {
+    "Cadeaux (emis)": "Cadeaux (émis)",
+    "Remboursement (recu)": "Remboursement (reçu)",
+    "Revenus supplementaires": "Revenus supplémentaires",
+}
+CATEGORY_DROPPED = ("Categorie",)
+# Couleur et icône (noms de `components/dashboard/IconComponent.tsx::ICON_MAP`) de chaque catégorie de démo
+CATEGORY_STYLES = {
+    "Abonnement": ("#6366f1", "Tv"),
+    "Achat divers": ("#64748b", "ShoppingBag"),
+    "Nourriture": ("#f97316", "Utensils"),
+    "Sortie": ("#ec4899", "Beer"),
+    "Cadeaux (émis)": ("#e11d48", "Gift"),
+    "Don": ("#14b8a6", "Heart"),
+    "Sport": ("#22c55e", "Dumbbell"),
+    "Remboursement (reçu)": ("#0ea5e9", "Receipt"),
+    "Salaire": ("#16a34a", "Briefcase"),
+    "Revenus supplémentaires": ("#84cc16", "Banknote"),
+    "Dividendes": ("#8b5cf6", "Award"),
+    "Logement": ("#a16207", "Home"),
+    "Énergie": ("#eab308", "Zap"),
+    "Assurances": ("#0891b2", "Shield"),
+    "Transport": ("#3b82f6", "Train"),
+    "Santé": ("#ef4444", "Stethoscope"),
+    "Shopping": ("#d946ef", "Shirt"),
+    "Voyages": ("#06b6d4", "Plane"),
+}
+DEFAULT_CATEGORY_STYLE = ("#94a3b8", "Tag")
 BUDGETS = {"Nourriture": 450.0, "Sortie": 220.0, "Abonnement": 80.0}
 
 GROCERIES = ["Carrefour", "Lidl", "Monoprix", "Picard", "Biocoop", "Intermarché"]
@@ -63,7 +93,7 @@ HEALTH = [("Pharmacie du Centre", 6, 35), ("Dr Martin — consultation", 30, 30)
 FIXED_EXPENSES = [
     ("Foncia — Loyer", "Logement", 890.0, 2, None),
     ("Navigo", "Transport", 86.40, 5, None),
-    ("Free Mobile", "Abonnement", 19.99, 8, "si:free"),
+    ("Free Mobile", "Abonnement", 19.99, 8, None),  # pas d'icône Free dans Simple Icons
     ("Netflix", "Abonnement", 13.49, 10, "si:netflix"),
     ("Spotify", "Abonnement", 11.12, 12, "si:spotify"),
     ("EDF", "Énergie", 72.0, 15, None),

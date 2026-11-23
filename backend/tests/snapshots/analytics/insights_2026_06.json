@@ -39,23 +39,13 @@
  "insights": [
   {
    "category_id": null,
-   "description": "La transaction 'VIR SANS LIEN' de 777,00 € est exceptionnellement élevée.",
+   "description": "La dépense « VIR SANS LIEN » de 777,00 € sort de l'ordinaire.",
    "key": "large-expense-599",
-   "severity": "high",
+   "severity": "medium",
    "title": "Grosse dépense isolée",
    "type": "anomaly",
    "unit": "€",
    "value": 777.0
-  },
-  {
-   "category_id": null,
-   "description": "La transaction 'Foncia — Loyer' de 890,00 € est exceptionnellement élevée.",
-   "key": "large-expense-560",
-   "severity": "high",
-   "title": "Grosse dépense isolée",
-   "type": "anomaly",
-   "unit": "€",
-   "value": 890.0
   }
  ]
 }

@@ -21,6 +21,7 @@
     "globalReturn": "Overall return",
     "monthlyNetFlow": "Monthly Net Flow",
     "inMinusOut": "Money in − out this month",
+    "currentMonthNote": "Current month, not over yet",
     "monthlyChange": "Monthly Change",
     "vsPrevious": "vs previous month",
     "avgBasket": "Average Spend",
@@ -86,6 +87,7 @@
     "net": "net {{amount}}",
     "balanceLabel": "Balance {{amount}}",
     "selectAll": "Select all",
+    "selectRow": "Select the transaction {{merchant}} on {{date}}",
     "selected": "selected",
     "loadMore": "Load more transactions",
     "loading": "Loading…",
@@ -132,15 +134,13 @@
       "merchant": "Merchant / Label",
       "merchantPlaceholder": "E.g. Carrefour...",
       "amount": "Amount",
+      "amountPlaceholder": "0.00",
       "currency": "Currency",
       "categoryField": "Category",
       "choose": "Choose...",
       "tags": "Tags",
       "recurring": "Recurring transaction",
-      "exceptional": "Exceptional expense (one-off purchase)",
-      "icon": "Icon (Lucide)",
-      "iconPlaceholder": "E.g. Coffee, Zap...",
-      "color": "Color"
+      "exceptional": "Exceptional expense (one-off purchase)"
     },
     "toast": {
       "needMerchant": "Enter a merchant or a label",

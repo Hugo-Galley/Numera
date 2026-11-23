@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import Any
 
 from sqlalchemy import func
-from sqlalchemy.orm import Query, Session
+from sqlalchemy.orm import Query, Session, aliased
 from sqlalchemy.orm.attributes import InstrumentedAttribute
 
 from app.domain.portfolio import INTEREST_CATEGORIES as DOMAIN_INTEREST_CATEGORIES
@@ -103,6 +103,38 @@ def budget_versements_by_currency(db: Session, start: datetime | None, end: date
     else:
         query = query.filter(InvestmentTransaction.id.in_(budget_versement_ids(db)))
     return query.group_by(Account.currency).all()
+
+
+SAVINGS_DESTINATION_TYPES = ("epargne", "assurance_vie", "investissement")
+
+
+def savings_transfers_by_currency(db: Session, start: datetime | None, end: datetime) -> list[tuple[str, float]]:
+    """Virements internes nets du courant vers l'épargne, par devise du compte d'épargne.
+
+    Entrée liée sur un compte d'épargne / assurance-vie / titres dont la sortie part d'un compte courant : +montant ;
+    sortie liée d'un tel compte vers un compte courant (retour d'épargne) : −montant. Les versements
+    (`investment_transactions`) n'y sont pas : ils sont déjà dans `budget_versements_by_currency`.
+    """
+    source = aliased(Account)
+    other = aliased(Transaction)
+    totals: dict[str, float] = {}
+    for tx_type, sign in (("Entree", 1.0), ("Sortie", -1.0)):
+        query = (
+            db.query(Account.currency, func.coalesce(func.sum(Transaction.amount), 0.0))
+            .join(Account, Transaction.account_id == Account.id)
+            .join(other, Transaction.linked_transaction_id == other.id)
+            .join(source, other.account_id == source.id)
+            .filter(
+                Transaction.type == tx_type,
+                Transaction.is_transfer == True,
+                Account.type.in_(SAVINGS_DESTINATION_TYPES),
+                source.type == "courant",
+                own_account(),
+            )
+        )
+        for currency, total in _window(query, Transaction.date, start, end).group_by(Account.currency).all():
+            totals[currency] = totals.get(currency, 0.0) + sign * float(total)
+    return list(totals.items())
 
 
 def earliest_transaction_date(db: Session) -> datetime | None:

@@ -6,6 +6,24 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { CompanyLogo } from "@/components/ui/CompanyLogo"
 import { formatCurrency, formatRate } from "@/lib/utils"
 import type { InvestmentsCtx } from "./useInvestments"
+import { formatCompactCurrency } from "./chartFormat"
+
+/** Graduation de l'axe des entreprises : logo + nom tronqué, nom complet au survol. */
+export function CompanyTick({ x, y, name, ticker, isMobile }: { x: number | string; y: number | string; name: string; ticker?: string; isMobile: boolean }) {
+  return (
+    <g transform={`translate(${x},${y})`}>
+      <title>{name}</title>
+      <foreignObject x={isMobile ? -105 : -135} y={-10} width={isMobile ? 100 : 130} height={20}>
+        <div className="flex items-center justify-end gap-1.5 h-full pr-1 overflow-hidden">
+          <CompanyLogo ticker={ticker} name={name} className="h-4 w-4 rounded-xs shrink-0" />
+          <span className="text-[11px] font-medium text-slate-700 truncate max-w-[75px] md:max-w-[105px]" title={name}>
+            {name}
+          </span>
+        </div>
+      </foreignObject>
+    </g>
+  )
+}
 
 /** Top 10 des entreprises en transparence. */
 export function TopCompanies({ ctx }: { ctx: InvestmentsCtx }) {
@@ -61,7 +79,7 @@ export function TopCompanies({ ctx }: { ctx: InvestmentsCtx }) {
                     >
                       <XAxis
                         type="number"
-                        tickFormatter={(v) => `${v.toFixed(0)}€`}
+                        tickFormatter={(v: number) => formatCompactCurrency(v)}
                         tick={{ fontSize: 10 }}
                         tickCount={isMobile ? 3 : 5}
                         axisLine={false}
@@ -71,28 +89,9 @@ export function TopCompanies({ ctx }: { ctx: InvestmentsCtx }) {
                         type="category"
                         dataKey="name"
                         tick={(tickProps: YAxisTickContentProps) => {
-                          const { x, y } = tickProps
-                          const payload = { value: String(tickProps.payload.value) }
-                          const comp = topCompaniesData.find((c) => c.name === payload.value)
-                          return (
-                            <g transform={`translate(${x},${y})`}>
-                              <foreignObject x={isMobile ? -105 : -135} y={-10} width={isMobile ? 100 : 130} height={20}>
-                                <div
-                                  className="flex items-center justify-end gap-1.5 h-full pr-1 overflow-hidden"
-                                  title={payload.value}
-                                >
-                                  <CompanyLogo
-                                    ticker={comp?.ticker}
-                                    name={payload.value}
-                                    className="h-4 w-4 rounded-xs shrink-0"
-                                  />
-                                  <span className="text-[11px] font-medium text-slate-700 truncate max-w-[75px] md:max-w-[105px]">
-                                    {payload.value}
-                                  </span>
-                                </div>
-                              </foreignObject>
-                            </g>
-                          )
+                          const name = String(tickProps.payload.value)
+                          const comp = topCompaniesData.find((c) => c.name === name)
+                          return <CompanyTick x={tickProps.x} y={tickProps.y} name={name} ticker={comp?.ticker} isMobile={isMobile} />
                         }}
                         axisLine={false}
                         tickLine={false}

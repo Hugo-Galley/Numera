@@ -1,7 +1,7 @@
 """Requêtes des insights : sorties du mois, catégories, insights écartés."""
 from datetime import datetime
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.models.account import Account
@@ -41,3 +41,20 @@ def is_dismissed(db: Session, key: str) -> bool:
 
 def add_dismissed(db: Session, key: str) -> None:
     db.add(DismissedInsight(title=key))
+
+
+def previous_expense_amounts(db: Session, merchants: set[str], start: datetime, end: datetime) -> dict[str, list[float]]:
+    """Montants des sorties (hors virements) par marchand en minuscules, sur [start, end[."""
+    if not merchants:
+        return {}
+    rows = db.query(func.lower(Transaction.merchant), Transaction.amount).filter(
+        Transaction.date >= start,
+        Transaction.date < end,
+        Transaction.type == "Sortie",
+        Transaction.is_transfer == False,
+        func.lower(Transaction.merchant).in_(merchants),
+    ).all()
+    amounts: dict[str, list[float]] = {}
+    for merchant, amount in rows:
+        amounts.setdefault(merchant, []).append(float(amount))
+    return amounts

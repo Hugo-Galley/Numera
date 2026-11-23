@@ -17,7 +17,7 @@ export function TransactionsToolbar({ ctx }: { ctx: AccountDetailView }) {
         <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2"><History className="h-5 w-5 text-slate-400" /> {t("tx.history")}</h2>
         <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center sm:gap-3">
           <Select value={filterType} onValueChange={setFilterType}>
-            <SelectTrigger className="h-11 w-full bg-white sm:h-9 sm:w-[120px]">
+            <SelectTrigger className={`h-11 w-full gap-2 bg-white sm:col-span-1 sm:h-9 sm:w-[130px] ${availableTags.length > 0 ? "" : "col-span-2"}`}>
               <SelectValue placeholder={t("tx.type")} />
             </SelectTrigger>
             <SelectContent>
@@ -29,8 +29,9 @@ export function TransactionsToolbar({ ctx }: { ctx: AccountDetailView }) {
             </SelectContent>
           </Select>
 
+          {/* Mobile : pleine largeur, sous Type / Tags, pour que « Toutes catégories » ne touche pas le chevron */}
           <Select value={filterCategory} onValueChange={setFilterCategory}>
-            <SelectTrigger className="h-11 w-full bg-white sm:h-9 sm:w-[150px]">
+            <SelectTrigger className="order-1 col-span-2 h-11 w-full gap-2 bg-white sm:order-none sm:col-span-1 sm:h-9 sm:w-[170px]">
               <SelectValue placeholder={t("tx.category")} />
             </SelectTrigger>
             <SelectContent>
@@ -87,7 +88,7 @@ export function TransactionsToolbar({ ctx }: { ctx: AccountDetailView }) {
             </DropdownMenu>
           )}
 
-          <div className="relative col-span-2 w-full md:w-64">
+          <div className="relative order-2 col-span-2 w-full sm:order-none md:w-64">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
             <Input placeholder={t("tx.search")} className="pl-10 bg-white h-11 text-base sm:h-9 sm:text-sm" value={search} onChange={(e) => setSearch(e.target.value)} />
           </div>

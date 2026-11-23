@@ -95,7 +95,7 @@ def test_budget_alerts_in_english(monkeypatch, db_session):
     set_language("en")
     over, close = asyncio.run(budget.detect(ctx))
     assert over.title == "Budget exceeded: Courses"
-    assert over.description == "You spent €120.5 against a limit of €100.0."
+    assert over.description == "You spent €120.50 against a limit of €100.00."
     assert over.action_label == "View details"
     assert close.title == "Budget almost reached: Sorties"
     assert close.description == "You are at 90% of your limit for Sorties."
@@ -124,4 +124,4 @@ def test_subscription_price_alert_in_english(monkeypatch, db_session):
     set_language("en")
     (item,) = subscription_prices.detect(ctx)
     assert item.title == "Price increase: Netflix"
-    assert item.description == "Went from 10.00 to 12.00 EUR per month on 03/05/2026 (+20.0%), i.e. 24.00 EUR more per year. Still worth it at this price?"
+    assert item.description == "€10.00 → €12.00 per month since 2026-05-03 (+20.0%), i.e. €24.00 more per year. Still worth it at this price?"

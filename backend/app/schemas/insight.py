@@ -48,7 +48,8 @@ class MonthlyReport(BaseModel):
     income: float
     expenses: float = Field(description="Sorties totales, sorties vers épargne/investissement non liées comprises")
     real_expenses: float = Field(description="Dépenses de consommation (hors épargne, investissement et virements)")
-    savings: float = Field(description="Revenus − dépenses réelles : numérateur du taux d'épargne")
+    savings: float = Field(description="Revenus − dépenses réelles : numérateur du taux d'épargne (= budget.solde_du_mois)")
+    set_aside: float = Field(description="Mis de côté : argent envoyé vers l'épargne et les placements (= budget.mis_de_cote)")
     savings_rate: float
     burn_rate: float
     net_worth: float
@@ -142,8 +143,10 @@ class CostTotals(BaseModel):
 
 class SubscriptionsResponse(BaseModel):
     subscriptions: list[SubscriptionInsight]
-    total_monthly: float
-    total_annual: float
+    # Coût des abonnements confirmés = `totals_by_kind["subscriptions"]` (source unique : tableau de bord et Échéances).
+    # Les abonnements détectés (`status = potential`) et les virements vers l'épargne n'y entrent jamais.
+    total_monthly: float = Field(description="Coût mensuel des abonnements confirmés (= totals_by_kind.subscriptions.monthly)")
+    total_annual: float = Field(description="Coût annuel des abonnements confirmés (= totals_by_kind.subscriptions.annual)")
     # Totaux des récurrences confirmées par onglet (`kind`), mêmes règles que l'affichage de la liste
     totals_by_kind: dict[str, CostTotals] = {}
     # Abonnements comptés dans `totals_by_kind["subscriptions"]`, répartis en "essential" / "non_essential"

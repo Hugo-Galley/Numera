@@ -65,13 +65,15 @@ const DialogHeader = ({
 )
 DialogHeader.displayName = "DialogHeader"
 
+// Mobile : pied collé au bas du dialogue qui défile. `-bottom-6` compense le padding p-6 du contenu,
+// sinon le pied s'arrête 24 px au-dessus du bord et le formulaire défile visiblement dessous.
 const DialogFooter = ({
   className,
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
     className={cn(
-      "flex flex-col-reverse gap-2 max-sm:[&_button]:min-h-11 sm:flex-row sm:justify-end sm:gap-0 sm:space-x-2 max-sm:sticky max-sm:bottom-0 max-sm:-mx-6 max-sm:-mb-6 max-sm:border-t max-sm:bg-background max-sm:px-6 max-sm:pt-3 max-sm:pb-[max(0.75rem,env(safe-area-inset-bottom))]",
+      "flex flex-col-reverse gap-2 max-sm:[&_button]:min-h-11 sm:flex-row sm:justify-end sm:gap-0 sm:space-x-2 max-sm:sticky max-sm:-bottom-6 max-sm:-mx-6 max-sm:-mb-6 max-sm:border-t max-sm:bg-background max-sm:px-6 max-sm:pt-3 max-sm:pb-[max(0.75rem,env(safe-area-inset-bottom))]",
       className
     )}
     {...props}

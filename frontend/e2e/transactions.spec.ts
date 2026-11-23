@@ -6,13 +6,13 @@ test("saisie d'une dépense : visible dans l'historique, puis modifiée", async 
 
   await page.getByRole("button", { name: "Nouvelle opération" }).click()
   await page.getByRole("combobox", { name: "Commerçant / Libellé" }).fill(label)
-  await page.getByRole("spinbutton", { name: "Montant" }).fill("23.5")
+  await page.getByRole("textbox", { name: "Montant" }).fill("23,5")
   await page.getByRole("button", { name: "Enregistrer" }).click()
   await expect(visible(page, label)).toBeVisible()
 
   await openTransactionMenu(page, label)
   await page.getByRole("menuitem", { name: "Modifier" }).click()
-  await page.getByRole("spinbutton", { name: "Montant" }).fill("31")
+  await page.getByRole("textbox", { name: "Montant" }).fill("31")
   await page.getByRole("button", { name: "Enregistrer" }).click()
   await expect(page.getByRole("row", { name: new RegExp(label) }).first()).toContainText("31,00")
 })
@@ -22,7 +22,7 @@ test("suppression d'une opération avec confirmation", async ({ page }) => {
   await openAccount(page, "Compte courant")
   await page.getByRole("button", { name: "Nouvelle opération" }).click()
   await page.getByRole("combobox", { name: "Commerçant / Libellé" }).fill(label)
-  await page.getByRole("spinbutton", { name: "Montant" }).fill("5")
+  await page.getByRole("textbox", { name: "Montant" }).fill("5")
   await page.getByRole("button", { name: "Enregistrer" }).click()
   await expect(visible(page, label)).toBeVisible()
 

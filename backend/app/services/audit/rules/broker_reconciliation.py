@@ -1,5 +1,7 @@
 """Rapprochement : dernier relevé du courtier vs valeur calculée par Numera."""
-from app.core.i18n import tr
+from datetime import date
+
+from app.core.i18n import format_currency, format_date, format_number, tr
 from app.core.logging import get_logger
 from app.domain.portfolio import RECONCILIATION_THRESHOLD_PCT, uses_positions
 from app.repositories.analytics import audit as repo
@@ -29,9 +31,12 @@ async def detect(ctx: AuditContext) -> list[ActionItem]:
                 severity="medium",
                 title=tr("audit.broker_reconciliation.title", account=account.name),
                 description=tr(
-                    "audit.broker_reconciliation.description", date=latest["date"][:10], currency=account.currency,
-                    snapshot=f"{latest['snapshot_value']:.2f}", computed=f"{latest['computed_value']:.2f}",
-                    gap=f"{latest['gap_pct']:+.1f}", threshold=f"{RECONCILIATION_THRESHOLD_PCT:.0f}",
+                    "audit.broker_reconciliation.description",
+                    date=format_date(date.fromisoformat(latest["date"][:10])),
+                    snapshot=format_currency(latest["snapshot_value"], account.currency),
+                    computed=format_currency(latest["computed_value"], account.currency),
+                    gap=("+" if latest["gap_pct"] >= 0 else "") + format_number(latest["gap_pct"], 1),
+                    threshold=format_number(RECONCILIATION_THRESHOLD_PCT, 0),
                 ),
                 action_label=tr("audit.broker_reconciliation.action"),
                 action_url=f"/accounts/{account.id}",

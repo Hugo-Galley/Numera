@@ -52,23 +52,13 @@
  "insights": [
   {
    "category_id": null,
-   "description": "La transaction 'VIR SANS LIEN' de 777,00 € est exceptionnellement élevée.",
+   "description": "La dépense « VIR SANS LIEN » de 777,00 € sort de l'ordinaire.",
    "key": "large-expense-599",
-   "severity": "high",
+   "severity": "medium",
    "title": "Grosse dépense isolée",
    "type": "anomaly",
    "unit": "€",
    "value": 777.0
-  },
-  {
-   "category_id": null,
-   "description": "La transaction 'Foncia — Loyer' de 890,00 € est exceptionnellement élevée.",
-   "key": "large-expense-560",
-   "severity": "high",
-   "title": "Grosse dépense isolée",
-   "type": "anomaly",
-   "unit": "€",
-   "value": 890.0
   }
  ],
  "money_flow": {
@@ -188,10 +178,11 @@
  "savings_excl_exceptional": -2265.34,
  "savings_rate": -100.0,
  "savings_rate_excl_exceptional": -100.0,
+ "set_aside": 600.0,
  "top_categories": [
   {
-   "color": null,
-   "icon": null,
+   "color": "#a16207",
+   "icon": "Home",
    "id": 13,
    "name": "Logement",
    "prev_total": 890.0,
@@ -206,48 +197,48 @@
    "total": 837.99
   },
   {
-   "color": null,
-   "icon": null,
+   "color": "#d946ef",
+   "icon": "Shirt",
    "id": 18,
    "name": "Shopping",
    "prev_total": 111.09,
    "total": 131.14
   },
   {
-   "color": null,
-   "icon": null,
+   "color": "#3b82f6",
+   "icon": "Train",
    "id": 16,
    "name": "Transport",
    "prev_total": 127.11,
    "total": 126.93
   },
   {
-   "color": null,
-   "icon": null,
+   "color": "#f97316",
+   "icon": "Utensils",
    "id": 3,
    "name": "Nourriture",
    "prev_total": 494.41,
    "total": 108.45
   },
   {
-   "color": null,
-   "icon": null,
+   "color": "#ec4899",
+   "icon": "Beer",
    "id": 4,
    "name": "Sortie",
    "prev_total": 186.28,
    "total": 62.33
   },
   {
-   "color": null,
-   "icon": null,
+   "color": "#eab308",
+   "icon": "Zap",
    "id": 14,
    "name": "Énergie",
    "prev_total": 61.0,
    "total": 61.0
   },
   {
-   "color": null,
-   "icon": null,
+   "color": "#6366f1",
+   "icon": "Tv",
    "id": 1,
    "name": "Abonnement",
    "prev_total": 44.6,

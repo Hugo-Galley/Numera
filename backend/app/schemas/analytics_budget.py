@@ -1,5 +1,5 @@
 """Réponses de `/analytics/{budget,resilience,budget-period}`."""
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class BudgetOverview(BaseModel):
@@ -12,7 +12,12 @@ class BudgetOverview(BaseModel):
     depenses_reelles: float
     investissements_du_mois: float
     revenus_apres_depenses: float
-    epargne_realisee: float
+    epargne_realisee: float = Field(description="Revenus − dépenses réelles (vue globale) ; identique à solde_du_mois")
+    solde_du_mois: float = Field(description="Revenus − dépenses réelles : ce qui reste du mois, numérateur du taux d'épargne")
+    mis_de_cote: float = Field(
+        description="Argent envoyé vers l'épargne et les placements : investissements_du_mois + virements nets du courant "
+        "vers les comptes d'épargne, d'assurance-vie ou titres (vue compte : investissements_du_mois)"
+    )
     reste_tresorerie: float
     taux_epargne: float
     burn_rate: float

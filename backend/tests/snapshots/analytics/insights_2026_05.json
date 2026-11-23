@@ -36,16 +36,5 @@
   ],
   "total_score": 93.5
  },
- "insights": [
-  {
-   "category_id": null,
-   "description": "La transaction 'Foncia — Loyer' de 890,00 € est exceptionnellement élevée.",
-   "key": "large-expense-531",
-   "severity": "high",
-   "title": "Grosse dépense isolée",
-   "type": "anomaly",
-   "unit": "€",
-   "value": 890.0
-  }
- ]
+ "insights": []
 }

@@ -94,6 +94,13 @@ export function errorMessage(error: unknown, fallback: string): string {
 /** Montant saisi (virgule ou point) → nombre strictement positif, sinon `null`. */
 export function parsePositiveAmount(value: string | number | null | undefined): number | null {
   if (value === null || value === undefined || value === "") return null
-  const n = typeof value === "number" ? value : Number(String(value).replace(",", ".").replace(/\s/g, ""))
+  const n = parseDecimal(value)
   return Number.isFinite(n) && n > 0 ? n : null
+}
+
+/** Nombre saisi à la française ou non (« 12,50 », « 1 234.5 ») ; `NaN` si illisible. */
+export function parseDecimal(value: string | number): number {
+  if (typeof value === "number") return value
+  const text = value.replace(",", ".").replace(/\s/g, "")
+  return text === "" ? NaN : Number(text)
 }

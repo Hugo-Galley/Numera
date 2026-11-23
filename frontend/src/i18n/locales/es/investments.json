@@ -224,7 +224,8 @@
   "advancedCharts": {
     "vueDEnsembleDeL": "Resumen de la asignación",
     "parClasseDActif": "Por clase de activo",
-    "parSecteur": "Por sector"
+    "parSecteur": "Por sector",
+    "nonClasseAide": "El gris «Non classé» agrupa las compras sin clase de activo. Haz clic en él para ver las cuentas afectadas y asigna la clase de activo de sus compras desde la página de la cuenta."
   },
   "drillDownDialog": {
     "detailDesComptesContribuantA": "Detalle de las cuentas que contribuyen a esta categoría."
@@ -247,7 +248,8 @@
   },
   "performanceSection": {
     "performanceDetaillee": "Rentabilidad detallada",
-    "historiqueEtEvolutionDeVos": "Historial y evolución de tus productos."
+    "historiqueEtEvolutionDeVos": "Historial y evolución de tus productos.",
+    "valeur": "Valor"
   },
   "topCompanies": {
     "top10EntreprisesDetenuesLook": "Top 10 empresas en cartera (transparencia)",

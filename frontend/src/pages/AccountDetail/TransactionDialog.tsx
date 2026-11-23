@@ -9,11 +9,23 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useTranslation } from "react-i18next"
 import type { AccountDetailView } from "./useAccountDetail"
 
+/**
+ * Focus à l'ouverture : le libellé sur bureau ; sur mobile aucun champ (le focus sur la date ouvrait
+ * le sélecteur, sur un texte le clavier), le dialogue lui-même le prend pour garder le piège à focus.
+ */
+function focusInitialField(event: Event) {
+  event.preventDefault()
+  const content = event.currentTarget as HTMLElement
+  const desktop = window.matchMedia("(min-width: 640px)").matches
+  const target = desktop ? content.querySelector<HTMLInputElement>("#merchant") : null
+  ;(target ?? content).focus()
+}
+
 /** Dialogue de création / modification d'une transaction (comptes hors investissement). */
 export function TransactionDialog({ ctx }: { ctx: AccountDetailView }) {
   const { t } = useTranslation("accountDetail")
   const { t: tc } = useTranslation("common")
-  const { availableTags, categories, editTxId, handleCreateTransaction, handleCreateTransactionBusy, handleUpdateTransaction, handleUpdateTransactionBusy, knownMerchants, resetTxForm, setTxAmount, setTxCategoryId, setTxCurrency, setTxCustomColor, setTxCustomIcon, setTxDate, setTxIsExceptional, setTxIsRecurring, setTxMerchant, setTxOpen, setTxTagIds, setTxType, txAmount, txCategoryId, txCurrency, txCustomColor, txCustomIcon, txDate, txIsExceptional, txIsRecurring, txMerchant, txOpen, txTagIds, txType } = ctx
+  const { availableTags, categories, editTxId, handleCreateTransaction, handleCreateTransactionBusy, handleUpdateTransaction, handleUpdateTransactionBusy, knownMerchants, resetTxForm, setTxAmount, setTxCategoryId, setTxCurrency, setTxDate, setTxIsExceptional, setTxIsRecurring, setTxMerchant, setTxOpen, setTxTagIds, setTxType, txAmount, txCategoryId, txCurrency, txDate, txIsExceptional, txIsRecurring, txMerchant, txOpen, txTagIds, txType } = ctx
   return (
     <>
       <Dialog open={txOpen} onOpenChange={(open) => { if (!open) { setTxOpen(false); resetTxForm(); } else { setTxOpen(true); } }}>
@@ -22,7 +34,7 @@ export function TransactionDialog({ ctx }: { ctx: AccountDetailView }) {
             <Plus className="h-4 w-4 mr-2" /> {t("tx.dialog.new")}
           </Button>
         </DialogTrigger>
-        <DialogContent className="max-sm:[&_input]:text-base sm:max-w-[425px] rounded-2xl border-none shadow-2xl max-h-[calc(100dvh-2*max(1rem,env(safe-area-inset-top)))] overflow-y-auto">
+        <DialogContent onOpenAutoFocus={focusInitialField} className="max-sm:[&_input]:text-base sm:max-w-[425px] rounded-2xl border-none shadow-2xl max-h-[calc(100dvh-2*max(1rem,env(safe-area-inset-top)))] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold">{editTxId ? t("tx.dialog.edit") : t("tx.dialog.new")}</DialogTitle>
             <DialogDescription>
@@ -67,7 +79,7 @@ export function TransactionDialog({ ctx }: { ctx: AccountDetailView }) {
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="amount" className="text-xs uppercase tracking-wider font-bold text-slate-500">{t("tx.dialog.amount")}</Label>
-                <Input id="amount" type="number" inputMode="decimal" min={0.01} step="0.01" value={txAmount} onChange={(e) => setTxAmount(e.target.value)} placeholder="0.00" className="bg-slate-50 border-slate-200 font-bold" />
+                <Input id="amount" type="text" inputMode="decimal" autoComplete="off" value={txAmount} onChange={(e) => setTxAmount(e.target.value)} placeholder={t("tx.dialog.amountPlaceholder")} className="bg-slate-50 border-slate-200 font-bold" />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="currency" className="text-xs uppercase tracking-wider font-bold text-slate-500">{t("tx.dialog.currency")}</Label>
@@ -88,7 +100,7 @@ export function TransactionDialog({ ctx }: { ctx: AccountDetailView }) {
               <Select value={txCategoryId} onValueChange={setTxCategoryId}>
                 <SelectTrigger id="category" className="bg-slate-50 border-slate-200"><SelectValue placeholder={t("tx.dialog.choose")} /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">{tc("actions.none")}</SelectItem>
+                  <SelectItem value="none">{tc("txTypes.uncategorized")}</SelectItem>
                   {categories.filter((cat) => !cat.archived || String(cat.id) === txCategoryId).map((cat) => <SelectItem key={cat.id} value={String(cat.id)}>{cat.name}</SelectItem>)}
                 </SelectContent>
               </Select>
@@ -117,7 +129,7 @@ export function TransactionDialog({ ctx }: { ctx: AccountDetailView }) {
                       >
                         <Badge 
                           variant="outline" 
-                          className="px-2 py-0 h-5 border-none text-white font-bold text-[9px]"
+                          className="px-2 py-0 h-5 border-none text-white font-bold text-[10px]"
                           style={{ backgroundColor: tag.color || "#64748b" }}
                         >
                           {tag.name}
@@ -141,19 +153,6 @@ export function TransactionDialog({ ctx }: { ctx: AccountDetailView }) {
               </div>
             )}
 
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div className="grid gap-2">
-                <Label htmlFor="custom_icon" className="text-xs uppercase tracking-wider font-bold text-slate-500">{t("tx.dialog.icon")}</Label>
-                <Input id="custom_icon" value={txCustomIcon} onChange={(e) => setTxCustomIcon(e.target.value)} placeholder={t("tx.dialog.iconPlaceholder")} className="bg-slate-50 border-slate-200" />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="custom_color" className="text-xs uppercase tracking-wider font-bold text-slate-500">{t("tx.dialog.color")}</Label>
-                <div className="flex gap-2">
-                  <Input id="custom_color" type="color" value={txCustomColor} onChange={(e) => setTxCustomColor(e.target.value)} className="w-12 p-1 h-10 bg-slate-50 border-slate-200 cursor-pointer" />
-                  <Input value={txCustomColor} onChange={(e) => setTxCustomColor(e.target.value)} className="flex-1 bg-slate-50 border-slate-200" />
-                </div>
-              </div>
-            </div>
           </div>
           <DialogFooter><Button variant="ghost" onClick={() => { setTxOpen(false); resetTxForm(); }}>{tc("actions.cancel")}</Button><Button onClick={editTxId ? () => handleUpdateTransaction() : () => handleCreateTransaction()} disabled={handleCreateTransactionBusy || handleUpdateTransactionBusy} className="bg-slate-900 text-white shadow-lg">{handleCreateTransactionBusy || handleUpdateTransactionBusy ? tc("actions.saving") : tc("actions.save")}</Button></DialogFooter>
         </DialogContent>

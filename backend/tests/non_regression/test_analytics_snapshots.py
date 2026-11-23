@@ -175,7 +175,7 @@ def _add_action_center_cases(db) -> None:
         _tx(db, courant, day, "BOULANGERIE DUPONT", 12.4)
     _tx(db, courant, date(2026, 6, 9), "Boulangerie Dupont 75", 8.1)
     # Remboursement reçu non affecté, avec une créance ouverte
-    remb_cat = db.query(Category).filter(Category.name == "Remboursement (recu)").one()
+    remb_cat = db.query(Category).filter(Category.name == "Remboursement (reçu)").one()
     avance = _tx(db, courant, date(2026, 5, 20), "RESTAURANT AVANCE", 90.0)
     _tx(db, courant, date(2026, 6, 3), "VIR AMI REMBOURSEMENT", 30.0, "Entree", remb_cat.id)
     db.flush()
@@ -185,7 +185,9 @@ def _add_action_center_cases(db) -> None:
         _tx(db, courant, date(2026, month, 10), "STREAMFLIX", 13.49, category_id=loisirs.id)
     for month in (5, 6):
         _tx(db, courant, date(2026, month, 10), "STREAMFLIX", 15.99, category_id=loisirs.id)
-    # Salaire configuré sans mois renseigné (sur l'épargne : aucune entrée « salaire » n'y figure)
+    # Salaire configuré sans mois renseigné (sur l'épargne : aucune entrée « salaire » n'y figure). Celui de la
+    # démo est retiré : les instantanés restent en mois civil (le mois de paie a ses propres tests).
+    db.query(SalaryConfig).delete()
     db.add(SalaryConfig(salary_account_id=epargne.id, net_salary=2500.0, ticket_value=9.0, ticket_employee_share=4.5,
                         is_active=True, created_at=datetime(2026, 1, 1)))
     # Dividende sans titre, titre distribuant sans dividende depuis 13 mois
