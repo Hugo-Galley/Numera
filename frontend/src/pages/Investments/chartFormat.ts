@@ -6,6 +6,7 @@ export function formatCompactCurrency(value: number, currency = "EUR") {
     style: "currency",
     currency,
     notation: "compact",
+    minimumFractionDigits: 0,
     maximumFractionDigits: 1,
   }).format(value)
 }
