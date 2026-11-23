@@ -103,7 +103,10 @@
     "analyseRecurrences": "Análisis de periódicas",
     "calendrier": "Calendario",
     "salaire": "Salario",
-    "salaireAides": "Salario y ayudas"
+    "salaireAides": "Salario y ayudas",
+    "balanceLegend": "El importe de cada día es el saldo estimado al final del día.",
+    "balanceLegendAll": "Con «Todas las cuentas», es la suma de todas tus cuentas activas (ahorro e inversiones incluidos): elige tu cuenta corriente para seguir tu tesorería.",
+    "endOfDayBalance": "Saldo al final del día: {{amount}}"
   },
   "useCalendarData": {
     "impossibleDeChargerLesComptes": "No se pueden cargar las cuentas",

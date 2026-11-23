@@ -54,6 +54,11 @@ export default function Calendar({ embedded = false }: { embedded?: boolean }) {
       {loadFailed && (
         <ErrorState message={i18n.t("misc.calendarLoadFailed", { ns: "recurring" })} onRetry={() => setReloadToken(t => t + 1)} />
       )}
+      {/* Ce que représente le montant affiché sous chaque jour (et sa portée en vue globale) */}
+      <p className="hidden text-xs text-slate-500 md:block">
+        {t("index.balanceLegend")}
+        {selectedAccountId === "all" && <> {t("index.balanceLegendAll")}</>}
+      </p>
       <CalendarGrid ctx={ctx} />
 
       <CalendarSummary ctx={ctx} />
