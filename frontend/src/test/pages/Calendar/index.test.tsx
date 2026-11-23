@@ -9,7 +9,14 @@ import { apiUrl } from "@/test/support/handlers"
 import { renderWithProviders } from "@/test/support/render"
 import { server } from "@/test/support/server"
 
-const calendar: CalendarData = { month: 6, year: 2026, events: [], daily_balances: [{ date: "2026-06-20", balance: 1234 }] }
+const ev = (id: string, name: string, type: string, is_projected: boolean, is_upcoming = false) => ({
+  id, date: "2026-06-20T00:00:00", name, amount: 10, type, category_id: null, is_projected, is_upcoming, currency: "EUR", recurring_id: null,
+})
+const calendar = {
+  month: 6, year: 2026,
+  events: [ev("a", "Loyer", "Sortie", true), ev("b", "Salaire", "Entree", false), ev("c", "Box", "Sortie", false, true), ev("d", "Gym", "Sortie", false)],
+  daily_balances: [{ date: "2026-06-20", balance: 1234 }, { date: "2026-06-21", balance: -5 }],
+} as unknown as CalendarData
 
 beforeEach(() => {
   resetApiCache()
@@ -34,5 +41,14 @@ describe("Calendrier : solde affiché", () => {
 
     const amount = await screen.findByText(/1\s234,00/)
     expect(amount).toHaveAttribute("title", expect.stringMatching(/^Solde fin de journée : 1\s234,00/))
+  })
+
+  it("événements du jour listés (3 au plus, puis « + n autres ») et solde négatif signalé", async () => {
+    renderWithProviders(<Calendar embedded />, { auth: true })
+
+    expect((await screen.findAllByText("Loyer")).length).toBeGreaterThan(0)
+    expect(screen.getAllByText("Salaire").length).toBeGreaterThan(0)
+    expect(screen.getByText(/\+ 1 autres/)).toBeInTheDocument()
+    expect(screen.getByText(/-5,00/).className).toMatch(/text-red-500/)
   })
 })

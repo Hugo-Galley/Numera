@@ -84,3 +84,30 @@ describe("Dashboard : échec partiel", () => {
     expect(screen.queryByRole("button", { name: "Réessayer" })).not.toBeInTheDocument()
   })
 })
+
+describe("Dashboard : navigation et mois en cours", () => {
+  it("période en cours : badge « Mois en cours » dans l'en-tête", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] })
+    vi.setSystemTime(new Date(2026, 5, 15, 10))
+    try {
+      serveDashboard([])
+      renderWithProviders(<Dashboard />, { auth: true })
+
+      expect(await screen.findByText("Mois en cours · J19/31")).toBeInTheDocument()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it("changer d'onglet affiche son contenu", async () => {
+    serveDashboard([])
+    const { user } = renderWithProviders(<Dashboard />, { auth: true })
+    await waitFor(() => expect(screen.getByRole("region", { name: "Aperçu" })).toHaveTextContent("sankeyData: chargé"))
+
+    await user.click(screen.getByRole("tab", { name: "Projections" }))
+
+    expect(screen.getByRole("tab", { name: "Projections" })).toHaveAttribute("aria-selected", "true")
+    expect(await screen.findByRole("region", { name: "Projections" })).toBeInTheDocument()
+  })
+})
+

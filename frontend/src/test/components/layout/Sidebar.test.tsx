@@ -1,4 +1,5 @@
 import { screen, waitFor, within } from "@testing-library/react"
+import userEvent from "@testing-library/user-event"
 import { http, HttpResponse } from "msw"
 import { makeActionCenter } from "@/test/support/factories"
 import { apiUrl } from "@/test/support/handlers"
@@ -79,7 +80,10 @@ describe("Sidebar", () => {
     try {
       renderWithProviders(<Sidebar />, { auth: true })
       const hint = await screen.findByRole("button", { name: /d'autres entrées sont en dessous/ })
-      expect(hint).toBeInTheDocument()
+      const scrollBy = vi.fn()
+      ;(screen.getByRole("navigation").parentElement as HTMLElement).scrollBy = scrollBy
+      await userEvent.click(hint)
+      expect(scrollBy).toHaveBeenCalledWith(expect.objectContaining({ top: 320 }))
 
       // Défilé jusqu'en bas : l'indice s'efface
       const list = screen.getByRole("navigation").parentElement as HTMLElement

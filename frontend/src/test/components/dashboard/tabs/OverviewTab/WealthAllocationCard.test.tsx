@@ -1,11 +1,14 @@
 /** Répartition du patrimoine : la liste garde sa hauteur naturelle (pas de défilement interne) tant qu'elle est courte. */
 import { screen } from "@testing-library/react"
+import { http, HttpResponse } from "msw"
 import type { PatrimoineAllocation } from "@/components/dashboard/types"
 import { WealthAllocationCard } from "@/components/dashboard/tabs/OverviewTab/WealthAllocationCard"
 import { SCROLL_THRESHOLD } from "@/components/dashboard/tabs/OverviewTab/WealthDetails"
 import { useOverviewTab } from "@/components/dashboard/tabs/OverviewTab/useOverviewTab"
 import { partial } from "@/test/support/factories"
+import { apiUrl } from "@/test/support/handlers"
 import { renderWithProviders } from "@/test/support/render"
+import { server } from "@/test/support/server"
 
 const item = (account_id: number, account_name: string, type = "investissement") => ({
   account_id, account_name, type, balance: 1000, balance_eur: 1000, currency: "EUR", institution: "Banque",
@@ -22,6 +25,9 @@ function Card({ data }: { data: PatrimoineAllocation }) {
 }
 
 const list = () => screen.getByTestId("wealth-details")
+
+// Logos des comptes (AccountLogo, regroupements par catégorie et par établissement) : lus via /accounts
+beforeEach(() => server.use(http.get(apiUrl("/accounts"), () => HttpResponse.json([]))))
 
 describe("WealthAllocationCard : liste du patrimoine", () => {
   it("peu de lignes : hauteur naturelle, aucune zone défilante (la molette ne s'y bloque pas)", () => {
@@ -50,5 +56,26 @@ describe("WealthAllocationCard : liste du patrimoine", () => {
     for (const name of ["Par Catégorie", "Mixte", "Par Compte", "Par Établissement"]) {
       expect(screen.getByRole("tab", { name }).className).toMatch(/(^|\s)min-h-10(\s|$)/)
     }
+  })
+
+  it("chaque regroupement liste les comptes : par catégorie, par compte, par établissement (montant d'origine en devise)", async () => {
+    const data = partial<PatrimoineAllocation>({
+      total_patrimoine: 3000, total_debts_eur: 0, net_patrimoine_eur: 3000,
+      items: [
+        { ...item(1, "Courant", "courant"), institution: "Banque A" },
+        { ...item(2, "Livret", "epargne"), institution: "Banque A" },
+        { ...item(3, "PEA US", "investissement"), institution: null, currency: "USD", balance: 1080 },
+      ],
+    })
+    const { user } = renderWithProviders(<Card data={data} />, { auth: true })
+
+    for (const tab of ["Par Catégorie", "Par Compte", "Par Établissement", "Mixte"]) {
+      await user.click(screen.getByRole("tab", { name: tab }))
+      expect(screen.getByRole("tab", { name: tab })).toHaveAttribute("aria-selected", "true")
+      expect(screen.getAllByText("PEA US").length).toBeGreaterThan(0)
+      expect(screen.getAllByText(/1\s?080,00/).length).toBeGreaterThan(0)
+    }
+    await user.click(screen.getByRole("tab", { name: "Par Établissement" }))
+    expect(screen.getByText("Banque A")).toBeInTheDocument()
   })
 })

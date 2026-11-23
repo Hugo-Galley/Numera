@@ -31,4 +31,19 @@ describe("RecurringHeader", () => {
     expect(screen.queryByRole("button", { name: "Lancer la génération" })).not.toBeInTheDocument()
     expect(screen.getByRole("button", { name: "Nouvelle récurrence" })).toBeInTheDocument()
   })
+
+  it("les boutons de vue et d'action appellent leurs actions", async () => {
+    const c = ctx("subscriptions")
+    const { user } = renderWithProviders(<RecurringHeader ctx={c} />)
+
+    await user.click(screen.getByRole("button", { name: "Liste" }))
+    await user.click(screen.getByRole("button", { name: "Analyse" }))
+    await user.click(screen.getByRole("button", { name: "Lancer la génération" }))
+    await user.click(screen.getByRole("button", { name: "Nouvelle récurrence" }))
+
+    expect(c.changeRecurringView).toHaveBeenNthCalledWith(1, "list")
+    expect(c.changeRecurringView).toHaveBeenNthCalledWith(2, "analysis")
+    expect(c.handleTrigger).toHaveBeenCalledOnce()
+    expect(c.handleOpenCreate).toHaveBeenCalledOnce()
+  })
 })
