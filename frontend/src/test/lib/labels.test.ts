@@ -2,10 +2,10 @@ import { accountTypeLabel, categoryTypeLabel } from "@/lib/labels"
 
 describe("accountTypeLabel", () => {
   it.each([
-    ["courant", "Compte Courant"],
+    ["courant", "Compte courant"],
     ["epargne", "Épargne"],
     ["investissement", "Investissement"],
-    ["assurance_vie", "Assurance-Vie"],
+    ["assurance_vie", "Assurance-vie"],
     ["credit", "Crédit"],
     ["bank", "Compte bancaire"],
   ])("%s → %s", (type, label) => {

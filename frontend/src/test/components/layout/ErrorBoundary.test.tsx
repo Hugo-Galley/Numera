@@ -32,7 +32,7 @@ describe("ErrorBoundary", () => {
     )
 
     expect(screen.getByRole("heading", { name: "Cette page a rencontré une erreur" })).toBeInTheDocument()
-    expect(screen.getByText(/Vos données ne sont pas affectées/)).toBeInTheDocument()
+    expect(screen.getByText(/Tes données ne sont pas affectées/)).toBeInTheDocument()
     expect(screen.getByRole("button", { name: "Recharger" })).toBeInTheDocument()
     // Le reste de l'app (menu) reste affiché
     expect(screen.getByRole("heading", { name: "Menu" })).toBeInTheDocument()

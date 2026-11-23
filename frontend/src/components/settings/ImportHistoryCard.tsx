@@ -66,7 +66,7 @@ export function ImportHistoryCard() {
                         {new Date(log.created_at).toLocaleString(appLocale())}
                       </CardDescription>
                     </div>
-                    <Badge variant="outline" className="text-[9px] font-black h-5 shrink-0">
+                    <Badge variant="outline" className="text-[11px] font-black h-5 shrink-0">
                       #{log.id}
                     </Badge>
                   </div>
@@ -74,15 +74,15 @@ export function ImportHistoryCard() {
                 <CardContent className="p-4 pt-2">
                   <div className="grid grid-cols-3 gap-2">
                     <div className="text-center p-2 rounded-lg bg-emerald-50 border border-emerald-100">
-                      <p className="text-[9px] font-black text-emerald-600 uppercase">{t("importHistoryCard.succes")}</p>
+                      <p className="text-[11px] font-black text-emerald-600 uppercase">{t("importHistoryCard.succes")}</p>
                       <p className="text-lg font-bold text-emerald-700">{log.imported_count}</p>
                     </div>
                     <div className="text-center p-2 rounded-lg bg-amber-50 border border-amber-100">
-                      <p className="text-[9px] font-black text-amber-600 uppercase">{t("importHistoryCard.ignores")}</p>
+                      <p className="text-[11px] font-black text-amber-600 uppercase">{t("importHistoryCard.ignores")}</p>
                       <p className="text-lg font-bold text-amber-700">{log.skipped_count}</p>
                     </div>
                     <div className="text-center p-2 rounded-lg bg-rose-50 border border-rose-100">
-                      <p className="text-[9px] font-black text-rose-600 uppercase">{t("importHistoryCard.erreurs")}</p>
+                      <p className="text-[11px] font-black text-rose-600 uppercase">{t("importHistoryCard.erreurs")}</p>
                       <p className="text-lg font-bold text-rose-700">{log.error_count}</p>
                     </div>
                   </div>

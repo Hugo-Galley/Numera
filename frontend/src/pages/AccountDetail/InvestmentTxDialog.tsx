@@ -217,7 +217,7 @@ export function InvestmentTxDialog({ ctx }: { ctx: AccountDetailView }) {
 
               {invTxTicker && invTxQuantity && invTxType !== "dividende" && invTxType !== "frais" && (
                 <p className="text-[11px] text-emerald-600 font-medium">
-                  ✓ Mettra à jour automatiquement votre position {invTxTicker.toUpperCase()} ({invTxType === "retrait" || invTxType === "vente" ? "-" : "+"}{invTxQuantity} parts).
+                  ✓ Mettra à jour automatiquement ta position {invTxTicker.toUpperCase()} ({invTxType === "retrait" || invTxType === "vente" ? "-" : "+"}{invTxQuantity} parts).
                 </p>
               )}
             </div>

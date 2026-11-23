@@ -50,7 +50,7 @@ describe("SecuritySearchInput : recherche", () => {
   it("attend la fin de la frappe et n'envoie qu'une requête, rien sous deux caractères", async () => {
     const queries = recordSearches(() => HttpResponse.json([apple]))
     const { user } = renderWithProviders(<Harness />)
-    const search = screen.getByLabelText(/Recherche par Titre/)
+    const search = screen.getByLabelText(/Recherche par titre/)
 
     await user.type(search, "a")
     await new Promise((resolve) => setTimeout(resolve, 350))
@@ -67,7 +67,7 @@ describe("SecuritySearchInput : recherche", () => {
     const onSelect = vi.fn()
     const { user } = renderWithProviders(<Harness onSelect={onSelect} />)
 
-    await user.type(screen.getByLabelText(/Recherche par Titre/), "world")
+    await user.type(screen.getByLabelText(/Recherche par titre/), "world")
     await user.click(await screen.findByText("Amundi MSCI World"))
 
     expect(onSelect).toHaveBeenCalledWith({
@@ -80,8 +80,8 @@ describe("SecuritySearchInput : recherche", () => {
       price_eur: 520,
       etf_profile_id: 3,
     })
-    expect(screen.getByLabelText(/Recherche par Titre/)).toHaveValue("")
-    expect(screen.getByLabelText("Ticker / Code")).toHaveValue("CW8.PA")
+    expect(screen.getByLabelText(/Recherche par titre/)).toHaveValue("")
+    expect(screen.getByLabelText("Ticker / code")).toHaveValue("CW8.PA")
   })
 
   it("ignore la réponse d'une recherche précédente arrivée après la dernière", async () => {
@@ -90,7 +90,7 @@ describe("SecuritySearchInput : recherche", () => {
     const slowMicro = held([micron])
     const queries = recordSearches((q) => (q === "micro" ? slowMicro.respond() : HttpResponse.json([microsoft])))
     const { user } = renderWithProviders(<Harness />)
-    const search = screen.getByLabelText(/Recherche par Titre/)
+    const search = screen.getByLabelText(/Recherche par titre/)
 
     await user.type(search, "micro")
     await waitFor(() => expect(queries).toEqual(["micro"]))
@@ -115,7 +115,7 @@ describe("SecuritySearchInput : validation du ticker", () => {
     )
     const { user } = renderWithProviders(<Harness />)
 
-    await user.type(screen.getByLabelText("Ticker / Code"), "aapl")
+    await user.type(screen.getByLabelText("Ticker / code"), "aapl")
 
     expect(await screen.findByText("Reconnu")).toBeInTheDocument()
     expect(screen.getByText("Apple Inc.")).toBeInTheDocument()
@@ -143,7 +143,7 @@ describe("SecuritySearchInput : validation du ticker", () => {
     const { user } = renderWithProviders(<Harness initialTicker="AAPL" />)
     await waitFor(() => expect(screen.getByText(/Vérification de l'actif/)).toBeInTheDocument(), { timeout: 2000 })
 
-    const ticker = screen.getByLabelText("Ticker / Code")
+    const ticker = screen.getByLabelText("Ticker / code")
     await user.clear(ticker)
     await user.type(ticker, "CW8.PA")
     expect(await screen.findByText("Amundi MSCI World")).toBeInTheDocument()

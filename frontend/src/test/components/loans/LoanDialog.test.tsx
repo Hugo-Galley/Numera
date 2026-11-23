@@ -62,7 +62,7 @@ describe("LoanDialog", () => {
     await user.type(within(dialog).getByLabelText("Durée (années)"), "0,02")
     await user.click(within(dialog).getByRole("button", { name: "Enregistrer" }))
 
-    expect(await screen.findByText("Renseignez le nom, le montant, le taux, la durée et la date de première échéance.")).toBeInTheDocument()
+    expect(await screen.findByText("Renseigne le nom, le montant, le taux, la durée et la date de première échéance.")).toBeInTheDocument()
     expect(sent).toHaveLength(0)
   })
 

@@ -128,7 +128,7 @@ describe("Échéances : liste", () => {
 
     await user.click(row("Loyer").getByRole("button", { name: "Supprimer" }))
     const dialog = await screen.findByRole("dialog", { name: "Confirmer" })
-    expect(dialog).toHaveTextContent("Êtes-vous sûr de vouloir supprimer cette récurrence ?")
+    expect(dialog).toHaveTextContent("Supprimer cette récurrence ?")
     await user.click(within(dialog).getByRole("button", { name: "Supprimer" }))
 
     await waitFor(() => expect(served.writes).toEqual([{ method: "DELETE", path: "/recurring-transactions/10", body: null }]))

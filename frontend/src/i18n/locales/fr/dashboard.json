@@ -1,6 +1,6 @@
 {
   "title": "Tableau de bord",
-  "subtitle": "Toutes vos analyses financières en un coup d'œil.",
+  "subtitle": "Toutes tes analyses financières en un coup d'œil.",
   "payPeriod": "Période de paie : {{range}}",
   "allAccounts": "Tous les comptes",
   "placeholders": {
@@ -19,11 +19,11 @@
   "failedBlocks_other": "{{count}} blocs du tableau de bord n'ont pas pu être chargés.",
   "accountsLoadError": "Impossible de charger la liste des comptes.",
   "kpi": {
-    "monthlyIncome": "Revenus Mensuels",
+    "monthlyIncome": "Revenus mensuels",
     "moneyIn": "Entrées d'argent",
-    "monthlyExpenses": "Dépenses Mensuelles",
+    "monthlyExpenses": "Dépenses mensuelles",
     "moneyOut": "Sorties d'argent",
-    "currentBalance": "Solde Actuel",
+    "currentBalance": "Solde actuel",
     "trend": "Tendance 6 mois",
     "monthBalanceToDate": "Solde du mois à date",
     "toDate": "À date (J{{day}}/{{total}})",
@@ -32,27 +32,27 @@
   },
   "budgets": {
     "title": "Suivi des budgets",
-    "subtitle": "Visualisez votre consommation par rapport aux limites fixées par catégorie.",
+    "subtitle": "Visualise ta consommation par rapport aux limites fixées par catégorie.",
     "viewTransactions": "Voir les transactions",
     "over": "Dépassement",
     "near": "Proche de la limite",
     "ok": "Budget respecté",
     "monthly": "Mensuel",
     "annual": "Annuel",
-    "empty": "Aucun budget configuré. Ajoutez des limites dans les réglages des catégories."
+    "empty": "Aucun budget configuré. Ajoute des limites dans les réglages des catégories."
   },
   "merchants": {
-    "title": "Top 10 Commerçants",
-    "subtitle": "Les établissements où vous dépensez le plus."
+    "title": "Top 10 des commerçants",
+    "subtitle": "Les établissements où tu dépenses le plus."
   },
   "subscriptions": {
-    "monthlyTitle": "Abonnements Mensuels",
+    "monthlyTitle": "Abonnements mensuels",
     "averageCost": "Coût mensuel moyen :",
     "perYear": "par an",
     "detected": "Détecté",
     "lapsed": "Plus prélevé ?",
     "empty": "Aucun abonnement détecté.",
-    "splitTitle": "Répartition Abonnements",
+    "splitTitle": "Répartition des abonnements",
     "splitSubtitle": "Poids de chaque service."
   },
   "priceChanges": {
@@ -63,10 +63,10 @@
     "since": "Depuis le {{date}} · {{amount}} de plus par an"
   },
   "insights": {
-    "healthTitle": "Santé Financière",
-    "healthSubtitle": "Score global de votre situation.",
+    "healthTitle": "Santé financière",
+    "healthSubtitle": "Score global de ta situation.",
     "outOf": "/ 100",
-    "analysisTitle": "Analyse & Conseils",
+    "analysisTitle": "Analyse et conseils",
     "dismiss": "Ne pas prendre en compte de façon permanente",
     "dismissError": "Impossible de masquer cet insight",
     "empty": "Tout semble sous contrôle ! Aucun conseil particulier ce mois-ci.",
@@ -77,18 +77,18 @@
     "expectedOn": "Prévu le {{date}}",
     "recurringFlows": "Flux récurrents attendus",
     "next60": "Prochains 60 jours",
-    "chartTitle": "Évolution du Solde Projeté",
-    "chartSubtitle": "Projection basée sur vos revenus et dépenses récurrentes sur les 2 prochains mois.",
+    "chartTitle": "Évolution du solde projeté",
+    "chartSubtitle": "Projection basée sur tes revenus et dépenses récurrentes sur les 2 prochains mois.",
     "estimatedBalance": "Solde estimé",
     "balance": "Solde",
     "nextFlows": "Prochains flux",
     "nextFlowsSubtitle": "Événements prévus dans les 30 prochains jours.",
     "cashAnalysis": "Analyse de trésorerie",
-    "staysPositive": "Votre solde devrait rester <strong>positif</strong> sur toute la période projetée.",
-    "goesNegative": "Votre solde passerait <negative>sous zéro</negative> sur la période projetée.",
+    "staysPositive": "Ton solde devrait rester <strong>positif</strong> sur toute la période projetée.",
+    "goesNegative": "Ton solde passerait <negative>sous zéro</negative> sur la période projetée.",
     "lowPointIs": "Le point bas est estimé à <amount>{{value}}</amount>.",
     "adviceLabel": "Conseil",
-    "advice": "Vous avez un excédent de trésorerie prévu de <amount>{{value}}</amount>. Envisagez un versement complémentaire vers votre compte d'épargne.",
+    "advice": "Tu as un excédent de trésorerie prévu de <amount>{{value}}</amount>. Envisage un versement complémentaire vers ton compte d'épargne.",
     "projectedBalanceAccount": "Solde projeté à 60 j",
     "projectedBalanceAll": "Solde projeté à 60 j · tous les comptes",
     "scopeAll": "Somme de tous tes comptes actifs (épargne et placements compris). Choisis un compte pour suivre sa seule trésorerie.",
@@ -96,20 +96,20 @@
   },
   "overview": {
     "expensesTitle": "Dépenses par catégorie",
-    "expensesSubtitle": "Où va votre argent ce mois-ci ? Cliquez sur une barre pour voir les transactions.",
+    "expensesSubtitle": "Où va ton argent ce mois-ci ? Clique sur une barre pour voir les transactions.",
     "splitTitle": "Répartition",
     "splitSubtitle": "Poids des catégories.",
-    "flowTitle": "Flux Financiers",
-    "flowSubtitle": "Visualisation des revenus vers les dépenses et l'épargne. Cliquez sur une catégorie pour voir ses transactions.",
-    "tagsTitle": "Projets & Contextes (Tags)",
+    "flowTitle": "Flux financiers",
+    "flowSubtitle": "Visualisation des revenus vers les dépenses et l'épargne. Clique sur une catégorie pour voir ses transactions.",
+    "tagsTitle": "Projets et contextes (tags)",
     "tagsSubtitle": "Dépenses transverses sur la période.",
-    "wealthTitle": "Répartition du Patrimoine",
-    "wealthSubtitle": "Distribution de vos actifs sur l'ensemble de vos comptes actifs.",
+    "wealthTitle": "Répartition du patrimoine",
+    "wealthSubtitle": "Distribution de tes actifs sur l'ensemble de tes comptes actifs.",
     "groupBy": {
-      "category": "Par Catégorie",
+      "category": "Par catégorie",
       "mixed": "Mixte",
-      "account": "Par Compte",
-      "institution": "Par Établissement"
+      "account": "Par compte",
+      "institution": "Par établissement"
     },
     "total": "Total :",
     "debts": "Dettes :",
@@ -117,10 +117,10 @@
     "noWealth": "Aucune donnée de patrimoine disponible.",
     "wealthCenter": "Patrimoine",
     "wealthGroup": {
-      "courant": "Comptes Courants",
+      "courant": "Comptes courants",
       "epargne": "Épargne",
       "investissement": "Investissements",
-      "otherInstitution": "Autre / Non spécifié"
+      "otherInstitution": "Autre / non spécifié"
     },
     "accountType": {
       "courant": "Courant",
@@ -131,20 +131,20 @@
   },
   "history": {
     "cashFlowTitle": "Flux de trésorerie",
-    "cashFlowSubtitle": "Revenus vs Dépenses (6 mois).",
+    "cashFlowSubtitle": "Revenus vs dépenses (6 mois).",
     "revenues": "Revenus",
     "realExpenses": "Dépenses réelles",
-    "burnTitle": "Évolution du Burn Rate",
+    "burnTitle": "Évolution du burn rate",
     "burnSubtitle": "Dépense moyenne journalière par mois.",
-    "burnName": "Burn Rate",
-    "salaryTitle": "Évolution du Salaire",
+    "burnName": "Burn rate",
+    "salaryTitle": "Évolution du salaire",
     "salarySubtitle": "Stabilité et croissance des revenus principaux.",
     "salaryName": "Salaire"
   },
   "verification": {
     "accountsToUpdate_one": "{{count}} compte à mettre à jour",
     "accountsToUpdate_other": "{{count}} comptes à mettre à jour",
-    "intro": "Cela fait plus de 15 jours que vous n'avez pas mis à jour ces comptes. Veuillez vérifier s'il y a de nouvelles transactions ou valider leur solde.",
+    "intro": "Tu n'as pas mis à jour ces comptes depuis plus de 15 jours. Vérifie s'il y a de nouvelles transactions ou valide leur solde.",
     "never": "Jamais vérifié",
     "lastUpdate_one": "Dernière maj: il y a {{count}} jour",
     "lastUpdate_other": "Dernière maj: il y a {{count}} jours",
@@ -156,8 +156,8 @@
   "journal": {
     "title": "Journal des décisions",
     "subtitle": "Résiliation, hausse d'épargne, changement d'allocation… repérés sur les courbes (⚑).",
-    "empty": "Notez vos décisions pour retrouver plus tard pourquoi une courbe a changé.",
-    "needDateTitle": "Indiquez une date et un intitulé",
+    "empty": "Note tes décisions pour retrouver plus tard pourquoi une courbe a changé.",
+    "needDateTitle": "Indique une date et un intitulé",
     "updated": "Décision modifiée",
     "added": "Décision ajoutée au journal",
     "saveError": "Impossible d'enregistrer la décision",

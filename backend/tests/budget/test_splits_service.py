@@ -57,7 +57,7 @@ def test_changing_amount_of_split_expense_is_invalid_operation(db_session):
     tx = _tx(db_session)
     set_splits(db_session, tx, [TransactionSplitItem(category_id=a.id, amount=60.0),
                                 TransactionSplitItem(category_id=b.id, amount=40.0)])
-    with pytest.raises(InvalidOperationError, match="Annulez ou ajustez le découpage avant de changer le montant"):
+    with pytest.raises(InvalidOperationError, match="Annule ou ajuste le découpage avant de changer le montant"):
         check_split_compatible(tx, "Sortie", 120.0, False)
 
 

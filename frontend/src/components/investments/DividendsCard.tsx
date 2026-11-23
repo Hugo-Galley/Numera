@@ -8,7 +8,7 @@ import { keepSeriesOrder, numberFormatter } from "@/lib/chartTooltip"
 import { Coins, Link2 } from "lucide-react"
 import { toast } from "sonner"
 
-import { errorMessage, formatCurrency, formatRate } from "@/lib/utils"
+import { errorMessage, formatCompactCurrency, formatCurrency, formatRate } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -160,7 +160,7 @@ export function DividendsCard({ accountId, reloadKey, onChanged }: DividendsCard
                   <BarChart data={data.by_month} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                     <XAxis dataKey="month" tickFormatter={monthLabel} tick={{ fontSize: 11 }} interval="preserveStartEnd" />
-                    <YAxis tick={{ fontSize: 11 }} width={48} tickFormatter={(v) => `${v} €`} />
+                    <YAxis tick={{ fontSize: 11 }} width={48} tickFormatter={(v) => formatCompactCurrency(v)} />
                     <Tooltip itemSorter={keepSeriesOrder}
                       labelFormatter={(key) => monthLabel(String(key))}
                       formatter={numberFormatter((value: number) => [formatCurrency(value), "Dividendes nets"])}

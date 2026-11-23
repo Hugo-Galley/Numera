@@ -46,7 +46,7 @@ describe("TagsTab", () => {
     serveTags([VACANCES])
     renderWithProviders(<TagsTab />, { auth: true })
 
-    expect(screen.getByText("Chargement de vos tags...")).toBeInTheDocument()
+    expect(screen.getByText("Chargement de tes tags...")).toBeInTheDocument()
     expect(await screen.findByText("Vacances")).toBeInTheDocument()
   })
 

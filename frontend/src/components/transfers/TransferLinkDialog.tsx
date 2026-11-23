@@ -115,7 +115,7 @@ export function TransferLinkDialog({ open, onOpenChange, transaction, accounts, 
 
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
           <p className="text-sm text-slate-500">
-            {isSortie ? t("transferLinkDialog.entrees") : t("transferLinkDialog.sorties")} proches (±15 jours, ±5 % du montant) sur vos autres comptes.
+            {isSortie ? t("transferLinkDialog.entrees") : t("transferLinkDialog.sorties")} proches (±15 jours, ±5 % du montant) sur tes autres comptes.
           </p>
           <Select value={filterAccount} onValueChange={setFilterAccount}>
             <SelectTrigger className="h-11 w-full sm:h-10 sm:w-48">

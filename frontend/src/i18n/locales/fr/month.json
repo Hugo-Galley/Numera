@@ -2,7 +2,7 @@
   "accountsStep": {
     "soldeValide": "Solde validé",
     "echecDeLaValidation": "Échec de la validation",
-    "comparezLeSoldeAfficheAvec": "Comparez le solde affiché avec celui de votre relevé, puis validez chaque compte.",
+    "comparezLeSoldeAfficheAvec": "Compare le solde affiché avec celui de ton relevé, puis valide chaque compte.",
     "valide": "Validé",
     "validerLeSolde": "Valider le solde"
   },
@@ -17,7 +17,7 @@
     "tauxDEpargne": "Taux d'épargne",
     "burnRateParJour": "Burn rate (par jour)",
     "budgetsDepasses": "Budgets dépassés",
-    "plusGrossesDepensesDuMois": "Plus grosses dépenses du mois. Marquez un achat ponctuel comme",
+    "plusGrossesDepensesDuMois": "Plus grosses dépenses du mois. Marque un achat ponctuel comme",
     "pourJugerLeMoisSans": "pour juger le mois sans lui (il reste dans les totaux et les soldes).",
     "exceptionnelle": "Exceptionnelle",
     "marquerExceptionnelle": "Marquer exceptionnelle",
@@ -30,7 +30,7 @@
     "choisir": "Choisir…"
   },
   "closeStep": {
-    "desTransactionsOntChangeDepuis": "Des transactions ont changé depuis la clôture. Vous pouvez re-clôturer pour mettre la photo à jour.",
+    "desTransactionsOntChangeDepuis": "Des transactions ont changé depuis la clôture. Tu peux re-clôturer pour mettre la photo à jour.",
     "depensesSansCategorie": "Dépenses sans catégorie",
     "comptesAValider": "Comptes à valider",
     "depensesReelles": "Dépenses réelles",
@@ -79,18 +79,18 @@
   "comparison": {
     "voirLesTransactions": "Voir les transactions",
     "erreurLorsDuChargementDe": "Erreur lors du chargement de la comparaison",
-    "comparaisonMensuelle": "Comparaison Mensuelle",
-    "comparezVosRevenusEtDepenses": "Comparez vos revenus et dépenses entre deux périodes.",
+    "comparaisonMensuelle": "Comparaison mensuelle",
+    "comparezVosRevenusEtDepenses": "Compare tes revenus et dépenses entre deux périodes.",
     "periodeA": "Période A",
     "periodeB": "Période B",
     "laComparaisonNAPas": "La comparaison n'a pas pu être chargée.",
-    "ecartRevenus": "Écart Revenus",
-    "ecartDepenses": "Écart Dépenses",
-    "ecartEpargne": "Écart Épargne",
+    "ecartRevenus": "Écart revenus",
+    "ecartDepenses": "Écart dépenses",
+    "ecartEpargne": "Écart épargne",
     "evolutionNette": "Evolution nette",
     "detailParCategorie": "Détail par catégorie",
-    "variationDesDepensesEntreLes": "Variation des dépenses entre les deux périodes. Cliquez sur un montant pour voir ses transactions.",
-    "selectionnezDeuxPeriodesPourComparer": "Sélectionnez deux périodes pour comparer.",
+    "variationDesDepensesEntreLes": "Variation des dépenses entre les deux périodes. Clique sur un montant pour voir ses transactions.",
+    "selectionnezDeuxPeriodesPourComparer": "Sélectionne deux périodes pour comparer.",
     "categorie": "Catégorie",
     "ecart": "Écart",
     "versus": "vs"
@@ -108,7 +108,7 @@
     "moisRouvert": "Mois rouvert",
     "echecDeLaReouverture": "Échec de la réouverture",
     "revueDeMois": "Revue de mois",
-    "passezLeMoisEnRevue": "Passez le mois en revue, étape par étape, puis clôturez-le.",
+    "passezLeMoisEnRevue": "Passe le mois en revue, étape par étape, puis clôture-le.",
     "moisPrecedent": "Mois précédent",
     "moisSuivant": "Mois suivant",
     "laRevueDuMoisN": "La revue du mois n'a pas pu être chargée.",
@@ -159,7 +159,7 @@
     "shareUnspent": "part des revenus non dépensée",
     "lastValidation": "Dernière validation : {{date}}",
     "closedOn": "Clôturé le {{date}}",
-    "unresolved": "Il reste {{count}} point(s) à traiter ; vous pouvez tout de même clôturer, ils seront notés.",
-    "closeAnyway": "Il reste {{count}} point(s) à traiter ; vous pouvez tout de même clôturer, ils seront notés."
+    "unresolved": "Il reste {{count}} point(s) à traiter ; tu peux tout de même clôturer, ils seront notés.",
+    "closeAnyway": "Il reste {{count}} point(s) à traiter ; tu peux tout de même clôturer, ils seront notés."
   }
 }

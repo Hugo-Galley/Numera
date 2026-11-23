@@ -219,6 +219,7 @@
     "toutLibelle": "Any label · ",
     "toutMontant": "Any amount · ",
     "modifierLaRegle": "Edit rule",
+    "regleActive": "Active rule",
     "supprimer": "Delete",
     "aucuneRegleCreezEnUne": "No rule. Create one for your regular transfers (e.g. Main → Savings account).",
     "nouvelleRegleDeVirement": "New transfer rule",

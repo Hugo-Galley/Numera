@@ -27,7 +27,7 @@ const view = (capital = 10000) => renderWithProviders(<WealthSimulator initialCa
 /** La simulation est affichée quand son tableau annuel l'est. */
 const ready = () => screen.findAllByText(/23\s000/)
 /** Le commutateur d'allocation précède celui du graphique dans la page. */
-const allocationSwitch = () => screen.getAllByRole("switch")[0]
+const allocationSwitch = () => screen.getByRole("switch", { name: /Simuler selon une allocation/ })
 const tab = (name: string) => screen.getByRole("tab", { name: new RegExp(name) })
 
 describe("WealthSimulator : simulation", () => {
@@ -36,7 +36,7 @@ describe("WealthSimulator : simulation", () => {
     view(25000)
 
     await ready()
-    expect(screen.getByText("Simulateur de Patrimoine Avancé")).toBeInTheDocument()
+    expect(screen.getByText("Simulateur de patrimoine avancé")).toBeInTheDocument()
     await waitFor(() => expect(queries.length).toBeGreaterThan(0))
     const q = lastQuery(queries)
     expect(q.get("initial_capital")).toBe("25000")
@@ -50,7 +50,7 @@ describe("WealthSimulator : simulation", () => {
     serve()
     view()
 
-    expect(await screen.findByText(/Saisie manuelle \(7% rdt \/ 0% vol\)/)).toBeInTheDocument()
+    expect(await screen.findByText(/Saisie manuelle \(7,0\s% rdt \/ 0,0\s% vol\)/)).toBeInTheDocument()
   })
 
   it("simulation en échec : message d'erreur", async () => {
@@ -89,11 +89,11 @@ describe("WealthSimulator : simulation", () => {
     await ready()
 
     await user.click(tab("Fiscalité"))
-    const vol = await screen.findByLabelText("Volatilité Annuelle (%)")
+    const vol = await screen.findByLabelText("Volatilité annuelle (%)")
     await user.clear(vol)
     await user.type(vol, "12")
 
-    expect(await screen.findByText("Monte Carlo Actif")).toBeInTheDocument()
+    expect(await screen.findByText("Monte Carlo actif")).toBeInTheDocument()
     await waitFor(() => expect(lastQuery(queries).get("volatility_pct")).toBe("12"))
   })
 
@@ -106,7 +106,7 @@ describe("WealthSimulator : simulation", () => {
     const tax = await screen.findByLabelText("Taux d'Impôt (%)")
     await user.clear(tax)
     await user.type(tax, "30")
-    await user.selectOptions(screen.getByLabelText("Régime Fiscal"), "false")
+    await user.selectOptions(screen.getByLabelText("Régime fiscal"), "false")
 
     await waitFor(() => {
       const q = lastQuery(queries)
@@ -121,7 +121,7 @@ describe("WealthSimulator : événements de vie", () => {
     const queries = serve()
     const view_ = view()
     await ready()
-    await view_.user.click(tab("Événements de Vie"))
+    await view_.user.click(tab("Événements de vie"))
     return { queries, ...view_ }
   }
 
@@ -136,7 +136,7 @@ describe("WealthSimulator : événements de vie", () => {
 
     await user.click(await screen.findByRole("button", { name: "Ajouter" }))
 
-    expect(await screen.findByText("Veuillez saisir un libellé pour l'événement.")).toBeInTheDocument()
+    expect(await screen.findByText("Saisis un libellé pour l'événement.")).toBeInTheDocument()
     expect(screen.getByText("Aucun événement ponctuel configuré.")).toBeInTheDocument()
   })
 
@@ -156,7 +156,7 @@ describe("WealthSimulator : événements de vie", () => {
     safeStorage.setItem("numera_wealth_sim_events", JSON.stringify([{ year: 3, amount: 5000, label: "Héritage" }]))
     serve()
     const { user } = view()
-    await user.click(await screen.findByRole("tab", { name: /Événements de Vie/ }))
+    await user.click(await screen.findByRole("tab", { name: /Événements de vie/ }))
     expect(await screen.findByText("Héritage")).toBeInTheDocument()
 
     await user.click(screen.getByRole("button", { name: "Supprimer" }))
@@ -178,7 +178,7 @@ describe("WealthSimulator : allocation d'actifs", () => {
   it("désactivée par défaut : invite à activer le commutateur", async () => {
     await openAllocation()
 
-    expect(await screen.findByText(/Activez le commutateur ci-dessus/)).toBeInTheDocument()
+    expect(await screen.findByText(/Active le commutateur ci-dessus/)).toBeInTheDocument()
   })
 
   it("activée : classes d'actifs, pondération totale à 100 % et configuration active calculée", async () => {
@@ -186,8 +186,8 @@ describe("WealthSimulator : allocation d'actifs", () => {
 
     await user.click(allocationSwitch())
 
-    expect(await screen.findByText(/Actions \/ ETF World \(60%\)/)).toBeInTheDocument()
-    expect(screen.getByText(/100% ✓/)).toBeInTheDocument()
+    expect(await screen.findByText(/Actions \/ ETF World \(60\s%\)/)).toBeInTheDocument()
+    expect(screen.getByText(/100\s% ✓/)).toBeInTheDocument()
     expect(screen.getByText(/Allocation d'actifs \(/)).toBeInTheDocument()
   })
 
@@ -195,10 +195,10 @@ describe("WealthSimulator : allocation d'actifs", () => {
     const { user } = await openAllocation()
     await user.click(allocationSwitch())
 
-    await user.click(await screen.findByRole("button", { name: "100% Actions" }))
+    await user.click(await screen.findByRole("button", { name: "100 % actions" }))
 
     expect(await screen.findByText("Preset d'allocation appliqué")).toBeInTheDocument()
-    expect(screen.getByText(/Actions \/ ETF \(100%\)/)).toBeInTheDocument()
+    expect(screen.getByText(/Actions \/ ETF \(100\s%\)/)).toBeInTheDocument()
     expect(screen.queryByText(/Obligations d'État/)).not.toBeInTheDocument()
   })
 
@@ -209,7 +209,7 @@ describe("WealthSimulator : allocation d'actifs", () => {
     await user.click(await screen.findByRole("button", { name: "Ajouter une classe d'actifs" }))
 
     expect(await screen.findByRole("dialog", { name: "Modifier l'actif" })).toBeInTheDocument()
-    expect(screen.getByText(/100% ✓/)).toBeInTheDocument()
+    expect(screen.getByText(/100\s% ✓/)).toBeInTheDocument()
   })
 
   it("pondération différente de 100 % : signalée en rouge et la simulation attend (aucune nouvelle requête)", async () => {
@@ -220,8 +220,8 @@ describe("WealthSimulator : allocation d'actifs", () => {
 
     fireEvent.change(document.querySelector('input[type="range"]') as HTMLInputElement, { target: { value: "50" } })
 
-    expect(await screen.findByText(/90% \(doit être de 100%\)/)).toBeInTheDocument()
-    expect(screen.queryByText(/100% ✓/)).not.toBeInTheDocument()
+    expect(await screen.findByText(/90\s% \(doit être de 100 %\)/)).toBeInTheDocument()
+    expect(screen.queryByText(/100\s% ✓/)).not.toBeInTheDocument()
     await new Promise((r) => setTimeout(r, 150))
     expect(queries.length).toBe(before)
   })
@@ -238,20 +238,20 @@ describe("WealthSimulator : allocation d'actifs", () => {
     await user.type(name, "ETF Monde")
     await user.click(within(dialog).getByRole("button", { name: "Enregistrer" }))
 
-    expect(await screen.findByText(/ETF Monde \(60%\)/)).toBeInTheDocument()
+    expect(await screen.findByText(/ETF Monde \(60\s%\)/)).toBeInTheDocument()
     expect(await screen.findByText("Actif mis à jour")).toBeInTheDocument()
   })
 
   it("suppression d'une classe, mais jamais la dernière", async () => {
     const { user } = await openAllocation()
     await user.click(allocationSwitch())
-    await user.click(await screen.findByRole("button", { name: "100% Actions" }))
-    await screen.findByText(/Actions \/ ETF \(100%\)/)
+    await user.click(await screen.findByRole("button", { name: "100 % actions" }))
+    await screen.findByText(/Actions \/ ETF \(100\s%\)/)
 
     await user.click(screen.getByTitle("Supprimer cet actif"))
 
-    expect(await screen.findByText("Vous devez conserver au moins une classe d'actifs.")).toBeInTheDocument()
-    expect(screen.getByText(/Actions \/ ETF \(100%\)/)).toBeInTheDocument()
+    expect(await screen.findByText("Tu dois conserver au moins une classe d'actifs.")).toBeInTheDocument()
+    expect(screen.getByText(/Actions \/ ETF \(100\s%\)/)).toBeInTheDocument()
   })
 
   it("suppression d'une classe parmi plusieurs", async () => {
@@ -273,7 +273,7 @@ describe("WealthSimulator : graphique", () => {
 
     await user.click(screen.getByRole("switch", { name: /Ajuster inflation/ }))
 
-    expect(await screen.findByText("Euros Constants")).toBeInTheDocument()
+    expect(await screen.findByText("Euros constants")).toBeInTheDocument()
   })
 
   it("le tableau annuel détaillé liste chaque année", async () => {

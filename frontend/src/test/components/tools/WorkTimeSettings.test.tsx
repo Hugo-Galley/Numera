@@ -36,7 +36,7 @@ describe("WorkTimeSettings", () => {
   it("sans salaire configuré : invite à le configurer", async () => {
     setup({ ...configured, configured: false, net_salary: null, hourly_rate: null })
 
-    expect(await screen.findByText("Configurez d'abord votre salaire.")).toBeInTheDocument()
+    expect(await screen.findByText("Configure d'abord ton salaire.")).toBeInTheDocument()
   })
 
   it("enregistrer : PATCH avec jours entiers et heures à virgule, puis toast", async () => {

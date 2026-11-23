@@ -3,7 +3,7 @@
   {
    "category": "company",
    "item_name": "TotalEnergies",
-   "message": "TotalEnergies représente 12.1% de vos actions/ETFs (4.96% du patrimoine total).",
+   "message": "TotalEnergies représente 12.1% de tes actions/ETF (4.96% du patrimoine total).",
    "title": "Forte exposition sur TotalEnergies",
    "type": "warning",
    "value_pct": 12.1

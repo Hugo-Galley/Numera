@@ -14,16 +14,16 @@
     "enregistrement": "Enregistrement..."
   },
   "customEtfModal": {
-    "veuillezRenseignerLeSymboleYahoo": "Veuillez renseigner le symbole Yahoo du fonds",
+    "veuillezRenseignerLeSymboleYahoo": "Renseigne le symbole Yahoo du fonds",
     "impossibleDeDecomposerCeFonds": "Impossible de décomposer ce fonds en ligne",
     "erreurLorsDeLaDecomposition": "Erreur lors de la décomposition en ligne",
     "definirUnProfilDEtf": "Définir un profil d'ETF",
     "laCompositionSecteursEtTop": "La composition (secteurs et top 10) est récupérée sur Yahoo Finance puis actualisée chaque semaine. Yahoo ne publie pas la répartition par pays.",
-    "tickerSymbole": "Ticker / Symbole",
+    "tickerSymbole": "Ticker / symbole",
     "ex0p0001hi7fFOuCw8": "Ex: 0P0001HI7F.F ou CW8.PA",
     "nomOptionnel": "Nom (optionnel)",
     "exAmundiPrimeGlobal": "Ex: Amundi Prime Global",
-    "codeIsinOptionnel": "Code ISIN (Optionnel)",
+    "codeIsinOptionnel": "Code ISIN (optionnel)",
     "exFr0014001fd5": "Ex: FR0014001FD5",
     "annuler": "Annuler",
     "recuperation": "Récupération...",
@@ -58,7 +58,7 @@
     "rattacher": "Rattacher"
   },
   "holdingsDesktopTable": {
-    "actifSymbole": "Actif / Symbole",
+    "actifSymbole": "Actif / symbole",
     "type": "Type",
     "parts": "Parts",
     "prixDeRevientUnitaireMoyen": "Prix de revient unitaire moyen, frais inclus",
@@ -86,11 +86,11 @@
     "supprimerLaPosition": "Supprimer la position"
   },
   "holdingsHeader": {
-    "positionsActuellesActionsEtfs": "Positions Actuelles (Actions & ETFs)",
+    "positionsActuellesActionsEtfs": "Positions actuelles (actions et ETF)",
     "titresDetenusEtNombreDe": "Titres détenus et nombre de parts.",
-    "valorisationEnDirectDeVos": "Valorisation en direct de vos lignes boursières au cours de marché.",
+    "valorisationEnDirectDeVos": "Valorisation en direct de tes lignes boursières au cours de marché.",
     "estimerLesPru": "Estimer les PRU",
-    "pointZeroEtatDesLieux": "Point Zéro / État des Lieux",
+    "pointZeroEtatDesLieux": "Point Zéro / état des lieux",
     "nomTickerIsin": "Nom, ticker, ISIN…",
     "effacerLaRecherche": "Effacer la recherche",
     "tous": "Tous",
@@ -119,18 +119,18 @@
   },
   "index": {
     "aucunePositionActiveRenseignee": "Aucune position active renseignée",
-    "definissezVotre": "Définissez votre",
+    "definissezVotre": "Définis ton",
     "pointZero": "Point Zéro",
-    "enIndiquantLeNombreDe": "en indiquant le nombre de parts détenues. Numera valorise vos positions au cours réel du marché.",
+    "enIndiquantLeNombreDe": "en indiquant le nombre de parts détenues. Numera valorise tes positions au cours réel du marché.",
     "definirLEtatDesLieux": "Définir l'état des lieux",
     "aucunePositionNeCorrespondAux": "Aucune position ne correspond aux filtres",
     "reinitialiserLesFiltres": "Réinitialiser les filtres",
-    "declarezVosPositionsActuellesLes": "Déclarez vos positions actuelles. Les cours boursiers en direct valoriseront automatiquement votre portefeuille sans altérer vos transactions passées.",
-    "chargementDeVosInvestissements": "Chargement de vos investissements...",
+    "declarezVosPositionsActuellesLes": "Déclare tes positions actuelles. Les cours boursiers en direct valoriseront automatiquement ton portefeuille sans altérer tes transactions passées.",
+    "chargementDeVosInvestissements": "Chargement de tes investissements...",
     "investissements": "Investissements",
-    "suivezLaPerformanceEtLa": "Suivez la performance et la répartition de votre patrimoine investi.",
+    "suivezLaPerformanceEtLa": "Suis la performance et la répartition de ton patrimoine investi.",
     "analysesAvancees": "Analyses avancées",
-    "visionGlobaleDeVosActifs": "Vision globale de vos actifs sous-jacents (tous comptes confondus)."
+    "visionGlobaleDeVosActifs": "Vision globale de tes actifs sous-jacents (tous comptes confondus)."
   },
   "useHoldingsState": {
     "impossibleDeDecomposerCeFonds": "Impossible de décomposer ce fonds en ligne",
@@ -148,13 +148,13 @@
     "enregistrerLEtatDesLieux": "Enregistrer l'état des lieux"
   },
   "pointZeroRows": {
-    "detectionAutomatiqueDeVosActifs": "Détection automatique de vos actifs...",
+    "detectionAutomatiqueDeVosActifs": "Détection automatique de tes actifs...",
     "aucunActifDansCetEtat": "Aucun actif dans cet état des lieux.",
-    "recherchezVosActionsEtEtfs": "Recherchez vos actions et ETFs ci-dessus pour les ajouter.",
-    "actifSymbole": "Actif / Symbole",
-    "coursReel": "Cours Réel",
+    "recherchezVosActionsEtEtfs": "Recherche tes actions et ETF ci-dessus pour les ajouter.",
+    "actifSymbole": "Actif / symbole",
+    "coursReel": "Cours réel",
     "nombreDeParts": "Nombre de parts",
-    "valeurEstimee": "Valeur Estimée",
+    "valeurEstimee": "Valeur estimée",
     "action": "Action",
     "suggere": "Suggéré",
     "retirerCetteLigne": "Retirer cette ligne",
@@ -173,7 +173,7 @@
     "definirCetEtfPersonnalise": "Définir cet ETF personnalisé"
   },
   "usePointZeroState": {
-    "veuillezRenseignerUnNombreDe": "Veuillez renseigner un nombre de parts (> 0) pour au moins un actif",
+    "veuillezRenseignerUnNombreDe": "Renseigne un nombre de parts (> 0) pour au moins un actif",
     "etatDesLieuxEnregistreAvec": "État des lieux enregistré avec succès",
     "erreurLorsDeLEnregistrement": "Erreur lors de l'enregistrement de l'état des lieux"
   },
@@ -199,12 +199,12 @@
     "discountSplit": "dont décote {{discount}} · marché {{market}}"
   },
   "securitySearchInput": {
-    "rechercheParTitreTickerOu": "Recherche par Titre, Ticker ou ISIN",
+    "rechercheParTitreTickerOu": "Recherche par titre, ticker ou ISIN",
     "recherche": "Recherche...",
     "appleAaplCw8PaFr0010315770": "Apple, AAPL, CW8.PA, FR0010315770…",
     "effacerLaRecherche": "Effacer la recherche",
     "action": "Action",
-    "tickerCode": "Ticker / Code",
+    "tickerCode": "Ticker / code",
     "exCw8Pa": "Ex: CW8.PA",
     "codeIsin": "Code ISIN",
     "exFr0010315770": "Ex: FR0010315770",
@@ -214,7 +214,7 @@
   },
   "accountsAllocation": {
     "repartitionParCompte": "Répartition par compte",
-    "vosInvestissementsSeparesParEnveloppe": "Vos investissements séparés par enveloppe.",
+    "vosInvestissementsSeparesParEnveloppe": "Tes investissements séparés par enveloppe.",
     "detailsDeLAllocation": "Détails de l'allocation",
     "total": "Total :",
     "total2": "Total",
@@ -223,8 +223,8 @@
   },
   "advancedCharts": {
     "vueDEnsembleDeL": "Vue d'ensemble de l'allocation",
-    "parClasseDActif": "Par Classe d'actif",
-    "parSecteur": "Par Secteur",
+    "parClasseDActif": "Par classe d'actif",
+    "parSecteur": "Par secteur",
     "nonClasseAide": "Le gris « Non classé » regroupe les achats sans classe d'actifs. Clique dessus pour voir les comptes concernés, puis renseigne la classe d'actifs de leurs achats depuis la page du compte."
   },
   "drillDownDialog": {
@@ -233,33 +233,33 @@
   "etfCompositions": {
     "repartitionGeographiqueMondiale": "Répartition géographique mondiale",
     "interactif": "Interactif",
-    "pincezPourZoomerGlissezPour": "Pincez pour zoomer • Glissez pour déplacer",
-    "utilisezLaMolettePourZoomer": "Utilisez la molette pour zoomer • Cliquez-glissez pour déplacer",
+    "pincezPourZoomerGlissezPour": "Pince pour zoomer • Glisse pour déplacer",
+    "utilisezLaMolettePourZoomer": "Utilise la molette pour zoomer • Clique-glisse pour déplacer",
     "origineDesCompositions": "Origine des compositions",
     "actualiser": "Actualiser"
   },
   "investmentsKpis": {
-    "valeurTotale": "Valeur Totale",
+    "valeurTotale": "Valeur totale",
     "positionsCoursComptesTitresEt": "Positions × cours (comptes titres) et derniers relevés (assurance-vie)",
-    "performanceGlobale": "Performance Globale",
+    "performanceGlobale": "Performance globale",
     "supports": "Supports",
     "comptesDInvestissement": "Comptes d'investissement",
-    "scoreDeDiversite": "Score de Diversité"
+    "scoreDeDiversite": "Score de diversité"
   },
   "performanceSection": {
     "performanceDetaillee": "Performance détaillée",
-    "historiqueEtEvolutionDeVos": "Historique et évolution de vos supports.",
+    "historiqueEtEvolutionDeVos": "Historique et évolution de tes supports.",
     "valeur": "Valeur"
   },
   "topCompanies": {
-    "top10EntreprisesDetenuesLook": "Top 10 Entreprises Détenues (Look-Through)",
-    "expositionConsolideeDirectSousJacents": "Exposition consolidée : direct + sous-jacents de vos ETFs.",
+    "top10EntreprisesDetenuesLook": "Top 10 des entreprises détenues (transparence)",
+    "expositionConsolideeDirectSousJacents": "Exposition consolidée : direct + sous-jacents de tes ETF.",
     "direct": "Direct",
-    "viaEtfs": "Via ETFs",
+    "viaEtfs": "Via ETF",
     "doublon": "Doublon",
     "apportTotal": "Apport total :",
     "detenuEnDirect": "Détenu en direct :",
-    "detenuViaEtfs": "Détenu via ETFs :"
+    "detenuViaEtfs": "Détenu via ETF :"
   },
   "useInvestmentsData": {
     "impossibleDActualiserLesCompositions": "Impossible d'actualiser les compositions",
@@ -295,7 +295,7 @@
     "fetchingComposition": "Récupération de la composition de {{symbol}} sur Yahoo...",
     "brokenDown": "{{name}} décomposé avec succès !",
     "breakingDown": "Décomposition de {{name}} en ligne...",
-    "alreadyInList": "{{symbol}} est déjà dans votre liste",
+    "alreadyInList": "{{symbol}} est déjà dans ta liste",
     "results_one": "{{count}} résultat",
     "results_other": "{{count}} résultats",
     "positions_one": "{{count}} position",
@@ -329,21 +329,21 @@
   },
   "thirdParty": {
     "title": "Détenu pour un tiers",
-    "subtitle": "Ces comptes ne sont pas à vous : ils ne comptent dans aucun des totaux ci-dessus.",
+    "subtitle": "Ces comptes ne sont pas à toi : ils ne comptent dans aucun des totaux ci-dessus.",
     "heldFor": "Pour {{name}}",
     "value": "Valeur",
     "unrealized": "Plus-value latente"
   },
   "benchmark": {
     "title": "Stock picking vs {{name}}",
-    "subtitle": "Vos actions (hors ETF) face au même argent placé aux mêmes dates dans la référence, depuis le {{date}}.",
+    "subtitle": "Tes actions (hors ETF) face au même argent placé aux mêmes dates dans la référence, depuis le {{date}}.",
     "reference": "Indice de référence",
     "auto": "Auto (plus gros ETF)",
     "otherTicker": "Autre ticker",
     "apply": "Appliquer",
     "saveError": "Impossible d'enregistrer la référence",
     "gap": "Écart (actions − référence)",
-    "stocksSide": "Vos actions",
+    "stocksSide": "Tes actions",
     "referenceSide": "Fantôme {{ticker}}",
     "xirr": "Rendement annualisé : {{rate}}",
     "empty": "Aucune action hors ETF à comparer.",
@@ -354,7 +354,7 @@
     "gapColumn": "Écart",
     "xirrColumn": "Rendement / réf.",
     "missingPrice": "Cours manquant",
-    "subtitleNoDate": "Vos actions (hors ETF) face au même argent placé aux mêmes dates dans la référence."
+    "subtitleNoDate": "Tes actions (hors ETF) face au même argent placé aux mêmes dates dans la référence."
   },
   "drawdown": {
     "title": "Pire baisse",

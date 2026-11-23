@@ -39,13 +39,19 @@ export function BudgetPeriodCard() {
         </CardDescription>
       </CardHeader>
       <CardContent className="flex items-center justify-between gap-4">
-        <div className="min-w-0 text-sm text-slate-600">
+        <div id="budget-period-status" className="min-w-0 text-sm text-slate-600">
           {salaryMode ? t("budgetPeriodCard.moisDePaie") : t("budgetPeriodCard.moisCivil")}
           {salaryMode && formatPeriodRange(period) && (
             <span className="block text-slate-400 sm:ml-2 sm:inline">{t("misc.currentPeriod", { range: formatPeriodRange(period) })}</span>
           )}
         </div>
-        <Switch checked={salaryMode} disabled={saving || !period} onCheckedChange={toggle} />
+        <Switch
+          checked={salaryMode}
+          disabled={saving || !period}
+          onCheckedChange={toggle}
+          aria-label={t("budgetPeriodCard.moisDePaie")}
+          aria-describedby="budget-period-status"
+        />
       </CardContent>
     </Card>
   )

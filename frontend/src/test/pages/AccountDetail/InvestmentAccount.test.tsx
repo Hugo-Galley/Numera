@@ -157,7 +157,7 @@ describe("Compte titres : historique des flux", () => {
 
 describe("Compte titres : snapshots", () => {
   async function openSnapshotDialog(view: View) {
-    await view.user.click(await screen.findByRole("button", { name: "Nouveau Snapshot" }))
+    await view.user.click(await screen.findByRole("button", { name: "Nouveau snapshot" }))
     return screen.getByRole("dialog", { name: "Mettre à jour la valeur" })
   }
 
@@ -165,7 +165,7 @@ describe("Compte titres : snapshots", () => {
     setup()
 
     expect((await screen.findAllByText(/10\s250,50/)).length).toBeGreaterThan(0)
-    expect(screen.getByText("Derniers Snapshots")).toBeInTheDocument()
+    expect(screen.getByText("Derniers snapshots")).toBeInTheDocument()
   })
 
   it("valeur absente ou négative : message, aucune requête", async () => {
@@ -173,7 +173,7 @@ describe("Compte titres : snapshots", () => {
     const dialog = await openSnapshotDialog(view)
 
     await view.user.click(within(dialog).getByRole("button", { name: "Mettre à jour" }))
-    expect(await screen.findByText("Saisissez une valeur valide (nombre positif ou nul)")).toBeInTheDocument()
+    expect(await screen.findByText("Saisis une valeur valide (nombre positif ou nul)")).toBeInTheDocument()
     await view.user.type(within(dialog).getByLabelText(/Valeur Actuelle/), "-5")
     await view.user.click(within(dialog).getByRole("button", { name: "Mettre à jour" }))
 
@@ -187,7 +187,7 @@ describe("Compte titres : snapshots", () => {
 
     fireDate(within(dialog).getByLabelText("Date"), "2026-06-30")
     await view.user.type(within(dialog).getByLabelText(/Valeur Actuelle/), "11000")
-    await view.user.type(within(dialog).getByLabelText("Note (Optionnel)"), "Fin de mois")
+    await view.user.type(within(dialog).getByLabelText("Note (optionnel)"), "Fin de mois")
     await view.user.click(within(dialog).getByRole("button", { name: "Mettre à jour" }))
 
     await waitFor(() => expect(view.writes).toEqual([{ method: "POST", path: "/balance-snapshots", body: { account_id: 5, date: "2026-06-30", current_value: 11000, note: "Fin de mois", is_zero_point: false } }]))
@@ -248,7 +248,7 @@ describe("Compte titres : nouveau point zéro", () => {
 
     await view.user.click(within(dialog).getByRole("button", { name: "Réinitialiser la base" }))
 
-    expect(await screen.findByText("Saisissez une valeur d'ouverture valide (nombre positif ou nul)")).toBeInTheDocument()
+    expect(await screen.findByText("Saisis une valeur d'ouverture valide (nombre positif ou nul)")).toBeInTheDocument()
     expect(view.writes).toEqual([])
   })
 

@@ -56,7 +56,7 @@ describe("UnassignedDepositsDialog", () => {
     expect(within(dialog).getByText("Virement depuis Courant")).toBeInTheDocument()
     expect(within(dialog).getByText(/400,00/)).toBeInTheDocument()
 
-    await user.type(within(dialog).getByLabelText(/Recherche par Titre/), "msci")
+    await user.type(within(dialog).getByLabelText(/Recherche par titre/), "msci")
     await user.click(await within(dialog).findByText("Amundi MSCI World"))
     await waitFor(() => expect(within(dialog).getByLabelText("Quantité")).toHaveValue(0.8))
     expect(within(dialog).getByLabelText(/Prix unitaire/)).toHaveValue(500)
@@ -93,7 +93,7 @@ describe("UnassignedDepositsDialog", () => {
 
     const dialog = await screen.findByRole("dialog", { name: /Versement à relier/ })
     await user.click(within(dialog).getByRole("button", { name: "Relier" }))
-    expect(await screen.findByText("Choisissez un titre et indiquez la quantité.")).toBeInTheDocument()
+    expect(await screen.findByText("Choisis un titre et indique la quantité.")).toBeInTheDocument()
 
     await user.click(within(dialog).getByRole("button", { name: "Plus tard" }))
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument())
@@ -107,7 +107,7 @@ describe("UnassignedDepositsDialog", () => {
     const { user } = renderWithProviders(<UnassignedDepositsDialog accountId={3} onDone={() => undefined} />, { auth: true })
 
     const dialog = await screen.findByRole("dialog", { name: /Versement à relier/ })
-    await user.type(within(dialog).getByLabelText("Ticker / Code"), "aapl")
+    await user.type(within(dialog).getByLabelText("Ticker / code"), "aapl")
     await user.type(within(dialog).getByLabelText("Code ISIN"), "us0378331005")
     await user.type(within(dialog).getByLabelText("Quantité"), "1.5")
     await user.type(within(dialog).getByLabelText(/Prix unitaire/), "260")
@@ -127,7 +127,7 @@ describe("UnassignedDepositsDialog", () => {
     const { user } = renderWithProviders(<UnassignedDepositsDialog accountId={3} onDone={() => undefined} />, { auth: true })
 
     const dialog = await screen.findByRole("dialog", { name: /Versement à relier/ })
-    await user.type(within(dialog).getByLabelText(/Recherche par Titre/), "msci")
+    await user.type(within(dialog).getByLabelText(/Recherche par titre/), "msci")
     await user.click(await within(dialog).findByText("Amundi MSCI World"))
     expect(await within(dialog).findByText(/Cours inconnu à cette date/)).toBeInTheDocument()
 

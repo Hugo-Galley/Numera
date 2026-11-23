@@ -145,7 +145,7 @@ export function LogoPicker({ value, onChange, suggestFor }: LogoPickerProps) {
               <span className="truncate">Utiliser le logo de <b>{query.trim()}</b></span>
             </button>
           ) : (
-            <p className="px-2 py-1.5 text-[11px] text-slate-400">Entreprise absente ? Tapez son site (ex. navigo.fr).</p>
+            <p className="px-2 py-1.5 text-[11px] text-slate-400">Entreprise absente ? Tape son site (ex. navigo.fr).</p>
           )}
         </div>
       )}

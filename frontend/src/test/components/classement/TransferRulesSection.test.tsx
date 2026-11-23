@@ -60,7 +60,7 @@ describe("TransferRulesSection : liste", () => {
     serve({ rules: [] })
     view()
 
-    expect(await screen.findByText(/Aucune règle\. Créez-en une/)).toBeInTheDocument()
+    expect(await screen.findByText(/Aucune règle\. Crées-en une/)).toBeInTheDocument()
     expect(screen.getByRole("button", { name: "Rattraper le passé" })).toBeDisabled()
   })
 
@@ -84,7 +84,7 @@ describe("TransferRulesSection : création et modification", () => {
     await user.click(screen.getByRole("button", { name: "Nouvelle règle" }))
     await user.click(within(await screen.findByRole("dialog")).getByRole("button", { name: "Créer la règle" }))
 
-    expect(await screen.findByText("Choisissez un compte source et un compte destination")).toBeInTheDocument()
+    expect(await screen.findByText("Choisis un compte source et un compte destination")).toBeInTheDocument()
     expect(writes).toEqual([])
   })
 
@@ -169,7 +169,7 @@ describe("TransferRulesSection : activation, suppression, rattrapage", () => {
     const { user } = view()
     await screen.findByText("Règles de virement")
 
-    await user.click(ruleCard(/Tout libellé/).getByRole("switch"))
+    await user.click(ruleCard(/Tout libellé/).getByRole("switch", { name: "Règle active" }))
 
     await waitFor(() => expect(writes).toEqual([{ method: "PATCH", path: "/transfer-rules/11", body: { is_active: true } }]))
   })

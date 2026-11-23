@@ -139,7 +139,7 @@ describe("PointZeroModal : recherche d'un titre", () => {
     await user.type(searchBox(), "amundi")
     await user.click(await screen.findByText("cw8.pa"))
 
-    expect(await screen.findByText("cw8.pa est déjà dans votre liste")).toBeInTheDocument()
+    expect(await screen.findByText("cw8.pa est déjà dans ta liste")).toBeInTheDocument()
     expect(quantityInputs()).toHaveLength(2)
   })
 
@@ -164,7 +164,7 @@ describe("PointZeroModal : recherche d'un titre", () => {
     await user.click(await screen.findByRole("button", { name: "Définir cet ETF personnalisé" }))
 
     const dialog = await screen.findByRole("dialog", { name: "Définir un profil d'ETF" })
-    expect(within(dialog).getByLabelText("Ticker / Symbole")).toBeInTheDocument()
+    expect(within(dialog).getByLabelText("Ticker / symbole")).toBeInTheDocument()
   })
 
   it("« Effacer la recherche » vide le champ", async () => {
@@ -202,7 +202,7 @@ describe("PointZeroModal : enregistrement", () => {
 
     await user.click(screen.getByRole("button", { name: "Enregistrer l'état des lieux" }))
 
-    expect(await screen.findByText(/Veuillez renseigner un nombre de parts/)).toBeInTheDocument()
+    expect(await screen.findByText(/Renseigne un nombre de parts/)).toBeInTheDocument()
     expect(served.baselines).toEqual([])
     expect(onBaselineSaved).not.toHaveBeenCalled()
   })

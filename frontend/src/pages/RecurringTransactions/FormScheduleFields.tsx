@@ -123,10 +123,11 @@ export function FormScheduleFields({ ctx }: { ctx: RecurringTransactionsCtx }) {
 
       <div className="flex items-center justify-between p-3 border rounded-md bg-slate-50">
         <div className="space-y-0.5">
-          <Label>{t("formScheduleFields.generationAutomatique")}</Label>
+          <Label htmlFor="recurring-auto-generate">{t("formScheduleFields.generationAutomatique")}</Label>
           <p className="text-xs text-slate-500">{t("formScheduleFields.creerLesTransactionsSansIntervention")}</p>
         </div>
         <Checkbox 
+          id="recurring-auto-generate"
           checked={formData.auto_generate}
           onCheckedChange={(checked: boolean | "indeterminate") => setFormData({ ...formData, auto_generate: !!checked })}
         />

@@ -68,7 +68,7 @@ export function CalendarGrid({ ctx }: { ctx: CalendarCtx }) {
                         )}
                       />
                     ))}
-                    {events.length > 3 && <span className="text-[9px] leading-none text-slate-400">+</span>}
+                    {events.length > 3 && <span className="text-[11px] leading-none text-slate-400">+</span>}
                   </div>
                 )}
                 <div className="hidden md:flex flex-col gap-0.5 overflow-hidden">
@@ -92,7 +92,7 @@ export function CalendarGrid({ ctx }: { ctx: CalendarCtx }) {
                     )
                   })}
                   {events.length > 3 && (
-                    <div className="text-[9px] text-slate-400 pl-1 font-medium">
+                    <div className="text-[11px] text-slate-400 pl-1 font-medium">
                       + {events.length - 3} autres
                     </div>
                   )}

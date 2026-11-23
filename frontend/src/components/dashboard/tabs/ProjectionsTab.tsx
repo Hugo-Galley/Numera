@@ -10,7 +10,7 @@ import {
   CardDescription
 } from "@/components/ui/card"
 import { useIsMobile } from "@/hooks/useIsMobile"
-import { formatCurrency } from "@/lib/utils"
+import { formatCompactCurrency, formatCurrency } from "@/lib/utils"
 import { todayLocal } from "@/lib/dates"
 import {
   ResponsiveContainer,
@@ -131,7 +131,7 @@ export function ProjectionsTab({ projection, displayCurrency, allAccounts = fals
                 tickLine={false} 
                 tick={{ fontSize: isMobile ? 11 : 12, fill: '#64748b' }} 
                 width={isMobile ? 52 : 60}
-                tickFormatter={(v) => `${Math.round(v)}€`}
+                tickFormatter={(v) => formatCompactCurrency(v)}
               />
               <Tooltip itemSorter={keepSeriesOrder} 
                 contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} 

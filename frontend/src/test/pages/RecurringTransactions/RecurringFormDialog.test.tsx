@@ -57,7 +57,7 @@ describe("Formulaire de récurrence", () => {
     await user.type(within(dialog).getByLabelText("Montant"), "15")
     await user.click(within(dialog).getByRole("button", { name: "Enregistrer" }))
 
-    expect(await screen.findByText("Veuillez remplir les champs obligatoires")).toBeInTheDocument()
+    expect(await screen.findByText("Remplis les champs obligatoires")).toBeInTheDocument()
     expect(posted).toHaveLength(0)
     expect(dialog).toBeInTheDocument()
   })
@@ -66,7 +66,7 @@ describe("Formulaire de récurrence", () => {
     const { user, posted } = setup()
     const dialog = await openForm(user)
 
-    await user.type(within(dialog).getByLabelText("Nom / Marchand"), "Assurance habitation")
+    await user.type(within(dialog).getByLabelText("Nom / marchand"), "Assurance habitation")
     await user.type(within(dialog).getByLabelText("Montant"), "42.5")
     await pick(user, "Fréquence", "Trimestrielle")
     await user.clear(within(dialog).getByLabelText("Jour du mois"))
@@ -95,7 +95,7 @@ describe("Formulaire de récurrence", () => {
     const { user, posted } = setup()
     const dialog = await openForm(user)
 
-    await user.type(within(dialog).getByLabelText("Nom / Marchand"), "Cantine")
+    await user.type(within(dialog).getByLabelText("Nom / marchand"), "Cantine")
     await user.type(within(dialog).getByLabelText("Montant"), "80")
     await user.click(within(dialog).getByRole("button", { name: /Mois irréguliers/ }))
     await user.click(within(dialog).getByRole("button", { name: "Août" }))
@@ -110,7 +110,7 @@ describe("Formulaire de récurrence", () => {
     const { user, posted } = setup()
     const dialog = await openForm(user)
 
-    await user.type(within(dialog).getByLabelText("Nom / Marchand"), "Taxe foncière")
+    await user.type(within(dialog).getByLabelText("Nom / marchand"), "Taxe foncière")
     await user.type(within(dialog).getByLabelText("Montant"), "900")
     await user.click(within(dialog).getByRole("button", { name: /Mois irréguliers/ }))
     await user.click(within(dialog).getByRole("button", { name: "Mai" }))
@@ -130,7 +130,7 @@ describe("Formulaire de récurrence", () => {
     })
     const dialog = await openForm(user)
 
-    await user.type(within(dialog).getByLabelText("Nom / Marchand"), "Loyer")
+    await user.type(within(dialog).getByLabelText("Nom / marchand"), "Loyer")
     await user.type(within(dialog).getByLabelText("Montant"), "700")
     await user.click(within(dialog).getByRole("button", { name: "Enregistrer" }))
 
@@ -147,7 +147,7 @@ describe("Formulaire de récurrence", () => {
     const { user } = setup(() => HttpResponse.json({ detail: "Compte inconnu" }, { status: 400 }))
     const dialog = await openForm(user)
 
-    await user.type(within(dialog).getByLabelText("Nom / Marchand"), "Loyer")
+    await user.type(within(dialog).getByLabelText("Nom / marchand"), "Loyer")
     await user.type(within(dialog).getByLabelText("Montant"), "700")
     await user.click(within(dialog).getByRole("button", { name: "Enregistrer" }))
 

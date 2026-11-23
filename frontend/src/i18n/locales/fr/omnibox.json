@@ -37,7 +37,7 @@
     "recentTransactions": "Transactions récentes",
     "searchUnavailable": "La recherche est momentanément indisponible.",
     "noResultFor": "Aucun résultat pour \"{{query}}\"",
-    "tryAnother": "Essayez un autre mot-clé ou vérifiez l'orthographe.",
+    "tryAnother": "Essaie un autre mot-clé ou vérifie l'orthographe.",
     "addIncome": "Ajouter un revenu de {{amount}}",
     "addExpense": "Ajouter une dépense de {{amount}}",
     "onAccount": "Sur {{name}}, à vérifier avant d'enregistrer",

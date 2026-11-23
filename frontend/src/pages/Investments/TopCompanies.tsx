@@ -4,9 +4,8 @@ import { Bar, BarChart, ResponsiveContainer, Tooltip, type TooltipContentProps, 
 import { Building } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { CompanyLogo } from "@/components/ui/CompanyLogo"
-import { formatCurrency, formatRate } from "@/lib/utils"
+import { formatCompactCurrency, formatCurrency, formatRate } from "@/lib/utils"
 import type { InvestmentsCtx } from "./useInvestments"
-import { formatCompactCurrency } from "./chartFormat"
 
 /** Graduation de l'axe des entreprises : logo + nom tronqué, nom complet au survol. */
 export function CompanyTick({ x, y, name, ticker, isMobile }: { x: number | string; y: number | string; name: string; ticker?: string; isMobile: boolean }) {

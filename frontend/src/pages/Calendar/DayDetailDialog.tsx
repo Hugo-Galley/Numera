@@ -50,8 +50,8 @@ export function DayDetailDialog({ ctx }: { ctx: CalendarCtx }) {
                                 <span className="text-slate-300">•</span>
                               </>
                             )}
-                            {ev.is_projected && <Badge variant="secondary" className="h-4 text-[9px] px-1 bg-amber-100 text-amber-700 hover:bg-amber-100 border-none">{t("dayDetailDialog.prevu")}</Badge>}
-                            {!ev.is_projected && ev.is_upcoming && <Badge variant="secondary" className="h-4 text-[9px] px-1 bg-sky-100 text-sky-700 hover:bg-sky-100 border-none">{t("dayDetailDialog.aVenir")}</Badge>}
+                            {ev.is_projected && <Badge variant="secondary" className="h-5 text-[11px] px-1 bg-amber-100 text-amber-700 hover:bg-amber-100 border-none">{t("dayDetailDialog.prevu")}</Badge>}
+                            {!ev.is_projected && ev.is_upcoming && <Badge variant="secondary" className="h-5 text-[11px] px-1 bg-sky-100 text-sky-700 hover:bg-sky-100 border-none">{t("dayDetailDialog.aVenir")}</Badge>}
                             <span className="text-[10px] text-slate-500 uppercase font-medium tracking-wider">{ev.type}</span>
                             {ev.quantity && (
                               <span className="text-[10px] text-slate-400 font-mono">• {ev.quantity} part(s)</span>

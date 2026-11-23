@@ -119,7 +119,7 @@ describe("useSalaryData", () => {
 
     await act(() => result.current.handleSaveConfig())
 
-    expect(await screen.findByText("Veuillez remplir les champs obligatoires")).toBeInTheDocument()
+    expect(await screen.findByText("Remplis les champs obligatoires")).toBeInTheDocument()
     expect(calls).toEqual([])
     expect(result.current.saving).toBe(false)
   })
@@ -216,7 +216,7 @@ describe("useSalaryData", () => {
     await ready(result)
 
     await act(() => result.current.handleGenerate())
-    expect(await screen.findByText("Veuillez définir une date de versement")).toBeInTheDocument()
+    expect(await screen.findByText("Définis une date de versement")).toBeInTheDocument()
     expect(calls).toEqual([])
 
     act(() => result.current.setSalaryDate(new Date(2026, 5, 28)))

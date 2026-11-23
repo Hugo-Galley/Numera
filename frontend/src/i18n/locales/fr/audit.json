@@ -7,11 +7,11 @@
     "echecDeLaLiaison": "Échec de la liaison",
     "suggestionIgnoree": "Suggestion ignorée",
     "echecDeLAction": "Échec de l'action",
-    "voulezVousDelierCesTransactions": "Voulez-vous délier ces transactions ?",
+    "voulezVousDelierCesTransactions": "Délier ces transactions ?",
     "transactionsDeliees": "Transactions déliées",
     "chargement": "Chargement...",
     "suggestionsAConfirmer": "Suggestions à confirmer",
-    "mouvementsQuiRessemblentADes": "Mouvements qui ressemblent à des virements internes mais qu'aucune règle (Gestion → Classement → Règles) n'a pu lier sans doute, sur tout l'historique. Liez-les pour les exclure de vos dépenses réelles.",
+    "mouvementsQuiRessemblentADes": "Mouvements qui ressemblent à des virements internes mais qu'aucune règle (Gestion → Classement → Règles) n'a pu lier sans doute, sur tout l'historique. Lie-les pour les exclure de tes dépenses réelles.",
     "ecartDeDateJours": "Écart de date (jours)",
     "ecartDeMontant": "Écart de montant (%)",
     "recherche": "Recherche...",
@@ -29,7 +29,7 @@
     "revenusTotaux": "revenus totaux",
     "etDe": "et de",
     "depensesReelles": "dépenses réelles",
-    "pourNePasFausserVotre": "pour ne pas fausser votre taux d'épargne. Ils restent visibles dans le détail de chaque compte."
+    "pourNePasFausserVotre": "pour ne pas fausser ton taux d'épargne. Ils restent visibles dans le détail de chaque compte."
   },
   "actionDetail": {
     "retourAuCentreDActions": "Retour au centre d'actions",
@@ -49,7 +49,7 @@
     "regleCreee": "Règle créée",
     "creationImpossible": "Création impossible",
     "creerUneRegleDAuto": "Créer une règle d'auto-catégorisation",
-    "motClePattern": "Mot-clé (Pattern)",
+    "motClePattern": "Mot-clé (motif)",
     "categorieCible": "Catégorie cible",
     "choisirUneCategorie": "Choisir une catégorie",
     "aucune": "Aucune",
@@ -72,7 +72,7 @@
     "sortie": "Sortie",
     "entree": "Entrée",
     "interets": "Intérêts",
-    "soldeInitial": "Solde Initial",
+    "soldeInitial": "Solde initial",
     "marchand": "Marchand",
     "categorie": "Catégorie",
     "sansCategorie": "Sans catégorie",
@@ -89,13 +89,13 @@
     "centreDActionsIndisponible": "Centre d'actions indisponible",
     "relancerLAnalyse": "Relancer l'analyse",
     "centreDActions": "Centre d'actions",
-    "uneListeCentraliseeDesTaches": "Une liste centralisée des tâches pour maintenir vos finances propres et sous contrôle.",
+    "uneListeCentraliseeDesTaches": "Une liste centralisée des tâches pour garder tes finances propres et sous contrôle.",
     "actualiser": "Actualiser",
     "prioriteHaute": "Priorité haute",
     "prioriteMoyenne": "Priorité moyenne",
     "suggestions": "Suggestions",
     "toutEstAJour": "Tout est à jour",
-    "felicitationsAucuneActionRequisePour": "Félicitations ! Aucune action requise pour le moment. Votre comptabilité est impeccable."
+    "felicitationsAucuneActionRequisePour": "Félicitations ! Aucune action requise pour le moment. Ta comptabilité est impeccable."
   },
   "useActionCenterData": {
     "donneesIndisponibles": "Données indisponibles",
@@ -122,8 +122,8 @@
     "suggestions_other": "{{count}} suggestions",
     "deleteTx": "Supprimer la transaction « {{merchant}} » de {{amount}} ?",
     "allLinked": "Tous les virements rapprochés ({{count}}). Délier un lien automatique empêche la règle de le recréer.",
-    "ruleHint": "Automatisez la catégorisation pour les futures transactions de \"{{merchant}}\".",
-    "merchantHint": "Créez un marchand canonique pour \"{{merchant}}\".",
+    "ruleHint": "Automatise la catégorisation des futures transactions de \"{{merchant}}\".",
+    "merchantHint": "Crée un marchand canonique pour \"{{merchant}}\".",
     "lastAnalysis": "Dernière analyse : {{date}}"
   }
 }

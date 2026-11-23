@@ -191,7 +191,7 @@ describe("ApiError", () => {
     const error = await rejection(api.get("/accounts"))
 
     expect(error.status).toBe(0)
-    expect(error.message).toBe("Impossible de se connecter au serveur. Vérifiez votre connexion.")
+    expect(error.message).toBe("Impossible de se connecter au serveur. Vérifie ta connexion.")
   })
 })
 

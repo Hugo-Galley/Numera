@@ -74,7 +74,7 @@ describe("BenefitsSection", () => {
 
     expect(await screen.findByText("Les aides n'ont pas pu être chargées.")).toBeInTheDocument()
     expect(screen.getByRole("button", { name: "Réessayer" })).toBeInTheDocument()
-    expect(screen.queryByText(/Déclarez vos aides/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/Déclare tes aides/)).not.toBeInTheDocument()
   })
 
   it("refuse un montant nul ou un libellé trop court sans rien envoyer", async () => {
@@ -103,7 +103,7 @@ describe("BenefitsSection", () => {
     await user.click(within(dialog).getByLabelText("Ajouter l'entrée chaque mois (compte de réception requis)"))
     await user.click(within(dialog).getByRole("button", { name: "Enregistrer" }))
 
-    expect(await screen.findByText("Indiquez la date de la prochaine déclaration")).toBeInTheDocument()
+    expect(await screen.findByText("Indique la date de la prochaine déclaration")).toBeInTheDocument()
     expect(posted).toHaveLength(0)
   })
 
@@ -228,7 +228,7 @@ describe("génération des versements", () => {
     await user.type(within(dialog).getByLabelText("Montant mensuel (€)"), "250")
     await user.click(within(dialog).getByRole("button", { name: "Enregistrer" }))
 
-    expect(await screen.findByText("Choisissez le compte de réception pour générer les versements")).toBeInTheDocument()
+    expect(await screen.findByText("Choisis le compte de réception pour générer les versements")).toBeInTheDocument()
     expect(posted).toHaveLength(0)
   })
 })

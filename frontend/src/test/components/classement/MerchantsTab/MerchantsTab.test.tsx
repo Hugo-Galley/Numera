@@ -90,7 +90,7 @@ describe("MerchantsTab : création", () => {
 
     await user.click(screen.getByRole("button", { name: "Nouveau marchand" }))
     const dialog = await screen.findByRole("dialog", { name: "Nouveau marchand canonique" })
-    await user.type(within(dialog).getByLabelText("Nom Canonique"), "Starbucks")
+    await user.type(within(dialog).getByLabelText("Nom canonique"), "Starbucks")
     await user.type(within(dialog).getByLabelText("Variantes (séparées par des virgules)"), "STARBUCKS PARIS, SBX ,  ,STARBUCKS FR")
     await user.click(within(dialog).getByRole("button", { name: "Créer le marchand" }))
 
@@ -118,7 +118,7 @@ describe("MerchantsTab : création", () => {
 
     await user.click(screen.getByRole("button", { name: "Nouveau marchand" }))
     const dialog = await screen.findByRole("dialog")
-    await user.type(within(dialog).getByLabelText("Nom Canonique"), "Starbucks")
+    await user.type(within(dialog).getByLabelText("Nom canonique"), "Starbucks")
     await user.click(within(dialog).getByRole("button", { name: "Créer le marchand" }))
 
     expect(await screen.findByText("Erreur lors de l'ajout")).toBeInTheDocument()
@@ -131,7 +131,7 @@ describe("MerchantsTab : création", () => {
     await user.click(await screen.findByRole("button", { name: "Créer un marchand à partir de ce libellé" }))
 
     const dialog = await screen.findByRole("dialog", { name: "Nouveau marchand canonique" })
-    expect(within(dialog).getByLabelText("Nom Canonique")).toHaveValue("CB SPOTIFY")
+    expect(within(dialog).getByLabelText("Nom canonique")).toHaveValue("CB SPOTIFY")
     expect(within(dialog).getByLabelText("Variantes (séparées par des virgules)")).toHaveValue("CB SPOTIFY")
     expect(screen.getByText("7 occurrences")).toBeInTheDocument()
   })
@@ -156,7 +156,7 @@ describe("MerchantsTab : modification", () => {
     const { writes } = serve()
     const { user } = view()
     const dialog = await openEdit(user)
-    const name = within(dialog).getByLabelText("Nom Canonique")
+    const name = within(dialog).getByLabelText("Nom canonique")
     expect(name).toHaveValue("Amazon")
     expect(within(dialog).getByText("AMZN DIGITAL")).toBeInTheDocument()
 

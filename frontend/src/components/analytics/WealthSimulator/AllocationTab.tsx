@@ -3,6 +3,7 @@ import { Pencil, Plus, Trash2 } from "lucide-react"
 import { Switch } from "@/components/ui/switch"
 import { TabsContent } from "@/components/ui/tabs"
 import type { WealthSimulatorCtx } from "./useWealthSimulator"
+import { formatRate } from "@/lib/utils"
 
 /** Onglet allocation d'actifs. */
 export function AllocationTab({ ctx }: { ctx: WealthSimulatorCtx }) {
@@ -14,10 +15,11 @@ export function AllocationTab({ ctx }: { ctx: WealthSimulatorCtx }) {
       <TabsContent value="allocation" className="space-y-4 m-0 outline-hidden">
         <div className="flex items-center justify-between bg-white p-2.5 rounded-lg border border-slate-100 shadow-xs">
           <div className="flex flex-col gap-0.5">
-            <span className="text-xs font-bold text-slate-800">{t("allocationTab.simulerSelonUneAllocationD")}</span>
+            <span id="use-allocation-label" className="text-xs font-bold text-slate-800">{t("allocationTab.simulerSelonUneAllocationD")}</span>
             <span className="text-[10px] text-slate-400">{t("allocationTab.rendementEtRisqueCalculesSelon")}</span>
           </div>
           <Switch 
+            aria-labelledby="use-allocation-label"
             checked={useAllocation}
             onCheckedChange={setUseAllocation}
           />
@@ -42,9 +44,9 @@ export function AllocationTab({ ctx }: { ctx: WealthSimulatorCtx }) {
               {assetClasses.map(item => (
                 <div key={item.id} className="space-y-1.5 bg-white p-3 rounded-lg border border-slate-100 shadow-xs relative group hover:border-slate-300 transition-all">
                   <div className="flex justify-between items-center text-xs">
-                    <span className="font-semibold text-slate-755">{item.name} ({item.pct}%)</span>
+                    <span className="font-semibold text-slate-755">{item.name} ({formatRate(item.pct, 0)})</span>
                     <div className="flex items-center gap-1">
-                      <span className="text-[10px] text-slate-400 mr-1">Rdt: {item.expectedReturn}% | Vol: {item.volatility}%</span>
+                      <span className="text-[10px] text-slate-400 mr-1">Rdt : {formatRate(item.expectedReturn, 1)} | Vol : {formatRate(item.volatility, 1)}</span>
                       <button
                         type="button"
                         onClick={() => setEditingAsset(item)}
@@ -90,7 +92,7 @@ export function AllocationTab({ ctx }: { ctx: WealthSimulatorCtx }) {
             <div className="flex items-center justify-between text-xs px-1 border-t border-slate-100 pt-3">
               <span className="font-semibold text-slate-600">{t("allocationTab.ponderationTotale")}</span>
               <span className={`font-bold ${totalAlloc === 100 ? "text-emerald-600" : "text-rose-600"}`}>
-                {totalAlloc}% {totalAlloc === 100 ? "✓" : t("misc.mustBe100")}
+                {formatRate(totalAlloc, 0)} {totalAlloc === 100 ? "✓" : t("misc.mustBe100")}
               </span>
             </div>
           </div>

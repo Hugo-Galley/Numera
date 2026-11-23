@@ -2,9 +2,8 @@ import { useTranslation } from "react-i18next"
 import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 import { keepSeriesOrder, numberFormatter } from "@/lib/chartTooltip"
 import { Card, CardContent } from "@/components/ui/card"
-import { formatCurrency } from "@/lib/utils"
+import { formatCompactCurrency, formatCurrency } from "@/lib/utils"
 import { categoryColor } from "@/lib/chartPalette"
-import { formatCompactCurrency } from "./chartFormat"
 import type { InvestmentsCtx } from "./useInvestments"
 
 /** Section 2 : performance détaillée. */

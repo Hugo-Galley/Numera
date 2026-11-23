@@ -70,7 +70,7 @@ describe("ReconcileDialog", () => {
     await typeBalance(user, "abc")
     await user.click(screen.getByRole("button", { name: "Vérifier" }))
 
-    expect(await screen.findByText("Saisissez la date et le solde affiché par la banque")).toBeInTheDocument()
+    expect(await screen.findByText("Saisis la date et le solde affiché par la banque")).toBeInTheDocument()
     expect(posted).toEqual([])
   })
 

@@ -21,7 +21,7 @@ export function AdvancedTab({ ctx }: { ctx: WealthSimulatorCtx }) {
               {t("advancedTab.volatiliteAnnuelle")}
             </span>
             {useAllocation && (
-              <Badge variant="outline" className="text-[9px] text-emerald-600 bg-emerald-50/50 border-emerald-200">{t("advancedTab.calcule")}</Badge>
+              <Badge variant="outline" className="text-[11px] text-emerald-600 bg-emerald-50/50 border-emerald-200">{t("advancedTab.calcule")}</Badge>
             )}
           </Label>
           <Input

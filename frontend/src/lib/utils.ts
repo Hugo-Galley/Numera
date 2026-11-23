@@ -18,6 +18,20 @@ export function formatCurrency(
   }
 }
 
+/**
+ * Montant abrégé pour un axe ou une étiquette serrée, selon la langue : « 45 k€ », « 1,5 M€ » en français,
+ * « €45k » en anglais. Seul format compact de l'application (garde-fou `test/lib/numberFormats.test.ts`).
+ */
+export function formatCompactCurrency(value: number | null | undefined, currencyCode: string = "EUR") {
+  const safeValue = Number.isFinite(value) ? (value as number) : 0
+  const options: Intl.NumberFormatOptions = { style: "currency", notation: "compact", maximumFractionDigits: 1 }
+  try {
+    return new Intl.NumberFormat(appLocale(), { ...options, currency: currencyCode || "EUR" }).format(safeValue)
+  } catch {
+    return new Intl.NumberFormat(appLocale(), { ...options, currency: "EUR" }).format(safeValue)
+  }
+}
+
 /** Part de `value` dans `total`, ex. « 12,3 % » (chaîne vide si le total est nul). */
 export function formatPercent(value: number, total: number) {
   if (!Number.isFinite(value) || !Number.isFinite(total) || total <= 0) return ""

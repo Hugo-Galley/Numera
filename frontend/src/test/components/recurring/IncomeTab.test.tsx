@@ -48,7 +48,7 @@ afterEach(() => vi.useRealTimers())
 describe("IncomeTab : vues", () => {
   it("ouvre le salaire par défaut et passe aux aides en écrivant ?vue=aides", async () => {
     const { user } = setup()
-    expect(await screen.findByText("Configuration Salaire & Avantages")).toBeInTheDocument()
+    expect(await screen.findByText("Configuration du salaire et des avantages")).toBeInTheDocument()
 
     await user.click(screen.getByRole("button", { name: "Aides" }))
 
@@ -62,7 +62,7 @@ describe("IncomeTab : vues", () => {
   it("ouvre directement les aides avec ?vue=aides (lien du Centre d'Actions)", async () => {
     setup({ route: "/recurring?tab=salary&vue=aides" })
     expect(await screen.findByRole("heading", { name: "Aides perçues" })).toBeInTheDocument()
-    expect(screen.queryByText("Configuration Salaire & Avantages")).not.toBeInTheDocument()
+    expect(screen.queryByText("Configuration du salaire et des avantages")).not.toBeInTheDocument()
   })
 })
 
@@ -88,7 +88,7 @@ describe("IncomeTab : salaire", () => {
     const save = await screen.findByRole("button", { name: /Sauvegarder/ })
 
     await user.click(save)
-    expect(await screen.findByText("Veuillez remplir les champs obligatoires")).toBeInTheDocument()
+    expect(await screen.findByText("Remplis les champs obligatoires")).toBeInTheDocument()
     expect(posted).toHaveLength(0)
 
     const [netSalary] = screen.getAllByRole("spinbutton")

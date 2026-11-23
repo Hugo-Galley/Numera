@@ -14,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Skeleton } from "@/components/ui/skeleton"
 import { WrappedStory } from "@/components/wrapped/WrappedStory"
 import { Delta, hoursLabel, monthName, monthShort } from "@/components/wrapped/format"
-import { formatCurrency } from "@/lib/utils"
+import { formatCompactCurrency, formatCurrency } from "@/lib/utils"
 import { useWorkTime } from "@/providers/WorkTimeProvider"
 import type { WrappedReport } from "@/types/wrapped"
 import { getAnalyticsWrapped } from "@/lib/api/analytics"
@@ -188,7 +188,7 @@ export default function Wrapped() {
                     <BarChart data={report.months} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                       <XAxis dataKey="month" tickFormatter={(m: number) => (narrow ? monthShort(m).charAt(0).toUpperCase() : monthShort(m))} axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "#64748b" }} interval={0} />
-                      <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "#64748b" }} tickFormatter={(v: number) => `${Number((v / 1000).toFixed(1))} k€`} width={52} />
+                      <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "#64748b" }} tickFormatter={(v: number) => formatCompactCurrency(v)} width={52} />
                       <Tooltip itemSorter={keepSeriesOrder}
                         labelFormatter={(m) => monthName(Number(m))}
                         formatter={numberFormatter((v: number) => formatCurrency(v))}

@@ -98,7 +98,7 @@ export function ReimbursementDialog({ open, onOpenChange, transaction, onDone }:
       toast.error(t("reimbursementDialog.indiquezAuMoins2Personnes"))
       return
     }
-    // La dépense est partagée entre n personnes dont vous : n − 1 créances d'une part chacune
+    // La dépense est partagée entre n personnes dont toi : n − 1 créances d'une part chacune
     const share = Math.floor((transaction.amount / n) * 100) / 100
     try {
       for (let i = 1; i < n; i++) await addClaim(i18n.t("misc.person", { ns: "reimbursements", index: i }), share)
