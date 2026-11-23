@@ -1,4 +1,4 @@
-/** Page Outils : vue simple (prévision de patrimoine, projection FIRE) et mode avancé (simulateur) alimenté par le capital actuel. */
+/** Page Simulateur (/tools) : vue simple (prévision de patrimoine, projection FIRE) et mode avancé (simulateur) alimenté par le capital actuel. */
 import { screen, waitFor } from "@testing-library/react"
 import { http, HttpResponse } from "msw"
 import { apiUrl } from "@/test/support/handlers"
@@ -22,12 +22,13 @@ function serve(allocation: () => Response = () => HttpResponse.json({ total_curr
 
 const view = () => renderWithProviders(<Tools />, { route: "/tools", auth: true })
 
-describe("page Outils", () => {
+describe("page Simulateur", () => {
   it("vue simple : titre, prévision de patrimoine et projection FIRE", async () => {
     serve()
     view()
 
-    expect(screen.getByRole("heading", { name: "Outils" })).toBeInTheDocument()
+    // Même nom que l'entrée du menu (« Simulateur »), plus « Outils »
+    expect(screen.getByRole("heading", { name: "Simulateur" })).toBeInTheDocument()
     expect(screen.getByText("Simulez et projetez l'évolution de votre patrimoine.")).toBeInTheDocument()
     expect(await screen.findByText("Impossible de calculer la projection", { exact: false })).toBeInTheDocument()
     expect(screen.getByRole("button", { name: "Mode avancé" })).toBeInTheDocument()

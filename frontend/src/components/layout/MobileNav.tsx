@@ -56,12 +56,13 @@ export function MobileNav() {
         </button>
       </nav>
       <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent side="bottom" className="max-h-[85dvh] rounded-t-2xl p-0 pb-[env(safe-area-inset-bottom)]">
+        {/* Colonne flexible : la liste défile, Paramètres et Se déconnecter restent toujours visibles en bas */}
+        <SheetContent side="bottom" className="flex max-h-[85dvh] flex-col rounded-t-2xl p-0 pb-[env(safe-area-inset-bottom)]">
           <SheetHeader className="sr-only">
             <SheetTitle>{t("mobile.menuTitle")}</SheetTitle>
             <SheetDescription>{t("mobile.menuDescription")}</SheetDescription>
           </SheetHeader>
-          <Sidebar className="border-none" hideBrand onItemClick={() => setOpen(false)} />
+          <Sidebar className="min-h-0 flex-1 border-none" hideBrand onItemClick={() => setOpen(false)} />
         </SheetContent>
       </Sheet>
     </>
