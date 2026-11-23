@@ -24,7 +24,7 @@ export function formatCurrency(
  */
 export function formatCompactCurrency(value: number | null | undefined, currencyCode: string = "EUR") {
   const safeValue = Number.isFinite(value) ? (value as number) : 0
-  const options: Intl.NumberFormatOptions = { style: "currency", notation: "compact", maximumFractionDigits: 1 }
+  const options: Intl.NumberFormatOptions = { style: "currency", notation: "compact", minimumFractionDigits: 0, maximumFractionDigits: 1 }
   try {
     return new Intl.NumberFormat(appLocale(), { ...options, currency: currencyCode || "EUR" }).format(safeValue)
   } catch {

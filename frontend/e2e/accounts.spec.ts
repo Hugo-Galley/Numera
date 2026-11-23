@@ -10,7 +10,7 @@ test("liste des comptes : les quatre comptes de la démo avec leur solde", async
 
 test("détail d'un compte : KPI, graphique, historique des transactions", async ({ page }) => {
   await openAccount(page, "Compte courant")
-  await expect(page.getByText("Solde Actuel")).toBeVisible()
+  await expect(page.getByText("Solde actuel")).toBeVisible()
   await expect(page.getByRole("heading", { name: "Évolution du solde" })).toBeVisible()
   await expect(page.getByRole("heading", { name: "Historique", level: 2 })).toBeVisible()
   expect(await page.getByRole("row").count()).toBeGreaterThan(5)
@@ -41,7 +41,7 @@ test("création, modification puis archivage d'un compte", async ({ page }) => {
 
 test("rapprochement avec la banque : un solde identique marque le compte vérifié", async ({ page }) => {
   await openAccount(page, "Livret A")
-  const solde = (await page.getByText("Solde Actuel").locator("xpath=following::h3[1]").innerText()).replace(/[^\d,-]/g, "")
+  const solde = (await page.getByText("Solde actuel").locator("xpath=following::h3[1]").innerText()).replace(/[^\d,-]/g, "")
   await page.getByRole("button", { name: "Rapprocher" }).click()
   await page.getByRole("textbox", { name: /Solde banque/ }).fill(solde)
   await page.getByRole("button", { name: "Vérifier" }).click()
