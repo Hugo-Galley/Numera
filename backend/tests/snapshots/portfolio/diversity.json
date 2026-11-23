@@ -3,7 +3,7 @@
   {
    "category": "overlap",
    "item_name": "Apple, Microsoft, Nvidia",
-   "message": "Vous détenez des titres simultanément en direct et/ou à travers plusieurs ETFs (notamment Apple, Microsoft, Nvidia). Leur pondération réelle s'additionne discrètement.",
+   "message": "Tu détiens des titres à la fois en direct et/ou à travers plusieurs ETF (notamment Apple, Microsoft, Nvidia). Leur pondération réelle s'additionne discrètement.",
    "title": "Doublons d'exposition détectés (11 titres)",
    "type": "info",
    "value_pct": 14.17

@@ -27,7 +27,7 @@ def _company(name="ACME", pct=25.0, overlap=False):
 def test_diversity_alerts_in_both_languages():
     fr = diversity_alerts([_company()], [], [])[0]
     assert fr["title"] == "Concentration critique sur ACME"
-    assert fr["message"].startswith("ACME pèse 25.0% de votre portefeuille boursier (10.0% du patrimoine total).")
+    assert fr["message"].startswith("ACME pèse 25.0% de ton portefeuille boursier (10.0% du patrimoine total).")
     set_language("en")
     en = diversity_alerts([_company(), _company("BETA", 12.0, overlap=True)], [], [])
     assert en[0]["title"] == "Critical concentration in ACME"

@@ -142,7 +142,7 @@ export function ForecastMethodCard({ ctx }: { ctx: WealthForecastView }) {
               <p className="font-medium text-slate-700">{t("forecastMethodCard.ensuiteMoisApresMois")}</p>
               <p>
                 {t("forecastMethodCard.onPartDuPointDe")}
-                {boostedShown ? t("misc.boostedNote", { amount: data.extra_monthly }) : ""}{t("misc.repeatFor", { years: data.years })}
+                {boostedShown ? t("misc.boostedNote", { amount: formatCurrency(data.extra_monthly) }) : ""}{t("misc.repeatFor", { years: data.years })}
               </p>
             </div>
           </CardContent>

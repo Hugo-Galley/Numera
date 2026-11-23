@@ -9,7 +9,7 @@
     "retirerLaPart": "Retirer la part",
     "ajouterUnePart": "Ajouter une part",
     "montantReparti": "Montant réparti",
-    "doubleCliquezSurUnMontant": "Double-cliquez sur un montant pour y reporter le reste.",
+    "doubleCliquezSurUnMontant": "Double-clique sur un montant pour y reporter le reste.",
     "annulerLeDecoupage": "Annuler le découpage",
     "fermer": "Fermer",
     "enregistrer": "Enregistrer",
@@ -39,7 +39,7 @@
     "creerEtLier": "Créer et lier",
     "ceNEstPasUn": "Ce n'est pas un virement",
     "noCandidate": "Aucune candidate.",
-    "createBelow": "Vous pouvez créer la contrepartie ci-dessous.",
+    "createBelow": "Tu peux créer la contrepartie ci-dessous.",
     "unknownAccount": "Compte inconnu"
   }
 }

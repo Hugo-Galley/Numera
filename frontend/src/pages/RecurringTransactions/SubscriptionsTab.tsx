@@ -135,9 +135,9 @@ export function SubscriptionsTab({ ctx }: { ctx: RecurringTransactionsCtx }) {
                               <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
                                 <p className="font-bold text-slate-900 wrap-break-word">{sub.name}</p>
                                 {sub.status === "lapsed" ? (
-                                  <Badge title={t("subscriptionsTab.aucunPrelevementDepuisPlusDe")} className="bg-slate-100 text-slate-600 hover:bg-slate-100 border-none text-[9px] h-4 px-1.5 font-black uppercase">{t("subscriptionsTab.plusPreleve")}</Badge>
+                                  <Badge title={t("subscriptionsTab.aucunPrelevementDepuisPlusDe")} className="bg-slate-100 text-slate-600 hover:bg-slate-100 border-none text-[11px] h-5 px-1.5 font-black uppercase">{t("subscriptionsTab.plusPreleve")}</Badge>
                                 ) : (
-                                  <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-none text-[9px] h-4 px-1.5 font-black uppercase">{t("subscriptionsTab.certifie")}</Badge>
+                                  <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-none text-[11px] h-5 px-1.5 font-black uppercase">{t("subscriptionsTab.certifie")}</Badge>
                                 )}
                               </div>
                               <div className="flex flex-wrap items-center gap-x-2 mt-0.5">

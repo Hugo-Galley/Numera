@@ -110,7 +110,7 @@ describe("RulesTab", () => {
     const dialog = screen.getByRole("dialog", { name: "Ajouter une règle" })
     await user.type(within(dialog).getByPlaceholderText(/Uber, Netflix/), "REMB")
     await user.click(within(dialog).getAllByRole("combobox")[1])
-    await user.click(screen.getByRole("option", { name: "Forcer en Entrée" }))
+    await user.click(screen.getByRole("option", { name: "Forcer en entrée" }))
     await user.click(within(dialog).getByRole("button", { name: "Créer la règle" }))
 
     await screen.findAllByText("Règle créée avec succès")

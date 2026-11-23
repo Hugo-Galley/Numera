@@ -29,7 +29,7 @@ export function ActionList({ ctx }: { ctx: AuditCtx }) {
                   <div className="min-w-0 space-y-1">
                     <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                       <h2 className="text-sm font-semibold text-slate-900">{action.title}</h2>
-                      <Badge variant="outline" className={cn("h-5 px-1.5 text-[9px] font-medium uppercase tracking-wider", severityClass[action.severity])}>
+                      <Badge variant="outline" className={cn("h-5 px-1.5 text-[11px] font-medium uppercase tracking-wider", severityClass[action.severity])}>
                         {severityLabel[action.severity]}
                       </Badge>
                     </div>

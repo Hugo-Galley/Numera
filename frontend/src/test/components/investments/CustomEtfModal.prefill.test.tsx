@@ -11,25 +11,25 @@ describe("CustomEtfModal : préremplissage", () => {
 
     rerender(<CustomEtfModal open onOpenChange={noop} initialTicker="PRIW.PA" initialName="PRIW.PA" />)
 
-    expect(screen.getByLabelText("Ticker / Symbole")).toHaveValue("PRIW.PA")
+    expect(screen.getByLabelText("Ticker / symbole")).toHaveValue("PRIW.PA")
     expect(screen.getByLabelText("Nom (optionnel)")).toHaveValue("PRIW.PA")
   })
 
   it("une seconde ouverture avec une autre recherche remplace l'ancienne saisie", async () => {
     const { rerender, user } = renderWithProviders(<CustomEtfModal open onOpenChange={noop} initialTicker="AAA" initialName="AAA" />, { auth: true })
-    await user.type(screen.getByLabelText("Ticker / Symbole"), "B")
+    await user.type(screen.getByLabelText("Ticker / symbole"), "B")
     rerender(<CustomEtfModal open={false} onOpenChange={noop} initialTicker="AAA" initialName="AAA" />)
 
     rerender(<CustomEtfModal open onOpenChange={noop} initialTicker="CCC" initialName="CCC" />)
 
-    expect(screen.getByLabelText("Ticker / Symbole")).toHaveValue("CCC")
+    expect(screen.getByLabelText("Ticker / symbole")).toHaveValue("CCC")
   })
 
   it("la saisie en cours n'est pas écrasée tant que la fenêtre reste ouverte", async () => {
     const { user } = renderWithProviders(<CustomEtfModal open onOpenChange={noop} initialTicker="AAA" initialName="" />, { auth: true })
 
-    await user.type(screen.getByLabelText("Ticker / Symbole"), "B")
+    await user.type(screen.getByLabelText("Ticker / symbole"), "B")
 
-    expect(screen.getByLabelText("Ticker / Symbole")).toHaveValue("AAAB")
+    expect(screen.getByLabelText("Ticker / symbole")).toHaveValue("AAAB")
   })
 })

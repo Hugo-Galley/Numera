@@ -11,6 +11,7 @@ import {
 } from "react-simple-maps";
 import { scaleLinear } from "d3-scale";
 import { useUI } from "@/providers/UIProvider";
+import { formatRate } from "@/lib/utils"
 
 const geoUrl = "https://unpkg.com/world-atlas@2.0.2/countries-110m.json";
 
@@ -192,7 +193,7 @@ const WorldMap: React.FC<WorldMapProps> = ({ data }) => {
             </div>
             <div className="flex justify-between gap-4 text-xs">
               <span className="text-slate-400">Part du portef.</span>
-              <span className="font-bold text-emerald-400">{hoveredCountry.percentage}%</span>
+              <span className="font-bold text-emerald-400">{formatRate(hoveredCountry.percentage, 1)}</span>
             </div>
           </div>
           {/* Arrow */}

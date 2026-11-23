@@ -11,7 +11,7 @@ import {
   CardTitle,
   CardDescription
 } from "@/components/ui/card"
-import { formatCurrency } from "@/lib/utils"
+import { formatCompactCurrency, formatCurrency } from "@/lib/utils"
 import { useIsMobile } from "@/hooks/useIsMobile"
 import {
   ResponsiveContainer,
@@ -111,7 +111,7 @@ export function HistoryTab({
               </defs>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
               <XAxis dataKey="label" interval="preserveStartEnd" axisLine={false} tickLine={false} tick={{ fontSize: axisFont, fill: '#64748b' }} dy={10} />
-              <YAxis width={yWidth} axisLine={false} tickLine={false} tick={{ fontSize: axisFont, fill: '#64748b' }} tickFormatter={(v) => `${v}${displayCurrency === 'EUR' ? '€' : displayCurrency}`} />
+              <YAxis width={yWidth} axisLine={false} tickLine={false} tick={{ fontSize: axisFont, fill: '#64748b' }} tickFormatter={(v) => formatCompactCurrency(v, displayCurrency)} />
               <Tooltip itemSorter={keepSeriesOrder} contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} />
               <Legend itemSorter={null} verticalAlign={isMobile ? "bottom" : "top"} height={36} wrapperStyle={isMobile ? { fontSize: 12 } : undefined}/>
               <Area type="monotone" dataKey="revenus" name={t("history.revenues")} stroke="#10b981" fill="url(#colorRev)" strokeWidth={3} />
@@ -160,8 +160,8 @@ export function HistoryTab({
                 tickFormatter={(v) => monthShort(v) || v} 
                 tick={{ fontSize: axisFont, fill: '#64748b' }} 
               />
-              <YAxis width={yWidth} axisLine={false} tickLine={false} tick={{ fontSize: axisFont, fill: '#64748b' }} tickFormatter={(v) => `${v}${displayCurrency === 'EUR' ? '€' : displayCurrency}`} />
-              <Tooltip itemSorter={keepSeriesOrder} contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} formatter={numberFormatter((v: number) => i18n.t("misc.perDay", { ns: "dashboard", amount: `${v.toFixed(2)}${displayCurrency === 'EUR' ? '€' : displayCurrency}` }))} />
+              <YAxis width={yWidth} axisLine={false} tickLine={false} tick={{ fontSize: axisFont, fill: '#64748b' }} tickFormatter={(v) => formatCompactCurrency(v, displayCurrency)} />
+              <Tooltip itemSorter={keepSeriesOrder} contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} formatter={numberFormatter((v: number) => i18n.t("misc.perDay", { ns: "dashboard", amount: formatCurrency(v, displayCurrency) }))} />
               <Line type="monotone" dataKey="burn_rate" name={t("history.burnName")} stroke="#0f172a" strokeWidth={isMobile ? 3 : 4} dot={{ r: isMobile ? 3 : 4, fill: "#0f172a" }} />
             </LineChart>
           </ResponsiveContainer>
@@ -187,7 +187,7 @@ export function HistoryTab({
                 tickFormatter={(v) => monthShort(v) || v} 
                 tick={{ fontSize: axisFont, fill: '#64748b' }} 
               />
-              <YAxis width={yWidth} axisLine={false} tickLine={false} tick={{ fontSize: axisFont, fill: '#64748b' }} tickFormatter={(v) => `${v}${displayCurrency === 'EUR' ? '€' : displayCurrency}`} />
+              <YAxis width={yWidth} axisLine={false} tickLine={false} tick={{ fontSize: axisFont, fill: '#64748b' }} tickFormatter={(v) => formatCompactCurrency(v, displayCurrency)} />
               <Tooltip itemSorter={keepSeriesOrder} contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} formatter={numberFormatter((v: number) => formatCurrency(v, displayCurrency))} />
               <Line type="stepAfter" dataKey="salary" name={t("history.salaryName")} stroke="#0f172a" strokeWidth={isMobile ? 3 : 4} dot={{ r: isMobile ? 3 : 4, fill: "#0f172a" }} />
             </LineChart>

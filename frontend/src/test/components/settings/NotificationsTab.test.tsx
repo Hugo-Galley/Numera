@@ -107,7 +107,7 @@ describe("NotificationsTab", () => {
       await gate
       return HttpResponse.json(body)
     })
-    await user.type(await screen.findByLabelText("Adresse de votre instance Numera (facultatif)"), "https://numera.test")
+    await user.type(await screen.findByLabelText("Adresse de ton instance Numera (facultatif)"), "https://numera.test")
 
     await user.click(screen.getByRole("button", { name: "Enregistrer" }))
     await confirmPassword(user)

@@ -50,7 +50,7 @@ describe("McpAccessCard : tokens", () => {
     await user.type(screen.getByLabelText("Mot de passe actuel"), "admin")
     await user.click(generate)
 
-    expect(await screen.findByText("Copiez-le maintenant : ce token ne sera plus affiché.")).toBeInTheDocument()
+    expect(await screen.findByText("Copie-le maintenant : ce token ne sera plus affiché.")).toBeInTheDocument()
     expect(writes).toEqual([{ method: "POST", path: "/admin/mcp-tokens", body: { name: "Claude Desktop — MacBook", current_password: "admin" } }])
     // Nom contenant « desktop » : la configuration Claude Desktop est proposée d'emblée
     expect(screen.getByText(/"NUMERA_AUTH": "Bearer nmr_zz99-secret-value"/)).toBeInTheDocument()
@@ -91,7 +91,7 @@ describe("McpAccessCard : tokens", () => {
 
     expect(await screen.findByText("Token « Claude Code » révoqué")).toBeInTheDocument()
     expect(writes).toEqual([{ method: "DELETE", path: "/admin/mcp-tokens/3", body: null }])
-    expect(await screen.findByText("Aucun token : générez-en un pour connecter Claude.")).toBeInTheDocument()
+    expect(await screen.findByText("Aucun token : génères-en un pour connecter Claude.")).toBeInTheDocument()
   })
 })
 
@@ -110,7 +110,7 @@ describe("McpAccessCard : accès global", () => {
       }),
     )
     const { user } = setup([])
-    const toggle = await screen.findByRole("switch")
+    const toggle = await screen.findByRole("switch", { name: "Accès MCP" })
     await waitFor(() => expect(toggle).not.toBeChecked())
 
     await user.click(toggle)

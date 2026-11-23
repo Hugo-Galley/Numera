@@ -25,7 +25,7 @@ describe("Calendrier : transactions à venir", () => {
       event({ id: "tx_2", name: "Courses", date: "2026-06-02T00:00:00" }),
     ])} /></MemoryRouter>)
 
-    const card = screen.getByText("Prochaines Échéances").closest("div[class*='border']")!.parentElement!
+    const card = screen.getByText("Prochaines échéances").closest("div[class*='border']")!.parentElement!
     expect(within(card).getByText("Loyer")).toBeInTheDocument()
     expect(within(card).queryByText("Courses")).not.toBeInTheDocument()
   })

@@ -175,12 +175,12 @@ export function McpAccessCard() {
       <CardContent className="space-y-6">
         <div className="flex items-center justify-between gap-4">
           <div className="min-w-0 space-y-0.5">
-            <Label className="text-base">{t("mcpAccessCard.accesMcp")}</Label>
+            <Label htmlFor="mcp-access" className="text-base">{t("mcpAccessCard.accesMcp")}</Label>
             <p className="text-sm text-slate-500">
               {t("mcpAccessCard.desactiveTousLesTokensSont")}
             </p>
           </div>
-          <Switch checked={enabled} onCheckedChange={toggleAccess} />
+          <Switch id="mcp-access" checked={enabled} onCheckedChange={toggleAccess} />
         </div>
 
         <form onSubmit={createToken} className="border-t pt-4 space-y-2">

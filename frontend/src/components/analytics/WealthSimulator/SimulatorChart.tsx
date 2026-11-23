@@ -4,6 +4,7 @@ import { Info, LineChart as LucideLineChart } from "lucide-react"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import type { WealthSimulatorCtx } from "./useWealthSimulator"
+import { formatCompactCurrency } from "@/lib/utils"
 
 /** Graphique de projection, filtres d'affichage et notes. */
 export function SimulatorChart({ ctx }: { ctx: WealthSimulatorCtx }) {
@@ -65,7 +66,7 @@ export function SimulatorChart({ ctx }: { ctx: WealthSimulatorCtx }) {
                 axisLine={false} 
                 tickLine={false} 
                 tick={{ fontSize: 10, fill: "#94a3b8" }}
-                tickFormatter={(val) => `${(val / 1000).toFixed(0)}k€`}
+                tickFormatter={(val) => formatCompactCurrency(val)}
               />
               <Tooltip content={<CustomTooltip />} />
               <Legend itemSorter={null} verticalAlign="top" height={36} iconType="circle" wrapperStyle={{ fontSize: 10 }} />
@@ -119,7 +120,7 @@ export function SimulatorChart({ ctx }: { ctx: WealthSimulatorCtx }) {
                 axisLine={false} 
                 tickLine={false} 
                 tick={{ fontSize: 10, fill: "#94a3b8" }}
-                tickFormatter={(val) => `${(val / 1000).toFixed(0)}k€`}
+                tickFormatter={(val) => formatCompactCurrency(val)}
               />
               <Tooltip content={<CustomTooltip />} />
               <Legend itemSorter={null} verticalAlign="top" height={36} iconType="circle" wrapperStyle={{ fontSize: 10 }} />

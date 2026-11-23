@@ -1,5 +1,5 @@
 /** Investissements : graduations de l'axe des montants, compactes pour ne jamais être coupées. */
-import { formatCompactCurrency } from "@/pages/Investments/chartFormat"
+import { formatCompactCurrency } from "@/lib/utils"
 
 describe("Investissements : format compact des axes", () => {
   it("abrège les milliers (« 14 k € », « 10,5 k € »)", () => {

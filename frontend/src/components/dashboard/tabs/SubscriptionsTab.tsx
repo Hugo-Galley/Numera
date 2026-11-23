@@ -68,12 +68,12 @@ export function SubscriptionsTab({ subscriptions, displayCurrency }: Subscriptio
                   <div className="min-w-0">
                     <span className="block truncate font-medium text-slate-900">{sub.name}</span>
                     {sub.status === "potential" && (
-                      <span className="text-[9px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider">
+                      <span className="text-[11px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider">
                         {t("subscriptions.detected")}
                       </span>
                     )}
                     {sub.status === "lapsed" && (
-                      <span className="text-[9px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider">
+                      <span className="text-[11px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider">
                         {t("subscriptions.lapsed")}
                       </span>
                     )}

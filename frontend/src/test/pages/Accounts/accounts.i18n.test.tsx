@@ -70,7 +70,7 @@ describe("libellés partagés et crédits", () => {
   afterEach(() => setLanguage("fr"))
 
   it("types de compte et de catégorie dans les deux langues", async () => {
-    expect(accountTypeLabel("assurance_vie")).toBe("Assurance-Vie")
+    expect(accountTypeLabel("assurance_vie")).toBe("Assurance-vie")
     expect(accountTypeLabel(null)).toBe("Autre")
     expect(categoryTypeLabel("depense")).toBe("Dépense")
     await setLanguage("en")

@@ -28,7 +28,7 @@ describe("InsightsTab", () => {
     renderWithProviders(<InsightsTab insights={insights} />, { auth: true })
 
     expect(screen.getByText("82")).toBeInTheDocument()
-    expect(screen.getByText("Santé Financière")).toBeInTheDocument()
+    expect(screen.getByText("Santé financière")).toBeInTheDocument()
     expect(screen.getByText("Taux d'épargne")).toBeInTheDocument()
     expect(screen.getByText(/22,5\s%/)).toBeInTheDocument()
     expect(screen.getByText(/4\smois/)).toBeInTheDocument()

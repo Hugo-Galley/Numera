@@ -68,7 +68,7 @@ export function RecurringListTab({ ctx }: { ctx: RecurringTransactionsCtx }) {
                           {i18n.t("misc.lastGenerated", { ns: "recurring", date: tx.last_generated_date ? format(new Date(tx.last_generated_date), "dd MMM yyyy", { locale: dateLocale() }) : i18n.t("misc.none", { ns: "recurring" }) })}
                         </span>
                         {tx.excluded_months && tx.excluded_months.length > 0 && (
-                          <Badge variant="outline" className="text-[9px] h-4 px-1.5 text-amber-700 border-amber-200 bg-amber-50">
+                          <Badge variant="outline" className="text-[11px] h-5 px-1.5 text-amber-700 border-amber-200 bg-amber-50">
                             {i18n.t("misc.excludedMonths", { ns: "recurring", count: tx.excluded_months.length })}
                           </Badge>
                         )}
@@ -76,7 +76,7 @@ export function RecurringListTab({ ctx }: { ctx: RecurringTransactionsCtx }) {
                       <div className="flex items-center justify-between">
                         <label className="flex min-h-10 items-center gap-2 text-sm text-slate-700">
                           <Checkbox checked={tx.is_active} onCheckedChange={() => toggleActive(tx)} className="rounded-md h-5 w-5" />
-                          Actif
+                          {t("recurringListTab.actif")}
                           {tx.auto_generate && <span className="inline-flex items-center gap-1 text-xs text-emerald-600"><CheckCircle2 className="h-3.5 w-3.5" />{t("recurringListTab.auto")}</span>}
                         </label>
                         <div className="flex gap-1">
@@ -162,7 +162,7 @@ export function RecurringListTab({ ctx }: { ctx: RecurringTransactionsCtx }) {
                               ) : tx.ticker ? (
                                 <>
                                   <span>•</span>
-                                  <span className="text-[9px] text-blue-700 font-semibold bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200/60 inline-flex items-center gap-1">
+                                  <span className="text-[11px] text-blue-700 font-semibold bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200/60 inline-flex items-center gap-1">
                                     <Sparkles className="h-2.5 w-2.5 text-blue-500" />
                                     {t("recurringListTab.partsAuto")}
                                     {tx.unit_price ? ` (~${(tx.amount / tx.unit_price).toFixed(2)}p)` : ""}
@@ -187,7 +187,7 @@ export function RecurringListTab({ ctx }: { ctx: RecurringTransactionsCtx }) {
                         <div className="text-[10px] text-slate-400 font-bold">JOUR {tx.day_of_month}</div>
                         {tx.excluded_months && tx.excluded_months.length > 0 && (
                           <div className="mt-1">
-                            <Badge variant="outline" className="text-[9px] h-4 px-1.5 text-amber-700 border-amber-200 bg-amber-50 font-medium whitespace-nowrap">
+                            <Badge variant="outline" className="text-[11px] h-5 px-1.5 text-amber-700 border-amber-200 bg-amber-50 font-medium whitespace-nowrap">
                               {i18n.t("misc.excludedMonths", { ns: "recurring", count: tx.excluded_months.length })}
                             </Badge>
                           </div>
@@ -212,6 +212,7 @@ export function RecurringListTab({ ctx }: { ctx: RecurringTransactionsCtx }) {
                         <Checkbox 
                           checked={tx.is_active} 
                           onCheckedChange={() => toggleActive(tx)} 
+                          aria-label={`${t("recurringListTab.actif")} : ${tx.name}`}
                           className="rounded-md"
                         />
                       </TableCell>

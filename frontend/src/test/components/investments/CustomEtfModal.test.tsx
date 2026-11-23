@@ -27,7 +27,7 @@ describe("CustomEtfModal", () => {
     server.use(http.post(apiUrl("/etf-profiles/auto-decompose"), async ({ request }) => { body = await request.json(); return HttpResponse.json({ id: 8, name: "Amundi Prime", ticker: "PRIW.PA", isin: "IE00BKX55T58" }) }))
     const { user, onProfileCreated, onOpenChange } = setup()
 
-    await user.type(screen.getByLabelText("Ticker / Symbole"), "PRIW.PA")
+    await user.type(screen.getByLabelText("Ticker / symbole"), "PRIW.PA")
     await user.type(screen.getByLabelText("Nom (optionnel)"), "  Amundi Prime ")
     await user.click(submit())
 
@@ -42,11 +42,11 @@ describe("CustomEtfModal", () => {
     let body: unknown
     server.use(http.post(apiUrl("/etf-profiles/auto-decompose"), async ({ request }) => { body = await request.json(); return HttpResponse.json({ id: 8, name: "X", ticker: "PRIW.PA" }) }))
     const { user } = setup({ initialIsin: "IE00BKX55T58" })
-    expect(screen.getByLabelText("Code ISIN (Optionnel)")).toHaveValue("IE00BKX55T58")
+    expect(screen.getByLabelText("Code ISIN (optionnel)")).toHaveValue("IE00BKX55T58")
     // Le bouton reste désactivé tant que le ticker est vide, même avec un ISIN
     expect(submit()).toBeDisabled()
 
-    await user.type(screen.getByLabelText("Ticker / Symbole"), "PRIW.PA")
+    await user.type(screen.getByLabelText("Ticker / symbole"), "PRIW.PA")
     await user.click(submit())
     await waitFor(() => expect(body).toEqual({ symbol: "PRIW.PA", isin: "IE00BKX55T58" }))
   })
@@ -55,7 +55,7 @@ describe("CustomEtfModal", () => {
     server.use(http.post(apiUrl("/etf-profiles/auto-decompose"), () => HttpResponse.json({})))
     const { user, onProfileCreated, onOpenChange } = setup()
 
-    await user.type(screen.getByLabelText("Ticker / Symbole"), "ZZZ")
+    await user.type(screen.getByLabelText("Ticker / symbole"), "ZZZ")
     await user.click(submit())
 
     expect(await screen.findByText("Impossible de décomposer ce fonds en ligne")).toBeInTheDocument()
@@ -67,7 +67,7 @@ describe("CustomEtfModal", () => {
     server.use(http.post(apiUrl("/etf-profiles/auto-decompose"), () => HttpResponse.json({ detail: "Yahoo indisponible" }, { status: 502 })))
     const { user } = setup()
 
-    await user.type(screen.getByLabelText("Ticker / Symbole"), "ZZZ")
+    await user.type(screen.getByLabelText("Ticker / symbole"), "ZZZ")
     await user.click(submit())
 
     expect(await screen.findByText("Yahoo indisponible")).toBeInTheDocument()

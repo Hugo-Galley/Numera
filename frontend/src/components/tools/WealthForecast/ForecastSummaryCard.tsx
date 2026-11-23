@@ -64,7 +64,7 @@ export function ForecastSummaryCard({ ctx }: { ctx: WealthForecastView }) {
                 variant={extra === v ? "default" : "outline"}
                 onClick={() => setExtra(v)}
               >
-                {v === 0 ? t("forecastSummaryCard.rien") : `+${v} €`}
+                {v === 0 ? t("forecastSummaryCard.rien") : `+${formatCurrency(v, "EUR", { maximumFractionDigits: 0 })}`}
               </Button>
             ))}
             <Input

@@ -4,7 +4,7 @@ test("tableau de bord : KPI du mois et onglets Aperçu, Budgets, Dépenses", asy
   await page.goto("/")
   await expect(page.getByRole("heading", { level: 1, name: "Tableau de bord" })).toBeVisible()
   // 3e KPI : « Solde du mois à date » tant que le mois affiché n'est pas terminé, sinon « Solde du mois »
-  for (const kpi of ["Revenus Mensuels", "Dépenses Mensuelles", /^Solde du mois( à date)?$/]) {
+  for (const kpi of ["Revenus mensuels", "Dépenses mensuelles", /^Solde du mois( à date)?$/]) {
     await expect(page.getByText(kpi, { exact: true })).toBeVisible()
   }
   for (const tab of ["Budgets", "Dépenses", "Aperçu"]) {

@@ -66,7 +66,7 @@ export function BaseTab({ ctx }: { ctx: WealthSimulatorCtx }) {
                 {t("baseTab.rendementAnnuel")}
               </span>
               {useAllocation && (
-                <Badge variant="outline" className="text-[9px] text-emerald-600 bg-emerald-50/50 border-emerald-200">{t("baseTab.calcule")}</Badge>
+                <Badge variant="outline" className="text-[11px] text-emerald-600 bg-emerald-50/50 border-emerald-200">{t("baseTab.calcule")}</Badge>
               )}
             </Label>
             <Input

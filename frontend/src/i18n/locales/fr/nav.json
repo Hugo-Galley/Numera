@@ -40,7 +40,7 @@
   "user": {
     "fallbackName": "Utilisateur",
     "role": "Administrateur",
-    "myAccount": "Mon Compte",
+    "myAccount": "Mon compte",
     "settings": "Paramètres",
     "logout": "Se déconnecter"
   },

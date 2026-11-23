@@ -13,7 +13,7 @@ Esthétique sobre « entreprise légère », Tailwind 4 + shadcn. Palette : Slat
 
 ## Présentation des données financières
 
-- `formatCurrency(amount, currency)` partout ; montants colorés (Emerald/Rose) plutôt que seulement signés ; alignés à droite dans les tables.
+- `formatCurrency(amount, currency)` partout (axes : `formatCompactCurrency`, pourcentages : `formatRate`) ; texte FR au tutoiement, titres en casse de phrase ; montants colorés (Emerald/Rose) plutôt que seulement signés ; alignés à droite dans les tables.
 - Classe `amount-blur` sur tout montant sensible (mode confidentialité).
 - `Card` pour grouper, `Badge` pour statuts/catégories, `Button` variants `default|outline|ghost|destructive`, icônes `lucide-react` (`h-4 w-4` en ligne, `h-5 w-5` en carte).
 - États : `Skeleton` au chargement, état vide (icône + bouton d'action), `toast` (sonner) après chaque mutation.
@@ -32,7 +32,7 @@ Créer `components/dashboard/tabs/<Nom>Tab.tsx` (onglets actuels : Overview, His
 
 ## Ajouter un graphique
 
-`recharts`, couleurs de la palette, `Tooltip` et légende toujours présents, valeurs formatées via `formatCurrency`. Répartition en catégories (comptes, classes d'actifs, secteurs, treemap) : `categoryColor(index, name)` de `lib/chartPalette.ts`, teintes lisibles dans les deux thèmes, « Non classé » toujours gris neutre ; graduation d'axe en montant compact (`formatCompactCurrency` de `pages/Investments/chartFormat.ts`, « 14 k € ») pour qu'elle ne soit jamais coupée. Rendre les éléments cliquables pour naviguer vers la vue filtrée quand elle existe. Sankey / treemap / simulateur : `components/analytics/`. Carte du monde : `components/ui/WorldMap.tsx` (`react-simple-maps` 5, survol en CSS dans `styles.css`).
+`recharts`, couleurs de la palette, `Tooltip` et légende toujours présents, valeurs formatées via `formatCurrency`. Répartition en catégories (comptes, classes d'actifs, secteurs, treemap) : `categoryColor(index, name)` de `lib/chartPalette.ts`, teintes lisibles dans les deux thèmes, « Non classé » toujours gris neutre ; graduation d'axe en montant compact (`formatCompactCurrency` de `lib/utils.ts`, « 14 k € ») pour qu'elle ne soit jamais coupée. Rendre les éléments cliquables pour naviguer vers la vue filtrée quand elle existe. Sankey / treemap / simulateur : `components/analytics/`. Carte du monde : `components/ui/WorldMap.tsx` (`react-simple-maps` 5, survol en CSS dans `styles.css`).
 
 ## React 19
 

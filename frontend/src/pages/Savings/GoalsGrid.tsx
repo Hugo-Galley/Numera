@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Calendar, Info, Layers, Pencil, Tag, Target, Trash2, Zap } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { formatCurrency } from "@/lib/utils"
+import { formatCurrency, formatRate } from "@/lib/utils"
 import type { SavingsCtx } from "./useSavings"
 
 /** Cartes des objectifs d'épargne. */
@@ -28,7 +28,7 @@ export function GoalsGrid({ ctx }: { ctx: SavingsCtx }) {
                   <CardTitle className="text-lg font-bold wrap-break-word line-clamp-2 md:truncate md:line-clamp-none">{goal.name}</CardTitle>
                   <div className="flex flex-wrap gap-1 mt-1">
                     {goal.deadline && (
-                      <Badge variant="secondary" className="text-[9px] uppercase tracking-wider font-bold bg-slate-200 text-slate-700">
+                      <Badge variant="secondary" className="text-[11px] uppercase tracking-wider font-bold bg-slate-200 text-slate-700">
                         <Calendar className="h-2.5 w-2.5 mr-1" />
                         {new Date(goal.deadline).toLocaleDateString()}
                       </Badge>
@@ -63,7 +63,7 @@ export function GoalsGrid({ ctx }: { ctx: SavingsCtx }) {
                        goal.status === 'ahead' ? i18n.t("misc.statusAhead", { ns: "savings" }) :
                        goal.status === 'behind' ? i18n.t("misc.statusBehind", { ns: "savings" }) : i18n.t("misc.statusOnTrack", { ns: "savings" })}
                     </span>
-                    <p className="text-xl font-black text-slate-900">{Math.round(goal.percentage)}%</p>
+                    <p className="text-xl font-black text-slate-900">{formatRate(goal.percentage, 0)}</p>
                   </div>
                 </div>
               </div>
@@ -96,19 +96,19 @@ export function GoalsGrid({ ctx }: { ctx: SavingsCtx }) {
 
               <div className="flex flex-wrap gap-2 pt-2 border-t border-slate-50">
                  {goal.account_id && (
-                   <Badge variant="outline" className="text-[9px] py-0 h-5 bg-white border-slate-200">
+                   <Badge variant="outline" className="text-[11px] py-0 h-5 bg-white border-slate-200">
                      <Layers className="h-2.5 w-2.5 mr-1 text-slate-400" />
                      {accounts.find(a => a.id === goal.account_id)?.name || "Compte"}
                    </Badge>
                  )}
                  {goal.category_id && (
-                   <Badge variant="outline" className="text-[9px] py-0 h-5 bg-white border-slate-200">
+                   <Badge variant="outline" className="text-[11px] py-0 h-5 bg-white border-slate-200">
                      <Tag className="h-2.5 w-2.5 mr-1 text-slate-400" />
                      {categories.find(c => c.id === goal.category_id)?.name || i18n.t("misc.categoryFallback", { ns: "savings" })}
                    </Badge>
                  )}
                  {goal.keyword && (
-                   <Badge variant="outline" className="text-[9px] py-0 h-5 bg-white border-slate-200">
+                   <Badge variant="outline" className="text-[11px] py-0 h-5 bg-white border-slate-200">
                      <Info className="h-2.5 w-2.5 mr-1 text-slate-400" />
                      TAG: {goal.keyword}
                    </Badge>

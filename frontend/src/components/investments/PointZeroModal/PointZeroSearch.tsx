@@ -98,7 +98,7 @@ export function PointZeroSearch({ ctx }: { ctx: PointZeroModalCtx }) {
                         {item.type || (item.is_etf ? "ETF" : t("pointZeroSearch.action"))}
                       </Badge>
                       {item.etf_profile_id && (
-                        <Badge variant="outline" className="text-[9px] px-1.5 py-0 font-normal text-emerald-700 bg-emerald-50 border-emerald-200">
+                        <Badge variant="outline" className="text-[11px] px-1.5 py-0 font-normal text-emerald-700 bg-emerald-50 border-emerald-200">
                           {t("pointZeroSearch.profilEtfInclus")}
                         </Badge>
                       )}

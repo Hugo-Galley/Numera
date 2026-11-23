@@ -89,7 +89,7 @@ describe("LoanView", () => {
 
     await user.click(await screen.findByRole("button", { name: "Simuler" }))
 
-    expect(await screen.findByText("Indiquez un montant à rembourser.")).toBeInTheDocument()
+    expect(await screen.findByText("Indique un montant à rembourser.")).toBeInTheDocument()
     expect(posted).toHaveLength(0)
   })
 

@@ -20,7 +20,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { AccountLogo } from "@/components/ui/AccountLogo"
 import { useSubmit } from "@/hooks/useSubmit"
 import { todayLocal } from "@/lib/dates"
-import { errorMessage, formatCurrency, formatRate } from "@/lib/utils"
+import { errorMessage, formatCompactCurrency, formatCurrency, formatRate } from "@/lib/utils"
 import { useConfirm } from "@/providers/ConfirmProvider"
 
 import { LoanDialog } from "./LoanDialog"
@@ -209,7 +209,7 @@ export function LoanView({ accountId }: { accountId: number }) {
               <AreaChart data={chartData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                 <XAxis dataKey="date" tick={{ fontSize: 11 }} minTickGap={40} />
-                <YAxis tick={{ fontSize: 11 }} width={70} tickFormatter={(v) => formatCurrency(v).replace(/,\d+/, "")} />
+                <YAxis tick={{ fontSize: 11 }} width={70} tickFormatter={(v) => formatCompactCurrency(v)} />
                 <Tooltip itemSorter={keepSeriesOrder} formatter={numberFormatter((v: number) => [formatCurrency(v), t("loanView.remaining")])} labelFormatter={(l) => t("loanView.paymentLabel", { label: l })} />
                 <Area type="monotone" dataKey="remaining" name={t("loanView.remaining")} stroke="#e11d48" fill="#fecdd3" strokeWidth={2} />
               </AreaChart>

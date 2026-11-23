@@ -13,6 +13,7 @@ import { DetailTable } from "./DetailTable"
 import { SimulatorKpis } from "./SimulatorKpis"
 import { SimulatorChart } from "./SimulatorChart"
 import { AssetDialog } from "./AssetDialog"
+import { formatRate } from "@/lib/utils"
 
 export function WealthSimulator({ initialCapitalDefault = 10000 }: WealthSimulatorProps) {
   const { t } = useTranslation("tools")
@@ -53,7 +54,7 @@ export function WealthSimulator({ initialCapitalDefault = 10000 }: WealthSimulat
               <TabsTrigger value="events" className="text-xs py-2.5 md:py-1.5 px-3 relative whitespace-nowrap">
                 {t("index.evenementsDeVie")}
                 {activeEventsCount > 0 && (
-                  <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-indigo-600 text-[9px] font-bold text-white">
+                  <span className="absolute -top-1 -right-1 flex h-5 w-4 items-center justify-center rounded-full bg-indigo-600 text-[11px] font-bold text-white">
                     {activeEventsCount}
                   </span>
                 )}
@@ -63,9 +64,9 @@ export function WealthSimulator({ initialCapitalDefault = 10000 }: WealthSimulat
             <div className="flex items-center gap-2 text-xs text-slate-500 font-semibold bg-indigo-50/50 border border-indigo-100/50 rounded-lg py-1.5 px-3">
               <span>{t("index.configurationActive")} </span>
               {useAllocation ? (
-                <span className="text-indigo-700 font-bold">Allocation d'actifs ({computedReturn}% rdt / {computedVolatility}% vol)</span>
+                <span className="text-indigo-700 font-bold">Allocation d'actifs ({formatRate(Number(computedReturn), 1)} rdt / {formatRate(Number(computedVolatility), 1)} vol)</span>
               ) : (
-                <span className="text-indigo-700 font-bold">Saisie manuelle ({params.annual_return_pct}% rdt / {params.volatility_pct}% vol)</span>
+                <span className="text-indigo-700 font-bold">Saisie manuelle ({formatRate(params.annual_return_pct, 1)} rdt / {formatRate(params.volatility_pct, 1)} vol)</span>
               )}
             </div>
           </div>

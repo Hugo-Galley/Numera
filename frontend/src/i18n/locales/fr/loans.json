@@ -18,13 +18,13 @@
     "yearsAndMonths": "{{years}} et {{months}}"
   },
   "dialog": {
-    "missingFields": "Renseignez le nom, le montant, le taux, la durée et la date de première échéance.",
+    "missingFields": "Renseigne le nom, le montant, le taux, la durée et la date de première échéance.",
     "updated": "Crédit mis à jour",
     "added": "Crédit ajouté",
     "saveError": "Impossible d'enregistrer le crédit",
     "editTitle": "Modifier le crédit",
     "newTitle": "Nouveau crédit",
-    "hint": "Le capital restant dû est déduit de votre patrimoine. Les mensualités restent des dépenses de votre compte courant.",
+    "hint": "Le capital restant dû est déduit de ton patrimoine. Les mensualités restent des dépenses de ton compte courant.",
     "name": "Nom",
     "namePlaceholder": "Ex : Prêt immobilier appartement",
     "bank": "Banque",
@@ -38,7 +38,7 @@
     "insurance": "Assurance emprunteur (€ / mois)"
   },
   "loanView": {
-    "indiquezUnMontantARembourser": "Indiquez un montant à rembourser.",
+    "indiquezUnMontantARembourser": "Indique un montant à rembourser.",
     "simulationImpossible": "Simulation impossible",
     "enregistrer": "Enregistrer",
     "remboursementAnticipeEnregistre": "Remboursement anticipé enregistré",
@@ -55,7 +55,7 @@
     "finDuCredit": "Fin du crédit",
     "coutTotal": "Coût total",
     "simulerUnRemboursementAnticipe": "Simuler un remboursement anticipé",
-    "rienNEstEnregistreTant": "Rien n'est enregistré tant que vous ne validez pas.",
+    "rienNEstEnregistreTant": "Rien n'est enregistré tant que tu ne valides pas.",
     "montant": "Montant (€)",
     "date": "Date",
     "effet": "Effet",
@@ -82,9 +82,9 @@
     "interestSaved": "{{amount}} d'intérêts économisés",
     "endsOn": "Fin du crédit le {{date}}, soit {{duration}} plus tôt.",
     "newPayment": "Nouvelle mensualité : {{amount}} (hors assurance).",
-    "penalty": "Indemnités de remboursement anticipé : au plus {{amount}} (plafond légal ; votre contrat peut prévoir moins ou rien).",
-    "scheduleCount_one": "{{count}} échéance. Touchez une année pour le détail.",
-    "scheduleCount_other": "{{count}} échéances. Touchez une année pour le détail.",
+    "penalty": "Indemnités de remboursement anticipé : au plus {{amount}} (plafond légal ; ton contrat peut prévoir moins ou rien).",
+    "scheduleCount_one": "{{count}} échéance. Touche une année pour le détail.",
+    "scheduleCount_other": "{{count}} échéances. Touche une année pour le détail.",
     "principalOf": "sur {{amount}} empruntés",
     "interestOf": "{{amount}} d'intérêts"
   }

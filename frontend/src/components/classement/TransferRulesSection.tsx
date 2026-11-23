@@ -216,7 +216,7 @@ export function TransferRulesSection() {
                   </p>
                 </div>
                 <div className="flex shrink-0 items-center justify-between gap-1 border-t border-slate-100 pt-2 sm:justify-start sm:gap-3 sm:border-0 sm:pt-0">
-                  <Switch checked={rule.is_active} onCheckedChange={() => toggleRule(rule)} />
+                  <Switch checked={rule.is_active} onCheckedChange={() => toggleRule(rule)} aria-label={t("transferRulesSection.regleActive")} />
                   <Button variant="ghost" size="sm" className="h-10 w-10 p-0 text-slate-400 md:h-8 md:w-8 hover:bg-indigo-50 hover:text-indigo-600" onClick={() => openEdit(rule)} aria-label={t("transferRulesSection.modifierLaRegle")}>
                     <Pencil className="h-4 w-4" />
                   </Button>

@@ -76,7 +76,7 @@ describe("ProvisionsSection", () => {
     server.use(http.get(apiUrl("/provisions"), () => HttpResponse.json({ detail: "boom" }, { status: 500 })))
 
     expect(await screen.findByText("Les provisions n'ont pas pu être chargées.")).toBeInTheDocument()
-    expect(screen.queryByText(/Déclarez vos grosses dépenses/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/Déclare tes grosses dépenses/)).not.toBeInTheDocument()
   })
 
   it("refuse un montant négatif sans rien envoyer", async () => {

@@ -33,7 +33,7 @@ describe("ReimbursementDialog : dépense", () => {
     await user.type(screen.getByLabelText("Montant"), "-20")
     await user.click(screen.getByRole("button", { name: "Ajouter" }))
 
-    expect(await screen.findByText("Indiquez un débiteur et un montant")).toBeInTheDocument()
+    expect(await screen.findByText("Indique un débiteur et un montant")).toBeInTheDocument()
     expect(posted).toHaveLength(0)
   })
 
@@ -55,8 +55,8 @@ describe("ReimbursementDialog : dépense", () => {
     const { user, posted } = setup()
     await screen.findByText("Aucune créance sur cette dépense.")
 
-    await user.clear(screen.getByLabelText("Partager à parts égales entre (vous compris)"))
-    await user.type(screen.getByLabelText("Partager à parts égales entre (vous compris)"), "3")
+    await user.clear(screen.getByLabelText("Partager à parts égales entre (toi compris)"))
+    await user.type(screen.getByLabelText("Partager à parts égales entre (toi compris)"), "3")
     await user.click(screen.getByRole("button", { name: "Répartir" }))
 
     expect(await screen.findByText(/2 créances de 33,33\s€ ajoutées/)).toBeInTheDocument()

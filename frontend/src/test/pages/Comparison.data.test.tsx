@@ -47,11 +47,11 @@ describe("Comparison : chiffres", () => {
     expect(await screen.findAllByText("Courses")).not.toHaveLength(0)
     expect(requests).toEqual(expect.arrayContaining(["budget 6/2026", "budget 5/2026"]))
     const card = (label: string) => screen.getByText(label).closest("div[class*='rounded']")!.parentElement!
-    expect(card("Écart Revenus")).toHaveTextContent(/1\s000,00\s€/)
-    expect(card("Écart Revenus")).toHaveTextContent(/50,0\s?%/)
-    expect(card("Écart Dépenses")).toHaveTextContent(/300,00\s€/)
-    expect(card("Écart Dépenses")).toHaveTextContent(/-16,7\s?%/)
-    expect(card("Écart Épargne")).toHaveTextContent(/1\s300,00\s€/)
+    expect(card("Écart revenus")).toHaveTextContent(/1\s000,00\s€/)
+    expect(card("Écart revenus")).toHaveTextContent(/50,0\s?%/)
+    expect(card("Écart dépenses")).toHaveTextContent(/300,00\s€/)
+    expect(card("Écart dépenses")).toHaveTextContent(/-16,7\s?%/)
+    expect(card("Écart épargne")).toHaveTextContent(/1\s300,00\s€/)
   })
 
   it("lignes par catégorie : triées par écart décroissant, « nouveau » sans montant en B, pourcentages signés", async () => {
@@ -117,7 +117,7 @@ describe("Comparison : chiffres", () => {
     )
     renderPage()
 
-    expect((await screen.findAllByText(/Sélectionnez deux périodes/i)).length).toBeGreaterThan(0)
+    expect((await screen.findAllByText(/Sélectionne deux périodes/i)).length).toBeGreaterThan(0)
   })
 
   it("revenus nuls en B : pas de pourcentage d'écart (tiret)", async () => {
@@ -128,7 +128,7 @@ describe("Comparison : chiffres", () => {
     )
     renderPage()
 
-    const label = await screen.findByText("Écart Revenus")
+    const label = await screen.findByText("Écart revenus")
     await waitFor(() => expect(label.closest("div[class*='rounded']")!.parentElement).toHaveTextContent("—"))
   })
 

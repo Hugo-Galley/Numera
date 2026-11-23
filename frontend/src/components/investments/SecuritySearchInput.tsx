@@ -219,7 +219,7 @@ export function SecuritySearchInput({
                   </div>
                 </div>
                 <div className="text-right shrink-0 flex flex-col items-end gap-0.5">
-                  <Badge variant="secondary" className="text-[9px] px-1.5 py-0 h-4">
+                  <Badge variant="secondary" className="text-[11px] px-1.5 py-0 h-5">
                     {asset.type === "ETF" ? "ETF" : t("securitySearchInput.action")}
                   </Badge>
                   {asset.exchange && (
@@ -291,7 +291,7 @@ export function SecuritySearchInput({
                     <span className="font-bold text-emerald-900 truncate">
                       {validationInfo.name || validationInfo.symbol}
                     </span>
-                    <Badge className="bg-emerald-600 hover:bg-emerald-600 text-white text-[9px] px-1 py-0 h-4">
+                    <Badge className="bg-emerald-600 hover:bg-emerald-600 text-white text-[11px] px-1 py-0 h-5">
                       {t("securitySearchInput.reconnu")}
                     </Badge>
                   </div>

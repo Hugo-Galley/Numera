@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ErrorState } from "@/components/layout/ErrorState"
 import { useIsMobile } from "@/hooks/useIsMobile"
-import { formatCurrency, formatRate } from "@/lib/utils"
+import { formatCompactCurrency, formatCurrency, formatRate } from "@/lib/utils"
 import { getAnalyticsFire } from "@/lib/api/analytics"
 
 interface FireScenario {
@@ -162,7 +162,7 @@ export function FireProjection() {
               </defs>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
               <XAxis dataKey="year" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "#64748b" }} />
-              <YAxis width={isMobile ? 48 : 70} axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "#64748b" }} tickFormatter={(v) => `${Math.round(v / 1000)} k€`} />
+              <YAxis width={isMobile ? 48 : 70} axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "#64748b" }} tickFormatter={(v) => formatCompactCurrency(v)} />
               <Tooltip itemSorter={keepSeriesOrder} formatter={numberFormatter((v: number) => formatCurrency(v))} contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} />
               <Legend itemSorter={null} wrapperStyle={{ fontSize: 12 }} />
               <Area type="monotone" dataKey="wealth" name={t("fireProjection.patrimoineEurosDAujourdHui")} stroke="#f59e0b" fill="url(#fireWealth)" strokeWidth={3} />

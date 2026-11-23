@@ -3,15 +3,15 @@ import { test, expect, confirmDialog, unique } from "./fixtures"
 test("épargne : bilan financier, flux et historique", async ({ page }) => {
   await page.goto("/savings")
   await expect(page.getByRole("heading", { level: 1, name: "Suivi de l'Épargne" })).toBeVisible()
-  await expect(page.getByRole("heading", { name: "Bilan Financier" })).toBeVisible()
-  await expect(page.getByText("Patrimoine Net Total")).toBeVisible()
-  await expect(page.getByRole("heading", { name: "Historique des Flux d'Épargne" })).toBeVisible()
+  await expect(page.getByRole("heading", { name: "Bilan financier" })).toBeVisible()
+  await expect(page.getByText("Patrimoine net total")).toBeVisible()
+  await expect(page.getByRole("heading", { name: "Historique des flux d'épargne" })).toBeVisible()
 })
 
 test("objectif d'épargne : création, visible avec sa cible, suppression", async ({ page }) => {
   const name = unique("Objectif")
   await page.goto("/savings")
-  await page.getByRole("button", { name: "Nouvel Objectif" }).click()
+  await page.getByRole("button", { name: "Nouvel objectif" }).click()
   await page.getByRole("textbox", { name: "Nom de l'objectif" }).fill(name)
   await page.getByRole("spinbutton", { name: "Montant cible (€)" }).fill("5000")
   await page.getByRole("button", { name: "Créer l'objectif" }).click()

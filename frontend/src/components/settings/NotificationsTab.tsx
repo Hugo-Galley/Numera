@@ -1,6 +1,6 @@
 import i18n from "i18next"
 import { useTranslation } from "react-i18next"
-import { useEffect, useState } from "react"
+import { useEffect, useId, useState } from "react"
 import { Send } from "lucide-react"
 import { toast } from "sonner"
 
@@ -48,13 +48,14 @@ const SEVERITY_LABELS: Record<Severity, string> = {
 }
 
 function ToggleRow({ label, hint, checked, onChange }: { label: string; hint?: string; checked: boolean; onChange: (v: boolean) => void }) {
+  const id = useId()
   return (
     <label className="flex min-h-11 items-center justify-between gap-4">
       <span>
-        <span className="block text-sm font-medium">{label}</span>
-        {hint && <span className="block text-xs text-muted-foreground">{hint}</span>}
+        <span id={`${id}-label`} className="block text-sm font-medium">{label}</span>
+        {hint && <span id={`${id}-hint`} className="block text-xs text-muted-foreground">{hint}</span>}
       </span>
-      <Switch checked={checked} onCheckedChange={onChange} />
+      <Switch checked={checked} onCheckedChange={onChange} aria-labelledby={`${id}-label`} aria-describedby={hint ? `${id}-hint` : undefined} />
     </label>
   )
 }

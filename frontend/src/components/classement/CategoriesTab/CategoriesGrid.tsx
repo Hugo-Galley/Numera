@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { IconComponent } from "@/components/dashboard/IconComponent"
 import { categoryTypeLabel } from "@/lib/labels"
+import { formatCurrency } from "@/lib/utils"
 import type { CategoriesTabCtx } from "./useCategoriesTab"
 
 /** Cartes des catégories. */
@@ -23,10 +24,10 @@ export function CategoriesGrid({ ctx }: { ctx: CategoriesTabCtx }) {
                   <IconComponent name={cat.icon} className="h-6 w-6 text-white" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-bold text-slate-900 truncate">{cat.name}</p>
+                  <p className="font-bold text-slate-900 line-clamp-2 wrap-break-word" title={cat.name}>{cat.name}</p>
                   <div className="flex items-center gap-2 mt-1">
                     <Badge variant="outline" className={`
-                      text-[9px] uppercase font-black border-none px-0
+                      text-[11px] uppercase font-black border-none px-0
                       ${cat.type === 'depense' ? 'text-rose-500' : ''}
                       ${cat.type === 'revenu' ? 'text-emerald-500' : ''}
                       ${cat.type === 'neutre' ? 'text-slate-400' : ''}
@@ -34,15 +35,15 @@ export function CategoriesGrid({ ctx }: { ctx: CategoriesTabCtx }) {
                       {categoryTypeLabel(cat.type)}
                     </Badge>
                     {cat.group && (
-                      <Badge variant="secondary" className="text-[9px] h-4 px-1 bg-slate-100 text-slate-500 border-none font-bold">
+                      <Badge variant="secondary" className="text-[11px] h-5 px-1 bg-slate-100 text-slate-500 border-none font-bold">
                         {cat.group}
                       </Badge>
                     )}
                   </div>
                   {cat.monthly_limit != null && (
-                    <p className="text-[10px] text-amber-600 font-semibold mt-0.5">{i18n.t("misc.perMonth", { ns: "classement", amount: cat.monthly_limit })}</p>
+                    <p className="text-[11px] text-amber-600 font-semibold mt-0.5">{i18n.t("misc.perMonth", { ns: "classement", amount: formatCurrency(cat.monthly_limit) })}</p>
                   )}
-                  {cat.archived && <p className="text-[10px] text-slate-400 font-semibold mt-0.5">{t("categoriesGrid.archivee")}</p>}
+                  {cat.archived && <p className="text-[11px] text-slate-400 font-semibold mt-0.5">{t("categoriesGrid.archivee")}</p>}
                 </div>
                 <div className="flex shrink-0 gap-0 md:hidden">
                   <Button variant="ghost" size="sm" onClick={() => handleEditClick(cat)} aria-label={t("categoriesGrid.modifier")} className="h-10 w-10 p-0 text-slate-500">
@@ -56,8 +57,7 @@ export function CategoriesGrid({ ctx }: { ctx: CategoriesTabCtx }) {
                   </Button>
                 </div>
               </div>
-              <div className="hidden md:flex px-4 py-3 bg-slate-50/50 border-t justify-between items-center md:opacity-0 md:group-hover:opacity-100 transition-opacity">
-                <p className="text-[10px] text-slate-400 font-medium">ID: #{cat.id}</p>
+              <div className="hidden md:flex px-4 py-3 bg-slate-50/50 border-t justify-end items-center md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                 <div className="flex gap-1">
                   <Button aria-label={t("categoriesGrid.modifier")} variant="ghost" size="sm" onClick={() => handleEditClick(cat)} className="h-10 w-10 md:h-8 md:w-8 p-0 text-slate-500 hover:text-slate-900">
                     <Pencil className="h-4 w-4" />

@@ -204,11 +204,11 @@ describe("page Comptes : création", () => {
     await user.type(within(dialog).getByLabelText("Nom du compte"), "AV Linxea")
     // Le premier combobox est le sélecteur de logo, le deuxième le type
     await user.click(within(dialog).getAllByRole("combobox")[1])
-    await user.click(await screen.findByRole("option", { name: "Assurance-Vie" }))
-    const euros = await within(dialog).findByLabelText("Fonds Euros (%)")
+    await user.click(await screen.findByRole("option", { name: "Assurance-vie" }))
+    const euros = await within(dialog).findByLabelText("Fonds euros (%)")
     await user.type(euros, "60")
 
-    expect(within(dialog).getByLabelText("Fonds Investis (%)")).toHaveValue(40)
+    expect(within(dialog).getByLabelText("Fonds investis (%)")).toHaveValue(40)
     await user.click(within(dialog).getByRole("button", { name: "Créer" }))
 
     await waitFor(() => expect(state.writes).toHaveLength(1))

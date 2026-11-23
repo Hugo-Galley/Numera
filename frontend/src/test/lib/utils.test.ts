@@ -2,6 +2,7 @@ import { ApiError } from "@/lib/api"
 import {
   errorMessage,
   formatAmountWithShare,
+  formatCompactCurrency,
   formatCurrency,
   formatPercent,
   formatRate,
@@ -79,6 +80,27 @@ describe("formatAmountWithShare", () => {
 
   it("respecte la devise", () => {
     expect(formatAmountWithShare(5, 100, "USD")).toBe(`5,00${NBSP}$US (5 %)`)
+  })
+})
+
+describe("formatCompactCurrency", () => {
+  it("abrège à la française : espace avant k / M, virgule décimale", () => {
+    expect(formatCompactCurrency(45000)).toBe(`45${NBSP}k${NBSP}€`)
+    expect(formatCompactCurrency(200000)).toBe(`200${NBSP}k${NBSP}€`)
+    expect(formatCompactCurrency(1250)).toBe(`1,3${NBSP}k${NBSP}€`)
+    expect(formatCompactCurrency(1500000)).toBe(`1,5${NBSP}M${NBSP}€`)
+  })
+
+  it("laisse les petits montants entiers et garde le signe", () => {
+    expect(formatCompactCurrency(950)).toBe(`950${NBSP}€`)
+    expect(formatCompactCurrency(-3400)).toBe(`-3,4${NBSP}k${NBSP}€`)
+    expect(formatCompactCurrency(0)).toBe(`0${NBSP}€`)
+  })
+
+  it("respecte la devise et tolère une valeur absente ou un code invalide", () => {
+    expect(formatCompactCurrency(45000, "USD")).toBe(`45${NBSP}k${NBSP}$US`)
+    expect(formatCompactCurrency(null)).toBe(`0${NBSP}€`)
+    expect(formatCompactCurrency(2000, "??")).toBe(`2${NBSP}k${NBSP}€`)
   })
 })
 

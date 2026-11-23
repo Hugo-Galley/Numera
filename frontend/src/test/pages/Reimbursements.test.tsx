@@ -59,7 +59,7 @@ describe("page Remboursements", () => {
   it("aucune créance à recevoir : message d'invitation ; onglet « Soldées » vide : autre message", async () => {
     const { lists } = serve({ open: [], settled: [] })
     const { user } = view()
-    expect(await screen.findByText(/Personne ne vous doit rien/)).toBeInTheDocument()
+    expect(await screen.findByText(/Personne ne te doit rien/)).toBeInTheDocument()
 
     await user.click(screen.getByRole("tab", { name: "Soldées" }))
 

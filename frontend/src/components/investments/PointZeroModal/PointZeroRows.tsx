@@ -98,16 +98,16 @@ export function PointZeroRows({ ctx }: { ctx: PointZeroModalCtx }) {
                           {row.asset_name || row.ticker}
                         </span>
                         {row.is_etf ? (
-                          <Badge variant="secondary" className="bg-slate-100 text-slate-700 text-[9px] px-1 py-0 font-normal">
+                          <Badge variant="secondary" className="bg-slate-100 text-slate-700 text-[11px] px-1 py-0 font-normal">
                             ETF
                           </Badge>
                         ) : (
-                          <Badge variant="outline" className="text-[9px] px-1 py-0 font-normal text-slate-500 border-slate-200">
+                          <Badge variant="outline" className="text-[11px] px-1 py-0 font-normal text-slate-500 border-slate-200">
                             {t("pointZeroRows.action")}
                           </Badge>
                         )}
                         {row.is_suggestion && row.quantity === 0 && (
-                          <Badge variant="outline" className="text-[9px] px-1 py-0 font-normal text-amber-700 bg-amber-50 border-amber-200">
+                          <Badge variant="outline" className="text-[11px] px-1 py-0 font-normal text-amber-700 bg-amber-50 border-amber-200">
                             {t("pointZeroRows.suggere")}
                           </Badge>
                         )}

@@ -71,7 +71,7 @@ describe("Opération d'investissement", () => {
 
     await user.click(within(dialog).getByRole("button", { name: "Confirmer" }))
 
-    expect(await screen.findByText("Veuillez saisir un montant ou un nombre de parts")).toBeInTheDocument()
+    expect(await screen.findByText("Saisis un montant ou un nombre de parts")).toBeInTheDocument()
     expect(posted).toHaveLength(0)
   })
 
@@ -79,7 +79,7 @@ describe("Opération d'investissement", () => {
     const { user, posted } = setup()
     const dialog = await openDialog(user)
 
-    await chooseType(user, dialog, "Dividende (Gain)")
+    await chooseType(user, dialog, "Dividende (gain)")
     await user.type(within(dialog).getByLabelText("Montant"), "12.40")
     await user.click(within(dialog).getByRole("button", { name: "Confirmer" }))
 
@@ -94,7 +94,7 @@ describe("Opération d'investissement", () => {
 
     await chooseType(user, dialog, "Achat de titres")
     fireEvent.change(dialog.querySelector('input[type="datetime-local"]')!, { target: { value: "2026-06-20T23:30" } })
-    await user.type(within(dialog).getByLabelText("Ticker / Code"), "cw8.pa")
+    await user.type(within(dialog).getByLabelText("Ticker / code"), "cw8.pa")
     await user.type(within(dialog).getByPlaceholderText("Ex: 2"), "2")
     await user.type(within(dialog).getByPlaceholderText("Cours..."), "520.5")
     expect(within(dialog).getByLabelText("Montant")).toHaveValue(1041)
@@ -133,7 +133,7 @@ describe("Opération d'investissement", () => {
     const dialog = await openDialog(user)
 
     await chooseType(user, dialog, "Achat de titres")
-    await user.type(within(dialog).getByLabelText("Ticker / Code"), "cs.pa")
+    await user.type(within(dialog).getByLabelText("Ticker / code"), "cs.pa")
     await user.type(within(dialog).getByPlaceholderText("Ex: 2"), "50")
     await user.type(within(dialog).getByPlaceholderText("Cours..."), "15")
     await user.type(within(dialog).getByLabelText("Cours de référence (optionnel)"), "20")
@@ -158,9 +158,9 @@ describe("Opération d'investissement", () => {
     const { user, posted } = setup()
     const dialog = await openDialog(user)
 
-    await chooseType(user, dialog, "Dividende (Gain)")
+    await chooseType(user, dialog, "Dividende (gain)")
     await user.type(within(dialog).getByLabelText("Montant"), "30")
-    await user.type(within(dialog).getByLabelText("Ticker / Code"), "CW8.PA")
+    await user.type(within(dialog).getByLabelText("Ticker / code"), "CW8.PA")
     await user.type(within(dialog).getAllByPlaceholderText("0.00")[1], "4.5")
     await user.click(within(dialog).getByRole("checkbox", { name: /Dividende réinvesti/ }))
     await user.click(within(dialog).getByRole("button", { name: "Confirmer" }))

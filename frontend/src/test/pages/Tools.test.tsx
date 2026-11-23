@@ -29,7 +29,7 @@ describe("page Simulateur", () => {
 
     // Même nom que l'entrée du menu (« Simulateur »), plus « Outils »
     expect(screen.getByRole("heading", { name: "Simulateur" })).toBeInTheDocument()
-    expect(screen.getByText("Simulez et projetez l'évolution de votre patrimoine.")).toBeInTheDocument()
+    expect(screen.getByText("Simule et projette l'évolution de ton patrimoine.")).toBeInTheDocument()
     expect(await screen.findByText("Impossible de calculer la projection", { exact: false })).toBeInTheDocument()
     expect(screen.getByRole("button", { name: "Mode avancé" })).toBeInTheDocument()
   })

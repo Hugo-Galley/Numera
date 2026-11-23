@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 import { keepSeriesOrder, numberFormatter } from "@/lib/chartTooltip"
 import { TrendingUp } from "lucide-react"
-import { formatCurrency } from "@/lib/utils"
+import { formatCompactCurrency, formatCurrency } from "@/lib/utils"
 import type { WealthForecastView } from "./useWealthForecast"
 
 /** Graphique de la projection. */
@@ -25,7 +25,7 @@ export function ForecastChartCard({ ctx }: { ctx: WealthForecastView }) {
               <XAxis dataKey="year" tickFormatter={(v) => t("misc.xYears", { count: Number(v) })} tick={{ fontSize: 11, fill: "#64748b" }} interval="preserveStartEnd" minTickGap={16} />
               <YAxis
                 tick={{ fontSize: 12, fill: "#64748b" }}
-                tickFormatter={(v) => `${Math.round(v / 1000)}k€`}
+                tickFormatter={(v) => formatCompactCurrency(v)}
                 width={52}
               />
               <Tooltip itemSorter={keepSeriesOrder}
@@ -36,7 +36,7 @@ export function ForecastChartCard({ ctx }: { ctx: WealthForecastView }) {
               <Legend itemSorter={null} />
               <Line type="monotone" dataKey="base" name={t("forecastChartCard.auRythmeActuel")} stroke="#3b82f6" strokeWidth={3} dot={false} />
               {boostedShown && (
-                <Line type="monotone" dataKey="boosted" name={t("misc.withExtra", { sign: data.extra_monthly > 0 ? "+" : "", amount: data.extra_monthly })} stroke="#10b981" strokeWidth={3} dot={false} />
+                <Line type="monotone" dataKey="boosted" name={t("misc.withExtra", { sign: data.extra_monthly > 0 ? "+" : "", amount: formatCurrency(data.extra_monthly) })} stroke="#10b981" strokeWidth={3} dot={false} />
               )}
             </LineChart>
           </ResponsiveContainer>

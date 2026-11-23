@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next"
-import { formatCurrency } from "@/lib/utils"
+import { formatCurrency, formatRate } from "@/lib/utils"
 import { IconComponent } from "../IconComponent"
 import { useDrilldown, type DrilldownScope } from "@/hooks/useDrilldown"
 import type { BudgetAlert } from "../types"
@@ -64,7 +64,7 @@ export function BudgetsTab({ budgetAlerts, drilldownScope }: BudgetsTabProps) {
                 <div className="space-y-2">
                   <div className="flex justify-between gap-2 text-xs text-slate-500 font-medium">
                     <span className="min-w-0">{t("budgets.monthly")} — <span className="amount-blur">{formatCurrency(alert.monthly_spent)}</span> / <span className="amount-blur">{formatCurrency(alert.monthly_limit)}</span></span>
-                    <span className={`shrink-0 font-bold amount-blur ${monthlyOver ? "text-rose-600" : monthlyWarning ? "text-amber-600" : "text-slate-600"}`}>{monthlyPct}%</span>
+                    <span className={`shrink-0 font-bold amount-blur ${monthlyOver ? "text-rose-600" : monthlyWarning ? "text-amber-600" : "text-slate-600"}`}>{formatRate(monthlyPct, 0)}</span>
                   </div>
                   <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
                     <div
@@ -80,7 +80,7 @@ export function BudgetsTab({ budgetAlerts, drilldownScope }: BudgetsTabProps) {
                 <div className="space-y-2">
                   <div className="flex justify-between gap-2 text-xs text-slate-500 font-medium">
                     <span className="min-w-0">{t("budgets.annual")} — <span className="amount-blur">{formatCurrency(alert.annual_spent)}</span> / <span className="amount-blur">{formatCurrency(alert.annual_limit)}</span></span>
-                    <span className={`shrink-0 font-bold amount-blur ${annualOver ? "text-rose-600" : annualWarning ? "text-amber-600" : "text-slate-600"}`}>{annualPct}%</span>
+                    <span className={`shrink-0 font-bold amount-blur ${annualOver ? "text-rose-600" : annualWarning ? "text-amber-600" : "text-slate-600"}`}>{formatRate(annualPct, 0)}</span>
                   </div>
                   <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
                     <div

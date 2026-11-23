@@ -61,7 +61,7 @@ function setup(goals: object[] = [], onPost: (body: Body) => Response | Promise<
 }
 
 async function openCreate(user: ReturnType<typeof setup>["user"]) {
-  await user.click(await screen.findByRole("button", { name: "Nouvel Objectif" }))
+  await user.click(await screen.findByRole("button", { name: "Nouvel objectif" }))
   return screen.getByRole("dialog", { name: "Créer un objectif" })
 }
 
@@ -73,7 +73,7 @@ describe("Objectifs d'épargne", () => {
     await user.type(within(dialog).getByLabelText("Nom de l'objectif"), "Voiture")
     await user.click(within(dialog).getByRole("button", { name: "Créer l'objectif" }))
 
-    expect(await screen.findByText("Veuillez remplir les champs obligatoires (Nom et Montant)")).toBeInTheDocument()
+    expect(await screen.findByText("Remplis les champs obligatoires (nom et montant)")).toBeInTheDocument()
     expect(posted).toHaveLength(0)
   })
 
@@ -84,7 +84,7 @@ describe("Objectifs d'épargne", () => {
 
     await user.type(within(dialog).getByLabelText("Nom de l'objectif"), "Voiture")
     await user.type(within(dialog).getByLabelText("Montant cible (€)"), "8000.50")
-    await user.type(within(dialog).getByLabelText("Mot-clé Tag (optionnel)"), "auto")
+    await user.type(within(dialog).getByLabelText("Mot-clé tag (optionnel)"), "auto")
     await user.type(within(dialog).getByLabelText("Date cible (optionnel)"), "2027-06-30")
     await user.click(within(dialog).getAllByRole("combobox")[0])
     await user.click(await screen.findByRole("option", { name: "Livret A" }))

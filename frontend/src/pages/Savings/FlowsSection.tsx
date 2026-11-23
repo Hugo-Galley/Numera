@@ -4,7 +4,7 @@ import { Activity, TrendingUp, Zap } from "lucide-react"
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Legend, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 import { keepSeriesOrder, numberFormatter } from "@/lib/chartTooltip"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { formatCurrency, formatRate } from "@/lib/utils"
+import { formatCompactCurrency, formatCurrency, formatRate } from "@/lib/utils"
 import type { SavingsCtx } from "./useSavings"
 
 /** Section 2 : dynamique et flux. */
@@ -108,7 +108,7 @@ export function FlowsSection({ ctx }: { ctx: SavingsCtx }) {
                 <BarChart data={history} margin={{ top: 10, right: 10, left: isMobile ? -8 : -20, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                   <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} dy={10} interval="preserveStartEnd" minTickGap={12} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} tickFormatter={(v) => `${v}€`} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} tickFormatter={(v) => formatCompactCurrency(v)} />
                   <Tooltip itemSorter={keepSeriesOrder} cursor={{ fill: '#f8fafc' }} formatter={numberFormatter((v: number, _n: string, item: { payload?: Record<string, unknown> }) => shareLabel(v, item?.payload, ['cash_flow', 'investissements', 'interets']))} contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} />
                   <Legend itemSorter={null} verticalAlign="top" height={36} wrapperStyle={{ fontSize: '12px', paddingBottom: '20px' }}/>
                   <Bar dataKey="cash_flow" name={i18n.t("misc.cashLeft", { ns: "savings" })} stackId="a" fill="#94a3b8" radius={[0, 0, 0, 0]} maxBarSize={40} />
@@ -138,7 +138,7 @@ export function FlowsSection({ ctx }: { ctx: SavingsCtx }) {
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                   <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} dy={10} interval="preserveStartEnd" minTickGap={12} />
-                  <YAxis domain={[-100, 100]} axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} tickFormatter={(v) => `${v}%`} />
+                  <YAxis domain={[-100, 100]} axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} tickFormatter={(v) => formatRate(v, 0)} />
                   <Tooltip itemSorter={keepSeriesOrder} formatter={numberFormatter((v: number) => [formatRate(v, 1), "Taux"])} contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} />
                   <Area type="monotone" dataKey="rate" stroke="#3b82f6" fillOpacity={1} fill="url(#colorRate)" strokeWidth={3} dot={{ r: 4, fill: "#3b82f6", strokeWidth: 2, stroke: "#fff" }} activeDot={{ r: 6 }} />
                 </AreaChart>

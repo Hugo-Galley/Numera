@@ -14,8 +14,8 @@ test("bilan du mois : sections et navigation vers le mois précédent", async ({
 
 test("comparaison de deux mois : écarts et détail par catégorie", async ({ page }) => {
   await page.goto("/month/comparaison")
-  await expect(page.getByText("Écart Revenus")).toBeVisible()
-  await expect(page.getByText("Écart Dépenses")).toBeVisible()
+  await expect(page.getByText("Écart revenus")).toBeVisible()
+  await expect(page.getByText("Écart dépenses")).toBeVisible()
   await expect(page.getByRole("heading", { name: "Détail par catégorie" })).toBeVisible()
   await expect(page.getByRole("row").nth(2)).toBeVisible()
 })

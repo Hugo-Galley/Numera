@@ -186,7 +186,7 @@ describe("AccountDetail : transactions", () => {
 
     await user.click(screen.getByRole("button", { name: "Nouvelle opération" }))
     await user.click(within(dialog()).getByRole("button", { name: "Enregistrer" }))
-    expect(await screen.findByText("Veuillez saisir un commerçant ou un libellé")).toBeInTheDocument()
+    expect(await screen.findByText("Saisis un commerçant ou un libellé")).toBeInTheDocument()
 
     await user.type(within(dialog()).getByLabelText("Commerçant / Libellé"), "Café")
     await user.type(within(dialog()).getByLabelText("Montant"), "0")
