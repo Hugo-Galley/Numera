@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
 import { CompanyLogo } from "@/components/ui/CompanyLogo"
-import { IconComponent } from "@/components/dashboard/IconComponent"
+import { CategoryIcon } from "@/components/dashboard/CategoryIcon"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { format } from "date-fns"
 import { useTranslation } from "react-i18next"
@@ -73,6 +73,7 @@ export function TransactionsTable({ ctx }: { ctx: AccountDetailView }) {
               <TableRow key={tx.id} className={tx.is_upcoming ? "bg-slate-50/60" : undefined}>
                 <TableCell>
                   <Checkbox 
+                    aria-label={t("tx.selectRow", { merchant: tx.merchant_obj?.name || tx.merchant, date: format(new Date(tx.date), "dd/MM/yyyy") })}
                     checked={selectedIds.includes(tx.id)}
                     onCheckedChange={(checked) => {
                       if (checked) {
@@ -100,14 +101,14 @@ export function TransactionsTable({ ctx }: { ctx: AccountDetailView }) {
                     </div>
                     {tx.note && <span className="text-[10px] text-slate-400 truncate max-w-[200px]">{tx.note}</span>}
                     {tx.merchant_obj && tx.merchant_obj.name !== tx.merchant && (
-                       <span className="text-[9px] text-slate-400 italic truncate max-w-[180px]">{tx.merchant}</span>
+                       <span className="text-[10px] text-slate-500 italic truncate max-w-[180px]">{tx.merchant}</span>
                     )}
                     {tx.tags && tx.tags.length > 0 && (
                       <div className="flex flex-wrap gap-1 mt-1">
                         {tx.tags.map(tag => (
                           <Badge 
                             key={tag.id} 
-                            className="px-1.5 py-0 text-[8px] font-bold border-none text-white"
+                            className="px-1.5 py-0 text-[10px] font-bold border-none text-white"
                             style={{ backgroundColor: tag.color || "#64748b" }}
                           >
                             {tag.name}
@@ -125,9 +126,7 @@ export function TransactionsTable({ ctx }: { ctx: AccountDetailView }) {
                     <Badge variant="outline" className="bg-amber-50 text-amber-700 border-none">{tc("txTypes.Interets")}</Badge>
                   ) : (
                     <div className="flex items-center gap-2">
-                      <div className="h-6 w-6 rounded-md flex items-center justify-center" style={{ backgroundColor: tx.category?.color || "#f1f5f9" }}>
-                        <IconComponent name={tx.category?.icon} className="h-3.5 w-3.5 text-white" />
-                      </div>
+                      <CategoryIcon category={tx.category} className="h-6 w-6" iconClassName="h-3.5 w-3.5" />
                       <span className="text-sm font-medium text-slate-600" title={tx.splits?.length ? tx.splits.map((p) => `${p.category?.name ?? "?"} : ${formatCurrency(p.amount)}`).join("\n") : undefined}>
                         {tx.category?.name || tc("txTypes.uncategorized")}
                         {tx.splits?.length ? <span className="ml-1 inline-flex items-center gap-0.5 text-xs text-slate-400"><Split className="h-3 w-3" />+{tx.splits.length - 1}</span> : null}

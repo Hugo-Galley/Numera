@@ -2,7 +2,7 @@ import { ArrowRightLeft, CalendarClock, HandCoins, Repeat } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
 import { CompanyLogo } from "@/components/ui/CompanyLogo"
-import { IconComponent } from "@/components/dashboard/IconComponent"
+import { CategoryIcon } from "@/components/dashboard/CategoryIcon"
 import { format } from "date-fns"
 import { useTranslation } from "react-i18next"
 import type { AccountDetailView } from "./useAccountDetail"
@@ -29,8 +29,10 @@ export function TransactionsMobileList({ ctx }: { ctx: AccountDetailView }) {
           const tone = tx.type === "Sortie" ? "text-rose-600" : (tx.type === "Entree" || tx.type === "Interets") ? "text-emerald-600" : "text-slate-900"
           return (
             <div key={tx.id} className={`flex items-start gap-1 rounded-xl border bg-white p-2 shadow-xs ${selectedIds.includes(tx.id) ? "border-indigo-300 bg-indigo-50/40" : "border-slate-100"}`}>
-              <label className="flex h-10 w-9 shrink-0 cursor-pointer items-center justify-center">
+              {/* Zone tactile de 44 px autour d'une case de 16 px (docs/MOBILE.md : cibles d'au moins 40 px) */}
+              <label className="-my-1 -ml-1 flex size-11 shrink-0 cursor-pointer items-center justify-center">
                 <Checkbox
+                  aria-label={t("tx.selectRow", { merchant: tx.merchant_obj?.name || tx.merchant, date: format(new Date(tx.date), "dd/MM/yyyy") })}
                   checked={selectedIds.includes(tx.id)}
                   onCheckedChange={(checked) => {
                     if (checked) setSelectedIds(prev => [...prev, tx.id])
@@ -50,25 +52,24 @@ export function TransactionsMobileList({ ctx }: { ctx: AccountDetailView }) {
                     {sign}{formatCurrency(tx.amount)}
                   </span>
                 </div>
-                <div className="mt-1 flex flex-wrap items-center justify-between gap-x-2 gap-y-0.5 text-xs text-slate-500">
-                  <div className="flex min-w-0 flex-wrap items-center gap-x-1.5">
+                {/* Solde toujours à droite : seule la partie gauche (date, catégorie) passe à la ligne */}
+                <div className="mt-1 flex items-start justify-between gap-x-2 text-xs text-slate-500">
+                  <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-1.5 gap-y-0.5">
                     <span className="shrink-0">{format(new Date(tx.date), "dd/MM/yy")}</span>
                     {tx.is_upcoming && <Badge variant="outline" className="shrink-0 gap-1 whitespace-nowrap border-none bg-sky-50 px-1.5 py-0 text-[10px] text-sky-700"><CalendarClock className="h-3 w-3" />{t("tx.upcoming")}</Badge>}
-                    <span className="text-slate-300">·</span>
+                    <span className="shrink-0 text-slate-300">·</span>
                     {tx.type === "Solde Initial" ? (
                       <span>{tc("txTypes.initial")}</span>
                     ) : tx.type === "Interets" ? (
                       <span className="text-amber-700">{tc("txTypes.Interets")}</span>
                     ) : (
                       <>
-                        <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded" style={{ backgroundColor: tx.category?.color || "#cbd5e1" }}>
-                          <IconComponent name={tx.category?.icon} className="h-2.5 w-2.5 text-white" />
-                        </span>
+                        <CategoryIcon category={tx.category} className="h-4 w-4 rounded" iconClassName="h-2.5 w-2.5" />
                         <span>{tx.splits?.length ? `${t("tx.split")} · ${tx.splits.map((p) => p.category?.name ?? "?").join(", ")}` : tx.category?.name || tc("txTypes.uncategorized")}</span>
                       </>
                     )}
                   </div>
-                  <span className="shrink-0 whitespace-nowrap tabular-nums text-slate-400 amount-blur">{t("tx.balanceLabel", { amount: formatCurrency(tx.running_balance) })}</span>
+                  <span className="shrink-0 whitespace-nowrap tabular-nums text-slate-500 amount-blur">{t("tx.balanceLabel", { amount: formatCurrency(tx.running_balance) })}</span>
                 </div>
                 {tx.merchant_obj && tx.merchant_obj.name !== tx.merchant && (
                   <p className="mt-0.5 truncate text-[11px] italic text-slate-400">{tx.merchant}</p>

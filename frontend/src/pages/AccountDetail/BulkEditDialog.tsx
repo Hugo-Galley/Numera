@@ -37,7 +37,7 @@ export function BulkEditDialog({ ctx }: { ctx: AccountDetailView }) {
                   {categories.filter((cat) => !cat.archived).map((cat) => (
                     <SelectItem key={cat.id} value={String(cat.id)}>
                       <div className="flex items-center gap-2">
-                        <div className="h-3 w-3 rounded-full" style={{ backgroundColor: cat.color || "#cbd5e1" }} />
+                        <div className={`h-3 w-3 rounded-full ${cat.color ? "" : "bg-slate-300"}`} style={cat.color ? { backgroundColor: cat.color } : undefined} />
                         {cat.name}
                       </div>
                     </SelectItem>

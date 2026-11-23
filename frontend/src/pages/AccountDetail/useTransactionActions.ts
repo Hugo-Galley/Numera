@@ -1,5 +1,5 @@
 import { nowLocalInput, toInputValue, toNaiveLocal } from "@/lib/dates"
-import { errorMessage, parsePositiveAmount } from "@/lib/utils"
+import { errorMessage, parseDecimal, parsePositiveAmount } from "@/lib/utils"
 import i18n from "i18next"
 import { toast } from "sonner"
 import { useEffect } from "react"
@@ -14,7 +14,7 @@ import type { ApiBody } from "@/lib/api/types"
 
 /** Création, modification et suppression des transactions du compte. */
 export function useTransactionActions(p: ReturnType<typeof useAccountDetailState> & ReturnType<typeof useAccountForms> & ReturnType<typeof useAccountDetailData>) {
-  const { confirm, id, account, transactions, formatCurrency, setTxOpen, editTxId, setEditTxId, txDate, setTxDate, txType, setTxType, txMerchant, setTxMerchant, txAmount, setTxAmount, txCurrency, setTxCurrency, txCategoryId, setTxCategoryId, txTagIds, setTxTagIds, txNote, setTxNote, txIsRecurring, setTxIsRecurring, txIsExceptional, setTxIsExceptional, txCustomIcon, setTxCustomIcon, txCustomColor, setTxCustomColor, loadData } = p
+  const { confirm, id, account, transactions, formatCurrency, setTxOpen, editTxId, setEditTxId, txDate, setTxDate, txType, setTxType, txMerchant, setTxMerchant, txAmount, setTxAmount, txCurrency, setTxCurrency, txCategoryId, setTxCategoryId, txTagIds, setTxTagIds, txNote, setTxNote, txIsRecurring, setTxIsRecurring, txIsExceptional, setTxIsExceptional, loadData } = p
   const resetTxForm = () => {
     setEditTxId(null)
     setTxDate(nowLocalInput())
@@ -27,8 +27,6 @@ export function useTransactionActions(p: ReturnType<typeof useAccountDetailState
     setTxNote("")
     setTxIsRecurring(false)
     setTxIsExceptional(false)
-    setTxCustomIcon("")
-    setTxCustomColor("#0f172a")
   }
 
   const [handleCreateTransaction, handleCreateTransactionBusy] = useSubmit(async () => {
@@ -42,7 +40,7 @@ export function useTransactionActions(p: ReturnType<typeof useAccountDetailState
       return
     }
     // Un Solde Initial peut valoir 0 ; toute autre opération doit avoir un montant strictement positif
-    if (parsePositiveAmount(txAmount) === null && !(txType === "Solde Initial" && Number(txAmount) === 0 && txAmount !== "")) {
+    if (parsePositiveAmount(txAmount) === null && !(txType === "Solde Initial" && parseDecimal(txAmount) === 0)) {
       toast.error(i18n.t("tx.toast.needAmount", { ns: "accountDetail" }))
       return
     }
@@ -55,13 +53,11 @@ export function useTransactionActions(p: ReturnType<typeof useAccountDetailState
         merchant: merchant,
         category_id: txCategoryId && txCategoryId !== "none" ? Number(txCategoryId) : null,
         tag_ids: txTagIds,
-        amount: Number(txAmount),
+        amount: parseDecimal(txAmount),
         currency: txCurrency,
         note: txNote || null,
         is_recurring: txIsRecurring,
         is_exceptional: txType === "Sortie" && txIsExceptional,
-        custom_icon: txCustomIcon || null,
-        custom_color: txCustomColor || null
       }
       await postTransactions(payload)
       toast.success(i18n.t("tx.toast.added", { ns: "accountDetail" }))
@@ -86,7 +82,7 @@ export function useTransactionActions(p: ReturnType<typeof useAccountDetailState
       return
     }
     // Un Solde Initial peut valoir 0 ; toute autre opération doit avoir un montant strictement positif
-    if (parsePositiveAmount(txAmount) === null && !(txType === "Solde Initial" && Number(txAmount) === 0 && txAmount !== "")) {
+    if (parsePositiveAmount(txAmount) === null && !(txType === "Solde Initial" && parseDecimal(txAmount) === 0)) {
       toast.error(i18n.t("tx.toast.needAmount", { ns: "accountDetail" }))
       return
     }
@@ -98,13 +94,11 @@ export function useTransactionActions(p: ReturnType<typeof useAccountDetailState
         merchant: merchant,
         category_id: txCategoryId && txCategoryId !== "none" ? Number(txCategoryId) : null,
         tag_ids: txTagIds,
-        amount: Number(txAmount),
+        amount: parseDecimal(txAmount),
         currency: txCurrency,
         note: txNote || null,
         is_recurring: txIsRecurring,
         is_exceptional: txType === "Sortie" && txIsExceptional,
-        custom_icon: txCustomIcon || null,
-        custom_color: txCustomColor || null
       }
       await patchTransactionsById(editTxId, payload)
       toast.success(i18n.t("tx.toast.updated", { ns: "accountDetail" }))
@@ -121,15 +115,13 @@ export function useTransactionActions(p: ReturnType<typeof useAccountDetailState
     setTxDate(toInputValue(tx.date))
     setTxType(tx.type)
     setTxMerchant(tx.merchant)
-    setTxAmount(String(tx.original_amount || tx.amount))
+    setTxAmount(String(tx.original_amount || tx.amount).replace(".", ","))
     setTxCurrency(tx.currency || account?.currency || "EUR")
     setTxCategoryId(tx.category_id ? String(tx.category_id) : "none")
     setTxTagIds(tx.tags?.map(t => t.id) || [])
     setTxNote(tx.note || "")
     setTxIsRecurring(tx.is_recurring)
     setTxIsExceptional(!!tx.is_exceptional)
-    setTxCustomIcon(tx.custom_icon || "")
-    setTxCustomColor(tx.custom_color || "#0f172a")
     setTxOpen(true)
   }
 

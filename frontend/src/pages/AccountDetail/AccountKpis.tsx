@@ -122,7 +122,9 @@ export function AccountKpis({ ctx }: { ctx: AccountDetailView }) {
                 <CardTitle className={`text-2xl font-bold ${(stats?.monthlyNetFlow || 0) >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
                   {(stats?.monthlyNetFlow || 0) >= 0 ? "+" : ""}{formatCurrency(stats?.monthlyNetFlow || 0)}
                 </CardTitle>
-                <p className="text-xs text-slate-400 mt-2">{t("kpi.inMinusOut")}</p>
+                <p className="text-xs text-slate-500 mt-2">{t("kpi.inMinusOut")}</p>
+                {/* Le backend calcule toujours la période (de paie) en cours : elle contient aujourd'hui, donc incomplète */}
+                <p className="text-[11px] font-medium text-amber-700">{t("kpi.currentMonthNote")}</p>
               </CardContent>
             </Card>
             <Card className="shadow-xs">
@@ -140,7 +142,8 @@ export function AccountKpis({ ctx }: { ctx: AccountDetailView }) {
                     ? formatRate(stats.monthlyVariation, 1, true)
                     : "—"}
                 </CardTitle>
-                <p className="text-xs text-slate-400 mt-2">{t("kpi.vsPrevious")}</p>
+                <p className="text-xs text-slate-500 mt-2">{t("kpi.vsPrevious")}</p>
+                <p className="text-[11px] font-medium text-amber-700">{t("kpi.currentMonthNote")}</p>
               </CardContent>
             </Card>
             <Card className="shadow-xs">
