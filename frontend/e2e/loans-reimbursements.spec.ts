@@ -19,7 +19,7 @@ test("remboursements : déclarer une créance depuis une dépense", async ({ pag
   await openAccount(page, "Compte courant")
   await page.getByRole("button", { name: "Nouvelle opération" }).click()
   await page.getByRole("combobox", { name: "Commerçant / Libellé" }).fill(label)
-  await page.getByRole("spinbutton", { name: "Montant" }).fill("40")
+  await page.getByRole("textbox", { name: "Montant" }).fill("40")
   await page.getByRole("button", { name: "Enregistrer" }).click()
 
   await openTransactionMenu(page, label)

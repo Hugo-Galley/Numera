@@ -21,6 +21,7 @@
     "globalReturn": "Rentabilidad global",
     "monthlyNetFlow": "Flujo neto del mes",
     "inMinusOut": "Ingresos − gastos este mes",
+    "currentMonthNote": "Mes en curso, aún no terminado",
     "monthlyChange": "Variación mensual",
     "vsPrevious": "vs mes anterior",
     "avgBasket": "Ticket medio",
@@ -86,6 +87,7 @@
     "net": "neto {{amount}}",
     "balanceLabel": "Saldo {{amount}}",
     "selectAll": "Seleccionar todo",
+    "selectRow": "Seleccionar la operación {{merchant}} del {{date}}",
     "selected": "seleccionadas",
     "loadMore": "Cargar más transacciones",
     "loading": "Cargando…",
@@ -132,15 +134,13 @@
       "merchant": "Comercio / Concepto",
       "merchantPlaceholder": "Ej.: Mercadona...",
       "amount": "Importe",
+      "amountPlaceholder": "0,00",
       "currency": "Divisa",
       "categoryField": "Categoría",
       "choose": "Elegir...",
       "tags": "Etiquetas",
       "recurring": "Transacción periódica",
-      "exceptional": "Gasto excepcional (compra puntual)",
-      "icon": "Icono (Lucide)",
-      "iconPlaceholder": "Ej.: Coffee, Zap...",
-      "color": "Color"
+      "exceptional": "Gasto excepcional (compra puntual)"
     },
     "toast": {
       "needMerchant": "Introduce un comercio o un concepto",
