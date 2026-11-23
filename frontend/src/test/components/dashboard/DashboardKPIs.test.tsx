@@ -28,10 +28,10 @@ describe("DashboardKPIs", () => {
     expect(screen.queryByText(/Épargne/i)).not.toBeInTheDocument()
   })
 
-  it("un compte choisi : « Solde Actuel », même en cours de mois", () => {
+  it("un compte choisi : « Solde actuel », même en cours de mois", () => {
     renderWithProviders(<DashboardKPIs selectedAccountId="3" displayCurrency="EUR" analytics={analytics} kpiHistory={[]} progress={{ day: 23, total: 30 }} />)
 
-    expect(screen.getByText("Solde Actuel")).toBeInTheDocument()
+    expect(screen.getByText("Solde actuel")).toBeInTheDocument()
     expect(screen.queryByText(/Mis de côté/)).not.toBeInTheDocument()
   })
 })

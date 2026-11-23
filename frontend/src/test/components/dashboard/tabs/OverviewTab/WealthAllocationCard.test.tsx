@@ -53,7 +53,7 @@ describe("WealthAllocationCard : liste du patrimoine", () => {
   it("onglets de regroupement : cible tactile d'au moins 40 px sur mobile", () => {
     renderWithProviders(<Card data={allocation(2)} />, { auth: true })
 
-    for (const name of ["Par Catégorie", "Mixte", "Par Compte", "Par Établissement"]) {
+    for (const name of ["Par catégorie", "Mixte", "Par compte", "Par établissement"]) {
       expect(screen.getByRole("tab", { name }).className).toMatch(/(^|\s)min-h-10(\s|$)/)
     }
   })
@@ -69,13 +69,13 @@ describe("WealthAllocationCard : liste du patrimoine", () => {
     })
     const { user } = renderWithProviders(<Card data={data} />, { auth: true })
 
-    for (const tab of ["Par Catégorie", "Par Compte", "Par Établissement", "Mixte"]) {
+    for (const tab of ["Par catégorie", "Par compte", "Par établissement", "Mixte"]) {
       await user.click(screen.getByRole("tab", { name: tab }))
       expect(screen.getByRole("tab", { name: tab })).toHaveAttribute("aria-selected", "true")
       expect(screen.getAllByText("PEA US").length).toBeGreaterThan(0)
       expect(screen.getAllByText(/1\s?080,00/).length).toBeGreaterThan(0)
     }
-    await user.click(screen.getByRole("tab", { name: "Par Établissement" }))
+    await user.click(screen.getByRole("tab", { name: "Par établissement" }))
     expect(screen.getByText("Banque A")).toBeInTheDocument()
   })
 })
