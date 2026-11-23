@@ -8,6 +8,7 @@ from app.integrations import logos
 from app.models.account import Account
 from app.models.category import Category
 from app.models.recurring_transaction import RecurringTransaction
+from app.models.transaction import Transaction
 from app.services.analytics.budget import compute_budget
 from app.services.budget.budget_period import period_bounds
 from app.services.systeme.demo import generate_demo_data
@@ -45,3 +46,17 @@ def test_demo_salary_funds_the_following_month(db_session: Session):
 
     assert start == datetime(2025, 2, 27)
     assert budget["revenus_totaux"] > 0
+
+
+def test_demo_salary_config_is_readable_and_current(client, db_session: Session):
+    """La page Salaire de la démo lit sa configuration (500 si un champ viole le schéma de lecture)."""
+    _generate(db_session)
+
+    response = client.get("/salary/config")
+
+    assert response.status_code == 200
+    last_salary = max(
+        (t for t in db_session.query(Transaction).filter(Transaction.merchant == "Acme Conseil — Salaire")),
+        key=lambda t: t.date,
+    )
+    assert response.json()["net_salary"] == last_salary.amount

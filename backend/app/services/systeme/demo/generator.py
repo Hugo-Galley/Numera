@@ -64,6 +64,7 @@ class _Builder:
         year = today.year + (month - 1) // 12
         self.start = date(year, (month - 1) % 12 + 1, 1)
         self.categories: dict[str, Category] = {}
+        self.salary = SALARY
 
     # Petits utilitaires -------------------------------------------------------
 
@@ -167,13 +168,16 @@ class _Builder:
             )
         self.db.add_all(recurring.values())
         self.db.flush()
-        # Configuration de salaire : sans elle, le mois de paie retombe sur le mois civil et le mois en cours
-        # affiche 0 € de revenus jusqu'au 27 (le salaire du 27 finance le mois suivant).
-        self.db.add(SalaryConfig(salary_account_id=courant.id, net_salary=SALARY, ticket_value=0.0,
-                                 ticket_employee_share=0.0, salary_category_id=self.categories["Salaire"].id,
-                                 salary_recurring_id=recurring["Salaire"].id, is_active=True))
-        self.db.flush()
         return recurring
+
+    def build_salary_config(self, courant: Account, recurring: RecurringTransaction) -> None:
+        """Sans configuration, le mois de paie retombe sur le mois civil et le mois en cours affiche 0 € de
+        revenus jusqu'au 27 (le salaire du 27 finance le mois suivant). Net = dernier salaire versé ;
+        tickets restaurant aux valeurs par défaut (aucun jour de télétravail : sans effet sur le salaire)."""
+        self.db.add(SalaryConfig(salary_account_id=courant.id, net_salary=self.salary,
+                                 salary_category_id=self.categories["Salaire"].id, salary_recurring_id=recurring.id,
+                                 is_active=True))
+        self.db.flush()
 
     # Comptes ------------------------------------------------------------------
 
@@ -187,6 +191,7 @@ class _Builder:
         for index, month in enumerate(self.months()):
             if month.month == 1 and index:
                 salary = round(salary * 1.03, 2)  # augmentation annuelle
+            self.salary = salary
 
             def recurring_tx(key: str, day: date, tx_type: str, merchant: str, amount: float, category: str | None) -> Transaction:
                 rec = recurring[key]
@@ -331,6 +336,7 @@ class _Builder:
         self.store_prices(prices)
 
         self.build_bank(accounts, recurring, vacation)
+        self.build_salary_config(accounts["courant"], recurring["Salaire"])
         self.build_pea(accounts["pea"], accounts["courant"], prices)
         self.build_life_insurance(accounts["av"])
 

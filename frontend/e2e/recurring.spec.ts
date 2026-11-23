@@ -34,7 +34,8 @@ test("récurrence : création puis suppression", async ({ page }) => {
 test("salaire et aides : la configuration du salaire est lisible", async ({ page }) => {
   await page.goto("/recurring?tab=salary")
   await expect(page.getByRole("heading", { name: "Configuration Salaire & Avantages" })).toBeVisible()
-  await expect(page.getByRole("spinbutton").first()).toHaveValue("2000")
+  // Démo : configuration de salaire réelle (net = dernier salaire versé, augmenté chaque janvier) → pas de chiffre figé
+  await expect(page.getByRole("spinbutton").first()).toHaveValue(/^[1-9]\d{3}(\.\d+)?$/)
   await page.getByRole("button", { name: "Aides" }).click()
   await expect(page).toHaveURL(/vue=aides/)
 })
