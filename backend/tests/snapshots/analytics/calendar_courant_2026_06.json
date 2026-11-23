@@ -313,7 +313,7 @@
    "id": "tx_562",
    "is_projected": false,
    "is_upcoming": false,
-   "logo": "si:free",
+   "logo": null,
    "name": "Free Mobile",
    "running_balance": 4223.94,
    "type": "Sortie"

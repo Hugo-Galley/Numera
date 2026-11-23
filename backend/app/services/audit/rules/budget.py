@@ -1,5 +1,5 @@
 """Plafonds de budget dépassés ou presque atteints sur le mois en cours."""
-from app.core.i18n import tr
+from app.core.i18n import format_money, tr
 from app.schemas.insight import ActionItem
 from app.services.analytics.budget import compute_budget_alerts
 from app.services.audit.context import AuditContext
@@ -14,7 +14,7 @@ async def detect(ctx: AuditContext) -> list[ActionItem]:
         type="budget",
         severity="high",
         title=tr("audit.budget.over_title", category=alert.category_name),
-        description=tr("audit.budget.over_description", spent=round(alert.monthly_spent, 2), limit=alert.monthly_limit),
+        description=tr("audit.budget.over_description", spent=format_money(alert.monthly_spent), limit=format_money(alert.monthly_limit or 0.0)),
         action_label=tr("audit.budget.over_action"),
         action_url="/accounts",  # Could be a specific category view if it existed
         action_type="link",

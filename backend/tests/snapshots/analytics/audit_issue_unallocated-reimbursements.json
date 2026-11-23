@@ -8,12 +8,12 @@
    "category": {
     "annual_limit": null,
     "archived": false,
-    "color": null,
+    "color": "#0ea5e9",
     "group": null,
-    "icon": null,
+    "icon": "Receipt",
     "id": 9,
     "monthly_limit": null,
-    "name": "Remboursement (recu)",
+    "name": "Remboursement (reçu)",
     "type": "revenu"
    },
    "category_id": 9,
@@ -58,12 +58,12 @@
    "category": {
     "annual_limit": null,
     "archived": false,
-    "color": null,
+    "color": "#0ea5e9",
     "group": null,
-    "icon": null,
+    "icon": "Receipt",
     "id": 9,
     "monthly_limit": null,
-    "name": "Remboursement (recu)",
+    "name": "Remboursement (reçu)",
     "type": "revenu"
    },
    "category_id": 9,
@@ -108,12 +108,12 @@
    "category": {
     "annual_limit": null,
     "archived": false,
-    "color": null,
+    "color": "#0ea5e9",
     "group": null,
-    "icon": null,
+    "icon": "Receipt",
     "id": 9,
     "monthly_limit": null,
-    "name": "Remboursement (recu)",
+    "name": "Remboursement (reçu)",
     "type": "revenu"
    },
    "category_id": 9,
@@ -158,12 +158,12 @@
    "category": {
     "annual_limit": null,
     "archived": false,
-    "color": null,
+    "color": "#0ea5e9",
     "group": null,
-    "icon": null,
+    "icon": "Receipt",
     "id": 9,
     "monthly_limit": null,
-    "name": "Remboursement (recu)",
+    "name": "Remboursement (reçu)",
     "type": "revenu"
    },
    "category_id": 9,

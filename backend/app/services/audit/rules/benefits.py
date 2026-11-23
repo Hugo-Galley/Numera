@@ -1,5 +1,5 @@
 """Aides perçues : déclaration à faire, versement manquant, montant modifié."""
-from app.core.i18n import tr
+from app.core.i18n import format_date, format_money, tr
 from app.domain.benefits import amount_changed
 from app.schemas.insight import ActionItem
 from app.services.audit.context import AuditContext
@@ -18,7 +18,7 @@ def _declaration(st: BenefitState) -> ActionItem | None:
     if due_date is None:
         return None
     overdue = st.declaration_days_left < 0
-    due = due_date.strftime("%d/%m/%Y")
+    due = format_date(due_date)
     return ActionItem(
         id=f"benefit-declaration-{b.id}-{due_date.isoformat()}",
         type="audit",
@@ -46,7 +46,7 @@ def _late(st: BenefitState) -> ActionItem | None:
         title=tr("audit.benefits.late_title", name=b.name),
         description=tr(
             "audit.benefits.late_description", pattern=b.match_pattern,
-            date=expected.strftime("%d/%m/%Y"), organization=b.organization,
+            date=format_date(expected), organization=b.organization,
         ),
         action_label=tr("audit.benefits.action"),
         action_url=URL,
@@ -67,8 +67,8 @@ def _amount_changed(st: BenefitState) -> ActionItem | None:
         severity="low",
         title=tr("audit.benefits.amount_title", name=b.name),
         description=tr(
-            "audit.benefits.amount_description", received=f"{last.amount:.2f}",
-            date=last.date.strftime("%d/%m/%Y"), expected=f"{b.amount:.2f}",
+            "audit.benefits.amount_description", received=format_money(last.amount),
+            date=format_date(last.date), expected=format_money(b.amount),
         ),
         action_label=tr("audit.benefits.action"),
         action_url=URL,

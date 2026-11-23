@@ -43,6 +43,7 @@ async def compute_monthly_report(db: Session, month: int, year: int, account_id:
         expenses=current_budget["depenses_totales"],
         real_expenses=current_budget["depenses_reelles"],
         savings=round(current_savings, 2),
+        set_aside=current_budget["mis_de_cote"],
         savings_rate=current_budget["taux_epargne"],
         burn_rate=current_budget["burn_rate"],
         net_worth=current_budget["patrimoine_net_total"],

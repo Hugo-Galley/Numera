@@ -66,9 +66,8 @@ def test_subscriptions_analytics(client: TestClient, db_session: Session):
     assert spotify["status"] == "potential"
     assert spotify["monthly_cost"] == 9.99
 
-    # Totals
-    # 15.99 + 9.99 = 25.98
-    assert data["total_monthly"] == 25.98
+    # Totals : seules les récurrences confirmées comptent (Spotify détecté est listé, pas compté)
+    assert data["total_monthly"] == 15.99
 
 
 def test_ignore_subscription(client: TestClient, db_session: Session):

@@ -7,12 +7,14 @@
  "epargne_total": 10613.8,
  "interets_totaux": 0.0,
  "investissements_du_mois": 300.0,
+ "mis_de_cote": 600.0,
  "month": 6,
  "patrimoine_net_total": 37944.81,
  "reste_tresorerie": -2565.34,
  "revenus_apres_depenses": -2265.34,
  "revenus_totaux": 30.0,
  "solde_actuel": 37944.81,
+ "solde_du_mois": -2265.34,
  "taux_epargne": -100.0,
  "year": 2026
 }

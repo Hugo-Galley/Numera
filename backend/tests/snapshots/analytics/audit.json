@@ -5,7 +5,7 @@
    "action_url": "/accounts",
    "amount": null,
    "count": 8,
-   "description": "Ces depenses ne sont pas prises en compte correctement dans les budgets et les analyses par categorie.",
+   "description": "Ces dépenses ne sont pas prises en compte correctement dans les budgets et les analyses par catégorie.",
    "id": "uncategorized-expenses",
    "samples": [
     {
@@ -55,7 +55,7 @@
     }
    ],
    "severity": "high",
-   "title": "Transactions sans categorie",
+   "title": "Transactions sans catégorie",
    "type": "categorization"
   },
   {
@@ -92,11 +92,11 @@
    "type": "merchant"
   },
   {
-   "action_label": "Verifier les comptes",
+   "action_label": "Vérifier les comptes",
    "action_url": "/accounts",
    "amount": null,
    "count": 2,
-   "description": "Plusieurs transactions ont exactement le meme compte, la meme date, le meme marchand et le meme montant.",
+   "description": "Plusieurs transactions ont exactement le même compte, la même date, le même marchand et le même montant.",
    "id": "duplicate-transactions",
    "samples": [
     {
@@ -114,11 +114,11 @@
    "type": "duplicates"
   },
   {
-   "action_label": "Mettre a jour",
+   "action_label": "Mettre à jour",
    "action_url": "/investments",
    "amount": null,
    "count": 1,
-   "description": "Les performances et le patrimoine net peuvent etre obsoletes si les valeurs de marche ne sont pas rafraichies.",
+   "description": "Les performances et le patrimoine net peuvent être obsolètes si les valeurs de marché ne sont pas rafraîchies.",
    "id": "stale-investment-snapshots",
    "samples": [
     {
@@ -129,22 +129,17 @@
     }
    ],
    "severity": "medium",
-   "title": "Snapshots investissement a mettre a jour",
+   "title": "Relevés d'investissement à mettre à jour",
    "type": "investments"
   },
   {
    "action_label": "Archiver ou supprimer",
    "action_url": "/classement?tab=categories",
    "amount": null,
-   "count": 3,
-   "description": "Ces categories ajoutent du bruit dans les formulaires et les filtres : archivez-les (historique conserve) ou supprimez-les.",
+   "count": 2,
+   "description": "Ces catégories encombrent les formulaires et les filtres : archive-les (l'historique est conservé) ou supprime-les.",
    "id": "unused-categories",
    "samples": [
-    {
-     "id": 8,
-     "name": "Categorie",
-     "type": "depense"
-    },
     {
      "id": 12,
      "name": "Dividendes",
@@ -157,7 +152,7 @@
     }
    ],
    "severity": "low",
-   "title": "Categories inutilisees",
+   "title": "Catégories inutilisées",
    "type": "cleanup"
   },
   {
@@ -165,7 +160,7 @@
    "action_url": "/audit?vue=virements",
    "amount": null,
    "count": 1,
-   "description": "Ces mouvements ressemblent a des virements entre comptes et peuvent fausser les depenses s'ils ne sont pas rapproches.",
+   "description": "Ces mouvements ressemblent à des virements entre comptes et peuvent fausser les dépenses s'ils ne sont pas rapprochés.",
    "id": "unmatched-transfers",
    "samples": [
     {

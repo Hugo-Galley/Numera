@@ -101,6 +101,15 @@ def format_money(value: float, symbol: str = "€", gap: str | None = None) -> s
     return f"{number}{fmt.symbol_gap if gap is None else gap}{symbol}"
 
 
+CURRENCY_SYMBOLS = {"EUR": "€", "USD": "$", "GBP": "£", "CHF": "CHF", "JPY": "¥"}
+
+
+def format_currency(value: float, currency: str = "EUR") -> str:
+    """Montant dans une devise (code ISO) : « 61,00 € », « 12,00 $ », « 10,00 CHF » en français."""
+    symbol = CURRENCY_SYMBOLS.get(currency.upper(), currency.upper())
+    return format_money(value, symbol)
+
+
 def format_date(value: date) -> str:
     return value.strftime(formats().date)
 

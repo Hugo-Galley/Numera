@@ -2879,6 +2879,7 @@
       "type": "number"
      },
      "epargne_realisee": {
+      "description": "Revenus − dépenses réelles (vue globale) ; identique à solde_du_mois",
       "title": "Epargne Realisee",
       "type": "number"
      },
@@ -2892,6 +2893,11 @@
      },
      "investissements_du_mois": {
       "title": "Investissements Du Mois",
+      "type": "number"
+     },
+     "mis_de_cote": {
+      "description": "Argent envoyé vers l'épargne et les placements : investissements_du_mois + virements nets du courant vers les comptes d'épargne, d'assurance-vie ou titres (vue compte : investissements_du_mois)",
+      "title": "Mis De Cote",
       "type": "number"
      },
      "month": {
@@ -2925,6 +2931,11 @@
       "title": "Solde Actuel",
       "type": "number"
      },
+     "solde_du_mois": {
+      "description": "Revenus − dépenses réelles : ce qui reste du mois, numérateur du taux d'épargne",
+      "title": "Solde Du Mois",
+      "type": "number"
+     },
      "taux_epargne": {
       "title": "Taux Epargne",
       "type": "number"
@@ -2952,6 +2963,8 @@
      "investissements_du_mois",
      "revenus_apres_depenses",
      "epargne_realisee",
+     "solde_du_mois",
+     "mis_de_cote",
      "reste_tresorerie",
      "taux_epargne",
      "burn_rate",
@@ -9408,7 +9421,7 @@
       "type": "number"
      },
      "savings": {
-      "description": "Revenus − dépenses réelles : numérateur du taux d'épargne",
+      "description": "Revenus − dépenses réelles : numérateur du taux d'épargne (= budget.solde_du_mois)",
       "title": "Savings",
       "type": "number"
      },
@@ -9422,6 +9435,11 @@
      },
      "savings_rate_excl_exceptional": {
       "title": "Savings Rate Excl Exceptional",
+      "type": "number"
+     },
+     "set_aside": {
+      "description": "Mis de côté : argent envoyé vers l'épargne et les placements (= budget.mis_de_cote)",
+      "title": "Set Aside",
       "type": "number"
      },
      "top_categories": {
@@ -9452,6 +9470,7 @@
      "expenses",
      "real_expenses",
      "savings",
+     "set_aside",
      "savings_rate",
      "burn_rate",
      "net_worth",
@@ -14635,10 +14654,12 @@
       "type": "array"
      },
      "total_annual": {
+      "description": "Coût annuel des abonnements confirmés (= totals_by_kind.subscriptions.annual)",
       "title": "Total Annual",
       "type": "number"
      },
      "total_monthly": {
+      "description": "Coût mensuel des abonnements confirmés (= totals_by_kind.subscriptions.monthly)",
       "title": "Total Monthly",
       "type": "number"
      },

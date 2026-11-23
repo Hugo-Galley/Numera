@@ -17,6 +17,7 @@ from app.models.category import Category
 from app.models.etf_profile import EtfProfile
 from app.models.investment_transaction import InvestmentTransaction
 from app.models.recurring_transaction import RecurringTransaction
+from app.models.salary_config import SalaryConfig
 from app.models.savings_goal import SavingsGoal
 from app.models.security_price import SecurityPrice
 from app.models.system_setting import SystemSetting
@@ -27,6 +28,10 @@ from app.services.budget.transfers import link_pair
 from app.services.investissement.holdings.rebuild import rebuild_holdings
 from app.services.systeme.demo.data import (
     BUDGETS,
+    CATEGORY_DROPPED,
+    CATEGORY_RENAMES,
+    CATEGORY_STYLES,
+    DEFAULT_CATEGORY_STYLE,
     DEMO_MONTHS,
     DEMO_SEED,
     EXTRA_CATEGORIES,
@@ -107,6 +112,11 @@ class _Builder:
     # Référentiel --------------------------------------------------------------
 
     def build_categories(self) -> None:
+        for category in self.db.query(Category).all():
+            if category.name in CATEGORY_DROPPED:
+                self.db.delete(category)
+            category.name = CATEGORY_RENAMES.get(category.name, category.name)
+        self.db.flush()
         self.categories = {c.name: c for c in self.db.query(Category).all()}
         for name, ctype, group, limit in EXTRA_CATEGORIES:
             if name not in self.categories:
@@ -115,6 +125,8 @@ class _Builder:
                 self.categories[name] = cat
         for name, limit in BUDGETS.items():
             self.categories[name].monthly_limit = limit
+        for name, category in self.categories.items():
+            category.color, category.icon = CATEGORY_STYLES.get(name, DEFAULT_CATEGORY_STYLE)
         self.db.flush()
 
     def build_accounts(self) -> dict[str, Account]:
@@ -155,6 +167,12 @@ class _Builder:
             )
         self.db.add_all(recurring.values())
         self.db.flush()
+        # Configuration de salaire : sans elle, le mois de paie retombe sur le mois civil et le mois en cours
+        # affiche 0 € de revenus jusqu'au 27 (le salaire du 27 finance le mois suivant).
+        self.db.add(SalaryConfig(salary_account_id=courant.id, net_salary=SALARY, ticket_value=0.0,
+                                 ticket_employee_share=0.0, salary_category_id=self.categories["Salaire"].id,
+                                 salary_recurring_id=recurring["Salaire"].id, is_active=True))
+        self.db.flush()
         return recurring
 
     # Comptes ------------------------------------------------------------------
@@ -179,7 +197,7 @@ class _Builder:
             if day := self.day_in(month, SALARY_DAY):
                 recurring_tx("Salaire", day, "Entree", "Acme Conseil — Salaire", salary, "Salaire")
             if month.month == 6 and (day := self.day_in(month, 28)):
-                self.tx(courant, day, "Entree", "Acme Conseil — Prime annuelle", 1500.0, "Revenus supplementaires")
+                self.tx(courant, day, "Entree", "Acme Conseil — Prime annuelle", 1500.0, "Revenus supplémentaires")
 
             for name, category, amount, day_number, _ in FIXED_EXPENSES:
                 if day := self.day_in(month, day_number):
@@ -210,7 +228,7 @@ class _Builder:
                 if day := self.day_in(month, rng.randint(1, 28)):
                     self.tx(courant, day, "Sortie", merchant, rng.uniform(low, high), "Santé")
                     if (refund := self.day_in(month, day.day + 3)) and refund.month == month.month:
-                        self.tx(courant, refund, "Entree", "CPAM — Remboursement", 16.5, "Remboursement (recu)")
+                        self.tx(courant, refund, "Entree", "CPAM — Remboursement", 16.5, "Remboursement (reçu)")
 
             # Temps forts de l'année
             if month.month == 7:
@@ -224,7 +242,7 @@ class _Builder:
                 for day_number in (10, 16, 21):
                     if day := self.day_in(month, day_number):
                         self.tx(courant, day, "Sortie", rng.choice(["Fnac", "Nature & Découvertes", "Galeries Lafayette"]),
-                                rng.uniform(40, 130), "Cadeaux (emis)")
+                                rng.uniform(40, 130), "Cadeaux (émis)")
                 if day := self.day_in(month, 31):
                     self.tx(livret, day, "Interets", "Intérêts Livret A", 168.40, hour=23)
             if index == 9 and (day := self.day_in(month, 14)):
