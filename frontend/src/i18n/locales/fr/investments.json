@@ -224,7 +224,8 @@
   "advancedCharts": {
     "vueDEnsembleDeL": "Vue d'ensemble de l'allocation",
     "parClasseDActif": "Par Classe d'actif",
-    "parSecteur": "Par Secteur"
+    "parSecteur": "Par Secteur",
+    "nonClasseAide": "Le gris « Non classé » regroupe les achats sans classe d'actifs. Clique dessus pour voir les comptes concernés, puis renseigne la classe d'actifs de leurs achats depuis la page du compte."
   },
   "drillDownDialog": {
     "detailDesComptesContribuantA": "Détail des comptes contribuant à cette catégorie."
@@ -247,7 +248,8 @@
   },
   "performanceSection": {
     "performanceDetaillee": "Performance détaillée",
-    "historiqueEtEvolutionDeVos": "Historique et évolution de vos supports."
+    "historiqueEtEvolutionDeVos": "Historique et évolution de vos supports.",
+    "valeur": "Valeur"
   },
   "topCompanies": {
     "top10EntreprisesDetenuesLook": "Top 10 Entreprises Détenues (Look-Through)",

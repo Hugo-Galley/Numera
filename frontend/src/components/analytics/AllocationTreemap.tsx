@@ -4,6 +4,7 @@ import React from 'react';
 import { Treemap, ResponsiveContainer, Tooltip } from 'recharts';
 import { keepSeriesOrder, numberFormatter } from "@/lib/chartTooltip";
 import { formatAmountWithShare, formatRate } from '@/lib/utils';
+import { categoryColor } from "@/lib/chartPalette";
 
 type AllocationItem = {
   name: string;
@@ -34,19 +35,6 @@ interface AllocationTreemapProps {
   onItemClick?: (item: TreemapNode) => void;
 }
 
-const COLORS = [
-  "#f43f5e", // Rose 500
-  "#3b82f6", // Blue 500
-  "#6366f1", // Indigo 500
-  "#8b5cf6", // Violet 500
-  "#ec4899", // Pink 500
-  "#f97316", // Orange 500
-  "#a855f7", // Purple 500
-  "#d946ef", // Fuchsia 500
-  "#06b6d4", // Cyan 500
-  "#10b981", // Emerald 500
-];
-
 interface CellProps {
   x: number
   y: number
@@ -59,8 +47,11 @@ interface CellProps {
   depth: number
 }
 
-// Recharts clone l'élément `content` en lui injectant ces props : toutes optionnelles pour le typage de `<CustomizedContent />`
-const CustomizedContent = (props: Partial<CellProps>) => {
+/**
+ * Case du treemap. Recharts clone l'élément `content` en lui injectant ces props : toutes optionnelles pour le typage
+ * de `<TreemapCell />`. Couleurs de la palette catégorielle ; « Non classé » reste gris (le rouge signifie une perte).
+ */
+export const TreemapCell = (props: Partial<CellProps>) => {
   const { x = 0, y = 0, width = 0, height = 0, index = 0, name = "", value = 0, percentage = 0, depth = 0 } = props;
 
   // Render leaf nodes
@@ -82,7 +73,7 @@ const CustomizedContent = (props: Partial<CellProps>) => {
         width={width}
         height={height}
         style={{
-          fill: COLORS[index % COLORS.length],
+          fill: categoryColor(index, name),
           stroke: '#fff',
           strokeWidth: 2,
           strokeOpacity: 1,
@@ -137,7 +128,7 @@ export const AllocationTreemap: React.FC<AllocationTreemapProps> = ({ data, onIt
           dataKey="value"
           aspectRatio={4 / 3}
           stroke="#fff"
-          content={<CustomizedContent />}
+          content={<TreemapCell />}
           isAnimationActive={false}
           onClick={(node: TreemapNode) => {
             if (node && node.depth === 2 && onItemClick) {

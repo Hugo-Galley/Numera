@@ -1,12 +1,12 @@
 import { useTranslation } from "react-i18next"
 import { AllocationTreemap } from "@/components/analytics/AllocationTreemap"
 import { Badge } from "@/components/ui/badge"
-import { Briefcase, Layers } from "lucide-react"
+import { Briefcase, Info, Layers } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts"
 import { keepSeriesOrder, numberFormatter } from "@/lib/chartTooltip"
 import { formatAmountWithShare, formatRate } from "@/lib/utils"
-import { COLORS } from "./types"
+import { categoryColor, UNCLASSIFIED_NAME } from "@/lib/chartPalette"
 import type { InvestmentsCtx } from "./useInvestments"
 
 /** Analyses avancées : treemap, carte et répartitions. */
@@ -24,10 +24,18 @@ export function AdvancedCharts({ ctx }: { ctx: InvestmentsCtx }) {
         </CardHeader>
         <CardContent className="px-3 pt-4 md:px-6 md:pt-6">
           {advancedAllocation ? (
+            <>
             <AllocationTreemap 
               data={advancedAllocation.by_asset_class} 
               onItemClick={(node) => setDrillDown({ title: getDrilldownTitle("Classe d'actif", node), items: getDrilldownItems(node) })}
             />
+            {advancedAllocation.by_asset_class.some((g) => g.name === UNCLASSIFIED_NAME) && (
+              <p className="mt-3 flex items-start gap-1.5 text-xs text-slate-500">
+                <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-slate-400" aria-hidden />
+                {t("advancedCharts.nonClasseAide")}
+              </p>
+            )}
+            </>
           ) : (
             <div className="h-[400px] flex items-center justify-center">
               <div className="h-8 w-8 rounded-full border-4 border-slate-200 border-t-slate-900 animate-spin" />
@@ -60,8 +68,8 @@ export function AdvancedCharts({ ctx }: { ctx: InvestmentsCtx }) {
                     onClick={(data) => setDrillDown({ title: getDrilldownTitle("Classe d'actif", data), items: getDrilldownItems(data) })}
                     className="cursor-pointer outline-hidden"
                   >
-                    {(advancedAllocation?.by_asset_class || []).map((_, index: number) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} className="hover:opacity-80 transition-opacity" />
+                    {(advancedAllocation?.by_asset_class || []).map((entry, index: number) => (
+                      <Cell key={`cell-${index}`} fill={categoryColor(index, entry.name)} className="hover:opacity-80 transition-opacity" />
                     ))}
                   </Pie>
                   <Tooltip itemSorter={keepSeriesOrder} formatter={numberFormatter((value: number) => formatAmountWithShare(value, (advancedAllocation?.by_asset_class || []).reduce((s, i) => s + (i.value || 0), 0)))} />
@@ -76,10 +84,10 @@ export function AdvancedCharts({ ctx }: { ctx: InvestmentsCtx }) {
                   onClick={() => setDrillDown({ title: `Classe d'actif : ${item.name}`, items: item.items || [] })}
                 >
                   <div className="flex items-center gap-2">
-                    <div className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
-                    <span className="truncate max-w-[200px] md:max-w-[150px]">{item.name}</span>
+                    <div className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: categoryColor(i, item.name) }} />
+                    <span className="truncate max-w-[200px] md:max-w-[150px]" title={item.name}>{item.name}</span>
                   </div>
-                  <span className="font-bold shrink-0">{item.percentage}%</span>
+                  <span className="font-bold shrink-0 tabular-nums">{formatRate(item.percentage, 1)}</span>
                 </div>
               ))}
             </div>
@@ -119,8 +127,8 @@ export function AdvancedCharts({ ctx }: { ctx: InvestmentsCtx }) {
                           nameKey="name"
                           className="outline-hidden"
                         >
-                          {sectorData.map((_, index: number) => (
-                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} className="hover:opacity-80 transition-opacity" />
+                          {sectorData.map((entry, index: number) => (
+                            <Cell key={`cell-${index}`} fill={categoryColor(index, entry.name)} className="hover:opacity-80 transition-opacity" />
                           ))}
                         </Pie>
                         <Tooltip itemSorter={keepSeriesOrder} formatter={numberFormatter((value: number) => formatAmountWithShare(value, sectorData.reduce((s, i) => s + (i.value || 0), 0)))} />
@@ -134,10 +142,10 @@ export function AdvancedCharts({ ctx }: { ctx: InvestmentsCtx }) {
                         className="flex items-center justify-between text-xs"
                       >
                         <div className="flex items-center gap-2">
-                          <div className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
-                          <span className="truncate max-w-[200px] md:max-w-[150px]">{item.name}</span>
+                          <div className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: categoryColor(i, item.name) }} />
+                          <span className="truncate max-w-[200px] md:max-w-[150px]" title={item.name}>{item.name}</span>
                         </div>
-                        <span className="font-bold shrink-0">{typeof item.percentage === 'number' ? formatRate(item.percentage, 1) : `${item.percentage}\u00a0%`}</span>
+                        <span className="font-bold shrink-0 tabular-nums">{formatRate(Number(item.percentage), 1)}</span>
                       </div>
                     ))}
                   </div>
