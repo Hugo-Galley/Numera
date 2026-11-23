@@ -32,7 +32,7 @@ Créer `components/dashboard/tabs/<Nom>Tab.tsx` (onglets actuels : Overview, His
 
 ## Ajouter un graphique
 
-`recharts`, couleurs de la palette, `Tooltip` et légende toujours présents, valeurs formatées via `formatCurrency`. Répartition en catégories (comptes, classes d'actifs, secteurs, treemap) : `categoryColor(index, name)` de `lib/chartPalette.ts`, teintes lisibles dans les deux thèmes, « Non classé » toujours gris neutre ; graduation d'axe en montant compact (`formatCompactCurrency` de `pages/Investments/chartFormat.ts`, « 14 k € ») pour qu'elle ne soit jamais coupée. Rendre les éléments cliquables pour naviguer vers la vue filtrée quand elle existe. Sankey / treemap / simulateur : `components/analytics/`. Carte du monde : `components/ui/WorldMap.tsx` (`react-simple-maps` 5, survol en CSS dans `styles.css`).
+`recharts`, couleurs de la palette, `Tooltip` et légende toujours présents, valeurs formatées via `formatCurrency`. Répartition en catégories (comptes, classes d'actifs, secteurs, treemap) : `categoryColor(index, name)` de `lib/chartPalette.ts`, teintes lisibles dans les deux thèmes, « Non classé » toujours gris neutre ; graduation d'axe en montant compact (`formatCompactCurrency` de `lib/utils.ts`, « 14 k € ») pour qu'elle ne soit jamais coupée. Rendre les éléments cliquables pour naviguer vers la vue filtrée quand elle existe. Sankey / treemap / simulateur : `components/analytics/`. Carte du monde : `components/ui/WorldMap.tsx` (`react-simple-maps` 5, survol en CSS dans `styles.css`).
 
 ## React 19
 

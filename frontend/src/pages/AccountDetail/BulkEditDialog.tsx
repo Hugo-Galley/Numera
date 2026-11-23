@@ -95,7 +95,7 @@ export function BulkEditDialog({ ctx }: { ctx: AccountDetailView }) {
                       >
                         <Badge 
                           variant="outline" 
-                          className="px-2 py-0 h-5 border-none text-white font-bold text-[9px]"
+                          className="px-2 py-0 h-5 border-none text-white font-bold text-[11px]"
                           style={{ backgroundColor: tag.color || "#64748b" }}
                         >
                           {tag.name}

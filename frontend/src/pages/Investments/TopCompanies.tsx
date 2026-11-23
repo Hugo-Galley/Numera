@@ -118,7 +118,7 @@ export function TopCompanies({ ctx }: { ctx: InvestmentsCtx }) {
                                     </div>
                                   </div>
                                   {d.has_overlap && (
-                                    <Badge variant="outline" className="text-[9px] px-1 py-0 font-normal shrink-0">
+                                    <Badge variant="outline" className="text-[11px] px-1 py-0 font-normal shrink-0">
                                       {t("topCompanies.doublon")}
                                     </Badge>
                                   )}
