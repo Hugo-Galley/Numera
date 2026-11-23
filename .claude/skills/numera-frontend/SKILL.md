@@ -13,7 +13,7 @@ Esthétique sobre « entreprise légère », Tailwind 4 + shadcn. Palette : Slat
 
 ## Présentation des données financières
 
-- `formatCurrency(amount, currency)` partout ; montants colorés (Emerald/Rose) plutôt que seulement signés ; alignés à droite dans les tables.
+- `formatCurrency(amount, currency)` partout (axes : `formatCompactCurrency`, pourcentages : `formatRate`) ; texte FR au tutoiement, titres en casse de phrase ; montants colorés (Emerald/Rose) plutôt que seulement signés ; alignés à droite dans les tables.
 - Classe `amount-blur` sur tout montant sensible (mode confidentialité).
 - `Card` pour grouper, `Badge` pour statuts/catégories, `Button` variants `default|outline|ghost|destructive`, icônes `lucide-react` (`h-4 w-4` en ligne, `h-5 w-5` en carte).
 - États : `Skeleton` au chargement, état vide (icône + bouton d'action), `toast` (sonner) après chaque mutation.
