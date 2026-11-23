@@ -182,7 +182,7 @@ def list_holdings(account_id: int | None = None) -> str:
 
     Chaque position inclut :
     - ticker, ISIN, nom de l'actif
-    - quantité et prix moyen d'achat (buy_price_avg)
+    - quantité et prix moyen d'achat (buy_price_avg, dans la devise de la position : colonne devise)
     - prix actuel et valeur actuelle en EUR
     - gain en EUR et pourcentage de performance
     - si c'est un ETF (is_etf)
@@ -208,7 +208,9 @@ def list_holdings(account_id: int | None = None) -> str:
                 "nom": h.get("asset_name", ""),
                 "isin": h.get("isin") or "—",
                 "quantite": h.get("quantity", 0),
+                # PRU stocké dans la devise de la position (USD pour ASML), pas en EUR
                 "px_achat_moy": h.get("buy_price_avg") or "—",
+                "devise": h.get("currency") or "EUR",
                 "px_actuel_EUR": h.get("current_price_eur") or "—",
                 "valeur_EUR": h.get("current_value_eur") or "—",
                 "investi_EUR": h.get("total_invested_eur") or "—",
