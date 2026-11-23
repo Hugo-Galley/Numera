@@ -1,4 +1,4 @@
-import { formatCurrency } from "@/lib/utils"
+import { formatCurrency, formatRate } from "@/lib/utils"
 
 /** Écart vs mois précédent. `upIsBad` : une hausse est négative (dépenses). */
 export function Delta({ diff, pct, upIsBad = true }: { diff: number; pct?: number; upIsBad?: boolean }) {
@@ -8,7 +8,8 @@ export function Delta({ diff, pct, upIsBad = true }: { diff: number; pct?: numbe
     <span className={`amount-blur text-xs font-semibold ${bad ? "text-rose-600" : "text-emerald-600"}`}>
       {diff > 0 ? "+" : "−"}
       {formatCurrency(Math.abs(diff))}
-      {pct !== undefined && pct !== 0 && ` (${Math.abs(pct).toFixed(0)} %)`}
+      {/* Pourcentage signé, comme sur la page Comparaison (« −100 % » et non « 100 % » pour une baisse) */}
+      {pct !== undefined && Math.round(pct) !== 0 && ` (${formatRate(pct, 0, true)})`}
     </span>
   )
 }

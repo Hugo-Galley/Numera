@@ -103,7 +103,10 @@
     "analyseRecurrences": "Recurrence Analysis",
     "calendrier": "Calendar",
     "salaire": "Salary",
-    "salaireAides": "Salary & Benefits"
+    "salaireAides": "Salary & Benefits",
+    "balanceLegend": "Each day's amount is the estimated end-of-day balance.",
+    "balanceLegendAll": "With “All accounts”, it's the sum of all your active accounts (savings and investments included): pick your current account to follow your cash.",
+    "endOfDayBalance": "End-of-day balance: {{amount}}"
   },
   "useCalendarData": {
     "impossibleDeChargerLesComptes": "Couldn't load accounts",

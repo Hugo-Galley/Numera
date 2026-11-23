@@ -20,6 +20,8 @@ import { deleteMonthReview, getMonthReview, postMonthReviewClose } from "@/lib/a
 
 const STEPS = ["categorize", "accounts", "budget", "highlight", "close"] as const
 
+const capitalize = (text: string) => text.charAt(0).toUpperCase() + text.slice(1)
+
 function previousMonth() {
   const d = new Date()
   d.setDate(1)
@@ -120,6 +122,12 @@ export default function MonthReview() {
   }
 
   const label = new Date(year, month - 1, 1).toLocaleDateString(appLocale(), { month: "long", year: "numeric" })
+  const monthOnly = new Date(year, month - 1, 1).toLocaleDateString(appLocale(), { month: "long" })
+  const reviewContext = atLatest
+    ? t("monthReview.notFinished", { month: capitalize(monthOnly) })
+    : year === fallback.year && month === fallback.month
+      ? t("monthReview.lastFinished", { month: monthOnly })
+      : null
 
   function status(i: number): "ok" | "todo" | "neutral" {
     if (!review) return "neutral"
@@ -139,6 +147,8 @@ export default function MonthReview() {
             {t("monthReview.revueDeMois")}
           </h1>
           <p className="text-sm text-slate-500 md:text-base">{t("monthReview.passezLeMoisEnRevue")}</p>
+          {/* Le Bilan s'ouvre sur le mois en cours, la Revue sur le dernier mois terminé : on le dit */}
+          {reviewContext && <p className="mt-1 text-sm font-medium text-slate-700">{reviewContext}</p>}
         </div>
         <div className="flex items-center justify-between gap-2 rounded-xl border border-slate-200 bg-white p-1 md:justify-start md:border-0 md:bg-transparent md:p-0">
           <Button variant="outline" size="icon" className="h-11 w-11 md:h-10 md:w-10" onClick={() => go(-1)} aria-label={t("monthReview.moisPrecedent")}>

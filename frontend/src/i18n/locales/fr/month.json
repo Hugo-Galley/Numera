@@ -44,7 +44,9 @@
     "toutSembleEnOrdreIl": "Tout semble en ordre : il ne reste qu'à vérifier le budget et à clôturer.",
     "pasCeMoisCi": "Pas ce mois-ci",
     "plusTard": "Plus tard",
-    "faireLaRevue": "Faire la revue"
+    "faireLaRevue": "Faire la revue",
+    "label": "Rappel de clôture du mois",
+    "ignorer": "Ne plus me le rappeler pour ce mois"
   },
   "budgetSection": {
     "budgetTenu": "Budget tenu ?",
@@ -90,12 +92,14 @@
     "variationDesDepensesEntreLes": "Variation des dépenses entre les deux périodes. Cliquez sur un montant pour voir ses transactions.",
     "selectionnezDeuxPeriodesPourComparer": "Sélectionnez deux périodes pour comparer.",
     "categorie": "Catégorie",
-    "ecart": "Écart"
+    "ecart": "Écart",
+    "versus": "vs"
   },
   "monthHub": {
     "bilan": "Bilan",
     "revue": "Revue",
-    "comparaison": "Comparaison"
+    "comparaison": "Comparaison",
+    "label": "Mois"
   },
   "monthReview": {
     "impossibleDeChargerLaRevue": "Impossible de charger la revue du mois",
@@ -115,7 +119,9 @@
       "budget": "Budget",
       "highlight": "Fait marquant",
       "close": "Clôturer"
-    }
+    },
+    "lastFinished": "Mois revu : {{month}}, le dernier mois terminé.",
+    "notFinished": "{{month}} est le mois en cours : tu peux déjà le passer en revue, mais il n'est pas terminé."
   },
   "monthlyReport": {
     "bilanDuMois": "Bilan du mois",
@@ -131,7 +137,9 @@
     "misDeCote": "Mis de côté",
     "epargneInvesti": "épargne + investi",
     "unresolvedPoints_one": " · {{count}} point non résolu",
-    "unresolvedPoints_other": " · {{count}} points non résolus"
+    "unresolvedPoints_other": " · {{count}} points non résolus",
+    "currentMonth": "Mois en cours · J{{day}}/{{total}}",
+    "currentMonthHint": "Le mois n'est pas terminé : les chiffres sont arrêtés à aujourd'hui."
   },
   "misc": {
     "vsPrevious": "{{amount}} vs mois précédent",

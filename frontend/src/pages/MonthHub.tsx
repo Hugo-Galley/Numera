@@ -12,7 +12,8 @@ export default function MonthHub() {
   const { t } = useTranslation("month")
   return (
     <div className="space-y-6">
-      <nav className="grid grid-cols-3 rounded-xl bg-slate-100 p-1 md:inline-flex">
+      {/* Pas de titre « Mois » au-dessus : chaque onglet a son propre titre (Bilan du mois, Revue de mois…) */}
+      <nav aria-label={t("monthHub.label")} className="grid grid-cols-3 rounded-xl bg-slate-100 p-1 md:inline-flex">
         {TABS.map((tab) => (
           <NavLink
             key={tab}

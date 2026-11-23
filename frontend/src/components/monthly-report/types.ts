@@ -49,6 +49,8 @@ export interface MonthlyReportData {
   exceptional_expenses: number
   real_expenses_excl_exceptional: number
   savings_rate_excl_exceptional: number
+  /** Mis de côté (épargne + placements), calculé par l'API ; même valeur que `mis_de_cote` du budget. */
+  set_aside: number
   money_flow?: MoneyFlow
 }
 

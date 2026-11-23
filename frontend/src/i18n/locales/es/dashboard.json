@@ -23,9 +23,12 @@
     "moneyIn": "Entradas de dinero",
     "monthlyExpenses": "Gastos mensuales",
     "moneyOut": "Salidas de dinero",
-    "savingsMade": "Ahorro realizado",
     "currentBalance": "Saldo actual",
-    "trend": "Tendencia 6 meses"
+    "trend": "Tendencia 6 meses",
+    "monthBalanceToDate": "Saldo del mes a la fecha",
+    "toDate": "A la fecha (día {{day}}/{{total}})",
+    "monthBalance": "Saldo del mes",
+    "setAside": "Apartado: {{amount}}"
   },
   "budgets": {
     "title": "Seguimiento de presupuestos",
@@ -70,7 +73,6 @@
     "unitMonths": "meses"
   },
   "projections": {
-    "projectedBalance": "Saldo previsto (60 d)",
     "lowPoint": "Punto más bajo",
     "expectedOn": "Previsto el {{date}}",
     "recurringFlows": "Flujos periódicos previstos",
@@ -86,7 +88,11 @@
     "goesNegative": "Tu saldo pasaría <negative>por debajo de cero</negative> en el periodo previsto.",
     "lowPointIs": "El punto más bajo se estima en <amount>{{value}}</amount>.",
     "adviceLabel": "Consejo",
-    "advice": "Tienes un excedente de tesorería previsto de <amount>{{value}}</amount>. Plantéate una aportación adicional a tu cuenta de ahorro."
+    "advice": "Tienes un excedente de tesorería previsto de <amount>{{value}}</amount>. Plantéate una aportación adicional a tu cuenta de ahorro.",
+    "projectedBalanceAccount": "Saldo previsto a 60 días",
+    "projectedBalanceAll": "Saldo previsto a 60 días · todas las cuentas",
+    "scopeAll": "Suma de todas tus cuentas activas (ahorro e inversiones incluidos). Elige una cuenta para seguir solo su tesorería.",
+    "lowPointToday": "Hoy: el saldo no baja más en 60 días"
   },
   "overview": {
     "expensesTitle": "Gastos por categoría",
@@ -95,7 +101,6 @@
     "splitSubtitle": "Peso de las categorías.",
     "flowTitle": "Flujos financieros",
     "flowSubtitle": "Visualización de los ingresos hacia los gastos y el ahorro. Haz clic en una categoría para ver sus transacciones.",
-    "dragHint": "Desliza para ver todo el diagrama →",
     "tagsTitle": "Proyectos y contextos (etiquetas)",
     "tagsSubtitle": "Gastos transversales del periodo.",
     "wealthTitle": "Distribución del patrimonio",
@@ -121,7 +126,8 @@
       "courant": "Corriente",
       "epargne": "Ahorro",
       "investissement": "Inversión"
-    }
+    },
+    "incomePending": "Aún no ha llegado ningún ingreso este mes: los gastos a la fecha se pagan con tu tesorería mientras esperas tu salario. No es un déficit del mes."
   },
   "history": {
     "cashFlowTitle": "Flujo de caja",
@@ -169,5 +175,14 @@
   "partialLoadError": "No se han podido cargar algunos datos del panel.",
   "misc": {
     "perDay": "{{amount}} / día"
+  },
+  "currentPeriod": "Mes en curso · día {{day}}/{{total}}",
+  "currentPeriodHint": "El mes no ha terminado: las cifras son a fecha de hoy.",
+  "filters": {
+    "show": "Mostrar filtros (cuenta, mes, año)"
+  },
+  "mainAccount": {
+    "label": "Cuenta principal",
+    "open": "Abrir la cuenta principal: {{name}}"
   }
 }

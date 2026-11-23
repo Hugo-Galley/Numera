@@ -1,16 +1,36 @@
 import { useTranslation } from "react-i18next"
 import { AccountLogo } from "@/components/ui/AccountLogo"
-import { formatCurrency, formatRate } from "@/lib/utils"
+import { cn, formatCurrency, formatRate } from "@/lib/utils"
 import type { OverviewTabCtx } from "./useOverviewTab"
+
+/** Au-delà de ce nombre de lignes (comptes + en-têtes de groupe), la liste défile dans sa carte. */
+export const SCROLL_THRESHOLD = 10
+
+function wealthRowCount({ groupBy, groupedItems, institutionData, mixedItems, flatItems }: OverviewTabCtx): number {
+  if (groupBy === "category") {
+    const groups = Object.values(groupedItems).filter((g) => g.items.length > 0)
+    return groups.reduce((n, g) => n + 1 + g.items.length, 0)
+  }
+  if (groupBy === "institution") return institutionData.reduce((n, g) => n + 1 + g.items.length, 0)
+  return groupBy === "mixed" ? mixedItems.length : flatItems.length
+}
 
 /** Détail du patrimoine selon le regroupement choisi. */
 export function WealthDetails({ ctx }: { ctx: OverviewTabCtx }) {
   const { t } = useTranslation("dashboard")
   const { CATEGORY_COLORS, CATEGORY_LABELS, flatItems, groupBy, groupedItems, institutionData, mixedItems, patrimoineAllocation } = ctx
+  const rowCount = wealthRowCount(ctx)
   return (
     <>
-      {/* Grouped, Mixed or Flat Details List */}
-      <div className="lg:col-span-7 min-w-0 space-y-4 md:max-h-[300px] md:overflow-y-auto md:pr-2 scrollbar-thin scrollbar-thumb-slate-200">
+      {/* Hauteur naturelle : la liste ne défile à l'intérieur de la page qu'au-delà de SCROLL_THRESHOLD lignes
+          (sinon la molette s'y bloquait pour 4 comptes) */}
+      <div
+        data-testid="wealth-details"
+        className={cn(
+          "lg:col-span-7 min-w-0 space-y-4",
+          rowCount > SCROLL_THRESHOLD && "md:max-h-[460px] md:overflow-y-auto md:pr-2 scrollbar-thin scrollbar-thumb-slate-200"
+        )}
+      >
         {groupBy === "category" ? (
           Object.entries(groupedItems).map(([type, group]) => {
             if (group.items.length === 0) return null;
@@ -50,7 +70,7 @@ export function WealthDetails({ ctx }: { ctx: OverviewTabCtx }) {
                         />
                         <AccountLogo accountId={item.account_id} className="h-6 w-6" />
                         <div className="min-w-0">
-                          <span className="block truncate font-bold text-slate-800 text-sm group-hover/item:text-slate-900 transition-colors">
+                          <span className="block break-words font-bold text-slate-800 text-sm group-hover/item:text-slate-900 transition-colors">
                             {item.account_name}
                           </span>
                           {item.currency !== "EUR" && (
@@ -108,7 +128,7 @@ export function WealthDetails({ ctx }: { ctx: OverviewTabCtx }) {
                         />
                         <AccountLogo accountId={item.account_id} className="h-6 w-6" />
                         <div className="min-w-0">
-                          <span className="block truncate font-bold text-slate-800 text-sm group-hover/item:text-slate-900 transition-colors">
+                          <span className="block break-words font-bold text-slate-800 text-sm group-hover/item:text-slate-900 transition-colors">
                             {item.account_name}
                           </span>
                           {item.currency !== "EUR" && (
@@ -144,7 +164,7 @@ export function WealthDetails({ ctx }: { ctx: OverviewTabCtx }) {
                   style={{ backgroundColor: item.color }} 
                 />
                 <div className="min-w-0">
-                  <span className="block truncate font-bold text-slate-800 text-sm group-hover/item:text-slate-900 transition-colors">
+                  <span className="block break-words font-bold text-slate-800 text-sm group-hover/item:text-slate-900 transition-colors">
                     {item.name}
                   </span>
                   <div className="flex items-center gap-2 mt-0.5">
@@ -181,7 +201,7 @@ export function WealthDetails({ ctx }: { ctx: OverviewTabCtx }) {
                   style={{ backgroundColor: item.color }} 
                 />
                 <div className="min-w-0">
-                  <span className="block truncate font-bold text-slate-800 text-sm group-hover/item:text-slate-900 transition-colors">
+                  <span className="block break-words font-bold text-slate-800 text-sm group-hover/item:text-slate-900 transition-colors">
                     {item.name}
                   </span>
                   <div className="flex items-center gap-2 mt-0.5">

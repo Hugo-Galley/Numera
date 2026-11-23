@@ -44,7 +44,9 @@
     "toutSembleEnOrdreIl": "Todo parece en orden: solo queda revisar el presupuesto y cerrar.",
     "pasCeMoisCi": "Este mes no",
     "plusTard": "Más tarde",
-    "faireLaRevue": "Hacer la revisión"
+    "faireLaRevue": "Hacer la revisión",
+    "label": "Recordatorio de cierre del mes",
+    "ignorer": "No recordármelo para este mes"
   },
   "budgetSection": {
     "budgetTenu": "¿Presupuesto cumplido?",
@@ -90,12 +92,14 @@
     "variationDesDepensesEntreLes": "Variación de los gastos entre los dos periodos. Haz clic en un importe para ver sus transacciones.",
     "selectionnezDeuxPeriodesPourComparer": "Selecciona dos periodos para comparar.",
     "categorie": "Categoría",
-    "ecart": "Diferencia"
+    "ecart": "Diferencia",
+    "versus": "vs"
   },
   "monthHub": {
     "bilan": "Balance",
     "revue": "Revisión",
-    "comparaison": "Comparación"
+    "comparaison": "Comparación",
+    "label": "Mes"
   },
   "monthReview": {
     "impossibleDeChargerLaRevue": "No se puede cargar la revisión del mes",
@@ -115,7 +119,9 @@
       "budget": "Presupuesto",
       "highlight": "Hecho destacado",
       "close": "Cerrar"
-    }
+    },
+    "lastFinished": "Mes revisado: {{month}}, el último mes terminado.",
+    "notFinished": "{{month}} es el mes en curso: ya puedes revisarlo, pero aún no ha terminado."
   },
   "monthlyReport": {
     "bilanDuMois": "Balance del mes",
@@ -131,7 +137,9 @@
     "misDeCote": "Apartado",
     "epargneInvesti": "ahorro + invertido",
     "unresolvedPoints_one": " · {{count}} punto sin resolver",
-    "unresolvedPoints_other": " · {{count}} puntos sin resolver"
+    "unresolvedPoints_other": " · {{count}} puntos sin resolver",
+    "currentMonth": "Mes en curso · día {{day}}/{{total}}",
+    "currentMonthHint": "El mes no ha terminado: las cifras son a fecha de hoy."
   },
   "misc": {
     "vsPrevious": "{{amount}} vs mes anterior",

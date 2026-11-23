@@ -44,7 +44,9 @@
     "toutSembleEnOrdreIl": "Everything looks fine: all that's left is to check the budget and close the month.",
     "pasCeMoisCi": "Not this month",
     "plusTard": "Later",
-    "faireLaRevue": "Start the review"
+    "faireLaRevue": "Start the review",
+    "label": "Month-end close reminder",
+    "ignorer": "Don't remind me for this month"
   },
   "budgetSection": {
     "budgetTenu": "Budget respected?",
@@ -90,12 +92,14 @@
     "variationDesDepensesEntreLes": "Change in spending between the two periods. Click an amount to see its transactions.",
     "selectionnezDeuxPeriodesPourComparer": "Select two periods to compare.",
     "categorie": "Category",
-    "ecart": "Gap"
+    "ecart": "Gap",
+    "versus": "vs"
   },
   "monthHub": {
     "bilan": "Report",
     "revue": "Review",
-    "comparaison": "Comparison"
+    "comparaison": "Comparison",
+    "label": "Month"
   },
   "monthReview": {
     "impossibleDeChargerLaRevue": "Couldn't load the month review",
@@ -115,7 +119,9 @@
       "budget": "Budget",
       "highlight": "Highlight",
       "close": "Close"
-    }
+    },
+    "lastFinished": "Month under review: {{month}}, the last completed month.",
+    "notFinished": "{{month}} is the current month: you can already review it, but it isn't over yet."
   },
   "monthlyReport": {
     "bilanDuMois": "Month Report",
@@ -131,7 +137,9 @@
     "misDeCote": "Set aside",
     "epargneInvesti": "savings + invested",
     "unresolvedPoints_one": " · {{count}} unresolved item",
-    "unresolvedPoints_other": " · {{count}} unresolved items"
+    "unresolvedPoints_other": " · {{count}} unresolved items",
+    "currentMonth": "Current month · day {{day}}/{{total}}",
+    "currentMonthHint": "The month isn't over: figures are as of today."
   },
   "misc": {
     "vsPrevious": "{{amount}} vs previous month",

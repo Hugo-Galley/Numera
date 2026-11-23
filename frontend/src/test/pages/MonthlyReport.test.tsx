@@ -15,7 +15,7 @@ const report = (overrides: Partial<MonthlyReportData> = {}): MonthlyReportData =
   top_categories: [{ id: 3, name: "Courses", total: 400, prev_total: 350 }],
   comparison: { income_diff: 100, income_diff_pct: 3, expenses_diff: -80, expenses_diff_pct: -4 },
   insights: [{ type: "anomaly", title: "Dépense inhabituelle", description: "Garage : 900 €", severity: "high" }, { type: "positive", title: "Bravo", description: "x", severity: "low" }],
-  exceptional_expenses: 0, real_expenses_excl_exceptional: 1800, savings_rate_excl_exceptional: 20,
+  exceptional_expenses: 0, real_expenses_excl_exceptional: 1800, savings_rate_excl_exceptional: 20, set_aside: 512.34,
   money_flow: { income: 3000, fixed_charges: flow(900), variable_expenses: flow(900), savings: flow(300), investments: flow(200), remainder: flow(700) },
   ...overrides,
 })
@@ -151,5 +151,30 @@ describe("Bilan du mois", () => {
     view()
 
     expect(await screen.findByText("Revenus")).toBeInTheDocument()
+  })
+
+  it("mois budgétaire en cours : badge « Mois en cours » avec la position dans le mois", async () => {
+    serve()
+    view()
+
+    expect(await screen.findByText("Mois en cours · J15/31")).toBeInTheDocument()
+  })
+
+  it("mois terminé : pas de badge « Mois en cours »", async () => {
+    vi.setSystemTime(new Date("2026-07-15T10:00:00"))
+    serve()
+    view()
+
+    await screen.findByText("Juin 2026")
+    await screen.findByText(/3\s000,00/)
+    expect(screen.queryByText(/Mois en cours/)).not.toBeInTheDocument()
+  })
+
+  it("« Mis de côté » : montant fourni par l'API (set_aside), plus de somme côté navigateur", async () => {
+    serve()
+    view()
+
+    const label = (await screen.findAllByText("Mis de côté"))[0]
+    expect(label.parentElement?.parentElement).toHaveTextContent(/512,34/)
   })
 })

@@ -44,5 +44,6 @@
     "settings": "Ajustes",
     "logout": "Cerrar sesión"
   },
-  "demoBanner": "Demo — datos ficticios, restablecidos cada día"
+  "demoBanner": "Demo — datos ficticios, restablecidos cada día",
+  "moreBelow": "Desplazar el menú: hay más entradas debajo"
 }

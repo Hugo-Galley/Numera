@@ -20,6 +20,24 @@ export function formatPeriodRange(period: BudgetPeriod | null): string | null {
   return `${fmt(period.start)} → ${fmt(period.end)}`
 }
 
+/** Jours civils entre deux dates locales (indépendant des changements d'heure). */
+function dayIndex(d: Date): number {
+  return Math.round(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 86_400_000)
+}
+
+/**
+ * Position d'aujourd'hui dans la période (« J23/30 ») si elle est en cours, sinon `null`.
+ * Présentation seulement (calendrier), aucun montant : la fin de période renvoyée par l'API est incluse.
+ */
+export function periodProgress(period: BudgetPeriod | null, today: Date = new Date()): { day: number; total: number } | null {
+  if (!period) return null
+  const start = dayIndex(new Date(`${period.start}T00:00:00`))
+  const end = dayIndex(new Date(`${period.end}T00:00:00`))
+  const now = dayIndex(today)
+  if (now < start || now > end) return null
+  return { day: now - start + 1, total: end - start + 1 }
+}
+
 /** Fenêtre du mois budgétaire `year`/`month` ; `null` tant que la réponse n'est pas arrivée. */
 export function useBudgetPeriod(year: number, month: number): BudgetPeriod | null {
   const [period, setPeriod] = useState<BudgetPeriod | null>(null)

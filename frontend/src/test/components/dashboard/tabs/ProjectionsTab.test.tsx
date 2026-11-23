@@ -16,7 +16,7 @@ describe("ProjectionsTab", () => {
   it("affiche le solde projeté avec l'écart signé, le point bas daté et le nombre de flux attendus", () => {
     renderWithProviders(<ProjectionsTab projection={projection} displayCurrency="EUR" />, { auth: true })
 
-    expect(screen.getByText("Solde Projeté (60j)")).toBeInTheDocument()
+    expect(screen.getByText("Solde projeté à 60 j")).toBeInTheDocument()
     expect(screen.getByText(/1\s450,00/)).toBeInTheDocument()
     expect(screen.getByText(/\+450,00/)).toBeInTheDocument()
     // Le point bas figure dans la carte et dans la phrase d'analyse
@@ -66,5 +66,27 @@ describe("ProjectionsTab", () => {
     renderWithProviders(<ProjectionsTab projection={projection} displayCurrency="USD" />, { auth: true })
 
     expect(screen.getAllByText(/\$/).length).toBeGreaterThan(0)
+  })
+
+  it("vue « Tous les comptes » : le solde projeté dit qu'il additionne tous les comptes", () => {
+    renderWithProviders(<ProjectionsTab projection={projection} displayCurrency="EUR" allAccounts />, { auth: true })
+
+    expect(screen.getByText("Solde projeté à 60 j · tous les comptes")).toBeInTheDocument()
+    expect(screen.getByText(/Somme de tous tes comptes actifs/)).toBeInTheDocument()
+  })
+
+  it("point bas aujourd'hui : « aujourd'hui » plutôt qu'une date de prévision", () => {
+    vi.useFakeTimers({ toFake: ["Date"] })
+    vi.setSystemTime(new Date(2026, 10, 23, 10))
+    try {
+      renderWithProviders(
+        <ProjectionsTab projection={partial<CashflowProjection>({ ...projection, low_point_date: "2026-11-23" })} displayCurrency="EUR" />,
+        { auth: true },
+      )
+      expect(screen.getByText(/Aujourd'hui : le solde ne descend pas plus bas/)).toBeInTheDocument()
+      expect(screen.queryByText(/Prévu le/)).not.toBeInTheDocument()
+    } finally {
+      vi.useRealTimers()
+    }
   })
 })

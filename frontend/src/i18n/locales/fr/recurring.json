@@ -103,7 +103,10 @@
     "analyseRecurrences": "Analyse Récurrences",
     "calendrier": "Calendrier",
     "salaire": "Salaire",
-    "salaireAides": "Salaire & Aides"
+    "salaireAides": "Salaire & Aides",
+    "balanceLegend": "Le montant de chaque jour est le solde estimé en fin de journée.",
+    "balanceLegendAll": "Avec « Tous les comptes », c'est la somme de tous tes comptes actifs (épargne et placements compris) : choisis ton compte courant pour suivre ta trésorerie.",
+    "endOfDayBalance": "Solde fin de journée : {{amount}}"
   },
   "useCalendarData": {
     "impossibleDeChargerLesComptes": "Impossible de charger les comptes",

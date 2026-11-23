@@ -44,5 +44,6 @@
     "settings": "Settings",
     "logout": "Log out"
   },
-  "demoBanner": "Demo — sample data, reset every day"
+  "demoBanner": "Demo — sample data, reset every day",
+  "moreBelow": "Scroll the menu: more items below"
 }

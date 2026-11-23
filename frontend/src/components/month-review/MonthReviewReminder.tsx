@@ -4,22 +4,14 @@ import { appLocale } from "@/i18n/locale"
 import { safeStorage } from "@/lib/storage"
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { ClipboardCheck } from "lucide-react"
+import { ClipboardCheck, X } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
 import { fetchCurrentBudgetMonth } from "@/lib/budgetPeriod"
 import type { MonthClosureSummary, MonthReview } from "@/types/monthReview"
 import { getMonthReview, getMonthReviewClosures } from "@/lib/api/monthReview"
 
-// Confort par appareil : le stockage peut être indisponible, la pop-up fonctionne sans.
+// Confort par appareil : le stockage peut être indisponible, le rappel fonctionne sans.
 function readStorage(key: string): string | null {
   try {
     return safeStorage.getItem(key)
@@ -32,13 +24,13 @@ function writeStorage(key: string, value: string) {
   try {
     safeStorage.setItem(key, value)
   } catch {
-    /* stockage indisponible : la pop-up reviendra, sans conséquence */
+    /* stockage indisponible : le rappel reviendra, sans conséquence */
   }
 }
 
 const todayKey = () => new Date().toLocaleDateString("sv-SE")
 
-export function MonthReviewPopup() {
+export function MonthReviewReminder() {
   const { t } = useTranslation("month")
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)
@@ -76,55 +68,59 @@ export function MonthReviewPopup() {
     }
   }, [])
 
-  if (!review) return null
+  if (!review || !open) return null
 
   const suffix = `${review.year}-${review.month}`
   const label = new Date(review.year, review.month - 1, 1).toLocaleDateString(appLocale(), { month: "long" })
   const points = review.categorize.count + review.accounts.unverified_count
 
+  // Bandeau discret dans la page (plus de fenêtre modale à chaque connexion) : il ne bloque rien
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 pr-6 text-left">
-            <ClipboardCheck className="h-5 w-5 text-emerald-600" />
-            {/* `capitalize` mettait une majuscule à chaque mot : seul le mois en prend une */}
+    <section
+      aria-label={t("monthReviewPopup.label")}
+      className="flex flex-col gap-2 rounded-xl border border-emerald-200 bg-emerald-50/60 p-3 text-sm sm:flex-row sm:items-center sm:gap-3"
+    >
+      <div className="flex min-w-0 flex-1 items-start gap-2">
+        <ClipboardCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" aria-hidden="true" />
+        <p className="min-w-0 text-slate-700">
+          {/* `capitalize` mettait une majuscule à chaque mot : seul le mois en prend une */}
+          <span className="font-semibold text-slate-900">
             {i18n.t("misc.popupTitle", { ns: "month", month: label.charAt(0).toUpperCase() + label.slice(1) })}
-          </DialogTitle>
-          <DialogDescription>
-            {points > 0
-              ? i18n.t("misc.popupPoints", { ns: "month", expenses: review.categorize.count, accounts: review.accounts.unverified_count })
-              : t("monthReviewPopup.toutSembleEnOrdreIl")}
-          </DialogDescription>
-        </DialogHeader>
-        <DialogFooter className="gap-2 sm:justify-between">
-          <Button
-            variant="ghost"
-            className="h-11 sm:h-10"
-            onClick={() => {
-              writeStorage(`month-review-skip-${suffix}`, "1")
-              setOpen(false)
-            }}
-          >
-            {t("monthReviewPopup.pasCeMoisCi")}
-          </Button>
-          <div className="flex flex-col-reverse gap-2 sm:flex-row">
-            <Button
-              variant="outline"
-              className="h-11 sm:h-10"
-              onClick={() => {
-                writeStorage(`month-review-snooze-${suffix}`, todayKey())
-                setOpen(false)
-              }}
-            >
-              {t("monthReviewPopup.plusTard")}
-            </Button>
-            <Button className="h-11 sm:h-10" onClick={() => navigate(`/month/revue?year=${review.year}&month=${review.month}`)}>
-              {t("monthReviewPopup.faireLaRevue")}
-            </Button>
-          </div>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          </span>{" "}
+          {points > 0
+            ? i18n.t("misc.popupPoints", { ns: "month", expenses: review.categorize.count, accounts: review.accounts.unverified_count })
+            : t("monthReviewPopup.toutSembleEnOrdreIl")}
+        </p>
+      </div>
+      <div className="flex shrink-0 items-center gap-1 self-end sm:self-auto">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-10 sm:h-8"
+          onClick={() => {
+            writeStorage(`month-review-snooze-${suffix}`, todayKey())
+            setOpen(false)
+          }}
+        >
+          {t("monthReviewPopup.plusTard")}
+        </Button>
+        <Button size="sm" className="h-10 sm:h-8" onClick={() => navigate(`/month/revue?year=${review.year}&month=${review.month}`)}>
+          {t("monthReviewPopup.faireLaRevue")}
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-10 w-10 sm:h-8 sm:w-8 text-slate-500"
+          aria-label={t("monthReviewPopup.ignorer")}
+          title={t("monthReviewPopup.ignorer")}
+          onClick={() => {
+            writeStorage(`month-review-skip-${suffix}`, "1")
+            setOpen(false)
+          }}
+        >
+          <X className="h-4 w-4" />
+        </Button>
+      </div>
+    </section>
   )
 }

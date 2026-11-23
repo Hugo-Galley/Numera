@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState, type RefObject } from "react"
 import { NavLink, useLocation } from "react-router-dom"
 import {
   LayoutDashboard,
@@ -19,6 +19,7 @@ import {
   Tags,
   ClipboardCheck,
   Gift,
+  ChevronDown,
 } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { cn } from "@/lib/utils"
@@ -84,12 +85,33 @@ function useUrgentActionCount(): number {
   return count
 }
 
+/** `true` tant qu'une partie de la liste est cachée sous le bas de la zone défilante (indice « il y a la suite »). */
+function useMoreBelow(ref: RefObject<HTMLDivElement | null>): boolean {
+  const [moreBelow, setMoreBelow] = useState(false)
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const update = () => setMoreBelow(el.scrollTop + el.clientHeight < el.scrollHeight - 4)
+    update()
+    el.addEventListener("scroll", update, { passive: true })
+    const observer = new ResizeObserver(update)
+    observer.observe(el)
+    return () => {
+      el.removeEventListener("scroll", update)
+      observer.disconnect()
+    }
+  }, [ref])
+  return moreBelow
+}
+
 export function Sidebar({ className, onItemClick, hideBrand }: { className?: string, onItemClick?: () => void, hideBrand?: boolean }) {
   const { t } = useTranslation("nav")
   const { isPrivacyMode, togglePrivacyMode, setSearchOpen } = useUI()
   const { logout, username, profile } = useAuth()
   
   const urgentActions = useUrgentActionCount()
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const moreBelow = useMoreBelow(scrollRef)
 
   const initials = username ? username.slice(0, 2).toUpperCase() : "?"
   const profilePicture = profile?.profile_picture_url
@@ -102,11 +124,12 @@ export function Sidebar({ className, onItemClick, hideBrand }: { className?: str
           <span className="text-lg font-bold tracking-tight">Numera</span>
         </div>
       )}
-      <div className="flex-1 overflow-y-auto py-4">
-        <nav className="space-y-4 px-3">
+      <div className="relative flex min-h-0 flex-1 flex-col">
+      <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto py-3">
+        <nav className="space-y-3 px-3">
           {navigationGroups.map((group, i) => (
             <div key={i} className="space-y-1">
-              <p className="px-3 pt-2 pb-1 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+              <p className="px-3 pt-1 pb-1 text-xs font-semibold text-slate-500 uppercase tracking-wider">
                 {t(`groups.${group.title}`)}
               </p>
               <div className="space-y-1">
@@ -117,9 +140,11 @@ export function Sidebar({ className, onItemClick, hideBrand }: { className?: str
                     onClick={onItemClick}
                     className={({ isActive }) =>
                       cn(
-                        "group flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                        // Page courante : fond, gras et barre à gauche (le fond seul se voyait mal dans le menu mobile)
+                        "group relative flex items-center rounded-md px-3 text-sm font-medium transition-colors",
+                        hideBrand ? "min-h-11" : "py-1.5",
                         isActive
-                          ? "bg-slate-100 text-slate-900"
+                          ? "bg-slate-100 font-semibold text-slate-900 before:absolute before:inset-y-1.5 before:left-0 before:w-1 before:rounded-full before:bg-slate-900"
                           : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                       )
                     }
@@ -147,7 +172,20 @@ export function Sidebar({ className, onItemClick, hideBrand }: { className?: str
           ))}
         </nav>
       </div>
-      <div className="px-3 py-4 border-t flex gap-2">
+      {moreBelow && (
+        // Indice de défilement : la fin de la liste est cachée (écran bas, menu mobile)
+        <button
+          type="button"
+          aria-label={t("moreBelow")}
+          onClick={() => scrollRef.current?.scrollBy({ top: scrollRef.current.clientHeight * 0.8, behavior: "smooth" })}
+          className="absolute inset-x-0 bottom-0 flex h-10 items-end justify-center bg-linear-to-t from-white via-white/90 to-transparent pb-1 text-slate-500 hover:text-slate-900"
+        >
+          <ChevronDown className="h-4 w-4 animate-bounce" aria-hidden="true" />
+        </button>
+      )}
+      </div>
+      {!hideBrand && (
+      <div className="px-3 py-3 border-t flex gap-2">
         <Button 
           variant="outline" 
           size="sm" 
@@ -175,9 +213,10 @@ export function Sidebar({ className, onItemClick, hideBrand }: { className?: str
           <Search className="h-4 w-4" />
         </Button>
       </div>
+      )}
       {hideBrand ? (
         // Menu mobile (feuille du bas) : un menu déroulant s'y superposerait à une 2e couche modale, on liste les actions à plat
-        <div className="border-t p-3 pb-4">
+        <div className="border-t p-3 pb-4 shrink-0">
           <div className="flex items-center gap-3 px-3 pb-2">
             <div className="h-8 w-8 rounded-full bg-slate-900 flex items-center justify-center text-white text-xs font-bold overflow-hidden">
               {profilePicture ? <img src={profilePicture} alt={username || ""} className="h-full w-full object-cover" /> : initials}
@@ -191,7 +230,12 @@ export function Sidebar({ className, onItemClick, hideBrand }: { className?: str
               key={item.href}
               to={item.href}
               onClick={onItemClick}
-              className="flex min-h-11 items-center rounded-md px-3 text-sm font-medium text-slate-600 active:bg-slate-100"
+              className={({ isActive }) =>
+                cn(
+                  "flex min-h-11 items-center rounded-md px-3 text-sm font-medium active:bg-slate-100",
+                  isActive ? "bg-slate-100 font-semibold text-slate-900" : "text-slate-600"
+                )
+              }
             >
               <item.icon className="mr-3 h-5 w-5" aria-hidden="true" />
               {item.name}
@@ -210,7 +254,7 @@ export function Sidebar({ className, onItemClick, hideBrand }: { className?: str
           </button>
         </div>
       ) : (
-      <div className="border-t p-4">
+      <div className="border-t px-4 py-3">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className="flex w-full items-center gap-3 px-2 py-1.5 rounded-md hover:bg-slate-100 transition-colors text-left outline-hidden">

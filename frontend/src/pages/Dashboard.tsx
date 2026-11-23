@@ -16,9 +16,9 @@ import { SubscriptionsTab } from "@/components/dashboard/tabs/SubscriptionsTab"
 import { HistoryTab } from "@/components/dashboard/tabs/HistoryTab"
 import { ErrorState } from "@/components/layout/ErrorState"
 import { AccountVerificationBanner } from "@/components/dashboard/AccountVerificationBanner"
-import { MonthReviewPopup } from "@/components/month-review/MonthReviewPopup"
+import { MonthReviewReminder } from "@/components/month-review/MonthReviewReminder"
 import type { DrilldownScope } from "@/hooks/useDrilldown"
-import { fetchCurrentBudgetMonth, formatPeriodRange, useBudgetPeriod } from "@/lib/budgetPeriod"
+import { fetchCurrentBudgetMonth, formatPeriodRange, periodProgress, useBudgetPeriod } from "@/lib/budgetPeriod"
 import { getAccounts } from "@/lib/api/accounts"
 
 export default function Dashboard() {
@@ -27,6 +27,7 @@ export default function Dashboard() {
   const [year, setYear] = useState(new Date().getFullYear())
   const [accounts, setAccounts] = useState<DashboardAccount[]>([])
   const period = useBudgetPeriod(year, month)
+  const progress = periodProgress(period)
   // Le premier chargement attend le mois budgétaire (sinon deux lots de requêtes : mois civil, puis mois de paie)
   const [monthResolved, setMonthResolved] = useState(false)
 
@@ -105,7 +106,6 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-5 md:space-y-10 pb-6 md:pb-10">
-      <MonthReviewPopup />
       <DashboardHeader 
         accounts={accounts}
         selectedAccountId={selectedAccountId}
@@ -115,7 +115,10 @@ export default function Dashboard() {
         year={year}
         setYear={setYear}
         periodRange={formatPeriodRange(period)}
+        progress={progress}
       />
+
+      <MonthReviewReminder />
 
       <AccountVerificationBanner 
         accounts={accounts} 
@@ -134,6 +137,7 @@ export default function Dashboard() {
         displayCurrency={displayCurrency}
         analytics={analytics}
         kpiHistory={kpiHistory}
+        progress={progress}
       />
 
       {/* 5 onglets (au lieu de 8) : l'onglet Investissements doublonnait la page du même nom */}
@@ -152,7 +156,7 @@ export default function Dashboard() {
           })
         }
       >
-        <div className="-mx-4 px-4 md:mx-0 md:px-0 overflow-x-auto pb-2 [ms-overflow-style:none] scrollbar-none [&::-webkit-scrollbar]:hidden">
+        <div className="scroll-fade-x -mx-4 px-4 md:mx-0 md:px-0 overflow-x-auto pb-2 [ms-overflow-style:none] scrollbar-none [&::-webkit-scrollbar]:hidden">
           <TabsList className="bg-slate-50/50 border border-slate-100 p-1 rounded-xl inline-flex w-max">
             <TabsTrigger value="overview" className="rounded-lg whitespace-nowrap h-9 px-4 md:h-auto md:px-3">{t("tabs.overview")}</TabsTrigger>
             <TabsTrigger value="budgets" className="rounded-lg whitespace-nowrap h-9 px-4 md:h-auto md:px-3">{t("tabs.budgets")}</TabsTrigger>
@@ -170,6 +174,7 @@ export default function Dashboard() {
             tagTotals={tagTotals}
             patrimoineAllocation={patrimoineAllocation}
             drilldownScope={drilldownScope}
+            incomePending={!!progress && !!analytics && analytics.revenus_totaux === 0}
           />
         </TabsContent>
 
@@ -197,7 +202,7 @@ export default function Dashboard() {
         </TabsContent>
 
         <TabsContent value="projections">
-          <ProjectionsTab projection={projection} displayCurrency={displayCurrency} />
+          <ProjectionsTab projection={projection} displayCurrency={displayCurrency} allAccounts={selectedAccountId === "all"} />
         </TabsContent>
       </Tabs>
     </div>

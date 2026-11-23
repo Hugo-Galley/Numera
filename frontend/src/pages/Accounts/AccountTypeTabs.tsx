@@ -34,9 +34,9 @@ export function AccountTypeTabs({ accounts, value, onChange }: { accounts: Accou
   return (
     <Tabs value={value} onValueChange={(v) => onChange(v as AccountGroup)}>
       <div className="scroll-fade-x -mx-4 overflow-x-auto px-4 md:mx-0 md:overflow-visible md:px-0 scrollbar-none [&::-webkit-scrollbar]:hidden">
-        <TabsList className="bg-slate-100 p-1 w-max min-w-full md:w-auto md:min-w-0 h-11 md:h-auto">
+        <TabsList className="bg-slate-100 p-1 w-max min-w-full md:w-auto md:min-w-0 h-auto">
           {shown.map((g) => (
-            <TabsTrigger key={g.value} value={g.value} className="rounded-lg gap-2">
+            <TabsTrigger key={g.value} value={g.value} className="rounded-lg gap-2 min-h-10 md:min-h-0">
               {g.icon}
               {t(`tabs.${g.value}`)}
               <span className="text-xs tabular-nums text-muted-foreground">{counts.get(g.value) ?? 0}</span>

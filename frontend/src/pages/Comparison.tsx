@@ -282,13 +282,13 @@ export default function Comparison() {
                 </div>
                 <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 text-xs text-slate-500">
                   <span className="min-w-0">
-                    <span className="block truncate">{months[parseInt(monthB, 10) - 1] || "B"} {yearB}</span>
-                    {amountButton(row, row.valB, monthB, yearB, "block min-h-10 whitespace-nowrap font-semibold text-slate-700")}
-                  </span>
-                  <ArrowRight className="h-3 w-3 text-slate-300" />
-                  <span className="min-w-0 text-right">
                     <span className="block truncate">{months[parseInt(monthA, 10) - 1] || "A"} {yearA}</span>
-                    {amountButton(row, row.valA, monthA, yearA, "ml-auto block min-h-10 whitespace-nowrap font-semibold text-slate-700")}
+                    {amountButton(row, row.valA, monthA, yearA, "block min-h-10 whitespace-nowrap font-semibold text-slate-700")}
+                  </span>
+                  <span className="text-[10px] font-semibold uppercase text-slate-400">{t("comparison.versus")}</span>
+                  <span className="min-w-0 text-right">
+                    <span className="block truncate">{months[parseInt(monthB, 10) - 1] || "B"} {yearB}</span>
+                    {amountButton(row, row.valB, monthB, yearB, "ml-auto block min-h-10 whitespace-nowrap font-semibold text-slate-700")}
                   </span>
                 </div>
               </li>
@@ -302,8 +302,9 @@ export default function Comparison() {
               <TableHeader>
                 <TableRow>
                   <TableHead>{t("comparison.categorie")}</TableHead>
-                  <TableHead className="text-right">{months[parseInt(monthB, 10)-1] || "B"} {yearB}</TableHead>
+                  {/* Même ordre que les sélecteurs : période A puis période B */}
                   <TableHead className="text-right">{months[parseInt(monthA, 10)-1] || "A"} {yearA}</TableHead>
+                  <TableHead className="text-right">{months[parseInt(monthB, 10)-1] || "B"} {yearB}</TableHead>
                   <TableHead className="text-right">{t("comparison.ecart")}</TableHead>
                   <TableHead className="text-right">%</TableHead>
                 </TableRow>
@@ -317,8 +318,8 @@ export default function Comparison() {
                         {row.name}
                       </div>
                     </TableCell>
-                    <TableCell className="text-right">{amountButton(row, row.valB, monthB, yearB)}</TableCell>
                     <TableCell className="text-right">{amountButton(row, row.valA, monthA, yearA)}</TableCell>
+                    <TableCell className="text-right">{amountButton(row, row.valB, monthB, yearB)}</TableCell>
                     <TableCell className={`text-right font-bold ${row.diff > 0 ? "text-rose-600" : row.diff < 0 ? "text-emerald-600" : "text-slate-400"}`}>
                       <div className="flex items-center justify-end gap-1">
                         {row.diff > 0 ? <ArrowUpRight className="h-3 w-3" /> : row.diff < 0 ? <ArrowDownRight className="h-3 w-3" /> : <Minus className="h-3 w-3" />}

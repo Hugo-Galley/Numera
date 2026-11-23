@@ -57,4 +57,15 @@ describe("page Comptes : onglets par type", () => {
     await screen.findAllByText("Compte joint")
     expect(screen.queryByRole("tablist")).not.toBeInTheDocument()
   })
+
+  it("onglets : cible tactile d'au moins 40 px sur mobile (min-h-10), hauteur libre sur bureau", async () => {
+    serve([
+      row({ id: 1, name: "Compte joint", type: "courant" }),
+      row({ id: 2, name: "Livret A", type: "epargne" }),
+    ])
+    view()
+    await screen.findAllByText("Livret A")
+
+    for (const tab of screen.getAllByRole("tab")) expect(tab.className).toMatch(/(^|\s)min-h-10(\s|$)/)
+  })
 })

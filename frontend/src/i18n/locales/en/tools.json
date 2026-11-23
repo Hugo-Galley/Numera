@@ -246,7 +246,7 @@
   },
   "tools": {
     "impossibleDeChargerLAllocation": "Unable to load the wealth allocation",
-    "outils": "Tools",
+    "outils": "Simulator",
     "simulezEtProjetezLEvolution": "Simulate and project the evolution of your wealth.",
     "retourALaVueSimple": "Back to simple view",
     "modeAvance": "Advanced mode"

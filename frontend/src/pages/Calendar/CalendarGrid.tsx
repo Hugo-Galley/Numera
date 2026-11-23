@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import { Card } from "@/components/ui/card"
 import { Clock } from "lucide-react"
 import { cn, formatCurrency } from "@/lib/utils"
@@ -5,6 +6,7 @@ import type { CalendarCtx } from "./useCalendar"
 
 /** Grille du mois (événements et soldes par jour). */
 export function CalendarGrid({ ctx }: { ctx: CalendarCtx }) {
+  const { t } = useTranslation("recurring")
   const { calendarDays, getBalanceForDay, getEventsForDay, handleDayClick, isPrivacyMode, month, year } = ctx
   return (
     <>
@@ -41,10 +43,13 @@ export function CalendarGrid({ ctx }: { ctx: CalendarCtx }) {
                     {day}
                   </span>
                   {balance !== null && balance !== undefined && !isPrivacyMode && (
-                    <span className={cn(
-                      "hidden md:inline text-[10px] font-medium",
-                      balance < 0 ? "text-red-500" : "text-slate-400"
-                    )}>
+                    <span
+                      title={t("index.endOfDayBalance", { amount: formatCurrency(balance, "EUR") })}
+                      className={cn(
+                        "hidden md:inline text-[10px] font-medium",
+                        balance < 0 ? "text-red-500" : "text-slate-400"
+                      )}
+                    >
                       {formatCurrency(balance, "EUR")}
                     </span>
                   )}

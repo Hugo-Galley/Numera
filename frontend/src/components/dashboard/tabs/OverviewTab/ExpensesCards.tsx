@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next"
-import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
+import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 import { keepSeriesOrder, numberFormatter } from "@/lib/chartTooltip"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { IconComponent } from "../../IconComponent"
@@ -31,18 +31,6 @@ export function ExpensesCards({ ctx }: { ctx: OverviewTabCtx }) {
                     <Cell key={i} fill={item.category.color || COLORS[i % COLORS.length]} />
                   ))}
                 </Bar>
-                {expensesByCategory
-                  .filter(item => item.category?.monthly_limit != null)
-                  .map((item, i) => (
-                    <ReferenceLine
-                      key={`limit-${i}`}
-                      x={item.category.monthly_limit ?? 0}
-                      yAxisId={0}
-                      stroke="#f59e0b"
-                      strokeDasharray="4 3"
-                      strokeWidth={1.5}
-                    />
-                  ))}
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
@@ -64,9 +52,10 @@ export function ExpensesCards({ ctx }: { ctx: OverviewTabCtx }) {
                 </PieChart>
               </ResponsiveContainer>
             </div>
-            <div className="w-full space-y-3 mt-2 md:mt-4">
-               {expensesByCategory.slice(0, 4).map((item, i) => (
-                 <div key={i} className="flex justify-between text-sm">
+            {/* Toutes les catégories (la liste s'arrêtait à 4 sur 9) */}
+            <ul className="w-full space-y-3 mt-2 md:mt-4" aria-label={t("overview.splitTitle")}>
+               {expensesByCategory.map((item, i) => (
+                 <li key={i} className="flex justify-between gap-2 text-sm">
                    <span className="min-w-0 truncate text-slate-500 flex items-center gap-2">
                      <div className="h-4 w-4 shrink-0 rounded-lg flex items-center justify-center" style={{ backgroundColor: item.category.color || COLORS[i % COLORS.length] }}>
                        <IconComponent name={item.category.icon} className="h-2 w-2 text-white" />
@@ -76,9 +65,9 @@ export function ExpensesCards({ ctx }: { ctx: OverviewTabCtx }) {
                    <span className="font-bold">
                      <span className="amount-blur">{formatRate(item.percentage, 1)}</span>
                    </span>
-                 </div>
+                 </li>
                ))}
-            </div>
+            </ul>
           </CardContent>
         </Card>
       </div>

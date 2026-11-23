@@ -1,9 +1,9 @@
 import { monthName } from "@/i18n/locale"
 import { useTranslation } from "react-i18next"
-import { fetchCurrentBudgetMonth } from "@/lib/budgetPeriod"
+import { fetchCurrentBudgetMonth, periodProgress, useBudgetPeriod } from "@/lib/budgetPeriod"
 import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
-import { CheckCircle2, ChevronLeft, ChevronRight, ClipboardCheck, Printer } from "lucide-react"
+import { CalendarClock, CheckCircle2, ChevronLeft, ChevronRight, ClipboardCheck, Printer } from "lucide-react"
 
 import { formatCurrency } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -99,6 +99,8 @@ export default function IntelligentReport() {
       return { month: (idx % 12) + 1, year: Math.floor(idx / 12) }
     })
 
+  // Mois pas encore terminé : on le dit (sinon des revenus à 0 ou une baisse de 100 % inquiètent)
+  const progress = periodProgress(useBudgetPeriod(date.year, date.month))
   const hasExceptional = (data?.exceptional_expenses ?? 0) > 0
   const reviewLink = `/month/revue?year=${date.year}&month=${date.month}`
 
@@ -107,7 +109,16 @@ export default function IntelligentReport() {
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-2xl font-black tracking-tight text-slate-900">{t("monthlyReport.bilanDuMois")}</h1>
-          <div className="mt-1">
+          <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
+            {progress && (
+              <span
+                className="inline-flex items-center gap-1 whitespace-nowrap rounded-full border border-sky-200 bg-sky-50 px-2.5 py-0.5 text-xs font-semibold text-sky-800"
+                title={t("monthlyReport.currentMonthHint")}
+              >
+                <CalendarClock className="h-3.5 w-3.5" aria-hidden="true" />
+                {t("monthlyReport.currentMonth", { day: progress.day, total: progress.total })}
+              </span>
+            )}
             {closure ? (
               <Link to={reviewLink} className="inline-flex min-h-8 items-center gap-1.5 text-xs font-medium text-emerald-600 hover:underline md:min-h-0">
                 <CheckCircle2 className="h-3.5 w-3.5" />
@@ -169,7 +180,7 @@ export default function IntelligentReport() {
               </Headline>
               <Headline
                 label={t("monthlyReport.misDeCote")}
-                value={formatCurrency((data.money_flow?.savings.amount ?? 0) + (data.money_flow?.investments.amount ?? 0))}
+                value={formatCurrency(data.set_aside)}
               >
                 <span className="text-xs text-slate-400">{t("monthlyReport.epargneInvesti")}</span>
               </Headline>

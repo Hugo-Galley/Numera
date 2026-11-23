@@ -28,7 +28,7 @@ vi.mock("@/components/dashboard/tabs/InsightsTab", () => ({ InsightsTab: stub("A
 vi.mock("@/components/dashboard/tabs/HistoryTab", () => ({ HistoryTab: stub("Historique") }))
 vi.mock("@/components/dashboard/tabs/ProjectionsTab", () => ({ ProjectionsTab: stub("Projections") }))
 vi.mock("@/components/dashboard/DashboardKPIs", () => ({ DashboardKPIs: stub("KPI") }))
-vi.mock("@/components/month-review/MonthReviewPopup", () => ({ MonthReviewPopup: () => null }))
+vi.mock("@/components/month-review/MonthReviewReminder", () => ({ MonthReviewReminder: () => null }))
 
 /** Tous les blocs répondent `{ items: [1] }` sauf ceux de `failing` (500). Mois budgétaire : juin 2026. */
 function serveDashboard(failing: string[]) {
@@ -84,3 +84,30 @@ describe("Dashboard : échec partiel", () => {
     expect(screen.queryByRole("button", { name: "Réessayer" })).not.toBeInTheDocument()
   })
 })
+
+describe("Dashboard : navigation et mois en cours", () => {
+  it("période en cours : badge « Mois en cours » dans l'en-tête", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] })
+    vi.setSystemTime(new Date(2026, 5, 15, 10))
+    try {
+      serveDashboard([])
+      renderWithProviders(<Dashboard />, { auth: true })
+
+      expect(await screen.findByText("Mois en cours · J19/31")).toBeInTheDocument()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it("changer d'onglet affiche son contenu", async () => {
+    serveDashboard([])
+    const { user } = renderWithProviders(<Dashboard />, { auth: true })
+    await waitFor(() => expect(screen.getByRole("region", { name: "Aperçu" })).toHaveTextContent("sankeyData: chargé"))
+
+    await user.click(screen.getByRole("tab", { name: "Projections" }))
+
+    expect(screen.getByRole("tab", { name: "Projections" })).toHaveAttribute("aria-selected", "true")
+    expect(await screen.findByRole("region", { name: "Projections" })).toBeInTheDocument()
+  })
+})
+

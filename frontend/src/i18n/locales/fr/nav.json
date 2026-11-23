@@ -44,5 +44,6 @@
     "settings": "Paramètres",
     "logout": "Se déconnecter"
   },
-  "demoBanner": "Démo — données fictives, remises à zéro chaque jour"
+  "demoBanner": "Démo — données fictives, remises à zéro chaque jour",
+  "moreBelow": "Faire défiler le menu : d'autres entrées sont en dessous"
 }
