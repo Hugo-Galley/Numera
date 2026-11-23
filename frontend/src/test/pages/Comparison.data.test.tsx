@@ -75,7 +75,7 @@ describe("Comparison : chiffres", () => {
 
     const table = screen.getByRole("table")
     const courses = within(table).getByRole("row", { name: /Courses/ })
-    const [valB, valA] = within(courses).getAllByRole("button")
+    const [valA, valB] = within(courses).getAllByRole("button")
     await user.click(valB)
     await waitFor(() => expect(screen.getByLabelText("adresse")).toHaveTextContent(/dd_m=5/))
     expect(screen.getByLabelText("adresse")).toHaveTextContent(/dd_y=2026/)
@@ -84,9 +84,19 @@ describe("Comparison : chiffres", () => {
     await user.click(valA)
     await waitFor(() => expect(screen.getByLabelText("adresse")).toHaveTextContent(/dd_m=6/))
 
-    // Cadeaux n'a rien en B : bouton B désactivé
+    // Cadeaux n'a rien en B : bouton B (2e colonne de montants) désactivé
     const gifts = within(table).getByRole("row", { name: /Cadeaux/ })
-    expect(within(gifts).getAllByRole("button")[0]).toBeDisabled()
+    expect(within(gifts).getAllByRole("button")[1]).toBeDisabled()
+  })
+
+  it("colonnes dans l'ordre des périodes choisies : A (juin) puis B (mai)", async () => {
+    serve()
+    renderPage()
+    await screen.findAllByText("Courses")
+
+    const headers = within(screen.getByRole("table")).getAllByRole("columnheader").map((h) => h.textContent)
+    expect(headers[1]).toMatch(/juin 2026/i)
+    expect(headers[2]).toMatch(/mai 2026/i)
   })
 
   it("changer la période A relance le chargement de cette période", async () => {

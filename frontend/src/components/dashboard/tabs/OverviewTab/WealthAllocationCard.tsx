@@ -23,11 +23,11 @@ export function WealthAllocationCard({ ctx }: { ctx: OverviewTabCtx }) {
           <div className="flex min-w-0 flex-wrap items-center gap-3 md:gap-4 self-stretch md:self-auto">
             {/* View Mode Toggle */}
             <Tabs value={groupBy} onValueChange={(v) => setGroupBy(v as typeof groupBy)} className="w-full md:w-auto min-w-0">
-              <TabsList className="bg-slate-100 border border-slate-200/50 p-1 rounded-xl w-full md:w-auto overflow-x-auto justify-start scrollbar-none [&::-webkit-scrollbar]:hidden">
-                <TabsTrigger value="category" className="rounded-lg text-xs font-semibold px-3 py-1">{t("overview.groupBy.category")}</TabsTrigger>
-                <TabsTrigger value="mixed" className="rounded-lg text-xs font-semibold px-3 py-1">{t("overview.groupBy.mixed")}</TabsTrigger>
-                <TabsTrigger value="account" className="rounded-lg text-xs font-semibold px-3 py-1">{t("overview.groupBy.account")}</TabsTrigger>
-                <TabsTrigger value="institution" className="rounded-lg text-xs font-semibold px-3 py-1">{t("overview.groupBy.institution")}</TabsTrigger>
+              <TabsList className="scroll-fade-x bg-slate-100 border border-slate-200/50 p-1 rounded-xl w-full md:w-auto h-auto md:h-9 overflow-x-auto justify-start scrollbar-none [&::-webkit-scrollbar]:hidden">
+                <TabsTrigger value="category" className="rounded-lg text-xs font-semibold px-3 py-1 min-h-10 md:min-h-0">{t("overview.groupBy.category")}</TabsTrigger>
+                <TabsTrigger value="mixed" className="rounded-lg text-xs font-semibold px-3 py-1 min-h-10 md:min-h-0">{t("overview.groupBy.mixed")}</TabsTrigger>
+                <TabsTrigger value="account" className="rounded-lg text-xs font-semibold px-3 py-1 min-h-10 md:min-h-0">{t("overview.groupBy.account")}</TabsTrigger>
+                <TabsTrigger value="institution" className="rounded-lg text-xs font-semibold px-3 py-1 min-h-10 md:min-h-0">{t("overview.groupBy.institution")}</TabsTrigger>
               </TabsList>
             </Tabs>
             <span className="text-sm font-semibold text-slate-500 bg-slate-100/80 px-3 py-1 rounded-lg whitespace-nowrap">

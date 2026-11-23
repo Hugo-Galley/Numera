@@ -134,6 +134,32 @@ describe("MonthReview : chargement", () => {
   })
 })
 
+describe("MonthReview : quel mois est revu", () => {
+  it("sans mois dans l'adresse : ouvre le dernier mois terminé et le dit", async () => {
+    serveReview()
+    renderReview("/month/revue")
+
+    expect(await screen.findByText("Mois revu : juin, le dernier mois terminé.")).toBeInTheDocument()
+    expect(screen.getByText("juin 2026")).toBeInTheDocument()
+  })
+
+  it("mois en cours : précise qu'il n'est pas terminé", async () => {
+    serveReview(makeReview({ month: 7 }))
+    renderReview("/month/revue?year=2026&month=7")
+
+    expect(await screen.findByText(/Juillet est le mois en cours/)).toBeInTheDocument()
+  })
+
+  it("mois plus ancien : pas de mention", async () => {
+    serveReview(makeReview({ month: 4 }))
+    renderReview("/month/revue?year=2026&month=4")
+
+    await screen.findByText("avril 2026")
+    await screen.findByText("Toutes les dépenses du mois sont catégorisées.")
+    expect(screen.queryByText(/dernier mois terminé|mois en cours/)).not.toBeInTheDocument()
+  })
+})
+
 describe("MonthReview : clôture", () => {
   it("clôturer envoie { year, month, highlight } et marque le mois sans verrouiller la page", async () => {
     const bodies: unknown[] = []

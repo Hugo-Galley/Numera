@@ -152,4 +152,21 @@ describe("Bilan du mois", () => {
 
     expect(await screen.findByText("Revenus")).toBeInTheDocument()
   })
+
+  it("mois budgétaire en cours : badge « Mois en cours » avec la position dans le mois", async () => {
+    serve()
+    view()
+
+    expect(await screen.findByText("Mois en cours · J15/31")).toBeInTheDocument()
+  })
+
+  it("mois terminé : pas de badge « Mois en cours »", async () => {
+    vi.setSystemTime(new Date("2026-07-15T10:00:00"))
+    serve()
+    view()
+
+    await screen.findByText("Juin 2026")
+    await screen.findByText(/3\s000,00/)
+    expect(screen.queryByText(/Mois en cours/)).not.toBeInTheDocument()
+  })
 })

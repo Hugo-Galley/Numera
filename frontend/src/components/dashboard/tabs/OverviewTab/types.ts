@@ -10,4 +10,6 @@ export interface OverviewTabProps {
   tagTotals: TagSpending[]
   patrimoineAllocation: PatrimoineAllocation | null
   drilldownScope: DrilldownScope
+  /** Mois en cours sans revenu reçu pour l'instant (salaire pas encore arrivé). */
+  incomePending?: boolean
 }

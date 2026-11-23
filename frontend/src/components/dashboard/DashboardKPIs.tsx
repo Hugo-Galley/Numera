@@ -37,15 +37,21 @@ interface DashboardKPIsProps {
   displayCurrency: string
   analytics: BudgetOverview | null
   kpiHistory: KpiHistoryPoint[]
+  /** Période en cours (« J23/30 ») : le solde du mois n'est pas encore une épargne réalisée. */
+  progress?: { day: number; total: number } | null
 }
 
 export function DashboardKPIs({
   selectedAccountId,
   displayCurrency,
   analytics,
-  kpiHistory
+  kpiHistory,
+  progress = null,
 }: DashboardKPIsProps) {
   const { t } = useTranslation("dashboard")
+  const balanceLabel = selectedAccountId !== "all"
+    ? t("kpi.currentBalance")
+    : progress ? t("kpi.monthBalanceToDate") : t("kpi.savingsMade")
   return (
     <div className="grid gap-3 md:gap-6 grid-cols-2 md:grid-cols-3">
       <Card className="shadow-xs border-slate-100 hover:border-emerald-200 transition-colors cursor-pointer group">
@@ -87,7 +93,7 @@ export function DashboardKPIs({
       <Card className="col-span-2 md:col-span-1 shadow-xs border-slate-100 hover:border-blue-200 transition-colors cursor-pointer group">
         <CardHeader className="p-3 pb-1 sm:p-6 sm:pb-2 flex flex-row items-center justify-between gap-2 space-y-0">
           <CardDescription className="text-xs sm:text-sm font-medium group-hover:text-blue-600 transition-colors">
-            {selectedAccountId === "all" ? t("kpi.savingsMade") : t("kpi.currentBalance")}
+            {balanceLabel}
           </CardDescription>
           <div className="hidden sm:flex h-8 w-8 bg-blue-50 rounded-full items-center justify-center group-hover:bg-blue-100 transition-colors">
             <Wallet className="h-4 w-4 text-blue-600" />
@@ -100,7 +106,11 @@ export function DashboardKPIs({
             </span>
           </CardTitle>
           <Sparkline data={kpiHistory} dataKey="epargne_flow" color="#3b82f6" />
-          <p className="hidden sm:block text-[10px] text-slate-400 mt-2 uppercase tracking-wider font-bold">{t("kpi.trend")}</p>
+          {selectedAccountId === "all" && progress ? (
+            <p className="text-[11px] text-slate-500 mt-1.5 sm:mt-2 font-medium">{t("kpi.toDate", { day: progress.day, total: progress.total })}</p>
+          ) : (
+            <p className="hidden sm:block text-[10px] text-slate-400 mt-2 uppercase tracking-wider font-bold">{t("kpi.trend")}</p>
+          )}
         </CardContent>
       </Card>
     </div>

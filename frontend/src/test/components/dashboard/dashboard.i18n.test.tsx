@@ -47,7 +47,7 @@ describe("tableau de bord en anglais", () => {
   it("projections : phrases avec balises et montants au format anglais", () => {
     const projection = partial<CashflowProjection>({ projected_balance: 3000, current_balance: 2000, low_point: 1500, low_point_date: "2026-11-20", points: [], events: [] })
     renderWithProviders(<ProjectionsTab projection={projection} displayCurrency="EUR" />)
-    expect(screen.getByText("Projected Balance (60d)")).toBeInTheDocument()
+    expect(screen.getByText("Projected balance in 60 days")).toBeInTheDocument()
     expect(screen.getByText("positive")).toBeInTheDocument()
     expect(screen.getByText("€1,500.00", { selector: "span.font-bold" })).toBeInTheDocument()
     expect(screen.getByText(/Expected on 20 November/)).toBeInTheDocument()

@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/card"
 import { useIsMobile } from "@/hooks/useIsMobile"
 import { formatCurrency } from "@/lib/utils"
+import { todayLocal } from "@/lib/dates"
 import {
   ResponsiveContainer,
   AreaChart,
@@ -38,17 +39,23 @@ const safeFormat = (dateStr: string | null | undefined, formatStr: string) => {
 interface ProjectionsTabProps {
   projection: CashflowProjection | null
   displayCurrency: string
+  /** Vue « Tous les comptes » : la projection additionne tous les comptes actifs (pas seulement le courant). */
+  allAccounts?: boolean
 }
 
-export function ProjectionsTab({ projection, displayCurrency }: ProjectionsTabProps) {
+export function ProjectionsTab({ projection, displayCurrency, allAccounts = false }: ProjectionsTabProps) {
   const { t } = useTranslation("dashboard")
   const isMobile = useIsMobile()
+  // Point bas le jour même : le solde ne fait que monter, une « prévision » datée d'aujourd'hui n'a pas de sens
+  const lowPointIsToday = !!projection?.low_point_date && projection.low_point_date.slice(0, 10) === todayLocal()
   return (
     <div className="space-y-5 md:space-y-8">
       <div className="grid grid-cols-2 gap-3 md:gap-6 md:grid-cols-3">
         <Card className="shadow-xs border-slate-100">
           <CardHeader className="p-3 pb-1 md:p-6 md:pb-2">
-            <CardDescription className="font-medium text-slate-500">{t("projections.projectedBalance")}</CardDescription>
+            <CardDescription className="font-medium text-slate-500">
+              {allAccounts ? t("projections.projectedBalanceAll") : t("projections.projectedBalanceAccount")}
+            </CardDescription>
           </CardHeader>
           <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
             <CardTitle className="text-xl md:text-2xl font-bold text-slate-900 whitespace-nowrap tabular-nums amount-blur">
@@ -72,8 +79,10 @@ export function ProjectionsTab({ projection, displayCurrency }: ProjectionsTabPr
             <CardTitle className="text-xl md:text-2xl font-bold text-slate-900 whitespace-nowrap tabular-nums amount-blur">
               {formatCurrency(projection?.low_point || 0, displayCurrency)}
             </CardTitle>
-            <p className="text-xs text-slate-400 mt-1 uppercase font-bold tracking-tight">
-              {t("projections.expectedOn", { date: projection?.low_point_date ? format(new Date(projection.low_point_date), "d MMMM", { locale: dateLocale() }) : "-" })}
+            <p className="text-xs text-slate-500 mt-1 font-semibold">
+              {lowPointIsToday
+                ? t("projections.lowPointToday")
+                : t("projections.expectedOn", { date: projection?.low_point_date ? format(new Date(projection.low_point_date), "d MMMM", { locale: dateLocale() }) : "-" })}
             </p>
           </CardContent>
         </Card>
@@ -94,7 +103,10 @@ export function ProjectionsTab({ projection, displayCurrency }: ProjectionsTabPr
       <Card className="shadow-xs border-slate-100 overflow-hidden">
         <CardHeader className="bg-slate-50/50 border-b p-4 pb-3 md:p-6 md:pb-4">
           <CardTitle className="text-lg">{t("projections.chartTitle")}</CardTitle>
-          <CardDescription>{t("projections.chartSubtitle")}</CardDescription>
+          <CardDescription>
+            {t("projections.chartSubtitle")}
+            {allAccounts && <> {t("projections.scopeAll")}</>}
+          </CardDescription>
         </CardHeader>
         <CardContent className="p-2 pt-4 sm:p-6 h-[280px] md:h-[400px]">
           <ResponsiveContainer width="100%" height="100%">

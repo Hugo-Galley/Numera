@@ -25,7 +25,9 @@
     "moneyOut": "Sorties d'argent",
     "savingsMade": "Épargne Réalisée",
     "currentBalance": "Solde Actuel",
-    "trend": "Tendance 6 mois"
+    "trend": "Tendance 6 mois",
+    "monthBalanceToDate": "Solde du mois à date",
+    "toDate": "À date (J{{day}}/{{total}})"
   },
   "budgets": {
     "title": "Suivi des budgets",
@@ -70,7 +72,6 @@
     "unitMonths": "mois"
   },
   "projections": {
-    "projectedBalance": "Solde Projeté (60j)",
     "lowPoint": "Point le plus bas",
     "expectedOn": "Prévu le {{date}}",
     "recurringFlows": "Flux récurrents attendus",
@@ -86,7 +87,11 @@
     "goesNegative": "Votre solde passerait <negative>sous zéro</negative> sur la période projetée.",
     "lowPointIs": "Le point bas est estimé à <amount>{{value}}</amount>.",
     "adviceLabel": "Conseil",
-    "advice": "Vous avez un excédent de trésorerie prévu de <amount>{{value}}</amount>. Envisagez un versement complémentaire vers votre compte d'épargne."
+    "advice": "Vous avez un excédent de trésorerie prévu de <amount>{{value}}</amount>. Envisagez un versement complémentaire vers votre compte d'épargne.",
+    "projectedBalanceAccount": "Solde projeté à 60 j",
+    "projectedBalanceAll": "Solde projeté à 60 j · tous les comptes",
+    "scopeAll": "Somme de tous tes comptes actifs (épargne et placements compris). Choisis un compte pour suivre sa seule trésorerie.",
+    "lowPointToday": "Aujourd'hui : le solde ne descend pas plus bas sur 60 j"
   },
   "overview": {
     "expensesTitle": "Dépenses par catégorie",
@@ -95,7 +100,6 @@
     "splitSubtitle": "Poids des catégories.",
     "flowTitle": "Flux Financiers",
     "flowSubtitle": "Visualisation des revenus vers les dépenses et l'épargne. Cliquez sur une catégorie pour voir ses transactions.",
-    "dragHint": "Faites glisser pour voir tout le diagramme →",
     "tagsTitle": "Projets & Contextes (Tags)",
     "tagsSubtitle": "Dépenses transverses sur la période.",
     "wealthTitle": "Répartition du Patrimoine",
@@ -121,7 +125,8 @@
       "courant": "Courant",
       "epargne": "Épargne",
       "investissement": "Investissement"
-    }
+    },
+    "incomePending": "Aucun revenu n'est encore arrivé ce mois-ci : les dépenses à date sont payées par ta trésorerie en attendant ton salaire. Ce n'est pas un déficit du mois."
   },
   "history": {
     "cashFlowTitle": "Flux de trésorerie",
@@ -169,5 +174,14 @@
   "partialLoadError": "Certaines données du tableau de bord n'ont pas pu être chargées.",
   "misc": {
     "perDay": "{{amount}} / jour"
+  },
+  "currentPeriod": "Mois en cours · J{{day}}/{{total}}",
+  "currentPeriodHint": "Le mois n'est pas terminé : les chiffres sont arrêtés à aujourd'hui.",
+  "filters": {
+    "show": "Afficher les filtres (compte, mois, année)"
+  },
+  "mainAccount": {
+    "label": "Compte principal",
+    "open": "Ouvrir le compte principal : {{name}}"
   }
 }

@@ -25,7 +25,9 @@
     "moneyOut": "Money Out",
     "savingsMade": "Savings Made",
     "currentBalance": "Current Balance",
-    "trend": "6-month trend"
+    "trend": "6-month trend",
+    "monthBalanceToDate": "Month balance to date",
+    "toDate": "To date (day {{day}}/{{total}})"
   },
   "budgets": {
     "title": "Budget tracking",
@@ -70,7 +72,6 @@
     "unitMonths": "months"
   },
   "projections": {
-    "projectedBalance": "Projected Balance (60d)",
     "lowPoint": "Lowest point",
     "expectedOn": "Expected on {{date}}",
     "recurringFlows": "Expected recurring flows",
@@ -86,7 +87,11 @@
     "goesNegative": "Your balance would go <negative>below zero</negative> during the projected period.",
     "lowPointIs": "The lowest point is estimated at <amount>{{value}}</amount>.",
     "adviceLabel": "Tip",
-    "advice": "You have an expected cash surplus of <amount>{{value}}</amount>. Consider an extra transfer to your savings account."
+    "advice": "You have an expected cash surplus of <amount>{{value}}</amount>. Consider an extra transfer to your savings account.",
+    "projectedBalanceAccount": "Projected balance in 60 days",
+    "projectedBalanceAll": "Projected balance in 60 days · all accounts",
+    "scopeAll": "Sum of all your active accounts (savings and investments included). Pick an account to follow its cash alone.",
+    "lowPointToday": "Today: the balance doesn't go any lower over 60 days"
   },
   "overview": {
     "expensesTitle": "Spending by category",
@@ -95,7 +100,6 @@
     "splitSubtitle": "Weight of each category.",
     "flowTitle": "Cash Flow",
     "flowSubtitle": "How income flows into expenses and savings. Click a category to see its transactions.",
-    "dragHint": "Drag to see the whole diagram →",
     "tagsTitle": "Projects & Contexts (Tags)",
     "tagsSubtitle": "Cross-cutting spending over the period.",
     "wealthTitle": "Wealth Breakdown",
@@ -121,7 +125,8 @@
       "courant": "Checking",
       "epargne": "Savings",
       "investissement": "Investment"
-    }
+    },
+    "incomePending": "No income has arrived yet this month: spending to date is covered by your cash while you wait for your salary. It isn't a deficit for the month."
   },
   "history": {
     "cashFlowTitle": "Cash Flow",
@@ -169,5 +174,14 @@
   "partialLoadError": "Some dashboard data couldn't be loaded.",
   "misc": {
     "perDay": "{{amount}} / day"
+  },
+  "currentPeriod": "Current month · day {{day}}/{{total}}",
+  "currentPeriodHint": "The month isn't over: figures are as of today.",
+  "filters": {
+    "show": "Show filters (account, month, year)"
+  },
+  "mainAccount": {
+    "label": "Main account",
+    "open": "Open the main account: {{name}}"
   }
 }

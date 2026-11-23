@@ -28,7 +28,7 @@ vi.mock("@/components/dashboard/tabs/InsightsTab", () => ({ InsightsTab: stub("A
 vi.mock("@/components/dashboard/tabs/HistoryTab", () => ({ HistoryTab: stub("Historique") }))
 vi.mock("@/components/dashboard/tabs/ProjectionsTab", () => ({ ProjectionsTab: stub("Projections") }))
 vi.mock("@/components/dashboard/DashboardKPIs", () => ({ DashboardKPIs: stub("KPI") }))
-vi.mock("@/components/month-review/MonthReviewPopup", () => ({ MonthReviewPopup: () => null }))
+vi.mock("@/components/month-review/MonthReviewReminder", () => ({ MonthReviewReminder: () => null }))
 
 /** Tous les blocs répondent `{ items: [1] }` sauf ceux de `failing` (500). Mois budgétaire : juin 2026. */
 function serveDashboard(failing: string[]) {
