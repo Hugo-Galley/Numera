@@ -224,7 +224,8 @@
   "advancedCharts": {
     "vueDEnsembleDeL": "Allocation overview",
     "parClasseDActif": "By Asset Class",
-    "parSecteur": "By Sector"
+    "parSecteur": "By Sector",
+    "nonClasseAide": "Grey “Non classé” groups purchases with no asset class. Click it to see the accounts involved, then set the asset class of their purchases from the account page."
   },
   "drillDownDialog": {
     "detailDesComptesContribuantA": "Accounts contributing to this category."
@@ -247,7 +248,8 @@
   },
   "performanceSection": {
     "performanceDetaillee": "Detailed performance",
-    "historiqueEtEvolutionDeVos": "History and evolution of your holdings."
+    "historiqueEtEvolutionDeVos": "History and evolution of your holdings.",
+    "valeur": "Value"
   },
   "topCompanies": {
     "top10EntreprisesDetenuesLook": "Top 10 Companies Held (Look-Through)",

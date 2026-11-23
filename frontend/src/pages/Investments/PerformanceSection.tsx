@@ -1,8 +1,10 @@
 import { useTranslation } from "react-i18next"
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
+import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 import { keepSeriesOrder, numberFormatter } from "@/lib/chartTooltip"
 import { Card, CardContent } from "@/components/ui/card"
 import { formatCurrency } from "@/lib/utils"
+import { categoryColor } from "@/lib/chartPalette"
+import { formatCompactCurrency } from "./chartFormat"
 import type { InvestmentsCtx } from "./useInvestments"
 
 /** Section 2 : performance détaillée. */
@@ -20,7 +22,7 @@ export function PerformanceSection({ ctx }: { ctx: InvestmentsCtx }) {
         <Card className="shadow-xs">
           <CardContent className="h-[260px] px-2 sm:px-6 pt-6 md:h-[300px]">
              <ResponsiveContainer width="100%" height="100%">
-               <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+               <BarChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                  <XAxis 
                    dataKey="name" 
@@ -37,19 +39,25 @@ export function PerformanceSection({ ctx }: { ctx: InvestmentsCtx }) {
                    axisLine={false} 
                    tickLine={false} 
                    tick={{ fontSize: 10 }}
-                   tickFormatter={(v) => `${v}€`} 
+                   width={56}
+                   tickFormatter={(v: number) => formatCompactCurrency(v)}
                  />
-                 <Tooltip itemSorter={keepSeriesOrder} 
-                    formatter={numberFormatter((value: number, name: string) => [formatCurrency(value), name])}
+                 <Tooltip itemSorter={keepSeriesOrder}
+                    cursor={{ fill: "#f1f5f9" }}
+                    formatter={numberFormatter((value: number) => [formatCurrency(value), t("performanceSection.valeur")])}
                     contentStyle={{ borderRadius: "8px", border: "1px solid #e2e8f0" }}
                  />
                  <Bar 
-                   dataKey="value" 
-                   fill="#000000" 
-                   radius={[4, 4, 0, 0]} 
+                   dataKey="value"
+                   radius={[4, 4, 0, 0]}
                    onClick={(_, index) => handleAccountClick(chartData[index].id)}
                    className="cursor-pointer hover:opacity-80 transition-opacity"
-                 />
+                 >
+                   {/* Même couleur que le compte dans la répartition par compte */}
+                   {chartData.map((entry, index) => (
+                     <Cell key={entry.id} fill={categoryColor(index)} />
+                   ))}
+                 </Bar>
                </BarChart>
              </ResponsiveContainer>
           </CardContent>

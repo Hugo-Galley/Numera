@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts"
 import { keepSeriesOrder, numberFormatter } from "@/lib/chartTooltip"
 import { formatAmountWithShare, formatCurrency, formatRate } from "@/lib/utils"
-import { COLORS } from "./types"
+import { categoryColor } from "@/lib/chartPalette"
 import type { InvestmentsCtx } from "./useInvestments"
 
 /** Section 1 : répartition par comptes. */
@@ -44,7 +44,7 @@ export function AccountsAllocation({ ctx }: { ctx: InvestmentsCtx }) {
                       className="cursor-pointer outline-hidden"
                     >
                       {chartData.map((entry, index: number) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} className="hover:opacity-80 transition-opacity" />
+                        <Cell key={`cell-${index}`} fill={categoryColor(index)} className="hover:opacity-80 transition-opacity" />
                       ))}
                     </Pie>
                     <Tooltip itemSorter={keepSeriesOrder} 
@@ -77,7 +77,7 @@ export function AccountsAllocation({ ctx }: { ctx: InvestmentsCtx }) {
                       <div className="flex min-w-0 items-center gap-2.5">
                         <div 
                           className="h-3 w-3 rounded-full shrink-0" 
-                          style={{ backgroundColor: COLORS[i % COLORS.length] }} 
+                          style={{ backgroundColor: categoryColor(i) }} 
                         />
                         <span className="font-semibold text-sm truncate min-w-0 text-slate-800 group-hover:text-slate-900 transition-colors">
                           {item.account_name} 

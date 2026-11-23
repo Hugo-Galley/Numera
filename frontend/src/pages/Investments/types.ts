@@ -13,8 +13,6 @@ export const SOURCE_LABELS: Record<CompositionSource, { className: string }> = {
   manual: { className: "bg-slate-100 text-slate-700 border-slate-200" },
 }
 
-// Monochrome, mais chaque teinte reste lisible sur fond blanc (les gris très clairs disparaissaient)
-export const COLORS = ["#0f172a", "#334155", "#475569", "#64748b", "#7c8ba1", "#94a3b8", "#b6c0cc"]
 
 /** Types du contrat de l'API pour la page Investissements. */
 export type InvestmentsAllocation = ApiResponse<"/analytics/investments-allocation", "get">
