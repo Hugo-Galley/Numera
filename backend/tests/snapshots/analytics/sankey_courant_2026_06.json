@@ -1,7 +1,7 @@
 {
  "links": [
   {
-   "color": null,
+   "color": "#0ea5e9",
    "source": 1,
    "target": 0,
    "value": 30.0
@@ -31,43 +31,43 @@
    "value": 193.47
   },
   {
-   "color": null,
+   "color": "#a16207",
    "source": 3,
    "target": 6,
    "value": 890.0
   },
   {
-   "color": null,
+   "color": "#eab308",
    "source": 3,
    "target": 7,
    "value": 61.0
   },
   {
-   "color": null,
+   "color": "#6366f1",
    "source": 3,
    "target": 8,
    "value": 44.6
   },
   {
-   "color": null,
+   "color": "#3b82f6",
    "source": 4,
    "target": 9,
    "value": 126.93
   },
   {
-   "color": null,
+   "color": "#f97316",
    "source": 4,
    "target": 10,
    "value": 108.45
   },
   {
-   "color": null,
+   "color": "#d946ef",
    "source": 5,
    "target": 11,
    "value": 131.14
   },
   {
-   "color": null,
+   "color": "#ec4899",
    "source": 5,
    "target": 12,
    "value": 62.33
@@ -85,8 +85,8 @@
    "name": "Budget"
   },
   {
-   "color": null,
-   "name": "Remboursement (recu)"
+   "color": "#0ea5e9",
+   "name": "Remboursement (reçu)"
   },
   {
    "color": "#f43f5e",
@@ -106,37 +106,37 @@
   },
   {
    "category_id": 13,
-   "color": null,
+   "color": "#a16207",
    "name": "Logement"
   },
   {
    "category_id": 14,
-   "color": null,
+   "color": "#eab308",
    "name": "Énergie"
   },
   {
    "category_id": 1,
-   "color": null,
+   "color": "#6366f1",
    "name": "Abonnement"
   },
   {
    "category_id": 16,
-   "color": null,
+   "color": "#3b82f6",
    "name": "Transport"
   },
   {
    "category_id": 3,
-   "color": null,
+   "color": "#f97316",
    "name": "Nourriture"
   },
   {
    "category_id": 18,
-   "color": null,
+   "color": "#d946ef",
    "name": "Shopping"
   },
   {
    "category_id": 4,
-   "color": null,
+   "color": "#ec4899",
    "name": "Sortie"
   },
   {

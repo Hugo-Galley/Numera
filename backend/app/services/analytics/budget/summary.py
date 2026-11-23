@@ -38,6 +38,7 @@ class _Flows:
     real_depenses: float
     investments: float
     remaining: float
+    set_aside: float
     savings_rate: float
     burn_rate: float = 0.0
 
@@ -104,9 +105,11 @@ def _global_flows(db: Session, start: datetime | None, end: datetime, rates: dic
     categorized = to_eur(repo.categorized_investments_by_currency(db, start, end, tr_accounts), rates)
     investments = categorized + to_eur(repo.budget_versements_by_currency(db, start, end), rates)
     real_depenses = depenses - categorized
+    # Mis de côté : l'investi du mois + les virements nets du courant vers l'épargne (Livret A, assurance-vie…)
+    set_aside = investments + to_eur(repo.savings_transfers_by_currency(db, start, end), rates)
     return _Flows(
         revenus=revenus, interets=interets, depenses=depenses, real_depenses=real_depenses,
-        investments=investments, remaining=revenus - depenses,
+        investments=investments, remaining=revenus - depenses, set_aside=set_aside,
         savings_rate=savings_rate(revenus, real_depenses), burn_rate=real_depenses / max(days, 1),
     )
 
@@ -126,6 +129,7 @@ def _account_flows(db: Session, account: Account, start: datetime | None, end: d
         revenus=revenus,
         interets=repo.account_transactions_sum(db, account_id, start, end, ["Interets"]),
         depenses=depenses, real_depenses=real_depenses, investments=investments, remaining=revenus - depenses,
+        set_aside=investments,
         # Mêmes formules que la vue globale : taux plafonné, burn rate sur les jours écoulés
         savings_rate=savings_rate(revenus, real_depenses), burn_rate=max(real_depenses, 0.0) / max(days, 1),
     )
@@ -202,6 +206,11 @@ def _response(month: int | None, year: int | None, flows: _Flows, wealth: _Wealt
         # Vue globale : épargné = revenus − dépenses réelles (numérateur du taux d'épargne), dont
         # `reste_tresorerie` = ce qui reste une fois tous les investissements du mois sortis
         "epargne_realisee": round(float(saved), 2),
+        # Deux notions distinctes, à ne pas afficher sous le même nom :
+        # `solde_du_mois` = revenus − dépenses réelles (= `epargne_realisee`, numérateur du taux d'épargne) ;
+        # `mis_de_cote` = argent envoyé vers l'épargne et les placements (investi du mois + virements nets vers l'épargne).
+        "solde_du_mois": round(float(saved), 2),
+        "mis_de_cote": round(float(flows.set_aside), 2),
         "reste_tresorerie": round(float(saved - (0.0 if account_id else flows.investments)), 2),
         "taux_epargne": round(float(flows.savings_rate), 2),
         "burn_rate": round(float(flows.burn_rate), 2),

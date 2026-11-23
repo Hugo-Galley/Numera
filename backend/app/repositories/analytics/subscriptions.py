@@ -27,7 +27,7 @@ def last_occurrence(db: Session, recurring_id: int) -> Transaction | None:
 
 
 def potential_subscriptions(db: Session, since: datetime, account_id: int | None) -> Rows:
-    """Sorties répétées (même marchand, même montant, au moins deux) hors récurrences et ignorées."""
+    """Sorties répétées (même marchand, même montant, au moins deux) hors récurrences, virements internes et ignorées."""
     query = db.query(
         Transaction.merchant,
         Transaction.amount,
@@ -38,6 +38,7 @@ def potential_subscriptions(db: Session, since: datetime, account_id: int | None
      .filter(Transaction.type == "Sortie") \
      .filter(Transaction.date >= since) \
      .filter(Transaction.recurring_transaction_id == None) \
+     .filter(Transaction.is_transfer == False) \
      .filter(Transaction.is_subscription_ignored == False) \
      .group_by(Transaction.merchant, Transaction.amount, Category.id) \
      .having(func.count(Transaction.id) >= 2)

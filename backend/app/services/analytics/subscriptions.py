@@ -38,7 +38,6 @@ async def compute_subscriptions(db: Session, account_id: int | None = None, incl
     rates = await get_exchange_rates("EUR")
     subscriptions = [_recurring_insight(db, rd, rates) for rd in repo.recurrings(db, account_id, include_other)]
     subscriptions += _potential_insights(db, account_id, subscriptions)
-    outflows = [s for s in subscriptions if s.flow_type == "Sortie" and s.counts_in_total]
     for s in subscriptions:
         s.in_kind_total = counted_in_kind_total(s.kind, s.status, s.counts_in_total, s.is_recurring_entity)
     totals_by_kind = {
@@ -50,10 +49,13 @@ async def compute_subscriptions(db: Session, account_id: int | None = None, incl
         key: _cost_totals([s for s in charges if s.is_essential is essential])
         for key, essential in (("essential", True), ("non_essential", False))
     }
+    # Source unique du coût des abonnements (tableau de bord et Échéances) : récurrences confirmées de
+    # l'onglet abonnements ; les abonnements détectés (`potential`) sont listés mais jamais comptés.
+    total = totals_by_kind["subscriptions"]
     return SubscriptionsResponse(
         subscriptions=subscriptions,
-        total_monthly=round(sum(s.monthly_cost for s in outflows), 2),
-        total_annual=round(sum(s.annual_cost for s in outflows), 2),
+        total_monthly=total.monthly,
+        total_annual=total.annual,
         totals_by_kind=totals_by_kind,
         totals_by_essential=totals_by_essential,
         price_changes=[price_change_read(c) for c in detect_price_changes(db, account_id=account_id)],
@@ -99,7 +101,7 @@ def _recurring_insight(db: Session, rd: RecurringTransaction, rates: dict[str, A
         flow_type=rd.type,
         # Plus prélevée depuis deux périodes : affichée à part, hors des totaux
         counts_in_total=bool(rd.is_active) and not lapsed and not is_savings_flow,
-        kind=subscription_kind(rd.category.name if rd.category else None, rd.type),
+        kind=subscription_kind(rd.category.name if rd.category else None, rd.type, bool(rd.transfer_to_account_id)),
         recurring_id=rd.id,
         is_essential=is_essential,
         is_essential_source=essential_source,

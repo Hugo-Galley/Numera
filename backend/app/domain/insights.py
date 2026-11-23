@@ -59,3 +59,29 @@ def category_anomalies(current_totals: dict[str, Any], histories: dict[str, Any]
             if avg > 20 and current_total > (avg * 2.0):
                 anomalies.append((cat_id, current_total, avg))
     return anomalies
+
+
+LARGE_EXPENSE_SHARE = 0.10
+LARGE_EXPENSE_FLOOR = 500.0
+HABITUAL_TOLERANCE = 0.20
+
+
+def income_base(month_income: float, previous_incomes: list[float]) -> float:
+    """Revenu de référence du seuil : le plus haut entre le mois et la moyenne des mois précédents.
+
+    En début de mois (salaire pas encore reçu) le revenu du mois vaut 0 : sans repli sur la moyenne
+    récente, le seuil s'effondrerait au plancher et la moindre dépense deviendrait « exceptionnelle ».
+    """
+    average = sum(previous_incomes) / len(previous_incomes) if previous_incomes else 0.0
+    return max(month_income, average)
+
+
+def large_expense_threshold(base: float) -> float:
+    """Seuil d'une grosse dépense : 10 % du revenu de référence, au moins 500 €."""
+    return max(base * LARGE_EXPENSE_SHARE, LARGE_EXPENSE_FLOOR)
+
+
+def is_habitual(amount: float, previous_amounts: list[float]) -> bool:
+    """Charge habituelle : au moins deux sorties antérieures chez le même marchand à ±20 % du montant."""
+    close = [a for a in previous_amounts if abs(a - amount) <= amount * HABITUAL_TOLERANCE]
+    return len(close) >= 2

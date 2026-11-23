@@ -1,7 +1,7 @@
 {
  "links": [
   {
-   "color": null,
+   "color": "#16a34a",
    "source": 1,
    "target": 0,
    "value": 2906.87
@@ -31,55 +31,55 @@
    "value": 327.36
   },
   {
-   "color": null,
+   "color": "#a16207",
    "source": 3,
    "target": 6,
    "value": 890.0
   },
   {
-   "color": null,
+   "color": "#eab308",
    "source": 3,
    "target": 7,
    "value": 61.0
   },
   {
-   "color": null,
+   "color": "#6366f1",
    "source": 3,
    "target": 8,
    "value": 44.6
   },
   {
-   "color": null,
+   "color": "#0891b2",
    "source": 3,
    "target": 9,
    "value": 21.4
   },
   {
-   "color": null,
+   "color": "#f97316",
    "source": 4,
    "target": 10,
    "value": 494.41
   },
   {
-   "color": null,
+   "color": "#3b82f6",
    "source": 4,
    "target": 11,
    "value": 127.11
   },
   {
-   "color": null,
+   "color": "#ec4899",
    "source": 5,
    "target": 12,
    "value": 186.28
   },
   {
-   "color": null,
+   "color": "#d946ef",
    "source": 5,
    "target": 13,
    "value": 111.09
   },
   {
-   "color": null,
+   "color": "#22c55e",
    "source": 5,
    "target": 14,
    "value": 29.99
@@ -97,7 +97,7 @@
    "name": "Budget"
   },
   {
-   "color": null,
+   "color": "#16a34a",
    "name": "Salaire"
   },
   {
@@ -118,47 +118,47 @@
   },
   {
    "category_id": 13,
-   "color": null,
+   "color": "#a16207",
    "name": "Logement"
   },
   {
    "category_id": 14,
-   "color": null,
+   "color": "#eab308",
    "name": "Énergie"
   },
   {
    "category_id": 1,
-   "color": null,
+   "color": "#6366f1",
    "name": "Abonnement"
   },
   {
    "category_id": 15,
-   "color": null,
+   "color": "#0891b2",
    "name": "Assurances"
   },
   {
    "category_id": 3,
-   "color": null,
+   "color": "#f97316",
    "name": "Nourriture"
   },
   {
    "category_id": 16,
-   "color": null,
+   "color": "#3b82f6",
    "name": "Transport"
   },
   {
    "category_id": 4,
-   "color": null,
+   "color": "#ec4899",
    "name": "Sortie"
   },
   {
    "category_id": 18,
-   "color": null,
+   "color": "#d946ef",
    "name": "Shopping"
   },
   {
    "category_id": 7,
-   "color": null,
+   "color": "#22c55e",
    "name": "Sport"
   },
   {

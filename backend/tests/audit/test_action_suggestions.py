@@ -49,7 +49,7 @@ def test_rule_suggested_for_uncategorized_transactions_with_the_usual_category(c
     [action] = _actions(client, "suggest-rule-")
     assert action["metadata"]["merchant"] == "Bowling"
     assert action["metadata"]["suggested_category_id"] == leisure.id  # la plus fréquente, pas l'id le plus grand
-    assert "1 transaction(s) sans catégorie" in action["description"]
+    assert "1 transaction sans catégorie" in action["description"]
 
 
 def test_recurring_transactions_do_not_trigger_rule_suggestions(client, db_session):

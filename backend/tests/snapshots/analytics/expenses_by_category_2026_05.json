@@ -3,8 +3,8 @@
   {
    "category": {
     "annual_limit": null,
-    "color": null,
-    "icon": null,
+    "color": "#a16207",
+    "icon": "Home",
     "id": 13,
     "monthly_limit": null,
     "name": "Logement"
@@ -15,8 +15,8 @@
   {
    "category": {
     "annual_limit": null,
-    "color": null,
-    "icon": null,
+    "color": "#f97316",
+    "icon": "Utensils",
     "id": 3,
     "monthly_limit": 450.0,
     "name": "Nourriture"
@@ -27,8 +27,8 @@
   {
    "category": {
     "annual_limit": null,
-    "color": null,
-    "icon": null,
+    "color": "#ec4899",
+    "icon": "Beer",
     "id": 4,
     "monthly_limit": 220.0,
     "name": "Sortie"
@@ -39,8 +39,8 @@
   {
    "category": {
     "annual_limit": null,
-    "color": null,
-    "icon": null,
+    "color": "#3b82f6",
+    "icon": "Train",
     "id": 16,
     "monthly_limit": 150.0,
     "name": "Transport"
@@ -51,8 +51,8 @@
   {
    "category": {
     "annual_limit": null,
-    "color": null,
-    "icon": null,
+    "color": "#d946ef",
+    "icon": "Shirt",
     "id": 18,
     "monthly_limit": 150.0,
     "name": "Shopping"
@@ -75,8 +75,8 @@
   {
    "category": {
     "annual_limit": null,
-    "color": null,
-    "icon": null,
+    "color": "#eab308",
+    "icon": "Zap",
     "id": 14,
     "monthly_limit": null,
     "name": "Énergie"
@@ -87,8 +87,8 @@
   {
    "category": {
     "annual_limit": null,
-    "color": null,
-    "icon": null,
+    "color": "#6366f1",
+    "icon": "Tv",
     "id": 1,
     "monthly_limit": 80.0,
     "name": "Abonnement"
@@ -99,8 +99,8 @@
   {
    "category": {
     "annual_limit": null,
-    "color": null,
-    "icon": null,
+    "color": "#22c55e",
+    "icon": "Dumbbell",
     "id": 7,
     "monthly_limit": null,
     "name": "Sport"
@@ -111,8 +111,8 @@
   {
    "category": {
     "annual_limit": null,
-    "color": null,
-    "icon": null,
+    "color": "#0891b2",
+    "icon": "Shield",
     "id": 15,
     "monthly_limit": null,
     "name": "Assurances"

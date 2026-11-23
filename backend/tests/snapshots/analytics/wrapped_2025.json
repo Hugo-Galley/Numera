@@ -109,40 +109,40 @@
  },
  "top_categories": [
   {
-   "color": null,
-   "icon": null,
+   "color": "#a16207",
+   "icon": "Home",
    "name": "Logement",
    "percentage": 40.8,
    "total": 10680.0,
    "work_hours": 543.2
   },
   {
-   "color": null,
-   "icon": null,
+   "color": "#f97316",
+   "icon": "Utensils",
    "name": "Nourriture",
    "percentage": 20.0,
    "total": 5241.39,
    "work_hours": 266.6
   },
   {
-   "color": null,
-   "icon": null,
+   "color": "#ec4899",
+   "icon": "Beer",
    "name": "Sortie",
    "percentage": 8.1,
    "total": 2106.43,
    "work_hours": 107.1
   },
   {
-   "color": null,
-   "icon": null,
+   "color": "#3b82f6",
+   "icon": "Train",
    "name": "Transport",
    "percentage": 6.7,
    "total": 1756.76,
    "work_hours": 89.4
   },
   {
-   "color": null,
-   "icon": null,
+   "color": "#64748b",
+   "icon": "ShoppingBag",
    "name": "Achat divers",
    "percentage": 5.7,
    "total": 1499.0,

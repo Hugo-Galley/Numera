@@ -1,7 +1,7 @@
 """Virements internes potentiels non rapprochés (contrôle simplifié sur 90 jours)."""
 from datetime import timedelta
 
-from app.core.i18n import tr
+from app.core.i18n import tr, trn
 from app.domain.transfers import strict_matches
 from app.models.transaction import Transaction
 from app.repositories.analytics import audit as repo
@@ -23,7 +23,7 @@ def detect(ctx: AuditContext) -> list[ActionItem]:
         type="audit",
         severity="medium",
         title=tr("audit.unmatched_transfers.title"),
-        description=tr("audit.unmatched_transfers.description", count=count),
+        description=trn("audit.unmatched_transfers.description", count),
         action_label=tr("audit.unmatched_transfers.action"),
         action_url="/audit?vue=virements",
         action_type="link",

@@ -4,7 +4,7 @@
    "action_label": "Catégoriser",
    "action_type": "modal_categorize",
    "action_url": "/audit",
-   "description": "Vous avez 8 dépenses sans catégorie.",
+   "description": "Tu as 8 dépenses sans catégorie.",
    "id": "uncategorized-expenses",
    "metadata": {
     "issue_id": "uncategorized-expenses"
@@ -96,7 +96,7 @@
    "action_label": "Voir détails",
    "action_type": "link",
    "action_url": "/accounts",
-   "description": "Vous avez dépensé 837.99€ pour une limite de 20.0€.",
+   "description": "Tu as dépensé 837,99 € pour une limite de 20,00 €.",
    "id": "budget-over-20",
    "metadata": {
     "category_id": 20,
@@ -124,7 +124,7 @@
    "action_label": "Mettre à jour",
    "action_type": "link",
    "action_url": "/investments",
-   "description": "1 comptes d'investissement n'ont pas de mise à jour récente.",
+   "description": "1 compte d'investissement n'a pas de mise à jour récente.",
    "id": "stale-snapshots",
    "metadata": {
     "account_ids": [
@@ -140,7 +140,7 @@
    "action_label": "Rapprocher",
    "action_type": "link",
    "action_url": "/audit?vue=virements",
-   "description": "1 virements internes potentiels ont été détectés.",
+   "description": "1 virement interne potentiel a été détecté.",
    "id": "possible-transfers",
    "metadata": {
     "issue_id": "unmatched-transfers"
@@ -154,7 +154,7 @@
    "action_label": "Surveiller",
    "action_type": "link",
    "action_url": "/accounts",
-   "description": "Vous êtes à 87% de votre limite pour Shopping.",
+   "description": "Tu es à 87 % de ta limite pour Shopping.",
    "id": "budget-near-18",
    "metadata": {
     "category_id": 18,
@@ -170,7 +170,7 @@
    "action_label": "Rattacher",
    "action_type": "link",
    "action_url": "/accounts/3",
-   "description": "1 dividende(s) ne sont rattachés à aucun titre : rendement et plus-value totale par ligne sont incomplets.",
+   "description": "1 dividende n'est rattaché à aucun titre : rendement et plus-value totale par ligne sont incomplets.",
    "id": "dividends-unlinked-3",
    "metadata": {
     "account_id": 3,
@@ -185,7 +185,7 @@
    "action_label": "Voir les abonnements",
    "action_type": "link",
    "action_url": "/recurring?tab=subscriptions",
-   "description": "Passé de 13.49 à 15.99 EUR par mois le 10/05/2026 (+18.5 %), soit 30.00 EUR de plus par an. Toujours utile à ce prix ?",
+   "description": "13,49 € → 15,99 € par mois depuis le 10/05/2026 (+18,5 %), soit 30,00 € de plus par an. Toujours utile à ce prix ?",
    "id": "subscription-price-1-lstreamflix-2026-05-10",
    "metadata": {
     "account_id": 1,
@@ -202,7 +202,7 @@
    "action_label": "Affecter",
    "action_type": "link",
    "action_url": "/reimbursements",
-   "description": "4 remboursement(s) reçu(s) ne sont rattachés à aucune créance ouverte.",
+   "description": "4 remboursements reçus ne sont rattachés à aucune créance ouverte.",
    "id": "unallocated-reimbursements",
    "metadata": {
     "issue_id": "unallocated-reimbursements"
@@ -253,7 +253,7 @@
    "action_label": "Créer la règle",
    "action_type": "modal_rule",
    "action_url": "/classement?tab=rules",
-   "description": "6 transaction(s) sans catégorie chez 'BOULANGERIE DUPONT' (sur 6). Une règle les catégoriserait, ainsi que les prochains imports.",
+   "description": "6 transactions sans catégorie chez « BOULANGERIE DUPONT » (sur 6). Une règle les catégoriserait, ainsi que les prochains imports.",
    "id": "suggest-rule-BOULANGERIE DUPONT",
    "metadata": {
     "merchant": "BOULANGERIE DUPONT",
