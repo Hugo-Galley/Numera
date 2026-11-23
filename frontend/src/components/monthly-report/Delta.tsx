@@ -9,7 +9,7 @@ export function Delta({ diff, pct, upIsBad = true }: { diff: number; pct?: numbe
       {diff > 0 ? "+" : "−"}
       {formatCurrency(Math.abs(diff))}
       {/* Pourcentage signé, comme sur la page Comparaison (« −100 % » et non « 100 % » pour une baisse) */}
-      {pct !== undefined && pct !== 0 && ` (${formatRate(pct, 0, true)})`}
+      {pct !== undefined && Math.round(pct) !== 0 && ` (${formatRate(pct, 0, true)})`}
     </span>
   )
 }

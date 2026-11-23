@@ -180,7 +180,7 @@ export default function IntelligentReport() {
               </Headline>
               <Headline
                 label={t("monthlyReport.misDeCote")}
-                value={formatCurrency((data.money_flow?.savings.amount ?? 0) + (data.money_flow?.investments.amount ?? 0))}
+                value={formatCurrency(data.set_aside)}
               >
                 <span className="text-xs text-slate-400">{t("monthlyReport.epargneInvesti")}</span>
               </Headline>

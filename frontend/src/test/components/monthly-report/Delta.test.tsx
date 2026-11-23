@@ -24,4 +24,10 @@ describe("Delta", () => {
 
     expect(screen.getByText("stable")).toBeInTheDocument()
   })
+
+  it("pourcentage qui s'arrondit à 0 : pas de « (−0 %) »", () => {
+    render(<Delta diff={-3.25} pct={-0.11} upIsBad={false} />)
+
+    expect(screen.getByText(/3,25/).textContent).not.toContain("(")
+  })
 })

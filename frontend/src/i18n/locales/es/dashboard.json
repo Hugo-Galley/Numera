@@ -23,11 +23,12 @@
     "moneyIn": "Entradas de dinero",
     "monthlyExpenses": "Gastos mensuales",
     "moneyOut": "Salidas de dinero",
-    "savingsMade": "Ahorro realizado",
     "currentBalance": "Saldo actual",
     "trend": "Tendencia 6 meses",
     "monthBalanceToDate": "Saldo del mes a la fecha",
-    "toDate": "A la fecha (día {{day}}/{{total}})"
+    "toDate": "A la fecha (día {{day}}/{{total}})",
+    "monthBalance": "Saldo del mes",
+    "setAside": "Apartado: {{amount}}"
   },
   "budgets": {
     "title": "Seguimiento de presupuestos",

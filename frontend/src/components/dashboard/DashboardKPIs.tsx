@@ -49,9 +49,12 @@ export function DashboardKPIs({
   progress = null,
 }: DashboardKPIsProps) {
   const { t } = useTranslation("dashboard")
-  const balanceLabel = selectedAccountId !== "all"
+  // Vue globale : « Solde du mois » (revenus − dépenses, `solde_du_mois`), distinct du montant mis de côté (`mis_de_cote`)
+  const global = selectedAccountId === "all"
+  const balanceLabel = !global
     ? t("kpi.currentBalance")
-    : progress ? t("kpi.monthBalanceToDate") : t("kpi.savingsMade")
+    : progress ? t("kpi.monthBalanceToDate") : t("kpi.monthBalance")
+  const setAside = global && analytics ? t("kpi.setAside", { amount: formatCurrency(analytics.mis_de_cote, displayCurrency) }) : null
   return (
     <div className="grid gap-3 md:gap-6 grid-cols-2 md:grid-cols-3">
       <Card className="shadow-xs border-slate-100 hover:border-emerald-200 transition-colors cursor-pointer group">
@@ -102,12 +105,15 @@ export function DashboardKPIs({
         <CardContent className="p-3 pt-0 sm:p-6 sm:pt-0">
           <CardTitle className="text-xl sm:text-2xl font-bold whitespace-nowrap tabular-nums">
             <span className="amount-blur">
-              {formatCurrency(selectedAccountId === "all" ? analytics?.epargne_realisee : analytics?.solde_actuel, displayCurrency)}
+              {formatCurrency(global ? analytics?.solde_du_mois : analytics?.solde_actuel, displayCurrency)}
             </span>
           </CardTitle>
           <Sparkline data={kpiHistory} dataKey="epargne_flow" color="#3b82f6" />
-          {selectedAccountId === "all" && progress ? (
-            <p className="text-[11px] text-slate-500 mt-1.5 sm:mt-2 font-medium">{t("kpi.toDate", { day: progress.day, total: progress.total })}</p>
+          {global ? (
+            <p className="text-[11px] text-slate-500 mt-1.5 sm:mt-2 font-medium">
+              {progress && <>{t("kpi.toDate", { day: progress.day, total: progress.total })} · </>}
+              {setAside && <span className="amount-blur">{setAside}</span>}
+            </p>
           ) : (
             <p className="hidden sm:block text-[10px] text-slate-400 mt-2 uppercase tracking-wider font-bold">{t("kpi.trend")}</p>
           )}

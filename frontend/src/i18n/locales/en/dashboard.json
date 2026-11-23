@@ -23,11 +23,12 @@
     "moneyIn": "Money In",
     "monthlyExpenses": "Monthly Expenses",
     "moneyOut": "Money Out",
-    "savingsMade": "Savings Made",
     "currentBalance": "Current Balance",
     "trend": "6-month trend",
     "monthBalanceToDate": "Month balance to date",
-    "toDate": "To date (day {{day}}/{{total}})"
+    "toDate": "To date (day {{day}}/{{total}})",
+    "monthBalance": "Month balance",
+    "setAside": "Set aside: {{amount}}"
   },
   "budgets": {
     "title": "Budget tracking",
