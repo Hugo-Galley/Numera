@@ -256,7 +256,7 @@
     "modifiedHint": " Les virements déjà liés ne changent pas : utilise « Rattraper le passé » pour appliquer la règle modifiée à l'historique.",
     "catchUp_one": "{{count}} virement sera lié sur tout l'historique. Les cas ambigus sont laissés en suggestions.",
     "catchUp_other": "{{count}} virements seront liés sur tout l'historique. Les cas ambigus sont laissés en suggestions.",
-    "perMonth": "{{amount}}€/mois",
+    "perMonth": "{{amount}}/mois",
     "occurrences_one": "{{count}} occurrence",
     "occurrences_other": "{{count}} occurrences",
     "showArchived": "Afficher les catégories archivées ({{count}})",

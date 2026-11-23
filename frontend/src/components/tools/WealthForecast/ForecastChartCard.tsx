@@ -36,7 +36,7 @@ export function ForecastChartCard({ ctx }: { ctx: WealthForecastView }) {
               <Legend itemSorter={null} />
               <Line type="monotone" dataKey="base" name={t("forecastChartCard.auRythmeActuel")} stroke="#3b82f6" strokeWidth={3} dot={false} />
               {boostedShown && (
-                <Line type="monotone" dataKey="boosted" name={t("misc.withExtra", { sign: data.extra_monthly > 0 ? "+" : "", amount: data.extra_monthly })} stroke="#10b981" strokeWidth={3} dot={false} />
+                <Line type="monotone" dataKey="boosted" name={t("misc.withExtra", { sign: data.extra_monthly > 0 ? "+" : "", amount: formatCurrency(data.extra_monthly) })} stroke="#10b981" strokeWidth={3} dot={false} />
               )}
             </LineChart>
           </ResponsiveContainer>

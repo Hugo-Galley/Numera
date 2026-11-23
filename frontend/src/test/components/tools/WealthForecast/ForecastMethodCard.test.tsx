@@ -70,7 +70,7 @@ describe("ForecastMethodCard", () => {
   it("mentionne le complément mensuel quand la courbe verte est affichée", () => {
     setup({ boostedShown: true })
 
-    expect(screen.getByText(/\+100 € pour la courbe verte/)).toBeInTheDocument()
+    expect(screen.getByText(/\+100,00\s€ pour la courbe verte/)).toBeInTheDocument()
   })
 
   it("saisie du montant d'épargne : placeholder arrondi, transmis au contexte ; pas de bouton de retour tant qu'il est calculé", async () => {

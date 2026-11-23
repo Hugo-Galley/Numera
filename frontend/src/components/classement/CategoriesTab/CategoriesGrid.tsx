@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { IconComponent } from "@/components/dashboard/IconComponent"
 import { categoryTypeLabel } from "@/lib/labels"
+import { formatCurrency } from "@/lib/utils"
 import type { CategoriesTabCtx } from "./useCategoriesTab"
 
 /** Cartes des catégories. */
@@ -40,7 +41,7 @@ export function CategoriesGrid({ ctx }: { ctx: CategoriesTabCtx }) {
                     )}
                   </div>
                   {cat.monthly_limit != null && (
-                    <p className="text-[11px] text-amber-600 font-semibold mt-0.5">{i18n.t("misc.perMonth", { ns: "classement", amount: cat.monthly_limit })}</p>
+                    <p className="text-[11px] text-amber-600 font-semibold mt-0.5">{i18n.t("misc.perMonth", { ns: "classement", amount: formatCurrency(cat.monthly_limit) })}</p>
                   )}
                   {cat.archived && <p className="text-[11px] text-slate-400 font-semibold mt-0.5">{t("categoriesGrid.archivee")}</p>}
                 </div>
