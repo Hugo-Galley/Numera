@@ -143,7 +143,7 @@ async def auto_decompose_and_create_profile(
         composition = None
 
     fund_name = name or (composition or {}).get("name") or cleaned_sym
-    aliases = [cleaned_sym, cleaned_sym.split(".")[0], fund_name.upper()]
+    aliases = [cleaned_sym]
     if isin:
         aliases.append(isin.upper())
 

@@ -156,3 +156,10 @@ def test_diversity_puts_uncovered_weight_in_non_renseigne(client: TestClient, db
     assert countries == {"Non renseigné": 1000.0}
     assert data["etf_compositions"][0]["sources"] == {"sectors": "yahoo"}
     assert not any(a["category"] == "sector" and a["item_name"] == "Non renseigné" for a in data["alerts"])
+
+
+def test_auto_created_profile_has_no_truncated_alias(client: TestClient, db_session: Session, yahoo):
+    resp = client.post("/etf-profiles/auto-decompose", json={"symbol": "csco.to", "isin": "us17275r1023"})
+    assert resp.status_code == 200
+    profile = db_session.query(EtfProfile).filter(EtfProfile.ticker == "CSCO.TO").one()
+    assert json.loads(profile.aliases) == ["CSCO.TO", "US17275R1023"]

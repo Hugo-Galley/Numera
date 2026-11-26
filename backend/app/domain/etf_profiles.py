@@ -97,34 +97,24 @@ def apply_update(profile: EtfProfile, payload: EtfProfileUpdate) -> None:
 
 
 def match_profile(profiles: list[EtfProfile], symbol: str, isin: str | None = None, name: str | None = None) -> EtfProfile | None:
-    """Find matching EtfProfile by ticker, isin or alias."""
+    """Profil correspondant exactement : ISIN, puis ticker, puis alias (casse ignorée).
+
+    Jamais de ticker tronqué ni de rapprochement par nom : `name` est conservé pour les appelants et ignoré.
+    """
     norm_symbol = symbol.upper().strip()
     norm_isin = (isin or "").upper().strip()
-    norm_name = (name or "").lower().strip()
 
-    # Exact isin or ticker match
+    if norm_isin:
+        for p in profiles:
+            if p.isin and p.isin.upper() == norm_isin:
+                return p
     for p in profiles:
-        if norm_isin and p.isin and p.isin.upper() == norm_isin:
-            return p
         if p.ticker.upper() == norm_symbol:
             return p
-
-        # Check aliases
-        with suppress(Exception):  # alias illisible : ignoré
-            aliases = json.loads(p.aliases)
-            for alias in aliases:
-                if alias.upper() in (norm_symbol, norm_symbol.split(".")[0], norm_isin):
-                    return p
-
-    # Name-based heuristic : nom vide => aucune correspondance (sinon "" est contenu dans tout),
-    # et on exige que le nom complet du profil figure dans le libellé (pas l'inverse, trop large)
-    if not norm_name:
-        return None
     for p in profiles:
-        p_name = p.name.lower().strip()
-        if len(p_name) >= 6 and (p_name == norm_name or p_name in norm_name):
-            return p
-
+        with suppress(Exception):  # alias illisible : ignoré
+            if any(str(alias).upper().strip() == norm_symbol for alias in json.loads(p.aliases)):
+                return p
     return None
 
 
