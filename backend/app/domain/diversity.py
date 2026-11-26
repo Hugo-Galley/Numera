@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING, Any
 
 from app.core.i18n import tr
 from app.core.logging import get_logger
+from app.domain.etf_normalize import UNKNOWN_LABEL
 from app.domain.etf_profiles import load_sources
 
 if TYPE_CHECKING:
@@ -18,7 +19,6 @@ if TYPE_CHECKING:
 
 logger = get_logger(__name__)
 
-UNKNOWN_LABEL = "Non renseigné"
 
 
 def normalize_company_key(ticker: str | None, name: str | None) -> str:

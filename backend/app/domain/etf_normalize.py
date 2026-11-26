@@ -51,7 +51,34 @@ _SECTOR_ALIASES: dict[str, tuple[str, ...]] = {
 }
 _SECTORS: dict[str, str] = {alias: label for label, aliases in _SECTOR_ALIASES.items() for alias in aliases}
 
-_NON_EQUITY_WORDS = ("cash", "money market", "future", "fx", "forward", "swap", "liquid", "derivative", "collateral", "margin", "currenc", "repo")
+# Séquences de mots (sans accents) qui désignent une ligne qui n'est pas une action. Comparées mot entier par mot entier.
+_NON_EQUITY_PHRASES: tuple[tuple[str, ...], ...] = tuple(
+    tuple(p.split())
+    for p in (
+        "cash",
+        "cash collateral",
+        "money market",
+        "futures",
+        "future",
+        "fx",
+        "fx forward",
+        "forwards",
+        "swap",
+        "swaps",
+        "margin",
+        "margins",
+        "repo",
+        "currency",
+        "currencies",
+        "derivative",
+        "derivatives",
+        "liquidites",
+        "tresorerie",
+        "derives",
+        "contrats a terme",
+        "marche monetaire",
+    )
+)
 
 
 def _key(label: str | None) -> str:
@@ -78,10 +105,19 @@ def sector_label(label: str | None) -> str:
     return _SECTORS.get(_key(label), UNKNOWN_LABEL)
 
 
+def _has_phrase(tokens: list[str], phrase: tuple[str, ...]) -> bool:
+    size = len(phrase)
+    return any(tuple(tokens[i : i + size]) == phrase for i in range(len(tokens) - size + 1))
+
+
 def is_equity_line(asset_class: str | None, type_: str | None) -> bool:
-    """Faux pour les lignes de liquidités, monétaire, futures, change, collatéral ; vrai sinon (y compris sans information)."""
+    """Faux pour les lignes de liquidités, monétaire, futures, change, swaps, collatéral, dérivés ; vrai sinon.
+
+    Les mots sont comparés entiers (« Cashflow Growth » reste une action). Les obligations (« Bonds », « Fixed Income »)
+    restent vraies : ce sont des lignes investies, pas des liquidités. Sans information, vrai.
+    """
     for value in (asset_class, type_):
-        key = _key(value)
-        if key and any(word in key for word in _NON_EQUITY_WORDS):
+        tokens = _key(value).split()
+        if any(_has_phrase(tokens, phrase) for phrase in _NON_EQUITY_PHRASES):
             return False
     return True
