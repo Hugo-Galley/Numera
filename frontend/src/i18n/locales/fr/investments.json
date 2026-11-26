@@ -367,5 +367,30 @@
     "notRecovered": "Sommet pas encore retrouvé",
     "current": "Sous le plus haut aujourd'hui",
     "atPeak": "Au plus haut"
+  },
+  "accountBreakdown": {
+    "title": "Répartition du compte",
+    "description": "Ce que tu détiens vraiment, ETF décomposés en entreprises.",
+    "viewsLabel": "Vue de la répartition",
+    "views": {
+      "companies": "Entreprises",
+      "positions": "Positions",
+      "sectors": "Secteurs",
+      "countries": "Pays"
+    },
+    "other": {
+      "companies": "Autres entreprises",
+      "positions": "Autres positions",
+      "sectors": "Autres secteurs",
+      "countries": "Autres pays"
+    },
+    "centerTotal": "Valeur des positions",
+    "positionsCount_one": "{{count}} position",
+    "positionsCount_other": "{{count}} positions",
+    "namedLines": "Lignes nommées",
+    "shareOfAccount": "{{share}} du compte",
+    "hideOther": "Zoomer sur les lignes nommées (masquer « Autres »)",
+    "chartLabel": "Donut de la répartition des positions du compte",
+    "loadFailed": "Impossible de calculer la répartition du compte"
   }
 }
