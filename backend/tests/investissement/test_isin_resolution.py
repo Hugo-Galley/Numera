@@ -110,6 +110,24 @@ async def test_profil_seulement_rattache_n_est_pas_une_source(db_session, accoun
 
 
 @pytest.mark.anyio
+async def test_profils_en_conflit_ne_donnent_rien(db_session, account):
+    db_session.add_all([EtfProfile(name="A", ticker="X", isin="LU1681043599", aliases="[]"),
+                        EtfProfile(name="B", ticker="Y", isin=ISRG_ETF, aliases='["x"]')])
+    h = _holding(db_session, account, "X")
+    assert await resolve_missing_isins(db_session) == 0
+    assert h.isin is None
+
+
+@pytest.mark.anyio
+async def test_profils_d_accord_donnent_leur_isin(db_session, account):
+    db_session.add_all([EtfProfile(name="A", ticker="X", isin=ISRG_ETF, aliases="[]"),
+                        EtfProfile(name="B", ticker="Y", isin=ISRG_ETF, aliases='["x"]')])
+    h = _holding(db_session, account, "X")
+    assert await resolve_missing_isins(db_session) == 1
+    assert h.isin == ISRG_ETF
+
+
+@pytest.mark.anyio
 async def test_commit_false_laisse_la_transaction_a_l_appelant(db_session, account):
     h = _holding(db_session, account, "IE0002XZSHO1.SG")
     db_session.commit()

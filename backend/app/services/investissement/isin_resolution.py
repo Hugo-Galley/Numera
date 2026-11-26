@@ -5,13 +5,13 @@ saisi (position non vide) n'est jamais modifié. Sources, dans l'ordre : opérat
 compte et du même ticker, profil ETF correspondant exactement, ISIN contenu dans le symbole, référentiel
 des titres (ticker exact et place compatible), catalogues des émetteurs.
 """
+import json
 from collections.abc import Awaitable, Sequence
 from typing import Protocol
 
 from sqlalchemy.orm import Session
 
 from app.core.logging import get_logger
-from app.domain.etf_profiles import match_profile
 from app.domain.holdings import normalize_ticker
 from app.domain.isin import IsinCandidate, is_valid_isin, isin_from_symbol, pick_isin
 from app.models.etf_profile import EtfProfile
@@ -50,6 +50,21 @@ def _securities_by_symbol(db: Session, symbols: list[str]) -> dict[str, list[Isi
     for sec in securities_repo.by_tickers(db, tickers):
         by_ticker.setdefault(sec.ticker.upper(), []).append(IsinCandidate(sec.isin, sec.ticker, sec.exchange))
     return by_ticker
+
+
+def _profile_isin(profiles: list[EtfProfile], symbol: str) -> str | None:
+    """ISIN des profils dont le ticker ou un alias est exactement ce symbole ; None si aucun ou s'ils divergent."""
+    wanted = normalize_ticker(symbol)
+    isins: set[str] = set()
+    for profile in profiles:
+        try:
+            names = {normalize_ticker(str(a)) for a in json.loads(profile.aliases)}
+        except (ValueError, TypeError):
+            names = set()
+        if wanted == normalize_ticker(profile.ticker) or wanted in names:
+            isins.add((profile.isin or "").upper().strip())
+    valid = {i for i in isins if is_valid_isin(i)}
+    return next(iter(valid)) if len(isins) == 1 and len(valid) == 1 else None
 
 
 async def _from_catalogs(symbol: str, catalogs: Sequence[IsinCatalog]) -> str | None:
@@ -99,10 +114,9 @@ async def _resolve_one(holding: PortfolioHolding, recorded: dict[tuple[int, str]
         return isin
     # Le profil ne répond que si le ticker de la position est le sien ou un de ses alias : un rattachement
     # (`etf_profile_id`) hérité de l'ancien rapprochement par nom ne prouve rien.
-    profile = match_profile(profiles, symbol)
-    profile_isin = (profile.isin or "").upper().strip() if profile else ""
-    if is_valid_isin(profile_isin):
-        return profile_isin
+    isin = _profile_isin(profiles, symbol)
+    if isin:
+        return isin
     isin = isin_from_symbol(symbol)
     if isin:
         return isin
