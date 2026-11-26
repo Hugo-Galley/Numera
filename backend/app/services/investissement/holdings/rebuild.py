@@ -52,7 +52,7 @@ async def rebuild_holdings(db: Session, account_id: int) -> None:
             found.etf_profile_id = found.etf_profile_id or pos.etf_profile_id
     db.flush()
     # Sources locales seulement (pas de catalogue, donc pas de réseau) ; les catalogues passent par la tâche de fond
-    await resolve_missing_isins(db, catalogs=(), commit=False)
+    await resolve_missing_isins(db, catalogs=(), commit=False, account_id=account_id)
 
 
 DUE_WINDOW = timedelta(days=7)

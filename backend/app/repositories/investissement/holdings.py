@@ -93,10 +93,11 @@ def held_positions(db: Session, account_id: int | None = None) -> list[Portfolio
     return query.all()
 
 
-def holdings_without_isin(db: Session) -> list[PortfolioHolding]:
-    return db.query(PortfolioHolding).filter(
-        (PortfolioHolding.isin.is_(None)) | (PortfolioHolding.isin == "")
-    ).all()
+def holdings_without_isin(db: Session, account_id: int | None = None) -> list[PortfolioHolding]:
+    query = db.query(PortfolioHolding).filter((PortfolioHolding.isin.is_(None)) | (PortfolioHolding.isin == ""))
+    if account_id is not None:
+        query = query.filter(PortfolioHolding.account_id == account_id)
+    return query.all()
 
 
 def recorded_isins(db: Session) -> list[tuple[int, str, str]]:

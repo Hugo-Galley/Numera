@@ -11,7 +11,8 @@ from typing import Protocol
 from sqlalchemy.orm import Session
 
 from app.core.logging import get_logger
-from app.domain.holdings import holding_profile, normalize_ticker
+from app.domain.etf_profiles import match_profile
+from app.domain.holdings import normalize_ticker
 from app.domain.isin import IsinCandidate, is_valid_isin, isin_from_symbol, pick_isin
 from app.models.etf_profile import EtfProfile
 from app.models.portfolio_holding import PortfolioHolding
@@ -36,8 +37,15 @@ def _recorded_by_key(db: Session) -> dict[tuple[int, str], str]:
     return {k: next(iter(v)) for k, v in found.items() if len(v) == 1 and is_valid_isin(next(iter(v)))}
 
 
+def _lookup_keys(symbol: str) -> set[str]:
+    """Tickers du référentiel à lire pour ce symbole : le symbole entier (`BRK.B`) et sa base sans suffixe de place
+    (`HO` pour `HO.PA`) ; `pick_isin` départage ensuite sur le ticker exact et la place."""
+    upper = symbol.strip().upper()
+    return {upper, upper.rsplit(".", 1)[0]}
+
+
 def _securities_by_symbol(db: Session, symbols: list[str]) -> dict[str, list[IsinCandidate]]:
-    tickers = {s.split(".")[0].upper() for s in symbols}
+    tickers = set().union(*(_lookup_keys(s) for s in symbols))
     by_ticker: dict[str, list[IsinCandidate]] = {}
     for sec in securities_repo.by_tickers(db, tickers):
         by_ticker.setdefault(sec.ticker.upper(), []).append(IsinCandidate(sec.isin, sec.ticker, sec.exchange))
@@ -51,22 +59,23 @@ async def _from_catalogs(symbol: str, catalogs: Sequence[IsinCatalog]) -> str | 
         except Exception:
             logger.exception("Catalogue d'ISIN en échec pour %s", symbol)
             continue
-        if isin and is_valid_isin(isin.upper().strip()):
-            return isin.upper().strip()
+        normalized = (isin or "").upper().strip()
+        if is_valid_isin(normalized):
+            return normalized
     return None
 
 
-async def resolve_missing_isins(db: Session, catalogs: Sequence[IsinCatalog] | None = None, *, commit: bool = True) -> int:
+async def resolve_missing_isins(db: Session, catalogs: Sequence[IsinCatalog] | None = None, *, commit: bool = True,
+                                account_id: int | None = None) -> int:
     """Complète l'ISIN des positions qui n'en ont pas ; renvoie leur nombre.
 
-    Un seul commit, s'il y a du changement ; `commit=False` laisse la transaction à l'appelant (flush seulement)."""
-    holdings = holdings_repo.holdings_without_isin(db)
+    Un seul commit, s'il y a du changement ; `commit=False` laisse la transaction à l'appelant (flush seulement) ;
+    `account_id` limite aux positions d'un compte."""
+    holdings = holdings_repo.holdings_without_isin(db, account_id)
     if not holdings:
         return 0
     recorded = _recorded_by_key(db)
     profiles = profiles_repo.all_profiles(db)
-    # Un symbole sans suffixe de place ni point (AAPL) ou avec (HO.PA) : le référentiel est indexé sans suffixe,
-    # `pick_isin` revérifie ticker et place ; BRK.B garde son point côté `pick_isin`.
     candidates = _securities_by_symbol(db, [h.ticker for h in holdings])
     resolved = 0
     for holding in holdings:
@@ -75,7 +84,10 @@ async def resolve_missing_isins(db: Session, catalogs: Sequence[IsinCatalog] | N
             holding.isin = isin
             resolved += 1
     if resolved:
-        db.commit() if commit else db.flush()
+        if commit:
+            db.commit()
+        else:
+            db.flush()
     return resolved
 
 
@@ -85,11 +97,14 @@ async def _resolve_one(holding: PortfolioHolding, recorded: dict[tuple[int, str]
     isin = recorded.get((holding.account_id, normalize_ticker(symbol)))
     if isin:
         return isin
-    profile = holding_profile(profiles, holding.etf_profile_id, symbol, None)
-    if profile and profile.isin and is_valid_isin(profile.isin.upper().strip()):
-        return profile.isin.upper().strip()
+    # Le profil ne répond que si le ticker de la position est le sien ou un de ses alias : un rattachement
+    # (`etf_profile_id`) hérité de l'ancien rapprochement par nom ne prouve rien.
+    profile = match_profile(profiles, symbol)
+    profile_isin = (profile.isin or "").upper().strip() if profile else ""
+    if is_valid_isin(profile_isin):
+        return profile_isin
     isin = isin_from_symbol(symbol)
     if isin:
         return isin
-    isin = pick_isin(symbol, candidates.get(symbol.split(".")[0].upper(), []))
-    return isin or await _from_catalogs(symbol, catalogs)
+    pool = [c for key in _lookup_keys(symbol) for c in candidates.get(key, [])]
+    return pick_isin(symbol, pool) or await _from_catalogs(symbol, catalogs)

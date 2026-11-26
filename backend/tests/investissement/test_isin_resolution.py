@@ -90,23 +90,53 @@ async def test_isin_invalide_sur_operation_ignore(db_session, account):
 
 
 @pytest.mark.anyio
-async def test_isin_du_profil_rattache(db_session, account):
-    profile = EtfProfile(name="ETF", ticker="ISRG.PA", isin=ISRG_ETF)
-    db_session.add(profile)
+async def test_isin_du_profil_dont_le_ticker_est_celui_de_la_position(db_session, account):
+    db_session.add(EtfProfile(name="MSCI World", ticker="CW8.PA", isin="LU1681043599", aliases='["CW8"]'))
     db_session.flush()
-    h = _holding(db_session, account, "ISRG.PA", etf_profile_id=profile.id)
-    assert await resolve_missing_isins(db_session) == 1
-    assert h.isin == ISRG_ETF
+    h = _holding(db_session, account, "CW8.PA")  # non rattachée, mais ticker exact
+    alias = _holding(db_session, account, "CW8")
+    assert await resolve_missing_isins(db_session) == 2
+    assert h.isin == alias.isin == "LU1681043599"
 
 
 @pytest.mark.anyio
-async def test_profil_d_un_autre_titre_ignore(db_session, account):
-    profile = EtfProfile(name="ETF", ticker="OTHER", isin=ISRG_ETF)
+async def test_profil_seulement_rattache_n_est_pas_une_source(db_session, account):
+    profile = EtfProfile(name="MSCI World", ticker="CW8.PA", isin="LU1681043599", aliases="[]")
     db_session.add(profile)
     db_session.flush()
-    h = _holding(db_session, account, "ISRG.PA")  # aucun rattachement, aucune correspondance exacte
+    h = _holding(db_session, account, "MWRD.PA", etf_profile_id=profile.id)  # lien hérité du rapprochement par nom
     assert await resolve_missing_isins(db_session) == 0
     assert h.isin is None
+
+
+@pytest.mark.anyio
+async def test_commit_false_laisse_la_transaction_a_l_appelant(db_session, account):
+    h = _holding(db_session, account, "IE0002XZSHO1.SG")
+    db_session.commit()
+    assert await resolve_missing_isins(db_session, commit=False) == 1
+    assert h.isin == SG_ETF
+    db_session.rollback()
+    db_session.refresh(h)
+    assert h.isin is None
+
+
+@pytest.mark.anyio
+async def test_filtre_par_compte(db_session, account):
+    other = Account(name="PEA", type="investissement", currency="EUR", active=True)
+    db_session.add(other)
+    db_session.flush()
+    mine, theirs = _holding(db_session, account, "IE0002XZSHO1.SG"), _holding(db_session, other, "IE0002XZSHO1.SG")
+    assert await resolve_missing_isins(db_session, account_id=account.id) == 1
+    assert (mine.isin, theirs.isin) == (SG_ETF, None)
+
+
+@pytest.mark.anyio
+async def test_classe_d_actions_a_point_cherchee_sous_son_ticker_entier(db_session, account):
+    securities_repo.upsert_many(db_session, [
+        {"isin": "US0846707026", "ticker": "BRK.B", "name": "Berkshire", "source": "ishares", "exchange": "NYSE"}])
+    h = _holding(db_session, account, "BRK.B")
+    assert await resolve_missing_isins(db_session) == 1
+    assert h.isin == "US0846707026"
 
 
 @pytest.mark.anyio
