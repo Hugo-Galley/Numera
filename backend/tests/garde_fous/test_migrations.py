@@ -3,6 +3,7 @@
 Les autres tests utilisent `create_all` et ne voient donc pas les dérives de migration : une
 installation neuve ou une restauration sur schéma vierge échouait (colonnes manquantes).
 """
+import json
 import os
 import subprocess
 import sys
@@ -171,12 +172,21 @@ def test_purge_etf_profiles_migration_cleans_aliases_detaches_and_deletes(tmp_pa
     with engine.begin() as conn:
         orphan = _insert_profile(conn, "Orphan", "ORPH", aliases='["ORPH"]')
         held = _insert_profile(conn, "Held", "HELD")
-        full = _insert_profile(conn, "Full", "FULL", sectors='{"Technologie": 50.0}')
+        _insert_profile(conn, "Full", "FULL", sectors='{"Technologie": 50.0}')
         system = _insert_profile(conn, "System", "SYS", system=1, aliases='["SYS"]')
+        bad1 = _insert_profile(conn, "Bad1", "BAD1", aliases="not json", sectors='{"Finance": 1.0}')
+        bad2 = _insert_profile(conn, "Bad2", "BAD2", aliases='{"a":1}', sectors='{"Finance": 1.0}')
+        _insert_profile(conn, "SysEmpty", "SYSE", system=1)
+        tx_only = _insert_profile(conn, "TxOnly", "TXO")
+        manual = _insert_profile(conn, "Manual", "MAN")
         cisco = _insert_profile(conn, "Cisco CDR", "CSCO.TO", aliases='["CSCO.TO", "CSCO", "CISCO CDR", "CSCO.NEO"]')
         conn.execute(text("INSERT INTO accounts (name, type, currency, active, created_at) VALUES ('CTO', 'investissement', 'EUR', 1, '2026-01-01')"))
         acc = conn.execute(text("SELECT id FROM accounts")).scalar_one()
-        for ticker, pid in (("HELD", held), ("CSCO", cisco), ("CSCO.TO", cisco)):
+        conn.execute(
+            text("INSERT INTO investment_transactions (account_id, date, type, amount, original_amount, etf_profile_id) VALUES (:a, '2026-01-01', 'achat', 1, 1, :p)"),
+            {"a": acc, "p": tx_only},
+        )
+        for ticker, pid in (("HELD", held), ("CSCO", cisco), ("CSCO.TO", cisco), ("UNRELATED", manual)):
             conn.execute(
                 text(
                     "INSERT INTO portfolio_holdings (account_id, ticker, asset_name, quantity, currency, etf_profile_id, created_at, updated_at) "
@@ -191,14 +201,13 @@ def test_purge_etf_profiles_migration_cleans_aliases_detaches_and_deletes(tmp_pa
     engine = create_engine(url)
     with engine.connect() as conn:
         names = {r[0] for r in conn.execute(text("SELECT name FROM etf_profiles"))}
-        assert names == {"Held", "Full", "System", "Cisco CDR"}  # le vide orphelin est supprimé
+        assert names == {"Held", "Full", "System", "Cisco CDR", "Bad1", "Bad2", "SysEmpty", "TxOnly", "Manual"}  # seul le vide orphelin est supprimé
         assert orphan not in {r[0] for r in conn.execute(text("SELECT id FROM etf_profiles"))}
-        import json
-
         cisco_aliases = json.loads(conn.execute(text("SELECT aliases FROM etf_profiles WHERE id = :i"), {"i": cisco}).scalar_one())
         assert cisco_aliases == ["CSCO.TO", "CSCO.NEO"]  # alias tronqué et nom en majuscules retirés
         assert conn.execute(text("SELECT aliases FROM etf_profiles WHERE id = :i"), {"i": system}).scalar_one() == '["SYS"]'
+        for pid, raw in ((bad1, "not json"), (bad2, '{"a":1}')):  # alias illisibles : intacts, sans plantage
+            assert conn.execute(text("SELECT aliases FROM etf_profiles WHERE id = :i"), {"i": pid}).scalar_one() == raw
         links = dict(conn.execute(text("SELECT ticker, etf_profile_id FROM portfolio_holdings")).fetchall())
-        assert links == {"HELD": held, "CSCO": None, "CSCO.TO": cisco}  # l'action Cisco est détachée du CDR
-        assert full  # profil avec secteurs conservé
+        assert links == {"HELD": held, "CSCO": None, "CSCO.TO": cisco, "UNRELATED": manual}  # lien manuel gardé ; l'action Cisco est détachée du CDR
     engine.dispose()
