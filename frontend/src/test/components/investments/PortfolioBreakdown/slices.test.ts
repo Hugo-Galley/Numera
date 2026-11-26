@@ -1,5 +1,5 @@
 /** Parts du donut de répartition : 7 lignes nommées au plus, le reste (dont les libellés non classés) en « Autres ». */
-import { buildSlices, MAX_NAMED_SLICES } from "@/components/investments/AccountBreakdown/slices"
+import { buildSlices, MAX_NAMED_SLICES } from "@/components/investments/PortfolioBreakdown/slices"
 import { NEUTRAL_COLOR } from "@/lib/chartPalette"
 
 describe("buildSlices", () => {
@@ -22,5 +22,13 @@ describe("buildSlices", () => {
   it("sans reste : pas de part « Autres » ; compte vide : aucune part", () => {
     expect(buildSlices([{ name: "Bitcoin", value: 40 }, { name: "Ethereum", value: 60 }], 100, "Autres").map((s) => s.name)).toEqual(["Ethereum", "Bitcoin"])
     expect(buildSlices([], 0, "Autres")).toEqual([])
+  })
+})
+
+describe("buildSlices : vue filtrée par provenance", () => {
+  it("exprime les parts en % de toutes les positions et garde le marqueur de doublon", () => {
+    // 300 € détenus en direct sur un portefeuille de 1 000 €
+    const slices = buildSlices([{ name: "Apple", value: 200, overlap: true }], 300, "Autres", 1000)
+    expect(slices.map((s) => [s.name, s.share, s.overlap])).toEqual([["Apple", 20, true], ["Autres", 10, false]])
   })
 })

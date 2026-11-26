@@ -96,6 +96,13 @@ class LookThrough:
     etfs: list[dict[str, Any]] = field(default_factory=list)
     # Origine des compositions utilisées (Yahoo, préréglage, saisie), par profil
     compositions: dict[int, dict[str, Any]] = field(default_factory=dict)
+    # Valeur des lignes détenues en direct (actions, cryptos : tout ce qui n'est pas un ETF décomposé)
+    direct_value_eur: float = 0.0
+
+    @property
+    def etf_value_eur(self) -> float:
+        """Valeur des positions décomposées comme ETF."""
+        return sum(float(e["value_eur"]) for e in self.etfs)
 
     def company(self, key: str, name: str, ticker: str | None) -> dict[str, Any]:
         if key not in self.companies:
@@ -156,6 +163,7 @@ def _decompose_etf(out: LookThrough, vh: dict[str, Any], etf_profile: EtfProfile
 def _direct_line(out: LookThrough, vh: dict[str, Any]) -> None:
     """Une action détenue en direct (pays et secteur par défaut)."""
     vh_val = vh["value_eur"]
+    out.direct_value_eur += vh_val
     direct_ticker = vh.get("ticker")
     comp = out.company(normalize_company_key(direct_ticker, vh["name"]), vh["name"], direct_ticker)
     comp["direct_value_eur"] += vh_val

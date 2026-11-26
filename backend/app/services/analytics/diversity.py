@@ -127,6 +127,8 @@ async def compute_diversity(db: Session, account_id: int | None) -> dict[str, An
         "score_label": score_label(score),
         "totals": {
             "stocks_eur": round(total_stocks_eur, 2),
+            "direct_eur": round(lt.direct_value_eur, 2),
+            "etf_eur": round(lt.etf_value_eur, 2),
             "epargne_eur": round(side["epargne"], 2),
             "courant_eur": round(side["courant"], 2),
             "fonds_euros_eur": round(side["fonds_euros"], 2),
