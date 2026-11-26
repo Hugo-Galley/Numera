@@ -57,6 +57,10 @@ _NON_EQUITY_PHRASES: tuple[tuple[str, ...], ...] = tuple(
     for p in (
         "cash",
         "cash collateral",
+        "collateral",
+        "liquidity",
+        "ndf",
+        "non deliverable forward",
         "money market",
         "futures",
         "future",
@@ -110,6 +114,10 @@ def _has_phrase(tokens: list[str], phrase: tuple[str, ...]) -> bool:
     return any(tuple(tokens[i : i + size]) == phrase for i in range(len(tokens) - size + 1))
 
 
+def _is_equity_wording(tokens: list[str]) -> bool:
+    return bool({"equity", "equities", "action", "actions"}.intersection(tokens))
+
+
 def is_equity_line(asset_class: str | None, type_: str | None) -> bool:
     """Faux pour les lignes de liquidités, monétaire, futures, change, swaps, collatéral, dérivés ; vrai sinon.
 
@@ -118,6 +126,8 @@ def is_equity_line(asset_class: str | None, type_: str | None) -> bool:
     """
     for value in (asset_class, type_):
         tokens = _key(value).split()
+        if not ({"forward", "forwards"}.isdisjoint(tokens) or _is_equity_wording(tokens)):
+            return False
         if any(_has_phrase(tokens, phrase) for phrase in _NON_EQUITY_PHRASES):
             return False
     return True

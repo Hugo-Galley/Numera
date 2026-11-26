@@ -20,7 +20,6 @@ if TYPE_CHECKING:
 logger = get_logger(__name__)
 
 
-
 def normalize_company_key(ticker: str | None, name: str | None) -> str:
     if ticker:
         clean_t = ticker.upper().split(".")[0].strip()
