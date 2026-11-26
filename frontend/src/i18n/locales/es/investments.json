@@ -367,5 +367,30 @@
     "notRecovered": "Máximo aún no recuperado",
     "current": "Bajo el máximo hoy",
     "atPeak": "En máximos"
+  },
+  "accountBreakdown": {
+    "title": "Reparto de la cuenta",
+    "description": "Lo que realmente tienes, con los ETF desglosados en empresas.",
+    "viewsLabel": "Vista del reparto",
+    "views": {
+      "companies": "Empresas",
+      "positions": "Posiciones",
+      "sectors": "Sectores",
+      "countries": "Países"
+    },
+    "other": {
+      "companies": "Otras empresas",
+      "positions": "Otras posiciones",
+      "sectors": "Otros sectores",
+      "countries": "Otros países"
+    },
+    "centerTotal": "Valor de las posiciones",
+    "positionsCount_one": "{{count}} posición",
+    "positionsCount_other": "{{count}} posiciones",
+    "namedLines": "Líneas con nombre",
+    "shareOfAccount": "{{share}} de la cuenta",
+    "hideOther": "Ampliar las líneas con nombre (ocultar «Otros»)",
+    "chartLabel": "Gráfico de anillo del reparto de las posiciones de la cuenta",
+    "loadFailed": "No se pudo calcular el reparto de la cuenta"
   }
 }

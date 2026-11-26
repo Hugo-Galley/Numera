@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next"
 import { DividendsCard } from "@/components/investments/DividendsCard"
 import { HoldingsTable } from "@/components/investments/HoldingsTable"
 import { PortfolioSummary } from "@/components/investments/PortfolioSummary"
+import { AccountBreakdown } from "@/components/investments/AccountBreakdown"
 import { toast } from "sonner"
 import type { AccountDetailView } from "./useAccountDetail"
 import { InvestmentFlowsCard } from "./InvestmentFlowsCard"
@@ -25,6 +26,8 @@ export function InvestmentSection({ ctx }: { ctx: AccountDetailView }) {
             onRefresh={loadData}
             onAddDividend={handleAddDividend}
           />
+
+          <AccountBreakdown accountId={account.id} reloadKey={holdings} />
 
           {isInvestment && (
             <div className="flex flex-col gap-2 rounded-lg border bg-white p-3 sm:flex-row sm:items-center sm:justify-between">

@@ -1,4 +1,5 @@
-import { COUNTRIES } from "@/lib/countries"
+import { setLanguage } from "@/i18n"
+import { COUNTRIES, countryName } from "@/lib/countries"
 
 describe("COUNTRIES", () => {
   it("a des codes et des noms uniques", () => {
@@ -15,5 +16,23 @@ describe("COUNTRIES", () => {
 
   it("commence par la France", () => {
     expect(COUNTRIES[0]).toEqual({ name: "France", code: "FRA" })
+  })
+})
+
+describe("countryName", () => {
+  it("traduit un code alpha-3 et laisse le reste tel quel", () => {
+    expect(countryName("USA")).toBe("États-Unis")
+    expect(countryName("deu")).toBe("Allemagne")
+    expect(countryName("Autres")).toBe("Autres")
+    expect(countryName("XYZ")).toBe("XYZ")
+  })
+
+  it("suit la langue de l'interface", async () => {
+    await setLanguage("en")
+    try {
+      expect(countryName("GBR")).toBe("United Kingdom")
+    } finally {
+      await setLanguage("fr")
+    }
   })
 })

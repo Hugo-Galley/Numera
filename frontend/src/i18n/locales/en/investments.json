@@ -367,5 +367,30 @@
     "notRecovered": "Peak not regained yet",
     "current": "Below the high today",
     "atPeak": "At the high"
+  },
+  "accountBreakdown": {
+    "title": "Account breakdown",
+    "description": "What you really own, with ETFs broken down into companies.",
+    "viewsLabel": "Breakdown view",
+    "views": {
+      "companies": "Companies",
+      "positions": "Holdings",
+      "sectors": "Sectors",
+      "countries": "Countries"
+    },
+    "other": {
+      "companies": "Other companies",
+      "positions": "Other holdings",
+      "sectors": "Other sectors",
+      "countries": "Other countries"
+    },
+    "centerTotal": "Holdings value",
+    "positionsCount_one": "{{count}} holding",
+    "positionsCount_other": "{{count}} holdings",
+    "namedLines": "Named lines",
+    "shareOfAccount": "{{share}} of the account",
+    "hideOther": "Zoom in on named lines (hide “Other”)",
+    "chartLabel": "Donut chart of the account's holdings breakdown",
+    "loadFailed": "Couldn't compute the account breakdown"
   }
 }
