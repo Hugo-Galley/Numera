@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.core.logging import get_logger
 from app.domain.diversity import diversity_alerts, exposure_rows, hhi_score, look_through, score_label, top_companies
+from app.domain.holdings import is_fund
 from app.integrations.currency import get_exchange_rates
 from app.models.etf_profile import EtfProfile
 from app.models.portfolio_holding import PortfolioHolding
@@ -20,25 +21,19 @@ from app.services.investissement.market.search import match_etf_profile
 
 logger = get_logger(__name__)
 
-FUND_KEYWORDS = ["ETF", "FCP", "SICAV", "TRACKER", "INDEX", "FONDS", "FUND"]
-
 
 async def _resolve_profile_id(db: Session, h: PortfolioHolding, q: dict[str, Any]) -> int | None:
     """Profil ETF de la position : rattaché, retrouvé, ou créé depuis Yahoo pour un fonds inconnu (rattachement commité)."""
     if h.etf_profile_id:
         return h.etf_profile_id
+    if not is_fund(q.get("type"), h.ticker):
+        return None
     matched_p = match_etf_profile(db, symbol=h.ticker, isin=h.isin, name=h.asset_name)
     if not matched_p:
-        norm_upper = f"{h.ticker} {h.asset_name or ''}".upper()
-        if (
-            h.ticker.upper().startswith("0P")
-            or q.get("type") in ("ETF", "MUTUALFUND")
-            or any(k in norm_upper for k in FUND_KEYWORDS)
-        ):
-            try:
-                matched_p = await auto_decompose_and_create_profile(db, symbol=h.ticker, name=h.asset_name, isin=h.isin)
-            except Exception as e:
-                logger.warning(f"Could not auto-decompose {h.ticker}: {e}")
+        try:
+            matched_p = await auto_decompose_and_create_profile(db, symbol=h.ticker, name=h.asset_name, isin=h.isin)
+        except Exception as e:
+            logger.warning(f"Could not auto-decompose {h.ticker}: {e}")
     if not matched_p:
         return None
     try:
@@ -75,7 +70,7 @@ async def _value_holdings(db: Session, holdings: list[PortfolioHolding], quotes:
             "price_eur": price_eur,
             "value_eur": val_eur,
             "etf_profile_id": profile_id,
-            "is_etf": bool(profile_id or q.get("type") in ("ETF", "MUTUALFUND")),
+            "is_etf": is_fund(q.get("type"), h.ticker),
         })
     return valued_holdings, total_stocks_eur
 

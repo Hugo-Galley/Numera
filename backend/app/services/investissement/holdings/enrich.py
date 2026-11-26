@@ -4,7 +4,7 @@ from typing import Any
 from sqlalchemy.orm import Session
 
 from app.domain.dividends import HoldingDividends, summarize_by_holding
-from app.domain.holdings import holding_returns
+from app.domain.holdings import holding_returns, is_fund
 from app.integrations.currency import get_exchange_rates
 from app.models.portfolio_holding import PortfolioHolding
 from app.schemas.holding import PortfolioHoldingRead
@@ -44,7 +44,7 @@ def enrich_holding(holding: PortfolioHolding, quotes: dict[str, Any], rates: dic
         total_invested_eur=round(invested_eur, 2) if invested_eur is not None else None,
         gain_eur=figures["gain_eur"],
         gain_pct=figures["gain_pct"],
-        is_etf=bool(holding.etf_profile_id or quote.get("type") == "ETF"),
+        is_etf=is_fund(quote.get("type"), holding.ticker),
         pays_dividends=holding.pays_dividends,
         dividends_received_eur=round(divs.total_eur, 2),
         dividends_12m_eur=round(divs.last_12m_eur, 2),

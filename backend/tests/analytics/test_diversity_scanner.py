@@ -188,3 +188,22 @@ def test_market_search_and_validate(client: TestClient, db_session: Session):
     assert invalid_resp.status_code == 200
     invalid_data = invalid_resp.json()
     assert invalid_data["valid"] is False
+
+
+def test_une_action_rattachee_a_un_profil_n_est_pas_un_etf(client: TestClient, db_session: Session, monkeypatch):
+    from app.services.analytics import diversity
+    seed_etf_profiles(db_session)
+    account = Account(name="PEA", type="investissement", currency="EUR", active=True)
+    db_session.add(account)
+    db_session.commit()
+    profile = db_session.query(EtfProfile).first()
+    holding = PortfolioHolding(account_id=account.id, ticker="CSCO", asset_name="Cisco Systems", quantity=1.0,
+                               buy_price_avg=50.0, currency="USD", etf_profile_id=profile.id)
+    db_session.add(holding)
+    db_session.commit()
+
+    import asyncio
+    quotes = {"CSCO": {"type": "EQUITY", "price_eur": 50.0}}
+    valued, _ = asyncio.run(diversity._value_holdings(db_session, [holding], quotes, {"USD": 1.0}))
+    assert valued[0]["is_etf"] is False
+    assert holding.etf_profile_id == profile.id  # rattachement laissé intact

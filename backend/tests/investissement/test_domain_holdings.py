@@ -1,5 +1,5 @@
 """Règles pures des positions (sans base)."""
-from app.domain.holdings import CostEstimate, is_trade, normalize_ticker
+from app.domain.holdings import CostEstimate, is_crypto, is_fund, is_trade, normalize_ticker
 
 
 def test_is_trade():
@@ -19,3 +19,17 @@ def test_cost_estimate_coverage():
     assert estimate.coverage == 0.5
     estimate.method = "amounts"
     assert estimate.coverage is None
+
+
+def test_is_fund_se_lit_sur_le_type_du_titre():
+    assert is_fund("ETF", "CW8.PA")
+    assert is_fund("MUTUALFUND", "ABC")
+    assert is_fund(None, "0P0001HI7F.F")
+    assert not is_fund("EQUITY", "CSCO")
+    assert not is_fund(None, "CSCO")
+
+
+def test_is_crypto():
+    assert is_crypto("CRYPTOCURRENCY", "BTC-USD")
+    assert is_crypto(None, "ETH-EUR")
+    assert not is_crypto("EQUITY", "AAPL")

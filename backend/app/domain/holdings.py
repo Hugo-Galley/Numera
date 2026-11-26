@@ -19,6 +19,20 @@ def is_trade(tx_type: str, ticker: str | None, quantity: float | None) -> bool:
     return bool(ticker) and quantity is not None and quantity > 0 and tx_type in TRADE_TYPES
 
 
+FUND_QUOTE_TYPES = ("ETF", "MUTUALFUND")
+CRYPTO_SUFFIXES = ("-USD", "-EUR")
+
+
+def is_fund(quote_type: str | None, ticker: str) -> bool:
+    """Vrai pour un ETF ou un fonds : type de cotation `ETF`/`MUTUALFUND`, ou ticker de fonds Yahoo (`0P…`)."""
+    return quote_type in FUND_QUOTE_TYPES or normalize_ticker(ticker).startswith("0P")
+
+
+def is_crypto(quote_type: str | None, ticker: str) -> bool:
+    """Vrai pour une cryptomonnaie : type `CRYPTOCURRENCY`, ou ticker de paire `BTC-USD` / `BTC-EUR`."""
+    return quote_type == "CRYPTOCURRENCY" or normalize_ticker(ticker).endswith(CRYPTO_SUFFIXES)
+
+
 @dataclass
 class RealizedSale:
     """Vente rejouée : produit net et coût de revient de la quantité cédée (plus-value réalisée en EUR)."""
