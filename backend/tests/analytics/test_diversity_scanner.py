@@ -91,6 +91,11 @@ def test_baseline_holdings_and_diversity_scanner(client: TestClient, db_session:
     assert "totals" in data
     assert data["totals"]["holdings_count"] == 3
     assert data["totals"]["epargne_eur"] >= 10000.0
+    # Répartition de la valeur des positions : Apple en direct, CW8 et ESE décomposés
+    totals = data["totals"]
+    assert totals["direct_eur"] > 0
+    assert totals["etf_eur"] > 0
+    assert round(totals["direct_eur"] + totals["etf_eur"], 2) == totals["stocks_eur"]
 
     # Verify look-through company aggregation (Apple should be present with both direct and indirect exposure)
     top_comps = data["top_underlying_companies"]

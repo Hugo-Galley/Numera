@@ -28,3 +28,21 @@ def test_normalize_company_key_strips_suffix():
 def test_score_label_thresholds():
     assert [score_label(s) for s in (30, 50, 70, 90)] == [
         "Concentration critique", "Concentration modérée", "Bonne diversification globale", "Excellente diversification"]
+
+
+def test_look_through_splits_value_between_direct_lines_and_etfs():
+    """La valeur des positions se répartit entre lignes détenues en direct et ETF décomposés."""
+    from app.domain.diversity import look_through
+    from app.models.etf_profile import EtfProfile
+
+    world = EtfProfile(id=1, name="MSCI World", countries="{}", sectors="{}", top_holdings="[]")
+    holdings = [
+        {"ticker": "CW8.PA", "name": "Amundi MSCI World", "value_eur": 800.0, "etf_profile_id": 1},
+        {"ticker": "TTE.PA", "name": "TotalEnergies", "value_eur": 150.0, "etf_profile_id": None},
+        {"ticker": "BLK", "name": "BlackRock", "value_eur": 50.0, "etf_profile_id": None},
+        {"ticker": "SOLD", "name": "Ligne vendue", "value_eur": 0.0, "etf_profile_id": None},
+    ]
+    out = look_through(holdings, lambda vh: world if vh["etf_profile_id"] == 1 else None)
+
+    assert out.direct_value_eur == 200.0
+    assert out.etf_value_eur == 800.0

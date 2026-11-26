@@ -14,25 +14,30 @@ export interface BreakdownRow {
   name: string | null | undefined
   value: number
   ticker?: string | null
+  /** Société détenue par plusieurs sources (en direct et via un ETF, ou par plusieurs ETF) */
+  overlap?: boolean
 }
 
 export interface Slice {
   key: string
   name: string
   value: number
-  /** Part de la valeur des positions du compte, en % */
+  /** Part de `base` (valeur de toutes les positions), en % */
   share: number
   color: string
   ticker?: string
+  overlap: boolean
   isOther: boolean
 }
 
 /**
- * `total` : valeur des positions du compte. Ce qui n'est pas couvert par les lignes nommées retenues (lignes au-delà
- * des 7 premières, part non décomposée d'un ETF, libellés non classés) forme la part « Autres ».
+ * `total` : valeur de la vue (toutes les positions, ou seulement celles en direct / via ETF). Ce qui n'est pas couvert
+ * par les lignes nommées retenues (lignes au-delà des 7 premières, part non décomposée d'un ETF, libellés non classés)
+ * forme la part « Autres ». Les parts sont exprimées en % de `base` (toutes les positions), le même repère dans toutes
+ * les vues.
  */
-export function buildSlices(rows: BreakdownRow[], total: number, otherLabel: string): Slice[] {
-  if (total <= 0) return []
+export function buildSlices(rows: BreakdownRow[], total: number, otherLabel: string, base = total): Slice[] {
+  if (total <= 0 || base <= 0) return []
   const named = rows
     .filter((r) => r.value > 0 && r.name && !UNCLASSIFIED_LABELS.has(r.name))
     .sort((a, b) => b.value - a.value)
@@ -41,15 +46,16 @@ export function buildSlices(rows: BreakdownRow[], total: number, otherLabel: str
     key: `${i}-${r.name}`,
     name: r.name as string,
     value: r.value,
-    share: (r.value / total) * 100,
+    share: (r.value / base) * 100,
     color: CATEGORY_COLORS[i % CATEGORY_COLORS.length],
     ticker: r.ticker ?? undefined,
+    overlap: r.overlap ?? false,
     isOther: false,
   }))
   const rest = total - named.reduce((sum, r) => sum + r.value, 0)
   // Sous 0,1 % : arrondis des parts, pas une vraie ligne
   if (rest / total > 0.001) {
-    slices.push({ key: "other", name: otherLabel, value: rest, share: (rest / total) * 100, color: NEUTRAL_COLOR, isOther: true })
+    slices.push({ key: "other", name: otherLabel, value: rest, share: (rest / base) * 100, color: NEUTRAL_COLOR, overlap: false, isOther: true })
   }
   return slices
 }

@@ -534,7 +534,9 @@
  ],
  "totals": {
   "courant_eur": 3874.65,
+  "direct_eur": 1568.5,
   "epargne_eur": 10613.8,
+  "etf_eur": 11392.34,
   "etfs_count": 2,
   "fonds_euros_eur": 4188.12,
   "holdings_count": 3,
