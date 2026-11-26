@@ -151,3 +151,54 @@ def test_downgrade_then_upgrade_head_roundtrip(tmp_path):
     up = _alembic(url, "upgrade", "head")
     assert up.returncode == 0, up.stderr
     assert _schema_diffs(url) == []
+
+
+def _insert_profile(conn, name, ticker, *, aliases="[]", countries="{}", sectors="{}", top="[]", system=0, isin=None):
+    conn.execute(
+        text(
+            "INSERT INTO etf_profiles (name, ticker, isin, aliases, countries, sectors, top_holdings, composition_sources, is_system, created_at, updated_at) "
+            "VALUES (:n, :t, :i, :a, :c, :s, :h, '{}', :sys, '2026-01-01', '2026-01-01')"
+        ),
+        {"n": name, "t": ticker, "i": isin, "a": aliases, "c": countries, "s": sectors, "h": top, "sys": system},
+    )
+    return conn.execute(text("SELECT id FROM etf_profiles WHERE name = :n"), {"n": name}).scalar_one()
+
+
+def test_purge_etf_profiles_migration_cleans_aliases_detaches_and_deletes(tmp_path):
+    url = f"sqlite:///{tmp_path / 'purge.db'}"
+    assert _alembic(url, "upgrade", "7d2e9b4c1a6f").returncode == 0
+    engine = create_engine(url)
+    with engine.begin() as conn:
+        orphan = _insert_profile(conn, "Orphan", "ORPH", aliases='["ORPH"]')
+        held = _insert_profile(conn, "Held", "HELD")
+        full = _insert_profile(conn, "Full", "FULL", sectors='{"Technologie": 50.0}')
+        system = _insert_profile(conn, "System", "SYS", system=1, aliases='["SYS"]')
+        cisco = _insert_profile(conn, "Cisco CDR", "CSCO.TO", aliases='["CSCO.TO", "CSCO", "CISCO CDR", "CSCO.NEO"]')
+        conn.execute(text("INSERT INTO accounts (name, type, currency, active, created_at) VALUES ('CTO', 'investissement', 'EUR', 1, '2026-01-01')"))
+        acc = conn.execute(text("SELECT id FROM accounts")).scalar_one()
+        for ticker, pid in (("HELD", held), ("CSCO", cisco), ("CSCO.TO", cisco)):
+            conn.execute(
+                text(
+                    "INSERT INTO portfolio_holdings (account_id, ticker, asset_name, quantity, currency, etf_profile_id, created_at, updated_at) "
+                    "VALUES (:a, :t, :t, 1, 'EUR', :p, '2026-01-01', '2026-01-01')"
+                ),
+                {"a": acc, "t": ticker, "p": pid},
+            )
+    engine.dispose()
+
+    result = _alembic(url, "upgrade", "head")
+    assert result.returncode == 0, result.stderr
+    engine = create_engine(url)
+    with engine.connect() as conn:
+        names = {r[0] for r in conn.execute(text("SELECT name FROM etf_profiles"))}
+        assert names == {"Held", "Full", "System", "Cisco CDR"}  # le vide orphelin est supprimé
+        assert orphan not in {r[0] for r in conn.execute(text("SELECT id FROM etf_profiles"))}
+        import json
+
+        cisco_aliases = json.loads(conn.execute(text("SELECT aliases FROM etf_profiles WHERE id = :i"), {"i": cisco}).scalar_one())
+        assert cisco_aliases == ["CSCO.TO", "CSCO.NEO"]  # alias tronqué et nom en majuscules retirés
+        assert conn.execute(text("SELECT aliases FROM etf_profiles WHERE id = :i"), {"i": system}).scalar_one() == '["SYS"]'
+        links = dict(conn.execute(text("SELECT ticker, etf_profile_id FROM portfolio_holdings")).fetchall())
+        assert links == {"HELD": held, "CSCO": None, "CSCO.TO": cisco}  # l'action Cisco est détachée du CDR
+        assert full  # profil avec secteurs conservé
+    engine.dispose()
