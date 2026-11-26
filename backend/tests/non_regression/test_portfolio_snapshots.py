@@ -122,7 +122,11 @@ def portfolio_client(snapshot_client, db_session, monkeypatch):  # noqa: F811 (f
     async def historical_rate(db, day, currency, base="EUR"):
         return 1.0 if currency == "EUR" else _usd_rate(day)
 
+    async def no_asset_profile(symbol):
+        return None
+
     monkeypatch.setattr(yahoo_finance, "fetch_composition", no_composition)
+    monkeypatch.setattr(yahoo_finance, "fetch_asset_profile", no_asset_profile)
     monkeypatch.setattr("app.services.comptes.exchange_rates.get_historical_rate", historical_rate)
     accounts = {a.type: a.id for a in db_session.query(Account).order_by(Account.id).all()}
     accounts.update(_add_portfolio_cases(db_session))

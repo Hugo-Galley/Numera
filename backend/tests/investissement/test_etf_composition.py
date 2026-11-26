@@ -163,3 +163,133 @@ def test_auto_created_profile_has_no_truncated_alias(client: TestClient, db_sess
     assert resp.status_code == 200
     profile = db_session.query(EtfProfile).filter(EtfProfile.ticker == "CSCO.TO").one()
     assert json.loads(profile.aliases) == ["CSCO.TO", "US17275R1023"]
+
+
+def _yahoo_transport(monkeypatch, summary: dict, status: int = 200):
+    import httpx
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.host == "fc.yahoo.com":
+            return httpx.Response(404)
+        if request.url.path.endswith("getcrumb"):
+            return httpx.Response(200, text="crumb")
+        return httpx.Response(status, json=summary)
+
+    monkeypatch.setattr(yahoo_finance, "client", lambda timeout: httpx.AsyncClient(transport=httpx.MockTransport(handler)))
+    monkeypatch.setitem(yahoo_finance._yahoo_auth, "crumb", None)
+
+
+@pytest.mark.anyio
+async def test_fetch_asset_profile_normalizes_country_and_sector(monkeypatch):
+    summary = {"quoteSummary": {"result": [{"assetProfile": {"country": "United States", "sector": "Technology"}}]}}
+    _yahoo_transport(monkeypatch, summary)
+    assert await yahoo_finance.fetch_asset_profile("aapl") == {"country": "USA", "sector": "Technologie"}
+
+
+@pytest.mark.anyio
+async def test_fetch_asset_profile_unknown_values_and_unknown_symbol(monkeypatch):
+    summary = {"quoteSummary": {"result": [{"assetProfile": {"country": "Atlantis", "sector": "Magie"}}]}}
+    _yahoo_transport(monkeypatch, summary)
+    assert await yahoo_finance.fetch_asset_profile("XYZ") == {"country": None, "sector": "Non renseigné"}
+    _yahoo_transport(monkeypatch, {}, status=404)
+    assert await yahoo_finance.fetch_asset_profile("XYZ") is None
+
+
+@pytest.mark.anyio
+async def test_fetch_asset_profile_raises_when_yahoo_down(monkeypatch):
+    _yahoo_transport(monkeypatch, {}, status=500)
+    with pytest.raises(yahoo_finance.YahooUnavailable):
+        await yahoo_finance.fetch_asset_profile("AAPL")
+
+
+def _direct_stock_setup(db_session: Session, monkeypatch, *, isin: str | None, ticker: str = "AAPL"):
+    from app.services.investissement.market import quotes as market_quotes
+
+    async def fake_quotes(symbols, db=None):
+        return {s.upper(): {"price_eur": 100.0, "type": "EQUITY"} for s in symbols}
+
+    monkeypatch.setattr(market_quotes, "get_market_quotes", fake_quotes)
+    account = Account(name="CTO", type="investissement", currency="EUR", active=True)
+    db_session.add(account)
+    db_session.commit()
+    db_session.add(PortfolioHolding(account_id=account.id, ticker=ticker, asset_name="Apple Inc", isin=isin,
+                                    quantity=10.0, buy_price_avg=100.0, currency="EUR"))
+    db_session.commit()
+
+
+def test_scanner_enriches_direct_stock_once_from_yahoo(client: TestClient, db_session: Session, monkeypatch):
+    from app.models.security import Security
+    _direct_stock_setup(db_session, monkeypatch, isin="US0378331005")
+    calls = []
+
+    async def fake_profile(symbol):
+        calls.append(symbol)
+        return {"country": "USA", "sector": "Technologie"}
+
+    monkeypatch.setattr(yahoo_finance, "fetch_asset_profile", fake_profile)
+    for _ in range(2):
+        data = client.get("/analytics/diversity-scanner").json()
+    assert calls == ["AAPL"]
+    assert {c["name"] for c in data["countries"]} == {"USA"}
+    assert {s["name"] for s in data["sectors"]} == {"Technologie"}
+    sec = db_session.get(Security, "US0378331005")
+    assert (sec.source, sec.country, sec.sector, sec.ticker) == ("yahoo", "USA", "Technologie", "AAPL")
+    assert data["top_underlying_companies"][0]["name"] == "Apple Inc"
+
+
+def test_scanner_survives_yahoo_outage_for_direct_stock(client: TestClient, db_session: Session, monkeypatch):
+    _direct_stock_setup(db_session, monkeypatch, isin="US0378331005")
+
+    async def down(symbol):
+        raise yahoo_finance.YahooUnavailable("hors ligne")
+
+    monkeypatch.setattr(yahoo_finance, "fetch_asset_profile", down)
+    data = client.get("/analytics/diversity-scanner").json()
+    assert [c["name"] for c in data["countries"]] == ["Non renseigné"]
+    assert [s["name"] for s in data["sectors"]] == ["Non renseigné"]
+
+
+def test_scanner_never_calls_yahoo_without_isin(client: TestClient, db_session: Session, monkeypatch):
+    from app.models.security import Security
+    _direct_stock_setup(db_session, monkeypatch, isin=None)
+    db_session.add(Security(isin="US0378331005", ticker="AAPL", name="Apple", country="USA", sector="Technologie", source="ishares"))
+    db_session.commit()
+
+    async def boom(symbol):
+        raise AssertionError("pas d'appel Yahoo sans ISIN")
+
+    monkeypatch.setattr(yahoo_finance, "fetch_asset_profile", boom)
+    data = client.get("/analytics/diversity-scanner").json()
+    assert [c["name"] for c in data["countries"]] == ["USA"]  # un seul titre porte ce ticker
+
+
+def test_scanner_ignores_ambiguous_ticker_without_isin(client: TestClient, db_session: Session, monkeypatch):
+    from app.models.security import Security
+    _direct_stock_setup(db_session, monkeypatch, isin=None)
+    db_session.add_all([
+        Security(isin="US0378331005", ticker="AAPL", name="Apple", country="USA", sector="Technologie", source="ishares"),
+        Security(isin="XX0000000001", ticker="AAPL", name="Autre", country="FRA", sector="Finance", source="ishares"),
+    ])
+    db_session.commit()
+    data = client.get("/analytics/diversity-scanner").json()
+    assert [c["name"] for c in data["countries"]] == ["Non renseigné"]
+
+
+def test_scanner_counts_crypto_in_its_own_sector(client: TestClient, db_session: Session, monkeypatch):
+    from app.services.investissement.market import quotes as market_quotes
+
+    async def fake_quotes(symbols, db=None):
+        return {s.upper(): {"price_eur": 50.0, "type": "CRYPTOCURRENCY"} for s in symbols}
+
+    monkeypatch.setattr(market_quotes, "get_market_quotes", fake_quotes)
+    account = Account(name="CTO", type="investissement", currency="EUR", active=True)
+    db_session.add(account)
+    db_session.commit()
+    db_session.add(PortfolioHolding(account_id=account.id, ticker="BTC-USD", asset_name="Bitcoin USD",
+                                    quantity=2.0, buy_price_avg=50.0, currency="EUR"))
+    db_session.commit()
+    data = client.get("/analytics/diversity-scanner").json()
+    assert data["totals"]["stocks_eur"] == 100.0
+    assert [(s["name"], s["value_eur"]) for s in data["sectors"]] == [("Crypto-actifs", 100.0)]
+    assert data["countries"] == []
+    assert data["top_underlying_companies"] == []

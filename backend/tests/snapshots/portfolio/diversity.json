@@ -17,16 +17,22 @@
    "value_eur": 11836.9
   },
   {
-   "name": "Autres",
-   "percentage_stocks": 14.9,
-   "percentage_total_wealth": 7.66,
-   "value_eur": 2942.18
+   "name": "Non renseigné",
+   "percentage_stocks": 10.63,
+   "percentage_total_wealth": 5.46,
+   "value_eur": 2099.06
   },
   {
    "name": "CHN",
    "percentage_stocks": 4.46,
    "percentage_total_wealth": 2.29,
    "value_eur": 880.35
+  },
+  {
+   "name": "Autres",
+   "percentage_stocks": 4.27,
+   "percentage_total_wealth": 2.19,
+   "value_eur": 843.12
   },
   {
    "name": "IND",
@@ -247,7 +253,7 @@
    "value_eur": 2864.33
   },
   {
-   "name": "Actions directes",
+   "name": "Non renseigné",
    "percentage_stocks": 10.63,
    "percentage_total_wealth": 5.46,
    "value_eur": 2099.06

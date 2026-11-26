@@ -13,14 +13,21 @@ from app.core.i18n import tr
 from app.core.logging import get_logger
 from app.domain.etf_normalize import UNKNOWN_LABEL
 from app.domain.etf_profiles import load_sources
+from app.domain.holdings import is_crypto
 
 if TYPE_CHECKING:
     from app.models.etf_profile import EtfProfile
+    from app.models.security import Security
+
+CRYPTO_LABEL = "Crypto-actifs"
 
 logger = get_logger(__name__)
 
 
-def normalize_company_key(ticker: str | None, name: str | None) -> str:
+def normalize_company_key(ticker: str | None, name: str | None, isin: str | None = None) -> str:
+    """Clé d'une société : l'ISIN d'abord (une action en direct et la même dans un ETF fusionnent), puis le ticker, puis le nom."""
+    if isin:
+        return f"ISIN:{isin.upper().strip()}"
     if ticker:
         clean_t = ticker.upper().split(".")[0].strip()
         if len(clean_t) >= 2:
@@ -139,7 +146,7 @@ def _decompose_etf(out: LookThrough, vh: dict[str, Any], etf_profile: EtfProfile
             h_ticker = h_item.get("ticker")
             h_weight = float(h_item.get("weight", 0.0))
             h_val = vh_val * (h_weight / 100.0)
-            comp = out.company(normalize_company_key(h_ticker, h_name), h_name, h_ticker)
+            comp = out.company(normalize_company_key(h_ticker, h_name, h_item.get("isin")), h_name, h_ticker)
             comp["indirect_value_eur"] += h_val
             if h_ticker and not comp.get("ticker"):
                 comp["ticker"] = h_ticker
@@ -152,11 +159,11 @@ def _decompose_etf(out: LookThrough, vh: dict[str, Any], etf_profile: EtfProfile
         logger.warning(f"Error parsing ETF holdings for {etf_profile.name}: {e}")
 
 
-def _direct_line(out: LookThrough, vh: dict[str, Any]) -> None:
-    """Une action détenue en direct (pays et secteur par défaut)."""
+def _direct_line(out: LookThrough, vh: dict[str, Any], security: Security | None) -> None:
+    """Une action détenue en direct : pays et secteur du référentiel des titres, sinon « Non renseigné »."""
     vh_val = vh["value_eur"]
     direct_ticker = vh.get("ticker")
-    comp = out.company(normalize_company_key(direct_ticker, vh["name"]), vh["name"], direct_ticker)
+    comp = out.company(normalize_company_key(direct_ticker, vh["name"], vh.get("isin")), vh["name"], direct_ticker)
     comp["direct_value_eur"] += vh_val
     if direct_ticker and not comp.get("ticker"):
         comp["ticker"] = direct_ticker
@@ -165,22 +172,29 @@ def _direct_line(out: LookThrough, vh: dict[str, Any]) -> None:
         "pct_in_source": 100.0,
         "value_eur": round(vh_val, 2),
     })
-    out.countries["Autres"] = out.countries.get("Autres", 0.0) + vh_val
-    out.sectors["Actions directes"] = out.sectors.get("Actions directes", 0.0) + vh_val
+    country = (security.country if security else None) or UNKNOWN_LABEL
+    sector = (security.sector if security else None) or UNKNOWN_LABEL
+    out.countries[country] = out.countries.get(country, 0.0) + vh_val
+    out.sectors[sector] = out.sectors.get(sector, 0.0) + vh_val
 
 
 def look_through(valued_holdings: list[dict[str, Any]],
-                 profile_for: Callable[[dict[str, Any]], EtfProfile | None]) -> LookThrough:
-    """Agrège les positions valorisées (> 0) : un ETF est décomposé selon son profil, une action reste en direct."""
+                 profile_for: Callable[[dict[str, Any]], EtfProfile | None],
+                 securities: dict[str, Security] | None = None) -> LookThrough:
+    """Agrège les positions valorisées (> 0) : un ETF est décomposé selon son profil, une crypto compte dans son
+    propre secteur, une action reste en direct (`securities` : titres par ISIN, ou par ticker à défaut d'ISIN)."""
     out = LookThrough()
+    securities = securities or {}
     for vh in valued_holdings:
         if vh["value_eur"] <= 0:
             continue
         etf_profile = profile_for(vh)
         if etf_profile:
             _decompose_etf(out, vh, etf_profile)
+        elif is_crypto(vh.get("quote_type"), vh["ticker"]):
+            out.sectors[CRYPTO_LABEL] = out.sectors.get(CRYPTO_LABEL, 0.0) + vh["value_eur"]
         else:
-            _direct_line(out, vh)
+            _direct_line(out, vh, securities.get(vh.get("isin") or vh["ticker"].upper()))
     return out
 
 
