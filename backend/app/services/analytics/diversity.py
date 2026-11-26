@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.core.logging import get_logger
 from app.domain.diversity import diversity_alerts, exposure_rows, hhi_score, look_through, score_label, top_companies
-from app.domain.holdings import is_fund
+from app.domain.holdings import holding_profile, is_etf_holding, is_fund
 from app.integrations.currency import get_exchange_rates
 from app.models.etf_profile import EtfProfile
 from app.models.portfolio_holding import PortfolioHolding
@@ -22,14 +22,14 @@ from app.services.investissement.market.search import match_etf_profile
 logger = get_logger(__name__)
 
 
-async def _resolve_profile_id(db: Session, h: PortfolioHolding, q: dict[str, Any]) -> int | None:
-    """Profil ETF de la position : rattaché, retrouvé, ou créé depuis Yahoo pour un fonds inconnu (rattachement commité)."""
-    if h.etf_profile_id:
-        return h.etf_profile_id
-    if not is_fund(q.get("type"), h.ticker):
-        return None
-    matched_p = match_etf_profile(db, symbol=h.ticker, isin=h.isin, name=h.asset_name)
-    if not matched_p:
+async def _resolve_profile(db: Session, h: PortfolioHolding, q: dict[str, Any],
+                           profiles: list[EtfProfile]) -> EtfProfile | None:
+    """Profil ETF de la position : rattaché, retrouvé (correspondance exacte), ou créé depuis Yahoo pour un fonds
+    inconnu (seulement si le type du titre est un fonds ; rattachement commité)."""
+    matched_p = holding_profile(profiles, h.etf_profile_id, h.ticker, h.isin)
+    if matched_p and h.etf_profile_id:
+        return matched_p
+    if not matched_p and is_fund(q.get("type"), h.ticker):
         try:
             matched_p = await auto_decompose_and_create_profile(db, symbol=h.ticker, name=h.asset_name, isin=h.isin)
         except Exception as e:
@@ -41,7 +41,7 @@ async def _resolve_profile_id(db: Session, h: PortfolioHolding, q: dict[str, Any
         db.commit()
     except SQLAlchemyError:
         db.rollback()
-    return matched_p.id
+    return matched_p
 
 
 async def _value_holdings(db: Session, holdings: list[PortfolioHolding], quotes: dict[str, Any],
@@ -49,6 +49,7 @@ async def _value_holdings(db: Session, holdings: list[PortfolioHolding], quotes:
     """Valeur EUR de chaque position (repli sur le PRU sans cours connu) et total du portefeuille boursier."""
     total_stocks_eur = 0.0
     valued_holdings = []
+    profiles = etf_repo.all_profiles(db)
     for h in holdings:
         q = quotes.get(h.ticker.upper(), {})
         price_eur = q.get("price_eur", 0.0)
@@ -57,7 +58,7 @@ async def _value_holdings(db: Session, holdings: list[PortfolioHolding], quotes:
             fx = fx_rates.get((h.currency or "EUR").upper())
             price_eur = h.buy_price_avg / fx if fx else 0.0
 
-        profile_id = await _resolve_profile_id(db, h, q)
+        profile = await _resolve_profile(db, h, q, profiles)
         val_eur = round(h.quantity * price_eur, 2)
         total_stocks_eur += val_eur
         valued_holdings.append({
@@ -69,8 +70,8 @@ async def _value_holdings(db: Session, holdings: list[PortfolioHolding], quotes:
             "quantity": h.quantity,
             "price_eur": price_eur,
             "value_eur": val_eur,
-            "etf_profile_id": profile_id,
-            "is_etf": is_fund(q.get("type"), h.ticker),
+            "etf_profile_id": profile.id if profile else None,
+            "is_etf": is_etf_holding(q.get("type"), h.ticker, h.isin, profile),
         })
     return valued_holdings, total_stocks_eur
 

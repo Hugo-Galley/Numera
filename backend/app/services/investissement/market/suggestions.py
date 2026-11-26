@@ -3,8 +3,9 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
-from app.domain.holdings import is_fund
+from app.domain.holdings import is_etf_holding
 from app.domain.market import extract_asset_clean_name
+from app.repositories.investissement import etf_profiles as etf_repo
 from app.repositories.investissement import investment_transactions as tx_repo
 from app.services.investissement.market.search import search_market_assets
 
@@ -42,6 +43,7 @@ async def suggest_holdings_from_notes(db: Session, account_id: int) -> list[dict
 
     # Resolve tickers for top suggestions
     suggestions: list[dict[str, Any]] = []
+    profiles_by_id = {p.id: p for p in etf_repo.all_profiles(db)}
     for asset_name, item in aggregated.items():
         search_res = await search_market_assets(asset_name, db=db)
         best_match = search_res[0] if search_res else None
@@ -57,7 +59,7 @@ async def suggest_holdings_from_notes(db: Session, account_id: int) -> list[dict
             "historical_net_invested": round(item["net_amount"], 2),
             "tx_count": item["tx_count"],
             "etf_profile_id": etf_id,
-            "is_etf": bool(best_match and is_fund(best_match.get("type"), symbol)),
+            "is_etf": bool(best_match and is_etf_holding(best_match.get("type"), symbol, best_match.get("isin"), profiles_by_id.get(etf_id) if etf_id else None)),
         })
 
     # Sort by historical net invested descending

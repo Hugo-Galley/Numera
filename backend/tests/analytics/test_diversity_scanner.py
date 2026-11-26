@@ -207,3 +207,21 @@ def test_une_action_rattachee_a_un_profil_n_est_pas_un_etf(client: TestClient, d
     valued, _ = asyncio.run(diversity._value_holdings(db_session, [holding], quotes, {"USD": 1.0}))
     assert valued[0]["is_etf"] is False
     assert holding.etf_profile_id == profile.id  # rattachement laissé intact
+
+
+def test_etf_sans_type_connu_reste_etf_et_decompose(client: TestClient, db_session: Session):
+    """Yahoo indisponible : le type est inconnu, mais le ticker correspond exactement à un profil."""
+    import asyncio
+
+    from app.services.analytics import diversity
+    seed_etf_profiles(db_session)
+    account = Account(name="PEA", type="investissement", currency="EUR", active=True)
+    db_session.add(account)
+    db_session.commit()
+    holding = PortfolioHolding(account_id=account.id, ticker="ESE.PA", asset_name="BNP Easy S&P 500", quantity=1.0,
+                               buy_price_avg=30.0, currency="EUR")
+    db_session.add(holding)
+    db_session.commit()
+    valued, _ = asyncio.run(diversity._value_holdings(db_session, [holding], {}, {"EUR": 1.0}))
+    assert valued[0]["is_etf"] is True
+    assert valued[0]["etf_profile_id"] is not None
