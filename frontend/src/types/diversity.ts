@@ -80,6 +80,8 @@ export interface DiversityScannerResponse {
   score_label: string
   totals: {
     stocks_eur: number
+    direct_eur: number
+    etf_eur: number
     epargne_eur: number
     courant_eur: number
     fonds_euros_eur: number

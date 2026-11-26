@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import { CompanyLogo } from "@/components/ui/CompanyLogo"
 import { formatCurrency, formatRate } from "@/lib/utils"
 import type { Slice } from "./slices"
@@ -12,6 +13,7 @@ interface BreakdownLegendProps {
 
 /** Légende du donut : une ligne par part (nom, part du compte, montant), survol relié au graphique. */
 export function BreakdownLegend({ slices, active, onHover, withLogos }: BreakdownLegendProps) {
+  const { t } = useTranslation("investments")
   return (
     <ul className="divide-y divide-slate-100">
       {slices.map((s, i) => (
@@ -27,6 +29,11 @@ export function BreakdownLegend({ slices, active, onHover, withLogos }: Breakdow
           <span className="flex min-w-0 items-center gap-1.5">
             {withLogos && !s.isOther && <CompanyLogo ticker={s.ticker} name={s.name} className="h-4 w-4 shrink-0 rounded-xs" />}
             <span className="truncate text-slate-700" title={s.name}>{s.name}</span>
+            {s.overlap && (
+              <span className="shrink-0 rounded-sm border border-slate-200 px-1 text-[11px] text-slate-500" title={t("breakdown.overlapHint")}>
+                {t("breakdown.overlap")}
+              </span>
+            )}
           </span>
           <span className="text-right text-xs text-slate-500 tabular-nums sm:w-14">{formatRate(s.share, 1)}</span>
           <span className="text-right font-semibold text-slate-900 tabular-nums sm:w-24">{formatCurrency(s.value)}</span>

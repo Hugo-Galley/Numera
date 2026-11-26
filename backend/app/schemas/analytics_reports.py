@@ -96,6 +96,9 @@ class DiversityAlert(BaseModel):
 
 class DiversityTotals(BaseModel):
     stocks_eur: float
+    # Part de `stocks_eur` détenue en direct (actions, cryptos) et via des ETF décomposés
+    direct_eur: float
+    etf_eur: float
     epargne_eur: float
     courant_eur: float
     fonds_euros_eur: float
