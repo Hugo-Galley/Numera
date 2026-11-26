@@ -211,7 +211,7 @@
    "etf_profile_id": 2,
    "id": 4,
    "is_etf": true,
-   "isin": null,
+   "isin": "FR0011550185",
    "name": "BNP Paribas Easy S&P 500",
    "price_eur": 481.0,
    "quantity": 13.0,

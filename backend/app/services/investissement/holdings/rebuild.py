@@ -9,10 +9,12 @@ from app.models.portfolio_holding import PortfolioHolding
 from app.repositories.investissement import holdings as repo
 from app.repositories.investissement import investment_transactions as tx_repo
 from app.services.investissement.holdings.replay import replay_account
+from app.services.investissement.isin_resolution import resolve_missing_isins
 
 
 async def rebuild_holdings(db: Session, account_id: int) -> None:
-    """Recalcule toutes les positions du compte depuis l'inventaire et les opérations. Ne commit pas."""
+    """Recalcule toutes les positions du compte depuis l'inventaire et les opérations. Ne commit pas (complète aussi les ISIN
+    manquants depuis les sources locales)."""
     positions = (await replay_account(db, account_id)).positions
     existing = repo.holdings_by_ticker(db, account_id)
     for ticker, holding in existing.items():
@@ -49,6 +51,8 @@ async def rebuild_holdings(db: Session, account_id: int) -> None:
             found.isin = found.isin or pos.isin
             found.etf_profile_id = found.etf_profile_id or pos.etf_profile_id
     db.flush()
+    # Sources locales seulement (pas de catalogue, donc pas de réseau) ; les catalogues passent par la tâche de fond
+    await resolve_missing_isins(db, catalogs=(), commit=False)
 
 
 DUE_WINDOW = timedelta(days=7)

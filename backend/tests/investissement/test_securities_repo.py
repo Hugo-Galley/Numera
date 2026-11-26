@@ -51,3 +51,11 @@ def test_by_ticker_renvoie_toutes_les_places(db_session):
 def test_by_isins_vide_et_inconnus(db_session):
     assert repo.by_isins(db_session, []) == {}
     assert repo.by_isins(db_session, ["XX0000000000"]) == {}
+
+
+def test_by_tickers_une_requete_pour_plusieurs_tickers(db_session, measure_queries):
+    repo.upsert_many(db_session, [_row("CH0000000001", ticker="HO"), _row("US0000000004", ticker="AAPL"), _row("US0000000005", ticker="X")])
+    rows, queries = measure_queries(lambda: repo.by_tickers(db_session, ["HO", "AAPL", "ZZZ"]))
+    assert {s.isin for s in rows} == {"CH0000000001", "US0000000004"}
+    assert queries == 1
+    assert repo.by_tickers(db_session, []) == []

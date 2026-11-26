@@ -57,9 +57,10 @@ def test_etape_en_echec_ne_saute_pas_les_suivantes(monkeypatch):
     monkeypatch.setattr(main, "generate_benefit_transactions", ok_sync("aides-generation"))
     monkeypatch.setattr(main, "rebuild_due_holdings", ok_async("holdings"))
     monkeypatch.setattr(main, "refresh_held_prices", ok_async("prices"))
+    monkeypatch.setattr(main, "resolve_missing_isins", ok_async("isin"))
     monkeypatch.setattr(main, "refresh_held_etf_profiles", ok_async("etf"))
     monkeypatch.setattr(main, "run_notifications", ok_async("notifications"))
 
     _run_one_cycle(monkeypatch)
 
-    assert ran == ["recurring", "rollback", "salaries", "aides", "aides-generation", "holdings", "prices", "etf", "notifications"]
+    assert ran == ["recurring", "rollback", "salaries", "aides", "aides-generation", "holdings", "prices", "isin", "etf", "notifications"]

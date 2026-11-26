@@ -63,6 +63,7 @@ from app.services.budget.recurring import generate_recurring_transactions
 from app.services.budget.salary_generation import check_and_generate_pending_salaries
 from app.services.investissement.etf_profiles import refresh_held_etf_profiles
 from app.services.investissement.holdings.rebuild import rebuild_due_holdings
+from app.services.investissement.isin_resolution import resolve_missing_isins
 from app.services.investissement.market.quotes import refresh_held_prices
 from app.services.systeme.demo import demo_write_allowed, ensure_demo_data, is_blocked_in_demo
 from app.services.systeme.notifications import run_notifications
@@ -105,6 +106,8 @@ async def recurring_transactions_task() -> None:
                 await _run_step(db, "positions", rebuild_due_holdings)
                 # Cours des titres détenus enregistrés en base (historique de valorisation)
                 await _run_step(db, "cours", refresh_held_prices)
+                # ISIN manquants des positions (sources locales, puis catalogues des émetteurs)
+                await _run_step(db, "ISIN", resolve_missing_isins)
                 # Composition des ETF détenus (Yahoo), au plus une fois par semaine et par profil
                 await _run_step(db, "profils ETF", refresh_held_etf_profiles)
                 # Alertes du Centre d'Actions et résumé hebdo vers ntfy / Telegram (si activés)
