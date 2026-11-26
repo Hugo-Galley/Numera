@@ -27,8 +27,8 @@ def test_isin_from_symbol():
     ("symbol", "place"),
     [
         ("AAPL", "US"), ("HO.PA", "PAR"), ("ASML.AS", "AMS"), ("X.BR", "BRU"), ("X.LS", "LIS"),
-        ("X.MC", "MAD"), ("X.T", "TYO"), ("X.HK", "HKG"), ("X.AX", "ASX"), ("X.ST", "NORDIC"),
-        ("X.CO", "NORDIC"), ("NOKIA.HE", "NORDIC"), ("X.OL", "OSL"), ("X.VI", "VIE"), ("X.IR", "DUB"),
+        ("X.MC", "MAD"), ("X.T", "TYO"), ("X.HK", "HKG"), ("X.AX", "ASX"), ("X.ST", "STO"),
+        ("X.CO", "CPH"), ("NOKIA.HE", "HEL"), ("X.OL", "OSL"), ("X.VI", "VIE"), ("X.IR", "DUB"),
         ("X.TA", "TLV"), ("X.SI", "SGX"), ("X.DE", "GER"), ("X.F", "GER"), ("X.SG", "GER"),
         ("X.L", "LON"), ("X.MI", "MIL"), ("X.SW", "SWX"), ("X.TO", "TOR"), ("x.pa", "PAR"),
     ],
@@ -115,9 +115,46 @@ def test_pick_isin_without_provider_exchange_falls_back_on_isin_country():
     assert pick_isin("AAPL", [IsinCandidate("CA0679011084", "AAPL", None)]) == "CA0679011084"
 
 
-def test_pick_isin_us_accepts_us_or_ca_isin_whatever_the_exchange_name():
-    assert pick_isin("AAPL", [IsinCandidate(AAPL, "AAPL", "Some Venue")]) == AAPL
+def test_pick_isin_unknown_venue_is_refused_even_with_us_isin():
+    assert pick_isin("AAPL", [IsinCandidate(AAPL, "AAPL", "Some Venue")]) is None
 
 
 def test_pick_isin_ignores_invalid_isin():
     assert pick_isin("AAPL", [IsinCandidate("US0378331006", "AAPL", "NASDAQ")]) is None
+
+
+def test_exchange_alone_decides_when_provider_exchange_given():
+    assert pick_isin("T", [IsinCandidate("CA87971M1032", "T", "Toronto Stock Exchange")]) is None
+
+
+@pytest.mark.parametrize("exchange", ["Nasdaq Stockholm", "Nasdaq Dubai", "Cboe Europe", "Nasdaq Omx Baltic", "Nyse Arca Europe"])
+def test_us_place_is_a_whitelist(exchange):
+    assert pick_isin("AAPL", [IsinCandidate(AAPL, "AAPL", exchange)]) is None
+
+
+@pytest.mark.parametrize("exchange", ["NASDAQ", "Nasdaq Stock Market", "Nasdaq Global Select", "New York Stock Exchange Inc.", "NYSE Arca", "Cboe BZX"])
+def test_us_place_whitelist_accepts(exchange):
+    assert pick_isin("AAPL", [IsinCandidate(AAPL, "AAPL", exchange)]) == AAPL
+
+
+def test_share_class_tickers_are_not_truncated():
+    assert pick_isin("BRK.B", [IsinCandidate("US0846707026", "BRK", "New York Stock Exchange Inc.")]) is None
+    assert pick_isin("BRK.B", [IsinCandidate("US0846707026", "BRK.B", "New York Stock Exchange Inc.")]) == "US0846707026"
+    assert pick_isin("RDS.A.L", [IsinCandidate("GB00B03MLX29", "RDS", "London Stock Exchange")]) is None
+    assert pick_isin("RDS.A.L", [IsinCandidate("GB00B03MLX29", "RDS.A", "London Stock Exchange")]) == "GB00B03MLX29"
+
+
+def test_nordic_city_in_exchange_decides():
+    assert pick_isin("X.HE", [IsinCandidate("DK0010244425", "X", "Omx Nordic Exchange Copenhagen A/S")]) is None
+    assert pick_isin("X.CO", [IsinCandidate("DK0010244425", "X", "Omx Nordic Exchange Copenhagen A/S")]) == "DK0010244425"
+
+
+def test_generic_nordic_exchange_uses_isin_country():
+    assert pick_isin("NOKIA.HE", [IsinCandidate(NOKIA, "NOKIA", "Nasdaq Omx Nordic")]) == NOKIA
+    assert pick_isin("X.HE", [IsinCandidate("SE0000108656", "X", "Nasdaq Omx Nordic")]) is None
+
+
+def test_isin_with_trailing_newline_is_invalid_and_empty_ticker_is_none():
+    assert not is_valid_isin("US0378331005\n")
+    assert pick_isin(".PA", [IsinCandidate(THALES, "", "Nyse Euronext - Euronext Paris")]) is None
+    assert pick_isin("", [IsinCandidate(AAPL, "", "NASDAQ")]) is None

@@ -16,7 +16,7 @@ _ISIN_RE = re.compile(r"^[A-Z]{2}[A-Z0-9]{9}[0-9]$")
 _SUFFIX_TO_PLACE = {
     "PA": "PAR", "AS": "AMS", "BR": "BRU", "LS": "LIS", "MC": "MAD",
     "DE": "GER", "F": "GER", "SG": "GER", "L": "LON", "MI": "MIL", "SW": "SWX", "TO": "TOR",
-    "T": "TYO", "HK": "HKG", "AX": "ASX", "ST": "NORDIC", "CO": "NORDIC", "HE": "NORDIC",
+    "T": "TYO", "HK": "HKG", "AX": "ASX", "ST": "STO", "CO": "CPH", "HE": "HEL",
     "OL": "OSL", "VI": "VIE", "IR": "DUB", "TA": "TLV", "SI": "SGX",
 }
 
@@ -26,7 +26,7 @@ _PLACE_KEYWORDS = {
     "MAD": ("madrid",), "GER": ("xetra", "frankfurt", "deutsche boerse", "stuttgart", "tradegate", "berlin"),
     "LON": ("london",), "MIL": ("borsa italiana", "milan"), "SWX": ("swiss",), "TOR": ("toronto",),
     "TYO": ("tokyo",), "HKG": ("hong kong",), "ASX": ("asx", "australia"),
-    "NORDIC": ("nordic", "omx", "helsinki", "copenhagen", "stockholm"),
+    "HEL": ("helsinki",), "CPH": ("copenhagen",), "STO": ("stockholm",),
     "OSL": ("oslo",), "VIE": ("wiener", "vienna"), "DUB": ("irish", "dublin"),
     "TLV": ("tel aviv",), "SGX": ("singapore",),
 }
@@ -35,7 +35,7 @@ _PLACE_KEYWORDS = {
 _PLACE_ISIN_PREFIXES = {
     "US": ("US", "CA"), "PAR": ("FR",), "AMS": ("NL",), "BRU": ("BE",), "LIS": ("PT",), "MAD": ("ES",),
     "GER": ("DE",), "LON": ("GB",), "MIL": ("IT",), "SWX": ("CH",), "TOR": ("CA",), "TYO": ("JP",),
-    "HKG": ("HK",), "ASX": ("AU",), "NORDIC": ("SE", "DK", "FI", "IS"), "OSL": ("NO",), "VIE": ("AT",),
+    "HKG": ("HK",), "ASX": ("AU",), "HEL": ("FI",), "CPH": ("DK",), "STO": ("SE",), "OSL": ("NO",), "VIE": ("AT",),
     "DUB": ("IE",), "TLV": ("IL",), "SGX": ("SG",),
 }
 
@@ -49,7 +49,7 @@ class IsinCandidate:
 
 def is_valid_isin(value: str) -> bool:
     """Format ISO 6166 et clé de contrôle (Luhn sur les chiffres obtenus en développant les lettres)."""
-    if not _ISIN_RE.match(value):
+    if not _ISIN_RE.fullmatch(value):
         return False
     digits = "".join(str(int(c, 36)) for c in value)
     total = 0
@@ -69,37 +69,58 @@ def isin_from_symbol(symbol: str) -> str | None:
     return base if is_valid_isin(base) else None
 
 
+def _split(symbol: str) -> tuple[str, str | None]:
+    """(ticker sans suffixe de place, place). `BRK.B` (classe d'actions d'une lettre inconnue) reste US."""
+    if "." not in symbol:
+        return symbol.strip().upper(), "US"
+    base, suffix = symbol.rsplit(".", 1)
+    suffix = suffix.strip().upper()
+    if suffix in _SUFFIX_TO_PLACE:
+        return base.strip().upper(), _SUFFIX_TO_PLACE[suffix]
+    if len(suffix) == 1:
+        return symbol.strip().upper(), "US"
+    return base.strip().upper(), None
+
+
 def exchange_of(symbol: str) -> str | None:
     """Place déduite du suffixe Yahoo ; sans suffixe : `US` ; suffixe inconnu : None."""
-    if "." not in symbol:
-        return "US"
-    return _SUFFIX_TO_PLACE.get(symbol.rsplit(".", 1)[1].strip().upper())
+    return _split(symbol)[1]
+
+
+_NORDIC_CITIES = ("helsinki", "copenhagen", "stockholm", "oslo", "iceland", "riga", "tallinn", "vilnius")
 
 
 def _is_us_exchange(exchange: str) -> bool:
-    name = exchange.lower()
-    if "euronext" in name or "omx" in name:
-        return False  # « Nyse Euronext - Euronext Paris », « Nasdaq Omx Nordic » ne sont pas américains
-    return any(key in name for key in ("new york", "nyse", "nasdaq", "cboe"))
+    """Liste blanche : toute autre place Nasdaq/Cboe (Stockholm, Dubai, Europe…) n'est pas américaine."""
+    name = exchange.lower().strip()
+    if "euronext" in name or "arca europe" in name:
+        return False
+    return (
+        name in ("nasdaq", "nasdaq stock market")
+        or name.startswith(("nasdaq global", "new york stock exchange", "cboe bzx"))
+        or "nyse" in name
+    )
 
 
 def _is_compatible(place: str, candidate: IsinCandidate) -> bool:
-    if place == "US" and candidate.isin[:2] in ("US", "CA"):
-        return True
-    if not candidate.exchange:
+    exchange = (candidate.exchange or "").strip()
+    if not exchange:
         return candidate.isin[:2] in _PLACE_ISIN_PREFIXES.get(place, ())
     if place == "US":
-        return _is_us_exchange(candidate.exchange)
-    name = candidate.exchange.lower()
-    return any(key in name for key in _PLACE_KEYWORDS.get(place, ()))
+        return _is_us_exchange(exchange)
+    name = exchange.lower()
+    if any(key in name for key in _PLACE_KEYWORDS.get(place, ())):
+        return True
+    # Place nordique générique (sans ville) : le pays de l'ISIN départage.
+    generic = ("nordic" in name or "omx" in name) and not any(city in name for city in _NORDIC_CITIES)
+    return place in ("HEL", "CPH", "STO") and generic and candidate.isin[:2] in _PLACE_ISIN_PREFIXES[place]
 
 
 def pick_isin(symbol: str, candidates: list[IsinCandidate]) -> str | None:
     """ISIN du seul candidat de ticker exact et de place compatible ; None si aucun ou ambigu."""
-    place = exchange_of(symbol)
-    if place is None:
+    ticker, place = _split(symbol)
+    if place is None or not ticker:
         return None
-    ticker = symbol.split(".")[0].strip().upper()
     isins = {
         c.isin
         for c in candidates
