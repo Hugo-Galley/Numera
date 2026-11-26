@@ -1,13 +1,16 @@
 """Scanner de diversification : expositions réelles par transparence des ETF, doublons, score et alertes,
 rapportées au portefeuille boursier et au patrimoine total."""
+from datetime import timedelta
 from typing import Any
 
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from app.core.logging import get_logger
+from app.core.time import utcnow_naive
 from app.domain.diversity import diversity_alerts, exposure_rows, hhi_score, look_through, score_label, top_companies
 from app.domain.holdings import holding_profile, is_crypto, is_etf_holding, is_fund
+from app.domain.isin import IsinCandidate, pick_isin
 from app.integrations import yahoo_finance
 from app.integrations.currency import get_exchange_rates
 from app.models.etf_profile import EtfProfile
@@ -23,6 +26,8 @@ from app.services.investissement.market import quotes as market_quotes
 from app.services.investissement.market.search import match_etf_profile
 
 logger = get_logger(__name__)
+
+PROFILE_RETRY = timedelta(days=7)
 
 
 async def _resolve_profile(db: Session, h: PortfolioHolding, q: dict[str, Any],
@@ -84,48 +89,67 @@ def _is_direct_stock(vh: dict[str, Any]) -> bool:
     return not vh["etf_profile_id"] and not vh["is_etf"] and not is_crypto(vh.get("quote_type"), vh["ticker"])
 
 
-def _lacks_profile(security: Security | None) -> bool:
-    return security is None or (security.country is None and security.sector is None)
+def _needs_yahoo(security: Security | None) -> bool:
+    """Titre absent, ou sans pays ni secteur et pas interrogé depuis `PROFILE_RETRY` (404 de Yahoo mémorisé)."""
+    if security is None:
+        return True
+    if security.country is not None or security.sector is not None:
+        return False
+    return security.updated_at < utcnow_naive() - PROFILE_RETRY
 
 
-async def _direct_securities(db: Session, valued_holdings: list[dict[str, Any]]) -> dict[str, Security]:
-    """Titres des actions en direct, par ISIN (ou par ticker pour une position sans ISIN, si un seul titre le porte).
-
-    Un titre avec ISIN absent du référentiel est demandé une fois à Yahoo (`source="yahoo"`, un seul commit) ;
-    Yahoo injoignable : on s'en passe et le pays et le secteur restent « Non renseigné »."""
-    direct = [vh for vh in valued_holdings if vh["value_eur"] > 0 and _is_direct_stock(vh)]
-    with_isin = [vh for vh in direct if vh.get("isin")]
-    found = securities_repo.by_isins(db, [vh["isin"] for vh in with_isin])
+async def _enrich_from_yahoo(db: Session, holdings: list[dict[str, Any]], found: dict[str, Security]) -> bool:
+    """Interroge Yahoo une fois par titre à compléter ; un titre inconnu de Yahoo est mémorisé (ligne sans pays ni
+    secteur) pour ne pas être redemandé à chaque scan. Yahoo injoignable : on s'arrête, rien n'est mémorisé."""
     rows = []
-    for vh in with_isin:
-        if vh["isin"] in found and not _lacks_profile(found[vh["isin"]]):
+    for vh in holdings:
+        if not _needs_yahoo(found.get(vh["isin"])):
             continue
         try:
             profile = await yahoo_finance.fetch_asset_profile(vh["ticker"])
         except yahoo_finance.YahooUnavailable as e:
             logger.warning(f"Profil Yahoo indisponible pour {vh['ticker']}: {e}")
             break
-        if profile:
-            rows.append({"isin": vh["isin"], "ticker": vh["ticker"].upper().split(".")[0], "exchange": None,
-                         "name": vh["name"], "country": profile["country"], "sector": profile["sector"], "source": "yahoo"})
-    if rows:
-        try:
-            securities_repo.upsert_many(db, rows)
-            db.commit()
-        except SQLAlchemyError:
-            db.rollback()
-        else:
-            found = securities_repo.by_isins(db, [vh["isin"] for vh in with_isin])
-    result = dict(found)
-    no_isin = [vh["ticker"].upper() for vh in direct if not vh.get("isin")]
+        rows.append({"isin": vh["isin"], "ticker": vh["ticker"].upper().split(".")[0], "exchange": None,
+                     "name": vh["name"], "country": (profile or {}).get("country"),
+                     "sector": (profile or {}).get("sector"), "source": "yahoo"})
+    if not rows:
+        return False
+    try:
+        securities_repo.upsert_many(db, rows)
+        db.commit()
+    except SQLAlchemyError:
+        db.rollback()
+        return False
+    return True
+
+
+def _securities_without_isin(db: Session, holdings: list[dict[str, Any]]) -> dict[str, Security]:
+    """Titre d'une position sans ISIN : le seul ISIN de ticker exact et de place compatible (`pick_isin`)."""
+    tickers = {vh["ticker"].upper().split(".")[0] for vh in holdings}
     by_ticker: dict[str, list[Security]] = {}
-    for s in securities_repo.by_tickers(db, {t.split(".")[0] for t in no_isin}):
-        by_ticker.setdefault(s.ticker, []).append(s)
-    for ticker in no_isin:
-        matches = by_ticker.get(ticker.split(".")[0], [])
-        if len(matches) == 1:
-            result[ticker] = matches[0]
+    for sec in securities_repo.by_tickers(db, tickers):
+        by_ticker.setdefault(sec.ticker.upper(), []).append(sec)
+    result: dict[str, Security] = {}
+    for vh in holdings:
+        candidates = by_ticker.get(vh["ticker"].upper().split(".")[0], [])
+        isin = pick_isin(vh["ticker"], [IsinCandidate(c.isin, c.ticker, c.exchange) for c in candidates])
+        match = next((c for c in candidates if c.isin == isin), None)
+        if match:
+            result[vh["ticker"].upper()] = match
     return result
+
+
+async def _direct_securities(db: Session, valued_holdings: list[dict[str, Any]]) -> dict[str, Security]:
+    """Titres des actions en direct : par ISIN, ou par ticker (clé = ticker de la position) pour une position sans ISIN.
+
+    Yahoo ne sert que les positions avec ISIN (une fois par titre, un seul commit)."""
+    direct = [vh for vh in valued_holdings if vh["value_eur"] > 0 and _is_direct_stock(vh)]
+    with_isin = [vh for vh in direct if vh.get("isin")]
+    found = securities_repo.by_isins(db, [vh["isin"] for vh in with_isin])
+    if await _enrich_from_yahoo(db, with_isin, found):
+        found = securities_repo.by_isins(db, [vh["isin"] for vh in with_isin])
+    return {**found, **_securities_without_isin(db, [vh for vh in direct if not vh.get("isin")])}
 
 
 async def _wealth_context(db: Session) -> dict[str, float]:
@@ -158,13 +182,14 @@ async def compute_diversity(db: Session, account_id: int | None) -> dict[str, An
     # Patrimoine total : actions valorisées par positions (ou repli) + épargne, liquidités et fonds euros
     total_wealth_eur = round(total_stocks_eur + side["epargne"] + side["courant"] + side["fonds_euros"] + side["other"], 2)
 
+    securities = await _direct_securities(db, valued_holdings)  # commit éventuel avant de charger les profils
     profiles_by_id = {p.id: p for p in etf_repo.all_profiles(db)}
 
     def profile_for(vh: dict[str, Any]) -> EtfProfile | None:
         etf_profile = profiles_by_id.get(vh["etf_profile_id"]) if vh["etf_profile_id"] else None
         return etf_profile or match_etf_profile(db, symbol=vh["ticker"], isin=vh.get("isin"), name=vh.get("name"))
 
-    lt = look_through(valued_holdings, profile_for, await _direct_securities(db, valued_holdings))
+    lt = look_through(valued_holdings, profile_for, securities)
     companies = top_companies(lt.companies, total_stocks_eur, total_wealth_eur)
     countries = exposure_rows(lt.countries, total_stocks_eur, total_wealth_eur)
     sectors = exposure_rows(lt.sectors, total_stocks_eur, total_wealth_eur)

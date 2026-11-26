@@ -252,7 +252,8 @@ def test_scanner_survives_yahoo_outage_for_direct_stock(client: TestClient, db_s
 def test_scanner_never_calls_yahoo_without_isin(client: TestClient, db_session: Session, monkeypatch):
     from app.models.security import Security
     _direct_stock_setup(db_session, monkeypatch, isin=None)
-    db_session.add(Security(isin="US0378331005", ticker="AAPL", name="Apple", country="USA", sector="Technologie", source="ishares"))
+    db_session.add(Security(isin="US0378331005", ticker="AAPL", name="Apple", country="USA", sector="Technologie",
+                           exchange="NASDAQ", source="ishares"))
     db_session.commit()
 
     async def boom(symbol):
@@ -267,8 +268,8 @@ def test_scanner_ignores_ambiguous_ticker_without_isin(client: TestClient, db_se
     from app.models.security import Security
     _direct_stock_setup(db_session, monkeypatch, isin=None)
     db_session.add_all([
-        Security(isin="US0378331005", ticker="AAPL", name="Apple", country="USA", sector="Technologie", source="ishares"),
-        Security(isin="XX0000000001", ticker="AAPL", name="Autre", country="FRA", sector="Finance", source="ishares"),
+        Security(isin="US0378331005", ticker="AAPL", name="Apple", country="USA", sector="Technologie", exchange="NASDAQ", source="ishares"),
+        Security(isin="US5949181045", ticker="AAPL", name="Autre", country="FRA", sector="Finance", exchange="NASDAQ", source="ishares"),
     ])
     db_session.commit()
     data = client.get("/analytics/diversity-scanner").json()
@@ -293,3 +294,36 @@ def test_scanner_counts_crypto_in_its_own_sector(client: TestClient, db_session:
     assert [(s["name"], s["value_eur"]) for s in data["sectors"]] == [("Crypto-actifs", 100.0)]
     assert data["countries"] == []
     assert data["top_underlying_companies"] == []
+
+
+def test_scanner_does_not_borrow_us_row_for_foreign_listing_without_isin(client: TestClient, db_session: Session, monkeypatch):
+    from app.models.security import Security
+    _direct_stock_setup(db_session, monkeypatch, isin=None, ticker="ISRG.PA")
+    db_session.add(Security(isin="US46120E6023", ticker="ISRG", name="Intuitive Surgical", country="USA",
+                            sector="Santé", exchange="NASDAQ", source="ishares"))
+    db_session.commit()
+    data = client.get("/analytics/diversity-scanner").json()
+    assert [c["name"] for c in data["countries"]] == ["Non renseigné"]
+
+
+def test_scanner_remembers_symbol_unknown_to_yahoo(client: TestClient, db_session: Session, monkeypatch):
+    from datetime import timedelta
+
+    from app.core.time import utcnow_naive
+    from app.models.security import Security
+    _direct_stock_setup(db_session, monkeypatch, isin="US0378331005")
+    calls = []
+
+    async def unknown(symbol):
+        calls.append(symbol)
+
+    monkeypatch.setattr(yahoo_finance, "fetch_asset_profile", unknown)
+    client.get("/analytics/diversity-scanner")
+    client.get("/analytics/diversity-scanner")
+    assert calls == ["AAPL"]
+    marker = db_session.get(Security, "US0378331005")
+    assert (marker.source, marker.country, marker.sector) == ("yahoo", None, None)
+    marker.updated_at = utcnow_naive() - timedelta(days=8)
+    db_session.commit()
+    client.get("/analytics/diversity-scanner")
+    assert calls == ["AAPL", "AAPL"]
