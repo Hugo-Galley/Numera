@@ -1,4 +1,5 @@
 """Profils ETF (`etf_profiles`)."""
+from sqlalchemy import update
 from sqlalchemy.orm import Session
 
 from app.models.etf_profile import EtfProfile
@@ -74,3 +75,22 @@ def flush(db: Session) -> None:
 
 def delete(db: Session, profile: EtfProfile) -> None:
     db.delete(profile)
+
+
+def identities(db: Session) -> list[tuple[int, str, str | None, str | None]]:
+    """(id, ticker, alias JSON, ISIN) de tous les profils, sans objets ORM."""
+    return [(i, t, a, s) for i, t, a, s in db.query(EtfProfile.id, EtfProfile.ticker, EtfProfile.aliases, EtfProfile.isin)]
+
+
+def holding_isins(db: Session) -> list[tuple[int, str, str | None]]:
+    """(profil, ticker, ISIN) des positions rattachées à un profil et dotées d'un ISIN."""
+    rows = db.query(PortfolioHolding.etf_profile_id, PortfolioHolding.ticker, PortfolioHolding.isin).filter(
+        PortfolioHolding.etf_profile_id.isnot(None), PortfolioHolding.isin.isnot(None), PortfolioHolding.isin != "")
+    return [(p, t, i) for p, t, i in rows.distinct() if p is not None]
+
+
+def set_isins(db: Session, isins: dict[int, str]) -> None:
+    """Un ISIN par profil, en une instruction ; le profil sera relu au prochain passage (pas de commit)."""
+    if isins:
+        db.execute(update(EtfProfile), [
+            {"id": pid, "isin": isin, "composition_refreshed_at": None} for pid, isin in isins.items()])

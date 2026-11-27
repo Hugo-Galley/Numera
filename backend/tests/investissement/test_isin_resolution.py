@@ -1,5 +1,6 @@
 """ISIN des positions retrouvé en tâche de fond : strict, jamais deviné, jamais écrasé."""
 import asyncio
+import json
 from datetime import datetime
 
 import pytest
@@ -10,7 +11,7 @@ from app.models.holding_baseline_item import HoldingBaselineItem
 from app.models.investment_transaction import InvestmentTransaction
 from app.models.portfolio_holding import PortfolioHolding
 from app.repositories.investissement import securities as securities_repo
-from app.services.investissement.isin_resolution import resolve_missing_isins
+from app.services.investissement.isin_resolution import copy_isins_to_profiles, resolve_missing_isins
 
 AAPL = "US0378331005"
 ISRG_ETF = "FR001400SDL2"
@@ -229,3 +230,90 @@ def test_lectures_groupees(db_session, account, measure_queries):
     n, queries = measure_queries(lambda: asyncio.run(resolve_missing_isins(db_session)))
     assert n == 0
     assert queries <= 8
+
+
+WORLD = "IE00B4L5Y983"
+
+
+def _bare_profile(db, ticker, isin=None, aliases=None, refreshed=True):
+    p = EtfProfile(name=ticker, ticker=ticker, isin=isin, aliases=json.dumps(aliases or [ticker]),
+                   composition_refreshed_at=datetime(2026, 11, 26) if refreshed else None)
+    db.add(p)
+    db.flush()
+    return p
+
+
+def test_isin_de_la_position_recopie_sur_son_profil(db_session, account):
+    profile = _bare_profile(db_session, "SWDA.L")
+    _holding(db_session, account, "SWDA.L", isin=WORLD, etf_profile_id=profile.id)
+    assert copy_isins_to_profiles(db_session) == 1
+    db_session.expire_all()
+    assert profile.isin == WORLD
+    assert profile.composition_refreshed_at is None  # relu chez l'émetteur au prochain passage
+
+
+def test_isin_recopie_par_alias_exact(db_session, account):
+    profile = _bare_profile(db_session, "IWDA.AS", aliases=["IWDA.AS", "SWDA.L"])
+    _holding(db_session, account, "SWDA.L", isin=WORLD, etf_profile_id=profile.id)
+    assert copy_isins_to_profiles(db_session) == 1
+    assert profile.isin == WORLD
+
+
+def test_isin_du_profil_jamais_remplace(db_session, account):
+    profile = _bare_profile(db_session, "SWDA.L", isin=SG_ETF)
+    _holding(db_session, account, "SWDA.L", isin=WORLD, etf_profile_id=profile.id)
+    assert copy_isins_to_profiles(db_session) == 0
+    assert profile.isin == SG_ETF
+
+
+def test_isins_divergents_aucun_recopie(db_session, account):
+    other = Account(name="PEA", type="investissement", currency="EUR", active=True)
+    db_session.add(other)
+    db_session.flush()
+    profile = _bare_profile(db_session, "SWDA.L")
+    _holding(db_session, account, "SWDA.L", isin=WORLD, etf_profile_id=profile.id)
+    _holding(db_session, other, "SWDA.L", isin=SG_ETF, etf_profile_id=profile.id)
+    assert copy_isins_to_profiles(db_session) == 0
+    assert profile.isin is None
+
+
+def test_rattachement_sans_ticker_commun_ne_prouve_rien(db_session, account):
+    """Un rattachement hérité de l'ancien rapprochement par nom ne donne pas son ISIN au profil."""
+    profile = _bare_profile(db_session, "CW8.PA")
+    _holding(db_session, account, "SWDA.L", isin=WORLD, etf_profile_id=profile.id)
+    assert copy_isins_to_profiles(db_session) == 0
+    assert profile.isin is None
+
+
+def test_isin_deja_porte_par_un_autre_profil_non_recopie(db_session, account):
+    _bare_profile(db_session, "IWDA.AS", isin=WORLD)
+    profile = _bare_profile(db_session, "SWDA.L")
+    _holding(db_session, account, "SWDA.L", isin=WORLD, etf_profile_id=profile.id)
+    assert copy_isins_to_profiles(db_session) == 0
+    assert profile.isin is None
+
+
+def test_isin_invalide_non_recopie(db_session, account):
+    profile = _bare_profile(db_session, "SWDA.L")
+    _holding(db_session, account, "SWDA.L", isin="IE00B4L5Y984", etf_profile_id=profile.id)
+    assert copy_isins_to_profiles(db_session) == 0
+
+
+@pytest.mark.anyio
+async def test_isin_resolu_recopie_sur_le_profil(db_session, account):
+    profile = _bare_profile(db_session, "SWDA.L")
+    h = _holding(db_session, account, "SWDA.L", etf_profile_id=profile.id)
+    await resolve_missing_isins(db_session, [FakeCatalog({"SWDA.L": WORLD})])
+    db_session.expire_all()
+    assert (h.isin, profile.isin) == (WORLD, WORLD)
+
+
+def test_recopie_en_masse(db_session, account, measure_queries):
+    def count_for(size):
+        for i in range(size):
+            p = _bare_profile(db_session, f"E{size}X{i}.L")
+            _holding(db_session, account, p.ticker, isin=None, etf_profile_id=p.id)
+        _, queries = measure_queries(lambda: copy_isins_to_profiles(db_session))
+        return queries
+
+    assert count_for(2) == count_for(40)

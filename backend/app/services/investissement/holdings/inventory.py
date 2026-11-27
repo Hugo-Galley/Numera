@@ -29,6 +29,7 @@ from app.services.investissement.holdings.cost_estimates import estimate_baselin
 from app.services.investissement.holdings.enrich import enrich_all
 from app.services.investissement.holdings.rebuild import rebuild_holdings
 from app.services.investissement.holdings.replay import trade_cutoff
+from app.services.investissement.isin_resolution import copy_isins_to_profiles
 from app.services.investissement.market.suggestions import suggest_holdings_from_notes
 
 
@@ -173,6 +174,9 @@ async def update_holding(db: Session, holding_id: int, payload: PortfolioHolding
         db.flush()
         await rebuild_holdings(db, holding.account_id)
 
+    if payload.isin:
+        db.flush()
+        copy_isins_to_profiles(db, commit=False)
     db.commit()
     holding = repo.get(db, holding_id)
     if holding is None:

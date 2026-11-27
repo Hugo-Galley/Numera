@@ -12,6 +12,7 @@ from typing import Protocol
 from sqlalchemy.orm import Session
 
 from app.core.logging import get_logger
+from app.domain.etf_profiles import isins_for_profiles
 from app.domain.holdings import normalize_ticker
 from app.domain.isin import IsinCandidate, is_valid_isin, isin_from_symbol, pick_isin
 from app.models.etf_profile import EtfProfile
@@ -85,9 +86,11 @@ async def resolve_missing_isins(db: Session, catalogs: Sequence[IsinCatalog] | N
     """Complète l'ISIN des positions qui n'en ont pas ; renvoie leur nombre.
 
     Un seul commit, s'il y a du changement ; `commit=False` laisse la transaction à l'appelant (flush seulement) ;
-    `account_id` limite aux positions d'un compte."""
+    `account_id` limite aux positions d'un compte. Recopie ensuite les ISIN connus sur les profils ETF qui n'en ont
+    pas (`copy_isins_to_profiles`)."""
     holdings = holdings_repo.holdings_without_isin(db, account_id)
     if not holdings:
+        copy_isins_to_profiles(db, commit=commit)
         return 0
     recorded = _recorded_by_key(db)
     profiles = profiles_repo.all_profiles(db)
@@ -99,10 +102,10 @@ async def resolve_missing_isins(db: Session, catalogs: Sequence[IsinCatalog] | N
             holding.isin = isin
             resolved += 1
     if resolved:
-        if commit:
-            db.commit()
-        else:
-            db.flush()
+        db.flush()
+    copied = copy_isins_to_profiles(db, commit=False)  # l'ISIN trouvé sert aussi au profil ETF de la position
+    if (resolved or copied) and commit:
+        db.commit()
     return resolved
 
 
@@ -122,3 +125,17 @@ async def _resolve_one(holding: PortfolioHolding, recorded: dict[tuple[int, str]
         return isin
     pool = [c for key in _lookup_keys(symbol) for c in candidates.get(key, [])]
     return pick_isin(symbol, pool) or await _from_catalogs(symbol, catalogs)
+
+
+def copy_isins_to_profiles(db: Session, *, commit: bool = True) -> int:
+    """Recopie l'ISIN, résolu ou saisi, des positions sur leur profil ETF qui n'en a pas (jamais en cas de doute) ;
+    renvoie le nombre de profils complétés. Trois requêtes, quel que soit le nombre de profils."""
+    isins = isins_for_profiles(profiles_repo.identities(db), profiles_repo.holding_isins(db))
+    if isins:
+        profiles_repo.set_isins(db, isins)
+        if commit:
+            db.commit()
+        else:
+            db.flush()
+        logger.info(f"ISIN recopié sur {len(isins)} profil(s) ETF")
+    return len(isins)

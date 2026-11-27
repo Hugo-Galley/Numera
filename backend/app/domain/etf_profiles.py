@@ -7,11 +7,13 @@ Chaque champ de composition garde sa source dans `EtfProfile.composition_sources
 from __future__ import annotations
 
 import json
+from collections.abc import Iterable
 from contextlib import suppress
 from datetime import timedelta
 from typing import TYPE_CHECKING, Any
 
 from app.core.time import utcnow_naive
+from app.domain.isin import is_valid_isin
 from app.schemas.etf_profile import EtfProfileRead, EtfProfileUpdate
 
 if TYPE_CHECKING:
@@ -161,3 +163,34 @@ def profile_matches_query(p: EtfProfile, q_lower: str) -> bool:
             if any(q_lower in a or a in q_lower for a in aliases):
                 matches = True
     return bool(matches)
+
+
+def _names(ticker: str, aliases: str | None) -> set[str]:
+    names = {ticker.upper().strip()}
+    with suppress(Exception):  # alias illisible : ignoré
+        names |= {str(alias).upper().strip() for alias in json.loads(aliases or "[]")}
+    return names
+
+
+def isins_for_profiles(
+    profiles: Iterable[tuple[int, str, str | None, str | None]], holdings: Iterable[tuple[int, str, str | None]]
+) -> dict[int, str]:
+    """ISIN à recopier sur les profils sans ISIN, depuis leurs positions `(profil, ticker, ISIN)`.
+
+    `profiles` : `(id, ticker, alias JSON, ISIN)` de tous les profils. Seules comptent les positions rattachées dont
+    le ticker est celui du profil ou un de ses alias. Rien en cas de doute : plusieurs ISIN pour un profil, un même
+    ISIN pour plusieurs profils, ou un ISIN déjà porté par un autre profil."""
+    rows = list(profiles)
+    taken = {(isin or "").upper().strip() for _, _, _, isin in rows if isin}
+    names = {pid: _names(ticker, aliases) for pid, ticker, aliases, isin in rows if not isin}
+    found: dict[int, set[str]] = {}
+    for pid, ticker, isin in holdings:
+        cleaned = (isin or "").upper().strip()
+        if pid in names and cleaned and ticker.upper().strip() in names[pid]:
+            found.setdefault(pid, set()).add(cleaned)
+    chosen = {pid: next(iter(isins)) for pid, isins in found.items() if len(isins) == 1}
+    chosen = {pid: isin for pid, isin in chosen.items() if is_valid_isin(isin) and isin not in taken}
+    counts: dict[str, int] = {}
+    for isin in chosen.values():
+        counts[isin] = counts.get(isin, 0) + 1
+    return {pid: isin for pid, isin in chosen.items() if counts[isin] == 1}

@@ -232,3 +232,22 @@ async def test_price_on_uses_last_close_before_date(db_session):
     # Rien d'assez proche (et Yahoo hors ligne) : None
     assert await market_quotes.get_price_on(db_session, "CW8.PA", date(2025, 1, 1)) is None
 
+
+
+def test_isin_entered_on_a_position_reaches_its_etf_profile(client, db_session):
+    """« ISIN à compléter » saisi : le profil ETF sans ISIN le reçoit et sera relu chez l'émetteur."""
+    from app.models.etf_profile import EtfProfile
+
+    account_id = _account(client)
+    _op(client, account_id, "achat", 10, 100.0)
+    h = _holding(db_session, account_id)
+    profile = EtfProfile(name="Ancien profil", ticker=h.ticker, aliases=f'["{h.ticker}"]',
+                         composition_refreshed_at=datetime(2026, 11, 26))
+    db_session.add(profile)
+    db_session.commit()
+    h.etf_profile_id = profile.id
+    db_session.commit()
+
+    assert client.put(f"/holdings/{h.id}", json={"isin": "IE00B4L5Y983"}).status_code == 200
+    db_session.expire_all()
+    assert (profile.isin, profile.composition_refreshed_at) == ("IE00B4L5Y983", None)
