@@ -341,6 +341,7 @@
   "auth.web_only": "Action réservée à l'interface web",
   "validation.pattern_empty": "pattern ne peut pas être vide (il correspondrait à toutes les transactions)",
   "validation.initial_balance_rule_target": "Solde Initial ne peut pas être cible d'une règle",
+  "validation.isin_invalid": "ISIN invalide (12 caractères, clé de contrôle fausse ?)",
   "validation.empty": "ne peut pas être vide",
   "validation.duplicate_aliases": "alias en double dans la liste",
   "validation.date_range": "date hors de la plage 1900-2200",

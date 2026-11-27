@@ -1,7 +1,9 @@
 from datetime import datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 
+from app.core.i18n import tr
+from app.domain.isin import is_valid_isin
 from app.schemas.types import Amount, BoundedDatetime, Quantity
 
 
@@ -30,6 +32,17 @@ class PortfolioHoldingUpdate(BaseModel):
     etf_profile_id: int | None = None
     pays_dividends: bool | None = None
     cost_basis_eur: Quantity | None = None
+
+    @field_validator("isin")
+    @classmethod
+    def _valid_isin(cls, value: str | None) -> str | None:
+        """Vide : efface l'ISIN. Sinon un ISIN valide (format et clé de Luhn), en majuscules."""
+        if value is None or not value.strip():
+            return value
+        cleaned = value.strip().upper()
+        if not is_valid_isin(cleaned):
+            raise ValueError(tr("validation.isin_invalid"))
+        return cleaned
 
 
 class PortfolioHoldingRead(PortfolioHoldingBase):

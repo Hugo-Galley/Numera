@@ -251,3 +251,21 @@ def test_isin_entered_on_a_position_reaches_its_etf_profile(client, db_session):
     assert client.put(f"/holdings/{h.id}", json={"isin": "IE00B4L5Y983"}).status_code == 200
     db_session.expire_all()
     assert (profile.isin, profile.composition_refreshed_at) == ("IE00B4L5Y983", None)
+
+
+@pytest.mark.parametrize(("isin", "status"), [
+    ("IE00B4L5Y984", 422),  # bon format, mauvaise clé de Luhn
+    ("PAS-UN-ISIN", 422),
+    (" ie00b4l5y983 ", 200),
+    ("", 200),  # vide : efface l'ISIN
+])
+def test_isin_entered_on_a_position_is_checked_by_the_server(client, db_session, isin, status):
+    account_id = _account(client)
+    _op(client, account_id, "achat", 10, 100.0)
+    h = _holding(db_session, account_id)
+
+    resp = client.put(f"/holdings/{h.id}", json={"isin": isin})
+
+    assert resp.status_code == status, resp.text
+    db_session.expire_all()
+    assert h.isin == ("IE00B4L5Y983" if isin.strip() and status == 200 else None)
