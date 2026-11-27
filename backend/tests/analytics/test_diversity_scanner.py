@@ -1,6 +1,7 @@
 import json
 from datetime import datetime
 
+import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
@@ -117,7 +118,8 @@ def test_baseline_holdings_and_diversity_scanner(client: TestClient, db_session:
     # Check alert detection
     alerts = data["alerts"]
     assert isinstance(alerts, list)
-    assert any(a["category"] in ("company", "overlap", "country", "sector") for a in alerts)
+    assert alerts
+    assert {a["category"] for a in alerts} <= {"overweight", "overlap", "redundant_pick", "correlated_block"}
 
 
 def test_investment_transaction_auto_increments_holding(client: TestClient, db_session: Session):
@@ -236,3 +238,148 @@ def test_etf_sans_type_connu_reste_etf_et_decompose(client: TestClient, db_sessi
     valued, _ = asyncio.run(diversity._value_holdings(db_session, [holding], {}, {"EUR": 1.0}))
     assert valued[0]["is_etf"] is True
     assert valued[0]["etf_profile_id"] is not None
+
+
+def _holding(db: Session, account: Account, ticker: str, value: float, name: str | None = None) -> None:
+    db.add(PortfolioHolding(account_id=account.id, ticker=ticker, asset_name=name or ticker, quantity=1.0,
+                            buy_price_avg=value, currency="EUR"))
+    db.commit()
+
+
+def _investment_account(db: Session, name: str = "CTO") -> Account:
+    account = Account(name=name, type="investissement", currency="EUR", active=True)
+    db.add(account)
+    db.commit()
+    return account
+
+
+@pytest.fixture(autouse=True)
+def _no_reference(monkeypatch) -> None:
+    """Émetteurs et Yahoo injoignables : la référence de marché ne peut pas être créée (une référence déjà en base
+    et à jour reste utilisée)."""
+    from app.services.investissement import etf_composition
+
+    async def unavailable(*_args, **_kwargs):
+        raise etf_composition.CompositionUnavailable("sources en échec")
+
+    monkeypatch.setattr(etf_composition, "_collect", unavailable)
+
+
+def test_scanner_without_market_reference(client: TestClient, db_session: Session, monkeypatch):
+    _holding(db_session, _investment_account(db_session), "AAPL", 500.0, "Apple Inc.")
+
+    response = client.get("/analytics/diversity-scanner")
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["market"] is None
+    assert data["score"] == 50.0
+    assert data["score_label"] == "Référence de marché indisponible : score neutre"
+    assert all(c["market_pct"] is None for c in data["countries"] + data["sectors"])
+    assert not [a for a in data["alerts"] if a["category"] == "overweight"]
+
+
+def test_scanner_empty_and_single_line(client: TestClient, db_session: Session, monkeypatch):
+    account = _investment_account(db_session)
+
+    empty = client.get("/analytics/diversity-scanner").json()
+
+    assert empty["concentration"]["effective_bets"] == 0.0
+    assert empty["concentration"]["exposures_count"] == 0
+    assert empty["concentration"]["blocks"] == []
+    assert empty["exposures"] == []
+    assert empty["coverage"] == {"with_prices_pct": 0.0, "composition_pct": 0.0}
+
+    _holding(db_session, account, "AAPL", 500.0, "Apple Inc.")
+    single = client.get(f"/analytics/diversity-scanner?account_id={account.id}").json()
+
+    assert single["concentration"]["effective_bets"] == 1.0
+    assert single["concentration"]["exposures_count"] == 1
+    assert single["concentration"]["blocks"] == []
+    assert single["exposures"][0]["weight_pct"] == 100.0
+    assert [p["name"] for p in single["stock_picking"]] == ["Apple Inc."]
+
+
+def test_same_crypto_two_accounts_single_exposure(client: TestClient, db_session: Session, monkeypatch):
+    from app.services.investissement.market import quotes as market_quotes
+
+    async def crypto_quotes(symbols, db=None):
+        return {s.upper(): {"price_eur": 1.0, "type": "CRYPTOCURRENCY"} for s in symbols}
+
+    monkeypatch.setattr(market_quotes, "get_market_quotes", crypto_quotes)
+    first, second = _investment_account(db_session, "Ledger"), _investment_account(db_session, "Exchange")
+    db_session.add_all([
+        PortfolioHolding(account_id=first.id, ticker="BTC-USD", asset_name="Bitcoin USD", quantity=207.04,
+                         buy_price_avg=1.0, currency="EUR"),
+        PortfolioHolding(account_id=second.id, ticker="BTC-USD", asset_name="Bitcoin USD", quantity=460.56,
+                         buy_price_avg=1.0, currency="EUR"),
+    ])
+    db_session.commit()
+
+    data = client.get("/analytics/diversity-scanner").json()
+
+    assert len(data["exposures"]) == 1
+    btc = data["exposures"][0]
+    assert btc["name"] == "Bitcoin USD"
+    assert btc["kind"] == "crypto"
+    assert btc["value_eur"] == 667.6
+    assert [(s["account_name"], s["value_eur"]) for s in btc["supports"]] == [("Exchange", 460.56), ("Ledger", 207.04)]
+    assert data["concentration"]["effective_bets"] == 1.0
+    assert data["stock_picking"] == []
+
+
+def test_scanner_against_a_market_reference(client: TestClient, db_session: Session):
+    from app.core.time import utcnow_naive
+
+    db_session.add(EtfProfile(name="iShares MSCI ACWI", ticker="SSAC.L", isin="IE00B6R52259", aliases="[]",
+                              composition_refreshed_at=utcnow_naive(),
+                              countries=json.dumps({"USA": 64.0, "JPN": 36.0}),
+                              sectors=json.dumps({"Technologie": 25.0, "Industrie": 75.0}),
+                              top_holdings=json.dumps([{"name": "Apple Inc", "ticker": "AAPL", "isin": "US0378331005",
+                                                         "weight": 4.0}])))
+    db_session.commit()
+    account = _investment_account(db_session)
+    _holding(db_session, account, "AAPL", 500.0, "Apple Inc")
+    from app.models.security import Security
+    db_session.add(Security(isin="US0378331005", ticker="AAPL", name="Apple Inc", country="USA",
+                            sector="Technologie", source="test"))
+    db_session.query(PortfolioHolding).update({"isin": "US0378331005"})
+    db_session.commit()
+
+    data = client.get("/analytics/diversity-scanner").json()
+
+    market = data["market"]
+    assert market["name"] == "iShares MSCI ACWI"
+    assert market["ticker"] == "SSAC.L"
+    assert market["countries"]["active_share_pct"] == 36.0
+    assert {c["name"]: c["market_pct"] for c in data["countries"]} == {"USA": 64.0}
+    assert {s["name"]: s["market_pct"] for s in data["sectors"]} == {"Technologie": 25.0}
+    # Pays 36, secteurs 75, sociétés 48 (Apple 100 % du portefeuille contre 4 % publiés, sans renormalisation)
+    assert data["score"] == 47.0
+    assert data["market"]["companies"]["comparable"] is True
+    overweight = {(a["dimension"], a["item_name"]) for a in data["alerts"] if a["category"] == "overweight"}
+    assert ("sectors", "Technologie") in overweight
+    assert ("countries", "USA") in overweight  # 100 % contre 64 % : plus de 1,5 fois le marché et +36 points
+
+
+def test_scanner_with_unknown_composition_is_neutral(client: TestClient, db_session: Session):
+    """Référence connue, mais aucune ligne comparable (fonds sans composition) : pas de « 100 / excellent »."""
+    from app.core.time import utcnow_naive
+
+    db_session.add(EtfProfile(name="iShares MSCI ACWI", ticker="SSAC.L", isin="IE00B6R52259", aliases="[]",
+                              composition_refreshed_at=utcnow_naive(), countries=json.dumps({"USA": 64.0}),
+                              sectors=json.dumps({"Technologie": 25.0})))
+    fund = EtfProfile(name="Fonds opaque", ticker="OPQ.PA", aliases="[]")
+    db_session.add(fund)
+    db_session.commit()
+    account = _investment_account(db_session)
+    db_session.add(PortfolioHolding(account_id=account.id, ticker="OPQ.PA", asset_name="Fonds opaque", quantity=1.0,
+                                    buy_price_avg=1000.0, currency="EUR", etf_profile_id=fund.id))
+    db_session.commit()
+
+    data = client.get("/analytics/diversity-scanner").json()
+
+    assert data["market"]["countries"]["covered_pct"] == 0.0
+    assert data["market"]["countries"]["comparable"] is False
+    assert data["score"] == 50.0
+    assert data["score_label"] == "Composition inconnue : score neutre"

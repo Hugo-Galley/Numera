@@ -1,22 +1,28 @@
 {
- "alerts": [
-  {
-   "category": "company",
-   "item_name": "TotalEnergies",
-   "message": "TotalEnergies représente 12.1% de tes actions/ETF (4.96% du patrimoine total).",
-   "title": "Forte exposition sur TotalEnergies",
-   "type": "warning",
-   "value_pct": 12.1
+ "alerts": [],
+ "concentration": {
+  "blocks": [],
+  "effective_bets": 2.02,
+  "exposures_count": 3,
+  "pairs_by_source": {
+   "composition": 0,
+   "prices": 3,
+   "unknown": 0
   }
- ],
+ },
  "countries": [
   {
+   "market_pct": null,
    "name": "Non renseigné",
    "percentage_stocks": 100.0,
    "percentage_total_wealth": 40.97,
    "value_eur": 12960.84
   }
  ],
+ "coverage": {
+  "composition_pct": 12.1,
+  "with_prices_pct": 100.0
+ },
  "etf_compositions": [
   {
    "composition_as_of": null,
@@ -53,6 +59,53 @@
     "PAEEM.PA"
    ],
    "value_eur": 3549.78
+  }
+ ],
+ "exposures": [
+  {
+   "id": "exp:CW8.PA",
+   "kind": "fund",
+   "name": "Amundi MSCI World",
+   "supports": [
+    {
+     "account_id": 3,
+     "account_name": "PEA",
+     "ticker": "CW8.PA",
+     "value_eur": 7842.56
+    }
+   ],
+   "value_eur": 7842.56,
+   "weight_pct": 60.51
+  },
+  {
+   "id": "exp:PAEEM.PA",
+   "kind": "fund",
+   "name": "Amundi PEA MSCI Emerging Markets",
+   "supports": [
+    {
+     "account_id": 3,
+     "account_name": "PEA",
+     "ticker": "PAEEM.PA",
+     "value_eur": 3549.78
+    }
+   ],
+   "value_eur": 3549.78,
+   "weight_pct": 27.39
+  },
+  {
+   "id": "exp:TTE.PA",
+   "kind": "direct",
+   "name": "TotalEnergies",
+   "supports": [
+    {
+     "account_id": 3,
+     "account_name": "PEA",
+     "ticker": "TTE.PA",
+     "value_eur": 1568.5
+    }
+   ],
+   "value_eur": 1568.5,
+   "weight_pct": 12.1
   }
  ],
  "holdings": [
@@ -93,14 +146,29 @@
    "value_eur": 3549.78
   }
  ],
- "score": 10.0,
- "score_label": "Concentration critique",
+ "market": null,
+ "score": 50.0,
+ "score_label": "Référence de marché indisponible : score neutre",
  "sectors": [
   {
+   "market_pct": null,
    "name": "Non renseigné",
    "percentage_stocks": 100.0,
    "percentage_total_wealth": 40.97,
    "value_eur": 12960.84
+  }
+ ],
+ "stock_picking": [
+  {
+   "correlation_with_core": -0.04,
+   "indirect_pct": 0.0,
+   "indirect_value_eur": 0.0,
+   "key": "exp:TTE.PA",
+   "name": "TotalEnergies",
+   "redundant": false,
+   "source": "prices",
+   "ticker": "TTE.PA",
+   "value_eur": 1568.5
   }
  ],
  "top_underlying_companies": [

@@ -14,6 +14,7 @@ describeApiCases("analytics", analytics, [
   { fn: "getAnalyticsCalendar", args: [Q], method: "GET", path: "/analytics/calendar", query: Q },
   { fn: "getAnalyticsCashflowProjection", args: [Q], method: "GET", path: "/analytics/cashflow-projection", query: Q },
   { fn: "getAnalyticsDiversityScanner", args: ["?account_id=3"], method: "GET", path: "/analytics/diversity-scanner", query: "?account_id=3" },
+  { fn: "putAnalyticsDiversityScannerMarketReference", args: [{ ticker: "CW8.PA" }], method: "PUT", path: "/analytics/diversity-scanner/market-reference", body: { ticker: "CW8.PA" } },
   { fn: "getAnalyticsInvestmentsAllocation", method: "GET", path: "/analytics/investments-allocation" },
   { fn: "getAnalyticsInvestmentsAllocationAdvanced", method: "GET", path: "/analytics/investments-allocation-advanced" },
   { fn: "getAnalyticsInvestmentsById", args: [7], method: "GET", path: "/analytics/investments/7" },

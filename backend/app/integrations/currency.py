@@ -18,6 +18,8 @@ FAILURE_CACHE_DURATION = timedelta(minutes=10)
 _failed_until: dict[str, datetime] = {}
 # Disjoncteur des taux historiques : 3 échecs consécutifs coupent les appels pendant 10 min
 _historical_breaker = CircuitBreaker(threshold=3, cooldown=FAILURE_CACHE_DURATION)
+# Série d'une devise en échec : pas de nouvel appel avant FAILURE_CACHE_DURATION (un scan ne relance pas Frankfurter)
+_series_failed_until: dict[str, datetime] = {}
 
 # Taux hors-ligne (1 EUR = X devise), utilisés uniquement si Frankfurter est injoignable
 # et qu'aucun taux n'a jamais été récupéré.
@@ -78,8 +80,10 @@ def _fallback_rates(base: str) -> dict[str, float]:
 async def fetch_historical_rate(date: date_type, currency: str) -> float | None:
     """Taux Frankfurter (1 EUR = X `currency`) à `date`, ou au jour ouvré précédent. None si indisponible.
 
-    Réseau seulement : la mise en cache en base est faite par `services/comptes/exchange_rates.py`."""
-    if not _historical_breaker.allow():
+    Réseau seulement : la mise en cache en base est faite par `services/comptes/exchange_rates.py`. La série de la
+    devise vient d'échouer : None sans appel (une valorisation ne relance pas Frankfurter jour par jour)."""
+    now = now_local()
+    if now < _series_failed_until.get(currency, now) or not _historical_breaker.allow():
         return None
     try:
         async with httpx.AsyncClient(timeout=8.0) as client:
@@ -96,7 +100,8 @@ async def fetch_historical_rate(date: date_type, currency: str) -> float | None:
 async def fetch_rate_series(start: date_type, end: date_type, currency: str) -> dict[date_type, float]:
     """Série Frankfurter (1 EUR = X `currency`) des jours ouvrés de `start` à `end`, en une seule requête.
     Vide si indisponible (disjoncteur ouvert, erreur réseau ou HTTP)."""
-    if not _historical_breaker.allow():
+    now = now_local()
+    if now < _series_failed_until.get(currency, now) or not _historical_breaker.allow():
         return {}
     try:
         async with httpx.AsyncClient(timeout=15.0) as client:
@@ -107,11 +112,14 @@ async def fetch_rate_series(start: date_type, end: date_type, currency: str) -> 
         _historical_breaker.success()
         if response.status_code == 200:
             rates = response.json().get("rates", {})
+            _series_failed_until.pop(currency, None)
             return {date_type.fromisoformat(day): by_currency[currency] for day, by_currency in rates.items()
                     if by_currency.get(currency)}
+        logger.warning(f"Frankfurter returned HTTP {response.status_code} for the {currency} series")
     except Exception as e:  # frontière réseau : repli sur les taux en cache ou de secours, jamais d'erreur pour l'appelant
         _historical_breaker.failure()
         logger.warning(f"Error fetching exchange rate series: {e}")
+    _series_failed_until[currency] = now + FAILURE_CACHE_DURATION
     return {}
 
 
@@ -120,3 +128,4 @@ def reset_state() -> None:
     _rates_cache.clear()
     _cache_expiry.clear()
     _failed_until.clear()
+    _series_failed_until.clear()

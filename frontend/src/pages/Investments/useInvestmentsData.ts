@@ -34,6 +34,16 @@ const [loading, setLoading] = useState(true)
     }
   }
 
+  /** Relit le scanner après un changement de référence de marché (l'écriture a déjà vidé le cache de lecture). */
+  const reloadDiversity = async () => {
+    try {
+      const div = await getAnalyticsDiversityScanner<DiversityScannerResponse>()
+      if (div && div.totals.holdings_count > 0) setDiversity(div)
+    } catch {
+      toast.error(i18n.t("useInvestmentsData.erreurLorsDuChargementDe", { ns: "investments" }))
+    }
+  }
+
   useEffect(() => {
     async function loadData() {
       try {
@@ -82,5 +92,5 @@ const [loading, setLoading] = useState(true)
     id: item.account_id
   }))
 
-  return { navigate, isMobile, allocation, setAllocation, advancedAllocation, setAdvancedAllocation, diversity, setDiversity, loading, setLoading, drillDown, setDrillDown, refreshingCompositions, setRefreshingCompositions, refreshCompositions, handleAccountClick, getDrilldownItems, getDrilldownTitle, chartData }
+  return { navigate, isMobile, allocation, setAllocation, advancedAllocation, setAdvancedAllocation, diversity, setDiversity, loading, setLoading, drillDown, setDrillDown, refreshingCompositions, setRefreshingCompositions, refreshCompositions, reloadDiversity, handleAccountClick, getDrilldownItems, getDrilldownTitle, chartData }
 }

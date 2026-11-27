@@ -23,4 +23,24 @@ describe("Investissements : cartes de chiffres", () => {
     expect(value.className).not.toMatch(/(^|\s)text-3xl/)
     expect(value.className).not.toContain("truncate")
   })
+
+  it("affiche le score, son libellé et le nombre de paris indépendants", () => {
+    const withModel = {
+      ...ctx,
+      diversity: { score: 74.7, score_label: "Bon", alerts: [], concentration: { effective_bets: 3.2, exposures_count: 11, blocks: [] }, market: { name: "iShares MSCI ACWI" } },
+    } as unknown as InvestmentsCtx
+    renderWithProviders(<InvestmentsKpis ctx={withModel} />)
+
+    expect(screen.getByText("74,7")).toBeInTheDocument()
+    expect(screen.getByText("Bon")).toBeInTheDocument()
+    expect(screen.getByText("3,2 paris indépendants sur 11 lignes")).toBeInTheDocument()
+    expect(screen.getByText("Écart au marché, référence : iShares MSCI ACWI")).toBeInTheDocument()
+  })
+
+  it("dit quand la référence de marché manque", () => {
+    const noMarket = { ...ctx, diversity: { score: 50, score_label: "Moyen", alerts: [], market: null } } as unknown as InvestmentsCtx
+    renderWithProviders(<InvestmentsKpis ctx={noMarket} />)
+
+    expect(screen.getByText("Référence de marché indisponible")).toBeInTheDocument()
+  })
 })

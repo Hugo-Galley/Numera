@@ -1,22 +1,28 @@
 {
- "alerts": [
-  {
-   "category": "company",
-   "item_name": "BNP Paribas Easy S&P 500",
-   "message": "BNP Paribas Easy S&P 500 pèse 31.67% de ton portefeuille boursier (16.27% du patrimoine total). Ce niveau de concentration sur un seul titre présente un risque spécifique élevé.",
-   "title": "Concentration critique sur BNP Paribas Easy S&P 500",
-   "type": "danger",
-   "value_pct": 31.67
+ "alerts": [],
+ "concentration": {
+  "blocks": [],
+  "effective_bets": 2.96,
+  "exposures_count": 5,
+  "pairs_by_source": {
+   "composition": 0,
+   "prices": 10,
+   "unknown": 0
   }
- ],
+ },
  "countries": [
   {
+   "market_pct": null,
    "name": "Non renseigné",
    "percentage_stocks": 100.0,
    "percentage_total_wealth": 51.39,
    "value_eur": 19744.4
   }
  ],
+ "coverage": {
+  "composition_pct": 42.3,
+  "with_prices_pct": 100.0
+ },
  "etf_compositions": [
   {
    "composition_as_of": null,
@@ -53,6 +59,83 @@
     "PAEEM.PA"
    ],
    "value_eur": 3549.78
+  }
+ ],
+ "exposures": [
+  {
+   "id": "exp:CW8.PA",
+   "kind": "fund",
+   "name": "Amundi MSCI World",
+   "supports": [
+    {
+     "account_id": 3,
+     "account_name": "PEA",
+     "ticker": "CW8.PA",
+     "value_eur": 7842.56
+    }
+   ],
+   "value_eur": 7842.56,
+   "weight_pct": 39.72
+  },
+  {
+   "id": "exp:ESE.PA",
+   "kind": "direct",
+   "name": "BNP Paribas Easy S&P 500",
+   "supports": [
+    {
+     "account_id": 5,
+     "account_name": "CTO Instantané",
+     "ticker": "ESE.PA",
+     "value_eur": 6253.0
+    }
+   ],
+   "value_eur": 6253.0,
+   "weight_pct": 31.67
+  },
+  {
+   "id": "exp:PAEEM.PA",
+   "kind": "fund",
+   "name": "Amundi PEA MSCI Emerging Markets",
+   "supports": [
+    {
+     "account_id": 3,
+     "account_name": "PEA",
+     "ticker": "PAEEM.PA",
+     "value_eur": 3549.78
+    }
+   ],
+   "value_eur": 3549.78,
+   "weight_pct": 17.98
+  },
+  {
+   "id": "exp:TTE.PA",
+   "kind": "direct",
+   "name": "TotalEnergies",
+   "supports": [
+    {
+     "account_id": 3,
+     "account_name": "PEA",
+     "ticker": "TTE.PA",
+     "value_eur": 1568.5
+    }
+   ],
+   "value_eur": 1568.5,
+   "weight_pct": 7.94
+  },
+  {
+   "id": "exp:AAPL",
+   "kind": "direct",
+   "name": "Apple Inc",
+   "supports": [
+    {
+     "account_id": 5,
+     "account_name": "CTO Instantané",
+     "ticker": "AAPL",
+     "value_eur": 530.56
+    }
+   ],
+   "value_eur": 530.56,
+   "weight_pct": 2.69
   }
  ],
  "holdings": [
@@ -117,14 +200,51 @@
    "value_eur": 530.56
   }
  ],
- "score": 24.0,
- "score_label": "Concentration critique",
+ "market": null,
+ "score": 50.0,
+ "score_label": "Référence de marché indisponible : score neutre",
  "sectors": [
   {
+   "market_pct": null,
    "name": "Non renseigné",
    "percentage_stocks": 100.0,
    "percentage_total_wealth": 51.39,
    "value_eur": 19744.4
+  }
+ ],
+ "stock_picking": [
+  {
+   "correlation_with_core": -0.04,
+   "indirect_pct": 0.0,
+   "indirect_value_eur": 0.0,
+   "key": "exp:ESE.PA",
+   "name": "BNP Paribas Easy S&P 500",
+   "redundant": false,
+   "source": "prices",
+   "ticker": "ESE.PA",
+   "value_eur": 6253.0
+  },
+  {
+   "correlation_with_core": -0.04,
+   "indirect_pct": 0.0,
+   "indirect_value_eur": 0.0,
+   "key": "exp:TTE.PA",
+   "name": "TotalEnergies",
+   "redundant": false,
+   "source": "prices",
+   "ticker": "TTE.PA",
+   "value_eur": 1568.5
+  },
+  {
+   "correlation_with_core": 0.14,
+   "indirect_pct": 0.0,
+   "indirect_value_eur": 0.0,
+   "key": "exp:AAPL",
+   "name": "Apple Inc",
+   "redundant": false,
+   "source": "prices",
+   "ticker": "AAPL",
+   "value_eur": 530.56
   }
  ],
  "top_underlying_companies": [

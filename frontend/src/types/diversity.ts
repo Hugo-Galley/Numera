@@ -1,4 +1,7 @@
+import type { components } from "@/lib/api/generated/schema"
 import type { ApiResponse } from "@/lib/api/types"
+
+type Schemas = components["schemas"]
 
 export type CompositionField = "countries" | "sectors" | "top_holdings"
 // Émetteurs (ishares, amundi, spdr), replis justetf et yahoo ; manual : saisi à la main
@@ -70,21 +73,11 @@ export interface UnderlyingCompany {
   has_overlap: boolean
 }
 
-export interface BreakdownItem {
-  name: string
-  value_eur: number
-  percentage_stocks: number
-  percentage_total_wealth: number
-}
+/** Pays ou secteur ; `market_pct` : poids de la référence de marché (null sans référence ou hors comparaison) */
+export type BreakdownItem = Schemas["DiversityExposure"]
 
-export interface DiversityAlert {
-  type: "danger" | "warning" | "info"
-  category: "company" | "country" | "sector" | "overlap"
-  title: string
-  message: string
-  item_name?: string
-  value_pct?: number
-}
+/** Alerte relative au marché : `overweight` (avec sa `dimension`), `correlated_block`, `redundant_pick`, `overlap` */
+export type DiversityAlert = Omit<Schemas["DiversityAlert"], "type"> & { type: "danger" | "warning" | "info" }
 
 export interface DiversityScannerResponse {
   score: number
@@ -107,4 +100,24 @@ export interface DiversityScannerResponse {
   alerts: DiversityAlert[]
   holdings: ApiResponse<"/analytics/diversity-scanner", "get">["holdings"]
   etf_compositions: EtfCompositionInfo[]
+  exposures: DiversityExposureGroup[]
+  concentration: DiversityConcentration
+  /** null : référence de marché introuvable (score neutre) */
+  market: MarketComparison | null
+  stock_picking: StockPickingLine[]
+  coverage: DiversityCoverage
 }
+
+// --- Sur-exposition relative au marché (contrat étendu de /analytics/diversity-scanner) ---
+// Dérivés du schéma généré (`make api-contract`) : un renommage côté backend casse `tsc`.
+
+export type DiversityExposureGroup = Schemas["DiversityExposureGroup"]
+/** `members` : noms des expositions du bloc */
+export type CorrelatedBlock = Schemas["DiversityBlock"]
+export type DiversityConcentration = Schemas["DiversityConcentration"]
+export type MarketDimension = Schemas["DiversityMarketDimension"]
+export type MarketDimensionKey = NonNullable<Schemas["DiversityAlert"]["dimension"]>
+export type MarketComparison = Schemas["DiversityMarket"]
+export type StockPickingLine = Schemas["DiversityStockPick"]
+/** `composition_pct` : part de la valeur dont la composition est connue ; `with_prices_pct` : avec historique de cours */
+export type DiversityCoverage = Schemas["DiversityCoverage"]

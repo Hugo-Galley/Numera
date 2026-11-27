@@ -1,5 +1,7 @@
-"""Diversification d'un portefeuille par transparence (« look-through ») des ETF : sociétés sous-jacentes,
-pays, secteurs, doublons, alertes de concentration et score HHI (sans base)."""
+"""Diversification d'un portefeuille par transparence (« look-through ») des ETF : sociétés sous-jacentes, pays,
+secteurs et chemins par lesquels chaque société est détenue (un doublon = au moins deux chemins distincts).
+
+Les alertes et le score, relatifs à une référence de marché, sont dans `domain/exposure/`."""
 
 from __future__ import annotations
 
@@ -9,7 +11,6 @@ from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
-from app.core.i18n import tr
 from app.core.logging import get_logger
 from app.domain.etf_composition import EtfLine, is_equity
 from app.domain.etf_normalize import UNKNOWN_LABEL
@@ -23,6 +24,8 @@ if TYPE_CHECKING:
 CRYPTO_LABEL = "Crypto-actifs"
 # Lignes d'un ETF qui ne sont pas des actions : ni pays, ni secteur, ni société
 CASH_LABEL = "Liquidités et dérivés"
+# Chemin d'une société détenue en direct (les autres chemins portent le nom de l'exposition qui la contient)
+DIRECT_SOURCE = "En direct"
 
 logger = get_logger(__name__)
 
@@ -139,6 +142,15 @@ def _top_holding_companies(profile: EtfProfile) -> list[tuple[str, str, str | No
     return companies
 
 
+def _add_source(company: dict[str, Any], source: str, pct: float, value: float) -> None:
+    """Un chemin de plus vers la société ; deux supports d'une même exposition forment un seul chemin."""
+    for existing in company["sources"]:
+        if existing["source"] == source:
+            existing["value_eur"] = round(existing["value_eur"] + value, 2)
+            return
+    company["sources"].append({"source": source, "pct_in_source": round(pct, 2), "value_eur": round(value, 2)})
+
+
 def _add_indirect(out: LookThrough, source: str, value_eur: float,
                   companies: list[tuple[str, str, str | None, float]]) -> None:
     for key, name, ticker, weight in companies:
@@ -147,7 +159,7 @@ def _add_indirect(out: LookThrough, source: str, value_eur: float,
         company["indirect_value_eur"] += value
         if ticker and not company.get("ticker"):
             company["ticker"] = ticker
-        company["sources"].append({"source": source, "pct_in_source": round(weight, 2), "value_eur": round(value, 2)})
+        _add_source(company, source, weight, value)
 
 
 def _composition_origin(held: EtfProfile, data: EtfProfile) -> dict[str, Any]:
@@ -202,7 +214,7 @@ def _decompose_etf(out: LookThrough, vh: dict[str, Any], etf_profile: EtfProfile
         companies = _line_companies(exposure.lines)
     else:
         companies = _top_holding_companies(etf_profile if "top_holdings" in manual else exposure.profile)
-    _add_indirect(out, vh["ticker"], vh_val, companies)
+    _add_indirect(out, vh.get("source_label") or vh["ticker"], vh_val, companies)
 
 
 def _direct_line(out: LookThrough, vh: dict[str, Any], security: Security | None) -> None:
@@ -215,11 +227,7 @@ def _direct_line(out: LookThrough, vh: dict[str, Any], security: Security | None
     comp["direct_value_eur"] += vh_val
     if direct_ticker and not comp.get("ticker"):
         comp["ticker"] = direct_ticker
-    comp["sources"].append({
-        "source": "En direct",
-        "pct_in_source": 100.0,
-        "value_eur": round(vh_val, 2),
-    })
+    _add_source(comp, DIRECT_SOURCE, 100.0, vh_val)
     country = (security.country if security else None) or UNKNOWN_LABEL
     sector = (security.sector if security else None) or UNKNOWN_LABEL
     out.countries[country] = out.countries.get(country, 0.0) + vh_val
@@ -232,7 +240,8 @@ def look_through(valued_holdings: list[dict[str, Any]],
                  exposure_for: Callable[[EtfProfile], Exposure] = Exposure) -> LookThrough:
     """Agrège les positions valorisées (> 0) : un ETF est décomposé selon son profil, une crypto compte dans son
     propre secteur, une action reste en direct (`securities` : titres par ISIN, ou par ticker à défaut d'ISIN).
-    `exposure_for` donne les lignes d'un profil, ou celles de sa référence d'indice."""
+    `exposure_for` donne les lignes d'un profil, ou celles de sa référence d'indice. `source_label` (facultatif) :
+    nom de l'exposition de la position, chemin des sociétés de ses lignes (le ticker à défaut)."""
     out = LookThrough()
     securities = securities or {}
     for vh in valued_holdings:
@@ -266,7 +275,7 @@ def top_companies(companies: dict[str, dict[str, Any]], total_stocks: float, tot
             "pct_stocks": _pct(total_comp_eur, total_stocks),
             "pct_total_wealth": _pct(total_comp_eur, total_wealth),
             "sources": comp["sources"],
-            "has_overlap": len(comp["sources"]) > 1,
+            "has_overlap": len({s["source"] for s in comp["sources"]}) > 1,
         })
     rows.sort(key=lambda c: c["total_value_eur"], reverse=True)
     return rows
@@ -285,82 +294,3 @@ def exposure_rows(values: dict[str, float], total_stocks: float, total_wealth: f
     ]
     rows.sort(key=lambda x: x["value_eur"], reverse=True)
     return rows
-
-
-def _company_alerts(companies: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    alerts = []
-    for comp in companies:
-        if comp["pct_stocks"] >= 20.0:
-            alerts.append({
-                "type": "danger",
-                "category": "company",
-                "title": tr("diversity.company_critical_title", name=comp["name"]),
-                "message": tr("diversity.company_critical_message", name=comp["name"], pct_stocks=comp["pct_stocks"], pct_total=comp["pct_total_wealth"]),
-                "item_name": comp["name"],
-                "value_pct": comp["pct_stocks"],
-            })
-        elif comp["pct_stocks"] >= 10.0:
-            alerts.append({
-                "type": "warning",
-                "category": "company",
-                "title": tr("diversity.company_high_title", name=comp["name"]),
-                "message": tr("diversity.company_high_message", name=comp["name"], pct_stocks=comp["pct_stocks"], pct_total=comp["pct_total_wealth"]),
-                "item_name": comp["name"],
-                "value_pct": comp["pct_stocks"],
-            })
-
-    # Doublons
-    overlap_companies = [c for c in companies if c["has_overlap"]]
-    if overlap_companies:
-        sources_str = ", ".join(c["name"] for c in overlap_companies[:3])
-        alerts.append({
-            "type": "info",
-            "category": "overlap",
-            "title": tr("diversity.overlap_title", count=len(overlap_companies)),
-            "message": tr("diversity.overlap_message", sources=sources_str),
-            "item_name": sources_str,
-            "value_pct": sum(c["pct_stocks"] for c in overlap_companies[:3]),
-        })
-    return alerts
-
-
-def _geography_and_sector_alerts(countries: list[dict[str, Any]], sectors: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    alerts = []
-    for country in countries:
-        if country["name"] in ("USA", "États-Unis") and country["percentage_stocks"] >= 65.0:
-            alerts.append({
-                "type": "warning",
-                "category": "country",
-                "title": tr("diversity.us_title", pct=country["percentage_stocks"]),
-                "message": tr("diversity.us_message", pct=country["percentage_stocks"]),
-                "item_name": country["name"],
-                "value_pct": country["percentage_stocks"],
-            })
-        elif country["name"] in ("FRA", "France") and country["percentage_stocks"] >= 35.0:
-            alerts.append({
-                "type": "warning",
-                "category": "country",
-                "title": tr("diversity.fr_title", pct=country["percentage_stocks"]),
-                "message": tr("diversity.fr_message", pct=country["percentage_stocks"]),
-                "item_name": country["name"],
-                "value_pct": country["percentage_stocks"],
-            })
-    alerts.extend(
-        {
-            "type": "warning",
-            "category": "sector",
-            "title": tr("diversity.sector_title", name=sector["name"], pct=sector["percentage_stocks"]),
-            "message": tr("diversity.sector_message", name=sector["name"], pct=sector["percentage_stocks"]),
-            "item_name": sector["name"],
-            "value_pct": sector["percentage_stocks"],
-        }
-        for sector in sectors
-        if sector["name"] not in (UNKNOWN_LABEL, CASH_LABEL) and sector["percentage_stocks"] >= 30.0
-    )
-    return alerts
-
-
-def diversity_alerts(companies: list[dict[str, Any]], countries: list[dict[str, Any]],
-                     sectors: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    """Alertes : société surreprésentée, doublons, concentration géographique, sur-exposition sectorielle."""
-    return _company_alerts(companies) + _geography_and_sector_alerts(countries, sectors)
