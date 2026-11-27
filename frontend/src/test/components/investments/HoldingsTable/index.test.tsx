@@ -85,8 +85,18 @@ describe("HoldingsTable : fiche ETF", () => {
 
     expect(within(desktopTable()).getByRole("link", { name: "Amundi MSCI World" })).toHaveAttribute("href", "/investments/etf/4")
     expect(within(desktopTable()).queryByRole("link", { name: "Air Liquide" })).not.toBeInTheDocument()
-    // La liste mobile a le même lien
-    expect(screen.getAllByRole("link", { name: "Amundi MSCI World" })).toHaveLength(2)
+    // La liste mobile a le même lien, d'au moins 40 px de haut (cible tactile)
+    const links = screen.getAllByRole("link", { name: "Amundi MSCI World" })
+    expect(links).toHaveLength(2)
+    expect(links.find((link) => !desktopTable().contains(link))).toHaveClass("min-h-10")
+  })
+
+  it("une action rattachée à un profil n'a pas de fiche ETF : seule compte la règle is_etf du backend", () => {
+    const stock = holding({ id: 2, ticker: "CSCO", isin: "US17275R1023", asset_name: "Cisco", is_etf: false, etf_profile_id: 28 })
+    renderWithProviders(<HoldingsTable accountId={5} accountName="PEA" holdings={[stock]} onRefresh={vi.fn()} />, { auth: true })
+
+    expect(screen.queryByRole("link", { name: "Cisco" })).not.toBeInTheDocument()
+    expect(screen.getAllByText("Cisco").length).toBeGreaterThan(0)
   })
 })
 

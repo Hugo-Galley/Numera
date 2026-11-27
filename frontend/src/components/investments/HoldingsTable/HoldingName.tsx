@@ -1,13 +1,20 @@
 import { Link } from "react-router-dom"
 import type { PortfolioHolding } from "@/types/diversity"
 
-/** Nom d'une position ; un fonds rattaché à un profil mène à sa fiche. */
-export function HoldingName({ holding, className }: { holding: PortfolioHolding; className: string }) {
+interface HoldingNameProps {
+  holding: PortfolioHolding
+  className: string
+  /** Classes du lien seulement (ex. hauteur tactile sur mobile) */
+  linkClassName?: string
+}
+
+/** Nom d'une position ; un fonds (règle `is_etf` du backend) rattaché à un profil mène à sa fiche. */
+export function HoldingName({ holding, className, linkClassName = "" }: HoldingNameProps) {
   const name = holding.asset_name || holding.ticker
-  if (!holding.etf_profile_id) return <span className={className} title={name}>{name}</span>
+  if (!holding.is_etf || !holding.etf_profile_id) return <span className={className} title={name}>{name}</span>
   return (
     <Link to={`/investments/etf/${holding.etf_profile_id}`} title={name}
-      className={`${className} underline decoration-slate-300 underline-offset-2 hover:decoration-slate-900`}>
+      className={`${className} ${linkClassName} underline decoration-slate-300 underline-offset-2 hover:decoration-slate-900`}>
       {name}
     </Link>
   )
