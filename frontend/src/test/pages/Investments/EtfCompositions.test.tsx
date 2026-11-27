@@ -76,6 +76,15 @@ describe("EtfCompositions : source, date et couverture", () => {
     expect(screen.getByText("Top 10 : justETF")).toBeInTheDocument()
   })
 
+  it("sans date publiée, nomme la source sans prétendre dater la composition", () => {
+    renderCard(composition({ provider: "yahoo", composition_as_of: null, coverage_pct: 60, lines_count: 0 }))
+
+    const row = screen.getByText("iShares Core MSCI World").parentElement!
+    expect(screen.getByText("Source : Yahoo")).toBeInTheDocument()
+    expect(screen.queryByText(/composition au/)).not.toBeInTheDocument()
+    expect(within(row).getByText(/Actualisé le 26\/11\/2026/i)).toBeInTheDocument()
+  })
+
   it.each([
     ["amundi", "Amundi"],
     ["spdr", "SPDR"],

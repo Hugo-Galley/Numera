@@ -8,11 +8,10 @@ import asyncio
 import html
 import re
 from collections.abc import Awaitable, Callable
-from datetime import timedelta
+from datetime import date, datetime, timedelta
 from typing import Any
 
 from app.core.circuit_breaker import CircuitBreaker
-from app.core.time import utcnow_naive
 from app.domain.etf_normalize import UNKNOWN_LABEL, country_code, index_for_fund_name, sector_label
 from app.domain.isin import is_valid_isin
 from app.integrations.etf_providers.base import (
@@ -31,6 +30,7 @@ _PERCENT = re.compile(r'_percentage">\s*([0-9]+(?:,[0-9]+)?)\s*%')
 _LABEL = re.compile(r'_value_name">([^<]+)<')
 _REPLICATION = re.compile(r'data-testid="etf-profile-header_replication-value"[^>]*>\s*([^<]+?)\s*<')
 _REPLICATIONS = {"Physique": "physical", "Synthétique": "synthetic"}
+_AS_OF = re.compile(r'data-testid="tl_etf-holdings_reference-date"[^>]*>[^<0-9]*([0-9]{2}/[0-9]{2}/[0-9]{4})\s*<')
 _HOLDING = re.compile(r'href="[^"]*/stock-profiles/([A-Z0-9]{12})"[^>]*title="([^"]+)"')
 
 _breaker = CircuitBreaker(cooldown=timedelta(minutes=10))
@@ -64,7 +64,7 @@ class JustEtf:
         return asyncio.sleep(0, None)
 
     async def fetch(self, fund: ProviderFund) -> Composition:
-        """La date est celle de la récupération."""
+        """La date est celle que publie la page (« État : jj/mm/aaaa ») ; sans elle, aucune."""
         page = await self._page(fund.ref)
         countries = _breakdown(_rows(page, "countries"), country_code)
         sectors = _breakdown(_rows(page, "sectors"), _known_sector)
@@ -72,12 +72,20 @@ class JustEtf:
         if not (countries or sectors or top_holdings):
             raise ProviderUnavailable(f"page justETF sans composition lisible pour {fund.isin}")
         return Composition(
-            as_of=utcnow_naive().date(), lines=[], countries=countries, sectors=sectors, top_holdings=top_holdings
+            as_of=_published_date(page), lines=[], countries=countries, sectors=sectors, top_holdings=top_holdings
         )
 
     async def _page(self, isin: str) -> str:
         response = await request(self._client_factory, _breaker, "GET", PAGE_URL, params={"isin": isin})
         return response.text
+
+
+def _published_date(page: str) -> date | None:
+    found = _AS_OF.search(page)
+    try:
+        return datetime.strptime(found.group(1), "%d/%m/%Y").date() if found else None
+    except ValueError:
+        return None
 
 
 def _rows(page: str, table: str) -> list[str]:

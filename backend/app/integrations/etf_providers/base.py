@@ -49,7 +49,7 @@ class Constituent:
 
 @dataclass(frozen=True)
 class Composition:
-    as_of: date
+    as_of: date | None  # date publiée par la source ; None si elle n'en donne pas
     lines: list[Constituent]  # vide pour justETF
     countries: dict[str, float] | None = None  # agrégats fournis tels quels (justETF)
     sectors: dict[str, float] | None = None

@@ -176,7 +176,7 @@ def _apply(db: Session, profile: EtfProfile, found: _Found) -> list[str]:
             return updated
         profile.coverage_pct = rules.coverage_of_aggregates(values)
     _describe(profile, found)
-    profile.composition_as_of = composition.as_of if composition else utcnow_naive().date()
+    profile.composition_as_of = composition.as_of if composition else None  # Yahoo ne date pas sa composition
     return updated
 
 

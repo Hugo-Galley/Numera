@@ -20,6 +20,10 @@ export function CompositionOrigin({ composition: c }: { composition: EtfComposit
           })}
         </p>
       )}
+      {/* Source sans date publiée (Yahoo, page justETF non datée) : la date de lecture n'est pas celle de la composition */}
+      {c.provider && !c.composition_as_of && (
+        <p>{t("compositionOrigin.source", { provider: t(`misc.sources.${c.provider as CompositionSource}`) })}</p>
+      )}
       {synthetic && c.exposure_profile_name && (
         <p>{t("compositionOrigin.syntheticVia", { index: c.index_name, reference: c.exposure_profile_name })}</p>
       )}

@@ -52,11 +52,16 @@ def test_isin_is_never_guessed_from_a_ticker():
 def test_fetch_returns_aggregates_without_lines():
     composition = _fetch()
     assert composition.lines == []
-    assert composition.as_of == date(2026, 11, 27)
+    assert composition.as_of == date(2026, 9, 23)  # date publiée (« État : 23/09/2026 »), pas celle de la lecture
     assert composition.countries == {"USA": 71.05, "JPN": 5.79, "GBR": 3.62, "CAN": 3.31}
     assert composition.sectors == {"Technologie": 37.47, "Finance": 17.4, "Industrie": 9.42, "Santé": 8.96}
     assert len(composition.top_holdings) == 10
     assert composition.top_holdings[0] == {"name": "NVIDIA Corp.", "ticker": None, "isin": "US67066G1040", "weight": 5.69}
+
+
+def test_page_without_published_date_has_no_date():
+    page = fixture_bytes("justetf_IE000BI8OT95.html").decode().replace("État : 23/09/2026", "")
+    assert _fetch(lambda _request: httpx.Response(200, text=page)).as_of is None
 
 
 @pytest.mark.parametrize(

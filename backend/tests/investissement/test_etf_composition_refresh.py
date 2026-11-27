@@ -262,7 +262,7 @@ def test_justetf_fallback_stores_aggregates_and_is_not_preferred_afterwards(db_s
     _refresh(db_session, profile, _providers(amundi=lambda r: httpx.Response(200, json={"products": []})))
     assert (profile.provider, profile.lines_count) == ("justetf", 0)
     assert json.loads(profile.countries)["USA"] == pytest.approx(71.05)
-    assert profile.composition_as_of == utcnow_naive().date()
+    assert profile.composition_as_of == date(2026, 9, 23)  # publiée par justETF
     assert 80 < profile.coverage_pct <= 100
 
     _refresh(db_session, profile)  # l'émetteur répond de nouveau : il reprend la main
@@ -325,7 +325,7 @@ def test_profile_without_isin_uses_yahoo_only(db_session: Session, yahoo):
     assert _refresh(db_session, profile, _providers(seen=seen)) == ["sectors"]
     assert seen == []
     assert (profile.provider, profile.coverage_pct, profile.lines_count) == ("yahoo", 60.0, 0)
-    assert profile.composition_as_of == utcnow_naive().date()
+    assert profile.composition_as_of is None  # Yahoo ne date pas sa composition
 
 
 def test_nothing_published_is_remembered(db_session: Session):

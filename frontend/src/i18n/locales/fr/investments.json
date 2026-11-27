@@ -374,6 +374,7 @@
   },
   "compositionOrigin": {
     "asOf": "{{provider}} · composition au {{date}}",
+    "source": "Source : {{provider}}",
     "syntheticVia": "Synthétique : exposition de l'indice {{index}} via {{reference}}",
     "syntheticUnknown": "Synthétique : indice non reconnu, répartition indisponible",
     "lines_one": "{{lines}} ligne · {{pct}} du fonds",

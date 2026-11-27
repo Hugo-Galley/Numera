@@ -374,6 +374,7 @@
   },
   "compositionOrigin": {
     "asOf": "{{provider}} · composition as of {{date}}",
+    "source": "Source: {{provider}}",
     "syntheticVia": "Synthetic: exposure of the {{index}} index via {{reference}}",
     "syntheticUnknown": "Synthetic: unrecognised index, breakdown unavailable",
     "lines_one": "{{lines}} line · {{pct}} of the fund",
