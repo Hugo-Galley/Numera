@@ -103,7 +103,7 @@ class LookThrough:
     countries: dict[str, float] = field(default_factory=dict)
     sectors: dict[str, float] = field(default_factory=dict)
     etfs: list[dict[str, Any]] = field(default_factory=list)
-    # Origine des compositions utilisées (Yahoo, préréglage, saisie), par profil
+    # Origine des compositions utilisées (émetteur, justETF, Yahoo, saisie), par profil
     compositions: dict[int, dict[str, Any]] = field(default_factory=dict)
 
     def company(self, key: str, name: str, ticker: str | None) -> dict[str, Any]:

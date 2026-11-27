@@ -1,3 +1,4 @@
+import json
 from datetime import datetime
 
 from fastapi.testclient import TestClient
@@ -45,6 +46,11 @@ def test_baseline_holdings_and_diversity_scanner(client: TestClient, db_session:
     # Get MSCI World & S&P 500 profiles
     world_profile = db_session.query(EtfProfile).filter(EtfProfile.name == "MSCI World").first()
     sp500_profile = db_session.query(EtfProfile).filter(EtfProfile.name == "S&P 500").first()
+    # Les profils système n'ont pas de composition en dur : celle qu'un émetteur aurait écrite
+    for profile in (world_profile, sp500_profile):
+        profile.top_holdings = json.dumps([{"name": "Apple Inc", "ticker": "AAPL", "weight": 6.0}])
+        profile.composition_sources = json.dumps({"top_holdings": "ishares"})
+    db_session.commit()
 
     # Set Point Zéro / Baseline: 10 parts of CW8, 20 parts of ESE, and 5 direct Apple shares
     baseline_payload = {

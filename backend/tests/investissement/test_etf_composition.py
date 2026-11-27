@@ -43,21 +43,23 @@ def test_parse_yahoo_top_holdings_maps_sectors_and_weights():
     assert parsed["top_holdings"] == [{"name": "NVIDIA Corp", "ticker": "NVDA", "weight": 5.79}]
 
 
-def test_refresh_replaces_preset_but_keeps_countries(client: TestClient, db_session: Session, yahoo):
+def test_refresh_from_yahoo_keeps_countries_yahoo_does_not_publish(client: TestClient, db_session: Session, yahoo):
     seed_etf_profiles(db_session)
     world = _world(db_session)
-    preset_countries = json.loads(world.countries)
+    world.countries = json.dumps({"USA": 71.0})
+    world.composition_sources = json.dumps({"countries": "justetf"})
+    db_session.commit()
 
     resp = client.post(f"/etf-profiles/{world.id}/refresh")
     assert resp.status_code == 200
     body = resp.json()
     assert body["sectors"] == YAHOO_COMPOSITION["sectors"]
-    assert body["composition_sources"] == {"countries": "preset", "sectors": "yahoo", "top_holdings": "yahoo"}
+    assert body["composition_sources"] == {"countries": "justetf", "sectors": "yahoo", "top_holdings": "yahoo"}
     assert body["composition_refreshed_at"] is not None
 
     db_session.refresh(world)
     assert json.loads(world.top_holdings) == YAHOO_COMPOSITION["top_holdings"]
-    assert json.loads(world.countries) == preset_countries
+    assert json.loads(world.countries) == {"USA": 71.0}
     assert yahoo == ["CW8.PA"]
 
 
@@ -92,11 +94,11 @@ def test_refresh_returns_502_when_yahoo_unreachable(client: TestClient, db_sessi
     monkeypatch.setattr(yahoo_finance, "fetch_composition", down)
     seed_etf_profiles(db_session)
     world = _world(db_session)
-    preset_sectors = world.sectors
+    sectors = world.sectors
 
     assert client.post(f"/etf-profiles/{world.id}/refresh").status_code == 502
     db_session.refresh(world)
-    assert world.sectors == preset_sectors
+    assert world.sectors == sectors
     assert world.composition_refreshed_at is None
 
 

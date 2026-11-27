@@ -237,3 +237,40 @@ def test_etf_constituents_migration_keeps_holdings_linked_to_their_profile(tmp_p
         row = conn.execute(text("SELECT replication, lines_count, exposure_profile_id FROM etf_profiles WHERE id = :i"), {"i": profile}).one()
         assert tuple(row) == ("unknown", 0, None)
     engine.dispose()
+
+
+def test_preset_compositions_migration_clears_only_preset_fields(tmp_path):
+    url = f"sqlite:///{tmp_path / 'presets.db'}"
+    assert _alembic(url, "upgrade", "c6e1a9d4f7b2").returncode == 0
+    engine = create_engine(url)
+    countries, sectors, top = '{"USA": 70.0}', '{"Finance": 15.0}', '[{"name": "Apple", "weight": 5.0}]'
+    cases = {
+        "Preset": '{"countries": "preset", "sectors": "preset", "top_holdings": "preset"}',
+        "Mixed": '{"countries": "manual", "sectors": "yahoo", "top_holdings": "preset"}',
+        "Kept": '{"countries": "manual", "sectors": "ishares"}',
+        "Garbage": "pas du json",
+    }
+    with engine.begin() as conn:
+        for name, sources in cases.items():
+            pid = _insert_profile(conn, name, name.upper(), countries=countries, sectors=sectors, top=top, system=1)
+            conn.execute(text("UPDATE etf_profiles SET composition_sources = :s, composition_refreshed_at = '2026-11-01' WHERE id = :i"),
+                         {"s": sources, "i": pid})
+    engine.dispose()
+
+    result = _alembic(url, "upgrade", "head")
+    assert result.returncode == 0, result.stderr
+
+    engine = create_engine(url)
+    with engine.connect() as conn:
+        rows = {r.name: r for r in conn.execute(text(
+            "SELECT name, countries, sectors, top_holdings, composition_sources, composition_refreshed_at FROM etf_profiles"))}
+    engine.dispose()
+
+    def state(name):
+        r = rows[name]
+        return r.countries, r.sectors, r.top_holdings, r.composition_sources, r.composition_refreshed_at is None
+
+    assert state("Preset") == ("{}", "{}", "[]", "{}", True)  # relu au prochain passage
+    assert state("Mixed") == (countries, sectors, "[]", '{"countries": "manual", "sectors": "yahoo"}', True)
+    assert state("Kept") == (countries, sectors, top, cases["Kept"], False)
+    assert state("Garbage") == (countries, sectors, top, "pas du json", False)

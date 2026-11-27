@@ -2,8 +2,6 @@
 
 Chaque champ de composition garde sa source dans `EtfProfile.composition_sources` :
 - `ishares`, `amundi`, `spdr`, `justetf`, `yahoo` : remplacé à chaque actualisation ;
-- `preset` : préréglage des profils système (`etf_presets.json`), utilisé en repli tant que Yahoo
-  ne fournit pas le champ ;
 - `manual` : saisi par l'utilisateur, jamais écrasé.
 """
 from __future__ import annotations
@@ -20,7 +18,6 @@ if TYPE_CHECKING:
     from app.models.etf_profile import EtfProfile
 
 SOURCE_YAHOO = "yahoo"
-SOURCE_PRESET = "preset"
 SOURCE_MANUAL = "manual"
 COMPOSITION_FIELDS = ("countries", "sectors", "top_holdings")
 EMPTY_FIELDS = {"countries": "{}", "sectors": "{}", "top_holdings": "[]"}

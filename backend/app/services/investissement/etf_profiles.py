@@ -14,10 +14,8 @@ from app.domain.etf_profiles import (
     COMPOSITION_FIELDS,
     REFRESH_INTERVAL,
     SOURCE_MANUAL,
-    SOURCE_PRESET,
     apply_update,
     forget_composition_origin,
-    load_sources,
     to_read,
 )
 from app.integrations.etf_providers.base import Provider
@@ -198,39 +196,27 @@ async def auto_decompose(db: Session, payload: AutoDecomposeRequest) -> EtfProfi
 
 
 def seed_etf_profiles(db: Session) -> None:
-    """
-    Crée ou met à jour les profils ETF système.
-
-    Les compositions de `etf_presets.json` ne sont qu'un repli : un champ actualisé depuis Yahoo
-    ou saisi à la main n'est jamais réécrit (cf. `composition_sources`).
-    """
+    """Crée les profils ETF système ou remet à jour leurs identifiants ; leur composition n'est jamais touchée."""
     count = 0
     for preset in SYSTEM_ETF_PRESETS:
-        existing = repo.find_by_name(db, preset["name"])
+        existing = repo.find_by_name(db, str(preset["name"]))
         if not existing:
-            profile = EtfProfile(
+            repo.add(db, EtfProfile(
                 name=preset["name"],
                 ticker=preset["ticker"],
                 isin=preset["isin"],
                 aliases=json.dumps(preset["aliases"]),
-                countries=json.dumps(preset["countries"]),
-                sectors=json.dumps(preset["sectors"]),
-                top_holdings=json.dumps(preset["top_holdings"]),
-                composition_sources=json.dumps(dict.fromkeys(COMPOSITION_FIELDS, SOURCE_PRESET)),
+                countries="{}",
+                sectors="{}",
+                top_holdings="[]",
+                composition_sources="{}",
                 is_system=True,
-            )
-            repo.add(db, profile)
+            ))
             count += 1
         elif existing.is_system:
-            existing.ticker = preset["ticker"]
-            existing.isin = preset["isin"]
+            existing.ticker = str(preset["ticker"])
+            existing.isin = str(preset["isin"])
             existing.aliases = json.dumps(preset["aliases"])
-            sources = load_sources(existing)
-            for field in COMPOSITION_FIELDS:
-                if sources.get(field, SOURCE_PRESET) == SOURCE_PRESET:
-                    setattr(existing, field, json.dumps(preset[field]))
-                    sources[field] = SOURCE_PRESET
-            existing.composition_sources = json.dumps(sources)
 
     db.commit()
     if count > 0:

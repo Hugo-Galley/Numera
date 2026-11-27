@@ -28,8 +28,8 @@ class EtfProfile(Base):
     # top_holdings: [{"name": "Apple", "ticker": "AAPL", "weight": 4.8}, {"name": "Microsoft", "ticker": "MSFT", "weight": 4.3}, ...]
     top_holdings: Mapped[str] = mapped_column(Text, default="[]", nullable=False)
 
-    # Source de chaque champ de composition : {"sectors": "yahoo", "countries": "preset", ...}
-    # (ishares | amundi | spdr | justetf | yahoo | preset | manual, cf. domain/etf_profiles.py)
+    # Source de chaque champ de composition : {"sectors": "ishares", "countries": "manual", ...}
+    # (ishares | amundi | spdr | justetf | yahoo | manual, cf. domain/etf_profiles.py)
     composition_sources: Mapped[str] = mapped_column(Text, default="{}", nullable=False)
     composition_refreshed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 

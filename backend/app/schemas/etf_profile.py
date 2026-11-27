@@ -36,7 +36,7 @@ class EtfProfileUpdate(BaseModel):
 class EtfProfileRead(EtfProfileBase):
     id: int
     is_system: bool
-    # Source de chaque champ de composition : yahoo | preset | manual (absent = non renseigné)
+    # Source de chaque champ de composition : ishares | amundi | spdr | justetf | yahoo | manual (absent = non renseigné)
     composition_sources: dict[str, str] = {}
     composition_refreshed_at: datetime | None = None
     created_at: datetime
