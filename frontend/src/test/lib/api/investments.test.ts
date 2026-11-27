@@ -4,6 +4,7 @@ import { BODY, describeApiCases } from "@/test/support/apiCases"
 describeApiCases("investments", investments, [
   { fn: "postEtfProfilesAutoDecompose", args: [BODY], method: "POST", path: "/etf-profiles/auto-decompose", body: BODY },
   { fn: "postEtfProfilesRefreshHeld", method: "POST", path: "/etf-profiles/refresh-held" },
+  { fn: "getEtfProfilesByIdConstituents", args: [7], method: "GET", path: "/etf-profiles/7/constituents" },
   { fn: "getHoldings", args: ["?account_id=7"], method: "GET", path: "/holdings", query: "?account_id=7" },
   { fn: "postHoldingsBaseline", args: [BODY], method: "POST", path: "/holdings/baseline", body: BODY },
   { fn: "getHoldingsSuggestions", args: ["?account_id=7"], method: "GET", path: "/holdings/suggestions", query: "?account_id=7" },

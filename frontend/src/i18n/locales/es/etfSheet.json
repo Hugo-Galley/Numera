@@ -1,0 +1,43 @@
+{
+  "back": "Inversiones",
+  "loadError": "No se puede cargar la ficha de este fondo.",
+  "noFullList": "Este emisor no publica la lista completa: solo se conocen las principales posiciones",
+  "noComposition": "Por ahora no se conoce la composición de este fondo.",
+  "identity": {
+    "isin": "ISIN",
+    "ticker": "Ticker",
+    "replication": "Réplica",
+    "replications": {
+      "physical": "Física",
+      "synthetic": "Sintética",
+      "unknown": "No indicada"
+    },
+    "index": "Índice",
+    "coverage": "{{pct}} del fondo descrito",
+    "held": "Tienes {{amount}} en este fondo",
+    "syntheticVia": "Exposición al índice {{index}} a través de {{reference}}"
+  },
+  "weights": {
+    "countries": "Países",
+    "sectors": "Sectores",
+    "otherCountries": "Otros países",
+    "otherSectors": "Otros sectores"
+  },
+  "lines": {
+    "title_one": "{{count}} empresa",
+    "title_other": "{{count}} empresas",
+    "search": "Buscar una empresa",
+    "searchPlaceholder": "Nombre, ticker o ISIN",
+    "sortBy": "Ordenar por",
+    "noMatch": "Ninguna empresa coincide con tu búsqueda.",
+    "showMore_one": "Mostrar {{count}} más",
+    "showMore_other": "Mostrar {{count}} más",
+    "columns": {
+      "name": "Empresa",
+      "country": "País",
+      "sector": "Sector",
+      "weight": "Peso",
+      "exposure": "Tu exposición"
+    }
+  }
+}

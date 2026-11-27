@@ -18,6 +18,7 @@ import frAudit from "./locales/fr/audit.json"
 import frTax from "./locales/fr/tax.json"
 import frTools from "./locales/fr/tools.json"
 import frWrapped from "./locales/fr/wrapped.json"
+import frEtfSheet from "./locales/fr/etfSheet.json"
 import frCommon from "./locales/fr/common.json"
 import frDashboard from "./locales/fr/dashboard.json"
 import frNav from "./locales/fr/nav.json"
@@ -39,6 +40,7 @@ import enAudit from "./locales/en/audit.json"
 import enTax from "./locales/en/tax.json"
 import enTools from "./locales/en/tools.json"
 import enWrapped from "./locales/en/wrapped.json"
+import enEtfSheet from "./locales/en/etfSheet.json"
 import enCommon from "./locales/en/common.json"
 import enDashboard from "./locales/en/dashboard.json"
 import enNav from "./locales/en/nav.json"
@@ -60,6 +62,7 @@ import esAudit from "./locales/es/audit.json"
 import esTax from "./locales/es/tax.json"
 import esTools from "./locales/es/tools.json"
 import esWrapped from "./locales/es/wrapped.json"
+import esEtfSheet from "./locales/es/etfSheet.json"
 import esCommon from "./locales/es/common.json"
 import esDashboard from "./locales/es/dashboard.json"
 import esNav from "./locales/es/nav.json"
@@ -73,9 +76,9 @@ const STORAGE_KEY = "language"
 
 /** Un catalogue (JSON) par domaine ; le français est la référence, les autres langues doivent avoir les mêmes clés. */
 export const resources = {
-  fr: { common: frCommon, accounts: frAccounts, accountDetail: frAccountDetail, import: frImport, loans: frLoans, transactions: frTransactions, investments: frInvestments, omnibox: frOmnibox, savings: frSavings, recurring: frRecurring, reimbursements: frReimbursements, month: frMonth, classement: frClassement, audit: frAudit, tax: frTax, tools: frTools, wrapped: frWrapped, nav: frNav, auth: frAuth, settings: frSettings, dashboard: frDashboard },
-  en: { common: enCommon, accounts: enAccounts, accountDetail: enAccountDetail, import: enImport, loans: enLoans, transactions: enTransactions, investments: enInvestments, omnibox: enOmnibox, savings: enSavings, recurring: enRecurring, reimbursements: enReimbursements, month: enMonth, classement: enClassement, audit: enAudit, tax: enTax, tools: enTools, wrapped: enWrapped, nav: enNav, auth: enAuth, settings: enSettings, dashboard: enDashboard },
-  es: { common: esCommon, accounts: esAccounts, accountDetail: esAccountDetail, import: esImport, loans: esLoans, transactions: esTransactions, investments: esInvestments, omnibox: esOmnibox, savings: esSavings, recurring: esRecurring, reimbursements: esReimbursements, month: esMonth, classement: esClassement, audit: esAudit, tax: esTax, tools: esTools, wrapped: esWrapped, nav: esNav, auth: esAuth, settings: esSettings, dashboard: esDashboard },
+  fr: { common: frCommon, accounts: frAccounts, accountDetail: frAccountDetail, import: frImport, loans: frLoans, transactions: frTransactions, investments: frInvestments, omnibox: frOmnibox, savings: frSavings, recurring: frRecurring, reimbursements: frReimbursements, month: frMonth, classement: frClassement, audit: frAudit, tax: frTax, tools: frTools, wrapped: frWrapped, etfSheet: frEtfSheet, nav: frNav, auth: frAuth, settings: frSettings, dashboard: frDashboard },
+  en: { common: enCommon, accounts: enAccounts, accountDetail: enAccountDetail, import: enImport, loans: enLoans, transactions: enTransactions, investments: enInvestments, omnibox: enOmnibox, savings: enSavings, recurring: enRecurring, reimbursements: enReimbursements, month: enMonth, classement: enClassement, audit: enAudit, tax: enTax, tools: enTools, wrapped: enWrapped, etfSheet: enEtfSheet, nav: enNav, auth: enAuth, settings: enSettings, dashboard: enDashboard },
+  es: { common: esCommon, accounts: esAccounts, accountDetail: esAccountDetail, import: esImport, loans: esLoans, transactions: esTransactions, investments: esInvestments, omnibox: esOmnibox, savings: esSavings, recurring: esRecurring, reimbursements: esReimbursements, month: esMonth, classement: esClassement, audit: esAudit, tax: esTax, tools: esTools, wrapped: esWrapped, etfSheet: esEtfSheet, nav: esNav, auth: esAuth, settings: esSettings, dashboard: esDashboard },
 } as const
 
 const isLanguage = (value: unknown): value is Language => LANGUAGES.includes(value as Language)

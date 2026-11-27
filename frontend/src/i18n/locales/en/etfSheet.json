@@ -1,0 +1,43 @@
+{
+  "back": "Investments",
+  "loadError": "Unable to load this fund's page.",
+  "noFullList": "This issuer does not publish the full list: only the main holdings are known",
+  "noComposition": "No composition is known for this fund yet.",
+  "identity": {
+    "isin": "ISIN",
+    "ticker": "Ticker",
+    "replication": "Replication",
+    "replications": {
+      "physical": "Physical",
+      "synthetic": "Synthetic",
+      "unknown": "Not specified"
+    },
+    "index": "Index",
+    "coverage": "{{pct}} of the fund described",
+    "held": "You hold {{amount}} of it",
+    "syntheticVia": "Exposure to the {{index}} index through {{reference}}"
+  },
+  "weights": {
+    "countries": "Countries",
+    "sectors": "Sectors",
+    "otherCountries": "Other countries",
+    "otherSectors": "Other sectors"
+  },
+  "lines": {
+    "title_one": "{{count}} company",
+    "title_other": "{{count}} companies",
+    "search": "Search for a company",
+    "searchPlaceholder": "Name, ticker or ISIN",
+    "sortBy": "Sort by",
+    "noMatch": "No company matches your search.",
+    "showMore_one": "Show {{count}} more",
+    "showMore_other": "Show {{count}} more",
+    "columns": {
+      "name": "Company",
+      "country": "Country",
+      "sector": "Sector",
+      "weight": "Weight",
+      "exposure": "Your exposure"
+    }
+  }
+}
