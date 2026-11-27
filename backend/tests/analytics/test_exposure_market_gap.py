@@ -150,3 +150,12 @@ def test_market_score_averages_dimensions() -> None:
 
 def test_market_score_without_dimension_is_neutral() -> None:
     assert market_score([]) == 50.0
+
+
+def test_dimension_without_comparable_holdings_is_left_out_of_the_score() -> None:
+    """Composition inconnue (tout en « Non renseigné ») : la dimension n'informe pas, elle ne vaut pas 100."""
+    unknown = dimension_gap({UNKNOWN_LABEL: 100}, {"USA": 100})
+    known = DimensionGap(active_share_pct=40.0, covered_pct=80.0, rows=())
+
+    assert market_score([unknown, known]) == 60.0
+    assert market_score([unknown, unknown]) == 50.0

@@ -1,7 +1,6 @@
 """Cours de clôture stockés (`security_prices`) et titres détenus à coter."""
 from datetime import date as date_type
 
-from sqlalchemy import Row
 from sqlalchemy.orm import Session
 
 from app.models.portfolio_holding import PortfolioHolding
@@ -35,14 +34,21 @@ def latest_demo(db: Session, sym: str) -> SecurityPrice | None:
     )
 
 
-def series(db: Session, ticker: str) -> list[Row[date_type, float, str]]:
-    """Cours (date, clôture, devise) d'un titre, par date croissante."""
-    return (
-        db.query(SecurityPrice.date, SecurityPrice.close, SecurityPrice.currency)
-        .filter(SecurityPrice.ticker == ticker)
-        .order_by(SecurityPrice.date.asc())
+def series_by_ticker(db: Session, tickers: list[str]) -> dict[str, list[tuple[date_type, float, str]]]:
+    """Cours (date, clôture, devise) de chaque titre demandé, par date croissante, en une requête ; un titre sans
+    cours a une liste vide."""
+    out: dict[str, list[tuple[date_type, float, str]]] = {ticker: [] for ticker in tickers}
+    if not tickers:
+        return out
+    rows = (
+        db.query(SecurityPrice.ticker, SecurityPrice.date, SecurityPrice.close, SecurityPrice.currency)
+        .filter(SecurityPrice.ticker.in_(set(tickers)))
+        .order_by(SecurityPrice.ticker, SecurityPrice.date.asc())
         .all()
     )
+    for ticker, day, close, currency in rows:
+        out[ticker].append((day, close, currency))
+    return out
 
 
 def held_tickers(db: Session) -> list[str]:

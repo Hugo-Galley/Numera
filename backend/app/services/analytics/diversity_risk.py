@@ -231,11 +231,14 @@ async def risk_view(
     vectors_by_ticker: Mapping[str, Mapping[str, float]],
     market: EtfProfile | None,
     market_lines: Sequence[EtfLine],
+    returns_by_ticker: Mapping[str, Mapping[date, float]] | None = None,
 ) -> RiskView:
     """Expositions, corrélations, concentration, écarts au marché, stock picking et couverture d'un portefeuille.
 
-    Une exposition fusionnée prend la série et le vecteur de son plus gros support."""
-    returns_by_ticker = await weekly_returns_eur(db, [h.ticker for h in holdings])
+    Une exposition fusionnée prend la série et le vecteur de son plus gros support. `returns_by_ticker` : séries
+    déjà lues par l'appelant (`weekly_returns_eur`), pour ne pas relire les cours."""
+    if returns_by_ticker is None:
+        returns_by_ticker = await weekly_returns_eur(db, [h.ticker for h in holdings])
     groups = group_exposures(holdings, same_fund_rule(returns_by_ticker, vectors_by_ticker))
     returns = {g.key: returns_by_ticker[g.holdings[0].ticker] for g in groups if g.holdings[0].ticker in returns_by_ticker}
     vectors = {g.key: dict(vectors_by_ticker.get(g.holdings[0].ticker, {})) for g in groups}

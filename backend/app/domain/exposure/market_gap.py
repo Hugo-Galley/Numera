@@ -84,9 +84,16 @@ def is_overweight(row: GapRow) -> bool:
     return row.portfolio_pct >= OVERWEIGHT_RATIO * row.market_pct and row.gap_pts >= OVERWEIGHT_MIN_POINTS
 
 
+def is_comparable(gap: DimensionGap) -> bool:
+    """Une part du portefeuille est comparable au marché sur cette dimension (composition au moins en partie connue)."""
+    return gap.covered_pct > 0
+
+
 def market_score(gaps: Sequence[DimensionGap]) -> float:
-    """100 − moyenne des active shares des dimensions, borné à [0, 100] ; neutre sans dimension."""
-    if not gaps:
+    """100 − moyenne des active shares des dimensions comparables, borné à [0, 100] ; neutre sans dimension
+    comparable (une dimension dont rien n'est connu n'est pas « identique au marché »)."""
+    comparable = [g for g in gaps if is_comparable(g)]
+    if not comparable:
         return NEUTRAL_SCORE
-    mean = sum(g.active_share_pct for g in gaps) / len(gaps)
+    mean = sum(g.active_share_pct for g in comparable) / len(comparable)
     return round(min(100.0, max(0.0, 100.0 - mean)), 1)

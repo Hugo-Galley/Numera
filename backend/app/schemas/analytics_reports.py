@@ -1,5 +1,6 @@
 """Réponses de `/analytics/{sankey,diversity-scanner,audit/{issue_id}}` et des acquittements `dismiss` / `ignore`."""
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel, Field
 
@@ -62,7 +63,7 @@ class DiversityHolding(BaseModel):
 
 
 class DiversitySource(BaseModel):
-    source: str  # ticker de l'ETF porteur, ou « En direct »
+    source: str  # nom de l'exposition porteuse (deux supports d'un même indice : un seul chemin), ou « En direct »
     pct_in_source: float
     value_eur: float
 
@@ -84,15 +85,97 @@ class DiversityExposure(BaseModel):
     value_eur: float
     percentage_stocks: float
     percentage_total_wealth: float
+    # Poids de la référence de marché, renormalisé sur sa part connue ; None sans référence ou hors comparaison
+    market_pct: float | None
+
+
+MarketDimensionKey = Literal["companies", "sectors", "countries"]
+ExposureKind = Literal["fund", "direct", "crypto"]
+PairSource = Literal["prices", "composition", "unknown"]
 
 
 class DiversityAlert(BaseModel):
-    type: str  # « danger », « warning » ou « info »
-    category: str  # « company », « overlap », « country » ou « sector »
+    type: str  # « warning » ou « info »
+    category: Literal["overweight", "correlated_block", "redundant_pick", "overlap"]
+    # Dimension d'une sur-pondération ; None pour les autres catégories
+    dimension: MarketDimensionKey | None = None
     title: str
     message: str
     item_name: str
     value_pct: float
+
+
+class DiversityExposureSupport(BaseModel):
+    account_id: int
+    account_name: str | None
+    ticker: str
+    value_eur: float
+
+
+class DiversityExposureGroup(BaseModel):
+    """Positions qui sont la même exposition (même titre, même profil ou même indice), tous comptes confondus."""
+
+    id: str
+    name: str
+    kind: ExposureKind
+    value_eur: float
+    weight_pct: float
+    supports: list[DiversityExposureSupport]
+
+
+class DiversityBlock(BaseModel):
+    members: list[str]  # noms d'exposition
+    weight_pct: float
+    mean_rho: float
+
+
+class DiversityConcentration(BaseModel):
+    effective_bets: float  # nombre de paris indépendants (N_eff)
+    exposures_count: int
+    blocks: list[DiversityBlock]
+    pairs_by_source: dict[PairSource, int]
+
+
+class DiversityGapRow(BaseModel):
+    name: str
+    portfolio_pct: float
+    market_pct: float
+    # Nom absent d'un marché connu par son seul top : market_pct est un majorant
+    market_pct_is_upper_bound: bool
+    gap_pts: float
+
+
+class DiversityMarketDimension(BaseModel):
+    active_share_pct: float
+    covered_pct: float  # part du portefeuille comparée (hors « Non renseigné », liquidités, « Autres »)
+    rows: list[DiversityGapRow]  # les plus gros écarts, au plus 30
+
+
+class DiversityMarket(BaseModel):
+    """Référence de marché (réglage `market_reference_ticker`, MSCI ACWI par défaut) et écart par dimension."""
+
+    name: str
+    ticker: str | None
+    companies: DiversityMarketDimension
+    sectors: DiversityMarketDimension
+    countries: DiversityMarketDimension
+
+
+class DiversityStockPick(BaseModel):
+    key: str
+    name: str
+    ticker: str
+    value_eur: float
+    indirect_value_eur: float  # déjà détenu via les fonds
+    indirect_pct: float
+    correlation_with_core: float | None
+    source: PairSource
+    redundant: bool
+
+
+class DiversityCoverage(BaseModel):
+    with_prices_pct: float  # part de la valeur avec un historique de cours suffisant
+    composition_pct: float  # part de la valeur dont la composition est connue
 
 
 class DiversityTotals(BaseModel):
@@ -131,6 +214,11 @@ class DiversityScanner(BaseModel):
     alerts: list[DiversityAlert]
     holdings: list[DiversityHolding]
     etf_compositions: list[DiversityComposition]
+    exposures: list[DiversityExposureGroup]
+    concentration: DiversityConcentration
+    market: DiversityMarket | None  # None : référence de marché introuvable (score neutre)
+    stock_picking: list[DiversityStockPick]
+    coverage: DiversityCoverage
 
 
 class MarketReferenceSetting(BaseModel):

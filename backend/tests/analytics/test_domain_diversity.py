@@ -2,16 +2,7 @@
 import pytest
 
 from app.domain.diversity import UNKNOWN_LABEL, normalize_company_key, spread_weights
-from app.domain.diversity_score import hhi_score, score_label
-
-
-def test_hhi_score_single_asset_is_low():
-    assert hhi_score([100.0]) == 10.0
-
-
-def test_hhi_score_empty_is_50():
-    assert hhi_score([]) == 50.0
-    assert hhi_score([0.0, 0.0]) == 50.0
+from app.domain.diversity_score import score_label
 
 
 def test_spread_weights_uncovered_goes_to_unknown():

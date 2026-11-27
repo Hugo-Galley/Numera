@@ -143,3 +143,46 @@ def test_constituents_with_an_incomplete_top_10_still_answer(backend, etf):
     text = etf.get_etf_constituents(11)
     assert not text.startswith("❌"), text
     assert "NVDA" in text and "Sans poids" in text
+
+
+SCANNER = {
+    "score": 62.4, "score_label": "Bonne diversification globale",
+    "totals": {"stocks_eur": 1000.0, "epargne_eur": 0.0, "courant_eur": 0.0, "fonds_euros_eur": 0.0,
+               "wealth_eur": 1000.0, "holdings_count": 3, "etfs_count": 1},
+    "top_underlying_companies": [], "countries": [], "sectors": [], "alerts": [],
+    "exposures": [
+        {"id": "exp:CW8.PA", "name": "Amundi MSCI World", "kind": "fund", "value_eur": 800.0, "weight_pct": 80.0,
+         "supports": [{"account_id": 1, "account_name": "PEA", "ticker": "CW8.PA", "value_eur": 500.0},
+                      {"account_id": 2, "account_name": "CTO", "ticker": "IWDA.AS", "value_eur": 300.0}]},
+    ],
+    "concentration": {"effective_bets": 3.2, "exposures_count": 11,
+                      "blocks": [{"members": ["Bitcoin USD", "Ethereum USD"], "weight_pct": 7.0, "mean_rho": 0.86}],
+                      "pairs_by_source": {"prices": 40, "composition": 10, "unknown": 5}},
+    "market": {"name": "iShares MSCI ACWI", "ticker": "SSAC.L",
+               "countries": {"active_share_pct": 12.0, "covered_pct": 90.0, "rows": []},
+               "sectors": {"active_share_pct": 18.0, "covered_pct": 95.0,
+                           "rows": [{"name": "Technologie", "portfolio_pct": 38.0, "market_pct": 25.0,
+                                     "market_pct_is_upper_bound": False, "gap_pts": 13.0}]},
+               "companies": {"active_share_pct": 60.0, "covered_pct": 70.0, "rows": []}},
+    "stock_picking": [{"key": "exp:AAPL", "name": "Apple", "ticker": "AAPL", "value_eur": 100.0,
+                       "indirect_value_eur": 40.0, "indirect_pct": 40.0, "correlation_with_core": 0.9,
+                       "source": "prices", "redundant": True}],
+    "coverage": {"with_prices_pct": 85.0, "composition_pct": 95.0},
+}
+
+
+def test_diversity_shows_independent_bets_and_market_reference(etf):
+    text = etf._format_diversity(SCANNER)
+
+    assert "3.2 paris indépendants sur 11 lignes" in text
+    assert "iShares MSCI ACWI (SSAC.L)" in text
+    assert "Bitcoin USD + Ethereum USD" in text
+    assert "Technologie : 38.0% contre 25.0% (+13.0 pts)" in text
+    assert "Apple" in text and "redondant" in text
+    assert "PEA" in text and "CTO" in text
+
+
+def test_diversity_without_market_reference_says_so(etf):
+    text = etf._format_diversity({**SCANNER, "market": None})
+
+    assert "Référence de marché indisponible" in text

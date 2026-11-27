@@ -213,11 +213,59 @@ def get_etf_constituents(profile_id: int, limit: int = 50, search: str | None = 
         return f"❌ Erreur : {e}"
 
 
+def _format_market(data: dict) -> list[str]:
+    """Référence de marché, active share par dimension et principaux écarts de secteurs et de pays."""
+    market = data.get("market")
+    if market is None:
+        return ["📏 Référence de marché indisponible : score neutre, pas d'écart au marché.", ""]
+    ticker = f" ({market['ticker']})" if market.get("ticker") else ""
+    lines = [f"📏 Référence de marché : {market['name']}{ticker} — score = 100 − active share moyenne"]
+    for key, label in (("companies", "sociétés"), ("sectors", "secteurs"), ("countries", "pays")):
+        dimension = market.get(key) or {}
+        lines.append(f"  • Active share {label} : {dimension.get('active_share_pct', 0)}% "
+                     f"(part comparée {dimension.get('covered_pct', 0)}%)")
+    for key in ("sectors", "countries"):
+        for row in (market.get(key) or {}).get("rows", [])[:5]:
+            bound = "≤ " if row.get("market_pct_is_upper_bound") else ""
+            lines.append(f"    {row['name']} : {row['portfolio_pct']}% contre {bound}{row['market_pct']}% "
+                         f"({row['gap_pts']:+} pts)")
+    return [*lines, ""]
+
+
+def _format_concentration(data: dict) -> list[str]:
+    """Paris indépendants, blocs corrélés, expositions à plusieurs supports et stock picking."""
+    lines: list[str] = []
+    concentration = data.get("concentration")
+    if concentration:
+        lines.append(f"🧮 {concentration['effective_bets']} paris indépendants sur "
+                     f"{concentration['exposures_count']} lignes")
+        for block in concentration.get("blocks", []):
+            lines.append(f"  • Bloc corrélé : {' + '.join(block['members'])} — {block['weight_pct']}% "
+                         f"(ρ moyen {block['mean_rho']})")
+    for exposure in data.get("exposures", []):
+        supports = exposure.get("supports", [])
+        if len(supports) > 1:
+            where = ", ".join(f"{s.get('account_name') or s['ticker']} {s['value_eur']:,.2f} €" for s in supports)
+            lines.append(f"  • {exposure['name']} : une seule exposition sur {len(supports)} supports ({where})")
+    for pick in data.get("stock_picking", []):
+        rho = pick.get("correlation_with_core")
+        verdict = " — redondant" if pick.get("redundant") else ""
+        lines.append(f"  • {pick['name']} en direct : {pick['indirect_value_eur']:,.2f} € déjà via tes fonds, "
+                     f"ρ avec le cœur {rho if rho is not None else 'inconnu'} ({pick['source']}){verdict}")
+    coverage = data.get("coverage")
+    if coverage:
+        lines.append(f"  Couverture : composition {coverage.get('composition_pct', 0)}%, "
+                     f"historique de cours {coverage.get('with_prices_pct', 0)}% de la valeur")
+    return [*lines, ""] if lines else []
+
+
 def _format_diversity(data: dict) -> str:
     """Texte du scanner de diversification à partir de la réponse de l'API."""
     lines = [
         f"🎯 Score de diversité : {data.get('score', '—')}/100 — {data.get('score_label', '')}",
         "",
+        *_format_market(data),
+        *_format_concentration(data),
     ]
 
     totals = data.get("totals", {})
@@ -233,7 +281,7 @@ def _format_diversity(data: dict) -> str:
     if companies:
         lines.append(f"🏢 Top entreprises sous-jacentes ({len(companies)}) :")
         for c in companies[:10]:
-            overlap = " 🔁 doublon" if c.get("has_overlap") else ""
+            overlap = " 🔁 doublon (plusieurs chemins)" if c.get("has_overlap") else ""
             lines.append(
                 f"  • {c['name']} ({c.get('ticker') or '?'}) : "
                 f"{c['pct_stocks']}% actions / {c['pct_total_wealth']}% patrimoine{overlap}"

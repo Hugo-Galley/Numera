@@ -26,8 +26,7 @@ class PriceBook:
         self._series: dict[str, tuple[list[date_type], list[float], list[str]]] = {}
 
     def load(self, db: Session, tickers: list[str]) -> None:
-        for ticker in tickers:
-            rows = security_prices.series(db, ticker)
+        for ticker, rows in security_prices.series_by_ticker(db, tickers).items():
             self._series[ticker] = ([r[0] for r in rows], [r[1] for r in rows], [r[2] for r in rows])
 
     def currencies(self) -> set[str]:

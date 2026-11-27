@@ -4599,8 +4599,30 @@
    "DiversityAlert": {
     "properties": {
      "category": {
+      "enum": [
+       "overweight",
+       "correlated_block",
+       "redundant_pick",
+       "overlap"
+      ],
       "title": "Category",
       "type": "string"
+     },
+     "dimension": {
+      "anyOf": [
+       {
+        "enum": [
+         "companies",
+         "sectors",
+         "countries"
+        ],
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Dimension"
      },
      "item_name": {
       "title": "Item Name",
@@ -4632,6 +4654,32 @@
      "value_pct"
     ],
     "title": "DiversityAlert",
+    "type": "object"
+   },
+   "DiversityBlock": {
+    "properties": {
+     "mean_rho": {
+      "title": "Mean Rho",
+      "type": "number"
+     },
+     "members": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Members",
+      "type": "array"
+     },
+     "weight_pct": {
+      "title": "Weight Pct",
+      "type": "number"
+     }
+    },
+    "required": [
+     "members",
+     "weight_pct",
+     "mean_rho"
+    ],
+    "title": "DiversityBlock",
     "type": "object"
    },
    "DiversityCompany": {
@@ -4827,8 +4875,78 @@
     "title": "DiversityComposition",
     "type": "object"
    },
+   "DiversityConcentration": {
+    "properties": {
+     "blocks": {
+      "items": {
+       "$ref": "#/components/schemas/DiversityBlock"
+      },
+      "title": "Blocks",
+      "type": "array"
+     },
+     "effective_bets": {
+      "title": "Effective Bets",
+      "type": "number"
+     },
+     "exposures_count": {
+      "title": "Exposures Count",
+      "type": "integer"
+     },
+     "pairs_by_source": {
+      "additionalProperties": {
+       "type": "integer"
+      },
+      "propertyNames": {
+       "enum": [
+        "prices",
+        "composition",
+        "unknown"
+       ]
+      },
+      "title": "Pairs By Source",
+      "type": "object"
+     }
+    },
+    "required": [
+     "effective_bets",
+     "exposures_count",
+     "blocks",
+     "pairs_by_source"
+    ],
+    "title": "DiversityConcentration",
+    "type": "object"
+   },
+   "DiversityCoverage": {
+    "properties": {
+     "composition_pct": {
+      "title": "Composition Pct",
+      "type": "number"
+     },
+     "with_prices_pct": {
+      "title": "With Prices Pct",
+      "type": "number"
+     }
+    },
+    "required": [
+     "with_prices_pct",
+     "composition_pct"
+    ],
+    "title": "DiversityCoverage",
+    "type": "object"
+   },
    "DiversityExposure": {
     "properties": {
+     "market_pct": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Market Pct"
+     },
      "name": {
       "title": "Name",
       "type": "string"
@@ -4850,9 +4968,125 @@
      "name",
      "value_eur",
      "percentage_stocks",
-     "percentage_total_wealth"
+     "percentage_total_wealth",
+     "market_pct"
     ],
     "title": "DiversityExposure",
+    "type": "object"
+   },
+   "DiversityExposureGroup": {
+    "description": "Positions qui sont la même exposition (même titre, même profil ou même indice), tous comptes confondus.",
+    "properties": {
+     "id": {
+      "title": "Id",
+      "type": "string"
+     },
+     "kind": {
+      "enum": [
+       "fund",
+       "direct",
+       "crypto"
+      ],
+      "title": "Kind",
+      "type": "string"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "supports": {
+      "items": {
+       "$ref": "#/components/schemas/DiversityExposureSupport"
+      },
+      "title": "Supports",
+      "type": "array"
+     },
+     "value_eur": {
+      "title": "Value Eur",
+      "type": "number"
+     },
+     "weight_pct": {
+      "title": "Weight Pct",
+      "type": "number"
+     }
+    },
+    "required": [
+     "id",
+     "name",
+     "kind",
+     "value_eur",
+     "weight_pct",
+     "supports"
+    ],
+    "title": "DiversityExposureGroup",
+    "type": "object"
+   },
+   "DiversityExposureSupport": {
+    "properties": {
+     "account_id": {
+      "title": "Account Id",
+      "type": "integer"
+     },
+     "account_name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Account Name"
+     },
+     "ticker": {
+      "title": "Ticker",
+      "type": "string"
+     },
+     "value_eur": {
+      "title": "Value Eur",
+      "type": "number"
+     }
+    },
+    "required": [
+     "account_id",
+     "account_name",
+     "ticker",
+     "value_eur"
+    ],
+    "title": "DiversityExposureSupport",
+    "type": "object"
+   },
+   "DiversityGapRow": {
+    "properties": {
+     "gap_pts": {
+      "title": "Gap Pts",
+      "type": "number"
+     },
+     "market_pct": {
+      "title": "Market Pct",
+      "type": "number"
+     },
+     "market_pct_is_upper_bound": {
+      "title": "Market Pct Is Upper Bound",
+      "type": "boolean"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "portfolio_pct": {
+      "title": "Portfolio Pct",
+      "type": "number"
+     }
+    },
+    "required": [
+     "name",
+     "portfolio_pct",
+     "market_pct",
+     "market_pct_is_upper_bound",
+     "gap_pts"
+    ],
+    "title": "DiversityGapRow",
     "type": "object"
    },
    "DiversityHolding": {
@@ -4934,6 +5168,70 @@
     "title": "DiversityHolding",
     "type": "object"
    },
+   "DiversityMarket": {
+    "description": "Référence de marché (réglage `market_reference_ticker`, MSCI ACWI par défaut) et écart par dimension.",
+    "properties": {
+     "companies": {
+      "$ref": "#/components/schemas/DiversityMarketDimension"
+     },
+     "countries": {
+      "$ref": "#/components/schemas/DiversityMarketDimension"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "sectors": {
+      "$ref": "#/components/schemas/DiversityMarketDimension"
+     },
+     "ticker": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Ticker"
+     }
+    },
+    "required": [
+     "name",
+     "ticker",
+     "companies",
+     "sectors",
+     "countries"
+    ],
+    "title": "DiversityMarket",
+    "type": "object"
+   },
+   "DiversityMarketDimension": {
+    "properties": {
+     "active_share_pct": {
+      "title": "Active Share Pct",
+      "type": "number"
+     },
+     "covered_pct": {
+      "title": "Covered Pct",
+      "type": "number"
+     },
+     "rows": {
+      "items": {
+       "$ref": "#/components/schemas/DiversityGapRow"
+      },
+      "title": "Rows",
+      "type": "array"
+     }
+    },
+    "required": [
+     "active_share_pct",
+     "covered_pct",
+     "rows"
+    ],
+    "title": "DiversityMarketDimension",
+    "type": "object"
+   },
    "DiversityScanner": {
     "properties": {
      "alerts": {
@@ -4943,12 +5241,18 @@
       "title": "Alerts",
       "type": "array"
      },
+     "concentration": {
+      "$ref": "#/components/schemas/DiversityConcentration"
+     },
      "countries": {
       "items": {
        "$ref": "#/components/schemas/DiversityExposure"
       },
       "title": "Countries",
       "type": "array"
+     },
+     "coverage": {
+      "$ref": "#/components/schemas/DiversityCoverage"
      },
      "etf_compositions": {
       "items": {
@@ -4957,12 +5261,29 @@
       "title": "Etf Compositions",
       "type": "array"
      },
+     "exposures": {
+      "items": {
+       "$ref": "#/components/schemas/DiversityExposureGroup"
+      },
+      "title": "Exposures",
+      "type": "array"
+     },
      "holdings": {
       "items": {
        "$ref": "#/components/schemas/DiversityHolding"
       },
       "title": "Holdings",
       "type": "array"
+     },
+     "market": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/DiversityMarket"
+       },
+       {
+        "type": "null"
+       }
+      ]
      },
      "score": {
       "title": "Score",
@@ -4977,6 +5298,13 @@
        "$ref": "#/components/schemas/DiversityExposure"
       },
       "title": "Sectors",
+      "type": "array"
+     },
+     "stock_picking": {
+      "items": {
+       "$ref": "#/components/schemas/DiversityStockPick"
+      },
+      "title": "Stock Picking",
       "type": "array"
      },
      "top_underlying_companies": {
@@ -4999,7 +5327,12 @@
      "sectors",
      "alerts",
      "holdings",
-     "etf_compositions"
+     "etf_compositions",
+     "exposures",
+     "concentration",
+     "market",
+     "stock_picking",
+     "coverage"
     ],
     "title": "DiversityScanner",
     "type": "object"
@@ -5025,6 +5358,71 @@
      "value_eur"
     ],
     "title": "DiversitySource",
+    "type": "object"
+   },
+   "DiversityStockPick": {
+    "properties": {
+     "correlation_with_core": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Correlation With Core"
+     },
+     "indirect_pct": {
+      "title": "Indirect Pct",
+      "type": "number"
+     },
+     "indirect_value_eur": {
+      "title": "Indirect Value Eur",
+      "type": "number"
+     },
+     "key": {
+      "title": "Key",
+      "type": "string"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "redundant": {
+      "title": "Redundant",
+      "type": "boolean"
+     },
+     "source": {
+      "enum": [
+       "prices",
+       "composition",
+       "unknown"
+      ],
+      "title": "Source",
+      "type": "string"
+     },
+     "ticker": {
+      "title": "Ticker",
+      "type": "string"
+     },
+     "value_eur": {
+      "title": "Value Eur",
+      "type": "number"
+     }
+    },
+    "required": [
+     "key",
+     "name",
+     "ticker",
+     "value_eur",
+     "indirect_value_eur",
+     "indirect_pct",
+     "correlation_with_core",
+     "source",
+     "redundant"
+    ],
+    "title": "DiversityStockPick",
     "type": "object"
    },
    "DiversityTotals": {
