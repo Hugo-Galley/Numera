@@ -11,10 +11,11 @@ from app.services.investissement.isin_resolution import resolve_missing_isins
 CW8 = "LU1681043599"
 WPEA = "IE0002XZSHO1"
 NEW = "IE000BI8OT95"
+CSCO = "US17275R1023"
 
 
-def _profile(pid, ticker, isin, aliases=None, is_system=False):
-    return ProfileRef(pid, ticker, isin, aliases or [ticker], is_system)
+def _profile(pid, ticker, isin, is_system=False):
+    return ProfileRef(pid, ticker, isin, is_system)
 
 
 def test_holding_with_isin_moves_to_its_own_profile():
@@ -31,12 +32,40 @@ def test_missing_profile_is_created_once_for_two_holdings():
     assert plan.moves == {}
 
 
-def test_holding_without_isin_on_system_profile_is_detached_unless_ticker_matches():
-    system = _profile(1, "CW8.PA", CW8, ["CW8", "cw8.pa"], is_system=True)
-    holdings = [HoldingRef(10, "CW8.PA", None, 1), HoldingRef(11, "cw8", None, 1), HoldingRef(12, "XYZ.PA", None, 1)]
+def test_unattached_holding_joins_a_profile_created_in_the_same_pass():
+    """Le profil créé pour une position rattachée sert aussi à la position non rattachée du même ISIN, quel que
+    soit l'ordre ; seule, elle n'en ferait pas créer."""
+    holdings = [HoldingRef(9, "SOLO.PA", NEW, None), HoldingRef(10, "AAA.PA", NEW, 1)]
+    plan = plan_attachments(holdings, [_profile(1, "CW8.PA", CW8)])
+    assert (plan.create_isins, plan.pending) == ({NEW}, {9: NEW, 10: NEW})
+
+
+def test_holding_without_isin_on_system_profile_is_detached_unless_it_is_the_profile_own_ticker():
+    """Les alias livrés mélangeaient plusieurs fonds : seul le ticker propre du profil système compte."""
+    system = _profile(1, "CW8.PA", CW8, is_system=True)
+    holdings = [HoldingRef(10, "CW8.PA", None, 1), HoldingRef(11, "cw8.pa", None, 1), HoldingRef(12, "XYZ.PA", None, 1),
+                HoldingRef(13, "WPEA.PA", None, 1), HoldingRef(14, "AHYQ.DE", None, 1), HoldingRef(15, "CW8", None, 1)]
     plan = plan_attachments(holdings, [system])
-    assert plan.detach == {12}
+    assert plan.detach == {12, 13, 14, 15}
     assert (plan.moves, plan.create_isins) == ({}, set())
+
+
+def test_holding_with_isin_on_manual_profile_without_isin_stays():
+    """Un profil saisi sans ISIN est un rattachement manuel : la position n'en part pas."""
+    plan = plan_attachments([HoldingRef(10, "MAN.PA", NEW, 1)], [_profile(1, "MAN.PA", None)])
+    assert (plan.moves, plan.create_isins, plan.pending, plan.detach) == ({}, set(), {}, set())
+
+
+def test_stock_on_a_manual_profile_or_unattached_never_gets_an_etf_profile():
+    """Cas CSCO : une action en direct a aussi un ISIN ; ni rattachée ni non rattachée, elle ne crée de profil."""
+    plan = plan_attachments([HoldingRef(10, "CSCO", CSCO, 28), HoldingRef(11, "CSCO", CSCO, None)],
+                            [_profile(28, "CISCO CDR", None)])
+    assert (plan.moves, plan.create_isins, plan.pending, plan.detach) == ({}, set(), {}, set())
+
+
+def test_holding_with_isin_leaves_a_system_profile_without_isin():
+    plan = plan_attachments([HoldingRef(10, "AAA.PA", NEW, 1)], [_profile(1, "WORLD", None, is_system=True)])
+    assert (plan.create_isins, plan.pending) == ({NEW}, {10: NEW})
 
 
 def test_holding_without_isin_on_manual_profile_stays_attached():
@@ -117,6 +146,20 @@ def test_attach_without_commit_updates_loaded_objects(db_session, account):
     assert holding.etf_profile_id == own.id
     db_session.rollback()
     assert db_session.query(EtfProfile).filter(EtfProfile.isin == NEW).count() == 0
+
+
+def test_attach_leaves_a_stock_on_a_manual_profile_alone(db_session, account):
+    """Cas CSCO de la vraie base : profil « CISCO CDR » sans ISIN, action CSCO avec son ISIN."""
+    cisco = _db_profile(db_session, "CISCO CDR", "CSCO.NE", None)
+    attached = _holding(db_session, account, "CSCO", CSCO, cisco.id)
+    alone = _holding(db_session, account, "CSCO.DE", CSCO, None)
+    db_session.commit()
+
+    assert attach_to_own_profiles(db_session) == 0
+    db_session.expire_all()
+
+    assert (attached.etf_profile_id, alone.etf_profile_id) == (cisco.id, None)
+    assert db_session.query(EtfProfile).count() == 1
 
 
 def test_attach_runs_in_constant_queries(db_session, account, measure_queries):

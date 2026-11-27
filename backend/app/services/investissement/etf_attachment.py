@@ -12,14 +12,6 @@ from app.repositories.investissement import holdings as holdings_repo
 logger = get_logger(__name__)
 
 
-def _aliases(raw: str | None) -> list[str]:
-    try:
-        values = json.loads(raw or "[]")
-    except (TypeError, ValueError):
-        return []
-    return [str(v) for v in values] if isinstance(values, list) else []
-
-
 def _new_profile(name: str, ticker: str, isin: str) -> dict[str, Any]:
     """Profil vide : sa composition sera lue au prochain passage."""
     return {"name": name, "ticker": ticker, "isin": isin, "aliases": json.dumps([ticker, isin]), "countries": "{}",
@@ -32,8 +24,7 @@ def attach_to_own_profiles(db: Session, *, commit: bool = True) -> int:
     rows = holdings_repo.attachment_rows(db)
     plan = plan_attachments(
         [HoldingRef(i, ticker, isin, profile_id) for i, ticker, isin, profile_id, _ in rows],
-        [ProfileRef(i, ticker, isin, _aliases(aliases), is_system)
-         for i, ticker, isin, aliases, is_system in profiles_repo.attachment_rows(db)])
+        [ProfileRef(*row) for row in profiles_repo.attachment_rows(db)])
     targets: dict[int, int | None] = {**plan.moves, **dict.fromkeys(plan.detach)}
     if plan.create_isins:
         # La première position de chaque ISIN donne son nom et son ticker au profil

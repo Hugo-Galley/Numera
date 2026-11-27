@@ -92,10 +92,10 @@ def set_isins(db: Session, isins: dict[int, str]) -> None:
             {"id": pid, "isin": isin, "composition_refreshed_at": None} for pid, isin in isins.items()])
 
 
-def attachment_rows(db: Session) -> list[tuple[int, str, str | None, str | None, bool]]:
-    """(id, ticker, ISIN, alias JSON, système) de tous les profils, sans objets ORM."""
-    query = db.query(EtfProfile.id, EtfProfile.ticker, EtfProfile.isin, EtfProfile.aliases, EtfProfile.is_system)
-    return [(i, t, s, a, y) for i, t, s, a, y in query]
+def attachment_rows(db: Session) -> list[tuple[int, str, str | None, bool]]:
+    """(id, ticker, ISIN, système) de tous les profils, sans objets ORM."""
+    query = db.query(EtfProfile.id, EtfProfile.ticker, EtfProfile.isin, EtfProfile.is_system)
+    return [(i, t, s, y) for i, t, s, y in query]
 
 
 def insert_many(db: Session, rows: list[dict[str, Any]]) -> None:

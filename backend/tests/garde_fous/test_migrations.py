@@ -3,6 +3,7 @@
 Les autres tests utilisent `create_all` et ne voient donc pas les dérives de migration : une
 installation neuve ou une restauration sur schéma vierge échouait (colonnes manquantes).
 """
+import importlib.util
 import json
 import os
 import subprocess
@@ -303,6 +304,10 @@ def test_drop_system_etf_profiles_reattaches_and_cleans(tmp_path):
             ("IE0002XZSHO1.SG", None, world), ("CW8.PA", None, world), ("XYZ.PA", None, world),
             ("AAA.PA", "IE000BI8OT95", cac), ("AAA.DE", "IE000BI8OT95", world), ("BBB.PA", None, manual),
             ("SOLO.PA", "IE000BI8OT95", None), ("TTE.PA", "FR0000120271", None),
+            # alias livré de « MSCI World » : un autre fonds, détaché (I2)
+            ("WPEA.PA", None, world),
+            # action avec ISIN sur un profil saisi sans ISIN : rattachement manuel, gardé (I1)
+            ("CSCO", "US17275R1023", manual),
         )
         for ticker, isin, profile in positions:
             _insert_row(conn, "portfolio_holdings", account_id=1, ticker=ticker, isin=isin, asset_name=f"Nom {ticker}",
@@ -335,13 +340,75 @@ def test_drop_system_etf_profiles_reattaches_and_cleans(tmp_path):
     assert (own.countries, own.top_holdings, own.replication, own.lines_count) == ("{}", "[]", "unknown", 0)
     assert links == {
         "IE0002XZSHO1.SG": own.id, "CW8.PA": world, "XYZ.PA": None, "AAA.PA": shared.id, "AAA.DE": shared.id,
-        "BBB.PA": manual, "SOLO.PA": shared.id, "TTE.PA": None,
+        "BBB.PA": manual, "SOLO.PA": shared.id, "TTE.PA": None, "WPEA.PA": None, "CSCO": manual,
     }
     assert operations == [("XYZ.PA", None), ("CW8.PA", world), ("IE0002XZSHO1.SG", own.id), (None, cac)]
     assert baseline is None
     # « S&P 500 », rattaché à rien, disparaît ; les autres, encore utilisés, ne sont plus « système »
     assert set(profiles) == {"MSCI World", "CAC 40", "Manuel", "Référence", "Synthétique", own.name, shared.name}
     assert not any(p.is_system for p in profiles.values())
-    # Les alias livrés qui désignaient d'autres fonds sont retirés, sauf ceux qu'une position utilise encore
-    assert json.loads(profiles["MSCI World"].aliases) == ["CW8.PA"]
+    # Les alias livrés ne valent plus rien : un ancien profil système ne garde que son ticker et son ISIN
+    assert json.loads(profiles["MSCI World"].aliases) == ["CW8.PA", "LU1681043599"]
+    assert json.loads(profiles["CAC 40"].aliases) == ["C40.PA", "FR0007054316"]
     assert profiles["Manuel"].aliases == "pas du json"
+    assert profiles["Manuel"].isin is None
+
+
+def test_drop_system_etf_profiles_forgets_shipped_aliases(tmp_path):
+    """Cas vu sur une copie de la vraie base : WPEA.PA et AHYQ.DE, sans ISIN, sur « MSCI World » (CW8) par des alias
+    livrés. Ce sont d'autres fonds : ils sont détachés, et le profil ne garde aucun alias livré."""
+    url = f"sqlite:///{tmp_path / 'aliases.db'}"
+    assert _alembic(url, "upgrade", "d8f3b6a1c9e4").returncode == 0
+    engine = create_engine(url)
+    with engine.begin() as conn:
+        world = _insert_profile(conn, "MSCI World", "CW8.PA", isin="LU1681043599", system=1,
+                                aliases='["CW8.PA", "WPEA.PA", "LU1681043599", "AHYQ.DE"]')
+        conn.execute(text("INSERT INTO accounts (name, type, currency, active, created_at) VALUES ('PEA', 'investissement', 'EUR', 1, '2026-01-01')"))
+        for ticker in ("WPEA.PA", "AHYQ.DE"):
+            _insert_row(conn, "portfolio_holdings", account_id=1, ticker=ticker, isin=None, asset_name=ticker,
+                        quantity=12, currency="EUR", etf_profile_id=world, created_at="2026-01-01",
+                        updated_at="2026-01-01")
+    engine.dispose()
+
+    result = _alembic(url, "upgrade", "head")
+    assert result.returncode == 0, result.stderr
+
+    engine = create_engine(url)
+    with engine.connect() as conn:
+        links = dict(conn.execute(text("SELECT ticker, etf_profile_id FROM portfolio_holdings")).fetchall())
+        aliases = [r.aliases for r in conn.execute(text("SELECT aliases FROM etf_profiles"))]
+    engine.dispose()
+    assert links == {"WPEA.PA": None, "AHYQ.DE": None}
+    # Plus rien ne désigne « MSCI World » : il disparaît, et avec lui ses alias livrés
+    assert not any("WPEA.PA" in a or "AHYQ.DE" in a for a in aliases)
+
+
+def _migration_module(revision_file: str):
+    spec = importlib.util.spec_from_file_location("migration_under_test", BACKEND / "alembic" / "versions" / revision_file)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def test_drop_system_etf_profiles_applies_the_runtime_rule():
+    """La migration recopie `plan_attachments` (elle n'importe pas `app.*`) : mêmes cas, même plan."""
+    from app.domain.etf_attachment import HoldingRef, ProfileRef, plan_attachments
+
+    migration = _migration_module("e1b7c4a9f2d6_drop_system_etf_profiles.py")
+    cw8, wpea, new, csco = "LU1681043599", "IE0002XZSHO1", "IE000BI8OT95", "US17275R1023"
+    profiles = [ProfileRef(1, "CW8.PA", cw8, True), ProfileRef(2, "WPEA.PA", wpea, False),
+                ProfileRef(3, "MAN.PA", None, False), ProfileRef(4, "WORLD", None, True),
+                ProfileRef(5, "AUTRE", cw8, False), ProfileRef(28, "CISCO CDR", None, False)]
+    holdings = [
+        HoldingRef(9, "SOLO.DE", new, None), HoldingRef(10, "WPEA.PA", wpea, 1), HoldingRef(11, "AAA.PA", new, 1), HoldingRef(12, "AAA.DE", new, 5),
+        HoldingRef(13, "CW8.PA", None, 1), HoldingRef(14, "cw8.pa", None, 1), HoldingRef(15, "WPEA.PA", None, 1),
+        HoldingRef(16, "AHYQ.DE", None, 1), HoldingRef(17, "XYZ.PA", None, 3), HoldingRef(18, "MAN.PA", new, 3),
+        HoldingRef(19, "CSCO", csco, 28), HoldingRef(20, "CSCO.DE", csco, None), HoldingRef(21, "SOLO.PA", wpea, None),
+        HoldingRef(22, f"{wpea}.SG", None, 1), HoldingRef(23, "CW8.PA", "FAUX", 5), HoldingRef(24, "BBB.PA", new, 4),
+        HoldingRef(25, "CW8.PA", cw8, 1), HoldingRef(26, "ZZZ.PA", None, 4), HoldingRef(27, "ZZZ.PA", None, 99),
+    ]
+
+    expected = plan_attachments(holdings, profiles)
+    assert tuple(migration.plan_attachments(holdings, profiles)) == tuple(expected)
+    # Garde-fou du test lui-même : les cas couvrent toutes les issues
+    assert expected.moves and expected.create_isins and expected.pending and expected.detach

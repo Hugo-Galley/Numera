@@ -55,12 +55,14 @@ def _securities_by_symbol(db: Session, symbols: list[str]) -> dict[str, list[Isi
 
 
 def _profile_isin(profiles: list[EtfProfile], symbol: str) -> str | None:
-    """ISIN des profils dont le ticker ou un alias est exactement ce symbole ; None si aucun ou s'ils divergent."""
+    """ISIN des profils dont le ticker ou un alias est exactement ce symbole ; None si aucun ou s'ils divergent.
+
+    D'un ancien profil système, seul le ticker propre compte : ses alias livrés mélangeaient plusieurs fonds."""
     wanted = normalize_ticker(symbol)
     isins: set[str] = set()
     for profile in profiles:
         try:
-            names = {normalize_ticker(str(a)) for a in json.loads(profile.aliases)}
+            names = set() if profile.is_system else {normalize_ticker(str(a)) for a in json.loads(profile.aliases)}
         except (ValueError, TypeError):
             names = set()
         if wanted == normalize_ticker(profile.ticker) or wanted in names:
