@@ -37,6 +37,11 @@ class PriceBook:
     def has(self, ticker: str) -> bool:
         return bool(self._series.get(ticker, ([], [], []))[0])
 
+    def first_date(self, ticker: str) -> date_type | None:
+        """Date du premier cours chargé, None sans cours."""
+        dates = self._series.get(ticker, ([], [], []))[0]
+        return dates[0] if dates else None
+
     def covers(self, ticker: str, day: date_type, gap_days: int = SNAPSHOT_MATCH_DAYS) -> bool:
         dates = self._series.get(ticker, ([], [], []))[0]
         return bool(dates) and dates[0] <= day + timedelta(days=gap_days)
