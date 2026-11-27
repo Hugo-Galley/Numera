@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 
 from app.core.logging import get_logger
-from app.core.time import now_local
+from app.core.time import now_local, today_local
 from app.domain.portfolio import SNAPSHOT_MATCH_DAYS
 from app.integrations.currency import CurrencyConversionError
 from app.repositories.investissement import security_prices
@@ -41,6 +41,11 @@ class PriceBook:
         dates = self._series.get(ticker, ([], [], []))[0]
         return dates[0] if dates else None
 
+    def last_date(self, ticker: str) -> date_type | None:
+        """Date du dernier cours chargé, None sans cours."""
+        dates = self._series.get(ticker, ([], [], []))[0]
+        return dates[-1] if dates else None
+
     def covers(self, ticker: str, day: date_type, gap_days: int = SNAPSHOT_MATCH_DAYS) -> bool:
         dates = self._series.get(ticker, ([], [], []))[0]
         return bool(dates) and dates[0] <= day + timedelta(days=gap_days)
@@ -54,21 +59,34 @@ class PriceBook:
         return closes[index], currencies[index]
 
 
+def _missing_since(book: PriceBook, ticker: str, start: date_type, today: date_type) -> date_type | None:
+    """Date d'où télécharger les cours d'un titre : début manquant, sinon fin trop ancienne (sans cours depuis plus
+    d'une semaine, le report du dernier cours fausserait les rendements) ; None si l'historique couvre la période."""
+    if not book.covers(ticker, start):
+        return start - timedelta(days=SNAPSHOT_MATCH_DAYS)
+    last = book.last_date(ticker)
+    if last is not None and last < today - timedelta(days=SNAPSHOT_MATCH_DAYS):
+        return last
+    return None
+
+
 async def ensure_history(db: Session, book: PriceBook, tickers: list[str], start: date_type, fetch: bool) -> None:
-    """Charge les cours stockés ; télécharge l'historique manquant (au plus une tentative / 6 h par titre)."""
+    """Charge les cours stockés ; télécharge le début ou la fin manquants (au plus une tentative / 6 h par titre)."""
     book.load(db, tickers)
     if not fetch:
         return
     now = now_local()
+    today = today_local()
     for ticker in tickers:
-        if book.covers(ticker, start):
+        since = _missing_since(book, ticker, start, today)
+        if since is None:
             continue
         last_try = _HISTORY_ATTEMPTS.get(ticker)
         if last_try and now - last_try < HISTORY_RETRY:
             continue
         _HISTORY_ATTEMPTS[ticker] = now
         try:
-            await market_quotes.fetch_price_history(db, ticker, start - timedelta(days=SNAPSHOT_MATCH_DAYS))
+            await market_quotes.fetch_price_history(db, ticker, since)
         except Exception as exc:  # réseau, format inattendu : on continue avec ce qu'on a
             logger.warning(f"Price history unavailable for {ticker}: {exc}")
     market_quotes.persist_fetched_prices(db)
@@ -76,16 +94,33 @@ async def ensure_history(db: Session, book: PriceBook, tickers: list[str], start
 
 
 class FxBook:
-    """Conversions datées mémorisées (une seule requête de taux par couple devise/jour)."""
+    """Conversions datées mémorisées. Après `preload`, les taux de la période sont en mémoire : aucune requête par
+    jour. Un jour absent de la série passe par `convert_amount` (taux en base, sinon Frankfurter, dont l'échec de la
+    série est mémorisé : pas d'appel réseau par jour pendant une panne)."""
 
     def __init__(self, db: Session) -> None:
         self._db = db
         self._memo: dict[tuple[str, str, date_type | None], float | None] = {}
+        self._rates: dict[str, dict[date_type, float]] = {}
 
     async def preload(self, currencies: set[str], target: str, start: date_type, end: date_type) -> None:
-        """Charge en une requête par devise la série de taux de la période (courbe : un taux par jour échantillonné)."""
+        """Charge la série de taux de la période, une requête par devise (téléchargée seulement si elle manque)."""
         for currency in sorted((currencies | {target}) - {"EUR"}):
-            await preload_historical_rates(self._db, currency, start, end)
+            self._rates[currency] = await preload_historical_rates(self._db, currency, start, end)
+
+    def _loaded_rate(self, currency: str, day: date_type) -> float | None:
+        """1 EUR = X `currency` à `day` depuis la série préchargée, None si ce jour n'y est pas (même règle que
+        `get_historical_rate`, qui lit le taux du jour exact)."""
+        if currency == "EUR":
+            return 1.0
+        return self._rates.get(currency, {}).get(day)
+
+    async def _unit(self, source: str, target: str, day: date_type | None) -> float:
+        if day is not None:
+            from_per_eur, to_per_eur = self._loaded_rate(source, day), self._loaded_rate(target, day)
+            if from_per_eur and to_per_eur:
+                return to_per_eur / from_per_eur
+        return await convert_amount(1.0, source, target, date=day, db=self._db if day else None)
 
     async def convert(self, amount: float, source: str, target: str, day: date_type | None = None) -> float | None:
         if source == target:
@@ -93,7 +128,7 @@ class FxBook:
         key = (source, target, day)
         if key not in self._memo:
             try:
-                self._memo[key] = await convert_amount(1.0, source, target, date=day, db=self._db if day else None)
+                self._memo[key] = await self._unit(source, target, day)
             except CurrencyConversionError as exc:
                 logger.warning(f"Portfolio FX: {exc}")
                 self._memo[key] = None
