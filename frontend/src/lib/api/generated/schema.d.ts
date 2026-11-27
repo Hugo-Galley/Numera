@@ -1575,6 +1575,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/etf-profiles/{profile_id}/constituents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Etf Sheet
+         * @description Fiche d'un ETF : identité, pays, secteurs, toutes ses lignes et la valeur détenue.
+         */
+        get: operations["get_etf_sheet_etf_profiles__profile_id__constituents_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/etf-profiles/{profile_id}/refresh": {
         parameters: {
             query?: never;
@@ -5092,6 +5112,58 @@ export interface components {
         EtfRefreshResult: {
             /** Refreshed */
             refreshed: number;
+        };
+        /** EtfSheet */
+        EtfSheet: {
+            /** Composition As Of */
+            composition_as_of?: string | null;
+            /** Countries */
+            countries: components["schemas"]["WeightRow"][];
+            /** Coverage Pct */
+            coverage_pct: number;
+            /** Exposure Profile Id */
+            exposure_profile_id?: number | null;
+            /** Exposure Profile Name */
+            exposure_profile_name?: string | null;
+            /** Has Full List */
+            has_full_list: boolean;
+            /** Held Value Eur */
+            held_value_eur: number;
+            /** Lines */
+            lines: components["schemas"]["EtfSheetLine"][];
+            /** Lines Count */
+            lines_count: number;
+            profile: components["schemas"]["EtfProfileRead"];
+            /** Provider */
+            provider?: string | null;
+            /** Sectors */
+            sectors: components["schemas"]["WeightRow"][];
+            /** Top Holdings */
+            top_holdings: {
+                [key: string]: unknown;
+            }[];
+        };
+        /** EtfSheetLine */
+        EtfSheetLine: {
+            /** Asset Class */
+            asset_class: string;
+            /** Country */
+            country?: string | null;
+            /**
+             * Exposure Eur
+             * @default 0
+             */
+            exposure_eur?: number;
+            /** Isin */
+            isin?: string | null;
+            /** Name */
+            name: string;
+            /** Sector */
+            sector: string;
+            /** Ticker */
+            ticker?: string | null;
+            /** Weight */
+            weight: number;
         };
         /** ExpenseRef */
         ExpenseRef: {
@@ -8634,6 +8706,13 @@ export interface components {
             /** Total Tax Paid */
             total_tax_paid?: number | null;
         };
+        /** WeightRow */
+        WeightRow: {
+            /** Name */
+            name: string;
+            /** Weight */
+            weight: number;
+        };
         /** WorkTimeRead */
         WorkTimeRead: {
             /** Configured */
@@ -11875,6 +11954,37 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_etf_sheet_etf_profiles__profile_id__constituents_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                profile_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EtfSheet"];
+                };
             };
             /** @description Validation Error */
             422: {

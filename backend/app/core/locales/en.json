@@ -193,7 +193,6 @@
   "errors.audit_issue_not_found": "Audit issue not found or not editable",
   "errors.snapshot_not_found": "Balance snapshot not found",
   "errors.channel_incomplete": "Incomplete channel: fill in its settings, then save.",
-  "errors.etf_preset_undeletable": "Cannot delete system preset ETF profiles",
   "errors.category_exists": "Category already exists",
   "errors.category_not_found": "Category not found",
   "errors.alias_exists": "This alias already exists",

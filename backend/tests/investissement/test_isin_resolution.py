@@ -111,6 +111,29 @@ async def test_profil_seulement_rattache_n_est_pas_une_source(db_session, accoun
 
 
 @pytest.mark.anyio
+async def test_alias_livre_d_un_profil_systeme_ne_donne_pas_son_isin(db_session, account):
+    """WPEA.PA (iShares) figurait dans les alias livrés de « MSCI World » (CW8) : jamais l'ISIN de CW8."""
+    db_session.add(EtfProfile(name="MSCI World", ticker="CW8.PA", isin="LU1681043599", is_system=True,
+                              aliases='["CW8.PA", "WPEA.PA", "LU1681043599", "AHYQ.DE"]'))
+    db_session.flush()
+    wpea = _holding(db_session, account, "WPEA.PA")
+    cw8 = _holding(db_session, account, "CW8.PA")
+    assert await resolve_missing_isins(db_session) == 1
+    assert (wpea.isin, cw8.isin) == (None, "LU1681043599")
+
+
+@pytest.mark.anyio
+async def test_profil_migre_ne_donne_pas_son_isin_a_wpea(db_session, account):
+    """État après `e1b7c4a9f2d6` : l'ancien profil système ne garde que son ticker et son ISIN."""
+    db_session.add(EtfProfile(name="MSCI World", ticker="CW8.PA", isin="LU1681043599",
+                              aliases='["CW8.PA", "LU1681043599"]'))
+    db_session.flush()
+    wpea = _holding(db_session, account, "WPEA.PA")
+    assert await resolve_missing_isins(db_session) == 0
+    assert wpea.isin is None
+
+
+@pytest.mark.anyio
 async def test_profils_en_conflit_ne_donnent_rien(db_session, account):
     db_session.add_all([EtfProfile(name="A", ticker="X", isin="LU1681043599", aliases="[]"),
                         EtfProfile(name="B", ticker="Y", isin=ISRG_ETF, aliases='["x"]')])

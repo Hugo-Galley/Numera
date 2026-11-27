@@ -1,0 +1,43 @@
+{
+  "back": "Investissements",
+  "loadError": "Impossible de charger la fiche de ce fonds.",
+  "noFullList": "Cet émetteur ne publie pas la liste complète : seules les principales lignes sont connues",
+  "noComposition": "Aucune composition n'est connue pour ce fonds pour le moment.",
+  "identity": {
+    "isin": "ISIN",
+    "ticker": "Ticker",
+    "replication": "Réplication",
+    "replications": {
+      "physical": "Physique",
+      "synthetic": "Synthétique",
+      "unknown": "Non précisée"
+    },
+    "index": "Indice",
+    "coverage": "{{pct}} du fonds décrit",
+    "held": "Tu y détiens {{amount}}",
+    "syntheticVia": "Exposition de l'indice {{index}} via {{reference}}"
+  },
+  "weights": {
+    "countries": "Pays",
+    "sectors": "Secteurs",
+    "otherCountries": "Autres pays",
+    "otherSectors": "Autres secteurs"
+  },
+  "lines": {
+    "title_one": "{{lines}} ligne",
+    "title_other": "{{lines}} lignes",
+    "search": "Rechercher une société",
+    "searchPlaceholder": "Nom, ticker ou ISIN",
+    "sortBy": "Trier par",
+    "noMatch": "Aucune société ne correspond à ta recherche.",
+    "showMore_one": "Afficher {{count}} de plus",
+    "showMore_other": "Afficher {{count}} de plus",
+    "columns": {
+      "name": "Société",
+      "country": "Pays",
+      "sector": "Secteur",
+      "weight": "Poids",
+      "exposure": "Ton exposition"
+    }
+  }
+}

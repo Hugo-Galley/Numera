@@ -8,6 +8,7 @@ import { CompanyLogo } from "@/components/ui/CompanyLogo"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { cn, formatCurrency, formatRate } from "@/lib/utils"
+import { HoldingName } from "./HoldingName"
 import { MissingIsin } from "./MissingIsin"
 import type { HoldingsTableCtx } from "./useHoldingsTable"
 
@@ -55,9 +56,7 @@ export function HoldingsDesktopTable({ ctx }: { ctx: HoldingsTableCtx }) {
                       className="h-8 w-8 rounded-lg"
                     />
                     <div className="flex flex-col min-w-0">
-                      <span className="font-bold text-slate-900 text-sm truncate max-w-[260px]" title={h.asset_name || h.ticker}>
-                        {h.asset_name || h.ticker}
-                      </span>
+                      <HoldingName holding={h} className="font-bold text-slate-900 text-sm truncate max-w-[260px]" />
                       <div className="flex items-center gap-1.5 text-xs text-slate-400 font-mono mt-0.5">
                         <span className="font-medium text-slate-400">{h.ticker}</span>
                         {h.isin_missing && <MissingIsin holding={h} onSaved={onRefresh} />}

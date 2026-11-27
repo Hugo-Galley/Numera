@@ -193,7 +193,6 @@
   "errors.audit_issue_not_found": "Incidencia de auditoría no encontrada o no modificable",
   "errors.snapshot_not_found": "Registro de saldo no encontrado",
   "errors.channel_incomplete": "Canal incompleto: completa sus ajustes y guarda.",
-  "errors.etf_preset_undeletable": "Los perfiles ETF predefinidos del sistema no se pueden eliminar",
   "errors.category_exists": "Esta categoría ya existe",
   "errors.category_not_found": "Categoría no encontrada",
   "errors.alias_exists": "Este alias ya existe",

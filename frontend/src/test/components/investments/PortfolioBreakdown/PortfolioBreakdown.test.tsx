@@ -68,17 +68,22 @@ describe("PortfolioBreakdown", () => {
     expect(screen.getByText(/54,5.*du compte/)).toBeInTheDocument()
   })
 
-  it("compte crypto sans ETF : ni secteurs, ni pays, ni provenance, ni zoom", () => {
-    renderWithProviders(<PortfolioBreakdown scope="account" data={data({
+  it("compte crypto sans ETF : secteur « Crypto-actifs », ni pays, ni provenance, ni zoom", async () => {
+    const { user } = renderWithProviders(<PortfolioBreakdown scope="account" data={data({
+      sectors: [{ name: "Crypto-actifs", value_eur: 500 }],
+      countries: [],
       totals: { stocks_eur: 500, direct_eur: 500, etf_eur: 0, holdings_count: 2, etfs_count: 0 },
       top_underlying_companies: [company("Ethereum USD", "ETH-USD", 300, 0), company("Bitcoin USD", "BTC-USD", 200, 0)],
       holdings: [holding("ETH-USD", "Ethereum", 300), holding("BTC-USD", "Bitcoin", 200)],
     })} />)
 
     expect(screen.getByText("Ethereum USD")).toBeInTheDocument()
-    expect(screen.queryByRole("button", { name: "Secteurs" })).not.toBeInTheDocument()
+    expect(screen.queryByRole("button", { name: "Pays" })).not.toBeInTheDocument()
     expect(screen.queryByRole("group", { name: "Provenance" })).not.toBeInTheDocument()
     expect(screen.queryByRole("checkbox")).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole("button", { name: "Secteurs" }))
+    expect(screen.getByText("Crypto-actifs")).toBeInTheDocument()
   })
 
   it("sans position valorisée : rien n'est affiché", () => {

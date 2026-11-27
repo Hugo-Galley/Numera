@@ -141,6 +141,15 @@ class CostEstimate:
         return (self.bought_quantity - self.sold_quantity) / self.quantity
 
 
+def holding_price_eur(quote_eur: float, buy_price_avg: float | None, currency: str | None,
+                      fx_rates: dict[str, float]) -> float:
+    """Cours en EUR d'une position ; aucun cours connu : repli sur le PRU, converti de la devise de la position."""
+    if quote_eur > 0 or not buy_price_avg:
+        return quote_eur
+    fx = fx_rates.get((currency or "EUR").upper())
+    return buy_price_avg / fx if fx else 0.0
+
+
 def holding_returns(quantity: float, price_eur: float, cost_basis_eur: float | None, buy_price_avg: float | None,
                     fx: float | None, dividends_total_eur: float) -> dict[str, Any]:
     """Valeur, coût de revient, plus-value et rendement total (dividendes compris) d'une position, en EUR.

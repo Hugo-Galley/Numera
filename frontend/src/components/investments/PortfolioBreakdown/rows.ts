@@ -21,11 +21,11 @@ export interface BreakdownData {
   countries: { name: string; value_eur: number }[]
 }
 
-/** Secteurs et pays n'ont de sens qu'avec un ETF décomposé, les positions qu'à partir de deux lignes. */
+/** Secteurs et pays dès que le scanner en donne (les actions en direct ont les leurs), les positions à partir de deux lignes. */
 export function viewsFor(data: BreakdownData): BreakdownView[] {
   const views: BreakdownView[] = ["companies"]
   if (data.holdings.length > 1) views.push("positions")
-  if (data.totals.etfs_count > 0) views.push("sectors", "countries")
+  for (const view of ["sectors", "countries"] as const) if (data[view].some((row) => row.value_eur > 0)) views.push(view)
   return views
 }
 
@@ -59,13 +59,15 @@ export function rowsFor(data: BreakdownData, view: BreakdownView, source: Breakd
       }))
     case "positions":
       return data.holdings
-        // Une position rattachée à un profil ETF est décomposée, les autres sont en direct (même règle que le backend)
+        // Même règle que `look_through` : une position avec un profil ETF est décomposée, les autres (cryptos comprises)
+        // sont en direct. La réponse ne donne pas le type de cotation : `etf_profile_id` seul décide.
         .filter((h) => source === "all" || (source === "etf") === (h.etf_profile_id != null))
         .map((h) => ({ name: h.name || h.ticker, value: h.value_eur, ticker: h.ticker }))
     case "sectors":
       return data.sectors.map((s) => ({ name: s.name, value: s.value_eur }))
     case "countries":
-      // « Autres » / « Non renseigné » restent tels quels et sont regroupés dans la part « Autres pays »
+      // `countryName` rend tel quel ce qui n'est pas un code : « Liquidités et dérivés » et « Crypto-actifs » sont des
+      // parts nommées ; « Autres » et « Non renseigné » sont regroupés dans la part « Autres pays »
       return data.countries.map((c) => ({ name: countryName(c.name), value: c.value_eur }))
   }
 }

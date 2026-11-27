@@ -229,6 +229,39 @@
     "type": "object"
    }
   },
+  "get_etf_constituents": {
+   "description": "Liste les sociétés contenues dans un ETF (toutes les lignes publiées, de la plus lourde à la plus légère).\n\n    Affiche aussi l'identité du fonds, la source, la date et la couverture de la composition, la valeur\n    détenue et l'exposition en € de chaque ligne (poids × valeur détenue, calculée par le backend). Pour un ETF synthétique, les lignes sont celles de l'ETF physique de référence du même indice.\n    Sans liste complète (certaines sources ne publient que les principales lignes), seules celles-ci sont données.\n\n    Args:\n        profile_id: ID du profil ETF (obtenir via list_etf_profiles)\n        limit: Nombre maximal de lignes affichées (défaut 50)\n        search: Filtre sur le nom, le ticker ou l'ISIN d'une société (optionnel)\n    ",
+   "inputSchema": {
+    "properties": {
+     "limit": {
+      "default": 50,
+      "title": "Limit",
+      "type": "integer"
+     },
+     "profile_id": {
+      "title": "Profile Id",
+      "type": "integer"
+     },
+     "search": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Search"
+     }
+    },
+    "required": [
+     "profile_id"
+    ],
+    "title": "get_etf_constituentsArguments",
+    "type": "object"
+   }
+  },
   "get_etf_profile": {
    "description": "Récupère le détail complet d'un profil ETF : pays (%), secteurs (%) et top 10 positions.\n\n    Les sources de chaque champ sont indiquées (émetteur, justETF, Yahoo Finance ou saisie manuelle),\n    avec la réplication, l'indice, la date publiée de la composition, le nombre de lignes et la\n    couverture. Pour un ETF synthétique, l'exposition est celle de l'ETF physique de référence du même\n    indice : ses chiffres sont lus et affichés.\n\n    Args:\n        profile_id: ID du profil ETF (obtenir via list_etf_profiles)\n    ",
    "inputSchema": {
@@ -949,7 +982,7 @@
    }
   },
   "list_etf_profiles": {
-   "description": "Liste tous les profils ETF connus avec leur composition par pays, secteurs et top holdings.\n\n    Utile pour comprendre ce que contient réellement un ETF.\n    Les profils système (is_system ✅) sont intégrés à Numera, les autres (📝) créés à l'usage.\n    La composition est lue chaque jour chez l'émetteur (iShares, Amundi, SPDR ; à défaut justETF\n    puis Yahoo, partiels) ou saisie à la main. Un champ inconnu reste vide. Un ETF synthétique\n    n'a pas de chiffres propres : son exposition est celle d'un ETF physique du même indice\n    (colonne exposition_via, chiffres par get_etf_profile).\n    Colonnes : source et date publiée de la composition, part du fonds décrite (couverture).\n    ",
+   "description": "Liste tous les profils ETF connus avec leur composition par pays, secteurs et top holdings.\n\n    Utile pour comprendre ce que contient réellement un ETF.\n    Aucun profil n'est livré avec Numera : chaque fonds détenu a le sien, retrouvé par son ISIN.\n    La composition est lue chaque jour chez l'émetteur (iShares, Amundi, SPDR ; à défaut justETF\n    puis Yahoo, partiels) ou saisie à la main. Un champ inconnu reste vide. Un ETF synthétique\n    n'a pas de chiffres propres : son exposition est celle d'un ETF physique du même indice\n    (colonne exposition_via, chiffres par get_etf_profile).\n    Colonnes : source et date publiée de la composition, part du fonds décrite (couverture).\n    ",
    "inputSchema": {
     "properties": {},
     "title": "list_etf_profilesArguments",

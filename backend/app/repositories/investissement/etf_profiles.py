@@ -1,5 +1,7 @@
 """Profils ETF (`etf_profiles`)."""
-from sqlalchemy import update
+from typing import Any
+
+from sqlalchemy import func, insert, update
 from sqlalchemy.orm import Session
 
 from app.models.etf_profile import EtfProfile
@@ -11,8 +13,7 @@ def all_profiles(db: Session) -> list[EtfProfile]:
 
 
 def list_ordered(db: Session) -> list[EtfProfile]:
-    """Profils système d'abord, puis par nom."""
-    return db.query(EtfProfile).order_by(EtfProfile.is_system.desc(), EtfProfile.name.asc()).all()
+    return db.query(EtfProfile).order_by(EtfProfile.name.asc(), EtfProfile.id).all()
 
 
 def get(db: Session, profile_id: int) -> EtfProfile | None:
@@ -28,11 +29,6 @@ def find_by_symbol_or_alias(db: Session, sym: str) -> EtfProfile | None:
         (EtfProfile.ticker.ilike(sym)) |
         (EtfProfile.aliases.ilike(f'%"{sym}"%'))
     ).first()
-
-
-def find_by_name(db: Session, name: str) -> EtfProfile | None:
-    """Le profil système d'abord : un profil de référence peut porter le nom d'un indice."""
-    return db.query(EtfProfile).filter(EtfProfile.name == name).order_by(EtfProfile.is_system.desc()).first()
 
 
 def held_profiles(db: Session) -> list[EtfProfile]:
@@ -94,3 +90,20 @@ def set_isins(db: Session, isins: dict[int, str]) -> None:
     if isins:
         db.execute(update(EtfProfile), [
             {"id": pid, "isin": isin, "composition_refreshed_at": None} for pid, isin in isins.items()])
+
+
+def attachment_rows(db: Session) -> list[tuple[int, str, str | None, bool]]:
+    """(id, ticker, ISIN, système) de tous les profils, sans objets ORM."""
+    query = db.query(EtfProfile.id, EtfProfile.ticker, EtfProfile.isin, EtfProfile.is_system)
+    return [(i, t, s, y) for i, t, s, y in query]
+
+
+def insert_many(db: Session, rows: list[dict[str, Any]]) -> None:
+    """Insère des profils en une instruction (pas de commit)."""
+    db.execute(insert(EtfProfile), rows)
+
+
+def ids_by_isin(db: Session, isins: set[str]) -> dict[str, int]:
+    """ISIN -> plus petit id de profil."""
+    query = db.query(EtfProfile.isin, func.min(EtfProfile.id)).filter(EtfProfile.isin.in_(isins)).group_by(EtfProfile.isin)
+    return {isin: pid for isin, pid in query if isin}

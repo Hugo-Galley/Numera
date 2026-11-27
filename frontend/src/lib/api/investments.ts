@@ -70,3 +70,6 @@ export const getAnalyticsStockPickingBenchmark = <T = ApiResponse<"/analytics/st
 
 /** PUT /analytics/stock-picking-benchmark/reference */
 export const putAnalyticsStockPickingBenchmarkReference = <T = ApiResponse<"/analytics/stock-picking-benchmark/reference", "put">>(body: ApiBody<"/analytics/stock-picking-benchmark/reference", "put">) => api.put<T>(`/analytics/stock-picking-benchmark/reference`, body)
+
+/** GET /etf-profiles/:id/constituents */
+export const getEtfProfilesByIdConstituents = <T = ApiResponse<"/etf-profiles/{profile_id}/constituents", "get">>(id: Id) => api.get<T>(`/etf-profiles/${id}/constituents`)

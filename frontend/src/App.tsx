@@ -15,6 +15,7 @@ const Dashboard = lazy(() => import("@/pages/Dashboard"))
 const Accounts = lazy(() => import("@/pages/Accounts"))
 const AccountDetail = lazy(() => import("@/pages/AccountDetail"))
 const Investments = lazy(() => import("@/pages/Investments"))
+const EtfSheet = lazy(() => import("@/pages/EtfSheet"))
 const Settings = lazy(() => import("@/pages/Settings"))
 const Classement = lazy(() => import("@/pages/Classement"))
 const Savings = lazy(() => import("@/pages/Savings"))
@@ -54,6 +55,7 @@ export function App() {
               <Route path="/accounts/:id" element={<AccountDetail />} />
               <Route path="/savings" element={<Savings />} />
               <Route path="/investments" element={<Investments />} />
+              <Route path="/investments/etf/:profileId" element={<EtfSheet />} />
               <Route path="/month" element={<MonthHub />}>
                 <Route index element={<Navigate to="bilan" replace />} />
                 <Route path="bilan" element={<IntelligentReport />} />

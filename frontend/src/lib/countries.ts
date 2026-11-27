@@ -25,7 +25,7 @@ export const COUNTRIES = [
   { name: "Monde (ETF World)", code: "WORLD" }
 ];
 
-// Codes alpha-3 des compositions d'ETF (`backend/app/domain/etf_presets.json`) et voisins courants → alpha-2 pour `Intl.DisplayNames`
+// Codes alpha-3 des compositions d'ETF et voisins courants → alpha-2 pour `Intl.DisplayNames`
 const ALPHA3_TO_ALPHA2: Record<string, string> = {
   ARE: "AE", ARG: "AR", AUS: "AU", AUT: "AT", BEL: "BE", BRA: "BR", CAN: "CA", CHE: "CH", CHL: "CL", CHN: "CN",
   COL: "CO", CZE: "CZ", DEU: "DE", DNK: "DK", EGY: "EG", ESP: "ES", FIN: "FI", FRA: "FR", GBR: "GB", GRC: "GR",

@@ -231,6 +231,8 @@
     "detailDesComptesContribuantA": "Accounts contributing to this category."
   },
   "etfCompositions": {
+    "voirLaFiche": "View fund page",
+    "voirLaFicheDe": "View fund page: {{name}}",
     "repartitionGeographiqueMondiale": "Global Geographic Breakdown",
     "interactif": "Interactive",
     "pincezPourZoomerGlissezPour": "Pinch to zoom • Drag to pan",

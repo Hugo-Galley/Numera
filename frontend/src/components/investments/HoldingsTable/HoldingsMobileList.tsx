@@ -7,6 +7,7 @@ import { CalendarCheck, Check, Coins, Globe, Pencil, Trash2, X } from "lucide-re
 import { CompanyLogo } from "@/components/ui/CompanyLogo"
 import { Input } from "@/components/ui/input"
 import { cn, formatCurrency, formatRate } from "@/lib/utils"
+import { HoldingName } from "./HoldingName"
 import { MissingIsin } from "./MissingIsin"
 import type { HoldingsTableCtx } from "./useHoldingsTable"
 
@@ -27,7 +28,7 @@ export function HoldingsMobileList({ ctx }: { ctx: HoldingsTableCtx }) {
               <div className="flex items-start gap-3">
                 <CompanyLogo ticker={h.ticker} name={h.asset_name} isin={h.isin} className="h-10 w-10 shrink-0 rounded-lg" />
                 <div className="min-w-0 flex-1">
-                  <div className="wrap-break-word text-sm font-bold leading-snug text-slate-900">{h.asset_name || h.ticker}</div>
+                  <HoldingName holding={h} className="block wrap-break-word text-sm font-bold leading-snug text-slate-900" linkClassName="min-h-10 content-center" />
                   <div className="mt-0.5 flex flex-wrap items-center gap-x-1.5 font-mono text-xs text-slate-500">
                     <span>{h.ticker}</span>
                     {h.isin && <span className="text-[11px] text-slate-400">{h.isin}</span>}

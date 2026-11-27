@@ -5,7 +5,9 @@ from sqlalchemy.orm import Session
 from app.controllers.deps import get_db
 from app.core.sync_bridge import run_async
 from app.schemas.etf_profile import AutoDecomposeRequest, EtfProfileCreate, EtfProfileRead, EtfProfileUpdate, EtfRefreshResult
+from app.schemas.etf_sheet import EtfSheet
 from app.services.investissement import etf_profiles as service
+from app.services.investissement import etf_sheet
 
 router = APIRouter(prefix="/etf-profiles", tags=["etf-profiles"])
 
@@ -25,6 +27,12 @@ def refresh_held_profiles(db: Session = Depends(get_db)) -> EtfRefreshResult:
 @router.get("/{profile_id}", response_model=EtfProfileRead)
 def get_etf_profile(profile_id: int, db: Session = Depends(get_db)) -> EtfProfileRead:
     return service.get_profile(db, profile_id)
+
+
+@router.get("/{profile_id}/constituents", response_model=EtfSheet)
+def get_etf_sheet(profile_id: int, db: Session = Depends(get_db)) -> EtfSheet:
+    """Fiche d'un ETF : identité, pays, secteurs, toutes ses lignes et la valeur détenue."""
+    return run_async(etf_sheet.etf_sheet(db, profile_id))
 
 
 @router.post("", response_model=EtfProfileRead, status_code=201)

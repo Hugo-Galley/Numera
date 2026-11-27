@@ -78,6 +78,7 @@
  "GET /categorization-rules/",
  "GET /etf-profiles",
  "GET /etf-profiles/{profile_id}",
+ "GET /etf-profiles/{profile_id}/constituents",
  "GET /export/transactions.csv",
  "GET /financial-events",
  "GET /goals",

@@ -7,17 +7,17 @@ from sqlalchemy.orm import Session
 from app.models.account import Account
 from app.models.etf_profile import EtfProfile
 from app.models.portfolio_holding import PortfolioHolding
-from app.services.investissement.etf_profiles import seed_etf_profiles
+from tests.investissement.etf_profile_samples import add_sample_profiles
 
 
-def test_etf_profiles_seeded_and_listable(client: TestClient, db_session: Session):
-    seed_etf_profiles(db_session)
+def test_etf_profiles_listable(client: TestClient, db_session: Session):
+    add_sample_profiles(db_session)
 
     # Test GET /etf-profiles
     response = client.get("/etf-profiles")
     assert response.status_code == 200
     profiles = response.json()
-    assert len(profiles) >= 6
+    assert len(profiles) == 3
     names = [p["name"] for p in profiles]
     assert "MSCI World" in names
     assert "S&P 500" in names
@@ -25,7 +25,7 @@ def test_etf_profiles_seeded_and_listable(client: TestClient, db_session: Sessio
 
 
 def test_baseline_holdings_and_diversity_scanner(client: TestClient, db_session: Session):
-    seed_etf_profiles(db_session)
+    add_sample_profiles(db_session)
 
     # Create test investment account
     account = Account(name="Test PEA", type="investissement", currency="EUR", active=True)
@@ -46,7 +46,7 @@ def test_baseline_holdings_and_diversity_scanner(client: TestClient, db_session:
     # Get MSCI World & S&P 500 profiles
     world_profile = db_session.query(EtfProfile).filter(EtfProfile.name == "MSCI World").first()
     sp500_profile = db_session.query(EtfProfile).filter(EtfProfile.name == "S&P 500").first()
-    # Les profils système n'ont pas de composition en dur : celle qu'un émetteur aurait écrite
+    # Composition telle qu'un émetteur l'aurait écrite
     for profile in (world_profile, sp500_profile):
         profile.top_holdings = json.dumps([{"name": "Apple Inc", "ticker": "AAPL", "weight": 6.0}])
         profile.composition_sources = json.dumps({"top_holdings": "ishares"})
@@ -170,7 +170,7 @@ def test_investment_transaction_auto_increments_holding(client: TestClient, db_s
 
 
 def test_market_search_and_validate(client: TestClient, db_session: Session):
-    seed_etf_profiles(db_session)
+    add_sample_profiles(db_session)
 
     # 1. Search with 'q'
     resp_q = client.get("/market/search?q=CW8")
@@ -203,7 +203,7 @@ def test_market_search_and_validate(client: TestClient, db_session: Session):
 
 def test_une_action_rattachee_a_un_profil_n_est_pas_un_etf(client: TestClient, db_session: Session, monkeypatch):
     from app.services.analytics import diversity
-    seed_etf_profiles(db_session)
+    add_sample_profiles(db_session)
     account = Account(name="PEA", type="investissement", currency="EUR", active=True)
     db_session.add(account)
     db_session.commit()
@@ -225,7 +225,7 @@ def test_etf_sans_type_connu_reste_etf_et_decompose(client: TestClient, db_sessi
     import asyncio
 
     from app.services.analytics import diversity
-    seed_etf_profiles(db_session)
+    add_sample_profiles(db_session)
     account = Account(name="PEA", type="investissement", currency="EUR", active=True)
     db_session.add(account)
     db_session.commit()

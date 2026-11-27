@@ -231,6 +231,8 @@
     "detailDesComptesContribuantA": "Detalle de las cuentas que contribuyen a esta categoría."
   },
   "etfCompositions": {
+    "voirLaFiche": "Ver la ficha",
+    "voirLaFicheDe": "Ver la ficha: {{name}}",
     "repartitionGeographiqueMondiale": "Distribución geográfica mundial",
     "interactif": "Interactivo",
     "pincezPourZoomerGlissezPour": "Pellizca para hacer zoom • Desliza para mover",
