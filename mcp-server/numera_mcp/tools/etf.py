@@ -11,8 +11,9 @@ def list_etf_profiles() -> str:
 
     Utile pour comprendre ce que contient réellement un ETF.
     Les profils système (is_system ✅) sont intégrés à Numera, les autres (📝) créés à l'usage.
-    Secteurs et top 10 viennent de Yahoo Finance (actualisés chaque semaine) ; la répartition
-    par pays n'est jamais fournie par Yahoo : préréglage intégré ou saisie, sinon vide.
+    La composition est lue chaque jour chez l'émetteur (iShares, Amundi, SPDR ; à défaut justETF
+    puis Yahoo, partiels) ou saisie à la main. Un champ inconnu reste vide. Un ETF synthétique
+    n'a pas de chiffres propres : son exposition est celle d'un ETF physique du même indice.
     """
     try:
         resp = api.get("/etf-profiles")
@@ -43,6 +44,8 @@ def list_etf_profiles() -> str:
 def get_etf_profile(profile_id: int) -> str:
     """Récupère le détail complet d'un profil ETF : pays (%), secteurs (%) et top 10 positions.
 
+    Les sources de chaque champ sont indiquées (émetteur, justETF, Yahoo Finance ou saisie manuelle).
+
     Args:
         profile_id: ID du profil ETF (obtenir via list_etf_profiles)
     """
@@ -52,7 +55,8 @@ def get_etf_profile(profile_id: int) -> str:
         if error:
             return error
         data = resp.json()
-        source_labels = {"yahoo": "Yahoo Finance", "preset": "préréglage", "manual": "saisie manuelle"}
+        source_labels = {"ishares": "iShares", "amundi": "Amundi", "spdr": "SPDR", "justetf": "justETF",
+                         "yahoo": "Yahoo Finance", "manual": "saisie manuelle"}
         sources = data.get("composition_sources") or {}
         lines = [
             f"🗂️ ETF : {data.get('name', '')} ({data.get('ticker', '')})",

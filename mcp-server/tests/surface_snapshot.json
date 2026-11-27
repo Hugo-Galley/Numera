@@ -230,7 +230,7 @@
    }
   },
   "get_etf_profile": {
-   "description": "Récupère le détail complet d'un profil ETF : pays (%), secteurs (%) et top 10 positions.\n\n    Args:\n        profile_id: ID du profil ETF (obtenir via list_etf_profiles)\n    ",
+   "description": "Récupère le détail complet d'un profil ETF : pays (%), secteurs (%) et top 10 positions.\n\n    Les sources de chaque champ sont indiquées (émetteur, justETF, Yahoo Finance ou saisie manuelle).\n\n    Args:\n        profile_id: ID du profil ETF (obtenir via list_etf_profiles)\n    ",
    "inputSchema": {
     "properties": {
      "profile_id": {
@@ -949,7 +949,7 @@
    }
   },
   "list_etf_profiles": {
-   "description": "Liste tous les profils ETF connus avec leur composition par pays, secteurs et top holdings.\n\n    Utile pour comprendre ce que contient réellement un ETF.\n    Les profils système (is_system ✅) sont intégrés à Numera, les autres (📝) créés à l'usage.\n    Secteurs et top 10 viennent de Yahoo Finance (actualisés chaque semaine) ; la répartition\n    par pays n'est jamais fournie par Yahoo : préréglage intégré ou saisie, sinon vide.\n    ",
+   "description": "Liste tous les profils ETF connus avec leur composition par pays, secteurs et top holdings.\n\n    Utile pour comprendre ce que contient réellement un ETF.\n    Les profils système (is_system ✅) sont intégrés à Numera, les autres (📝) créés à l'usage.\n    La composition est lue chaque jour chez l'émetteur (iShares, Amundi, SPDR ; à défaut justETF\n    puis Yahoo, partiels) ou saisie à la main. Un champ inconnu reste vide. Un ETF synthétique\n    n'a pas de chiffres propres : son exposition est celle d'un ETF physique du même indice.\n    ",
    "inputSchema": {
     "properties": {},
     "title": "list_etf_profilesArguments",
