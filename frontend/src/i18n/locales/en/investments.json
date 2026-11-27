@@ -426,6 +426,9 @@
     "overlapHint": "Held through several sources: directly and via an ETF, or by several ETFs",
     "hideOther": "Zoom in on named lines (hide “Other”)",
     "chartLabel": "Donut chart of the holdings breakdown",
-    "loadFailed": "Couldn't compute the account breakdown"
+    "loadFailed": "Couldn't compute the account breakdown",
+    "outsidePositions": "Outside positions",
+    "accountsValue": "Accounts value",
+    "outsidePositionsHint": "Cash, euro funds, accounts without positions and the gap between the last statement and today's price."
   }
 }

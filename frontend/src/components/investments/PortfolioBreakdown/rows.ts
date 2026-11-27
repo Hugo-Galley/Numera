@@ -7,7 +7,16 @@ export type BreakdownSource = "all" | "direct" | "etf"
 
 /** Champs lus dans la réponse de `/analytics/diversity-scanner` (compte seul ou tous les comptes). */
 export interface BreakdownData {
-  totals: { stocks_eur: number; direct_eur: number; etf_eur: number; holdings_count: number; etfs_count: number }
+  totals: {
+    stocks_eur: number
+    direct_eur: number
+    etf_eur: number
+    holdings_count: number
+    etfs_count: number
+    /** Valeur des comptes du périmètre (comme la répartition par compte) et sa part hors positions */
+    accounts_eur?: number
+    outside_positions_eur?: number
+  }
   top_underlying_companies: {
     name: string
     ticker?: string | null

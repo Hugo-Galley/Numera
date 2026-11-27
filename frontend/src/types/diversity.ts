@@ -98,6 +98,8 @@ export interface DiversityScannerResponse {
     fonds_euros_eur: number
     other_eur: number
     wealth_eur: number
+    accounts_eur: number
+    outside_positions_eur: number
     holdings_count: number
     etfs_count: number
   }

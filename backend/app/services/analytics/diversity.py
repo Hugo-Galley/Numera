@@ -26,6 +26,7 @@ from app.models.etf_profile import EtfProfile
 from app.models.portfolio_holding import PortfolioHolding
 from app.models.security import Security
 from app.repositories.analytics import diversity as repo
+from app.repositories.analytics import investments as investments_repo
 from app.repositories.comptes.balances import active_accounts
 from app.repositories.investissement import etf_constituents
 from app.repositories.investissement import etf_profiles as etf_repo
@@ -177,6 +178,14 @@ async def _wealth_context(db: Session) -> dict[str, float]:
     return totals
 
 
+async def _accounts_value(db: Session, account_id: int | None) -> float:
+    """Valeur des comptes d'investissement du périmètre (EUR), même source que la répartition par compte
+    (`account_values`) : positions, espèces, fonds euros et comptes sans position compris."""
+    accounts = investments_repo.investment_accounts(db, account_id)
+    values = await account_values(db, accounts)
+    return sum(values[acc.id].value_eur for acc in accounts)
+
+
 def _look_through(db: Session, valued_holdings: list[dict[str, Any]], securities: dict[str, Security]) -> LookThrough:
     """Transparence des ETF : profils et lignes de composition chargés une fois pour tout le portefeuille ; un
     synthétique est décomposé par la référence de son indice."""
@@ -207,6 +216,7 @@ async def compute_diversity(db: Session, account_id: int | None) -> dict[str, An
     market_quotes.persist_fetched_prices(db)
     valued_holdings, total_stocks_eur = await _value_holdings(db, holdings, quotes, await get_exchange_rates("EUR"))
     side = await _wealth_context(db)
+    accounts_eur = round(await _accounts_value(db, account_id), 2)
     # Patrimoine total : actions valorisées par positions (ou repli) + épargne, liquidités et fonds euros
     total_wealth_eur = round(total_stocks_eur + side["epargne"] + side["courant"] + side["fonds_euros"] + side["other"], 2)
 
@@ -229,6 +239,10 @@ async def compute_diversity(db: Session, account_id: int | None) -> dict[str, An
             "fonds_euros_eur": round(side["fonds_euros"], 2),
             "other_eur": round(side["other"], 2),
             "wealth_eur": total_wealth_eur,
+            "accounts_eur": accounts_eur,
+            # Valeur des comptes non couverte par les positions : espèces, fonds euros, comptes sans position,
+            # écart entre relevé et cours du jour
+            "outside_positions_eur": round(accounts_eur - total_stocks_eur, 2),
             "holdings_count": len(valued_holdings),
             "etfs_count": len(lt.etfs),
         },

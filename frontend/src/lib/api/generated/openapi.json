@@ -5029,6 +5029,10 @@
    },
    "DiversityTotals": {
     "properties": {
+     "accounts_eur": {
+      "title": "Accounts Eur",
+      "type": "number"
+     },
      "courant_eur": {
       "title": "Courant Eur",
       "type": "number"
@@ -5061,6 +5065,10 @@
       "title": "Other Eur",
       "type": "number"
      },
+     "outside_positions_eur": {
+      "title": "Outside Positions Eur",
+      "type": "number"
+     },
      "stocks_eur": {
       "title": "Stocks Eur",
       "type": "number"
@@ -5079,6 +5087,8 @@
      "fonds_euros_eur",
      "other_eur",
      "wealth_eur",
+     "accounts_eur",
+     "outside_positions_eur",
      "holdings_count",
      "etfs_count"
     ],

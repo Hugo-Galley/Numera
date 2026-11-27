@@ -82,6 +82,9 @@ export function PortfolioBreakdown({ data, scope }: PortfolioBreakdownProps) {
         : { label: t("breakdown.center.all"), value: base, hint: t("breakdown.positionsCount", { count: data.totals.holdings_count }) }
 
   const reset = () => setActive(null)
+  // Écart sous 1 € : arrondis, pas d'argent hors positions
+  const outside = data.totals.outside_positions_eur ?? 0
+  const reconcile = currentSource === "all" && data.totals.accounts_eur !== undefined && Math.abs(outside) >= 1
 
   return (
     <Card className="shadow-xs">
@@ -138,6 +141,19 @@ export function PortfolioBreakdown({ data, scope }: PortfolioBreakdownProps) {
               onChange={(s) => { setSource(s); reset() }} />
           )}
           <BreakdownLegend slices={slices} active={active} onHover={setActive} withLogos={current === "companies" || current === "positions"} />
+          {reconcile && (
+            <dl className="space-y-1 border-t border-slate-200 pt-2 text-sm">
+              <div className="flex items-baseline justify-between gap-2">
+                <dt className="text-slate-500">{t("breakdown.outsidePositions")}</dt>
+                <dd className="font-semibold text-slate-700 tabular-nums amount-blur">{formatCurrency(outside)}</dd>
+              </div>
+              <div className="flex items-baseline justify-between gap-2">
+                <dt className="text-slate-500">{t("breakdown.accountsValue")}</dt>
+                <dd className="font-bold text-slate-900 tabular-nums amount-blur">{formatCurrency(data.totals.accounts_eur ?? 0)}</dd>
+              </div>
+              <p className="text-xs text-slate-400">{t("breakdown.outsidePositionsHint")}</p>
+            </dl>
+          )}
           {canHideOther && (
             <label className="flex min-h-10 cursor-pointer items-center gap-2 text-xs text-slate-500">
               <input type="checkbox" className="h-4 w-4" checked={hideOther} onChange={(e) => { setHideOther(e.target.checked); reset() }} />
