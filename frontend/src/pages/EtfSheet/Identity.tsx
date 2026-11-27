@@ -43,7 +43,7 @@ export function Identity({ sheet }: { sheet: EtfSheet }) {
         <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
           {origin && <Badge variant="outline" className="shadow-none">{origin}</Badge>}
           {!!sheet.coverage_pct && (
-            <span>
+            <span data-privacy-ignore>
               {sheet.lines_count
                 ? tInvestments("compositionOrigin.lines", { count: sheet.lines_count, lines: sheet.lines_count.toLocaleString(appLocale()), pct: formatRate(sheet.coverage_pct, 1) })
                 : t("identity.coverage", { pct: formatRate(sheet.coverage_pct, 0) })}

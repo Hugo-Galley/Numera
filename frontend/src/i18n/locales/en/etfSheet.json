@@ -24,8 +24,8 @@
     "otherSectors": "Other sectors"
   },
   "lines": {
-    "title_one": "{{count}} company",
-    "title_other": "{{count}} companies",
+    "title_one": "{{lines}} holding",
+    "title_other": "{{lines}} holdings",
     "search": "Search for a company",
     "searchPlaceholder": "Name, ticker or ISIN",
     "sortBy": "Sort by",

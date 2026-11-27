@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useIsMobile } from "@/hooks/useIsMobile"
+import { appLocale } from "@/i18n/locale"
 import { countryName } from "@/lib/countries"
 import { formatCurrency, formatRate } from "@/lib/utils"
 import { searchLines, sortLines, type DisplayLine, type LineSort } from "./lines"
@@ -106,7 +107,10 @@ export function LinesTable({ lines, heldValue }: LinesProps) {
   return (
     <Card className="shadow-xs">
       <CardHeader className="flex flex-col gap-3 border-b pb-3 md:flex-row md:items-center md:justify-between">
-        <CardTitle className="text-base">{t("lines.title", { count: found.length })}</CardTitle>
+        {/* Un nombre de lignes n'est pas un montant : le mode confidentialité ne doit pas le masquer */}
+        <CardTitle className="text-base" data-privacy-ignore>
+          {t("lines.title", { count: found.length, lines: found.length.toLocaleString(appLocale()) })}
+        </CardTitle>
         <div className="flex flex-col gap-2 sm:flex-row">
           <div className="relative sm:w-72">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" aria-hidden="true" />

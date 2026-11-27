@@ -72,6 +72,16 @@ describe("Fiche ETF", () => {
     expect(screen.queryByRole("button", { name: /de plus/ })).not.toBeInTheDocument()
   })
 
+  it("compte des lignes (pas seulement des sociétés), sans que le mode confidentialité les prenne pour un montant", async () => {
+    const lines = Array.from({ length: 1501 }, (_, i) => makeSheetLine({ name: `Société ${i}`, weight: 0.05 }))
+    serve(makeEtfSheet({ lines, lines_count: 1501 }))
+    render()
+
+    const title = await screen.findByText(/^1\s501 lignes$/)
+    expect(title.closest("[data-privacy-ignore]")).not.toBeNull()
+    expect(screen.getByText(/1\s501 lignes · /).closest("[data-privacy-ignore]")).not.toBeNull()
+  })
+
   it("recherche par nom, ticker ou ISIN dans toute la liste", async () => {
     serve()
     const { user } = render()

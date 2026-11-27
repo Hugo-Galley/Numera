@@ -24,8 +24,8 @@
     "otherSectors": "Autres secteurs"
   },
   "lines": {
-    "title_one": "{{count}} société",
-    "title_other": "{{count}} sociétés",
+    "title_one": "{{lines}} ligne",
+    "title_other": "{{lines}} lignes",
     "search": "Rechercher une société",
     "searchPlaceholder": "Nom, ticker ou ISIN",
     "sortBy": "Trier par",
