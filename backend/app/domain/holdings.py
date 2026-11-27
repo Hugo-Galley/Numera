@@ -2,7 +2,12 @@
 
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+from app.domain.etf_profiles import match_profile
+
+if TYPE_CHECKING:
+    from app.models.etf_profile import EtfProfile
 
 BUY_TYPES = ("versement", "achat")
 SELL_TYPES = ("retrait", "vente")
@@ -17,6 +22,41 @@ def normalize_ticker(ticker: str) -> str:
 def is_trade(tx_type: str, ticker: str | None, quantity: float | None) -> bool:
     """Vrai si l'opération fait bouger une position (titre + quantité + type achat/vente)."""
     return bool(ticker) and quantity is not None and quantity > 0 and tx_type in TRADE_TYPES
+
+
+FUND_QUOTE_TYPES = ("ETF", "MUTUALFUND")
+CRYPTO_SUFFIXES = ("-USD", "-EUR")
+
+
+def is_fund(quote_type: str | None, ticker: str) -> bool:
+    """Vrai pour un ETF ou un fonds : type de cotation `ETF`/`MUTUALFUND`, ou ticker de fonds Yahoo (`0P…`)."""
+    return quote_type in FUND_QUOTE_TYPES or normalize_ticker(ticker).startswith("0P")
+
+
+def is_crypto(quote_type: str | None, ticker: str) -> bool:
+    """Vrai pour une cryptomonnaie : type `CRYPTOCURRENCY`, ou ticker de paire `BTC-USD` / `BTC-EUR`."""
+    return quote_type == "CRYPTOCURRENCY" or normalize_ticker(ticker).endswith(CRYPTO_SUFFIXES)
+
+
+def isin_missing(isin: str | None, quote_type: str | None, ticker: str) -> bool:
+    """Vrai pour une position dont l'ISIN reste à compléter ; une crypto n'a pas d'ISIN."""
+    return not (isin or "").strip() and not is_crypto(quote_type, ticker)
+
+
+def is_etf_holding(quote_type: str | None, ticker: str, isin: str | None, profile: "EtfProfile | None") -> bool:
+    """ETF ou fonds : le type du titre fait foi ; type inconnu (cours indisponible), on se rabat sur un profil
+    dont le ticker, l'ISIN ou un alias est exactement celui de la position."""
+    if is_fund(quote_type, ticker):
+        return True
+    if quote_type not in (None, "", "UNKNOWN") or profile is None:
+        return False
+    return match_profile([profile], ticker, isin) is not None
+
+
+def holding_profile(profiles: "list[EtfProfile]", profile_id: int | None, ticker: str, isin: str | None) -> "EtfProfile | None":
+    """Profil rattaché à la position, sinon profil correspondant exactement (parmi `profiles`)."""
+    attached = next((p for p in profiles if p.id == profile_id), None) if profile_id else None
+    return attached or match_profile(profiles, ticker, isin)
 
 
 @dataclass

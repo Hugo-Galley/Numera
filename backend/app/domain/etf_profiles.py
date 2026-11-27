@@ -1,33 +1,31 @@
 """Profils ETF : correspondance d'un titre avec un profil connu, sources de la composition, lecture et saisie.
 
 Chaque champ de composition garde sa source dans `EtfProfile.composition_sources` :
-- `yahoo` : remplacé à chaque actualisation ;
-- `preset` : préréglage des profils système (`etf_presets.json`), utilisé en repli tant que Yahoo
-  ne fournit pas le champ ;
+- `ishares`, `amundi`, `spdr`, `justetf`, `yahoo` : remplacé à chaque actualisation ;
 - `manual` : saisi par l'utilisateur, jamais écrasé.
 """
 from __future__ import annotations
 
 import json
+from collections.abc import Iterable
 from contextlib import suppress
 from datetime import timedelta
 from typing import TYPE_CHECKING, Any
 
 from app.core.time import utcnow_naive
+from app.domain.isin import is_valid_isin
 from app.schemas.etf_profile import EtfProfileRead, EtfProfileUpdate
 
 if TYPE_CHECKING:
     from app.models.etf_profile import EtfProfile
 
 SOURCE_YAHOO = "yahoo"
-SOURCE_PRESET = "preset"
 SOURCE_MANUAL = "manual"
 COMPOSITION_FIELDS = ("countries", "sectors", "top_holdings")
-# Champs que Yahoo sait fournir (jamais les pays)
-YAHOO_FIELDS = ("sectors", "top_holdings")
+EMPTY_FIELDS = {"countries": "{}", "sectors": "{}", "top_holdings": "[]"}
 
-# Les compositions publiées bougent peu : une actualisation hebdomadaire suffit
-REFRESH_INTERVAL = timedelta(days=7)
+# Les émetteurs publient leur composition chaque jour
+REFRESH_INTERVAL = timedelta(days=1)
 
 
 def load_sources(profile: EtfProfile) -> dict[str, str]:
@@ -38,23 +36,44 @@ def load_sources(profile: EtfProfile) -> dict[str, str]:
         return {}
 
 
-def apply_composition(profile: EtfProfile, composition: dict[str, Any]) -> list[str]:
-    """Écrit les champs fournis par Yahoo, sauf ceux saisis à la main. Renvoie les champs mis à jour."""
+def apply_composition(
+    profile: EtfProfile, composition: dict[str, Any], source: str = SOURCE_YAHOO, *, complete: bool = False
+) -> list[str]:
+    """Écrit les champs fournis par `source`, sauf ceux saisis à la main. Renvoie les champs mis à jour.
+
+    `complete` : la source décrit tout le fonds, un champ qu'elle ne renseigne pas est vidé."""
     sources = load_sources(profile)
     updated: list[str] = []
-    for field in YAHOO_FIELDS:
+    for field in COMPOSITION_FIELDS:
         value = composition.get(field)
-        if not value or sources.get(field) == SOURCE_MANUAL:
+        if sources.get(field) == SOURCE_MANUAL:
             continue
-        setattr(profile, field, json.dumps(value, ensure_ascii=False))
-        sources[field] = SOURCE_YAHOO
-        updated.append(field)
+        if value:
+            setattr(profile, field, json.dumps(value, ensure_ascii=False))
+            sources[field] = source
+            updated.append(field)
+        elif complete:
+            setattr(profile, field, EMPTY_FIELDS[field])
+            sources.pop(field, None)
     profile.composition_sources = json.dumps(sources)
     profile.composition_refreshed_at = utcnow_naive()
     return updated
 
 
-def to_read(profile: EtfProfile) -> EtfProfileRead:
+def forget_composition_origin(profile: EtfProfile) -> None:
+    """L'ISIN a changé : ce qu'on savait de l'ancien fonds (hors saisie manuelle) ne vaut plus."""
+    apply_composition(profile, {}, complete=True)
+    profile.provider = profile.provider_ref = profile.index_name = None
+    profile.replication = "unknown"
+    profile.exposure_profile_id = None
+    profile.composition_as_of = None
+    profile.coverage_pct = None
+    profile.lines_count = 0
+    profile.composition_refreshed_at = None
+
+
+def to_read(profile: EtfProfile, exposure_name: str | None = None) -> EtfProfileRead:
+    """`exposure_name` : nom du profil de référence d'un synthétique (`exposure_profile_id`)."""
     return EtfProfileRead(
         id=profile.id,
         name=profile.name,
@@ -67,6 +86,14 @@ def to_read(profile: EtfProfile) -> EtfProfileRead:
         is_system=profile.is_system,
         composition_sources=load_sources(profile),
         composition_refreshed_at=profile.composition_refreshed_at,
+        provider=profile.provider,
+        replication=profile.replication,
+        index_name=profile.index_name,
+        exposure_profile_id=profile.exposure_profile_id,
+        exposure_profile_name=exposure_name,
+        composition_as_of=profile.composition_as_of,
+        coverage_pct=profile.coverage_pct,
+        lines_count=profile.lines_count,
         created_at=profile.created_at,
         updated_at=profile.updated_at,
     )
@@ -88,7 +115,7 @@ def apply_update(profile: EtfProfile, payload: EtfProfileUpdate) -> None:
     if payload.top_holdings is not None:
         profile.top_holdings = json.dumps([h.model_dump() for h in payload.top_holdings])
 
-    # Un champ de composition saisi à la main n'est plus écrasé par l'actualisation Yahoo
+    # Un champ de composition saisi à la main n'est plus écrasé par l'actualisation
     sources = load_sources(profile)
     for field in COMPOSITION_FIELDS:
         if getattr(payload, field) is not None:
@@ -97,34 +124,24 @@ def apply_update(profile: EtfProfile, payload: EtfProfileUpdate) -> None:
 
 
 def match_profile(profiles: list[EtfProfile], symbol: str, isin: str | None = None, name: str | None = None) -> EtfProfile | None:
-    """Find matching EtfProfile by ticker, isin or alias."""
+    """Profil correspondant exactement : ISIN, puis ticker, puis alias (casse ignorée).
+
+    Jamais de ticker tronqué ni de rapprochement par nom : `name` est conservé pour les appelants et ignoré.
+    """
     norm_symbol = symbol.upper().strip()
     norm_isin = (isin or "").upper().strip()
-    norm_name = (name or "").lower().strip()
 
-    # Exact isin or ticker match
+    if norm_isin:
+        for p in profiles:
+            if p.isin and p.isin.upper() == norm_isin:
+                return p
     for p in profiles:
-        if norm_isin and p.isin and p.isin.upper() == norm_isin:
-            return p
         if p.ticker.upper() == norm_symbol:
             return p
-
-        # Check aliases
-        with suppress(Exception):  # alias illisible : ignoré
-            aliases = json.loads(p.aliases)
-            for alias in aliases:
-                if alias.upper() in (norm_symbol, norm_symbol.split(".")[0], norm_isin):
-                    return p
-
-    # Name-based heuristic : nom vide => aucune correspondance (sinon "" est contenu dans tout),
-    # et on exige que le nom complet du profil figure dans le libellé (pas l'inverse, trop large)
-    if not norm_name:
-        return None
     for p in profiles:
-        p_name = p.name.lower().strip()
-        if len(p_name) >= 6 and (p_name == norm_name or p_name in norm_name):
-            return p
-
+        with suppress(Exception):  # alias illisible : ignoré
+            if any(str(alias).upper().strip() == norm_symbol for alias in json.loads(p.aliases)):
+                return p
     return None
 
 
@@ -146,3 +163,34 @@ def profile_matches_query(p: EtfProfile, q_lower: str) -> bool:
             if any(q_lower in a or a in q_lower for a in aliases):
                 matches = True
     return bool(matches)
+
+
+def _names(ticker: str, aliases: str | None) -> set[str]:
+    names = {ticker.upper().strip()}
+    with suppress(Exception):  # alias illisible : ignoré
+        names |= {str(alias).upper().strip() for alias in json.loads(aliases or "[]")}
+    return names
+
+
+def isins_for_profiles(
+    profiles: Iterable[tuple[int, str, str | None, str | None]], holdings: Iterable[tuple[int, str, str | None]]
+) -> dict[int, str]:
+    """ISIN à recopier sur les profils sans ISIN, depuis leurs positions `(profil, ticker, ISIN)`.
+
+    `profiles` : `(id, ticker, alias JSON, ISIN)` de tous les profils. Seules comptent les positions rattachées dont
+    le ticker est celui du profil ou un de ses alias. Rien en cas de doute : plusieurs ISIN pour un profil, un même
+    ISIN pour plusieurs profils, ou un ISIN déjà porté par un autre profil."""
+    rows = list(profiles)
+    taken = {(isin or "").upper().strip() for _, _, _, isin in rows if isin}
+    names = {pid: _names(ticker, aliases) for pid, ticker, aliases, isin in rows if not isin}
+    found: dict[int, set[str]] = {}
+    for pid, ticker, isin in holdings:
+        cleaned = (isin or "").upper().strip()
+        if pid in names and cleaned and ticker.upper().strip() in names[pid]:
+            found.setdefault(pid, set()).add(cleaned)
+    chosen = {pid: next(iter(isins)) for pid, isins in found.items() if len(isins) == 1}
+    chosen = {pid: isin for pid, isin in chosen.items() if is_valid_isin(isin) and isin not in taken}
+    counts: dict[str, int] = {}
+    for isin in chosen.values():
+        counts[isin] = counts.get(isin, 0) + 1
+    return {pid: isin for pid, isin in chosen.items() if counts[isin] == 1}

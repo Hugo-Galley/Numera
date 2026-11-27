@@ -1,0 +1,686 @@
+{
+ "USA": {
+  "en": [
+   "United States",
+   "United States of America",
+   "USA",
+   "US"
+  ],
+  "fr": [
+   "États-Unis",
+   "Etats-Unis",
+   "États-Unis d'Amérique"
+  ]
+ },
+ "CAN": {
+  "en": [
+   "Canada"
+  ],
+  "fr": [
+   "Canada"
+  ]
+ },
+ "MEX": {
+  "en": [
+   "Mexico"
+  ],
+  "fr": [
+   "Mexique"
+  ]
+ },
+ "BRA": {
+  "en": [
+   "Brazil"
+  ],
+  "fr": [
+   "Brésil"
+  ]
+ },
+ "CHL": {
+  "en": [
+   "Chile"
+  ],
+  "fr": [
+   "Chili"
+  ]
+ },
+ "COL": {
+  "en": [
+   "Colombia"
+  ],
+  "fr": [
+   "Colombie"
+  ]
+ },
+ "PER": {
+  "en": [
+   "Peru"
+  ],
+  "fr": [
+   "Pérou"
+  ]
+ },
+ "ARG": {
+  "en": [
+   "Argentina"
+  ],
+  "fr": [
+   "Argentine"
+  ]
+ },
+ "GBR": {
+  "en": [
+   "United Kingdom",
+   "UK",
+   "Great Britain",
+   "Britain"
+  ],
+  "fr": [
+   "Royaume-Uni",
+   "Grande-Bretagne",
+   "Grande Bretagne"
+  ]
+ },
+ "FRA": {
+  "en": [
+   "France"
+  ],
+  "fr": [
+   "France"
+  ]
+ },
+ "DEU": {
+  "en": [
+   "Germany"
+  ],
+  "fr": [
+   "Allemagne"
+  ]
+ },
+ "CHE": {
+  "en": [
+   "Switzerland"
+  ],
+  "fr": [
+   "Suisse"
+  ]
+ },
+ "NLD": {
+  "en": [
+   "Netherlands",
+   "The Netherlands",
+   "Holland"
+  ],
+  "fr": [
+   "Pays-Bas"
+  ]
+ },
+ "BEL": {
+  "en": [
+   "Belgium"
+  ],
+  "fr": [
+   "Belgique"
+  ]
+ },
+ "LUX": {
+  "en": [
+   "Luxembourg"
+  ],
+  "fr": [
+   "Luxembourg"
+  ]
+ },
+ "IRL": {
+  "en": [
+   "Ireland"
+  ],
+  "fr": [
+   "Irlande"
+  ]
+ },
+ "ESP": {
+  "en": [
+   "Spain"
+  ],
+  "fr": [
+   "Espagne"
+  ]
+ },
+ "PRT": {
+  "en": [
+   "Portugal"
+  ],
+  "fr": [
+   "Portugal"
+  ]
+ },
+ "ITA": {
+  "en": [
+   "Italy"
+  ],
+  "fr": [
+   "Italie"
+  ]
+ },
+ "AUT": {
+  "en": [
+   "Austria"
+  ],
+  "fr": [
+   "Autriche"
+  ]
+ },
+ "DNK": {
+  "en": [
+   "Denmark"
+  ],
+  "fr": [
+   "Danemark"
+  ]
+ },
+ "SWE": {
+  "en": [
+   "Sweden"
+  ],
+  "fr": [
+   "Suède"
+  ]
+ },
+ "NOR": {
+  "en": [
+   "Norway"
+  ],
+  "fr": [
+   "Norvège"
+  ]
+ },
+ "FIN": {
+  "en": [
+   "Finland"
+  ],
+  "fr": [
+   "Finlande"
+  ]
+ },
+ "ISL": {
+  "en": [
+   "Iceland"
+  ],
+  "fr": [
+   "Islande"
+  ]
+ },
+ "GRC": {
+  "en": [
+   "Greece"
+  ],
+  "fr": [
+   "Grèce"
+  ]
+ },
+ "POL": {
+  "en": [
+   "Poland"
+  ],
+  "fr": [
+   "Pologne"
+  ]
+ },
+ "CZE": {
+  "en": [
+   "Czech Republic",
+   "Czechia"
+  ],
+  "fr": [
+   "République tchèque",
+   "Tchéquie"
+  ]
+ },
+ "HUN": {
+  "en": [
+   "Hungary"
+  ],
+  "fr": [
+   "Hongrie"
+  ]
+ },
+ "ROU": {
+  "en": [
+   "Romania"
+  ],
+  "fr": [
+   "Roumanie"
+  ]
+ },
+ "TUR": {
+  "en": [
+   "Turkey",
+   "Türkiye",
+   "Turkiye"
+  ],
+  "fr": [
+   "Turquie"
+  ]
+ },
+ "RUS": {
+  "en": [
+   "Russia",
+   "Russian Federation"
+  ],
+  "fr": [
+   "Russie",
+   "Fédération de Russie"
+  ]
+ },
+ "UKR": {
+  "en": [
+   "Ukraine"
+  ],
+  "fr": [
+   "Ukraine"
+  ]
+ },
+ "JPN": {
+  "en": [
+   "Japan"
+  ],
+  "fr": [
+   "Japon"
+  ]
+ },
+ "CHN": {
+  "en": [
+   "China",
+   "People's Republic of China",
+   "Mainland China"
+  ],
+  "fr": [
+   "Chine"
+  ]
+ },
+ "HKG": {
+  "en": [
+   "Hong Kong",
+   "Hong Kong SAR"
+  ],
+  "fr": [
+   "Hong Kong",
+   "Hong-Kong"
+  ]
+ },
+ "TWN": {
+  "en": [
+   "Taiwan",
+   "Taiwan, Province of China"
+  ],
+  "fr": [
+   "Taïwan"
+  ]
+ },
+ "KOR": {
+  "en": [
+   "South Korea",
+   "Korea (South)",
+   "Korea, Republic of",
+   "Republic of Korea",
+   "Korea"
+  ],
+  "fr": [
+   "Corée du Sud",
+   "Corée",
+   "République de Corée"
+  ]
+ },
+ "IND": {
+  "en": [
+   "India"
+  ],
+  "fr": [
+   "Inde"
+  ]
+ },
+ "IDN": {
+  "en": [
+   "Indonesia"
+  ],
+  "fr": [
+   "Indonésie"
+  ]
+ },
+ "MYS": {
+  "en": [
+   "Malaysia"
+  ],
+  "fr": [
+   "Malaisie"
+  ]
+ },
+ "THA": {
+  "en": [
+   "Thailand"
+  ],
+  "fr": [
+   "Thaïlande"
+  ]
+ },
+ "PHL": {
+  "en": [
+   "Philippines"
+  ],
+  "fr": [
+   "Philippines"
+  ]
+ },
+ "VNM": {
+  "en": [
+   "Vietnam",
+   "Viet Nam"
+  ],
+  "fr": [
+   "Viêt Nam",
+   "Vietnam"
+  ]
+ },
+ "SGP": {
+  "en": [
+   "Singapore"
+  ],
+  "fr": [
+   "Singapour"
+  ]
+ },
+ "PAK": {
+  "en": [
+   "Pakistan"
+  ],
+  "fr": [
+   "Pakistan"
+  ]
+ },
+ "AUS": {
+  "en": [
+   "Australia"
+  ],
+  "fr": [
+   "Australie"
+  ]
+ },
+ "NZL": {
+  "en": [
+   "New Zealand"
+  ],
+  "fr": [
+   "Nouvelle-Zélande"
+  ]
+ },
+ "ISR": {
+  "en": [
+   "Israel"
+  ],
+  "fr": [
+   "Israël"
+  ]
+ },
+ "SAU": {
+  "en": [
+   "Saudi Arabia",
+   "Kingdom of Saudi Arabia"
+  ],
+  "fr": [
+   "Arabie saoudite",
+   "Arabie Saoudite"
+  ]
+ },
+ "ARE": {
+  "en": [
+   "United Arab Emirates",
+   "UAE"
+  ],
+  "fr": [
+   "Émirats arabes unis",
+   "Emirats arabes unis"
+  ]
+ },
+ "QAT": {
+  "en": [
+   "Qatar"
+  ],
+  "fr": [
+   "Qatar"
+  ]
+ },
+ "KWT": {
+  "en": [
+   "Kuwait"
+  ],
+  "fr": [
+   "Koweït"
+  ]
+ },
+ "EGY": {
+  "en": [
+   "Egypt"
+  ],
+  "fr": [
+   "Égypte"
+  ]
+ },
+ "ZAF": {
+  "en": [
+   "South Africa"
+  ],
+  "fr": [
+   "Afrique du Sud"
+  ]
+ },
+ "MAR": {
+  "en": [
+   "Morocco"
+  ],
+  "fr": [
+   "Maroc"
+  ]
+ },
+ "NGA": {
+  "en": [
+   "Nigeria"
+  ],
+  "fr": [
+   "Nigéria"
+  ]
+ },
+ "KEN": {
+  "en": [
+   "Kenya"
+  ],
+  "fr": [
+   "Kenya"
+  ]
+ },
+ "BMU": {
+  "en": [
+   "Bermuda"
+  ],
+  "fr": [
+   "Bermudes"
+  ]
+ },
+ "CYM": {
+  "en": [
+   "Cayman Islands"
+  ],
+  "fr": [
+   "Îles Caïmans"
+  ]
+ },
+ "MCO": {
+  "en": [
+   "Monaco"
+  ],
+  "fr": [
+   "Monaco"
+  ]
+ },
+ "JEY": {
+  "en": [
+   "Jersey"
+  ],
+  "fr": [
+   "Jersey"
+  ]
+ },
+ "GGY": {
+  "en": [
+   "Guernsey"
+  ],
+  "fr": [
+   "Guernesey"
+  ]
+ },
+ "PAN": {
+  "en": [
+   "Panama"
+  ],
+  "fr": [
+   "Panama"
+  ]
+ },
+ "MAC": {
+  "en": [
+   "Macau",
+   "Macao"
+  ],
+  "fr": [
+   "Macao"
+  ]
+ },
+ "BGD": {
+  "en": [
+   "Bangladesh"
+  ],
+  "fr": [
+   "Bangladesh"
+  ]
+ },
+ "LKA": {
+  "en": [
+   "Sri Lanka"
+  ],
+  "fr": [
+   "Sri Lanka"
+  ]
+ },
+ "KAZ": {
+  "en": [
+   "Kazakhstan"
+  ],
+  "fr": [
+   "Kazakhstan"
+  ]
+ },
+ "CYP": {
+  "en": [
+   "Cyprus"
+  ],
+  "fr": [
+   "Chypre"
+  ]
+ },
+ "MLT": {
+  "en": [
+   "Malta"
+  ],
+  "fr": [
+   "Malte"
+  ]
+ },
+ "SVN": {
+  "en": [
+   "Slovenia"
+  ],
+  "fr": [
+   "Slovénie"
+  ]
+ },
+ "SVK": {
+  "en": [
+   "Slovakia"
+  ],
+  "fr": [
+   "Slovaquie"
+  ]
+ },
+ "HRV": {
+  "en": [
+   "Croatia"
+  ],
+  "fr": [
+   "Croatie"
+  ]
+ },
+ "EST": {
+  "en": [
+   "Estonia"
+  ],
+  "fr": [
+   "Estonie"
+  ]
+ },
+ "LVA": {
+  "en": [
+   "Latvia"
+  ],
+  "fr": [
+   "Lettonie"
+  ]
+ },
+ "LTU": {
+  "en": [
+   "Lithuania"
+  ],
+  "fr": [
+   "Lituanie"
+  ]
+ },
+ "BGR": {
+  "en": [
+   "Bulgaria"
+  ],
+  "fr": [
+   "Bulgarie"
+  ]
+ },
+ "SRB": {
+  "en": [
+   "Serbia"
+  ],
+  "fr": [
+   "Serbie"
+  ]
+ },
+ "JOR": {
+  "en": [
+   "Jordan"
+  ],
+  "fr": [
+   "Jordanie"
+  ]
+ },
+ "OMN": {
+  "en": [
+   "Oman"
+  ],
+  "fr": [
+   "Oman"
+  ]
+ },
+ "BHR": {
+  "en": [
+   "Bahrain"
+  ],
+  "fr": [
+   "Bahreïn"
+  ]
+ }
+}

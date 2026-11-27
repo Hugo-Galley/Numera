@@ -7,12 +7,13 @@ import { CalendarCheck, Check, Coins, Globe, Pencil, Trash2, X } from "lucide-re
 import { CompanyLogo } from "@/components/ui/CompanyLogo"
 import { Input } from "@/components/ui/input"
 import { cn, formatCurrency, formatRate } from "@/lib/utils"
+import { MissingIsin } from "./MissingIsin"
 import type { HoldingsTableCtx } from "./useHoldingsTable"
 
 /** Positions en cartes (mobile). */
 export function HoldingsMobileList({ ctx }: { ctx: HoldingsTableCtx }) {
   const { t } = useTranslation("investments")
-  const { costDraft, decomposingId, editingCostId, filteredHoldings, handleDecompose, handleDelete, handleTogglePaysDividends, hideHoldingValues, onAddDividend, saveCost, setCostDraft, setEditingCostId, startEditCost, totalValue } = ctx
+  const { costDraft, decomposingId, editingCostId, filteredHoldings, handleDecompose, handleDelete, handleTogglePaysDividends, hideHoldingValues, onAddDividend, onRefresh, saveCost, setCostDraft, setEditingCostId, startEditCost, totalValue } = ctx
   return (
     <>
       {/* Mobile : une carte par position */}
@@ -30,6 +31,7 @@ export function HoldingsMobileList({ ctx }: { ctx: HoldingsTableCtx }) {
                   <div className="mt-0.5 flex flex-wrap items-center gap-x-1.5 font-mono text-xs text-slate-500">
                     <span>{h.ticker}</span>
                     {h.isin && <span className="text-[11px] text-slate-400">{h.isin}</span>}
+                    {h.isin_missing && <MissingIsin holding={h} onSaved={onRefresh} />}
                   </div>
                 </div>
                 <Badge variant={isEtf ? "secondary" : "outline"} className="shrink-0 text-xs font-normal">

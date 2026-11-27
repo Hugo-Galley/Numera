@@ -1,4 +1,4 @@
-/** Profil d'ETF personnalisé : composition récupérée sur Yahoo à partir du ticker ou de l'ISIN. */
+/** Profil d'ETF personnalisé : composition récupérée en ligne à partir du ticker ou de l'ISIN. */
 import { screen, waitFor } from "@testing-library/react"
 import { vi } from "vitest"
 import { http, HttpResponse } from "msw"
@@ -13,7 +13,7 @@ function setup(props: Partial<React.ComponentProps<typeof CustomEtfModal>> = {})
   const view = renderWithProviders(<CustomEtfModal open onOpenChange={onOpenChange} onProfileCreated={onProfileCreated} {...props} />, { auth: true })
   return { onOpenChange, onProfileCreated, ...view }
 }
-const submit = () => screen.getByRole("button", { name: "Créer depuis Yahoo" })
+const submit = () => screen.getByRole("button", { name: "Créer en ligne" })
 
 describe("CustomEtfModal", () => {
   it("sans ticker ni ISIN : le bouton est désactivé", () => {

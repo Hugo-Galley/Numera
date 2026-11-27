@@ -58,11 +58,14 @@ from app.core.migrations import run_migrations
 from app.core.request_info import client_ip
 from app.db.session import SessionLocal
 from app.integrations.currency import CurrencyConversionError
+from app.integrations.etf_providers.base import Provider
 from app.services.budget.benefit_generation import generate_benefit_transactions, reconcile_provisional
 from app.services.budget.recurring import generate_recurring_transactions
 from app.services.budget.salary_generation import check_and_generate_pending_salaries
+from app.services.investissement import etf_composition
 from app.services.investissement.etf_profiles import refresh_held_etf_profiles
 from app.services.investissement.holdings.rebuild import rebuild_due_holdings
+from app.services.investissement.isin_resolution import resolve_missing_isins
 from app.services.investissement.market.quotes import refresh_held_prices
 from app.services.systeme.demo import demo_write_allowed, ensure_demo_data, is_blocked_in_demo
 from app.services.systeme.notifications import run_notifications
@@ -82,6 +85,14 @@ async def _run_step(db: Session, name: str, step: Callable[[Session], object]) -
     except Exception:
         db.rollback()
         logger.exception("Tâche de fond : étape « %s » en échec", name)
+
+
+# Mêmes instances que pour les compositions : le cache des catalogues sert aux deux
+_ISIN_CATALOGS: list[Provider] = etf_composition.PROVIDERS
+
+
+async def resolve_isins_step(db: Session) -> None:
+    await resolve_missing_isins(db, catalogs=_ISIN_CATALOGS)
 
 
 async def recurring_transactions_task() -> None:
@@ -105,7 +116,9 @@ async def recurring_transactions_task() -> None:
                 await _run_step(db, "positions", rebuild_due_holdings)
                 # Cours des titres détenus enregistrés en base (historique de valorisation)
                 await _run_step(db, "cours", refresh_held_prices)
-                # Composition des ETF détenus (Yahoo), au plus une fois par semaine et par profil
+                # ISIN manquants des positions (sources locales, puis catalogues des émetteurs)
+                await _run_step(db, "ISIN", resolve_isins_step)
+                # Composition des ETF détenus et de leurs indices (émetteurs), au plus une fois par jour et par profil
                 await _run_step(db, "profils ETF", refresh_held_etf_profiles)
                 # Alertes du Centre d'Actions et résumé hebdo vers ntfy / Telegram (si activés)
                 await _run_step(db, "notifications", run_notifications)

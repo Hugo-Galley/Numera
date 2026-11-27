@@ -4,6 +4,7 @@ from app.models.benefit import Benefit
 from app.models.categorization_rule import CategorizationRule
 from app.models.category import Category
 from app.models.dismissed_insight import DismissedInsight
+from app.models.etf_constituent import EtfConstituent
 from app.models.etf_profile import EtfProfile
 from app.models.exchange_rate import HistoricalExchangeRate
 from app.models.financial_event import FinancialEvent
@@ -23,6 +24,7 @@ from app.models.reimbursement import ReimbursementAllocation, ReimbursementClaim
 from app.models.salary_config import SalaryConfig
 from app.models.salary_month import SalaryMonth
 from app.models.savings_goal import SavingsGoal
+from app.models.security import Security
 from app.models.security_price import SecurityPrice
 from app.models.system_setting import SystemSetting
 from app.models.tag import Tag
@@ -38,6 +40,7 @@ __all__ = [
     "CategorizationRule",
     "Category",
     "DismissedInsight",
+    "EtfConstituent",
     "EtfProfile",
     "FinancialEvent",
     "HistoricalExchangeRate",
@@ -60,6 +63,7 @@ __all__ = [
     "SalaryConfig",
     "SalaryMonth",
     "SavingsGoal",
+    "Security",
     "SecurityPrice",
     "SystemSetting",
     "Tag",

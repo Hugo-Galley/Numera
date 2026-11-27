@@ -18,7 +18,7 @@
     "impossibleDeDecomposerCeFonds": "Impossible de décomposer ce fonds en ligne",
     "erreurLorsDeLaDecomposition": "Erreur lors de la décomposition en ligne",
     "definirUnProfilDEtf": "Définir un profil d'ETF",
-    "laCompositionSecteursEtTop": "La composition (secteurs et top 10) est récupérée sur Yahoo Finance puis actualisée chaque semaine. Yahoo ne publie pas la répartition par pays.",
+    "laCompositionSecteursEtTop": "La composition est récupérée chez l'émetteur du fonds (à défaut sur justETF ou Yahoo Finance) puis actualisée chaque jour.",
     "tickerSymbole": "Ticker / symbole",
     "ex0p0001hi7fFOuCw8": "Ex: 0P0001HI7F.F ou CW8.PA",
     "nomOptionnel": "Nom (optionnel)",
@@ -27,7 +27,7 @@
     "exFr0014001fd5": "Ex: FR0014001FD5",
     "annuler": "Annuler",
     "recuperation": "Récupération...",
-    "creerDepuisYahoo": "Créer depuis Yahoo"
+    "creerDepuisYahoo": "Créer en ligne"
   },
   "dividendsCard": {
     "impossibleDeChargerLesDividendes": "Impossible de charger les dividendes",
@@ -236,7 +236,8 @@
     "pincezPourZoomerGlissezPour": "Pince pour zoomer • Glisse pour déplacer",
     "utilisezLaMolettePourZoomer": "Utilise la molette pour zoomer • Clique-glisse pour déplacer",
     "origineDesCompositions": "Origine des compositions",
-    "actualiser": "Actualiser"
+    "actualiser": "Actualiser",
+    "description": "Compositions publiées par les émetteurs, actualisées chaque jour. La part non couverte apparaît en « Non renseigné »."
   },
   "investmentsKpis": {
     "valeurTotale": "Valeur totale",
@@ -282,7 +283,7 @@
     "lastDate": " • dernier : {{date}}",
     "refreshedOn": "actualisé le {{date}}",
     "neverRefreshed": "jamais actualisé",
-    "fetchingComposition": "Récupération de la composition de {{symbol}} sur Yahoo...",
+    "fetchingComposition": "Récupération de la composition de {{symbol}}...",
     "brokenDown": "{{name}} décomposé avec succès !",
     "breakingDown": "Décomposition de {{name}} en ligne...",
     "alreadyInList": "{{symbol}} est déjà dans ta liste",
@@ -295,16 +296,19 @@
     "distributing": "{{ticker}} : titre distribuant (rappel si aucun dividende pendant 13 mois)",
     "prUpdated": "PRU de {{ticker}} mis à jour",
     "noResultFor": "Aucun résultat trouvé pour \"{{query}}\".",
-    "refreshedCount_one": "{{count}} composition actualisée depuis Yahoo",
-    "refreshedCount_other": "{{count}} compositions actualisées depuis Yahoo",
+    "refreshedCount_one": "{{count}} composition actualisée",
+    "refreshedCount_other": "{{count}} compositions actualisées",
     "fields": {
       "sectors": "Secteurs",
       "top_holdings": "Top 10",
       "countries": "Pays"
     },
     "sources": {
+      "ishares": "iShares",
+      "amundi": "Amundi",
+      "spdr": "SPDR",
+      "justetf": "justETF",
       "yahoo": "Yahoo",
-      "preset": "Préréglage",
       "manual": "Saisie"
     },
     "avgCost": "PRU",
@@ -357,6 +361,24 @@
     "notRecovered": "Sommet pas encore retrouvé",
     "current": "Sous le plus haut aujourd'hui",
     "atPeak": "Au plus haut"
+  },
+  "compositionOrigin": {
+    "asOf": "{{provider}} · composition au {{date}}",
+    "source": "Source : {{provider}}",
+    "syntheticVia": "Synthétique : exposition de l'indice {{index}} via {{reference}}",
+    "syntheticUnknown": "Synthétique : indice non reconnu, répartition indisponible",
+    "lines_one": "{{lines}} ligne · {{pct}} du fonds",
+    "lines_other": "{{lines}} lignes · {{pct}} du fonds",
+    "topTen": "Top 10 · {{pct}} du fonds"
+  },
+  "missingIsin": {
+    "action": "ISIN à compléter",
+    "field": "ISIN de {{ticker}}",
+    "save": "Enregistrer l'ISIN",
+    "cancel": "Annuler la saisie de l'ISIN",
+    "saved": "ISIN de {{ticker}} enregistré",
+    "invalid": "Un ISIN compte 12 caractères : 2 lettres, 9 lettres ou chiffres, 1 chiffre",
+    "saveError": "Impossible d'enregistrer l'ISIN"
   },
   "breakdown": {
     "title": {

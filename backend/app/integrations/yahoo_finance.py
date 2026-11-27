@@ -7,6 +7,8 @@ from urllib.parse import quote
 
 import httpx
 
+from app.domain.etf_normalize import country_code, sector_label
+
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
     "Accept": "application/json",
@@ -55,20 +57,6 @@ async def search_quotes(query: str) -> list[dict[str, Any]]:
 # Yahoo fournit la répartition sectorielle et, pour les ETF à réplication physique, les 10 premières lignes ;
 # jamais la répartition par pays.
 
-YAHOO_SECTOR_LABELS: dict[str, str] = {
-    "technology": "Technologie",
-    "financial_services": "Finance",
-    "healthcare": "Santé",
-    "consumer_cyclical": "Consommation discrétionnaire",
-    "consumer_defensive": "Biens de consommation",
-    "industrials": "Industrie",
-    "communication_services": "Services de communication",
-    "basic_materials": "Matériaux",
-    "energy": "Énergie",
-    "utilities": "Services aux collectivités",
-    "realestate": "Immobilier",
-}
-
 QUOTE_SUMMARY_URL = "https://query2.finance.yahoo.com/v10/finance/quoteSummary/{symbol}"
 
 # quoteSummary exige un cookie de consentement et un « crumb » associé ; on les garde en mémoire
@@ -102,7 +90,7 @@ def parse_top_holdings(top: dict[str, Any]) -> dict[str, Any]:
         for key, value in entry.items():
             weight = round(float((value or {}).get("raw") or 0.0) * 100, 2)
             if weight > 0:
-                label = YAHOO_SECTOR_LABELS.get(key, key.replace("_", " ").capitalize())
+                label = sector_label(key)
                 sectors[label] = round(sectors.get(label, 0.0) + weight, 2)
 
     holdings: list[dict[str, Any]] = []
@@ -115,17 +103,15 @@ def parse_top_holdings(top: dict[str, Any]) -> dict[str, Any]:
     return {"sectors": sectors, "top_holdings": holdings}
 
 
-async def fetch_composition(symbol: str) -> dict[str, Any] | None:
-    """Composition publiée par Yahoo pour `symbol`.
+async def _quote_summary(symbol: str, modules: str) -> dict[str, Any] | None:
+    """Premier résultat de quoteSummary pour `symbol` (cookie et crumb gérés), None si Yahoo ne connaît pas le titre.
 
-    Renvoie None si Yahoo ne connaît pas le titre, un dict (éventuellement vide) sinon.
-    Lève YahooUnavailable si Yahoo est injoignable.
-    """
+    Lève YahooUnavailable si Yahoo est injoignable."""
     cleaned = symbol.strip().upper()
     try:
         async with client(8.0) as http_client:
             crumb = await ensure_crumb(http_client)
-            params = {"modules": "topHoldings,quoteType", "crumb": crumb}
+            params = {"modules": modules, "crumb": crumb}
             url = QUOTE_SUMMARY_URL.format(symbol=cleaned)
             resp = await http_client.get(url, params=params)
             if resp.status_code in (401, 403):
@@ -143,12 +129,32 @@ async def fetch_composition(symbol: str) -> dict[str, Any] | None:
         result = (resp.json().get("quoteSummary") or {}).get("result") or []
     except ValueError as e:
         raise YahooUnavailable(f"quoteSummary {cleaned} : réponse illisible") from e
-    if not result:
-        return None
+    first: dict[str, Any] | None = result[0] if result else None
+    return first
 
-    data = result[0]
+
+async def fetch_composition(symbol: str) -> dict[str, Any] | None:
+    """Composition publiée par Yahoo pour `symbol`.
+
+    Renvoie None si Yahoo ne connaît pas le titre, un dict (éventuellement vide) sinon.
+    Lève YahooUnavailable si Yahoo est injoignable.
+    """
+    data = await _quote_summary(symbol, "topHoldings,quoteType")
+    if data is None:
+        return None
     quote_type = data.get("quoteType") or {}
     composition = parse_top_holdings(data.get("topHoldings") or {})
     composition["name"] = quote_type.get("longName") or quote_type.get("shortName")
     composition["quote_type"] = quote_type.get("quoteType")
     return composition
+
+
+async def fetch_asset_profile(symbol: str) -> dict[str, Any] | None:
+    """Pays (alpha-3, None si inconnu) et secteur (libellé français) d'une société, d'après `assetProfile`.
+
+    Renvoie None si Yahoo ne connaît pas le titre. Lève YahooUnavailable si Yahoo est injoignable."""
+    data = await _quote_summary(symbol, "assetProfile")
+    if data is None:
+        return None
+    profile = data.get("assetProfile") or {}
+    return {"country": country_code(profile.get("country")), "sector": sector_label(profile.get("sector"))}

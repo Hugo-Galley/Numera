@@ -4,15 +4,18 @@ from typing import Any
 from sqlalchemy.orm import Session
 
 from app.domain.dividends import HoldingDividends, summarize_by_holding
-from app.domain.holdings import holding_returns
+from app.domain.holdings import holding_profile, holding_returns, is_etf_holding, isin_missing
 from app.integrations.currency import get_exchange_rates
+from app.models.etf_profile import EtfProfile
 from app.models.portfolio_holding import PortfolioHolding
+from app.repositories.investissement import etf_profiles as etf_repo
 from app.schemas.holding import PortfolioHoldingRead
 from app.services.investissement.dividends import load_dividends_eur
 from app.services.investissement.market.quotes import get_market_quotes, persist_fetched_prices
 
 
-def enrich_holding(holding: PortfolioHolding, quotes: dict[str, Any], rates: dict[str, Any], divs: HoldingDividends | None = None) -> PortfolioHoldingRead:
+def enrich_holding(holding: PortfolioHolding, quotes: dict[str, Any], rates: dict[str, Any], divs: HoldingDividends | None = None,
+                   profiles: list[EtfProfile] | None = None) -> PortfolioHoldingRead:
     sym = holding.ticker.upper().strip()
     quote = quotes.get(sym, {})
     price = quote.get("price", 0.0) or 0.0
@@ -44,7 +47,9 @@ def enrich_holding(holding: PortfolioHolding, quotes: dict[str, Any], rates: dic
         total_invested_eur=round(invested_eur, 2) if invested_eur is not None else None,
         gain_eur=figures["gain_eur"],
         gain_pct=figures["gain_pct"],
-        is_etf=bool(holding.etf_profile_id or quote.get("type") == "ETF"),
+        is_etf=is_etf_holding(quote.get("type"), holding.ticker, holding.isin,
+                           holding_profile(profiles or [], holding.etf_profile_id, holding.ticker, holding.isin)),
+        isin_missing=isin_missing(holding.isin, quote.get("type"), holding.ticker),
         pays_dividends=holding.pays_dividends,
         dividends_received_eur=round(divs.total_eur, 2),
         dividends_12m_eur=round(divs.last_12m_eur, 2),
@@ -59,4 +64,5 @@ async def enrich_all(db: Session, holdings: list[PortfolioHolding]) -> list[Port
     persist_fetched_prices(db)
     rates = await get_exchange_rates("EUR")
     dividends = summarize_by_holding(await load_dividends_eur(db))
-    return [enrich_holding(h, quotes, rates, dividends.get((h.account_id, h.ticker.upper()))) for h in holdings]
+    profiles = etf_repo.all_profiles(db)
+    return [enrich_holding(h, quotes, rates, dividends.get((h.account_id, h.ticker.upper())), profiles) for h in holdings]

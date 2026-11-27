@@ -1,8 +1,8 @@
 import type { ApiResponse } from "@/lib/api/types"
 
 export type CompositionField = "countries" | "sectors" | "top_holdings"
-// yahoo : actualisé depuis Yahoo Finance · preset : préréglage intégré · manual : saisi à la main
-export type CompositionSource = "yahoo" | "preset" | "manual"
+// Émetteurs (ishares, amundi, spdr), replis justetf et yahoo ; manual : saisi à la main
+export type CompositionSource = "ishares" | "amundi" | "spdr" | "justetf" | "yahoo" | "manual"
 
 export interface EtfCompositionInfo {
   profile_id: number
@@ -11,6 +11,16 @@ export interface EtfCompositionInfo {
   value_eur: number
   sources: Partial<Record<CompositionField, CompositionSource>>
   refreshed_at?: string | null
+  // Données utilisées (celles de l'ETF de référence pour un synthétique)
+  provider?: string | null
+  composition_as_of?: string | null
+  coverage_pct?: number | null
+  lines_count?: number
+  // Fonds détenu
+  replication?: string
+  index_name?: string | null
+  exposure_profile_id?: number | null
+  exposure_profile_name?: string | null
 }
 
 export interface PortfolioHolding {
@@ -18,6 +28,7 @@ export interface PortfolioHolding {
   account_id: number
   ticker: string
   isin?: string
+  isin_missing?: boolean
   asset_name: string
   quantity: number
   buy_price_avg?: number

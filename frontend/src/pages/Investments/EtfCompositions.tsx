@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Globe, Layers, RefreshCw } from "lucide-react"
 import WorldMap from "@/components/ui/WorldMap"
 import { formatCurrency } from "@/lib/utils"
+import { CompositionOrigin } from "./CompositionOrigin"
 import { COMPOSITION_FIELDS, SOURCE_LABELS } from "./types"
 import type { InvestmentsCtx } from "./useInvestments"
 
@@ -52,7 +53,7 @@ export function EtfCompositions({ ctx }: { ctx: InvestmentsCtx }) {
                 <div>
                   <CardTitle className="text-base">{t("etfCompositions.origineDesCompositions")}</CardTitle>
                   <CardDescription className="text-xs">
-                    Yahoo fournit secteurs et top 10 (pas les pays) ; à défaut, le préréglage intégré est utilisé. La part non couverte apparaît en « Non renseigné ».
+                    {t("etfCompositions.description")}
                   </CardDescription>
                 </div>
               </div>
@@ -70,11 +71,17 @@ export function EtfCompositions({ ctx }: { ctx: InvestmentsCtx }) {
                     <div className="text-sm font-medium truncate">{c.profile_name}</div>
                     <div className="text-xs text-muted-foreground wrap-break-word">
                       {c.tickers.join(", ")} · <span className="amount-blur">{formatCurrency(c.value_eur)}</span>
-                      {" · "}
-                      {c.refreshed_at
-                        ? i18n.t("misc.refreshedOn", { ns: "investments", date: new Date(c.refreshed_at + "Z").toLocaleDateString(appLocale()) })
-                        : i18n.t("misc.neverRefreshed", { ns: "investments" })}
+                      {/* Sans composition datée d'un émetteur : au moins la date de la dernière lecture */}
+                      {!(c.provider && c.composition_as_of) && (
+                        <>
+                          {" · "}
+                          {c.refreshed_at
+                            ? i18n.t("misc.refreshedOn", { ns: "investments", date: new Date(c.refreshed_at + "Z").toLocaleDateString(appLocale()) })
+                            : i18n.t("misc.neverRefreshed", { ns: "investments" })}
+                        </>
+                      )}
                     </div>
+                    <CompositionOrigin composition={c} />
                   </div>
                   <div className="flex flex-wrap gap-1.5">
                     {COMPOSITION_FIELDS.map(({ key }) => {

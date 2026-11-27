@@ -1,0 +1,154 @@
+{
+ "data": {
+  "funds": {
+   "etfs": {
+    "datas": [
+     {
+      "domicile": "IE",
+      "fundName": "State Street® SPDR® MSCI All Country World UCITS ETF (Acc)",
+      "fundTicker": "ACWE FP",
+      "fundUri": "/fr/fr/intermediary/etfs/state-street-spdr-msci-all-country-world-ucits-etf-acc-spyy-gy",
+      "primaryExchange": "Deutsche Börse",
+      "documentPdf": [
+       {
+        "docType": "Factsheet",
+        "docs": [
+         {
+          "language": "",
+          "name": "Fiche produit",
+          "path": "/library-content/products/factsheets/etfs/emea/factsheet-emea-fr-spyy-gy.pdf",
+          "canDownload": true
+         }
+        ]
+       },
+       {
+        "docType": "Kid",
+        "docs": [
+         {
+          "language": "FR",
+          "name": "KID",
+          "path": "/library-content/kids?isin=IE00B44Z5B48&documentType=kid&country=fr&language=fr&ticker=spyy-gy",
+          "canDownload": true
+         },
+         {
+          "language": "EN",
+          "name": "KID",
+          "path": "/library-content/kids?isin=IE00B44Z5B48&documentType=kid&country=fr&language=en&ticker=spyy-gy",
+          "canDownload": true
+         }
+        ]
+       },
+       {
+        "docType": "Holdings-daily",
+        "docs": [
+         {
+          "language": "",
+          "name": "L'inventaire journalier de portefeuille",
+          "path": "/library-content/products/fund-data/etfs/emea/holdings-daily-emea-en-spyy-gy.xlsx",
+          "canDownload": true
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "domicile": "IE",
+      "fundName": "State Street® SPDR® MSCI World UCITS ETF (Acc)",
+      "fundTicker": "SPPW GY^",
+      "fundUri": "/fr/fr/intermediary/etfs/state-street-spdr-msci-world-ucits-etf-acc-sppw-gy",
+      "primaryExchange": "Deutsche Börse",
+      "documentPdf": [
+       {
+        "docType": "Factsheet",
+        "docs": [
+         {
+          "language": "",
+          "name": "Fiche produit",
+          "path": "/library-content/products/factsheets/etfs/emea/factsheet-emea-fr-sppw-gy.pdf",
+          "canDownload": true
+         }
+        ]
+       },
+       {
+        "docType": "Kid",
+        "docs": [
+         {
+          "language": "FR",
+          "name": "KID",
+          "path": "/library-content/kids?isin=IE00BFY0GT14&documentType=kid&country=fr&language=fr&ticker=sppw-gy",
+          "canDownload": true
+         },
+         {
+          "language": "EN",
+          "name": "KID",
+          "path": "/library-content/kids?isin=IE00BFY0GT14&documentType=kid&country=fr&language=en&ticker=sppw-gy",
+          "canDownload": true
+         }
+        ]
+       },
+       {
+        "docType": "Holdings-daily",
+        "docs": [
+         {
+          "language": "",
+          "name": "L'inventaire journalier de portefeuille",
+          "path": "/library-content/products/fund-data/etfs/emea/holdings-daily-emea-en-sppw-gy.xlsx",
+          "canDownload": true
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "domicile": "IE",
+      "fundName": "State Street® SPDR® S&P® 500 UCITS ETF (Dist)",
+      "fundTicker": "SPY5 FP",
+      "fundUri": "/fr/fr/intermediary/etfs/state-street-spdr-sp-500-ucits-etf-dist-spy5-gy",
+      "primaryExchange": "Deutsche Börse",
+      "documentPdf": [
+       {
+        "docType": "Factsheet",
+        "docs": [
+         {
+          "language": "",
+          "name": "Fiche produit",
+          "path": "/library-content/products/factsheets/etfs/emea/factsheet-emea-fr-spy5-gy.pdf",
+          "canDownload": true
+         }
+        ]
+       },
+       {
+        "docType": "Kid",
+        "docs": [
+         {
+          "language": "FR",
+          "name": "KID",
+          "path": "/library-content/kids?isin=IE00B6YX5C33&documentType=kid&country=fr&language=fr&ticker=spy5-gy",
+          "canDownload": true
+         },
+         {
+          "language": "EN",
+          "name": "KID",
+          "path": "/library-content/kids?isin=IE00B6YX5C33&documentType=kid&country=fr&language=en&ticker=spy5-gy",
+          "canDownload": true
+         }
+        ]
+       },
+       {
+        "docType": "Holdings-daily",
+        "docs": [
+         {
+          "language": "",
+          "name": "L'inventaire journalier de portefeuille",
+          "path": "/library-content/products/fund-data/etfs/emea/holdings-daily-emea-en-spy5-gy.xlsx",
+          "canDownload": true
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   }
+  }
+ }
+}

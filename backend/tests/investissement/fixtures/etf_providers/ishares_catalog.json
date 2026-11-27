@@ -1,0 +1,26 @@
+{
+ "251882": {
+  "fundName": "iShares Core MSCI World UCITS ETF",
+  "isin": "IE00B4L5Y983",
+  "localExchangeTicker": "SWDA",
+  "productPageUrl": "/uk/individual/en/products/251882/ishares-msci-world-ucits-etf-acc-fund",
+  "aladdinFundTicker": "ISIWDATTL",
+  "productType": "ISHARES_FUND_DATA"
+ },
+ "350405": {
+  "fundName": "iShares\u00a0MSCI\u00a0North America\u00a0Swap UCITS ETF",
+  "isin": "IE000OY7BDY9",
+  "localExchangeTicker": "NOAM",
+  "productPageUrl": "/uk/individual/en/products/350405/isharesmscinorth-americaswap-ucits-etf",
+  "aladdinFundTicker": "ISNOAMCPAG",
+  "productType": "ISHARES_FUND_DATA"
+ },
+ "253743": {
+  "fundName": "iShares Core S&P 500 UCITS ETF",
+  "isin": "IE00B5BMR087",
+  "localExchangeTicker": "CSPX",
+  "productPageUrl": "/uk/individual/en/products/253743/ishares-sp-500-b-ucits-etf-acc-fund",
+  "aladdinFundTicker": "ID-CSPX",
+  "productType": "ISHARES_FUND_DATA"
+ }
+}

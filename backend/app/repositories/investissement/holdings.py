@@ -91,3 +91,21 @@ def held_positions(db: Session, account_id: int | None = None) -> list[Portfolio
     else:
         query = query.join(Account, PortfolioHolding.account_id == Account.id).filter(own_account())
     return query.all()
+
+
+def holdings_without_isin(db: Session, account_id: int | None = None) -> list[PortfolioHolding]:
+    query = db.query(PortfolioHolding).filter((PortfolioHolding.isin.is_(None)) | (PortfolioHolding.isin == ""))
+    if account_id is not None:
+        query = query.filter(PortfolioHolding.account_id == account_id)
+    return query.all()
+
+
+def recorded_isins(db: Session) -> list[tuple[int, str, str]]:
+    """(compte, ticker, ISIN) saisis sur les opérations et l'inventaire : deux requêtes pour tous les comptes."""
+    tx = db.query(InvestmentTransaction.account_id, InvestmentTransaction.ticker, InvestmentTransaction.isin).filter(
+        InvestmentTransaction.ticker.isnot(None), InvestmentTransaction.isin.isnot(None)
+    )
+    base = db.query(HoldingBaselineItem.account_id, HoldingBaselineItem.ticker, HoldingBaselineItem.isin).filter(
+        HoldingBaselineItem.isin.isnot(None)
+    )
+    return [(a, t, i) for a, t, i in [*tx.distinct().all(), *base.distinct().all()] if t and i]

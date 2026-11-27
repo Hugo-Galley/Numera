@@ -1,7 +1,9 @@
 from datetime import datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 
+from app.core.i18n import tr
+from app.domain.isin import is_valid_isin
 from app.schemas.types import Amount, BoundedDatetime, Quantity
 
 
@@ -31,6 +33,17 @@ class PortfolioHoldingUpdate(BaseModel):
     pays_dividends: bool | None = None
     cost_basis_eur: Quantity | None = None
 
+    @field_validator("isin")
+    @classmethod
+    def _valid_isin(cls, value: str | None) -> str | None:
+        """Vide : efface l'ISIN. Sinon un ISIN valide (format et clé de Luhn), en majuscules."""
+        if value is None or not value.strip():
+            return value
+        cleaned = value.strip().upper()
+        if not is_valid_isin(cleaned):
+            raise ValueError(tr("validation.isin_invalid"))
+        return cleaned
+
 
 class PortfolioHoldingRead(PortfolioHoldingBase):
     id: int
@@ -48,6 +61,7 @@ class PortfolioHoldingRead(PortfolioHoldingBase):
     gain_eur: float | None = None
     gain_pct: float | None = None
     is_etf: bool = False
+    isin_missing: bool = False  # ISIN à compléter à la main (une crypto n'en a pas)
     cost_basis_eur: float | None = None  # coût de revient EUR total de la position
 
     # Dividendes (EUR) rattachés à ce titre

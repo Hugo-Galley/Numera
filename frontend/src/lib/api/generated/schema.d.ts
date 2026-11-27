@@ -4636,14 +4636,40 @@ export interface components {
             /** Total Value Eur */
             total_value_eur: number;
         };
-        /** DiversityComposition */
+        /**
+         * DiversityComposition
+         * @description ETF synthétique : réplication, indice et référence du fonds détenu ; source, date, lignes et couverture
+         *     des données utilisées (celles de la référence).
+         */
         DiversityComposition: {
+            /** Composition As Of */
+            composition_as_of?: string | null;
+            /** Coverage Pct */
+            coverage_pct?: number | null;
+            /** Exposure Profile Id */
+            exposure_profile_id?: number | null;
+            /** Exposure Profile Name */
+            exposure_profile_name?: string | null;
+            /** Index Name */
+            index_name?: string | null;
+            /**
+             * Lines Count
+             * @default 0
+             */
+            lines_count?: number;
             /** Profile Id */
             profile_id: number;
             /** Profile Name */
             profile_name: string;
+            /** Provider */
+            provider?: string | null;
             /** Refreshed At */
             refreshed_at: string | null;
+            /**
+             * Replication
+             * @default unknown
+             */
+            replication?: string;
             /** Sources */
             sources: {
                 [key: string]: string;
@@ -4970,6 +4996,8 @@ export interface components {
              * @default []
              */
             aliases?: string[];
+            /** Composition As Of */
+            composition_as_of?: string | null;
             /** Composition Refreshed At */
             composition_refreshed_at?: string | null;
             /**
@@ -4986,19 +5014,39 @@ export interface components {
             countries?: {
                 [key: string]: number;
             };
+            /** Coverage Pct */
+            coverage_pct?: number | null;
             /**
              * Created At
              * Format: date-time
              */
             created_at: string;
+            /** Exposure Profile Id */
+            exposure_profile_id?: number | null;
+            /** Exposure Profile Name */
+            exposure_profile_name?: string | null;
             /** Id */
             id: number;
+            /** Index Name */
+            index_name?: string | null;
             /** Is System */
             is_system: boolean;
             /** Isin */
             isin?: string | null;
+            /**
+             * Lines Count
+             * @default 0
+             */
+            lines_count?: number;
             /** Name */
             name: string;
+            /** Provider */
+            provider?: string | null;
+            /**
+             * Replication
+             * @default unknown
+             */
+            replication?: string;
             /**
              * Sectors
              * @default {}
@@ -6411,6 +6459,11 @@ export interface components {
             is_etf?: boolean;
             /** Isin */
             isin?: string | null;
+            /**
+             * Isin Missing
+             * @default false
+             */
+            isin_missing?: boolean;
             /** Last Dividend Date */
             last_dividend_date?: string | null;
             /** Pays Dividends */

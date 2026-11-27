@@ -273,7 +273,7 @@ def test_holding_gain_converts_cost_basis_to_eur(client, db_session, monkeypatch
     assert body["gain_eur"] == pytest.approx(0.0)
 
 
-def test_etf_profile_matching_ignores_empty_and_short_names(db_session):
+def test_etf_profile_matching_never_uses_the_name(db_session):
     from app.models.etf_profile import EtfProfile
     from app.services.investissement.market.search import match_etf_profile
 
@@ -282,7 +282,7 @@ def test_etf_profile_matching_ignores_empty_and_short_names(db_session):
 
     assert match_etf_profile(db_session, "ZZZZ", None, "") is None
     assert match_etf_profile(db_session, "ZZZZ", None, "msci") is None
-    assert match_etf_profile(db_session, "ZZZZ", None, "Amundi MSCI World UCITS ETF").ticker == "CW8.PA"
+    assert match_etf_profile(db_session, "ZZZZ", None, "Amundi MSCI World UCITS ETF") is None
 
 
 # ─── Soldes et flux ─────────────────────────────────────────────────────────

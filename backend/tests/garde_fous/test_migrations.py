@@ -3,6 +3,7 @@
 Les autres tests utilisent `create_all` et ne voient donc pas les dérives de migration : une
 installation neuve ou une restauration sur schéma vierge échouait (colonnes manquantes).
 """
+import json
 import os
 import subprocess
 import sys
@@ -151,3 +152,125 @@ def test_downgrade_then_upgrade_head_roundtrip(tmp_path):
     up = _alembic(url, "upgrade", "head")
     assert up.returncode == 0, up.stderr
     assert _schema_diffs(url) == []
+
+
+def _insert_profile(conn, name, ticker, *, aliases="[]", countries="{}", sectors="{}", top="[]", system=0, isin=None):
+    conn.execute(
+        text(
+            "INSERT INTO etf_profiles (name, ticker, isin, aliases, countries, sectors, top_holdings, composition_sources, is_system, created_at, updated_at) "
+            "VALUES (:n, :t, :i, :a, :c, :s, :h, '{}', :sys, '2026-01-01', '2026-01-01')"
+        ),
+        {"n": name, "t": ticker, "i": isin, "a": aliases, "c": countries, "s": sectors, "h": top, "sys": system},
+    )
+    return conn.execute(text("SELECT id FROM etf_profiles WHERE name = :n"), {"n": name}).scalar_one()
+
+
+def test_purge_etf_profiles_migration_cleans_aliases_detaches_and_deletes(tmp_path):
+    url = f"sqlite:///{tmp_path / 'purge.db'}"
+    assert _alembic(url, "upgrade", "7d2e9b4c1a6f").returncode == 0
+    engine = create_engine(url)
+    with engine.begin() as conn:
+        orphan = _insert_profile(conn, "Orphan", "ORPH", aliases='["ORPH"]')
+        held = _insert_profile(conn, "Held", "HELD")
+        _insert_profile(conn, "Full", "FULL", sectors='{"Technologie": 50.0}')
+        system = _insert_profile(conn, "System", "SYS", system=1, aliases='["SYS"]')
+        bad1 = _insert_profile(conn, "Bad1", "BAD1", aliases="not json", sectors='{"Finance": 1.0}')
+        bad2 = _insert_profile(conn, "Bad2", "BAD2", aliases='{"a":1}', sectors='{"Finance": 1.0}')
+        _insert_profile(conn, "SysEmpty", "SYSE", system=1)
+        tx_only = _insert_profile(conn, "TxOnly", "TXO")
+        manual = _insert_profile(conn, "Manual", "MAN")
+        cisco = _insert_profile(conn, "Cisco CDR", "CSCO.TO", aliases='["CSCO.TO", "CSCO", "CISCO CDR", "CSCO.NEO"]')
+        conn.execute(text("INSERT INTO accounts (name, type, currency, active, created_at) VALUES ('CTO', 'investissement', 'EUR', 1, '2026-01-01')"))
+        acc = conn.execute(text("SELECT id FROM accounts")).scalar_one()
+        conn.execute(
+            text("INSERT INTO investment_transactions (account_id, date, type, amount, original_amount, etf_profile_id) VALUES (:a, '2026-01-01', 'achat', 1, 1, :p)"),
+            {"a": acc, "p": tx_only},
+        )
+        for ticker, pid in (("HELD", held), ("CSCO", cisco), ("CSCO.TO", cisco), ("UNRELATED", manual)):
+            conn.execute(
+                text(
+                    "INSERT INTO portfolio_holdings (account_id, ticker, asset_name, quantity, currency, etf_profile_id, created_at, updated_at) "
+                    "VALUES (:a, :t, :t, 1, 'EUR', :p, '2026-01-01', '2026-01-01')"
+                ),
+                {"a": acc, "t": ticker, "p": pid},
+            )
+    engine.dispose()
+
+    result = _alembic(url, "upgrade", "head")
+    assert result.returncode == 0, result.stderr
+    engine = create_engine(url)
+    with engine.connect() as conn:
+        names = {r[0] for r in conn.execute(text("SELECT name FROM etf_profiles"))}
+        assert names == {"Held", "Full", "System", "Cisco CDR", "Bad1", "Bad2", "SysEmpty", "TxOnly", "Manual"}  # seul le vide orphelin est supprimé
+        assert orphan not in {r[0] for r in conn.execute(text("SELECT id FROM etf_profiles"))}
+        cisco_aliases = json.loads(conn.execute(text("SELECT aliases FROM etf_profiles WHERE id = :i"), {"i": cisco}).scalar_one())
+        assert cisco_aliases == ["CSCO.TO", "CSCO.NEO"]  # alias tronqué et nom en majuscules retirés
+        assert conn.execute(text("SELECT aliases FROM etf_profiles WHERE id = :i"), {"i": system}).scalar_one() == '["SYS"]'
+        for pid, raw in ((bad1, "not json"), (bad2, '{"a":1}')):  # alias illisibles : intacts, sans plantage
+            assert conn.execute(text("SELECT aliases FROM etf_profiles WHERE id = :i"), {"i": pid}).scalar_one() == raw
+        links = dict(conn.execute(text("SELECT ticker, etf_profile_id FROM portfolio_holdings")).fetchall())
+        assert links == {"HELD": held, "CSCO": None, "CSCO.TO": cisco, "UNRELATED": manual}  # lien manuel gardé ; l'action Cisco est détachée du CDR
+    engine.dispose()
+
+
+def test_etf_constituents_migration_keeps_holdings_linked_to_their_profile(tmp_path):
+    """La migration recrée `etf_profiles` : les positions rattachées ne doivent pas être détachées."""
+    url = f"sqlite:///{tmp_path / 'constituents.db'}"
+    assert _alembic(url, "upgrade", "b4d7f1a9c3e5").returncode == 0
+    engine = create_engine(url)
+    with engine.begin() as conn:
+        profile = _insert_profile(conn, "World", "CW8.PA", sectors='{"Finance": 15.0}', system=1)
+        conn.execute(text("INSERT INTO accounts (name, type, currency, active, created_at) VALUES ('PEA', 'investissement', 'EUR', 1, '2026-01-01')"))
+        conn.execute(
+            text("INSERT INTO portfolio_holdings (account_id, ticker, asset_name, quantity, currency, etf_profile_id, created_at, updated_at) "
+                 "VALUES (1, 'CW8.PA', 'World', 1, 'EUR', :p, '2026-01-01', '2026-01-01')"),
+            {"p": profile},
+        )
+    engine.dispose()
+
+    result = _alembic(url, "upgrade", "head")
+    assert result.returncode == 0, result.stderr
+
+    engine = create_engine(url)
+    with engine.connect() as conn:
+        assert conn.execute(text("SELECT etf_profile_id FROM portfolio_holdings")).scalar_one() == profile
+        row = conn.execute(text("SELECT replication, lines_count, exposure_profile_id FROM etf_profiles WHERE id = :i"), {"i": profile}).one()
+        assert tuple(row) == ("unknown", 0, None)
+    engine.dispose()
+
+
+def test_preset_compositions_migration_clears_only_preset_fields(tmp_path):
+    url = f"sqlite:///{tmp_path / 'presets.db'}"
+    assert _alembic(url, "upgrade", "c6e1a9d4f7b2").returncode == 0
+    engine = create_engine(url)
+    countries, sectors, top = '{"USA": 70.0}', '{"Finance": 15.0}', '[{"name": "Apple", "weight": 5.0}]'
+    cases = {
+        "Preset": '{"countries": "preset", "sectors": "preset", "top_holdings": "preset"}',
+        "Mixed": '{"countries": "manual", "sectors": "yahoo", "top_holdings": "preset"}',
+        "Kept": '{"countries": "manual", "sectors": "ishares"}',
+        "Garbage": "pas du json",
+    }
+    with engine.begin() as conn:
+        for name, sources in cases.items():
+            pid = _insert_profile(conn, name, name.upper(), countries=countries, sectors=sectors, top=top, system=1)
+            conn.execute(text("UPDATE etf_profiles SET composition_sources = :s, composition_refreshed_at = '2026-11-01' WHERE id = :i"),
+                         {"s": sources, "i": pid})
+    engine.dispose()
+
+    result = _alembic(url, "upgrade", "head")
+    assert result.returncode == 0, result.stderr
+
+    engine = create_engine(url)
+    with engine.connect() as conn:
+        rows = {r.name: r for r in conn.execute(text(
+            "SELECT name, countries, sectors, top_holdings, composition_sources, composition_refreshed_at FROM etf_profiles"))}
+    engine.dispose()
+
+    def state(name):
+        r = rows[name]
+        return r.countries, r.sectors, r.top_holdings, r.composition_sources, r.composition_refreshed_at is None
+
+    assert state("Preset") == ("{}", "{}", "[]", "{}", True)  # relu au prochain passage
+    assert state("Mixed") == (countries, sectors, "[]", '{"countries": "manual", "sectors": "yahoo"}', True)
+    assert state("Kept") == (countries, sectors, top, cases["Kept"], False)
+    assert state("Garbage") == (countries, sectors, top, "pas du json", False)
