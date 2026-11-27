@@ -25,7 +25,7 @@ def list_etf_profiles() -> str:
     """Liste tous les profils ETF connus avec leur composition par pays, secteurs et top holdings.
 
     Utile pour comprendre ce que contient réellement un ETF.
-    Les profils système (is_system ✅) sont intégrés à Numera, les autres (📝) créés à l'usage.
+    Aucun profil n'est livré avec Numera : chaque fonds détenu a le sien, retrouvé par son ISIN.
     La composition est lue chaque jour chez l'émetteur (iShares, Amundi, SPDR ; à défaut justETF
     puis Yahoo, partiels) ou saisie à la main. Un champ inconnu reste vide. Un ETF synthétique
     n'a pas de chiffres propres : son exposition est celle d'un ETF physique du même indice
@@ -56,7 +56,6 @@ def list_etf_profiles() -> str:
                 "couverture": _coverage(p),
                 "top_pays": top_countries,
                 "top_holdings": top_names,
-                "systeme": "✅" if p.get("is_system") else "📝",
             })
         return f"🗂️ {len(simplified)} profil(s) ETF :\n\n" + format_table(simplified)
     except Exception as e:
@@ -147,6 +146,67 @@ def get_etf_profile(profile_id: int) -> str:
         if exposure:
             lines += ["", *exposure]
         return "\n".join(lines).rstrip()
+    except Exception as e:
+        return f"❌ Erreur : {e}"
+
+
+def _line_rows(lines: list[dict]) -> list[dict]:
+    return [{"société": x["name"], "ticker": x.get("ticker") or "—", "isin": x.get("isin") or "—",
+             "pays": x.get("country") or "—", "secteur": x.get("sector") or "—", "poids": f"{x['weight']} %"}
+            for x in lines]
+
+
+def _sheet_header(sheet: dict) -> list[str]:
+    profile = sheet["profile"]
+    source = SOURCE_LABELS.get(sheet.get("provider") or "", "aucune")
+    dated = f"composition au {sheet['composition_as_of']}" if sheet.get("composition_as_of") else "date non publiée"
+    lines = [
+        f"🗂️ ETF : {profile.get('name', '')} ({profile.get('ticker', '')})",
+        f"   ISIN : {profile.get('isin') or '—'}",
+        f"   Composition : {source} · {dated} · couverture {_coverage(sheet)}",
+        f"   Détenu : {sheet.get('held_value_eur', 0):,.2f} €",
+    ]
+    if sheet.get("exposure_profile_name"):
+        lines.append(f"🔁 Exposition de l'indice {profile.get('index_name') or '?'} via {sheet['exposure_profile_name']}")
+    return lines
+
+
+def _matches(line: dict, needle: str) -> bool:
+    return any(needle in (line.get(key) or "").lower() for key in ("name", "ticker", "isin"))
+
+
+def get_etf_constituents(profile_id: int, limit: int = 50, search: str | None = None) -> str:
+    """Liste les sociétés contenues dans un ETF (toutes les lignes publiées, de la plus lourde à la plus légère).
+
+    Affiche aussi l'identité du fonds, la source, la date et la couverture de la composition, et la valeur
+    détenue. Pour un ETF synthétique, les lignes sont celles de l'ETF physique de référence du même indice.
+    Sans liste complète (certaines sources ne publient que les principales lignes), seules celles-ci sont données.
+
+    Args:
+        profile_id: ID du profil ETF (obtenir via list_etf_profiles)
+        limit: Nombre maximal de lignes affichées (défaut 50)
+        search: Filtre sur le nom, le ticker ou l'ISIN d'une société (optionnel)
+    """
+    try:
+        resp = api.get(f"/etf-profiles/{profile_id}/constituents")
+        error = handle_response(resp)
+        if error:
+            return error
+        sheet = resp.json()
+        complete = sheet.get("has_full_list")
+        lines = sheet["lines"] if complete else [
+            {**h, "sector": None} for h in sheet.get("top_holdings") or []
+        ]
+        if search:
+            lines = [x for x in lines if _matches(x, search.strip().lower())]
+        text = _sheet_header(sheet)
+        if not complete:
+            text.append("⚠️ Seules les principales lignes sont connues : liste complète indisponible.")
+        total = f"{len(sheet['lines'])} lignes au total" if complete else f"{len(sheet.get('top_holdings') or [])} lignes connues"
+        found = f"{len(lines)} ligne{'s' if len(lines) > 1 else ''} trouvée{'s' if len(lines) > 1 else ''} · " if search else ""
+        shown = lines[:max(limit, 0)]
+        text += ["", f"🏢 {found}{total} ({len(shown)} affichées) :", format_table(_line_rows(shown))]
+        return "\n".join(text)
     except Exception as e:
         return f"❌ Erreur : {e}"
 
@@ -245,6 +305,7 @@ def get_diversity_scanner(account_id: int | None = None) -> str:
 TOOLS = [
     list_etf_profiles,
     get_etf_profile,
+    get_etf_constituents,
     get_diversity_scanner,
 ]
 

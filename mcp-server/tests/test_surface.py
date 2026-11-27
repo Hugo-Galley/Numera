@@ -19,7 +19,7 @@ def _surface():
 
 
 def test_tool_names_are_frozen():
-    assert len(SNAPSHOT["tools"]) == 50
+    assert len(SNAPSHOT["tools"]) == 51
     assert sorted(_surface()["tools"]) == sorted(SNAPSHOT["tools"])
 
 

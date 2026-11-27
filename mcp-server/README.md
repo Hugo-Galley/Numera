@@ -2,7 +2,7 @@
 
 Serveur [MCP (Model Context Protocol)](https://modelcontextprotocol.io) permettant à Claude (Claude Code, Claude Desktop) d'interroger les données du suivi budgétaire, **en lecture seule**.
 
-Le serveur est un **proxy de l'API FastAPI** : il appelle l'API avec un **token MCP** généré dans Numera et reprend les KPI calculés par le backend (exposé sur `/mcp` par Nginx). **50 outils, 4 ressources, 6 prompts.** Le point d'entrée est `server.py`, le code vit dans le package `numera_mcp/` (voir [Structure](#-structure)).
+Le serveur est un **proxy de l'API FastAPI** : il appelle l'API avec un **token MCP** généré dans Numera et reprend les KPI calculés par le backend (exposé sur `/mcp` par Nginx). **51 outils, 4 ressources, 6 prompts.** Le point d'entrée est `server.py`, le code vit dans le package `numera_mcp/` (voir [Structure](#-structure)).
 
 > Règle du projet : les KPI sont calculés par le backend. Le serveur MCP n'a pas d'accès direct à la base et ne recalcule rien.
 
@@ -19,7 +19,7 @@ Le serveur est un **proxy de l'API FastAPI** : il appelle l'API avec un **token 
 `get_budget_summary`, `get_expenses_by_category`, `get_top_merchants`, `get_subscriptions`, `get_reste_a_vivre`, `get_budget_alerts`, `get_insights`, `get_monthly_report`, `get_budget_period`, `get_resilience`, `get_month_review`, `get_wrapped`, `list_month_closures`, `get_kpi_history`, `get_cashflow_projection`, `get_wealth_forecast`, `get_fire_projection`, `get_money_flow`, `get_tax_overview`, `get_work_time`
 
 **Investissements**
-`get_portfolio` (dont pire baisse `drawdown`), `get_stock_picking_benchmark` (stock picking face à un indice, portefeuille fantôme), `get_dividends`, `list_holdings`, `list_investment_transactions`, `list_etf_profiles`, `get_etf_profile` (réplication, source, date publiée, lignes et couverture ; un synthétique montre l'exposition de son ETF de référence), `get_investments_summary`, `get_investment_performance` (gains, baseline point zéro, PRU), `get_investment_performance_history`, `get_investments_allocation`, `get_investments_allocation_advanced`, `get_patrimoine_allocation`, `get_diversity_scanner`
+`get_portfolio` (dont pire baisse `drawdown`), `get_stock_picking_benchmark` (stock picking face à un indice, portefeuille fantôme), `get_dividends`, `list_holdings`, `list_investment_transactions`, `list_etf_profiles`, `get_etf_profile` (réplication, source, date publiée, lignes et couverture ; un synthétique montre l'exposition de son ETF de référence), `get_etf_constituents` (toutes les sociétés d'un ETF, avec recherche et limite), `get_investments_summary`, `get_investment_performance` (gains, baseline point zéro, PRU), `get_investment_performance_history`, `get_investments_allocation`, `get_investments_allocation_advanced`, `get_patrimoine_allocation`, `get_diversity_scanner`
 
 **Ressources** : `data://accounts`, `data://categories`, `data://tags`, `data://recurring-transactions`
 

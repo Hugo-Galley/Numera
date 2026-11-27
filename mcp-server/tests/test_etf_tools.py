@@ -26,6 +26,23 @@ YAHOO = {**WORLD, "id": 9, "name": "Fonds Yahoo", "provider": "yahoo", "composit
          "lines_count": 0, "replication": "unknown", "index_name": None}
 
 
+def _line(i):
+    return {"name": f"Société {i}", "ticker": f"T{i}", "isin": None, "weight": round(10 - i / 10, 2),
+            "country": "USA", "sector": "Technologie", "asset_class": "Equity"}
+
+
+SHEET = {
+    "profile": CW8, "exposure_profile_id": 7, "exposure_profile_name": "iShares Core MSCI World UCITS ETF",
+    "provider": "ishares", "composition_as_of": "2026-11-25", "coverage_pct": 99.8, "lines_count": 61,
+    "has_full_list": True, "held_value_eur": 1234.5, "countries": [], "sectors": [],
+    "lines": [{**_line(0), "name": "Apple", "ticker": "AAPL", "isin": "US0378331005"}] + [_line(i) for i in range(1, 61)],
+    "top_holdings": [],
+}
+PARTIAL = {**SHEET, "profile": YAHOO, "exposure_profile_id": None, "exposure_profile_name": None, "provider": "yahoo",
+           "composition_as_of": None, "lines_count": 0, "has_full_list": False, "lines": [],
+           "top_holdings": [{"name": "APPLE INC", "ticker": "AAPL", "weight": 4.9}]}
+
+
 @pytest.fixture()
 def etf():
     """Import tardif : `test_http` configure le transport avant le premier import de `numera_mcp`."""
@@ -39,7 +56,8 @@ def backend(monkeypatch):
 
     seen: list[str] = []
     by_path = {"/etf-profiles": [CW8, WORLD, YAHOO], "/etf-profiles/3": CW8, "/etf-profiles/7": WORLD,
-               "/etf-profiles/9": YAHOO}
+               "/etf-profiles/9": YAHOO, "/etf-profiles/3/constituents": SHEET,
+               "/etf-profiles/9/constituents": PARTIAL}
 
     def serve(request: httpx.Request) -> httpx.Response:
         seen.append(f"{request.method} {request.url.path}")
@@ -83,3 +101,30 @@ def test_list_shows_replication_exposure_and_coverage(backend, etf):
     assert "exposition_via" in header
     assert "synthétique" in cw8 and "iShares Core MSCI World UCITS ETF" in cw8
     assert "2026-11-25" in cw8 and "99.8 %" in cw8
+
+
+def test_constituents_show_identity_source_and_first_lines(backend, etf):
+    text = etf.get_etf_constituents(3)
+    for expected in ("Amundi MSCI World Swap", "LU1681043599", "iShares", "composition au 2026-11-25", "99.8 %",
+                     "MSCI World via iShares Core MSCI World UCITS ETF", "1,234.50 €", "61 lignes au total", "Apple"):
+        assert expected in text, expected
+    assert "Société 49" in text and "Société 50" not in text  # 50 premières par défaut
+    assert backend == ["GET /etf-profiles/3/constituents"]  # lecture seule
+
+
+@pytest.mark.parametrize("search", ["appl", "aapl", "us0378331005"])
+def test_constituents_search_by_name_ticker_or_isin(backend, etf, search):
+    text = etf.get_etf_constituents(3, search=search)
+    assert "Apple" in text and "Société 1 " not in text
+    assert "1 ligne trouvée" in text and "61 lignes au total" in text
+
+
+def test_constituents_limit_applies(backend, etf):
+    text = etf.get_etf_constituents(3, limit=2)
+    assert "Société 1" in text and "Société 2" not in text
+
+
+def test_constituents_without_full_list_say_so(backend, etf):
+    text = etf.get_etf_constituents(9)
+    assert "liste complète indisponible" in text
+    assert "APPLE INC" in text and "date non publiée" in text
