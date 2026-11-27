@@ -230,7 +230,7 @@
    }
   },
   "get_etf_constituents": {
-   "description": "Liste les sociétés contenues dans un ETF (toutes les lignes publiées, de la plus lourde à la plus légère).\n\n    Affiche aussi l'identité du fonds, la source, la date et la couverture de la composition, et la valeur\n    détenue. Pour un ETF synthétique, les lignes sont celles de l'ETF physique de référence du même indice.\n    Sans liste complète (certaines sources ne publient que les principales lignes), seules celles-ci sont données.\n\n    Args:\n        profile_id: ID du profil ETF (obtenir via list_etf_profiles)\n        limit: Nombre maximal de lignes affichées (défaut 50)\n        search: Filtre sur le nom, le ticker ou l'ISIN d'une société (optionnel)\n    ",
+   "description": "Liste les sociétés contenues dans un ETF (toutes les lignes publiées, de la plus lourde à la plus légère).\n\n    Affiche aussi l'identité du fonds, la source, la date et la couverture de la composition, la valeur\n    détenue et l'exposition en € de chaque ligne (poids × valeur détenue, calculée par le backend). Pour un ETF synthétique, les lignes sont celles de l'ETF physique de référence du même indice.\n    Sans liste complète (certaines sources ne publient que les principales lignes), seules celles-ci sont données.\n\n    Args:\n        profile_id: ID du profil ETF (obtenir via list_etf_profiles)\n        limit: Nombre maximal de lignes affichées (défaut 50)\n        search: Filtre sur le nom, le ticker ou l'ISIN d'une société (optionnel)\n    ",
    "inputSchema": {
     "properties": {
      "limit": {

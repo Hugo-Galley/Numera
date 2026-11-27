@@ -151,8 +151,10 @@ def get_etf_profile(profile_id: int) -> str:
 
 
 def _line_rows(lines: list[dict]) -> list[dict]:
-    return [{"société": x["name"], "ticker": x.get("ticker") or "—", "isin": x.get("isin") or "—",
-             "pays": x.get("country") or "—", "secteur": x.get("sector") or "—", "poids": f"{x['weight']} %"}
+    """Un top 10 saisi à la main peut manquer de nom ou de poids : la ligne reste affichée."""
+    return [{"société": x.get("name") or "—", "ticker": x.get("ticker") or "—", "isin": x.get("isin") or "—",
+             "pays": x.get("country") or "—", "secteur": x.get("sector") or "—", "poids": f"{x.get('weight', 0)} %",
+             "exposition": f"{x.get('exposure_eur') or 0:,.2f} €"}
             for x in lines]
 
 
@@ -178,8 +180,8 @@ def _matches(line: dict, needle: str) -> bool:
 def get_etf_constituents(profile_id: int, limit: int = 50, search: str | None = None) -> str:
     """Liste les sociétés contenues dans un ETF (toutes les lignes publiées, de la plus lourde à la plus légère).
 
-    Affiche aussi l'identité du fonds, la source, la date et la couverture de la composition, et la valeur
-    détenue. Pour un ETF synthétique, les lignes sont celles de l'ETF physique de référence du même indice.
+    Affiche aussi l'identité du fonds, la source, la date et la couverture de la composition, la valeur
+    détenue et l'exposition en € de chaque ligne (poids × valeur détenue, calculée par le backend). Pour un ETF synthétique, les lignes sont celles de l'ETF physique de référence du même indice.
     Sans liste complète (certaines sources ne publient que les principales lignes), seules celles-ci sont données.
 
     Args:

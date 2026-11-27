@@ -35,12 +35,16 @@ SHEET = {
     "profile": CW8, "exposure_profile_id": 7, "exposure_profile_name": "iShares Core MSCI World UCITS ETF",
     "provider": "ishares", "composition_as_of": "2026-11-25", "coverage_pct": 99.8, "lines_count": 61,
     "has_full_list": True, "held_value_eur": 1234.5, "countries": [], "sectors": [],
-    "lines": [{**_line(0), "name": "Apple", "ticker": "AAPL", "isin": "US0378331005"}] + [_line(i) for i in range(1, 61)],
+    "lines": [{**_line(0), "name": "Apple", "ticker": "AAPL", "isin": "US0378331005", "exposure_eur": 123.45}]
+    + [_line(i) for i in range(1, 61)],
     "top_holdings": [],
 }
 PARTIAL = {**SHEET, "profile": YAHOO, "exposure_profile_id": None, "exposure_profile_name": None, "provider": "yahoo",
            "composition_as_of": None, "lines_count": 0, "has_full_list": False, "lines": [],
            "top_holdings": [{"name": "APPLE INC", "ticker": "AAPL", "weight": 4.9}]}
+
+# Top 10 saisi à la main : une entrée sans nom, une sans poids
+INCOMPLETE = {**PARTIAL, "top_holdings": [{"ticker": "NVDA", "weight": 3.0}, {"name": "Sans poids"}]}
 
 
 @pytest.fixture()
@@ -57,7 +61,7 @@ def backend(monkeypatch):
     seen: list[str] = []
     by_path = {"/etf-profiles": [CW8, WORLD, YAHOO], "/etf-profiles/3": CW8, "/etf-profiles/7": WORLD,
                "/etf-profiles/9": YAHOO, "/etf-profiles/3/constituents": SHEET,
-               "/etf-profiles/9/constituents": PARTIAL}
+               "/etf-profiles/9/constituents": PARTIAL, "/etf-profiles/11/constituents": INCOMPLETE}
 
     def serve(request: httpx.Request) -> httpx.Response:
         seen.append(f"{request.method} {request.url.path}")
@@ -128,3 +132,14 @@ def test_constituents_without_full_list_say_so(backend, etf):
     text = etf.get_etf_constituents(9)
     assert "liste complète indisponible" in text
     assert "APPLE INC" in text and "date non publiée" in text
+
+
+def test_constituents_show_the_exposure_computed_by_the_backend(backend, etf):
+    text = etf.get_etf_constituents(3, search="apple")
+    assert "exposition" in text and "123.45 €" in text
+
+
+def test_constituents_with_an_incomplete_top_10_still_answer(backend, etf):
+    text = etf.get_etf_constituents(11)
+    assert not text.startswith("❌"), text
+    assert "NVDA" in text and "Sans poids" in text
