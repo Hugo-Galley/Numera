@@ -247,7 +247,11 @@
     "performanceGlobale": "Rentabilidad global",
     "supports": "Productos",
     "comptesDInvestissement": "Cuentas de inversión",
-    "scoreDeDiversite": "Puntuación de diversificación"
+    "scoreDeDiversite": "Puntuación de diversificación",
+    "effectiveBets_one": "{{bets}} apuesta independiente en {{count}} línea",
+    "effectiveBets_other": "{{bets}} apuestas independientes en {{count}} líneas",
+    "marketGap": "Desviación respecto al mercado, referencia: {{name}}",
+    "noReference": "Referencia de mercado no disponible"
   },
   "performanceSection": {
     "performanceDetaillee": "Rentabilidad detallada",
@@ -430,5 +434,59 @@
     "outsidePositions": "Fuera de posiciones",
     "accountsValue": "Valor de las cuentas",
     "outsidePositionsHint": "Efectivo, fondos en euros, cuentas sin posiciones y diferencia entre el último extracto y la cotización del día."
+  },
+  "concentration": {
+    "title": "Concentración",
+    "subtitle": "Tu cartera comparada con el mercado (referencia: {{name}}), líneas correlacionadas y acciones que ya tienes a través de tus fondos.",
+    "subtitleNoMarket": "Líneas correlacionadas y acciones que ya tienes a través de tus fondos.",
+    "noMarket": "Referencia de mercado no disponible: la comparación con el mercado volverá en cuanto se pueda leer su perfil.",
+    "activeShare": "Desviación respecto al mercado",
+    "coverage": "Composición conocida para {{composition}} del valor, historial de cotizaciones para {{prices}} de las líneas.",
+    "dimensions": {
+      "companies": "Empresas",
+      "sectors": "Sectores",
+      "countries": "Países"
+    },
+    "table": {
+      "title": "Tú frente al mercado",
+      "dimension": "Dimensión comparada",
+      "line": "Línea",
+      "you": "Tú",
+      "market": "Mercado",
+      "gap": "Diferencia",
+      "gapPts": "{{value}} pts",
+      "upperBound": "Como máximo: la empresa no está entre las principales posiciones de la referencia",
+      "empty": "Nada que comparar.",
+      "noMarketData": "La referencia de mercado no tiene datos de {{dimension}}: nada que comparar.",
+      "noPortfolioData": "Composición de tus fondos desconocida para esta dimensión: nada que comparar."
+    },
+    "blocks": {
+      "title": "Líneas correlacionadas",
+      "empty": "Ningún bloque de líneas que se muevan juntas.",
+      "rho": "ρ {{rho}}",
+      "weight": "{{pct}} de la cartera"
+    },
+    "picks": {
+      "title": "Stock picking redundante",
+      "empty": "Ninguna acción directa.",
+      "indirect": "Ya <amount>{{amount}}</amount> a través de tus fondos",
+      "noIndirect": "No está en tus fondos",
+      "correlation": "ρ {{rho}} con tus fondos",
+      "correlationUnknown": "Correlación desconocida",
+      "redundant": "Redundante",
+      "source": {
+        "prices": "por las cotizaciones",
+        "composition": "por la composición",
+        "unknown": "sin datos"
+      }
+    },
+    "reference": {
+      "label": "Referencia de mercado",
+      "default": "Por defecto (MSCI ACWI)",
+      "other": "Otro ticker",
+      "apply": "Aplicar",
+      "saved": "Referencia de mercado guardada",
+      "error": "No se pudo guardar la referencia de mercado"
+    }
   }
 }

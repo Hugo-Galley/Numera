@@ -32,26 +32,40 @@ async def get_historical_rate(db: Session, date: date_type, currency: str, base:
     return rate
 
 
-async def preload_historical_rates(db: Session, currency: str, start: date_type, end: date_type) -> None:
-    """Remplit le cache de taux de `start` à `end` (EUR → `currency`) avec UNE requête de série Frankfurter.
+# Le dernier taux publié peut dater de quelques jours (week-end, fériés, publication en fin d'après-midi)
+PUBLICATION_LAG = timedelta(days=4)
+
+
+async def preload_historical_rates(
+    db: Session, currency: str, start: date_type, end: date_type,
+) -> dict[date_type, float]:
+    """Taux (1 EUR = X `currency`) de `start` à `end`, lus en une requête ; seule la période absente de la base est
+    demandée à Frankfurter (une requête de série) et écrite en une instruction groupée.
 
     Les jours sans publication (week-ends, fériés) reprennent le dernier taux connu, comme le fait Frankfurter pour
-    une date isolée. Rien n'est écrit au-delà du dernier taux publié (dates futures). Sans effet si le réseau échoue :
-    `get_historical_rate` retombe alors sur l'appel par date."""
+    une date isolée. Rien n'est écrit au-delà du dernier taux publié (dates futures). Réseau en échec : les taux déjà
+    en base, sans erreur (l'échec est mémorisé par `fetch_rate_series`)."""
     if currency == "EUR":
-        return
-    series = await fetch_rate_series(start - timedelta(days=7), end, currency)
+        return {}
+    cached = repo.rates_between(db, currency, start, end + timedelta(days=1))
+    head_known = start in cached
+    if head_known and max(cached) >= end - PUBLICATION_LAG:
+        return cached
+    fetch_from = max(cached) + timedelta(days=1) if head_known else start
+    series = await fetch_rate_series(fetch_from - timedelta(days=7), end, currency)
     if not series:
-        return
-    last_day = max(series)
+        return cached
+    fetched: dict[date_type, float] = {}
     rate = None
     day = min(series)
-    while day <= min(end, last_day):
+    while day <= min(end, max(series)):
         rate = series.get(day, rate)
-        if day >= start and rate is not None:
-            repo.store_rate(db, day, currency, rate)
+        if day >= fetch_from and rate is not None:
+            fetched[day] = rate
         day += timedelta(days=1)
+    repo.store_rates(db, currency, {d: r for d, r in fetched.items() if d not in cached})
     db.flush()
+    return cached | fetched
 
 
 async def convert_amount(

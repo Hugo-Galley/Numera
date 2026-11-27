@@ -247,7 +247,11 @@
     "performanceGlobale": "Performance globale",
     "supports": "Supports",
     "comptesDInvestissement": "Comptes d'investissement",
-    "scoreDeDiversite": "Score de diversité"
+    "scoreDeDiversite": "Score de diversité",
+    "effectiveBets_one": "{{bets}} pari indépendant sur {{count}} ligne",
+    "effectiveBets_other": "{{bets}} paris indépendants sur {{count}} lignes",
+    "marketGap": "Écart au marché, référence : {{name}}",
+    "noReference": "Référence de marché indisponible"
   },
   "performanceSection": {
     "performanceDetaillee": "Performance détaillée",
@@ -430,5 +434,59 @@
     "outsidePositions": "Hors positions",
     "accountsValue": "Valeur des comptes",
     "outsidePositionsHint": "Espèces, fonds euros, comptes sans position et écart entre le dernier relevé et le cours du jour."
+  },
+  "concentration": {
+    "title": "Concentration",
+    "subtitle": "Ton portefeuille comparé au marché (référence : {{name}}), lignes corrélées et actions déjà détenues via tes fonds.",
+    "subtitleNoMarket": "Lignes corrélées et actions déjà détenues via tes fonds.",
+    "noMarket": "Référence de marché indisponible : la comparaison au marché reviendra dès que son profil pourra être lu.",
+    "activeShare": "Écart au marché",
+    "coverage": "Composition connue pour {{composition}} de la valeur, historique de cours pour {{prices}} des lignes.",
+    "dimensions": {
+      "companies": "Sociétés",
+      "sectors": "Secteurs",
+      "countries": "Pays"
+    },
+    "table": {
+      "title": "Toi contre le marché",
+      "dimension": "Dimension comparée",
+      "line": "Ligne",
+      "you": "Toi",
+      "market": "Marché",
+      "gap": "Écart",
+      "gapPts": "{{value}} pts",
+      "upperBound": "Au plus : la société n'est pas dans les principales lignes de la référence",
+      "empty": "Aucune ligne à comparer.",
+      "noMarketData": "La référence de marché n'a pas de données de {{dimension}} : rien à comparer.",
+      "noPortfolioData": "Composition de tes fonds inconnue pour cette dimension : rien à comparer."
+    },
+    "blocks": {
+      "title": "Lignes corrélées",
+      "empty": "Aucun bloc de lignes qui bougent ensemble.",
+      "rho": "ρ {{rho}}",
+      "weight": "{{pct}} du portefeuille"
+    },
+    "picks": {
+      "title": "Stock picking redondant",
+      "empty": "Aucune action en direct.",
+      "indirect": "Déjà <amount>{{amount}}</amount> via tes fonds",
+      "noIndirect": "Absente de tes fonds",
+      "correlation": "ρ {{rho}} avec tes fonds",
+      "correlationUnknown": "Corrélation inconnue",
+      "redundant": "Redondant",
+      "source": {
+        "prices": "par les cours",
+        "composition": "par la composition",
+        "unknown": "sans données"
+      }
+    },
+    "reference": {
+      "label": "Référence de marché",
+      "default": "Par défaut (MSCI ACWI)",
+      "other": "Autre ticker",
+      "apply": "Appliquer",
+      "saved": "Référence de marché enregistrée",
+      "error": "Impossible d'enregistrer la référence de marché"
+    }
   }
 }

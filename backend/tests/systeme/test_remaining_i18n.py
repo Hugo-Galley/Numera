@@ -6,8 +6,9 @@ import pytest
 
 from app.core.i18n import set_language
 from app.domain import csv_import
-from app.domain.diversity import diversity_alerts
 from app.domain.diversity_score import score_label
+from app.domain.exposure.alerts import market_alerts
+from app.domain.exposure.market_gap import DimensionGap, GapRow
 from app.services.budget.imports import _preview_warnings
 from app.services.investissement.portfolio.compute import _performance
 
@@ -21,26 +22,24 @@ def _reset_language():
     set_language("fr")
 
 
-def _company(name="ACME", pct=25.0, overlap=False):
-    return {"name": name, "pct_stocks": pct, "pct_total_wealth": 10.0, "has_overlap": overlap}
-
-
 def test_diversity_alerts_in_both_languages():
-    fr = diversity_alerts([_company()], [], [])[0]
-    assert fr["title"] == "Concentration critique sur ACME"
-    assert fr["message"].startswith("ACME pèse 25.0% de ton portefeuille boursier (10.0% du patrimoine total).")
+    gaps = {"sectors": DimensionGap(10.0, 100.0, (GapRow("Technologie", 38.0, 25.0, False, 13.0),))}
+    fr = market_alerts(gaps, [], {}, [], ["ACME"])
+    assert fr[0]["title"] == "Sur-pondération : Technologie (38,0 %)"
+    assert fr[0]["message"] == ("Technologie pèse 38,0 % de ta part connue, contre 25,0 % pour le marché de "
+                                "référence.")
     set_language("en")
-    en = diversity_alerts([_company(), _company("BETA", 12.0, overlap=True)], [], [])
-    assert en[0]["title"] == "Critical concentration in ACME"
-    assert en[1]["title"] == "High exposure to BETA"
-    assert en[2]["title"] == "Overlapping exposure detected (1 securities)"
-    assert en[0]["item_name"] == "ACME"  # donnée : jamais traduite
+    en = market_alerts(gaps, [], {}, [], ["ACME"])
+    assert en[0]["title"] == "Overweight: Technologie (38.0%)"
+    assert en[1]["title"] == "Overlapping exposure detected (1 securities)"
+    assert en[0]["item_name"] == "Technologie"  # donnée : jamais traduite
 
 
-def test_geography_alerts_in_english():
+def test_score_without_reference_follows_language():
+    from app.core.i18n import tr
+    assert tr("diversity.score_no_reference") == "Référence de marché indisponible : score neutre"
     set_language("en")
-    alerts = diversity_alerts([], [{"name": "USA", "percentage_stocks": 70.0}, {"name": "France", "percentage_stocks": 40.0}], [])
-    assert [a["title"] for a in alerts] == ["Heavy US weighting (70.0%)", "French home bias (40.0%)"]
+    assert tr("diversity.score_no_reference") == "Market reference unavailable: neutral score"
 
 
 def test_score_label_follows_language():

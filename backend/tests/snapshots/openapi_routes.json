@@ -213,6 +213,7 @@
  "POST /transfer-rules/apply",
  "PUT /admin/profile",
  "PUT /analytics/budget-period",
+ "PUT /analytics/diversity-scanner/market-reference",
  "PUT /analytics/stock-picking-benchmark/reference",
  "PUT /etf-profiles/{profile_id}",
  "PUT /holdings/{holding_id}",

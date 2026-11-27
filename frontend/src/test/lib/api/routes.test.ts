@@ -19,10 +19,10 @@ const normalizeCalled = (method: string, path: string) =>
     .join("/")}`
 
 const modules = import.meta.glob<Record<string, unknown>>(["/src/lib/api/*.ts", "!/src/lib/api/types.ts"], { eager: true })
+const backendRoutes = new Set((JSON.parse(readFileSync(SNAPSHOT, "utf8")) as string[]).map(normalizeBackend))
+
 // Écarts connus (bugs signalés, non corrigés) : à retirer d'ici quand la route est corrigée.
 const KNOWN_MISSING: Record<string, string[]> = {}
-
-const backendRoutes = new Set((JSON.parse(readFileSync(SNAPSHOT, "utf8")) as string[]).map(normalizeBackend))
 
 describe("lib/api : routes existantes côté backend", () => {
   it("couvre les onze domaines", () => {

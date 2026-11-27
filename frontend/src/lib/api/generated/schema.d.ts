@@ -447,6 +447,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/analytics/diversity-scanner/market-reference": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Set Market Reference
+         * @description Référence de marché du scanner (ticker d'un profil ETF ; vide : ETF de référence du MSCI ACWI).
+         */
+        put: operations["set_market_reference_analytics_diversity_scanner_market_reference_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/analytics/dividends": {
         parameters: {
             query?: never;
@@ -4622,8 +4642,13 @@ export interface components {
         };
         /** DiversityAlert */
         DiversityAlert: {
-            /** Category */
-            category: string;
+            /**
+             * Category
+             * @enum {string}
+             */
+            category: "overweight" | "correlated_block" | "redundant_pick" | "overlap";
+            /** Dimension */
+            dimension?: ("companies" | "sectors" | "countries") | null;
             /** Item Name */
             item_name: string;
             /** Message */
@@ -4634,6 +4659,15 @@ export interface components {
             type: string;
             /** Value Pct */
             value_pct: number;
+        };
+        /** DiversityBlock */
+        DiversityBlock: {
+            /** Mean Rho */
+            mean_rho: number;
+            /** Members */
+            members: string[];
+            /** Weight Pct */
+            weight_pct: number;
         };
         /** DiversityCompany */
         DiversityCompany: {
@@ -4699,8 +4733,30 @@ export interface components {
             /** Value Eur */
             value_eur: number;
         };
+        /** DiversityConcentration */
+        DiversityConcentration: {
+            /** Blocks */
+            blocks: components["schemas"]["DiversityBlock"][];
+            /** Effective Bets */
+            effective_bets: number;
+            /** Exposures Count */
+            exposures_count: number;
+            /** Pairs By Source */
+            pairs_by_source: {
+                [key: string]: number;
+            };
+        };
+        /** DiversityCoverage */
+        DiversityCoverage: {
+            /** Composition Pct */
+            composition_pct: number;
+            /** With Prices Pct */
+            with_prices_pct: number;
+        };
         /** DiversityExposure */
         DiversityExposure: {
+            /** Market Pct */
+            market_pct: number | null;
             /** Name */
             name: string;
             /** Percentage Stocks */
@@ -4709,6 +4765,51 @@ export interface components {
             percentage_total_wealth: number;
             /** Value Eur */
             value_eur: number;
+        };
+        /**
+         * DiversityExposureGroup
+         * @description Positions qui sont la même exposition (même titre, même profil ou même indice), tous comptes confondus.
+         */
+        DiversityExposureGroup: {
+            /** Id */
+            id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "fund" | "direct" | "crypto";
+            /** Name */
+            name: string;
+            /** Supports */
+            supports: components["schemas"]["DiversityExposureSupport"][];
+            /** Value Eur */
+            value_eur: number;
+            /** Weight Pct */
+            weight_pct: number;
+        };
+        /** DiversityExposureSupport */
+        DiversityExposureSupport: {
+            /** Account Id */
+            account_id: number;
+            /** Account Name */
+            account_name: string | null;
+            /** Ticker */
+            ticker: string;
+            /** Value Eur */
+            value_eur: number;
+        };
+        /** DiversityGapRow */
+        DiversityGapRow: {
+            /** Gap Pts */
+            gap_pts: number;
+            /** Market Pct */
+            market_pct: number;
+            /** Market Pct Is Upper Bound */
+            market_pct_is_upper_bound: boolean;
+            /** Name */
+            name: string;
+            /** Portfolio Pct */
+            portfolio_pct: number;
         };
         /** DiversityHolding */
         DiversityHolding: {
@@ -4733,22 +4834,53 @@ export interface components {
             /** Value Eur */
             value_eur: number;
         };
+        /**
+         * DiversityMarket
+         * @description Référence de marché (réglage `market_reference_ticker`, MSCI ACWI par défaut) et écart par dimension.
+         */
+        DiversityMarket: {
+            companies: components["schemas"]["DiversityMarketDimension"];
+            countries: components["schemas"]["DiversityMarketDimension"];
+            /** Name */
+            name: string;
+            sectors: components["schemas"]["DiversityMarketDimension"];
+            /** Ticker */
+            ticker: string | null;
+        };
+        /** DiversityMarketDimension */
+        DiversityMarketDimension: {
+            /** Active Share Pct */
+            active_share_pct: number;
+            /** Comparable */
+            comparable: boolean;
+            /** Covered Pct */
+            covered_pct: number;
+            /** Rows */
+            rows: components["schemas"]["DiversityGapRow"][];
+        };
         /** DiversityScanner */
         DiversityScanner: {
             /** Alerts */
             alerts: components["schemas"]["DiversityAlert"][];
+            concentration: components["schemas"]["DiversityConcentration"];
             /** Countries */
             countries: components["schemas"]["DiversityExposure"][];
+            coverage: components["schemas"]["DiversityCoverage"];
             /** Etf Compositions */
             etf_compositions: components["schemas"]["DiversityComposition"][];
+            /** Exposures */
+            exposures: components["schemas"]["DiversityExposureGroup"][];
             /** Holdings */
             holdings: components["schemas"]["DiversityHolding"][];
+            market: components["schemas"]["DiversityMarket"] | null;
             /** Score */
             score: number;
             /** Score Label */
             score_label: string;
             /** Sectors */
             sectors: components["schemas"]["DiversityExposure"][];
+            /** Stock Picking */
+            stock_picking: components["schemas"]["DiversityStockPick"][];
             /** Top Underlying Companies */
             top_underlying_companies: components["schemas"]["DiversityCompany"][];
             totals: components["schemas"]["DiversityTotals"];
@@ -4759,6 +4891,30 @@ export interface components {
             pct_in_source: number;
             /** Source */
             source: string;
+            /** Value Eur */
+            value_eur: number;
+        };
+        /** DiversityStockPick */
+        DiversityStockPick: {
+            /** Correlation With Core */
+            correlation_with_core: number | null;
+            /** Indirect Pct */
+            indirect_pct: number;
+            /** Indirect Value Eur */
+            indirect_value_eur: number;
+            /** Key */
+            key: string;
+            /** Name */
+            name: string;
+            /** Redundant */
+            redundant: boolean;
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "prices" | "composition" | "unknown";
+            /** Ticker */
+            ticker: string;
             /** Value Eur */
             value_eur: number;
         };
@@ -6040,6 +6196,11 @@ export interface components {
             symbol: string;
             /** Type */
             type: string;
+        };
+        /** MarketReferenceSetting */
+        MarketReferenceSetting: {
+            /** Ticker */
+            ticker?: string | null;
         };
         /** McpTokenCreate */
         McpTokenCreate: {
@@ -9787,6 +9948,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["DiversityScanner"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_market_reference_analytics_diversity_scanner_market_reference_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MarketReferenceSetting"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MarketReferenceSetting"];
                 };
             };
             /** @description Validation Error */
