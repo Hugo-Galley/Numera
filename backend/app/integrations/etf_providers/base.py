@@ -7,15 +7,18 @@ from __future__ import annotations
 
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, datetime, timedelta
 from typing import Any, Protocol
 
 import httpx
 
 from app.core.circuit_breaker import CircuitBreaker
+from app.core.time import utcnow_naive
 
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
 TIMEOUT = 30.0
+CATALOG_TTL = timedelta(hours=24)
+CATALOG_RETRY_AFTER = timedelta(minutes=10)
 
 ClientFactory = Callable[[], httpx.AsyncClient]
 
@@ -108,3 +111,29 @@ def text_or_none(value: object) -> str | None:
     """Texte nettoyé ; les marqueurs d'absence des émetteurs (« - », « Unassigned ») valent `None`."""
     cleaned = str(value or "").strip()
     return None if cleaned in ("", "-", "Unassigned") else cleaned
+
+
+class CatalogCache:
+    """Catalogue d'un émetteur, par ISIN, gardé 24 h en mémoire ; après un échec, pas de nouvelle tentative avant 10 min."""
+
+    def __init__(self, load: Callable[[], Awaitable[dict[str, ProviderFund]]]) -> None:
+        self._load = load
+        self._funds: dict[str, ProviderFund] = {}
+        self._expires_at: datetime | None = None
+        self._retry_at: datetime | None = None
+
+    async def get(self) -> dict[str, ProviderFund]:
+        now = utcnow_naive()
+        if self._expires_at and now < self._expires_at:
+            return self._funds
+        if self._retry_at and now < self._retry_at:
+            raise ProviderUnavailable("catalogue indisponible, nouvelle tentative plus tard")
+        try:
+            funds = await self._load()
+            if not funds:
+                raise ProviderUnavailable("catalogue sans aucun fonds")
+        except ProviderUnavailable:
+            self._retry_at = now + CATALOG_RETRY_AFTER
+            raise
+        self._funds, self._expires_at, self._retry_at = funds, now + CATALOG_TTL, None
+        return funds
