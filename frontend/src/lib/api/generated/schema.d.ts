@@ -447,6 +447,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/analytics/diversity-scanner/market-reference": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Set Market Reference
+         * @description Référence de marché du scanner (ticker d'un profil ETF ; vide : ETF de référence du MSCI ACWI).
+         */
+        put: operations["set_market_reference_analytics_diversity_scanner_market_reference_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/analytics/dividends": {
         parameters: {
             query?: never;
@@ -6037,6 +6057,11 @@ export interface components {
             /** Type */
             type: string;
         };
+        /** MarketReferenceSetting */
+        MarketReferenceSetting: {
+            /** Ticker */
+            ticker?: string | null;
+        };
         /** McpTokenCreate */
         McpTokenCreate: {
             /** Current Password */
@@ -9783,6 +9808,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["DiversityScanner"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_market_reference_analytics_diversity_scanner_market_reference_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MarketReferenceSetting"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MarketReferenceSetting"];
                 };
             };
             /** @description Validation Error */

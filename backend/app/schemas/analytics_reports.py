@@ -1,7 +1,7 @@
 """Réponses de `/analytics/{sankey,diversity-scanner,audit/{issue_id}}` et des acquittements `dismiss` / `ignore`."""
 from datetime import datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from app.schemas.etf_profile import EtfCompositionOrigin
 from app.schemas.transaction import TransactionRead
@@ -131,3 +131,7 @@ class DiversityScanner(BaseModel):
     alerts: list[DiversityAlert]
     holdings: list[DiversityHolding]
     etf_compositions: list[DiversityComposition]
+
+
+class MarketReferenceSetting(BaseModel):
+    ticker: str | None = Field(default=None, max_length=32)  # None / vide : ETF de référence du MSCI ACWI
