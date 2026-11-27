@@ -159,3 +159,17 @@ def test_two_world_funds_are_not_an_overlap(client: TestClient, db_session: Sess
     assert apple["has_overlap"] is True
     assert {s["source"] for s in apple["sources"]} == {"En direct", "WPEA.PA"}
     assert [a for a in data["alerts"] if a["category"] == "overlap"]
+
+
+def test_direct_stock_without_isin_finds_its_indirect_value(client: TestClient, db_session: Session):
+    """AAPL sans ISIN, retrouvé par ticker dans le référentiel : la part déjà détenue via le World est vue."""
+    account = _account(db_session)
+    _hold(db_session, account, "WPEA.PA", _world_with_apple(db_session, "WPEA"))
+    db_session.add(Security(isin=APPLE_ISIN, ticker="AAPL", name="Apple Inc", country="USA", sector="Technologie",
+                            source="test"))
+    _hold(db_session, account, "AAPL")
+
+    data = client.get("/analytics/diversity-scanner").json()
+
+    pick = next(p for p in data["stock_picking"] if p["ticker"] == "AAPL")
+    assert pick["indirect_value_eur"] == 50.0

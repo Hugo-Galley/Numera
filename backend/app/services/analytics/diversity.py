@@ -21,7 +21,6 @@ from app.domain.etf_profiles import match_profile
 from app.domain.exposure.alerts import market_alerts
 from app.domain.exposure.correlation import composition_vector
 from app.domain.exposure.identity import Holding, Kind, group_exposures
-from app.domain.exposure.market_gap import is_comparable
 from app.domain.exposure.report import concentration_payload, exposures_payload, market_payload, with_market_pct
 from app.domain.holdings import holding_price_eur, holding_profile, is_crypto, is_etf_holding, is_fund
 from app.domain.isin import IsinCandidate, pick_isin
@@ -247,15 +246,17 @@ def _exposure_inputs(comp: _Compositions, valued_holdings: list[dict[str, Any]],
         profile = comp.held[vh["id"]]
         kind = _kind(vh, profile)
         name = vh["name"] or vh["ticker"]
+        security = securities.get(vh.get("isin") or vh["ticker"].upper())
+        # ISIN du titre retrouvé par ticker : la clé sous laquelle la transparence range la société
+        isin = vh.get("isin") or (security.isin if security else None)
         holdings.append(Holding(
-            id=vh["id"], account_id=vh["account_id"], ticker=vh["ticker"], isin=vh.get("isin"), name=name,
+            id=vh["id"], account_id=vh["account_id"], ticker=vh["ticker"], isin=isin, name=name,
             value_eur=vh["value_eur"], kind=kind, profile_id=profile.id if profile else None,
             exposure_profile_id=profile.exposure_profile_id if profile else None,
             index_name=_index_name(kind, name, profile),
         ))
-        security = securities.get(vh.get("isin") or vh["ticker"].upper())
         vectors[vh["ticker"]] = composition_vector(
-            kind, comp.lines_of(profile), vh.get("isin") or (security.isin if security else None), vh["ticker"],
+            kind, comp.lines_of(profile), isin, vh["ticker"],
             security.country if security else None, security.sector if security else None,
         )
     return holdings, vectors
@@ -305,7 +306,7 @@ def _risk_fields(view: RiskView, market: EtfProfile | None, accounts: list[Accou
 def _score_label(view: RiskView, market: EtfProfile | None) -> str:
     if market is None:
         return tr("diversity.score_no_reference")
-    if not any(is_comparable(gap) for gap in (view.gaps or {}).values()):
+    if not any(gap.comparable and gap.covered_pct > 0 for gap in (view.gaps or {}).values()):
         return tr("diversity.score_no_composition")
     return score_label(view.score)
 
@@ -329,7 +330,7 @@ async def compute_diversity(db: Session, account_id: int | None) -> dict[str, An
     countries = with_market_pct(exposure_rows(lt.countries, total_stocks_eur, total_wealth_eur), gaps.get("countries"))
     sectors = with_market_pct(exposure_rows(lt.sectors, total_stocks_eur, total_wealth_eur), gaps.get("sectors"))
     alerts = market_alerts(view.gaps, view.blocks, {g.key: g for g in view.groups}, view.stock_picking,
-                           [c["name"] for c in companies if c["has_overlap"]])
+                           [c["name"] for c in companies if c["has_overlap"]], market_weights=view.market_weights)
 
     return {
         "score": view.score,

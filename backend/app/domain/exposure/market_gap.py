@@ -31,9 +31,12 @@ class GapRow:
 @dataclass(frozen=True)
 class DimensionGap:
     active_share_pct: float
-    # Part du portefeuille conservée après exclusion des libellés sans information
+    # Part du portefeuille réellement décrite et comparée (hors libellés sans information)
     covered_pct: float
     rows: tuple[GapRow, ...]
+    # Faux si l'un des deux côtés n'a rien de comparable (composition inconnue, référence sans pays ni secteurs) :
+    # la dimension n'entre ni dans le score ni dans les alertes
+    comparable: bool = True
 
 
 def _known(weights: Mapping[str, float]) -> dict[str, float]:
@@ -45,54 +48,62 @@ def _normalized(weights: Mapping[str, float]) -> dict[str, float]:
     return {name: w * 100 / total for name, w in weights.items()} if total > 0 else {}
 
 
+def _active_share(w: Mapping[str, float], b: Mapping[str, float], undescribed: float) -> float:
+    """½ (Σ |w − b| sur les noms décrits du portefeuille + la part du marché hors de ces noms que la part non
+    décrite du portefeuille ne peut pas porter). Portefeuille entièrement décrit : ½ Σ |w − b| classique."""
+    described = sum(abs(w[name] - b.get(name, 0.0)) for name in w)
+    elsewhere = sum(weight for name, weight in b.items() if name not in w)
+    return (described + max(0.0, elsewhere - undescribed)) / 2
+
+
 def dimension_gap(
     portfolio: Mapping[str, float],
     market: Mapping[str, float],
     market_floor: float | None = None,
+    renormalize: bool = True,
 ) -> DimensionGap:
     """Écart du portefeuille au marché sur une dimension.
 
-    `market_floor` (marché partiel) : poids majorant d'un nom absent du marché, dans les mêmes unités que `market`,
-    renormalisé comme lui. Il ne sert qu'à l'affichage et au jugement de sur-pondération : l'active share compare
-    les poids connus (absent = 0)."""
+    `renormalize` (pays, secteurs) : les deux côtés, montants ou % quelconques, sont ramenés à 100 sur leur part
+    connue. Sans renormalisation (sociétés) : `portfolio` est déjà en % de la valeur boursière totale et `market`
+    en poids publiés bruts ; la part non décrite du portefeuille n'est pas inventée. `market_floor` (marché
+    partiel) : poids majorant d'un nom absent du marché, dans les unités de `market`, pour l'affichage et la
+    sur-pondération seulement."""
     known = _known(portfolio)
-    portfolio_total = sum(portfolio.values())
-    covered = sum(known.values()) * 100 / portfolio_total if portfolio_total > 0 else 0.0
-    w = _normalized(known)
-    if not w:
-        return DimensionGap(active_share_pct=0.0, covered_pct=0.0, rows=())
-
     market_known = _known(market)
-    market_total = sum(market_known.values())
-    b = _normalized(market_known)
-    floor = market_floor * 100 / market_total if market_floor is not None and market_total > 0 else None
+    if renormalize:
+        portfolio_total = sum(portfolio.values())
+        covered = sum(known.values()) * 100 / portfolio_total if portfolio_total > 0 else 0.0
+        w, b = _normalized(known), _normalized(market_known)
+        market_total = sum(market_known.values())
+        floor = market_floor * 100 / market_total if market_floor is not None and market_total > 0 else None
+    else:
+        covered = min(100.0, sum(known.values()))
+        w, b, floor = dict(known), market_known, market_floor
+    if not w or not b:
+        return DimensionGap(active_share_pct=0.0, covered_pct=covered if w else 0.0, rows=(), comparable=False)
 
+    undescribed = max(0.0, 100.0 - sum(w.values()))
+    # Un nom du marché absent d'un portefeuille partiellement décrit n'est pas « à 0 % » : on ne le liste pas
+    names = w.keys() | b.keys() if undescribed <= 0.5 else set(w)
     rows: list[GapRow] = []
-    for name in w.keys() | b.keys():
+    for name in names:
         mine = w.get(name, 0.0)
         bound = name not in b and floor is not None
         theirs = b.get(name, floor or 0.0)
         rows.append(GapRow(name, mine, theirs, bound, mine - theirs))
     rows.sort(key=lambda r: (-r.gap_pts, r.name))
-
-    # Marché vide : rien en commun (la formule donnerait 50)
-    active_share = sum(abs(w.get(n, 0.0) - b.get(n, 0.0)) for n in w.keys() | b.keys()) / 2 if b else 100.0
-    return DimensionGap(active_share_pct=active_share, covered_pct=covered, rows=tuple(rows))
+    return DimensionGap(active_share_pct=_active_share(w, b, undescribed), covered_pct=covered, rows=tuple(rows))
 
 
 def is_overweight(row: GapRow) -> bool:
     return row.portfolio_pct >= OVERWEIGHT_RATIO * row.market_pct and row.gap_pts >= OVERWEIGHT_MIN_POINTS
 
 
-def is_comparable(gap: DimensionGap) -> bool:
-    """Une part du portefeuille est comparable au marché sur cette dimension (composition au moins en partie connue)."""
-    return gap.covered_pct > 0
-
-
 def market_score(gaps: Sequence[DimensionGap]) -> float:
     """100 − moyenne des active shares des dimensions comparables, borné à [0, 100] ; neutre sans dimension
     comparable (une dimension dont rien n'est connu n'est pas « identique au marché »)."""
-    comparable = [g for g in gaps if is_comparable(g)]
+    comparable = [g for g in gaps if g.comparable and g.covered_pct > 0]
     if not comparable:
         return NEUTRAL_SCORE
     mean = sum(g.active_share_pct for g in comparable) / len(comparable)

@@ -222,6 +222,9 @@ def _format_market(data: dict) -> list[str]:
     lines = [f"📏 Référence de marché : {market['name']}{ticker} — score = 100 − active share moyenne"]
     for key, label in (("companies", "sociétés"), ("sectors", "secteurs"), ("countries", "pays")):
         dimension = market.get(key) or {}
+        if dimension.get("comparable") is False:
+            lines.append(f"  • {label.capitalize()} : rien de comparable (données absentes d'un côté)")
+            continue
         lines.append(f"  • Active share {label} : {dimension.get('active_share_pct', 0)}% "
                      f"(part comparée {dimension.get('covered_pct', 0)}%)")
     for key in ("sectors", "countries"):

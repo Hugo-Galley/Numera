@@ -4,7 +4,14 @@ from datetime import date, timedelta
 
 import pytest
 
-from app.domain.exposure.stats import correlation, cosine, tracking_error, weekly_returns, weighted_returns
+from app.domain.exposure.stats import (
+    correlation,
+    cosine,
+    overlap,
+    tracking_error,
+    weekly_returns,
+    weighted_returns,
+)
 
 
 def _series(start: date, closes: list[float]) -> list[tuple[date, float]]:
@@ -103,3 +110,25 @@ def test_weighted_returns_ignores_unweighted_series_and_zero_weights():
     assert weighted_returns(series, {"A": 1.0, "C": 0.0}) == {d1: pytest.approx(0.1), d2: pytest.approx(0.2)}
     assert weighted_returns(series, {}) == {}
     assert weighted_returns(series, {"Z": 1.0}) == {}
+
+
+def test_weighted_returns_leaves_out_funds_without_enough_history():
+    """Un fonds acheté récemment ne réduit pas le cœur à ses quelques semaines : il en est exclu."""
+    start = date(2024, 1, 5)
+    long = {start + timedelta(weeks=i): 0.01 * (i % 3) for i in range(60)}
+    short = {start + timedelta(weeks=i): 0.05 for i in range(50, 60)}
+
+    core = weighted_returns({"A": long, "B": short}, {"A": 1.0, "B": 1.0})
+
+    assert core == pytest.approx(long)
+
+
+def test_overlap_separates_a_us_index_from_a_world_index():
+    """Le cosinus voit S&P 500 et World presque identiques (l'USA domine) ; le recouvrement, non."""
+    sp500 = {"USA": 100.0}
+    world = {"USA": 72.0, "JPN": 5.5, "GBR": 3.5, "CAN": 3.0, "FRA": 2.8, "CHE": 2.5, "DEU": 2.3, "AUS": 1.8}
+
+    assert cosine(sp500, world) > 0.95
+    assert overlap(sp500, world) == pytest.approx(72.0 / sum(world.values()))
+    assert overlap(world, {k: v * 2 for k, v in world.items()}) == pytest.approx(1.0)
+    assert overlap({}, world) == 0.0

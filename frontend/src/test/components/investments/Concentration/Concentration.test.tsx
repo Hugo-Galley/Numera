@@ -8,7 +8,7 @@ import { server } from "@/test/support/server"
 import { Concentration } from "@/components/investments/Concentration"
 import type { DiversityScannerResponse, MarketComparison } from "@/types/diversity"
 
-const dimension = (rows: MarketComparison["sectors"]["rows"], active = 24) => ({ active_share_pct: active, covered_pct: 90, rows })
+const dimension = (rows: MarketComparison["sectors"]["rows"], active = 24) => ({ active_share_pct: active, covered_pct: 90, comparable: true, rows })
 
 const market: MarketComparison = {
   name: "iShares MSCI ACWI",
@@ -95,13 +95,24 @@ describe("Concentration", () => {
   })
 
   it("une dimension sans part comparable affiche « — », pas un faux 0 %", () => {
-    const unknown = { active_share_pct: 0, covered_pct: 0, rows: [] }
+    const unknown = { active_share_pct: 0, covered_pct: 0, comparable: false, rows: [] }
     renderWithProviders(
       <Concentration data={data({ market: { ...market, sectors: unknown, countries: unknown, companies: unknown } })} onReferenceChange={vi.fn()} />,
     )
 
     expect(screen.getAllByText("—").length).toBeGreaterThanOrEqual(3)
     expect(screen.queryByText(/^0\s%$/)).not.toBeInTheDocument()
+  })
+
+  it("une référence sans données de pays le dit au lieu d'afficher un tableau vide", async () => {
+    const { user } = renderWithProviders(
+      <Concentration data={data({ market: { ...market, countries: { active_share_pct: 0, covered_pct: 100, comparable: false, rows: [] } } })} onReferenceChange={vi.fn()} />,
+    )
+
+    await user.click(screen.getByRole("button", { name: "Pays" }))
+
+    expect(screen.getByText("La référence de marché n'a pas de données de pays : rien à comparer.")).toBeInTheDocument()
+    expect(screen.queryByRole("table")).not.toBeInTheDocument()
   })
 
   it("ne s'affiche pas pour une réponse sans le modèle de concentration", () => {

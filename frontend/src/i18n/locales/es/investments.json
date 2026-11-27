@@ -453,7 +453,9 @@
       "gap": "Diferencia",
       "gapPts": "{{value}} pts",
       "upperBound": "Como máximo: la empresa no está entre las principales posiciones de la referencia",
-      "empty": "Nada que comparar."
+      "empty": "Nada que comparar.",
+      "noMarketData": "La referencia de mercado no tiene datos de {{dimension}}: nada que comparar.",
+      "noPortfolioData": "Composición de tus fondos desconocida para esta dimensión: nada que comparar."
     },
     "blocks": {
       "title": "Líneas correlacionadas",

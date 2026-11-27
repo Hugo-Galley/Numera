@@ -453,7 +453,9 @@
       "gap": "Gap",
       "gapPts": "{{value}} pts",
       "upperBound": "At most: the company is not among the reference's main holdings",
-      "empty": "Nothing to compare."
+      "empty": "Nothing to compare.",
+      "noMarketData": "The market reference has no {{dimension}} data: nothing to compare.",
+      "noPortfolioData": "Your funds' composition is unknown for this dimension: nothing to compare."
     },
     "blocks": {
       "title": "Correlated lines",

@@ -65,10 +65,25 @@ def cosine(a: Mapping[str, float], b: Mapping[str, float]) -> float:
 
 
 def weighted_returns(series: Mapping[str, Mapping[date, float]], weights: Mapping[str, float]) -> dict[date, float]:
-    """Rendement moyen pondéré, sur les semaines où toutes les séries de poids non nul ont une valeur."""
+    """Rendement moyen pondéré, sur les semaines où toutes les séries retenues ont une valeur.
+
+    Une série sous `MIN_HISTORY_WEEKS` (fonds acheté récemment) est laissée de côté dès qu'une autre a assez
+    d'historique : elle réduirait sinon tout le panier à ses quelques semaines."""
     used = {key: w for key, w in weights.items() if w > 0 and key in series}
     if not used:
         return {}
+    long_enough = {key: w for key, w in used.items() if len(series[key]) >= MIN_HISTORY_WEEKS}
+    used = long_enough or used
     total = sum(used.values())
     weeks = set.intersection(*(set(series[key]) for key in used))
     return {week: sum(series[key][week] * w for key, w in used.items()) / total for week in sorted(weeks)}
+
+
+def overlap(a: Mapping[str, float], b: Mapping[str, float]) -> float:
+    """Recouvrement de deux répartitions, chacune ramenée à 1 : Σ min(aᵢ, bᵢ) = 1 − active share ; 0.0 si l'une est
+    vide. Contrairement au cosinus, une composante dominante commune (l'USA d'un S&P 500 et d'un World) ne suffit pas."""
+    total_a = sum(v for v in a.values() if v > 0)
+    total_b = sum(v for v in b.values() if v > 0)
+    if total_a <= 0 or total_b <= 0:
+        return 0.0
+    return sum(min(max(a[k], 0.0) / total_a, max(b[k], 0.0) / total_b) for k in a.keys() & b.keys())

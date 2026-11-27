@@ -116,6 +116,17 @@ def test_sp500_and_world_stay_apart_by_default():
     ]
 
     assert len(group_exposures(holdings)) == 2
+    # Deux indices connus et différents : jamais la même exposition, quoi que dise la règle de repli
+    assert len(group_exposures(holdings, same_fund=lambda a, b: True)) == 2
+
+
+def test_unknown_index_on_one_side_lets_the_fallback_decide():
+    holdings = [
+        _holding(1, "SP5", 100.0, profile_id=1, index_name="S&P 500"),
+        _holding(2, "XYZ", 200.0, profile_id=2, index_name=None),
+    ]
+
+    assert len(group_exposures(holdings)) == 2
     assert len(group_exposures(holdings, same_fund=lambda a, b: True)) == 1
 
 

@@ -354,8 +354,9 @@ def test_scanner_against_a_market_reference(client: TestClient, db_session: Sess
     assert market["countries"]["active_share_pct"] == 36.0
     assert {c["name"]: c["market_pct"] for c in data["countries"]} == {"USA": 64.0}
     assert {s["name"]: s["market_pct"] for s in data["sectors"]} == {"Technologie": 25.0}
-    # Pays 36, secteurs 75, sociétés 0 (la part connue du marché n'est qu'Apple) : 100 − 37
-    assert data["score"] == 63.0
+    # Pays 36, secteurs 75, sociétés 48 (Apple 100 % du portefeuille contre 4 % publiés, sans renormalisation)
+    assert data["score"] == 47.0
+    assert data["market"]["companies"]["comparable"] is True
     overweight = {(a["dimension"], a["item_name"]) for a in data["alerts"] if a["category"] == "overweight"}
     assert ("sectors", "Technologie") in overweight
     assert ("countries", "USA") in overweight  # 100 % contre 64 % : plus de 1,5 fois le marché et +36 points
@@ -379,5 +380,6 @@ def test_scanner_with_unknown_composition_is_neutral(client: TestClient, db_sess
     data = client.get("/analytics/diversity-scanner").json()
 
     assert data["market"]["countries"]["covered_pct"] == 0.0
+    assert data["market"]["countries"]["comparable"] is False
     assert data["score"] == 50.0
     assert data["score_label"] == "Composition inconnue : score neutre"

@@ -453,7 +453,9 @@
       "gap": "Écart",
       "gapPts": "{{value}} pts",
       "upperBound": "Au plus : la société n'est pas dans les principales lignes de la référence",
-      "empty": "Aucune ligne à comparer."
+      "empty": "Aucune ligne à comparer.",
+      "noMarketData": "La référence de marché n'a pas de données de {{dimension}} : rien à comparer.",
+      "noPortfolioData": "Composition de tes fonds inconnue pour cette dimension : rien à comparer."
     },
     "blocks": {
       "title": "Lignes corrélées",

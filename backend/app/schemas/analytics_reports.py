@@ -147,7 +147,9 @@ class DiversityGapRow(BaseModel):
 
 class DiversityMarketDimension(BaseModel):
     active_share_pct: float
-    covered_pct: float  # part du portefeuille comparée (hors « Non renseigné », liquidités, « Autres »)
+    covered_pct: float  # part du portefeuille décrite et comparée (hors « Non renseigné », liquidités, « Autres »)
+    # Faux si un côté n'a rien de comparable (composition inconnue, référence sans pays ou sans secteurs)
+    comparable: bool
     rows: list[DiversityGapRow]  # les plus gros écarts, au plus 30
 
 

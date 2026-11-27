@@ -11,12 +11,15 @@ from sqlalchemy.orm import Session
 from app.core.time import today_local
 from app.domain.diversity import LookThrough, normalize_company_key
 from app.domain.etf_composition import EtfConstituentRow
+from app.domain.exposure.correlation import composition_vector
 from app.domain.exposure.identity import Holding, Kind
+from app.domain.exposure.market_gap import is_overweight
 from app.domain.exposure.params import HISTORY_WEEKS
+from app.domain.exposure.stats import cosine
 from app.models.etf_profile import EtfProfile
 from app.models.exchange_rate import HistoricalExchangeRate
 from app.models.security_price import SecurityPrice
-from app.services.analytics.diversity_risk import RiskView, pairs_by_source, risk_view, weekly_returns_eur
+from app.services.analytics.diversity_risk import RiskView, _lines_only, pairs_by_source, risk_view, weekly_returns_eur
 
 WEEKS = HISTORY_WEEKS + 2
 APPLE_ISIN = "US0378331005"
@@ -158,7 +161,9 @@ def test_market_gaps_by_dimension(db_session: Session):
     assert view.gaps["countries"].active_share_pct == pytest.approx(40.0)
     assert view.gaps["sectors"].active_share_pct == pytest.approx(75.0)
     apple = next(r for r in view.gaps["companies"].rows if r.name == "Apple")
-    assert apple.market_pct == pytest.approx(4.0 / 7.5 * 100)
+    # Marché partiel (top seul) : poids publié brut, jamais renormalisé sur la part connue
+    assert apple.market_pct == pytest.approx(4.0)
+    assert apple.portfolio_pct == pytest.approx(100.0)
     assert view.score == pytest.approx(round(100 - (40 + 75 + view.gaps["companies"].active_share_pct) / 3, 1))
 
 
@@ -178,3 +183,103 @@ def test_market_lines_compare_whole_composition(db_session: Session):
     zeta = next(r for r in view.gaps["companies"].rows if r.name == "Zeta")
     assert zeta.market_pct == 0.0
     assert zeta.market_pct_is_upper_bound is False
+
+
+# --- Relecture : fusions, dimension sociétés, cœur -----------------------------------------------------------
+
+US_TOP = [  # (ISIN, poids S&P 500, poids MSCI World) : ordres de grandeur publiés
+    (APPLE_ISIN, 7.0, 5.0), ("US5949181045", 6.5, 4.6), ("US67066G1040", 6.2, 4.4), ("US0231351067", 3.8, 2.7),
+    ("US30303M1027", 2.5, 1.8), ("US02079K3059", 2.0, 1.4), ("US11135F1012", 1.8, 1.3), ("US0846707026", 1.7, 1.2),
+]
+WORLD_COUNTRIES = {"USA": 72.0, "JPN": 5.5, "GBR": 3.5, "CAN": 3.0, "FRA": 2.8, "CHE": 2.5, "DEU": 2.3,
+                   "AUS": 1.8, "NLD": 1.3, "SWE": 0.9}
+
+
+def _sp500_lines() -> list[EtfConstituentRow]:
+    lines = [EtfConstituentRow(isin, None, isin, sp, "USA", "Technologie", "Actions") for isin, sp, _ in US_TOP]
+    rest = 100.0 - sum(sp for _, sp, _ in US_TOP)
+    lines += [EtfConstituentRow(f"US{i:010d}", None, f"US {i}", rest / 400, "USA", "Industrie", "Actions")
+              for i in range(400)]
+    return lines
+
+
+def _world_lines() -> list[EtfConstituentRow]:
+    lines = [EtfConstituentRow(isin, None, isin, w, "USA", "Technologie", "Actions") for isin, _, w in US_TOP]
+    us_rest = WORLD_COUNTRIES["USA"] - sum(w for _, _, w in US_TOP)
+    lines += [EtfConstituentRow(f"US{i:010d}", None, f"US {i}", us_rest / 400, "USA", "Industrie", "Actions")
+              for i in range(400)]
+    for country, weight in WORLD_COUNTRIES.items():
+        if country != "USA":
+            lines += [EtfConstituentRow(f"{country}{i:09d}", None, f"{country} {i}", weight / 80, country, "Finance",
+                                        "Actions") for i in range(80)]
+    return lines
+
+
+def _fund(id: int, ticker: str, value: float, index_name: str | None) -> Holding:
+    return Holding(id=id, account_id=1, ticker=ticker, isin=None, name=ticker, value_eur=value, kind="fund",
+                   profile_id=id, exposure_profile_id=None, index_name=index_name)
+
+
+@pytest.mark.parametrize(("sp_index", "world_index"), [("S&P 500", "MSCI World"), (None, None), ("S&P 500", None)])
+def test_sp500_and_world_without_history_stay_two_exposures(db_session: Session, sp_index, world_index):
+    vectors = {"SP5": composition_vector("fund", _sp500_lines(), None, "SP5", None, None),
+               "WLD": composition_vector("fund", _world_lines(), None, "WLD", None, None)}
+    assert cosine(_lines_only(vectors["SP5"]), _lines_only(vectors["WLD"])) >= 0.95  # le piège : lignes très proches
+
+    view = _view(db_session, [_fund(1, "SP5", 3000, sp_index), _fund(2, "WLD", 5000, world_index)], vectors)
+
+    assert len(view.groups) == 2
+    assert view.matrix.source[0][1] == "composition"
+
+
+def test_same_index_without_history_still_merges_by_composition(db_session: Session):
+    lines = _world_lines()
+    vectors = {"WLD1": composition_vector("fund", lines, None, "WLD1", None, None),
+               "WLD2": composition_vector("fund", lines[:-5], None, "WLD2", None, None)}
+
+    view = _view(db_session, [_fund(1, "WLD1", 3000, None), _fund(2, "WLD2", 5000, None)], vectors)
+
+    assert len(view.groups) == 1
+
+
+def _top10_world_look_through(value: float) -> LookThrough:
+    lt = LookThrough()
+    lt.etfs.append({"ticker": "CW8.PA", "name": "World", "value_eur": value, "profile_name": "World"})
+    for isin, _, weight in US_TOP:
+        lt.company(normalize_company_key(None, isin, isin), isin, None)["indirect_value_eur"] = value * weight / 100
+    lt.countries, lt.sectors = {"USA": value}, {"Technologie": value}
+    return lt
+
+
+def test_world_against_complete_acwi_is_not_overweight_on_mega_caps(db_session: Session):
+    acwi = [EtfConstituentRow(isin, None, isin, w * 0.86, "USA", "Technologie", "Actions") for isin, _, w in US_TOP]
+    acwi += [EtfConstituentRow(f"XX{i:010d}", None, f"X {i}", 0.03, "USA", "Industrie", "Actions") for i in range(2400)]
+    market = EtfProfile(name="ACWI", ticker="SSAC.L", countries="{}", sectors="{}", top_holdings="[]")
+
+    view = asyncio.run(risk_view(db_session, [_fund(1, "CW8.PA", 10000, "MSCI World")],
+                                 _top10_world_look_through(10000), {}, market, acwi))
+
+    companies = view.gaps["companies"]
+    assert not [r for r in companies.rows if is_overweight(r)]
+    assert companies.active_share_pct < 5
+    assert companies.covered_pct == pytest.approx(sum(w for _, _, w in US_TOP))
+
+
+def test_direct_stock_absent_from_partial_market_is_overweight(db_session: Session):
+    lt = _top10_world_look_through(9000)
+    lt.company(normalize_company_key("ASML", "ASML", "NL0010273215"), "ASML", "ASML")["direct_value_eur"] = 1000
+    lt.direct_value_eur = 1000
+    market = EtfProfile(name="ACWI", ticker="SSAC.L", countries="{}", sectors="{}",
+                        top_holdings=f'[{{"name": "Apple", "isin": "{APPLE_ISIN}", "weight": 4.3}},'
+                                     '{"name": "Nestlé", "isin": "CH0038863350", "weight": 0.8}]')
+
+    view = asyncio.run(risk_view(db_session, [_fund(1, "CW8.PA", 9000, "MSCI World"),
+                                              _holding(2, "ASML", 1000, "direct", isin="NL0010273215")],
+                                 lt, {}, market, []))
+
+    rows = {r.name: r for r in view.gaps["companies"].rows}
+    assert rows["ASML"].portfolio_pct == pytest.approx(10.0)
+    assert rows["ASML"].market_pct == pytest.approx(0.8) and rows["ASML"].market_pct_is_upper_bound
+    assert is_overweight(rows["ASML"])
+    assert rows[APPLE_ISIN].market_pct == pytest.approx(4.3)
+    assert not is_overweight(rows[APPLE_ISIN])

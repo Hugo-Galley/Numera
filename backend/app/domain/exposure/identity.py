@@ -2,7 +2,8 @@
 
 Deux positions sont la même exposition si elles portent le même titre (ISIN ou ticker normalisé), le même profil ETF,
 ou, entre fonds seulement, le même indice (`index_name`, référence physique d'un synthétique, ou `same_fund` fourni par
-l'appelant : tracking error ou similarité de composition)."""
+l'appelant : tracking error ou similarité de composition). Deux fonds dont les indices sont connus et différents ne
+fusionnent jamais."""
 
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
@@ -56,6 +57,13 @@ def _same_index(a: Holding, b: Holding) -> bool:
     return a.exposure_profile_id is not None and a.exposure_profile_id == b.exposure_profile_id
 
 
+def _different_indices(a: Holding, b: Holding) -> bool:
+    """Deux indices connus et différents (S&P 500 contre MSCI World) : jamais la même exposition."""
+    return bool(a.index_name and b.index_name) and (
+        (a.index_name or "").strip().casefold() != (b.index_name or "").strip().casefold()
+    )
+
+
 def _same_exposure(a: Holding, b: Holding, same_fund: Callable[[Holding, Holding], bool]) -> bool:
     if _same_security(a, b):
         return True
@@ -63,7 +71,10 @@ def _same_exposure(a: Holding, b: Holding, same_fund: Callable[[Holding, Holding
         return True
     if a.kind != "fund" or b.kind != "fund":
         return False
-    return _same_index(a, b) or same_fund(a, b)
+    if _same_index(a, b):
+        return True
+    # La règle de repli (cours, composition) ne départage que si au moins un indice est inconnu
+    return not _different_indices(a, b) and same_fund(a, b)
 
 
 def _find(parent: list[int], i: int) -> int:

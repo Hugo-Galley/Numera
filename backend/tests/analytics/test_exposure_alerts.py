@@ -76,6 +76,33 @@ def test_block_with_a_fund_is_not_a_correlated_block_alert():
     assert [a for a in market_alerts(None, blocks, GROUPS, [], []) if a["category"] == "correlated_block"] == []
 
 
+def test_direct_block_alerts_only_above_its_market_weight():
+    """Apple + Microsoft pèsent 7,5 % du marché : un bloc à 10 % est normal, à 15 % il est sur-pondéré."""
+    groups = {**GROUPS, "exp:MSFT": _group("exp:MSFT", "Microsoft", "direct")}
+    market_weights = {"exp:AAPL": 4.0, "exp:MSFT": 3.5}
+
+    def blocks(weight: float) -> list[dict]:
+        out = market_alerts(None, [Block(("exp:AAPL", "exp:MSFT"), weight, 0.85)], groups, [], [],
+                            market_weights=market_weights)
+        return [a for a in out if a["category"] == "correlated_block"]
+
+    assert blocks(10.0) == []
+    assert len(blocks(15.0)) == 1
+
+
+def test_crypto_block_alerts_even_with_market_weights():
+    out = market_alerts(None, [Block(("exp:BTC-USD", "exp:ETH-USD"), 7.0, 0.86)], GROUPS, [], [],
+                        market_weights={"exp:AAPL": 4.0})
+
+    assert [a["category"] for a in out] == ["correlated_block"]
+
+
+def test_not_comparable_dimension_gives_no_overweight():
+    gaps = {"countries": DimensionGap(100.0, 100.0, (GapRow("USA", 100.0, 0.0, False, 100.0),), comparable=False)}
+
+    assert market_alerts(gaps, [], GROUPS, [], []) == []
+
+
 def test_crypto_block_is_a_correlated_block_alert():
     blocks = [Block(("exp:BTC-USD", "exp:ETH-USD"), 7.0, 0.86)]
 

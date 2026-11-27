@@ -13,7 +13,7 @@ export function MarketGapTable({ market }: { market: MarketComparison }) {
   const [dimension, setDimension] = useState<MarketDimensionKey>("sectors")
   const current = market[dimension]
   // Présentation : les plus gros écarts, dans un sens ou dans l'autre
-  const rows = [...(current?.rows ?? [])].sort((a, b) => Math.abs(b.gap_pts) - Math.abs(a.gap_pts)).slice(0, MAX_ROWS)
+  const rows = [...current.rows].sort((a, b) => Math.abs(b.gap_pts) - Math.abs(a.gap_pts)).slice(0, MAX_ROWS)
   const scale = Math.max(1, ...rows.flatMap((r) => [r.portfolio_pct, r.market_pct]))
 
   return (
@@ -34,7 +34,13 @@ export function MarketGapTable({ market }: { market: MarketComparison }) {
           ))}
         </div>
       </div>
-      {rows.length === 0 ? (
+      {!current.comparable ? (
+        <p className="text-sm text-slate-500">
+          {current.covered_pct > 0
+            ? t("concentration.table.noMarketData", { dimension: t(`concentration.dimensions.${dimension}`).toLowerCase() })
+            : t("concentration.table.noPortfolioData")}
+        </p>
+      ) : rows.length === 0 ? (
         <p className="text-sm text-slate-500">{t("concentration.table.empty")}</p>
       ) : (
         <table className="w-full text-sm">

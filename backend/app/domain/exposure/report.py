@@ -58,6 +58,7 @@ def _dimension(gap: DimensionGap) -> dict[str, Any]:
     return {
         "active_share_pct": round(gap.active_share_pct, 2),
         "covered_pct": round(gap.covered_pct, 2),
+        "comparable": gap.comparable,
         "rows": [
             {"name": r.name, "portfolio_pct": round(r.portfolio_pct, 2), "market_pct": round(r.market_pct, 2),
              "market_pct_is_upper_bound": r.market_pct_is_upper_bound, "gap_pts": round(r.gap_pts, 2)}

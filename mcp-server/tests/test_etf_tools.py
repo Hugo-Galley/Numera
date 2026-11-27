@@ -159,7 +159,7 @@ SCANNER = {
                       "blocks": [{"members": ["Bitcoin USD", "Ethereum USD"], "weight_pct": 7.0, "mean_rho": 0.86}],
                       "pairs_by_source": {"prices": 40, "composition": 10, "unknown": 5}},
     "market": {"name": "iShares MSCI ACWI", "ticker": "SSAC.L",
-               "countries": {"active_share_pct": 12.0, "covered_pct": 90.0, "rows": []},
+               "countries": {"active_share_pct": 0.0, "covered_pct": 90.0, "comparable": False, "rows": []},
                "sectors": {"active_share_pct": 18.0, "covered_pct": 95.0,
                            "rows": [{"name": "Technologie", "portfolio_pct": 38.0, "market_pct": 25.0,
                                      "market_pct_is_upper_bound": False, "gap_pts": 13.0}]},
@@ -180,6 +180,7 @@ def test_diversity_shows_independent_bets_and_market_reference(etf):
     assert "Technologie : 38.0% contre 25.0% (+13.0 pts)" in text
     assert "Apple" in text and "redondant" in text
     assert "PEA" in text and "CTO" in text
+    assert "Pays : rien de comparable" in text
 
 
 def test_diversity_without_market_reference_says_so(etf):

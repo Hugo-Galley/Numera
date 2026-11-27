@@ -4851,6 +4851,8 @@ export interface components {
         DiversityMarketDimension: {
             /** Active Share Pct */
             active_share_pct: number;
+            /** Comparable */
+            comparable: boolean;
             /** Covered Pct */
             covered_pct: number;
             /** Rows */

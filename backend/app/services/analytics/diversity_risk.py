@@ -27,12 +27,13 @@ from app.domain.exposure.params import (
     SAME_EXPOSURE_MAX_TRACKING_ERROR,
     SAME_EXPOSURE_MIN_SIMILARITY,
 )
-from app.domain.exposure.stats import cosine, tracking_error, weekly_returns, weighted_returns
+from app.domain.exposure.stats import cosine, overlap, tracking_error, weekly_returns, weighted_returns
 from app.models.etf_profile import EtfProfile
 from app.services.investissement.portfolio.books import FxBook, PriceBook, ensure_history
 
 FRIDAY = 4
 LINE_PREFIX = "isin:"
+COUNTRY_PREFIX = "c:"
 
 
 @dataclass(frozen=True)
@@ -44,6 +45,9 @@ class RiskView:
     # Clés `companies`, `sectors`, `countries` ; None sans référence de marché
     gaps: dict[str, DimensionGap] | None
     stock_picking: list[dict[str, Any]]
+    # Poids publié de chaque exposition en direct dans la référence (majorant si absente d'un top partiel) ;
+    # None sans référence. Une crypto n'a pas d'équivalent de marché.
+    market_weights: dict[str, float] | None
     # `with_prices_pct` : part de la valeur avec historique de cours ; `composition_pct` : avec composition connue
     coverage: dict[str, float]
     score: float
@@ -92,11 +96,18 @@ def _lines_only(vector: Mapping[str, float] | None) -> dict[str, float]:
     return {k: v for k, v in (vector or {}).items() if k.startswith(LINE_PREFIX)}
 
 
+def _countries_only(vector: Mapping[str, float] | None) -> dict[str, float]:
+    return {k: v for k, v in (vector or {}).items() if k.startswith(COUNTRY_PREFIX)}
+
+
 def same_fund_rule(
     returns: Mapping[str, Mapping[date, float]],
     vectors: Mapping[str, Mapping[str, float]],
 ) -> Callable[[Holding, Holding], bool]:
-    """Deux fonds sont le même indice : tracking error ≤ 2 % si calculable, sinon lignes communes (cosinus ≥ 0,95)."""
+    """Deux fonds sont le même indice (appelée seulement si l'un des indices est inconnu, `group_exposures`) :
+    tracking error ≤ 2 % si calculable ; sinon lignes communes (cosinus ≥ 0,95) **et** pays connus des deux côtés
+    avec un recouvrement ≥ 0,95. Les lignes seules ne suffisent pas : les méga-caps US rendent le S&P 500 et le
+    World presque colinéaires."""
 
     def same(a: Holding, b: Holding) -> bool:
         series_a, series_b = returns.get(a.ticker), returns.get(b.ticker)
@@ -104,10 +115,13 @@ def same_fund_rule(
             te = tracking_error(series_a, series_b)
             if te is not None:
                 return te <= SAME_EXPOSURE_MAX_TRACKING_ERROR
-        lines_a, lines_b = _lines_only(vectors.get(a.ticker)), _lines_only(vectors.get(b.ticker))
-        if lines_a and lines_b:
-            return cosine(lines_a, lines_b) >= SAME_EXPOSURE_MIN_SIMILARITY
-        return False
+        vector_a, vector_b = vectors.get(a.ticker), vectors.get(b.ticker)
+        lines_a, lines_b = _lines_only(vector_a), _lines_only(vector_b)
+        countries_a, countries_b = _countries_only(vector_a), _countries_only(vector_b)
+        if not (lines_a and lines_b and countries_a and countries_b):
+            return False
+        return (cosine(lines_a, lines_b) >= SAME_EXPOSURE_MIN_SIMILARITY
+                and overlap(countries_a, countries_b) >= SAME_EXPOSURE_MIN_SIMILARITY)
 
     return same
 
@@ -151,14 +165,29 @@ def market_gaps(lt: LookThrough, market: EtfProfile, market_lines: Sequence[EtfL
         countries, sectors = _weights_json(market.countries), _weights_json(market.sectors)
     market_weights, market_names, floor = _market_companies(market, market_lines)
     mine = {key: c["direct_value_eur"] + c["indirect_value_eur"] for key, c in lt.companies.items()}
+    # Sociétés : en % de toute la valeur boursière (la part que les compositions ne décrivent pas reste non décrite)
+    total = lt.etf_value_eur + lt.direct_value_eur or sum(mine.values())
+    mine_pct = {key: value * 100 / total for key, value in mine.items()} if total > 0 else {}
     names = market_names | {key: c["name"] for key, c in lt.companies.items()}
-    companies = dimension_gap(mine, market_weights, floor)
+    companies = dimension_gap(mine_pct, market_weights, floor, renormalize=False)
     companies = replace(companies, rows=tuple(replace(r, name=names.get(r.name, r.name)) for r in companies.rows))
     return {
         "companies": companies,
         "sectors": dimension_gap(lt.sectors, sectors),
         "countries": dimension_gap(lt.countries, countries),
     }
+
+
+def _market_weights(groups: Sequence[ExposureGroup], market: EtfProfile,
+                    market_lines: Sequence[EtfLine]) -> dict[str, float]:
+    """Poids publié de chaque exposition en direct dans la référence (0 si absente d'une composition complète, le
+    plus petit poids du top si absente d'un top partiel)."""
+    weights, _, floor = _market_companies(market, market_lines)
+    out = {}
+    for group in (g for g in groups if g.kind == "direct"):
+        main = group.holdings[0]
+        out[group.key] = weights.get(normalize_company_key(main.ticker, main.name, main.isin), floor or 0.0)
+    return out
 
 
 def _core_vector(funds: Sequence[ExposureGroup], vectors: Mapping[str, Mapping[str, float]]) -> dict[str, float]:
@@ -254,6 +283,7 @@ async def risk_view(
         blocks=correlation_blocks(keys, weights, matrix.rho),
         gaps=gaps,
         stock_picking=stock_picking(groups, lt, returns, vectors),
+        market_weights=_market_weights(groups, market, market_lines) if market is not None else None,
         coverage=_coverage(groups, returns, vectors),
         score=market_score(list(gaps.values())) if gaps is not None else NEUTRAL_SCORE,
     )

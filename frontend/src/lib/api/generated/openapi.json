@@ -5212,6 +5212,10 @@
       "title": "Active Share Pct",
       "type": "number"
      },
+     "comparable": {
+      "title": "Comparable",
+      "type": "boolean"
+     },
      "covered_pct": {
       "title": "Covered Pct",
       "type": "number"
@@ -5227,6 +5231,7 @@
     "required": [
      "active_share_pct",
      "covered_pct",
+     "comparable",
      "rows"
     ],
     "title": "DiversityMarketDimension",

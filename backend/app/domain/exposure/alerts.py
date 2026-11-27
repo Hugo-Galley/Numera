@@ -2,7 +2,8 @@
 secteur, aucun plafond écrit ici.
 
 - `overweight` : une ligne d'une dimension (sociétés, secteurs, pays) sur-pondérée par rapport au marché ;
-- `correlated_block` : un bloc de lignes corrélées sans fonds (lignes en direct, crypto) ; un bloc qui contient un
+- `correlated_block` : un bloc de lignes corrélées sans fonds (lignes en direct, crypto), qui pèse plus que son
+  poids de marché + `OVERWEIGHT_MIN_POINTS`, ou n'a pas d'équivalent de marché (crypto) ; un bloc qui contient un
   fonds relève du stock picking redondant ;
 - `redundant_pick` : une action en direct déjà détenue via les fonds et corrélée au cœur du portefeuille ;
 - `overlap` (info) : des sociétés détenues par des chemins différents."""
@@ -14,6 +15,7 @@ from app.core.i18n import format_money, format_number, tr
 from app.domain.exposure.concentration import Block
 from app.domain.exposure.identity import ExposureGroup
 from app.domain.exposure.market_gap import DimensionGap, GapRow, is_overweight
+from app.domain.exposure.params import OVERWEIGHT_MIN_POINTS
 
 DIMENSIONS = ("companies", "sectors", "countries")
 # Sociétés citées dans le message de doublons
@@ -38,9 +40,15 @@ def _overweight(dimension: str, row: GapRow) -> dict[str, Any]:
     }
 
 
-def _block(block: Block, groups_by_key: Mapping[str, ExposureGroup]) -> dict[str, Any] | None:
+def _block(block: Block, groups_by_key: Mapping[str, ExposureGroup],
+           market_weights: Mapping[str, float] | None) -> dict[str, Any] | None:
     members = [groups_by_key[key] for key in block.keys if key in groups_by_key]
     if not members or any(g.kind == "fund" for g in members):
+        return None
+    # Bloc qui a un équivalent de marché (toutes ses lignes y ont un poids) : alerte seulement s'il pèse au moins
+    # ce poids + OVERWEIGHT_MIN_POINTS. Sans équivalent (crypto) : alerte systématique.
+    has_equivalent = market_weights is not None and all(g.key in market_weights for g in members)
+    if has_equivalent and block.weight_pct < sum((market_weights or {})[g.key] for g in members) + OVERWEIGHT_MIN_POINTS:
         return None
     names = " + ".join(g.name for g in members)
     pct = _pct(block.weight_pct)
@@ -86,15 +94,16 @@ def market_alerts(
     groups_by_key: Mapping[str, ExposureGroup],
     stock_picking: Sequence[Mapping[str, Any]],
     overlap_names: Sequence[str],
+    market_weights: Mapping[str, float] | None = None,
 ) -> list[dict[str, Any]]:
     """Alertes dans l'ordre : sur-pondérations (par dimension), blocs corrélés, stock picking redondant, doublons."""
     alerts: list[dict[str, Any]] = []
     for dimension in DIMENSIONS:
         gap = (gaps or {}).get(dimension)
-        if gap is not None:
+        if gap is not None and gap.comparable:
             alerts.extend(_overweight(dimension, row) for row in gap.rows if is_overweight(row))
     for block in blocks:
-        alert = _block(block, groups_by_key)
+        alert = _block(block, groups_by_key, market_weights)
         if alert is not None:
             alerts.append(alert)
     alerts.extend(_redundant(pick) for pick in stock_picking if pick.get("redundant"))

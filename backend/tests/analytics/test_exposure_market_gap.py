@@ -123,12 +123,6 @@ def test_empty_portfolio() -> None:
     assert gap.rows == ()
 
 
-def test_empty_market_is_nothing_in_common() -> None:
-    gap = dimension_gap({"USA": 100}, {"Autres": 100})
-
-    assert gap.active_share_pct == 100.0
-
-
 @pytest.mark.parametrize(
     ("portfolio_pct", "market_pct", "expected"),
     [
@@ -159,3 +153,41 @@ def test_dimension_without_comparable_holdings_is_left_out_of_the_score() -> Non
 
     assert market_score([unknown, known]) == 60.0
     assert market_score([unknown, unknown]) == 50.0
+
+
+def test_raw_weights_are_not_renormalized() -> None:
+    """Sociétés : portefeuille en % de la valeur totale, marché en poids publiés ; seule la part décrite compte."""
+    gap = dimension_gap({"Apple": 5.0, "Microsoft": 4.6}, {"Apple": 4.3, "Microsoft": 3.9, "Autre": 0.5},
+                        renormalize=False)
+
+    apple = next(r for r in gap.rows if r.name == "Apple")
+    assert apple.portfolio_pct == pytest.approx(5.0)
+    assert apple.market_pct == pytest.approx(4.3)
+    assert gap.covered_pct == pytest.approx(9.6)
+    # Le reste du portefeuille (90,4 %) peut porter le reste du marché : seuls les écarts décrits comptent
+    assert gap.active_share_pct == pytest.approx((0.7 + 0.7) / 2)
+    assert gap.comparable is True
+
+
+def test_raw_weights_floor_is_the_raw_smallest_weight() -> None:
+    gap = dimension_gap({"ASML": 10.0}, {"Apple": 4.0, "Nestlé": 0.8}, market_floor=0.8, renormalize=False)
+
+    asml = next(r for r in gap.rows if r.name == "ASML")
+    assert asml.market_pct == pytest.approx(0.8)
+    assert asml.market_pct_is_upper_bound is True
+    assert is_overweight(asml)
+
+
+def test_fully_described_portfolio_counts_the_market_it_misses() -> None:
+    gap = dimension_gap({"Zeta": 100.0}, {"Apple": 60.0, "Microsoft": 40.0}, renormalize=False)
+
+    assert gap.active_share_pct == pytest.approx(100.0)
+
+
+def test_empty_market_after_exclusions_is_not_comparable() -> None:
+    gap = dimension_gap({"USA": 100}, {"Autres": 100})
+    known = DimensionGap(active_share_pct=40.0, covered_pct=80.0, rows=())
+
+    assert gap.comparable is False
+    assert not any(is_overweight(r) for r in gap.rows)
+    assert market_score([gap, known]) == 60.0
