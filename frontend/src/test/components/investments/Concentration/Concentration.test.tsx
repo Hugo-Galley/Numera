@@ -94,6 +94,16 @@ describe("Concentration", () => {
     expect(screen.getByText("Bitcoin USD + Ethereum USD · ρ 0,86")).toBeInTheDocument()
   })
 
+  it("une dimension sans part comparable affiche « — », pas un faux 0 %", () => {
+    const unknown = { active_share_pct: 0, covered_pct: 0, rows: [] }
+    renderWithProviders(
+      <Concentration data={data({ market: { ...market, sectors: unknown, countries: unknown, companies: unknown } })} onReferenceChange={vi.fn()} />,
+    )
+
+    expect(screen.getAllByText("—").length).toBeGreaterThanOrEqual(3)
+    expect(screen.queryByText(/^0\s%$/)).not.toBeInTheDocument()
+  })
+
   it("ne s'affiche pas pour une réponse sans le modèle de concentration", () => {
     renderWithProviders(<Concentration data={data({ concentration: undefined, market: undefined })} onReferenceChange={vi.fn()} />)
 

@@ -7,7 +7,7 @@ import { BlocksList } from "./BlocksList"
 import { MarketGapTable } from "./MarketGapTable"
 import { PicksList } from "./PicksList"
 import { ReferenceSelect, type ReferenceCandidate } from "./ReferenceSelect"
-import { formatDecimal } from "./format"
+import { activeShare, formatDecimal } from "./format"
 
 const DIMENSIONS: MarketDimensionKey[] = ["companies", "sectors", "countries"]
 
@@ -56,7 +56,7 @@ export function Concentration({ data, onReferenceChange }: { data: DiversityScan
           )}
           {market && DIMENSIONS.map((d) => (
             <div key={d} className="rounded-lg border border-slate-200 p-3">
-              <p className="text-2xl font-black tabular-nums">{formatRate(market[d]?.active_share_pct, 0)}</p>
+              <p className="text-2xl font-black tabular-nums">{activeShare(market[d])}</p>
               <p className="text-xs text-slate-500">{t("concentration.activeShare")} · {t(`concentration.dimensions.${d}`)}</p>
             </div>
           ))}

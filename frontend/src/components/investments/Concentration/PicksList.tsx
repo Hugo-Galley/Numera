@@ -18,7 +18,7 @@ export function PicksList({ picks }: { picks: StockPickingLine[] }) {
       ) : (
         <ul className="space-y-2">
           {picks.map((pick) => (
-            <li key={pick.ticker ?? pick.name} className="flex flex-wrap items-start justify-between gap-2 rounded-lg border border-slate-200 p-3 text-sm">
+            <li key={pick.key} className="flex flex-wrap items-start justify-between gap-2 rounded-lg border border-slate-200 p-3 text-sm">
               <div>
                 <p className="font-medium text-slate-900">{pick.name}</p>
                 <p className="text-xs text-slate-500">

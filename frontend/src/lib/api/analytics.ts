@@ -1,6 +1,5 @@
 /** Lectures analytiques (KPI calculés par le backend). Une fonction par route ; `query` (« ?a=1&b=2 ») est ajouté tel quel à l'URL. */
 import { api } from "@/lib/api"
-import type { MarketReferenceSetting } from "@/types/diversity"
 import type { ApiBody, ApiResponse, Id } from "./types"
 
 /** GET /analytics/account-flow-summary */
@@ -30,8 +29,8 @@ export const getAnalyticsCashflowProjection = <T = ApiResponse<"/analytics/cashf
 /** GET /analytics/diversity-scanner */
 export const getAnalyticsDiversityScanner = <T = ApiResponse<"/analytics/diversity-scanner", "get">>(query = "") => api.get<T>(`/analytics/diversity-scanner${query}`)
 
-/** PUT /analytics/diversity-scanner/market-reference (type local : route pas encore dans le schéma généré) */
-export const putAnalyticsDiversityScannerMarketReference = <T = MarketReferenceSetting>(body: MarketReferenceSetting) => api.put<T>(`/analytics/diversity-scanner/market-reference`, body)
+/** PUT /analytics/diversity-scanner/market-reference */
+export const putAnalyticsDiversityScannerMarketReference = <T = ApiResponse<"/analytics/diversity-scanner/market-reference", "put">>(body: ApiBody<"/analytics/diversity-scanner/market-reference", "put">) => api.put<T>(`/analytics/diversity-scanner/market-reference`, body)
 
 /** GET /analytics/investments-allocation */
 export const getAnalyticsInvestmentsAllocation = <T = ApiResponse<"/analytics/investments-allocation", "get">>() => api.get<T>(`/analytics/investments-allocation`)

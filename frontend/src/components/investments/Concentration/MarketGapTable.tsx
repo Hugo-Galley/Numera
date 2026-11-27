@@ -2,7 +2,7 @@ import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { MarketComparison, MarketDimensionKey } from "@/types/diversity"
 import { formatRate } from "@/lib/utils"
-import { formatPoints } from "./format"
+import { activeShare, formatPoints } from "./format"
 
 const DIMENSIONS: MarketDimensionKey[] = ["sectors", "countries", "companies"]
 const MAX_ROWS = 8
@@ -70,7 +70,7 @@ export function MarketGapTable({ market }: { market: MarketComparison }) {
         </table>
       )}
       <p className="text-xs text-slate-500">
-        {t("concentration.activeShare")} ({t(`concentration.dimensions.${dimension}`)}) : {formatRate(current?.active_share_pct, 0)}
+        {t("concentration.activeShare")} ({t(`concentration.dimensions.${dimension}`)}) : {activeShare(current)}
       </p>
     </div>
   )
