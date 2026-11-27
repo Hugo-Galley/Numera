@@ -5944,6 +5944,177 @@
     "title": "EtfRefreshResult",
     "type": "object"
    },
+   "EtfSheet": {
+    "properties": {
+     "composition_as_of": {
+      "anyOf": [
+       {
+        "format": "date",
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Composition As Of"
+     },
+     "countries": {
+      "items": {
+       "$ref": "#/components/schemas/WeightRow"
+      },
+      "title": "Countries",
+      "type": "array"
+     },
+     "coverage_pct": {
+      "title": "Coverage Pct",
+      "type": "number"
+     },
+     "exposure_profile_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Exposure Profile Id"
+     },
+     "exposure_profile_name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Exposure Profile Name"
+     },
+     "has_full_list": {
+      "title": "Has Full List",
+      "type": "boolean"
+     },
+     "held_value_eur": {
+      "title": "Held Value Eur",
+      "type": "number"
+     },
+     "lines": {
+      "items": {
+       "$ref": "#/components/schemas/EtfSheetLine"
+      },
+      "title": "Lines",
+      "type": "array"
+     },
+     "lines_count": {
+      "title": "Lines Count",
+      "type": "integer"
+     },
+     "profile": {
+      "$ref": "#/components/schemas/EtfProfileRead"
+     },
+     "provider": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Provider"
+     },
+     "sectors": {
+      "items": {
+       "$ref": "#/components/schemas/WeightRow"
+      },
+      "title": "Sectors",
+      "type": "array"
+     },
+     "top_holdings": {
+      "items": {
+       "additionalProperties": true,
+       "type": "object"
+      },
+      "title": "Top Holdings",
+      "type": "array"
+     }
+    },
+    "required": [
+     "profile",
+     "coverage_pct",
+     "lines_count",
+     "has_full_list",
+     "held_value_eur",
+     "countries",
+     "sectors",
+     "lines",
+     "top_holdings"
+    ],
+    "title": "EtfSheet",
+    "type": "object"
+   },
+   "EtfSheetLine": {
+    "properties": {
+     "asset_class": {
+      "title": "Asset Class",
+      "type": "string"
+     },
+     "country": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Country"
+     },
+     "isin": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Isin"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "sector": {
+      "title": "Sector",
+      "type": "string"
+     },
+     "ticker": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Ticker"
+     },
+     "weight": {
+      "title": "Weight",
+      "type": "number"
+     }
+    },
+    "required": [
+     "name",
+     "weight",
+     "sector",
+     "asset_class"
+    ],
+    "title": "EtfSheetLine",
+    "type": "object"
+   },
    "ExpenseRef": {
     "properties": {
      "account_id": {
@@ -17237,6 +17408,24 @@
     "title": "WealthSimulationResponse",
     "type": "object"
    },
+   "WeightRow": {
+    "properties": {
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "weight": {
+      "title": "Weight",
+      "type": "number"
+     }
+    },
+    "required": [
+     "name",
+     "weight"
+    ],
+    "title": "WeightRow",
+    "type": "object"
+   },
    "WorkTimeRead": {
     "properties": {
      "configured": {
@@ -23243,6 +23432,54 @@
      }
     ],
     "summary": "Update Etf Profile",
+    "tags": [
+     "etf-profiles"
+    ]
+   }
+  },
+  "/etf-profiles/{profile_id}/constituents": {
+   "get": {
+    "description": "Fiche d'un ETF : identité, pays, secteurs, toutes ses lignes et la valeur détenue.",
+    "operationId": "get_etf_sheet_etf_profiles__profile_id__constituents_get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "profile_id",
+      "required": true,
+      "schema": {
+       "title": "Profile Id",
+       "type": "integer"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/EtfSheet"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Get Etf Sheet",
     "tags": [
      "etf-profiles"
     ]

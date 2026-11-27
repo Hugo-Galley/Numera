@@ -127,3 +127,11 @@ def set_etf_profiles(db: Session, targets: dict[int, int | None]) -> None:
     for obj in list(db.identity_map.values()):
         if isinstance(obj, PortfolioHolding) and obj.id in targets:
             db.expire(obj, ["etf_profile_id", "etf_profile", "updated_at"])
+
+
+def own_positions_of_profile(db: Session, profile_id: int) -> list[tuple[str, float, float | None, str]]:
+    """(ticker, quantité, PRU, devise) des positions à soi rattachées à un profil ETF, sans objets ORM."""
+    query = db.query(PortfolioHolding.ticker, PortfolioHolding.quantity, PortfolioHolding.buy_price_avg,
+                     PortfolioHolding.currency).join(Account, PortfolioHolding.account_id == Account.id)
+    query = query.filter(PortfolioHolding.etf_profile_id == profile_id, PortfolioHolding.quantity > 0, own_account())
+    return [(t, q, p, c) for t, q, p, c in query]

@@ -18,7 +18,7 @@ from app.domain.diversity import (
 )
 from app.domain.diversity_score import hhi_score, score_label
 from app.domain.etf_profiles import match_profile
-from app.domain.holdings import holding_profile, is_crypto, is_etf_holding, is_fund
+from app.domain.holdings import holding_price_eur, holding_profile, is_crypto, is_etf_holding, is_fund
 from app.domain.isin import IsinCandidate, pick_isin
 from app.integrations import yahoo_finance
 from app.integrations.currency import get_exchange_rates
@@ -69,11 +69,7 @@ async def _value_holdings(db: Session, holdings: list[PortfolioHolding], quotes:
     profiles = etf_repo.all_profiles(db)
     for h in holdings:
         q = quotes.get(h.ticker.upper(), {})
-        price_eur = q.get("price_eur", 0.0)
-        # Aucun cours connu : repli sur le PRU, converti de la devise de la position en EUR
-        if price_eur <= 0 and h.buy_price_avg:
-            fx = fx_rates.get((h.currency or "EUR").upper())
-            price_eur = h.buy_price_avg / fx if fx else 0.0
+        price_eur = holding_price_eur(q.get("price_eur", 0.0), h.buy_price_avg, h.currency, fx_rates)
 
         profile = await _resolve_profile(db, h, q, profiles)
         val_eur = round(h.quantity * price_eur, 2)

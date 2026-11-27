@@ -96,7 +96,7 @@ def _add(target: dict[str, float], label: str, value: float) -> None:
     target[label] = target.get(label, 0.0) + value
 
 
-def _spread_lines(target: dict[str, float], lines: Sequence[EtfLine], attribute: str, value_eur: float) -> None:
+def spread_lines(target: dict[str, float], lines: Sequence[EtfLine], attribute: str, value_eur: float) -> None:
     """Répartit `value_eur` ligne à ligne (pays ou secteur). Les liquidités et dérivés ont leur propre poste, s'il
     est positif ; ce que les lignes ne décrivent pas va dans « Non renseigné »."""
     covered = cash = 0.0
@@ -194,7 +194,7 @@ def _decompose_etf(out: LookThrough, vh: dict[str, Any], etf_profile: EtfProfile
     for field_name, attribute, target in (("countries", "country", out.countries), ("sectors", "sector", out.sectors)):
         described = etf_profile if field_name in manual else exposure.profile
         if field_name not in manual and exposure.lines:
-            _spread_lines(target, exposure.lines, attribute, vh_val)
+            spread_lines(target, exposure.lines, attribute, vh_val)
         else:
             spread_weights(target, getattr(described, field_name), vh_val)
 
