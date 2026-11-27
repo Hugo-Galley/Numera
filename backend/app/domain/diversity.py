@@ -56,47 +56,6 @@ def spread_weights(target: dict[str, float], weights_json: str, value_eur: float
         target[UNKNOWN_LABEL] = target.get(UNKNOWN_LABEL, 0.0) + value_eur * uncovered / 100.0
 
 
-def hhi_score(weights: list[float]) -> float:
-    """
-    Computes a 0-100 score based on Herfindahl-Hirschman Index (HHI).
-    HHI ranges from ~0 (infinite diversity) to 10,000 (100% single asset).
-    Score:
-      HHI <= 1000 -> 90 - 100
-      HHI 1000 - 1800 -> 75 - 89
-      HHI 1800 - 2500 -> 55 - 74
-      HHI > 2500 -> 10 - 54
-    """
-    if not weights or sum(weights) <= 0:
-        return 50.0
-
-    total = sum(weights)
-    hhi = sum(((w / total) * 100.0) ** 2 for w in weights)
-
-    # Invert HHI to a 0-100 score
-    if hhi <= 1000:
-        score = 90.0 + (1000.0 - hhi) / 1000.0 * 10.0
-    elif hhi <= 1800:
-        score = 75.0 + (1800.0 - hhi) / 800.0 * 15.0
-    elif hhi <= 2500:
-        score = 55.0 + (2500.0 - hhi) / 700.0 * 20.0
-    elif hhi <= 5000:
-        score = 30.0 + (5000.0 - hhi) / 2500.0 * 25.0
-    else:
-        score = max(10.0, 30.0 * (10000.0 - hhi) / 5000.0)
-
-    return round(min(100.0, max(5.0, score)), 1)
-
-
-def score_label(score: float) -> str:
-    if score < 40:
-        return tr("diversity.score_critical")
-    if score < 60:
-        return tr("diversity.score_moderate")
-    if score < 80:
-        return tr("diversity.score_good")
-    return tr("diversity.score_excellent")
-
-
 @dataclass
 class LookThrough:
     companies: dict[str, dict[str, Any]] = field(default_factory=dict)
@@ -105,6 +64,13 @@ class LookThrough:
     etfs: list[dict[str, Any]] = field(default_factory=list)
     # Origine des compositions utilisées (émetteur, justETF, Yahoo, saisie), par profil
     compositions: dict[int, dict[str, Any]] = field(default_factory=dict)
+    # Valeur des lignes détenues en direct (actions, cryptos : tout ce qui n'est pas un ETF décomposé)
+    direct_value_eur: float = 0.0
+
+    @property
+    def etf_value_eur(self) -> float:
+        """Valeur des positions décomposées comme ETF."""
+        return sum(float(e["value_eur"]) for e in self.etfs)
 
     def company(self, key: str, name: str, ticker: str | None) -> dict[str, Any]:
         if key not in self.companies:
@@ -242,6 +208,7 @@ def _decompose_etf(out: LookThrough, vh: dict[str, Any], etf_profile: EtfProfile
 def _direct_line(out: LookThrough, vh: dict[str, Any], security: Security | None) -> None:
     """Une action détenue en direct : pays et secteur du référentiel des titres, sinon « Non renseigné »."""
     vh_val = vh["value_eur"]
+    out.direct_value_eur += vh_val
     direct_ticker = vh.get("ticker")
     isin = vh.get("isin") or (security.isin if security else None)  # titre retrouvé par ticker : même société
     comp = out.company(normalize_company_key(direct_ticker, vh["name"], isin), vh["name"], direct_ticker)
@@ -276,6 +243,7 @@ def look_through(valued_holdings: list[dict[str, Any]],
             _decompose_etf(out, vh, etf_profile, exposure_for(etf_profile))
         elif is_crypto(vh.get("quote_type"), vh["ticker"]):
             out.sectors[CRYPTO_LABEL] = out.sectors.get(CRYPTO_LABEL, 0.0) + vh["value_eur"]
+            out.direct_value_eur += vh["value_eur"]
         else:
             _direct_line(out, vh, securities.get(vh.get("isin") or vh["ticker"].upper()))
     return out

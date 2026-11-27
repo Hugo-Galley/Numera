@@ -990,7 +990,7 @@
    }
   },
   "list_holdings": {
-   "description": "Liste toutes les positions du portefeuille (actions et ETF) avec prix live, performance et gain.\n\n    Chaque position inclut :\n    - ticker, ISIN, nom de l'actif\n    - quantité et prix moyen d'achat (buy_price_avg)\n    - prix actuel et valeur actuelle en EUR\n    - gain en EUR et pourcentage de performance\n    - si c'est un ETF (is_etf)\n\n    Args:\n        account_id: Filtrer par compte d'investissement (optionnel)\n    ",
+   "description": "Liste toutes les positions du portefeuille (actions et ETF) avec prix live, performance et gain.\n\n    Chaque position inclut :\n    - ticker, ISIN, nom de l'actif\n    - quantité et prix moyen d'achat (buy_price_avg, dans la devise de la position : colonne devise)\n    - prix actuel et valeur actuelle en EUR\n    - gain en EUR et pourcentage de performance\n    - si c'est un ETF (is_etf)\n\n    Args:\n        account_id: Filtrer par compte d'investissement (optionnel)\n    ",
    "inputSchema": {
     "properties": {
      "account_id": {

@@ -252,16 +252,6 @@
     "historiqueEtEvolutionDeVos": "Historique et évolution de tes supports.",
     "valeur": "Valeur"
   },
-  "topCompanies": {
-    "top10EntreprisesDetenuesLook": "Top 10 des entreprises détenues (transparence)",
-    "expositionConsolideeDirectSousJacents": "Exposition consolidée : direct + sous-jacents de tes ETF.",
-    "direct": "Direct",
-    "viaEtfs": "Via ETF",
-    "doublon": "Doublon",
-    "apportTotal": "Apport total :",
-    "detenuEnDirect": "Détenu en direct :",
-    "detenuViaEtfs": "Détenu via ETF :"
-  },
   "useInvestmentsData": {
     "impossibleDActualiserLesCompositions": "Impossible d'actualiser les compositions",
     "erreurLorsDuChargementDe": "Erreur lors du chargement de l'allocation"
@@ -389,5 +379,51 @@
     "saved": "ISIN de {{ticker}} enregistré",
     "invalid": "Un ISIN compte 12 caractères : 2 lettres, 9 lettres ou chiffres, 1 chiffre",
     "saveError": "Impossible d'enregistrer l'ISIN"
+  },
+  "breakdown": {
+    "title": {
+      "account": "Répartition du compte",
+      "portfolio": "Répartition du portefeuille"
+    },
+    "description": {
+      "account": "Ce que tu détiens vraiment, ETF décomposés en entreprises.",
+      "portfolio": "Tous tes comptes d'investissement réunis, ETF décomposés en entreprises."
+    },
+    "viewsLabel": "Vue de la répartition",
+    "views": {
+      "companies": "Entreprises",
+      "positions": "Positions",
+      "sectors": "Secteurs",
+      "countries": "Pays"
+    },
+    "sourcesLabel": "Provenance",
+    "sources": {
+      "all": "Tout",
+      "direct": "En direct",
+      "etf": "Via ETF"
+    },
+    "other": {
+      "companies": "Autres entreprises",
+      "positions": "Autres positions",
+      "sectors": "Autres secteurs",
+      "countries": "Autres pays"
+    },
+    "center": {
+      "all": "Valeur des positions",
+      "direct": "Détenu en direct",
+      "etf": "Détenu via ETF"
+    },
+    "positionsCount_one": "{{count}} position",
+    "positionsCount_other": "{{count}} positions",
+    "namedLines": "Lignes nommées",
+    "shareOf": {
+      "account": "{{share}} du compte",
+      "portfolio": "{{share}} du portefeuille"
+    },
+    "overlap": "Doublon",
+    "overlapHint": "Détenue par plusieurs sources : en direct et via un ETF, ou par plusieurs ETF",
+    "hideOther": "Zoomer sur les lignes nommées (masquer « Autres »)",
+    "chartLabel": "Donut de la répartition des positions",
+    "loadFailed": "Impossible de calculer la répartition du compte"
   }
 }

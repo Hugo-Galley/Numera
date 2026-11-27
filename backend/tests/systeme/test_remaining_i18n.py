@@ -6,7 +6,8 @@ import pytest
 
 from app.core.i18n import set_language
 from app.domain import csv_import
-from app.domain.diversity import diversity_alerts, score_label
+from app.domain.diversity import diversity_alerts
+from app.domain.diversity_score import score_label
 from app.services.budget.imports import _preview_warnings
 from app.services.investissement.portfolio.compute import _performance
 

@@ -252,16 +252,6 @@
     "historiqueEtEvolutionDeVos": "Historial y evolución de tus productos.",
     "valeur": "Valor"
   },
-  "topCompanies": {
-    "top10EntreprisesDetenuesLook": "Top 10 empresas en cartera (transparencia)",
-    "expositionConsolideeDirectSousJacents": "Exposición consolidada: directa + subyacentes de tus ETF.",
-    "direct": "Directa",
-    "viaEtfs": "Vía ETF",
-    "doublon": "Duplicado",
-    "apportTotal": "Aportación total:",
-    "detenuEnDirect": "En directo:",
-    "detenuViaEtfs": "Vía ETF:"
-  },
   "useInvestmentsData": {
     "impossibleDActualiserLesCompositions": "No se pueden actualizar las composiciones",
     "erreurLorsDuChargementDe": "Error al cargar la asignación"
@@ -389,5 +379,51 @@
     "saved": "ISIN de {{ticker}} guardado",
     "invalid": "Un ISIN tiene 12 caracteres: 2 letras, 9 letras o cifras y 1 cifra",
     "saveError": "No se pudo guardar el ISIN"
+  },
+  "breakdown": {
+    "title": {
+      "account": "Reparto de la cuenta",
+      "portfolio": "Reparto de la cartera"
+    },
+    "description": {
+      "account": "Lo que realmente tienes, con los ETF desglosados en empresas.",
+      "portfolio": "Todas tus cuentas de inversión juntas, con los ETF desglosados en empresas."
+    },
+    "viewsLabel": "Vista del reparto",
+    "views": {
+      "companies": "Empresas",
+      "positions": "Posiciones",
+      "sectors": "Sectores",
+      "countries": "Países"
+    },
+    "sourcesLabel": "Origen",
+    "sources": {
+      "all": "Todo",
+      "direct": "Directo",
+      "etf": "Vía ETF"
+    },
+    "other": {
+      "companies": "Otras empresas",
+      "positions": "Otras posiciones",
+      "sectors": "Otros sectores",
+      "countries": "Otros países"
+    },
+    "center": {
+      "all": "Valor de las posiciones",
+      "direct": "En directo",
+      "etf": "Vía ETF"
+    },
+    "positionsCount_one": "{{count}} posición",
+    "positionsCount_other": "{{count}} posiciones",
+    "namedLines": "Líneas con nombre",
+    "shareOf": {
+      "account": "{{share}} de la cuenta",
+      "portfolio": "{{share}} de la cartera"
+    },
+    "overlap": "Duplicado",
+    "overlapHint": "En varias fuentes: en directo y a través de un ETF, o en varios ETF",
+    "hideOther": "Ampliar las líneas con nombre (ocultar «Otros»)",
+    "chartLabel": "Gráfico de anillo del reparto de las posiciones",
+    "loadFailed": "No se pudo calcular el reparto de la cuenta"
   }
 }

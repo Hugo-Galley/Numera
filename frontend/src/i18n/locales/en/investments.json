@@ -252,16 +252,6 @@
     "historiqueEtEvolutionDeVos": "History and evolution of your holdings.",
     "valeur": "Value"
   },
-  "topCompanies": {
-    "top10EntreprisesDetenuesLook": "Top 10 Companies Held (Look-Through)",
-    "expositionConsolideeDirectSousJacents": "Consolidated exposure: direct + underlying holdings of your ETFs.",
-    "direct": "Direct",
-    "viaEtfs": "Via ETFs",
-    "doublon": "Duplicate",
-    "apportTotal": "Total contribution:",
-    "detenuEnDirect": "Held directly:",
-    "detenuViaEtfs": "Held via ETFs:"
-  },
   "useInvestmentsData": {
     "impossibleDActualiserLesCompositions": "Couldn't refresh the compositions",
     "erreurLorsDuChargementDe": "Error loading the allocation"
@@ -389,5 +379,51 @@
     "saved": "ISIN of {{ticker}} saved",
     "invalid": "An ISIN has 12 characters: 2 letters, 9 letters or digits, 1 digit",
     "saveError": "Could not save the ISIN"
+  },
+  "breakdown": {
+    "title": {
+      "account": "Account breakdown",
+      "portfolio": "Portfolio breakdown"
+    },
+    "description": {
+      "account": "What you really own, with ETFs broken down into companies.",
+      "portfolio": "All your investment accounts together, with ETFs broken down into companies."
+    },
+    "viewsLabel": "Breakdown view",
+    "views": {
+      "companies": "Companies",
+      "positions": "Holdings",
+      "sectors": "Sectors",
+      "countries": "Countries"
+    },
+    "sourcesLabel": "Source",
+    "sources": {
+      "all": "All",
+      "direct": "Direct",
+      "etf": "Via ETFs"
+    },
+    "other": {
+      "companies": "Other companies",
+      "positions": "Other holdings",
+      "sectors": "Other sectors",
+      "countries": "Other countries"
+    },
+    "center": {
+      "all": "Holdings value",
+      "direct": "Held directly",
+      "etf": "Held via ETFs"
+    },
+    "positionsCount_one": "{{count}} holding",
+    "positionsCount_other": "{{count}} holdings",
+    "namedLines": "Named lines",
+    "shareOf": {
+      "account": "{{share}} of the account",
+      "portfolio": "{{share}} of the portfolio"
+    },
+    "overlap": "Overlap",
+    "overlapHint": "Held through several sources: directly and via an ETF, or by several ETFs",
+    "hideOther": "Zoom in on named lines (hide “Other”)",
+    "chartLabel": "Donut chart of the holdings breakdown",
+    "loadFailed": "Couldn't compute the account breakdown"
   }
 }

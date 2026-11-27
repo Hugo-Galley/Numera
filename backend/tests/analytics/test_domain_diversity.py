@@ -1,7 +1,8 @@
 """Calculs purs du scanner de diversification."""
 import pytest
 
-from app.domain.diversity import UNKNOWN_LABEL, hhi_score, normalize_company_key, score_label, spread_weights
+from app.domain.diversity import UNKNOWN_LABEL, normalize_company_key, spread_weights
+from app.domain.diversity_score import hhi_score, score_label
 
 
 def test_hhi_score_single_asset_is_low():
@@ -206,3 +207,30 @@ def test_direct_stock_found_by_ticker_merges_with_the_etf_line():
                        lambda p: Exposure(p, [_line("APPLE INC", 10.0, "US0378331005")]))
     (company,) = out.companies.values()
     assert (company["direct_value_eur"], company["indirect_value_eur"]) == (200.0, 100.0)
+
+
+def test_look_through_splits_value_between_direct_lines_and_etfs():
+    """La valeur des positions se répartit entre lignes détenues en direct et ETF décomposés."""
+    from app.domain.diversity import look_through
+    from app.models.etf_profile import EtfProfile
+
+    world = EtfProfile(id=1, name="MSCI World", countries="{}", sectors="{}", top_holdings="[]")
+    holdings = [
+        {"ticker": "CW8.PA", "name": "Amundi MSCI World", "value_eur": 800.0, "etf_profile_id": 1},
+        {"ticker": "TTE.PA", "name": "TotalEnergies", "value_eur": 150.0, "etf_profile_id": None},
+        {"ticker": "BLK", "name": "BlackRock", "value_eur": 50.0, "etf_profile_id": None},
+        {"ticker": "SOLD", "name": "Ligne vendue", "value_eur": 0.0, "etf_profile_id": None},
+    ]
+    out = look_through(holdings, lambda vh: world if vh["etf_profile_id"] == 1 else None)
+
+    assert out.direct_value_eur == 200.0
+    assert out.etf_value_eur == 800.0
+
+
+def test_a_crypto_counts_as_held_directly():
+    """Une crypto n'est pas un ETF : sa valeur compte dans la part détenue en direct."""
+    from app.domain.diversity import look_through
+    holdings = [{"ticker": "BTC-USD", "name": "Bitcoin", "value_eur": 300.0, "etf_profile_id": None,
+                 "quote_type": "CRYPTOCURRENCY"}]
+    out = look_through(holdings, lambda vh: None)
+    assert (out.direct_value_eur, out.etf_value_eur) == (300.0, 0.0)

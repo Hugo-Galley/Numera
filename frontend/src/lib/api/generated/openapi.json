@@ -5033,8 +5033,16 @@
       "title": "Courant Eur",
       "type": "number"
      },
+     "direct_eur": {
+      "title": "Direct Eur",
+      "type": "number"
+     },
      "epargne_eur": {
       "title": "Epargne Eur",
+      "type": "number"
+     },
+     "etf_eur": {
+      "title": "Etf Eur",
       "type": "number"
      },
      "etfs_count": {
@@ -5064,6 +5072,8 @@
     },
     "required": [
      "stocks_eur",
+     "direct_eur",
+     "etf_eur",
      "epargne_eur",
      "courant_eur",
      "fonds_euros_eur",

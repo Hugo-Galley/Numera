@@ -4,7 +4,7 @@ import { InvestmentsKpis } from "./InvestmentsKpis"
 import { AccountsAllocation } from "./AccountsAllocation"
 import { PerformanceSection } from "./PerformanceSection"
 import { AdvancedCharts } from "./AdvancedCharts"
-import { TopCompanies } from "./TopCompanies"
+import { PortfolioBreakdown } from "@/components/investments/PortfolioBreakdown"
 import { EtfCompositions } from "./EtfCompositions"
 import { DrillDownDialog } from "./DrillDownDialog"
 import { ThirdPartyAccounts } from "./ThirdPartyAccounts"
@@ -35,6 +35,8 @@ export default function Investments() {
 
       <AccountsAllocation ctx={ctx} />
 
+      {ctx.diversity && <PortfolioBreakdown data={ctx.diversity} scope="portfolio" />}
+
       <PerformanceSection ctx={ctx} />
 
       <DrawdownCard />
@@ -49,8 +51,6 @@ export default function Investments() {
         </div>
         
         <AdvancedCharts ctx={ctx} />
-
-        <TopCompanies ctx={ctx} />
 
         <EtfCompositions ctx={ctx} />
       </div>

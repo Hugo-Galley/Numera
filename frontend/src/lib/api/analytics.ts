@@ -27,7 +27,7 @@ export const getAnalyticsCalendar = <T = ApiResponse<"/analytics/calendar", "get
 export const getAnalyticsCashflowProjection = <T = ApiResponse<"/analytics/cashflow-projection", "get">>(query = "") => api.get<T>(`/analytics/cashflow-projection${query}`)
 
 /** GET /analytics/diversity-scanner */
-export const getAnalyticsDiversityScanner = <T = ApiResponse<"/analytics/diversity-scanner", "get">>() => api.get<T>(`/analytics/diversity-scanner`)
+export const getAnalyticsDiversityScanner = <T = ApiResponse<"/analytics/diversity-scanner", "get">>(query = "") => api.get<T>(`/analytics/diversity-scanner${query}`)
 
 /** GET /analytics/investments-allocation */
 export const getAnalyticsInvestmentsAllocation = <T = ApiResponse<"/analytics/investments-allocation", "get">>() => api.get<T>(`/analytics/investments-allocation`)

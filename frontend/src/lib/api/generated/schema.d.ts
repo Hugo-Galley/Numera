@@ -4746,8 +4746,12 @@ export interface components {
         DiversityTotals: {
             /** Courant Eur */
             courant_eur: number;
+            /** Direct Eur */
+            direct_eur: number;
             /** Epargne Eur */
             epargne_eur: number;
+            /** Etf Eur */
+            etf_eur: number;
             /** Etfs Count */
             etfs_count: number;
             /** Fonds Euros Eur */
