@@ -35,6 +35,25 @@ describe("PortfolioBreakdown", () => {
     expect(screen.getByText("Valeur des positions")).toBeInTheDocument()
   })
 
+  it("rapproche la valeur des positions de celle des comptes (part hors positions)", async () => {
+    const totals = { ...data().totals, accounts_eur: 1622.03, outside_positions_eur: 622.03 }
+    const { user } = renderWithProviders(<PortfolioBreakdown data={data({ totals })} scope="portfolio" />)
+
+    expect(screen.getByText("Hors positions").nextElementSibling).toHaveTextContent(/^622,03/)
+    expect(screen.getByText("Valeur des comptes").nextElementSibling).toHaveTextContent(/^1\s622,03/)
+
+    // Seulement sur la vue complète : la part en direct ou via ETF n'a pas d'équivalent par compte
+    await user.click(screen.getByRole("button", { name: "En direct" }))
+    expect(screen.queryByText("Hors positions")).not.toBeInTheDocument()
+  })
+
+  it("n'affiche pas de rapprochement quand les comptes valent leurs positions", () => {
+    const totals = { ...data().totals, accounts_eur: 1000.4, outside_positions_eur: 0.4 }
+    renderWithProviders(<PortfolioBreakdown data={data({ totals })} scope="portfolio" />)
+
+    expect(screen.queryByText("Hors positions")).not.toBeInTheDocument()
+  })
+
   it("filtre par provenance : en direct, puis via ETF", async () => {
     const { user } = renderWithProviders(<PortfolioBreakdown data={data()} scope="portfolio" />)
 

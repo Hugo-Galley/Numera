@@ -4920,6 +4920,8 @@ export interface components {
         };
         /** DiversityTotals */
         DiversityTotals: {
+            /** Accounts Eur */
+            accounts_eur: number;
             /** Courant Eur */
             courant_eur: number;
             /** Direct Eur */
@@ -4936,6 +4938,8 @@ export interface components {
             holdings_count: number;
             /** Other Eur */
             other_eur: number;
+            /** Outside Positions Eur */
+            outside_positions_eur: number;
             /** Stocks Eur */
             stocks_eur: number;
             /** Wealth Eur */

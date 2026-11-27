@@ -430,7 +430,10 @@
     "overlapHint": "Détenue par plusieurs sources : en direct et via un ETF, ou par plusieurs ETF",
     "hideOther": "Zoomer sur les lignes nommées (masquer « Autres »)",
     "chartLabel": "Donut de la répartition des positions",
-    "loadFailed": "Impossible de calculer la répartition du compte"
+    "loadFailed": "Impossible de calculer la répartition du compte",
+    "outsidePositions": "Hors positions",
+    "accountsValue": "Valeur des comptes",
+    "outsidePositionsHint": "Espèces, fonds euros, comptes sans position et écart entre le dernier relevé et le cours du jour."
   },
   "concentration": {
     "title": "Concentration",

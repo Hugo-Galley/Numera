@@ -190,6 +190,9 @@ class DiversityTotals(BaseModel):
     fonds_euros_eur: float
     other_eur: float
     wealth_eur: float
+    # Valeur des comptes d'investissement du périmètre (comme la répartition par compte) et sa part hors positions
+    accounts_eur: float
+    outside_positions_eur: float
     holdings_count: int
     etfs_count: int
 

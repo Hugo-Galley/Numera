@@ -430,7 +430,10 @@
     "overlapHint": "En varias fuentes: en directo y a través de un ETF, o en varios ETF",
     "hideOther": "Ampliar las líneas con nombre (ocultar «Otros»)",
     "chartLabel": "Gráfico de anillo del reparto de las posiciones",
-    "loadFailed": "No se pudo calcular el reparto de la cuenta"
+    "loadFailed": "No se pudo calcular el reparto de la cuenta",
+    "outsidePositions": "Fuera de posiciones",
+    "accountsValue": "Valor de las cuentas",
+    "outsidePositionsHint": "Efectivo, fondos en euros, cuentas sin posiciones y diferencia entre el último extracto y la cotización del día."
   },
   "concentration": {
     "title": "Concentración",

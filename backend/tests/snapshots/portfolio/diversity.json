@@ -301,6 +301,7 @@
   }
  ],
  "totals": {
+  "accounts_eur": 31535.13,
   "courant_eur": 3874.65,
   "direct_eur": 8352.06,
   "epargne_eur": 10613.8,
@@ -309,6 +310,7 @@
   "fonds_euros_eur": 4188.12,
   "holdings_count": 5,
   "other_eur": 0.0,
+  "outside_positions_eur": 11790.73,
   "stocks_eur": 19744.4,
   "wealth_eur": 38420.97
  }
