@@ -1,10 +1,11 @@
 import i18n from "i18next"
 import { useTranslation } from "react-i18next"
+import { Link } from "react-router-dom"
 import { appLocale } from "@/i18n/locale"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Globe, Layers, RefreshCw } from "lucide-react"
+import { ArrowRight, Globe, Layers, RefreshCw } from "lucide-react"
 import WorldMap from "@/components/ui/WorldMap"
 import { formatCurrency } from "@/lib/utils"
 import { CompositionOrigin } from "./CompositionOrigin"
@@ -82,6 +83,14 @@ export function EtfCompositions({ ctx }: { ctx: InvestmentsCtx }) {
                       )}
                     </div>
                     <CompositionOrigin composition={c} />
+                    <Link
+                      to={`/investments/etf/${c.profile_id}`}
+                      aria-label={t("etfCompositions.voirLaFicheDe", { name: c.profile_name })}
+                      className="mt-1 inline-flex min-h-10 items-center gap-1 text-sm font-semibold text-slate-900 underline decoration-slate-300 underline-offset-4 hover:decoration-slate-900"
+                    >
+                      {t("etfCompositions.voirLaFiche")}
+                      <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+                    </Link>
                   </div>
                   <div className="flex flex-wrap gap-1.5">
                     {COMPOSITION_FIELDS.map(({ key }) => {

@@ -4,6 +4,7 @@ import { setLanguage } from "@/i18n"
 import { EtfCompositions } from "@/pages/Investments/EtfCompositions"
 import type { InvestmentsCtx } from "@/pages/Investments/useInvestments"
 import type { EtfCompositionInfo } from "@/types/diversity"
+import { LocationDisplay } from "@/test/support/LocationDisplay"
 import { renderWithProviders } from "@/test/support/render"
 
 // La carte du monde va chercher son fond sur un site tiers : hors sujet ici
@@ -34,7 +35,7 @@ function renderCard(...compositions: EtfCompositionInfo[]) {
     refreshCompositions: vi.fn(),
     refreshingCompositions: false,
   } as unknown as InvestmentsCtx
-  return renderWithProviders(<EtfCompositions ctx={ctx} />)
+  return renderWithProviders(<><EtfCompositions ctx={ctx} /><LocationDisplay /></>)
 }
 
 describe("EtfCompositions : source, date et couverture", () => {
@@ -105,6 +106,15 @@ describe("EtfCompositions : source, date et couverture", () => {
     expect(within(row).getByText(/jamais actualisé/)).toBeInTheDocument()
     expect(within(row).queryByText(/du fonds/)).not.toBeInTheDocument()
     expect(screen.getByText("Pays : Saisie")).toBeInTheDocument()
+  })
+
+  it("ouvre la fiche de chaque ETF", async () => {
+    const { user } = renderCard(composition(), composition({ profile_id: 2, profile_name: "Autre fonds" }))
+
+    const links = screen.getAllByRole("link", { name: /Voir la fiche/ })
+    expect(links.map((l) => l.getAttribute("href"))).toEqual(["/investments/etf/1", "/investments/etf/2"])
+    await user.click(screen.getByRole("link", { name: "Voir la fiche : iShares Core MSCI World" }))
+    expect(screen.getByRole("status", { name: "adresse" })).toHaveTextContent("/investments/etf/1")
   })
 
   it("se traduit en anglais", () => {

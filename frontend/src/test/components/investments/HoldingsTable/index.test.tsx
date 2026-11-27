@@ -76,6 +76,20 @@ describe("HoldingsTable : confidentialité", () => {
   })
 })
 
+describe("HoldingsTable : fiche ETF", () => {
+  it("le nom d'une position rattachée à un fonds mène à sa fiche, pas celui d'une action", () => {
+    renderWithProviders(
+      <HoldingsTable accountId={5} accountName="PEA" holdings={[holding({ etf_profile_id: 4 }), holdings[1]]} onRefresh={vi.fn()} />,
+      { auth: true },
+    )
+
+    expect(within(desktopTable()).getByRole("link", { name: "Amundi MSCI World" })).toHaveAttribute("href", "/investments/etf/4")
+    expect(within(desktopTable()).queryByRole("link", { name: "Air Liquide" })).not.toBeInTheDocument()
+    // La liste mobile a le même lien
+    expect(screen.getAllByRole("link", { name: "Amundi MSCI World" })).toHaveLength(2)
+  })
+})
+
 describe("HoldingsTable : ISIN à compléter", () => {
   const missing = holding({ id: 3, ticker: "HO.PA", isin: undefined, asset_name: "Thales", is_etf: false, isin_missing: true })
 
