@@ -37,8 +37,13 @@ test("changement de mois : la période de paie affichée suit la sélection", as
   await page.goto("/")
   const periode = page.getByText(/Période de paie/)
   const avant = await periode.innerText()
-  await page.getByRole("combobox").filter({ hasText: "Novembre" }).click()
-  await page.getByRole("option", { name: "Octobre" }).click()
+  // Le mois ouvert suit la période de paie en cours (il change le jour du salaire) : ne pas le coder en dur
+  const mois = page.getByRole("combobox").filter({
+    hasText: /^(Janvier|Février|Mars|Avril|Mai|Juin|Juillet|Août|Septembre|Octobre|Novembre|Décembre)$/,
+  })
+  const autre = (await mois.innerText()).trim() === "Octobre" ? "Septembre" : "Octobre"
+  await mois.click()
+  await page.getByRole("option", { name: autre }).click()
   await expect(periode).not.toHaveText(avant)
 })
 
