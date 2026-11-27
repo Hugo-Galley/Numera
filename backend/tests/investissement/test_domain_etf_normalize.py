@@ -4,7 +4,8 @@ from pathlib import Path
 import pytest
 
 from app.domain import etf_normalize
-from app.domain.etf_normalize import country_code, is_equity_line, sector_label
+from app.domain.etf_normalize import INDEX_NAMES, country_code, index_for_fund_name, is_equity_line, sector_label
+from app.domain.isin import is_valid_isin
 
 
 @pytest.mark.parametrize(
@@ -149,3 +150,60 @@ def test_sector_label_unknown(label: str | None) -> None:
 )
 def test_is_equity_line(asset_class: str | None, type_: str | None, expected: bool) -> None:
     assert is_equity_line(asset_class, type_) is expected
+
+
+@pytest.mark.parametrize(
+    ("name", "index"),
+    [
+        ("Amundi MSCI World Swap UCITS ETF EUR Acc", "MSCI World"),
+        ("iShares MSCI World Swap PEA UCITS ETF", "MSCI World"),
+        ("Lyxor PEA Monde (MSCI World) UCITS ETF", "MSCI World"),
+        ("State Street® SPDR® MSCI World UCITS ETF (Acc)", "MSCI World"),
+        ("Amundi PEA S&P 500 UCITS ETF Acc", "S&P 500"),
+        ("BNP Paribas Easy S&P 500 UCITS ETF EUR C", "S&P 500"),
+        ("State Street® SPDR® S&P® 500 UCITS ETF (Dist)", "S&P 500"),
+        ("Amundi Nasdaq-100 Swap UCITS ETF EUR Acc", "Nasdaq 100"),
+        ("Amundi PEA Nasdaq 100 UCITS ETF", "Nasdaq 100"),
+        ("Amundi PEA MSCI Emerging Markets UCITS ETF", "MSCI Emerging Markets"),
+        ("iShares Core MSCI EM UCITS ETF USD (Acc)", "MSCI Emerging Markets"),
+        ("Amundi Core Stoxx Europe 600 UCITS ETF Acc", "STOXX Europe 600"),
+        ("Amundi CAC 40 UCITS ETF Dist", "CAC 40"),
+        ("iShares MSCI ACWI UCITS ETF", "MSCI ACWI"),
+        ("Amundi MSCI Europe UCITS ETF Acc", "MSCI Europe"),
+        ("Xtrackers MSCI USA Swap UCITS ETF 1C", "MSCI USA"),
+        ("iShares S&P 500 EUR Hedged UCITS ETF (Acc)", "S&P 500"),
+    ],
+)
+def test_index_for_fund_name(name, index):
+    assert index_for_fund_name(name) == index
+
+
+@pytest.mark.parametrize(
+    "name",
+    [
+        "iShares MSCI World Small Cap UCITS ETF",
+        "Amundi MSCI World ESG Leaders UCITS ETF",
+        "Amundi MSCI World SRI Climate Paris Aligned UCITS ETF",
+        "Amundi MSCI World Information Technology UCITS ETF",
+        "Xtrackers MSCI World ex USA UCITS ETF",
+        "iShares S&P 500 Information Technology Sector UCITS ETF",
+        "Invesco S&P 500 Equal Weight UCITS ETF",
+        "Amundi ETF Leveraged MSCI USA Daily UCITS ETF",
+        "Amundi Nasdaq-100 Daily (2x) Leveraged UCITS ETF",
+        "Amundi CAC 40 Daily (-1x) Inverse UCITS ETF",
+        "iShares Core MSCI Emerging Markets IMI UCITS ETF",
+        "iShares MSCI ACWI IMI UCITS ETF",
+        "Carmignac Patrimoine A EUR Acc",
+        "MSCI",
+        "",
+    ],
+)
+def test_index_for_fund_name_refuses_variants_of_an_index(name):
+    """Un indice dérivé (taille, secteur, ESG, levier…) n'a pas la composition de l'indice de base."""
+    assert index_for_fund_name(name) is None
+
+
+def test_every_index_has_one_reference_fund_and_no_figure():
+    references = json.loads((Path(__file__).parents[2] / "app" / "domain" / "index_references.json").read_text(encoding="utf-8"))
+    assert set(references) == set(INDEX_NAMES)
+    assert all(is_valid_isin(isin) for isin in references.values())

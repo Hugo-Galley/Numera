@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 from typing import Any
 
 from app.core.circuit_breaker import CircuitBreaker
-from app.domain.etf_normalize import country_code, sector_label
+from app.domain.etf_normalize import country_code, index_for_fund_name, sector_label
 from app.integrations.etf_providers.base import (
     CatalogCache,
     ClientFactory,
@@ -76,7 +76,7 @@ def _fund(row: dict[str, Any]) -> ProviderFund | None:
     replication = "synthetic" if "swap" in name.lower().split() else "physical"
     return ProviderFund(
         provider="spdr", ref=f"{SITE}{path}", isin=isin.group(1), name=name,
-        ticker=ticker[0] if ticker else None, replication=replication, index_name=None,
+        ticker=ticker[0] if ticker else None, replication=replication, index_name=index_for_fund_name(name),
     )
 
 

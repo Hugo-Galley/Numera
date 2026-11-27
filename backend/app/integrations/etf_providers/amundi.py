@@ -11,7 +11,7 @@ from datetime import date, timedelta
 from typing import Any
 
 from app.core.circuit_breaker import CircuitBreaker
-from app.domain.etf_normalize import country_code, sector_label
+from app.domain.etf_normalize import country_code, index_for_fund_name, sector_label
 from app.domain.isin import is_valid_isin
 from app.integrations.etf_providers.base import (
     ClientFactory,
@@ -69,7 +69,7 @@ class Amundi:
             provider="amundi", ref=wanted, isin=wanted, name=name,
             ticker=text_or_none(characteristics.get("MNEMO")),
             replication=_REPLICATIONS.get(str(characteristics.get("FUND_REPLICATION_METHODOLOGY")), "unknown"),
-            index_name=None,
+            index_name=index_for_fund_name(name),
         )
 
     def find_isin_by_ticker(self, symbol: str) -> Awaitable[str | None]:

@@ -75,6 +75,7 @@ def test_lookup_reads_the_catalog():
     fund = asyncio.run(_provider().lookup(ACWI))
     assert (fund.provider, fund.isin, fund.ticker, fund.replication) == ("spdr", ACWI, "ACWE", "physical")
     assert "MSCI All Country World" in fund.name
+    assert fund.index_name == "MSCI ACWI"
     assert fund.ref.startswith("https://www.ssga.com/library-content/") and fund.ref.endswith(".xlsx")
 
 

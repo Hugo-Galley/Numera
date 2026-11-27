@@ -114,6 +114,45 @@ def _has_phrase(tokens: list[str], phrase: tuple[str, ...]) -> bool:
     return any(tuple(tokens[i : i + size]) == phrase for i in range(len(tokens) - size + 1))
 
 
+# Indice -> écritures possibles dans un nom de fonds (clés comparées mot à mot, les plus longues d'abord)
+_INDEX_PHRASES: dict[str, tuple[str, ...]] = {
+    "MSCI World": ("msci world",),
+    "S&P 500": ("s p 500",),
+    "Nasdaq 100": ("nasdaq 100",),
+    "MSCI Emerging Markets": ("msci emerging markets", "msci emerging", "msci em"),
+    "STOXX Europe 600": ("stoxx europe 600", "stoxx 600"),
+    "CAC 40": ("cac 40",),
+    "MSCI ACWI": ("msci acwi", "msci all country world"),
+    "MSCI Europe": ("msci europe",),
+    "MSCI USA": ("msci usa",),
+}
+INDEX_NAMES = tuple(_INDEX_PHRASES)
+
+# Seuls mots admis autour de l'indice : émetteurs, enveloppe, devise, part et mode de réplication.
+# Tout autre mot (Small Cap, ESG, secteur, levier, inverse, IMI…) désigne un autre indice.
+_FUND_NAME_NOISE = frozenset({
+    "amundi", "lyxor", "ishares", "spdr", "state", "street", "bnp", "paribas", "easy", "xtrackers", "vanguard", "invesco",
+    "hsbc", "ubs", "franklin", "deka", "wisdomtree", "vaneck", "fidelity", "jpmorgan", "ossiam", "lg", "l", "g", "core",
+    "ucits", "etf", "fund", "index", "pea", "monde", "swap", "daily", "dr", "ii", "iii",
+    "acc", "accumulating", "dist", "distributing", "share", "shares", "class", "a", "c", "d", "1c", "1d",
+    "eur", "usd", "gbp", "chf", "hedged",
+})
+
+
+def index_for_fund_name(name: str) -> str | None:
+    """Indice de référence suivi par un fonds, d'après son nom ; `None` au moindre doute."""
+    tokens = _key(name).split()
+    for index, phrases in _INDEX_PHRASES.items():
+        for phrase in phrases:
+            words = phrase.split()
+            for start in range(len(tokens) - len(words) + 1):
+                if tokens[start : start + len(words)] != words:
+                    continue
+                if _FUND_NAME_NOISE.issuperset(tokens[:start] + tokens[start + len(words) :]):
+                    return index
+    return None
+
+
 def _is_equity_wording(tokens: list[str]) -> bool:
     return bool({"equity", "equities", "action", "actions"}.intersection(tokens))
 

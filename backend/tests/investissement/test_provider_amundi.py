@@ -39,7 +39,8 @@ def test_lookup_reads_name_ticker_and_replication():
 
 
 def test_lookup_marks_a_swap_fund_synthetic():
-    assert _lookup("LU1681043599").replication == "synthetic"
+    fund = _lookup("LU1681043599")
+    assert (fund.replication, fund.index_name) == ("synthetic", "MSCI World")
 
 
 def test_lookup_of_an_unknown_product_returns_none():

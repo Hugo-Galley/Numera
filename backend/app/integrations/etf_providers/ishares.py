@@ -5,7 +5,7 @@ from datetime import date, datetime, timedelta
 from typing import Any
 
 from app.core.circuit_breaker import CircuitBreaker
-from app.domain.etf_normalize import country_code, sector_label
+from app.domain.etf_normalize import country_code, index_for_fund_name, sector_label
 from app.domain.isin import exchange_of
 from app.integrations.etf_providers.base import (
     CatalogCache,
@@ -71,7 +71,7 @@ def _parse_catalog(payload: dict[str, Any]) -> dict[str, ProviderFund]:
         replication = "synthetic" if "swap" in name.lower().split() else "physical"
         funds[isin] = ProviderFund(
             provider="ishares", ref=str(product_id), isin=isin, name=name,
-            ticker=text_or_none(product.get("localExchangeTicker")), replication=replication, index_name=None,
+            ticker=text_or_none(product.get("localExchangeTicker")), replication=replication, index_name=index_for_fund_name(name),
         )
     return funds
 

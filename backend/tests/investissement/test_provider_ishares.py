@@ -28,6 +28,7 @@ def test_lookup_returns_the_fund_of_an_isin():
     assert (fund.provider, fund.ref, fund.isin, fund.ticker, fund.replication) == (
         "ishares", "251882", "IE00B4L5Y983", "SWDA", "physical")
     assert fund.name == "iShares Core MSCI World UCITS ETF"
+    assert fund.index_name == "MSCI World"
 
 
 def test_lookup_marks_a_swap_fund_synthetic():
