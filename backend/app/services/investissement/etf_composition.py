@@ -5,7 +5,7 @@ Tout le réseau est lu avant la première écriture ; une actualisation ne fait 
 Une composition obtenue n'est jamais vidée ni appauvrie parce qu'une source répond mal."""
 from collections.abc import Sequence
 from dataclasses import dataclass
-from datetime import timedelta
+from datetime import datetime, timedelta
 from typing import Any
 
 from sqlalchemy.orm import Session
@@ -34,6 +34,11 @@ from app.repositories.investissement import etf_profiles as repo
 from app.repositories.investissement import securities as securities_repo
 
 logger = get_logger(__name__)
+
+# Référence d'indice dont les sources ont failli : pas de nouvelle lecture avant ce délai (un scan ne relance pas le
+# réseau à chaque appel), comme `portfolio.books.HISTORY_RETRY` pour les cours
+REFERENCE_RETRY = timedelta(hours=6)
+_REFERENCE_FAILURES: dict[str, datetime] = {}
 
 # Dans l'ordre d'interrogation. Une instance par processus : le cache des catalogues survit d'un passage à l'autre.
 PROVIDERS: list[Provider] = [IShares(), Amundi(), Spdr(), JustEtf()]
@@ -202,6 +207,8 @@ class _Reference:
     found: _Found | None
     # Faux : rien à écrire sur la référence (à jour, ou ses sources ont failli)
     read: bool
+    # Vrai : périmée ou jamais lue, et ses sources ont failli
+    failed: bool = False
 
 
 async def _prepare_reference(
@@ -225,7 +232,7 @@ async def _prepare_reference(
         found = await _collect(reference, run)
     except CompositionUnavailable as e:
         logger.warning(f"Référence d'indice non relue : {e}")
-        return _Reference(reference, None, read=False)
+        return _Reference(reference, None, read=False, failed=True)
     if found and found.synthetic:
         return None
     return _Reference(reference, found, read=True)
@@ -254,10 +261,19 @@ def _save_reference(db: Session, reference: _Reference) -> EtfProfile:
 async def ensure_index_reference(db: Session, index_name: str) -> EtfProfile | None:
     """Profil de l'ETF physique de référence de `index_name`, créé s'il manque et relu s'il est périmé, puis validé.
 
-    Sources injoignables : le profil existant tel quel, ou None sans rien écrire."""
+    Sources injoignables : le profil existant tel quel, ou None sans rien écrire ; l'échec est mémorisé
+    `REFERENCE_RETRY` (le scanner ne relance pas le réseau à chaque appel)."""
+    isin = rules.INDEX_REFERENCES.get(index_name)
+    failed_at = _REFERENCE_FAILURES.get(isin or "")
+    if failed_at and utcnow_naive() - failed_at < REFERENCE_RETRY:
+        return repo.find_by_isin(db, isin) if isin else None
     prepared = await _prepare_reference(db, None, index_name, _Pass(PROVIDERS, set()))
+    if prepared is not None and isin:
+        if prepared.failed:
+            _REFERENCE_FAILURES[isin] = utcnow_naive()
+        else:
+            _REFERENCE_FAILURES.pop(isin, None)
     if prepared is None:
-        isin = rules.INDEX_REFERENCES.get(index_name)
         return repo.find_by_isin(db, isin) if isin else None
     if prepared.profile.id is None and not (prepared.read and prepared.found):
         return None  # rien de connu, rien de lu : pas de profil vide en base

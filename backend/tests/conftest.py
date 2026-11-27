@@ -119,10 +119,12 @@ def fresh_external_state():
     """Caches mémoire et disjoncteurs des services externes : un test ne lit jamais l'état d'un autre."""
     from app.core.circuit_breaker import reset_all
     from app.integrations import currency
+    from app.services.investissement import etf_composition
     from app.services.investissement.market import quotes
 
     def clear():
         reset_all()
+        etf_composition._REFERENCE_FAILURES.clear()
         currency.reset_state()
         quotes._QUOTES_CACHE.clear()
         quotes._FAILED_SYMBOLS.clear()

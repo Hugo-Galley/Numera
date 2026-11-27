@@ -2,7 +2,7 @@
 from collections.abc import Iterable
 from typing import Any, cast
 
-from sqlalchemy import Table, func
+from sqlalchemy import ColumnElement, Table, and_, case, func, or_
 from sqlalchemy.dialects.sqlite import insert
 from sqlalchemy.orm import Session
 
@@ -16,7 +16,7 @@ def upsert_many(db: Session, rows: list[dict[str, Any]]) -> None:
     """Insère ou met à jour les titres en une seule instruction groupée (`ON CONFLICT(isin) DO UPDATE`).
 
     `country`, `sector` et `exchange` ne sont jamais remplacés par NULL, ni `ticker` par un texte vide (SPDR n'en
-    publie pas) ; une ligne `source="manual"` n'est pas modifiée.
+    publie pas) ; une ligne `source="manual"` garde tous ses champs ; sans pays ni secteur, seule sa date `updated_at` avance.
     Pas de commit : l'appelant valide."""
     if not rows:
         return
@@ -29,18 +29,25 @@ def upsert_many(db: Session, rows: list[dict[str, Any]]) -> None:
     # Table Core (et non l'ORM, qui éclaterait le lot selon les colonnes à NULL) ; `__table__` est typé trop large
     stmt = insert(cast(Table, Security.__table__))
     excluded = stmt.excluded
+    manual = Security.source == "manual"
+
+    def unless_manual(new: Any, current: Any) -> ColumnElement[Any]:
+        return case((manual, current), else_=new)
+
     stmt = stmt.on_conflict_do_update(
         index_elements=[Security.isin],
         set_={
-            "ticker": func.coalesce(func.nullif(excluded.ticker, ""), Security.ticker),
-            "name": excluded.name,
-            "source": excluded.source,
+            "ticker": unless_manual(func.coalesce(func.nullif(excluded.ticker, ""), Security.ticker), Security.ticker),
+            "name": unless_manual(excluded.name, Security.name),
+            "source": unless_manual(excluded.source, Security.source),
             "updated_at": excluded.updated_at,
-            "exchange": func.coalesce(excluded.exchange, Security.exchange),
-            "country": func.coalesce(excluded.country, Security.country),
-            "sector": func.coalesce(excluded.sector, Security.sector),
+            "exchange": unless_manual(func.coalesce(excluded.exchange, Security.exchange), Security.exchange),
+            "country": unless_manual(func.coalesce(excluded.country, Security.country), Security.country),
+            "sector": unless_manual(func.coalesce(excluded.sector, Security.sector), Security.sector),
         },
-        where=Security.source != "manual",
+        # Une ligne saisie sans pays ni secteur ne garde que la date d'interrogation : sans elle, Yahoo serait
+        # redemandé à chaque scan (`_needs_yahoo`)
+        where=or_(~manual, and_(Security.country.is_(None), Security.sector.is_(None))),
     )
     db.execute(stmt, values)
 
