@@ -58,6 +58,8 @@ from app.core.migrations import run_migrations
 from app.core.request_info import client_ip
 from app.db.session import SessionLocal
 from app.integrations.currency import CurrencyConversionError
+from app.integrations.etf_providers.base import Provider
+from app.integrations.etf_providers.ishares import IShares
 from app.services.budget.benefit_generation import generate_benefit_transactions, reconcile_provisional
 from app.services.budget.recurring import generate_recurring_transactions
 from app.services.budget.salary_generation import check_and_generate_pending_salaries
@@ -85,6 +87,14 @@ async def _run_step(db: Session, name: str, step: Callable[[Session], object]) -
         logger.exception("Tâche de fond : étape « %s » en échec", name)
 
 
+# Catalogues des émetteurs : une instance par processus, pour que leur cache survive d'un passage à l'autre
+_ISIN_CATALOGS: list[Provider] = [IShares()]
+
+
+async def resolve_isins_step(db: Session) -> None:
+    await resolve_missing_isins(db, catalogs=_ISIN_CATALOGS)
+
+
 async def recurring_transactions_task() -> None:
     """Background task to generate recurring transactions periodically."""
     # Wait a bit after startup to avoid interfering with migrations/seeding
@@ -107,7 +117,7 @@ async def recurring_transactions_task() -> None:
                 # Cours des titres détenus enregistrés en base (historique de valorisation)
                 await _run_step(db, "cours", refresh_held_prices)
                 # ISIN manquants des positions (sources locales, puis catalogues des émetteurs)
-                await _run_step(db, "ISIN", resolve_missing_isins)
+                await _run_step(db, "ISIN", resolve_isins_step)
                 # Composition des ETF détenus (Yahoo), au plus une fois par semaine et par profil
                 await _run_step(db, "profils ETF", refresh_held_etf_profiles)
                 # Alertes du Centre d'Actions et résumé hebdo vers ntfy / Telegram (si activés)

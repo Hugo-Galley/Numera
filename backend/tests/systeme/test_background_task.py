@@ -47,7 +47,7 @@ def test_etape_en_echec_ne_saute_pas_les_suivantes(monkeypatch):
         return step
 
     def ok_async(name):
-        async def step(_db):
+        async def step(_db, **_options):
             ran.append(name)
         return step
 
