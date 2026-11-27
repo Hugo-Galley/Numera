@@ -204,10 +204,14 @@ class _Reference:
     read: bool
 
 
-async def _prepare_reference(db: Session, synthetic: EtfProfile, index_name: str | None, run: _Pass) -> _Reference | None:
-    """Profil de l'ETF physique qui suit le même indice, retrouvé ou à créer, relu s'il est périmé (sans écriture)."""
+async def _prepare_reference(
+    db: Session, synthetic: EtfProfile | None, index_name: str | None, run: _Pass,
+) -> _Reference | None:
+    """Profil de l'ETF physique qui suit le même indice, retrouvé ou à créer, relu s'il est périmé (sans écriture).
+
+    `synthetic` : le fonds à swap qui en a besoin (jamais sa propre référence), None pour une référence demandée seule."""
     isin = rules.INDEX_REFERENCES.get(index_name or "")
-    if not index_name or not isin or isin == synthetic.isin:
+    if not index_name or not isin or (synthetic is not None and isin == synthetic.isin):
         return None
     reference = repo.find_by_isin(db, isin) or EtfProfile(
         name=index_name, ticker=isin, isin=isin, aliases=f'["{isin}"]', countries="{}", sectors="{}",
@@ -244,6 +248,22 @@ def _save_reference(db: Session, reference: _Reference) -> EtfProfile:
             if _named_after_index(profile) and found.fund_name:
                 profile.name = found.fund_name
         profile.composition_refreshed_at = utcnow_naive()
+    return profile
+
+
+async def ensure_index_reference(db: Session, index_name: str) -> EtfProfile | None:
+    """Profil de l'ETF physique de référence de `index_name`, créé s'il manque et relu s'il est périmé, puis validé.
+
+    Sources injoignables : le profil existant tel quel, ou None sans rien écrire."""
+    prepared = await _prepare_reference(db, None, index_name, _Pass(PROVIDERS, set()))
+    if prepared is None:
+        isin = rules.INDEX_REFERENCES.get(index_name)
+        return repo.find_by_isin(db, isin) if isin else None
+    if prepared.profile.id is None and not (prepared.read and prepared.found):
+        return None  # rien de connu, rien de lu : pas de profil vide en base
+    profile = _save_reference(db, prepared)
+    if prepared.read:
+        db.commit()
     return profile
 
 
