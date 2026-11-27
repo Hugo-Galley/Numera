@@ -8,7 +8,17 @@ from sqlalchemy.orm import Session
 
 from app.core.logging import get_logger
 from app.core.time import utcnow_naive
-from app.domain.diversity import diversity_alerts, exposure_rows, hhi_score, look_through, score_label, top_companies
+from app.domain.diversity import (
+    Exposure,
+    LookThrough,
+    diversity_alerts,
+    exposure_rows,
+    hhi_score,
+    look_through,
+    score_label,
+    top_companies,
+)
+from app.domain.etf_profiles import match_profile
 from app.domain.holdings import holding_profile, is_crypto, is_etf_holding, is_fund
 from app.domain.isin import IsinCandidate, pick_isin
 from app.integrations import yahoo_finance
@@ -18,12 +28,12 @@ from app.models.portfolio_holding import PortfolioHolding
 from app.models.security import Security
 from app.repositories.analytics import diversity as repo
 from app.repositories.comptes.balances import active_accounts
+from app.repositories.investissement import etf_constituents
 from app.repositories.investissement import etf_profiles as etf_repo
 from app.repositories.investissement import securities as securities_repo
 from app.services.comptes.wealth import account_values
 from app.services.investissement.etf_profiles import auto_decompose_and_create_profile
 from app.services.investissement.market import quotes as market_quotes
-from app.services.investissement.market.search import match_etf_profile
 
 logger = get_logger(__name__)
 
@@ -172,6 +182,29 @@ async def _wealth_context(db: Session) -> dict[str, float]:
     return totals
 
 
+def _look_through(db: Session, valued_holdings: list[dict[str, Any]], securities: dict[str, Security]) -> LookThrough:
+    """Transparence des ETF : profils et lignes de composition chargés une fois pour tout le portefeuille ; un
+    synthétique est décomposé par la référence de son indice."""
+    profiles = etf_repo.all_profiles(db)
+    by_id = {p.id: p for p in profiles}
+    held = {
+        vh["id"]: by_id.get(vh["etf_profile_id"])
+        or match_profile(profiles, vh["ticker"], vh.get("isin"), vh.get("name"))
+        for vh in valued_holdings
+    }
+
+    def exposed_by(profile: EtfProfile) -> EtfProfile:
+        return by_id.get(profile.exposure_profile_id or 0, profile)
+
+    lines = etf_constituents.for_profiles(db, {exposed_by(p).id for p in held.values() if p})
+
+    def exposure_for(profile: EtfProfile) -> Exposure:
+        source = exposed_by(profile)
+        return Exposure(source, lines.get(source.id, []))
+
+    return look_through(valued_holdings, lambda vh: held[vh["id"]], securities, exposure_for)
+
+
 async def compute_diversity(db: Session, account_id: int | None) -> dict[str, Any]:
     """Expositions réelles (sociétés, pays, secteurs), doublons, alertes, score HHI et vue patrimoine total."""
     holdings = repo.holdings(db, account_id)
@@ -183,13 +216,7 @@ async def compute_diversity(db: Session, account_id: int | None) -> dict[str, An
     total_wealth_eur = round(total_stocks_eur + side["epargne"] + side["courant"] + side["fonds_euros"] + side["other"], 2)
 
     securities = await _direct_securities(db, valued_holdings)  # commit éventuel avant de charger les profils
-    profiles_by_id = {p.id: p for p in etf_repo.all_profiles(db)}
-
-    def profile_for(vh: dict[str, Any]) -> EtfProfile | None:
-        etf_profile = profiles_by_id.get(vh["etf_profile_id"]) if vh["etf_profile_id"] else None
-        return etf_profile or match_etf_profile(db, symbol=vh["ticker"], isin=vh.get("isin"), name=vh.get("name"))
-
-    lt = look_through(valued_holdings, profile_for, securities)
+    lt = _look_through(db, valued_holdings, securities)
     companies = top_companies(lt.companies, total_stocks_eur, total_wealth_eur)
     countries = exposure_rows(lt.countries, total_stocks_eur, total_wealth_eur)
     sectors = exposure_rows(lt.sectors, total_stocks_eur, total_wealth_eur)

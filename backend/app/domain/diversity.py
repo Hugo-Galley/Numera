@@ -5,14 +5,15 @@ from __future__ import annotations
 
 import json
 import re
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
 from app.core.i18n import tr
 from app.core.logging import get_logger
+from app.domain.etf_composition import EtfLine, is_equity
 from app.domain.etf_normalize import UNKNOWN_LABEL
-from app.domain.etf_profiles import load_sources
+from app.domain.etf_profiles import SOURCE_MANUAL, load_sources
 from app.domain.holdings import is_crypto
 
 if TYPE_CHECKING:
@@ -20,6 +21,8 @@ if TYPE_CHECKING:
     from app.models.security import Security
 
 CRYPTO_LABEL = "Crypto-actifs"
+# Lignes d'un ETF qui ne sont pas des actions : ni pays, ni secteur, ni société
+CASH_LABEL = "Liquidités et dérivés"
 
 logger = get_logger(__name__)
 
@@ -115,8 +118,76 @@ class LookThrough:
         return self.companies[key]
 
 
-def _decompose_etf(out: LookThrough, vh: dict[str, Any], etf_profile: EtfProfile) -> None:
-    """Un ETF : sa valeur est répartie entre ses pays, secteurs et premières lignes."""
+@dataclass(frozen=True)
+class Exposure:
+    """Ce qui décrit l'exposition d'un ETF : son profil, ou celui de la référence d'indice s'il est synthétique."""
+
+    profile: EtfProfile
+    lines: Sequence[EtfLine] = ()
+
+
+def _add(target: dict[str, float], label: str, value: float) -> None:
+    target[label] = target.get(label, 0.0) + value
+
+
+def _spread_lines(target: dict[str, float], lines: Sequence[EtfLine], attribute: str, value_eur: float) -> None:
+    """Répartit `value_eur` ligne à ligne (pays ou secteur). Les liquidités et dérivés ont leur propre poste, s'il
+    est positif ; ce que les lignes ne décrivent pas va dans « Non renseigné »."""
+    covered = cash = 0.0
+    for line in lines:
+        label = getattr(line, attribute)
+        if not is_equity(line):
+            cash += line.weight
+        elif label and label != UNKNOWN_LABEL:
+            _add(target, label, value_eur * line.weight / 100.0)
+            covered += line.weight
+    if cash > 0:
+        _add(target, CASH_LABEL, value_eur * cash / 100.0)
+    uncovered = 100.0 - covered - max(cash, 0.0)
+    if uncovered > 0.5:
+        _add(target, UNKNOWN_LABEL, value_eur * uncovered / 100.0)
+
+
+def _line_companies(lines: Sequence[EtfLine]) -> list[tuple[str, str, str | None, float]]:
+    """(clé, nom, ticker, poids) des actions d'un ETF, une entrée par société."""
+    companies: dict[str, tuple[str, str | None, float]] = {}
+    for line in lines:
+        if not is_equity(line) or line.weight <= 0:
+            continue
+        key = normalize_company_key(line.ticker, line.name, line.isin)
+        name, ticker, weight = companies.get(key, (line.name, line.ticker, 0.0))
+        companies[key] = (name, ticker or line.ticker, weight + line.weight)
+    return [(key, *company) for key, company in companies.items()]
+
+
+def _top_holding_companies(profile: EtfProfile) -> list[tuple[str, str, str | None, float]]:
+    """Mêmes tuples depuis les premières lignes enregistrées sur le profil (sources sans détail, saisie)."""
+    companies = []
+    try:
+        for item in json.loads(profile.top_holdings or "[]"):
+            name, ticker = item["name"], item.get("ticker")
+            key = normalize_company_key(ticker, name, item.get("isin"))
+            companies.append((key, name, ticker, float(item.get("weight", 0.0))))
+    except (ValueError, KeyError, TypeError, AttributeError) as e:  # JSON ou ligne de composition mal formés
+        logger.warning(f"Error parsing ETF holdings for {profile.name}: {e}")
+    return companies
+
+
+def _add_indirect(out: LookThrough, source: str, value_eur: float,
+                  companies: list[tuple[str, str, str | None, float]]) -> None:
+    for key, name, ticker, weight in companies:
+        value = value_eur * weight / 100.0
+        company = out.company(key, name, ticker)
+        company["indirect_value_eur"] += value
+        if ticker and not company.get("ticker"):
+            company["ticker"] = ticker
+        company["sources"].append({"source": source, "pct_in_source": round(weight, 2), "value_eur": round(value, 2)})
+
+
+def _decompose_etf(out: LookThrough, vh: dict[str, Any], etf_profile: EtfProfile, exposure: Exposure) -> None:
+    """Un ETF : sa valeur est répartie entre ses pays, secteurs et sociétés, ligne à ligne quand elles sont connues.
+
+    Champ par champ : une saisie manuelle du profil détenu l'emporte, puis les lignes, puis les agrégats."""
     vh_val = vh["value_eur"]
     out.etfs.append({
         "ticker": vh["ticker"],
@@ -124,46 +195,40 @@ def _decompose_etf(out: LookThrough, vh: dict[str, Any], etf_profile: EtfProfile
         "value_eur": vh_val,
         "profile_name": etf_profile.name,
     })
+    manual = {name for name, origin in load_sources(etf_profile).items() if origin == SOURCE_MANUAL}
     if etf_profile.id not in out.compositions:
+        origin = load_sources(exposure.profile) | dict.fromkeys(manual, SOURCE_MANUAL)
         out.compositions[etf_profile.id] = {
             "profile_id": etf_profile.id,
             "profile_name": etf_profile.name,
             "tickers": [],
             "value_eur": 0.0,
-            "sources": load_sources(etf_profile),
-            "refreshed_at": etf_profile.composition_refreshed_at,
+            "sources": origin,
+            "refreshed_at": exposure.profile.composition_refreshed_at,
         }
     out.compositions[etf_profile.id]["tickers"].append(vh["ticker"])
     out.compositions[etf_profile.id]["value_eur"] += vh_val
 
-    spread_weights(out.countries, etf_profile.countries, vh_val)
-    spread_weights(out.sectors, etf_profile.sectors, vh_val)
+    for field_name, attribute, target in (("countries", "country", out.countries), ("sectors", "sector", out.sectors)):
+        described = etf_profile if field_name in manual else exposure.profile
+        if field_name not in manual and exposure.lines:
+            _spread_lines(target, exposure.lines, attribute, vh_val)
+        else:
+            spread_weights(target, getattr(described, field_name), vh_val)
 
-    # Top holdings look-through
-    try:
-        for h_item in json.loads(etf_profile.top_holdings):
-            h_name = h_item["name"]
-            h_ticker = h_item.get("ticker")
-            h_weight = float(h_item.get("weight", 0.0))
-            h_val = vh_val * (h_weight / 100.0)
-            comp = out.company(normalize_company_key(h_ticker, h_name, h_item.get("isin")), h_name, h_ticker)
-            comp["indirect_value_eur"] += h_val
-            if h_ticker and not comp.get("ticker"):
-                comp["ticker"] = h_ticker
-            comp["sources"].append({
-                "source": vh["ticker"],
-                "pct_in_source": round(h_weight, 2),
-                "value_eur": round(h_val, 2),
-            })
-    except (ValueError, KeyError, TypeError, AttributeError) as e:  # JSON ou ligne de composition mal formés
-        logger.warning(f"Error parsing ETF holdings for {etf_profile.name}: {e}")
+    if "top_holdings" not in manual and exposure.lines:
+        companies = _line_companies(exposure.lines)
+    else:
+        companies = _top_holding_companies(etf_profile if "top_holdings" in manual else exposure.profile)
+    _add_indirect(out, vh["ticker"], vh_val, companies)
 
 
 def _direct_line(out: LookThrough, vh: dict[str, Any], security: Security | None) -> None:
     """Une action détenue en direct : pays et secteur du référentiel des titres, sinon « Non renseigné »."""
     vh_val = vh["value_eur"]
     direct_ticker = vh.get("ticker")
-    comp = out.company(normalize_company_key(direct_ticker, vh["name"], vh.get("isin")), vh["name"], direct_ticker)
+    isin = vh.get("isin") or (security.isin if security else None)  # titre retrouvé par ticker : même société
+    comp = out.company(normalize_company_key(direct_ticker, vh["name"], isin), vh["name"], direct_ticker)
     comp["direct_value_eur"] += vh_val
     if direct_ticker and not comp.get("ticker"):
         comp["ticker"] = direct_ticker
@@ -180,9 +245,11 @@ def _direct_line(out: LookThrough, vh: dict[str, Any], security: Security | None
 
 def look_through(valued_holdings: list[dict[str, Any]],
                  profile_for: Callable[[dict[str, Any]], EtfProfile | None],
-                 securities: dict[str, Security] | None = None) -> LookThrough:
+                 securities: dict[str, Security] | None = None,
+                 exposure_for: Callable[[EtfProfile], Exposure] = Exposure) -> LookThrough:
     """Agrège les positions valorisées (> 0) : un ETF est décomposé selon son profil, une crypto compte dans son
-    propre secteur, une action reste en direct (`securities` : titres par ISIN, ou par ticker à défaut d'ISIN)."""
+    propre secteur, une action reste en direct (`securities` : titres par ISIN, ou par ticker à défaut d'ISIN).
+    `exposure_for` donne les lignes d'un profil, ou celles de sa référence d'indice."""
     out = LookThrough()
     securities = securities or {}
     for vh in valued_holdings:
@@ -190,7 +257,7 @@ def look_through(valued_holdings: list[dict[str, Any]],
             continue
         etf_profile = profile_for(vh)
         if etf_profile:
-            _decompose_etf(out, vh, etf_profile)
+            _decompose_etf(out, vh, etf_profile, exposure_for(etf_profile))
         elif is_crypto(vh.get("quote_type"), vh["ticker"]):
             out.sectors[CRYPTO_LABEL] = out.sectors.get(CRYPTO_LABEL, 0.0) + vh["value_eur"]
         else:
@@ -304,7 +371,7 @@ def _geography_and_sector_alerts(countries: list[dict[str, Any]], sectors: list[
             "value_pct": sector["percentage_stocks"],
         }
         for sector in sectors
-        if sector["name"] != UNKNOWN_LABEL and sector["percentage_stocks"] >= 30.0
+        if sector["name"] not in (UNKNOWN_LABEL, CASH_LABEL) and sector["percentage_stocks"] >= 30.0
     )
     return alerts
 
