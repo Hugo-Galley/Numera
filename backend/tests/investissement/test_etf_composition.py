@@ -8,7 +8,7 @@ from app.integrations import yahoo_finance
 from app.models.account import Account
 from app.models.etf_profile import EtfProfile
 from app.models.portfolio_holding import PortfolioHolding
-from app.services.investissement.etf_profiles import seed_etf_profiles
+from tests.investissement.etf_profile_samples import add_sample_profiles
 
 YAHOO_COMPOSITION = {
     "name": "Amundi MSCI World Swap UCITS ETF",
@@ -44,7 +44,7 @@ def test_parse_yahoo_top_holdings_maps_sectors_and_weights():
 
 
 def test_refresh_from_yahoo_keeps_countries_yahoo_does_not_publish(client: TestClient, db_session: Session, yahoo):
-    seed_etf_profiles(db_session)
+    add_sample_profiles(db_session)
     world = _world(db_session)
     world.countries = json.dumps({"USA": 71.0})
     world.composition_sources = json.dumps({"countries": "justetf"})
@@ -63,13 +63,13 @@ def test_refresh_from_yahoo_keeps_countries_yahoo_does_not_publish(client: TestC
     assert yahoo == ["CW8.PA"]
 
 
-def test_seed_does_not_overwrite_yahoo_or_manual_fields(client: TestClient, db_session: Session, yahoo):
-    seed_etf_profiles(db_session)
+def test_manual_edit_survives_a_second_refresh(client: TestClient, db_session: Session, yahoo):
+    add_sample_profiles(db_session)
     world = _world(db_session)
     client.post(f"/etf-profiles/{world.id}/refresh")
     client.put(f"/etf-profiles/{world.id}", json={"countries": {"USA": 70.0, "Autres": 30.0}})
 
-    seed_etf_profiles(db_session)
+    client.post(f"/etf-profiles/{world.id}/refresh")
     db_session.refresh(world)
     assert json.loads(world.sectors) == YAHOO_COMPOSITION["sectors"]
     assert json.loads(world.countries) == {"USA": 70.0, "Autres": 30.0}
@@ -77,7 +77,7 @@ def test_seed_does_not_overwrite_yahoo_or_manual_fields(client: TestClient, db_s
 
 
 def test_refresh_never_overwrites_manual_field(client: TestClient, db_session: Session, yahoo):
-    seed_etf_profiles(db_session)
+    add_sample_profiles(db_session)
     world = _world(db_session)
     client.put(f"/etf-profiles/{world.id}", json={"sectors": {"Technologie": 100.0}})
 
@@ -92,7 +92,7 @@ def test_refresh_returns_502_when_yahoo_unreachable(client: TestClient, db_sessi
         raise yahoo_finance.YahooUnavailable("timeout")
 
     monkeypatch.setattr(yahoo_finance, "fetch_composition", down)
-    seed_etf_profiles(db_session)
+    add_sample_profiles(db_session)
     world = _world(db_session)
     sectors = world.sectors
 
@@ -113,7 +113,7 @@ def test_auto_decompose_uses_yahoo_and_leaves_countries_empty(client: TestClient
 
 
 def test_refresh_held_only_touches_held_profiles(client: TestClient, db_session: Session, yahoo):
-    seed_etf_profiles(db_session)
+    add_sample_profiles(db_session)
     world = _world(db_session)
     account = Account(name="PEA", type="investissement", currency="EUR", active=True)
     db_session.add(account)

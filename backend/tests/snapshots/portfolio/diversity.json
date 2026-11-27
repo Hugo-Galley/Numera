@@ -1,5 +1,14 @@
 {
- "alerts": [],
+ "alerts": [
+  {
+   "category": "company",
+   "item_name": "BNP Paribas Easy S&P 500",
+   "message": "BNP Paribas Easy S&P 500 pèse 31.67% de ton portefeuille boursier (16.27% du patrimoine total). Ce niveau de concentration sur un seul titre présente un risque spécifique élevé.",
+   "title": "Concentration critique sur BNP Paribas Easy S&P 500",
+   "type": "danger",
+   "value_pct": 31.67
+  }
+ ],
  "countries": [
   {
    "name": "Non renseigné",
@@ -17,7 +26,7 @@
    "index_name": null,
    "lines_count": 0,
    "profile_id": 1,
-   "profile_name": "MSCI World",
+   "profile_name": "Amundi MSCI World",
    "provider": null,
    "refreshed_at": null,
    "replication": "unknown",
@@ -35,25 +44,7 @@
    "index_name": null,
    "lines_count": 0,
    "profile_id": 2,
-   "profile_name": "S&P 500",
-   "provider": null,
-   "refreshed_at": null,
-   "replication": "unknown",
-   "sources": {},
-   "tickers": [
-    "ESE.PA"
-   ],
-   "value_eur": 6253.0
-  },
-  {
-   "composition_as_of": null,
-   "coverage_pct": null,
-   "exposure_profile_id": null,
-   "exposure_profile_name": null,
-   "index_name": null,
-   "lines_count": 0,
-   "profile_id": 6,
-   "profile_name": "MSCI Emerging Markets",
+   "profile_name": "Amundi PEA MSCI Emerging Markets",
    "provider": null,
    "refreshed_at": null,
    "replication": "unknown",
@@ -91,7 +82,7 @@
   },
   {
    "account_id": 3,
-   "etf_profile_id": 6,
+   "etf_profile_id": 2,
    "id": 3,
    "is_etf": true,
    "isin": "FR0013412020",
@@ -103,10 +94,10 @@
   },
   {
    "account_id": 5,
-   "etf_profile_id": 2,
+   "etf_profile_id": null,
    "id": 4,
-   "is_etf": true,
-   "isin": "FR0011550185",
+   "is_etf": false,
+   "isin": null,
    "name": "BNP Paribas Easy S&P 500",
    "price_eur": 481.0,
    "quantity": 13.0,
@@ -126,7 +117,7 @@
    "value_eur": 530.56
   }
  ],
- "score": 22.7,
+ "score": 24.0,
  "score_label": "Concentration critique",
  "sectors": [
   {
@@ -137,6 +128,23 @@
   }
  ],
  "top_underlying_companies": [
+  {
+   "direct_value_eur": 6253.0,
+   "has_overlap": false,
+   "indirect_value_eur": 0.0,
+   "name": "BNP Paribas Easy S&P 500",
+   "pct_stocks": 31.67,
+   "pct_total_wealth": 16.27,
+   "sources": [
+    {
+     "pct_in_source": 100.0,
+     "source": "En direct",
+     "value_eur": 6253.0
+    }
+   ],
+   "ticker": "ESE.PA",
+   "total_value_eur": 6253.0
+  },
   {
    "direct_value_eur": 1568.5,
    "has_overlap": false,
@@ -174,10 +182,10 @@
  ],
  "totals": {
   "courant_eur": 3874.65,
-  "direct_eur": 2099.06,
+  "direct_eur": 8352.06,
   "epargne_eur": 10613.8,
-  "etf_eur": 17645.34,
-  "etfs_count": 3,
+  "etf_eur": 11392.34,
+  "etfs_count": 2,
   "fonds_euros_eur": 4188.12,
   "holdings_count": 5,
   "other_eur": 0.0,

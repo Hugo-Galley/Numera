@@ -196,7 +196,7 @@ def test_purge_etf_profiles_migration_cleans_aliases_detaches_and_deletes(tmp_pa
             )
     engine.dispose()
 
-    result = _alembic(url, "upgrade", "head")
+    result = _alembic(url, "upgrade", "a8c3e5f1d7b2")
     assert result.returncode == 0, result.stderr
     engine = create_engine(url)
     with engine.connect() as conn:
@@ -257,7 +257,7 @@ def test_preset_compositions_migration_clears_only_preset_fields(tmp_path):
                          {"s": sources, "i": pid})
     engine.dispose()
 
-    result = _alembic(url, "upgrade", "head")
+    result = _alembic(url, "upgrade", "d8f3b6a1c9e4")
     assert result.returncode == 0, result.stderr
 
     engine = create_engine(url)
@@ -274,3 +274,74 @@ def test_preset_compositions_migration_clears_only_preset_fields(tmp_path):
     assert state("Mixed") == (countries, sectors, "[]", '{"countries": "manual", "sectors": "yahoo"}', True)
     assert state("Kept") == (countries, sectors, top, cases["Kept"], False)
     assert state("Garbage") == (countries, sectors, top, "pas du json", False)
+
+
+def _insert_row(conn, table, **values):
+    columns = ", ".join(values)
+    params = ", ".join(f":{k}" for k in values)
+    conn.execute(text(f"INSERT INTO {table} ({columns}) VALUES ({params})"), values)  # noms fixés par le test
+
+
+def test_drop_system_etf_profiles_reattaches_and_cleans(tmp_path):
+    """`e1b7c4a9f2d6` : chaque position sur le profil de son fonds, plus aucun profil système (règles de
+    `domain/etf_attachment.py`), y compris sur les lignes que le rebuild recopie sur les positions."""
+    url = f"sqlite:///{tmp_path / 'system.db'}"
+    assert _alembic(url, "upgrade", "d8f3b6a1c9e4").returncode == 0
+    engine = create_engine(url)
+    with engine.begin() as conn:
+        world = _insert_profile(conn, "MSCI World", "CW8.PA", isin="LU1681043599", system=1,
+                                aliases='["CW8", "CW8.PA", "WPEA.PA", "URTH", "IE0002XZSHO1"]')
+        _insert_profile(conn, "S&P 500", "ESE.PA", isin="FR0011550185", system=1, aliases='["ESE.PA"]')
+        cac = _insert_profile(conn, "CAC 40", "C40.PA", isin="FR0007054316", system=1, aliases='["C40.PA", "LQQ.PA"]')
+        manual = _insert_profile(conn, "Manuel", "MAN.PA", aliases="pas du json")
+        reference = _insert_profile(conn, "Référence", "REF.PA", isin="IE00B5BMR087", system=1)
+        synthetic = _insert_profile(conn, "Synthétique", "SYN.PA", isin="FR0013412020")
+        conn.execute(text("UPDATE etf_profiles SET exposure_profile_id = :r WHERE id = :s"),
+                     {"r": reference, "s": synthetic})
+        conn.execute(text("INSERT INTO accounts (name, type, currency, active, created_at) VALUES ('PEA', 'investissement', 'EUR', 1, '2026-01-01')"))
+        positions = (
+            ("IE0002XZSHO1.SG", None, world), ("CW8.PA", None, world), ("XYZ.PA", None, world),
+            ("AAA.PA", "IE000BI8OT95", cac), ("AAA.DE", "IE000BI8OT95", world), ("BBB.PA", None, manual),
+            ("SOLO.PA", "IE000BI8OT95", None), ("TTE.PA", "FR0000120271", None),
+        )
+        for ticker, isin, profile in positions:
+            _insert_row(conn, "portfolio_holdings", account_id=1, ticker=ticker, isin=isin, asset_name=f"Nom {ticker}",
+                        quantity=1, currency="EUR", etf_profile_id=profile, created_at="2026-01-01",
+                        updated_at="2026-01-01")
+        for ticker, profile in (("XYZ.PA", world), ("CW8.PA", world), ("IE0002XZSHO1.SG", world), (None, cac)):
+            _insert_row(conn, "investment_transactions", account_id=1, date="2026-01-01", type="achat", amount=1,
+                        original_amount=1, ticker=ticker, etf_profile_id=profile, currency="EUR", is_transfer=0,
+                        is_transfer_ignored=0)
+        _insert_row(conn, "holding_baseline_items", account_id=1, baseline_date="2026-01-01", ticker="XYZ.PA",
+                    asset_name="XYZ", quantity=1, currency="EUR", etf_profile_id=world)
+    engine.dispose()
+
+    result = _alembic(url, "upgrade", "head")
+    assert result.returncode == 0, result.stderr
+    assert _schema_diffs(url) == []
+
+    engine = create_engine(url)
+    with engine.connect() as conn:
+        profiles = {r.name: r for r in conn.execute(text("SELECT * FROM etf_profiles"))}
+        links = dict(conn.execute(text("SELECT ticker, etf_profile_id FROM portfolio_holdings")).fetchall())
+        operations = [tuple(r) for r in conn.execute(text(
+            "SELECT ticker, etf_profile_id FROM investment_transactions ORDER BY id"))]
+        baseline = conn.execute(text("SELECT etf_profile_id FROM holding_baseline_items")).scalar_one()
+    engine.dispose()
+
+    by_isin = {p.isin: p for p in profiles.values() if p.isin}
+    own, shared = by_isin["IE0002XZSHO1"], by_isin["IE000BI8OT95"]
+    assert (own.name, own.ticker, own.composition_refreshed_at) == ("Nom IE0002XZSHO1.SG", "IE0002XZSHO1.SG", None)
+    assert (own.countries, own.top_holdings, own.replication, own.lines_count) == ("{}", "[]", "unknown", 0)
+    assert links == {
+        "IE0002XZSHO1.SG": own.id, "CW8.PA": world, "XYZ.PA": None, "AAA.PA": shared.id, "AAA.DE": shared.id,
+        "BBB.PA": manual, "SOLO.PA": shared.id, "TTE.PA": None,
+    }
+    assert operations == [("XYZ.PA", None), ("CW8.PA", world), ("IE0002XZSHO1.SG", own.id), (None, cac)]
+    assert baseline is None
+    # « S&P 500 », rattaché à rien, disparaît ; les autres, encore utilisés, ne sont plus « système »
+    assert set(profiles) == {"MSCI World", "CAC 40", "Manuel", "Référence", "Synthétique", own.name, shared.name}
+    assert not any(p.is_system for p in profiles.values())
+    # Les alias livrés qui désignaient d'autres fonds sont retirés, sauf ceux qu'une position utilise encore
+    assert json.loads(profiles["MSCI World"].aliases) == ["CW8.PA"]
+    assert profiles["Manuel"].aliases == "pas du json"

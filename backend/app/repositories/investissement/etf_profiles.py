@@ -13,8 +13,7 @@ def all_profiles(db: Session) -> list[EtfProfile]:
 
 
 def list_ordered(db: Session) -> list[EtfProfile]:
-    """Profils système d'abord, puis par nom."""
-    return db.query(EtfProfile).order_by(EtfProfile.is_system.desc(), EtfProfile.name.asc()).all()
+    return db.query(EtfProfile).order_by(EtfProfile.name.asc(), EtfProfile.id).all()
 
 
 def get(db: Session, profile_id: int) -> EtfProfile | None:
@@ -30,11 +29,6 @@ def find_by_symbol_or_alias(db: Session, sym: str) -> EtfProfile | None:
         (EtfProfile.ticker.ilike(sym)) |
         (EtfProfile.aliases.ilike(f'%"{sym}"%'))
     ).first()
-
-
-def find_by_name(db: Session, name: str) -> EtfProfile | None:
-    """Le profil système d'abord : un profil de référence peut porter le nom d'un indice."""
-    return db.query(EtfProfile).filter(EtfProfile.name == name).order_by(EtfProfile.is_system.desc()).first()
 
 
 def held_profiles(db: Session) -> list[EtfProfile]:

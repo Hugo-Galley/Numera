@@ -51,5 +51,3 @@ def seed_default_categories(db: Session) -> int:
 
 def seed_all(db: Session) -> None:
     seed_default_categories(db)
-    from app.services.investissement.etf_profiles import seed_etf_profiles
-    seed_etf_profiles(db)

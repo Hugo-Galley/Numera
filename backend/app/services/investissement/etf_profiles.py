@@ -1,4 +1,4 @@
-"""Profils ETF : saisie, actualisation des compositions, création à la volée, profils système."""
+"""Profils ETF : saisie, actualisation des compositions, création à la volée. Aucun n'est livré avec l'application."""
 import json
 from collections.abc import Sequence
 from datetime import datetime
@@ -9,7 +9,6 @@ from app.core.errors import ExternalServiceError, InvalidOperationError, NotFoun
 from app.core.i18n import tr
 from app.core.logging import get_logger
 from app.core.time import utcnow_naive
-from app.domain.etf_presets import SYSTEM_ETF_PRESETS
 from app.domain.etf_profiles import (
     COMPOSITION_FIELDS,
     REFRESH_INTERVAL,
@@ -93,10 +92,7 @@ def update_profile(db: Session, profile_id: int, payload: EtfProfileUpdate) -> E
 
 
 def delete_profile(db: Session, profile_id: int) -> None:
-    profile = _get(db, profile_id)
-    if profile.is_system:
-        raise InvalidOperationError(tr("errors.etf_preset_undeletable"))
-    repo.delete(db, profile)
+    repo.delete(db, _get(db, profile_id))
     db.commit()
 
 
@@ -200,31 +196,3 @@ async def auto_decompose(db: Session, payload: AutoDecomposeRequest) -> EtfProfi
     if not profile:
         raise InvalidOperationError(tr("errors.etf_decompose_failed"))
     return _read(db, profile)
-
-
-def seed_etf_profiles(db: Session) -> None:
-    """Crée les profils ETF système ou remet à jour leurs identifiants ; leur composition n'est jamais touchée."""
-    count = 0
-    for preset in SYSTEM_ETF_PRESETS:
-        existing = repo.find_by_name(db, str(preset["name"]))
-        if not existing:
-            repo.add(db, EtfProfile(
-                name=preset["name"],
-                ticker=preset["ticker"],
-                isin=preset["isin"],
-                aliases=json.dumps(preset["aliases"]),
-                countries="{}",
-                sectors="{}",
-                top_holdings="[]",
-                composition_sources="{}",
-                is_system=True,
-            ))
-            count += 1
-        elif existing.is_system:
-            existing.ticker = str(preset["ticker"])
-            existing.isin = str(preset["isin"])
-            existing.aliases = json.dumps(preset["aliases"])
-
-    db.commit()
-    if count > 0:
-        logger.info(f"Seeded {count} system ETF profiles.")

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import random
 from collections.abc import Iterator
 from datetime import date, datetime, timedelta
@@ -32,6 +33,7 @@ from app.services.systeme.demo.data import (
     CATEGORY_RENAMES,
     CATEGORY_STYLES,
     DEFAULT_CATEGORY_STYLE,
+    DEMO_ETFS,
     DEMO_MONTHS,
     DEMO_SEED,
     EXTRA_CATEGORIES,
@@ -256,8 +258,18 @@ class _Builder:
 
         self.db.flush()
 
+    def build_etf_profiles(self) -> dict[str, int]:
+        created = {
+            ticker: EtfProfile(name=SECURITIES[ticker][0], ticker=ticker, isin=SECURITIES[ticker][1],
+                               aliases=json.dumps([ticker, SECURITIES[ticker][1]]))
+            for ticker in DEMO_ETFS
+        }
+        self.db.add_all(created.values())
+        self.db.flush()
+        return {ticker: profile.id for ticker, profile in created.items()}
+
     def build_pea(self, pea: Account, courant: Account, prices: dict[str, dict[date, float]]) -> None:
-        profiles = {p.ticker: p.id for p in self.db.query(EtfProfile).filter(EtfProfile.ticker.in_(SECURITIES)).all()}
+        profiles = self.build_etf_profiles()
         cash = 0.0
 
         def add(day: date, tx_type: str, amount: float, **extra: Any) -> InvestmentTransaction:
@@ -355,7 +367,7 @@ class _Builder:
 
 
 async def generate_demo_data(db: Session, today: date | None = None) -> None:
-    """Remplit une base vide (catégories et profils ETF compris) avec le jeu de démonstration."""
+    """Remplit une base vide (catégories comprises) avec le jeu de démonstration."""
     today = today or today_local()
     seed_all(db)
     await _Builder(db, today).run()

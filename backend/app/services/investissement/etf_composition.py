@@ -228,7 +228,7 @@ async def _prepare_reference(db: Session, synthetic: EtfProfile, index_name: str
 
 
 def _named_after_index(profile: EtfProfile) -> bool:
-    return not profile.is_system and profile.ticker == profile.isin and profile.name in rules.INDEX_REFERENCES
+    return profile.ticker == profile.isin and profile.name in rules.INDEX_REFERENCES
 
 
 def _save_reference(db: Session, reference: _Reference) -> EtfProfile:

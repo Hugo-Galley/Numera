@@ -193,7 +193,6 @@
   "errors.audit_issue_not_found": "Anomalie d'audit introuvable ou non modifiable",
   "errors.snapshot_not_found": "Relevé de solde introuvable",
   "errors.channel_incomplete": "Canal incomplet : renseigne ses paramètres puis enregistre.",
-  "errors.etf_preset_undeletable": "Les profils ETF prédéfinis du système ne peuvent pas être supprimés",
   "errors.category_exists": "Cette catégorie existe déjà",
   "errors.category_not_found": "Catégorie introuvable",
   "errors.alias_exists": "Cet alias existe déjà",

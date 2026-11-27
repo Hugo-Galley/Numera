@@ -7,6 +7,8 @@ from sqlalchemy.orm import Session
 from app.integrations import logos
 from app.models.account import Account
 from app.models.category import Category
+from app.models.etf_profile import EtfProfile
+from app.models.portfolio_holding import PortfolioHolding
 from app.models.recurring_transaction import RecurringTransaction
 from app.models.transaction import Transaction
 from app.services.analytics.budget import compute_budget
@@ -60,3 +62,17 @@ def test_demo_salary_config_is_readable_and_current(client, db_session: Session)
         key=lambda t: t.date,
     )
     assert response.json()["net_salary"] == last_salary.amount
+
+
+def test_demo_etfs_have_their_own_profile_without_composition(db_session: Session):
+    """Les deux ETF fictifs sont reconnus comme tels : un profil par fonds (identifiants seuls, aucune composition)."""
+    _generate(db_session)
+
+    profiles = {p.ticker: p for p in db_session.query(EtfProfile).all()}
+    held = {h.ticker: h.etf_profile_id for h in db_session.query(PortfolioHolding).all()}
+
+    assert {t: (p.isin, p.sectors, p.countries, p.top_holdings, p.is_system) for t, p in profiles.items()} == {
+        "CW8.PA": ("LU1681043599", "{}", "{}", "[]", False),
+        "PAEEM.PA": ("FR0013412020", "{}", "{}", "[]", False),
+    }
+    assert held == {"CW8.PA": profiles["CW8.PA"].id, "PAEEM.PA": profiles["PAEEM.PA"].id, "TTE.PA": None}

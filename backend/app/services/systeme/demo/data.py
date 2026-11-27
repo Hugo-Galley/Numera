@@ -17,6 +17,7 @@ SECURITIES = {
     "PAEEM.PA": ("Amundi PEA MSCI Emerging Markets", "FR0013412020", 22.0, 0.05, 0.18),
     "TTE.PA": ("TotalEnergies", "FR0000120271", 58.0, 0.03, 0.20),
 }
+DEMO_ETFS = ("CW8.PA", "PAEEM.PA")  # fonds de la démo : un profil chacun (identifiants seuls, aucune composition)
 
 
 def _price_series(rng: random.Random, start: date, end: date) -> dict[str, dict[date, float]]:
