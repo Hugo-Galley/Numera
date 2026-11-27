@@ -5,6 +5,21 @@ from typing import Any
 from numera_mcp.api_client import api, handle_response
 from numera_mcp.formatting import format_table
 
+SOURCE_LABELS = {"ishares": "iShares", "amundi": "Amundi", "spdr": "SPDR", "justetf": "justETF",
+                 "yahoo": "Yahoo Finance", "manual": "saisie manuelle"}
+REPLICATION_LABELS = {"physical": "physique", "synthetic": "synthétique", "unknown": "inconnue"}
+
+
+def _replication(p: dict) -> str:
+    label = REPLICATION_LABELS.get(p.get("replication") or "unknown", "inconnue")
+    if p.get("replication") == "synthetic" and p.get("exposure_profile_name"):
+        label += f" via {p['exposure_profile_name']}"
+    return label
+
+
+def _coverage(p: dict) -> str:
+    return f"{p['coverage_pct']} %" if p.get("coverage_pct") is not None else "—"
+
 
 def list_etf_profiles() -> str:
     """Liste tous les profils ETF connus avec leur composition par pays, secteurs et top holdings.
@@ -13,7 +28,9 @@ def list_etf_profiles() -> str:
     Les profils système (is_system ✅) sont intégrés à Numera, les autres (📝) créés à l'usage.
     La composition est lue chaque jour chez l'émetteur (iShares, Amundi, SPDR ; à défaut justETF
     puis Yahoo, partiels) ou saisie à la main. Un champ inconnu reste vide. Un ETF synthétique
-    n'a pas de chiffres propres : son exposition est celle d'un ETF physique du même indice.
+    n'a pas de chiffres propres : son exposition est celle d'un ETF physique du même indice
+    (colonne exposition_via, chiffres par get_etf_profile).
+    Colonnes : source et date publiée de la composition, part du fonds décrite (couverture).
     """
     try:
         resp = api.get("/etf-profiles")
@@ -32,6 +49,11 @@ def list_etf_profiles() -> str:
                 "nom": p.get("name", ""),
                 "ticker": p.get("ticker", ""),
                 "isin": p.get("isin") or "—",
+                "replication": REPLICATION_LABELS.get(p.get("replication") or "unknown", "inconnue"),
+                "exposition_via": (p.get("exposure_profile_name") or "—") if p.get("replication") == "synthetic" else "—",
+                "source": SOURCE_LABELS.get(p.get("provider") or "", "—"),
+                "date": p.get("composition_as_of") or "—",
+                "couverture": _coverage(p),
                 "top_pays": top_countries,
                 "top_holdings": top_names,
                 "systeme": "✅" if p.get("is_system") else "📝",
@@ -41,10 +63,63 @@ def list_etf_profiles() -> str:
         return f"❌ Erreur : {e}"
 
 
+def _origin_lines(p: dict) -> list[str]:
+    """Réplication, indice, source, date publiée, lignes et couverture de la composition."""
+    index = f" (indice {p['index_name']})" if p.get("index_name") else ""
+    source = SOURCE_LABELS.get(p.get("provider") or "", "aucune")
+    dated = f"composition au {p['composition_as_of']}" if p.get("composition_as_of") else "date non publiée"
+    lines = f"{p['lines_count']} lignes" if p.get("lines_count") else "agrégats seulement"
+    return [
+        f"   Réplication : {_replication(p)}{index}",
+        f"   Composition : {source} · {dated} · {lines} · couverture {_coverage(p)}",
+    ]
+
+
+def _breakdown_lines(data: dict) -> list[str]:
+    lines: list[str] = []
+    for key, title in (("countries", "🌍 Pays :"), ("sectors", "🏭 Secteurs :")):
+        values = data.get(key) or {}
+        if values:
+            lines.append(title)
+            for name, pct in sorted(values.items(), key=lambda x: -float(x[1]))[:10]:
+                lines.append(f"  • {name} : {pct}%")
+            lines.append("")
+    top_holdings = data.get("top_holdings") or []
+    if top_holdings:
+        lines.append("🏢 Top Holdings :")
+        for h in top_holdings[:10]:
+            ticker_str = f" ({h.get('ticker')})" if h.get("ticker") else ""
+            lines.append(f"  • {h.get('name', '')}{ticker_str} : {h.get('weight', 0)}%")
+    return lines
+
+
+def _exposure_lines(data: dict) -> list[str]:
+    """Synthétique : son panier détenu ne dit rien de son exposition, celle de l'ETF de référence de l'indice."""
+    if data.get("replication") != "synthetic":
+        return []
+    if not data.get("exposure_profile_id"):
+        return ["⚠️ Synthétique : indice non reconnu, exposition indisponible."]
+    resp = api.get(f"/etf-profiles/{data['exposure_profile_id']}")
+    error = handle_response(resp)
+    if error:
+        return [f"⚠️ Exposition via {data.get('exposure_profile_name') or 'la référence'} illisible : {error}"]
+    reference = resp.json()
+    return [
+        f"🔁 Exposition de l'indice {data.get('index_name') or '?'} via {reference.get('name', '')} "
+        f"({reference.get('isin') or '—'}) :",
+        *_origin_lines(reference),
+        "",
+        *_breakdown_lines(reference),
+    ]
+
+
 def get_etf_profile(profile_id: int) -> str:
     """Récupère le détail complet d'un profil ETF : pays (%), secteurs (%) et top 10 positions.
 
-    Les sources de chaque champ sont indiquées (émetteur, justETF, Yahoo Finance ou saisie manuelle).
+    Les sources de chaque champ sont indiquées (émetteur, justETF, Yahoo Finance ou saisie manuelle),
+    avec la réplication, l'indice, la date publiée de la composition, le nombre de lignes et la
+    couverture. Pour un ETF synthétique, l'exposition est celle de l'ETF physique de référence du même
+    indice : ses chiffres sont lus et affichés.
 
     Args:
         profile_id: ID du profil ETF (obtenir via list_etf_profiles)
@@ -55,38 +130,23 @@ def get_etf_profile(profile_id: int) -> str:
         if error:
             return error
         data = resp.json()
-        source_labels = {"ishares": "iShares", "amundi": "Amundi", "spdr": "SPDR", "justetf": "justETF",
-                         "yahoo": "Yahoo Finance", "manual": "saisie manuelle"}
         sources = data.get("composition_sources") or {}
         lines = [
             f"🗂️ ETF : {data.get('name', '')} ({data.get('ticker', '')})",
             f"   ISIN : {data.get('isin') or '—'}",
+            *_origin_lines(data),
             "   Sources : " + ", ".join(
-                f"{label} = {source_labels.get(sources.get(field), 'non renseigné')}"
+                f"{label} = {SOURCE_LABELS.get(sources.get(field), 'non renseigné')}"
                 for field, label in (("countries", "pays"), ("sectors", "secteurs"), ("top_holdings", "top 10"))
             ),
             f"   Actualisé le : {data.get('composition_refreshed_at') or 'jamais'}",
             "",
+            *_breakdown_lines(data),
         ]
-        countries = data.get("countries", {})
-        if countries:
-            lines.append("🌍 Pays :")
-            for country, pct in sorted(countries.items(), key=lambda x: -float(x[1]))[:10]:
-                lines.append(f"  • {country} : {pct}%")
-            lines.append("")
-        sectors = data.get("sectors", {})
-        if sectors:
-            lines.append("🏭 Secteurs :")
-            for sector, pct in sorted(sectors.items(), key=lambda x: -float(x[1]))[:10]:
-                lines.append(f"  • {sector} : {pct}%")
-            lines.append("")
-        top_holdings = data.get("top_holdings", [])
-        if top_holdings:
-            lines.append("🏢 Top Holdings :")
-            for h in top_holdings[:10]:
-                ticker_str = f" ({h.get('ticker')})" if h.get("ticker") else ""
-                lines.append(f"  • {h.get('name', '')}{ticker_str} : {h.get('weight', 0)}%")
-        return "\n".join(lines)
+        exposure = _exposure_lines(data)
+        if exposure:
+            lines += ["", *exposure]
+        return "\n".join(lines).rstrip()
     except Exception as e:
         return f"❌ Erreur : {e}"
 
