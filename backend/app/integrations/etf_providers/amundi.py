@@ -17,6 +17,7 @@ from app.integrations.etf_providers.base import (
     ClientFactory,
     Composition,
     Constituent,
+    FundCompositionMissing,
     ProviderFund,
     ProviderUnavailable,
     default_client,
@@ -91,8 +92,11 @@ class Amundi:
         product = await self._product(fund.ref, {"composition": {"compositionFields": _COMPOSITION_FIELDS}})
         try:
             rows = [entry["compositionCharacteristics"] for entry in product["composition"]["compositionData"]] if product else []
-            if not rows:
-                raise ProviderUnavailable(f"composition Amundi vide pour {fund.isin}")
+        except (KeyError, TypeError, AttributeError) as exc:
+            raise ProviderUnavailable(f"composition Amundi : format inattendu pour {fund.isin}") from exc
+        if not rows:
+            raise FundCompositionMissing(f"composition Amundi vide pour {fund.isin}")
+        try:
             as_of = max(date.fromisoformat(str(row["date"])) for row in rows)
             lines = [_line(row) for row in rows]
         except (KeyError, TypeError, ValueError, AttributeError) as exc:

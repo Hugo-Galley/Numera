@@ -489,3 +489,45 @@ def test_auto_decompose_keeps_the_profile_when_sources_are_down(db_session: Sess
     yahoo["down"] = True
     profile = asyncio.run(auto_decompose_and_create_profile(db_session, symbol="zzz.pa", name="Mon fonds"))
     assert (profile.name, profile.ticker, profile.countries) == ("Mon fonds", "ZZZ.PA", "{}")
+
+
+GOLD = "FR0013416716"
+
+
+def _amundi_with_empty_gold(request: httpx.Request) -> httpx.Response:
+    """Un ETC or : Amundi publie sa fiche, mais aucune ligne de composition."""
+    body = json.loads(request.content)
+    if body["productIds"][0] != GOLD:
+        return _amundi_handler(request)
+    payload = json.loads(fixture_bytes(f"amundi_{AMUNDI_WORLD}.json"))
+    product = payload["products"][0]
+    product["productId"] = GOLD
+    product["characteristics"]["SHARE_MARKETING_NAME"] = "Amundi Physical Gold ETC"
+    product["composition"] = {"compositionData": []}
+    return httpx.Response(200, json=payload)
+
+
+def test_fund_without_lines_does_not_put_its_issuer_down(db_session: Session):
+    gold = _profile(db_session, isin=GOLD, name="AAA Gold", ticker="GOLD.PA")
+    world = _profile(db_session, isin=AMUNDI_WORLD, name="ZZZ Amundi World", ticker="MWRD.PA")
+    for profile in (gold, world):
+        _hold(db_session, profile)
+
+    asyncio.run(refresh_held_etf_profiles(db_session, providers=_providers(amundi=_amundi_with_empty_gold)))
+
+    assert (world.provider, world.lines_count) == ("amundi", 25)
+    assert gold.composition_refreshed_at is not None  # tenté : pas relu avant l'intervalle
+    assert gold.lines_count in (0, None)
+
+
+def test_fund_missing_at_its_issuer_does_not_put_the_issuer_down(db_session: Session):
+    """Une page 404 pour un fonds (portfolioId inconnu) ne fait pas sauter les autres fonds de l'émetteur."""
+    missing = _profile(db_session, isin="IE00B5BMR087", name="A iShares", ticker="A.L")
+    world = _profile(db_session, isin=WORLD, name="B iShares", ticker="B.L")
+    for profile in (missing, world):
+        _hold(db_session, profile)
+
+    asyncio.run(refresh_held_etf_profiles(db_session, providers=_providers()))
+
+    assert (world.provider, world.lines_count) == ("ishares", 28)
+    assert missing.composition_refreshed_at is not None

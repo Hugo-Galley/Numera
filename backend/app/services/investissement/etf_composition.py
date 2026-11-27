@@ -17,7 +17,14 @@ from app.domain.etf_normalize import UNKNOWN_LABEL, index_for_fund_name
 from app.domain.etf_profiles import REFRESH_INTERVAL, SOURCE_YAHOO, apply_composition
 from app.integrations import yahoo_finance
 from app.integrations.etf_providers.amundi import Amundi
-from app.integrations.etf_providers.base import Composition, Constituent, Provider, ProviderFund, ProviderUnavailable
+from app.integrations.etf_providers.base import (
+    Composition,
+    Constituent,
+    FundCompositionMissing,
+    Provider,
+    ProviderFund,
+    ProviderUnavailable,
+)
 from app.integrations.etf_providers.ishares import IShares
 from app.integrations.etf_providers.justetf import JustEtf
 from app.integrations.etf_providers.spdr import Spdr
@@ -104,6 +111,9 @@ async def _collect(profile: EtfProfile, run: _Pass) -> _Found | None:
             continue
         try:
             found = await _from_provider(profile, provider, str(isin), failed)
+        except FundCompositionMissing as e:
+            logger.info(f"{provider.name} ne publie rien pour {isin} : {e}")  # source suivante, l'émetteur reste joignable
+            continue
         except ProviderUnavailable as e:
             logger.warning(f"{provider.name} indisponible pour {isin} : {e}")
             run.down.add(provider.name)

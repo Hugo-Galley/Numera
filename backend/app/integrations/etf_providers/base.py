@@ -60,6 +60,10 @@ class ProviderUnavailable(Exception):
     """Émetteur injoignable ou réponse inexploitable (différent de « fonds inconnu »)."""
 
 
+class FundCompositionMissing(ProviderUnavailable):
+    """L'émetteur répond, mais ne publie rien pour ce fonds (page 404, composition sans ligne) : lui n'est pas en panne."""
+
+
 class Provider(Protocol):
     """Les trois méthodes sont des coroutines (typées `Awaitable` : une signature seule n'a rien à attendre)."""
 
@@ -79,7 +83,7 @@ def default_client() -> httpx.AsyncClient:
 async def request(
     factory: ClientFactory, breaker: CircuitBreaker, method: str, url: str, **kwargs: Any
 ) -> httpx.Response:
-    """Réponse 200 de l'émetteur, sinon `ProviderUnavailable`.
+    """Réponse 200 de l'émetteur, sinon `ProviderUnavailable` (`FundCompositionMissing` pour un 404).
 
     Le disjoncteur de l'émetteur compte les pannes (réseau, blocage, erreur serveur) ; un 404 n'en est pas une."""
     if not breaker.allow():
@@ -90,9 +94,10 @@ async def request(
     except httpx.HTTPError as exc:
         breaker.failure()
         raise ProviderUnavailable(f"{url} : {exc!r}") from exc
+    if response.status_code == 404:
+        raise FundCompositionMissing(f"{url} : HTTP 404")
     if response.status_code != 200:
-        if response.status_code != 404:
-            breaker.failure()
+        breaker.failure()
         raise ProviderUnavailable(f"{url} : HTTP {response.status_code}")
     breaker.success()
     return response
@@ -133,8 +138,10 @@ class CatalogCache(Generic[T]):
             funds = await self._load()
             if not funds:
                 raise ProviderUnavailable("catalogue sans aucun fonds")
-        except ProviderUnavailable:
+        except ProviderUnavailable as exc:
             self._retry_at = now + CATALOG_RETRY_AFTER
+            if isinstance(exc, FundCompositionMissing):  # catalogue introuvable : c'est l'émetteur qui fait défaut
+                raise ProviderUnavailable(str(exc)) from exc
             raise
         self._funds, self._expires_at, self._retry_at = funds, now + CATALOG_TTL, None
         return funds

@@ -6,7 +6,7 @@ import httpx
 import pytest
 
 from app.domain.etf_normalize import is_equity_line
-from app.integrations.etf_providers.base import ProviderUnavailable
+from app.integrations.etf_providers.base import FundCompositionMissing, ProviderUnavailable
 from app.integrations.etf_providers.ishares import IShares
 from tests.investissement.etf_provider_helpers import fixture_bytes, mock_factory
 
@@ -124,3 +124,24 @@ def test_catalog_failure_is_not_retried_immediately():
 
     asyncio.run(run())
     assert len(seen) == 1
+
+
+def test_missing_fund_page_is_not_an_issuer_failure():
+    """404 sur la composition d'un fonds : rien pour ce fonds ; 404 sur le catalogue : l'émetteur fait défaut."""
+    def holdings_404(request: httpx.Request) -> httpx.Response:
+        if "product-screener" in str(request.url):
+            return _serve(request)
+        return httpx.Response(404)
+
+    provider = _provider(holdings_404)
+
+    async def run():
+        await provider.fetch(await provider.lookup("IE00B4L5Y983"))
+
+    with pytest.raises(FundCompositionMissing):
+        asyncio.run(run())
+
+    catalog_gone = _provider(lambda request: httpx.Response(404))
+    with pytest.raises(ProviderUnavailable) as raised:
+        asyncio.run(catalog_gone.lookup("IE00B4L5Y983"))
+    assert not isinstance(raised.value, FundCompositionMissing)

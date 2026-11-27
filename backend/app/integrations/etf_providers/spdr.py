@@ -14,6 +14,7 @@ from app.integrations.etf_providers.base import (
     ClientFactory,
     Composition,
     Constituent,
+    FundCompositionMissing,
     ProviderFund,
     ProviderUnavailable,
     default_client,
@@ -95,7 +96,7 @@ def _parse_holdings(rows: list[list[str]]) -> Composition:
         if line:
             lines.append(line)
     if not lines:
-        raise ValueError("aucune ligne")
+        raise FundCompositionMissing("composition SPDR sans aucune ligne")
     return Composition(as_of=as_of, lines=lines)
 
 

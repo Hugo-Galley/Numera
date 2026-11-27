@@ -12,6 +12,7 @@ from app.integrations.etf_providers.base import (
     ClientFactory,
     Composition,
     Constituent,
+    FundCompositionMissing,
     ProviderFund,
     ProviderUnavailable,
     default_client,
@@ -96,7 +97,7 @@ def _parse_holdings(payload: dict[str, Any]) -> Composition:
 
 def _composition(as_of: date, lines: list[Constituent]) -> Composition:
     if not lines:
-        raise ProviderUnavailable("composition iShares sans aucune ligne")
+        raise FundCompositionMissing("composition iShares sans aucune ligne")
     return Composition(as_of=as_of, lines=lines)
 
 
