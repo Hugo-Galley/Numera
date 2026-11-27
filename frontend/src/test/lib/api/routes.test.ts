@@ -19,10 +19,15 @@ const normalizeCalled = (method: string, path: string) =>
     .join("/")}`
 
 const modules = import.meta.glob<Record<string, unknown>>(["/src/lib/api/*.ts", "!/src/lib/api/types.ts"], { eager: true })
-// Écarts connus (bugs signalés, non corrigés) : à retirer d'ici quand la route est corrigée.
-const KNOWN_MISSING: Record<string, string[]> = {}
-
 const backendRoutes = new Set((JSON.parse(readFileSync(SNAPSHOT, "utf8")) as string[]).map(normalizeBackend))
+
+// Écarts connus (bugs signalés, non corrigés) : à retirer d'ici quand la route est corrigée.
+// Référence de marché du scanner : route codée côté backend en parallèle (sur-exposition, Task 5) ; l'écart
+// disparaît de lui-même quand le snapshot la contient, retirer alors cette entrée.
+const MARKET_REFERENCE = "PUT /analytics/diversity-scanner/market-reference"
+const KNOWN_MISSING: Record<string, string[]> = backendRoutes.has(MARKET_REFERENCE)
+  ? {}
+  : { "/src/lib/api/analytics.ts": [MARKET_REFERENCE] }
 
 describe("lib/api : routes existantes côté backend", () => {
   it("couvre les onze domaines", () => {
