@@ -247,7 +247,11 @@
     "performanceGlobale": "Overall Performance",
     "supports": "Holdings",
     "comptesDInvestissement": "Investment accounts",
-    "scoreDeDiversite": "Diversity Score"
+    "scoreDeDiversite": "Diversity Score",
+    "effectiveBets_one": "{{bets}} independent bet across {{count}} line",
+    "effectiveBets_other": "{{bets}} independent bets across {{count}} lines",
+    "marketGap": "Gap to the market, reference: {{name}}",
+    "noReference": "Market reference unavailable"
   },
   "performanceSection": {
     "performanceDetaillee": "Detailed performance",
@@ -427,5 +431,57 @@
     "hideOther": "Zoom in on named lines (hide “Other”)",
     "chartLabel": "Donut chart of the holdings breakdown",
     "loadFailed": "Couldn't compute the account breakdown"
+  },
+  "concentration": {
+    "title": "Concentration",
+    "subtitle": "Your portfolio compared with the market (reference: {{name}}), correlated lines and stocks you already hold through your funds.",
+    "subtitleNoMarket": "Correlated lines and stocks you already hold through your funds.",
+    "noMarket": "Market reference unavailable: the market comparison will come back as soon as its profile can be read.",
+    "activeShare": "Gap to the market",
+    "coverage": "Composition known for {{composition}} of the value, price history for {{prices}} of the lines.",
+    "dimensions": {
+      "companies": "Companies",
+      "sectors": "Sectors",
+      "countries": "Countries"
+    },
+    "table": {
+      "title": "You vs the market",
+      "dimension": "Compared dimension",
+      "line": "Line",
+      "you": "You",
+      "market": "Market",
+      "gap": "Gap",
+      "gapPts": "{{value}} pts",
+      "upperBound": "At most: the company is not among the reference's main holdings",
+      "empty": "Nothing to compare."
+    },
+    "blocks": {
+      "title": "Correlated lines",
+      "empty": "No block of lines moving together.",
+      "rho": "ρ {{rho}}",
+      "weight": "{{pct}} of the portfolio"
+    },
+    "picks": {
+      "title": "Redundant stock picking",
+      "empty": "No direct stock.",
+      "indirect": "Already <amount>{{amount}}</amount> through your funds",
+      "noIndirect": "Not in your funds",
+      "correlation": "ρ {{rho}} with your funds",
+      "correlationUnknown": "Correlation unknown",
+      "redundant": "Redundant",
+      "source": {
+        "prices": "from prices",
+        "composition": "from composition",
+        "unknown": "no data"
+      }
+    },
+    "reference": {
+      "label": "Market reference",
+      "default": "Default (MSCI ACWI)",
+      "other": "Other ticker",
+      "apply": "Apply",
+      "saved": "Market reference saved",
+      "error": "Could not save the market reference"
+    }
   }
 }

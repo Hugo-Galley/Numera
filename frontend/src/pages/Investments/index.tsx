@@ -5,6 +5,7 @@ import { AccountsAllocation } from "./AccountsAllocation"
 import { PerformanceSection } from "./PerformanceSection"
 import { AdvancedCharts } from "./AdvancedCharts"
 import { PortfolioBreakdown } from "@/components/investments/PortfolioBreakdown"
+import { Concentration } from "@/components/investments/Concentration"
 import { EtfCompositions } from "./EtfCompositions"
 import { DrillDownDialog } from "./DrillDownDialog"
 import { ThirdPartyAccounts } from "./ThirdPartyAccounts"
@@ -36,6 +37,8 @@ export default function Investments() {
       <AccountsAllocation ctx={ctx} />
 
       {ctx.diversity && <PortfolioBreakdown data={ctx.diversity} scope="portfolio" />}
+
+      {ctx.diversity && <Concentration data={ctx.diversity} onReferenceChange={() => void ctx.reloadDiversity()} />}
 
       <PerformanceSection ctx={ctx} />
 

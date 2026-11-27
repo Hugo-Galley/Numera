@@ -4,6 +4,7 @@ import { appLocale } from "@/i18n/locale"
 import { Activity, AlertTriangle, ShieldCheck, TrendingUp, Wallet } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { formatCurrency, formatRate } from "@/lib/utils"
+import { formatDecimal } from "@/components/investments/Concentration/format"
 import type { InvestmentsCtx } from "./useInvestments"
 
 /** Indicateurs et alertes de surexposition. */
@@ -67,6 +68,16 @@ export function InvestmentsKpis({ ctx }: { ctx: InvestmentsCtx }) {
                 <span className="text-sm text-muted-foreground">/100</span>
               </div>
               <p className="text-xs text-muted-foreground mt-1">{diversity.score_label}</p>
+              {diversity.concentration && (
+                <p className="text-xs text-muted-foreground">
+                  {t("investmentsKpis.effectiveBets", { bets: formatDecimal(diversity.concentration.effective_bets), count: diversity.concentration.exposures_count })}
+                </p>
+              )}
+              {diversity.market !== undefined && (
+                <p className="text-xs text-muted-foreground">
+                  {diversity.market ? t("investmentsKpis.marketGap", { name: diversity.market.name }) : t("investmentsKpis.noReference")}
+                </p>
+              )}
             </CardContent>
           </Card>
         )}
