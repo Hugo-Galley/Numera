@@ -272,7 +272,7 @@
   "errors.transfer_not_reimbursement": "Una transferencia interna no puede servir de reembolso",
   "errors.transfer_from_sortie": "Una transferencia parte de una Sortie",
   "errors.transfer_two_accounts": "Una transferencia une dos cuentas distintas",
-  "errors.yahoo_unreachable": "No se puede conectar con Yahoo Finance, inténtalo más tarde",
+  "errors.etf_sources_unreachable": "No se puede conectar con las fuentes de composición, inténtalo más tarde",
   "errors.end_after_start": "end_date debe ser posterior a start_date",
   "errors.month_year_together": "month y year deben indicarse juntos",
   "errors.salary_date_required": "salary_date es obligatorio para un mes nuevo",

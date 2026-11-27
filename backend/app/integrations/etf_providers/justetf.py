@@ -29,6 +29,8 @@ _TABLES = ("countries", "sectors", "top-holdings")
 _NAME = re.compile(r'data-testid="etf-holdings_description"[^>]*>[^<]*?composition (?:du |de la |de l[’\']|de )([^<]+?)\.?\s*<')
 _PERCENT = re.compile(r'_percentage">\s*([0-9]+(?:,[0-9]+)?)\s*%')
 _LABEL = re.compile(r'_value_name">([^<]+)<')
+_REPLICATION = re.compile(r'data-testid="etf-profile-header_replication-value"[^>]*>\s*([^<]+?)\s*<')
+_REPLICATIONS = {"Physique": "physical", "Synthétique": "synthetic"}
 _HOLDING = re.compile(r'href="[^"]*/stock-profiles/([A-Z0-9]{12})"[^>]*title="([^"]+)"')
 
 _breaker = CircuitBreaker(cooldown=timedelta(minutes=10))
@@ -50,9 +52,11 @@ class JustEtf:
             return None
         found = _NAME.search(page)
         name = html.unescape(found.group(1)).strip() if found else wanted
+        stated = _REPLICATION.search(page)
+        replication = _REPLICATIONS.get(html.unescape(stated.group(1)), "unknown") if stated else "unknown"
         return ProviderFund(
             provider="justetf", ref=wanted, isin=wanted, name=name, ticker=None,
-            replication="unknown", index_name=index_for_fund_name(name),
+            replication=replication, index_name=index_for_fund_name(name),
         )
 
     def find_isin_by_ticker(self, symbol: str) -> Awaitable[str | None]:

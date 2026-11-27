@@ -272,7 +272,7 @@
   "errors.transfer_not_reimbursement": "An internal transfer cannot be used as a reimbursement",
   "errors.transfer_from_sortie": "A transfer starts from a Sortie",
   "errors.transfer_two_accounts": "A transfer links two different accounts",
-  "errors.yahoo_unreachable": "Yahoo Finance is unreachable, try again later",
+  "errors.etf_sources_unreachable": "Composition sources are unreachable, try again later",
   "errors.end_after_start": "end_date must be after start_date",
   "errors.month_year_together": "month and year must be provided together",
   "errors.salary_date_required": "salary_date is required for new month",

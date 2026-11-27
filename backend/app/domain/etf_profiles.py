@@ -1,7 +1,7 @@
 """Profils ETF : correspondance d'un titre avec un profil connu, sources de la composition, lecture et saisie.
 
 Chaque champ de composition garde sa source dans `EtfProfile.composition_sources` :
-- `yahoo` : remplacé à chaque actualisation ;
+- `ishares`, `amundi`, `spdr`, `justetf`, `yahoo` : remplacé à chaque actualisation ;
 - `preset` : préréglage des profils système (`etf_presets.json`), utilisé en repli tant que Yahoo
   ne fournit pas le champ ;
 - `manual` : saisi par l'utilisateur, jamais écrasé.
@@ -23,11 +23,10 @@ SOURCE_YAHOO = "yahoo"
 SOURCE_PRESET = "preset"
 SOURCE_MANUAL = "manual"
 COMPOSITION_FIELDS = ("countries", "sectors", "top_holdings")
-# Champs que Yahoo sait fournir (jamais les pays)
-YAHOO_FIELDS = ("sectors", "top_holdings")
+EMPTY_FIELDS = {"countries": "{}", "sectors": "{}", "top_holdings": "[]"}
 
-# Les compositions publiées bougent peu : une actualisation hebdomadaire suffit
-REFRESH_INTERVAL = timedelta(days=7)
+# Les émetteurs publient leur composition chaque jour
+REFRESH_INTERVAL = timedelta(days=1)
 
 
 def load_sources(profile: EtfProfile) -> dict[str, str]:
@@ -38,20 +37,40 @@ def load_sources(profile: EtfProfile) -> dict[str, str]:
         return {}
 
 
-def apply_composition(profile: EtfProfile, composition: dict[str, Any]) -> list[str]:
-    """Écrit les champs fournis par Yahoo, sauf ceux saisis à la main. Renvoie les champs mis à jour."""
+def apply_composition(
+    profile: EtfProfile, composition: dict[str, Any], source: str = SOURCE_YAHOO, *, complete: bool = False
+) -> list[str]:
+    """Écrit les champs fournis par `source`, sauf ceux saisis à la main. Renvoie les champs mis à jour.
+
+    `complete` : la source décrit tout le fonds, un champ qu'elle ne renseigne pas est vidé."""
     sources = load_sources(profile)
     updated: list[str] = []
-    for field in YAHOO_FIELDS:
+    for field in COMPOSITION_FIELDS:
         value = composition.get(field)
-        if not value or sources.get(field) == SOURCE_MANUAL:
+        if sources.get(field) == SOURCE_MANUAL:
             continue
-        setattr(profile, field, json.dumps(value, ensure_ascii=False))
-        sources[field] = SOURCE_YAHOO
-        updated.append(field)
+        if value:
+            setattr(profile, field, json.dumps(value, ensure_ascii=False))
+            sources[field] = source
+            updated.append(field)
+        elif complete:
+            setattr(profile, field, EMPTY_FIELDS[field])
+            sources.pop(field, None)
     profile.composition_sources = json.dumps(sources)
     profile.composition_refreshed_at = utcnow_naive()
     return updated
+
+
+def forget_composition_origin(profile: EtfProfile) -> None:
+    """L'ISIN a changé : ce qu'on savait de l'ancien fonds (hors saisie manuelle) ne vaut plus."""
+    apply_composition(profile, {}, complete=True)
+    profile.provider = profile.provider_ref = profile.index_name = None
+    profile.replication = "unknown"
+    profile.exposure_profile_id = None
+    profile.composition_as_of = None
+    profile.coverage_pct = None
+    profile.lines_count = 0
+    profile.composition_refreshed_at = None
 
 
 def to_read(profile: EtfProfile) -> EtfProfileRead:
@@ -88,7 +107,7 @@ def apply_update(profile: EtfProfile, payload: EtfProfileUpdate) -> None:
     if payload.top_holdings is not None:
         profile.top_holdings = json.dumps([h.model_dump() for h in payload.top_holdings])
 
-    # Un champ de composition saisi à la main n'est plus écrasé par l'actualisation Yahoo
+    # Un champ de composition saisi à la main n'est plus écrasé par l'actualisation
     sources = load_sources(profile)
     for field in COMPOSITION_FIELDS:
         if getattr(payload, field) is not None:

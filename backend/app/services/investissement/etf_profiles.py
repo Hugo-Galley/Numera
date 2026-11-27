@@ -1,5 +1,7 @@
-"""Profils ETF : saisie, actualisation de la composition depuis Yahoo, création à la volée, profils système."""
+"""Profils ETF : saisie, actualisation des compositions, création à la volée, profils système."""
 import json
+from collections.abc import Sequence
+from datetime import datetime
 
 from sqlalchemy.orm import Session
 
@@ -13,15 +15,17 @@ from app.domain.etf_profiles import (
     REFRESH_INTERVAL,
     SOURCE_MANUAL,
     SOURCE_PRESET,
-    apply_composition,
     apply_update,
+    forget_composition_origin,
     load_sources,
     to_read,
 )
-from app.integrations import yahoo_finance
+from app.integrations.etf_providers.base import Provider
 from app.models.etf_profile import EtfProfile
+from app.repositories.investissement import etf_constituents
 from app.repositories.investissement import etf_profiles as repo
 from app.schemas.etf_profile import AutoDecomposeRequest, EtfProfileCreate, EtfProfileRead, EtfProfileUpdate
+from app.services.investissement import etf_composition
 
 logger = get_logger(__name__)
 
@@ -70,7 +74,14 @@ def create_profile(db: Session, payload: EtfProfileCreate) -> EtfProfileRead:
 
 def update_profile(db: Session, profile_id: int, payload: EtfProfileUpdate) -> EtfProfileRead:
     profile = _get(db, profile_id)
+    previous_isin = profile.isin
     apply_update(profile, payload)
+    if profile.isin != previous_isin:
+        if previous_isin:
+            forget_composition_origin(profile)
+            etf_constituents.replace(db, profile.id, [])
+        else:
+            profile.composition_refreshed_at = None  # fonds désormais identifié : relu au prochain passage
     db.commit()
     db.refresh(profile)
     return to_read(profile)
@@ -84,39 +95,47 @@ def delete_profile(db: Session, profile_id: int) -> None:
     db.commit()
 
 
-async def refresh_etf_profile(db: Session, profile: EtfProfile) -> list[str]:
-    """Actualise un profil depuis Yahoo. Lève YahooUnavailable si Yahoo est injoignable."""
-    composition = await yahoo_finance.fetch_composition(profile.ticker)
-    updated = apply_composition(profile, composition or {})
-    db.commit()
-    logger.info(f"ETF profile #{profile.id} ({profile.ticker}) refreshed from Yahoo: {updated or 'aucune donnée'}")
-    return updated
-
-
 async def refresh_profile(db: Session, profile_id: int) -> EtfProfileRead:
-    """Actualise la composition d'un profil depuis Yahoo (secteurs et top 10 ; jamais les pays)."""
+    """Actualise la composition d'un profil depuis son émetteur (à défaut justETF puis Yahoo)."""
     profile = _get(db, profile_id)
     try:
-        await refresh_etf_profile(db, profile)
-    except yahoo_finance.YahooUnavailable:
-        raise ExternalServiceError(tr("errors.yahoo_unreachable")) from None
+        await etf_composition.refresh(db, profile)
+    except etf_composition.CompositionUnavailable:
+        raise ExternalServiceError(tr("errors.etf_sources_unreachable")) from None
     db.refresh(profile)
     return to_read(profile)
 
 
-async def refresh_held_etf_profiles(db: Session, force: bool = False) -> int:
-    """Actualise les profils détenus dont la composition date de plus de REFRESH_INTERVAL (tâche de fond)."""
-    threshold = utcnow_naive() - REFRESH_INTERVAL
+async def _refresh_if_due(
+    db: Session, profile: EtfProfile, threshold: datetime, providers: Sequence[Provider] | None, down: set[str]
+) -> bool:
+    if profile.composition_refreshed_at and profile.composition_refreshed_at > threshold:
+        return False
+    try:
+        await etf_composition.refresh(db, profile, providers, down=down)
+    except etf_composition.CompositionUnavailable as e:
+        logger.warning(f"Composition non actualisée : {e}")
+        return False
+    return True
+
+
+async def refresh_held_etf_profiles(
+    db: Session, force: bool = False, providers: Sequence[Provider] | None = None
+) -> int:
+    """Actualise les profils détenus, puis leurs références d'indice, dont la composition date de plus de
+    REFRESH_INTERVAL (tâche de fond). Une source injoignable est sautée jusqu'au passage suivant."""
+    start = utcnow_naive()
+    # `force` : tout ce qui n'a pas déjà été relu pendant ce passage
+    threshold = start if force else start - REFRESH_INTERVAL
+    down: set[str] = set()
+    held = repo.held_profiles(db)
     refreshed = 0
-    for profile in repo.held_profiles(db):
-        if not force and profile.composition_refreshed_at and profile.composition_refreshed_at > threshold:
-            continue
-        try:
-            await refresh_etf_profile(db, profile)
-            refreshed += 1
-        except yahoo_finance.YahooUnavailable as e:
-            logger.warning(f"Yahoo unavailable, ETF profile refresh stopped: {e}")
-            break
+    for profile in held:
+        refreshed += await _refresh_if_due(db, profile, threshold, providers, down)
+    held_ids = {p.id for p in held}
+    exposure_ids = {p.exposure_profile_id for p in held if p.exposure_profile_id} - held_ids
+    for reference in repo.get_many(db, exposure_ids):
+        refreshed += await _refresh_if_due(db, reference, threshold, providers, down)
     return refreshed
 
 
@@ -126,9 +145,9 @@ async def auto_decompose_and_create_profile(
     name: str | None = None,
     isin: str | None = None
 ) -> EtfProfile | None:
-    """Crée un profil pour un ETF ou fonds inconnu à partir de la composition publiée par Yahoo.
+    """Crée un profil pour un ETF ou fonds inconnu, puis lit sa composition (émetteur, justETF ou Yahoo).
 
-    Les champs que Yahoo ne fournit pas (toujours les pays) restent vides.
+    Les champs qu'aucune source ne publie restent vides.
     """
     cleaned_sym = symbol.strip().upper()
 
@@ -136,20 +155,13 @@ async def auto_decompose_and_create_profile(
     if existing:
         return existing
 
-    try:
-        composition = await yahoo_finance.fetch_composition(cleaned_sym)
-    except yahoo_finance.YahooUnavailable as e:
-        logger.warning(f"Could not fetch Yahoo composition for {cleaned_sym}: {e}")
-        composition = None
-
-    fund_name = name or (composition or {}).get("name") or cleaned_sym
     aliases = [cleaned_sym]
     if isin:
         aliases.append(isin.upper())
 
     try:
         profile = EtfProfile(
-            name=fund_name,
+            name=name or cleaned_sym,
             ticker=cleaned_sym,
             isin=isin.upper() if isin else None,
             aliases=json.dumps(aliases),
@@ -159,17 +171,17 @@ async def auto_decompose_and_create_profile(
             composition_sources="{}",
             is_system=False,
         )
-        if composition is not None:
-            apply_composition(profile, composition)
         repo.add(db, profile)
         db.commit()
         db.refresh(profile)
-        logger.info(f"Created ETF profile {profile.name} (#{profile.id}) from Yahoo composition")
-
         # Rattache les positions existantes de même ticker
         repo.attach_to_holdings(db, cleaned_sym, profile.id)
         db.commit()
-
+        logger.info(f"Created ETF profile {profile.name} (#{profile.id})")
+        try:
+            await etf_composition.refresh(db, profile, adopt_name=not name)
+        except etf_composition.CompositionUnavailable as e:
+            logger.warning(f"Composition pas encore disponible : {e}")
         return profile
     except Exception as e:
         db.rollback()
@@ -178,7 +190,7 @@ async def auto_decompose_and_create_profile(
 
 
 async def auto_decompose(db: Session, payload: AutoDecomposeRequest) -> EtfProfileRead:
-    """Crée le profil d'un ETF ou fonds inconnu à partir de la composition publiée par Yahoo."""
+    """Crée le profil d'un ETF ou fonds inconnu à partir de sa composition publiée."""
     profile = await auto_decompose_and_create_profile(db=db, symbol=payload.symbol, name=payload.name, isin=payload.isin)
     if not profile:
         raise InvalidOperationError(tr("errors.etf_decompose_failed"))

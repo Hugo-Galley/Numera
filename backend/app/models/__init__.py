@@ -4,6 +4,7 @@ from app.models.benefit import Benefit
 from app.models.categorization_rule import CategorizationRule
 from app.models.category import Category
 from app.models.dismissed_insight import DismissedInsight
+from app.models.etf_constituent import EtfConstituent
 from app.models.etf_profile import EtfProfile
 from app.models.exchange_rate import HistoricalExchangeRate
 from app.models.financial_event import FinancialEvent
@@ -39,6 +40,7 @@ __all__ = [
     "CategorizationRule",
     "Category",
     "DismissedInsight",
+    "EtfConstituent",
     "EtfProfile",
     "FinancialEvent",
     "HistoricalExchangeRate",

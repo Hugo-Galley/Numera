@@ -72,3 +72,18 @@ def test_fetch_returns_aggregates_without_lines():
 def test_unusable_page_is_unavailable(response):
     with pytest.raises(ProviderUnavailable):
         _fetch(lambda _request: response)
+
+
+# Balisage réel de l'en-tête (page de FR0011550185, 27/11/2026) ; le jeu réduit ne le contient pas
+_REPLICATION = ('<div class="vallabel" data-testid="etf-profile-header_replication-label">Réplication </div>\n'
+                '<div class="val bold" data-testid="etf-profile-header_replication-value">{}</div>')
+
+
+@pytest.mark.parametrize(
+    ("published", "expected"),
+    [("Synthétique", "synthetic"), ("Physique", "physical"), ("Autre chose", "unknown")],
+)
+def test_lookup_reads_the_published_replication(published, expected):
+    page = _REPLICATION.format(published) + fixture_bytes("justetf_IE000BI8OT95.html").decode()
+    provider = JustEtf(client_factory=mock_factory(lambda _request: httpx.Response(200, text=page)))
+    assert asyncio.run(provider.lookup("IE000BI8OT95")).replication == expected

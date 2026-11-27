@@ -8,7 +8,7 @@ from __future__ import annotations
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta
-from typing import Any, Protocol
+from typing import Any, Generic, Protocol, TypeVar
 
 import httpx
 
@@ -21,6 +21,7 @@ CATALOG_TTL = timedelta(hours=24)
 CATALOG_RETRY_AFTER = timedelta(minutes=10)
 
 ClientFactory = Callable[[], httpx.AsyncClient]
+T = TypeVar("T")
 
 
 @dataclass(frozen=True)
@@ -113,16 +114,16 @@ def text_or_none(value: object) -> str | None:
     return None if cleaned in ("", "-", "Unassigned") else cleaned
 
 
-class CatalogCache:
+class CatalogCache(Generic[T]):
     """Catalogue d'un émetteur, par ISIN, gardé 24 h en mémoire ; après un échec, pas de nouvelle tentative avant 10 min."""
 
-    def __init__(self, load: Callable[[], Awaitable[dict[str, ProviderFund]]]) -> None:
+    def __init__(self, load: Callable[[], Awaitable[dict[str, T]]]) -> None:
         self._load = load
-        self._funds: dict[str, ProviderFund] = {}
+        self._funds: dict[str, T] = {}
         self._expires_at: datetime | None = None
         self._retry_at: datetime | None = None
 
-    async def get(self) -> dict[str, ProviderFund]:
+    async def get(self) -> dict[str, T]:
         now = utcnow_naive()
         if self._expires_at and now < self._expires_at:
             return self._funds

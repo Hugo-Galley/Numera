@@ -1,19 +1,19 @@
-"""Amundi : fiche et composition complète d'un fonds par ISIN (API JSON publique, sans clé).
+"""Amundi : fiche et composition complète d'un fonds par ISIN, et catalogue de ses cotations (API JSON publique,
+sans clé).
 
-Les poids sont publiés en fractions (0–1) et la place de cotation n'est pas donnée : elle est déduite du code
-Bloomberg (« AAPL UW »), avec des noms que la résolution d'ISIN (`domain/isin`) sait comparer.
+Les poids sont publiés en fractions (0–1). La place d'une ligne comme d'une cotation est déduite de son code
+Bloomberg (« AAPL UW », « ISRG FP »), avec des noms que la résolution d'ISIN (`domain/isin`) sait comparer.
 """
 from __future__ import annotations
 
-import asyncio
-from collections.abc import Awaitable
 from datetime import date, timedelta
 from typing import Any
 
 from app.core.circuit_breaker import CircuitBreaker
 from app.domain.etf_normalize import country_code, index_for_fund_name, sector_label
-from app.domain.isin import is_valid_isin
+from app.domain.isin import IsinCandidate, is_valid_isin, pick_isin
 from app.integrations.etf_providers.base import (
+    CatalogCache,
     ClientFactory,
     Composition,
     Constituent,
@@ -55,6 +55,7 @@ class Amundi:
 
     def __init__(self, client_factory: ClientFactory | None = None) -> None:
         self._client_factory = client_factory or default_client
+        self._catalog = CatalogCache(self._load_catalog)
 
     async def lookup(self, isin: str) -> ProviderFund | None:
         wanted = isin.strip().upper()
@@ -72,9 +73,19 @@ class Amundi:
             index_name=index_for_fund_name(name),
         )
 
-    def find_isin_by_ticker(self, symbol: str) -> Awaitable[str | None]:
-        """L'API ne cherche que par ISIN : aucun ISIN n'est déduit d'un ticker."""
-        return asyncio.sleep(0, None)
+    async def find_isin_by_ticker(self, symbol: str) -> str | None:
+        """ISIN du seul fonds coté sous ce ticker exact sur la place du symbole (`ISRG.PA` -> « ISRG FP »)."""
+        listings = (await self._catalog.get()).values()
+        return pick_isin(symbol, [candidate for candidates in listings for candidate in candidates])
+
+    async def _load_catalog(self) -> dict[str, list[IsinCandidate]]:
+        """Sans `productIds`, l'API renvoie tous les produits."""
+        products = await self._products({"characteristics": ["MNEMO", "LISTINGS"]})
+        try:
+            catalog = {str(p["productId"]): _listings(p) for p in products if "productId" in p}
+        except (KeyError, TypeError, AttributeError) as exc:
+            raise ProviderUnavailable("catalogue Amundi : format inattendu") from exc
+        return {isin: listings for isin, listings in catalog.items() if listings}
 
     async def fetch(self, fund: ProviderFund) -> Composition:
         product = await self._product(fund.ref, {"composition": {"compositionFields": _COMPOSITION_FIELDS}})
@@ -89,14 +100,24 @@ class Amundi:
         return Composition(as_of=as_of, lines=lines)
 
     async def _product(self, isin: str, wanted: dict[str, Any]) -> dict[str, Any] | None:
-        body = {"context": _CONTEXT, "productIds": [isin], "productType": "PRODUCT", **wanted}
+        products = await self._products({"productIds": [isin], **wanted})
+        found: dict[str, Any] | None = next(
+            (p for p in products if isinstance(p, dict) and p.get("productId") == isin), None)
+        return found
+
+    async def _products(self, wanted: dict[str, Any]) -> list[Any]:
+        body = {"context": _CONTEXT, "productType": "PRODUCT", **wanted}
         response = await request(self._client_factory, _breaker, "POST", PRODUCTS_URL, json=body)
         products = read_json(response).get("products")
         if not isinstance(products, list):
             raise ProviderUnavailable("réponse Amundi sans liste de produits")
-        found: dict[str, Any] | None = next(
-            (p for p in products if isinstance(p, dict) and p.get("productId") == isin), None)
-        return found
+        return products
+
+
+def _listings(product: dict[str, Any]) -> list[IsinCandidate]:
+    isin = str(product["productId"])
+    found = (_ticker_and_exchange(x.get("ticker")) for x in (product.get("characteristics") or {}).get("LISTINGS") or [])
+    return [IsinCandidate(isin, ticker, exchange) for ticker, exchange in found if ticker]
 
 
 def _ticker_and_exchange(bbg: object) -> tuple[str | None, str | None]:

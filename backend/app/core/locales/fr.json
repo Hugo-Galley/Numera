@@ -272,7 +272,7 @@
   "errors.transfer_not_reimbursement": "Un virement interne ne peut pas servir de remboursement",
   "errors.transfer_from_sortie": "Un virement part d'une Sortie",
   "errors.transfer_two_accounts": "Un virement relie deux comptes différents",
-  "errors.yahoo_unreachable": "Yahoo Finance est injoignable, réessaie plus tard",
+  "errors.etf_sources_unreachable": "Sources de composition injoignables, réessaie plus tard",
   "errors.end_after_start": "end_date doit être postérieure à start_date",
   "errors.month_year_together": "month et year doivent être fournis ensemble",
   "errors.salary_date_required": "salary_date est requis pour un nouveau mois",

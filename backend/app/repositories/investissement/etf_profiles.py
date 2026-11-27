@@ -30,7 +30,8 @@ def find_by_symbol_or_alias(db: Session, sym: str) -> EtfProfile | None:
 
 
 def find_by_name(db: Session, name: str) -> EtfProfile | None:
-    return db.query(EtfProfile).filter(EtfProfile.name == name).first()
+    """Le profil système d'abord : un profil de référence peut porter le nom d'un indice."""
+    return db.query(EtfProfile).filter(EtfProfile.name == name).order_by(EtfProfile.is_system.desc()).first()
 
 
 def held_profiles(db: Session) -> list[EtfProfile]:
@@ -45,6 +46,16 @@ def held_profiles(db: Session) -> list[EtfProfile]:
     return db.query(EtfProfile).filter(EtfProfile.id.in_(ids)).order_by(EtfProfile.name).all()
 
 
+def get_many(db: Session, ids: set[int]) -> list[EtfProfile]:
+    if not ids:
+        return []
+    return db.query(EtfProfile).filter(EtfProfile.id.in_(ids)).order_by(EtfProfile.name).all()
+
+
+def find_by_isin(db: Session, isin: str) -> EtfProfile | None:
+    return db.query(EtfProfile).filter(EtfProfile.isin == isin).order_by(EtfProfile.id).first()
+
+
 def attach_to_holdings(db: Session, sym: str, profile_id: int) -> None:
     """Rattache au profil les positions de même ticker qui n'en ont pas."""
     db.query(PortfolioHolding).filter(
@@ -55,6 +66,10 @@ def attach_to_holdings(db: Session, sym: str, profile_id: int) -> None:
 
 def add(db: Session, profile: EtfProfile) -> None:
     db.add(profile)
+
+
+def flush(db: Session) -> None:
+    db.flush()
 
 
 def delete(db: Session, profile: EtfProfile) -> None:

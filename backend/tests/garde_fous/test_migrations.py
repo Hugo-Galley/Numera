@@ -211,3 +211,29 @@ def test_purge_etf_profiles_migration_cleans_aliases_detaches_and_deletes(tmp_pa
         links = dict(conn.execute(text("SELECT ticker, etf_profile_id FROM portfolio_holdings")).fetchall())
         assert links == {"HELD": held, "CSCO": None, "CSCO.TO": cisco, "UNRELATED": manual}  # lien manuel gardé ; l'action Cisco est détachée du CDR
     engine.dispose()
+
+
+def test_etf_constituents_migration_keeps_holdings_linked_to_their_profile(tmp_path):
+    """La migration recrée `etf_profiles` : les positions rattachées ne doivent pas être détachées."""
+    url = f"sqlite:///{tmp_path / 'constituents.db'}"
+    assert _alembic(url, "upgrade", "b4d7f1a9c3e5").returncode == 0
+    engine = create_engine(url)
+    with engine.begin() as conn:
+        profile = _insert_profile(conn, "World", "CW8.PA", sectors='{"Finance": 15.0}', system=1)
+        conn.execute(text("INSERT INTO accounts (name, type, currency, active, created_at) VALUES ('PEA', 'investissement', 'EUR', 1, '2026-01-01')"))
+        conn.execute(
+            text("INSERT INTO portfolio_holdings (account_id, ticker, asset_name, quantity, currency, etf_profile_id, created_at, updated_at) "
+                 "VALUES (1, 'CW8.PA', 'World', 1, 'EUR', :p, '2026-01-01', '2026-01-01')"),
+            {"p": profile},
+        )
+    engine.dispose()
+
+    result = _alembic(url, "upgrade", "head")
+    assert result.returncode == 0, result.stderr
+
+    engine = create_engine(url)
+    with engine.connect() as conn:
+        assert conn.execute(text("SELECT etf_profile_id FROM portfolio_holdings")).scalar_one() == profile
+        row = conn.execute(text("SELECT replication, lines_count, exposure_profile_id FROM etf_profiles WHERE id = :i"), {"i": profile}).one()
+        assert tuple(row) == ("unknown", 0, None)
+    engine.dispose()

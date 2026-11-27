@@ -1,8 +1,8 @@
 """Référentiel des titres (`securities`)."""
 from collections.abc import Iterable
-from typing import Any
+from typing import Any, cast
 
-from sqlalchemy import func
+from sqlalchemy import Table, func
 from sqlalchemy.dialects.sqlite import insert
 from sqlalchemy.orm import Session
 
@@ -13,9 +13,10 @@ _OPTIONAL = ("exchange", "country", "sector")
 
 
 def upsert_many(db: Session, rows: list[dict[str, Any]]) -> None:
-    """Insère ou met à jour les titres en une seule requête (`ON CONFLICT(isin) DO UPDATE`).
+    """Insère ou met à jour les titres en une seule instruction groupée (`ON CONFLICT(isin) DO UPDATE`).
 
-    `country` et `sector` ne sont jamais remplacés par NULL ; une ligne `source="manual"` n'est pas modifiée.
+    `country`, `sector` et `exchange` ne sont jamais remplacés par NULL, ni `ticker` par un texte vide (SPDR n'en
+    publie pas) ; une ligne `source="manual"` n'est pas modifiée.
     Pas de commit : l'appelant valide."""
     if not rows:
         return
@@ -25,12 +26,13 @@ def upsert_many(db: Session, rows: list[dict[str, Any]]) -> None:
          "updated_at": now, **{k: r.get(k) for k in _OPTIONAL}}
         for r in rows
     ]
-    stmt = insert(Security).values(values)
+    # Table Core (et non l'ORM, qui éclaterait le lot selon les colonnes à NULL) ; `__table__` est typé trop large
+    stmt = insert(cast(Table, Security.__table__))
     excluded = stmt.excluded
     stmt = stmt.on_conflict_do_update(
         index_elements=[Security.isin],
         set_={
-            "ticker": excluded.ticker,
+            "ticker": func.coalesce(func.nullif(excluded.ticker, ""), Security.ticker),
             "name": excluded.name,
             "source": excluded.source,
             "updated_at": excluded.updated_at,
@@ -40,7 +42,7 @@ def upsert_many(db: Session, rows: list[dict[str, Any]]) -> None:
         },
         where=Security.source != "manual",
     )
-    db.execute(stmt)
+    db.execute(stmt, values)
 
 
 def by_isins(db: Session, isins: Iterable[str]) -> dict[str, Security]:

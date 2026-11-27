@@ -47,9 +47,54 @@ def test_lookup_of_an_unknown_product_returns_none():
     assert _lookup("FR0000000000") is None
 
 
-def test_isin_is_never_guessed_from_a_ticker():
-    provider = Amundi(client_factory=mock_factory(_serve))
-    assert asyncio.run(provider.find_isin_by_ticker("MWRD.PA")) is None
+def _catalog(request: httpx.Request) -> httpx.Response:
+    return httpx.Response(200, content=fixture_bytes("amundi_catalog.json"))
+
+
+def _find(symbol: str, handler=_catalog, seen=None) -> str | None:
+    return asyncio.run(Amundi(client_factory=mock_factory(handler, seen)).find_isin_by_ticker(symbol))
+
+
+@pytest.mark.parametrize(
+    ("symbol", "isin"),
+    [("ISRG.PA", "FR001400SDL2"), ("CW8.PA", "LU1681043599"), ("MWRL.L", "IE000BI8OT95"), ("LEM.PA", "FR0010429068")],
+)
+def test_isin_of_a_listing_with_the_exact_ticker_and_exchange(symbol, isin):
+    assert _find(symbol) == isin
+
+
+@pytest.mark.parametrize(
+    "symbol",
+    ["ISRG", "ISRG.L", "ISRG.DE", "CW8.L", "ZZZZ.PA", "ISRG.XX"],
+    ids=["action-americaine", "pas-a-londres", "pas-sur-xetra", "autre-place", "inconnu", "suffixe-inconnu"],
+)
+def test_no_isin_for_another_listing(symbol):
+    assert _find(symbol) is None
+
+
+def test_catalog_lists_every_product_and_is_downloaded_once():
+    seen: list[httpx.Request] = []
+    provider = Amundi(client_factory=mock_factory(_catalog, seen))
+
+    async def twice():
+        await provider.find_isin_by_ticker("ISRG.PA")
+        await provider.find_isin_by_ticker("CW8.PA")
+
+    asyncio.run(twice())
+    assert len(seen) == 1
+    body = json.loads(seen[0].content)
+    assert "productIds" not in body
+    assert body["characteristics"] == ["MNEMO", "LISTINGS"]
+
+
+@pytest.mark.parametrize(
+    "response",
+    [httpx.Response(500), httpx.Response(200, json={"products": []}), httpx.Response(200, json={"products": [{"x": 1}]})],
+    ids=["http-500", "vide", "sans-cotation"],
+)
+def test_unusable_catalog_is_unavailable(response):
+    with pytest.raises(ProviderUnavailable):
+        _find("ISRG.PA", lambda _request: response)
 
 
 def test_amundi_weights_are_percent():

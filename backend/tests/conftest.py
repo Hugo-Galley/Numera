@@ -46,6 +46,14 @@ def fresh_portfolio_cache():
     invalidate()
 
 
+@pytest.fixture(autouse=True)
+def no_etf_issuers(monkeypatch):
+    """Aucun émetteur d'ETF par défaut en test : un test qui en a besoin passe les siens (jeux de test réels)."""
+    from app.services.investissement import etf_composition
+
+    monkeypatch.setattr(etf_composition, "PROVIDERS", [])
+
+
 @pytest.fixture()
 def measure_queries(db_session):
     """`measure_queries(appel)` exécute `appel()` et renvoie `(résultat, nombre de requêtes SQL émises)`.
