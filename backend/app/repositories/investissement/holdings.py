@@ -1,7 +1,8 @@
 """Positions (`portfolio_holdings`) et inventaire Point Zéro (`holding_baseline_items`)."""
 from datetime import datetime
 
-from sqlalchemy.orm import Session
+from sqlalchemy import update
+from sqlalchemy.orm import Session, lazyload
 
 from app.domain.holdings import TRADE_TYPES
 from app.models.account import Account
@@ -94,18 +95,35 @@ def held_positions(db: Session, account_id: int | None = None) -> list[Portfolio
 
 
 def holdings_without_isin(db: Session, account_id: int | None = None) -> list[PortfolioHolding]:
-    query = db.query(PortfolioHolding).filter((PortfolioHolding.isin.is_(None)) | (PortfolioHolding.isin == ""))
+    """Sans charger leurs relations : seuls leurs propres champs sont lus."""
+    query = db.query(PortfolioHolding).options(lazyload(PortfolioHolding.account), lazyload(PortfolioHolding.etf_profile))
+    query = query.filter((PortfolioHolding.isin.is_(None)) | (PortfolioHolding.isin == ""))
     if account_id is not None:
         query = query.filter(PortfolioHolding.account_id == account_id)
     return query.all()
 
 
 def recorded_isins(db: Session) -> list[tuple[int, str, str]]:
-    """(compte, ticker, ISIN) saisis sur les opérations et l'inventaire : deux requêtes pour tous les comptes."""
+    """(compte, ticker, ISIN) saisis sur les opérations et l'inventaire : une requête pour tous les comptes."""
     tx = db.query(InvestmentTransaction.account_id, InvestmentTransaction.ticker, InvestmentTransaction.isin).filter(
         InvestmentTransaction.ticker.isnot(None), InvestmentTransaction.isin.isnot(None)
     )
     base = db.query(HoldingBaselineItem.account_id, HoldingBaselineItem.ticker, HoldingBaselineItem.isin).filter(
         HoldingBaselineItem.isin.isnot(None)
     )
-    return [(a, t, i) for a, t, i in [*tx.distinct().all(), *base.distinct().all()] if t and i]
+    return [(a, t, i) for a, t, i in tx.union(base).all() if t and i]
+
+
+def attachment_rows(db: Session) -> list[tuple[int, str, str | None, int | None, str]]:
+    """(id, ticker, ISIN, profil, nom) de toutes les positions, sans objets ORM."""
+    query = db.query(PortfolioHolding.id, PortfolioHolding.ticker, PortfolioHolding.isin,
+                     PortfolioHolding.etf_profile_id, PortfolioHolding.asset_name).order_by(PortfolioHolding.id)
+    return [(i, t, s, p, n) for i, t, s, p, n in query]
+
+
+def set_etf_profiles(db: Session, targets: dict[int, int | None]) -> None:
+    """Un profil (ou aucun) par position, en une instruction ; les objets déjà chargés sont relus (pas de commit)."""
+    db.execute(update(PortfolioHolding), [{"id": i, "etf_profile_id": p} for i, p in targets.items()])
+    for obj in list(db.identity_map.values()):
+        if isinstance(obj, PortfolioHolding) and obj.id in targets:
+            db.expire(obj, ["etf_profile_id", "etf_profile", "updated_at"])

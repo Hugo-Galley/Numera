@@ -20,6 +20,7 @@ from app.models.portfolio_holding import PortfolioHolding
 from app.repositories.investissement import etf_profiles as profiles_repo
 from app.repositories.investissement import holdings as holdings_repo
 from app.repositories.investissement import securities as securities_repo
+from app.services.investissement.etf_attachment import attach_to_own_profiles
 
 logger = get_logger(__name__)
 
@@ -87,10 +88,10 @@ async def resolve_missing_isins(db: Session, catalogs: Sequence[IsinCatalog] | N
 
     Un seul commit, s'il y a du changement ; `commit=False` laisse la transaction à l'appelant (flush seulement) ;
     `account_id` limite aux positions d'un compte. Recopie ensuite les ISIN connus sur les profils ETF qui n'en ont
-    pas (`copy_isins_to_profiles`)."""
+    pas (`copy_isins_to_profiles`), puis rattache chaque position au profil de son fonds (`attach_to_own_profiles`)."""
     holdings = holdings_repo.holdings_without_isin(db, account_id)
     if not holdings:
-        copy_isins_to_profiles(db, commit=commit)
+        _share_with_profiles(db, 0, commit=commit)
         return 0
     recorded = _recorded_by_key(db)
     profiles = profiles_repo.all_profiles(db)
@@ -103,10 +104,16 @@ async def resolve_missing_isins(db: Session, catalogs: Sequence[IsinCatalog] | N
             resolved += 1
     if resolved:
         db.flush()
-    copied = copy_isins_to_profiles(db, commit=False)  # l'ISIN trouvé sert aussi au profil ETF de la position
-    if (resolved or copied) and commit:
-        db.commit()
+    _share_with_profiles(db, resolved, commit=commit)
     return resolved
+
+
+def _share_with_profiles(db: Session, resolved: int, *, commit: bool) -> None:
+    """L'ISIN trouvé sert aussi au profil ETF de la position ; chaque position va au profil de son propre fonds."""
+    copied = copy_isins_to_profiles(db, commit=False)
+    attached = attach_to_own_profiles(db, commit=False)
+    if (resolved or copied or attached) and commit:
+        db.commit()
 
 
 async def _resolve_one(holding: PortfolioHolding, recorded: dict[tuple[int, str], str], profiles: list[EtfProfile],

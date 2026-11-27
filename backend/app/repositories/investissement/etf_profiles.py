@@ -1,5 +1,7 @@
 """Profils ETF (`etf_profiles`)."""
-from sqlalchemy import update
+from typing import Any
+
+from sqlalchemy import func, insert, update
 from sqlalchemy.orm import Session
 
 from app.models.etf_profile import EtfProfile
@@ -94,3 +96,20 @@ def set_isins(db: Session, isins: dict[int, str]) -> None:
     if isins:
         db.execute(update(EtfProfile), [
             {"id": pid, "isin": isin, "composition_refreshed_at": None} for pid, isin in isins.items()])
+
+
+def attachment_rows(db: Session) -> list[tuple[int, str, str | None, str | None, bool]]:
+    """(id, ticker, ISIN, alias JSON, système) de tous les profils, sans objets ORM."""
+    query = db.query(EtfProfile.id, EtfProfile.ticker, EtfProfile.isin, EtfProfile.aliases, EtfProfile.is_system)
+    return [(i, t, s, a, y) for i, t, s, a, y in query]
+
+
+def insert_many(db: Session, rows: list[dict[str, Any]]) -> None:
+    """Insère des profils en une instruction (pas de commit)."""
+    db.execute(insert(EtfProfile), rows)
+
+
+def ids_by_isin(db: Session, isins: set[str]) -> dict[str, int]:
+    """ISIN -> plus petit id de profil."""
+    query = db.query(EtfProfile.isin, func.min(EtfProfile.id)).filter(EtfProfile.isin.in_(isins)).group_by(EtfProfile.isin)
+    return {isin: pid for isin, pid in query if isin}
