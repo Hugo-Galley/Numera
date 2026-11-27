@@ -10,9 +10,17 @@
  ],
  "etf_compositions": [
   {
+   "composition_as_of": null,
+   "coverage_pct": null,
+   "exposure_profile_id": null,
+   "exposure_profile_name": null,
+   "index_name": null,
+   "lines_count": 0,
    "profile_id": 1,
    "profile_name": "MSCI World",
+   "provider": null,
    "refreshed_at": null,
+   "replication": "unknown",
    "sources": {},
    "tickers": [
     "CW8.PA"
@@ -20,9 +28,17 @@
    "value_eur": 7842.56
   },
   {
+   "composition_as_of": null,
+   "coverage_pct": null,
+   "exposure_profile_id": null,
+   "exposure_profile_name": null,
+   "index_name": null,
+   "lines_count": 0,
    "profile_id": 2,
    "profile_name": "S&P 500",
+   "provider": null,
    "refreshed_at": null,
+   "replication": "unknown",
    "sources": {},
    "tickers": [
     "ESE.PA"
@@ -30,9 +46,17 @@
    "value_eur": 6253.0
   },
   {
+   "composition_as_of": null,
+   "coverage_pct": null,
+   "exposure_profile_id": null,
+   "exposure_profile_name": null,
+   "index_name": null,
+   "lines_count": 0,
    "profile_id": 6,
    "profile_name": "MSCI Emerging Markets",
+   "provider": null,
    "refreshed_at": null,
+   "replication": "unknown",
    "sources": {},
    "tickers": [
     "PAEEM.PA"

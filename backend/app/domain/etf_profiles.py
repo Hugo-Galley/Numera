@@ -70,7 +70,8 @@ def forget_composition_origin(profile: EtfProfile) -> None:
     profile.composition_refreshed_at = None
 
 
-def to_read(profile: EtfProfile) -> EtfProfileRead:
+def to_read(profile: EtfProfile, exposure_name: str | None = None) -> EtfProfileRead:
+    """`exposure_name` : nom du profil de référence d'un synthétique (`exposure_profile_id`)."""
     return EtfProfileRead(
         id=profile.id,
         name=profile.name,
@@ -83,6 +84,14 @@ def to_read(profile: EtfProfile) -> EtfProfileRead:
         is_system=profile.is_system,
         composition_sources=load_sources(profile),
         composition_refreshed_at=profile.composition_refreshed_at,
+        provider=profile.provider,
+        replication=profile.replication,
+        index_name=profile.index_name,
+        exposure_profile_id=profile.exposure_profile_id,
+        exposure_profile_name=exposure_name,
+        composition_as_of=profile.composition_as_of,
+        coverage_pct=profile.coverage_pct,
+        lines_count=profile.lines_count,
         created_at=profile.created_at,
         updated_at=profile.updated_at,
     )

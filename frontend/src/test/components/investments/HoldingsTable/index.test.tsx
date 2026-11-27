@@ -1,7 +1,10 @@
 /** Positions d'un compte titres : mode confidentialité (montants masqués) et option « titres et parts seulement ». */
 import { screen, waitFor, within } from "@testing-library/react"
+import { http, HttpResponse } from "msw"
 import { safeStorage } from "@/lib/storage"
 import { renderWithProviders } from "@/test/support/render"
+import { apiUrl } from "@/test/support/handlers"
+import { server } from "@/test/support/server"
 import type { PortfolioHolding } from "@/types/diversity"
 import { HoldingsTable } from "@/components/investments/HoldingsTable"
 
@@ -70,5 +73,66 @@ describe("HoldingsTable : confidentialité", () => {
     expect(within(table).queryByText(/€/)).not.toBeInTheDocument()
     expect(within(table).getByText("Amundi MSCI World")).toBeInTheDocument()
     expect(within(table).getByText("12.5")).toBeInTheDocument()
+  })
+})
+
+describe("HoldingsTable : ISIN à compléter", () => {
+  const missing = holding({ id: 3, ticker: "HO.PA", isin: undefined, asset_name: "Thales", is_etf: false, isin_missing: true })
+
+  function renderMissing(...rows: PortfolioHolding[]) {
+    const onRefresh = vi.fn()
+    const view = renderWithProviders(<HoldingsTable accountId={5} accountName="PEA" holdings={rows} onRefresh={onRefresh} />, { auth: true })
+    return { ...view, onRefresh }
+  }
+
+  /** Corps des enregistrements reçus par l'API. */
+  function recordUpdates() {
+    const bodies: unknown[] = []
+    server.use(http.put(apiUrl("/holdings/3"), async ({ request }) => {
+      bodies.push(await request.json())
+      return HttpResponse.json({ id: 3 })
+    }))
+    return bodies
+  }
+
+  it("signale la position sans ISIN, sur bureau et sur mobile, et elle seule", () => {
+    renderMissing(missing, holding({ isin_missing: false }), holding({ id: 4, ticker: "BTC-EUR", isin: undefined, isin_missing: false }))
+
+    expect(screen.getAllByRole("button", { name: "ISIN à compléter" })).toHaveLength(2)
+    expect(within(desktopTable()).getAllByRole("button", { name: "ISIN à compléter" })).toHaveLength(1)
+  })
+
+  it("ouvre la saisie au clic puis enregistre l'ISIN en majuscules", async () => {
+    const bodies = recordUpdates()
+    const { user, onRefresh } = renderMissing(missing)
+
+    await user.click(within(desktopTable()).getByRole("button", { name: "ISIN à compléter" }))
+    await user.type(within(desktopTable()).getByRole("textbox", { name: "ISIN de HO.PA" }), " fr0000121329 {Enter}")
+
+    await waitFor(() => expect(onRefresh).toHaveBeenCalled())
+    expect(bodies).toEqual([{ isin: "FR0000121329" }])
+    expect(await screen.findByText("ISIN de HO.PA enregistré")).toBeInTheDocument()
+  })
+
+  it("refuse un ISIN mal formé sans rien envoyer", async () => {
+    const bodies = recordUpdates()
+    const { user, onRefresh } = renderMissing(missing)
+
+    await user.click(within(desktopTable()).getByRole("button", { name: "ISIN à compléter" }))
+    await user.type(within(desktopTable()).getByRole("textbox", { name: "ISIN de HO.PA" }), "FR00001{Enter}")
+
+    expect(await screen.findByText("Un ISIN compte 12 caractères : 2 lettres, 9 lettres ou chiffres, 1 chiffre")).toBeInTheDocument()
+    expect(bodies).toEqual([])
+    expect(onRefresh).not.toHaveBeenCalled()
+  })
+
+  it("Échap abandonne la saisie", async () => {
+    const { user } = renderMissing(missing)
+
+    await user.click(within(desktopTable()).getByRole("button", { name: "ISIN à compléter" }))
+    await user.keyboard("{Escape}")
+
+    expect(within(desktopTable()).queryByRole("textbox", { name: "ISIN de HO.PA" })).not.toBeInTheDocument()
+    expect(within(desktopTable()).getByRole("button", { name: "ISIN à compléter" })).toBeInTheDocument()
   })
 })

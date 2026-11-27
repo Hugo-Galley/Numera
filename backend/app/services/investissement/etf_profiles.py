@@ -46,7 +46,14 @@ def new_profile(payload: EtfProfileCreate) -> EtfProfile:
 
 
 def list_profiles(db: Session) -> list[EtfProfileRead]:
-    return [to_read(p) for p in repo.list_ordered(db)]
+    profiles = repo.list_ordered(db)
+    names = {p.id: p.name for p in profiles}
+    return [to_read(p, names.get(p.exposure_profile_id or 0)) for p in profiles]
+
+
+def _read(db: Session, profile: EtfProfile) -> EtfProfileRead:
+    exposure = repo.get(db, profile.exposure_profile_id) if profile.exposure_profile_id else None
+    return to_read(profile, exposure.name if exposure else None)
 
 
 def _get(db: Session, profile_id: int) -> EtfProfile:
@@ -57,7 +64,7 @@ def _get(db: Session, profile_id: int) -> EtfProfile:
 
 
 def get_profile(db: Session, profile_id: int) -> EtfProfileRead:
-    return to_read(_get(db, profile_id))
+    return _read(db, _get(db, profile_id))
 
 
 def create_profile(db: Session, payload: EtfProfileCreate) -> EtfProfileRead:
@@ -67,7 +74,7 @@ def create_profile(db: Session, payload: EtfProfileCreate) -> EtfProfileRead:
     repo.add(db, profile)
     db.commit()
     db.refresh(profile)
-    return to_read(profile)
+    return _read(db, profile)
 
 
 def update_profile(db: Session, profile_id: int, payload: EtfProfileUpdate) -> EtfProfileRead:
@@ -82,7 +89,7 @@ def update_profile(db: Session, profile_id: int, payload: EtfProfileUpdate) -> E
             profile.composition_refreshed_at = None  # fonds désormais identifié : relu au prochain passage
     db.commit()
     db.refresh(profile)
-    return to_read(profile)
+    return _read(db, profile)
 
 
 def delete_profile(db: Session, profile_id: int) -> None:
@@ -101,7 +108,7 @@ async def refresh_profile(db: Session, profile_id: int) -> EtfProfileRead:
     except etf_composition.CompositionUnavailable:
         raise ExternalServiceError(tr("errors.etf_sources_unreachable")) from None
     db.refresh(profile)
-    return to_read(profile)
+    return _read(db, profile)
 
 
 async def _refresh_if_due(
@@ -192,7 +199,7 @@ async def auto_decompose(db: Session, payload: AutoDecomposeRequest) -> EtfProfi
     profile = await auto_decompose_and_create_profile(db=db, symbol=payload.symbol, name=payload.name, isin=payload.isin)
     if not profile:
         raise InvalidOperationError(tr("errors.etf_decompose_failed"))
-    return to_read(profile)
+    return _read(db, profile)
 
 
 def seed_etf_profiles(db: Session) -> None:

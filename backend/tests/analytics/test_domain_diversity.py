@@ -78,14 +78,11 @@ def test_company_key_prefers_isin():
     assert normalize_company_key("AAPL", "Apple Inc") == "TICKER:AAPL"
 
 
-def test_direct_and_etf_apple_with_same_isin_are_one_company(monkeypatch):
+def test_direct_and_etf_apple_with_same_isin_are_one_company():
     import json
-    from types import SimpleNamespace
 
     from app.domain.diversity import look_through
-    etf = SimpleNamespace(id=1, name="ETF", countries="{}", sectors="{}", composition_refreshed_at=None, sources="{}",
-                          top_holdings=json.dumps([{"name": "Apple Inc.", "ticker": "AAPL", "isin": "US0378331005", "weight": 10.0}]))
-    monkeypatch.setattr("app.domain.diversity.load_sources", lambda p: {})
+    etf = _etf(top=json.dumps([{"name": "Apple Inc.", "ticker": "AAPL", "isin": "US0378331005", "weight": 10.0}]))
     holdings = [_vh("ETF1", "Mon ETF", 1000.0, quote_type="ETF"), _vh("AAPL", "Apple", 200.0, isin="US0378331005")]
     out = look_through(holdings, lambda vh: etf if vh["ticker"] == "ETF1" else None, {})
     assert list(out.companies) == ["ISIN:US0378331005"]

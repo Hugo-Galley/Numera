@@ -184,6 +184,21 @@ def _add_indirect(out: LookThrough, source: str, value_eur: float,
         company["sources"].append({"source": source, "pct_in_source": round(weight, 2), "value_eur": round(value, 2)})
 
 
+def _composition_origin(held: EtfProfile, data: EtfProfile) -> dict[str, Any]:
+    """Synthétique : réplication, indice et référence viennent du fonds détenu ; source, date, lignes et
+    couverture de `data`, le profil dont les chiffres sont utilisés."""
+    return {
+        "provider": data.provider,
+        "replication": held.replication,
+        "index_name": held.index_name,
+        "exposure_profile_id": held.exposure_profile_id,
+        "exposure_profile_name": data.name if data.id == held.exposure_profile_id else None,
+        "composition_as_of": data.composition_as_of,
+        "coverage_pct": data.coverage_pct,
+        "lines_count": data.lines_count,
+    }
+
+
 def _decompose_etf(out: LookThrough, vh: dict[str, Any], etf_profile: EtfProfile, exposure: Exposure) -> None:
     """Un ETF : sa valeur est répartie entre ses pays, secteurs et sociétés, ligne à ligne quand elles sont connues.
 
@@ -205,6 +220,7 @@ def _decompose_etf(out: LookThrough, vh: dict[str, Any], etf_profile: EtfProfile
             "value_eur": 0.0,
             "sources": origin,
             "refreshed_at": exposure.profile.composition_refreshed_at,
+            **_composition_origin(etf_profile, exposure.profile),
         }
     out.compositions[etf_profile.id]["tickers"].append(vh["ticker"])
     out.compositions[etf_profile.id]["value_eur"] += vh_val

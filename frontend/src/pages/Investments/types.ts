@@ -8,8 +8,11 @@ export const COMPOSITION_FIELDS: { key: CompositionField }[] = [
 ]
 
 export const SOURCE_LABELS: Record<CompositionSource, { className: string }> = {
-  yahoo: { className: "bg-emerald-50 text-emerald-700 border-emerald-200" },
-  preset: { className: "bg-amber-50 text-amber-700 border-amber-200" },
+  ishares: { className: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+  amundi: { className: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+  spdr: { className: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+  justetf: { className: "bg-amber-50 text-amber-700 border-amber-200" },
+  yahoo: { className: "bg-amber-50 text-amber-700 border-amber-200" },
   manual: { className: "bg-slate-100 text-slate-700 border-slate-200" },
 }
 

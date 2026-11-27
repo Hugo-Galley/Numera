@@ -8,12 +8,13 @@ import { CompanyLogo } from "@/components/ui/CompanyLogo"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { cn, formatCurrency, formatRate } from "@/lib/utils"
+import { MissingIsin } from "./MissingIsin"
 import type { HoldingsTableCtx } from "./useHoldingsTable"
 
 /** Tableau des positions (bureau). */
 export function HoldingsDesktopTable({ ctx }: { ctx: HoldingsTableCtx }) {
   const { t } = useTranslation("investments")
-  const { costDraft, decomposingId, editingCostId, filteredHoldings, handleDecompose, handleDelete, handleTogglePaysDividends, hideHoldingValues, onAddDividend, saveCost, setCostDraft, setEditingCostId, startEditCost, totalValue } = ctx
+  const { costDraft, decomposingId, editingCostId, filteredHoldings, handleDecompose, handleDelete, handleTogglePaysDividends, hideHoldingValues, onAddDividend, onRefresh, saveCost, setCostDraft, setEditingCostId, startEditCost, totalValue } = ctx
   return (
     <>
       {/* Bureau : tableau */}
@@ -59,6 +60,7 @@ export function HoldingsDesktopTable({ ctx }: { ctx: HoldingsTableCtx }) {
                       </span>
                       <div className="flex items-center gap-1.5 text-xs text-slate-400 font-mono mt-0.5">
                         <span className="font-medium text-slate-400">{h.ticker}</span>
+                        {h.isin_missing && <MissingIsin holding={h} onSaved={onRefresh} />}
                         {h.isin && (
                           <>
                             <span className="text-slate-300">•</span>

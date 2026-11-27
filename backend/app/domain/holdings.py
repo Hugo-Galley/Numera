@@ -38,6 +38,11 @@ def is_crypto(quote_type: str | None, ticker: str) -> bool:
     return quote_type == "CRYPTOCURRENCY" or normalize_ticker(ticker).endswith(CRYPTO_SUFFIXES)
 
 
+def isin_missing(isin: str | None, quote_type: str | None, ticker: str) -> bool:
+    """Vrai pour une position dont l'ISIN reste à compléter ; une crypto n'a pas d'ISIN."""
+    return not (isin or "").strip() and not is_crypto(quote_type, ticker)
+
+
 def is_etf_holding(quote_type: str | None, ticker: str, isin: str | None, profile: "EtfProfile | None") -> bool:
     """ETF ou fonds : le type du titre fait foi ; type inconnu (cours indisponible), on se rabat sur un profil
     dont le ticker, l'ISIN ou un alias est exactement celui de la position."""

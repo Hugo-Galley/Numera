@@ -3,6 +3,7 @@ from datetime import datetime
 
 from pydantic import BaseModel
 
+from app.schemas.etf_profile import EtfCompositionOrigin
 from app.schemas.transaction import TransactionRead
 
 
@@ -105,7 +106,10 @@ class DiversityTotals(BaseModel):
     etfs_count: int
 
 
-class DiversityComposition(BaseModel):
+class DiversityComposition(EtfCompositionOrigin):
+    """ETF synthétique : réplication, indice et référence du fonds détenu ; source, date, lignes et couverture
+    des données utilisées (celles de la référence)."""
+
     profile_id: int
     profile_name: str
     tickers: list[str]

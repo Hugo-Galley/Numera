@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 
 from pydantic import BaseModel, Field
 
@@ -33,7 +33,22 @@ class EtfProfileUpdate(BaseModel):
     top_holdings: list[EtfHoldingItem] | None = None
 
 
-class EtfProfileRead(EtfProfileBase):
+class EtfCompositionOrigin(BaseModel):
+    """D'où vient une composition, de quand elle date et quelle part du fonds elle décrit."""
+
+    # Source des données : ishares | amundi | spdr | justetf | yahoo (None = jamais obtenue ou saisie seule)
+    provider: str | None = None
+    replication: str = "unknown"  # physical | synthetic | unknown
+    index_name: str | None = None
+    # ETF synthétique : profil de l'ETF physique de référence qui donne son exposition (None = indice non reconnu)
+    exposure_profile_id: int | None = None
+    exposure_profile_name: str | None = None
+    composition_as_of: date | None = None
+    coverage_pct: float | None = None  # % du fonds décrit
+    lines_count: int = 0  # 0 = agrégats ou premières lignes seulement
+
+
+class EtfProfileRead(EtfProfileBase, EtfCompositionOrigin):
     id: int
     is_system: bool
     # Source de chaque champ de composition : ishares | amundi | spdr | justetf | yahoo | manual (absent = non renseigné)

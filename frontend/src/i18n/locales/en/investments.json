@@ -18,7 +18,7 @@
     "impossibleDeDecomposerCeFonds": "Couldn't break this fund down online",
     "erreurLorsDeLaDecomposition": "Error during the online breakdown",
     "definirUnProfilDEtf": "Define an ETF profile",
-    "laCompositionSecteursEtTop": "The composition (sectors and top 10) is fetched from Yahoo Finance and refreshed every week. Yahoo doesn't publish the breakdown by country.",
+    "laCompositionSecteursEtTop": "The composition is read from the fund issuer (failing that, from justETF or Yahoo Finance), then refreshed daily.",
     "tickerSymbole": "Ticker / Symbol",
     "ex0p0001hi7fFOuCw8": "E.g. 0P0001HI7F.F or CW8.PA",
     "nomOptionnel": "Name (optional)",
@@ -27,7 +27,7 @@
     "exFr0014001fd5": "E.g. FR0014001FD5",
     "annuler": "Cancel",
     "recuperation": "Fetching...",
-    "creerDepuisYahoo": "Create from Yahoo"
+    "creerDepuisYahoo": "Create online"
   },
   "dividendsCard": {
     "impossibleDeChargerLesDividendes": "Couldn't load dividends",
@@ -236,7 +236,8 @@
     "pincezPourZoomerGlissezPour": "Pinch to zoom • Drag to pan",
     "utilisezLaMolettePourZoomer": "Use the wheel to zoom • Click and drag to pan",
     "origineDesCompositions": "Source of compositions",
-    "actualiser": "Refresh"
+    "actualiser": "Refresh",
+    "description": "Compositions published by fund issuers, refreshed daily. The uncovered share shows as “Non renseigné”."
   },
   "investmentsKpis": {
     "valeurTotale": "Total Value",
@@ -292,7 +293,7 @@
     "lastDate": " • last: {{date}}",
     "refreshedOn": "refreshed on {{date}}",
     "neverRefreshed": "never refreshed",
-    "fetchingComposition": "Fetching the composition of {{symbol}} from Yahoo...",
+    "fetchingComposition": "Fetching the composition of {{symbol}}...",
     "brokenDown": "{{name}} broken down successfully!",
     "breakingDown": "Breaking down {{name}} online...",
     "alreadyInList": "{{symbol}} is already in your list",
@@ -305,16 +306,19 @@
     "distributing": "{{ticker}}: distributing security (reminder if no dividend for 13 months)",
     "prUpdated": "Average cost of {{ticker}} updated",
     "noResultFor": "No result found for \"{{query}}\".",
-    "refreshedCount_one": "{{count}} composition refreshed from Yahoo",
-    "refreshedCount_other": "{{count}} compositions refreshed from Yahoo",
+    "refreshedCount_one": "{{count}} composition refreshed",
+    "refreshedCount_other": "{{count}} compositions refreshed",
     "fields": {
       "sectors": "Sectors",
       "top_holdings": "Top 10",
       "countries": "Countries"
     },
     "sources": {
+      "ishares": "iShares",
+      "amundi": "Amundi",
+      "spdr": "SPDR",
+      "justetf": "justETF",
       "yahoo": "Yahoo",
-      "preset": "Preset",
       "manual": "Manual"
     },
     "avgCost": "Avg. cost",
@@ -367,5 +371,22 @@
     "notRecovered": "Peak not regained yet",
     "current": "Below the high today",
     "atPeak": "At the high"
+  },
+  "compositionOrigin": {
+    "asOf": "{{provider}} · composition as of {{date}}",
+    "syntheticVia": "Synthetic: exposure of the {{index}} index via {{reference}}",
+    "syntheticUnknown": "Synthetic: unrecognised index, breakdown unavailable",
+    "lines_one": "{{lines}} line · {{pct}} of the fund",
+    "lines_other": "{{lines}} lines · {{pct}} of the fund",
+    "topTen": "Top 10 · {{pct}} of the fund"
+  },
+  "missingIsin": {
+    "action": "ISIN missing",
+    "field": "ISIN of {{ticker}}",
+    "save": "Save the ISIN",
+    "cancel": "Cancel ISIN entry",
+    "saved": "ISIN of {{ticker}} saved",
+    "invalid": "An ISIN has 12 characters: 2 letters, 9 letters or digits, 1 digit",
+    "saveError": "Could not save the ISIN"
   }
 }

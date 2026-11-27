@@ -48,6 +48,7 @@ class PortfolioHoldingRead(PortfolioHoldingBase):
     gain_eur: float | None = None
     gain_pct: float | None = None
     is_etf: bool = False
+    isin_missing: bool = False  # ISIN à compléter à la main (une crypto n'en a pas)
     cost_basis_eur: float | None = None  # coût de revient EUR total de la position
 
     # Dividendes (EUR) rattachés à ce titre
