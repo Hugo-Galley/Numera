@@ -2,7 +2,7 @@
 import type { EtfSheet, EtfSheetLine } from "@/pages/EtfSheet/types"
 
 export const makeSheetLine = (extra: Partial<EtfSheetLine> = {}): EtfSheetLine => ({
-  name: "Société", ticker: null, isin: null, weight: 1, country: "USA", sector: "Technologie", asset_class: "Equity", ...extra,
+  name: "Société", ticker: null, isin: null, weight: 1, country: "USA", sector: "Technologie", asset_class: "Equity", exposure_eur: 0, ...extra,
 })
 
 export const makeEtfSheet = (extra: Partial<EtfSheet> = {}): EtfSheet => ({
@@ -23,7 +23,7 @@ export const makeEtfSheet = (extra: Partial<EtfSheet> = {}): EtfSheet => ({
   countries: [{ name: "USA", weight: 70 }, { name: "JPN", weight: 30 }],
   sectors: [{ name: "Technologie", weight: 100 }],
   lines: [
-    makeSheetLine({ name: "Apple", ticker: "AAPL", isin: "US0378331005", weight: 5 }),
+    makeSheetLine({ name: "Apple", ticker: "AAPL", isin: "US0378331005", weight: 5, exposure_eur: 100 }),
     makeSheetLine({ name: "Sony", country: "JPN", weight: 2 }),
     makeSheetLine({ name: "Nestlé", country: "CHE", sector: "Consommation de base", weight: 1 }),
   ],

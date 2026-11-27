@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from app.core.errors import NotFoundError
 from app.core.i18n import tr
 from app.domain.etf_profiles import SOURCE_MANUAL, load_sources, to_read
-from app.domain.etf_sheet import aggregate_weights, stored_weights
+from app.domain.etf_sheet import aggregate_weights, exposure_eur, stored_weights
 from app.domain.holdings import holding_price_eur
 from app.integrations.currency import get_exchange_rates
 from app.models.etf_profile import EtfProfile
@@ -75,5 +75,8 @@ async def etf_sheet(db: Session, profile_id: int) -> EtfSheet:
         top_holdings=[] if lines else _top_holdings(profile if "top_holdings" in manual else exposure),
     )
     # En dernier : valider les cours lus expirerait les profils chargés ci-dessus
-    sheet.held_value_eur = await _held_value_eur(db, profile_id)
+    held = sheet.held_value_eur = await _held_value_eur(db, profile_id)
+    for line in sheet.lines:
+        line.exposure_eur = exposure_eur(line.weight, held)
+    sheet.top_holdings = [{**x, "exposure_eur": exposure_eur(x.get("weight"), held)} for x in sheet.top_holdings]
     return sheet

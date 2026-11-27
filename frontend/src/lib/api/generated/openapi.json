@@ -6071,6 +6071,11 @@
       ],
       "title": "Country"
      },
+     "exposure_eur": {
+      "default": 0.0,
+      "title": "Exposure Eur",
+      "type": "number"
+     },
      "isin": {
       "anyOf": [
        {

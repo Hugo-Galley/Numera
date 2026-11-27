@@ -12,6 +12,8 @@ export interface DisplayLine {
   weight: number
   country?: string | null
   sector?: string | null
+  /** Exposition en € calculée par le backend (poids × valeur détenue) */
+  exposure: number
 }
 
 export function searchLines(lines: DisplayLine[], query: string): DisplayLine[] {

@@ -17,17 +17,17 @@ const SORTS: LineSort[] = ["name", "country", "sector", "weight"]
 
 interface LinesProps {
   lines: DisplayLine[]
-  /** Valeur détenue du fonds ; 0 : l'exposition n'est pas affichée */
-  heldValue: number
+  /** Faux si rien n'est détenu dans ce fonds : l'exposition n'est pas affichée */
+  showExposure: boolean
 }
 
 const identifiers = (line: DisplayLine) => [line.ticker, line.isin].filter(Boolean).join(" · ")
 
-function Exposure({ line, heldValue }: { line: DisplayLine; heldValue: number }) {
-  return <span className="amount-blur whitespace-nowrap tabular-nums">{formatCurrency((line.weight / 100) * heldValue)}</span>
+function Exposure({ line }: { line: DisplayLine }) {
+  return <span className="amount-blur whitespace-nowrap tabular-nums">{formatCurrency(line.exposure)}</span>
 }
 
-function DesktopLines({ rows, heldValue, sort, onSort }: { rows: DisplayLine[]; heldValue: number; sort: LineSort; onSort: (s: LineSort) => void }) {
+function DesktopLines({ rows, showExposure, sort, onSort }: { rows: DisplayLine[]; showExposure: boolean; sort: LineSort; onSort: (s: LineSort) => void }) {
   const { t } = useTranslation("etfSheet")
   const Arrow = sort === "weight" ? ArrowDown : ArrowUp
   return (
@@ -43,7 +43,7 @@ function DesktopLines({ rows, heldValue, sort, onSort }: { rows: DisplayLine[]; 
               </button>
             </TableHead>
           ))}
-          {heldValue > 0 && <TableHead className="text-right">{t("lines.columns.exposure")}</TableHead>}
+          {showExposure && <TableHead className="text-right">{t("lines.columns.exposure")}</TableHead>}
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -56,7 +56,7 @@ function DesktopLines({ rows, heldValue, sort, onSort }: { rows: DisplayLine[]; 
             <TableCell>{line.country ? countryName(line.country) : "—"}</TableCell>
             <TableCell>{line.sector || "—"}</TableCell>
             <TableCell className="text-right font-semibold tabular-nums">{formatRate(line.weight, 2)}</TableCell>
-            {heldValue > 0 && <TableCell className="text-right"><Exposure line={line} heldValue={heldValue} /></TableCell>}
+            {showExposure && <TableCell className="text-right"><Exposure line={line} /></TableCell>}
           </TableRow>
         ))}
       </TableBody>
@@ -64,7 +64,7 @@ function DesktopLines({ rows, heldValue, sort, onSort }: { rows: DisplayLine[]; 
   )
 }
 
-function MobileLines({ rows, heldValue }: { rows: DisplayLine[]; heldValue: number }) {
+function MobileLines({ rows, showExposure }: { rows: DisplayLine[]; showExposure: boolean }) {
   const { t } = useTranslation("etfSheet")
   return (
     <ul className="divide-y divide-slate-100">
@@ -79,8 +79,8 @@ function MobileLines({ rows, heldValue }: { rows: DisplayLine[]; heldValue: numb
           </div>
           <div className="shrink-0 text-right">
             <p className="text-sm font-semibold text-slate-900 tabular-nums">{formatRate(line.weight, 2)}</p>
-            {heldValue > 0 && (
-              <p className="text-xs text-slate-500" title={t("lines.columns.exposure")}><Exposure line={line} heldValue={heldValue} /></p>
+            {showExposure && (
+              <p className="text-xs text-slate-500" title={t("lines.columns.exposure")}><Exposure line={line} /></p>
             )}
           </div>
         </li>
@@ -90,7 +90,7 @@ function MobileLines({ rows, heldValue }: { rows: DisplayLine[]; heldValue: numb
 }
 
 /** Toutes les sociétés du fonds : recherche, tri, affichage par paquets de 50. */
-export function LinesTable({ lines, heldValue }: LinesProps) {
+export function LinesTable({ lines, showExposure }: LinesProps) {
   const { t } = useTranslation("etfSheet")
   const isMobile = useIsMobile()
   const [query, setQuery] = useState("")
@@ -129,8 +129,8 @@ export function LinesTable({ lines, heldValue }: LinesProps) {
         {rows.length === 0
           ? <p className="p-6 text-center text-sm text-slate-500">{t("lines.noMatch")}</p>
           : isMobile
-            ? <MobileLines rows={rows} heldValue={heldValue} />
-            : <DesktopLines rows={rows} heldValue={heldValue} sort={sort} onSort={changeSort} />}
+            ? <MobileLines rows={rows} showExposure={showExposure} />
+            : <DesktopLines rows={rows} showExposure={showExposure} sort={sort} onSort={changeSort} />}
         {more > 0 && (
           <div className="border-t p-3 text-center">
             <Button variant="outline" className="min-h-10" onClick={() => setVisible((v) => v + PAGE_SIZE)}>

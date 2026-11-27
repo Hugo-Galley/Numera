@@ -48,14 +48,16 @@ describe("Fiche ETF", () => {
     expect(within(screen.getByRole("region", { name: "Secteurs" })).getByText("Technologie")).toBeInTheDocument()
   })
 
-  it("donne pour chaque société son poids et mon exposition en euros", async () => {
-    serve()
+  it("donne pour chaque société son poids et mon exposition en euros, calculée par le backend", async () => {
+    const base = makeEtfSheet()
+    // 123,45 € et non 5 % × 2 000 € : l'écran affiche le montant reçu, il ne le recalcule pas
+    serve(makeEtfSheet({ lines: [{ ...base.lines[0], exposure_eur: 123.45 }, ...base.lines.slice(1)] }))
     render()
 
     const apple = within(await screen.findByRole("table")).getByRole("row", { name: /Apple/ })
     expect(apple).toHaveTextContent("États-Unis")
     expect(apple).toHaveTextContent(/5,00.%/)
-    expect(apple).toHaveTextContent(/100,00.€/) // 5 % de 2 000 €
+    expect(apple).toHaveTextContent(/123,45.€/)
   })
 
   it("n'affiche que 50 lignes sur 120, puis 50 de plus à la demande", async () => {
@@ -125,13 +127,14 @@ describe("Fiche ETF", () => {
   it("sans liste complète : le dit et montre les principales lignes connues", async () => {
     serve(makeEtfSheet({
       lines: [], has_full_list: false, lines_count: 0, countries: [], provider: "yahoo", composition_as_of: null,
-      top_holdings: [{ name: "NVIDIA", ticker: "NVDA", weight: 6 }],
+      top_holdings: [{ name: "NVIDIA", ticker: "NVDA", weight: 6, exposure_eur: 120.5 }],
     }))
     render()
 
     expect(await screen.findByText(/Cet émetteur ne publie pas la liste complète/)).toBeInTheDocument()
     expect(screen.getByText("Source : Yahoo")).toBeInTheDocument()
     expect(companies()[0]).toContain("NVIDIA")
+    expect(within(screen.getByRole("table")).getByRole("row", { name: /NVIDIA/ })).toHaveTextContent(/120,50.€/)
     expect(screen.queryByRole("region", { name: "Pays" })).not.toBeInTheDocument()
   })
 

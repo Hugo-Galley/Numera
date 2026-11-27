@@ -27,3 +27,10 @@ def stored_weights(raw: str) -> list[tuple[str, float]]:
     weights: dict[str, float] = {}
     spread_weights(weights, raw, 100.0)
     return _sorted(weights)
+
+
+def exposure_eur(weight: object, held_value_eur: float) -> float:
+    """Exposition en € d'une ligne : son poids (% du fonds) × la valeur détenue ; 0 si le poids n'est pas un nombre."""
+    if isinstance(weight, bool) or not isinstance(weight, int | float):
+        return 0.0
+    return round(weight / 100 * held_value_eur, 2)

@@ -54,7 +54,8 @@ def test_sheet_of_physical_etf_lists_all_lines_sorted_by_weight(client, db_sessi
     sheet = resp.json()
     assert [(x["name"], x["weight"]) for x in sheet["lines"]] == [("Apple", 5.0), ("Microsoft", 3.0), ("Nestlé", 2.0)]
     assert sheet["lines"][0] == {"name": "Apple", "ticker": "AAPL", "isin": "US0378331005", "weight": 5.0,
-                                 "country": "USA", "sector": "Technologie", "asset_class": "Equity"}
+                                 "country": "USA", "sector": "Technologie", "asset_class": "Equity",
+                                 "exposure_eur": 0.0}
     assert (sheet["has_full_list"], sheet["lines_count"], sheet["coverage_pct"], sheet["provider"]) == (
         True, 3, 10.0, "ishares")
     # Pays agrégés sur les lignes (et non lus dans le JSON du profil), le reste en « Non renseigné »
@@ -99,7 +100,7 @@ def test_sheet_without_lines_returns_aggregates_and_top_holdings(client, db_sess
 
     assert resp.status_code == 200
     sheet = resp.json()
-    assert (sheet["lines"], sheet["has_full_list"], sheet["top_holdings"]) == ([], False, top)
+    assert (sheet["lines"], sheet["has_full_list"], sheet["top_holdings"]) == ([], False, [{**top[0], "exposure_eur": 0.0}])
     assert sheet["sectors"] == [{"name": "Technologie", "weight": 60.0}, {"name": "Finance", "weight": 30.0},
                                 {"name": "Non renseigné", "weight": 10.0}]
     assert sheet["countries"] == []
@@ -148,6 +149,21 @@ def test_sheet_held_value_sums_positions_of_this_profile(client, db_session):
     assert sheet["held_value_eur"] == 300.0
 
 
+def test_sheet_exposure_per_line_is_computed_by_the_backend(client, db_session):
+    """Exposition en € d'une ligne = poids × valeur détenue (règle n° 2 : KPI côté backend), lignes et top 10."""
+    profile = _profile(db_session)
+    _with_lines(db_session, profile, [_line("Apple", 5.0), _line("Dérivé", -0.5), _line("Nestlé", 1.234)])
+    _holding(db_session, _account(db_session), profile, "WLD.PA", 3.0)  # 300 €
+    top = _profile(db_session, "Top", top_holdings=json.dumps([{"name": "Apple", "weight": 10.0}, {"name": "Nestlé", "weight": 2.5}]))
+    _holding(db_session, _account(db_session, name="CTO"), top, "TOP.PA", 2.0)  # 200 €
+
+    sheet = client.get(f"/etf-profiles/{profile.id}/constituents").json()
+    partial = client.get(f"/etf-profiles/{top.id}/constituents").json()
+
+    assert [(x["name"], x["exposure_eur"]) for x in sheet["lines"]] == [("Apple", 15.0), ("Nestlé", 3.7), ("Dérivé", -1.5)]
+    assert [x["exposure_eur"] for x in partial["top_holdings"]] == [20.0, 5.0]
+
+
 def test_sheet_queries_are_constant(client, db_session, measure_queries):
     reference = _profile(db_session, "Référence")
     _with_lines(db_session, reference, [_line(f"Société {i}", 100.0 / 1500) for i in range(1500)])
@@ -162,3 +178,9 @@ def test_sheet_queries_are_constant(client, db_session, measure_queries):
 
     assert (resp.status_code, len(resp.json()["lines"])) == (200, 1500)
     assert queries <= 8
+
+
+def test_exposure_of_a_line_without_numeric_weight_is_zero():
+    from app.domain.etf_sheet import exposure_eur
+
+    assert [exposure_eur(w, 200.0) for w in (None, "6", True, 6, 1.5)] == [0.0, 0.0, 0.0, 12.0, 3.0]

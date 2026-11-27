@@ -5149,6 +5149,11 @@ export interface components {
             asset_class: string;
             /** Country */
             country?: string | null;
+            /**
+             * Exposure Eur
+             * @default 0
+             */
+            exposure_eur?: number;
             /** Isin */
             isin?: string | null;
             /** Name */

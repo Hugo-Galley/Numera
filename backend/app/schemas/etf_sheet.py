@@ -21,6 +21,7 @@ class EtfSheetLine(BaseModel):
     country: str | None = None
     sector: str
     asset_class: str
+    exposure_eur: float = 0.0  # poids × valeur détenue du fonds
 
 
 class EtfSheet(BaseModel):
@@ -37,4 +38,4 @@ class EtfSheet(BaseModel):
     countries: list[WeightRow]
     sectors: list[WeightRow]
     lines: list[EtfSheetLine]  # poids décroissants
-    top_holdings: list[dict[str, Any]]  # seulement sans liste complète
+    top_holdings: list[dict[str, Any]]  # seulement sans liste complète ; chacune avec son `exposure_eur`

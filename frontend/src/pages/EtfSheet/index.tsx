@@ -13,13 +13,14 @@ import { Weights } from "./Weights"
 
 /** Toutes les lignes, sinon les principales que la source publie. */
 function displayLines(sheet: EtfSheet): DisplayLine[] {
-  if (sheet.has_full_list) return sheet.lines.map((line, key) => ({ ...line, key }))
+  if (sheet.has_full_list) return sheet.lines.map((line, key) => ({ ...line, key, exposure: line.exposure_eur ?? 0 }))
   return sheet.top_holdings.map((h, key) => ({
     key,
     name: String(h.name ?? ""),
     ticker: typeof h.ticker === "string" ? h.ticker : null,
     isin: typeof h.isin === "string" ? h.isin : null,
     weight: Number(h.weight) || 0,
+    exposure: Number(h.exposure_eur) || 0,
   }))
 }
 
@@ -38,7 +39,7 @@ function Composition({ sheet }: { sheet: EtfSheet }) {
         </p>
       )}
       <Weights countries={sheet.countries} sectors={sheet.sectors} />
-      {lines.length > 0 && <LinesTable lines={lines} heldValue={sheet.held_value_eur} />}
+      {lines.length > 0 && <LinesTable lines={lines} showExposure={sheet.held_value_eur > 0} />}
     </>
   )
 }
