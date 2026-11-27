@@ -227,14 +227,22 @@ async def _prepare_reference(db: Session, synthetic: EtfProfile, index_name: str
     return _Reference(reference, found, read=True)
 
 
+def _named_after_index(profile: EtfProfile) -> bool:
+    return not profile.is_system and profile.ticker == profile.isin and profile.name in rules.INDEX_REFERENCES
+
+
 def _save_reference(db: Session, reference: _Reference) -> EtfProfile:
     profile = reference.profile
     if profile.id is None:
         repo.add(db, profile)
         repo.flush(db)
     if reference.read:
-        if reference.found:
-            _apply(db, profile, reference.found)
+        found = reference.found
+        if found:
+            _apply(db, profile, found)
+            # Créée sous le nom de l'indice (ticker = ISIN) : à sa première lecture, elle prend le nom publié du fonds
+            if _named_after_index(profile) and found.fund_name:
+                profile.name = found.fund_name
         profile.composition_refreshed_at = utcnow_naive()
     return profile
 
@@ -246,7 +254,8 @@ async def refresh(
     """Actualise la composition d'un profil (et de sa référence d'indice s'il est synthétique), puis valide.
 
     Renvoie les champs mis à jour. Lève `CompositionUnavailable` sans rien écrire.
-    `adopt_name` : le profil prend le nom publié du fonds (création sans nom saisi)."""
+    `adopt_name` : le profil prend le nom publié du fonds (création sans nom saisi) ; une référence d'indice encore
+    nommée d'après l'indice le prend aussi."""
     run = _Pass(PROVIDERS if providers is None else providers, set() if down is None else down)
     found = await _collect(profile, run)
     updated: list[str] = []
@@ -256,7 +265,7 @@ async def refresh(
         _apply_synthetic(db, profile, found, reference)
     elif found:
         updated = _apply(db, profile, found)
-    if adopt_name and found and found.fund_name:
+    if (adopt_name or _named_after_index(profile)) and found and found.fund_name:
         profile.name = found.fund_name
     profile.composition_refreshed_at = utcnow_naive()
     db.commit()

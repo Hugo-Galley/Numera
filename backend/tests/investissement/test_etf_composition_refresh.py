@@ -165,7 +165,8 @@ def test_synthetic_uses_index_reference(db_session: Session):
 
     db_session.expire_all()
     reference = db_session.query(EtfProfile).filter(EtfProfile.isin == WORLD).one()
-    assert (reference.name, reference.is_system, reference.provider) == ("MSCI World", False, "ishares")
+    assert (reference.name, reference.is_system, reference.provider) == (
+        "iShares Core MSCI World UCITS ETF", False, "ishares")  # nom du fonds, pas celui de l'indice
     assert (synthetic.replication, synthetic.index_name, synthetic.exposure_profile_id) == (
         "synthetic", "MSCI World", reference.id)
     assert (synthetic.provider, synthetic.lines_count) == ("amundi", 0)
@@ -195,6 +196,11 @@ def test_synthetic_is_linked_even_if_its_reference_cannot_be_read(db_session: Se
     assert synthetic.exposure_profile_id == reference.id
     assert reference.composition_refreshed_at is None
     assert synthetic.coverage_pct == 0
+    assert reference.name == "MSCI World"  # en attendant de lire le fonds
+
+    synthetic.composition_refreshed_at = None
+    _refresh(db_session, synthetic)
+    assert reference.name == "iShares Core MSCI World UCITS ETF"  # première lecture : nom publié du fonds
 
 
 def test_synthetic_without_known_index_uses_no_basket(db_session: Session, yahoo):
@@ -531,3 +537,17 @@ def test_fund_missing_at_its_issuer_does_not_put_the_issuer_down(db_session: Ses
 
     assert (world.provider, world.lines_count) == ("ishares", 28)
     assert missing.composition_refreshed_at is not None
+
+
+def test_reference_read_alone_takes_the_fund_name(db_session: Session):
+    """Référence créée sans pouvoir être lue, puis relue seule par la tâche de fond : elle prend le nom du fonds."""
+    synthetic = _profile(db_session, isin=CW8, name="CW8", ticker="CW8.PA")
+    _hold(db_session, synthetic)
+    asyncio.run(refresh_held_etf_profiles(db_session, providers=_providers(ishares=lambda r: httpx.Response(500))))
+    reference = db_session.get(EtfProfile, synthetic.exposure_profile_id)
+    assert reference.name == "MSCI World"
+    reset_all()
+
+    asyncio.run(refresh_held_etf_profiles(db_session, providers=_providers()))
+
+    assert reference.name == "iShares Core MSCI World UCITS ETF"
