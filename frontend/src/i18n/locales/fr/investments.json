@@ -345,7 +345,8 @@
     "gapColumn": "Écart",
     "xirrColumn": "Rendement / réf.",
     "missingPrice": "Cours manquant",
-    "subtitleNoDate": "Tes actions (hors ETF) face au même argent placé aux mêmes dates dans la référence."
+    "subtitleNoDate": "Tes actions (hors ETF) face au même argent placé aux mêmes dates dans la référence.",
+    "titleNoReference": "Stock picking face à un indice"
   },
   "drawdown": {
     "title": "Pire baisse",
@@ -357,7 +358,8 @@
     "recovered": "Sommet retrouvé le {{date}}",
     "notRecovered": "Sommet pas encore retrouvé",
     "current": "Sous le plus haut aujourd'hui",
-    "atPeak": "Au plus haut"
+    "atPeak": "Au plus haut",
+    "empty": "Pas encore assez d'historique de cours pour mesurer une baisse."
   },
   "compositionOrigin": {
     "asOf": "{{provider}} · composition au {{date}}",

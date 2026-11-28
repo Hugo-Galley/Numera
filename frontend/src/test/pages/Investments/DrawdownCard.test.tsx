@@ -21,10 +21,21 @@ describe("Investissements : pire baisse", () => {
     expect(screen.getByText(/-10,0/)).toBeInTheDocument()
   })
 
-  it("sans historique : rien n'est affiché", async () => {
+  it("sans historique : la carte reste et dit pourquoi il n'y a pas de chiffre", async () => {
     overview(null)
     renderWithProviders(<DrawdownCard />, { route: "/investments", auth: true })
-    await new Promise((r) => setTimeout(r, 50))
-    expect(screen.queryByText("Pire baisse")).not.toBeInTheDocument()
+
+    expect(await screen.findByText(/Pas encore assez d'historique/)).toBeInTheDocument()
+    expect(screen.getByRole("heading", { name: "Pire baisse" })).toBeInTheDocument()
+  })
+
+  it("chargement en échec : message d'erreur et nouvel essai, jamais une carte vide", async () => {
+    server.use(http.get(apiUrl("/analytics/portfolio"), () => HttpResponse.json({ detail: "boom" }, { status: 500 })))
+    const { user } = renderWithProviders(<DrawdownCard />, { route: "/investments", auth: true })
+
+    expect(await screen.findByRole("alert")).toBeInTheDocument()
+    overview({ max_drawdown_pct: -5, peak_date: "2026-03-02", trough_date: "2026-03-10", recovery_date: "2026-04-01", current_drawdown_pct: 0 })
+    await user.click(screen.getByRole("button", { name: "Réessayer" }))
+    expect(await screen.findByText("Au plus haut")).toBeInTheDocument()
   })
 })

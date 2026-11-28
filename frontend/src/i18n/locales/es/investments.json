@@ -345,7 +345,8 @@
     "gapColumn": "Diferencia",
     "xirrColumn": "Rentab. / ref.",
     "missingPrice": "Falta cotización",
-    "subtitleNoDate": "Tus acciones (sin ETF) frente al mismo dinero invertido en las mismas fechas en la referencia."
+    "subtitleNoDate": "Tus acciones (sin ETF) frente al mismo dinero invertido en las mismas fechas en la referencia.",
+    "titleNoReference": "Stock picking frente a un índice"
   },
   "drawdown": {
     "title": "Peor caída",
@@ -357,7 +358,8 @@
     "recovered": "Máximo recuperado el {{date}}",
     "notRecovered": "Máximo aún no recuperado",
     "current": "Bajo el máximo hoy",
-    "atPeak": "En máximos"
+    "atPeak": "En máximos",
+    "empty": "Todavía no hay suficiente historial de cotizaciones para medir una caída."
   },
   "compositionOrigin": {
     "asOf": "{{provider}} · composición del {{date}}",

@@ -345,7 +345,8 @@
     "gapColumn": "Gap",
     "xirrColumn": "Return / ref.",
     "missingPrice": "Missing price",
-    "subtitleNoDate": "Your stocks (ETFs excluded) against the same money invested on the same dates in the reference."
+    "subtitleNoDate": "Your stocks (ETFs excluded) against the same money invested on the same dates in the reference.",
+    "titleNoReference": "Stock picking vs an index"
   },
   "drawdown": {
     "title": "Worst drawdown",
@@ -357,7 +358,8 @@
     "recovered": "Peak regained on {{date}}",
     "notRecovered": "Peak not regained yet",
     "current": "Below the high today",
-    "atPeak": "At the high"
+    "atPeak": "At the high",
+    "empty": "Not enough price history yet to measure a drawdown."
   },
   "compositionOrigin": {
     "asOf": "{{provider}} · composition as of {{date}}",
