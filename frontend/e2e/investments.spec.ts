@@ -1,6 +1,6 @@
 import { test, expect, openAccount } from "./fixtures"
 
-test("vue globale : valeur, performance, répartition par compte et analyses", async ({ page }) => {
+test("vue globale : valeur, performance, répartition par compte et onglets", async ({ page }) => {
   await page.goto("/investments")
   await expect(page.getByRole("heading", { level: 1, name: "Investissements" })).toBeVisible()
   for (const kpi of ["Valeur totale", "Performance globale", "Score de diversité"]) {
@@ -9,7 +9,11 @@ test("vue globale : valeur, performance, répartition par compte et analyses", a
   await expect(page.getByRole("heading", { name: "Répartition par compte" })).toBeVisible()
   await expect(page.getByText("PEA", { exact: true }).first()).toBeVisible()
   await expect(page.getByText("Assurance-vie", { exact: true }).first()).toBeVisible()
-  await expect(page.getByRole("heading", { name: "Analyses avancées" })).toBeVisible()
+  await expect(page.getByText("Par classe d'actif")).toBeVisible()
+
+  await page.getByRole("tab", { name: "Exposition" }).click()
+  await expect(page).toHaveURL(/\?tab=exposure/)
+  await expect(page.getByText("Répartition du portefeuille")).toBeVisible()
 })
 
 test("compte titres (PEA) : positions valorisées, filtre par type et recherche", async ({ page }) => {

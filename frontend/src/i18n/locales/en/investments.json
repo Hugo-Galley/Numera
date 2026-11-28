@@ -129,8 +129,13 @@
     "chargementDeVosInvestissements": "Loading your investments...",
     "investissements": "Investments",
     "suivezLaPerformanceEtLa": "Track the performance and allocation of your invested wealth.",
-    "analysesAvancees": "Advanced analytics",
-    "visionGlobaleDeVosActifs": "Overall view of your underlying assets (all accounts combined)."
+    "tabs": {
+      "overview": "Overview",
+      "performance": "Performance",
+      "exposure": "Exposure",
+      "funds": "Funds"
+    },
+    "exposureUnavailable": "The exposure analysis is unavailable for now."
   },
   "useHoldingsState": {
     "impossibleDeDecomposerCeFonds": "Couldn't break this fund down online",
@@ -216,15 +221,12 @@
     "repartitionParCompte": "Breakdown by account",
     "vosInvestissementsSeparesParEnveloppe": "Your investments split by wrapper.",
     "detailsDeLAllocation": "Allocation details",
-    "total": "Total:",
     "total2": "Total",
     "aucuneValorisationPosterieureAuxDerniers": "No valuation after the period's last flows",
     "valeurAActualiser": "Value to update"
   },
   "advancedCharts": {
-    "vueDEnsembleDeL": "Allocation overview",
     "parClasseDActif": "By Asset Class",
-    "parSecteur": "By Sector",
     "nonClasseAide": "Grey “Non classé” groups purchases with no asset class. Click it to see the accounts involved, then set the asset class of their purchases from the account page."
   },
   "drillDownDialog": {
@@ -233,10 +235,6 @@
   "etfCompositions": {
     "voirLaFiche": "View fund page",
     "voirLaFicheDe": "View fund page: {{name}}",
-    "repartitionGeographiqueMondiale": "Global Geographic Breakdown",
-    "interactif": "Interactive",
-    "pincezPourZoomerGlissezPour": "Pinch to zoom • Drag to pan",
-    "utilisezLaMolettePourZoomer": "Use the wheel to zoom • Click and drag to pan",
     "origineDesCompositions": "Source of compositions",
     "actualiser": "Refresh",
     "description": "Compositions published by fund issuers, refreshed daily. The uncovered share shows as “Non renseigné”."
@@ -249,14 +247,7 @@
     "comptesDInvestissement": "Investment accounts",
     "scoreDeDiversite": "Diversity Score",
     "effectiveBets_one": "{{bets}} independent bet across {{count}} line",
-    "effectiveBets_other": "{{bets}} independent bets across {{count}} lines",
-    "marketGap": "Gap to the market, reference: {{name}}",
-    "noReference": "Market reference unavailable"
-  },
-  "performanceSection": {
-    "performanceDetaillee": "Detailed performance",
-    "historiqueEtEvolutionDeVos": "History and evolution of your holdings.",
-    "valeur": "Value"
+    "effectiveBets_other": "{{bets}} independent bets across {{count}} lines"
   },
   "useInvestmentsData": {
     "impossibleDActualiserLesCompositions": "Couldn't refresh the compositions",
@@ -433,7 +424,12 @@
     "loadFailed": "Couldn't compute the account breakdown",
     "outsidePositions": "Outside positions",
     "accountsValue": "Accounts value",
-    "outsidePositionsHint": "Cash, euro funds, accounts without positions and the gap between the last statement and today's price."
+    "outsidePositionsHint": "Cash, euro funds, accounts without positions and the gap between the last statement and today's price.",
+    "displayLabel": "Display",
+    "display": {
+      "chart": "Donut",
+      "map": "Map"
+    }
   },
   "concentration": {
     "title": "Concentration",

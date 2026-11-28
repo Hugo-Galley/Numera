@@ -129,8 +129,13 @@
     "chargementDeVosInvestissements": "Cargando tus inversiones...",
     "investissements": "Inversiones",
     "suivezLaPerformanceEtLa": "Sigue la rentabilidad y la distribución de tu patrimonio invertido.",
-    "analysesAvancees": "Análisis avanzados",
-    "visionGlobaleDeVosActifs": "Visión global de tus activos subyacentes (todas las cuentas incluidas)."
+    "tabs": {
+      "overview": "Resumen",
+      "performance": "Rendimiento",
+      "exposure": "Exposición",
+      "funds": "Fondos"
+    },
+    "exposureUnavailable": "El análisis de exposición no está disponible por ahora."
   },
   "useHoldingsState": {
     "impossibleDeDecomposerCeFonds": "No se puede descomponer este fondo en línea",
@@ -216,15 +221,12 @@
     "repartitionParCompte": "Distribución por cuenta",
     "vosInvestissementsSeparesParEnveloppe": "Tus inversiones separadas por producto.",
     "detailsDeLAllocation": "Detalles de la asignación",
-    "total": "Total:",
     "total2": "Total",
     "aucuneValorisationPosterieureAuxDerniers": "Ninguna valoración posterior a los últimos flujos del periodo",
     "valeurAActualiser": "Valor por actualizar"
   },
   "advancedCharts": {
-    "vueDEnsembleDeL": "Resumen de la asignación",
     "parClasseDActif": "Por clase de activo",
-    "parSecteur": "Por sector",
     "nonClasseAide": "El gris «Non classé» agrupa las compras sin clase de activo. Haz clic en él para ver las cuentas afectadas y asigna la clase de activo de sus compras desde la página de la cuenta."
   },
   "drillDownDialog": {
@@ -233,10 +235,6 @@
   "etfCompositions": {
     "voirLaFiche": "Ver la ficha",
     "voirLaFicheDe": "Ver la ficha: {{name}}",
-    "repartitionGeographiqueMondiale": "Distribución geográfica mundial",
-    "interactif": "Interactivo",
-    "pincezPourZoomerGlissezPour": "Pellizca para hacer zoom • Desliza para mover",
-    "utilisezLaMolettePourZoomer": "Usa la rueda para hacer zoom • Haz clic y arrastra para mover",
     "origineDesCompositions": "Origen de las composiciones",
     "actualiser": "Actualizar",
     "description": "Composiciones publicadas por las gestoras, actualizadas cada día. La parte no cubierta aparece como «Non renseigné»."
@@ -249,14 +247,7 @@
     "comptesDInvestissement": "Cuentas de inversión",
     "scoreDeDiversite": "Puntuación de diversificación",
     "effectiveBets_one": "{{bets}} apuesta independiente en {{count}} línea",
-    "effectiveBets_other": "{{bets}} apuestas independientes en {{count}} líneas",
-    "marketGap": "Desviación respecto al mercado, referencia: {{name}}",
-    "noReference": "Referencia de mercado no disponible"
-  },
-  "performanceSection": {
-    "performanceDetaillee": "Rentabilidad detallada",
-    "historiqueEtEvolutionDeVos": "Historial y evolución de tus productos.",
-    "valeur": "Valor"
+    "effectiveBets_other": "{{bets}} apuestas independientes en {{count}} líneas"
   },
   "useInvestmentsData": {
     "impossibleDActualiserLesCompositions": "No se pueden actualizar las composiciones",
@@ -433,7 +424,12 @@
     "loadFailed": "No se pudo calcular el reparto de la cuenta",
     "outsidePositions": "Fuera de posiciones",
     "accountsValue": "Valor de las cuentas",
-    "outsidePositionsHint": "Efectivo, fondos en euros, cuentas sin posiciones y diferencia entre el último extracto y la cotización del día."
+    "outsidePositionsHint": "Efectivo, fondos en euros, cuentas sin posiciones y diferencia entre el último extracto y la cotización del día.",
+    "displayLabel": "Visualización",
+    "display": {
+      "chart": "Anillo",
+      "map": "Mapa"
+    }
   },
   "concentration": {
     "title": "Concentración",

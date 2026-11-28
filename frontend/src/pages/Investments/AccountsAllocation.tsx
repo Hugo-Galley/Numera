@@ -19,11 +19,8 @@ export function AccountsAllocation({ ctx }: { ctx: InvestmentsCtx }) {
           <p className="text-sm text-muted-foreground">{t("accountsAllocation.vosInvestissementsSeparesParEnveloppe")}</p>
         </div>
         <Card className="shadow-xs border-slate-100 overflow-hidden">
-          <CardHeader className="flex flex-col items-start justify-between gap-2 border-b bg-slate-50/50 pb-4 sm:flex-row sm:items-center">
+          <CardHeader className="border-b bg-slate-50/50 pb-4">
             <CardTitle className="text-base font-bold">{t("accountsAllocation.detailsDeLAllocation")}</CardTitle>
-            <span className="text-sm font-semibold text-slate-500 bg-slate-100/80 px-3 py-1 rounded-lg">
-              {t("accountsAllocation.total")} <span className="amount-blur text-slate-900 font-bold">{formatCurrency(allocation?.total_current_value || 0)}</span>
-            </span>
           </CardHeader>
           <CardContent className="p-4 md:p-6">
             <div className="grid grid-cols-1 items-center gap-6 md:gap-8 lg:grid-cols-12">

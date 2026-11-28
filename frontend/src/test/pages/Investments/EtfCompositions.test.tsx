@@ -8,7 +8,6 @@ import { LocationDisplay } from "@/test/support/LocationDisplay"
 import { renderWithProviders } from "@/test/support/render"
 
 // La carte du monde va chercher son fond sur un site tiers : hors sujet ici
-vi.mock("@/components/ui/WorldMap", () => ({ default: () => null }))
 
 const composition = (overrides: Partial<EtfCompositionInfo> = {}): EtfCompositionInfo => ({
   profile_id: 1,

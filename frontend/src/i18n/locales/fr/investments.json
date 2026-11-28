@@ -129,8 +129,13 @@
     "chargementDeVosInvestissements": "Chargement de tes investissements...",
     "investissements": "Investissements",
     "suivezLaPerformanceEtLa": "Suis la performance et la répartition de ton patrimoine investi.",
-    "analysesAvancees": "Analyses avancées",
-    "visionGlobaleDeVosActifs": "Vision globale de tes actifs sous-jacents (tous comptes confondus)."
+    "tabs": {
+      "overview": "Vue d'ensemble",
+      "performance": "Performance",
+      "exposure": "Exposition",
+      "funds": "Fonds"
+    },
+    "exposureUnavailable": "L'analyse d'exposition est indisponible pour le moment."
   },
   "useHoldingsState": {
     "impossibleDeDecomposerCeFonds": "Impossible de décomposer ce fonds en ligne",
@@ -216,15 +221,12 @@
     "repartitionParCompte": "Répartition par compte",
     "vosInvestissementsSeparesParEnveloppe": "Tes investissements séparés par enveloppe.",
     "detailsDeLAllocation": "Détails de l'allocation",
-    "total": "Total :",
     "total2": "Total",
     "aucuneValorisationPosterieureAuxDerniers": "Aucune valorisation postérieure aux derniers flux de la période",
     "valeurAActualiser": "Valeur à actualiser"
   },
   "advancedCharts": {
-    "vueDEnsembleDeL": "Vue d'ensemble de l'allocation",
     "parClasseDActif": "Par classe d'actif",
-    "parSecteur": "Par secteur",
     "nonClasseAide": "Le gris « Non classé » regroupe les achats sans classe d'actifs. Clique dessus pour voir les comptes concernés, puis renseigne la classe d'actifs de leurs achats depuis la page du compte."
   },
   "drillDownDialog": {
@@ -233,10 +235,6 @@
   "etfCompositions": {
     "voirLaFiche": "Voir la fiche",
     "voirLaFicheDe": "Voir la fiche : {{name}}",
-    "repartitionGeographiqueMondiale": "Répartition géographique mondiale",
-    "interactif": "Interactif",
-    "pincezPourZoomerGlissezPour": "Pince pour zoomer • Glisse pour déplacer",
-    "utilisezLaMolettePourZoomer": "Utilise la molette pour zoomer • Clique-glisse pour déplacer",
     "origineDesCompositions": "Origine des compositions",
     "actualiser": "Actualiser",
     "description": "Compositions publiées par les émetteurs, actualisées chaque jour. La part non couverte apparaît en « Non renseigné »."
@@ -249,14 +247,7 @@
     "comptesDInvestissement": "Comptes d'investissement",
     "scoreDeDiversite": "Score de diversité",
     "effectiveBets_one": "{{bets}} pari indépendant sur {{count}} ligne",
-    "effectiveBets_other": "{{bets}} paris indépendants sur {{count}} lignes",
-    "marketGap": "Écart au marché, référence : {{name}}",
-    "noReference": "Référence de marché indisponible"
-  },
-  "performanceSection": {
-    "performanceDetaillee": "Performance détaillée",
-    "historiqueEtEvolutionDeVos": "Historique et évolution de tes supports.",
-    "valeur": "Valeur"
+    "effectiveBets_other": "{{bets}} paris indépendants sur {{count}} lignes"
   },
   "useInvestmentsData": {
     "impossibleDActualiserLesCompositions": "Impossible d'actualiser les compositions",
@@ -433,7 +424,12 @@
     "loadFailed": "Impossible de calculer la répartition du compte",
     "outsidePositions": "Hors positions",
     "accountsValue": "Valeur des comptes",
-    "outsidePositionsHint": "Espèces, fonds euros, comptes sans position et écart entre le dernier relevé et le cours du jour."
+    "outsidePositionsHint": "Espèces, fonds euros, comptes sans position et écart entre le dernier relevé et le cours du jour.",
+    "displayLabel": "Affichage",
+    "display": {
+      "chart": "Donut",
+      "map": "Carte"
+    }
   },
   "concentration": {
     "title": "Concentration",
