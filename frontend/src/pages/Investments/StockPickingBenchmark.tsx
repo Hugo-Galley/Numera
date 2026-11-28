@@ -2,7 +2,10 @@ import { useEffect, useEffectEvent, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 import { AlertTriangle, Scale } from "lucide-react"
+import { ErrorState } from "@/components/layout/ErrorState"
 import { Badge } from "@/components/ui/badge"
+import { Skeleton } from "@/components/ui/skeleton"
+import { resetApiCache } from "@/lib/apiCache"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -51,10 +54,35 @@ export function StockPickingBenchmark() {
     }
   }
 
-  if (failed || !data) return null
+  const retry = () => {
+    resetApiCache()
+    setFailed(false)
+    void load()
+  }
+
+  // Seule carte de son onglet avec la pire baisse : jamais de vide, que ce soit en chargement, en échec ou sans action
+  if (failed || !data) return (
+    <Card data-testid="stock-picking-benchmark">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-lg"><Scale className="h-5 w-5 text-slate-700" />{t("benchmark.titleNoReference")}</CardTitle>
+      </CardHeader>
+      <CardContent>{failed ? <ErrorState onRetry={retry} /> : <Skeleton className="h-24 w-full" />}</CardContent>
+    </Card>
+  )
   const lines = data.lines ?? []
   const candidates = data.candidates ?? []
-  if (lines.length === 0 && data.benchmark_ticker == null) return null
+  if (lines.length === 0 && data.benchmark_ticker == null) return (
+    <Card data-testid="stock-picking-benchmark">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-lg"><Scale className="h-5 w-5 text-slate-700" />{t("benchmark.titleNoReference")}</CardTitle>
+        <CardDescription>{t("benchmark.subtitleNoDate")}</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <p className="text-sm text-slate-500">{t("benchmark.empty")}</p>
+        {(data.warnings ?? []).map((warning) => <p key={warning} className="text-xs text-slate-500">{warning}</p>)}
+      </CardContent>
+    </Card>
+  )
 
   const selected = data.benchmark_source === "largest_etf" ? AUTO : (data.benchmark_ticker ?? AUTO)
   const options = candidates.some((c) => c.ticker === data.benchmark_ticker) || !data.benchmark_ticker

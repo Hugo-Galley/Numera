@@ -69,4 +69,23 @@ describe("Investissements : stock picking sans action", () => {
     expect(await screen.findByText("Aucune action hors ETF à comparer.")).toBeInTheDocument()
     expect(screen.queryByText("Écart (actions − référence)")).not.toBeInTheDocument()
   })
+
+  it("sans action hors ETF ni référence : la carte explique au lieu de disparaître", async () => {
+    server.use(http.get(apiUrl("/analytics/stock-picking-benchmark"), () => HttpResponse.json(body({
+      lines: [], candidates: [], benchmark_ticker: null, benchmark_name: null, start_date: null,
+      warnings: ["Aucun ETF détenu ni référence choisie : impossible de comparer le stock picking."],
+    }))))
+    renderWithProviders(<StockPickingBenchmark />, { route: "/investments", auth: true })
+
+    expect(await screen.findByText("Aucune action hors ETF à comparer.")).toBeInTheDocument()
+    expect(screen.getByRole("heading", { name: "Stock picking face à un indice" })).toBeInTheDocument()
+    expect(screen.getByText(/impossible de comparer/)).toBeInTheDocument()
+  })
+
+  it("chargement en échec : message d'erreur au lieu d'un vide", async () => {
+    server.use(http.get(apiUrl("/analytics/stock-picking-benchmark"), () => HttpResponse.json({ detail: "boom" }, { status: 500 })))
+    renderWithProviders(<StockPickingBenchmark />, { route: "/investments", auth: true })
+
+    expect(await screen.findByRole("alert")).toBeInTheDocument()
+  })
 })
