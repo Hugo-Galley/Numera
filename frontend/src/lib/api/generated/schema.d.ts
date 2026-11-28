@@ -2381,6 +2381,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/month-review/accounts/confirm-unchanged": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Confirm Unchanged Accounts
+         * @description Valide en un clic les comptes bancaires sans transaction depuis leur dernière vérification ; renvoie la revue.
+         */
+        post: operations["confirm_unchanged_accounts_month_review_accounts_confirm_unchanged_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/month-review/close": {
         parameters: {
             query?: never;
@@ -3241,6 +3261,11 @@ export interface components {
             balance: number;
             /** Currency */
             currency: string;
+            /**
+             * Group
+             * @enum {string}
+             */
+            group: "reconcile" | "unchanged" | "market";
             /** Id */
             id: number;
             /**
@@ -3250,6 +3275,13 @@ export interface components {
             last_verified_at: string;
             /** Name */
             name: string;
+            /** Statement Balance */
+            statement_balance: number | null;
+            /**
+             * Statement Date
+             * Format: date
+             */
+            statement_date: string;
             /** Verified Since Month End */
             verified_since_month_end: boolean;
         };
@@ -6373,6 +6405,13 @@ export interface components {
             /** Top Variable */
             top_variable: components["schemas"]["MoneyFlowItem"][];
             variable_expenses: components["schemas"]["MoneyFlowBlock"];
+            /** Year */
+            year: number;
+        };
+        /** MonthRef */
+        MonthRef: {
+            /** Month */
+            month: number;
             /** Year */
             year: number;
         };
@@ -13912,6 +13951,39 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    confirm_unchanged_accounts_month_review_accounts_confirm_unchanged_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MonthRef"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MonthReviewRead"];
+                };
             };
             /** @description Validation Error */
             422: {

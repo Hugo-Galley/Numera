@@ -238,6 +238,19 @@ async def close_month(db: Session, payload: CloseRequest) -> dict[str, Any]:
     return review
 
 
+async def confirm_unchanged_accounts(db: Session, year: int, month: int) -> dict[str, Any]:
+    """Marque vérifiés, en un seul commit, les comptes bancaires qui n'ont pas bougé depuis leur dernière vérification."""
+    accounts = balances.active_accounts(db)
+    groups = _account_groups(db, accounts, statement_date(year, month))
+    now = utcnow_naive()
+    for acc in accounts:
+        if groups[acc.id][0] == "unchanged":
+            acc.last_verified_at = now
+    db.commit()
+    review, _ = await _build_review(db, year, month)
+    return review
+
+
 def reopen_month(db: Session, year: int, month: int) -> None:
     """Rouvre un mois (supprime sa clôture). Sans effet si le mois n'était pas clôturé."""
     repo.delete_closure(db, year, month)

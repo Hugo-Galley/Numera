@@ -352,3 +352,23 @@ def test_statement_date_is_capped_at_today(monkeypatch):
     monkeypatch.setattr(month_review_service, "today_local", lambda: date(2025, 10, 12))
     assert month_review_service.statement_date(2025, 10) == date(2025, 10, 12)
     assert month_review_service.statement_date(2025, 2) == date(2025, 2, 28)
+
+
+def test_confirm_unchanged_verifies_only_unchanged_bank_accounts(client, db_session):
+    _courant(db_session, last_verified_at=datetime(2025, 10, 10))
+    moved = Account(name="Bougé", type="courant", currency="EUR", active=True, last_verified_at=datetime(2025, 9, 1))
+    pea = Account(name="PEA", type="investissement", currency="EUR", active=True, last_verified_at=datetime(2025, 9, 1))
+    db_session.add_all([moved, pea])
+    db_session.commit()
+    _tx(db_session, moved, "Sortie", 10.0, datetime(2025, 10, 20))
+    res = client.post("/month-review/accounts/confirm-unchanged", json=PARAMS)
+    assert res.status_code == 200
+    verified = {a["name"]: a["verified_since_month_end"] for a in res.json()["accounts"]["accounts"]}
+    assert verified == {"Principal": True, "Bougé": False, "PEA": False}
+    db_session.expire_all()
+    assert db_session.get(Account, pea.id).last_verified_at == datetime(2025, 9, 1)
+    assert db_session.get(Account, moved.id).last_verified_at == datetime(2025, 9, 1)
+
+
+def test_confirm_unchanged_rejects_invalid_month(client):
+    assert client.post("/month-review/accounts/confirm-unchanged", json={"year": 2025, "month": 13}).status_code == 422

@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.controllers.deps import get_db
 from app.core.sync_bridge import run_async
-from app.schemas.month_review import CloseRequest, ClosureRead, MonthReviewRead
+from app.schemas.month_review import CloseRequest, ClosureRead, MonthRef, MonthReviewRead
 from app.services.budget import month_review as service
 
 if TYPE_CHECKING:
@@ -28,6 +28,12 @@ def get_month_review(
 def close_month(payload: CloseRequest, db: Session = Depends(get_db)) -> dict[str, Any]:
     """Marque le mois comme revu et fige la photo des chiffres. Idempotent : re-clôturer remplace la photo."""
     return run_async(service.close_month(db, payload))
+
+
+@router.post("/accounts/confirm-unchanged", response_model=MonthReviewRead)
+def confirm_unchanged_accounts(payload: MonthRef, db: Session = Depends(get_db)) -> dict[str, Any]:
+    """Valide en un clic les comptes bancaires sans transaction depuis leur dernière vérification ; renvoie la revue."""
+    return run_async(service.confirm_unchanged_accounts(db, payload.year, payload.month))
 
 
 @router.delete("", status_code=204)

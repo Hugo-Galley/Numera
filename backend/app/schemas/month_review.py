@@ -80,7 +80,10 @@ class MonthReviewRead(BaseModel):
     budget: BudgetStep
 
 
-class CloseRequest(BaseModel):
+class MonthRef(BaseModel):
     year: int = Field(ge=2000, le=2200)
     month: int = Field(ge=1, le=12)
+
+
+class CloseRequest(MonthRef):
     highlight: str | None = Field(default=None, max_length=500)
