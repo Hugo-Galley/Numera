@@ -4,6 +4,7 @@ import { analyticsHandlers } from "./analytics"
 import { authHandlers } from "./auth"
 import { classementHandlers } from "./classement"
 import { investmentsHandlers } from "./investments"
+import { monthReviewHandlers } from "./monthReview"
 import { recurringHandlers } from "./recurring"
 import { savingsHandlers } from "./savings"
 import { settingsHandlers } from "./settings"
@@ -18,6 +19,7 @@ export const handlers = [
   ...savingsHandlers,
   ...investmentsHandlers,
   ...analyticsHandlers,
+  ...monthReviewHandlers,
   ...settingsHandlers,
 ]
 

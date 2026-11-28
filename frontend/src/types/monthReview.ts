@@ -14,6 +14,12 @@ export interface ReviewAccount {
   balance: number
   last_verified_at: string
   verified_since_month_end: boolean
+  /** `reconcile` : compte bancaire qui a bougé ; `unchanged` : rien depuis la dernière vérification ; `market` : placement. */
+  group: "reconcile" | "unchanged" | "market"
+  /** Date du relevé (AAAA-MM-JJ) : fin du mois calendaire, plafonnée à aujourd'hui. */
+  statement_date: string
+  /** Solde de Numera à la date du relevé ; `null` pour un placement. */
+  statement_balance: number | null
 }
 
 export interface BudgetAlertLite {

@@ -13,3 +13,6 @@ export const postMonthReviewClose = <T = ApiResponse<"/month-review/close", "pos
 
 /** DELETE /month-review */
 export const deleteMonthReview = <T = void>(query = "") => api.delete<T>(`/month-review${query}`)
+
+/** POST /month-review/accounts/confirm-unchanged */
+export const postMonthReviewAccountsConfirmUnchanged = <T = ApiResponse<"/month-review/accounts/confirm-unchanged", "post">>(body?: ApiBody<"/month-review/accounts/confirm-unchanged", "post">) => api.post<T>(`/month-review/accounts/confirm-unchanged`, body)

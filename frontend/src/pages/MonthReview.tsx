@@ -188,7 +188,7 @@ export default function MonthReview() {
       ) : (
         <>
           {step === 0 && <CategorizeStep step={review.categorize} onChanged={load} />}
-          {step === 1 && <AccountsStep step={review.accounts} onChanged={load} />}
+          {step === 1 && <AccountsStep key={`${year}-${month}`} step={review.accounts} year={year} month={month} onChanged={load} onReview={setReview} />}
           {step === 2 && <BudgetStep budget={review.budget} onChanged={load} />}
           {step === 3 && (
             <Card>
