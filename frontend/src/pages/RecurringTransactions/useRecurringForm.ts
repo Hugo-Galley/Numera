@@ -34,6 +34,14 @@ export function useRecurringForm(p: ReturnType<typeof useRecurringState>) {
     logo: null as string | null,
   })
 
+  // Formulaire ouvert avant l'arrivée des comptes : il reçoit le premier compte dès qu'ils sont là
+  const firstAccount = accounts[0]
+  useEffect(() => {
+    if (firstAccount && !formData.account_id) {
+      setFormData(prev => (prev.account_id ? prev : { ...prev, account_id: firstAccount.id.toString(), currency: firstAccount.currency || prev.currency }))
+    }
+  }, [firstAccount, formData.account_id])
+
   const selectedAccount = accounts.find(a => a.id.toString() === formData.account_id)
   // Virement vers un compte investissement : la sortie et le dépôt + achat de parts sont créés ensemble
   const transferDest = accounts.find(a => a.id.toString() === formData.transfer_to_account_id)

@@ -1,7 +1,7 @@
 import { screen, waitFor } from "@testing-library/react"
 import { Route, Routes } from "react-router-dom"
 import { formatCurrency } from "@/lib/utils"
-import { makeAccount } from "@/test/support/factories"
+import { makeAccount, makeTransaction } from "@/test/support/factories"
 import { listAccounts } from "@/test/support/handlers/accounts"
 import { searchTransactions } from "@/test/support/handlers/transactions"
 import { LocationDisplay } from "@/test/support/LocationDisplay"
@@ -11,8 +11,8 @@ import { Omnibox } from "@/components/layout/Omnibox"
 
 const mainAccount = { ...makeAccount({ id: 7, name: "Compte joint" }), active: true, is_main: true }
 
-function renderOmnibox(accounts: object[] = [mainAccount]) {
-  server.use(listAccounts(accounts), searchTransactions())
+function renderOmnibox(accounts: object[] = [mainAccount], transactions: object[] = []) {
+  server.use(listAccounts(accounts), searchTransactions(transactions))
   return renderWithProviders(
     <>
       <Omnibox />
@@ -115,5 +115,24 @@ describe("Omnibox : saisie rapide", () => {
 
     await waitFor(() => expect(screen.queryByText("Saisie rapide")).not.toBeInTheDocument())
     expect(screen.queryByRole("button", { name: /^Ajouter une dépense/ })).not.toBeInTheDocument()
+  })
+})
+
+describe("Omnibox : logos", () => {
+  it("affiche le logo choisi d'un compte", async () => {
+    const { user } = renderOmnibox([{ ...mainAccount, logo: "si:revolut" }])
+    await user.type(await openWithShortcut(user), "joint")
+
+    const button = await screen.findByRole("button", { name: /Compte joint/ })
+    expect(button.querySelector("img")).toHaveAttribute("src", expect.stringContaining("/logos/img/si:revolut"))
+  })
+
+  it("affiche le logo de la récurrence d'une transaction", async () => {
+    const tx = makeTransaction({ id: 42, merchant: "Netflix", recurring_logo: "si:netflix" })
+    const { user } = renderOmnibox([mainAccount], [tx])
+    await user.type(await openWithShortcut(user), "netflix")
+
+    const button = await screen.findByRole("button", { name: /Netflix/ })
+    expect(button.querySelector("img")).toHaveAttribute("src", expect.stringContaining("/logos/img/si:netflix"))
   })
 })
