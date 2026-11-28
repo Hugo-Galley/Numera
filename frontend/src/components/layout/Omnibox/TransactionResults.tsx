@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next"
 import { appLocale } from "@/i18n/locale"
 import { Receipt, Search } from "lucide-react"
+import { CompanyLogo } from "@/components/ui/CompanyLogo"
 import { cn, formatCurrency } from "@/lib/utils"
 import type { OmniboxCtx } from "./useOmnibox"
 
@@ -30,12 +31,16 @@ export function TransactionResults({ ctx }: { ctx: OmniboxCtx }) {
                 )}
               >
                 <div className="flex min-w-0 items-center gap-3">
-                  <div className={cn(
-                    "h-8 w-8 shrink-0 rounded-lg flex items-center justify-center transition-colors",
-                    isActive ? "bg-white text-slate-900 shadow-xs" : "bg-slate-50 text-slate-500"
-                  )}>
-                    <Receipt className="h-4 w-4" />
-                  </div>
+                  {tx.recurring_logo ? (
+                    <CompanyLogo logo={tx.recurring_logo} name={tx.merchant_obj?.name || tx.merchant} className="h-8 w-8 rounded-lg" />
+                  ) : (
+                    <div className={cn(
+                      "h-8 w-8 shrink-0 rounded-lg flex items-center justify-center transition-colors",
+                      isActive ? "bg-white text-slate-900 shadow-xs" : "bg-slate-50 text-slate-500"
+                    )}>
+                      <Receipt className="h-4 w-4" />
+                    </div>
+                  )}
                   <div className="flex min-w-0 flex-col">
                     <span className="font-medium text-slate-900 truncate sm:max-w-[300px]">
                       {tx.merchant_obj?.name || tx.merchant}

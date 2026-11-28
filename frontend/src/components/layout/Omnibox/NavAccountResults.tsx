@@ -1,6 +1,7 @@
 import { ArrowRight } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { Badge } from "@/components/ui/badge"
+import { CompanyLogo } from "@/components/ui/CompanyLogo"
 import { accountTypeLabel } from "@/lib/labels"
 import { cn, formatCurrency } from "@/lib/utils"
 import type { OmniboxCtx } from "./useOmnibox"
@@ -70,12 +71,16 @@ export function NavAccountResults({ ctx }: { ctx: OmniboxCtx }) {
                 )}
               >
                 <div className="flex min-w-0 items-center gap-3">
-                  <div className={cn(
-                    "h-8 w-8 shrink-0 rounded-lg flex items-center justify-center font-bold text-[10px] uppercase transition-colors",
-                    isActive ? "bg-white text-blue-600 shadow-xs" : "bg-blue-50 text-blue-600"
-                  )}>
-                    {acc.type.substring(0, 2)}
-                  </div>
+                  {acc.logo ? (
+                    <CompanyLogo logo={acc.logo} name={acc.institution || acc.name} className="h-8 w-8 rounded-lg" />
+                  ) : (
+                    <div className={cn(
+                      "h-8 w-8 shrink-0 rounded-lg flex items-center justify-center font-bold text-[10px] uppercase transition-colors",
+                      isActive ? "bg-white text-blue-600 shadow-xs" : "bg-blue-50 text-blue-600"
+                    )}>
+                      {acc.type.substring(0, 2)}
+                    </div>
+                  )}
                   <div className="flex min-w-0 flex-col">
                     <span className="truncate font-medium text-slate-900">{acc.name}</span>
                     <span className="text-[10px] text-slate-400 uppercase font-bold tracking-tight">{accountTypeLabel(acc.type)}</span>
