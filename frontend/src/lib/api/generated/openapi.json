@@ -29,6 +29,15 @@
       "title": "Currency",
       "type": "string"
      },
+     "group": {
+      "enum": [
+       "reconcile",
+       "unchanged",
+       "market"
+      ],
+      "title": "Group",
+      "type": "string"
+     },
      "id": {
       "title": "Id",
       "type": "integer"
@@ -42,6 +51,22 @@
       "title": "Name",
       "type": "string"
      },
+     "statement_balance": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Statement Balance"
+     },
+     "statement_date": {
+      "format": "date",
+      "title": "Statement Date",
+      "type": "string"
+     },
      "verified_since_month_end": {
       "title": "Verified Since Month End",
       "type": "boolean"
@@ -53,7 +78,10 @@
      "currency",
      "balance",
      "last_verified_at",
-     "verified_since_month_end"
+     "verified_since_month_end",
+     "group",
+     "statement_date",
+     "statement_balance"
     ],
     "title": "AccountCheck",
     "type": "object"
@@ -10007,6 +10035,28 @@
      "top_investments"
     ],
     "title": "MoneyFlowReport",
+    "type": "object"
+   },
+   "MonthRef": {
+    "properties": {
+     "month": {
+      "maximum": 12.0,
+      "minimum": 1.0,
+      "title": "Month",
+      "type": "integer"
+     },
+     "year": {
+      "maximum": 2200.0,
+      "minimum": 2000.0,
+      "title": "Year",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "year",
+     "month"
+    ],
+    "title": "MonthRef",
     "type": "object"
    },
    "MonthReviewRead": {
@@ -26783,6 +26833,53 @@
      }
     ],
     "summary": "Get Month Review",
+    "tags": [
+     "month-review"
+    ]
+   }
+  },
+  "/month-review/accounts/confirm-unchanged": {
+   "post": {
+    "description": "Valide en un clic les comptes bancaires sans transaction depuis leur dernière vérification ; renvoie la revue.",
+    "operationId": "confirm_unchanged_accounts_month_review_accounts_confirm_unchanged_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/MonthRef"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/MonthReviewRead"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Confirm Unchanged Accounts",
     "tags": [
      "month-review"
     ]

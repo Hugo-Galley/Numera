@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 
 import pytest
 
@@ -7,6 +7,8 @@ from app.models.account import Account
 from app.models.category import Category
 from app.models.month_closure import MonthClosure
 from app.models.transaction import Transaction
+from app.services.budget import month_review as month_review_service
+from app.services.budget.balances import recalculate_running_balances
 from app.services.budget.month_review import without_exceptional
 
 
@@ -311,3 +313,62 @@ def test_savings_amount_matches_savings_rate_when_money_is_invested(client, db_s
     budget = client.get("/month-review", params={"month": 10, "year": 2025}).json()["budget"]
     assert budget["savings"] == 1700.0
     assert budget["savings_rate"] == pytest.approx(budget["savings"] / budget["income"] * 100)
+
+
+def test_accounts_step_gives_statement_balance_at_calendar_month_end(client, db_session):
+    acc = _courant(db_session, last_verified_at=datetime(2025, 9, 1))
+    _tx(db_session, acc, "Entree", 1000.0, datetime(2025, 10, 5))
+    _tx(db_session, acc, "Sortie", 50.0, datetime(2025, 11, 2))  # après le relevé
+    recalculate_running_balances(db_session, acc.id)
+    db_session.commit()
+    item = client.get("/month-review", params=PARAMS).json()["accounts"]["accounts"][0]
+    assert item["statement_date"] == "2025-10-31"
+    assert item["statement_balance"] == 1000.0
+    assert item["group"] == "reconcile"
+
+
+def test_account_without_movement_since_verification_is_unchanged(client, db_session):
+    acc = _courant(db_session, last_verified_at=datetime(2025, 10, 10))
+    _tx(db_session, acc, "Entree", 500.0, datetime(2025, 10, 3))
+    empty = Account(name="Vide", type="epargne", currency="EUR", active=True)
+    db_session.add(empty)
+    db_session.commit()
+    recalculate_running_balances(db_session, acc.id)
+    db_session.commit()
+    accounts = client.get("/month-review", params=PARAMS).json()["accounts"]["accounts"]
+    groups = {a["name"]: (a["group"], a["statement_balance"]) for a in accounts}
+    assert groups == {"Principal": ("unchanged", 500.0), "Vide": ("unchanged", 0.0)}
+
+
+def test_market_accounts_have_no_statement_balance(client, db_session):
+    for type_ in ("investissement", "assurance_vie"):
+        db_session.add(Account(name=type_, type=type_, currency="EUR", active=True))
+    db_session.commit()
+    items = client.get("/month-review", params=PARAMS).json()["accounts"]["accounts"]
+    assert {(a["group"], a["statement_balance"]) for a in items} == {("market", None)}
+
+
+def test_statement_date_is_capped_at_today(monkeypatch):
+    monkeypatch.setattr(month_review_service, "today_local", lambda: date(2025, 10, 12))
+    assert month_review_service.statement_date(2025, 10) == date(2025, 10, 12)
+    assert month_review_service.statement_date(2025, 2) == date(2025, 2, 28)
+
+
+def test_confirm_unchanged_verifies_only_unchanged_bank_accounts(client, db_session):
+    _courant(db_session, last_verified_at=datetime(2025, 10, 10))
+    moved = Account(name="Bougé", type="courant", currency="EUR", active=True, last_verified_at=datetime(2025, 9, 1))
+    pea = Account(name="PEA", type="investissement", currency="EUR", active=True, last_verified_at=datetime(2025, 9, 1))
+    db_session.add_all([moved, pea])
+    db_session.commit()
+    _tx(db_session, moved, "Sortie", 10.0, datetime(2025, 10, 20))
+    res = client.post("/month-review/accounts/confirm-unchanged", json=PARAMS)
+    assert res.status_code == 200
+    verified = {a["name"]: a["verified_since_month_end"] for a in res.json()["accounts"]["accounts"]}
+    assert verified == {"Principal": True, "Bougé": False, "PEA": False}
+    db_session.expire_all()
+    assert db_session.get(Account, pea.id).last_verified_at == datetime(2025, 9, 1)
+    assert db_session.get(Account, moved.id).last_verified_at == datetime(2025, 9, 1)
+
+
+def test_confirm_unchanged_rejects_invalid_month(client):
+    assert client.post("/month-review/accounts/confirm-unchanged", json={"year": 2025, "month": 13}).status_code == 422

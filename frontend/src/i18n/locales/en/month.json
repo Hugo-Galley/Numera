@@ -2,9 +2,24 @@
   "accountsStep": {
     "soldeValide": "Balance confirmed",
     "echecDeLaValidation": "Confirmation failed",
-    "comparezLeSoldeAfficheAvec": "Compare the displayed balance with your statement, then confirm each account.",
+    "comparezLeSoldeAfficheAvec": "For each account that moved, type the balance from your statement: Numera compares it with its own on the same date.",
     "valide": "Confirmed",
-    "validerLeSolde": "Confirm balance"
+    "validerLeSolde": "Confirm balance",
+    "aRapprocherAu": "To reconcile as of {{date}}",
+    "numera": "Numera:",
+    "soldeDuReleve": "Statement balance",
+    "soldeDuReleveDe": "Statement balance for {{name}}",
+    "verifier": "Check",
+    "verification": "Checking…",
+    "saisisUnMontant": "Enter the statement balance",
+    "echecDuRapprochement": "Reconciliation failed",
+    "ecartDe": "Difference of {{gap}}",
+    "ouvrirLeCompte": "Open the account",
+    "validerSansSaisir": "Validate without entering",
+    "rienNABouge": "Nothing changed since the last check ({{count}})",
+    "toutValider": "Validate all",
+    "comptesValides": "Accounts validated",
+    "placements": "Investments (current value)"
   },
   "budgetStep": {
     "marqueeExceptionnelle": "Marked as exceptional",

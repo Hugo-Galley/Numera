@@ -2,9 +2,24 @@
   "accountsStep": {
     "soldeValide": "Saldo validado",
     "echecDeLaValidation": "Error al validar",
-    "comparezLeSoldeAfficheAvec": "Compara el saldo mostrado con el de tu extracto y valida cada cuenta.",
+    "comparezLeSoldeAfficheAvec": "Para cada cuenta que se movió, escribe el saldo de tu extracto: Numera lo compara con el suyo en la misma fecha.",
     "valide": "Validado",
-    "validerLeSolde": "Validar el saldo"
+    "validerLeSolde": "Validar el saldo",
+    "aRapprocherAu": "Por conciliar al {{date}}",
+    "numera": "Numera:",
+    "soldeDuReleve": "Saldo del extracto",
+    "soldeDuReleveDe": "Saldo del extracto de {{name}}",
+    "verifier": "Comprobar",
+    "verification": "Comprobando…",
+    "saisisUnMontant": "Escribe el saldo del extracto",
+    "echecDuRapprochement": "Error en la conciliación",
+    "ecartDe": "Diferencia de {{gap}}",
+    "ouvrirLeCompte": "Abrir la cuenta",
+    "validerSansSaisir": "Validar sin escribir",
+    "rienNABouge": "Nada ha cambiado desde la última comprobación ({{count}})",
+    "toutValider": "Validar todo",
+    "comptesValides": "Cuentas validadas",
+    "placements": "Inversiones (valor actual)"
   },
   "budgetStep": {
     "marqueeExceptionnelle": "Marcado como excepcional",

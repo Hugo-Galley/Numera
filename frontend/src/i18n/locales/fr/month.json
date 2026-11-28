@@ -2,9 +2,24 @@
   "accountsStep": {
     "soldeValide": "Solde validé",
     "echecDeLaValidation": "Échec de la validation",
-    "comparezLeSoldeAfficheAvec": "Compare le solde affiché avec celui de ton relevé, puis valide chaque compte.",
+    "comparezLeSoldeAfficheAvec": "Pour chaque compte qui a bougé, tape le solde de ton relevé : Numera le compare au sien à la même date.",
     "valide": "Validé",
-    "validerLeSolde": "Valider le solde"
+    "validerLeSolde": "Valider le solde",
+    "aRapprocherAu": "À rapprocher au {{date}}",
+    "numera": "Numera :",
+    "soldeDuReleve": "Solde du relevé",
+    "soldeDuReleveDe": "Solde du relevé de {{name}}",
+    "verifier": "Vérifier",
+    "verification": "Vérification…",
+    "saisisUnMontant": "Saisis le solde du relevé",
+    "echecDuRapprochement": "Échec du rapprochement",
+    "ecartDe": "Écart de {{gap}}",
+    "ouvrirLeCompte": "Ouvrir le compte",
+    "validerSansSaisir": "Valider sans saisir",
+    "rienNABouge": "Rien n'a bougé depuis la dernière vérification ({{count}})",
+    "toutValider": "Tout valider",
+    "comptesValides": "Comptes validés",
+    "placements": "Placements (valeur actuelle)"
   },
   "budgetStep": {
     "marqueeExceptionnelle": "Marquée exceptionnelle",

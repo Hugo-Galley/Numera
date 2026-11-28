@@ -1,13 +1,16 @@
 """Logique de la revue de fin de mois : bornes, étape 1, top dépenses, lecture « hors exceptionnel »."""
+import calendar
 import json
-from datetime import datetime
+from collections.abc import Sequence
+from datetime import date, datetime, time, timedelta
 from typing import Any
 
 from sqlalchemy.orm import Session
 
-from app.core.time import utcnow_naive
+from app.core.time import today_local, utcnow_naive
 from app.domain.transactions import net_amount
 from app.integrations.currency import get_exchange_rates
+from app.models.account import Account
 from app.models.month_closure import MonthClosure
 from app.models.transaction import Transaction
 from app.repositories.analytics.common import ticket_restaurant_account_ids
@@ -16,7 +19,7 @@ from app.repositories.comptes import balances
 from app.schemas.month_review import CloseRequest, ClosureRead
 from app.services.analytics.budget import compute_budget, compute_budget_alerts
 from app.services.budget.budget_period import period_bounds
-from app.services.comptes.wealth import account_values
+from app.services.comptes.wealth import INVESTMENT_TYPES, account_values
 
 # Même liste que budget_analytics : ces catégories ne sont pas de la consommation
 INVESTMENT_CATEGORIES = ["Investissement", "Epargne"]
@@ -111,12 +114,38 @@ def month_fingerprint(db: Session, start: datetime, end: datetime) -> dict[str, 
 
 # --- Revue d'un mois (routes /month-review) ------------------------------------------------------
 
-async def _accounts_step(db: Session, end: datetime) -> dict[str, Any]:
+def statement_date(year: int, month: int) -> date:
+    """Date du relevé du mois : dernier jour calendaire (date imprimée sur un relevé bancaire), plafonné à aujourd'hui."""
+    last_day = date(year, month, calendar.monthrange(year, month)[1])
+    return min(last_day, today_local())
+
+
+def _account_groups(db: Session, accounts: Sequence[Account], day: date) -> dict[int, tuple[str, float | None]]:
+    """Groupe de chaque compte et solde de Numera à la fin du jour `day`, en une requête pour tous les comptes.
+
+    `market` : placements (valeur de marché, pas de relevé). `unchanged` : compte bancaire sans transaction
+    datée entre sa dernière vérification et le relevé. `reconcile` : compte bancaire qui a bougé.
+    """
+    end = datetime.combine(day + timedelta(days=1), time.min)
+    bank = [acc for acc in accounts if acc.type not in INVESTMENT_TYPES]
+    latest = balances.latest_balances_by_account(db, (acc.id for acc in bank), before=end)
+    groups: dict[int, tuple[str, float | None]] = {acc.id: ("market", None) for acc in accounts if acc.type in INVESTMENT_TYPES}
+    for acc in bank:
+        row = latest.get(acc.id)
+        moved = row is not None and row.date >= acc.last_verified_at
+        balance = round(float(row.running_balance or 0.0), 2) if row else 0.0
+        groups[acc.id] = ("reconcile" if moved else "unchanged", balance)
+    return groups
+
+
+async def _accounts_step(db: Session, year: int, month: int, end: datetime) -> dict[str, Any]:
     """Étape 2 : un compte est « vérifié » s'il l'a été depuis la fin du mois (ou aujourd'hui si le mois n'est pas fini)."""
     now = utcnow_naive()
     reference = min(end, datetime(now.year, now.month, now.day))
     accounts = balances.active_accounts(db)
     values = await account_values(db, accounts)
+    day = statement_date(year, month)
+    groups = _account_groups(db, accounts, day)
     items = [
         {
             "id": acc.id,
@@ -125,6 +154,9 @@ async def _accounts_step(db: Session, end: datetime) -> dict[str, Any]:
             "balance": round(values[acc.id].value, 2),
             "last_verified_at": acc.last_verified_at,
             "verified_since_month_end": acc.last_verified_at >= reference,
+            "group": groups[acc.id][0],
+            "statement_date": day,
+            "statement_balance": groups[acc.id][1],
         }
         for acc in accounts
     ]
@@ -141,7 +173,7 @@ async def _build_review(db: Session, year: int, month: int) -> tuple[dict[str, A
     rates = await get_exchange_rates("EUR")
 
     categorize = categorize_step(db, start, end)
-    accounts = await _accounts_step(db, end)
+    accounts = await _accounts_step(db, year, month, end)
     current = {
         "tx_count": tx_count(db, start, end),
         "income": round(float(budget["revenus_totaux"]), 2),
@@ -203,6 +235,19 @@ async def close_month(db: Session, payload: CloseRequest) -> dict[str, Any]:
     closure.fingerprint = json.dumps(current["fingerprint"], sort_keys=True)
     db.commit()
     review, _ = await _build_review(db, payload.year, payload.month)
+    return review
+
+
+async def confirm_unchanged_accounts(db: Session, year: int, month: int) -> dict[str, Any]:
+    """Marque vérifiés, en un seul commit, les comptes bancaires qui n'ont pas bougé depuis leur dernière vérification."""
+    accounts = balances.active_accounts(db)
+    groups = _account_groups(db, accounts, statement_date(year, month))
+    now = utcnow_naive()
+    for acc in accounts:
+        if groups[acc.id][0] == "unchanged":
+            acc.last_verified_at = now
+    db.commit()
+    review, _ = await _build_review(db, year, month)
     return review
 
 

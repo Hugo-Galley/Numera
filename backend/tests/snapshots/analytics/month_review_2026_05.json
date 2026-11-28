@@ -4,33 +4,45 @@
    {
     "balance": 3874.65,
     "currency": "EUR",
+    "group": "unchanged",
     "id": 1,
     "last_verified_at": "2026-06-15T10:00:00",
     "name": "Compte courant",
+    "statement_balance": 6739.99,
+    "statement_date": "2026-05-31",
     "verified_since_month_end": true
    },
    {
     "balance": 10613.8,
     "currency": "EUR",
+    "group": "unchanged",
     "id": 2,
     "last_verified_at": "2026-06-15T10:00:00",
     "name": "Livret A",
+    "statement_balance": 9636.8,
+    "statement_date": "2026-05-31",
     "verified_since_month_end": true
    },
    {
     "balance": 12986.07,
     "currency": "EUR",
+    "group": "market",
     "id": 3,
     "last_verified_at": "2026-06-15T10:00:00",
     "name": "PEA",
+    "statement_balance": null,
+    "statement_date": "2026-05-31",
     "verified_since_month_end": true
    },
    {
     "balance": 10470.29,
     "currency": "EUR",
+    "group": "market",
     "id": 4,
     "last_verified_at": "2026-06-15T10:00:00",
     "name": "Assurance-vie",
+    "statement_balance": null,
+    "statement_date": "2026-05-31",
     "verified_since_month_end": true
    }
   ],

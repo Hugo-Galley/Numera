@@ -192,6 +192,7 @@
  "POST /merchants",
  "POST /merchants/auto-normalize",
  "POST /merchants/{merchant_id}/aliases",
+ "POST /month-review/accounts/confirm-unchanged",
  "POST /month-review/close",
  "POST /notifications/test",
  "POST /provisions",
