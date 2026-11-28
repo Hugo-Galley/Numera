@@ -186,7 +186,8 @@ describe("MonthReview : clôture", () => {
     expect(await screen.findByText("Mois clôturé")).toBeInTheDocument()
     expect(bodies).toEqual([{ year: 2026, month: 6, highlight: "Canapé" }])
     expect(screen.getByText("Clôturé le 02/07/2026")).toBeInTheDocument()
-    expect(screen.getByRole("button", { name: "Re-clôturer le mois" })).toBeEnabled()
+    // Rien n'a changé depuis la clôture : pas de « Re-clôturer », seulement « Rouvrir »
+    expect(screen.queryByRole("button", { name: "Re-clôturer le mois" })).not.toBeInTheDocument()
     expect(screen.getByRole("button", { name: "Rouvrir le mois" })).toBeEnabled()
 
     // Pas de verrouillage : les autres étapes restent modifiables
@@ -239,13 +240,73 @@ describe("MonthReview : clôture", () => {
     const { user } = renderReview()
 
     await user.click(await screen.findByRole("button", { name: /5\. Clôturer/ }))
-    expect(await screen.findByText("2 point(s) restaient à traiter à la clôture.")).toBeInTheDocument()
+    expect(await screen.findByText(/2 points restaient à traiter/)).toBeInTheDocument()
     expect(screen.getByText(/Des transactions ont changé depuis la clôture/)).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "Re-clôturer le mois" })).toBeEnabled()
     await user.click(screen.getByRole("button", { name: "Rouvrir le mois" }))
 
     expect(await screen.findByText("Mois rouvert")).toBeInTheDocument()
     expect(deletes).toEqual(["?year=2026&month=6"])
     expect(await screen.findByRole("button", { name: "Clôturer le mois" })).toBeInTheDocument()
+  })
+})
+
+describe("MonthReview : parcours guidé", () => {
+  it("« Suivant » et « Précédent » font changer d'étape ; pas de « Précédent » sur la première", async () => {
+    serveReview()
+    const { user } = renderReview()
+    await screen.findByText("Toutes les dépenses du mois sont catégorisées.")
+
+    expect(screen.getByText("Étape 1 sur 5")).toBeInTheDocument()
+    expect(screen.queryByRole("button", { name: "Précédent" })).not.toBeInTheDocument()
+    await user.click(screen.getByRole("button", { name: "Suivant : Soldes" }))
+    expect(screen.getByText("Étape 2 sur 5")).toBeInTheDocument()
+    await user.click(screen.getByRole("button", { name: "Suivant : Budget" }))
+    expect(screen.getByText("Étape 3 sur 5")).toBeInTheDocument()
+
+    await user.click(screen.getByRole("button", { name: "Précédent" }))
+    expect(screen.getByText("Étape 2 sur 5")).toBeInTheDocument()
+  })
+
+  it("étape avec des éléments à traiter : le reste est signalé et le bouton devient « Passer quand même »", async () => {
+    serveReview(makeReview({ categorize: { count: 2, total: 90, items: [] } }))
+    const { user } = renderReview()
+
+    expect(await screen.findByText("Il reste 2 dépenses à catégoriser")).toBeInTheDocument()
+    expect(screen.queryByRole("button", { name: /^Suivant/ })).not.toBeInTheDocument()
+    await user.click(screen.getByRole("button", { name: "Passer quand même" }))
+
+    expect(screen.getByText("Étape 2 sur 5")).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "Suivant : Budget" })).toBeInTheDocument()
+  })
+
+  it("dernière étape : « Clôturer le mois » envoie la clôture et affiche le mois clôturé", async () => {
+    const bodies: unknown[] = []
+    serveReview()
+    server.use(
+      http.post(apiUrl("/month-review/close"), async ({ request }) => {
+        bodies.push(await request.json())
+        return HttpResponse.json(makeReview({
+          closed: true,
+          closure: { year: 2026, month: 6, closed_at: "2026-07-02T09:00:00", highlight: null, tx_count: 40, income: 3000, expenses: 2100, unresolved_count: 0 },
+        }))
+      }),
+    )
+    const { user } = renderReview()
+    await screen.findByText("Toutes les dépenses du mois sont catégorisées.")
+
+    for (const next of ["Soldes", "Budget", "Fait marquant", "Clôturer"]) {
+      await user.click(screen.getByRole("button", { name: `Suivant : ${next}` }))
+    }
+    expect(screen.getByText("Étape 5 sur 5")).toBeInTheDocument()
+    expect(screen.getAllByRole("button", { name: "Clôturer le mois" })).toHaveLength(1)
+    await user.click(screen.getByRole("button", { name: "Clôturer le mois" }))
+
+    expect(await screen.findByRole("heading", { name: "Juin est clôturé" })).toBeInTheDocument()
+    expect(bodies).toEqual([{ year: 2026, month: 6, highlight: null }])
+    expect(screen.getByText(/3\s000,00/)).toBeInTheDocument()
+    expect(screen.getByRole("link", { name: "Voir le bilan" })).toHaveAttribute("href", "/month/bilan?year=2026&month=6")
+    expect(screen.queryByRole("button", { name: "Clôturer le mois" })).not.toBeInTheDocument()
   })
 })
 

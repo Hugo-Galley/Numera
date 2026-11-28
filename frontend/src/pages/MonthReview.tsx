@@ -10,6 +10,8 @@ import { AccountsStep } from "@/components/month-review/AccountsStep"
 import { BudgetStep } from "@/components/month-review/BudgetStep"
 import { CategorizeStep } from "@/components/month-review/CategorizeStep"
 import { CloseStep } from "@/components/month-review/CloseStep"
+import { MonthClosed } from "@/components/month-review/MonthClosed"
+import { StepNav } from "@/components/month-review/StepNav"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -91,6 +93,12 @@ export default function MonthReview() {
     setStep(0)
   }
 
+  /** Change d'étape et remonte en haut de la page, pour lire l'étape depuis son début. */
+  function goToStep(i: number) {
+    setStep(i)
+    window.scrollTo({ top: 0, behavior: "smooth" })
+  }
+
   async function closeMonth() {
     setBusy(true)
     try {
@@ -101,6 +109,7 @@ export default function MonthReview() {
       })
       setReview(data)
       toast.success(t("monthReview.moisCloture"))
+      window.scrollTo({ top: 0, behavior: "smooth" })
     } catch {
       toast.error(t("monthReview.echecDeLaCloture"))
     } finally {
@@ -138,6 +147,14 @@ export default function MonthReview() {
     return "neutral"
   }
 
+  /** Ce qui reste à traiter dans l'étape courante, affiché au-dessus de « Passer quand même ». */
+  function pendingText(): string | null {
+    if (!review) return null
+    if (step === 0 && review.categorize.count > 0) return t("monthReview.resteDepenses", { count: review.categorize.count })
+    if (step === 1 && review.accounts.unverified_count > 0) return t("monthReview.resteComptes", { count: review.accounts.unverified_count })
+    return null
+  }
+
   return (
     <div className="space-y-5 pb-10 md:space-y-6">
       <div className="flex flex-col gap-3 md:flex-row md:flex-wrap md:items-center md:justify-between">
@@ -161,24 +178,29 @@ export default function MonthReview() {
         </div>
       </div>
 
-      <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 md:mx-0 md:flex-wrap md:overflow-visible md:px-0 md:pb-0 scrollbar-none [&::-webkit-scrollbar]:hidden">
-        {STEPS.map((name, i) => {
-          const s = status(i)
-          return (
-            <button
-              key={name}
-              onClick={(e) => { setStep(i); e.currentTarget.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" }) }}
-              className={cn(
-                "min-h-10 shrink-0 whitespace-nowrap rounded-full border px-4 py-1.5 text-sm transition-colors md:min-h-0",
-                step === i ? "border-slate-900 bg-slate-900 text-white" : "bg-white hover:bg-slate-50",
-                step !== i && s === "ok" && "border-emerald-200 text-emerald-700",
-                step !== i && s === "todo" && "border-amber-300 text-amber-700"
-              )}
-            >
-              {i + 1}. {t(`monthReview.steps.${name}`)}
-            </button>
-          )
-        })}
+      <div className="space-y-2">
+        <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+          {t("monthReview.stepOf", { current: step + 1, total: STEPS.length })}
+        </p>
+        <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 md:mx-0 md:flex-wrap md:overflow-visible md:px-0 md:pb-0 scrollbar-none [&::-webkit-scrollbar]:hidden">
+          {STEPS.map((name, i) => {
+            const s = status(i)
+            return (
+              <button
+                key={name}
+                onClick={(e) => { goToStep(i); e.currentTarget.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" }) }}
+                className={cn(
+                  "min-h-10 shrink-0 whitespace-nowrap rounded-full border px-4 py-1.5 text-sm transition-colors md:min-h-0",
+                  step === i ? "border-slate-900 bg-slate-900 text-white" : "bg-white hover:bg-slate-50",
+                  step !== i && s === "ok" && "border-emerald-200 text-emerald-700",
+                  step !== i && s === "todo" && "border-amber-300 text-amber-700"
+                )}
+              >
+                {i + 1}. {t(`monthReview.steps.${name}`)}
+              </button>
+            )
+          })}
+        </div>
       </div>
 
       {loadFailed && !loading ? (
@@ -207,15 +229,19 @@ export default function MonthReview() {
               </CardContent>
             </Card>
           )}
-          {step === 4 && (
-            <CloseStep
-              review={review}
-              highlight={highlight}
-              busy={busy}
-              onClose={closeMonth}
-              onReopen={reopenMonth}
-            />
-          )}
+          {step === 4 && (review.closed
+            ? <MonthClosed review={review} monthName={capitalize(monthOnly)} busy={busy} onReclose={closeMonth} onReopen={reopenMonth} />
+            : <CloseStep review={review} highlight={highlight} />)}
+          <StepNav
+            step={step}
+            nextName={step < STEPS.length - 1 ? t(`monthReview.steps.${STEPS[step + 1]}`) : null}
+            pending={pendingText()}
+            closed={review.closed}
+            busy={busy}
+            onPrevious={() => goToStep(step - 1)}
+            onNext={() => goToStep(step + 1)}
+            onClose={closeMonth}
+          />
         </>
       )}
     </div>
