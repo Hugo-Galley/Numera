@@ -233,3 +233,29 @@ describe("Échéances : analyse des abonnements", () => {
     expect(screen.queryByText("Netflix")).not.toBeInTheDocument()
   })
 })
+
+describe("Échéances : création pendant le chargement", () => {
+  it("« Nouvelle récurrence » ouverte avant l'arrivée des comptes reçoit le premier compte", async () => {
+    serve()
+    let release: () => void = () => {}
+    const gate = new Promise<void>((resolve) => { release = resolve })
+    const posts: unknown[] = []
+    server.use(
+      // l'analyse des abonnements est lente : les comptes arrivent après l'ouverture du formulaire
+      http.get(apiUrl("/analytics/subscriptions"), async () => { await gate; return HttpResponse.json({ subscriptions: [], totals_by_kind: {} }) }),
+      http.post(apiUrl("/recurring-transactions/"), async ({ request }) => { posts.push(await request.json()); return HttpResponse.json({ id: 99 }) }),
+    )
+    const { user } = view("list")
+
+    await user.click(await screen.findByRole("button", { name: "Nouvelle récurrence" }))
+    release()
+    const dialog = await screen.findByRole("dialog", { name: "Nouvelle récurrence" })
+    await user.type(within(dialog).getByRole("textbox", { name: "Nom / marchand" }), "Spotify")
+    await user.type(within(dialog).getByRole("spinbutton", { name: "Montant" }), "11")
+    await waitFor(() => expect(within(dialog).getByRole("combobox", { name: "Compte" })).toHaveTextContent("Courant"))
+    await user.click(within(dialog).getByRole("button", { name: "Enregistrer" }))
+
+    await waitFor(() => expect(posts).toHaveLength(1))
+    expect(posts[0]).toMatchObject({ account_id: 3, name: "Spotify" })
+  })
+})
