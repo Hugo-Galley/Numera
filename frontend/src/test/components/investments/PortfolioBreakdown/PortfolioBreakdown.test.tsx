@@ -3,6 +3,10 @@ import { screen } from "@testing-library/react"
 import { PortfolioBreakdown, type BreakdownData } from "@/components/investments/PortfolioBreakdown"
 import { renderWithProviders } from "@/test/support/render"
 
+vi.mock("@/components/ui/WorldMap", () => ({
+  default: ({ data }: { data: { name: string; value: number }[] }) => <div data-testid="world-map">{data.map((d) => d.name).join(",")}</div>,
+}))
+
 const company = (name: string, ticker: string, direct: number, indirect: number, overlap = false) => ({
   name, ticker, direct_value_eur: direct, indirect_value_eur: indirect, total_value_eur: direct + indirect, has_overlap: overlap,
 })
@@ -23,6 +27,20 @@ const data = (extra: Partial<BreakdownData> = {}): BreakdownData => ({
 })
 
 describe("PortfolioBreakdown", () => {
+  it("vue Pays : bascule du donut à la carte du monde, seul endroit où les pays s'affichent", async () => {
+    const { user } = renderWithProviders(<PortfolioBreakdown data={data()} scope="portfolio" />)
+    expect(screen.queryByRole("group", { name: "Affichage" })).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole("button", { name: "Pays" }))
+    await user.click(screen.getByRole("button", { name: "Carte" }))
+
+    expect(await screen.findByTestId("world-map")).toHaveTextContent("USA")
+    expect(screen.queryByRole("img", { name: /répartition/i })).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole("button", { name: "Donut" }))
+    expect(screen.queryByTestId("world-map")).not.toBeInTheDocument()
+  })
+
   it("liste les entreprises, regroupe le reste en « Autres » et signale les doublons", () => {
     renderWithProviders(<PortfolioBreakdown data={data()} scope="portfolio" />)
 

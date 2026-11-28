@@ -46,7 +46,7 @@ Version 19 : `ref` est une prop ordinaire (pas de `forwardRef` dans le code nouv
 - Import CSV : `components/import/ImportFlow` dans `ImportDialog`, ouvert depuis la page d'un compte (ou `/accounts?import=1`).
 - `Audit.tsx` : Centre d'Actions (voir `docs/ACTION_CENTER.md`) ; `?vue=virements` = revue des virements internes (`components/audit/TransferReview`).
 - `pages/Accounts/` : liste des comptes avec `AccountVerificationBanner` (met à jour `last_verified_at`) et onglets par type (`AccountTypeTabs` : Tous, Courants, Épargne, Investissement avec l'assurance vie, Crédits ; filtre côté client, onglet masqué sans compte).
-- `Investments.tsx` : vue globale, `HoldingsTable`, `DiversityScanner`, `PointZeroModal`, `CustomEtfModal`, `SecuritySearchInput`.
+- `pages/Investments/` : vue globale en 4 onglets `?tab=` (overview, performance, exposure, funds) ; une information = un seul bloc (secteurs et pays seulement dans `PortfolioBreakdown`, onglet Exposition, la carte du monde y est la vue Pays). Positions, Point Zéro, profils ETF : page du compte (`HoldingsTable`, `PointZeroModal`, `CustomEtfModal`, `SecuritySearchInput`).
 
 ## Validation
 

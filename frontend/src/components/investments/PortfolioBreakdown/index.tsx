@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { lazy, Suspense, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts"
 import { PieChart as PieChartIcon } from "lucide-react"
@@ -9,6 +9,11 @@ import { formatCurrency, formatRate } from "@/lib/utils"
 import { BreakdownLegend } from "./BreakdownLegend"
 import { hasSourceChoice, rowsFor, totalFor, viewsFor, type BreakdownData, type BreakdownSource, type BreakdownView } from "./rows"
 import { buildSlices } from "./slices"
+
+// react-simple-maps et le fond de carte ne se chargent qu'à l'ouverture de la carte
+const WorldMap = lazy(() => import("@/components/ui/WorldMap"))
+const DISPLAYS = ["chart", "map"] as const
+type Display = (typeof DISPLAYS)[number]
 
 export type { BreakdownData } from "./rows"
 
@@ -57,6 +62,7 @@ export function PortfolioBreakdown({ data, scope }: PortfolioBreakdownProps) {
   const [source, setSource] = useState<BreakdownSource>("all")
   const [hideOther, setHideOther] = useState(false)
   const [active, setActive] = useState<number | null>(null)
+  const [display, setDisplay] = useState<Display>("chart")
 
   const base = data.totals.stocks_eur
   if (base <= 0) return null
@@ -81,6 +87,7 @@ export function PortfolioBreakdown({ data, scope }: PortfolioBreakdownProps) {
         ? { label: t(`breakdown.center.${currentSource}`), value: total, hint: share(total) }
         : { label: t("breakdown.center.all"), value: base, hint: t("breakdown.positionsCount", { count: data.totals.holdings_count }) }
 
+  const showMap = current === "countries" && display === "map"
   const reset = () => setActive(null)
   // Écart sous 1 € : arrondis, pas d'argent hors positions
   const outside = data.totals.outside_positions_eur ?? 0
@@ -96,11 +103,24 @@ export function PortfolioBreakdown({ data, scope }: PortfolioBreakdownProps) {
           </div>
           <CardDescription>{t(`breakdown.description.${scope}`)}</CardDescription>
         </div>
-        {views.length > 1 && (
-          <Segmented label={t("breakdown.viewsLabel")} options={views} value={current} render={(v) => t(`breakdown.views.${v}`)}
-            onChange={(v) => { setView(v); reset() }} />
-        )}
+        <div className="flex flex-col gap-2 sm:items-end">
+          {views.length > 1 && (
+            <Segmented label={t("breakdown.viewsLabel")} options={views} value={current} render={(v) => t(`breakdown.views.${v}`)}
+              onChange={(v) => { setView(v); reset() }} />
+          )}
+          {current === "countries" && (
+            <Segmented label={t("breakdown.displayLabel")} options={[...DISPLAYS]} value={display} render={(d) => t(`breakdown.display.${d}`)}
+              onChange={setDisplay} />
+          )}
+        </div>
       </CardHeader>
+      {showMap ? (
+        <CardContent className="relative h-[300px] p-0 md:h-[450px]">
+          <Suspense fallback={<div className="h-full animate-pulse bg-slate-50" />}>
+            <WorldMap data={data.countries.map((c) => ({ name: c.name, value: c.value_eur, percentage: (c.value_eur / base) * 100 }))} />
+          </Suspense>
+        </CardContent>
+      ) : (
       <CardContent className="grid items-center gap-6 md:grid-cols-[minmax(0,280px)_minmax(0,1fr)]">
         <div className="relative h-[240px] md:h-[280px]" role="img" aria-label={t("breakdown.chartLabel")}>
           <ResponsiveContainer width="100%" height="100%">
@@ -162,6 +182,7 @@ export function PortfolioBreakdown({ data, scope }: PortfolioBreakdownProps) {
           )}
         </div>
       </CardContent>
+      )}
     </Card>
   )
 }

@@ -5,46 +5,18 @@ import { appLocale } from "@/i18n/locale"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { ArrowRight, Globe, Layers, RefreshCw } from "lucide-react"
-import WorldMap from "@/components/ui/WorldMap"
+import { ArrowRight, Layers, RefreshCw } from "lucide-react"
 import { formatCurrency } from "@/lib/utils"
 import { CompositionOrigin } from "./CompositionOrigin"
 import { COMPOSITION_FIELDS, SOURCE_LABELS } from "./types"
 import type { InvestmentsCtx } from "./useInvestments"
 
-/** Compositions des ETF et sources. */
+/** Origine des compositions des ETF détenus (sources, fraîcheur, fiche de chaque fonds). */
 export function EtfCompositions({ ctx }: { ctx: InvestmentsCtx }) {
   const { t } = useTranslation("investments")
-  const { advancedAllocation, diversity, refreshCompositions, refreshingCompositions } = ctx
+  const { diversity, refreshCompositions, refreshingCompositions } = ctx
   return (
     <>
-      <Card className="shadow-xs overflow-hidden">
-        <CardHeader className="border-b bg-slate-50/50 pb-3">
-          <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-2">
-              <Globe className="h-4 w-4 shrink-0 text-slate-500" />
-              <CardTitle className="text-base">{t("etfCompositions.repartitionGeographiqueMondiale")}</CardTitle>
-            </div>
-            <div className="flex items-center gap-2">
-              {diversity && diversity.countries.length > 0 && (
-                <Badge variant="secondary" className="bg-slate-100 text-slate-600 text-[10px] pointer-events-none shadow-none border-none">Look-Through</Badge>
-              )}
-              <Badge variant="outline" className="bg-white">{t("etfCompositions.interactif")}</Badge>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="h-[300px] p-0 relative bg-slate-50/30 md:h-[450px]">
-          <div className="absolute top-3 left-3 z-10 rounded-md border bg-white/90 px-2.5 py-1 text-[11px] text-slate-500 shadow-xs backdrop-blur-sm md:top-4 md:left-4 md:px-3 md:py-1.5 md:text-xs">
-            <span className="md:hidden">{t("etfCompositions.pincezPourZoomerGlissezPour")}</span><span className="hidden md:inline">{t("etfCompositions.utilisezLaMolettePourZoomer")}</span>
-          </div>
-          <WorldMap data={
-            diversity && diversity.countries.length > 0
-              ? diversity.countries.map(c => ({ name: c.name, value: c.value_eur, percentage: c.percentage_stocks }))
-              : (advancedAllocation?.by_geographic_zone || [])
-          } />
-        </CardContent>
-      </Card>
-
       {diversity && diversity.etf_compositions.length > 0 && (
         <Card className="shadow-xs">
           <CardHeader className="border-b pb-3">

@@ -1,7 +1,7 @@
-/** Investissements : légendes des classes d'actifs et des secteurs (couleurs, pourcentages, part non classée). */
+/** Investissements : treemap des classes d'actifs et sa légende (couleurs, pourcentages, part non classée, détail). */
 import { screen } from "@testing-library/react"
 import { renderWithProviders } from "@/test/support/render"
-import { AdvancedCharts } from "@/pages/Investments/AdvancedCharts"
+import { AssetClassTreemap } from "@/pages/Investments/AssetClassTreemap"
 import type { InvestmentsCtx } from "@/pages/Investments/useInvestments"
 import { CATEGORY_COLORS, NEUTRAL_COLOR } from "@/lib/chartPalette"
 
@@ -17,27 +17,33 @@ const makeCtx = (byAssetClass = [group("Non classé", 9934, 99.34), group("Liqui
 
 const dotOf = (label: string) => screen.getByText(label).previousElementSibling as HTMLElement
 
-describe("Investissements : analyses avancées", () => {
+describe("Investissements : classes d'actifs", () => {
   it("écrit les pourcentages des classes d'actifs au format français", () => {
-    renderWithProviders(<AdvancedCharts ctx={makeCtx()} />)
+    renderWithProviders(<AssetClassTreemap ctx={makeCtx()} />)
     expect(screen.getByText(/^99,3\s%$/)).toBeInTheDocument()
     expect(screen.queryByText("99.34%")).not.toBeInTheDocument()
   })
 
   it("donne aux pastilles une couleur de la palette, grise seulement pour « Non classé »", () => {
-    renderWithProviders(<AdvancedCharts ctx={makeCtx()} />)
+    renderWithProviders(<AssetClassTreemap ctx={makeCtx()} />)
     expect(dotOf("Non classé").style.backgroundColor).toBe(rgb(NEUTRAL_COLOR))
     expect(dotOf("Liquidités").style.backgroundColor).toBe(rgb(CATEGORY_COLORS[1]))
-    expect(dotOf("Technologie").style.backgroundColor).toBe(rgb(CATEGORY_COLORS[0]))
+  })
+
+  it("ouvre le détail d'une classe depuis la légende", async () => {
+    const ctx = makeCtx()
+    const { user } = renderWithProviders(<AssetClassTreemap ctx={ctx} />)
+    await user.click(screen.getByRole("button", { name: /Liquidités/ }))
+    expect(ctx.setDrillDown).toHaveBeenCalledWith({ title: "Classe d'actif", items: [] })
   })
 
   it("explique comment classer une part non classée", () => {
-    renderWithProviders(<AdvancedCharts ctx={makeCtx()} />)
+    renderWithProviders(<AssetClassTreemap ctx={makeCtx()} />)
     expect(screen.getByText(/classe d'actifs/i, { selector: "p" })).toBeInTheDocument()
   })
 
   it("sans part non classée, pas d'explication", () => {
-    renderWithProviders(<AdvancedCharts ctx={makeCtx([group("Actions", 100, 100)])} />)
+    renderWithProviders(<AssetClassTreemap ctx={makeCtx([group("Actions", 100, 100)])} />)
     expect(screen.queryByText(/classe d'actifs/i, { selector: "p" })).not.toBeInTheDocument()
   })
 })
