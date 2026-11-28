@@ -1,4 +1,5 @@
-from datetime import datetime
+from datetime import date, datetime
+from typing import Literal
 
 from pydantic import BaseModel, Field
 
@@ -27,6 +28,11 @@ class AccountCheck(BaseModel):
     balance: float
     last_verified_at: datetime
     verified_since_month_end: bool
+    # `reconcile` : compte bancaire qui a bougé ; `unchanged` : aucune transaction depuis la dernière
+    # vérification ; `market` : placement, valeur actuelle seulement (`statement_balance` à None).
+    group: Literal["reconcile", "unchanged", "market"]
+    statement_date: date  # fin du mois calendaire, plafonnée à aujourd'hui
+    statement_balance: float | None  # solde de Numera à la fin du jour du relevé
 
 
 class AccountsStep(BaseModel):
