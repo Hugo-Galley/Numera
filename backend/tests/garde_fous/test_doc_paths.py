@@ -13,6 +13,8 @@ REPO_ROOT = Path(__file__).parents[3]
 DOC_FILES = ("*.md", ".claude/skills/*/SKILL.md")
 # Licence d'un jeu d'icônes tiers : pas notre documentation
 SKIPPED_DOCS = {"backend/app/assets/simple_icons/LICENSE.md"}
+# Specs et plans d'implémentation : ils citent les fichiers qu'ils prévoient de créer
+SKIPPED_DOC_DIRS = ("docs/superpowers/",)
 
 EXTENSIONS = "py|ts|tsx|js|mjs|cjs|json|md|yml|yaml|sh|toml|ini|css|conf|txt|html|cfg"
 # `dossier/fichier.ext`, éventuellement suivi de `::symbole` ou `:ligne` ; au moins un `/` (un nom nu est ambigu)
@@ -74,7 +76,7 @@ def test_every_path_cited_in_the_docs_exists():
     tracked = set(_git_files())
     problems = []
     for doc in _git_files(*DOC_FILES):
-        if doc in SKIPPED_DOCS:
+        if doc in SKIPPED_DOCS or doc.startswith(SKIPPED_DOC_DIRS):
             continue
         text = (REPO_ROOT / doc).read_text(encoding="utf-8")
         problems.extend(f"{doc} : `{path}`" for path in missing_paths(text, tracked))
