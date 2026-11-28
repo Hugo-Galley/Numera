@@ -136,7 +136,22 @@
       "close": "Close"
     },
     "lastFinished": "Month under review: {{month}}, the last completed month.",
-    "notFinished": "{{month}} is the current month: you can already review it, but it isn't over yet."
+    "notFinished": "{{month}} is the current month: you can already review it, but it isn't over yet.",
+    "navigation": "Review steps",
+    "stepOf": "Step {{current}} of {{total}}",
+    "precedent": "Previous",
+    "suivant": "Next: {{step}}",
+    "passerQuandMeme": "Skip anyway",
+    "resteDepenses_one": "{{count}} expense left to categorise",
+    "resteDepenses_other": "{{count}} expenses left to categorise",
+    "resteComptes_one": "{{count}} account left to check",
+    "resteComptes_other": "{{count}} accounts left to check",
+    "closedTitle": "{{month}} is closed",
+    "closedHint": "All wrapped up. If a transaction comes in late, you can always reopen the month.",
+    "closedUnresolved_one": "{{count}} item was still open",
+    "closedUnresolved_other": "{{count}} items were still open",
+    "revenus": "Income",
+    "voirLeBilan": "See the summary"
   },
   "monthlyReport": {
     "bilanDuMois": "Month Report",
