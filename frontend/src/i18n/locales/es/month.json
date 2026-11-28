@@ -136,7 +136,22 @@
       "close": "Cerrar"
     },
     "lastFinished": "Mes revisado: {{month}}, el último mes terminado.",
-    "notFinished": "{{month}} es el mes en curso: ya puedes revisarlo, pero aún no ha terminado."
+    "notFinished": "{{month}} es el mes en curso: ya puedes revisarlo, pero aún no ha terminado.",
+    "navigation": "Pasos de la revisión",
+    "stepOf": "Paso {{current}} de {{total}}",
+    "precedent": "Anterior",
+    "suivant": "Siguiente: {{step}}",
+    "passerQuandMeme": "Saltar de todos modos",
+    "resteDepenses_one": "Queda {{count}} gasto por categorizar",
+    "resteDepenses_other": "Quedan {{count}} gastos por categorizar",
+    "resteComptes_one": "Queda {{count}} cuenta por comprobar",
+    "resteComptes_other": "Quedan {{count}} cuentas por comprobar",
+    "closedTitle": "{{month}} está cerrado",
+    "closedHint": "Listo. Si una transacción llega tarde, siempre podrás reabrir el mes.",
+    "closedUnresolved_one": "Quedaba {{count}} punto por resolver",
+    "closedUnresolved_other": "Quedaban {{count}} puntos por resolver",
+    "revenus": "Ingresos",
+    "voirLeBilan": "Ver el balance"
   },
   "monthlyReport": {
     "bilanDuMois": "Balance del mes",

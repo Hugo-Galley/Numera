@@ -136,7 +136,22 @@
       "close": "Clôturer"
     },
     "lastFinished": "Mois revu : {{month}}, le dernier mois terminé.",
-    "notFinished": "{{month}} est le mois en cours : tu peux déjà le passer en revue, mais il n'est pas terminé."
+    "notFinished": "{{month}} est le mois en cours : tu peux déjà le passer en revue, mais il n'est pas terminé.",
+    "navigation": "Étapes de la revue",
+    "stepOf": "Étape {{current}} sur {{total}}",
+    "precedent": "Précédent",
+    "suivant": "Suivant : {{step}}",
+    "passerQuandMeme": "Passer quand même",
+    "resteDepenses_one": "Il reste {{count}} dépense à catégoriser",
+    "resteDepenses_other": "Il reste {{count}} dépenses à catégoriser",
+    "resteComptes_one": "Il reste {{count}} compte à vérifier",
+    "resteComptes_other": "Il reste {{count}} comptes à vérifier",
+    "closedTitle": "{{month}} est clôturé",
+    "closedHint": "C'est bouclé. Si une transaction arrive en retard, tu pourras toujours rouvrir le mois.",
+    "closedUnresolved_one": "{{count}} point restait à traiter",
+    "closedUnresolved_other": "{{count}} points restaient à traiter",
+    "revenus": "Revenus",
+    "voirLeBilan": "Voir le bilan"
   },
   "monthlyReport": {
     "bilanDuMois": "Bilan du mois",
