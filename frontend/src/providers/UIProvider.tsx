@@ -18,7 +18,7 @@ interface UIContextType {
 
 const UIContext = createContext<UIContextType | undefined>(undefined)
 
-// Même logique que le script en tête d'index.html (appliqué avant React, sans flash blanc)
+// Même logique que public/theme-init.js, chargé en tête d'index.html (appliqué avant React, sans flash blanc)
 function applyTheme(theme: ThemePreference) {
   const dark = theme === "dark" || (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches)
   document.documentElement.classList.toggle("dark", dark)
